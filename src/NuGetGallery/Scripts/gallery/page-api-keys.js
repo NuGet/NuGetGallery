@@ -53,9 +53,10 @@
             });
         }
 
-        function ApiKeyViewModel(parent, data, packageIds) {
+        function ApiKeyViewModel(parent, packageIds, data) {
             var self = this;
-            this._parent = parent;
+
+            data = data || {};
 
             // Initial each package ID as a view model. This view model is used to track manual checkbox checks
             // and whether the glob pattern matches the ID.
@@ -65,23 +66,35 @@
                 packageIdToViewModel[packageId] = new PackageViewModel(packageId);
                 packageViewModels.push(packageIdToViewModel[packageId]);
             });
-            $.each(data.Packages, function (i, packageId) {
-                if (packageId in packages) {
-                    packageIdToViewModel[packageId].Selected(true);
-                }
-            });
 
             // Generic API key properties.
-            this.Key = ko.observable(data.Key);
-            this.Type = ko.observable(data.Type);
-            this.Value = ko.observable(data.Value);
-            this.Description = ko.observable(data.Description);
-            this.Expires = ko.observable(data.Expires);
-            this.HasExpired = ko.observable(data.HasExpired);
-            this.IsNonScopedV1ApiKey = ko.observable(data.IsNonScopedV1ApiKey);
-            this.Scopes = ko.observableArray(data.Scopes);
-            this.Packages = ko.observableArray(data.Packages);
-            this.GlobPattern = ko.observable(data.GlobPattern);
+            this._UpdateData = function (data) {
+                this.Key(data.Key || 0);
+                this.Type(data.Type || null);
+                this.Value(data.Value || this.Value());
+                this.Description(data.Description || null);
+                this.Expires(data.Expires || null);
+                this.HasExpired(data.HasExpired || false);
+                this.IsNonScopedV1ApiKey(data.IsNonScopedV1ApiKey || false);
+                this.Scopes(data.Scopes || []);
+                this.Packages(data.Packages || []);
+                this.GlobPattern(data.GlobPattern || "");
+                $.each(packageViewModels, function (i, m) {
+                    var index = $.inArray(m.Id(), data.Packages);
+                    m.Selected(index !== -1);
+                });
+            };
+            this.Key = ko.observable();
+            this.Type = ko.observable();
+            this.Value = ko.observable();
+            this.Description = ko.observable();
+            this.Expires = ko.observable();
+            this.HasExpired = ko.observable();
+            this.IsNonScopedV1ApiKey = ko.observable();
+            this.Scopes = ko.observableArray();
+            this.Packages = ko.observableArray();
+            this.GlobPattern = ko.observable();
+            this._UpdateData(data);
 
             // Properties used for API key create
             this.ExpiresIn = ko.observable();
@@ -94,6 +107,7 @@
             this.PendingPackages = ko.observableArray();
             this.ScopesError = ko.observable();
             this.SubjectsError = ko.observable();
+            this.PendingCreateOrEdit = ko.observable(false);
 
             // Computed properties
             this.ShortPackageList = ko.computed(function () {
@@ -115,6 +129,20 @@
             }, this);
             this.CancelEditId = ko.pureComputed(function () {
                 return "cancel-edit-" + this.Key();
+            }, this);
+            this.CopyId = ko.pureComputed(function () {
+                return "copy-" + this.Key();
+            }, this);
+            this.IconUrl = ko.pureComputed(function () {
+                if (this.HasExpired()) {
+                    return initialData.ImageUrls.ApiKeyExpired;
+                } else if (this.IsNonScopedV1ApiKey()) {
+                    return initialData.ImageUrls.ApiKeyLegacy;
+                } else if (this.Value()) {
+                    return initialData.ImageUrls.ApiKeyNew;
+                } else {
+                    return initialData.ImageUrls.ApiKey;
+                }
             }, this);
 
             this.PendingScopes = ko.pureComputed(function () {
@@ -149,7 +177,7 @@
 
             // Apply the glob pattern to the package IDs
             this.PendingGlobPattern.subscribe(function (newValue) {
-                var pattern = globToRegex(newValue);
+                var pattern = globToRegex(newValue || "");
                 $.each(self.PendingPackages(), function (i, p) {
                     var matched = pattern.test(p.Id());
                     p.Matched(matched);
@@ -182,9 +210,17 @@
                 return true;
             };
 
-            this.EnableValidation = function () {
-                var form = $("#" + this.FormId());
+            this._GetCopyButton = function () {
+                return $("#" + self.CopyId());
+            }
+
+            this.AttachExtensions = function () {
+                // Enable form validation.
+                var form = $("#" + self.FormId());
                 $.validator.unobtrusive.parse(form);
+
+                // Enable copy popover.
+                self._GetCopyButton().popover({ trigger: 'manual' });
             }
 
             this.Valid = function (form) {
@@ -192,65 +228,183 @@
                 var formError = !$(form).valid();
 
                 // Execute scopes and subjects validation.
-                this.PendingGlobPattern(this.PendingGlobPattern() || "");
-                this.UnlistScope(this.UnlistScope() || []);
+                this.PendingGlobPattern.valueHasMutated();
+                this.UnlistScope.valueHasMutated();
 
                 return !formError &&
                        !this.ScopesError() &&
                        !this.SubjectsError();
             }
 
-            this.Submit = function (form) {
-                if (!this.Valid(form)) {
+            this.CancelEdit = function () {
+                $("#" + self.EditContainerId()).collapse('hide');
+            };
+
+            this.Copy = function () {
+                window.nuget.copyTextToClipboard(self.Value());
+                var $copyButton = self._GetCopyButton();
+                $copyButton.popover('show');
+                setTimeout(function () {
+                    $copyButton.popover('destroy');
+                }, 1000);
+            }
+
+            this.Regenerate = function () {
+                if (!window.nuget.confirmEvent("Are you sure you want to regenerate the API key?")) {
                     return;
                 }
 
                 // Build the request.
-                var data, url;
-                if (!this.Key()) {
-                    // Generate a new key.
-                    data = {
-                        description: this.Description(),
-                        scopes: this.PendingScopes(),
-                        subjects: this.PendingSubjects(),
-                        expirationInDays: this.ExpiresIn()
-                    };
-                    url = initialData.GenerateUrl;
-                } else {
-                    // Edit the existing key.
-                    data = {
-                        credentialType: this.Type(),
-                        credentialKey: this.Key(),
-                        subjects: this.PendingSubjects()
-                    };
-                    url = initialData.EditUrl;
-                }
+                var data = {
+                    credentialType: this.Type(),
+                    credentialKey: this.Key()
+                };
                 addAntiForgeryToken(data);
 
+                // Send the request.
                 $.ajax({
-                    url: url,
+                    url: initialData.RegenerateUrl,
+                    type: 'POST',
+                    dataType: 'json',
+                    data: data,
+                    success: function (data) {
+                        self._UpdateData(data);
+                        parent.ApiKeys.remove(self);
+                        parent.ApiKeys.unshift(self);
+
+                        parent.Error(null);
+                        parent.Warning("Your API key has been regenerated. Make sure to copy your new API key now " +
+                            "using the <b>Copy</b> button below. You will not be able to do so again.");
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        parent.Error("An error occurred while regenerating the API key. Please try again.");
+                    }
+                });
+            };
+
+            this.Delete = function () {
+                if (!window.nuget.confirmEvent("Are you sure you want to remove the API key?")) {
+                    return;
+                }
+
+                // Build the request.
+                var data = {
+                    credentialType: this.Type(),
+                    credentialKey: this.Key()
+                };
+                addAntiForgeryToken(data);
+
+                // Send the request.
+                $.ajax({
+                    url: initialData.RemoveUrl,
                     type: 'POST',
                     dataType: 'json',
                     data: data,
                     success: function () {
-                        console.log(arguments);
+                        parent.ApiKeys.remove(self);
+                        parent.Error(null);
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        parent.Error("An error occurred while creating a new API key. Please try again.");
                     }
-                })
+                });
+            };
+
+            this.CreateOrEdit = function (form) {
+                if (!this.Valid(form)) {
+                    return;
+                }
+
+                if (!this.Key()) {
+                    this.Create();
+                } else {
+                    this.Edit();
+                }
+            };
+
+            this.Create = function () {
+                // Build the request.
+                var data = {
+                    description: this.Description(),
+                    scopes: this.PendingScopes(),
+                    subjects: this.PendingSubjects(),
+                    expirationInDays: this.ExpiresIn()
+                };
+                addAntiForgeryToken(data);
+
+                // Send the request.
+                this.PendingCreateOrEdit(true);
+                $.ajax({
+                    url: initialData.GenerateUrl,
+                    type: 'POST',
+                    dataType: 'json',
+                    data: data,
+                    success: function (data) {
+                        self._UpdateData(data);
+                        parent.ApiKeys.unshift(self);
+
+                        var newApiKey = new ApiKeyViewModel(parent, packageIds);
+                        parent.NewApiKey(newApiKey);
+                        newApiKey.CancelEdit();
+
+                        parent.Error(null);
+                        parent.Warning("A new API key has been created. Make sure to copy your new API key now using " +
+                            "the <b>Copy</b> button below. You will not be able to do so again.");
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        parent.Error("An error occurred while creating a new API key. Please try again.");
+                    },
+                    complete: function () {
+                        self.PendingCreateOrEdit(false);
+                    }
+                });
+            };
+
+            this.Edit = function () {
+                // Build the request.
+                var data = {
+                    credentialType: this.Type(),
+                    credentialKey: this.Key(),
+                    subjects: this.PendingSubjects()
+                };
+                addAntiForgeryToken(data);
+
+                // Send the request.
+                this.PendingCreateOrEdit(true);
+                parent.Error(null);
+                $.ajax({
+                    url: initialData.EditUrl,
+                    type: 'POST',
+                    dataType: 'json',
+                    data: data,
+                    success: function (data) {
+                        self._UpdateData(data);
+                        self.CancelEdit();
+                        parent.Error(null);
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        parent.Error("An error occurred while editing a new API key. Please try again.");
+                    },
+                    complete: function () {
+                        self.PendingCreateOrEdit(false);
+                    }
+                });
             };
         }
 
         // Set up the data binding.
-        var viewModel = {};
-        var apiKeys = $.map(initialData.ApiKeys, function (x) {
-            return new ApiKeyViewModel(viewModel, x, initialData.PackageIds);
+        var parent = {};
+        var apiKeys = $.map(initialData.ApiKeys, function (data) {
+            return new ApiKeyViewModel(parent, initialData.PackageIds, data);
         });
-        var newApiKey = new ApiKeyViewModel(viewModel, { Key: 0, Type: null }, initialData.PackageIds);
+        var newApiKey = new ApiKeyViewModel(parent, initialData.PackageIds);
+        parent.ApiKeys = ko.observableArray(apiKeys);
+        parent.NewApiKey = ko.observable(newApiKey);
+        parent.Warning = ko.observable();
+        parent.Error = ko.observable();
+        ko.applyBindings(parent, $("#manage-container")[0]);
 
-        viewModel.ApiKeys = ko.observableArray(apiKeys);
-        viewModel.NewApiKey = ko.observable(newApiKey);
-
-        ko.applyBindings(viewModel, $("#manage-container")[0]);
-
+        // Configure the expander headings.
         window.nuget.configureExpanderHeading("manage-container");
         window.nuget.configureExpander(
             "edit-0-container",

@@ -554,7 +554,7 @@ namespace NuGetGallery
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> RegenerateCredential(string credentialType, int? credentialKey)
+        public virtual async Task<JsonResult> RegenerateCredential(string credentialType, int? credentialKey)
         {
             if (credentialType != CredentialTypes.ApiKey.V2)
             {
@@ -584,7 +584,7 @@ namespace NuGetGallery
             var credentialViewModel = _authService.DescribeCredential(newCredential);
             credentialViewModel.Value = newCredential.Value;
 
-            return Json(credentialViewModel);
+            return Json(DescribeApiKey(credentialViewModel));
         }
 
         private static bool CredentialKeyMatches(int? credentialKey, Credential c)
@@ -798,7 +798,7 @@ namespace NuGetGallery
                 .ToList();
             var globPattern = subjects
                 .FirstOrDefault(s => s != null && s.Contains("*"));
-            subjects = subjects
+            var packages = subjects
                 .Except(new[] { globPattern })
                 .ToList();
 
@@ -812,7 +812,7 @@ namespace NuGetGallery
                 HasExpired = cred.HasExpired,
                 IsNonScopedV1ApiKey = cred.IsNonScopedV1ApiKey,
                 Scopes = scopes,
-                Subjects = subjects,
+                Packages = packages,
                 GlobPattern = globPattern,
             };
 
@@ -823,7 +823,7 @@ namespace NuGetGallery
         {
             return user
                 .Credentials
-                .OrderBy(c => c.Created)
+                .OrderByDescending(c => c.Created)
                 .Where(c => CredentialTypes.IsViewSupportedCredential(c))
                 .Select(c => _authService.DescribeCredential(c))
                 .GroupBy(c => c.Kind)

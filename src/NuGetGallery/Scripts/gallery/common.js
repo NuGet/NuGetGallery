@@ -150,6 +150,18 @@
         return fn;
     };
 
+    nuget.confirmEvent = function (message, e) {
+        if (!confirm(message)) {
+            if (e) {
+                e.stopPropagation();
+                e.preventDefault();
+            }            
+            return false;
+        }
+
+        return true;
+    };
+
     window.nuget = nuget;
 
     // Source: https://stackoverflow.com/questions/18754020/bootstrap-3-with-jquery-validation-plugin
@@ -185,10 +197,7 @@ $(function () {
 
     // Handle confirm pop-ups.
     $('*[data-confirm]').delegate('', 'click', function (e) {
-        if (!confirm($(this).data().confirm)) {
-            e.stopPropagation();
-            e.preventDefault();
-        }
+        window.nuget.confirmEvent($(this).data().confirm, e);
     });
 
     // Select the first input that has an error.

@@ -11,7 +11,7 @@ namespace NuGetGallery
         public bool HasExpired { get; set; }
         public string Expires { get; set; }
         public IList<string> Scopes { get; set; }
-        public IList<string> Subjects { get; set; }
+        public IList<string> Packages { get; set; }
         public string GlobPattern { get; set; }
         public string Value { get; set; }
         public string Type { get; set; }
