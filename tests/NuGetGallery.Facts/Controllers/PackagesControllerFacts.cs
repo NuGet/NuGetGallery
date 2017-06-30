@@ -164,8 +164,8 @@ namespace NuGetGallery
 
                 var result = await controller.CancelUpload();
 
-                Assert.True(result is JsonResult);
-                Assert.Equal(null, result.Data);
+                Assert.IsType<JsonResult>(result);
+                Assert.Null(result.Data);
             }
         }
 
@@ -1891,7 +1891,7 @@ namespace NuGetGallery
                 var result = controller.UploadPackageProgress();
 
                 // Assert
-                Assert.True(result is JsonResult);
+                Assert.IsType<JsonResult>(result);
             }
 
             [Fact]
