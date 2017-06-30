@@ -1,0 +1,97 @@
+﻿@{
+	ViewBag.Title = "Home";
+	Layout = "~/Views/Shared/Gallery/Layout.cshtml";
+}
+
+<div class="text-center">
+	<div class="row">
+		<h3 class="col-lg-8 col-md-offset-2">
+			Here you can add a ReadMe.md file that will be displayed on the NuGet Gallery website.
+			Please choose one of the options below in order to import a ReadMe file, or to write your
+			own. If you are not interested in having a ReadMe file, skip this section.
+		</h3>
+	</div>
+	<div class="btn-group readme-btn-group row" style="padding-bottom:3em" data-toggle="buttons">
+		<label class="btn btn-primary active" id="readme-url-btn">
+			<input type="radio" name="options" autocomplete="off" checked> Import From URL
+		</label>
+		<label class="btn btn-primary" id="readme-file-btn">
+			<input type="radio" name="options" autocomplete="off"> Upload File
+		</label> 
+		<label class="btn btn-primary" id="readme-write-btn">
+			<input type="radio" name="options" autocomplete="off"> Write Your Own
+		</label>
+	</div>
+	<div class="readme-url col-lg-12">
+		<div class="input-group col-lg-6 col-lg-offset-3 col-sm-10 col-sm-offset-1">
+ 
+			<input type="url" pattern="[-a-zA-Z0-9@('@'):%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@('@'):%_\+.~#?&//=]*).md$" class="form-control"id="ReadMeUrlInput" placeholder="Enter the URL to your raw ReadMe file..."/>
+			<label for="input-select-file" id="ReadMeURLLabel" class="input-group-btn">
+				<span class="btn btn-primary form-control">Import</span>
+			</label>
+		</div> 
+	</div>
+	<div class="readme-file col-lg-12">
+		<div class="input-group col-lg-6 col-lg-offset-3 col-sm-10 col-sm-offset-1">
+			<input type="text" class="form-control" placeholder="Browse to select a ReadMe file..." readonly />
+			<label for="input-select-file" id="ReadMeFileLabel" class="input-group-btn">
+				<span class="btn btn-primary form-control">Browse&hellip;<input type="file" name="UploadFile" accept=".md" aria-labelledby="ReadMeFileLabel" id="input-select-file" style="display:none;" />
+				</span>
+			</label>
+		</div> 
+	</div>
+</div>
+<div class="row">
+	<div class="readme-write col-lg-6 col-lg-offset-3 col-sm-10 col-sm-offset-1">
+		<div>
+			<button class="btn btn-primary markdown-popover" data-toggle="popover" title="Markdown Syntax">Markdown</button>
+		</div>
+		<div>
+			<textarea class="col-lg-12" rows="30" placeholder="Write your own ReadMe here..."></textarea>
+		</div>
+	</div>
+</div>
+
+<div class="text-center" style="padding-top:3em; padding-bottom:3em">
+	<div class="row">
+		<button class="btn btn-primary">Preview</button>
+		<button class="btn btn-primary" id="uploadReadMe">Upload</button>
+	</div>
+</div>
+@section BottomScripts {
+	
+	<script>
+		$(document).ready(function () {
+			$(".readme-file").hide();
+			$(".readme-write").hide();
+			$(".markdown-popover").popover({
+				trigger: 'hover',
+				html: true,
+				placement: 'bottom',
+				content: "# Heading<br />## Sub-heading<br />Paragraphs are separated by a blank line.<br />--- Horizontal Rule<br />* Bullet List<br />1. Numbered List<br />A [link](http://www.example.com)<br />`Code Snippet`<br />_italic_ *italic*<br />__bold__ **bold** "
+			});
+		});
+		$(".readme-btn-group").change(function () {
+			if ($("#readme-url-btn").hasClass("active")) {
+				$(".readme-url").show();
+				$(".readme-file").hide();
+				$(".readme-write").hide();
+			} else if ($("#readme-file-btn").hasClass("active")) {
+				$(".readme-url").hide();
+				$(".readme-file").show();
+				$(".readme-write").hide();
+			} else if ($("#readme-write-btn").hasClass("active")) {
+				$(".readme-url").hide();
+				$(".readme-file").hide();
+				$(".readme-write").show();
+			}
+		});
+		$("#uploadReadMe").click(function() {
+			if ($("#readme-url-btn").hasClass("active")) {
+			} else if ($("#readme-file-btn").hasClass("active")) {
+			} else if ($("#readme-write-btn").hasClass("active")) {
+			}
+		})
+	</script>
+
+}

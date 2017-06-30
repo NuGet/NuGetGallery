@@ -1823,6 +1823,7 @@
     <Content Include="Views\Users\_ConfirmationResendForm.cshtml" />
     <Content Include="Views\Packages\_ImportReadMe.cshtml" />
     <Content Include="Views\Packages\_SubmitPackage.cshtml" />
+    <Content Include="Views\Packages\ReadMePartial.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />

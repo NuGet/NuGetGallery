@@ -1,41 +1,44 @@
 ﻿using System.IO;
 using System.Net;
-using NuGetGallery.Packaging;
-
+using System.Web;
+using System;
+using NuGetGallery.RequestModels;
+using System.Text.RegularExpressions;
 
 namespace NuGetGallery.Services
 {
     public class ReadMeService
     {
-        public ReadMeService()
+    public ReadMeService()
         {
 
         }
-        
-        /// <summary>
-        /// Finds the highest priority ReadMe file stream and returns it. Highest priority is an uploaded file,
-        /// then a repository URL inputted via the website, then a repository URL entered through the nuspec.
-        /// </summary>
-        /// <param name="formData">The current package's form data submitted through the verify page</param>
-        /// <param name="packageMetadata">The package metadata from the nuspec file</param>
-        /// <returns>A stream with the encoded ReadMe file</returns>
-        public static Stream GetReadMeStream(VerifyPackageRequest formData, PackageMetadata packageMetadata)
+
+
+    /// <summary>
+    /// Finds the highest priority ReadMe file stream and returns it. Highest priority is an uploaded file,
+    /// then a repository URL inputted via the website, then a repository URL entered through the nuspec.
+    /// </summary>
+    /// <param name="formData">The current package's form data submitted through the verify page</param>
+    /// <param name="packageMetadata">The package metadata from the nuspec file</param>
+    /// <returns>A stream with the encoded ReadMe file</returns>
+    public static Stream GetReadMeStream(ReadMeRequest formData)
         {
             // Uploaded ReadMe file
-            if (formData.ReadMe[0] != null)
+            if (formData.ReadMeFile != null)
             {
-                return formData.ReadMe[0].InputStream;
+                return GetStreamFromFile(formData.ReadMeFile);
             }
-            // ReadMe Ur
-            else if (formData.Edit.RepositoryUrl != null)
+            // ReadMe Url
+            else if (formData.ReadMeUrl != null)
             {
-                string readMeUrl = GetReadMeUrlFromRepositoryUrl(formData.Edit.RepositoryUrl);
+                string readMeUrl = GetReadMeUrlFromRepositoryUrl(formData.ReadMeUrl);
                 return ReadMeUrlToFileStream(readMeUrl);
             }
+            //ReadMe Written
             else
             {
-                string readMeUrl = GetReadMeUrlFromRepositoryUrl(packageMetadata.RepositoryUrl.ToEncodedUrlStringOrNull());
-                return ReadMeUrlToFileStream(packageMetadata.RepositoryUrl.ToEncodedUrlStringOrNull());
+                return GetStreamFromWritten(formData.ReadMeWritten);
             }
             
         }
@@ -45,9 +48,25 @@ namespace NuGetGallery.Services
         /// </summary>
         /// <param name="repositoryUrl">A link to the repository</param>
         /// <returns>A link to the raw readme.md file</returns>
-        private static string GetReadMeUrlFromRepositoryUrl(string repositoryUrl)
+    public static string GetReadMeUrlFromRepositoryUrl(string repositoryUrl)
         {
-            return repositoryUrl;
+            if (!repositoryUrl.Contains("http://") && !repositoryUrl.Contains("https://"))
+            {
+                repositoryUrl = "http://" + repositoryUrl;
+            }
+            Uri repositoryUri = new Uri(repositoryUrl);
+            Regex regex = new Regex(@"(http(s)?:\/\/)?([a-zA-Z0-9]+\.)?github\.com\/([a-zA-Z0-9])+\/([a-zA-Z0-9])+(\/)?$");
+            if (repositoryUri.Host.Contains("github.com") && regex.IsMatch(repositoryUrl))
+            {
+                if (!repositoryUrl.EndsWith("/"))
+                {
+                    repositoryUrl += "/";
+                }
+                return repositoryUrl + "blob/master/README.md";
+            } else
+            {
+                return "";
+            }
         }
 
         /// <summary>
@@ -55,11 +74,26 @@ namespace NuGetGallery.Services
         /// </summary>
         /// <param name="readMeUrl">A link to the raw ReadMe.md file</param>
         /// <returns>A stream to allow the file to be read</returns>
-        private static Stream ReadMeUrlToFileStream(string readMeUrl)
+    private static Stream ReadMeUrlToFileStream(string readMeUrl)
         {
             var webRequest = WebRequest.Create(readMeUrl);
             var response = webRequest.GetResponse();
             return response.GetResponseStream();
+        }
+
+    public static Stream GetStreamFromWritten(string writtenText)
+        {
+            MemoryStream stream = new MemoryStream();
+            StreamWriter writer = new StreamWriter(stream);
+            writer.Write(writtenText);
+            writer.Flush();
+            stream.Position = 0;
+            return stream;
+        }
+
+    public static Stream GetStreamFromFile(HttpPostedFileBase file)
+        {
+            return file.InputStream;
         }
     }
 }
