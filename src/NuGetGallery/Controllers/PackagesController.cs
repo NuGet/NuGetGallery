@@ -801,17 +801,18 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("contact package owners")]
         public virtual ActionResult ContactOwners(string id)
         {
-            var package = _packageService.FindPackageRegistrationById(id);
+            var package = _packageService.FindPackageByIdAndVersion(id, version: null);
 
-            if (package == null)
+            if (package == null || package.PackageRegistration == null)
             {
                 return HttpNotFound();
             }
 
             var model = new ContactOwnersViewModel
             {
-                PackageId = package.Id,
-                Owners = package.Owners.Where(u => u.EmailAllowed),
+                PackageId = package.PackageRegistration.Id,
+                ProjectUrl = package.ProjectUrl,
+                Owners = package.PackageRegistration.Owners.Where(u => u.EmailAllowed),
                 CopySender = true,
             };
 
