@@ -464,7 +464,7 @@ img.package-icon {
   margin-bottom: 10px;
 }
 .page-manage-owners .current-owner .remove-owner a {
-  color: #d9534f;
+  color: #df001e;
 }
 .page-manage-owners .current-owner .remove-owner a .ms-Icon {
   position: relative;
@@ -472,7 +472,7 @@ img.package-icon {
 }
 .page-manage-owners .current-owner .remove-owner a:hover,
 .page-manage-owners .current-owner .remove-owner a:active {
-  color: #c9302c;
+  color: #ac0017;
 }
 .page-profile .profile-title {
   margin-top: 50px;
