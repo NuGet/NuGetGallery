@@ -93,28 +93,44 @@
                 <span>Create New API Key</span>
             </a>
         </h3>
+        <!-- ko if: Error -->
+        <div class="alert alert-danger" role="alert">
+            <ul class="list-unstyled ms-Icon-ul">
+                <li>
+                    <i class="ms-Icon ms-Icon--ErrorBadge" aria-hidden="true"></i>
+                    <span data-bind="html: Error"></span>
+                </li>
+            </ul>
+        </div>
+        <!-- /ko -->
         <div class="panel panel-default panel-collapse collapse"
              data-bind="attr: { id: NewApiKey().EditContainerId }">
             <div class="panel-body" data-bind="template: { name: 'upsert-api-key', data: NewApiKey }">
             </div>
         </div>
     </div>
-    <!-- ko if: Warning -->
+    <!-- ko if: AnyJustCreated -->
     <div class="alert alert-warning" role="alert">
         <ul class="list-unstyled ms-Icon-ul">
             <li>
                 <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
-                <span data-bind="html: Warning"></span>
+                <span>
+                    A new API key has been created. Make sure to copy your new API key now using the <b>Copy</b>
+                    button below. You will not be able to do so again.
+                </span>
             </li>
         </ul>
     </div>
     <!-- /ko -->
-    <!-- ko if: Error -->
-    <div class="alert alert-danger" role="alert">
+    <!-- ko if: AnyJustRegenerated -->
+    <div class="alert alert-warning" role="alert">
         <ul class="list-unstyled ms-Icon-ul">
             <li>
-                <i class="ms-Icon ms-Icon--ErrorBadge" aria-hidden="true"></i>
-                <span data-bind="html: Error"></span>
+                <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
+                <span>
+                    Your API key has been regenerated. Make sure to copy your new API key now using the <b>Copy</b>
+                    button below. You will not be able to do so again.
+                </span>
             </li>
         </ul>
     </div>
@@ -413,7 +429,7 @@
                                                'aria-controls': EditContainerId,
                                                id: CancelEditId },
                                        enable: !PendingCreateOrEdit(),
-                                       click: function() { return false; }"
+                                       click: CancelEdit"
                    role="button" class="btn btn-default btn-block" data-toggle="collapse">
                     Cancel
                 </a>

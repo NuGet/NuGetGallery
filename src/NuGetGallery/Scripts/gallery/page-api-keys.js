@@ -1,16 +1,6 @@
 (function () {
     'use strict';
 
-    $.validator.addMethod("requiredscopes", function (value, element) {
-        var model = ko.dataFor(element);
-        return model.PendingScopes().length > 0;
-    }, "At least one scope must be selected.");
-
-    $.validator.addMethod("requiredsubjects", function (value, element) {
-        var model = ko.dataFor(element);
-        return model.PendingSubjects().length > 0;
-    }, "Either a glob pattern must be specified or at least one package ID must be selected.");
-
     $(function () {
         function addAntiForgeryToken(data) {
             var $field = $("#AntiForgeryForm input[name=__RequestVerificationToken]");
@@ -108,9 +98,11 @@
             this.ScopesError = ko.observable();
             this.SubjectsError = ko.observable();
             this.PendingCreateOrEdit = ko.observable(false);
+            this.JustCreated = ko.observable(false);
+            this.JustRegenerated = ko.observable(false);
 
             // Computed properties
-            this.ShortPackageList = ko.computed(function () {
+            this.ShortPackageList = ko.pureComputed(function () {
                 return this.Packages().slice(0, 3);
             }, this);
             this.SelectPackagesEnabled = ko.pureComputed(function () {
@@ -268,13 +260,12 @@
                     dataType: 'json',
                     data: data,
                     success: function (data) {
+                        parent.Error(null);
                         self._UpdateData(data);
+                        self.JustCreated(false);
+                        self.JustRegenerated(true);
                         parent.ApiKeys.remove(self);
                         parent.ApiKeys.unshift(self);
-
-                        parent.Error(null);
-                        parent.Warning("Your API key has been regenerated. Make sure to copy your new API key now " +
-                            "using the <b>Copy</b> button below. You will not be able to do so again.");
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
                         parent.Error("An error occurred while regenerating the API key. Please try again.");
@@ -301,11 +292,11 @@
                     dataType: 'json',
                     data: data,
                     success: function () {
-                        parent.ApiKeys.remove(self);
                         parent.Error(null);
+                        parent.ApiKeys.remove(self);
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
-                        parent.Error("An error occurred while creating a new API key. Please try again.");
+                        parent.Error("An error occurred while deleting the API key. Please try again.");
                     }
                 });
             };
@@ -340,16 +331,14 @@
                     dataType: 'json',
                     data: data,
                     success: function (data) {
+                        parent.Error(null);
                         self._UpdateData(data);
+                        self.JustCreated(true);
                         parent.ApiKeys.unshift(self);
 
                         var newApiKey = new ApiKeyViewModel(parent, packageIds);
                         parent.NewApiKey(newApiKey);
                         newApiKey.CancelEdit();
-
-                        parent.Error(null);
-                        parent.Warning("A new API key has been created. Make sure to copy your new API key now using " +
-                            "the <b>Copy</b> button below. You will not be able to do so again.");
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
                         parent.Error("An error occurred while creating a new API key. Please try again.");
@@ -378,12 +367,12 @@
                     dataType: 'json',
                     data: data,
                     success: function (data) {
+                        parent.Error(null);
                         self._UpdateData(data);
                         self.CancelEdit();
-                        parent.Error(null);
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
-                        parent.Error("An error occurred while editing a new API key. Please try again.");
+                        parent.Error("An error occurred while editing an API key. Please try again.");
                     },
                     complete: function () {
                         self.PendingCreateOrEdit(false);
@@ -392,17 +381,42 @@
             };
         }
 
+        function ApiKeysViewModel(initialData) {
+            var self = this;
+
+            var apiKeys = $.map(initialData.ApiKeys, function (data) {
+                return new ApiKeyViewModel(self, initialData.PackageIds, data);
+            });
+            var newApiKey = new ApiKeyViewModel(self, initialData.PackageIds);
+
+            this.ApiKeys = ko.observableArray(apiKeys);
+            this.NewApiKey = ko.observable(newApiKey);
+            this.Error = ko.observable();
+
+            this.AnyJustCreated = ko.pureComputed(function () {
+                var apiKeys = this.ApiKeys();
+                for (var i in apiKeys) {
+                    if (apiKeys[i].JustCreated()) {
+                        return true;
+                    }
+                }
+                return false;
+            }, this);
+            this.AnyJustRegenerated = ko.pureComputed(function () {
+                var apiKeys = this.ApiKeys();
+                for (var i in apiKeys) {
+                    if (apiKeys[i].JustRegenerated()) {
+                        return true;
+                    }
+                }
+                return false;
+            }, this);
+            
+        }
+
         // Set up the data binding.
-        var parent = {};
-        var apiKeys = $.map(initialData.ApiKeys, function (data) {
-            return new ApiKeyViewModel(parent, initialData.PackageIds, data);
-        });
-        var newApiKey = new ApiKeyViewModel(parent, initialData.PackageIds);
-        parent.ApiKeys = ko.observableArray(apiKeys);
-        parent.NewApiKey = ko.observable(newApiKey);
-        parent.Warning = ko.observable();
-        parent.Error = ko.observable();
-        ko.applyBindings(parent, $("#manage-container")[0]);
+        var apiKeysViewModel = new ApiKeysViewModel(initialData);
+        ko.applyBindings(apiKeysViewModel, $("#manage-container")[0]);
 
         // Configure the expander headings.
         window.nuget.configureExpanderHeading("manage-container");
