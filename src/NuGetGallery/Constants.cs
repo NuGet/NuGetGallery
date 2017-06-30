@@ -36,7 +36,7 @@ namespace NuGetGallery
         public const string ContentFolderName = "content";
 
         public const string PendingReadMeFolderName = "readmes/pending";
-        public const string ReadMeFolderName = "readmes/verified";
+        public const string ReadMeFolderName = "readmes/active";
         public const string ReadMeFileExtension = ".md";
   
         public const string PopularitySortOrder = "package-download-count";

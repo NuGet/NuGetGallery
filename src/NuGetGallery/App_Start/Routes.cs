@@ -135,6 +135,11 @@ namespace NuGetGallery
                 new { controller = "Packages", action = "VerifyPackage" });
 
             routes.MapRoute(
+                            "ReadMePartial",
+                            "packages/readmepartial",
+                            new { controller = "Packages", action = "ReadMePartial" });
+
+            routes.MapRoute(
                 RouteName.CancelUpload,
                 "packages/manage/cancel-upload",
                 new { controller = "Packages", action = "CancelUpload" });

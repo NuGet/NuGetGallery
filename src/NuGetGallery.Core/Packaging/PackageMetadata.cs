@@ -51,7 +51,7 @@ namespace NuGetGallery.Packaging
 
             IconUrl = GetValue(PackageMetadataStrings.IconUrl, (Uri)null);
             ProjectUrl = GetValue(PackageMetadataStrings.ProjectUrl, (Uri)null);
-            RepositoryUrl = GetValue(PackageMetadataStrings.RepoUrl, (Uri)null);
+            RepositoryUrl = GetValue(PackageMetadataStrings.RepositoryUrl, (Uri)null);
             LicenseUrl = GetValue(PackageMetadataStrings.LicenseUrl, (Uri)null);
             Copyright = GetValue(PackageMetadataStrings.Copyright, (string)null);
             Description = GetValue(PackageMetadataStrings.Description, (string)null);
