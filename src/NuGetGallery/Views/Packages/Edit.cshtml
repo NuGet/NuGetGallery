@@ -87,7 +87,10 @@
             '@Url.EditPackage(Model.PackageId, Model.Version)',
             '@Url.Package(Model.PackageId, Model.Version)');
         $(function () {
-            if (document.referrer.toLocaleLowerCase().endsWith("edit")) {
+            if (document.referrer != null
+                && document.referrer.toLocaleLowerCase().endsWith("edit")
+                && document.referrer.indexOf('@Model.PackageId') > -1) {
+
                 $("#input-select-version").focus();
             }
 

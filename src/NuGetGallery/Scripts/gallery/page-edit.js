@@ -26,7 +26,7 @@
             document.location = $(this).val();
         });
 
-        $('input[type="text"], textarea').on('change', function () {
+        $('input[type="text"], input[type="checkbox"], textarea').on('change', function () {
             $(this).addClass("edited");
             _changedState[$(this).attr('id')] = true;
             $('#verify-submit-button').removeAttr('disabled');
@@ -34,7 +34,7 @@
 
         // This sets up a series of functions that are capable of "resetting" the values in the inputs
         // Currently unused.
-        $('input[type="text"], textarea').each(function (index) {
+        $('input[type="text"], input[type="checkbox"], textarea').each(function (index) {
             _resetFunctions[$(this).attr('id')] = function (newValue) {
                 _changedState[$(this).attr('id')] = false;
                 $(this).val(newValue);
