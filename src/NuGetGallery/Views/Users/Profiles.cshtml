@@ -7,7 +7,21 @@
 
 <div class="container main-container page-profile">
     <section role="main" class="row">
-        <article class="col-md-8">
+        <aside class="col-md-4 col-md-push-8 profile-details">
+            @ViewHelpers.GravatarImage(Model.EmailAddress, Model.Username, 332)
+
+            <div class="statistics">
+                <div class="statistic">
+                    <div class="value">@Model.AllPackages.Count.ToNuGetNumberString()</div>
+                    <div class="description">@(Model.AllPackages.Count == 1 ? "Package" : "Packages")</div>
+                </div>
+                <div class="statistic">
+                    <div class="value">@Model.TotalPackageDownloadCount.ToNuGetNumberString()</div>
+                    <div class="description">Total @(Model.TotalPackageDownloadCount == 1 ? "download" : "downloads") of packages</div>
+                </div>
+            </div>
+        </aside>
+        <article class="col-md-8 col-md-pull-4">
             <div class="profile-title">
                 <h1>@Model.Username</h1>
 
@@ -29,19 +43,5 @@
 
             @ViewHelpers.PreviousNextPager(Model.Pager)
         </article>
-        <aside class="col-md-4 profile-details">
-            @ViewHelpers.GravatarImage(Model.EmailAddress, Model.Username, 332)
-
-            <div class="statistics">
-                <div class="statistic">
-                    <div class="value">@Model.AllPackages.Count.ToNuGetNumberString()</div>
-                    <div class="description">@(Model.AllPackages.Count == 1 ? "Package" : "Packages")</div>
-                </div>
-                <div class="statistic">
-                    <div class="value">@Model.TotalPackageDownloadCount.ToNuGetNumberString()</div>
-                    <div class="description">Total @(Model.TotalPackageDownloadCount == 1 ? "download" : "downloads") of packages</div>
-                </div>
-            </div>
-        </aside>
     </section>
 </div>
