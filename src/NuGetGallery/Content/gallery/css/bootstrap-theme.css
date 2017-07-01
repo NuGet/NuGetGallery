@@ -538,6 +538,9 @@ img.package-icon {
   font-weight: 600;
   color: #000;
 }
+.page-reset-password .reset-form {
+  margin-top: 80px;
+}
 .page-sign-in .provider-button {
   line-height: 2em;
 }
