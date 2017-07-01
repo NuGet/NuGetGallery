@@ -129,8 +129,7 @@ namespace NuGetGallery
             var user = GetCurrentUser();
 
             // Get API keys
-            var credentialGroups = GetCredentialGroups(user);
-            if (!credentialGroups.TryGetValue(CredentialKind.Token, out List<CredentialViewModel> credentials))
+            if (!GetCredentialGroups(user).TryGetValue(CredentialKind.Token, out List<CredentialViewModel> credentials))
             {
                 credentials = new List<CredentialViewModel>();
             }
