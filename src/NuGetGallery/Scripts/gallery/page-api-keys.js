@@ -60,7 +60,7 @@
 
             data = data || {};
 
-            // Initial each package ID as a view model. This view model is used to track manual checkbox checks
+            // Initialize each package ID as a view model. This view model is used to track manual checkbox checks
             // and whether the glob pattern matches the ID.
             var packageIdToViewModel = {};
             var packageViewModels = [];
@@ -247,7 +247,8 @@
             }
 
             this.CancelEdit = function () {
-                $("#" + self.EditContainerId()).collapse('hide');
+                var containerId = self.Key() ? self.EditContainerId() : 'create-container';
+                $("#" + containerId).collapse('hide');
             };
 
             this.ShowRemainingPackages = function (_, e) {
@@ -362,6 +363,8 @@
                         var newApiKey = new ApiKeyViewModel(parent, packageIds);
                         parent.NewApiKey(newApiKey);
                         newApiKey.CancelEdit();
+
+                        $("#manage-container").collapse("show");
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
                         parent.Error("An error occurred while creating a new API key. Please try again.");
@@ -460,17 +463,16 @@
 
         // Set up the data binding.
         var apiKeysViewModel = new ApiKeysViewModel(initialData);
-        ko.applyBindings(apiKeysViewModel, $("#manage-container")[0]);
+        ko.applyBindings(apiKeysViewModel, document.body);
 
         // Configure the expander headings.
-        window.nuget.configureExpanderHeading("manage-container");
         window.nuget.configureExpander(
-            "edit-0-container",
-            "CalculatorAddition",
+            "create-container",
+            "Add",
             null,
             "CalculatorSubtract",
             null);
-        window.nuget.configureExpanderHeading("example-container");
+        window.nuget.configureExpanderHeading("manage-container");
 
         // Start the idle timer for 10 minutes.
         executeOnInactive(apiKeysViewModel.Idle, 10 * 60 * 1000);

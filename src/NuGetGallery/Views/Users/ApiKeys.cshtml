@@ -9,16 +9,20 @@
 @helper Section(
     string id,
     string title,
-    Func<MvcHtmlString, HelperResult> content)
+    Func<MvcHtmlString, HelperResult> content,
+    bool expanded = true,
+    string expandedIcon = "ChevronDown",
+    string collapsedIcon = "ChevronRight")
 {
     <h2>
         <a href="#" role="button" data-toggle="collapse" data-target="#@id-container"
-           aria-expanded="true" aria-controls="@id-container" id="show-@id-container">
-            <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="false"></i>
+           aria-expanded="@(expanded ? "true" : "false")" aria-controls="@id-container" id="show-@id-container">
+            <i class="ms-Icon ms-Icon--@(expanded ? expandedIcon : collapsedIcon)"
+               aria-hidden="@(expanded ? "false" : "true")"></i>
             <span>@title</span>
         </a>
     </h2>
-    <div class="panel-collapse collapse in" id="@id-container">
+    <div class="panel-collapse collapse @(expanded ? "in" : string.Empty)" id="@id-container">
         @content(MvcHtmlString.Empty)
     </div>
 }
@@ -49,64 +53,46 @@
                     <strong>Always keep your API keys a secret!</strong> If one of your keys is accidentally revealed,
                     you can always generate a new one at any time. You can also remove existing API keys if necessary.
                 </p>
+                
+                @Section(
+                    "create",
+                    "Create",
+                    @<text>
+                        <div class="panel panel-default upsert-api-key">
+                            <div class="panel-body"
+                                 data-bind="template: { name: 'upsert-api-key', data: NewApiKey }">
+                            </div>
+                        </div>
+                    </text>,
+                    expanded: false,
+                    expandedIcon: "Subtraction",
+                    collapsedIcon: "Add")
 
                 @Section(
                     "manage",
-                    "Manage API Keys",
+                    "Manage",
                     @<text>
                         <div data-bind="template: 'manage-api-keys'"></div>
                     </text>)
             }
-
-            @Section(
-                "example",
-                "Example Usage",
-                @<text>
-                    <p>
-                        The following snippet demonstrates how you can use the
-                        <a href="https://docs.nuget.org/Consume/Command-Line-Reference">NuGet</a> command-line
-                        utility to submit a NuGet package to the gallery:
-                    </p>
-                    <div class="example-commands">
-                        nuget.exe setApiKey [your API key] -source @Model.SiteRoot
-                        <br />
-                        nuget.exe push MyPackage.1.0.nupkg -Source @Model.SiteRoot/api/v2/package
-                    </div>
-                </text>)
         </div>
     </div>
 </section>
 
-<script type="text/html" id="manage-api-keys">
-    <!--
-    <pre data-bind="text: ko.toJSON($data.NewApiKey, null, 2)"></pre>
-    -->
-    <div class="upsert-api-key add-api-key">
-        <h3>
-            <a href="#" role="button" data-toggle="collapse" aria-expanded="false"
-               data-bind="attr: { 'data-target': '#' + NewApiKey().EditContainerId(),
-                                  'aria-controls': NewApiKey().EditContainerId },
-                          click: function() { return false; }">
-                <i class="ms-Icon ms-Icon--Add" aria-hidden="false"></i>
-                <span>Create New API Key</span>
-            </a>
-        </h3>
-        <!-- ko if: Error -->
-        <div class="alert alert-danger" role="alert">
-            <ul class="list-unstyled ms-Icon-ul">
-                <li>
-                    <i class="ms-Icon ms-Icon--ErrorBadge" aria-hidden="true"></i>
-                    <span data-bind="html: Error"></span>
-                </li>
-            </ul>
-        </div>
-        <!-- /ko -->
-        <div class="panel panel-default panel-collapse collapse"
-             data-bind="attr: { id: NewApiKey().EditContainerId }">
-            <div class="panel-body" data-bind="template: { name: 'upsert-api-key', data: NewApiKey }">
-            </div>
-        </div>
+<script type="text/html" id="error-container">
+    <!-- ko if: Error -->
+    <div class="alert alert-danger" role="alert">
+        <ul class="list-unstyled ms-Icon-ul">
+            <li>
+                <i class="ms-Icon ms-Icon--ErrorBadge" aria-hidden="true"></i>
+                <span data-bind="html: Error"></span>
+            </li>
+        </ul>
     </div>
+    <!-- /ko -->
+</script>
+
+<script type="text/html" id="manage-api-keys">
     <!-- ko if: AnyExpired -->
     <div class="alert alert-warning" role="alert">
         <ul class="list-unstyled ms-Icon-ul">
@@ -165,7 +151,8 @@
     <div class="api-key-details">
         <div class="row">
             <div class="col-sm-1">
-                <img class="img-responsive" aria-hidden="true" alt=""
+                <img class="package-icon img-responsive" aria-hidden="true" alt=""
+                     width="51" height="51"
                      data-bind="attr: { src: IconUrl }" />
             </div>
             <div class="col-sm-11">
@@ -387,7 +374,7 @@
                 </label>
             </div>
         </div>
-        <div class="row" data-bind="css: { disabled: !SelectPackagesEnabled() }">
+        <div class="row select-packages-form" data-bind="css: { disabled: !SelectPackagesEnabled() }">
             <div class="col-sm-7">
                 <div class="form-group">
                     <input type="text" class="form-control" data-val="true"
