@@ -126,7 +126,7 @@
                     this.UnlistScope().length > 0;
             }, this);
 
-            function GenerateId(prefix, suffix) {
+            function ComputedId(prefix, suffix) {
                 return ko.pureComputed(function () {
                     var id = self.Key();
                     if (prefix) {
@@ -138,14 +138,14 @@
                     return id;
                 }, self);
             }
-            this.FormId = GenerateId("form");
-            this.RemainingPackagesId = GenerateId("remaining-packages");
-            this.EditContainerId = GenerateId("edit", "container");
-            this.StartEditId = GenerateId("start-edit");
-            this.CancelEditId = GenerateId("cancel-edit");
-            this.CopyId = GenerateId("copy");
-            this.DescriptionId = GenerateId("description");
-            this.GlobPatternId = GenerateId("glob-pattern");
+            this.FormId = ComputedId("form");
+            this.RemainingPackagesId = ComputedId("remaining-packages");
+            this.EditContainerId = ComputedId("edit", "container");
+            this.StartEditId = ComputedId("start-edit");
+            this.CancelEditId = ComputedId("cancel-edit");
+            this.CopyId = ComputedId("copy");
+            this.DescriptionId = ComputedId("description");
+            this.GlobPatternId = ComputedId("glob-pattern");
 
             this.IconUrl = ko.pureComputed(function () {
                 if (this.HasExpired()) {
