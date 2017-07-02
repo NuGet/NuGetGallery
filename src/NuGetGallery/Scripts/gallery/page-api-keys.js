@@ -125,24 +125,28 @@
                     this.PushEnabled() ||
                     this.UnlistScope().length > 0;
             }, this);
-            this.FormId = ko.pureComputed(function () {
-                return "form-" + this.Key();
-            }, this);
-            this.RemainingPackagesId = ko.pureComputed(function () {
-                return "remaining-packages" + this.Key();
-            }, this);
-            this.EditContainerId = ko.pureComputed(function () {
-                return "edit-" + this.Key() + "-container";
-            }, this);
-            this.StartEditId = ko.pureComputed(function () {
-                return "start-edit-" + this.Key();
-            }, this);
-            this.CancelEditId = ko.pureComputed(function () {
-                return "cancel-edit-" + this.Key();
-            }, this);
-            this.CopyId = ko.pureComputed(function () {
-                return "copy-" + this.Key();
-            }, this);
+
+            function GenerateId(prefix, suffix) {
+                return ko.pureComputed(function () {
+                    var id = self.Key();
+                    if (prefix) {
+                        id = prefix + "-" + id;
+                    }
+                    if (suffix) {
+                        id = id + "-" + suffix;
+                    }
+                    return id;
+                }, self);
+            }
+            this.FormId = GenerateId("form");
+            this.RemainingPackagesId = GenerateId("remaining-packages");
+            this.EditContainerId = GenerateId("edit", "container");
+            this.StartEditId = GenerateId("start-edit");
+            this.CancelEditId = GenerateId("cancel-edit");
+            this.CopyId = GenerateId("copy");
+            this.DescriptionId = GenerateId("description");
+            this.GlobPatternId = GenerateId("glob-pattern");
+
             this.IconUrl = ko.pureComputed(function () {
                 if (this.HasExpired()) {
                     return initialData.ImageUrls.ApiKeyExpired;
@@ -226,16 +230,21 @@
 
             this.AttachExtensions = function () {
                 // Enable form validation.
-                var form = $("#" + self.FormId());
-                $.validator.unobtrusive.parse(form);
+                var $form = $("#" + self.FormId());
+                $.validator.unobtrusive.parse($form);
+                var $validator = $form.validate();
+
+                // Immediately validate the description and glob pattern.
+                $validator.submitted[self.DescriptionId()] = null;
+                $validator.submitted[self.GlobPatternId()] = null;
 
                 // Enable copy popover.
                 self._GetCopyButton().popover({ trigger: 'manual' });
             }
 
-            this.Valid = function (form) {
+            this.Valid = function () {
                 // Execute form validation.
-                var formError = !$(form).valid();
+                var formError = !$("#" + this.FormId()).valid();
 
                 // Execute scopes and subjects validation.
                 this.PendingGlobPattern.valueHasMutated();
@@ -325,8 +334,8 @@
                 });
             };
 
-            this.CreateOrEdit = function (form) {
-                if (!this.Valid(form)) {
+            this.CreateOrEdit = function () {
+                if (!this.Valid()) {
                     return;
                 }
 

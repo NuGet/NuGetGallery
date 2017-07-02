@@ -139,7 +139,7 @@
             <li>
                 <i class="ms-Icon ms-Icon--Info" aria-hidden="true"></i>
                 <span>
-                    You don't have any API keys yet.
+                    You don't have any API keys.
                 </span>
             </li>
         </ul>
@@ -259,18 +259,18 @@
         <!-- ko ifnot: Key -->
         <div class="row">
             <div class="col-sm-7 form-group">
-                <label data-bind="attr: { for: 'description-' + Key(),
-                                          id: 'description-' + Key() + '-label' }">Key Name</label>
+                <label data-bind="attr: { for: DescriptionId,
+                                          id: DescriptionId() + '-label' }">Key Name</label>
                 <input type="text" class="form-control"
-                       data-bind="attr: { id: 'description-' + Key(),
-                                          name: 'description-' + Key(),
-                                          'aria-labelledby': 'description-' + Key() + '-label description-' + Key() + '-validation-message' },
+                       data-bind="attr: { id: DescriptionId,
+                                          name: DescriptionId,
+                                          'aria-labelledby': DescriptionId() + '-label ' + DescriptionId() + '-validation-message' },
                                   value: Description"
                        data-val-required="The key name is required." data-val="true" />
                 <span class="field-validation-valid help-block"
                       data-valmsg-replace="true"
-                      data-bind="attr: { 'data-valmsg-for': 'description-' + Key(),
-                                         id: 'description-' + Key() + '-validation-message' }"></span>
+                      data-bind="attr: { 'data-valmsg-for': DescriptionId,
+                                         id: DescriptionId() + '-validation-message' }"></span>
             </div>
             @if (Model.ExpirationInDaysForApiKeyV1 > 0)
             {
@@ -361,15 +361,15 @@
                 <div class="has-error">
                     <span class="field-validation-valid help-block"
                           data-valmsg-replace="true"
-                          data-bind="attr: { 'data-valmsg-for': 'glob-pattern-' + Key(),
-                                             id: 'glob-pattern-' + Key() + '-validation-message' }"></span>
+                          data-bind="attr: { 'data-valmsg-for': GlobPatternId,
+                                             id: GlobPatternId() + '-validation-message' }"></span>
                 </div>
             </div>
         </div>
         <div class="row">
             <div class="col-sm-7">
-                <label data-bind="attr: { for: 'glob-pattern-' + Key(),
-                                          id: 'glob-pattern-' + Key() + '-label' }">
+                <label data-bind="attr: { for: GlobPatternId,
+                                          id: GlobPatternId() + '-label' }">
                     Glob Pattern
                 </label>
             </div>
@@ -381,9 +381,9 @@
                            data-val-regex="Invalid glob pattern. See the example glob patterns below for further details."
                            data-val-regex-pattern="^[\*\w_.-]*$" 
                            data-bind="textInput: PendingGlobPattern,
-                                      attr: { id: 'glob-pattern-' + Key(),
-                                              name: 'glob-pattern-' + Key(),
-                                              'aria-labelledby': 'glob-pattern-' + Key() + '-label glob-pattern-' + Key() + '-validation-message' },
+                                      attr: { id: GlobPatternId,
+                                              name: GlobPatternId,
+                                              'aria-labelledby': GlobPatternId() + '-label ' + GlobPatternId() + '-validation-message' },
                                       enable: SelectPackagesEnabled"  />
                 </div>
                 <div class="form-group">
