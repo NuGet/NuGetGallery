@@ -130,15 +130,20 @@ body h3 {
   position: absolute;
   left: -24px;
 }
-h2 .ms-Icon {
+h2 .ms-Icon,
+h3 .ms-Icon {
   position: relative;
   top: -2px;
   font-size: .6em;
 }
 h2 a,
+h3 a,
 h2 a:hover,
+h3 a:hover,
 h2 a:focus,
-h2 a:active {
+h3 a:focus,
+h2 a:active,
+h3 a:active {
   color: #333;
   text-decoration: none;
 }
@@ -154,6 +159,10 @@ img.package-icon {
 }
 .icon-bar {
   border: 1px solid #fff;
+}
+.disabled {
+  pointer-events: none;
+  opacity: .4;
 }
 .list-packages {
   border-top: 1px solid #dbdbdb;
@@ -310,6 +319,88 @@ img.package-icon {
     float: right;
     text-align: right;
   }
+}
+.page-api-keys .example-commands {
+  padding: 8px 10px;
+  font-family: Consolas, Menlo, Monaco, "Courier New", monospace;
+  color: #fff;
+  background-color: #002440;
+}
+.page-api-keys h2 {
+  margin-top: 30px;
+  margin-bottom: 10px;
+}
+.page-api-keys h3 {
+  margin-top: 0;
+  margin-bottom: 0;
+  font-size: 34px;
+}
+.page-api-keys .in.in-inline {
+  display: inline;
+}
+.page-api-keys .upsert-api-key ul {
+  padding-left: 0;
+  list-style: none;
+}
+.page-api-keys .upsert-api-key ul ul {
+  padding-left: 20px;
+}
+.page-api-keys .upsert-api-key .panel {
+  margin-bottom: 0;
+}
+.page-api-keys .upsert-api-key .available-packages .panel-body {
+  height: 204px;
+  padding-top: 0;
+  padding-bottom: 0;
+  overflow: auto;
+}
+.page-api-keys .upsert-api-key .glob-pattern-hint .panel-body {
+  height: 282px;
+}
+.page-api-keys .add-api-key {
+  padding: 20px 0;
+  border-top: 1px solid #dbdbdb;
+  border-bottom: 1px solid #dbdbdb;
+}
+.page-api-keys .add-api-key > .panel {
+  margin-top: 16px;
+}
+.page-api-keys .api-key-details {
+  padding: 20px 0;
+  border-bottom: 1px solid #dbdbdb;
+}
+.page-api-keys .api-key-details .ms-Icon {
+  position: relative;
+  top: 2px;
+}
+.page-api-keys .api-key-details .icon-details {
+  margin: 10px 0;
+  color: #666;
+}
+.page-api-keys .api-key-details .icon-details li {
+  padding: 0;
+}
+.page-api-keys .api-key-details .icon-details li + li {
+  padding-left: 10px;
+  margin-left: 10px;
+  border-left: 1px solid #dbdbdb;
+}
+.page-api-keys .api-key-details .icon-buttons {
+  margin: 10px 0;
+  font-size: 1.2em;
+  color: #666;
+}
+.page-api-keys .api-key-details .icon-buttons li {
+  padding: 0;
+}
+.page-api-keys .api-key-details .icon-buttons li + li {
+  padding-left: 16px;
+  margin-left: 16px;
+  border-left: 1px solid #dbdbdb;
+}
+.page-api-keys .api-key-details .icon-buttons a:focus,
+.page-api-keys .api-key-details .icon-buttons a:hover {
+  text-decoration: none;
 }
 .page-package-details .no-border {
   border: 0;

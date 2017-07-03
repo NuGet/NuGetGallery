@@ -1483,6 +1483,8 @@
     <Compile Include="Services\ReflowPackageService.cs" />
     <Compile Include="Services\TelemetryService.cs" />
     <Compile Include="ViewModels\ManagePackagesListViewModel.cs" />
+    <Compile Include="ViewModels\ApiKeyListViewModel.cs" />
+    <Compile Include="ViewModels\ApiKeyViewModel.cs" />
     <Compile Include="ViewModels\ReportMyPackageViewModel.cs" />
     <Compile Include="ViewModels\ScopeViewModel.cs" />
     <Compile Include="ViewModels\PackageListSearchViewModel.cs" />
@@ -1916,11 +1918,8 @@
     <Content Include="Content\font\FontAwesome.otf" />
     <None Include="Properties\PublishProfiles\nuget-staging-frontend.pubxml" />
     <Content Include="packages.config" />
-    <Content Include="Scripts\gallery\stats-perpackagestatsgraphs.js" />
     <Content Include="Scripts\statsgraphs.js" />
     <Content Include="Scripts\nugetgallery.js" />
-    <Content Include="Scripts\gallery\stats-dimensions.js" />
-    <Content Include="Scripts\gallery\async-file-upload.js" />
     <Content Include="Scripts\stats.js" />
     <Content Include="Scripts\gallery\**\*" />
     <Content Include="Web.config">

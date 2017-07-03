@@ -181,24 +181,46 @@
         return fn;
     };
 
+    nuget.confirmEvent = function (message, e) {
+        if (!confirm(message)) {
+            if (e) {
+                e.stopPropagation();
+                e.preventDefault();
+            }            
+            return false;
+        }
+
+        return true;
+    };
+
+    nuget.commaJoin = function (items) {
+        if (!items) {
+            return '';
+        }
+
+        var allButLast = items.slice(0, -1).join(', ');
+        var last = items.slice(-1)[0];
+        return [allButLast, last].join(items.length < 2 ? '' : (items.length == 2 ? ' and ' : ', and '));
+    };
+
     window.nuget = nuget;
 
     initializeJQueryValidator();
 })();
 
 $(function () {
-    // Use moment.js to format attributes with the "datetime" attribute to "ago".
+    // Use moment.js to format attributes with the "datetime" attribute to "X time ago".
     $.each($('*[data-datetime]'), function () {
         var datetime = moment($(this).data().datetime);
+        if (!$(this).attr('title')) {
+            $(this).attr('title', datetime.utc().format());
+        }
         $(this).text(datetime.fromNow());
     });
 
     // Handle confirm pop-ups.
     $('*[data-confirm]').delegate('', 'click', function (e) {
-        if (!confirm($(this).data().confirm)) {
-            e.stopPropagation();
-            e.preventDefault();
-        }
+        window.nuget.confirmEvent($(this).data().confirm, e);
     });
 
     // Select the first input that has an error.

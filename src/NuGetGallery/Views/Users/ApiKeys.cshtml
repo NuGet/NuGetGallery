@@ -1,1384 +1,473 @@
-﻿@using NuGetGallery.Authentication
-@model AccountViewModel
-
-@Scripts.Render("~/Scripts/jquery-1.11.0.min.js")
-@Scripts.Render("~/Scripts/moment.min.js")
-
-<form id="__AjaxAntiForgeryForm" action="#" method="post">@Html.AntiForgeryToken()</form>
+﻿@model ApiKeyListViewModel
+@using NuGetGallery.Authentication
 
 @{
-    var apiKeys = Model.CredentialGroups.ContainsKey(CredentialKind.Token) ?
-        Model.CredentialGroups[CredentialKind.Token] :
-        new List<CredentialViewModel>();
-
-    // Auto-expand when an API key has expired or api key deleted
-    var shouldExpandApiKeyAccordion =
-            apiKeys.Any(k => k.HasExpired) ||
-            string.Equals(TempData["Message"], Strings.CredentialRemoved);
-
-    // Sort the api keys by description, when a legacy api key appears first
-    apiKeys.Sort((k1, k2) =>
-    {
-        if (k1.IsNonScopedV1ApiKey)
-        {
-            return -1;
-        }
-        if (k2.IsNonScopedV1ApiKey)
-        {
-            return 1;
-        }
-
-        return k1.Description.CompareTo(k2.Description);
-    });
-
-    var newestApiKeyWithDuration = apiKeys.Where(x => x.ExpirationDuration != null).OrderByDescending(x => x.Created).FirstOrDefault();
-    int defaultDurationDays = 365;
-
-    if (newestApiKeyWithDuration != null)
-    {
-        defaultDurationDays = newestApiKeyWithDuration.ExpirationDuration.Value.Days;
-    }
+    ViewBag.Title = "API Keys";
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
-@ViewHelpers.AccordionBar(
-    groupName: "apikeys",
-    page: this,
-    title: @<text>API Keys</text>,
-    enabled: CurrentUser.Confirmed,
-    expanded: shouldExpandApiKeyAccordion,
-    actions: @<text>
-                 @if (!CurrentUser.Confirmed)
-                 {
-                     <text>
-                         You need to
-                         <a href="@Url.ConfirmationRequired()">confirm your account</a> before viewing your API Keys
-                     </text>
-                 }
-                 else
-                 {
-                     if (apiKeys.Count == 0)
-                     {
-                        <span id="noapikeysbanner">You don't have any API keys yet</span>
-                     }
-                     else if (apiKeys.Any(k => k.HasExpired))
-                     {
-                         <span id="apiKeyExpired">One of your API keys has expired</span>
-                     }
-
-                     @item.ExpandLink("Show details", "Hide details")
-                 }
-              </text>,
-    content: @<text>
-                <span>
-                <p>
-                    An API key is a token that can identify you to @(Config.Current.Brand). The
-                    <a href="https://docs.nuget.org/Consume/Command-Line-Reference">NuGet command-line utility</a> allows you to
-                    submit a NuGet package to the gallery using your API key to authenticate.
-                </p>
-                @if (!CurrentUser.Confirmed)
-                {
-                    <p>To get an API Key you will need to <a href="@Url.ConfirmationRequired()">confirm your account.</a></p>
-                }
-                @if (CurrentUser.Confirmed)
-                {
-                    <p id="noapikeysmessage"  @(apiKeys.Any() ? "style=display:none" : "")><strong>You don't have any API keys yet.</strong> Use the form below to generate an API key and start publishing packages to @(Config.Current.Brand).</p>
-                    <p id="hasapikeysmessage" @(!apiKeys.Any() ? "style=display:none" : "")><strong>Always keep your API keys a secret!</strong> If one of your keys is accidentally revealed, you can always generate a new one at any time. You can also remove existing API keys if necessary.</p>
-                    <h4>Manage API Keys</h4>
-                    <p id="errormessage" class="message error" style="display:none">An error occured. Please try again.</p>
-                    <hr />
-                    <ul class="accordion enhanced">@AddApiKey(!apiKeys.Any())</ul>
-                    <div id="apikeyscontainer" @(!apiKeys.Any() ? "style=display:none" : "")>
-                        <h5>Keys</h5>
-                        <hr />
-                        <p id="newApiKeyWarning" class="message warning fancy" style="display:none" >
-                            <span class="icon-stack warningsign">
-                                <i class="icon-circle icon-stack-base"></i>
-                                <i class="icon-exclamation"></i>
-                            </span>
-                            New API key has been created. Make sure to copy your new API key now using the <i class="icon-copy" style="color:#0071bc"></i> copy key button. You won't be able to do so again.
-                        </p>
-                        <table class="details-table" id="api-keys-details" width="100%">
-                        <colgroup>
-                            <col span="1" style="width: 5%;">
-                            <col span="1" style="width: 80%;">
-                            <col span="1" style="width: 20%;">
-                        </colgroup>
-                            <tbody>
-                                @foreach (var apiKey in apiKeys)
-                                {
-                                    <tr>
-                                        <td>
-                                            @if (apiKey.HasExpired)
-                                            {
-                                                <img src="~/Content/Images/icons/apiKeyExpired.png" />
-                                            }
-                                            else if (apiKey.IsNonScopedV1ApiKey)
-                                            {
-                                                <img src="~/Content/Images/icons/apiKeyLegacy.png" />
-                                            }
-                                            else
-                                            {
-                                                <img src="~/Content/Images/icons/apiKey.png" />
-                                            }
-                                        </td>
-                                        <td>
-                                            <strong title="@apiKey.Description">@apiKey.Description</strong><br />
-                                            <span>
-                                                <b>Expires:</b>
-                                                @if (!apiKey.Expires.HasValue)
-                                                {
-                                                    <span class="s-localtime">Never</span>
-                                                }
-                                                else if (!apiKey.HasExpired)
-                                                {
-                                                    <span class="s-relativetime" data-utc="@apiKey.Expires.Value.ToJavaScript()">@apiKey.Expires.Value.ToNuGetShortDateString()</span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="expired">Expired</span>
-                                                }
-                                            </span><br />
-                                            @if (apiKey.Scopes.Any())
-                                            {
-                                                var scopesList = apiKey.Scopes.Select(s =>s.AllowedAction).Distinct().OrderBy(s => s).ToList();
-                                                var subjectsList = apiKey.Scopes.Select(s => s.Subject).Distinct().OrderBy(s => s).ToList();
-                                                var globPattern = subjectsList.FirstOrDefault(x => x != null && x.Contains("*"));
-
-                                                if (globPattern != null)
-                                                {
-                                                    subjectsList.Remove(globPattern);
-                                                }
-
-                                                <span>
-                                                    <b>Scopes: </b>
-                                                    <span class="shortlist">@string.Join(", ", scopesList.Take(3))</span>
-                                                    @if (scopesList.Count > 3)
-                                                    {
-                                                        <a class="moredetails">More...</a>
-                                                        <ul class="longlist">
-                                                            @foreach (var scope in scopesList)
-                                                            {
-                                                                <li>@scope</li>
-                                                            }
-                                                        </ul>
-                                                    }
-                                                </span><br />
-
-                                                if (globPattern != null)
-                                                {
-                                                    <span class="globpattern"><b>Glob pattern: </b>@globPattern<br /></span>
-                                                }
-
-                                                if (subjectsList.Any())
-                                                {
-                                                    const int itemsPerBatch = 10;
-
-                                                    <span class="packageslist">
-                                                        <b>Packages: </b>
-                                                        <span class="shortlist">@string.Join(", ", subjectsList.Take(3))</span>
-                                                            @if (subjectsList.Count > 3)
-                                                            {
-                                                                <a class="moredetails first">More...</a>
-                                                                <ul class="longlist">
-                                                                @for (int i = 0; i < subjectsList.Count; i++)
-                                                                {
-                                                                    var lastInBatch = i != 0 && i%itemsPerBatch == (itemsPerBatch - 1);
-                                                                    <li>
-                                                                        @subjectsList[i]
-
-                                                                        @if (lastInBatch && i != subjectsList.Count - 1)
-                                                                        {
-                                                                            <a class="moredetails next">&nbsp;More...</a>
-                                                                        }
-                                                                    </li>
-                                                                }
-                                                            </ul>
-                                                            }
-                                                    </span>
-                                                }
-                                            }
-                                            else
-                                            {
-                                                <b>Scopes: </b><span>All</span><br />
-                                                <b>Packages: </b><span>All</span>
-                                            }
-                                        </td>
-                                        <td class="actions actions-wide">
-                                            @if (apiKey.IsNonScopedV1ApiKey)
-                                            {
-                                                <div class="popup copynotifypopup" style="display:none;">
-                                                    <div class="popupbox small">
-                                                        <div class="innertext small">Copied</div>
-                                                    </div>
-                                                </div>
-                                                <button class="btn btn-veryflat copyapikeybutton" title="Copy to clipboard" type="button" onclick="copyTextToClipboard('@apiKey.Value')"><img src="~/Content/Images/icons/copy.png" /></button>
-                                            }
-
-                                            @if (!apiKey.IsNonScopedV1ApiKey)
-                                            {
-                                                <button class="btn btn-veryflat" title="Edit Api key" type="button" onclick="showEditForm($(this).closest('tr'))"><img src="~/Content/Images/icons/edit.png" /></button>
-
-                                                using (Html.BeginForm("RegenerateCredential", "Users", FormMethod.Post, new {@class = "form-inline regenerate-api-key"}))
-                                                {
-                                                    @Html.AntiForgeryToken()
-                                                    @Html.Hidden("credentialType", apiKey.Type)
-                                                    @Html.Hidden("credentialKey", apiKey.Key)
-                                                    <button title="Regenerate" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to regenerate the API key?" type="button"><img src="~/Content/Images/icons/regenerate.png" /></button>
-                                                }
-                                            }
-
-                                            @using (Html.BeginForm("RemoveCredential", "Users", FormMethod.Post, new {@class = "form-inline remove-api-key"}))
-                                            {
-                                                @Html.AntiForgeryToken()
-                                                @Html.Hidden("credentialType", apiKey.Type)
-                                                @Html.Hidden("credentialKey", apiKey.Key)
-                                                <button title="Remove" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to remove the API key?" type="button"><img src="~/Content/Images/icons/delete.png" /></button>
-                                            }
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                    </table>
-                    </div>
-
-
-                    var siteRoot = Config.Current.RequireSSL
-                        ? Config.Current.SiteRoot.TrimEnd('/').Replace("http://", "https://")
-                        : Config.Current.SiteRoot.TrimEnd('/');
-
-                    var exampleApiKey = "[your API key]";
-                    <span id="usageexample" @(!apiKeys.Any() ? "style=display:none" : "")>
-                        <hr />
-                        <h4>Example usage</h4>
-                        <p>
-                            The following snippet demonstrates how you can use the <a href="https://docs.nuget.org/Consume/Command-Line-Reference">NuGet</a>
-                            command-line utility to submit a NuGet package to the gallery:
-                        </p>
-                        <p>
-                            <div id="account-apikeysample">
-                                <div>nuget.exe setApiKey @exampleApiKey -source @siteRoot</div>
-                                <div>nuget.exe push MyPackage.1.0.nupkg -Source @siteRoot/api/v2/package</div>
-                            </div>
-                        </p>
-                    </span>
-                }
-            </span>
-</text>)
-
-
-
-@helper AddApiKey(bool expanded)
+@helper Section(
+    string id,
+    string title,
+    Func<MvcHtmlString, HelperResult> content,
+    bool expanded = true,
+    string expandedIcon = "ChevronDown",
+    string collapsedIcon = "ChevronRight")
 {
-    @ViewHelpers.AccordionBar(
-        groupName: "newapikey",
-        page: this,
-        title: @<text>API Keys</text>,
-        expanded: expanded,
-        actions:  @<text> @item.ExpandButton("New API key", "Cancel") </text>,
-        content:  @<text>
-                    @using (Html.BeginForm("GenerateApiKey", "Users", FormMethod.Post, new { @class = "form-inline", @style = "width:100%", @id = "generateKeyForm"}))
-                    {
-                     <fieldset class="form" >
-                        @Html.AntiForgeryToken()
-                         <div class="form-field" style="width:500px">
-                             <table>
-                                 <tr>
-                                     <th>Key name</th>
-                                     @if (Model.ExpirationInDaysForApiKeyV1 > 0)
-                                     {
-                                         <th>Expires in</th>
-                                     }
-                                 </tr>
-                                 <tr>
-                                     <td>
-                                         <input type="text" name="description" id="description" placeholder="Name (e.g. 'Build server')" data-val-required="The field is required." data-val="true" />
-                                         <span data-valmsg-for="description" data-valmsg-replace="true"></span>
-                                         <img src="@Url.Content("~/Content/images/required.png")" alt="Blue border on left means required." />
-                                     </td>
-                                    @if (Model.ExpirationInDaysForApiKeyV1 > 0)
-                                    {
-                                        <td style="vertical-align: top">
-                                            <select name="expirationInDays" id="expirationInDays">
-                                                @if (Model.ExpirationInDaysForApiKeyV1 == 365) // Shorter dropdown for NuGet.org
-                                                {
-                                                    <option value="1">1 day</option>
-                                                    <option value="90">90 days</option>
-                                                    <option value="180">180 days</option>
-                                                    <option value="270">270 days</option>
-                                                    <option value="365">365 days</option>
-                                                }
-                                                else
-                                                {
-                                                    <option value="1">1 day</option>
-                                                    for (int i = 10; i <= Model.ExpirationInDaysForApiKeyV1; i += 10)
-                                                    {
-                                                        <option value="@i" @(i == Model.ExpirationInDaysForApiKeyV1 ? "selected" : string.Empty)>@i days</option>
-                                                    }
-                                                }
-                                            </select>
-                                        </td>
-                                    }
-                                 </tr>
-                             </table>
-                         </div>
-                         <div id="addkeyselectscopes">
-                             <h5>Select scopes</h5><hr />
-                             <div class="form-field">
-                                <input type="checkbox" class="scopecheckbox" id="scopePush"/><label class="checkoboxsmall inline" for="scopePush">Push</label>
-                                <div style="margin-left: 15px" id="scopePushOptions">
-                                    <input type="radio" name="scopes" id="scopeFullPush" value="@NuGetScopes.PackagePush"/>
-                                    <label class="checkoboxsmall inline" for="scopeFullPush">@NuGetScopes.Describe(NuGetScopes.PackagePush)</label>
-                                    <br/>
-                                    <input type="radio" name="scopes" id="scopePushVersion" value="@NuGetScopes.PackagePushVersion"/>
-                                    <label class="checkoboxsmall inline" for="scopePushVersion">@NuGetScopes.Describe(NuGetScopes.PackagePushVersion)</label>
-                                </div>
-                                 
-                                 <input type="checkbox" name="scopes" id="scopeUnlist" class="scopecheckbox" value="@NuGetScopes.PackageUnlist" /> 
-                                 <label for="scopeUnlist" class="checkoboxsmall inline">@NuGetScopes.Describe(NuGetScopes.PackageUnlist)</label>
-                             </div>
-                         </div>
-                         <div id="addkeyselectpackages">
-                             <h5>Select packages</h5><hr />
-                             To select which packages to associate with a key use a glob pattern, select individual packages, or both. 
-                             
-                             <a href="#" class="globHelpLink">Example glob patterns</a>.
-                             <div class="popup">
-                                 <div class="popupbox" id="addapikeypopup">
-                                     <a href="#" class="boxclose"><i class="icon-remove"></i></a>
-                                     <div class="innertext">
-                                         A glob pattern allows you to replace any sequence of characters with '*'.
-                                         <h5>Example glob patterns</h5>
-                                         <table>
-                                             <tr>
-                                                 <th>Pattern</th>
-                                                 <th>Result</th>
-                                             </tr>
-                                             <tr>
-                                                 <td>*</td>
-                                                 <td>Select all packages.</td>
-                                             </tr>
-                                             <tr>
-                                                 <td>Alpha.*</td>
-                                                 <td>Select any packages that begin with <i>Alpha.</i></td>
-                                             </tr>
-                                         </table>
-                                     </div>
-                                 </div>
-                             </div>
-
-                            <div class="form-field" id="addkeypackageGlobPattern">
-                                <table>
-                                    <tr>
-                                        <th>Glob pattern</th>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <input style="width:500px" type="text" name="subjects" id="addkeyglobPattern" placeholder="Example: The wildcard '*' will select all packages."
-                                                data-val-regex="Invalid glob pattern. See 'Examples' for further details." data-val-regex-pattern="^[\*\w_.-]*$" data-val="true" />
-                                            <span data-valmsg-for="subjects" data-valmsg-replace="true"></span>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </div>
-                            <div class="form-field">
-                                <table>
-                                    <tr>
-                                        <th>Available packages</th>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <div class="scrollable-div" id="selectablePackagesList">
-                                                <!-- TODO: have package list -->
-                                                <span class="nopackageslist">You have no packages</span>
-                                            </div>
-                                            <div class="selectedpackagescounter"></div>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </div>
-                         </div>
-
-                        <button class="btn" type="button" id="generateKey">Add key</button>
-                    </fieldset>
-                    <br />
-                    }
-                </text>)
+    <h2>
+        <a href="#" role="button" data-toggle="collapse" data-target="#@id-container"
+           aria-expanded="@(expanded ? "true" : "false")" aria-controls="@id-container" id="show-@id-container">
+            <i class="ms-Icon ms-Icon--@(expanded ? expandedIcon : collapsedIcon)"
+               aria-hidden="@(expanded ? "false" : "true")"></i>
+            <span>@title</span>
+        </a>
+    </h2>
+    <div class="panel-collapse collapse @(expanded ? "in" : string.Empty)" id="@id-container">
+        @content(MvcHtmlString.Empty)
+    </div>
 }
 
-<script> // Add API Key related scripts
-    $(document)
-        .ready(function() {
-            setGenerateApiKeyFormInitialState();
-        });
+<section role="main" class="container main-container page-api-keys">
+    <form id="AntiForgeryForm">
+        @Html.AntiForgeryToken()
+    </form>
+    <div class="row">
+        <div class="col-md-10 col-md-offset-1">
+            <h1 class="text-center">API Keys</h1>
+            <p>
+                An API key is a token that can identify you to @(Config.Current.Brand). The
+                <a href="https://docs.nuget.org/Consume/Command-Line-Reference">NuGet command-line utility</a> allows
+                you to submit a NuGet package to the gallery using your API key to authenticate.
+            </p>
+            @if (!CurrentUser.Confirmed)
+            {
+                @ViewHelpers.AlertWarning(
+                    @<text>
+                        To get an API Key you will need to
+                        <a href="@Url.ConfirmationRequired()">confirm your account</a>.
+                    </text>)
+            }
+            else
+            {
+                <p>
+                    <strong>Always keep your API keys a secret!</strong> If one of your keys is accidentally revealed,
+                    you can always generate a new one at any time. You can also remove existing API keys if necessary.
+                </p>
 
-    $(document)
-        .ready(function () {
+                <div data-bind="template: 'error-container'"></div>
+                
+                @Section(
+                    "create",
+                    "Create",
+                    @<text>
+                        <div class="panel panel-default upsert-api-key">
+                            <div class="panel-body"
+                                 data-bind="template: { name: 'upsert-api-key', data: NewApiKey }">
+                            </div>
+                        </div>
+                    </text>,
+                    expanded: false,
+                    expandedIcon: "Subtraction",
+                    collapsedIcon: "Add")
 
-            $('#generateKeyForm').submit(function () {
-                return false;
-            });
+                @Section(
+                    "manage",
+                    "Manage",
+                    @<text>
+                        <div data-bind="template: 'manage-api-keys'"></div>
+                    </text>)
+            }
+        </div>
+    </div>
+</section>
 
-            $('.scopecheckbox')
-                .on('click',
-                    function() {
-                        var anyChecked = scopesSelected();
+<script type="text/html" id="error-container">
+    <!-- ko if: Error -->
+    @ViewHelpers.AlertDanger(@<text><span data-bind="html: Error"></span></text>)
+    <!-- /ko -->
+</script>
 
-                        if (anyChecked) {
-                            enableElementAndDescendants('#addkeyselectpackages');
-                        } else {
-                            disableElementAndDescendants('#addkeyselectpackages');
+<script type="text/html" id="manage-api-keys">
+    <!-- ko if: ExpiredDescriptions().length > 0 -->
+    @ViewHelpers.AlertWarning(
+        @<text>
+        Your API
+        <!-- ko if: ExpiredDescriptions().length === 1 -->
+        key
+        <!-- /ko -->
+        <!-- ko ifnot: ExpiredDescriptions().length === 1 -->
+        keys
+        <!-- /ko -->
+        <!-- ko text: window.nuget.commaJoin(ExpiredDescriptions().map(function(d) { return "'" + d + "'"; } )) --><!-- /ko -->
+        <!-- ko if: ExpiredDescriptions().length === 1 -->
+        has
+        <!-- /ko -->
+        <!-- ko ifnot: ExpiredDescriptions().length === 1 -->
+        have
+        <!-- /ko -->
+        expired.
+        </text>)
+    <!-- /ko -->
+    <!-- ko if: AnyJustCreated -->
+    @ViewHelpers.AlertWarning(
+        @<text>
+        A new API key has been created. Make sure to copy your new API key now using the
+        <b>Copy</b>
+        button below. You will not be able to do so again.
+        </text>)
+    <!-- /ko -->
+    <!-- ko if: AnyJustRegenerated -->
+    @ViewHelpers.AlertWarning(
+        @<text>
+            Your API key has been regenerated. Make sure to copy your new API key now using the
+            <b>Copy</b>
+            button below. You will not be able to do so again.
+        </text>)
+    <!-- /ko -->
+    <div data-bind="template: { name: 'api-key-details', foreach: ApiKeys }">
+    </div>
+    <!-- ko if: ApiKeys().length === 0 -->
+    @ViewHelpers.AlertInfo(
+        @<text>You don't have any API keys.</text>)
+    <!-- /ko -->
+</script>
+
+<script type="text/html" id="api-key-details">
+    <div class="api-key-details">
+        <div class="row">
+            <div class="col-sm-1">
+                <img class="package-icon img-responsive" aria-hidden="true" alt=""
+                     width="51" height="51"
+                     data-bind="attr: { src: IconUrl }" />
+            </div>
+            <div class="col-sm-11">
+                <h3 data-bind="text: Description"></h3>
+                <ul class="list-inline icon-details" role="presentation">
+                    <li>
+                        <i class="ms-Icon ms-Icon--Stopwatch" aria-hidden="true"></i>
+                        <!-- ko if: Expires -->
+                        <!-- ko if: HasExpired -->
+                        Expired
+                        <!-- /ko -->
+                        <!-- ko ifnot: HasExpired -->
+                        Expires <span data-bind="text: moment(Expires()).fromNow()"></span>
+                        <!-- /ko -->
+                        <!-- /ko -->
+                        <!-- ko ifnot: Expires -->
+                        Never expires
+                        <!-- /ko -->
+                    </li>
+                    <li>
+                        <i class="ms-Icon ms-Icon--View" aria-hidden="true"></i>
+                        <!-- ko if: Scopes().length > 0 -->
+                        <span data-bind="text: Scopes().join(', ')"></span>
+                        <!-- /ko -->
+                        <!-- ko ifnot: Scopes().length > 0 -->
+                        Scopes: All
+                        <!-- /ko -->
+                    </li>
+                </ul>
+                <!-- ko if: ShortPackageList().length > 0 -->
+                <b>Packages:</b>
+                <!-- ko if: RemainingPackageList().length > 0 -->
+                <span data-bind="text: ShortPackageList().join(', ') + ','"></span>
+                <a href="#" role="button"
+                   data-bind="attr: { 'aria-controls': RemainingPackagesId },
+                              click: ShowRemainingPackages">
+                    more...
+                </a>
+                <span class="collapse in-inline" aria-expanded="false"
+                      data-bind="attr: { id: RemainingPackagesId },
+                                 text: RemainingPackageList().join(', ')"></span>
+                <!-- /ko -->
+                <!-- ko ifnot: RemainingPackageList().length > 0 -->
+                <span data-bind="text: ShortPackageList().join(', ')"></span>
+                <!-- /ko -->
+                <br />
+                <!-- /ko -->
+                <!-- ko if: GlobPattern -->
+                <b>Glob pattern:</b> <span data-bind="text: GlobPattern"></span>
+                <br />
+                <!-- /ko -->
+                <ul class="list-inline icon-buttons" role="presentation">
+                    <!-- ko if: Value -->
+                    <li>
+                        <a href="#" role="button" data-content="Copied."
+                           data-bind="attr: { id: CopyId }, click: Copy">
+                            <i class="ms-Icon ms-Icon--Copy" aria-hidden="true"></i>
+                            Copy
+                        </a>
+                    </li>
+                    <!-- /ko -->
+                    <!-- ko ifnot: IsNonScopedV1ApiKey -->
+                    <li>
+                        <a href="#" role="button" data-toggle="collapse"
+                           data-bind="attr: { 'data-target': '#' + EditContainerId(),
+                                              'aria-controls': EditContainerId,
+                                              id: StartEditId },
+                                      click: function() { return false; }"
+                           aria-expanded="false">
+                            <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
+                            Edit
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" role="button" data-bind="click: Regenerate">
+                            <i class="ms-Icon ms-Icon--Refresh" aria-hidden="true"></i>
+                            Regenerate
+                        </a>
+                    </li>
+                    <!-- /ko -->
+                    <li>
+                        <a href="#" role="button" data-bind="click: Delete">
+                            <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
+                            Delete
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="upsert-api-key">
+            <div class="panel panel-default panel-collapse collapse"
+                 data-bind="attr: { id: EditContainerId() },
+                            event: { 'show.bs.collapse': StopPropagation,
+                                     'hide.bs.collapse': StopPropagation }">
+                <div class="panel-body" data-bind="template: { name: 'upsert-api-key', data: $data }">
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+<script type="text/html" id="upsert-api-key">
+    <form class="upsert-form" data-bind="submit: CreateOrEdit, attr: { id: FormId }">
+        <!-- ko ifnot: Key -->
+        <div class="row">
+            <div class="col-sm-7 form-group">
+                <label data-bind="attr: { for: DescriptionId,
+                                          id: DescriptionId() + '-label' }">Key Name</label>
+                <input type="text" class="form-control"
+                       data-bind="attr: { id: DescriptionId,
+                                          name: DescriptionId,
+                                          'aria-labelledby': DescriptionId() + '-label ' + DescriptionId() + '-validation-message' },
+                                  value: PendingDescription"
+                       data-val-required="The key name is required." data-val="true" />
+                <span class="field-validation-valid help-block"
+                      data-valmsg-replace="true"
+                      data-bind="attr: { 'data-valmsg-for': DescriptionId,
+                                         id: DescriptionId() + '-validation-message' }"></span>
+            </div>
+            @if (Model.ExpirationInDaysForApiKeyV1 > 0)
+            {
+                <div class="col-sm-5 form-group">
+                    <label data-bind="attr: { for: ExpiresInId }">Expires In</label>
+                    <select class="form-control"
+                            data-bind="attr: { id: ExpiresInId,
+                                               name: ExpiresInId,
+                                               'aria-labelledby': ExpiresInId() + '-label' },
+                                       value: ExpiresIn">
+                        @if (Model.ExpirationInDaysForApiKeyV1 == 365)
+                        {
+                            <option value="1">1 day</option>
+                            <option value="90">90 days</option>
+                            <option value="180">180 days</option>
+                            <option value="270">270 days</option>
+                            <option value="365" selected>365 days</option>
                         }
-
-                        enableAddKeyButton();
-                    });
-
-            $('#scopePush').change(function() {
-                if (document.getElementById("scopePush").checked) {
-                    enableElementAndDescendants('#scopePushOptions');
-                } else {
-                    disableElementAndDescendants('#scopePushOptions');
-                        }});
-
-            $('#addkeyglobPattern')
-                .on('input', function () {
-                    selectPackageFromGlob($('#addkeyglobPattern'), $('.packagecheckbox input'));
-                    updateSelectedPackagesCounter($('.packagecheckbox input'), $('#selectablePackagesList').next());
-                    enableAddKeyButton();
-                });
-
-            $('.packagecheckbox input').change(function () {
-                updateSelectedPackagesCounter($('.packagecheckbox input'), $('#selectablePackagesList').next());
-                enableAddKeyButton();
-            });
-        });
-
-    function scopesSelected() {
-        var anyChecked = document.getElementById("scopeUnlist").checked ||
-            document.getElementById("scopePush").checked;
-
-        return anyChecked;
-    }
-
-    function selectPackageFromGlob(globPatternElem, packageCheckboxes) {
-        var globVal = globPatternElem.val();
-
-        // Invalid or empty glob
-        var badGlob = !globPatternElem.valid() || (globVal == null || $.trim(globVal) == '');
-
-        var patt = globToRegex(globVal);
-
-        packageCheckboxes
-            .each(function () {
-                // do nothing for manually selected packages
-                if ($(this)[0].checked && !$(this).parent().hasClass('disabled-div')) {
-                    return;
-                }
-
-                if (!badGlob && patt.test($(this).val())) {
-                    $(this)[0].checked = true;
-                    $(this)[0].name = ""; // hide the name so this won't be submitted in the form
-                    $(this).parent().addClass('disabled-div');
-                    $(this).attr('disabled', true);
-                } else {
-                    $(this)[0].checked = false;
-                    $(this)[0].name = "subjects";
-                    $(this).parent().removeClass('disabled-div');
-                    $(this).removeAttr('disabled');
-                }
-            });
-    }
-
-    function updateSelectedPackagesCounter(packageCheckboxes, counterElem) {
-        var packagesCount = packageCheckboxes.length;
-        var selectedPackagesCount = 0;
-
-        packageCheckboxes.each(function () {
-            if ($(this)[0].checked) {
-                selectedPackagesCount++;
+                        else
+                        {
+                            <option value="1">1 day</option>
+                            for (int i = 10; i <= Model.ExpirationInDaysForApiKeyV1; i += 10)
+                            {
+                                <option value="@i" @(i + 10 > Model.ExpirationInDaysForApiKeyV1 ? "selected" : string.Empty)>@i days</option>
+                            }
+                        }
+                    </select>
+                </div>
             }
-        });
-
-        if (selectedPackagesCount > 0) {
-            counterElem.text(selectedPackagesCount + '/' + packagesCount + ' selected');
-        }
-        else {
-            counterElem.text('');
-        }
-    }
-
-    function globToRegex(glob) {
-        var specialChars = "\\^$*+?.()|{}[]";
-        var regexChars = ["^"];
-        for (var i = 0; i < glob.length; ++i) {
-            var c = glob.charAt(i);
-            switch (c) {
-            case '*':
-                regexChars.push(".*");
-                break;
-            default:
-                if (specialChars.indexOf(c) >= 0) {
-                    regexChars.push("\\");
-                }
-                regexChars.push(c);
-            }
-        }
-
-        regexChars.push("$");
-        return new RegExp(regexChars.join(""), "i");
-    }
-
-    function enableAddKeyButton() {
-        var packagesWereSelected = jQuery('#selectablePackagesList input[type=checkbox]:checked').length > 0;
-        var globValid = $('#addkeyglobPattern').valid();
-        var globEmpty = $('#addkeyglobPattern').val() == null || $.trim($('#addkeyglobPattern').val()) == '';
-
-        if (scopesSelected() && globValid && (packagesWereSelected || !globEmpty)) {
-            enableElementAndDescendants('#generateKey');
-        }
-        else {
-            disableElementAndDescendants('#generateKey');
-        }
-    }
-
-    function setGenerateApiKeyFormInitialState() {
-        disableElementAndDescendants('#addkeyselectpackages');
-        disableElementAndDescendants('#scopePushOptions');
-        disableElementAndDescendants('#generateKey');
-
-        $('#scopeFullPush').prop("checked", true);
-        $('#scopeFullPush').attr("disabled", true);
-        $('#scopePushVersion').attr("disabled", true);
-    }
-
-    function disableElementAndDescendants(selector) {
-        $(selector).addClass('disabled-div');
-        $(selector).attr('disabled', true);
-        $(selector).find(':input').attr('disabled', true);
-        $(selector).find('a').attr('tabindex', -1);
-    }
-
-    function enableElementAndDescendants(selector) {
-        $(selector).removeClass('disabled-div');
-        $(selector).removeAttr('disabled');
-        $(selector).find(':input').removeAttr('disabled');
-        $(selector).find('a').removeAttr('tabindex');
-    }
-
-    $(document)
-        .ready(function () {
-            if (@defaultDurationDays != null) {
-                selectExpirationInDaysOption(@defaultDurationDays);
-            }
-        });
-
-        function selectExpirationInDaysOption(optionValue) {
-            // unselect all
-            $('#expirationInDays option').prop('selected', false);
-
-            // select value
-            var selector = '#expirationInDays option[value="' + optionValue + '"]';
-            $(selector).prop('selected', true);
-        }
-
-
+        </div>
+        <div class="row">
+            <div class="col-sm-12 form-group">
+                <b class="ms-fontSize-xl">Select Scopes</b>
+                <br />
+                <span class="has-error">
+                    <span class="help-block" data-bind="text: ScopesError"></span>
+                </span>
+                <ul role="presentation">
+                    <li>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" data-bind="checked: PushEnabled" />
+                                Push
+                            </label>
+                        </div>
+                        <ul role="presentation" data-bind="css: { disabled: !PushEnabled() }">
+                            <li>
+                                <div class="radio">
+                                    <label>
+                                        <input name="PushScope" type="radio" value="@NuGetScopes.PackagePush"
+                                               data-bind="checked: PushScope, enable: PushEnabled" checked />
+                                        @NuGetScopes.Describe(NuGetScopes.PackagePush)
+                                    </label>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="radio">
+                                    <label>
+                                        <input name="PushScope" type="radio" value="@NuGetScopes.PackagePushVersion"
+                                               data-bind="checked: PushScope, enable: PushEnabled" />
+                                        @NuGetScopes.Describe(NuGetScopes.PackagePushVersion)
+                                    </label>
+                                </div>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" value="@NuGetScopes.PackageUnlist"
+                                       data-bind="checked: UnlistScope" />
+                                @NuGetScopes.Describe(NuGetScopes.PackageUnlist)
+                            </label>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <!-- /ko -->
+        <div class="row">
+            <div class="col-sm-12">
+                <b class="ms-fontSize-xl">Select Packages</b>
+                <p>
+                    To select which pages to associate with a key, use a glob pattern, select
+                    individual packages, or both.
+                </p>
+                <div class="has-error">
+                    <span class="help-block" data-bind="text: SubjectsError"></span>
+                </div>                
+                <div class="has-error">
+                    <span class="field-validation-valid help-block"
+                          data-valmsg-replace="true"
+                          data-bind="attr: { 'data-valmsg-for': GlobPatternId,
+                                             id: GlobPatternId() + '-validation-message' }"></span>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-7">
+                <label data-bind="attr: { for: GlobPatternId,
+                                          id: GlobPatternId() + '-label' }">
+                    Glob Pattern
+                </label>
+            </div>
+        </div>
+        <div class="row select-packages-form" data-bind="css: { disabled: !SelectPackagesEnabled() }">
+            <div class="col-sm-7">
+                <div class="form-group">
+                    <input type="text" class="form-control" data-val="true"
+                           data-val-regex="Invalid glob pattern. See the example glob patterns below for further details."
+                           data-val-regex-pattern="^[\*\w_.-]*$" 
+                           data-bind="textInput: PendingGlobPattern,
+                                      attr: { id: GlobPatternId,
+                                              name: GlobPatternId,
+                                              'aria-labelledby': GlobPatternId() + '-label ' + GlobPatternId() + '-validation-message' },
+                                      enable: SelectPackagesEnabled"  />
+                </div>
+                <div class="form-group">
+                    <label>Available Packages</label>
+                    <div class="panel panel-default available-packages">
+                        <div class="panel-body">
+                            <!-- ko foreach: PendingPackages -->
+                            <div class="checkbox" data-bind="css: { disabled: Matched }">
+                                <label>
+                                    <input type="checkbox" name="Packages"
+                                           data-bind="checked: Checked,
+                                                      enable: $parent.SelectPackagesEnabled" />
+                                    <!-- ko text: Id -->
+                                    <!-- /ko -->
+                                </label>
+                            </div>
+                            <!-- /ko -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-5">
+                <div class="panel panel-default glob-pattern-hint">
+                    <div class="panel-body">
+                        <p>A glob pattern allows you to replace any sequence of characters with '*'.</p>
+                        <p>Example glob patterns:</p>
+                        <table class="table table-condensed borderless">
+                            <thead>
+                                <tr>
+                                    <th>Pattern</th>
+                                    <th>Result</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>*</td>
+                                    <td>Select all packages</td>
+                                </tr>
+                                <tr>
+                                    <td>Alpha.*</td>
+                                    <td>Select any package that has an ID beginning with <i>Alpha</i></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row" data-bind="css: { disabled: !SelectPackagesEnabled() }">
+            <div class="col-sm-12">
+                <p>
+                    <span data-bind="text: SelectedCount"></span>
+                    of @Model.PackageIds.Count package@(Model.PackageIds.Count != 1 ? "s" : string.Empty) selected
+                </p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-6 form-group">
+                <input type="submit" class="btn btn-primary btn-block"
+                       data-bind="enable: SelectPackagesEnabled() && !PendingCreateOrEdit(),
+                                  css: { disabled: !SelectPackagesEnabled() },
+                                  attr: { value: Key() ? 'Edit' : 'Create' }" />
+            </div>
+            <div class="col-sm-6 form-group">
+                <button data-bind="attr: { 'data-target': '#' + EditContainerId(),
+                                           'aria-controls': EditContainerId,
+                                           id: CancelEditId },
+                                   enable: !PendingCreateOrEdit(),
+                                   click: CancelEdit"
+                        class="btn btn-default btn-block" data-toggle="collapse">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </form>
+    <!-- ko text: AttachExtensions() -->
+    <!-- /ko -->
 </script>
-<script> // Glob help popup related scripts
-    $(document)
-        .ready(function () {
-            applyPopupEvents();
-        });
 
-    function applyPopupEvents() {
-        $('.boxclose')
-               .click(function () {
-                   $(this).parent().hide();
-                   // Prevent page jump
-                   return false;
-               });
-
-        $('.globHelpLink')
-            .click(function () {
-                $(this).next().find('.popupbox').show();
-                // Prevent page jump
-                return false;
-            });
-    }
-</script>
-<script> // More details button to expand package/scope list
-    $(document).ready(function () {
-        applyMoreDetailsEventHandlers();
-    });
-
-    function applyMoreDetailsEventHandlers() {
-        $('.moredetails.first')
-            .on('click', function () {
-                $(this).siblings('.shortlist').css('display', 'none');
-                $(this).css('display', 'none');
-
-                // Get the first li of the list
-                var listItem = $(this).next().children(':first');
-                var count = 0;
-                while (listItem.is('li') && count < 10) {
-                    listItem.css('display', 'flex');
-                    listItem = listItem.next();
-                    count = count + 1;
-                }
-            });
-
-        $('.moredetails.next')
-            .on('click', function () {
-                $(this).css('display', 'none');
-
-                var listItem = $(this).parent().next();
-                var count = 0;
-                while (listItem.is('li') && count < 10) {
-                    listItem.css('display', 'flex');
-                    listItem = listItem.next();
-                    count = count + 1;
-                }
-            });
-    }
-</script>
-<script> // Timestamp presentation
-    $('.s-relativetime[data-utc]').each(function () {
-        $(this).text(convertToRelativeTime(new Date($(this).data().utc)));
-    });
-
-    function convertToRelativeTime(datetimeutc) {
-        var text = moment(datetimeutc).local().fromNow();
-
-        return text;
-    }
-
-</script>
-<script> // Copy API key button related 
-    var idleTime = 0;
-    var idleInterval;
-
-    // Disable copy button after 10 minutes of inactivity
-    $(document)
-        .ready(function() {
-            if ($('.copyapikeybutton').length) {
-                startCopyApiKeyButtonTimer();
-                $('.copyapikeybutton').on('click', onCopyApiKeyButtonClick);
-            }
-        });
-
-    function startCopyApiKeyButtonTimer() {
-        // Increment the idle time counter every minute.
-        idleInterval = setInterval(timerIncrement, 60000); // 1 minute
-
-        // Zero the idle timer on mouse movement or keypress.
-        $(this)
-            .mousemove(function() {
-                idleTime = 0;
-            });
-        $(this)
-            .keypress(function() {
-                idleTime = 0;
-            });
-    }
-
-    function timerIncrement() {
-        idleTime = idleTime + 1;
-        if (idleTime > 9) { // 10 minutes
-            $('.copyapikeybutton').addClass('disabled-div');
-            clearInterval(idleInterval);
-        }
-    }
-
-    function onCopyApiKeyButtonClick(e) {
-        var popup = $(this).prev();
-        popup.show();
-
-        setTimeout(function() {
-            popup.fadeOut('slow');
-        }, 1000);
-    }
-</script>
-<script> //AJAX
-    $(document)
-        .ready(function() {
-            $('#generateKey').on('click', generateApiKey);
-            applyActionButtonHandlers();
-        });
-
-    function applyActionButtonHandlers() {
-        $('.remove-api-key').on('click', removeApiKey);
-        $('.regenerate-api-key').on('click', regenerateApiKey);
-        
-        // Copy api key related
-        $('.copyapikeybutton').on('click', onCopyApiKeyButtonClick);
-        startCopyApiKeyButtonTimer();
-    }
-
-    function generateApiKey(e) {
-        e.preventDefault();
-
-        if (!$('#description').valid()) {
-            return;
-        }
-
-        // prevent duplicate requests
-        var me = $(this);
-        me.off('click');
-
-        $.ajax({
-            url: '@Url.Action("GenerateApiKey", "Users")',
-            type: 'POST',
-            cache: false,
-            dataType: 'json',
-            data: getFormDataWithAntiForgeryToken($('#generateKeyForm')),
-            success: function (data) {
-
-                // 'Add Key' dialog
-                $('#generateKeyForm').find("input[type=text], textarea").val("");
-                $('#generateKeyForm').find("input:checkbox").removeAttr('checked');
-                setGenerateApiKeyFormInitialState();
-                updateSelectedPackagesCounter($('#generateKeyForm .packagecheckbox input'), $('#selectablePackagesList').next());
-                $('#newapikey-1-collapse').trigger('click');
-
-                // New table row
-                addNewApiKeyRow(data);
-
-                handleError(false);
-            },
-            error: function(data) {
-                handleError(true);
-            }
-        }).always(function () {
-            me.on('click', generateApiKey);
-        });
-    }
-
-    function removeApiKey(e) {
-        e.preventDefault();
-        var keyRow = $(this).parents("tr");
-
-        if (keyRow.data('requestRunning')) {
-            return;
-        }
-
-        keyRow.data('requestRunning', true);
-
-        $.ajax({
-            url: '@Url.Action("RemoveCredential", "Users")',
-            type: 'POST',
-            cache: false,
-            dataType: 'json',
-            data: getFormDataWithAntiForgeryToken($(this)),
-            success: function () {
-                removeApiKeyRow(keyRow);
-
-                // If we removed an expired key, check if the "expired message" is still needed
-                if ($('#apikeys-1-item .expired').length == 0) {
-                    $('#apikeys-1-actions #apiKeyExpired').hide();
-                }
-
-                setApiKeyExpiredMessage();
-
-                // Handle no api keys situation.
-                if ($('#apikeyscontainer tr').length == 0) {
-                    $('#apikeyscontainer').hide();    
-                    $('#hasapikeysmessage').hide();
-                    $('#noapikeysmessage').show();
-                    $('#usageexample').hide();
-                    $('#noapikeysbanner').show();
-                }
-
-                handleError(false);
-            },
-            error: function (data) {
-                handleError(true);
-            }
-        }).always(function () {
-            keyRow.data('requestRunning', false);
-        });
-    }
-
-    function regenerateApiKey(e) {
-        e.preventDefault();
-
-        var keyRow = $(this).parents("tr");
-
-        if (keyRow.data('requestRunning')) {
-            return;
-        }
-
-        keyRow.data('requestRunning', true);
-
-        $.ajax({
-            url: '@Url.Action("RegenerateCredential", "Users")',
-            type: 'POST',
-            cache: false,
-            dataType: 'json',
-            data: getFormDataWithAntiForgeryToken($(this)),
-            success: function (data) {
-                removeApiKeyRow(keyRow);
-                addNewApiKeyRow(data);
-                setApiKeyExpiredMessage();
-
-                handleError(false);
-            },
-            error: function (data) {
-                handleError(true);
-            }
-        }).always(function () {
-            keyRow.data('requestRunning', false);
-        });
-    }
-
-    function editApiKey(e) {
-        e.preventDefault();
-
-        // prevent duplicate requests
-        var me = $(this);
-
-        if (me.data('requestRunning')) {
-            return;
-        }
-
-        me.data('requestRunning', true);
-
-        $.ajax({
-            url: '@Url.Action("EditCredential", "Users")',
-            type: 'POST',
-            cache: false,
-            dataType: 'json',
-            data: getFormDataWithAntiForgeryToken($($(this).parents('form')[0])),
-            success: function (data) {
-                updateEditedKeyDetails(data, me.parents('.editpackagetr'));
-                me.parents('.editpackagetr').remove();
-
-                handleError(false);
-            },
-            error: function (data) {
-                handleError(true);
-            }
-        }).always(function () {
-            me.data('requestRunning', false);
-        });
-    }
-
-    function getFormDataWithAntiForgeryToken(form) {
-        if (form.find('input[name=__RequestVerificationToken]').length == 0) {
-            var tokenInput = '<input name="__RequestVerificationToken" type="hidden" value="' +
-                $('#__AjaxAntiForgeryForm input[name=__RequestVerificationToken]').val() +
-                '">';
-            form.append(tokenInput);
-        }
-
-        return form.serialize();
-    };
-
-    function setApiKeyExpiredMessage() {
-        if ($('#apikeyscontainer .expired').length > 0) {
-            if ($('#apiKeyExpired').length == 0) {
-                $('#apikeys-1-actions').prepend('<span id="apiKeyExpired">One of your API keys has expired</span>');
-            }
-        } else {
-            if ($('#apiKeyExpired').length > 0) {
-                $('#apiKeyExpired').remove();
-            }
-        }
-    }
-
-    function handleError(wasError) {
-        if (wasError) {
-            $('#errormessage').show();
-
-            if (!isScrolledIntoView($('#errormessage')[0])) {
-                $('#errormessage')[0].scrollIntoView();
-            }
-        }
-        else {
-            $('#errormessage').hide();
-        }
-    }
-
-    function addNewApiKeyRow(data) {
-        var description = data.Description;
-        var expires = parseJsonDate(data.Expires);
-
-        var allActions = data.Scopes.map(function (elem) {
-            return elem.AllowedAction;
-        });
-
-        allActions = jQuery.unique(allActions);
-
-        var allPackages = data.Scopes.map(function (elem) {
-            return elem.Subject;
-        });
-
-        allPackages = jQuery.unique(allPackages);
-
-        var globPattern = jQuery.grep(allPackages,
-            function (elem) {
-                return elem.indexOf("*") >= 0;
-            })[0];
-
-        allPackages = jQuery.grep(allPackages,
-            function (elem) {
-                return elem.indexOf("*") < 0;
-            });
-
-        var markup = '<tr>';
-        markup += '<td><img src="/Content/Images/icons/apiKeyNew.png" /></td>';
-        markup += '<td>';
-        markup += '<strong title="' + description + '">' + description + '</strong><br/>';
-        markup += '<span><b>Expires: </b>';
-        markup += '<span class="s-relativetime" data-utc="' +
-            expires +
-            '">' +
-            convertToRelativeTime(expires) +
-            '</span></span><br/>';
-        markup += '<span><b>Scopes: </b>';
-        markup += '<span class="shortlist">' + allActions.slice(0, 2).join(", ") + '</span>';
-
-        // Scopes
-        if (allActions.length > 3) {
-            markup += '<a class="moredetails">More...</a>';
-            markup += '<ul class="longlist">';
-            markup += '<ul>';
-
-            jQuery.each(allActions,
-                function (j, elem) {
-                    markup += '<li>' + elem + '</li>';
-                });
-            markup += '</ul></ul></span>';
-        }
-
-        markup += '<br/>';
-
-        if (globPattern != null) {
-            markup += '<span class="globpattern"><b>Glob pattern: </b>' + globPattern + '<br/></span>';
-        }
-
-        // Packages
-        markup += getPackagesListMarkup(allPackages);
-
-        markup += '</td>';
-
-        // Buttons
-        markup += '<td class="actions actions-wide">';
-        markup += getCopyButton(data.Value);
-        markup += getEditButton();
-        markup += getRegenerateButton(data.Key);
-        markup += getRemoveButton(data.Key);
-
-        markup += '</td>';
-        markup += '</tr>';
-
-        $('#api-keys-details > tbody').prepend(markup);
-
-        applyMoreDetailsEventHandlers();
-        applyActionButtonHandlers();
-
-        $('#apikeyscontainer').show();
-        $('#newApiKeyWarning').show();
-        $('#hasapikeysmessage').show();
-        $('#noapikeysmessage').hide();
-        $('#usageexample').show();
-        $('#noapikeysbanner').hide();
-
-        // Scrooll into view
-        if (!isScrolledIntoView($('#newApiKeyWarning')[0])) {
-            $('#newApiKeyWarning')[0].scrollIntoView();
-        }
-    }
-
-    function isScrolledIntoView(elem) {
-        var docViewTop = $(window).scrollTop();
-        var docViewBottom = docViewTop + $(window).height();
-
-        var elemTop = $(elem).offset().top;
-        var elemBottom = elemTop + $(elem).height();
-
-        return ((elemBottom <= docViewBottom) && (elemTop >= docViewTop));
-    }
-
-    function parseJsonDate(jsondate) {
-        var jsonDate = jsondate; // returns "/Date(1245398693390)/";
-        var re = /-?\d+/;
-        var m = re.exec(jsonDate);
-        return new Date(parseInt(m[0]));
-    }
-
-    function getPackagesListMarkup(packages) {
-        var markup = "";
-
-        if (packages.length > 0) {
-            var itemsPerBatch = 10;
-
-            markup += '<span class="packageslist"><b>Packages: </b>';
-            markup += '<span class="shortlist">' +
-                packages.slice(0, 2).join(", ") +
-                '</span>';
-            
-            if (packages.length > 3) {
-                markup += '<a class="moredetails first"> More...</a><ul class="longlist">';
-
-                for (var i = 0; i < packages.length; i++) {
-                    var lastInBatch = i != 0 && i % itemsPerBatch == (itemsPerBatch - 1);
-                    markup += '<li>' + packages[i];
-
-                    if (lastInBatch && i != packages.Count - 1) {
-                        markup += '<a class="moredetails next"> More...</a>';
-                    }
-
-                    markup += '</li>';
-                }
-                markup += '</ul>';
-            }
-        }
-
-        return markup;
-    }
-
-    function removeApiKeyRow(row) {
-        // Remove edit UI
-        if (row.next().hasClass('editpackagetr')) {
-            row.next().remove();
-        }
-
-        row.remove();
-    }
-
-    function getCopyButton(copyValue) {
-
-        return '<div class="popup copynotifypopup" style="display:none;"><div class="popupbox small"><div class="innertext small">Copied</div></div></div>' +
-               '<button class="btn btn-veryflat copyapikeybutton" title="Copy to clipboard" type="button" onclick="copyTextToClipboard(\'' +
-                copyValue +
-                '\')"><img src="/Content/Images/icons/copy.png" /></button>';
-    }
-
-    function getRegenerateButton(key) {
-        return '<form action="/account/RegenerateCredential" class="form-inline regenerate-api-key" method="post">' +
-            '<input id="credentialType" name="credentialType" type="hidden" value="apikey.v2" />' +
-            '<input id="credentialKey" name="credentialKey" type="hidden" value="' + key + '"/>' +
-            '<button title="Regenerate" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to regenerate the API key?" type="button">' +
-            '<img src="/Content/Images/icons/regenerate.png" /></button></form>';
-    }
-
-    function getRemoveButton(key) {
-        return '<form action="/account/RemoveCredential" class="form-inline remove-api-key" method="post">' +
-            '<input id="credentialType" name="credentialType" type="hidden" value="apikey.v2" />' +
-            '<input id="credentialKey" name="credentialKey" type="hidden" value="' + key + '"/>' +
-            '<button title="Remove" class="btn btn-veryflat s-confirm" data-confirm="Are you sure you want to remove the API key?" type="button">' +
-            '<img src="/Content/Images/icons/delete.png" /></button></form>';
-    }
-
-    function getEditButton() {
-        return '<button class="btn btn-veryflat" title="Edit Api key" type="button" onclick="showEditForm($(this).closest(\'tr\'))"><img src="/Content/Images/icons/edit.png" /></button>';
-    }
-
-</script>
-<script> // Edit scenario related scripts
-    function showEditForm(tableRow) {
-
-        if (tableRow.next().hasClass('editpackagetr')) {
-            return;
-        }
-
-        var globPattern = null;
-        var packages = null;
-        
-        try {
-            globPattern = tableRow.find('span.globpattern').contents()[1].data.trim();
-        }
-        catch (err) { }
-
-        var packageslist = $('#selectablePackagesList input');
-        packages = $.map(packageslist,
-            function(val, i) {
-                return val.value;
-            });
-
-
-        var selectedPackages;
-        
-        var longlist = tableRow.find('.packageslist ul.longlist li');
-
-        selectedPackages = $.map(longlist,
-            function(val, i) {
-                return val.textContent.trim();
-            });
-
-        if (selectedPackages.length == 0) {
-            if (tableRow.find('.packageslist span.shortlist').length > 0) {
-                selectedPackages = tableRow.find('.packageslist span.shortlist')[0].textContent.split(',');
-                selectedPackages = $.map(selectedPackages, function (val, i) { return val.trim(); })
-            }
-        }
-
-        var key = tableRow.find('input[name="credentialKey"]')[0].value;
-       
-        
-        // form
-        var form = document.createElement("form");
-        form.setAttribute("action", "/account/editcredential");
-        form.setAttribute("class", "form-inline");
-        form.setAttribute("method", "POST");
-        form.setAttribute("novalidate", "novalidate");
-        form.setAttribute("style", "width: 100%");
-
-        var fieldset = document.createElement("fieldset");
-        fieldset.className = "form";
-
-        // invisible inputs
-        var input = document.createElement("input");
-        input.setAttribute("name", "credentialType");
-        input.setAttribute("type", "hidden");
-        input.setAttribute("value", "apikey.v2");
-
-        fieldset.appendChild(input);
-
-        input = document.createElement("input");
-        input.setAttribute("name", "credentialKey");
-        input.setAttribute("type", "hidden");
-        input.setAttribute("value", key);
-
-        fieldset.appendChild(input);
-
-        // header
-        var selectPackagesDiv = document.createElement("div");
-        var headline = document.createElement("h5");
-        headline.appendChild(document.createTextNode("Select packages"));
-        selectPackagesDiv.appendChild(headline);
-        selectPackagesDiv.appendChild(document.createElement("hr"));
-        selectPackagesDiv.appendChild(document
-            .createTextNode("To select which packages to associate with a key use a glob pattern, select individual packages, or both. "));
-        var helpLink = document.createElement("a");
-        helpLink.href = "#";
-        helpLink.className = "globHelpLink";
-        helpLink.appendChild(document.createTextNode("Example glob patterns"));
-        selectPackagesDiv.appendChild(helpLink);
-
-        var popupDiv = document.createElement("div");
-        popupDiv.className = "popup";
-        var popupboxDiv = document.createElement("div");
-        popupboxDiv.className = "popupbox editapikeypopup";
-        var boxclose = document.createElement("a");
-        boxclose.className = "boxclose";
-        boxclose.href = "#";
-        var iconRemove = document.createElement("i");
-        iconRemove.className = "icon-remove";
-        boxclose.appendChild(iconRemove);
-        popupboxDiv.appendChild(boxclose);
-        var innerTextDiv = document.createElement("div");
-        innerTextDiv.className = "innertext";
-        innerTextDiv.appendChild(document
-            .createTextNode("A glob pattern allows you to replace any sequence of characters with '*'."));
-        var popupheader = document.createElement("h5");
-        popupheader.appendChild(document.createTextNode("Example glob patterns"));
-        innerTextDiv.appendChild(popupheader);
-
-        var popupExamplesTable = document.createElement("table");
-        var exampletr = document.createElement("tr");
-        var th = document.createElement("th");
-        th.appendChild(document.createTextNode("Pattern"));
-        exampletr.appendChild(th);
-        th = document.createElement("th");
-        th.appendChild(document.createTextNode("Result"));
-        exampletr.appendChild(th);
-        popupExamplesTable.appendChild(exampletr);
-
-        exampletr = document.createElement("tr");
-        var td = document.createElement("td");
-        td.appendChild(document.createTextNode("*"));
-        exampletr.appendChild(td);
-        td = document.createElement("td");
-        td.appendChild(document.createTextNode("Select all packages."));
-        exampletr.appendChild(td);
-        popupExamplesTable.appendChild(exampletr);
-        
-        exampletr = document.createElement("tr");
-        td = document.createElement("td");
-        td.appendChild(document.createTextNode("Alpha.*"));
-        exampletr.appendChild(td);
-        td = document.createElement("td");
-        var alpha = document.createElement("i");
-        alpha.appendChild(document.createTextNode("Alpha"));
-        td.appendChild(alpha);
-        exampletr.appendChild(td);
-        popupExamplesTable.appendChild(exampletr);
-
-        innerTextDiv.appendChild(popupExamplesTable);
-        popupboxDiv.appendChild(innerTextDiv);
-        popupDiv.appendChild(popupboxDiv);
-        selectPackagesDiv.appendChild(popupDiv);
-
-        // Glob pattern
-        var globFormDiv = document.createElement("div");
-        globFormDiv.className = "form-field";
-        globFormDiv.setAttribute("id", "editkeypackageGlobPattern");
-        var patternTable = document.createElement("table");
-        var patternTr = document.createElement("tr");
-        var th = document.createElement("th");
-        th.appendChild(document.createTextNode("Glob pattern"));
-        patternTr.appendChild(th);
-        patternTable.appendChild(patternTr);
-
-        patternTr = document.createElement("tr");
-        var patternTd = document.createElement("td");
-        var globInput = document.createElement("input");
-        globInput.setAttribute("style", "width:450px");
-        globInput.setAttribute("type", "text");
-        globInput.setAttribute("name", "subjects");
-        globInput.setAttribute("placeholder", "Example: The wildcard '*' will select all packages.");
-        globInput.setAttribute("data-val-regex", "Invalid glob pattern. See 'Examples' for further details.");
-        globInput.setAttribute("data-val-regex-pattern", "^[\*\w_.-]*$");
-        globInput.setAttribute("data-val", "true");
-
-        if (globPattern != null) {
-            globInput.setAttribute("value", globPattern);
-        }
-
-        patternTd.appendChild(globInput);
-
-        var globError = document.createElement("span");
-        globError.setAttribute("data-valmsg-for", "subjects");
-        globError.setAttribute("data-valmsg-replace", "true");
-
-        patternTd.appendChild(globError);
-        patternTr.appendChild(patternTd);
-        patternTable.appendChild(patternTr);
-        globFormDiv.appendChild(patternTable);
-        selectPackagesDiv.appendChild(globFormDiv);
-
-       
-        // Select packages
-        var packagesFormDiv = document.createElement("div");
-        packagesFormDiv.className = "form-field";
-        var packagesTable = document.createElement("table");
-        var body = document.createElement("tbody");
-        var tr = document.createElement("tr");
-        th = document.createElement("th");
-        th.appendChild(document.createTextNode("Available packages"));
-        tr.appendChild(th);
-        body.appendChild(tr);
-
-        tr = document.createElement("tr");
-        td = document.createElement("td");
-        var selectPackagesListDiv = document.createElement("div");
-        selectPackagesListDiv.className = "scrollable-div editpackagelist";
-
-        if (packages.length > 0) {
-            $.each(packages,
-                function(key, value) {
-                    var label = document.createElement("label");
-                    label.className = "checkoboxsmall packagecheckbox";
-                    label.setAttribute("title", value);
-                    var input = document.createElement("input");
-                    input.setAttribute("type", "checkbox");
-                    input.setAttribute("name", "subjects");
-                    input.setAttribute("value", value);
-
-                    if ($.inArray(value, selectedPackages) >= 0) {
-                        input.setAttribute('checked', 'checked');
-                    }
-
-                    label.appendChild(input);
-                    label.appendChild(document.createTextNode(value));
-                    selectPackagesListDiv.appendChild(label);
-                });
-        } 
-        else {
-            var nopackages = document.createElement("span");
-            nopackages.className = "nopackageslist";
-            nopackages.appendChild(document.createTextNode("You have no packages"));
-            selectPackagesListDiv.appendChild(nopackages);
-        }
-
-        td.appendChild(selectPackagesListDiv);
-
-        var packagesCounterDiv = document.createElement("div");
-        packagesCounterDiv.className = "selectedpackagescounter";
-
-        td.appendChild(packagesCounterDiv);
-        tr.appendChild(td);
-        body.appendChild(tr);
-        packagesTable.appendChild(body);
-        packagesFormDiv.appendChild(packagesTable);
-
-        selectPackagesDiv.appendChild(packagesFormDiv);
-
-        fieldset.appendChild(selectPackagesDiv);
-
-        var submitButton = document.createElement("button");
-        submitButton.className = "btn slimbutton";
-        submitButton.setAttribute("type", "button");
-        submitButton.appendChild(document.createTextNode("Save changes"));
-        fieldset.appendChild(submitButton);
-
-        var cancelButton = document.createElement("button");
-        cancelButton.className = "btn slimbutton";
-        cancelButton.setAttribute("type", "button");
-        cancelButton.setAttribute("style", "margin-left:10px");
-        cancelButton.appendChild(document.createTextNode("Cancel"));
-
-        fieldset.appendChild(cancelButton);
-
-        form.appendChild(fieldset);
-
-        tableRow.after('<tr class="editpackagetr"><td/><td colspan="2" class="editpackagetd"/></tr>');
-        tableRow.next().find('td:eq(1)').append(form);
-
-        applyPopupEvents();
-
-        // Run for the first time
-        selectPackageFromGlob($(globInput), $(globInput).parents('.editpackagetd').find('.packagecheckbox input'));
-        updateSelectedPackagesCounter($(globInput).parents('.editpackagetd').find('.packagecheckbox input'), $(packagesCounterDiv));
-
-        globInput.addEventListener('input', function () {
-            selectPackageFromGlob($(this), $(this).parents('.editpackagetd').find('.packagecheckbox input'));
-            updateSelectedPackagesCounter($(this).parents('.editpackagetd').find('.packagecheckbox input'), $(this).parents('.editpackagetd').find('.selectedpackagescounter'));
-        });
-
-        $(selectPackagesListDiv).find('input').change(function () {
-            updateSelectedPackagesCounter($(this).parents('.editpackagelist').find('input'), $(this).parents('.editpackagetd').find('.selectedpackagescounter'))
-        });
-
-        submitButton.addEventListener('click', editApiKey);
-
-        cancelButton.addEventListener('click',
-            function() {
-                $(this).parents('.editpackagetr').remove();
-            });
-    }
-
-    function updateEditedKeyDetails(data, edittablerow) {
-        var allPackages = data.Scopes.map(function (elem) {
-            return elem.Subject;
-        });
-
-        allPackages = jQuery.unique(allPackages);
-
-        var globPattern = jQuery.grep(allPackages,
-            function (elem) {
-                return elem.indexOf("*") >= 0;
-            })[0];
-
-        allPackages = jQuery.grep(allPackages,
-            function (elem) {
-                return elem.indexOf("*") < 0;
-            });
-
-        var packagesdetailstd = $(edittablerow.prev().find('td')[1]);
-
-        // remove previous details
-        packagesdetailstd.find('.globpattern').remove();
-        packagesdetailstd.find('.packageslist').remove();
-
-        if (globPattern != null) {
-            var markup = '<span class="globpattern"><b>Glob pattern: </b>' + globPattern + '<br/></span>';
-            packagesdetailstd.children().last().after(markup);
-        }
-            
-        packagesdetailstd.children().last().after(getPackagesListMarkup(allPackages));
-
-        applyMoreDetailsEventHandlers();
-    };
-
-    
-</script>
+@section bottomScripts {
+    <script type="text/javascript">
+        var initialData = @Html.Raw(Json.Encode(new
+                     {
+                         ApiKeys = Model.ApiKeys,
+                         PackageIds = Model.PackageIds,
+                         PackagePushScope = NuGetScopes.PackagePush,
+                         RemoveUrl = Url.Action("RemoveCredential", "Users"),
+                         RegenerateUrl = Url.Action("RegenerateCredential", "Users"),
+                         EditUrl = Url.Action("EditCredential", "Users"),
+                         GenerateUrl = Url.Action("GenerateApiKey", "Users"),
+                         ImageUrls = new {
+                             ApiKey = Url.Absolute("~/Content/gallery/img/api-key.png"),
+                             ApiKeyExpired = Url.Absolute("~/Content/gallery/img/api-key-expired.png"),
+                             ApiKeyLegacy = Url.Absolute("~/Content/gallery/img/api-key-legacy.png"),
+                             ApiKeyNew = Url.Absolute("~/Content/gallery/img/api-key-new.png"),
+                         }
+                     }));
+    </script>
+    @Scripts.Render("~/Scripts/gallery/page-api-keys.min.js")
+}

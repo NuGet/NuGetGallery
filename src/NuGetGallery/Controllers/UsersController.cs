@@ -34,48 +34,13 @@ namespace NuGetGallery
             AuthenticationService authService,
             ICredentialBuilder credentialBuilder)
         {
-            if (feedsQuery == null)
-            {
-                throw new ArgumentNullException(nameof(feedsQuery));
-            }
-
-            if (userService == null)
-            {
-                throw new ArgumentNullException(nameof(userService));
-            }
-
-            if (packageService == null)
-            {
-                throw new ArgumentNullException(nameof(packageService));
-            }
-
-            if (messageService == null)
-            {
-                throw new ArgumentNullException(nameof(messageService));
-            }
-
-            if (config == null)
-            {
-                throw new ArgumentNullException(nameof(config));
-            }
-
-            if (authService == null)
-            {
-                throw new ArgumentNullException(nameof(authService));
-            }
-
-            if (credentialBuilder == null)
-            {
-                throw new ArgumentNullException(nameof(credentialBuilder));
-            }
-
-            _curatedFeedService = feedsQuery;
-            _userService = userService;
-            _packageService = packageService;
-            _messageService = messageService;
-            _config = config;
-            _authService = authService;
-            _credentialBuilder = credentialBuilder;
+            _curatedFeedService = feedsQuery ?? throw new ArgumentNullException(nameof(feedsQuery));
+            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+            _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
+            _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
+            _config = config ?? throw new ArgumentNullException(nameof(config));
+            _authService = authService ?? throw new ArgumentNullException(nameof(authService));
+            _credentialBuilder = credentialBuilder ?? throw new ArgumentNullException(nameof(credentialBuilder));
         }
 
         [HttpGet]
@@ -120,6 +85,39 @@ namespace NuGetGallery
         public virtual ActionResult Account()
         {
             return AccountView(new AccountViewModel());
+        }
+
+        [HttpGet]
+        [Authorize]
+        public virtual ActionResult ApiKeys()
+        {
+            var user = GetCurrentUser();
+
+            // Get API keys
+            if (!GetCredentialGroups(user).TryGetValue(CredentialKind.Token, out List<CredentialViewModel> credentials))
+            {
+                credentials = new List<CredentialViewModel>();
+            }
+
+            var apiKeys = credentials
+                .Select(c => new ApiKeyViewModel(c))
+                .ToList();
+
+            // Get package IDs
+            var packageIds = _packageService
+                .FindPackageRegistrationsByOwner(user)
+                .Select(p => p.Id)
+                .OrderBy(i => i)
+                .ToList();
+
+            var model = new ApiKeyListViewModel
+            {
+                ApiKeys = apiKeys,
+                ExpirationInDaysForApiKeyV1 = _config.ExpirationInDaysForApiKeyV1,
+                PackageIds = packageIds,
+            };
+
+            return View("ApiKeys", model);
         }
 
         [Authorize]
@@ -496,7 +494,7 @@ namespace NuGetGallery
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> RegenerateCredential(string credentialType, int? credentialKey)
+        public virtual async Task<JsonResult> RegenerateCredential(string credentialType, int? credentialKey)
         {
             if (credentialType != CredentialTypes.ApiKey.V2)
             {
@@ -526,7 +524,7 @@ namespace NuGetGallery
             var credentialViewModel = _authService.DescribeCredential(newCredential);
             credentialViewModel.Value = newCredential.Value;
 
-            return Json(credentialViewModel);
+            return Json(new ApiKeyViewModel(credentialViewModel));
         }
 
         private static bool CredentialKeyMatches(int? credentialKey, Credential c)
@@ -543,7 +541,7 @@ namespace NuGetGallery
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> GenerateApiKey(string description, string[] scopes = null, string[] subjects = null, int? expirationInDays = null)
+        public virtual async Task<JsonResult> GenerateApiKey(string description, string[] scopes = null, string[] subjects = null, int? expirationInDays = null)
         {
             if (string.IsNullOrWhiteSpace(description))
             {
@@ -569,13 +567,13 @@ namespace NuGetGallery
 
             _messageService.SendCredentialAddedNotice(GetCurrentUser(), newCredential);
 
-            return Json(credentialViewModel);
+            return Json(new ApiKeyViewModel(credentialViewModel));
         }
 
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> EditCredential(string credentialType, int? credentialKey, string[] subjects)
+        public virtual async Task<JsonResult> EditCredential(string credentialType, int? credentialKey, string[] subjects)
         {
             if (credentialType != CredentialTypes.ApiKey.V2)
             {
@@ -601,7 +599,7 @@ namespace NuGetGallery
 
             var credentialViewModel = _authService.DescribeCredential(cred);
 
-            return Json(credentialViewModel);
+            return Json(new ApiKeyViewModel(credentialViewModel));
         }
 
         private async Task<Credential> GenerateApiKeyInternal(string description, ICollection<Scope> scopes, TimeSpan? expiration)
@@ -702,13 +700,7 @@ namespace NuGetGallery
                 .GetFeedsForManager(user.Key)
                 .Select(f => f.Name)
                 .ToList();
-
-            model.CredentialGroups = user
-                .Credentials
-                .Where(c => CredentialTypes.IsViewSupportedCredential(c))
-                .Select(c => _authService.DescribeCredential(c))
-                .GroupBy(c => c.Kind)
-                .ToDictionary(g => g.Key, g => g.ToList());
+            model.CredentialGroups = GetCredentialGroups(user);
             model.SignInCredentialCount = model
                 .CredentialGroups
                 .Where(p => p.Key == CredentialKind.Password || p.Key == CredentialKind.External)
@@ -726,8 +718,20 @@ namespace NuGetGallery
             model.ChangeNotifications = model.ChangeNotifications ?? new ChangeNotificationsViewModel();
             model.ChangeNotifications.EmailAllowed = user.EmailAllowed;
             model.ChangeNotifications.NotifyPackagePushed = user.NotifyPackagePushed;
-            
+
             return View("Account", model);
+        }
+
+        private Dictionary<CredentialKind, List<CredentialViewModel>> GetCredentialGroups(User user)
+        {
+            return user
+                .Credentials
+                .Where(CredentialTypes.IsViewSupportedCredential)
+                .OrderByDescending(c => c.Created)
+                .ThenBy(c => c.Description)
+                .Select(_authService.DescribeCredential)
+                .GroupBy(c => c.Kind)
+                .ToDictionary(g => g.Key, g => g.ToList());
         }
 
         private static int CountLoginCredentials(User user)
