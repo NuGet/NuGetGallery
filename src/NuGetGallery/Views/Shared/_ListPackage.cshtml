@@ -8,7 +8,7 @@
     </div>
     <div class="col-sm-11">
         <div class="package-header">
-            <h2><a href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null)">@Model.Title.Abbreviate(60)</a></h2>
+            <a class="package-title" href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null)">@Model.Title.Abbreviate(60)</a>
 
             <span class="package-by">
                 by:
