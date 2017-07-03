@@ -726,10 +726,10 @@ namespace NuGetGallery
         {
             return user
                 .Credentials
+                .Where(CredentialTypes.IsViewSupportedCredential)
                 .OrderByDescending(c => c.Created)
                 .ThenBy(c => c.Description)
-                .Where(c => CredentialTypes.IsViewSupportedCredential(c))
-                .Select(c => _authService.DescribeCredential(c))
+                .Select(_authService.DescribeCredential)
                 .GroupBy(c => c.Kind)
                 .ToDictionary(g => g.Key, g => g.ToList());
         }
