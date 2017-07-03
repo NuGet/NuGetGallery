@@ -165,28 +165,11 @@
 
 @section BottomScripts {
     <script type="text/javascript">
-        window.nuget.configureExpander(
-            "select-version",
-            "ChevronRight",
-            "Select Version",
-            "ChevronDown",
-            "Select Version");
-        window.nuget.configureExpander(
-            "list-package",
-            "ChevronRight",
-            "Package Version Listing",
-            "ChevronDown",
-            "Package Version Listing");
-        window.nuget.configureExpander(
-            "delete-package",
-            "ChevronRight",
-            "Delete Package Version",
-            "ChevronDown",
-            "Delete Package Version");
-
-    </script>
-    <script>
         $(function () {
+            window.nuget.configureExpanderHeading("select-version");
+            window.nuget.configureExpanderHeading("list-package");
+            window.nuget.configureExpanderHeading("delete-package");
+
             if (!!document.referrer) {
                 var referrer = document.referrer.toLowerCase();
 
