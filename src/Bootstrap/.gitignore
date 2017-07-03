@@ -43,5 +43,3 @@ node_modules
 # .map files are currently unused and minification is done by MVC.
 dist/css/*.map
 dist/css/*.min.css
-
-package-lock.json
