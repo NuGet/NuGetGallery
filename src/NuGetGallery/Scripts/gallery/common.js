@@ -203,6 +203,16 @@
         return [allButLast, last].join(items.length < 2 ? '' : (items.length == 2 ? ' and ' : ', and '));
     };
 
+    nuget.resetFormValidation = function (formElement) {
+        var validator = $(formElement).validate();
+        $(formElement).find("*[name]").each(function () {
+            validator.successList.push(this);
+        });
+        validator.showErrors();
+        validator.resetForm();
+        validator.reset();
+    };
+
     window.nuget = nuget;
 
     initializeJQueryValidator();
