@@ -9,17 +9,20 @@
                 // Collapse the container.
                 $("#" + containerId).collapse('hide');
 
-                // Prevent links from navigating.
-                if (this.nodeName === "A") {
-                    e.preventDefault();
+                // Prevent navigation.
+                e.preventDefault();
+                
+                // Reset the form.
+                var formElement = $("#" + containerId + " form")[0];
+                if (formElement) {
+                    formElement.reset();
                 }
 
                 // Clear values.
                 $("#" + containerId + " input[type='text']").val("");
                 $("#" + containerId + " input[type='password']").val("");
 
-                // Reset the form.
-                var formElement = $("#" + containerId + " form")[0];
+                // Reset the validation state.
                 if (formElement) {
                     window.nuget.resetFormValidation(formElement);
                 }
