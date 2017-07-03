@@ -22,24 +22,23 @@
 
             <div class="panel-collapse collapse in" aria-expanded="true" id="select-version">
                 <div class="form-group">
-                    <label for="VersionSelector">Select Package Version</label>
-                    <select id="VersionSelector" class="form-control">
-                        @foreach (var package in Model.PackageVersions.Where(p => p.Deleted == false))
-                        {
-                            <option value="@Url.DeletePackage(package)"
-                                @if (Model.IsCurrent(package))
-                                {
-                                    @:selected="selected"
-                                }
-                            >
-                                @package.Version
-                                @if (package.LatestVersionSemVer2)
-                                {
-                                    @:(latest)
-                                }
-                            </option>
-                        }
-                    </select>
+                    <label for="input-select-version" id="package-version-label">Select Package Version</label>
+
+                    @Html.DropDownList("version-selection",
+                        new SelectList(
+                            Model.PackageVersions
+                                 .Where(p => p.Deleted == false)
+                                 .Select(p => new
+                                 {
+                                     text = p.Version + (p.LatestVersionSemVer2 ? " (latest)" : string.Empty),
+                                     url = Url.DeletePackage(p)
+                                 }), "url", "text", Url.DeletePackage(Model)),
+                                 new
+                                 {
+                                     @class = "form-control",
+                                     title = "Selection A Version...",
+                                     id = "input-select-version"
+                                 })
                 </div>
             </div>
 
@@ -193,11 +192,11 @@
                 var referrer = document.referrer.toLowerCase();
 
                 if (referrer.endsWith("/delete") && referrer.indexOf("@Model.Id".toLowerCase()) != -1) {
-                    $("#VersionSelector").focus();
+                    $("#input-select-version").focus();
                 }
             }
 
-            $('#VersionSelector').change(function () {
+            $('#input-select-version').change(function () {
                 window.location.href = this.value;
             });
 
