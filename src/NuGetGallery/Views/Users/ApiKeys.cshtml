@@ -83,7 +83,7 @@
 
 <script type="text/html" id="error-container">
     <!-- ko if: Error -->
-    @ViewHelpers.AlertDanger(@<text><!-- ko html: Error --><!-- /ko --></text>)
+    @ViewHelpers.AlertDanger(@<text><span data-bind="html: Error"></span></text>)
     <!-- /ko -->
 </script>
 
