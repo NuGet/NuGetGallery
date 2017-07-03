@@ -181,17 +181,34 @@ img.package-icon {
   margin-left: 10px;
   color: #000;
 }
+@media (max-width: 480px) {
+  .list-packages .package .package-header .package-by {
+    display: block;
+    margin-left: 0;
+  }
+}
 .list-packages .package .package-list {
+  padding-left: 0;
   margin-top: 10px;
+  margin-left: -5px;
   line-height: 20px;
   color: #666;
 }
-.list-packages .package .package-list li + li {
-  padding-left: 10px;
-  margin-left: 10px;
-  border-color: #dbdbdb;
-  border-width: 1px;
-  border-left-style: solid;
+.list-packages .package .package-list li {
+  display: list-item;
+  list-style: none;
+}
+@media (min-width: 480px) {
+  .list-packages .package .package-list li {
+    display: inline-block;
+  }
+  .list-packages .package .package-list li + li {
+    padding-left: 10px;
+    margin-left: 10px;
+    border-color: #dbdbdb;
+    border-width: 1px;
+    border-left-style: solid;
+  }
 }
 .list-packages .package .package-details {
   margin-top: 10px;
@@ -461,7 +478,7 @@ img.package-icon {
   margin-top: 20px;
 }
 .page-forgot-password .forgot-form {
-  margin-top: 80px;
+  margin-top: 20px;
 }
 .page-home .jumbotron h1 {
   margin: 32px;
@@ -611,6 +628,9 @@ img.package-icon {
   font-size: 16px;
   font-weight: 600;
   color: #000;
+}
+.page-reset-password .reset-form {
+  margin-top: 80px;
 }
 .page-sign-in .provider-button {
   line-height: 2em;
