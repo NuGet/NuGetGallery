@@ -83,83 +83,52 @@
 
 <script type="text/html" id="error-container">
     <!-- ko if: Error -->
-    <div class="alert alert-danger" role="alert">
-        <ul class="list-unstyled ms-Icon-ul">
-            <li>
-                <i class="ms-Icon ms-Icon--ErrorBadge" aria-hidden="true"></i>
-                <span data-bind="html: Error"></span>
-            </li>
-        </ul>
-    </div>
+    @ViewHelpers.AlertDanger(@<text><!-- ko html: Error --><!-- /ko --></text>)
     <!-- /ko -->
 </script>
 
 <script type="text/html" id="manage-api-keys">
     <!-- ko if: ExpiredDescriptions().length > 0 -->
-    <div class="alert alert-warning" role="alert">
-        <ul class="list-unstyled ms-Icon-ul">
-            <li>
-                <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
-                <span>
-                    Your API
-                    <!-- ko if: ExpiredDescriptions().length === 1 -->
-                    key
-                    <!-- /ko -->
-                    <!-- ko ifnot: ExpiredDescriptions().length === 1 -->
-                    keys
-                    <!-- /ko -->
-                    <!-- ko text: window.nuget.commaJoin(ExpiredDescriptions().map(function(d) { return "'" + d + "'"; } )) --><!-- /ko -->
-                    <!-- ko if: ExpiredDescriptions().length === 1 -->
-                    has
-                    <!-- /ko -->
-                    <!-- ko ifnot: ExpiredDescriptions().length === 1 -->
-                    have
-                    <!-- /ko -->
-                    expired.
-                </span>
-            </li>
-        </ul>
-    </div>
+    @ViewHelpers.AlertWarning(
+        @<text>
+        Your API
+        <!-- ko if: ExpiredDescriptions().length === 1 -->
+        key
+        <!-- /ko -->
+        <!-- ko ifnot: ExpiredDescriptions().length === 1 -->
+        keys
+        <!-- /ko -->
+        <!-- ko text: window.nuget.commaJoin(ExpiredDescriptions().map(function(d) { return "'" + d + "'"; } )) --><!-- /ko -->
+        <!-- ko if: ExpiredDescriptions().length === 1 -->
+        has
+        <!-- /ko -->
+        <!-- ko ifnot: ExpiredDescriptions().length === 1 -->
+        have
+        <!-- /ko -->
+        expired.
+        </text>)
     <!-- /ko -->
     <!-- ko if: AnyJustCreated -->
-    <div class="alert alert-warning" role="alert">
-        <ul class="list-unstyled ms-Icon-ul">
-            <li>
-                <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
-                <span>
-                    A new API key has been created. Make sure to copy your new API key now using the <b>Copy</b>
-                    button below. You will not be able to do so again.
-                </span>
-            </li>
-        </ul>
-    </div>
+    @ViewHelpers.AlertWarning(
+        @<text>
+        A new API key has been created. Make sure to copy your new API key now using the
+        <b>Copy</b>
+        button below. You will not be able to do so again.
+        </text>)
     <!-- /ko -->
     <!-- ko if: AnyJustRegenerated -->
-    <div class="alert alert-warning" role="alert">
-        <ul class="list-unstyled ms-Icon-ul">
-            <li>
-                <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
-                <span>
-                    Your API key has been regenerated. Make sure to copy your new API key now using the <b>Copy</b>
-                    button below. You will not be able to do so again.
-                </span>
-            </li>
-        </ul>
-    </div>
+    @ViewHelpers.AlertWarning(
+        @<text>
+            Your API key has been regenerated. Make sure to copy your new API key now using the
+            <b>Copy</b>
+            button below. You will not be able to do so again.
+        </text>)
     <!-- /ko -->
     <div data-bind="template: { name: 'api-key-details', foreach: ApiKeys }">
     </div>
     <!-- ko if: ApiKeys().length === 0 -->
-    <div class="alert alert-info">
-        <ul class="list-unstyled ms-Icon-ul">
-            <li>
-                <i class="ms-Icon ms-Icon--Info" aria-hidden="true"></i>
-                <span>
-                    You don't have any API keys.
-                </span>
-            </li>
-        </ul>
-    </div>
+    @ViewHelpers.AlertInfo(
+        @<text>You don't have any API keys.</text>)
     <!-- /ko -->
 </script>
 
