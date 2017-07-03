@@ -172,7 +172,7 @@ namespace NuGetGallery
             // Update latest versions
             foreach (var packageRegistration in packageRegistrations)
             {
-                await _packageService.UpdateIsLatestAsync(packageRegistration, false);
+                await _packageService.UpdateIsLatestAsync(packageRegistration, commitChanges: false);
             }
         }
 
