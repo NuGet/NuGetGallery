@@ -287,12 +287,7 @@
 
                 // Reset the form.
                 var formElement = $("#" + self.FormId())[0];
-                var validator = $(formElement).validate();
-                validator.successList.push($("#" + self.DescriptionId())[0]);
-                validator.successList.push($("#" + self.GlobPatternId())[0]);
-                validator.showErrors();
-                validator.resetForm();
-                validator.reset();
+                window.nuget.resetFormValidation(formElement);
 
                 // Remove error classes from the form groups.
                 $("#" + containerId + " .form-group.has-error").removeClass("has-error");

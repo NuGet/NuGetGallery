@@ -351,39 +351,7 @@
 
 @section bottomScripts {
     <script type="text/javascript">
-        $(function () {
-            var configureSection = function (prefix) {
-                var containerId = prefix + "-container";
-                window.nuget.configureExpanderHeading(containerId);
-                $("#cancel-" + prefix).click(function (e) {
-                    // Collapse the container.
-                    $("#" + containerId).collapse('hide');
-                    e.preventDefault();
-                });
-            }
-
-            // Set up the change password form.
-            var $enablePasswordLogin = $("#ChangePassword_EnablePasswordLogin[type=checkbox]");
-            function setPasswordLoginReadonly() {
-                var enablePasswordLogin = $enablePasswordLogin[0];
-                if (!enablePasswordLogin) {
-                    return;
-                }
-
-                var disabled = !enablePasswordLogin.checked;
-                $("#ChangePassword_OldPassword").prop('disabled', disabled);
-                $("#ChangePassword_NewPassword").prop('disabled', disabled);
-                $("#ChangePassword_VerifyPassword").prop('disabled', disabled);
-            }
-            $("#show-change-password-container").click(setPasswordLoginReadonly);
-            $enablePasswordLogin.change(setPasswordLoginReadonly);
-            setPasswordLoginReadonly();
-
-            // Set up the section expanders.
-            @foreach (var section in GetSections(ViewBag))
-            {
-            @:configureSection("@(section)");
-            }
-        });
+        var sections = @Html.Raw(Json.Encode(GetSections(ViewBag)));
     </script>
+    @Scripts.Render("~/Scripts/gallery/page-account.min.js")
 }
