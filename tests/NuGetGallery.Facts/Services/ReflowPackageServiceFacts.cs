@@ -239,6 +239,28 @@ namespace NuGetGallery
                 // Assert
                 Assert.Equal(listed, result.Listed);
             }
+
+            [Fact]
+            public async Task CallsUpdateIsLatestAsync()
+            {
+                // Arrange
+                var package = CreateTestPackage();
+
+                var packageService = SetupPackageService(package);
+                var entitiesContext = SetupEntitiesContext();
+                var packageFileService = SetupPackageFileService(package);
+
+                var service = CreateService(
+                    packageService: packageService,
+                    entitiesContext: entitiesContext,
+                    packageFileService: packageFileService);
+
+                // Act
+                var result = await service.ReflowAsync("test", "1.0.0");
+
+                // Assert
+                packageService.Verify(s => s.UpdateIsLatestAsync(package.PackageRegistration, false), Times.Once);
+            }
         }
 
         private static Package CreateTestPackage()
@@ -312,6 +334,13 @@ namespace NuGetGallery
                   It.IsAny<User>()))
               .CallBase()
               .Verifiable();
+
+            packageService
+                .Setup(s => s.UpdateIsLatestAsync(
+                    It.IsAny<PackageRegistration>(),
+                    It.IsAny<bool>()))
+                .Returns(Task.CompletedTask)
+                .Verifiable();
 
             return packageService;
         }
