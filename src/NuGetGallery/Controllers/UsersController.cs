@@ -24,7 +24,6 @@ namespace NuGetGallery
         private readonly IAppConfiguration _config;
         private readonly AuthenticationService _authService;
         private readonly ICredentialBuilder _credentialBuilder;
-        private readonly IGalleryConfigurationService _configService;
 
         public UsersController(
             ICuratedFeedService feedsQuery,
@@ -33,8 +32,7 @@ namespace NuGetGallery
             IMessageService messageService,
             IAppConfiguration config,
             AuthenticationService authService,
-            ICredentialBuilder credentialBuilder,
-            IGalleryConfigurationService configService)
+            ICredentialBuilder credentialBuilder)
         {
             _curatedFeedService = feedsQuery ?? throw new ArgumentNullException(nameof(feedsQuery));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
@@ -43,7 +41,6 @@ namespace NuGetGallery
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _authService = authService ?? throw new ArgumentNullException(nameof(authService));
             _credentialBuilder = credentialBuilder ?? throw new ArgumentNullException(nameof(credentialBuilder));
-            _configService = configService ?? throw new ArgumentNullException(nameof(configService));
         }
 
         [HttpGet]
@@ -115,7 +112,6 @@ namespace NuGetGallery
 
             var model = new ApiKeyListViewModel
             {
-                SiteRoot = _configService.GetSiteRoot(_config.RequireSSL).TrimEnd('/'),
                 ApiKeys = apiKeys,
                 ExpirationInDaysForApiKeyV1 = _config.ExpirationInDaysForApiKeyV1,
                 PackageIds = packageIds,

@@ -7,7 +7,6 @@ namespace NuGetGallery
 {
     public class ApiKeyListViewModel
     {
-        public string SiteRoot { get; set; }
         public IList<ApiKeyViewModel> ApiKeys { get; set; }
         public int ExpirationInDaysForApiKeyV1 { get; set; }
         public IList<string> PackageIds { get; set; }
