@@ -70,6 +70,13 @@
             });
 
             // Generic API key properties.
+            this._SetPackageSelection = function (packages) {
+                $.each(packageViewModels, function (i, m) {
+                    var index = $.inArray(m.Id(), packages);
+                    m.Selected(index !== -1);
+                });
+                this._packages = packages;
+            };
             this._UpdateData = function (data) {
                 this.Key(data.Key || 0);
                 this.Type(data.Type || null);
@@ -81,10 +88,7 @@
                 this.Scopes(data.Scopes || []);
                 this.Packages(data.Packages || []);
                 this.GlobPattern(data.GlobPattern || "");
-                $.each(packageViewModels, function (i, m) {
-                    var index = $.inArray(m.Id(), data.Packages);
-                    m.Selected(index !== -1);
-                });
+                this._SetPackageSelection(this.Packages())
             };
             this.Key = ko.observable();
             this.Type = ko.observable();
@@ -98,15 +102,15 @@
             this.GlobPattern = ko.observable();
             this._UpdateData(data);
 
-            // Properties used for API key create
+            // Properties used for the form
+            this.PendingDescription = ko.observable();
             this.ExpiresIn = ko.observable();
             this.PushEnabled = ko.observable(false);
             this.PushScope = ko.observable(initialData.PackagePushScope);
             this.UnlistScope = ko.observableArray();
-
-            // Properties used for API key create and edit
             this.PendingGlobPattern = ko.observable();
             this.PendingPackages = ko.observableArray();
+
             this.ScopesError = ko.observable();
             this.SubjectsError = ko.observable();
             this.PendingCreateOrEdit = ko.observable(false);
@@ -114,18 +118,6 @@
             this.JustRegenerated = ko.observable(false);
 
             // Computed properties
-            this.ShortPackageList = ko.pureComputed(function () {
-                return this.Packages().slice(0, 3);
-            }, this);
-            this.RemainingPackageList = ko.pureComputed(function () {
-                return this.Packages().slice(3);
-            }, this);
-            this.SelectPackagesEnabled = ko.pureComputed(function () {
-                return this.Scopes().length > 0 ||
-                    this.PushEnabled() ||
-                    this.UnlistScope().length > 0;
-            }, this);
-
             function ComputedId(prefix, suffix) {
                 return ko.pureComputed(function () {
                     var id = self.Key();
@@ -138,6 +130,18 @@
                     return id;
                 }, self);
             }
+
+            this.ShortPackageList = ko.pureComputed(function () {
+                return this.Packages().slice(0, 3);
+            }, this);
+            this.RemainingPackageList = ko.pureComputed(function () {
+                return this.Packages().slice(3);
+            }, this);
+            this.SelectPackagesEnabled = ko.pureComputed(function () {
+                return this.Scopes().length > 0 ||
+                    this.PushEnabled() ||
+                    this.UnlistScope().length > 0;
+            }, this);
             this.FormId = ComputedId("form");
             this.RemainingPackagesId = ComputedId("remaining-packages");
             this.EditContainerId = ComputedId("edit", "container");
@@ -146,7 +150,7 @@
             this.CopyId = ComputedId("copy");
             this.DescriptionId = ComputedId("description");
             this.GlobPatternId = ComputedId("glob-pattern");
-
+            this.ExpiresInId = ComputedId("expires-in");
             this.IconUrl = ko.pureComputed(function () {
                 if (this.HasExpired()) {
                     return initialData.ImageUrls.ApiKeyExpired;
@@ -158,7 +162,6 @@
                     return initialData.ImageUrls.ApiKey;
                 }
             }, this);
-
             this.PendingScopes = ko.pureComputed(function () {
                 var scopes = [];
                 if (this.PushEnabled()) {
@@ -198,7 +201,7 @@
                 });
             });
 
-            // Initialize the pending data
+            // Initialize the pending data.
             this.PendingPackages(packageViewModels);
             this.PendingGlobPattern(this.GlobPattern());
 
@@ -256,8 +259,40 @@
             }
 
             this.CancelEdit = function () {
+                // Hide the form.
                 var containerId = self.Key() ? self.EditContainerId() : 'create-container';
                 $("#" + containerId).collapse('hide');
+
+                // Reset the field values.
+                self.PendingDescription(self.Description());
+                self.ExpiresIn($("#" + self.ExpiresInId() + " option:last-child").val());
+                self.PushEnabled(false);
+                self.PushScope(initialData.PackagePushScope);
+                self.UnlistScope.removeAll();
+                self.PendingGlobPattern(self.GlobPattern());
+                this._SetPackageSelection(self._packages);
+
+                // Reset the custom errors.
+                self.ScopesError(null);
+                self.SubjectsError(null);
+
+                // Reset the form.
+                var formElement = $("#" + self.FormId())[0];
+                var validator = $(formElement).validate();
+                validator.successList.push($("#" + self.DescriptionId())[0]);
+                validator.successList.push($("#" + self.GlobPatternId())[0]);
+                validator.showErrors();
+                validator.resetForm();
+                validator.reset();
+
+                // Remove error classes from the form groups.
+                $("#" + containerId + " .form-group.has-error").removeClass("has-error");
+
+                // Scroll to the top of the available packages list.
+                $("#" + containerId + " .available-packages .panel-body").scrollTop(0);
+
+                // Re-attach extensions.
+                self.AttachExtensions();
             };
 
             this.ShowRemainingPackages = function (_, e) {
@@ -349,7 +384,7 @@
             this.Create = function () {
                 // Build the request.
                 var data = {
-                    description: this.Description(),
+                    description: this.PendingDescription(),
                     scopes: this.PendingScopes(),
                     subjects: this.PendingSubjects(),
                     expirationInDays: this.ExpiresIn()

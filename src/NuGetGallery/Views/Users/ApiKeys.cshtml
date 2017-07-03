@@ -265,7 +265,7 @@
                        data-bind="attr: { id: DescriptionId,
                                           name: DescriptionId,
                                           'aria-labelledby': DescriptionId() + '-label ' + DescriptionId() + '-validation-message' },
-                                  value: Description"
+                                  value: PendingDescription"
                        data-val-required="The key name is required." data-val="true" />
                 <span class="field-validation-valid help-block"
                       data-valmsg-replace="true"
@@ -275,9 +275,11 @@
             @if (Model.ExpirationInDaysForApiKeyV1 > 0)
             {
                 <div class="col-sm-5 form-group">
-                    <label data-bind="attr: { for: 'expires-in-' + Key() }">Expires In</label>
+                    <label data-bind="attr: { for: ExpiresInId }">Expires In</label>
                     <select class="form-control"
-                            data-bind="attr: { id: 'expires-in-' + Key() },
+                            data-bind="attr: { id: ExpiresInId,
+                                               name: ExpiresInId,
+                                               'aria-labelledby': ExpiresInId() + '-label' },
                                        value: ExpiresIn">
                         @if (Model.ExpirationInDaysForApiKeyV1 == 365)
                         {
@@ -292,7 +294,7 @@
                             <option value="1">1 day</option>
                             for (int i = 10; i <= Model.ExpirationInDaysForApiKeyV1; i += 10)
                             {
-                                <option value="@i" @(i == Model.ExpirationInDaysForApiKeyV1 ? "selected" : string.Empty)>@i days</option>
+                                <option value="@i" @(i + 10 > Model.ExpirationInDaysForApiKeyV1 ? "selected" : string.Empty)>@i days</option>
                             }
                         }
                     </select>
@@ -448,14 +450,14 @@
                                   attr: { value: Key() ? 'Edit' : 'Create' }" />
             </div>
             <div class="col-sm-6 form-group">
-                <a href="#" data-bind="attr: { 'data-target': '#' + EditContainerId(),
-                                               'aria-controls': EditContainerId,
-                                               id: CancelEditId },
-                                       enable: !PendingCreateOrEdit(),
-                                       click: CancelEdit"
-                   role="button" class="btn btn-default btn-block" data-toggle="collapse">
+                <button data-bind="attr: { 'data-target': '#' + EditContainerId(),
+                                           'aria-controls': EditContainerId,
+                                           id: CancelEditId },
+                                   enable: !PendingCreateOrEdit(),
+                                   click: CancelEdit"
+                        class="btn btn-default btn-block" data-toggle="collapse">
                     Cancel
-                </a>
+                </button>
             </div>
         </div>
     </form>
