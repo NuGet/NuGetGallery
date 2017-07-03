@@ -1,4 +1,4 @@
-﻿@model ApiKeysViewModel
+﻿@model ApiKeyListViewModel
 @using NuGetGallery.Authentication
 
 @{
@@ -53,6 +53,8 @@
                     <strong>Always keep your API keys a secret!</strong> If one of your keys is accidentally revealed,
                     you can always generate a new one at any time. You can also remove existing API keys if necessary.
                 </p>
+
+                <div data-bind="template: 'error-container'"></div>
                 
                 @Section(
                     "create",
@@ -93,13 +95,27 @@
 </script>
 
 <script type="text/html" id="manage-api-keys">
-    <!-- ko if: AnyExpired -->
+    <!-- ko if: ExpiredDescriptions().length > 0 -->
     <div class="alert alert-warning" role="alert">
         <ul class="list-unstyled ms-Icon-ul">
             <li>
                 <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
                 <span>
-                    One of your API keys has expired.
+                    Your API
+                    <!-- ko if: ExpiredDescriptions().length === 1 -->
+                    key
+                    <!-- /ko -->
+                    <!-- ko ifnot: ExpiredDescriptions().length === 1 -->
+                    keys
+                    <!-- /ko -->
+                    <!-- ko text: window.nuget.commaJoin(ExpiredDescriptions().map(function(d) { return "'" + d + "'"; } )) --><!-- /ko -->
+                    <!-- ko if: ExpiredDescriptions().length === 1 -->
+                    has
+                    <!-- /ko -->
+                    <!-- ko ifnot: ExpiredDescriptions().length === 1 -->
+                    have
+                    <!-- /ko -->
+                    expired.
                 </span>
             </li>
         </ul>

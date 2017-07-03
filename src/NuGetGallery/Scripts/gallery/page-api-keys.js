@@ -1,6 +1,15 @@
 (function () {
     'use strict';
 
+    var MissingScopesErrorMessage = "At least one scope must be selected.";
+    var MissingSubjectsErrorMessage = "Either a glob pattern must be specified or at least one package ID must be selected.";
+    var ConfirmRegenerateMessage = "Are you sure you want to regenerate the API key?";
+    var RegenerateErrorMessage = "An error occurred while regenerating the API key. Please try again.";
+    var ConfirmDeleteMessage = "Are you sure you want to remove the API key?";
+    var DeleteErrorMessage = "An error occurred while deleting the API key. Please try again.";
+    var CreateErrorMessage = "An error occurred while creating a new API key. Please try again.";
+    var EditErrorMessage = "An error occurred while editing an API key. Please try again.";
+
     $(function () {
         function addAntiForgeryToken(data) {
             var $field = $("#AntiForgeryForm input[name=__RequestVerificationToken]");
@@ -208,14 +217,14 @@
             // Apply validation to the scopes and subjects
             this.PendingScopes.subscribe(function (newValue) {
                 if (newValue.length === 0 && self.Scopes().length === 0) {
-                    self.ScopesError("At least one scope must be selected.");
+                    self.ScopesError(MissingScopesErrorMessage);
                 } else {
                     self.ScopesError(null);
                 }
             });
             this.PendingSubjects.subscribe(function (newValue) {
                 if (newValue.length === 0) {
-                    self.SubjectsError("Either a glob pattern must be specified or at least one package ID must be selected.");
+                    self.SubjectsError(MissingSubjectsErrorMessage);
                 } else {
                     self.SubjectsError(null);
                 }
@@ -310,7 +319,7 @@
             }
 
             this.Regenerate = function () {
-                if (!window.nuget.confirmEvent("Are you sure you want to regenerate the API key?")) {
+                if (!window.nuget.confirmEvent(ConfirmRegenerateMessage)) {
                     return;
                 }
 
@@ -336,13 +345,13 @@
                         parent.ApiKeys.unshift(self);
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
-                        parent.Error("An error occurred while regenerating the API key. Please try again.");
+                        parent.Error(RegenerateErrorMessage);
                     }
                 });
             };
 
             this.Delete = function () {
-                if (!window.nuget.confirmEvent("Are you sure you want to remove the API key?")) {
+                if (!window.nuget.confirmEvent(ConfirmDeleteMessage)) {
                     return;
                 }
 
@@ -364,7 +373,7 @@
                         parent.ApiKeys.remove(self);
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
-                        parent.Error("An error occurred while deleting the API key. Please try again.");
+                        parent.Error(DeleteErrorMessage);
                     }
                 });
             };
@@ -411,7 +420,7 @@
                         $("#manage-container").collapse("show");
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
-                        parent.Error("An error occurred while creating a new API key. Please try again.");
+                        parent.Error(CreateErrorMessage);
                     },
                     complete: function () {
                         self.PendingCreateOrEdit(false);
@@ -442,7 +451,7 @@
                         self.CancelEdit();
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
-                        parent.Error("An error occurred while editing an API key. Please try again.");
+                        parent.Error(EditErrorMessage);
                     },
                     complete: function () {
                         self.PendingCreateOrEdit(false);
@@ -457,7 +466,7 @@
             };
         }
 
-        function ApiKeysViewModel(initialData) {
+        function ApiKeyListViewModel(initialData) {
             var self = this;
 
             var apiKeys = $.map(initialData.ApiKeys, function (data) {
@@ -487,14 +496,15 @@
                 }
                 return false;
             }, this);
-            this.AnyExpired = ko.pureComputed(function () {
+            this.ExpiredDescriptions = ko.pureComputed(function () {
                 var apiKeys = this.ApiKeys();
+                var descriptions = [];
                 for (var i in apiKeys) {
                     if (apiKeys[i].HasExpired()) {
-                        return true;
+                        descriptions.push(apiKeys[i].Description());
                     }
                 }
-                return false;
+                return descriptions;
             }, this);
 
             this.Idle = function () {
@@ -506,8 +516,8 @@
         }
 
         // Set up the data binding.
-        var apiKeysViewModel = new ApiKeysViewModel(initialData);
-        ko.applyBindings(apiKeysViewModel, document.body);
+        var apiKeyListViewModel = new ApiKeyListViewModel(initialData);
+        ko.applyBindings(apiKeyListViewModel, document.body);
 
         // Configure the expander headings.
         window.nuget.configureExpander(
@@ -519,7 +529,7 @@
         window.nuget.configureExpanderHeading("manage-container");
 
         // Start the idle timer for 10 minutes.
-        executeOnInactive(apiKeysViewModel.Idle, 10 * 60 * 1000);
+        executeOnInactive(apiKeyListViewModel.Idle, 10 * 60 * 1000);
     });
 
 })();

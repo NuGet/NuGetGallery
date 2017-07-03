@@ -1483,7 +1483,7 @@
     <Compile Include="Services\ReflowPackageService.cs" />
     <Compile Include="Services\TelemetryService.cs" />
     <Compile Include="ViewModels\ManagePackagesListViewModel.cs" />
-    <Compile Include="ViewModels\ApiKeysViewModel.cs" />
+    <Compile Include="ViewModels\ApiKeyListViewModel.cs" />
     <Compile Include="ViewModels\ApiKeyViewModel.cs" />
     <Compile Include="ViewModels\ReportMyPackageViewModel.cs" />
     <Compile Include="ViewModels\ScopeViewModel.cs" />

@@ -193,6 +193,16 @@
         return true;
     };
 
+    nuget.commaJoin = function (items) {
+        if (!items) {
+            return '';
+        }
+
+        var allButLast = items.slice(0, -1).join(', ');
+        var last = items.slice(-1)[0];
+        return [allButLast, last].join(items.length < 2 ? '' : (items.length == 2 ? ' and ' : ', and '));
+    };
+
     window.nuget = nuget;
 
     initializeJQueryValidator();

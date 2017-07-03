@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace NuGetGallery
 {
-    public class ApiKeysViewModel
+    public class ApiKeyListViewModel
     {
         public string SiteRoot { get; set; }
         public IList<ApiKeyViewModel> ApiKeys { get; set; }

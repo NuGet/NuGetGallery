@@ -24,6 +24,7 @@ namespace NuGetGallery
         private readonly IAppConfiguration _config;
         private readonly AuthenticationService _authService;
         private readonly ICredentialBuilder _credentialBuilder;
+        private readonly IGalleryConfigurationService _configService;
 
         public UsersController(
             ICuratedFeedService feedsQuery,
@@ -32,50 +33,17 @@ namespace NuGetGallery
             IMessageService messageService,
             IAppConfiguration config,
             AuthenticationService authService,
-            ICredentialBuilder credentialBuilder)
+            ICredentialBuilder credentialBuilder,
+            IGalleryConfigurationService configService)
         {
-            if (feedsQuery == null)
-            {
-                throw new ArgumentNullException(nameof(feedsQuery));
-            }
-
-            if (userService == null)
-            {
-                throw new ArgumentNullException(nameof(userService));
-            }
-
-            if (packageService == null)
-            {
-                throw new ArgumentNullException(nameof(packageService));
-            }
-
-            if (messageService == null)
-            {
-                throw new ArgumentNullException(nameof(messageService));
-            }
-
-            if (config == null)
-            {
-                throw new ArgumentNullException(nameof(config));
-            }
-
-            if (authService == null)
-            {
-                throw new ArgumentNullException(nameof(authService));
-            }
-
-            if (credentialBuilder == null)
-            {
-                throw new ArgumentNullException(nameof(credentialBuilder));
-            }
-
-            _curatedFeedService = feedsQuery;
-            _userService = userService;
-            _packageService = packageService;
-            _messageService = messageService;
-            _config = config;
-            _authService = authService;
-            _credentialBuilder = credentialBuilder;
+            _curatedFeedService = feedsQuery ?? throw new ArgumentNullException(nameof(feedsQuery));
+            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+            _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
+            _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
+            _config = config ?? throw new ArgumentNullException(nameof(config));
+            _authService = authService ?? throw new ArgumentNullException(nameof(authService));
+            _credentialBuilder = credentialBuilder ?? throw new ArgumentNullException(nameof(credentialBuilder));
+            _configService = configService ?? throw new ArgumentNullException(nameof(configService));
         }
 
         [HttpGet]
@@ -135,7 +103,7 @@ namespace NuGetGallery
             }
 
             var apiKeys = credentials
-                .Select(DescribeApiKey)
+                .Select(c => new ApiKeyViewModel(c))
                 .ToList();
 
             // Get package IDs
@@ -145,18 +113,13 @@ namespace NuGetGallery
                 .OrderBy(i => i)
                 .ToList();
 
-            var model = new ApiKeysViewModel
+            var model = new ApiKeyListViewModel
             {
-                SiteRoot = _config.SiteRoot.TrimEnd('/'),
+                SiteRoot = _configService.GetSiteRoot(_config.RequireSSL).TrimEnd('/'),
                 ApiKeys = apiKeys,
                 ExpirationInDaysForApiKeyV1 = _config.ExpirationInDaysForApiKeyV1,
                 PackageIds = packageIds,
             };
-
-            if (_config.RequireSSL)
-            {
-                model.SiteRoot = model.SiteRoot.Replace("http://", "https://");
-            }
 
             return View("ApiKeys", model);
         }
@@ -565,7 +528,7 @@ namespace NuGetGallery
             var credentialViewModel = _authService.DescribeCredential(newCredential);
             credentialViewModel.Value = newCredential.Value;
 
-            return Json(DescribeApiKey(credentialViewModel));
+            return Json(new ApiKeyViewModel(credentialViewModel));
         }
 
         private static bool CredentialKeyMatches(int? credentialKey, Credential c)
@@ -608,7 +571,7 @@ namespace NuGetGallery
 
             _messageService.SendCredentialAddedNotice(GetCurrentUser(), newCredential);
 
-            return Json(DescribeApiKey(credentialViewModel));
+            return Json(new ApiKeyViewModel(credentialViewModel));
         }
 
         [Authorize]
@@ -640,7 +603,7 @@ namespace NuGetGallery
 
             var credentialViewModel = _authService.DescribeCredential(cred);
 
-            return Json(DescribeApiKey(credentialViewModel));
+            return Json(new ApiKeyViewModel(credentialViewModel));
         }
 
         private async Task<Credential> GenerateApiKeyInternal(string description, ICollection<Scope> scopes, TimeSpan? expiration)
@@ -761,43 +724,6 @@ namespace NuGetGallery
             model.ChangeNotifications.NotifyPackagePushed = user.NotifyPackagePushed;
 
             return View("Account", model);
-        }
-
-        private static ApiKeyViewModel DescribeApiKey(CredentialViewModel cred)
-        {
-            var scopes = cred
-                .Scopes
-                .Select(s => s.AllowedAction)
-                .Distinct()
-                .OrderBy(s => s)
-                .ToList();
-            var subjects = cred
-                .Scopes
-                .Select(s => s.Subject)
-                .Distinct()
-                .OrderBy(s => s)
-                .ToList();
-            var globPattern = subjects
-                .FirstOrDefault(s => s != null && s.Contains("*"));
-            var packages = subjects
-                .Except(new[] { globPattern })
-                .ToList();
-
-            var apiKey = new ApiKeyViewModel
-            {
-                Key = cred.Key,
-                Type = cred.Type,
-                Value = cred.Value,
-                Description = cred.Description,
-                Expires = cred.Expires?.ToString("O"),
-                HasExpired = cred.HasExpired,
-                IsNonScopedV1ApiKey = cred.IsNonScopedV1ApiKey,
-                Scopes = scopes,
-                Packages = packages,
-                GlobPattern = globPattern,
-            };
-
-            return apiKey;
         }
 
         private Dictionary<CredentialKind, List<CredentialViewModel>> GetCredentialGroups(User user)
