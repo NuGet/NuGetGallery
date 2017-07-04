@@ -7,7 +7,7 @@
     [Patch]				VARCHAR(50)		NULL,
     [PatchMinor]		VARCHAR(50)		NULL,
 	[OSVersion] AS CONCAT(ISNULL([Major], '0'), '.', ISNULL([Minor], '0'), '.', ISNULL([Patch], '0'), '.', ISNULL([PatchMinor], '0')),
-    CONSTRAINT [PK_Dimension_Platform] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (STATISTICS_NORECOMPUTE = ON)
+    CONSTRAINT [PK_Dimension_Platform] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (STATISTICS_NORECOMPUTE = OFF)
 )
 GO
 

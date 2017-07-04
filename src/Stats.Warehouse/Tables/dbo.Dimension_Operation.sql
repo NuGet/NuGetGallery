@@ -7,4 +7,4 @@
 
 GO
 CREATE UNIQUE NONCLUSTERED INDEX [Dimension_Operation_NCI_Operation]
-    ON [dbo].[Dimension_Operation]([Operation] ASC) WITH (STATISTICS_NORECOMPUTE = ON);
+    ON [dbo].[Dimension_Operation]([Operation] ASC) WITH (STATISTICS_NORECOMPUTE = OFF);
