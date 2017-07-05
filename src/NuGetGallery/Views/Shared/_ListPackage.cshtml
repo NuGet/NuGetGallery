@@ -1,14 +1,14 @@
 ﻿@model ListPackageItemViewModel
 
 <article class="row package" role="listitem">
-    <div class="col-sm-1">
+    <div class="col-sm-1 hidden-xs hidden-sm">
         <img class="package-icon img-responsive" aria-hidden="true" alt=""
              src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))"
              @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")) />
     </div>
     <div class="col-sm-11">
         <div class="package-header">
-            <h2><a href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null)">@Model.Title.Abbreviate(60)</a></h2>
+            <a class="package-title" href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null)">@Model.Title.Abbreviate(60)</a>
 
             <span class="package-by">
                 by:
@@ -19,7 +19,7 @@
             </span>
         </div>
 
-        <ul class="package-list list-inline">
+        <ul class="package-list">
             <li>
                 <span>
                     <i class="ms-Icon ms-Icon--Download" aria-hidden="true"></i>
@@ -60,7 +60,7 @@
 
         @if (Model.IsOwner(User))
         {
-            <ul class="package-list list-inline">
+            <ul class="package-list">
                 <li>
                     <a href="@Url.EditPackage(Model.Id, Model.Version)">
                         <span>

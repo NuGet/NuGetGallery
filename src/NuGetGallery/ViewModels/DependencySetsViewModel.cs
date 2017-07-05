@@ -61,7 +61,10 @@ namespace NuGetGallery
                     VersionSpec = VersionRange.Parse(versionSpec).PrettyPrint();
                 }
 
-                PackageUrl = UrlExtensions.Package(new UrlHelper(HttpContext.Current.Request.RequestContext), id);
+                if (HttpContext.Current != null)
+                {
+                    PackageUrl = UrlExtensions.Package(new UrlHelper(HttpContext.Current.Request.RequestContext), id);
+                }
             }
 
             public string Id { get; private set; }
