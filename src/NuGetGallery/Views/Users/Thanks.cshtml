@@ -3,19 +3,19 @@
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
-<article role="main" class="container main-container">
+<article role="main" class="container main-container text-center">
     <div class="row">
-        <div class="col-xs-12 text-center">
+        <div class="col-xs-12">
             <h1>
                 Thanks for registering!
             </h1>
         </div>
-        <div class="col-sm-8 col-sm-offset-2 col-md-6 col-md-offset-3 text-center">
+        <div class="col-sm-8 col-sm-offset-2 col-md-6 col-md-offset-3">
             <p class="ms-fontSize-xl">Welcome @CurrentUser.Username! Now that you have a NuGet.org account, let's get you started!</p>
 
             <p>Make sure your email is verified. <a href="@Url.ConfirmationRequired()">Confirm your account</a></p>
             
-            <p>Want to update your account? <a href="@Url.Action("Account", "Users")">View Account Settings</a></p>
+            <p>Want to update your account? <a href="@Url.AccountSettings()">View Account Settings</a></p>
             
             <p>Have a NuGet package ready for the world? <a href="@Url.UploadPackage()">Upload a package</a></p>
         </div>

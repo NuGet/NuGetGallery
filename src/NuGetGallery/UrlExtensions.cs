@@ -273,6 +273,11 @@ namespace NuGetGallery
                 });
         }
 
+        public static string AccountSettings(this UrlHelper url)
+        {
+            return url.Action(actionName: "Account", controllerName: "Users");
+        }
+
         public static string ManagePackageOwners(this UrlHelper url, IPackageVersionModel package)
         {
             return url.Action(
