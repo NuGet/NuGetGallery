@@ -98,12 +98,6 @@
                 $form.validate().element($('#Reason'));
             }
 
-            if (val === 'HasABugOrFailedToInstall') {
-                $form.find("input, textarea, select").not('#form-field-reason *').attr('disabled', 'disabled');
-            } else {
-                $form.find("input, textarea, select").not('#form-field-reason').removeAttr('disabled');
-            }
-
             if (val == 'ViolatesALicenseIOwn') {
                 $form.find('.infringement-claim-requirements').show();
                 $('#Signature').rules("add", {
