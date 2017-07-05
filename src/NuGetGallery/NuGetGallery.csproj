@@ -1941,7 +1941,6 @@
     <Content Include="Views\Packages\ContactOwners.cshtml" />
     <Content Include="Views\Packages\DisplayPackage.cshtml" />
     <Content Include="Views\Shared\ListPackages.cshtml" />
-    <Content Include="Views\Packages\VerifyPackage.cshtml" />
     <Content Include="Views\Packages\ReportAbuse.cshtml" />
     <Content Include="Views\Packages\UploadPackage.cshtml" />
     <Content Include="Views\Shared\_ListPackage.cshtml" />

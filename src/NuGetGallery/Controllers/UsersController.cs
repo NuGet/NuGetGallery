@@ -649,7 +649,7 @@ namespace NuGetGallery
         }
 
 
-        private async Task<ActionResult> RemoveApiKeyCredential(User user, Credential cred)
+        private async Task<JsonResult> RemoveApiKeyCredential(User user, Credential cred)
         {
             if (cred == null)
             {

@@ -568,8 +568,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
-                Assert.IsType<JsonResult>(result);
-                Assert.True(string.Compare((string)((JsonResult)result).Data, Strings.ApiKeyDescriptionRequired) == 0);
+                Assert.True(string.Compare((string)result.Data, Strings.ApiKeyDescriptionRequired) == 0);
             }
 
             [InlineData(180, 180)]
@@ -707,6 +706,10 @@ namespace NuGetGallery
             {
                 var user = new User { Username = "the-username" };
 
+                GetMock<IAppConfiguration>()
+                    .Setup(x => x.ExpirationInDaysForApiKeyV1)
+                    .Returns(365);
+
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
@@ -716,9 +719,7 @@ namespace NuGetGallery
                     subjects: new [] { "a" },
                     expirationInDays: 90);
 
-                Assert.IsType<JsonResult>(result);
-
-                var credentialViewModel = ((JsonResult) result).Data as CredentialViewModel;
+                var credentialViewModel = result.Data as ApiKeyViewModel;
                 Assert.NotNull(credentialViewModel);
 
                 var apiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKey.V2);
@@ -726,7 +727,7 @@ namespace NuGetGallery
                 Assert.Equal(apiKey.Value, credentialViewModel.Value);
                 Assert.Equal(apiKey.Key, credentialViewModel.Key);
                 Assert.Equal(apiKey.Description, credentialViewModel.Description);
-                Assert.Equal(apiKey.Expires, credentialViewModel.Expires);
+                Assert.Equal(apiKey.Expires.Value.ToString("O"), credentialViewModel.Expires);
             }
 
             [Fact]
@@ -1375,8 +1376,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.NotFound, controller.Response.StatusCode);
-                Assert.IsType<JsonResult>(result);
-                Assert.True(string.Compare((string)((JsonResult)result).Data, Strings.CredentialNotFound) == 0);
+                Assert.True(string.Compare((string)result.Data, Strings.CredentialNotFound) == 0);
 
                 Assert.Equal(1, user.Credentials.Count);
                 Assert.True(user.Credentials.Contains(cred));
@@ -1398,8 +1398,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
-                Assert.IsType<JsonResult>(result);
-                Assert.True(string.Compare((string)((JsonResult)result).Data, Strings.Unsupported) == 0);
+                Assert.True(string.Compare((string)result.Data, Strings.Unsupported) == 0);
             }
 
             public static IEnumerable<object[]> RegenerateApiKeyCredential_Input
@@ -1470,20 +1469,19 @@ namespace NuGetGallery
                     credentialKey: CredentialKey);
 
                 // Assert
-                Assert.IsType<JsonResult>(result);
-                var credentialViewModel = ((JsonResult) result).Data as CredentialViewModel;
+                var viewModel = result.Data as ApiKeyViewModel;
 
-                Assert.NotNull(credentialViewModel);
+                Assert.NotNull(viewModel);
 
                 GetMock<AuthenticationService>().VerifyAll();
 
                 var newApiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKey.V2);
 
                 Assert.NotNull(newApiKey);
-                Assert.Equal(newApiKey.Value, credentialViewModel.Value);
-                Assert.Equal(newApiKey.Key, credentialViewModel.Key);
-                Assert.Equal(description, credentialViewModel.Description);
-                Assert.Equal(newApiKey.Expires, credentialViewModel.Expires);
+                Assert.Equal(newApiKey.Value, viewModel.Value);
+                Assert.Equal(newApiKey.Key, viewModel.Key);
+                Assert.Equal(description, viewModel.Description);
+                Assert.Equal(newApiKey.Expires.Value.ToString("O"), viewModel.Expires);
 
                 Assert.Equal(description, newApiKey.Description);
                 Assert.Equal(scopes.Length, newApiKey.Scopes.Count);
@@ -1519,8 +1517,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
-                Assert.IsType<JsonResult>(result);
-                Assert.True(string.CompareOrdinal((string)((JsonResult)result).Data, Strings.Unsupported) == 0);
+                Assert.True(string.CompareOrdinal((string)result.Data, Strings.Unsupported) == 0);
             }
 
             [Fact]
@@ -1548,8 +1545,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.NotFound, controller.Response.StatusCode);
-                Assert.IsType<JsonResult>(result);
-                Assert.True(String.CompareOrdinal((string)((JsonResult)result).Data, Strings.CredentialNotFound) == 0);
+                Assert.True(String.CompareOrdinal((string)result.Data, Strings.CredentialNotFound) == 0);
 
                 authenticationService.Verify(x => x.EditCredentialScopes(It.IsAny<User>(), It.IsAny<Credential>(), It.IsAny<ICollection<Scope>>()), Times.Never);
             }
@@ -1652,20 +1648,17 @@ namespace NuGetGallery
                 GetMock<AuthenticationService>().Verify(x => x.EditCredentialScopes(user, apiKey, It.IsAny<ICollection<Scope>>()), Times.Once);
 
                 // Check return value
-                Assert.IsType<JsonResult>(result);
-                var credentialViewModel = ((JsonResult)result).Data as CredentialViewModel;
-                Assert.NotNull(credentialViewModel);
+                var viewModel = result.Data as ApiKeyViewModel;
+                Assert.NotNull(viewModel);
 
-                Assert.Null(credentialViewModel.Value);
-                Assert.Equal(description, credentialViewModel.Description);
-                Assert.Equal(expectedScopes.Length, credentialViewModel.Scopes.Count);
+                Assert.Null(viewModel.Value);
+                Assert.Equal(description, viewModel.Description);
+                Assert.Equal(expectedScopes.Select(s => s.AllowedAction).Distinct().Count(), viewModel.Scopes.Count);
 
                 foreach (var expectedScope in expectedScopes)
                 {
                     var expectedAction = NuGetScopes.Describe(expectedScope.AllowedAction);
-                    var actualScope =
-                        credentialViewModel.Scopes.First(x => x.AllowedAction == expectedAction &&
-                                                 x.Subject == expectedScope.Subject);
+                    var actualScope = viewModel.Scopes.First(x => x == expectedAction);
                     Assert.NotNull(actualScope);
                 }
 
