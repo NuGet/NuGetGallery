@@ -2708,9 +2708,6 @@ tbody.collapse.in {
 .dropdown {
   position: relative;
 }
-.dropdown-toggle:focus {
-  outline: 0;
-}
 .dropdown-menu {
   position: absolute;
   top: 100%;
@@ -2764,7 +2761,6 @@ tbody.collapse.in {
   color: #fff;
   text-decoration: none;
   background-color: #337ab7;
-  outline: 0;
 }
 .dropdown-menu > .disabled > a,
 .dropdown-menu > .disabled > a:hover,
@@ -2781,9 +2777,6 @@ tbody.collapse.in {
 }
 .open > .dropdown-menu {
   display: block;
-}
-.open > a {
-  outline: 0;
 }
 .dropdown-menu-right {
   right: 0;

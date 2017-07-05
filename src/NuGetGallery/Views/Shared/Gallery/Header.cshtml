@@ -71,11 +71,11 @@
                         {
                             <li class="@(ViewBag.Tab == User.Identity.Name ? "active" : string.Empty) dropdown"
                                 aria-selected="@(ViewBag.Tab == User.Identity.Name ? "true" : "false")" role="presentation">
-                                <a href="#" role="menuitem" id="account-dropdown" class="dropdown-toggle" title="Manage user account" data-toggle="dropdown">
+                                <a href="#" role="menuitem" id="account-dropdown" class="dropdown-toggle" title="Open profile dropdown" data-toggle="dropdown">
                                     <b><span>@User.Identity.Name</span></b>
                                     <span class="caret"></span>
                                 </a>
-                                <ul class="dropdown-menu" aria-labelledby="account-dropdown">
+                                <ul class="dropdown-menu" role="menu" aria-labelledby="account-dropdown">
                                     <li class="dropdown-header row">
                                         <div class="col-sm-3">
                                             @ViewHelpers.GravatarImage(CurrentUser.EmailAddress, CurrentUser.Username, 50)
