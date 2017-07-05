@@ -26,12 +26,12 @@
             var fileName = $('#input-select-file').val().split("\\").pop();
 
             if (fileName.length > 0) {
-                $('#file-select-feedback').attr('placeholder', fileName);
+                $('#file-select-feedback').attr('value', fileName);
                 // Cancel any ongoing upload, and then start the new upload.
                 // If the cancel fails, still try to upload the new one.
                 cancelUploadAsync(startUploadAsync, startUploadAsync);
             } else {
-                $('#file-select-feedback').attr('placeholder', 'Browse to select a package file...');
+                $('#file-select-feedback').attr('value', 'Browse to select a package file...');
             }
         })
 
@@ -180,7 +180,7 @@
             $('#verify-cancel-button').addClass('.loading');
             $('#verify-submit-button').attr('disabled', 'disabled');
             $('#input-select-file').val("");
-            $('#file-select-feedback').attr('placeholder', 'Browse to select a package file...');
+            $('#file-select-feedback').attr('value', 'Browse to select a package file...');
             cancelUploadAsync();
         });
 
