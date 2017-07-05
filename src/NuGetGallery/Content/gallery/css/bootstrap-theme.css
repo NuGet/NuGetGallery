@@ -164,6 +164,56 @@ img.package-icon {
   pointer-events: none;
   opacity: .4;
 }
+#edit-metadata-form-container .loading:after {
+  display: inline-block;
+  /* ascii code for the ellipsis character */
+  width: 0;
+  overflow: hidden;
+  vertical-align: bottom;
+  content: "\2026";
+  -webkit-animation: ellipsis steps(4, end) 900ms infinite;
+       -o-animation: ellipsis steps(4, end) 900ms infinite;
+          animation: ellipsis steps(4, end) 900ms infinite;
+}
+@-o-keyframes ellipsis {
+  to {
+    width: 20px;
+  }
+}
+@keyframes ellipsis {
+  to {
+    width: 20px;
+  }
+}
+@-webkit-keyframes ellipsis {
+  to {
+    width: 20px;
+  }
+}
+#edit-metadata-form-container .dependency-set-title {
+  font-size: 1.2em;
+}
+#edit-metadata-form-container .dependency-container .dependency-versionspec {
+  font-size: .6em;
+  color: gray;
+}
+#edit-metadata-form-container .dependency-container .dependency-id {
+  font-size: .8em;
+}
+#edit-metadata-form-container .dependency-container .dependency-none {
+  font-size: .8em;
+}
+#edit-metadata-form-container .tall-text-input {
+  height: 6em;
+}
+#edit-metadata-form-container .verify-package-field .verify-package-field-heading {
+  font-size: .75em;
+  font-weight: 700;
+}
+#edit-metadata-form-container #icon-preview {
+  max-width: 300px;
+  max-height: 300px;
+}
 .list-packages {
   border-top: 1px solid #dbdbdb;
 }
@@ -477,6 +527,34 @@ img.package-icon {
 .page-downloads .list-tools li {
   margin-top: 20px;
 }
+.page-edit-package .readonly {
+  display: none;
+}
+.page-error {
+  margin-top: 48px;
+}
+.page-error .oops {
+  margin-bottom: 10px;
+  font-size: 6em;
+}
+.page-error .error-title {
+  margin-bottom: 60px;
+  font-size: 3em;
+}
+.page-error .error-text {
+  margin-bottom: 40px;
+}
+.page-error .error-text .text-main {
+  margin-bottom: 20px;
+  font-size: 2.5em;
+}
+.page-error .error-text .text-sub {
+  font-size: 2em;
+}
+.page-error .error-action {
+  margin-bottom: 20px;
+  font-size: 1.25em;
+}
 .page-forgot-password .forgot-form {
   margin-top: 20px;
 }
@@ -555,6 +633,26 @@ img.package-icon {
   float: right;
   margin-top: 75px;
   margin-bottom: 0;
+}
+.page-manage-curated-feed .package-owners .owner {
+  margin-bottom: 10px;
+}
+.page-manage-curated-feed .feed-packages-list {
+  margin-bottom: 40px;
+}
+.page-manage-curated-feed .feed-packages-list .package {
+  margin-bottom: 10px;
+}
+.page-manage-curated-feed .feed-packages-list .package .id {
+  float: left;
+}
+.page-manage-curated-feed .feed-packages-list .package .controls {
+  float: right;
+}
+.page-manage-curated-feed .feed-packages-list .package .controls i {
+  position: relative;
+  top: 3px;
+  margin-right: 10px;
 }
 .page-manage-owners h2 .ms-Icon {
   position: relative;
@@ -694,31 +792,6 @@ img.package-icon {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.page-error {
-  margin-top: 48px;
-}
-.page-error .oops {
-  margin-bottom: 10px;
-  font-size: 6em;
-}
-.page-error .error-title {
-  margin-bottom: 60px;
-  font-size: 3em;
-}
-.page-error .error-text {
-  margin-bottom: 40px;
-}
-.page-error .error-text .text-main {
-  margin-bottom: 20px;
-  font-size: 2.5em;
-}
-.page-error .error-text .text-sub {
-  font-size: 2em;
-}
-.page-error .error-action {
-  margin-bottom: 20px;
-  font-size: 1.25em;
-}
 .page-statistics-overview .stats-title-text {
   margin-bottom: 10px;
   font-size: 1.6em;
@@ -784,75 +857,5 @@ img.package-icon {
 }
 .page-stats-per-package #stats-graph-svg .bartext {
   font-size: 1em;
-}
-.page-manage-curated-feed .package-owners .owner {
-  margin-bottom: 10px;
-}
-.page-manage-curated-feed .feed-packages-list {
-  margin-bottom: 40px;
-}
-.page-manage-curated-feed .feed-packages-list .package {
-  margin-bottom: 10px;
-}
-.page-manage-curated-feed .feed-packages-list .package .id {
-  float: left;
-}
-.page-manage-curated-feed .feed-packages-list .package .controls {
-  float: right;
-}
-.page-manage-curated-feed .feed-packages-list .package .controls i {
-  position: relative;
-  top: 3px;
-  margin-right: 10px;
-}
-.page-upload .loading:after {
-  display: inline-block;
-  /* ascii code for the ellipsis character */
-  width: 0;
-  overflow: hidden;
-  vertical-align: bottom;
-  content: "\2026";
-  -webkit-animation: ellipsis steps(4, end) 900ms infinite;
-       -o-animation: ellipsis steps(4, end) 900ms infinite;
-          animation: ellipsis steps(4, end) 900ms infinite;
-}
-@-o-keyframes ellipsis {
-  to {
-    width: 20px;
-  }
-}
-@keyframes ellipsis {
-  to {
-    width: 20px;
-  }
-}
-@-webkit-keyframes ellipsis {
-  to {
-    width: 20px;
-  }
-}
-.page-upload .dependency-set-title {
-  font-size: 1.2em;
-}
-.page-upload .dependency-container .dependency-versionspec {
-  font-size: .6em;
-  color: gray;
-}
-.page-upload .dependency-container .dependency-id {
-  font-size: .8em;
-}
-.page-upload .dependency-container .dependency-none {
-  font-size: .8em;
-}
-.page-upload .tall-text-input {
-  height: 6em;
-}
-.page-upload .verify-package-field .verify-package-field-heading {
-  font-size: .75em;
-  font-weight: 700;
-}
-.page-upload #icon-preview {
-  max-width: 300px;
-  max-height: 300px;
 }
 /*# sourceMappingURL=bootstrap-theme.css.map */
