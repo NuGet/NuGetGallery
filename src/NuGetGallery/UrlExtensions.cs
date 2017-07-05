@@ -278,6 +278,11 @@ namespace NuGetGallery
             return url.Action(actionName: "Account", controllerName: "Users");
         }
 
+        public static string ManageMyPackages(this UrlHelper url)
+        {
+            return url.Action(actionName: "Packages", controllerName: "Users");
+        }
+
         public static string ManagePackageOwners(this UrlHelper url, IPackageVersionModel package)
         {
             return url.Action(

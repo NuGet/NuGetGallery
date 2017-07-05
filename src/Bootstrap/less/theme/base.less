@@ -81,6 +81,25 @@ body {
   }
 }
 
+.dropdown-menu {
+  padding-top: (@padding-large-vertical * 2);
+  padding-bottom: (@padding-large-vertical * 2);
+
+  .dropdown-profile {
+    @media (max-width: @grid-float-breakpoint-max) {
+      padding-top: 5px;
+    }
+
+    .dropdown-username {
+      font-size: 20px;
+    }
+
+    .dropdown-email {
+      font-size: 12px;
+    }
+  }
+}
+
 .btn-search {
   height: 36px;
 }

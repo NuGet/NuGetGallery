@@ -69,9 +69,33 @@
                         }
                         else
                         {
-                            @DisplayNavigationItem(User.Identity.Name, Url.Action("Account", "Users", new { area = string.Empty }), bold: true, title: "Manage user account")
-                            <li class="hidden-xs seperator" role="presentation"><span></span></li>
-                            @DisplayNavigationItem("Sign out", Url.LogOff())
+                            <li class="@(ViewBag.Tab == User.Identity.Name ? "active" : string.Empty) dropdown"
+                                aria-selected="@(ViewBag.Tab == User.Identity.Name ? "true" : "false")" role="presentation">
+                                <a href="#" role="menuitem" id="account-dropdown" class="dropdown-toggle" title="Manage user account" data-toggle="dropdown">
+                                    <b><span>@User.Identity.Name</span></b>
+                                    <span class="caret"></span>
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="account-dropdown">
+                                    <li class="dropdown-header row">
+                                        <div class="col-sm-3">
+                                            @ViewHelpers.GravatarImage(CurrentUser.EmailAddress, CurrentUser.Username, 50)
+                                        </div>
+                                        <div class="col-sm-9 dropdown-profile">
+                                            <span class="dropdown-username">@User.Identity.Name.Abbreviate(20)</span>
+                                            <br />
+                                            <span class="dropdown-email">@CurrentUser.EmailAddress.Abbreviate(35)</span>
+                                        </div>
+                                    </li>
+                                    <li class="divider"></li>
+                                    <li role="presentation"><a href="@Url.User(CurrentUser.Username)" role="menuitem">View Profile</a></li>
+                                    <li role="presentation"><a href="@Url.AccountSettings()" role="menuitem">Account Settings</a></li>
+                                    <li role="presentation"><a href="#" role="menuitem">API Keys</a></li>
+                                    <li role="presentation"><a href="@Url.ManageMyPackages()" role="menuitem">Manage Packages</a></li>
+                                    <li role="presentation"><a href="@Url.UploadPackage()" role="menuitem">Upload Package</a></li>
+                                    <li class="divider"></li>
+                                    <li role="presentation"><a href="@Url.LogOff()" role="menuitem">Sign Out</a></li>
+                                </ul>
+                            </li>
                         }
                     </ul>
                 </div>
