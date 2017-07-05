@@ -431,14 +431,13 @@
             <div class="col-sm-6 form-group">
                 <input type="submit" class="btn btn-primary btn-block"
                        data-bind="enable: SelectPackagesEnabled() && !PendingCreateOrEdit(),
-                                  css: { disabled: !SelectPackagesEnabled() },
                                   attr: { value: Key() ? 'Edit' : 'Create' }" />
             </div>
             <div class="col-sm-6 form-group">
                 <button data-bind="attr: { 'data-target': '#' + EditContainerId(),
                                            'aria-controls': EditContainerId,
                                            id: CancelEditId },
-                                   enable: !PendingCreateOrEdit(),
+                                   enable: SelectPackagesEnabled() && !PendingCreateOrEdit(),
                                    click: CancelEdit"
                         class="btn btn-default btn-block" data-toggle="collapse">
                     Cancel

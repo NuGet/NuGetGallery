@@ -2241,10 +2241,10 @@ select[multiple].input-lg {
 .btn[disabled],
 fieldset[disabled] .btn {
   cursor: not-allowed;
-  filter: alpha(opacity=65);
+  filter: alpha(opacity=75);
   -webkit-box-shadow: none;
           box-shadow: none;
-  opacity: .65;
+  opacity: .75;
 }
 a.btn.disabled,
 fieldset[disabled] a.btn {

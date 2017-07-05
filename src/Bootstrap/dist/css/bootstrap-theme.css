@@ -162,7 +162,7 @@ img.package-icon {
 }
 .disabled {
   pointer-events: none;
-  opacity: .4;
+  opacity: .75;
 }
 #edit-metadata-form-container .loading:after {
   display: inline-block;
@@ -578,6 +578,9 @@ img.package-icon {
 @media screen and (-ms-high-contrast: active) {
   .page-home .triangle:after {
     display: none;
+  }
+  .page-home .circuit-board-label {
+    border: 1px solid windowText;
   }
 }
 .page-home .triangle-left:after {
