@@ -706,6 +706,10 @@ namespace NuGetGallery
             {
                 var user = new User { Username = "the-username" };
 
+                GetMock<IAppConfiguration>()
+                    .Setup(x => x.ExpirationInDaysForApiKeyV1)
+                    .Returns(365);
+
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
