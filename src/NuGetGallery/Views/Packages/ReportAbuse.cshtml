@@ -28,8 +28,8 @@
             @if (!Model.ConfirmedUser)
             {
                 <p>
-                    Note: if you are the owner of @Model.PackageId, please
-                    <a href="@Url.LogOn(returnUrl)">sign in now before you complete this form.</a>
+                    Note: If this is your package and you would like to contact support, please
+                    <a href="@Url.LogOn(returnUrl)">sign in.</a>
                 </p>
             }
             @using (Html.BeginForm())
