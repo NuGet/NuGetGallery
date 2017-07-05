@@ -144,7 +144,7 @@ h2 a:focus,
 h3 a:focus,
 h2 a:active,
 h3 a:active {
-  color: #333;
+  color: #000;
   text-decoration: none;
 }
 @media screen and (max-width: 768px) {
@@ -660,7 +660,7 @@ img.package-icon {
   font-size: .6em;
 }
 .page-manage-owners h2 a {
-  color: #333;
+  color: #000;
   text-decoration: none;
 }
 .page-manage-owners h2 a:hover {
