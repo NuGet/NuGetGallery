@@ -1,4 +1,6 @@
-﻿var EditViewManager = new function () {
+﻿'use strict';
+
+var EditViewManager = new function () {
     var _currVersion;
     var _viewModel;
     var _changedState;
@@ -172,11 +174,6 @@
 
         $("#verify-collapser-container").removeClass("hidden");
 
-        window.nuget.configureExpander(
-            "edit-metadata-form-container",
-            "ChevronRight",
-            "Edit",
-            "ChevronDown",
-            "Edit");
+        window.nuget.configureExpanderHeading("edit-metadata-form-container");
     }
 }

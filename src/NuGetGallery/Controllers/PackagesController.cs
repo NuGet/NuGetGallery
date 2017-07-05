@@ -1017,7 +1017,7 @@ namespace NuGetGallery
             if (package == null)
             {
                 Response.StatusCode = 404;
-                return Json(new string[] { String.Format(Strings.PackageWithIdAndVersionNotFound, id, version) });
+                return Json(new string[] { string.Format(Strings.PackageWithIdAndVersionNotFound, id, version) });
             }
 
             if (!package.IsOwner(User))
@@ -1047,14 +1047,14 @@ namespace NuGetGallery
         [ValidateInput(false)] // Security note: Disabling ASP.Net input validation which does things like disallow angle brackets in submissions. See http://go.microsoft.com/fwlink/?LinkID=212874
         [ValidateAntiForgeryToken]
         [RequiresAccountConfirmation("edit a package")]
-        public virtual async Task<ActionResult> Edit(string id, string version, VerifyPackageRequest formData, string returnUrl)
+        public virtual async Task<JsonResult> Edit(string id, string version, VerifyPackageRequest formData, string returnUrl)
         {
 
             var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
                 Response.StatusCode = 404;
-                return Json(new string[] { String.Format(Strings.PackageWithIdAndVersionNotFound, id, version) });
+                return Json(new string[] { string.Format(Strings.PackageWithIdAndVersionNotFound, id, version) });
             }
 
             if (!package.IsOwner(User))
@@ -1093,11 +1093,7 @@ namespace NuGetGallery
 
             return Json(new
             {
-                location = returnUrl ?? Url.RouteUrl(RouteName.DisplayPackage, new
-                {
-                    id = id,
-                    version = version
-                })
+                location = returnUrl ?? Url.Package(id, version)
             });
         }
 

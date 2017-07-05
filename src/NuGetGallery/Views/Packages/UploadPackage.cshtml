@@ -80,12 +80,7 @@
     <script type="text/javascript" src="@Url.Content("~/Scripts/gallery/async-file-upload.js")"></script>
     <script type="text/javascript">
         var InProgressPackage = @Html.Raw(Json.Encode(Model.InProgressUpload));
-        window.nuget.configureExpander(
-            "upload-package-form",
-            "ChevronRight",
-            "Upload",
-            "ChevronDown",
-            "Upload");
+        window.nuget.configureExpanderHeading("upload-package-form");
         $(function () {
             AsyncFileUploadManager.init(
                 '@Url.Action(actionName: "UploadPackageProgress", controllerName: "Packages")',

@@ -198,12 +198,7 @@
 
         $("#verify-collapser-container").removeClass("hidden");
 
-        window.nuget.configureExpander(
-            "edit-metadata-form-container",
-            "ChevronRight",
-            "Verify",
-            "ChevronDown",
-            "Verify");
+        window.nuget.configureExpanderHeading("edit-metadata-form-container");
     }
 
     function navigateToPage(verifyResponse) {
