@@ -34,7 +34,7 @@
       }
       @media screen and (-ms-high-contrast: active) {
         .cls-1 {
-          fill: windowText
+          fill: windowText;
         }
       }
     </style>
