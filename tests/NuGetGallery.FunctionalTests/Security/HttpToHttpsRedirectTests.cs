@@ -29,6 +29,7 @@ namespace NuGetGallery.FunctionalTests.Security
         public static IEnumerable<object[]> UrlsExcludedFromRedirect => new[]
         {
             new object[] { UrlHelper.ApiGalleryHealthProbeUrl },
+            new object[] { UrlHelper.ApiStatusPageUrl }
         };
 
         public static IEnumerable<object[]> GetForAllUrls()
@@ -43,6 +44,8 @@ namespace NuGetGallery.FunctionalTests.Security
 
         [Theory]
         [MemberData(nameof(GetForAllUrls))]
+        [Priority(0)]
+        [Category("P0Tests")]
         public async Task HttpToHttpsRedirectHappensForSupportedMethods(HttpMethod method, string url)
         {
             // Ideally, we should test both GET and HEAD methods for all the URLs, 
@@ -58,6 +61,8 @@ namespace NuGetGallery.FunctionalTests.Security
 
         [Theory]
         [MemberData(nameof(NonHeadAndGetForAllUrls))]
+        [Priority(0)]
+        [Category("P0Tests")]
         public async Task HttpRequestsFailureResponseForUnsupportedMethods(HttpMethod method, string url)
         {
             Uri uri = ForceHttp(url);
@@ -68,6 +73,8 @@ namespace NuGetGallery.FunctionalTests.Security
 
         [Theory]
         [MemberData(nameof(UrlsToTest))]
+        [Priority(0)]
+        [Category("P0Tests")]
         public void ForceHttpMethodCorreclyRemovesHttps(string url)
         {
             Uri uri = ForceHttp(url);
@@ -76,6 +83,8 @@ namespace NuGetGallery.FunctionalTests.Security
 
         [Theory]
         [MemberData(nameof(UrlsExcludedFromRedirect))]
+        [Priority(0)]
+        [Category("P0Tests")]
         public async Task ExcludedUrlsDontRedirect(string url)
         {
             Uri uri = ForceHttp(url);
