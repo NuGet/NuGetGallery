@@ -80,6 +80,7 @@
                 @using (Html.BeginForm("UpdateListed", "Packages"))
                 {
                     @Html.AntiForgeryToken()
+                    @Html.Hidden("version", @Model.Version)
                     <div class="form-group @Html.HasErrorFor(package => package.Listed)">
                         @Html.ShowCheckboxFor(package => package.Listed)
                         @Html.ShowLabelFor(package => package.Listed, "List " + Model.Title + " " + Model.Version + " in search results.")
