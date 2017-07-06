@@ -264,4 +264,9 @@ $(function () {
             $('.no-clickonce').removeClass('no-clickonce');
         }
     })();
+
+    // Don't close the dropdown on click events inside of the dropdown.
+    $(document).on('click', '.dropdown-menu', function (e) {
+        e.stopPropagation();
+    });
 });
