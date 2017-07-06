@@ -17,11 +17,13 @@
 </script>
 
 <script type="text/html" id="report-template">
-    <div data-bind="if: $data && LastUpdatedUtc" class="last-updated col-xs-12 page-subheading">
-        <span data-bind="text: 'Statistics last updated at ' + moment(LastUpdatedUtc).format('YYYY-MM-DD HH:mm:ss') + ' UTC.'"></span>
+    <div class="row">
+        <div data-bind="if: $data && LastUpdatedUtc" class="last-updated col-xs-12 page-subheading">
+            <span data-bind="text: 'Statistics last updated at ' + moment(LastUpdatedUtc).format('YYYY-MM-DD HH:mm:ss') + ' UTC.'"></span>
+        </div>
     </div>
 
-    <div data-bind="if: $data">
+    <div data-bind="if: $data" class="row">
         <div data-bind="attr: { id: Id }" class="statistics-pivot">
             <div class="statistics-sidebar col-sm-2">
                 <form id="dimension-form">
