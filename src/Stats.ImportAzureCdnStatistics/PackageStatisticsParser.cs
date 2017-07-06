@@ -39,7 +39,6 @@ namespace Stats.ImportAzureCdnStatistics
             var customFieldDictionary = CdnLogCustomFieldParser.Parse(cdnLogEntry.CustomField);
             statistic.Operation = GetCustomFieldValue(customFieldDictionary, NuGetCustomHeaders.NuGetOperation);
             statistic.DependentPackage = GetCustomFieldValue(customFieldDictionary, NuGetCustomHeaders.NuGetDependentPackage);
-            statistic.ProjectGuids = GetCustomFieldValue(customFieldDictionary, NuGetCustomHeaders.NuGetProjectGuids);
             statistic.UserAgent = GetUserAgentValue(cdnLogEntry);
             statistic.EdgeServerIpAddress = cdnLogEntry.EdgeServerIpAddress;
 

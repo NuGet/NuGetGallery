@@ -10,11 +10,11 @@ namespace Stats.ImportAzureCdnStatistics
 {
     public interface IStatisticsWarehouse
     {
-        Task<List<DataTable>> CreateAsync(IReadOnlyCollection<PackageStatistics> sourceData, string logFileName);
-        Task<List<DataTable>> CreateAsync(IReadOnlyCollection<ToolStatistics> sourceData, string logFileName);
+        Task<DataTable> CreateAsync(IReadOnlyCollection<PackageStatistics> sourceData, string logFileName);
+        Task<DataTable> CreateAsync(IReadOnlyCollection<ToolStatistics> sourceData, string logFileName);
         Task<bool> HasImportedToolStatisticsAsync(string logFileName);
         Task<bool> HasImportedPackageStatisticsAsync(string logFileName);
-        Task InsertDownloadFactsAsync(List<DataTable> downloadFactsDataTables, string logFileName);
+        Task InsertDownloadFactsAsync(DataTable downloadFactsDataTable, string logFileName);
         Task StoreLogFileAggregatesAsync(LogFileAggregates logFileAggregates);
     }
 }

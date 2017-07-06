@@ -7,6 +7,5 @@ namespace Stats.AzureCdnLogs.Common
     {
         public const string NuGetOperation = "NuGet-Operation";
         public const string NuGetDependentPackage = "NuGet-DependentPackage";
-        public const string NuGetProjectGuids = "NuGet-ProjectGuids";
     }
 }

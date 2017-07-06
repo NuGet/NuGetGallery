@@ -85,19 +85,6 @@ BEGIN
 				DECLARE @DeletedRecords INT = 0
 				DECLARE @InsertedRecords INT = 0
 
-				DELETE
-				FROM	[dbo].[Fact_Download_Dimension_ProjectType]
-				WHERE	[Fact_Download_Id] IN	(
-														SELECT	[Id]
-														FROM	[dbo].[Fact_Download] (NOLOCK)
-														WHERE	[Dimension_Package_Id] = @Dimension_Package_Id
-															AND	[Dimension_Date_Id] <= @MaxDimensionDateId
-												)
-				SET @DeletedRecords = @@rowcount
-
-				SET @Msg = 'Package Dimension ID ' + CAST(@Dimension_Package_Id AS VARCHAR) + ': Deleted ' + CAST(@DeletedRecords AS VARCHAR) + ' records from [dbo].[Fact_Download_Dimension_ProjectType]';
-				RAISERROR(@Msg, 0, 1) WITH NOWAIT
-
 				SET @DeletedRecords = 0
 
 				DELETE

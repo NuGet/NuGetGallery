@@ -62,9 +62,9 @@ namespace Tests.Stats.ImportAzureCdnStatistics
                     .Returns(Task.FromResult(false));
                 warehouseMock
                     .Setup(m => m.CreateAsync(It.IsAny<IReadOnlyCollection<PackageStatistics>>(), _leasedLogFile.BlobName))
-                    .Returns(Task.FromResult(new List<DataTable>()));
+                    .Returns(Task.FromResult(new DataTable()));
                 warehouseMock
-                    .Setup(m => m.InsertDownloadFactsAsync(It.IsAny<List<DataTable>>(), _leasedLogFile.BlobName))
+                    .Setup(m => m.InsertDownloadFactsAsync(It.IsAny<DataTable>(), _leasedLogFile.BlobName))
                     .Returns(() => Task.FromResult(0));
                 warehouseMock
                     .Setup(m => m.StoreLogFileAggregatesAsync(It.IsAny<LogFileAggregates>()))
@@ -84,7 +84,7 @@ namespace Tests.Stats.ImportAzureCdnStatistics
                 warehouseMock
                     .Verify(m => m.CreateAsync(It.IsAny<IReadOnlyCollection<PackageStatistics>>(), _leasedLogFile.BlobName), Times.Once);
                 warehouseMock
-                    .Verify(m => m.InsertDownloadFactsAsync(It.IsAny<List<DataTable>>(), _leasedLogFile.BlobName), Times.Once);
+                    .Verify(m => m.InsertDownloadFactsAsync(It.IsAny<DataTable>(), _leasedLogFile.BlobName), Times.Once);
                 warehouseMock
                     .Verify(m => m.StoreLogFileAggregatesAsync(It.IsAny<LogFileAggregates>()), Times.Once);
                 statisticsBlobContainerUtilityMock
@@ -110,7 +110,7 @@ namespace Tests.Stats.ImportAzureCdnStatistics
                     .Returns(Task.FromResult(hasImportedPackageStatistics));
                 warehouseMock
                     .Setup(m => m.CreateAsync(It.IsAny<IReadOnlyCollection<PackageStatistics>>(), _leasedLogFile.BlobName))
-                    .Returns(Task.FromResult(new List<DataTable>()));
+                    .Returns(Task.FromResult(new DataTable()));
                 warehouseMock
                     .Setup(m => m.StoreLogFileAggregatesAsync(It.IsAny<LogFileAggregates>()))
                     .Returns(() => Task.FromResult(0));
@@ -129,7 +129,7 @@ namespace Tests.Stats.ImportAzureCdnStatistics
                 warehouseMock
                     .Verify(m => m.CreateAsync(It.IsAny<IReadOnlyCollection<PackageStatistics>>(), _leasedLogFile.BlobName), Times.Once);
                 warehouseMock
-                    .Verify(m => m.InsertDownloadFactsAsync(It.IsAny<List<DataTable>>(), _leasedLogFile.BlobName), Times.Never);
+                    .Verify(m => m.InsertDownloadFactsAsync(It.IsAny<DataTable>(), _leasedLogFile.BlobName), Times.Never);
                 warehouseMock
                     .Verify(m => m.StoreLogFileAggregatesAsync(It.IsAny<LogFileAggregates>()), Times.Once);
             }
@@ -157,7 +157,7 @@ namespace Tests.Stats.ImportAzureCdnStatistics
                     .Returns(Task.FromResult(true));
                 warehouseMock
                     .Setup(m => m.CreateAsync(It.IsAny<IReadOnlyCollection<PackageStatistics>>(), _leasedLogFile.BlobName))
-                    .Returns(Task.FromResult(new List<DataTable>()));
+                    .Returns(Task.FromResult(new DataTable()));
                 warehouseMock
                     .Setup(m => m.StoreLogFileAggregatesAsync(It.IsAny<LogFileAggregates>()))
                     .Returns(() => Task.FromResult(0));
@@ -176,7 +176,7 @@ namespace Tests.Stats.ImportAzureCdnStatistics
                 warehouseMock
                     .Verify(m => m.CreateAsync(It.IsAny<IReadOnlyCollection<PackageStatistics>>(), _leasedLogFile.BlobName), Times.Once);
                 warehouseMock
-                    .Verify(m => m.InsertDownloadFactsAsync(It.IsAny<List<DataTable>>(), _leasedLogFile.BlobName), Times.Never);
+                    .Verify(m => m.InsertDownloadFactsAsync(It.IsAny<DataTable>(), _leasedLogFile.BlobName), Times.Never);
                 warehouseMock
                     .Verify(m => m.StoreLogFileAggregatesAsync(It.IsAny<LogFileAggregates>()), Times.Once);
 
@@ -235,9 +235,9 @@ namespace Tests.Stats.ImportAzureCdnStatistics
                     .Returns(Task.FromResult(false));
                 warehouseMock
                     .Setup(m => m.CreateAsync(It.IsAny<IReadOnlyCollection<ToolStatistics>>(), _leasedLogFile.BlobName))
-                    .Returns(Task.FromResult(new List<DataTable>()));
+                    .Returns(Task.FromResult(new DataTable()));
                 warehouseMock
-                    .Setup(m => m.InsertDownloadFactsAsync(It.IsAny<List<DataTable>>(), _leasedLogFile.BlobName))
+                    .Setup(m => m.InsertDownloadFactsAsync(It.IsAny<DataTable>(), _leasedLogFile.BlobName))
                     .Returns(() => Task.FromResult(0));
 
                 var logFileProcessor = new LogFileProcessor(
@@ -254,7 +254,7 @@ namespace Tests.Stats.ImportAzureCdnStatistics
                 warehouseMock
                     .Verify(m => m.CreateAsync(It.IsAny<IReadOnlyCollection<ToolStatistics>>(), _leasedLogFile.BlobName), Times.Once);
                 warehouseMock
-                    .Verify(m => m.InsertDownloadFactsAsync(It.IsAny<List<DataTable>>(), _leasedLogFile.BlobName), Times.Once);
+                    .Verify(m => m.InsertDownloadFactsAsync(It.IsAny<DataTable>(), _leasedLogFile.BlobName), Times.Once);
                 warehouseMock
                     .Verify(m => m.StoreLogFileAggregatesAsync(It.IsAny<LogFileAggregates>()), Times.Never);
             }
@@ -276,7 +276,7 @@ namespace Tests.Stats.ImportAzureCdnStatistics
                     .Returns(Task.FromResult(hasImportedToolStatistics));
                 warehouseMock
                     .Setup(m => m.CreateAsync(It.IsAny<IReadOnlyCollection<ToolStatistics>>(), _leasedLogFile.BlobName))
-                    .Returns(Task.FromResult(new List<DataTable>()));
+                    .Returns(Task.FromResult(new DataTable()));
                 warehouseMock
                     .Setup(m => m.StoreLogFileAggregatesAsync(It.IsAny<LogFileAggregates>()))
                     .Returns(() => Task.FromResult(0));
@@ -295,7 +295,7 @@ namespace Tests.Stats.ImportAzureCdnStatistics
                 warehouseMock
                     .Verify(m => m.CreateAsync(It.IsAny<IReadOnlyCollection<PackageStatistics>>(), _leasedLogFile.BlobName), Times.Never);
                 warehouseMock
-                    .Verify(m => m.InsertDownloadFactsAsync(It.IsAny<List<DataTable>>(), _leasedLogFile.BlobName), Times.Never);
+                    .Verify(m => m.InsertDownloadFactsAsync(It.IsAny<DataTable>(), _leasedLogFile.BlobName), Times.Never);
                 warehouseMock
                     .Verify(m => m.StoreLogFileAggregatesAsync(It.IsAny<LogFileAggregates>()), Times.Never);
             }
@@ -323,7 +323,7 @@ namespace Tests.Stats.ImportAzureCdnStatistics
                     .Returns(Task.FromResult(true));
                 warehouseMock
                     .Setup(m => m.CreateAsync(It.IsAny<IReadOnlyCollection<PackageStatistics>>(), _leasedLogFile.BlobName))
-                    .Returns(Task.FromResult(new List<DataTable>()));
+                    .Returns(Task.FromResult(new DataTable()));
                 warehouseMock
                     .Setup(m => m.StoreLogFileAggregatesAsync(It.IsAny<LogFileAggregates>()))
                     .Returns(() => Task.FromResult(0));
@@ -342,7 +342,7 @@ namespace Tests.Stats.ImportAzureCdnStatistics
                 warehouseMock
                     .Verify(m => m.CreateAsync(It.IsAny<IReadOnlyCollection<PackageStatistics>>(), _leasedLogFile.BlobName), Times.Never);
                 warehouseMock
-                    .Verify(m => m.InsertDownloadFactsAsync(It.IsAny<List<DataTable>>(), _leasedLogFile.BlobName), Times.Never);
+                    .Verify(m => m.InsertDownloadFactsAsync(It.IsAny<DataTable>(), _leasedLogFile.BlobName), Times.Never);
                 warehouseMock
                     .Verify(m => m.StoreLogFileAggregatesAsync(It.IsAny<LogFileAggregates>()), Times.Never);
 
@@ -404,12 +404,12 @@ namespace Tests.Stats.ImportAzureCdnStatistics
                     .Returns(Task.FromResult(false));
                 warehouseMock
                     .Setup(m => m.CreateAsync(It.IsAny<IReadOnlyCollection<PackageStatistics>>(), _leasedLogFile.BlobName))
-                    .Returns(Task.FromResult(new List<DataTable>()));
+                    .Returns(Task.FromResult(new DataTable()));
                 warehouseMock
                     .Setup(m => m.CreateAsync(It.IsAny<IReadOnlyCollection<ToolStatistics>>(), _leasedLogFile.BlobName))
-                    .Returns(Task.FromResult(new List<DataTable>()));
+                    .Returns(Task.FromResult(new DataTable()));
                 warehouseMock
-                    .Setup(m => m.InsertDownloadFactsAsync(It.IsAny<List<DataTable>>(), _leasedLogFile.BlobName))
+                    .Setup(m => m.InsertDownloadFactsAsync(It.IsAny<DataTable>(), _leasedLogFile.BlobName))
                     .Returns(() => Task.FromResult(0));
                 warehouseMock
                     .Setup(m => m.StoreLogFileAggregatesAsync(It.IsAny<LogFileAggregates>()))
@@ -433,7 +433,7 @@ namespace Tests.Stats.ImportAzureCdnStatistics
                 warehouseMock
                     .Verify(m => m.CreateAsync(It.IsAny<IReadOnlyCollection<ToolStatistics>>(), _leasedLogFile.BlobName), Times.Once);
                 warehouseMock
-                    .Verify(m => m.InsertDownloadFactsAsync(It.IsAny<List<DataTable>>(), _leasedLogFile.BlobName), Times.Exactly(2));
+                    .Verify(m => m.InsertDownloadFactsAsync(It.IsAny<DataTable>(), _leasedLogFile.BlobName), Times.Exactly(2));
                 warehouseMock
                     .Verify(m => m.StoreLogFileAggregatesAsync(It.IsAny<LogFileAggregates>()), Times.Once);
                 statisticsBlobContainerUtilityMock
@@ -466,12 +466,12 @@ namespace Tests.Stats.ImportAzureCdnStatistics
                     .Returns(Task.FromResult(true));
                 warehouseMock
                     .Setup(m => m.CreateAsync(It.IsAny<IReadOnlyCollection<PackageStatistics>>(), _leasedLogFile.BlobName))
-                    .Returns(Task.FromResult(new List<DataTable>()));
+                    .Returns(Task.FromResult(new DataTable()));
                 warehouseMock
                     .Setup(m => m.CreateAsync(It.IsAny<IReadOnlyCollection<ToolStatistics>>(), _leasedLogFile.BlobName))
-                    .Returns(Task.FromResult(new List<DataTable>()));
+                    .Returns(Task.FromResult(new DataTable()));
                 warehouseMock
-                    .Setup(m => m.InsertDownloadFactsAsync(It.IsAny<List<DataTable>>(), _leasedLogFile.BlobName))
+                    .Setup(m => m.InsertDownloadFactsAsync(It.IsAny<DataTable>(), _leasedLogFile.BlobName))
                     .Returns(() => Task.FromResult(0));
                 warehouseMock
                     .Setup(m => m.StoreLogFileAggregatesAsync(It.IsAny<LogFileAggregates>()))
@@ -495,7 +495,7 @@ namespace Tests.Stats.ImportAzureCdnStatistics
                 warehouseMock
                     .Verify(m => m.CreateAsync(It.IsAny<IReadOnlyCollection<ToolStatistics>>(), _leasedLogFile.BlobName), Times.Never);
                 warehouseMock
-                    .Verify(m => m.InsertDownloadFactsAsync(It.IsAny<List<DataTable>>(), _leasedLogFile.BlobName), Times.Once);
+                    .Verify(m => m.InsertDownloadFactsAsync(It.IsAny<DataTable>(), _leasedLogFile.BlobName), Times.Once);
                 warehouseMock
                     .Verify(m => m.StoreLogFileAggregatesAsync(It.IsAny<LogFileAggregates>()), Times.Once);
                 statisticsBlobContainerUtilityMock
@@ -528,12 +528,12 @@ namespace Tests.Stats.ImportAzureCdnStatistics
                     .Returns(Task.FromResult(false));
                 warehouseMock
                     .Setup(m => m.CreateAsync(It.IsAny<IReadOnlyCollection<PackageStatistics>>(), _leasedLogFile.BlobName))
-                    .Returns(Task.FromResult(new List<DataTable>()));
+                    .Returns(Task.FromResult(new DataTable()));
                 warehouseMock
                     .Setup(m => m.CreateAsync(It.IsAny<IReadOnlyCollection<ToolStatistics>>(), _leasedLogFile.BlobName))
-                    .Returns(Task.FromResult(new List<DataTable>()));
+                    .Returns(Task.FromResult(new DataTable()));
                 warehouseMock
-                    .Setup(m => m.InsertDownloadFactsAsync(It.IsAny<List<DataTable>>(), _leasedLogFile.BlobName))
+                    .Setup(m => m.InsertDownloadFactsAsync(It.IsAny<DataTable>(), _leasedLogFile.BlobName))
                     .Returns(() => Task.FromResult(0));
                 warehouseMock
                     .Setup(m => m.StoreLogFileAggregatesAsync(It.IsAny<LogFileAggregates>()))
@@ -557,7 +557,7 @@ namespace Tests.Stats.ImportAzureCdnStatistics
                 warehouseMock
                     .Verify(m => m.CreateAsync(It.IsAny<IReadOnlyCollection<ToolStatistics>>(), _leasedLogFile.BlobName), Times.Once);
                 warehouseMock
-                    .Verify(m => m.InsertDownloadFactsAsync(It.IsAny<List<DataTable>>(), _leasedLogFile.BlobName), Times.Once);
+                    .Verify(m => m.InsertDownloadFactsAsync(It.IsAny<DataTable>(), _leasedLogFile.BlobName), Times.Once);
                 warehouseMock
                     .Verify(m => m.StoreLogFileAggregatesAsync(It.IsAny<LogFileAggregates>()), Times.Once);
                 statisticsBlobContainerUtilityMock
@@ -592,7 +592,7 @@ namespace Tests.Stats.ImportAzureCdnStatistics
                     .Returns(Task.FromResult(true));
                 warehouseMock
                     .Setup(m => m.CreateAsync(It.IsAny<IReadOnlyCollection<PackageStatistics>>(), _leasedLogFile.BlobName))
-                    .Returns(Task.FromResult(new List<DataTable>()));
+                    .Returns(Task.FromResult(new DataTable()));
                 warehouseMock
                     .Setup(m => m.StoreLogFileAggregatesAsync(It.IsAny<LogFileAggregates>()))
                     .Returns(() => Task.FromResult(0));
@@ -613,7 +613,7 @@ namespace Tests.Stats.ImportAzureCdnStatistics
                 warehouseMock
                     .Verify(m => m.CreateAsync(It.IsAny<IReadOnlyCollection<PackageStatistics>>(), _leasedLogFile.BlobName), Times.Once);
                 warehouseMock
-                    .Verify(m => m.InsertDownloadFactsAsync(It.IsAny<List<DataTable>>(), _leasedLogFile.BlobName), Times.Never);
+                    .Verify(m => m.InsertDownloadFactsAsync(It.IsAny<DataTable>(), _leasedLogFile.BlobName), Times.Never);
                 warehouseMock
                     .Verify(m => m.StoreLogFileAggregatesAsync(It.IsAny<LogFileAggregates>()), Times.Once);
 

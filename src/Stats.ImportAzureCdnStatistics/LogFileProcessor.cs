@@ -24,23 +24,13 @@ namespace Stats.ImportAzureCdnStatistics
             ILoggerFactory loggerFactory,
             IStatisticsWarehouse warehouse)
         {
-            if (statisticsBlobContainerUtility == null)
-            {
-                throw new ArgumentNullException(nameof(statisticsBlobContainerUtility));
-            }
-
-            if (warehouse == null)
-            {
-                throw new ArgumentNullException(nameof(warehouse));
-            }
-
             if (loggerFactory == null)
             {
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _warehouse = warehouse;
-            _statisticsBlobContainerUtility = statisticsBlobContainerUtility;
+            _warehouse = warehouse ?? throw new ArgumentNullException(nameof(warehouse));
+            _statisticsBlobContainerUtility = statisticsBlobContainerUtility ?? throw new ArgumentNullException(nameof(statisticsBlobContainerUtility));
             _logger = loggerFactory.CreateLogger<Job>();
         }
 
@@ -133,24 +123,21 @@ namespace Stats.ImportAzureCdnStatistics
 
                 // create aggregates for the logfile
                 var logFileAggregates = new LogFileAggregates(logFileName);
-                foreach (var table in downloadFacts)
+                if (string.Equals(downloadFacts.TableName, "dbo.Fact_Download", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    if (string.Equals(table.TableName, "dbo.Fact_Download", StringComparison.InvariantCultureIgnoreCase))
+                    // aggregate download counts by date
+                    var downloadsByDate =
+                        downloadFacts.AsEnumerable()
+                            .GroupBy(e => e.Field<int>("Dimension_Date_Id"))
+                            .Select(e => new KeyValuePair<int, int>(e.Key, e.Count()));
+
+                    foreach (var keyValuePair in downloadsByDate)
                     {
-                        // aggregate download counts by date
-                        var downloadsByDate =
-                            table.AsEnumerable()
-                                .GroupBy(e => e.Field<int>("Dimension_Date_Id"))
-                                .Select(e => new KeyValuePair<int, int>(e.Key, e.Count()));
+                        logFileAggregates.PackageDownloadsByDateDimensionId.Add(keyValuePair.Key, keyValuePair.Value);
 
-                        foreach (var keyValuePair in downloadsByDate)
-                        {
-                            logFileAggregates.PackageDownloadsByDateDimensionId.Add(keyValuePair.Key, keyValuePair.Value);
-
-                            _logger.LogInformation(
-                                "{LogFile} contains {PackageDownloadCount} package downloads for date id {DimensionDateId}",
-                                logFileName, keyValuePair.Value, keyValuePair.Key);
-                        }
+                        _logger.LogInformation(
+                            "{LogFile} contains {PackageDownloadCount} package downloads for date id {DimensionDateId}",
+                            logFileName, keyValuePair.Value, keyValuePair.Key);
                     }
                 }
 
