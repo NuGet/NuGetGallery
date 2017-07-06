@@ -26,6 +26,7 @@ else
     <fieldset id="unlist-form" class="form">
         <legend>Edit @Model.Title Package</legend>
         @Html.AntiForgeryToken()
+        @Html.Hidden("version", @Model.Version)
         <div class="form-field">
             @Html.EditorFor(package => package.Listed)
             <label for="Listed" class="checkbox">
