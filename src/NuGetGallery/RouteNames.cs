@@ -69,6 +69,7 @@ namespace NuGetGallery
         public const string Error404 = "Error404";
         public const string Error400 = "Error400";
         public const string Status = "Status";
+        public const string HealthProbe = "HealthProbe";
         public const string Contributors = "Contributors";
         public const string Team = "Team";
         public const string JsonApi = "JsonApi";

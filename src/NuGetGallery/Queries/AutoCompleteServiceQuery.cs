@@ -36,6 +36,19 @@ namespace NuGetGallery
             bool? includePrerelease,
             string semVerLevel = null)
         {
+            queryString = BuildQueryString(queryString, includePrerelease, semVerLevel);
+
+            var endpoints = await _serviceDiscoveryClient.GetEndpointsForResourceType(_autocompleteServiceResourceType);
+            endpoints = endpoints.Select(e => new Uri(e + queryString)).AsEnumerable();
+
+            var result = await _httpClient.GetStringAsync(endpoints);
+            var resultObject = JObject.Parse(result);
+
+            return resultObject["data"].Select(entry => entry.ToString());
+        }
+
+        internal string BuildQueryString(string queryString, bool? includePrerelease, string semVerLevel = null)
+        {
             queryString += $"&prerelease={includePrerelease ?? false}";
 
             NuGetVersion semVerLevelVersion;
@@ -44,13 +57,12 @@ namespace NuGetGallery
                 queryString += $"&semVerLevel={semVerLevel}";
             }
 
-            var endpoints = await _serviceDiscoveryClient.GetEndpointsForResourceType(_autocompleteServiceResourceType);
-            endpoints = endpoints.Select(e => new Uri(e + "?" + queryString)).AsEnumerable();
+            if (string.IsNullOrEmpty(queryString))
+            {
+                return string.Empty;
+            }
 
-            var result = await _httpClient.GetStringAsync(endpoints);
-            var resultObject = JObject.Parse(result);
-
-            return resultObject["data"].Select(entry => entry.ToString());
+            return "?" + queryString.TrimStart('&');
         }
     }
 }

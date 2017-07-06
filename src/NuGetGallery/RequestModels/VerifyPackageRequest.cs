@@ -1,9 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using NuGet.Packaging;
-using NuGet.Versioning;
-using NuGetGallery.Packaging;
+
 using System.Collections.Generic;
+using System.Linq;
+using NuGet.Packaging;
+using NuGetGallery.Packaging;
 
 namespace NuGetGallery
 {
@@ -13,9 +14,15 @@ namespace NuGetGallery
 
         public VerifyPackageRequest(PackageMetadata packageMetadata)
         {
+            var dependencyGroups = packageMetadata.GetDependencyGroups();
+
             Id = packageMetadata.Id;
             Version = packageMetadata.Version.ToFullStringSafe();
             OriginalVersion = packageMetadata.Version.OriginalVersion;
+            HasSemVer2Version = packageMetadata.Version.IsSemVer2;
+            HasSemVer2Dependency = dependencyGroups.Any(d => d.Packages.Any(
+                                p => (p.VersionRange.HasUpperBound && p.VersionRange.MaxVersion.IsSemVer2)
+                                    || (p.VersionRange.HasLowerBound && p.VersionRange.MinVersion.IsSemVer2)));
             LicenseUrl = packageMetadata.LicenseUrl.ToEncodedUrlStringOrNull();
             Listed = true;
             Language = packageMetadata.Language;
@@ -37,7 +44,9 @@ namespace NuGetGallery
         /// The non-normalized, unmodified, original version as defined in the nuspec.
         /// </summary>
         public string OriginalVersion { get; set; }
-
+        public bool IsSemVer2 => HasSemVer2Version || HasSemVer2Dependency;
+        public bool HasSemVer2Version { get; set; }
+        public bool HasSemVer2Dependency { get; set; }
         public string LicenseUrl { get; set; }
         public bool Listed { get; set; }
         public EditPackageVersionRequest Edit { get; set; }
