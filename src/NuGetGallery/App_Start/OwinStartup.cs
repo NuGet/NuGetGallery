@@ -106,7 +106,8 @@ namespace NuGetGallery
                 }
                 else
                 {
-                    app.UseForceSsl(config.Current.SSLPort, new[] { config.Current.ForceSslExclusion });
+                    var paths = config.Current.ForceSslExclusion.Split(';');
+                    app.UseForceSsl(config.Current.SSLPort, paths);
                 }
             }
 
