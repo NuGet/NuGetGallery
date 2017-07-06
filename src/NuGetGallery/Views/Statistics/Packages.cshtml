@@ -7,43 +7,47 @@
 
 <section role="main" class="container main-container page-statistics-most-downloaded">
     <div class="row">
-        <div class="col">
+        <div class="col-xs-12">
             <h1>Most Downloaded Packages</h1>
             <h2>Top 100 Over the Last 6 Weeks</h2>
         </div>
     </div>
     <div class="row">
-        <table class="table borderless">
-            <caption class="sr-only">
-                The packages with the most downloads.
-            </caption>
-            <thead>
-                <tr class="packages">
-                    <th scope="col">&nbsp;<span class="sr-only">#</span></th>
-                    <th scope="col">Package</th>
-                    <th scope="col">Downloads</th>
-                </tr>
-            </thead>
+        <div class="col-xs-12">
+            <table class="table borderless">
+                <caption class="sr-only">
+                    The packages with the most downloads.
+                </caption>
+                <thead>
+                    <tr class="packages">
+                        <th scope="col">&nbsp;<span class="sr-only">#</span></th>
+                        <th scope="col">Package</th>
+                        <th scope="col">Downloads</th>
+                    </tr>
+                </thead>
 
-            <tbody>
-                @{
-                    var index = 0;
-                    foreach (var item in Model.DownloadPackagesAll)
-                    {
-                        index++;
+                <tbody>
+                    @{
+                        var index = 0;
+                        foreach (var item in Model.DownloadPackagesAll)
+                        {
+                            index++;
 
-                        <tr>
-                            <td scope="row">@index</td>
-                            <td><a href="@Url.Package(item.PackageId)">@item.PackageId</a></td>
-                            <td><a href="@Url.StatisticsPackageDownloadByVersion(item.PackageId)">@Model.DisplayDownloads(item.Downloads)</a></td>
-                        </tr>
+                            <tr>
+                                <td scope="row">@index</td>
+                                <td><a href="@Url.Package(item.PackageId)">@item.PackageId</a></td>
+                                <td><a href="@Url.StatisticsPackageDownloadByVersion(item.PackageId)">@Model.DisplayDownloads(item.Downloads)</a></td>
+                            </tr>
+                        }
                     }
-                }
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
     </div>
     <div class="row">
-        @Html.Partial("_LastUpdated", Model)
+        <div class="col-xs-12">
+            @Html.Partial("_LastUpdated", Model)
+        </div>
     </div>
 </section>
 

@@ -8,6 +8,12 @@
     // Contributors who are not listed by the static json file are displayed as external contributors.
     // Note that if a team member in the static json file has never contributed to the gallery or client GitHub repositories, they will not be shown here, regardless of whether or not they are listed.
 
+    if (Promise == undefined) {
+        // If promises aren't available this script will not work.
+        // Promises are available in all but older, outdated browsers (such as IE 11).
+        return;
+    }
+
     // First, fetch the static json file of team members.
     $.getJSON(window.location.origin + '/api/v2/team', function (data) {
         var teamMap = {};

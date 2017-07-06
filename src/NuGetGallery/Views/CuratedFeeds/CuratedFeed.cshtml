@@ -167,15 +167,18 @@
                 "ChevronDown",
                 "Excluded Packages");
 
-            $(".remove-link").click(function() {
+            $(".remove-link").click(function (e) {
+                e.preventDefault();
                 deleteCuratedPackage($(this).data("package-id"));
             });
 
-            $(".exclude-link").click(function () {
+            $(".exclude-link").click(function (e) {
+                e.preventDefault();
                 patchCuratedPackage($(this).data("package-id"), false);
             });
 
-            $(".include-link").click(function () {
+            $(".include-link").click(function (e) {
+                e.preventDefault();
                 patchCuratedPackage($(this).data("package-id"), true);
             });
         });
