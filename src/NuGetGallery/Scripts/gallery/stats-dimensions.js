@@ -3,30 +3,32 @@
         var data = JSON.parse(JSON.stringify(rawData));
 
         $("#loading-placeholder").hide();
-        // Populate the data table
-        data['reportSize'] = data.Table != null ? data.Table.length : 0;
+        if (data != null) {
+            // Populate the data table
+            data['reportSize'] = data.Table != null ? data.Table.length : 0;
 
-        data['ShownRows'] = function (allRows) {
-            var shownRows = [];
-            var index = 0;
-            while (shownRows.length < Math.min(6, allRows.length)) {
-                shownRows.push(allRows[index]);
-                var currRowSpan = shownRows[index].reduce(function (currMax, nextObj) {
-                    return Math.max(currMax, nextObj != null ? nextObj.Rowspan : 0);
-                }, 0);
-                for (var i = 0; i < currRowSpan - 1; i++) {
-                    index++;
+            data['ShownRows'] = function (allRows) {
+                var shownRows = [];
+                var index = 0;
+                while (shownRows.length < Math.min(6, allRows.length)) {
                     shownRows.push(allRows[index]);
+                    var currRowSpan = shownRows[index].reduce(function (currMax, nextObj) {
+                        return Math.max(currMax, nextObj != null ? nextObj.Rowspan : 0);
+                    }, 0);
+                    for (var i = 0; i < currRowSpan - 1; i++) {
+                        index++;
+                        shownRows.push(allRows[index]);
+                    }
+
+                    index++;
                 }
+                return shownRows;
+            }(data.Table != null ? data.Table : []);
 
-                index++;
-            }
-            return shownRows;
-        }(data.Table != null ? data.Table : []);
+            data['HiddenRows'] = data.Table != null ? data.Table.slice(data['ShownRows'].length) : [];
 
-        data['HiddenRows'] = data.Table != null ? data.Table.slice(data['ShownRows'].length) : [];
-
-        data['SetupHiddenRows'] = setupHiddenRows.bind(this, data['HiddenRows']);
+            data['SetupHiddenRows'] = setupHiddenRows.bind(this, data['HiddenRows']);
+        }
 
         $("#report").remove();
 
