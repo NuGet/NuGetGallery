@@ -15,6 +15,7 @@ using System.Web.Routing;
 using Moq;
 using Newtonsoft.Json.Linq;
 using NuGet.Packaging;
+using NuGet.Protocol;
 using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
@@ -86,6 +87,7 @@ namespace NuGetGallery
                     var package = new Package();
                     package.PackageRegistration = new PackageRegistration { Id = packageMetadata.Id };
                     package.Version = packageMetadata.Version.ToString();
+                    package.SemVerLevelKey = SemVerLevelKey.ForPackage(packageMetadata.Version, packageMetadata.GetDependencyGroups().AsPackageDependencyEnumerable());
 
                     return Task.FromResult(package);
                 });
@@ -479,6 +481,21 @@ namespace NuGetGallery
 
                 controller.MockPackageService.Verify(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), false));
                 controller.MockEntitiesContext.VerifyCommitted();
+            }
+
+            [Fact]
+            public async Task WillReturnServerWarningWhenCreatingSemVer2Package()
+            {
+                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42+metadata");
+
+                var user = new User() { EmailAddress = "confirmed@email.com" };
+                var controller = new TestableApiController();
+                controller.SetCurrentUser(user);
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                var actionResult = await controller.CreatePackagePut();
+
+                Assert.IsType<HttpStatusCodeWithServerWarningResult>(actionResult);
             }
 
             [Fact]

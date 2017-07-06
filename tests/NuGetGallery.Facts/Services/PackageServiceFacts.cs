@@ -1566,6 +1566,29 @@ namespace NuGetGallery
                 Assert.Equal(1, packages.Count);
                 Assert.Contains(latestStablePackage, packages);
             }
+
+            [Fact]
+            public void ReturnsFirstIfMultiplePackagesSetToLatest()
+            {
+                // Verify behavior to work around IsLatest concurrency issue: https://github.com/NuGet/NuGetGallery/issues/2514
+                var owner = new User { Username = "someone" };
+                var packageRegistration = new PackageRegistration { Id = "theId", Owners = { owner } };
+                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true, IsLatest = true, IsLatestStable = true };
+                var package2 = new Package { Version = "2.0", PackageRegistration = packageRegistration, Listed = true, IsLatest = true, IsLatestStable = true };
+                packageRegistration.Packages.Add(package2);
+                packageRegistration.Packages.Add(package1);
+
+                var context = GetFakeContext();
+                context.Users.Add(owner);
+                context.PackageRegistrations.Add(packageRegistration);
+                context.Packages.Add(package2);
+                context.Packages.Add(package1);
+                var service = Get<PackageService>();
+
+                var packages = service.FindPackagesByOwner(owner, includeUnlisted: false);
+                Assert.Equal(1, packages.Count());
+                Assert.Contains(package2, packages);
+            }
         }
 
         public class TheMarkPackageListedMethod
