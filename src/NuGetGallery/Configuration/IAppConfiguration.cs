@@ -38,7 +38,7 @@ namespace NuGetGallery.Configuration
         /// To provide multiple paths separate them with ;
         /// </summary>
         /// <example>/api/health-probe</example>
-        string ForceSslExclusion { get; set; }
+        string[] ForceSslExclusion { get; set; }
 
         /// <summary>
         /// Gets the connection string to use when connecting to azure storage

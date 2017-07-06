@@ -32,8 +32,9 @@ namespace NuGetGallery.Configuration
         /// A string containing a path exluded from forcing the HTTP to HTTPS redirection. 
         /// To provide multiple paths separate them with ;
         /// </summary>
-        [DefaultValue("")]
-        public string ForceSslExclusion { get; set; }
+        [DefaultValue(null)]
+        [TypeConverter(typeof(StringArrayConverter))]
+        public string[] ForceSslExclusion { get; set; }
 
         /// <summary>
         /// Gets the connection string to use when connecting to azure storage
