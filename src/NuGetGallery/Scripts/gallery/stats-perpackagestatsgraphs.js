@@ -1,5 +1,6 @@
 ﻿
 var graphData;
+// This number is from trial and error and seeing what fit in the space
 var axisLabelCharLimit = 19;
 
 var packageDisplayGraphs = function (data) {
