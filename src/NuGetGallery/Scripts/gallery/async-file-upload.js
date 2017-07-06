@@ -1,4 +1,6 @@
-﻿var AsyncFileUploadManager = new function () {
+﻿'use strict';
+
+var AsyncFileUploadManager = new function () {
     var _actionUrl;
     var _cancelUrl;
     var _submitVerifyUrl;
