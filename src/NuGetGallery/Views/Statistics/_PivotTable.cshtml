@@ -109,7 +109,9 @@
         </div>
     </div>
 
-    <p data-bind="ifnot: $data">
-        Download statistics are not currently available for this package. Please <a href="#" id="statistics-retry">retry</a> or check back later.
-    </p>
+    <div data-bind="ifnot: $data" class="row">
+        <div class="col-xs-12">
+            Download statistics are not currently available for this package. Please <a href="#" id="statistics-retry">retry</a> or check back later.
+        </div>
+    </div>
 </script>
