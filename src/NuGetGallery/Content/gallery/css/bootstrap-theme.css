@@ -214,6 +214,14 @@ img.package-icon {
   max-width: 300px;
   max-height: 300px;
 }
+@media (-ms-high-contrast: active) {
+  svg {
+    color: WindowText;
+  }
+  svg text {
+    fill: WindowText;
+  }
+}
 .list-packages {
   border-top: 1px solid #dbdbdb;
 }

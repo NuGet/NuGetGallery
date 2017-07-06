@@ -55,7 +55,7 @@ var drawDownloadsByVersionBarChart = function (rawData) {
         height = 450 - margin.top - margin.bottom;
 
     var xScale = d3.scale.ordinal()
-        .rangeRoundBands([0, width], .1);
+        .rangeRoundBands([10, width], .1);
 
     var yScale = d3.scale.linear()
         .range([height, 0]);
