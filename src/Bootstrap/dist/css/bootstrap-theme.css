@@ -64,6 +64,21 @@ body h3 {
 .navbar-seperated .seperator > span::after {
   content: " | ";
 }
+.dropdown-menu {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+@media (max-width: 767px) {
+  .dropdown-menu .dropdown-profile {
+    padding-top: 5px;
+  }
+}
+.dropdown-menu .dropdown-profile .dropdown-username {
+  font-size: 20px;
+}
+.dropdown-menu .dropdown-profile .dropdown-email {
+  font-size: 14px;
+}
 .btn-search {
   height: 36px;
 }
