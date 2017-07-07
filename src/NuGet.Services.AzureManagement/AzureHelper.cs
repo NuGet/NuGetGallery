@@ -9,7 +9,7 @@ namespace NuGet.Services.AzureManagement
 {
     public static class AzureHelper
     {
-        public class CloudService
+        public class CloudServiceProperties
         {
             public Uri Uri { get; set; }
             public int InstanceCount { get; set; }
@@ -18,17 +18,19 @@ namespace NuGet.Services.AzureManagement
         /// <summary>
         /// Parses the result of https://management.azure.com/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.ClassicCompute/domainNames/{2}/slots/{3}?api-version=2016-11-01
         /// </summary>
-        public static CloudService ParseCloudServiceProperties(string propertiesString)
+        public static CloudServiceProperties ParseCloudServiceProperties(string propertiesString)
         {
             try
             {
-                var cloudService = new CloudService();
+                var cloudService = new CloudServiceProperties();
 
                 var jObject = JObject.Parse(propertiesString);
-                cloudService.Uri = new Uri(jObject["properties"]["uri"].ToString());
+                var properties = jObject["properties"];
+
+                cloudService.Uri = new Uri(properties["uri"].ToString());
 
                 // This contains the cscfg format configuration in XML format
-                var configuration = jObject["properties"]["configuration"].ToString();
+                var configuration = properties["configuration"].ToString();
 
                 var xmlConfig = new XmlDocument();
                 xmlConfig.LoadXml(configuration);

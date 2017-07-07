@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("NuGet.Services.AzureManagement.Tests")]
 [assembly: AssemblyDescription("Unit tests for NuGet.Services.AzureManagement library")]
 [assembly: AssemblyProduct("NuGet.Services.AzureManagement.Tests")]
-[assembly: AssemblyCopyright("Copyright © .NET Foundation 2016")]
+[assembly: AssemblyCopyright("Copyright © .NET Foundation 2017")]
 [assembly: ComVisible(false)]
 [assembly: Guid("46261109-f6f7-4353-bd4e-171aeed198f3")]
 [assembly: AssemblyVersion("1.0.0.0")]

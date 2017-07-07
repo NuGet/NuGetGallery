@@ -12,12 +12,11 @@ namespace NuGet.Services.AzureManagement
 {
     public class AzureManagementAPIWrapper : IAzureManagementAPIWrapper
     {
-        private const string Authority = @"https://login.microsoftonline.com/microsoft.onmicrosoft.com";
+        private const string Authority = "https://login.microsoftonline.com/microsoft.onmicrosoft.com";
         private const string Resource = "https://management.core.windows.net/";
         private const int RenewTokenPriorToExpirationMinutes = 5;
 
-        private string _clientId;
-        private string _clientSecret;
+        private readonly ClientCredential _clientCredential;
 
         private string _accessToken;
         private DateTimeOffset _tokenExpirationTime;
@@ -39,8 +38,7 @@ namespace NuGet.Services.AzureManagement
                 throw new ArgumentException(nameof(configuration.ClientSecret));
             }
 
-            _clientId = configuration.ClientId;
-            _clientSecret = configuration.ClientSecret;
+            _clientCredential = new ClientCredential(configuration.ClientId, configuration.ClientSecret);
         }
 
         public async Task<string> GetCloudServicePropertiesAsync(string subscription, string resourceGroup, string name, string slot, CancellationToken token)
@@ -115,14 +113,13 @@ namespace NuGet.Services.AzureManagement
         {
             try
             {
-                var clientCredential = new ClientCredential(_clientId, _clientSecret);
                 var context = new AuthenticationContext(Authority, validateAuthority: false);
-                AuthenticationResult authenticationResult = await context.AcquireTokenAsync(Resource, clientCredential);
+                AuthenticationResult authenticationResult = await context.AcquireTokenAsync(Resource, _clientCredential);
                 return authenticationResult;
             }
             catch (AdalException adalException)
             {
-                throw new AzureManagementException($"Failed to create token. Client id: {_clientId}", adalException);
+                throw new AzureManagementException($"Failed to create token. Client id: {_clientCredential.ClientId}", adalException);
             }
         }
     }
