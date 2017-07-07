@@ -127,8 +127,8 @@ var setupHiddenRows = function (data) {
 
                 content.text(item.Data);
                 tempTd.append(content);
+                tdArr.push(tempTd);
             }
-            tdArr.push(tempTd);
         }
         tempTr.append(tdArr);
         trArr.push(tempTr);
