@@ -1,0 +1,60 @@
+﻿<script type="text/html" id="import-readme-template">
+	@*<pre data-bind="text: ko.toJSON($data, null, 2)"></pre>*@
+	<div class="collapse in" id="readme-package-form">
+		<div class="text-center">
+			<div class="row">
+				<h4 class="">
+					Here you can add a ReadMe.md file that will be displayed on the NuGet Gallery website.
+					Please choose one of the options below in order to import a ReadMe file, or to write your
+					own. If you are not interested in having a ReadMe file, skip this section.
+				</h4>
+			</div>
+			<div class="btn-group readme-btn-group row" style="padding-bottom:3em; padding-top:1.5em;" data-toggle="buttons">
+				<label class="btn btn-primary active" id="readme-url-btn">
+					<input type="radio" value="Url" name="ReadMe.ReadMeType" autocomplete="off" checked> Import From URL
+				</label>
+				<label class="btn btn-primary" id="readme-file-btn">
+					<input type="radio" value="File" name="ReadMe.ReadMeType" autocomplete="off"> Upload File
+				</label>
+				<label class="btn btn-primary" id="readme-write-btn">
+					<input type="radio" value="Written" name="ReadMe.ReadMeType" autocomplete="off"> Write Your Own
+				</label>
+			</div>
+			<div class="readme-url col-lg-12">
+				<div class="input-group">
+
+					<input type="url" data-bind="value: ReadMe.ReadMeUrl" name="ReadMe.ReadMeUrl" pattern="[-a-zA-Z0-9:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9:%_\+.~#?&//=]*).md$" class="form-control" id="ReadMeUrlInput" placeholder="Enter the URL to your raw ReadMe file..." />
+					<label id="ReadMeURLLabel" class="input-group-btn">
+						<span class="btn btn-primary form-control">Import</span>
+					</label>
+				</div>
+			</div>
+			<div class="readme-file col-lg-12">
+				<div class="input-group col-xs-12">
+					<input type="text" id="readme-select-feedback" class="form-control" placeholder="Browse to select a ReadMe file..." readonly />
+					<label for="readme-select-file" id="ReadMeFileLabel" class="input-group-btn">
+						<span class="btn btn-primary form-control">
+							Browse&hellip;<input type="file" accept=".md" data-bind="value: ReadMe.ReadMeFile" name="ReadMe.ReadMeFile" aria-labelledby="ReadMeFileLabel" id="readme-select-file" style="display:none;" />
+						</span>
+					</label>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="readme-write col-sm-10 col-sm-offset-1">
+				<div>
+					<button class="btn btn-primary markdown-popover" data-toggle="popover" title="Markdown Syntax">Markdown</button>
+				</div>
+				<div>
+					<textarea class="col-xs-12" data-bind="value: ReadMe.ReadMeWritten" name="ReadMe.ReadMeWritten" rows="30" placeholder="Write your own ReadMe here..."></textarea>
+				</div>
+			</div>
+		</div>
+
+		<div class="text-center" style="padding-top:3em; padding-bottom:3em">
+			<div class="row">
+				<button class="btn btn-primary col-xs-10 col-xs-offset-1 col-lg-2 col-lg-offset-5">Preview</button>
+			</div>
+		</div>
+	</div>
+</script>

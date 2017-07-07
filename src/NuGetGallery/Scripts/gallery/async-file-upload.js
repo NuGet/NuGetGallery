@@ -19,7 +19,7 @@
 
         $('#file-select-feedback').on('click', function () {
             $('#input-select-file').click();
-        })
+		})
 
         $('#input-select-file').on('change', function () {
             clearErrors();
@@ -150,7 +150,6 @@
         $(failureListContainer).attr("data-bind", "template: { name: 'validation-errors', data: data }");
         failureContainer.append(failureListContainer);
         ko.applyBindings({ data: errors }, failureListContainer);
-
         failureContainer.removeClass("hidden");
     }
 
@@ -160,19 +159,39 @@
     }
 
     function bindData(model) {
-        $("#verify-package-block").remove();
-        $("#verify-collapser-container").addClass("hidden");
+		$("#verify-package-block").remove();
+		$("#import-readme-block").remove();
+		$("#submit-block").remove();
+		$("#verify-collapser-container").addClass("hidden");
+		$("#readme-collapser-container").addClass("hidden");
+		$("#submit-collapser-container").addClass("hidden");
         if (model == null) {
             return;
-        }
-
+		}
+				
         var reportContainerElement = document.createElement("div");
         $(reportContainerElement).attr("id", "verify-package-block");
         $(reportContainerElement).attr("class", "collapse in");
         $(reportContainerElement).attr("aria-expanded", "true");
         $(reportContainerElement).attr("data-bind", "template: { name: 'verify-metadata-template', data: data }");
         $("#verify-package-container").append(reportContainerElement);
-        ko.applyBindings({ data: model }, reportContainerElement);
+		ko.applyBindings({ data: model }, reportContainerElement);
+		
+		var readMeContainerElement = document.createElement("div");
+		$(readMeContainerElement).attr("id", "import-readme-block");
+		$(readMeContainerElement).attr("class", "collapse in");
+		$(readMeContainerElement).attr("aria-expanded", "true");
+		$(readMeContainerElement).attr("data-bind", "template: { name: 'import-readme-template', data: data }");
+		$("#import-readme-container").append(readMeContainerElement);
+		ko.applyBindings({ data: model }, readMeContainerElement);
+
+		var submitContainerElement = document.createElement("div");
+		$(submitContainerElement).attr("id", "submit-block");
+		$(submitContainerElement).attr("class", "collapse in");
+		$(submitContainerElement).attr("aria-expanded", "true");
+		$(submitContainerElement).attr("data-bind", "template: { name: 'submit-package-template', data: data }");
+		$("#submit-package-container").append(submitContainerElement);
+		ko.applyBindings({ data: model }, submitContainerElement);
 
         $('#verify-cancel-button').on('click', function () {
             $('#verify-cancel-button').attr('disabled', 'disabled');
@@ -196,15 +215,92 @@
             $('#icon-preview').attr('src', $('#iconurl-field').val());
         });
 
-        $("#verify-collapser-container").removeClass("hidden");
+		$("#verify-collapser-container").removeClass("hidden");
+		$("#readme-collapser-container").removeClass("hidden");
+		$("#submit-collapser-container").removeClass("hidden");
 
         window.nuget.configureExpander(
             "verify-package-form",
             "ChevronRight",
             "Verify",
             "ChevronDown",
-            "Verify");
-    }
+			"Verify");
+		window.nuget.configureExpander(
+			"readme-package-form",
+			"ChevronRight",
+			"Import ReadMe",
+			"ChevronDown",
+			"Import ReadMe");
+		window.nuget.configureExpander(
+			"submit-package-form",
+			"ChevronRight",
+			"Submit",
+			"ChevronDown",
+			"Submit");
+
+		$(".readme-file").hide();
+		$(".readme-write").hide();
+		$(".markdown-popover").popover({
+			trigger: 'hover',
+			html: true,
+			placement: 'bottom',
+			content: "# Heading<br />## Sub-heading<br />Paragraphs are separated by a blank line.<br />--- Horizontal Rule<br />* Bullet List<br />1. Numbered List<br />A [link](http://www.example.com)<br />`Code Snippet`<br />_italic_ *italic*<br />__bold__ **bold** "
+		});
+
+		$(".readme-btn-group").change(changeReadMeFormTab);
+		//$("#uploadReadMe").click(uploadReadMe());
+		$("#repositoryurl-field").blur(function () {
+			$("#ReadMeUrlInput").val(fillReadMeUrl($("#repositoryurl-field").val()));
+		});
+
+		$('#readme-select-feedback').on('click', function () {
+			$('#readme-select-file').click();
+		})
+
+		$('#readme-select-file').on('change', function () {
+			clearErrors();
+			var fileName = $('#readme-select-file').val().split("\\").pop();
+
+			if (fileName.length > 0) {
+				$('#readme-select-feedback').attr('placeholder', fileName);
+			} else {
+				$('#readme-select-feedback').attr('placeholder', 'Browse to select a package file...');
+			}
+		})
+	}
+	
+	function changeReadMeFormTab() {
+		if ($("#readme-url-btn").hasClass("active")) {
+			$(".readme-url").show();
+			$(".readme-file").hide();
+			$(".readme-write").hide();
+		} else if ($("#readme-file-btn").hasClass("active")) {
+			$(".readme-url").hide();
+			$(".readme-file").show();
+			$(".readme-write").hide();
+		} else if ($("#readme-write-btn").hasClass("active")) {
+			$(".readme-url").hide();
+			$(".readme-file").hide();
+			$(".readme-write").show();
+		}
+	}
+
+	function fillReadMeUrl(repositoryUrl) {
+		var githubRegex = /^(http(s)?:\/\/)?([a-zA-Z0-9]+\.)?github\.com\/([a-zA-Z0-9])+\/([a-zA-Z0-9])+(\/)?$/;
+		if (githubRegex.test(repositoryUrl)) {
+			if (repositoryUrl.slice(-1) != "/") {
+				repositoryUrl += "/";
+			}
+			if (repositoryUrl.toLowerCase().includes("www.")) {
+				var readMeUrl = repositoryUrl.toLowerCase().replace("www.github", "raw.githubusercontent");
+			} else {
+				var readMeUrl = repositoryUrl.toLowerCase().replace("github", "raw.githubusercontent");
+			}
+			return readMeUrl + "master/README.md";
+		} else {
+			return "";
+		}
+	}
 
     function navigateToPage(verifyResponse) {
         document.location = verifyResponse.location;

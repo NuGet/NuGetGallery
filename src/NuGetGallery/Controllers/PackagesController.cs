@@ -205,6 +205,8 @@ namespace NuGetGallery
                     model.InProgressUpload = verifyRequest;
                 }
             }
+            return View(model);
+        }
 
         [HttpPost]
         [Authorize]
@@ -1068,7 +1070,7 @@ namespace NuGetGallery
             {
                 try
                 {
-                    _editPackageService.StartEditPackageRequest(package, formData.Edit, user, readMeModified:false);
+                    _editPackageService.StartEditPackageRequest(package, formData.Edit, user, Constants.ReadMeUnchanged);
                     await _entitiesContext.SaveChangesAsync();
 
                     var packageWithEditsApplied = formData.Edit.ApplyTo(package);
@@ -1363,18 +1365,20 @@ namespace NuGetGallery
                 if (pendEdit)
                 {
                     // Checks to see if a ReadMe file has been added and uploads ReadMe
-                    bool readMeChanged = formData.ReadMe.ReadMeUrl != null ||
-                        formData.ReadMe.ReadMeWritten != null ||
-                        formData.ReadMe.ReadMeFile != null;
-                    if (readMeChanged)
+                    if (ReadMeService.HasReadMe(formData.ReadMe))
                     {
                         // Converts a readme into a file stream
-                        var readMeInputStream = ReadMeService.GetReadMeStream(formData.ReadMe);
-                        await _packageFileService.SaveReadMeFileAsync(package, readMeInputStream);
+                        using ( var readMeInputStream = ReadMeService.GetReadMeStream(formData.ReadMe))
+                        {
+                            await _packageFileService.SaveReadMeFileAsync(package, readMeInputStream);
+                        }
+
+                        // Add the edit request to a queue where it will be processed in the background.
+                        _editPackageService.StartEditPackageRequest(package, formData.Edit, currentUser, Constants.ReadMeChanged);
+                    } else
+                    {
+                        _editPackageService.StartEditPackageRequest(package, formData.Edit, currentUser, Constants.ReadMeUnchanged);
                     }
-                    // Add the edit request to a queue where it will be processed in the background.
-                    _editPackageService.StartEditPackageRequest(package, formData.Edit, currentUser, readMeChanged);
-                    
                 }
 
                 if (!formData.Listed)

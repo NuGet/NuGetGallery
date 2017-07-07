@@ -39,6 +39,7 @@ namespace NuGetGallery
         public const string ReadMeFolderName = "readmes/active";
         public const string ReadMeFileExtension = ".md";
         public const string ReadMeChanged = "changed";
+        public const string ReadMeUnchanged = null;
         public const string ReadMeDeleted = "deleted";
   
         public const string PopularitySortOrder = "package-download-count";

@@ -10,5 +10,6 @@ namespace NuGetGallery.RequestModels
         public HttpPostedFileBase ReadMeFile { get; set; }
         public string ReadMeWritten { get; set; }
         public string ReadMeUrl { get; set; }
+        public String ReadMeType { get; set; }
     }
 }
