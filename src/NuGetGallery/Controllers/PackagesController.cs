@@ -434,6 +434,15 @@ namespace NuGetGallery
 
             var model = new DisplayPackageViewModel(package, packageHistory);
 
+            if (package.HasReadMe.HasValue && package.HasReadMe.Value)
+            {
+                //Reads the README file and push to the view
+                using (var reader = new StreamReader(await _packageFileService.DownloadReadmeFileAsync(package), Encoding.UTF8))
+                {
+                    model.ReadMe = reader.ReadToEnd();
+                }
+            }
+
             if (package.IsOwner(User))
             {
                 // Tell logged-in package owners not to cache the package page,

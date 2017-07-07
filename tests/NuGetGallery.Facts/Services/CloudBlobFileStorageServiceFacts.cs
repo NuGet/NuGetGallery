@@ -213,7 +213,7 @@ namespace NuGetGallery
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
 
                 var service = CreateService(fakeBlobClient);
-                await service.GetFileAsync(folderName, "x.txt");
+                await service.GetPackageFileAsync(folderName, "x.txt");
 
                 fakeBlobClient.Verify(x => x.GetContainerReference(folderName));
                 fakeBlobContainer.Verify();
@@ -238,7 +238,7 @@ namespace NuGetGallery
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
 
                 var service = CreateService(fakeBlobClient);
-                await service.GetFileAsync(folderName, "x.txt");
+                await service.GetPackageFileAsync(folderName, "x.txt");
 
                 fakeBlobClient.Verify(x => x.GetContainerReference(folderName));
                 fakeBlobContainer.Verify();
@@ -315,7 +315,7 @@ namespace NuGetGallery
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                var ex = TaskAssert.ThrowsAsync<ArgumentNullException>(() => service.GetFileAsync("theFolderName", fileName));
+                var ex = TaskAssert.ThrowsAsync<ArgumentNullException>(() => service.GetPackageFileAsync("theFolderName", fileName));
                 Assert.Equal("fileName", ex.ParamName);
             }
 
@@ -330,7 +330,7 @@ namespace NuGetGallery
                 fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                var ex = TaskAssert.ThrowsAsync<ArgumentNullException>(() => service.GetFileAsync(folderName, "theFileName"));
+                var ex = TaskAssert.ThrowsAsync<ArgumentNullException>(() => service.GetPackageFileAsync(folderName, "theFileName"));
 
                 Assert.Equal("folderName", ex.ParamName);
             }
@@ -366,7 +366,7 @@ namespace NuGetGallery
                 fakeBlob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>(), It.IsAny<AccessCondition>())).Returns(Task.FromResult(0)).Verifiable();
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                await service.GetFileAsync(folderName, "theFileName");
+                await service.GetPackageFileAsync(folderName, "theFileName");
 
                 fakeBlob.Verify();
             }
@@ -404,7 +404,7 @@ namespace NuGetGallery
 
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                var stream = await service.GetFileAsync(folderName, "theFileName");
+                var stream = await service.GetPackageFileAsync(folderName, "theFileName");
 
                 Assert.Equal(42, ((MemoryStream)stream).ToArray()[0]);
             }
@@ -439,7 +439,7 @@ namespace NuGetGallery
                     new TestableStorageClientException { ErrorCode = BlobErrorCodeStrings.BlobNotFound });
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                var stream = await service.GetFileAsync(folderName, "theFileName");
+                var stream = await service.GetPackageFileAsync(folderName, "theFileName");
 
                 Assert.Null(stream);
             }
@@ -474,7 +474,7 @@ namespace NuGetGallery
                         .Returns(Task.FromResult(0));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                var stream = await service.GetFileAsync(folderName, "theFileName");
+                var stream = await service.GetPackageFileAsync(folderName, "theFileName");
 
                 Assert.Equal(0, stream.Position);
             }

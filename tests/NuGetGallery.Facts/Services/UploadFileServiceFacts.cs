@@ -76,7 +76,7 @@ namespace NuGetGallery
 
                 service.GetUploadFileAsync(1);
 
-                fakeFileStorageService.Verify(x => x.GetFileAsync(Constants.UploadsFolderName, It.IsAny<string>()));
+                fakeFileStorageService.Verify(x => x.GetPackageFileAsync(Constants.UploadsFolderName, It.IsAny<string>()));
             }
 
             [Fact]
@@ -88,7 +88,7 @@ namespace NuGetGallery
 
                 service.GetUploadFileAsync(1);
 
-                fakeFileStorageService.Verify(x => x.GetFileAsync(It.IsAny<string>(), expectedFileName));
+                fakeFileStorageService.Verify(x => x.GetPackageFileAsync(It.IsAny<string>(), expectedFileName));
             }
 
             [Fact]
@@ -97,7 +97,7 @@ namespace NuGetGallery
                 var expectedFileName = String.Format(Constants.UploadFileNameTemplate, 1, Constants.NuGetPackageFileExtension);
                 var fakeFileStorageService = new Mock<IFileStorageService>();
                 var fakeFileStream = new MemoryStream();
-                fakeFileStorageService.Setup(x => x.GetFileAsync(Constants.UploadsFolderName, expectedFileName))
+                fakeFileStorageService.Setup(x => x.GetPackageFileAsync(Constants.UploadsFolderName, expectedFileName))
                                       .Returns(Task.FromResult<Stream>(fakeFileStream));
                 var service = CreateService(fakeFileStorageService: fakeFileStorageService);
 

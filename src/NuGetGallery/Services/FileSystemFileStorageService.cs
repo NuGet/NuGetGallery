@@ -87,7 +87,26 @@ namespace NuGetGallery
             return Task.FromResult(fileExists);
         }
 
-        public Task<Stream> GetFileAsync(string folderName, string fileName)
+        public Task<Stream> GetPackageFileAsync(string folderName, string fileName)
+        {
+            if (String.IsNullOrWhiteSpace(folderName))
+            {
+                throw new ArgumentNullException(nameof(folderName));
+            }
+
+            if (String.IsNullOrWhiteSpace(fileName))
+            {
+                throw new ArgumentNullException(nameof(fileName));
+            }
+
+            var path = BuildPath(_configuration.FileStorageDirectory, folderName, fileName);
+
+            Stream fileStream = _fileSystemService.FileExists(path) ? _fileSystemService.OpenRead(path) : null;
+            return Task.FromResult(fileStream);
+        }
+
+        //Gets the README file for the Package from File Storage
+        public Task<Stream> GetReadmeFileAsync(string folderName, string fileName)
         {
             if (String.IsNullOrWhiteSpace(folderName))
             {

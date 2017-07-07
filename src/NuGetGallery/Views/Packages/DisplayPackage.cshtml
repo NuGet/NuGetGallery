@@ -199,6 +199,16 @@
                 </div>
             </div>
 
+            @if (Model.ReadMe != null)
+            {
+                // displays the README to the Package Description
+            <div>
+                <p>
+                    @Html.Raw(Model.ReadMe)
+                </p>
+            </div>
+            }
+
             @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
             {
                 <h2>Release Notes</h2>

@@ -59,7 +59,7 @@ namespace NuGetGallery
             {
                 var fileStorageSvc = new Mock<IFileStorageService>();
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
-                fileStorageSvc.Setup(x => x.DeleteFileAsync(It.IsAny<string>(), BuildFileName("theId", "theVersion")))
+                fileStorageSvc.Setup(x => x.DeleteFileAsync(It.IsAny<string>(), BuildPackageFileName("theId", "theVersion")))
                     .Completes()
                     .Verifiable();
 
@@ -138,7 +138,7 @@ namespace NuGetGallery
             {
                 var fileStorageSvc = new Mock<IFileStorageService>();
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
-                fileStorageSvc.Setup(x => x.CreateDownloadFileActionResultAsync(new Uri("http://fake"), It.IsAny<string>(), BuildFileName("theId", "theNormalizedVersion")))
+                fileStorageSvc.Setup(x => x.CreateDownloadFileActionResultAsync(new Uri("http://fake"), It.IsAny<string>(), BuildPackageFileName("theId", "theNormalizedVersion")))
                     .CompletesWithNull()
                     .Verifiable();
 
@@ -154,7 +154,7 @@ namespace NuGetGallery
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
                 var packageRegistraion = new PackageRegistration { Id = "theId" };
                 var package = new Package { PackageRegistration = packageRegistraion, NormalizedVersion = null, Version = "01.01.01" };
-                fileStorageSvc.Setup(x => x.CreateDownloadFileActionResultAsync(new Uri("http://fake"), It.IsAny<string>(), BuildFileName("theId", "1.1.1")))
+                fileStorageSvc.Setup(x => x.CreateDownloadFileActionResultAsync(new Uri("http://fake"), It.IsAny<string>(), BuildPackageFileName("theId", "1.1.1")))
                     .CompletesWithNull()
                     .Verifiable();
 
@@ -246,7 +246,7 @@ namespace NuGetGallery
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
                 var packageRegistraion = new PackageRegistration { Id = "theId" };
                 var package = new Package { PackageRegistration = packageRegistraion, NormalizedVersion = null, Version = "01.01.01" };
-                fileStorageSvc.Setup(x => x.SaveFileAsync(It.IsAny<string>(), BuildFileName("theId", "1.1.1"), It.IsAny<Stream>(), It.Is<bool>(b => !b)))
+                fileStorageSvc.Setup(x => x.SaveFileAsync(It.IsAny<string>(), BuildPackageFileName("theId", "1.1.1"), It.IsAny<Stream>(), It.Is<bool>(b => !b)))
                     .Completes()
                     .Verifiable();
 
@@ -274,7 +274,7 @@ namespace NuGetGallery
             {
                 var fileStorageSvc = new Mock<IFileStorageService>();
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
-                fileStorageSvc.Setup(x => x.SaveFileAsync(It.IsAny<string>(), BuildFileName("theId", "theNormalizedVersion"), It.IsAny<Stream>(), It.Is<bool>(b => !b)))
+                fileStorageSvc.Setup(x => x.SaveFileAsync(It.IsAny<string>(), BuildPackageFileName("theId", "theNormalizedVersion"), It.IsAny<Stream>(), It.Is<bool>(b => !b)))
                     .Completes()
                     .Verifiable();
 
@@ -432,7 +432,7 @@ namespace NuGetGallery
             }
         }
 
-        static string BuildFileName(
+        static string BuildPackageFileName(
             string id,
             string version)
         {

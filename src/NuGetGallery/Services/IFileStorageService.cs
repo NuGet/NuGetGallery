@@ -15,7 +15,10 @@ namespace NuGetGallery
 
         Task<bool> FileExistsAsync(string folderName, string fileName);
 
-        Task<Stream> GetFileAsync(string folderName, string fileName);
+        Task<Stream> GetPackageFileAsync(string folderName, string fileName);
+
+        Task<Stream> GetReadmeFileAsync(string folderName, string fileName);
+
 
         /// <summary>
         /// Gets a reference to a file in the storage service, which can be used to open the full file data.
