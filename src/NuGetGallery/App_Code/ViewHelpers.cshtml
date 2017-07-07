@@ -5,18 +5,6 @@
 @using NuGetGallery.Helpers
 @using NuGetGallery.Configuration
 
-@helper ShowBrand()
-{
-    var config = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
-    @(config != null ? config.Current.Brand : "")
-}
-
-@helper ShowWarningBanner()
-{
-    var config = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
-    @(config != null ? config.Current.WarningBanner : "")
-}
-
 @helper Alert(Func<MvcHtmlString, HelperResult> htmlContent, string subclass, string icon, bool isAlertRole = false)
 {
     <div class="alert alert-@subclass" @if (isAlertRole) { <text> role="alert" </text>   }>
@@ -229,7 +217,8 @@
 {
     // Get Version info and gallery brand name
     var ver = ApplicationVersionHelper.GetVersion();
-    var brand = ViewHelpers.ShowBrand().ToString();
+    var config = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
+    var brand = config != null ? config.Current.Brand : "";
 
     <p id="releaseTag">
         This is the @brand

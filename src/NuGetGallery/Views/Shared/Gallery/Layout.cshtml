@@ -8,7 +8,7 @@
     @RenderSection("Meta", required: false)
 
     <title>
-        @ViewHelpers.ShowBrand()
+        @(Config.Current.Brand)
         @(String.IsNullOrWhiteSpace(ViewBag.Title) ? "" : "| " + ViewBag.Title)
     </title>
 
