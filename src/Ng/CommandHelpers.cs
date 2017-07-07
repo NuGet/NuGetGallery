@@ -178,7 +178,8 @@ namespace Ng
                 { Arguments.StorageAccountName, Arguments.StorageAccountName + suffix },
                 { Arguments.StorageKeyValue, Arguments.StorageKeyValue + suffix },
                 { Arguments.StorageContainer, Arguments.StorageContainer + suffix },
-                { Arguments.StoragePath, Arguments.StoragePath + suffix }
+                { Arguments.StoragePath, Arguments.StoragePath + suffix },
+                { Arguments.StorageSuffix, Arguments.StorageSuffix + suffix }
             };
 
             return CreateStorageFactoryImpl(arguments, names, verbose, compressed: false);
