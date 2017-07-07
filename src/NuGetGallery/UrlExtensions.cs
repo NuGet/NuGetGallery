@@ -312,6 +312,11 @@ namespace NuGetGallery
             return url.Action(actionName: "CancelUpload", controllerName: "Packages");
         }
 
+        public static string Downloads(this UrlHelper url)
+        {
+            return url.RouteUrl(RouteName.Downloads);
+        }
+
         private static UriBuilder GetCanonicalUrl(UrlHelper url)
         {
             UriBuilder builder = new UriBuilder(url.RequestContext.HttpContext.Request.Url);

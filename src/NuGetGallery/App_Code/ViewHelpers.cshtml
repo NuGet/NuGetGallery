@@ -5,6 +5,35 @@
 @using NuGetGallery.Helpers
 @using NuGetGallery.Configuration
 
+@helper ShowBrand()
+{
+    @Config.Current.Brand
+}
+
+@helper ShowWarningBanner()
+{
+    @Config.Current.WarningBanner
+}
+
+@helper ShowUserNav()
+{
+    <ul class="nav navbar-nav navbar-right navbar-seperated" role="menu">
+        @if (!User.Identity.IsAuthenticated)
+        {
+            var returnUrl = ViewData.ContainsKey(Constants.ReturnUrlViewDataKey) ? (string)ViewData[Constants.ReturnUrlViewDataKey] : Request.RawUrl;
+            @Header.DisplayNavigationItem("Sign in", Url.LogOn(returnUrl), title: "Sign in to an existing NuGet.org account")
+            <li class="hidden-xs seperator" role="presentation"><span></span></li>
+            @DisplayNavigationItem("Register", Url.SignUp(returnUrl), title: "Register for a new NuGet.org account")
+        }
+        else
+        {
+            @Header.DisplayNavigationItem(User.Identity.Name, Url.Action("Account", "Users", new { area = string.Empty }), bold: true, title: "Manage user account")
+            <li class="hidden-xs seperator" role="presentation"><span></span></li>
+            @DisplayNavigationItem("Sign out", Url.LogOff())
+        }
+    </ul>
+}
+
 @helper Alert(Func<MvcHtmlString, HelperResult> htmlContent, string subclass, string icon, bool isAlertRole = false)
 {
     <div class="alert alert-@subclass" @if (isAlertRole) { <text> role="alert" </text>   }>
@@ -218,7 +247,7 @@
     // Get Version info and gallery brand name
     var ver = ApplicationVersionHelper.GetVersion();
     var config = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
-    string brand = config == null ? "" : config.Current.Brand;
+    var brand = config == null ? "" : ViewHelpers.ShowBrand().ToString();
 
     <p id="releaseTag">
         This is the @brand

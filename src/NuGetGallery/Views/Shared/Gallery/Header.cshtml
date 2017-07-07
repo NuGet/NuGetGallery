@@ -1,10 +1,10 @@
-﻿@if (!string.IsNullOrWhiteSpace(Config.Current.WarningBanner))
+﻿@if (!string.IsNullOrWhiteSpace(ViewHelpers.ShowWarningBanner().ToString()))
 {
     <div class="container-fluid banner banner-bright text-center">
         <div class="row">
             <div class="col-sm-12">
                 <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
-                <span>@Config.Current.WarningBanner</span>
+                <span>@ViewHelpers.ShowWarningBanner()</span>
             </div>
         </div>
     </div>
@@ -56,24 +56,10 @@
                             @DisplayNavigationItem("Admin", Url.Action("Index", "Home", new { area = "Admin" }))
                         }
                         @DisplayNavigationItem("Documentation", "https://docs.microsoft.com/en-us/nuget/")
-                        @DisplayNavigationItem("Downloads", Url.RouteUrl(RouteName.Downloads))
+                        @DisplayNavigationItem("Downloads", Url.Downloads())
                         @DisplayNavigationItem("Blog", "http://blog.nuget.org/")
                     </ul>
-                    <ul class="nav navbar-nav navbar-right navbar-seperated" role="menu">
-                        @if (!User.Identity.IsAuthenticated)
-                        {
-                            var returnUrl = ViewData.ContainsKey(Constants.ReturnUrlViewDataKey) ? (string)ViewData[Constants.ReturnUrlViewDataKey] : Request.RawUrl;
-                            @DisplayNavigationItem("Sign in", Url.LogOn(returnUrl), title: "Sign in to an existing NuGet.org account")
-                            <li class="hidden-xs seperator" role="presentation"><span></span></li>
-                            @DisplayNavigationItem("Register", Url.SignUp(returnUrl), title: "Register for a new NuGet.org account")
-                        }
-                        else
-                        {
-                            @DisplayNavigationItem(User.Identity.Name, Url.Action("Account", "Users", new { area = string.Empty }), bold: true, title: "Manage user account")
-                            <li class="hidden-xs seperator" role="presentation"><span></span></li>
-                            @DisplayNavigationItem("Sign out", Url.LogOff())
-                        }
-                    </ul>
+                    @ViewHelpers.ShowUserNav()
                 </div>
             </div>
         </div>
