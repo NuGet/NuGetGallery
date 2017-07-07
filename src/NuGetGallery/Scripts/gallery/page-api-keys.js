@@ -171,6 +171,20 @@
                     return initialData.ImageUrls.ApiKey;
                 }
             }, this);
+            this.IconUrlFallback = ko.pureComputed(function () {
+                var url;
+                if (this.HasExpired()) {
+                    url = initialData.ImageUrls.ApiKeyExpiredFallback;
+                } else if (this.IsNonScopedV1ApiKey()) {
+                    url =  initialData.ImageUrls.ApiKeyLegacyFallback;
+                } else if (this.Value()) {
+                    url =  initialData.ImageUrls.ApiKeyNewFallback;
+                } else {
+                    url =  initialData.ImageUrls.ApiKeyFallback;
+                }
+
+                return "this.src='" + url + "'; this.onerror = null;";
+            }, this);
             this.PendingScopes = ko.pureComputed(function () {
                 var scopes = [];
                 if (this.PushEnabled()) {
