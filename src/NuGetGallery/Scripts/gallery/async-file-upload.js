@@ -35,14 +35,14 @@
 			}
 		});
 
-		if (InProgressPackage !== null) {
+		if (InProgressPackage != null) {
 			bindData(InProgressPackage);
 		}
 	};
 
 	function startUploadAsync(callback, error) {
 		// Shortcut the upload if the nupkg input doesn't have a value
-		if ($('#input-select-file').val() === null) {
+		if ($('#input-select-file').val() == null) {
 			return;
 		}
 
@@ -140,7 +140,7 @@
 	}
 
 	function displayErrors(errors) {
-		if (errors === null || errors.length < 1) {
+		if (errors == null || errors.length < 1) {
 			return;
 		}
 
@@ -165,7 +165,7 @@
 		$("#verify-collapser-container").addClass("hidden");
 		$("#readme-collapser-container").addClass("hidden");
 		$("#submit-collapser-container").addClass("hidden");
-		if (model === null) {
+		if (model == null) {
 			return;
 		}
 

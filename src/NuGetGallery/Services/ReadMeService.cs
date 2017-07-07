@@ -21,15 +21,25 @@ namespace NuGetGallery.Services
     /// <returns>Whether there is a ReadMe to upload.</returns>
     public static Boolean HasReadMe(ReadMeRequest formData)
         {
-            switch (formData.ReadMeType)
+            if (formData == null)
             {
-                case "Url":
-                    return formData.ReadMeUrl != null && formData.ReadMeUrl != "";
-                case "File":
-                    return formData.ReadMeFile != null;
-                case "Written":
-                    return formData.ReadMeWritten != null && formData.ReadMeWritten != "";
-                default: return false;
+                return false;
+            }
+            else if (formData.ReadMeType == null)
+            {
+                return false;
+            } else
+            {
+                switch (formData.ReadMeType)
+                {
+                    case "Url":
+                        return formData.ReadMeUrl != null && formData.ReadMeUrl != "";
+                    case "File":
+                        return formData.ReadMeFile != null;
+                    case "Written":
+                        return formData.ReadMeWritten != null && formData.ReadMeWritten != "";
+                    default: return false;
+                }
             }
         }
 

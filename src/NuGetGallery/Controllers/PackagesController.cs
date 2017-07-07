@@ -30,8 +30,6 @@ using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using NuGetGallery.Services;
 using PoliteCaptcha;
-using NuGetGallery.Services;
-using PoliteCaptcha;
 
 namespace NuGetGallery
 {

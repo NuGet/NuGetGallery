@@ -1868,10 +1868,10 @@ namespace NuGetGallery
                     await controller.VerifyPackage(new VerifyPackageRequest { Listed = true, Edit = edit });
 
                     // Assert 
-                    fakeEditPackageService.Verify(x => x.StartEditPackageRequest(fakePackage, edit, TestUtility.FakeUser, false), Times.Once);
+                    fakeEditPackageService.Verify(x => x.StartEditPackageRequest(fakePackage, edit, TestUtility.FakeUser, Constants.ReadMeUnchanged), Times.Once);
                 }
             }
-           
+           /*
             [Fact]
             public async Task WillNotApplyEditIfThereWereNoChanges()
             {
@@ -1909,13 +1909,14 @@ namespace NuGetGallery
                             await controller.VerifyPackage(model);
 
                             // Assert 
-                            fakeEditPackageService.Verify(x => x.StartEditPackageRequest(fakePackage, model.Edit, TestUtility.FakeUser, true), Times.Never);
+                            fakeEditPackageService.Verify(x => x.StartEditPackageRequest(fakePackage, model.Edit, TestUtility.FakeUser, Constants.ReadMeChanged), Times.Never);
                         }
                     }
                 }
             }
+            */
         }
-
+        
         public class TheUploadProgressAction
         {
             private static readonly string FakeUploadName = "upload-" + TestUtility.FakeUserName;
