@@ -1499,6 +1499,7 @@
     <Content Include="Areas\Admin\DynamicData\FieldTemplates\Url_Edit.ascx" />
     <Content Include="Areas\Admin\DynamicData\PageTemplates\ListDetails.aspx" />
     <Content Include="Content\admin\SupportRequestStyles.css" />
+    <Content Include="Content\fabric.css" />
     <Content Include="Content\Images\icons\apiKey.png" />
     <Content Include="Content\Images\icons\apiKeyExpired.png" />
     <Content Include="Content\Images\icons\apiKeyLegacy.png" />

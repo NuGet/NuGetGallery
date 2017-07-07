@@ -16,6 +16,9 @@ namespace NuGetGallery.Configuration
         [DefaultValue("")]
         public string WarningBanner { get; set; }
 
+        [DefaultValue("")]
+        public string RedesignBanner { get; set; }
+
         /// <summary>
         /// Gets a setting indicating if SSL is required for all operations once logged in.
         /// </summary>
