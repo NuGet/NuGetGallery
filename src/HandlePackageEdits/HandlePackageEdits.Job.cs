@@ -518,6 +518,7 @@ namespace HandlePackageEdits
                 await currentBlob.activeBlob.DeleteIfExistsAsync();
                 Logger.LogInformation("Deleted ReadMe of {EditId} {EditVersion} from {ActiveReadMeUri}", edit.Id, edit.Version, currentBlob.activeBlob.Uri.AbsoluteUri);
             }
+            
             return currentBlob;
         }
 
