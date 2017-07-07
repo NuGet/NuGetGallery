@@ -21,7 +21,6 @@ using NuGetGallery.Authentication;
 using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Authentication.Providers.Cookie;
 using NuGetGallery.Configuration;
-using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure;
 using Owin;
 
@@ -100,13 +99,13 @@ namespace NuGetGallery
             if (config.Current.RequireSSL)
             {
                 // Put a middleware at the top of the stack to force the user over to SSL
-                if (string.IsNullOrWhiteSpace(config.Current.ForceSslExclusion))
+                if (config.Current.ForceSslExclusion == null)
                 {
                     app.UseForceSsl(config.Current.SSLPort);
                 }
                 else
                 {
-                    app.UseForceSsl(config.Current.SSLPort, new[] { config.Current.ForceSslExclusion });
+                    app.UseForceSsl(config.Current.SSLPort, config.Current.ForceSslExclusion);
                 }
             }
 

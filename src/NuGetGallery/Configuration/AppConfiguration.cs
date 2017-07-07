@@ -16,6 +16,9 @@ namespace NuGetGallery.Configuration
         [DefaultValue("")]
         public string WarningBanner { get; set; }
 
+        [DefaultValue("")]
+        public string RedesignBanner { get; set; }
+
         /// <summary>
         /// Gets a setting indicating if SSL is required for all operations once logged in.
         /// </summary>
@@ -29,11 +32,12 @@ namespace NuGetGallery.Configuration
         public int SSLPort { get; set; }
 
         /// <summary>
-        /// A string containing a path exluded from
-        /// forcing the HTTP to HTTPS redirection.
+        /// A string containing a path exluded from forcing the HTTP to HTTPS redirection. 
+        /// To provide multiple paths separate them with ;
         /// </summary>
-        [DefaultValue("")]
-        public string ForceSslExclusion { get; set; }
+        [DefaultValue(null)]
+        [TypeConverter(typeof(StringArrayConverter))]
+        public string[] ForceSslExclusion { get; set; }
 
         /// <summary>
         /// Gets the connection string to use when connecting to azure storage

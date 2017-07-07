@@ -24,6 +24,11 @@ namespace NuGetGallery.Configuration
         string WarningBanner { get; set; }
 
         /// <summary>
+        /// Gets the warning banner text
+        /// </summary>
+        string RedesignBanner { get; set; }
+
+        /// <summary>
         /// Gets a setting indicating if SSL is required for all operations once logged in.
         /// </summary>
         bool RequireSSL { get; set; }
@@ -34,11 +39,11 @@ namespace NuGetGallery.Configuration
         int SSLPort { get; set; }
 
         /// <summary>
-        /// A string containing a path exluded from
-        /// forcing the HTTP to HTTPS redirection.
+        /// A string containing a path exluded from forcing the HTTP to HTTPS redirection.
+        /// To provide multiple paths separate them with ;
         /// </summary>
         /// <example>/api/health-probe</example>
-        string ForceSslExclusion { get; set; }
+        string[] ForceSslExclusion { get; set; }
 
         /// <summary>
         /// Gets the connection string to use when connecting to azure storage

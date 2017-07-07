@@ -19,8 +19,8 @@ REM Clean previous test results
 if exist functionaltests.*.xml (
     del functionaltests.*.xml
 )
-if exist resultsfile.*.trx (
-    del resultsfile.*.trx
+if exist NuGetGallery.P2.*.trx (
+    del NuGetGallery.P2.*.trx
 )
 if exist TestResults (
     rd TestResults /S /Q
@@ -44,11 +44,11 @@ call %xunit% "%testDir%\NuGetGallery.FunctionalTests.dll" -trait "Category=%test
 if not "%errorlevel%"=="0" set exitCode=-1
 
 REM Run web UI and load tests
-call %mstest% /TestContainer:"NuGetGallery.WebUITests.P2\bin\%config%\NuGetGallery.WebUITests.P2.dll" /TestSettings:Local.testsettings /detail:stdout /resultsfile:resultsfile.web.trx
+call %mstest% /TestContainer:"NuGetGallery.WebUITests.P2\bin\%config%\NuGetGallery.WebUITests.P2.dll" /TestSettings:Local.testsettings /detail:stdout /resultsfile:NuGetGallery.P2.WebUITests.trx
 if not "%errorlevel%"=="0" set exitCode=-1
 
 REM Run Load tests
-call %mstest% /TestContainer:"NuGetGallery.LoadTests\bin\%config%\NuGetGallery.LoadTests.dll" /TestSettings:Local.testsettings /detail:stdout /category:%testCategory% /resultsfile:resultsfile.load.trx
+call %mstest% /TestContainer:"NuGetGallery.LoadTests\bin\%config%\NuGetGallery.LoadTests.dll" /TestSettings:Local.testsettings /detail:stdout /category:%testCategory% /resultsfile:NuGetGallery.P2.LoadTests.trx
 if not "%errorlevel%"=="0" set exitCode=-1
 
 exit /B %exitCode%

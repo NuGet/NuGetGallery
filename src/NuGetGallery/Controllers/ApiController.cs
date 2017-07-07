@@ -508,6 +508,11 @@ namespace NuGetGallery
 
                         TelemetryService.TrackPackagePushEvent(package, user, User.Identity);
 
+                        if (package.SemVerLevelKey == SemVerLevelKey.SemVer2)
+                        {
+                            return new HttpStatusCodeWithServerWarningResult(HttpStatusCode.Created, Strings.WarningSemVer2PackagePushed);
+                        }
+
                         return new HttpStatusCodeResult(HttpStatusCode.Created);
                     }
                 }

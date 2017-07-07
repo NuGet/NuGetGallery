@@ -522,4 +522,7 @@ For more information, please contact '{2}'.</value>
 &lt;li&gt;All existing push API keys for co-owners new to this policy will expire in {1} days.&lt;/li&gt;
 &lt;/ol&gt;</value>
   </data>
+  <data name="WarningSemVer2PackagePushed" xml:space="preserve">
+    <value>This package will only be available to download with SemVer 2.0.0 compatible NuGet clients, such as Visual Studio 2017 (version 15.3) and above or NuGet client 4.3 and above. For more information, see https://go.microsoft.com/fwlink/?linkid=852248.</value>
+  </data>
 </root>

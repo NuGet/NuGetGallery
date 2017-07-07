@@ -702,6 +702,7 @@
     <Compile Include="Configuration\SecretReader\EmptySecretReaderFactory.cs" />
     <Compile Include="Configuration\SecretReader\ISecretReaderFactory.cs" />
     <Compile Include="Configuration\SecretReader\SecretReaderFactory.cs" />
+    <Compile Include="Configuration\StringArrayConverter.cs" />
     <Compile Include="Controllers\NuGetContext.cs" />
     <Compile Include="Diagnostics\ElmahHandleErrorAttribute.cs" />
     <Compile Include="Extensions\DateTimeExtensions.cs" />
@@ -743,6 +744,7 @@
     <Compile Include="Controllers\PagesController.cs" />
     <Compile Include="Filters\ApiScopeRequiredAttribute.cs" />
     <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="Infrastructure\HttpStatusCodeWithServerWarningResult.cs" />
     <Compile Include="Migrations\201704191802404_AddIndexPackageRegistrationKeySemVer.cs" />
     <Compile Include="Migrations\201704191802404_AddIndexPackageRegistrationKeySemVer.Designer.cs">
       <DependentUpon>201704191802404_AddIndexPackageRegistrationKeySemVer.cs</DependentUpon>
@@ -1497,6 +1499,7 @@
     <Content Include="Areas\Admin\DynamicData\FieldTemplates\Url_Edit.ascx" />
     <Content Include="Areas\Admin\DynamicData\PageTemplates\ListDetails.aspx" />
     <Content Include="Content\admin\SupportRequestStyles.css" />
+    <Content Include="Content\fabric.css" />
     <Content Include="Content\Images\icons\apiKey.png" />
     <Content Include="Content\Images\icons\apiKeyExpired.png" />
     <Content Include="Content\Images\icons\apiKeyLegacy.png" />

@@ -142,7 +142,8 @@ namespace NuGetGallery
             foreach (string filename in new[] {
                     "Site.css",
                     "Layout.css",
-                    "PageStylings.css"
+                    "PageStylings.css",
+                    "fabric.css",
                 })
             {
                 stylesBundle
