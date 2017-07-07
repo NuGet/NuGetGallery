@@ -59,7 +59,24 @@
                         @DisplayNavigationItem("Downloads", Url.Downloads())
                         @DisplayNavigationItem("Blog", "http://blog.nuget.org/")
                     </ul>
-                    @ViewHelpers.ShowUserNav()
+                    @if (ViewBag.ShowUserInNavBar != false)
+                    {
+                        <ul class="nav navbar-nav navbar-right navbar-seperated" role="menu">
+                            @if (!User.Identity.IsAuthenticated)
+                            {
+                                var returnUrl = ViewData.ContainsKey(Constants.ReturnUrlViewDataKey) ? (string)ViewData[Constants.ReturnUrlViewDataKey] : Request.RawUrl;
+                                @DisplayNavigationItem("Sign in", Url.LogOn(returnUrl), title: "Sign in to an existing NuGet.org account")
+                                <li class="hidden-xs seperator" role="presentation"><span></span></li>
+                                @DisplayNavigationItem("Register", Url.SignUp(returnUrl), title: "Register for a new NuGet.org account")
+                            }
+                            else
+                            {
+                                @DisplayNavigationItem(User.Identity.Name, Url.Action("Account", "Users", new { area = string.Empty }), bold: true, title: "Manage user account")
+                                <li class="hidden-xs seperator" role="presentation"><span></span></li>
+                                @DisplayNavigationItem("Sign out", Url.LogOff())
+                            }
+                        </ul>
+                    }
                 </div>
             </div>
         </div>

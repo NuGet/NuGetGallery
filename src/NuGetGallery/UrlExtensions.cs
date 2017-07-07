@@ -317,6 +317,26 @@ namespace NuGetGallery
             return url.RouteUrl(RouteName.Downloads);
         }
 
+        public static string Contact(this UrlHelper url)
+        {
+            return url.Action(actionName: "Contact", controllerName: "Pages");
+        }
+
+        public static string Terms(this UrlHelper url)
+        {
+            return url.Action(actionName: "Terms", controllerName: "Pages");
+        }
+
+        public static string Privacy(this UrlHelper url)
+        {
+            return url.Action(actionName: "Privacy", controllerName: "Pages");
+        }
+
+        public static string About(this UrlHelper url)
+        {
+            return url.Action(actionName: "About", controllerName: "Pages");
+        }
+
         private static UriBuilder GetCanonicalUrl(UrlHelper url)
         {
             UriBuilder builder = new UriBuilder(url.RequestContext.HttpContext.Request.Url);
