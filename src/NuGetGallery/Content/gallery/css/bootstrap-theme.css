@@ -888,4 +888,7 @@ img.package-icon {
 .page-stats-per-package #stats-graph-svg .bartext {
   font-size: 1em;
 }
+.page-upload #browse-for-package-button {
+  margin: 0;
+}
 /*# sourceMappingURL=bootstrap-theme.css.map */
