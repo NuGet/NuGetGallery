@@ -1,0 +1,13 @@
+﻿{
+  "dependencies": {
+    "FluentAssertions": "4.9.0",
+    "Moq": "4.6.38-alpha",
+    "xunit": "2.1.0"
+  },
+  "frameworks": {
+    "net45": {}
+  },
+  "runtimes": {
+    "win": {}
+  }
+}

@@ -4,6 +4,10 @@ This repository contains shared libraries used across the NuGet server repositor
 * NuGet.Services.Configuration
 * NuGet.Services.KeyVault
 * NuGet.Services.Logging
+* NuGet.Services.Owin
+* NuGet.Services.Cursor
+* NuGet.Services.Storage
+* NuGet.Services.AzureManagement
 
 # Reporting issues
 
