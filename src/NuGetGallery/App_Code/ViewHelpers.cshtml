@@ -8,13 +8,13 @@
 @helper ShowBrand()
 {
     var config = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
-    @(config.Current.Brand ?? "")
+    @(config != null ? config.Current.Brand : "")
 }
 
 @helper ShowWarningBanner()
 {
     var config = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
-    @(config.Current.WarningBanner ?? "")
+    @(config != null ? config.Current.WarningBanner : "")
 }
 
 @helper Alert(Func<MvcHtmlString, HelperResult> htmlContent, string subclass, string icon, bool isAlertRole = false)
