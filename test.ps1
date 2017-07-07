@@ -30,7 +30,7 @@ Function Run-Tests {
     $TestAssemblies = "tests\NuGet.Services.KeyVault.Tests\bin\$Configuration\NuGet.Services.KeyVault.Tests.dll", `
         "tests\NuGet.Services.Configuration.Tests\bin\$Configuration\NuGet.Services.Configuration.Tests.dll", `
         "tests\NuGet.Services.Logging.Tests\bin\$Configuration\NuGet.Services.Logging.Tests.dll", `
-		"tests\NuGet.Services.AzureManagement.Tests\bin\$Configuration\NuGet.Services.AzureManagement.Tests.dll"
+        "tests\NuGet.Services.AzureManagement.Tests\bin\$Configuration\NuGet.Services.AzureManagement.Tests.dll"
 
     $TestCount = 0
 
