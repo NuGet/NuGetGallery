@@ -153,6 +153,7 @@
     <Compile Include="Persistence\NamedStorageFactory.cs" />
     <Compile Include="ReadOnlyGraph.cs" />
     <Compile Include="Persistence\StorageListItem.cs" />
+    <Compile Include="Registration\FlatContainerPackagePathProvider.cs" />
     <Compile Include="SortingIdVersionCollector.cs" />
     <Compile Include="SortingIdCollector.cs" />
     <Compile Include="StringInterner.cs" />

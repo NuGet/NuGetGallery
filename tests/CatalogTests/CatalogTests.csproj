@@ -151,6 +151,7 @@
     <Compile Include="Helpers\NuGetVersionUtilityTests.cs" />
     <Compile Include="PackageCatalogItemTests.cs" />
     <Compile Include="ReadOnlyGraphTests.cs" />
+    <Compile Include="Registration\FlatContainerPackagePathProviderTests.cs" />
     <Compile Include="Registration\RegistrationEntryKeyTests.cs" />
     <Compile Include="Registration\RegistrationKeyTests.cs" />
     <Compile Include="Registration\RegistrationMakerCatalogItemTests.cs" />

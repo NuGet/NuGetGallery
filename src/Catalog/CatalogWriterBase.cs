@@ -129,7 +129,7 @@ namespace NuGet.Services.Metadata.Catalog
                 }
                 catch (Exception e)
                 {
-                    string msg = (saveOperationForItem == null || saveOperationForItem.ResourceUri == null) 
+                    string msg = (saveOperationForItem == null || saveOperationForItem.ResourceUri == null)
                         ? string.Format("batch index: {0}", batchIndex)
                         : string.Format("batch index: {0} resourceUri: {1}", batchIndex, saveOperationForItem.ResourceUri);
 
@@ -179,7 +179,7 @@ namespace NuGet.Services.Metadata.Catalog
             return new JTokenStorageContent(Utils.CreateJson(graph, frame), "application/json", "no-store");
         }
 
-        protected async Task SaveIndexResource(Uri resourceUri, Uri typeUri, Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> entries, Uri parent, IGraph extra, Uri[] additionalResourceTypes , CancellationToken cancellationToken)
+        protected async Task SaveIndexResource(Uri resourceUri, Uri typeUri, Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> entries, Uri parent, IGraph extra, Uri[] additionalResourceTypes, CancellationToken cancellationToken)
         {
             IGraph graph = new Graph();
 

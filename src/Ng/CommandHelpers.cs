@@ -184,7 +184,7 @@ namespace Ng
             return CreateStorageFactoryImpl(arguments, names, verbose, compressed: false);
         }
 
-        private static StorageFactory CreateStorageFactoryImpl(IDictionary<string, string> arguments, 
+        private static StorageFactory CreateStorageFactoryImpl(IDictionary<string, string> arguments,
                                                                IDictionary<string, string> argumentNameMap,
                                                                bool verbose,
                                                                bool compressed)
@@ -222,13 +222,13 @@ namespace Ng
                 var storageSuffix = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageSuffix]);
 
                 var credentials = new StorageCredentials(storageAccountName, storageKeyValue);
+
                 var account = string.IsNullOrEmpty(storageSuffix) ?
                                 new CloudStorageAccount(credentials, true) :
                                 new CloudStorageAccount(credentials, storageSuffix, true);
                 return new AzureStorageFactory(account, storageContainer, storagePath, storageBaseAddress)
-                            { Verbose = verbose, CompressContent = compressed };
+                { Verbose = verbose, CompressContent = compressed };
             }
-            
             throw new ArgumentException($"Unrecognized storageType \"{storageType}\"");
         }
 
@@ -324,7 +324,7 @@ namespace Ng
 
         public static Func<HttpMessageHandler> GetHttpMessageHandlerFactory(bool verbose, string catalogBaseAddress = null, string storageBaseAddress = null)
         {
-            Func<HttpMessageHandler> defaultHandlerFunc = 
+            Func<HttpMessageHandler> defaultHandlerFunc =
                 () => new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate };
 
             Func<HttpMessageHandler> handlerFunc = defaultHandlerFunc;
