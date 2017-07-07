@@ -851,6 +851,10 @@ img.package-icon {
 .page-statistics-overview text.graph-y-axis-text {
   font-size: .9em;
 }
+.page-stats-per-package .btn-expander:hover,
+.page-stats-per-package .btn-expander:focus {
+  text-decoration: none;
+}
 .page-stats-per-package .stats-table-control {
   margin-top: 40px;
 }
