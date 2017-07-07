@@ -14,7 +14,7 @@ namespace NuGetGallery.SearchClient
     public class RetryingHttpClientWrapperFacts
     {
         private static readonly Uri ValidUri1 = new Uri("http://www.microsoft.com");
-        private static readonly Uri ValidUri2 = new Uri("http://www.nuget.org");
+        private static readonly Uri ValidUri2 = new Uri("https://www.nuget.org");
         private static readonly Uri InvalidUri1 = new Uri("http://nonexisting.domain.atleast.ihope");
         private static readonly Uri InvalidUri2 = new Uri("http://nonexisting.domain.atleast.ihope/foo");
         private static readonly Uri InvalidUri3 = new Uri("http://www.nuget.org/com/ibm/mq/com.ibm.mq.soap/7.0.1.10/com.ibm.mq.soap-7.0.1.10");

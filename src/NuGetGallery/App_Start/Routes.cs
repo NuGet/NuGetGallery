@@ -265,6 +265,11 @@ namespace NuGetGallery
                 new { controller = "Users", action = "Account" });
 
             routes.MapRoute(
+                RouteName.ApiKeys,
+                "account/apikeys",
+                new { controller = "Users", action = "ApiKeys" });
+
+            routes.MapRoute(
                 RouteName.CuratedFeed,
                 "curated-feeds/{name}",
                 new { controller = "CuratedFeeds", action = "CuratedFeed" });
@@ -471,6 +476,11 @@ namespace NuGetGallery
                 RouteName.Status,
                 "api/status",
                 new { controller = "Api", action = "StatusApi" });
+
+            routes.MapRoute(
+                RouteName.HealthProbe,
+                "api/health-probe",
+                new { controller = "Api", action = "HealthProbeApi" });
 
             routes.MapRoute(
                 RouteName.DownloadNuGetExe,

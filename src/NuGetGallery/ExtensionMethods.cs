@@ -291,10 +291,15 @@ namespace NuGetGallery
 
         public static HtmlString ShowLabelFor<TModel, TProperty>(this HtmlHelper<TModel> html, Expression<Func<TModel, TProperty>> expression)
         {
+            return ShowLabelFor(html, expression, labelText: null);
+        }
+
+        public static HtmlString ShowLabelFor<TModel, TProperty>(this HtmlHelper<TModel> html, Expression<Func<TModel, TProperty>> expression, string labelText)
+        {
             var metadata = ModelMetadata.FromLambdaExpression(expression, html.ViewData);
             var propertyName = metadata.PropertyName.ToLower();
 
-            return html.LabelFor(expression, new
+            return html.LabelFor(expression, labelText, new
             {
                 id = $"{propertyName}-label"
             });

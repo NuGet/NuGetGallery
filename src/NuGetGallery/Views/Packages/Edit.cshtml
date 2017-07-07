@@ -3,296 +3,99 @@
 @{
     ViewBag.Title = "Editing: " + Model.PackageTitle + " " + Model.Version;
     ViewBag.Tab = "Packages";
-    Layout = "~/Views/Shared/TwoColumnLayout.cshtml";
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
+
+<div class="container main-container page-edit-package">
+    <div class="row">
+        <div class="col-xs-10 col-xs-offset-1">
+            <h1 class="page-heading text-center">Edit Package</h1>
+            <h3 class="page-subheading text-center"><a href="@Url.Package(Model.PackageId)" class="">@Model.PackageId</a></h3>
+            <div id="select-package-version-container">
+                <h2>
+                    <a href="#" role="button" data-toggle="collapse" data-target="#select-package-version-form"
+                       aria-expanded="false" aria-controls="select-package-version-form" id="show-select-package-version-form">
+                        <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+                        <span>Select Version</span>
+                    </a>
+                </h2>
+                <div class="collapse in" id="select-package-version-form" aria-expanded="true">
+                    <form id="cancel-form">
+                        @Html.AntiForgeryToken()
+                    </form>
+                    <form id="select-version-form" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+
+                        @Html.ValidationSummary(true)
+                        <div class="row">
+                            <label for="input-select-version" id="package-version-label" class="col-xs-12">
+                                <span>Select a package version</span>
+                                @Html.DropDownList("version-selection",
+                            new SelectList(Model.PackageVersions.Select(e => new
+                            {
+                                text = e.NormalizedVersion + (e.IsLatestSemVer2 ? " (Latest)" : ""),
+                                url = Url.EditPackage(Model.PackageId, e.Version)
+                            }), "url", "text", Url.EditPackage(Model.PackageId, Model.Version)),
+                           new
+                           {
+                               @class = "form-control selectpicker show-tick show-menu-arrow btn-block",
+                               @title = "Select A Version...",
+                               @id = "input-select-version"
+                           })
+                            </label>
+                        </div>
+                    </form>
+
+                    <div id="validation-failure-container">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xs-10 col-xs-offset-1">
+            <div id="verify-collapser-container">
+                <h2>
+                    <a href="#" role="button" data-toggle="collapse" data-target="#edit-metadata-form-container"
+                       aria-expanded="true" aria-controls="edit-metadata-form-container" id="show-edit-metadata-form-container">
+                        <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+                        <span>Edit</span>
+                    </a>
+                </h2>
+            </div>
+
+            <div id="verify-package-container">
+            </div>
+
+            @Html.Partial("_EditMetadata")
+        </div>
+    </div>
+</div>
 
 @section BottomScripts {
     @Scripts.Render("~/Scripts/jquery-ui-1.10.3.js")
+    @Scripts.Render("~/Scripts/gallery/page-edit.js")
     <script>
         $(function () {
-            function RunValidationForEvent(event) {
-                var target = $(event.target);
-                var validator = $.data(event.target.form, "validator"),
-                    eventType = "on" + event.type.replace(/^validate/, "");
-                validator.settings[eventType] && validator.settings[eventType].call(validator, event.target);
-            }
+        var viewModel = @Html.Raw(Json.Encode(Model.Edit));
+        var realModel = {
+            "Id": '@Model.PackageId',
+            "Version": '@Model.Version',
+            "Edit": viewModel
+        };
+        EditViewManager.init(realModel,
+            '@Url.EditPackage(Model.PackageId, Model.Version)',
+            '@Url.Package(Model.PackageId, Model.Version)');
 
-            function UpdateIconAndRunValidation(event) {
-                var target = event.target;
-                var newValue = event.target.value;
-                $('#IconUrl_Preview').remove();
-                if (newValue.trim().length) {
-                    $(target).after($('<img class="logo" id="IconUrl_Preview" alt="Icon Preview" src="' + encodeURI(newValue) + '" />'));
-                }
+            if (document.referrer != null
+                && document.referrer.toLocaleLowerCase().endsWith("edit")
+                && document.referrer.indexOf('@Model.PackageId') > -1) {
 
-                RunValidationForEvent(event);
-            }
+            $("#input-select-version").focus();
+        }
 
-            function SetupInput(name) {
-                SetDataEditedFlag = function (event) {
-                    $(event.target).attr("data-edited", event.target.value != event.target.defaultValue);
-                    if (event.target.value != event.target.defaultValue) {
-                        $("#Undo" + name).show();
-                    } else {
-                        $("#Undo" + name).hide();
-                    }
-                };
-
-                PreventSubmitOnEnter = function (event) {
-                    var keycode = event.keyCode || event.which;
-                    if (keycode == 13) {
-                        event.preventDefault();
-                        return false;
-                    }
-                };
-
-                $("input[id=" + name + "]").keypress(PreventSubmitOnEnter);
-                $("input[id=" + name + "]").keyup(SetDataEditedFlag);
-                $("textarea[id=" + name + "]").keyup(SetDataEditedFlag);
-                $("select[id=" + name + "]").change(SetDataEditedFlag);
-
-                $("#Undo" + name + "").click(function (event) {
-                    event.preventDefault();
-                    $(this.form.elements["" + name + ""]).each(function () {
-                        this.value = this.defaultValue;
-                        $(this).attr("data-edited", "false");
-                    });
-                    $("#Undo" + name).hide();
-                });
-            }
-
-            SetupInput('Edit_VersionTitle');
-            SetupInput('Edit_Description');
-            SetupInput('Edit_Summary');
-            SetupInput('Edit_IconUrl');
-            SetupInput('Edit_ProjectUrl');
-            SetupInput('Edit_Authors');
-            SetupInput('Edit_Copyright');
-            SetupInput('Edit_Tags');
-            SetupInput('Edit_ReleaseNotes');
-
-            @if (!String.IsNullOrEmpty(Model.Edit.LicenseUrl))
-            {
-                <text>
-                SetupInput('Edit_RequiresLicenseAcceptance');
-
-                // Fix our SetupInput function to work with RequiresLicenseAcceptance
-                // Set up the defaultValue property on the <select> element - which doesn't have a defaultValue defined by default for some reason
-                $("#Edit_RequiresLicenseAcceptance")[0].defaultValue = "@(Model.Edit.RequiresLicenseAcceptance ? "true" : "false")";
-                </text>
-            }
-
-            $("#Edit_ProjectUrl").bind("focusin focusout", RunValidationForEvent);
-            $("#Edit_IconUrl").bind("focusin focusout", UpdateIconAndRunValidation);
-
-            $("#UndoEdit_IconUrl").click(function () {
-                var validator = $.data($("#Edit_IconUrl")[0].form, "validator");
-                validator.settings["onfocusout"].call(validator, $("#Edit_IconUrl")[0]);
-            });
-            $("#UndoEdit_ProjectUrl").click(function () {
-                var validator = $.data($("#Edit_ProjectUrl")[0].form, "validator");
-                validator.settings["onfocusout"].call(validator, $("#Edit_ProjectUrl")[0]);
-            });
-
-            $("#UndoEdit_IconUrl").click(function () {
-                var x = $("#Edit_IconUrl")[0];
-                var newValue = x.value;
-                $('#IconUrl_Preview').remove();
-                if (newValue.trim().length) {
-                    $(x).after($('<img class="logo" id="IconUrl_Preview" alt="Icon Preview" src="' + encodeURI(newValue) + '"></img>'))
-                }
-            });
-        });
-
-        // Scripts for dialog for prompting you to save when you navigate away
-        $(function () {
-            var href = '';
-            $("#navigate-away-dialog").dialog({
-                autoOpen: false,
-                width: 350,
-                resizable: false,
-                modal: true,
-                buttons: [{
-                    text: "Save", click: function () {
-                        $("#navigate-away-dialog").dialog("close");
-                        var origin = window.location.protocol + "//" + window.location.host;
-                        var returnUrl = href.substr(origin.length);
-                        $(document.forms.EditForm).append($('<input type="hidden" name="returnUrl" value="' + returnUrl + '">'));
-                        document.forms.EditForm.submit();
-                    }
-                },
-                {
-                    text: "Don't Save", click: function () {
-                        $("#navigate-away-dialog").dialog("close");
-                        window.location.href = href;
-                    }
-                },
-                {
-                    text: "Cancel", click: function () {
-                        $("#navigate-away-dialog").dialog("close");
-                    }
-                }],
-            });
-
-            function ReadFormValues(dictionary) {
-                $("textarea").each(function () {
-                    dictionary[this.id] = this.value;
-                });
-                $("input:text").each(function () {
-                    dictionary[this.id] = this.value;
-                });
-                $("input:radio").each(function () {
-                    dictionary[this.id] = this.checked;
-                });
-                $("input:checkbox").each(function () {
-                    dictionary[this.id] = this.checked;
-                });
-            };
-
-            var initialDictionary = [];
-            ReadFormValues(initialDictionary);
-
-            $("a").not("a.cancel").click(function (event) {
-                var dictionary = [];
-                ReadFormValues(dictionary);
-                for (var key in initialDictionary) {
-                    if (initialDictionary.hasOwnProperty(key) &&
-                        dictionary[key] != initialDictionary[key]) {
-                        href = event.target.href;
-                        $("#navigate-away-dialog").dialog("open");
-                        return false;
-                    }
-                }
-            });
+        window.nuget.configureExpanderHeading("select-package-version-form");
         });
     </script>
 }
-
-@Styles.Render("~/Content/themes/custom/jquery-ui-1.10.3.custom.css")
-
-@section SideColumn {
-    @{
-        <nav id="edit-list">
-            <h2>Editing</h2>
-            <span class="edit-root" title="@(Model.PackageId)">
-                @(Model.PackageId.Abbreviate(25))
-            </span>
-            <ul id="packageVersions">
-                @foreach (var version in Model.PackageVersions)
-                {
-                    var versionStr = version.Version;
-                    var isSelected = string.Equals(Model.Version, versionStr, StringComparison.OrdinalIgnoreCase);
-                    <li>
-                        <span class="@(isSelected ? "edit-tree-selected" : "edit-tree")">
-                            @if (isSelected)
-                            {
-                                <text>@(versionStr)</text>
-                            }
-                            else
-                            {
-                                <a href="@Url.EditPackage(Model.PackageId, versionStr)">@(versionStr)</a>
-                            }
-                            @if (!version.Listed)
-                            {
-                                <text>(unlisted)</text>
-                            }
-                            @if (version.IsLatest)
-                            {
-                                <text>(latest)</text>
-                            }
-                            else if (version.IsLatestStable)
-                            {
-                                <text>(latest stable)</text>
-                            }
-                        </span>
-                    </li>
-                }
-            </ul>
-        </nav>
-    }
-}
-
-@helper EditableField(string name, Expression<Func<EditPackageRequest, object>> func, bool link = false, bool pre = false, bool multiline = false)
-{
-    var formid = ExpressionHelper.GetExpressionText(func).Replace(".", "_");
-    object temp = func.Compile().Invoke(Model);
-    <div class="form-field  form-field-full">
-        <div style="display: block">
-            @Html.LabelFor(func, new { style = "display: inline-block" })
-            <button type="button" class="undo-button" id="@("Undo" + formid)" style="display: none"><span class="icon-undo" title="Undo Edit"></span></button>
-        </div>
-        @Html.EditorFor(func, multiline ? new { style = "display: inline-block" } : new object())
-        @Html.ValidationMessageFor(func)
-    </div>
-}
-
-@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "EditForm" }))
-{
-    <fieldset class="form">
-        <legend>Edit @(Model.PackageId) @(Model.Version)</legend>
-
-        @Html.AntiForgeryToken()
-        @Html.ValidationSummary(true)
-
-        <ul style="border-bottom: 1px solid gray; margin-bottom: 1em;">
-            @if (Model.Edit != null)
-            {
-                <li>@EditableField(EditPackageVersionRequest.TitleStr, m => m.Edit.VersionTitle)</li>
-                <li>@EditableField(EditPackageVersionRequest.DescriptionStr, m => m.Edit.Description, multiline: true)</li>
-                <li>@EditableField(EditPackageVersionRequest.SummaryStr, m => m.Edit.Summary, multiline: true)</li>
-                <li>
-                    @EditableField(EditPackageVersionRequest.IconUrlStr, m => m.Edit.IconUrl, link: true)
-                    @if (string.IsNullOrWhiteSpace(Model.Edit.IconUrl) == false)
-                    {
-                        <img class="logo" id="IconUrl_Preview" alt="Icon Preview" src="@Model.Edit.IconUrl" />
-                    }
-                </li>
-                <li>@EditableField(EditPackageVersionRequest.ProjectUrlStr, m => m.Edit.ProjectUrl, link: true)</li>
-                <li>@EditableField(EditPackageVersionRequest.AuthorsStr, m => m.Edit.Authors)</li>
-                <li>@EditableField(EditPackageVersionRequest.CopyrightStr, m => m.Edit.Copyright)</li>
-                <li>@EditableField(EditPackageVersionRequest.TagsStr, m => m.Edit.Tags)</li>
-                <li>@EditableField(EditPackageVersionRequest.ReleaseNotesStr, m => m.Edit.ReleaseNotes, multiline: true)</li>
-
-                if (!String.IsNullOrEmpty(Model.Edit.LicenseUrl))
-                {
-                    <li>
-                        <h4>
-                            @EditPackageVersionRequest.RequiresLicenseAcceptanceStr
-                            <button type="button" class="undo-button" id="UndoEdit_RequiresLicenseAcceptance" style="display: none"><span class="icon-undo"></span></button>
-                        </h4>
-                        <div style="position: relative">
-                            <div id="Edit_RequiresLicenseAcceptanceField" style="width: 100%">
-                                <div class="form-field" style="display: inline">
-                                    @Html.DropDownList("Edit.RequiresLicenseAcceptance",
-                                        new List<SelectListItem>
-                                        {
-                                            new SelectListItem { Text = Strings.Yes, Value = "true" },
-                                            new SelectListItem { Text = Strings.No, Value = "false" },
-                                        })
-                                    @Html.ValidationMessageFor(model => model.Edit.RequiresLicenseAcceptance)
-                                </div>
-                            </div>
-                        </div>
-                    </li>
-                }
-            }
-            <li>
-                <img src="@Url.Content("~/Content/images/required.png")" alt="Blue border on left means required." />
-            </li>
-        </ul>
-        <input type="submit" value="Save" title="Save Changes" />
-        <a class="cancel" href="@Url.Package(Model.PackageId, Model.Version)" title="Cancel Changes and go back to package page.">Cancel</a>
-
-        <h3>Note:</h3>
-        <p>
-            To edit package dependencies, target frameworks, or license URL, you must upload a new version of the package.
-            Edits to package Icon, Title, and Summary may take a while to be shown in package search results.
-        </p>
-    </fieldset>
-}
-
-<div id="navigate-away-dialog" title="Save Changes?" style="display: none">
-    <p>
-        You are about to view a different page but your changes are not yet saved. Do you wish to save your changes?
-    </p>
-</div>

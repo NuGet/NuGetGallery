@@ -1016,12 +1016,14 @@ namespace NuGetGallery
             var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
-                return HttpNotFound();
+                Response.StatusCode = 404;
+                return Json(new string[] { string.Format(Strings.PackageWithIdAndVersionNotFound, id, version) });
             }
 
             if (!package.IsOwner(User))
             {
-                return new HttpStatusCodeResult(403, "Forbidden");
+                Response.StatusCode = 403;
+                return Json(new string[] { Strings.Unauthorized });
             }
 
             var packageRegistration = _packageService.FindPackageRegistrationById(id);
@@ -1045,23 +1047,28 @@ namespace NuGetGallery
         [ValidateInput(false)] // Security note: Disabling ASP.Net input validation which does things like disallow angle brackets in submissions. See http://go.microsoft.com/fwlink/?LinkID=212874
         [ValidateAntiForgeryToken]
         [RequiresAccountConfirmation("edit a package")]
-        public virtual async Task<ActionResult> Edit(string id, string version, EditPackageRequest formData, string returnUrl)
+        public virtual async Task<JsonResult> Edit(string id, string version, VerifyPackageRequest formData, string returnUrl)
         {
+
             var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
-                return HttpNotFound();
+                Response.StatusCode = 404;
+                return Json(new string[] { string.Format(Strings.PackageWithIdAndVersionNotFound, id, version) });
             }
 
             if (!package.IsOwner(User))
             {
-                return new HttpStatusCodeResult(403, "Forbidden");
+                Response.StatusCode = 403;
+                return Json(new string[] { Strings.Unauthorized });
             }
 
             var user = GetCurrentUser();
             if (!ModelState.IsValid)
             {
-                return EditFailed(id, formData, package);
+                Response.StatusCode = 400;
+                var errorMessages = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage));
+                return Json(errorMessages);
             }
 
             // Add the edit request to a queue where it will be processed in the background.
@@ -1079,26 +1086,15 @@ namespace NuGetGallery
                 catch (EntityException ex)
                 {
                     ModelState.AddModelError("Edit.VersionTitle", ex.Message);
-
-                    return EditFailed(id, formData, package);
+                    Response.StatusCode = 400;
+                    return Json(new string[] { ex.Message });
                 }
             }
 
-            return SafeRedirect(returnUrl ?? Url.Package(id, version));
-        }
-
-        private ActionResult EditFailed(string id, EditPackageRequest formData, Package package)
-        {
-            formData.PackageId = package.PackageRegistration.Id;
-            formData.PackageTitle = package.Title;
-            formData.Version = package.Version;
-
-            var packageRegistration = _packageService.FindPackageRegistrationById(id);
-            formData.PackageVersions = packageRegistration.Packages
-                .OrderByDescending(p => new NuGetVersion(p.Version), Comparer<NuGetVersion>.Create((a, b) => a.CompareTo(b)))
-                .ToList();
-
-            return View(formData);
+            return Json(new
+            {
+                location = returnUrl ?? Url.Package(id, version)
+            });
         }
 
         [Authorize]

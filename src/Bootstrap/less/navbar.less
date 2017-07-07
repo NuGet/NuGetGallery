@@ -605,8 +605,12 @@
     @media (max-width: @grid-float-breakpoint-max) {
       // Dropdowns get custom display
       .open .dropdown-menu {
+        .row {
+          margin-right: 0;
+        }
         > .dropdown-header {
           border-color: @navbar-inverse-border;
+          color: @navbar-inverse-link-color;
         }
         .divider {
           background-color: @navbar-inverse-border;

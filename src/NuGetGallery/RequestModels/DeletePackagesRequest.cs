@@ -27,8 +27,10 @@ namespace NuGetGallery
         [Display(Name = "Signature")]
         public string Signature { get; set; }
 
+        [Display(Name = "Keep the package ID and version reserved")]
         public bool SoftDelete { get; set; }
 
+        [Display(Name = "Remove the package registration when all packages are deleted")]
         public bool DeleteEmptyPackageRegistration { get; set; }
 
         public IEnumerable<ReportPackageReason> ReasonChoices { get; set; }

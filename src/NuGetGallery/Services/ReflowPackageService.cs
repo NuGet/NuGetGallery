@@ -70,7 +70,10 @@ namespace NuGetGallery
                         package.LastEdited = DateTime.UtcNow;
                         package.Listed = listed;
 
-                        // 5) Save and profit
+                        // 5) Update IsLatest so that reflow can correct concurrent updates (see Gallery #2514)
+                        await _packageService.UpdateIsLatestAsync(package.PackageRegistration, commitChanges: false);
+
+                        // 6) Save and profit
                         await _entitiesContext.SaveChangesAsync();
                     }
                 }

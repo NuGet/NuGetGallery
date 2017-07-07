@@ -1,0 +1,112 @@
+.page-api-keys {
+  @section-vertical-padding: (@padding-large-vertical * 2);
+  @section-padding: @section-vertical-padding 0;
+  @section-border: 1px solid @gray-lighter;
+
+  .example-commands {
+    background-color: @panel-footer-bg;
+    font-family: @font-family-monospace;
+    color: #fff;
+    padding: 8px 10px;
+  }
+
+  h2 {
+    margin-top: (@padding-large-vertical * 3);
+    margin-bottom: @padding-large-vertical;
+  }
+
+  h3 {
+    font-size: @font-size-h2;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  .in.in-inline {
+    display: inline;
+  }
+
+  .upsert-api-key {
+    ul {
+      padding-left: 0;
+      list-style: none;
+
+      ul {
+        padding-left: 20px;
+      }
+    }
+
+    .panel {
+      margin-bottom: 0;
+    }
+
+    .available-packages {
+      .panel-body {
+        overflow: auto;
+        height: 204px;
+        padding-top: 0;
+        padding-bottom: 0;
+      }
+    }
+
+    .glob-pattern-hint {
+      .panel-body {
+        height: 282px;
+      }
+    }
+  }
+
+  .add-api-key {
+    padding: @section-padding;
+    border-top: @section-border;
+    border-bottom: @section-border;
+
+    > .panel {
+      margin-top: @padding-large-horizontal;
+    }
+  }
+
+  .api-key-details {
+    padding: @section-padding;
+    border-bottom: @section-border;
+
+    .ms-Icon {
+      position: relative;
+      top: 2px;
+    }
+
+    .icon-details {
+      color: @gray-light;
+      margin: @padding-large-vertical 0;
+
+      li {
+        padding: 0;
+      }
+
+      li + li {
+        margin-left: @padding-small-horizontal;
+        padding-left: @padding-small-horizontal;
+        border-left: 1px solid @gray-lighter;
+      }
+    }
+
+    .icon-buttons {
+      color: @gray-light;
+      margin: @padding-large-vertical 0;
+      font-size: 1.2em;
+
+      li {
+        padding: 0;
+      }
+
+      li + li {
+        margin-left: @padding-large-horizontal;
+        padding-left: @padding-large-horizontal;
+        border-left: 1px solid @gray-lighter;
+      }
+
+      a:focus, a:hover {
+        text-decoration: none;
+      }
+    }
+  }
+}

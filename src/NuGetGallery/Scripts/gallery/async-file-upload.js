@@ -1,4 +1,6 @@
-﻿var AsyncFileUploadManager = new function () {
+﻿'use strict';
+
+var AsyncFileUploadManager = new function () {
     var _actionUrl;
     var _cancelUrl;
     var _submitVerifyUrl;
@@ -26,12 +28,12 @@
             var fileName = $('#input-select-file').val().split("\\").pop();
 
             if (fileName.length > 0) {
-                $('#file-select-feedback').attr('placeholder', fileName);
+                $('#file-select-feedback').attr('value', fileName);
                 // Cancel any ongoing upload, and then start the new upload.
                 // If the cancel fails, still try to upload the new one.
                 cancelUploadAsync(startUploadAsync, startUploadAsync);
             } else {
-                $('#file-select-feedback').attr('placeholder', 'Browse to select a package file...');
+                $('#file-select-feedback').attr('value', 'Browse to select a package file...');
             }
         })
 
@@ -75,7 +77,7 @@
             url: _submitVerifyUrl,
             type: 'POST',
 
-            data: new FormData($('#verify-metadata-form')[0]),
+            data: new FormData($('#edit-metadata-form')[0]),
 
             cache: false,
             contentType: false,
@@ -170,7 +172,7 @@
         $(reportContainerElement).attr("id", "verify-package-block");
         $(reportContainerElement).attr("class", "collapse in");
         $(reportContainerElement).attr("aria-expanded", "true");
-        $(reportContainerElement).attr("data-bind", "template: { name: 'verify-metadata-template', data: data }");
+        $(reportContainerElement).attr("data-bind", "template: { name: 'edit-metadata-template', data: data }");
         $("#verify-package-container").append(reportContainerElement);
         ko.applyBindings({ data: model }, reportContainerElement);
 
@@ -180,7 +182,7 @@
             $('#verify-cancel-button').addClass('.loading');
             $('#verify-submit-button').attr('disabled', 'disabled');
             $('#input-select-file').val("");
-            $('#file-select-feedback').attr('placeholder', 'Browse to select a package file...');
+            $('#file-select-feedback').attr('value', 'Browse to select a package file...');
             cancelUploadAsync();
         });
 
@@ -198,12 +200,7 @@
 
         $("#verify-collapser-container").removeClass("hidden");
 
-        window.nuget.configureExpander(
-            "verify-package-form",
-            "ChevronRight",
-            "Verify",
-            "ChevronDown",
-            "Verify");
+        window.nuget.configureExpanderHeading("edit-metadata-form-container");
     }
 
     function navigateToPage(verifyResponse) {

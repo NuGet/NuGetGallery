@@ -30,7 +30,7 @@
                         @Html.ValidationSummary(true)
 
                         <div class="input-group">
-                            <input type="text" class="form-control" id="file-select-feedback" placeholder="Browse to select a package file..." readonly />
+                            <input type="text" class="form-control" id="file-select-feedback" value="Browse to select a package file..." readonly />
                             <label for="input-select-file" id="PackageFileLabel" class="input-group-btn">
                                 <span class="btn btn-primary form-control">
                                     Browse&hellip;<input type="file" name="UploadFile" accept=".nupkg" aria-labelledby="PackageFileLabel" id="input-select-file" style="display:none;" />
@@ -58,8 +58,8 @@
 
             <div id="verify-collapser-container" class="hidden">
                 <h2>
-                    <a href="#" role="button" data-toggle="collapse" data-target="#verify-package-form"
-                       aria-expanded="true" aria-controls="verify-package-form" id="show-verify-package-form">
+                    <a href="#" role="button" data-toggle="collapse" data-target="#edit-metadata-form-container"
+                       aria-expanded="true" aria-controls="edit-metadata-form-container" id="show-edit-metadata-form-container">
                         <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
                         <span>Verify</span>
                     </a>
@@ -80,12 +80,7 @@
     <script type="text/javascript" src="@Url.Content("~/Scripts/gallery/async-file-upload.js")"></script>
     <script type="text/javascript">
         var InProgressPackage = @Html.Raw(Json.Encode(Model.InProgressUpload));
-        window.nuget.configureExpander(
-            "upload-package-form",
-            "ChevronRight",
-            "Upload",
-            "ChevronDown",
-            "Upload");
+        window.nuget.configureExpanderHeading("upload-package-form");
         $(function () {
             AsyncFileUploadManager.init(
                 '@Url.Action(actionName: "UploadPackageProgress", controllerName: "Packages")',

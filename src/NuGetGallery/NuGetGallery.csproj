@@ -443,6 +443,9 @@
       <HintPath>..\..\packages\NuGet.Services.KeyVault.1.0.0.0\lib\net45\NuGet.Services.KeyVault.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="NuGet.Services.Owin, Version=2.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.Owin.2.2.3\lib\net452\NuGet.Services.Owin.dll</HintPath>
+    </Reference>
     <Reference Include="NuGet.Services.Logging, Version=2.2.3.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Services.Logging.2.2.3\lib\net452\NuGet.Services.Logging.dll</HintPath>
       <Private>True</Private>
@@ -699,6 +702,7 @@
     <Compile Include="Configuration\SecretReader\EmptySecretReaderFactory.cs" />
     <Compile Include="Configuration\SecretReader\ISecretReaderFactory.cs" />
     <Compile Include="Configuration\SecretReader\SecretReaderFactory.cs" />
+    <Compile Include="Configuration\StringArrayConverter.cs" />
     <Compile Include="Controllers\NuGetContext.cs" />
     <Compile Include="Diagnostics\ElmahHandleErrorAttribute.cs" />
     <Compile Include="Extensions\DateTimeExtensions.cs" />
@@ -722,7 +726,6 @@
     <Compile Include="Authentication\AuthenticationTypes.cs" />
     <Compile Include="Authentication\AuthDependenciesModule.cs" />
     <Compile Include="Authentication\NuGetClaims.cs" />
-    <Compile Include="Authentication\ForceSslWhenAuthenticatedMiddleware.cs" />
     <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticator.cs" />
     <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticatorConfiguration.cs" />
     <Compile Include="Authentication\Providers\Authenticator.cs" />
@@ -742,6 +745,7 @@
     <Compile Include="Filters\ApiScopeRequiredAttribute.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Helpers\GravatarHelper.cs" />
+    <Compile Include="Infrastructure\HttpStatusCodeWithServerWarningResult.cs" />
     <Compile Include="Migrations\201704191802404_AddIndexPackageRegistrationKeySemVer.cs" />
     <Compile Include="Migrations\201704191802404_AddIndexPackageRegistrationKeySemVer.Designer.cs">
       <DependentUpon>201704191802404_AddIndexPackageRegistrationKeySemVer.cs</DependentUpon>
@@ -1483,6 +1487,8 @@
     <Compile Include="Services\ReflowPackageService.cs" />
     <Compile Include="Services\TelemetryService.cs" />
     <Compile Include="ViewModels\ManagePackagesListViewModel.cs" />
+    <Compile Include="ViewModels\ApiKeyListViewModel.cs" />
+    <Compile Include="ViewModels\ApiKeyViewModel.cs" />
     <Compile Include="ViewModels\ReportMyPackageViewModel.cs" />
     <Compile Include="ViewModels\ScopeViewModel.cs" />
     <Compile Include="ViewModels\PackageListSearchViewModel.cs" />
@@ -1634,7 +1640,6 @@
     <Compile Include="Services\NullStatisticsService.cs" />
     <Compile Include="Services\PackageDeleteService.cs" />
     <Compile Include="Services\PackageFileService.cs" />
-    <Compile Include="Filters\RequireSslAttribute.cs" />
     <Compile Include="Services\IPackageNamingConflictValidator.cs" />
     <Compile Include="Services\PackageNamingConflictValidator.cs" />
     <Compile Include="Services\PackageSearchResults.cs" />
@@ -1916,11 +1921,11 @@
     <Content Include="Content\font\FontAwesome.otf" />
     <None Include="Properties\PublishProfiles\nuget-staging-frontend.pubxml" />
     <Content Include="packages.config" />
-    <Content Include="Scripts\gallery\stats-perpackagestatsgraphs.js" />
+    <Content Include="packages.config">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="Scripts\statsgraphs.js" />
     <Content Include="Scripts\nugetgallery.js" />
-    <Content Include="Scripts\gallery\stats-dimensions.js" />
-    <Content Include="Scripts\gallery\async-file-upload.js" />
     <Content Include="Scripts\stats.js" />
     <Content Include="Scripts\gallery\**\*" />
     <Content Include="Web.config">
@@ -1942,7 +1947,6 @@
     <Content Include="Views\Packages\ContactOwners.cshtml" />
     <Content Include="Views\Packages\DisplayPackage.cshtml" />
     <Content Include="Views\Shared\ListPackages.cshtml" />
-    <Content Include="Views\Packages\VerifyPackage.cshtml" />
     <Content Include="Views\Packages\ReportAbuse.cshtml" />
     <Content Include="Views\Packages\UploadPackage.cshtml" />
     <Content Include="Views\Shared\_ListPackage.cshtml" />

@@ -92,7 +92,7 @@ namespace NuGetGallery.FunctionalTests
                         string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SearchServiceUrl",
                             EnvironmentVariableTarget.Machine)))
                     {
-                        _searchServiceBaseurl = "http://nuget-int-0-v2v3search.cloudapp.net/";
+                        _searchServiceBaseurl = "https://nuget-int-0-v2v3search.cloudapp.net/";
                     }
                     else
                     {
@@ -119,7 +119,7 @@ namespace NuGetGallery.FunctionalTests
 
                 if (string.IsNullOrEmpty(_searchServiceBaseurl))
                 {
-                    _searchServiceBaseurl = "http://nuget-int-0-v2v3search.cloudapp.net/";
+                    _searchServiceBaseurl = "https://nuget-int-0-v2v3search.cloudapp.net/";
                 }
 
                 return _searchServiceBaseurl;

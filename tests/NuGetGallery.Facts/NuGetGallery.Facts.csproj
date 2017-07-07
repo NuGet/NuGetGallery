@@ -199,6 +199,9 @@
     <Reference Include="NuGet.Common, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Common.4.3.0-preview1-2524\lib\net45\NuGet.Common.dll</HintPath>
     </Reference>
+    <Reference Include="NuGet.Configuration, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Configuration.4.3.0-preview1-2524\lib\net45\NuGet.Configuration.dll</HintPath>
+    </Reference>
     <Reference Include="NuGet.Frameworks, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Frameworks.4.3.0-preview1-2524\lib\net45\NuGet.Frameworks.dll</HintPath>
     </Reference>
@@ -212,6 +215,9 @@
     </Reference>
     <Reference Include="NuGet.Packaging.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Packaging.Core.4.3.0-preview1-2524\lib\net45\NuGet.Packaging.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="NuGet.Protocol, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Protocol.4.3.0-preview1-2524\lib\net45\NuGet.Protocol.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Services.KeyVault, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Services.KeyVault.1.0.0.0\lib\net45\NuGet.Services.KeyVault.dll</HintPath>
@@ -379,7 +385,6 @@
     <Compile Include="Authentication\AuthenticatorFacts.cs" />
     <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationHandlerFacts.cs" />
     <Compile Include="Authentication\AuthenticationServiceFacts.cs" />
-    <Compile Include="Authentication\ForceSslWhenAuthenticatedMiddlewareFacts.cs" />
     <Compile Include="Authentication\TestCredentialHelper.cs" />
     <Compile Include="Authentication\V3HasherTests.cs" />
     <Compile Include="AutocompleteServicePackageIdsQueryFacts.cs" />
@@ -437,7 +442,6 @@
     <Compile Include="ExtensionMethodsFacts.cs" />
     <Compile Include="Filters\ApiAuthorizeAttributeFacts.cs" />
     <Compile Include="Filters\RequiresAccountConfirmationAttributeFacts.cs" />
-    <Compile Include="Filters\RequireSslAttributeFacts.cs" />
     <Compile Include="Services\PackageNamingConflictValidatorFacts.cs" />
     <Compile Include="TestPackage.cs" />
     <Compile Include="Framework\AssertEx.cs" />

@@ -219,6 +219,14 @@ namespace NuGetGallery
             var aboutScriptBundle = new ScriptBundle("~/Scripts/gallery/page-about.min.js")
                 .Include("~/Scripts/gallery/page-about.js");
             BundleTable.Bundles.Add(aboutScriptBundle);
+
+            var apiKeysScriptBundle = new ScriptBundle("~/Scripts/gallery/page-api-keys.min.js")
+                .Include("~/Scripts/gallery/page-api-keys.js");
+            BundleTable.Bundles.Add(apiKeysScriptBundle);
+
+            var accountScriptBundle = new ScriptBundle("~/Scripts/gallery/page-account.min.js")
+                .Include("~/Scripts/gallery/page-account.js");
+            BundleTable.Bundles.Add(accountScriptBundle);
         }
 
         private static void AppPostStart(IAppConfiguration configuration)

@@ -280,7 +280,7 @@ body {
   font-family: 'Segoe UI', "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 16px;
   line-height: 1.42857143;
-  color: #333;
+  color: #000;
   background-color: #fff;
 }
 input,
@@ -2104,7 +2104,7 @@ select[multiple].input-lg {
   display: block;
   margin-top: 5px;
   margin-bottom: 10px;
-  color: #737373;
+  color: #404040;
 }
 @media (min-width: 768px) {
   .form-inline .form-group {
@@ -2241,10 +2241,10 @@ select[multiple].input-lg {
 .btn[disabled],
 fieldset[disabled] .btn {
   cursor: not-allowed;
-  filter: alpha(opacity=65);
+  filter: alpha(opacity=75);
   -webkit-box-shadow: none;
           box-shadow: none;
-  opacity: .65;
+  opacity: .75;
 }
 a.btn.disabled,
 fieldset[disabled] a.btn {
@@ -2708,9 +2708,6 @@ tbody.collapse.in {
 .dropdown {
   position: relative;
 }
-.dropdown-toggle:focus {
-  outline: 0;
-}
 .dropdown-menu {
   position: absolute;
   top: 100%;
@@ -2718,7 +2715,7 @@ tbody.collapse.in {
   z-index: 1000;
   display: none;
   float: left;
-  min-width: 160px;
+  min-width: 275px;
   padding: 5px 0;
   margin: 2px 0 0;
   font-size: 16px;
@@ -2764,7 +2761,6 @@ tbody.collapse.in {
   color: #fff;
   text-decoration: none;
   background-color: #337ab7;
-  outline: 0;
 }
 .dropdown-menu > .disabled > a,
 .dropdown-menu > .disabled > a:hover,
@@ -2782,9 +2778,6 @@ tbody.collapse.in {
 .open > .dropdown-menu {
   display: block;
 }
-.open > a {
-  outline: 0;
-}
 .dropdown-menu-right {
   right: 0;
   left: auto;
@@ -2798,7 +2791,7 @@ tbody.collapse.in {
   padding: 3px 20px;
   font-size: 14px;
   line-height: 1.42857143;
-  color: #666;
+  color: #333;
   white-space: nowrap;
 }
 .dropdown-backdrop {
@@ -3841,7 +3834,11 @@ fieldset[disabled] .navbar-default .btn-link:focus {
   background-color: #002b4d;
 }
 @media (max-width: 767px) {
+  .navbar-inverse .navbar-nav .open .dropdown-menu .row {
+    margin-right: 0;
+  }
   .navbar-inverse .navbar-nav .open .dropdown-menu > .dropdown-header {
+    color: #e3ebf1;
     border-color: #002b4d;
   }
   .navbar-inverse .navbar-nav .open .dropdown-menu .divider {
@@ -4211,7 +4208,7 @@ a.thumbnail.active {
 }
 .thumbnail .caption {
   padding: 9px;
-  color: #333;
+  color: #000;
 }
 .alert {
   padding: 8px 8px;
