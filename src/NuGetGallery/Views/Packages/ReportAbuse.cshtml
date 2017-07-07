@@ -101,10 +101,9 @@
                 $form.validate().element($('#Reason'));
             }
 
-            if (val == 'HasABugOrFailedToInstall') {
+            if (val === 'HasABugOrFailedToInstall') {
                 $('#report-abuse-form').hide();
-            }
-            else {
+            } else {
                 $('#report-abuse-form').show();
             }
 
