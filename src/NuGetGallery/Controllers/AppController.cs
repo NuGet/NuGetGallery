@@ -48,6 +48,17 @@ namespace NuGetGallery
             return new SafeRedirectResult(returnUrl, Url.Home());
         }
 
+        protected internal JsonResult Json(int statusCode, object obj)
+        {
+            Response.StatusCode = statusCode;
+            if (statusCode >= 400)
+            {
+                Response.TrySkipIisCustomErrors = true;
+            }
+
+            return Json(obj);
+        }
+
 
         /// <summary>
         /// Called before the action method is invoked.
