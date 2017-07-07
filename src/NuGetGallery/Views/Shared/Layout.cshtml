@@ -34,7 +34,7 @@
                 <div class="banner-warning">@Config.Current.WarningBanner</div>
             </div>
         }
-        else if (!string.IsNullOrEmpty(Config.Current.RedesignBanner))
+        @if (!string.IsNullOrEmpty(Config.Current.RedesignBanner))
         {
             <div id="service-alert">
                 <div class="banner-redesign">
