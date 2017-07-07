@@ -14,6 +14,24 @@ namespace NuGetGallery.Services
 
         }
 
+    /// <summary>
+    /// Returns if a given package has a ReadMe.
+    /// </summary>
+    /// <param name="formData">A ReadMeRequest with the ReadMe data from the form.</param>
+    /// <returns>Whether there is a ReadMe to upload.</returns>
+    public static Boolean HasReadMe(ReadMeRequest formData)
+        {
+            switch (formData.ReadMeType)
+            {
+                case "Url":
+                    return formData.ReadMeUrl != null && formData.ReadMeUrl != "";
+                case "File":
+                    return formData.ReadMeFile != null;
+                case "Written":
+                    return formData.ReadMeWritten != null && formData.ReadMeWritten != "";
+                default: return false;
+            }
+        }
 
     /// <summary>
     /// Finds the highest priority ReadMe file stream and returns it. Highest priority is an uploaded file,
@@ -24,49 +42,15 @@ namespace NuGetGallery.Services
     /// <returns>A stream with the encoded ReadMe file</returns>
     public static Stream GetReadMeStream(ReadMeRequest formData)
         {
-            // Uploaded ReadMe file
-            if (formData.ReadMeFile != null)
+            switch (formData.ReadMeType)
             {
-                return GetStreamFromFile(formData.ReadMeFile);
-            }
-            // ReadMe Url
-            else if (formData.ReadMeUrl != null)
-            {
-                string readMeUrl = GetReadMeUrlFromRepositoryUrl(formData.ReadMeUrl);
-                return ReadMeUrlToFileStream(readMeUrl);
-            }
-            //ReadMe Written
-            else
-            {
-                return GetStreamFromWritten(formData.ReadMeWritten);
-            }
-            
-        }
-
-        /// <summary>
-        /// Takes in the repository URL and parses it, returning a link directly to the Readme.md file.
-        /// </summary>
-        /// <param name="repositoryUrl">A link to the repository</param>
-        /// <returns>A link to the raw readme.md file</returns>
-    public static string GetReadMeUrlFromRepositoryUrl(string repositoryUrl)
-        {
-            if (!repositoryUrl.Contains("http://") && !repositoryUrl.Contains("https://"))
-            {
-                repositoryUrl = "http://" + repositoryUrl;
-            }
-            Uri repositoryUri = new Uri(repositoryUrl);
-            Regex regex = new Regex(@"(http(s)?:\/\/)?([a-zA-Z0-9]+\.)?github\.com\/([a-zA-Z0-9])+\/([a-zA-Z0-9])+(\/)?$");
-            if (repositoryUri.Host.Contains("github.com") && regex.IsMatch(repositoryUrl))
-            {
-                if (!repositoryUrl.EndsWith("/"))
-                {
-                    repositoryUrl += "/";
-                }
-                return repositoryUrl + "blob/master/README.md";
-            } else
-            {
-                return "";
-            }
+                case "Url":
+                    return ReadMeUrlToFileStream(formData.ReadMeUrl);
+                case "File":
+                    return GetStreamFromFile(formData.ReadMeFile);
+                default: //Written
+                    return GetStreamFromWritten(formData.ReadMeWritten);
+            }          
         }
 
         /// <summary>
@@ -76,6 +60,10 @@ namespace NuGetGallery.Services
         /// <returns>A stream to allow the file to be read</returns>
     private static Stream ReadMeUrlToFileStream(string readMeUrl)
         {
+            if (readMeUrl.IndexOf("http://") != 0 && readMeUrl.IndexOf("https://") != 0)
+            {
+                readMeUrl = "http://" + readMeUrl;
+            }
             var webRequest = WebRequest.Create(readMeUrl);
             var response = webRequest.GetResponse();
             return response.GetResponseStream();
