@@ -56,53 +56,56 @@
                             @DisplayNavigationItem("Admin", Url.Action("Index", "Home", new { area = "Admin" }))
                         }
                         @DisplayNavigationItem("Documentation", "https://docs.microsoft.com/en-us/nuget/")
-                        @DisplayNavigationItem("Downloads", Url.RouteUrl(RouteName.Downloads))
+                        @DisplayNavigationItem("Downloads", Url.Downloads())
                         @DisplayNavigationItem("Blog", "http://blog.nuget.org/")
                     </ul>
-                    <ul class="nav navbar-nav navbar-right navbar-seperated" role="menu">
-                        @if (!User.Identity.IsAuthenticated)
-                        {
-                            var returnUrl = ViewData.ContainsKey(Constants.ReturnUrlViewDataKey) ? (string)ViewData[Constants.ReturnUrlViewDataKey] : Request.RawUrl;
-                            @DisplayNavigationItem("Sign in", Url.LogOn(returnUrl), title: "Sign in to an existing NuGet.org account")
-                            <li class="hidden-xs seperator" role="presentation"><span></span></li>
-                            @DisplayNavigationItem("Register", Url.SignUp(returnUrl), title: "Register for a new NuGet.org account")
-                        }
-                        else
-                        {
-                            <li class="@(ViewBag.Tab == User.Identity.Name ? "active" : string.Empty) dropdown"
-                                aria-selected="@(ViewBag.Tab == User.Identity.Name ? "true" : "false")" role="presentation">
-                                <a href="#" role="menuitem" id="account-dropdown" class="dropdown-toggle" title="Open profile dropdown" data-toggle="dropdown">
-                                    <b><span>@User.Identity.Name</span></b>
-                                    <span class="caret"></span>
-                                </a>
-                                <ul class="dropdown-menu" role="menu" aria-labelledby="account-dropdown">
-                                    <li class="dropdown-header row">
-                                        <div class="col-sm-3">
-                                            @ViewHelpers.GravatarImage(CurrentUser.EmailAddress ?? CurrentUser.UnconfirmedEmailAddress, CurrentUser.Username, 50)
-                                        </div>
-                                        <div class="col-sm-9 dropdown-profile">
-                                            <span class="dropdown-username">@User.Identity.Name.Abbreviate(20)</span>
-                                            <br />
-                                            <span class="dropdown-email">@CurrentUser.EmailAddress.Abbreviate(35)</span>
-                                        </div>
-                                    </li>
-                                    @if (Request.IsAuthenticated && User.IsInRole(Constants.AdminRoleName))
-                                    {
+                    @if (ViewBag.ShowUserInNavBar != false)
+                    {
+                        <ul class="nav navbar-nav navbar-right navbar-seperated" role="menu">
+                            @if (!User.Identity.IsAuthenticated)
+                            {
+                                var returnUrl = ViewData.ContainsKey(Constants.ReturnUrlViewDataKey) ? (string)ViewData[Constants.ReturnUrlViewDataKey] : Request.RawUrl;
+                                @DisplayNavigationItem("Sign in", Url.LogOn(returnUrl), title: "Sign in to an existing NuGet.org account")
+                                <li class="hidden-xs seperator" role="presentation"><span></span></li>
+                                @DisplayNavigationItem("Register", Url.SignUp(returnUrl), title: "Register for a new NuGet.org account")
+                            }
+                            else
+                            {
+                                <li class="@(ViewBag.Tab == User.Identity.Name ? "active" : string.Empty) dropdown"
+                                    aria-selected="@(ViewBag.Tab == User.Identity.Name ? "true" : "false")" role="presentation">
+                                    <a href="#" role="menuitem" id="account-dropdown" class="dropdown-toggle" title="Open profile dropdown" data-toggle="dropdown">
+                                        <b><span>@User.Identity.Name</span></b>
+                                        <span class="caret"></span>
+                                    </a>
+                                    <ul class="dropdown-menu" role="menu" aria-labelledby="account-dropdown">
+                                        <li class="dropdown-header row">
+                                            <div class="col-sm-3">
+                                                @ViewHelpers.GravatarImage(CurrentUser.EmailAddress ?? CurrentUser.UnconfirmedEmailAddress, CurrentUser.Username, 50)
+                                            </div>
+                                            <div class="col-sm-9 dropdown-profile">
+                                                <span class="dropdown-username">@User.Identity.Name.Abbreviate(20)</span>
+                                                <br />
+                                                <span class="dropdown-email">@CurrentUser.EmailAddress.Abbreviate(35)</span>
+                                            </div>
+                                        </li>
+                                        @if (Request.IsAuthenticated && User.IsInRole(Constants.AdminRoleName))
+                                        {
+                                            <li class="divider"></li>
+                                            <li role="presentation"><a href="@Url.Action("Index", "Home", new { area = "Admin" })" role="menuitem">Admin</a></li>
+                                        }
                                         <li class="divider"></li>
-                                        <li role="presentation"><a href="@Url.Action("Index", "Home", new { area = "Admin" })" role="menuitem">Admin</a></li>
-                                    }
-                                    <li class="divider"></li>
-                                    <li role="presentation"><a href="@Url.User(CurrentUser.Username)" role="menuitem">View Profile</a></li>
-                                    <li role="presentation"><a href="@Url.AccountSettings()" role="menuitem">Account Settings</a></li>
-                                    <li role="presentation"><a href="@Url.ManageMyApiKeys()" role="menuitem">API Keys</a></li>
-                                    <li role="presentation"><a href="@Url.ManageMyPackages()" role="menuitem">Manage Packages</a></li>
-                                    <li role="presentation"><a href="@Url.UploadPackage()" role="menuitem">Upload Package</a></li>
-                                    <li class="divider"></li>
-                                    <li role="presentation"><a href="@Url.LogOff()" role="menuitem">Sign Out</a></li>
-                                </ul>
-                            </li>
-                        }
-                    </ul>
+                                        <li role="presentation"><a href="@Url.User(CurrentUser.Username)" role="menuitem">View Profile</a></li>
+                                        <li role="presentation"><a href="@Url.AccountSettings()" role="menuitem">Account Settings</a></li>
+                                        <li role="presentation"><a href="@Url.ManageMyApiKeys()" role="menuitem">API Keys</a></li>
+                                        <li role="presentation"><a href="@Url.ManageMyPackages()" role="menuitem">Manage Packages</a></li>
+                                        <li role="presentation"><a href="@Url.UploadPackage()" role="menuitem">Upload Package</a></li>
+                                        <li class="divider"></li>
+                                        <li role="presentation"><a href="@Url.LogOff()" role="menuitem">Sign Out</a></li>
+                                    </ul>
+                                </li>
+                            }
+                        </ul>
+                    }
                 </div>
             </div>
         </div>
