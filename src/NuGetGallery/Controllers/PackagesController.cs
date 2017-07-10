@@ -213,7 +213,6 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("upload a package")]
         public virtual async Task<JsonResult> UploadPackage(HttpPostedFileBase uploadFile)
         {
-            Response.TrySkipIisCustomErrors = true;
             var currentUser = GetCurrentUser();
 
             using (var existingUploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
