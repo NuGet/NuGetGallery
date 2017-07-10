@@ -283,6 +283,9 @@ img.package-icon {
     border-left-style: solid;
   }
 }
+.list-packages .package .package-controls {
+  margin-top: 20px;
+}
 .list-packages .package .package-details {
   margin-top: 10px;
   line-height: 20px;
