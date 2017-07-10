@@ -391,7 +391,7 @@ namespace NuGetGallery
 
             var model = new VerifyPackageRequest(packageMetadata);
 
-            return Json(200, model);
+            return Json(model);
         }
 
         public virtual async Task<ActionResult> DisplayPackage(string id, string version)
@@ -1074,7 +1074,7 @@ namespace NuGetGallery
                 }
             }
 
-            return Json(200, new
+            return Json(new
             {
                 location = returnUrl ?? Url.Package(id, version)
             });
@@ -1395,7 +1395,7 @@ namespace NuGetGallery
             TempData["Message"] = String.Format(
                 CultureInfo.CurrentCulture, Strings.SuccessfullyUploadedPackage, package.PackageRegistration.Id, package.Version);
 
-            return Json(200, new
+            return Json(new
             {
                 location = Url.RouteUrl(RouteName.DisplayPackage, new
                 {
@@ -1453,7 +1453,7 @@ namespace NuGetGallery
             var currentUser = GetCurrentUser();
             await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
 
-            return Json(200, null);
+            return Json(null);
         }
 
         [Authorize]
