@@ -915,8 +915,8 @@
     <Compile Include="Infrastructure\MessageQueue.cs" />
     <Compile Include="Diagnostics\NullDiagnosticsSource.cs" />
     <Compile Include="Diagnostics\TraceDiagnosticsSource.cs" />
-    <Compile Include="Diagnostics\IDiagnosticsService.cs" />
-    <Compile Include="Diagnostics\IDiagnosticsSource.cs" />
+    <Compile Include="Diagnostics\DiagnosticsServiceExtensions.cs" />
+    <Compile Include="Diagnostics\DiagnosticsSourceExtensions.cs" />
     <Compile Include="Configuration\StorageType.cs" />
     <Content Include="bin\NuGetGallery.dll.config">
       <SubType>Designer</SubType>
@@ -2148,7 +2148,7 @@
     <VisualStudio>
       <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
         <WebProjectProperties>
-          <UseIIS>True</UseIIS>
+          <UseIIS>False</UseIIS>
           <AutoAssignPort>True</AutoAssignPort>
           <DevelopmentServerPort>80</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>

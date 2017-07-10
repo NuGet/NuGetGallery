@@ -3,6 +3,7 @@
 @using NuGetGallery
 @using NuGetGallery.Helpers
 @using NuGetGallery.Configuration
+@using NuGetGallery.Cookies
 
 @helper PreviousNextPager(IPreviousNextPager pager)
 {
@@ -128,30 +129,34 @@
 
     if (!string.IsNullOrEmpty(iKey))
     {
-        <!-- Telemetry -->
-        <script type="text/javascript">
-            var appInsights = window.appInsights || function (config) {
-                function s(config) {
-                    t[config] = function () {
-                        var i = arguments;
-                        t.queue.push(function () { t[config].apply(t, i) })
+        var cookies = DependencyResolver.Current.GetService<ICookieComplianceService>();
+        if (cookies.CanWriteNonEssentialCookies(Request))
+        {
+            <!-- Telemetry -->
+            <script type="text/javascript">
+                var appInsights = window.appInsights || function (config) {
+                    function s(config) {
+                        t[config] = function () {
+                            var i = arguments;
+                            t.queue.push(function () { t[config].apply(t, i) })
+                        }
                     }
-                }
 
-                var t = { config: config }, r = document, f = window, e = "script", o = r.createElement(e), i, u;
-                for (o.src = config.url || "//az416426.vo.msecnd.net/scripts/a/ai.0.js", r.getElementsByTagName(e)[0].parentNode.appendChild(o), t.cookie = r.cookie, t.queue = [], i = ["Event", "Exception", "Metric", "PageView", "Trace"]; i.length;) s("track" + i.pop());
-                return config.disableExceptionTracking || (i = "onerror", s("_" + i), u = f[i], f[i] = function (config, r, f, e, o) {
-                    var s = u && u(config, r, f, e, o);
-                    return s !== !0 && t["_" + i](config, r, f, e, o), s
-                }), t
-            }({
-                instrumentationKey: '@(iKey)',
-                samplingPercentage: @(samplingPct)
-            });
+                    var t = { config: config }, r = document, f = window, e = "script", o = r.createElement(e), i, u;
+                    for (o.src = config.url || "//az416426.vo.msecnd.net/scripts/a/ai.0.js", r.getElementsByTagName(e)[0].parentNode.appendChild(o), t.cookie = r.cookie, t.queue = [], i = ["Event", "Exception", "Metric", "PageView", "Trace"]; i.length;) s("track" + i.pop());
+                    return config.disableExceptionTracking || (i = "onerror", s("_" + i), u = f[i], f[i] = function (config, r, f, e, o) {
+                        var s = u && u(config, r, f, e, o);
+                        return s !== !0 && t["_" + i](config, r, f, e, o), s
+                    }), t
+                }({
+                    instrumentationKey: '@(iKey)',
+                    samplingPercentage: @(samplingPct)
+                });
 
-            window.appInsights = appInsights;
-            appInsights.trackPageView();
-        </script>
+                window.appInsights = appInsights;
+                appInsights.trackPageView();
+            </script>
+        }
     }
 }
 
@@ -209,15 +214,35 @@
         var propertyId = config.Current.GoogleAnalyticsPropertyId;
         if (!string.IsNullOrEmpty(propertyId))
         {
-            <script>
-                (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-                (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-                m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-                })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+            var cookies = DependencyResolver.Current.GetService<ICookieComplianceService>();
+            if (cookies.CanWriteNonEssentialCookies(Request))
+            {
+                <script>
+                    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+                    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+                    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
 
-                ga('create', '@propertyId', 'auto');
-                ga('send', 'pageview');
-            </script>
+                    ga('create', '@propertyId', 'auto');
+                    ga('send', 'pageview');
+                </script>
+            }
+        }
+    }
+}
+
+@helper CookieComplianceScripts()
+{
+    var cookies = DependencyResolver.Current.GetService<ICookieComplianceService>();
+    if (cookies.NeedsConsentForNonEssentialCookies(Request))
+    {
+        foreach (var cookieScript in cookies.GetConsentScripts())
+        {
+            <script src="@cookieScript"></script>
+        }
+        foreach (var cookieStyle in cookies.GetConsentStylesheets())
+        {
+            <link rel="stylesheet" type="text/css" href="@cookieStyle" />
         }
     }
 }

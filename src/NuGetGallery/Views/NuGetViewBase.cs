@@ -4,6 +4,7 @@
 using System;
 using System.Web.Mvc;
 using NuGetGallery.Configuration;
+using NuGetGallery.Cookies;
 
 namespace NuGetGallery.Views
 {
@@ -24,6 +25,11 @@ namespace NuGetGallery.Views
         public User CurrentUser
         {
             get { return NuGetContext.CurrentUser; }
+        }
+        
+        public ICookieComplianceService Cookies
+        {
+            get { return NuGetContext.Cookies; }
         }
 
         protected NuGetViewBase()
@@ -62,6 +68,11 @@ namespace NuGetGallery.Views
         public User CurrentUser
         {
             get { return NuGetContext.CurrentUser; }
+        }
+
+        public ICookieComplianceService Cookies
+        {
+            get { return NuGetContext.Cookies; }
         }
 
         protected NuGetViewBase()

@@ -26,8 +26,14 @@
         @RenderSection("TopScripts", required: false)
         @ViewHelpers.ReleaseMeta()
         @ViewHelpers.InstrumentationScript()
+
+        @ViewHelpers.CookieComplianceScripts()
     </head>
     <body class="s-noclickonce">
+        @if (Cookies.NeedsConsentForNonEssentialCookies(Request))
+        {
+            @Html.Raw(Cookies.GetConsentMarkup());
+        }
         @if (!string.IsNullOrWhiteSpace(Config.Current.WarningBanner))
         {
             <div id="service-alert">

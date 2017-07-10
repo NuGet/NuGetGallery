@@ -21,6 +21,7 @@ using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
 using NuGetGallery.Configuration.SecretReader;
+using NuGetGallery.Cookies;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Authentication;
@@ -283,6 +284,8 @@ namespace NuGetGallery
 
             RegisterAuditingServices(builder, defaultAuditingService);
 
+            RegisterCookieComplianceService(builder, configuration, diagnosticsService);
+
             builder.RegisterType<FileSystemService>()
                 .AsSelf()
                 .As<IFileSystemService>()
@@ -486,27 +489,46 @@ namespace NuGetGallery
             return new AggregateAuditingService(services);
         }
 
-        private static void RegisterAuditingServices(ContainerBuilder builder, IAuditingService defaultAuditingService)
+        private static IEnumerable<T> GetAddInServices<T>(ContainerBuilder builder)
         {
             var addInsDirectoryPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "bin", "add-ins");
 
             using (var serviceProvider = RuntimeServiceProvider.Create(addInsDirectoryPath))
             {
-                var auditingServices = serviceProvider.GetExportedValues<IAuditingService>();
-                var services = new List<IAuditingService>(auditingServices);
-
-                if (defaultAuditingService != null)
-                {
-                    services.Add(defaultAuditingService);
-                }
-
-                var service = CombineServices(services);
-
-                builder.RegisterInstance(service)
-                    .AsSelf()
-                    .As<IAuditingService>()
-                    .SingleInstance();
+                return serviceProvider.GetExportedValues<T>();
             }
+        }
+
+        private static void RegisterAuditingServices(ContainerBuilder builder, IAuditingService defaultAuditingService)
+        {
+            var auditingServices = GetAddInServices<IAuditingService>(builder);
+            var services = new List<IAuditingService>(auditingServices);
+
+            if (defaultAuditingService != null)
+            {
+                services.Add(defaultAuditingService);
+            }
+
+            var service = CombineServices(services);
+
+            builder.RegisterInstance(service)
+                .AsSelf()
+                .As<IAuditingService>()
+                .SingleInstance();
+        }
+
+        private static void RegisterCookieComplianceService(ContainerBuilder builder, ConfigurationService configuration, DiagnosticsService diagnostics)
+        {
+            var service = GetAddInServices<ICookieComplianceService>(builder).FirstOrDefault() ?? new NullCookieComplianceService();
+            
+            builder.RegisterInstance(service)
+                .AsSelf()
+                .As<ICookieComplianceService>()
+                .SingleInstance();
+            
+            // Initialize the service on App_Start to avoid any performance degradation during initial requests.
+            var siteName = configuration.GetSiteRoot(true);
+            HostingEnvironment.QueueBackgroundWorkItem(async cancellationToken => await service.InitializeAsync(siteName, diagnostics));
         }
     }
 }

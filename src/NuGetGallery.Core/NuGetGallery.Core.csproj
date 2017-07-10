@@ -143,9 +143,14 @@
     <Compile Include="Auditing\PackageAuditRecord.cs" />
     <Compile Include="Auditing\ScopeAuditRecord.cs" />
     <Compile Include="Auditing\UserAuditRecord.cs" />
+    <Compile Include="Cookies\CookieComplianceServiceBase.cs" />
+    <Compile Include="Cookies\ICookieComplianceService.cs" />
+    <Compile Include="Cookies\NullCookieComplianceService.cs" />
     <Compile Include="CoreConstants.cs" />
     <Compile Include="CredentialTypes.cs" />
     <Compile Include="Completion.cs" />
+    <Compile Include="Diagnostics\IDiagnosticsService.cs" />
+    <Compile Include="Diagnostics\IDiagnosticsSource.cs" />
     <Compile Include="DisposableAction.cs" />
     <Compile Include="Entities\Credential.cs" />
     <Compile Include="Entities\CuratedFeed.cs" />
