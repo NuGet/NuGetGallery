@@ -864,13 +864,6 @@ namespace NuGetGallery
                 });
         }
 
-        // This is the page that explains why there's no download link.
-        [HttpGet]
-        public virtual ActionResult Download()
-        {
-            return View();
-        }
-
         [HttpGet]
         [Authorize]
         public virtual ActionResult ManagePackageOwners(string id)
