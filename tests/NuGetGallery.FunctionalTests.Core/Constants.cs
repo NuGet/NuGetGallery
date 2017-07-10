@@ -27,7 +27,7 @@ namespace NuGetGallery.FunctionalTests
         public const string ReadOnlyModeRegisterNewUserText = "503 : Please try again later! (Read-only)";
         public const string SearchTerm = "elmah";
         public const string CreateNewAccountText = "Create A New Account";
-        public const string StatsPageDefaultText = "Download statistics displayed on this page reflect the actual package downloads from the NuGet.org site";
+        public const string StatsPageDefaultText = "Statistics last updated at";
         public const string ContactOwnersText = "Your message has been sent to the owners of";
         public const string UnListedPackageText = "This package is unlisted and hidden from package listings";
         public const string TestPackageId = "BaseTestPackage";
