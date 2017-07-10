@@ -88,6 +88,11 @@
                                                 <span class="dropdown-email">@CurrentUser.EmailAddress.Abbreviate(35)</span>
                                             </div>
                                         </li>
+                                        @if (Request.IsAuthenticated && User.IsInRole(Constants.AdminRoleName))
+                                        {
+                                            <li class="divider"></li>
+                                            <li role="presentation"><a href="@Url.Action("Index", "Home", new { area = "Admin" })" role="menuitem">Admin</a></li>
+                                        }
                                         <li class="divider"></li>
                                         <li role="presentation"><a href="@Url.User(CurrentUser.Username)" role="menuitem">View Profile</a></li>
                                         <li role="presentation"><a href="@Url.AccountSettings()" role="menuitem">Account Settings</a></li>
