@@ -128,8 +128,6 @@
     <div class="alert-transient @(ViewBag.HasJumbotron == true ? "alert-transient-jumbotron" : string.Empty)">
         <div class="container">
             <div class="row">
-                @{ 
-                }
                 <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
                     @ViewHelpers.AlertInfo(@<text>@TempData["Message"]</text>)
                 </div>
