@@ -189,7 +189,14 @@
 
 @helper GravatarImage(string email, string username, int size)
 {
-    @GravatarHelper.Image(email, size, attributes: new { width = size, height = size, title = username, @class = "owner-image" });
+    @GravatarImage(email, username, size, responsive: false);
+}
+
+@helper GravatarImage(string email, string username, int size, bool responsive)
+{
+    var classAttribute = responsive ? "owner-image img-responsive" : "owner-image";
+
+    @GravatarHelper.Image(email, size, attributes: new { width = size, height = size, title = username, @class = classAttribute });
 }
 
 @helper WriteMeta(string name, string val) {
