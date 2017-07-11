@@ -180,4 +180,7 @@
   <data name="Manifest_InvalidDependencyVersion" xml:space="preserve">
     <value>The package manifest contains an invalid Dependency Version: '{0}'</value>
   </data>
+  <data name="CookieComplianceServiceNotInitialized" xml:space="preserve">
+    <value>The cookie compliance service is not initialized.</value>
+  </data>
 </root>

@@ -14,6 +14,8 @@ namespace NuGetGallery.Cookies
     /// </summary>
     public abstract class CookieComplianceServiceBase : ICookieComplianceService
     {
+        private const string DiagnosticsSourceName = "CookieComplianceService";
+
         private string _siteName;
         private IDiagnosticsSource _diagnostics;
 
@@ -21,7 +23,7 @@ namespace NuGetGallery.Cookies
         {
             get
             {
-                return _siteName ?? throw new InvalidOperationException("Cookie compliance service has not been initialized");
+                return _siteName ?? throw new InvalidOperationException(CoreStrings.CookieComplianceServiceNotInitialized);
             }
         }
 
@@ -29,7 +31,7 @@ namespace NuGetGallery.Cookies
         {
             get
             {
-                return _diagnostics ?? throw new InvalidOperationException("Cookie compliance service has not been initialized");
+                return _diagnostics ?? throw new InvalidOperationException(CoreStrings.CookieComplianceServiceNotInitialized);
             }
         }
 
@@ -44,7 +46,7 @@ namespace NuGetGallery.Cookies
         public virtual Task InitializeAsync(string siteName, IDiagnosticsService diagnostics)
         {
             _siteName = siteName;
-            _diagnostics = diagnostics.GetSource("CookieComplianceService");
+            _diagnostics = diagnostics.GetSource(DiagnosticsSourceName);
             return Task.Delay(0);
         }
         
