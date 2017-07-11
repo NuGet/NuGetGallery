@@ -8,6 +8,8 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("NuGetGallery.Core")]
+[assembly: InternalsVisibleTo("NuGetGallery.Core.Facts")]
+
 [assembly: AssemblyCompany(".NET Foundation")]
 [assembly: AssemblyProduct("NuGet Services")]
 [assembly: AssemblyCopyright("\x00a9 .NET Foundation. All rights reserved.")]

@@ -17,7 +17,7 @@ namespace NuGetGallery.Cookies
         private string _siteName;
         private IDiagnosticsSource _diagnostics;
 
-        protected string SiteName
+        protected internal string SiteName
         {
             get
             {
@@ -25,7 +25,7 @@ namespace NuGetGallery.Cookies
             }
         }
 
-        protected IDiagnosticsSource Diagnostics
+        protected internal IDiagnosticsSource Diagnostics
         {
             get
             {
@@ -33,7 +33,7 @@ namespace NuGetGallery.Cookies
             }
         }
 
-        protected string Locale
+        protected internal string Locale
         {
             get
             {
