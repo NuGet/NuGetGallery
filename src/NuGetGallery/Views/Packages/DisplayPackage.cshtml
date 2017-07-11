@@ -73,9 +73,9 @@
                 <small class="text-nowrap">@Model.FullVersion</small>
             </h1>
 
-            @foreach (var line in Model.Description.ToStringSafe().Split('\n'))
+            @if (!String.IsNullOrWhiteSpace(Model.Description))
             {
-                <p>@line</p>
+                <p>@Html.PreFormattedText(Model.Description)</p>
             }
 
             @if (!string.IsNullOrEmpty(Model.PolicyMessage))
@@ -202,8 +202,7 @@
             @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
             {
                 <h2>Release Notes</h2>
-
-                // Not actually using <pre/> because its better to have wrapping text
+                
                 <p>@Html.PreFormattedText(Model.ReleaseNotes)</p>
             }
 

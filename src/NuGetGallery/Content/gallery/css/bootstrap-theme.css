@@ -888,6 +888,94 @@ img.package-icon {
 .page-stats-per-package #stats-graph-svg .bartext {
   font-size: 1em;
 }
+.page-status .status-general {
+  padding: 13px;
+  margin-bottom: 24px;
+}
+.page-status .status-general p {
+  margin: 0;
+}
+.page-status .status-general i {
+  vertical-align: middle;
+}
+.page-status .status-general .text-span {
+  font-size: 1.5em;
+  vertical-align: middle;
+}
+.page-status .status-general .last-checked {
+  margin-left: 10px;
+}
+.page-status .status-up {
+  background-color: #d1f0d5;
+}
+.page-status .status-down {
+  background-color: #fde7e9;
+}
+.page-status .status-down .ms-Icon {
+  color: red;
+}
+.page-status .status-degraded {
+  background-color: #fff4ce;
+}
+.page-status .status-degraded .ms-Icon {
+  color: orange;
+}
+.page-status .latest-updates + p {
+  margin-top: 24px;
+}
+.page-status .ms-Icon {
+  margin-right: 10px;
+  font-size: 1.25em;
+}
+.page-status .ms-Icon--CheckMark {
+  color: green;
+}
+.page-status .ms-Icon--Warning {
+  color: yellow;
+}
+.page-status .ms-Icon--Cancel {
+  color: red;
+}
+.page-status .table thead th:nth-child(1) {
+  width: 50%;
+}
+.page-status .table thead th:nth-child(2) {
+  width: 30%;
+}
+.page-status .table thead th:nth-child(3) {
+  width: 20%;
+}
+.page-status .table tbody {
+  border: none;
+}
+.page-status .table tbody tr td {
+  vertical-align: middle;
+}
+.page-status .table tbody tr td .nonaggregate {
+  margin-left: 20px;
+}
+.page-status .table tbody tr td i {
+  vertical-align: middle;
+}
+.page-status .table tbody tr td span {
+  vertical-align: middle;
+}
+.page-status .table tbody.aggregate tr td:first-child {
+  font-size: 1.5em;
+}
+.page-status .table tbody.aggregate tr td:first-child a,
+.page-status .table tbody.aggregate tr td:first-child a:hover,
+.page-status .table tbody.aggregate tr td:first-child a:focus,
+.page-status .table tbody.aggregate tr td:first-child a:active {
+  color: #000;
+  text-decoration: none;
+}
+.page-status .table tbody.aggregate tr td:first-child .ms-Icon {
+  font-size: .75em;
+}
+.page-status .table tbody + tbody {
+  border: none;
+}
 .page-upload #browse-for-package-button {
   margin: 0;
 }

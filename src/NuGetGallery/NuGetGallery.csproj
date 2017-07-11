@@ -1950,7 +1950,6 @@
     <Content Include="Views\Packages\ReportAbuse.cshtml" />
     <Content Include="Views\Packages\UploadPackage.cshtml" />
     <Content Include="Views\Shared\_ListPackage.cshtml" />
-    <Content Include="Views\Shared\EditorTemplates\Object.cshtml" />
     <Content Include="Views\Shared\Layout.cshtml" />
     <Content Include="Views\Shared\UserDisplay.cshtml" />
     <Content Include="Views\Users\Packages.cshtml" />
@@ -1960,7 +1959,6 @@
     <Content Include="Views\Users\PasswordSent.cshtml" />
     <Content Include="Views\Users\ResetPassword.cshtml" />
     <Content Include="Views\Users\Account.cshtml" />
-    <Content Include="Views\Packages\Download.cshtml" />
     <Content Include="Views\Packages\ConfirmOwner.cshtml" />
     <Content Include="Views\Errors\NotFound.cshtml" />
     <Content Include="Views\Packages\Delete.cshtml" />
@@ -1972,7 +1970,6 @@
     <Content Include="Views\CuratedPackages\CreateCuratedPackageForm.cshtml" />
     <Content Include="Views\Users\ConfirmationRequired.cshtml" />
     <Content Include="Views\Pages\Contact.cshtml" />
-    <Content Include="T4MVC.tt.settings.t4" />
     <Content Include="Scripts\jquery-1.11.0.min.map" />
   </ItemGroup>
   <ItemGroup>

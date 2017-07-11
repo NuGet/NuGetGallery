@@ -137,8 +137,7 @@
         <div class="row">
             <div class="col-sm-1">
                 <img class="package-icon img-responsive" aria-hidden="true" alt=""
-                     width="51" height="51"
-                     data-bind="attr: { src: IconUrl }" />
+                     data-bind="attr: { src: IconUrl, onerror: IconUrlFallback }" />
             </div>
             <div class="col-sm-11">
                 <h3 data-bind="text: Description"></h3>
@@ -461,10 +460,14 @@
                          EditUrl = Url.Action("EditCredential", "Users"),
                          GenerateUrl = Url.Action("GenerateApiKey", "Users"),
                          ImageUrls = new {
-                             ApiKey = Url.Absolute("~/Content/gallery/img/api-key.png"),
-                             ApiKeyExpired = Url.Absolute("~/Content/gallery/img/api-key-expired.png"),
-                             ApiKeyLegacy = Url.Absolute("~/Content/gallery/img/api-key-legacy.png"),
-                             ApiKeyNew = Url.Absolute("~/Content/gallery/img/api-key-new.png"),
+                             ApiKey = Url.Absolute("~/Content/gallery/img/api-key.svg"),
+                             ApiKeyFallback = Url.Absolute("~/Content/gallery/img/api-key-256x256.png"),
+                             ApiKeyExpired = Url.Absolute("~/Content/gallery/img/api-key-expired.svg"),
+                             ApiKeyExpiredFallback = Url.Absolute("~/Content/gallery/img/api-key-expired-256x256.png"),
+                             ApiKeyLegacy = Url.Absolute("~/Content/gallery/img/api-key-legacy.svg"),
+                             ApiKeyLegacyFallback = Url.Absolute("~/Content/gallery/img/api-key-legacy-256x256.png"),
+                             ApiKeyNew = Url.Absolute("~/Content/gallery/img/api-key-new.svg"),
+                             ApiKeyNewFallback = Url.Absolute("~/Content/gallery/img/api-key-new-256x256.png"),
                          }
                      }));
     </script>
