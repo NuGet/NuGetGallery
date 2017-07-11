@@ -295,6 +295,9 @@ img.package-icon {
     margin-left: 0;
   }
 }
+.list-packages .package .manage-package {
+  margin-bottom: 0;
+}
 .list-packages .package .package-details {
   margin-top: 10px;
   line-height: 20px;

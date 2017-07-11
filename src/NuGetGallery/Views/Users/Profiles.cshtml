@@ -7,8 +7,8 @@
 
 <div class="container main-container page-profile">
     <section role="main" class="row">
-        <aside class="col-md-4 col-md-push-8 profile-details">
-            @ViewHelpers.GravatarImage(Model.EmailAddress ?? Model.UnconfirmedEmailAddress, Model.Username, 332)
+        <aside class="col-md-3 col-md-push-9 profile-details">
+            @ViewHelpers.GravatarImage(Model.EmailAddress ?? Model.UnconfirmedEmailAddress, Model.Username, 332, responsive: true)
 
             <div class="statistics">
                 <div class="statistic">
@@ -21,7 +21,7 @@
                 </div>
             </div>
         </aside>
-        <article class="col-md-8 col-md-pull-4">
+        <article class="col-md-9 col-md-pull-3">
             <div class="profile-title">
                 <h1>@Model.Username</h1>
 
