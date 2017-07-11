@@ -3,11 +3,11 @@
 	<div class="collapse in" id="readme-package-form">
 		<div class="text-center">
 			<div class="row">
-				<h4 class="">
-					Here you can add a ReadMe.md file that will be displayed on the NuGet Gallery website.
+				<h5 class="">
+					Here you can add a markdown-enabled ReadMe file that will be displayed on the NuGet Gallery website.
 					Please choose one of the options below in order to import a ReadMe file, or to write your
 					own. If you are not interested in having a ReadMe file, skip this section.
-				</h4>
+				</h5>
 			</div>
 			<div class="btn-group readme-btn-group row" style="padding-bottom:3em; padding-top:1.5em;" data-toggle="buttons">
 				<label class="btn btn-primary active" id="readme-url-btn">
@@ -20,16 +20,14 @@
 					<input type="radio" value="Written" name="ReadMe.ReadMeType" autocomplete="off"> Write Your Own
 				</label>
 			</div>
-			<div class="readme-url col-lg-12">
-				<div class="input-group">
+			<div class="readme-url row">
+				<div class="input-group col-xs-12">
 
 					<input type="url" data-bind="value: ReadMe.ReadMeUrl" name="ReadMe.ReadMeUrl" pattern="[-a-zA-Z0-9:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9:%_\+.~#?&//=]*).md$" class="form-control" id="ReadMeUrlInput" placeholder="Enter the URL to your raw ReadMe file..." />
-					<label id="ReadMeURLLabel" class="input-group-btn">
-						<span class="btn btn-primary form-control">Import</span>
-					</label>
+					<label id="ReadMeURLLabel" class="input-group-btn"></label>
 				</div>
 			</div>
-			<div class="readme-file col-lg-12">
+			<div class="readme-file row">
 				<div class="input-group col-xs-12">
 					<input type="text" id="readme-select-feedback" class="form-control" placeholder="Browse to select a ReadMe file..." readonly />
 					<label for="readme-select-file" id="ReadMeFileLabel" class="input-group-btn">
