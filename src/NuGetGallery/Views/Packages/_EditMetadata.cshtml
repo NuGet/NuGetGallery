@@ -92,10 +92,10 @@
 
                 <div class="verify-package-field form-group readonly">
                     <div class="verify-package-field-heading">Dependencies</div>
-                    <!-- ko if: $data.Dependencies -->
+                    <!-- ko if: $data.Dependencies && $data.Dependencies.DependencySets.length > 0 -->
                     <div data-bind="template: {name: 'display-dependencysets', data: { DependencySets: Dependencies.DependencySets, OnlyHasAllFrameworks: Dependencies.OnlyHasAllFrameworks }}"></div>
                     <!-- /ko -->
-                    <!-- ko ifnot: $data.Dependencies -->
+                    <!-- ko ifnot: $data.Dependencies && $data.Dependencies.DependencySets.length > 0  -->
                     <p><i>(none specified)</i></p>
                     <!-- /ko -->
                 </div>

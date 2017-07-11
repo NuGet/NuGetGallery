@@ -82,6 +82,14 @@ body h3 {
 .btn-search {
   height: 36px;
 }
+.icon-link:hover,
+.icon-link:focus {
+  text-decoration: none;
+}
+.icon-link:hover span,
+.icon-link:focus span {
+  text-decoration: underline;
+}
 .dependency-groups h4 > span {
   margin-bottom: 3px;
   border-bottom: 1px solid #d8d8d8;
@@ -470,10 +478,6 @@ img.package-icon {
   padding-left: 16px;
   margin-left: 16px;
   border-left: 1px solid #dbdbdb;
-}
-.page-api-keys .api-key-details .icon-buttons a:focus,
-.page-api-keys .api-key-details .icon-buttons a:hover {
-  text-decoration: none;
 }
 .page-package-details .no-border {
   border: 0;
@@ -971,5 +975,8 @@ img.package-icon {
 }
 .page-status .table tbody + tbody {
   border: none;
+}
+.page-upload #browse-for-package-button {
+  margin: 0;
 }
 /*# sourceMappingURL=bootstrap-theme.css.map */
