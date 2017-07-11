@@ -479,10 +479,6 @@ img.package-icon {
   margin-left: 16px;
   border-left: 1px solid #dbdbdb;
 }
-.page-api-keys .api-key-details .icon-buttons a:focus,
-.page-api-keys .api-key-details .icon-buttons a:hover {
-  text-decoration: none;
-}
 .page-package-details .no-border {
   border: 0;
 }
