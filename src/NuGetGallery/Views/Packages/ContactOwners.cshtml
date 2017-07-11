@@ -1,12 +1,13 @@
 ﻿@model ContactOwnersViewModel
 @{
     ViewBag.Tab = "Packages";
+    ViewBag.MdPageColumns = Constants.ColumnsFormMd;
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
 <section role="main" class="container main-container page-contact-owners">
     <div class="row">
-        <div class="col-sm-offset-1 col-sm-10">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             <h1 class="text-center">Contact the Owners of <a href="@Url.Package(Model.PackageId)">@Model.PackageId.Abbreviate(50)</a></h1>
             @if (Model.Owners.Any())
             {

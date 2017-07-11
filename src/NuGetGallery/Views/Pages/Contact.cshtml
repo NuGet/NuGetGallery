@@ -2,25 +2,25 @@
 @model ContactSupportViewModel
 @{
     ViewBag.Title = "Contact";
+    ViewBag.MdPageColumns = Constants.ColumnsFormMd;
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
 <section role="main" class="container main-container">
     <div class="row">
-        <div class="col-sm-12">
+        <div class="col-xs-12 text-center">
             <h1>Contact</h1>
             <span class="page-subheading ms-fontSize-l">Need help with NuGet? Let us know!</span>
         </div>
     </div>
     <div class="row">
-        <div class="col-sm-6">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             <h2 class="ms-fontSize-xl ms-fontWeight-semibold">Having problems using a specific package?</h2>
             <p>
                 If you're having trouble installing a specific package, try contacting the owner of that package first.
                 You can reach them using the "Contact Owners" link on the package details page.
             </p>
-        </div>
-        <div class="col-sm-6">
+
             <h2 class="ms-fontSize-xl ms-fontWeight-semibold">Found a bug in NuGet or the website NuGet.org?</h2>
             <p>
                 If you're having trouble with the <strong>NuGet.org Website</strong>,
@@ -28,50 +28,39 @@
                 If you're having trouble with the <strong>NuGet client tools</strong> (the Visual Studio extension, NuGet.exe command line tool, .NET CLI restore etc.),
                 file a bug on the NuGet Client <a href="https://github.com/NuGet/Home/issues">Issue Tracker</a>.
             </p>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-sm-6">
+
             <h2 class="ms-fontSize-xl ms-fontWeight-semibold">Is a package violating a license or otherwise abusive?</h2>
             <p>
                 If you feel that a package is violating the license of software you own or is violating our terms of service,
                 use the "Report Abuse" link on the package details page to report it directly to us.
             </p>
-        </div>
-        <div class="col-sm-6">
+
             <h2 class="ms-fontSize-xl ms-fontWeight-semibold">Want to change your NuGet.org username?</h2>
             <p>
                 No need to contact support. Create a new user and transfer ownership of your packages to it.
             </p>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-sm-6">
+
             <h2 class="ms-fontSize-xl ms-fontWeight-semibold">Having issues working with NuGet.org?</h2>
             <p>
                 Before reaching out to NuGet support, check out the
                 <a href="https://docs.nuget.org/consume/nuget-faq#managing-packages-in-nuget.org"><abbr title="Frequently Asked Questions">FAQ</abbr></a>.
             </p>
-        </div>
-        @if (!User.Identity.IsAuthenticated)
-        {
-            <div class="col-sm-6">
+
+            @if (!User.Identity.IsAuthenticated)
+            {
                 <h2 class="ms-fontSize-xl ms-fontWeight-semibold">The above doesn't help? @Html.ActionLink("Sign in", "LogOn", new { controller = "Authentication", ReturnUrl = "/policies/Contact" }) to contact Support.</h2>
                 <p>
                     Need help with your NuGet.org account? Please feel free to <span id="emailUs"></span>.
                 </p>
-            </div>
-        }
-    </div>
-    @if(User.Identity.IsAuthenticated)
-    {
-        <div class="row">
-            <div class="col-sm-offset-2 col-sm-8">
+            }
+            else
+            {
                 <h2 class="ms-fontSize-xl ms-fontWeight-semibold">The above doesn't help? Get in touch with us using the form below</h2>
                 <p>
                     A member of our Support team will be in touch with you soon.
                 </p>
-                @using (Html.BeginForm("Contact", "Pages"))
+
+                using (Html.BeginForm("Contact", "Pages"))
                 {
                     <fieldset class="form">
                         @Html.AntiForgeryToken()
@@ -95,9 +84,9 @@
                         </div>
                     </fieldset>
                 }
-            </div>
+            }
         </div>
-    }
+    </div>
 </section>
 
 @section BottomScripts {

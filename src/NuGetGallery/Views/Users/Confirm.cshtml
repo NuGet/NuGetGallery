@@ -2,6 +2,8 @@
 @{
     var titleString = Model.ConfirmingNewAccount ? "Account" : "Email";
     ViewBag.Title = "Confirm Your " + titleString;
+    ViewBag.SmPageColumns = Constants.ColumnsAuthenticationSm;
+    ViewBag.MdPageColumns = Constants.ColumnsAuthenticationMd;
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
@@ -19,7 +21,7 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-xs-4 col-xs-offset-4">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             @if (Model.SuccessfulConfirmation)
             {
                 <p class="text-center">

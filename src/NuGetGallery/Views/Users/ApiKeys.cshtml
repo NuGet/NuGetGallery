@@ -3,6 +3,7 @@
 
 @{
     ViewBag.Title = "API Keys";
+    ViewBag.MdPageColumns = Constants.ColumnsFormMd;
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
@@ -32,7 +33,7 @@
         @Html.AntiForgeryToken()
     </form>
     <div class="row">
-        <div class="col-md-10 col-md-offset-1">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             <h1 class="text-center">API Keys</h1>
             <p>
                 An API key is a token that can identify you to @(Config.Current.Brand). The
@@ -188,7 +189,7 @@
                 <b>Glob pattern:</b> <span data-bind="text: GlobPattern"></span>
                 <br />
                 <!-- /ko -->
-                <ul class="list-inline icon-buttons" role="presentation">
+                <ul class="package-list" role="presentation">
                     <!-- ko if: Value -->
                     <li>
                         <a class="icon-link" href="#" role="button" data-content="Copied."

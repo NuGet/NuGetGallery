@@ -2,12 +2,13 @@
 @{
     ViewBag.Title = "Delete Package";
     ViewBag.Tab = "Packages";
+    ViewBag.MdPageColumns = Constants.ColumnsFormMd;
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
 <section class="container main-container page-delete-package">
     <div class="row">
-        <div class="col-md-10 col-md-offset-1">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             <h1 class="text-center">Manage Package Listing</h1>
             <div class="text-center ms-font-xxl">
                 <a href="@Url.Package(Model.Id, Model.Version)">@Model.Title.Abbreviate(40)</a>

@@ -2,13 +2,14 @@
 @model ReportAbuseViewModel
 @{
     ViewBag.Tab = "Packages";
+    ViewBag.MdPageColumns = Constants.ColumnsFormMd;
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
     string returnUrl = ViewData.ContainsKey(Constants.ReturnUrlViewDataKey) ? (string)ViewData[Constants.ReturnUrlViewDataKey] : Request.RawUrl;
 }
 
 <section class="container main-container page-report-abuse">
     <div class="row report-form">
-        <div class="col-md-offset-1 col-md-10">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             <h1 class="page-heading text-center">Report Abuse by <a href="@Url.Package(@Model.PackageId, Model.PackageVersion)">@Model.PackageId @Model.PackageVersion</a></h1>
 
             @ViewHelpers.AlertWarning(isAlertRole: true, htmlContent:

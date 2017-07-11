@@ -2,12 +2,13 @@
 @model ReportMyPackageViewModel
 @{
     ViewBag.Tab = "Packages";
+    ViewBag.MdPageColumns = Constants.ColumnsFormMd;
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
 <div class="container main-container page-report-abuse">
     <div class="row report-form">
-        <div class="col-md-offset-1 col-md-10">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             <h1 class="page-heading text-center">Contact Support about <a href="@Url.Package(@Model.PackageId, Model.PackageVersion)">@Model.PackageId @Model.PackageVersion</a></h1>
             @using (Html.BeginForm())
             {

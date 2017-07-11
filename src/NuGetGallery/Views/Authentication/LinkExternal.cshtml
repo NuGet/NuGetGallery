@@ -2,6 +2,8 @@
 @{
     ViewBag.Title = "Sign In";
     ViewBag.Tab = "Sign in";
+    ViewBag.SmPageColumns = Constants.ColumnsAuthenticationSm;
+    ViewBag.MdPageColumns = Constants.ColumnsAuthenticationMd;
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 
     // Show the sign in container if we found and existing user or if there are sign in errors.
@@ -24,7 +26,7 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-sm-offset-4 col-sm-4">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             <p class="text-center">
                 @if (Model.External.FoundExistingUser)
                 {
@@ -54,7 +56,7 @@
         </div>
     </div>
     <div class="row @(showChoiceContainer ? string.Empty : "hidden")" aria-hidden="@(showChoiceContainer ? "false" : "true")" id="choice-container">
-        <div class="col-sm-offset-4 col-sm-4">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             <div class="form-group">
                 <a class="btn btn-primary btn-block" href="#" role="button" id="show-sign-in">Connect to an existing NuGet.org account</a>
                 <b class="or-row center-block text-center">OR</b>
@@ -63,12 +65,12 @@
         </div>
     </div>
     <div class="row @(showSignInContainer ? string.Empty : "hidden")" aria-hidden="@(showSignInContainer ? "false" : "true")" id="sign-in-container">
-        <div class="col-sm-offset-4 col-sm-4">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             @Html.Partial("_SignIn", Model)
         </div>
     </div>
     <div class="row @(showRegisterContainer ? string.Empty : "hidden")" aria-hidden="@(showRegisterContainer ? "false" : "true")" id="register-container">
-        <div class="col-sm-offset-4 col-sm-4">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             @Html.Partial("_Register", Model)
         </div>
     </div>

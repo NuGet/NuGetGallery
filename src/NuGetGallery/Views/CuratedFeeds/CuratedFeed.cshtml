@@ -1,6 +1,7 @@
 ﻿@model CuratedFeedViewModel
 @{
     ViewBag.Title = "Curated Feed: " + Model.Name;
+    ViewBag.MdPageColumns = Constants.ColumnsFormMd;
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
@@ -11,7 +12,7 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-md-10 col-md-offset-1">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             <div class="row">
                 <div class="col-md-12">
                     <h2>

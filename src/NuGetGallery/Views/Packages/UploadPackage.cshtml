@@ -2,12 +2,13 @@
 @{
     ViewBag.Title = "Upload Package";
     ViewBag.Tab = "Upload";
+    ViewBag.MdPageColumns = Constants.ColumnsFormMd;
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
 <div class="page-upload container main-container" role="main">
     <div class="row">
-        <div class="col-xs-10 col-xs-offset-1">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             <h1 class="page-heading text-center">Upload Your Package</h1>
             <div class="page-subheading text-center">
                 <p class="message">Your package file will be uploaded and hosted on the @(Config.Current.Brand) server (@(Config.Current.SiteRoot)).</p>

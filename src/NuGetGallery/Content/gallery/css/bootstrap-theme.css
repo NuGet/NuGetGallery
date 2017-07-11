@@ -82,6 +82,10 @@ body h3 {
 .btn-search {
   height: 36px;
 }
+.icon-link .ms-Icon {
+  position: relative;
+  top: 2px;
+}
 .icon-link:hover,
 .icon-link:focus {
   text-decoration: none;
@@ -115,6 +119,7 @@ body h3 {
   color: #23527c;
 }
 .banner {
+  padding-top: 5px;
   padding-bottom: 10px;
 }
 .banner span {
@@ -123,8 +128,7 @@ body h3 {
 }
 .banner .ms-Icon {
   position: relative;
-  top: .25em;
-  font-size: 1.75em;
+  top: 2px;
 }
 .banner.banner-bright {
   background: yellow;
@@ -179,6 +183,29 @@ h3 a:active {
 img.package-icon {
   margin-right: auto;
   margin-left: auto;
+}
+.package-list {
+  padding-left: 0;
+  margin-top: 10px;
+  margin-left: -5px;
+  line-height: 20px;
+  color: #666;
+}
+.package-list li {
+  display: list-item;
+  list-style: none;
+}
+@media (min-width: 480px) {
+  .package-list li {
+    display: inline-block;
+  }
+  .package-list li + li {
+    padding-left: 10px;
+    margin-left: 10px;
+    border-color: #dbdbdb;
+    border-width: 1px;
+    border-left-style: solid;
+  }
 }
 .icon-bar {
   border: 1px solid #fff;
@@ -266,29 +293,6 @@ img.package-icon {
   .list-packages .package .package-header .package-by {
     display: block;
     margin-left: 0;
-  }
-}
-.list-packages .package .package-list {
-  padding-left: 0;
-  margin-top: 10px;
-  margin-left: -5px;
-  line-height: 20px;
-  color: #666;
-}
-.list-packages .package .package-list li {
-  display: list-item;
-  list-style: none;
-}
-@media (min-width: 480px) {
-  .list-packages .package .package-list li {
-    display: inline-block;
-  }
-  .list-packages .package .package-list li + li {
-    padding-left: 10px;
-    margin-left: 10px;
-    border-color: #dbdbdb;
-    border-width: 1px;
-    border-left-style: solid;
   }
 }
 .list-packages .package .package-details {
@@ -384,7 +388,7 @@ img.package-icon {
   margin-bottom: 10px;
 }
 .page-account-settings .form-section-title {
-  margin-top: 10px;
+  margin-top: 40px;
 }
 @media (min-width: 768px) {
   .page-account-settings .form-section-title {
@@ -393,13 +397,19 @@ img.package-icon {
   }
 }
 .page-account-settings .form-section-data {
-  margin-top: 10px;
+  margin-top: 40px;
 }
 @media (min-width: 768px) {
   .page-account-settings .form-section-data {
     float: right;
     text-align: right;
   }
+}
+.page-account-settings .panel {
+  margin-top: 5px;
+}
+.page-account-settings .form-group + .form-group .btn {
+  margin-top: 20px;
 }
 .page-api-keys .example-commands {
   padding: 8px 10px;
@@ -466,31 +476,21 @@ img.package-icon {
   margin-left: 10px;
   border-left: 1px solid #dbdbdb;
 }
-.page-api-keys .api-key-details .icon-buttons {
-  margin: 10px 0;
-  font-size: 1.2em;
-  color: #666;
-}
-.page-api-keys .api-key-details .icon-buttons li {
-  padding: 0;
-}
-.page-api-keys .api-key-details .icon-buttons li + li {
-  padding-left: 16px;
-  margin-left: 16px;
-  border-left: 1px solid #dbdbdb;
-}
 .page-package-details .no-border {
   border: 0;
-}
-.page-package-details .btn-expander:hover,
-.page-package-details .btn-expander:focus {
-  text-decoration: none;
 }
 .page-package-details .package-details-info .ms-Icon-ul li {
   margin-bottom: 15px;
 }
 .page-package-details .owner-list li {
   margin-bottom: 8px;
+}
+.page-package-details .owner-list img {
+  margin-right: 8px;
+}
+.page-package-details .share-buttons img {
+  display: inline-block;
+  margin-right: 8px;
 }
 .page-package-details .install-tabs {
   font-size: .8em;
@@ -526,7 +526,7 @@ img.package-icon {
   display: table-cell;
   width: 100%;
   max-width: 1px;
-  padding: 8px 10px;
+  padding: 0 10px 8px 10px;
   font-family: Consolas, Menlo, Monaco, "Courier New", monospace;
   line-height: 1.5;
   color: #fff;
@@ -541,7 +541,7 @@ img.package-icon {
 }
 .page-package-details .install-tabs .tab-pane .copy-button button {
   height: 100%;
-  min-height: 40px;
+  min-height: 42px;
   line-height: 1.5;
   vertical-align: baseline;
 }

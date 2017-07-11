@@ -104,12 +104,19 @@ body {
   height: 36px;
 }
 
-.icon-link:hover, .icon-link:focus {
-    text-decoration: none;
+.icon-link {
+  .ms-Icon {
+    position: relative;
+    top: 2px;
+  }
+}
 
-    span {
-        text-decoration: underline;
-    }
+.icon-link:hover, .icon-link:focus {
+  text-decoration: none;
+
+  span {
+    text-decoration: underline;
+  }
 }
 
 .dependency-groups {
@@ -155,6 +162,7 @@ body {
 
 .banner {
   padding-bottom: 10px;
+  padding-top: 5px;
 
   span {
     font-size: 1.25em;
@@ -162,9 +170,8 @@ body {
   }
 
   .ms-Icon {
-    font-size: 1.75em;
     position: relative;
-    top: 0.25em;
+    top: 2px;
   }
 
   &.banner-bright {
@@ -230,6 +237,33 @@ h2, h3 {
 img.package-icon {
   margin-left: auto;
   margin-right: auto;
+}
+
+.package-list {
+  margin-top: @padding-large-vertical;
+  margin-left: -5px;
+  padding-left: 0;
+  line-height: 20px;
+  color: @gray-light;
+
+  li {
+    list-style: none;
+    display: list-item;
+  }
+
+  @media (min-width: @screen-xs-min) {
+    li {
+      display: inline-block;
+    }
+
+    li + li {
+      margin-left: @padding-small-horizontal;
+      padding-left: @padding-small-horizontal;
+      border-left-style: solid;
+      border-width: 1px;
+      border-color: @gray-lighter;
+    }
+  }
 }
 
 // Make the hamburger button visible on high contrast.

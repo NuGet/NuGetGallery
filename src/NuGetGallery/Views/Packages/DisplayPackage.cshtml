@@ -93,8 +93,7 @@
                         @<text>
                             An edit is pending for this package version. You are seeing the <em>edited</em> package description now.
                             These changes will be applied to the package file and become visible to everybody soon unless you
-                            <input type="submit" value="undo pending edits" title="undo pending edits" style="display: inline; width: 200px; font-size: 1em;" />
-                            first.
+                            <a href="#" role="button" id="undo-pending-edits">undo pending edits</a> first.
                         </text>
                     )
                 }
@@ -223,15 +222,18 @@
             }
             else
             {
+                <h2>
+                    <a href="#" role="button" data-toggle="collapse" data-target="#dependency-groups"
+                       aria-expanded="@(Model.Dependencies.DependencySets.Any() ? "false" : "true")" aria-controls="dependency-groups"
+                       id="show-dependency-groups">
+                        <i class="ms-Icon ms-Icon--@(Model.Dependencies.DependencySets.Any() ? "ChevronRight" : "ChevronDown")"
+                           aria-hidden="true"></i>
+                        <span>Dependencies</span>
+                    </a>
+                </h2>
+
                 if (Model.Dependencies.DependencySets.Any())
                 {
-                    <h2>
-                        <a href="#" role="button" data-toggle="collapse" data-target="#dependency-groups"
-                           aria-expanded="false" aria-controls="dependency-groups" id="show-dependency-groups">
-                            <i class="ms-Icon ms-Icon--ChevronRight" aria-hidden="true"></i>
-                            <span>Dependencies</span>
-                        </a>
-                    </h2>
                     <ul class="list-unstyled panel-collapse collapse dependency-groups" id="dependency-groups">
                         @foreach (var dependencySet in Model.Dependencies.DependencySets)
                         {
@@ -263,8 +265,7 @@
                 }
                 else
                 {
-                    <h2>Dependencies</h2>
-                    <p>This package has no dependencies.</p>
+                    <p class="collapse in" id="dependency-groups">This package has no dependencies.</p>
                 }
             }
 
@@ -288,16 +289,16 @@
                             }
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="no-border">
                         @{var rowCount = 0;}
                         @foreach (var packageVersion in Model.PackageVersions)
                         {
                             if (!packageVersion.Deleted && (packageVersion.Listed || (Model.IsOwner(User) || User.IsAdministrator())))
                             {
                                 rowCount++;
-                                if (rowCount >= 6)
+                                if (rowCount == 6)
                                 {
-                                    @:</tbody><tbody class="collapse" id="hidden-versions">
+                                    @:</tbody><tbody class="no-border collapse" id="hidden-versions">
                                 }
                                 <tr>
                                     <td>
@@ -335,9 +336,9 @@
                             else if (packageVersion.Deleted)
                             {
                                 rowCount++;
-                                if (rowCount >= 6)
+                                if (rowCount == 6)
                                 {
-                                    @:</tbody><tbody class="collapse" id="hidden-versions">
+                                    @:</tbody><tbody class="no-border collapse" id="hidden-versions">
                                 }
                                 <tr class="deleted">
                                     <td class="version">
@@ -357,11 +358,11 @@
                 </table>
                 @if (rowCount > 5)
                 {
-                    <button type="button" data-toggle="collapse" class="btn btn-link btn-expander icon-link" data-target="#hidden-versions"
+                    <a role="button" data-toggle="collapse" class="icon-link" data-target="#hidden-versions"
                             aria-expanded="false" aria-controls="hidden-versions" id="show-hidden-versions">
                         <i class="ms-Icon ms-Icon--CalculatorAddition" aria-hidden="true"></i>
                         <span>Show more</span>
-                    </button>
+                    </a>
                 }
             </div>
         </article>
@@ -528,7 +529,7 @@
 
             @if (Model.Tags.AnySafe())
             {
-                <h3>Tags</h3>
+                <h2>Tags</h2>
                 <p>
                     @foreach (var tag in Model.Tags)
                     {
@@ -537,11 +538,11 @@
                 </p>
             }
 
-            <h3>Share</h3>
+            <h2>Share</h2>
             @{
                 var encodedText = Url.Encode(string.Format("Check out {0} on #NuGet.", Model.Id));
             }
-            <p>
+            <p class="share-buttons">
                 <a href="https://www.facebook.com/sharer/sharer.php?u=@absolutePackageUrl&t=@encodedText" target="_blank"><img
                     width="24" height="24" alt="Share this package on Facebook"
                     src="@Url.Absolute("~/Content/gallery/img/facebook.svg")"
