@@ -94,6 +94,9 @@ body h3 {
 .icon-link:focus span {
   text-decoration: underline;
 }
+.dependency-groups h4 {
+  line-height: 1.4;
+}
 .dependency-groups h4 > span {
   margin-bottom: 3px;
   border-bottom: 1px solid #d8d8d8;
