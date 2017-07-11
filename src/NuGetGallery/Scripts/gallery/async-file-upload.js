@@ -6,7 +6,8 @@ var AsyncFileUploadManager = new function () {
     var _submitVerifyUrl;
     var _isWebkitBrowser = false; // $.browser.webkit is not longer supported on jQuery
     var _iframeId = '__fileUploadFrame';
-    var _formId;
+    var _uploadFormId;
+    var _uploadFormData;
     var _pollingInterval = 250; // in ms
     var _pingUrl;
     var _failureCount;
@@ -14,10 +15,45 @@ var AsyncFileUploadManager = new function () {
 
     this.init = function (pingUrl, formId, jQueryUrl, actionUrl, cancelUrl, submitVerifyUrl) {
         _pingUrl = pingUrl;
-        _formId = formId;
+        _uploadFormId = formId;
         _actionUrl = actionUrl;
         _cancelUrl = cancelUrl;
         _submitVerifyUrl = submitVerifyUrl;
+
+        $('#file-select-feedback').on('dragenter', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            $(this).removeAttr('readonly');
+        });
+
+        $('#file-select-feedback').on('dragleave', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            $(this).attr('readonly', 'readonly');
+        });
+
+
+        $('#file-select-feedback').on('dragover', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+
+
+        $('#file-select-feedback').on('drop', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            $(this).attr('readonly', 'readonly');
+
+            clearErrors();
+            var droppedFile = e.originalEvent.dataTransfer.files[0];
+            $('#file-select-feedback').attr('value', droppedFile.name);
+
+            prepareUploadFormData();
+            _uploadFormData.set("UploadFile", droppedFile);
+            cancelUploadAsync(startUploadAsync, startUploadAsync);
+        });
 
         $('#file-select-feedback').on('click', function () {
             $('#input-select-file').click();
@@ -29,17 +65,27 @@ var AsyncFileUploadManager = new function () {
 
             if (fileName.length > 0) {
                 $('#file-select-feedback').attr('value', fileName);
+                prepareUploadFormData();
                 // Cancel any ongoing upload, and then start the new upload.
                 // If the cancel fails, still try to upload the new one.
                 cancelUploadAsync(startUploadAsync, startUploadAsync);
             } else {
-                $('#file-select-feedback').attr('value', 'Browse to select a package file...');
+                resetFileSelectFeedback();
             }
         })
 
         if (InProgressPackage != null) {
             bindData(InProgressPackage);
         }
+    }
+
+    function resetFileSelectFeedback() {
+        $('#file-select-feedback').attr('value', 'Browse or Drop files to select a package...');
+    }
+
+    function prepareUploadFormData() {
+        var formData = new FormData($('#' + _uploadFormId)[0]);
+        _uploadFormData = formData;
     }
 
     function startUploadAsync(callback, error) {
@@ -54,7 +100,7 @@ var AsyncFileUploadManager = new function () {
             url: _actionUrl,
             type: 'POST',
 
-            data: new FormData($('#' + _formId)[0]),
+            data: _uploadFormData,
 
             cache: false,
             contentType: false,
@@ -182,7 +228,7 @@ var AsyncFileUploadManager = new function () {
             $('#verify-cancel-button').addClass('.loading');
             $('#verify-submit-button').attr('disabled', 'disabled');
             $('#input-select-file').val("");
-            $('#file-select-feedback').attr('value', 'Browse to select a package file...');
+            resetFileSelectFeedback();
             cancelUploadAsync();
         });
 
