@@ -82,12 +82,12 @@ body h3 {
 .btn-search {
   height: 36px;
 }
-.btn-expander:hover,
-.btn-expander:focus {
+.icon-link:hover,
+.icon-link:focus {
   text-decoration: none;
 }
-.btn-expander:hover span,
-.btn-expander:focus span {
+.icon-link:hover span,
+.icon-link:focus span {
   text-decoration: underline;
 }
 .dependency-groups h4 > span {

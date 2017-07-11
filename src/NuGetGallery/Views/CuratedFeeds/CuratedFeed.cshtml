@@ -61,11 +61,17 @@
                                     <div class="controls">
                                         @if (package.AutomaticallyCurated)
                                         {
-                                            <a href="#" class="exclude-link" data-package-id="@package.Id" role="button"><i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>Exclude</a>
+                                            <a href="#" class="exclude-link icon-link" data-package-id="@package.Id" role="button">
+                                                <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
+                                                <span>Exclude</span>
+                                            </a>
                                         }
                                         else
                                         {
-                                            <a href="#" class="remove-link" data-package-id="@package.Id" role="button"><i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>Remove</a>
+                                            <a href="#" class="remove-link icon-link" data-package-id="@package.Id" role="button">
+                                                <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
+                                                <span>Remove</span>
+                                            </a>
                                         }
                                     </div>
                                     <div class="clearfix"></div>
@@ -100,7 +106,10 @@
                                 <div class="package" role="listitem">
                                     <a class="id" href="@Url.Package(@package)">@package</a>
                                     <div class="controls">
-                                        <a href="#" class="include-link" data-package-id="@package" role="button"><i class="ms-Icon ms-Icon--Add" aria-hidden="true"></i>Include</a>
+                                        <a href="#" class="include-link icon-link" data-package-id="@package" role="button">
+                                            <i class="ms-Icon ms-Icon--Add" aria-hidden="true"></i>
+                                            <span>Include</span>
+                                        </a>
                                     </div>
                                     <div class="clearfix"></div>
                                 </div>

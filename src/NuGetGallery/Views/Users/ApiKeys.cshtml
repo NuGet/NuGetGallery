@@ -192,36 +192,36 @@
                 <ul class="list-inline icon-buttons" role="presentation">
                     <!-- ko if: Value -->
                     <li>
-                        <a href="#" role="button" data-content="Copied."
+                        <a class="icon-link" href="#" role="button" data-content="Copied."
                            data-bind="attr: { id: CopyId }, click: Copy">
                             <i class="ms-Icon ms-Icon--Copy" aria-hidden="true"></i>
-                            Copy
+                            <span>Copy</span>
                         </a>
                     </li>
                     <!-- /ko -->
                     <!-- ko ifnot: IsNonScopedV1ApiKey -->
                     <li>
-                        <a href="#" role="button" data-toggle="collapse"
+                        <a class="icon-link" href="#" role="button" data-toggle="collapse"
                            data-bind="attr: { 'data-target': '#' + EditContainerId(),
                                               'aria-controls': EditContainerId,
                                               id: StartEditId },
                                       click: function() { return false; }"
                            aria-expanded="false">
                             <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
-                            Edit
+                            <span>Edit</span>
                         </a>
                     </li>
                     <li>
-                        <a href="#" role="button" data-bind="click: Regenerate">
+                        <a class="icon-link" href="#" role="button" data-bind="click: Regenerate">
                             <i class="ms-Icon ms-Icon--Refresh" aria-hidden="true"></i>
-                            Regenerate
+                            <span>Regenerate</span>
                         </a>
                     </li>
                     <!-- /ko -->
                     <li>
-                        <a href="#" role="button" data-bind="click: Delete">
+                        <a class="icon-link" href="#" role="button" data-bind="click: Delete">
                             <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
-                            Delete
+                            <span>Delete</span>
                         </a>
                     </li>
                 </ul>
