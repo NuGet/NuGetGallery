@@ -83,7 +83,7 @@
                                         <div class="col-sm-9 dropdown-profile">
                                             <span class="dropdown-username">@User.Identity.Name.Abbreviate(20)</span>
                                             <br />
-                                            <span class="dropdown-email">@CurrentUser.EmailAddress.Abbreviate(35)</span>
+                                            <span class="dropdown-email">@CurrentUser.EmailAddress.Abbreviate(25)</span>
                                         </div>
                                     </li>
                                     @if (Request.IsAuthenticated && User.IsInRole(Constants.AdminRoleName))
