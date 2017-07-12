@@ -299,6 +299,7 @@ img.package-icon {
   }
 }
 .list-packages .package .manage-package {
+  margin-top: 20px;
   margin-bottom: 0;
 }
 .list-packages .package .package-details {
@@ -782,13 +783,8 @@ img.package-icon {
 .page-sign-in .or-row {
   margin: 20px;
 }
-.page-statistics-most-downloaded h2 {
-  margin-top: 4px;
-  margin-bottom: 40px;
-  font-size: 1.5em;
-  color: gray;
-}
 .page-statistics-most-downloaded .table {
+  margin-top: 40px;
   table-layout: fixed;
 }
 .page-statistics-most-downloaded .table thead {
@@ -796,8 +792,7 @@ img.package-icon {
   margin-bottom: 10px;
 }
 .page-statistics-most-downloaded .table thead th {
-  font-size: 1.5em;
-  font-weight: normal;
+  font-weight: bold;
 }
 .page-statistics-most-downloaded .table thead .packages th:nth-child(1) {
   width: 10%;
@@ -822,7 +817,6 @@ img.package-icon {
 }
 .page-statistics-most-downloaded .table tbody {
   margin-bottom: 20px;
-  font-size: 1.25em;
 }
 .page-statistics-most-downloaded .table tbody td {
   overflow: hidden;
