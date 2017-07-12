@@ -60,29 +60,23 @@
 
         @if (Model.IsOwner(User))
         {
-            <ul class="package-list package-controls">
+            <ul class="package-list manage-package">
                 <li>
-                    <a href="@Url.EditPackage(Model.Id, Model.Version)">
-                        <span>
-                            <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
-                            Edit Package
-                        </span>
+                    <a href="@Url.EditPackage(Model.Id, Model.Version)" class="icon-link">
+                        <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
+                        <span>Edit Package</span>
                     </a>
                 </li>
                 <li>
-                    <a href="@Url.ManagePackageOwners(Model)">
-                        <span>
-                            <i class="ms-Icon ms-Icon--People" aria-hidden="true"></i>
-                            Manage Owners
-                        </span>
+                    <a href="@Url.ManagePackageOwners(Model)" class="icon-link">
+                        <i class="ms-Icon ms-Icon--People" aria-hidden="true"></i>
+                        <span>Manage Owners</span>
                     </a>
                 </li>
                 <li>
-                    <a href="@Url.DeletePackage(Model)">
-                        <span>
-                            <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
-                            Delete Package
-                        </span>
+                    <a href="@Url.DeletePackage(Model)" class="icon-link">
+                        <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
+                        <span>Delete Package</span>
                     </a>
                 </li>
             </ul>

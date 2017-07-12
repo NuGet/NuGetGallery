@@ -83,7 +83,7 @@
                                         <div class="col-sm-9 dropdown-profile">
                                             <span class="dropdown-username">@User.Identity.Name.Abbreviate(20)</span>
                                             <br />
-                                            <span class="dropdown-email">@CurrentUser.EmailAddress.Abbreviate(35)</span>
+                                            <span class="dropdown-email">@CurrentUser.EmailAddress.Abbreviate(25)</span>
                                         </div>
                                     </li>
                                     @if (Request.IsAuthenticated && User.IsInRole(Constants.AdminRoleName))
@@ -95,6 +95,7 @@
                                     <li role="presentation"><a href="@Url.User(CurrentUser.Username)" role="menuitem">View Profile</a></li>
                                     <li role="presentation"><a href="@Url.AccountSettings()" role="menuitem">Account Settings</a></li>
                                     <li role="presentation"><a href="@Url.ManageMyApiKeys()" role="menuitem">API Keys</a></li>
+                                    <li class="divider"></li>
                                     <li role="presentation"><a href="@Url.ManageMyPackages()" role="menuitem">Manage Packages</a></li>
                                     <li role="presentation"><a href="@Url.UploadPackage()" role="menuitem">Upload Package</a></li>
                                     <li class="divider"></li>
@@ -125,7 +126,7 @@
     <div class="alert-transient @(ViewBag.HasJumbotron == true ? "alert-transient-jumbotron" : string.Empty)">
         <div class="container">
             <div class="row">
-                <div class="col-sm-offset-2 col-sm-8">
+                <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
                     @ViewHelpers.AlertInfo(@<text>@TempData["Message"]</text>)
                 </div>
             </div>

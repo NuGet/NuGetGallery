@@ -2,12 +2,14 @@
 @{
     ViewBag.Title = "Register";
     ViewBag.Tab = "Register";
+    ViewBag.SmPageColumns = Constants.ColumnsAuthenticationSm;
+    ViewBag.MdPageColumns = Constants.ColumnsAuthenticationMd;
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
 <section role="main" class="container main-container page-sign-in">
     <div class="row">
-        <div class="col-sm-offset-3 col-sm-6 col-md-offset-4 col-md-4 text-center">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag) text-center">
             <h1>Register</h1>
         </div>
     </div>
@@ -15,7 +17,7 @@
     @foreach (var provider in Model.Providers)
     {
         <div class="row">
-            <div class="col-sm-offset-3 col-sm-6 col-md-offset-4 col-md-4 text-center">
+            <div class="@ViewHelpers.GetColumnClasses(ViewBag) text-center">
                 <a role="button" class="btn btn-default btn-block provider-button"
                    href="@Url.Action("Authenticate", new {provider = provider.ProviderName, returnUrl = ViewData[Constants.ReturnUrlViewDataKey]})">
                     @if (!string.IsNullOrEmpty(@provider.UI.IconImagePath))
@@ -30,14 +32,14 @@
             </div>
         </div>
         <div class="row or-row">
-            <div class="col-sm-offset-3 col-sm-6 col-md-offset-4 col-md-4 text-center">
+            <div class="@ViewHelpers.GetColumnClasses(ViewBag) text-center">
                 <b>OR</b>
             </div>
         </div>
     }
 
     <div class="row">
-        <div class="col-sm-offset-3 col-sm-6 col-md-offset-4 col-md-4">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             @Html.Partial("_Register", Model)
         </div>
     </div>

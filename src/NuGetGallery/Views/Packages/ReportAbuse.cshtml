@@ -2,13 +2,14 @@
 @model ReportAbuseViewModel
 @{
     ViewBag.Tab = "Packages";
+    ViewBag.MdPageColumns = Constants.ColumnsFormMd;
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
     string returnUrl = ViewData.ContainsKey(Constants.ReturnUrlViewDataKey) ? (string)ViewData[Constants.ReturnUrlViewDataKey] : Request.RawUrl;
 }
 
 <section class="container main-container page-report-abuse">
     <div class="row report-form">
-        <div class="col-md-offset-1 col-md-10">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             <h1 class="page-heading text-center">Report Abuse by <a href="@Url.Package(@Model.PackageId, Model.PackageVersion)">@Model.PackageId @Model.PackageVersion</a></h1>
 
             @ViewHelpers.AlertWarning(isAlertRole: true, htmlContent:
@@ -51,7 +52,8 @@
                         @Html.ShowValidationMessagesFor(m => m.Email)
                     </div>
                     <div class="form-group @Html.HasErrorFor(m => m.AlreadyContactedOwner)">
-                        @Html.ShowSliderFor(m => m.AlreadyContactedOwner)
+                        @Html.ShowCheckboxFor(m => m.AlreadyContactedOwner)
+                        @Html.ShowLabelFor(m => m.AlreadyContactedOwner)
                         @Html.ShowValidationMessagesFor(m => m.AlreadyContactedOwner)
                     </div>
                     <div class="form-group @Html.HasErrorFor(m => m.Message)">
@@ -61,7 +63,8 @@
                         @Html.ShowValidationMessagesFor(m => m.Message)
                     </div>
                     <div class="form-group @Html.HasErrorFor(m => m.CopySender)">
-                        @Html.ShowSliderFor(m => m.CopySender)
+                        @Html.ShowCheckboxFor(m => m.CopySender)
+                        @Html.ShowLabelFor(m => m.CopySender)
                         @Html.ShowValidationMessagesFor(m => m.CopySender)
                     </div>
                     <div class="form-group infringement-claim-requirements @Html.HasErrorFor(m => m.Signature)">

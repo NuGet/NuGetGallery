@@ -82,6 +82,21 @@ body h3 {
 .btn-search {
   height: 36px;
 }
+.icon-link .ms-Icon {
+  position: relative;
+  top: 2px;
+}
+.icon-link:hover,
+.icon-link:focus {
+  text-decoration: none;
+}
+.icon-link:hover span,
+.icon-link:focus span {
+  text-decoration: underline;
+}
+.dependency-groups h4 {
+  line-height: 1.4;
+}
 .dependency-groups h4 > span {
   margin-bottom: 3px;
   border-bottom: 1px solid #d8d8d8;
@@ -107,6 +122,7 @@ body h3 {
   color: #23527c;
 }
 .banner {
+  padding-top: 5px;
   padding-bottom: 10px;
 }
 .banner span {
@@ -115,8 +131,7 @@ body h3 {
 }
 .banner .ms-Icon {
   position: relative;
-  top: .25em;
-  font-size: 1.75em;
+  top: 2px;
 }
 .banner.banner-bright {
   background: yellow;
@@ -171,6 +186,29 @@ h3 a:active {
 img.package-icon {
   margin-right: auto;
   margin-left: auto;
+}
+.package-list {
+  padding-left: 0;
+  margin-top: 10px;
+  margin-left: -5px;
+  line-height: 20px;
+  color: #666;
+}
+.package-list li {
+  display: list-item;
+  list-style: none;
+}
+@media (min-width: 480px) {
+  .package-list li {
+    display: inline-block;
+  }
+  .package-list li + li {
+    padding-left: 10px;
+    margin-left: 10px;
+    border-color: #dbdbdb;
+    border-width: 1px;
+    border-left-style: solid;
+  }
 }
 .icon-bar {
   border: 1px solid #fff;
@@ -260,31 +298,9 @@ img.package-icon {
     margin-left: 0;
   }
 }
-.list-packages .package .package-list {
-  padding-left: 0;
-  margin-top: 10px;
-  margin-left: -5px;
-  line-height: 20px;
-  color: #666;
-}
-.list-packages .package .package-list li {
-  display: list-item;
-  list-style: none;
-}
-@media (min-width: 480px) {
-  .list-packages .package .package-list li {
-    display: inline-block;
-  }
-  .list-packages .package .package-list li + li {
-    padding-left: 10px;
-    margin-left: 10px;
-    border-color: #dbdbdb;
-    border-width: 1px;
-    border-left-style: solid;
-  }
-}
-.list-packages .package .package-controls {
+.list-packages .package .manage-package {
   margin-top: 20px;
+  margin-bottom: 0;
 }
 .list-packages .package .package-details {
   margin-top: 10px;
@@ -379,7 +395,7 @@ img.package-icon {
   margin-bottom: 10px;
 }
 .page-account-settings .form-section-title {
-  margin-top: 10px;
+  margin-top: 40px;
 }
 @media (min-width: 768px) {
   .page-account-settings .form-section-title {
@@ -388,13 +404,19 @@ img.package-icon {
   }
 }
 .page-account-settings .form-section-data {
-  margin-top: 10px;
+  margin-top: 40px;
 }
 @media (min-width: 768px) {
   .page-account-settings .form-section-data {
     float: right;
     text-align: right;
   }
+}
+.page-account-settings .panel {
+  margin-top: 5px;
+}
+.page-account-settings .form-group + .form-group .btn {
+  margin-top: 20px;
 }
 .page-api-keys .example-commands {
   padding: 8px 10px;
@@ -461,35 +483,21 @@ img.package-icon {
   margin-left: 10px;
   border-left: 1px solid #dbdbdb;
 }
-.page-api-keys .api-key-details .icon-buttons {
-  margin: 10px 0;
-  font-size: 1.2em;
-  color: #666;
-}
-.page-api-keys .api-key-details .icon-buttons li {
-  padding: 0;
-}
-.page-api-keys .api-key-details .icon-buttons li + li {
-  padding-left: 16px;
-  margin-left: 16px;
-  border-left: 1px solid #dbdbdb;
-}
-.page-api-keys .api-key-details .icon-buttons a:focus,
-.page-api-keys .api-key-details .icon-buttons a:hover {
-  text-decoration: none;
-}
 .page-package-details .no-border {
   border: 0;
-}
-.page-package-details .btn-expander:hover,
-.page-package-details .btn-expander:focus {
-  text-decoration: none;
 }
 .page-package-details .package-details-info .ms-Icon-ul li {
   margin-bottom: 15px;
 }
 .page-package-details .owner-list li {
   margin-bottom: 8px;
+}
+.page-package-details .owner-list img {
+  margin-right: 8px;
+}
+.page-package-details .share-buttons img {
+  display: inline-block;
+  margin-right: 8px;
 }
 .page-package-details .install-tabs {
   font-size: .8em;
@@ -525,7 +533,7 @@ img.package-icon {
   display: table-cell;
   width: 100%;
   max-width: 1px;
-  padding: 8px 10px;
+  padding: 0 10px 8px 10px;
   font-family: Consolas, Menlo, Monaco, "Courier New", monospace;
   line-height: 1.5;
   color: #fff;
@@ -540,7 +548,7 @@ img.package-icon {
 }
 .page-package-details .install-tabs .tab-pane .copy-button button {
   height: 100%;
-  min-height: 40px;
+  min-height: 42px;
   line-height: 1.5;
   vertical-align: baseline;
 }
@@ -879,5 +887,96 @@ img.package-icon {
 }
 .page-stats-per-package #stats-graph-svg .bartext {
   font-size: 1em;
+}
+.page-status .status-general {
+  padding: 13px;
+  margin-bottom: 24px;
+}
+.page-status .status-general p {
+  margin: 0;
+}
+.page-status .status-general i {
+  vertical-align: middle;
+}
+.page-status .status-general .text-span {
+  font-size: 1.5em;
+  vertical-align: middle;
+}
+.page-status .status-general .last-checked {
+  margin-left: 10px;
+}
+.page-status .status-up {
+  background-color: #d1f0d5;
+}
+.page-status .status-down {
+  background-color: #fde7e9;
+}
+.page-status .status-down .ms-Icon {
+  color: red;
+}
+.page-status .status-degraded {
+  background-color: #fff4ce;
+}
+.page-status .status-degraded .ms-Icon {
+  color: orange;
+}
+.page-status .latest-updates + p {
+  margin-top: 24px;
+}
+.page-status .ms-Icon {
+  margin-right: 10px;
+  font-size: 1.25em;
+}
+.page-status .ms-Icon--CheckMark {
+  color: green;
+}
+.page-status .ms-Icon--Warning {
+  color: yellow;
+}
+.page-status .ms-Icon--Cancel {
+  color: red;
+}
+.page-status .table thead th:nth-child(1) {
+  width: 50%;
+}
+.page-status .table thead th:nth-child(2) {
+  width: 30%;
+}
+.page-status .table thead th:nth-child(3) {
+  width: 20%;
+}
+.page-status .table tbody {
+  border: none;
+}
+.page-status .table tbody tr td {
+  vertical-align: middle;
+}
+.page-status .table tbody tr td .nonaggregate {
+  margin-left: 20px;
+}
+.page-status .table tbody tr td i {
+  vertical-align: middle;
+}
+.page-status .table tbody tr td span {
+  vertical-align: middle;
+}
+.page-status .table tbody.aggregate tr td:first-child {
+  font-size: 1.5em;
+}
+.page-status .table tbody.aggregate tr td:first-child a,
+.page-status .table tbody.aggregate tr td:first-child a:hover,
+.page-status .table tbody.aggregate tr td:first-child a:focus,
+.page-status .table tbody.aggregate tr td:first-child a:active {
+  color: #000;
+  text-decoration: none;
+}
+.page-status .table tbody.aggregate tr td:first-child .ms-Icon {
+  font-size: .75em;
+}
+.page-status .table tbody + tbody {
+  border: none;
+}
+.page-upload #browse-for-package-button {
+  margin: 0;
 }
 /*# sourceMappingURL=bootstrap-theme.css.map */

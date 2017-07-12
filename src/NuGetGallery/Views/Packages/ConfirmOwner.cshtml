@@ -1,11 +1,13 @@
 ﻿@model PackageOwnerConfirmationModel
 @{
     ViewBag.Title = "Confirm Ownership";
+    ViewBag.SmPageColumns = Constants.ColumnsAuthenticationSm;
+    ViewBag.MdPageColumns = Constants.ColumnsAuthenticationMd;
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
 <section role="main" class="container main-container page-manage-owners">
-    <div class="col-md-12">
+    <div class="col-xs-12">
         <h1 class="text-center">
             @if (Model.Result == ConfirmOwnershipResult.Success
                 || Model.Result == ConfirmOwnershipResult.AlreadyOwner)
@@ -18,7 +20,7 @@
             }
         </h1>
     </div>
-    <div class="col-md-4 col-md-offset-4">
+    <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
         @if (Model.Result == ConfirmOwnershipResult.Success)
         {
             <p class="text-center">

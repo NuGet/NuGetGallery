@@ -1,5 +1,6 @@
 ﻿@model CreateCuratedPackageRequest
 @{
+    ViewBag.MdPageColumns = Constants.ColumnsFormMd;
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 <section class="main-container container">
@@ -9,7 +10,7 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-md-10 col-md-offset-1">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             @ViewHelpers.AlertInfo(@<text>
                 Packages might also be automatically included in your curated feed based on pre-defined rules. This form is to manually include a package in the curated feed, which will override any pre-defined rules.
             </text>)

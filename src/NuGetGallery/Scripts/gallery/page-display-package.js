@@ -26,4 +26,10 @@ $(function () {
 
     configureCopyButton('package-manager');
     configureCopyButton('dotnet-cli');
+
+    // Enable the undo edit link.
+    $("#undo-pending-edits").click(function (e) {
+        e.preventDefault();
+        $(this).closest('form').submit();
+    })
 });

@@ -26,7 +26,11 @@ namespace NuGetGallery.FunctionalTests.WebUITests.AccountManagement
             yield return logonGet;
 
             WebTestRequest logonPostRequest = AssertAndValidationHelper.GetLogonPostRequest(this);
-            var loggedOnUserNameValidationRule = AssertAndValidationHelper.GetValidationRuleForHtmlTagInnerText(HtmlTextWriterTag.A.ToString(), HtmlTextWriterAttribute.Href.ToString(), "/account", "NugetTestAccount");
+            var loggedOnUserNameValidationRule = AssertAndValidationHelper.GetValidationRuleForHtmlTagInnerText(
+                HtmlTextWriterTag.Span.ToString(),
+                HtmlTextWriterAttribute.Class.ToString(),
+                "dropdown-username",
+                "NugetTestAccount");
             logonPostRequest.ValidateResponse += loggedOnUserNameValidationRule.Validate;
 
             yield return logonPostRequest;

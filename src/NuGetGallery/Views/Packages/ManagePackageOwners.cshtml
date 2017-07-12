@@ -5,7 +5,7 @@
 }
 
 <section role="main" class="container main-container page-manage-owners">
-    <div class="col-md-10 col-md-offset-1">
+    <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
         <h1 class="text-center">Manage Owners for Package <a href="@Url.Package(Model.Id)">@Model.Title.Abbreviate(50)</a></h1>
 
         <div style="display: none" id="manage-owners-alert" data-bind="visible: message">
@@ -39,9 +39,9 @@
                         </span>
                     </div>
                     <div class="col-md-3 remove-owner">
-                        <a href="#" title="Remove as owner of @Model.Title" data-bind="visible: !current  || $parent.hasMoreThanOneOwner, click: $root.removeOwner">
+                        <a class="icon-link" href="#" title="Remove as owner of @Model.Title" data-bind="visible: !current  || $parent.hasMoreThanOneOwner, click: $root.removeOwner">
                             <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
-                            Remove
+                            <span>Remove</span>
                         </a>
                     </div>
                 </div>

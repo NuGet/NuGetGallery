@@ -5,6 +5,38 @@
 @using NuGetGallery.Helpers
 @using NuGetGallery.Configuration
 
+@helper GetColumnClasses(string screenSize, int? columns)
+{
+    const int TotalColumns = 12;
+    if (!columns.HasValue)
+    {
+        return;
+    }
+
+    var offset = (TotalColumns - columns.Value) / 2;
+    var columnsClass = "col-" + screenSize + "-" + columns.Value;
+    var offsetClass = offset == 0 ? string.Empty : " col-" + screenSize + "-offset-" + offset;
+
+    @(columnsClass + " " + offsetClass)
+}
+
+@helper GetColumnClasses(dynamic viewBag)
+{
+    int? smPageColumns = 12;
+    if (viewBag.SmPageColumns != null)
+    {
+        smPageColumns = (int)viewBag.SmPageColumns;
+    }
+
+    int? mdPageColumns = null;
+    if (viewBag.MdPageColumns != null)
+    {
+        mdPageColumns = (int)viewBag.MdPageColumns;
+    }
+
+    @(GetColumnClasses("sm", smPageColumns) + " " + GetColumnClasses("md", mdPageColumns))
+}
+
 @helper Alert(Func<MvcHtmlString, HelperResult> htmlContent, string subclass, string icon, bool isAlertRole = false)
 {
     <div class="alert alert-@subclass" @if (isAlertRole) { <text> role="alert" </text>   }>
@@ -157,7 +189,14 @@
 
 @helper GravatarImage(string email, string username, int size)
 {
-    @GravatarHelper.Image(email, size, attributes: new { width = size, height = size, title = username, @class = "owner-image" });
+    @GravatarImage(email, username, size, responsive: false);
+}
+
+@helper GravatarImage(string email, string username, int size, bool responsive)
+{
+    var classAttribute = responsive ? "owner-image img-responsive" : "owner-image";
+
+    @GravatarHelper.Image(email, size, attributes: new { width = size, height = size, title = username, @class = classAttribute });
 }
 
 @helper WriteMeta(string name, string val) {

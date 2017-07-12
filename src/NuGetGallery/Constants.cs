@@ -13,6 +13,12 @@ namespace NuGetGallery
         public const string DefaultPackageListSortOrder = "package-download-count";
         public const int PasswordResetTokenExpirationHours = 1;
 
+        public const int ColumnsAuthenticationSm = 6;
+        public const int ColumnsAuthenticationMd = 4;
+        public const int ColumnsWideAuthenticationSm = 8;
+        public const int ColumnsWideAuthenticationMd = 6;
+        public const int ColumnsFormMd = 10;
+
         /// <summary>
         /// Parameters for calculating account lockout period after 
         /// wrong password entry.
