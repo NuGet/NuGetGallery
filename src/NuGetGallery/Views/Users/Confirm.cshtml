@@ -2,8 +2,8 @@
 @{
     var titleString = Model.ConfirmingNewAccount ? "Account" : "Email";
     ViewBag.Title = "Confirm Your " + titleString;
-    ViewBag.SmPageColumns = 8;
-    ViewBag.MdPageColumns = 6;
+    ViewBag.SmPageColumns = Constants.ColumnsWideAuthenticationSm;
+    ViewBag.MdPageColumns = Constants.ColumnsWideAuthenticationMd;
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
