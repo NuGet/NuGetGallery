@@ -303,6 +303,8 @@
 
 		$('#readme-select-file').on('change', function () {
 			clearErrors();
+			clearReadMeError();
+			displayReadMeEditMarkdown();
 			var fileName = $('#readme-select-file').val().split("\\").pop();
 			if (fileName.length > 0 && validateReadMeFileName(fileName)) {
 				$('#readme-select-feedback').attr('placeholder', fileName);
@@ -334,6 +336,8 @@
 		$("#readme-preview div div").html(response);
 		$("#readme-preview").removeClass("hidden");
 		$(".readme-write").addClass("hidden");
+		$(".readme-file").addClass("hidden");
+		$(".readme-url").addClass("hidden");
 		$("#edit-markdown").removeClass("hidden");
 		$("#preview-html").addClass("hidden");
 		clearReadMeError();
@@ -343,6 +347,8 @@
 		$("#readme-preview div div").html("");
 		$("#readme-preview").addClass("hidden");
 		$(".readme-write").removeClass("hidden");
+		$(".readme-file").removeClass("hidden");
+		$(".readme-url").removeClass("hidden");
 		$("#edit-markdown").addClass("hidden");
 		$("#preview-html").removeClass("hidden");
 	}
