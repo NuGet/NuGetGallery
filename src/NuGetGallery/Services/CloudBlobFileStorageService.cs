@@ -152,9 +152,10 @@ namespace NuGetGallery
 
                 case Constants.ContentFolderName:
                 case Constants.UploadsFolderName:
+                case Constants.ReadMeContainerName:
                     creationTask = PrepareContainer(folderName, isPublic: false);
                     break;
-
+         
                 default:
                     throw new InvalidOperationException(
                         String.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));
@@ -225,7 +226,8 @@ namespace NuGetGallery
 
                 case Constants.DownloadsFolderName:
                     return Constants.OctetStreamContentType;
-
+                case Constants.ReadMeContainerName:
+                    return Constants.TextContentType;
                 default:
                     throw new InvalidOperationException(
                         String.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));

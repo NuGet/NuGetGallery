@@ -14,6 +14,7 @@
 		_pingUrl = pingUrl;
 		_formId = formId;
 		_actionUrl = actionUrl;
+		console.log(_actionUrl);
 		_cancelUrl = cancelUrl;
 		_submitVerifyUrl = submitVerifyUrl;
 
@@ -67,6 +68,40 @@
 			},
 
 			error: handleErrors.bind(this, error)
+		});
+	}
+	
+	function previewReadMeAsync(callback, error) {
+		var formData = new FormData();
+		formData.append("ReadMeType", $("input[name='ReadMe.ReadMeType']:checked").val());
+
+		if (validateReadMeUrl($("#ReadMeUrlInput").val())) {
+			formData.append("ReadMeUrl", $("#ReadMeUrlInput").val());
+		}
+
+		if ($("#readme-select-file") && $("#readme-select-file")[0] && validateReadMeFileName($('#readme-select-file').val().split("\\").pop())) {
+			formData.append("ReadMeFile", $("#readme-select-file")[0].files[0]);
+		} else {
+			formData.append("ReadMeFile", null);
+		}
+		formData.append("ReadMeWritten", $("#readme-written").val());
+
+		var type = formData.get("ReadMeType");
+		var url = formData.get("ReadMeUrl");
+		var written = formData.get("ReadMeWritten");
+		
+		$.ajax({
+			url: "preview-readme",
+			type: 'POST',
+			contentType: false,
+			processData:false,
+			data: formData,
+			success: function (model, resultCodeString, fullResponse) {
+				displayReadMePreview(model);
+			},
+			error: function (error) {
+				displayReadMeError("Please insert a ReadMe in order to preview it.");
+			}
 		});
 	}
 
@@ -248,9 +283,18 @@
 		});
 
 		$(".readme-btn-group").change(changeReadMeFormTab);
-		//$("#uploadReadMe").click(uploadReadMe());
+
 		$("#repositoryurl-field").blur(function () {
 			$("#ReadMeUrlInput").val(fillReadMeUrl($("#repositoryurl-field").val()));
+		});
+
+		$("#ReadMeUrlInput").on("change", function () {
+			var fileName = $("#ReadMeUrlInput").val();
+			if (validateReadMeUrl(fileName)) {
+				clearReadMeError();
+			} else {
+				displayReadMeError("Please add a valid link to a raw file with one of the following extensions: '.md', '.mkdn', '.mkd', '.mdown', '.markdown', '.txt' or '.text'.");
+			}
 		});
 
 		$('#readme-select-feedback').on('click', function () {
@@ -260,13 +304,60 @@
 		$('#readme-select-file').on('change', function () {
 			clearErrors();
 			var fileName = $('#readme-select-file').val().split("\\").pop();
-
-			if (fileName.length > 0) {
+			if (fileName.length > 0 && validateReadMeFileName(fileName)) {
 				$('#readme-select-feedback').attr('placeholder', fileName);
-			} else {
+				clearReadMeError();
+			} else if (fileName.length > 0) {
 				$('#readme-select-feedback').attr('placeholder', 'Browse to select a package file...');
+				displayReadMeError("Please enter a markdown file with one of the following extensions: '.md', '.mkdn', '.mkd', '.mdown', '.markdown', '.txt' or '.text'.");
+			}
+			else {
+				$('#readme-select-feedback').attr('placeholder', 'Browse to select a package file...');
+				displayReadMeError("Please select a file.")
 			}
 		});
+
+		$("#readme-written").on("change", function () {
+			clearReadMeError();
+		})
+
+		$("#preview-readme-button").on('click', function () {
+			previewReadMeAsync();
+		});
+
+		$("#edit-markdown-button").on('click', function () {
+			displayReadMeEditMarkdown();
+		});
+	}
+
+	function displayReadMePreview(response) {
+		$("#readme-preview div div").html(response);
+		$("#readme-preview").removeClass("hidden");
+		$(".readme-write").addClass("hidden");
+		$("#edit-markdown").removeClass("hidden");
+		$("#preview-html").addClass("hidden");
+		clearReadMeError();
+	}
+
+	function displayReadMeEditMarkdown() {
+		$("#readme-preview div div").html("");
+		$("#readme-preview").addClass("hidden");
+		$(".readme-write").removeClass("hidden");
+		$("#edit-markdown").addClass("hidden");
+		$("#preview-html").removeClass("hidden");
+	}
+
+	function displayReadMeError(errorMsg) {
+		$("#readme-errors").removeClass("hidden");
+		$("#preview-readme-button").attr("disabled", "disabled");
+		$("#readme-errors div ul li span").text(errorMsg);
+	}
+
+	function clearReadMeError() {
+		if (!$("#readme-errors").hasClass("hidden")) {
+			$("#readme-errors").addClass("hidden");
+		}
+		$("#preview-readme-button").removeAttr("disabled");
 	}
 
 	function changeReadMeFormTab() {
@@ -285,13 +376,26 @@
 		}
 	}
 
+	function validateReadMeUrl(url) {
+		var urlRegex = new RegExp("^" + "(?:(?:https?|ftp)://)?" + "(?:\\S+(?::\\S*)?@)?" + "(?:" + "(?!(?:10|127)(?:\\.\\d{1,3}){3})" + "(?!(?:169\\.254|192\\.168)(?:\\.\\d{1,3}){2})" + "(?!172\\.(?:1[6-9]|2\\d|3[0-1])(?:\\.\\d{1,3}){2})" + "(?:[1-9]\\d?|1\\d\\d|2[01]\\d|22[0-3])" + "(?:\\.(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])){2}" + "(?:\\.(?:[1-9]\\d?|1\\d\\d|2[0-4]\\d|25[0-4]))" + "|" + "(?:(?:[a-z\\u00a1-\\uffff0-9]-*)*[a-z\\u00a1-\\uffff0-9]+)" + "(?:\\.(?:[a-z\\u00a1-\\uffff0-9]-*)*[a-z\\u00a1-\\uffff0-9]+)*" + "(?:\\.(?:[a-z\\u00a1-\\uffff]{2,}))" + "\\.?" + ")" + "(?::\\d{2,5})?" + "(?:[/?#]\\S*)?" + "$", "i");
+		return validateReadMeFileName(url) && urlRegex.test(url);
+	}
+
+	function validateReadMeFileName(fileName) {
+		var markdownExtensions = ["md", "mkdn", "mkd", "mdown", "markdown", "txt", ".text"];
+		return markdownExtensions.includes(fileName.split('.').pop());
+	}
+
 	function fillReadMeUrl(repositoryUrl) {
+		var readMeUrl;
+
+		if (repositoryUrl.slice(-1) !== "/") {
+			repositoryUrl += "/";
+		}
+
 		var githubRegex = /^(http(s)?:\/\/)?([a-zA-Z0-9]+\.)?github\.com\/([a-zA-Z0-9])+\/([a-zA-Z0-9])+(\/)?$/;
+		
 		if (githubRegex.test(repositoryUrl)) {
-			if (repositoryUrl.slice(-1) !== "/") {
-				repositoryUrl += "/";
-			}
-			var readMeUrl;
 			if (repositoryUrl.toLowerCase().includes("www.")) {
 				readMeUrl = repositoryUrl.toLowerCase().replace("www.github", "raw.githubusercontent");
 			} else {

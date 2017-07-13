@@ -44,6 +44,42 @@ namespace NuGetGallery.Services
         }
 
     /// <summary>
+    /// Takes in a string containing a markdown file and converts it to HTML.
+    /// </summary>
+    /// <param name="readMe">A string containing a markdown file's contents</param>
+    /// <returns>A string containing the HTML version of the markdown</returns>
+    private static string ConvertMarkDownToHTML(string readMe)
+        {
+            return CommonMark.CommonMarkConverter.Convert(readMe);
+        }
+
+    /// <summary>
+    /// Takes in a Stream representing a readme file in markdown, converts it to HTML and 
+    /// returns a Stream representing the HTML version of the readme.
+    /// </summary>
+    /// <param name="readMeMarkdownStream">Stream containing a readMe in markdown</param>
+    /// <returns>A stream with the HTML version of the readMe</returns>
+    public static Stream GetReadMeHTMLStream(Stream readMeMarkdownStream)
+        {
+            using (var reader = new StreamReader(readMeMarkdownStream))
+            {
+                string readMeHtml = ConvertMarkDownToHTML(reader.ReadToEnd());
+                return GetStreamFromWritten(readMeHtml);
+            }
+        }
+
+    /// <summary>
+    /// Takes in a ReadMeRequest with a markdown ReadMe file, converts it to HTML
+    /// and returns a stream with the data.
+    /// </summary>
+    /// <param name="readMeRequest">The readMe type and mardown file</param>
+    /// <returns>A stream representing the ReadMe.html file</returns>
+    public static Stream GetReadMeHTMLStream(ReadMeRequest readMeRequest)
+        {
+            return GetReadMeHTMLStream(GetReadMeStream(readMeRequest));
+        }
+
+    /// <summary>
     /// Finds the highest priority ReadMe file stream and returns it. Highest priority is an uploaded file,
     /// then a repository URL inputted via the website, then a repository URL entered through the nuspec.
     /// </summary>
@@ -68,7 +104,7 @@ namespace NuGetGallery.Services
         /// </summary>
         /// <param name="readMeUrl">A link to the raw ReadMe.md file</param>
         /// <returns>A stream to allow the file to be read</returns>
-    private static Stream ReadMeUrlToFileStream(string readMeUrl)
+    public static Stream ReadMeUrlToFileStream(string readMeUrl)
         {
             if (readMeUrl.IndexOf("http://") != 0 && readMeUrl.IndexOf("https://") != 0)
             {
@@ -77,6 +113,7 @@ namespace NuGetGallery.Services
             var webRequest = WebRequest.Create(readMeUrl);
             var response = webRequest.GetResponse();
             return response.GetResponseStream();
+            
         }
 
     public static Stream GetStreamFromWritten(string writtenText)

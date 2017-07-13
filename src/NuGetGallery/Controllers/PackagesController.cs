@@ -30,6 +30,7 @@ using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using NuGetGallery.Services;
 using PoliteCaptcha;
+using NuGetGallery.RequestModels;
 
 namespace NuGetGallery
 {
@@ -1366,14 +1367,28 @@ namespace NuGetGallery
                     // Checks to see if a ReadMe file has been added and uploads ReadMe
                     if (ReadMeService.HasReadMe(formData.ReadMe))
                     {
-                        // Converts a readme into a file stream
-                        using ( var readMeInputStream = ReadMeService.GetReadMeStream(formData.ReadMe))
+                        using (MemoryStream readMeMemoryStream = new MemoryStream())
                         {
-                            await _packageFileService.SaveReadMeFileAsync(package, readMeInputStream);
-                        }
+                            using (var readMeInputStream = ReadMeService.GetReadMeStream(formData.ReadMe))
+                            {
+                                readMeInputStream.CopyTo(readMeMemoryStream);
+                            }
+                            readMeMemoryStream.Position = 0;
 
+                            // Saves ReadMe in markdown
+                            await _packageFileService.SaveReadMeFileAsync(package, readMeMemoryStream, Constants.MarkdownFileExtension);
+                            readMeMemoryStream.Position = 0;
+
+                            // Saves ReadMe in HTML
+                            using (Stream readMeHTMLStream = ReadMeService.GetReadMeHTMLStream(readMeMemoryStream))
+                            {
+                                await _packageFileService.SaveReadMeFileAsync(package, readMeHTMLStream, Constants.HtmlFileExtension);
+
+                            }
+                        }
                         // Add the edit request to a queue where it will be processed in the background.
                         _editPackageService.StartEditPackageRequest(package, formData.Edit, currentUser, Constants.ReadMeChanged);
+
                     } else
                     {
                         _editPackageService.StartEditPackageRequest(package, formData.Edit, currentUser, Constants.ReadMeUnchanged);
@@ -1494,6 +1509,22 @@ namespace NuGetGallery
             var currentUser = GetCurrentUser();
             await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
 
+            return Json(null);
+        }
+
+        [Authorize]
+        [HttpPost]
+        public virtual JsonResult PreviewReadMe(ReadMeRequest formData)
+        {
+            if (ReadMeService.HasReadMe(formData))
+            {
+                Stream readMeHtmlStream = ReadMeService.GetReadMeHTMLStream(formData);
+                using (var reader = new StreamReader(readMeHtmlStream))
+                {
+                    var readMeHtmlString = reader.ReadToEnd();
+                    return Json(new string[] { readMeHtmlString });
+                }
+            }
             return Json(null);
         }
 
