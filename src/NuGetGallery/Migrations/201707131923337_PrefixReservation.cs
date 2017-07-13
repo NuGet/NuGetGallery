@@ -13,7 +13,7 @@ namespace NuGetGallery.Migrations
                     {
                         Key = c.Int(nullable: false, identity: true),
                         Pattern = c.String(nullable: false, maxLength: 128),
-                        IsPublicNamespace = c.Boolean(nullable: false),
+                        IsPublicNamespace = c.Boolean(nullable: false)
                     })
                 .PrimaryKey(t => t.Key);
             
