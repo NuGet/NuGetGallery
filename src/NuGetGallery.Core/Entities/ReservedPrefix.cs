@@ -8,12 +8,16 @@ namespace NuGetGallery
 {
     public class ReservedPrefix : IEntity
     {
+        public ReservedPrefix() : this(null, false)
+        {
+        }
+
         public ReservedPrefix(string pattern, bool isPublicNamespace)
         {
-            PackageRegistrations = new HashSet<PackageRegistration>();
-            ReservedPrefixOwners = new HashSet<User>();
             Pattern = pattern;
             IsPublicNamespace = isPublicNamespace;
+            PackageRegistrations = new HashSet<PackageRegistration>();
+            ReservedPrefixOwners = new HashSet<User>();
         }
 
         [StringLength(CoreConstants.MaxPackageIdLength)]
