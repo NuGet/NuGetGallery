@@ -13,6 +13,7 @@ namespace NuGetGallery
         {
             Owners = new HashSet<User>();
             Packages = new HashSet<Package>();
+            ReservedPrefixes = new HashSet<ReservedPrefix>();
         }
 
         [StringLength(CoreConstants.MaxPackageIdLength)]
@@ -20,8 +21,10 @@ namespace NuGetGallery
         public string Id { get; set; }
 
         public int DownloadCount { get; set; }
+        public bool Verified { get; set; }
         public virtual ICollection<User> Owners { get; set; }
         public virtual ICollection<Package> Packages { get; set; }
+        public virtual ICollection<ReservedPrefix> ReservedPrefixes { get; set; }
         public int Key { get; set; }
     }
 }

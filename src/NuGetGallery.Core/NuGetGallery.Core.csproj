@@ -172,6 +172,7 @@
     <Compile Include="Entities\PackageLicense.cs" />
     <Compile Include="Entities\PackageLicenseReport.cs" />
     <Compile Include="Entities\PackageOwnerRequest.cs" />
+    <Compile Include="Entities\ReservedPrefix.cs" />
     <Compile Include="Entities\PackageRegistration.cs" />
     <Compile Include="Entities\PackageType.cs" />
     <Compile Include="Entities\ReadOnlyModeException.cs" />

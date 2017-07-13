@@ -19,6 +19,7 @@ namespace NuGetGallery
         {
             Credentials = new List<Credential>();
             SecurityPolicies = new List<UserSecurityPolicy>();
+            ReservedPrefixes = new HashSet<ReservedPrefix>();
             Roles = new List<Role>();
             Username = username;
         }
@@ -37,6 +38,8 @@ namespace NuGetGallery
 
         public virtual ICollection<Role> Roles { get; set; }
         public bool EmailAllowed { get; set; }
+        public bool Verified { get; set; }
+        public virtual ICollection<ReservedPrefix> ReservedPrefixes { get; set; }
 
         [DefaultValue(true)]
         public bool NotifyPackagePushed { get; set; }
