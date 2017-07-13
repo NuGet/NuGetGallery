@@ -40,7 +40,9 @@ namespace NuGetGallery.FunctionalTests.WebUITests.UploadAndDownload
             var uploadPostRequest = AssertAndValidationHelper.GetUploadPostRequestForPackage(this, packageFullPath);
             yield return uploadPostRequest;
 
-            //This second get request to upload is to put us on the new Verify Page (upload and verify were merged onto the same page).
+            //This second get request to upload is to put us on the new "Verify Page"
+            // which is just the upload page in a different state.
+            // This is to get the RequestVerificationToken for the folloing request. (upload and verify were merged onto the same page).
             var uploadRequest2 = AssertAndValidationHelper.GetHttpRequestForUrl(UrlHelper.UploadPageUrl);
             yield return uploadRequest2;
 
