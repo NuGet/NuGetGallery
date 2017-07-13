@@ -23,7 +23,9 @@ namespace NuGetGallery
         [StringLength(CoreConstants.MaxPackageIdLength)]
         [Required]
         public string Pattern { get; set; }
+
         public bool IsPublicNamespace { get; set; }
+
         public virtual ICollection<PackageRegistration> PackageRegistrations { get; set; }
         public virtual ICollection<User> ReservedPrefixOwners { get; set; }
 

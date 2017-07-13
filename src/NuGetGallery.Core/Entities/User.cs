@@ -37,8 +37,11 @@ namespace NuGetGallery
         public string Username { get; set; }
 
         public virtual ICollection<Role> Roles { get; set; }
+
         public bool EmailAllowed { get; set; }
+
         public bool Verified { get; set; }
+
         public virtual ICollection<ReservedPrefix> ReservedPrefixes { get; set; }
 
         [DefaultValue(true)]
