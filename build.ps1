@@ -53,6 +53,22 @@ Function Prepare-Vcs-Callback {
     Build-Solution $Configuration $BuildNumber -MSBuildVersion "$msBuildVersion" "src\Validation.Callback.Vcs\Validation.Callback.Vcs.csproj" -Target "Package" -MSBuildProperties "/P:PackageLocation=obj\Validation.Callback.Vcs.zip" -SkipRestore
 }
 
+Function Prepare-NuGetCDNRedirect {
+    [CmdletBinding()]
+    param()
+    
+    Trace-Log 'Preparing NuGetCDNRedirect Package'
+    
+    $ZipPackagePath = "src\NuGetCDNRedirect\obj\NuGetCDNRedirect.zip"
+    
+    if (Test-Path $ZipPackagePath) {
+        Remove-Item $ZipPackagePath
+    }
+    
+    Build-Solution $Configuration $BuildNumber -MSBuildVersion "$msBuildVersion" "src\NuGetCDNRedirect\NuGetCDNRedirect.csproj" -Target "Package" -MSBuildProperties "/P:PackageLocation=obj\NuGetCDNRedirect.zip" -SkipRestore
+}
+
+
 Write-Host ("`r`n" * 3)
 Trace-Log ('=' * 60)
 
@@ -83,7 +99,8 @@ Invoke-BuildStep 'Clearing artifacts' { Clear-Artifacts } `
 Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
         $versionMetadata =
             "$PSScriptRoot\src\Validation.Helper\Properties\AssemblyInfo.g.cs",
-	    "$PSScriptRoot\src\CopyAzureContainer\Properties\AssemblyInfo.g.cs"
+	    "$PSScriptRoot\src\CopyAzureContainer\Properties\AssemblyInfo.g.cs",
+	    "$PSScriptRoot\src\NuGetCDNRedirect\Properties\AssemblyInfo.g.cs"
             
         $versionMetadata | ForEach-Object {
             Set-VersionInfo -Path $_ -Version $SimpleVersion -Branch $Branch -Commit $CommitSHA
@@ -105,7 +122,10 @@ Invoke-BuildStep 'Building solution' {
     
 Invoke-BuildStep 'Prepare Validation.Callback.Vcs Package' { Prepare-Vcs-Callback } `
     -ev +BuildErrors
-    
+
+Invoke-BuildStep 'Prepare NuGetCDNRedirect Package' { Prepare-NuGetCDNRedirect } `
+    -ev +BuildErrors
+
 Invoke-BuildStep 'Creating artifacts' {
         $Projects = `
             "src/Stats.CollectAzureCdnLogs/Stats.CollectAzureCdnLogs.csproj", `
@@ -123,7 +143,8 @@ Invoke-BuildStep 'Creating artifacts' {
             "src/Validation.Runner/Validation.Runner.csproj", `
             "src/NuGet.SupportRequests.Notifications/NuGet.SupportRequests.Notifications.csproj", `
             "src/Validation.Helper/Validation.Helper.csproj", `
-	    "src/CopyAzureContainer/CopyAzureContainer.csproj"
+	    "src/CopyAzureContainer/CopyAzureContainer.csproj", `
+	    "src/NuGetCDNRedirect/NuGetCDNRedirect.csproj"
         
         Foreach ($Project in $Projects) {
             New-Package (Join-Path $PSScriptRoot "$Project") -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch -MSBuildVersion "$msBuildVersion"
