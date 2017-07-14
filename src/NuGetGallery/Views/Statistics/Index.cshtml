@@ -225,7 +225,7 @@
                                     index++;
 
                                     <tr tabindex="0" aria-label="Week of @Model.DisplayWeek(item.Year, item.WeekOfYear, StatisticsPackagesViewModel.WeekFormats.StartOnly), @(item.Downloads) Downloads">
-                                        <td class="text-left">@Model.DisplayWeek(item.Year, item.WeekOfYear)</td>
+                                        <td class="text-left" title="@Model.DisplayWeek(item.Year, item.WeekOfYear)">@Model.DisplayWeek(item.Year, item.WeekOfYear)</td>
                                         <td class="text-right">@Model.DisplayDownloads(item.Downloads)</td>
                                     </tr>
                                 }
