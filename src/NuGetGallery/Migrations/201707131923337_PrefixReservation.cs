@@ -12,8 +12,9 @@ namespace NuGetGallery.Migrations
                 c => new
                     {
                         Key = c.Int(nullable: false, identity: true),
-                        Pattern = c.String(nullable: false, maxLength: 128),
-                        IsPublicNamespace = c.Boolean(nullable: false)
+                        Value = c.String(nullable: false, maxLength: 128),
+                        IsPublicNamespace = c.Boolean(nullable: false),
+                        IsExactMatch = c.Boolean(nullable: false)
                     })
                 .PrimaryKey(t => t.Key);
             

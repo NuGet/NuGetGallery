@@ -8,23 +8,26 @@ namespace NuGetGallery
 {
     public class ReservedPrefix : IEntity
     {
-        public ReservedPrefix() : this(null, false)
+        public ReservedPrefix() : this(null, false, false)
         {
         }
 
-        public ReservedPrefix(string pattern, bool isPublicNamespace)
+        public ReservedPrefix(string value, bool isPublicNamespace, bool isExactMatch)
         {
-            Pattern = pattern;
+            Value = value;
             IsPublicNamespace = isPublicNamespace;
+            IsExactMatch = isExactMatch;
             PackageRegistrations = new HashSet<PackageRegistration>();
             ReservedPrefixOwners = new HashSet<User>();
         }
 
         [StringLength(CoreConstants.MaxPackageIdLength)]
         [Required]
-        public string Pattern { get; set; }
+        public string Value { get; set; }
 
         public bool IsPublicNamespace { get; set; }
+
+        public bool IsExactMatch { get; set; }
 
         public virtual ICollection<PackageRegistration> PackageRegistrations { get; set; }
         public virtual ICollection<User> ReservedPrefixOwners { get; set; }
