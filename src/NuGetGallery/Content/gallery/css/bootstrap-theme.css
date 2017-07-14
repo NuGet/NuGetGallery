@@ -414,6 +414,88 @@ img.package-icon {
   margin-left: 10px;
   border-left: 1px solid #dbdbdb;
 }
+.page-blog {
+  margin-top: 33px;
+}
+.page-blog h1 {
+  margin-top: 0;
+}
+.page-blog .follow-us {
+  margin-top: 5px;
+}
+.page-blog .follow-us img {
+  margin-left: 10px;
+}
+.page-blog-index {
+  margin-top: 33px;
+}
+.page-blog-index h1 {
+  margin-top: 0;
+}
+.page-blog-index .follow-us {
+  margin-top: 5px;
+}
+.page-blog-index .follow-us img {
+  margin-left: 10px;
+}
+.page-blog-index p {
+  margin-bottom: .75em;
+}
+.page-blog-index p:last-child {
+  margin-bottom: 0;
+}
+.page-blog-index .post {
+  padding: 20px 0;
+  border-top: 1px solid #ddd;
+}
+.page-blog-index .post .title {
+  font-size: 2em;
+}
+.page-blog-index .post:last-child {
+  border-bottom: 1px solid #ddd;
+}
+.page-blog-index .pagination-row {
+  margin-top: 20px;
+}
+.page-blog-archive {
+  margin-top: 33px;
+}
+.page-blog-archive h1 {
+  margin-top: 0;
+}
+.page-blog-archive .follow-us {
+  margin-top: 5px;
+}
+.page-blog-archive .follow-us img {
+  margin-left: 10px;
+}
+.page-blog-archive .table-lg {
+  font-size: 1.25em;
+}
+.page-blog-archive .table-lg td {
+  padding: 20px 0;
+}
+.page-blog-archive .table-lg tr:last-child td {
+  border-bottom: 1px solid #ddd;
+}
+.page-blog-archive .table-lg td + td {
+  padding-left: 30px;
+}
+.page-blog-post {
+  margin-top: 33px;
+}
+.page-blog-post h1 {
+  margin-top: 0;
+}
+.page-blog-post .follow-us {
+  margin-top: 5px;
+}
+.page-blog-post .follow-us img {
+  margin-left: 10px;
+}
+.page-blog-post h1 {
+  font-size: 60px;
+}
 .page-package-details .no-border {
   border: 0;
 }
