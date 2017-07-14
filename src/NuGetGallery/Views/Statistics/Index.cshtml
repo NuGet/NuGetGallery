@@ -94,23 +94,31 @@
                     <div class="col-xs-12 chart">
                         <svg class="chart" id="bar-chart-client-usage">
                             @{
-                                var chartFullWidthInPercent = 94.0;
+                                var limitCount = 15;
+                                var minDL = 1000;
+                                var showVersions = Model.NuGetClientVersion.Where(e => e.Downloads > minDL);
+                                if (showVersions.Count() > limitCount)
+                                {
+                                    showVersions = showVersions.Skip(Math.Max(0, showVersions.Count() - limitCount));
+                                }
+
+                                var chartFullWidthInPercent = 90.0;
                                 var chartFullHeightInPercent = 90.0;
                                 var widthOffsetPercent = 100.0 - chartFullWidthInPercent;
                                 var index = 0;
                                 var gapPercent = .1;
-                                var max = Model.NuGetClientVersion.Max(e => e.Downloads) * 1.0;
+                                var max = showVersions.Max(e => e.Downloads) * 1.0;
                                 var numYAxisLabels = 10.0;
-                                var fraction = chartFullWidthInPercent / Model.NuGetClientVersion.Count();
-                                foreach (var item in Model.NuGetClientVersion)
+                                var fraction = chartFullWidthInPercent / showVersions.Count();
+                                foreach (var item in showVersions)
                                 {
                                     <rect class="graph-bar" id="graph-bar-@(item.Version)" x="@(widthOffsetPercent + index * fraction)%" y="@(chartFullHeightInPercent-item.Downloads/max*chartFullHeightInPercent)%" width="@(fraction * (1.0 - gapPercent))%" height="@(item.Downloads/max*chartFullHeightInPercent)%">
                                         <title>@(item.Downloads) downloads</title>
                                     </rect>
 
-                                        <svg x="@(widthOffsetPercent + index * fraction + fraction/2.0 - 3)%" y="@(chartFullHeightInPercent + 1)%">
+                                        <svg x="@(widthOffsetPercent + index * fraction + fraction/2.0 - 2.5)%" y="@(chartFullHeightInPercent + 1)%">
                                             <g transform="rotate(-45)">
-                                                <text y="1.2em" x="-0.8em" class="graph-x-axis-text">@(item.Version)</text>
+                                                <text y="1.5em" x="-0.9em" class="graph-x-axis-text"> @(item.Version)</text>
                                             </g>
                                         </svg>
                                     index++;
