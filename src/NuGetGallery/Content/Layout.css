@@ -51,6 +51,27 @@ ul.share-buttons i {
         text-decoration: underline;
     }
 
+.banner-redesign {
+    padding: 0.25em;
+    text-align: center;
+    color: #FFFFFF;
+    background-color: #004880;
+    font-family: "Segoe UI";
+    font-size: 1.75em;
+    font-weight: 100;
+    line-height: 40px;
+}
+
+    .banner-redesign .ms-Icon {
+        position: relative;
+        top: .1em;
+        font-size: 0.8em;
+    }
+
+    .banner-redesign a {
+        color: white;
+        text-decoration: underline;
+    }
 /* Header */
 
 header.main {
