@@ -183,6 +183,11 @@ h3 a:active {
     max-height: 60px;
   }
 }
+@media screen and (max-width: 480px) {
+  .hidden-tiny {
+    display: none;
+  }
+}
 img.package-icon {
   margin-right: auto;
   margin-left: auto;
