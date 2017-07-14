@@ -8,7 +8,8 @@ namespace NuGetGallery
 {
     public class ReservedPrefix : IEntity
     {
-        public ReservedPrefix() : this(null, false, false)
+        public ReservedPrefix() 
+            : this(value: null, isPublicNamespace: false, isExactMatch: false)
         {
         }
 
