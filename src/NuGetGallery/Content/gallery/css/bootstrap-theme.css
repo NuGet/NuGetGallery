@@ -840,6 +840,12 @@ img.package-icon {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.page-statistics-overview td {
+  max-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .page-statistics-overview .stats-title-text {
   margin-bottom: 10px;
   font-size: 1.6em;
