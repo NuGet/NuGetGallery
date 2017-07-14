@@ -178,8 +178,20 @@ body {
     top: 2px;
   }
 
+  a {
+    color: @link-hover-color;
+  }
+
+  a:hover, a:focus {
+    color: darken(@link-hover-color, 15%);
+  }
+
   &.banner-bright {
     background: yellow;
+  }
+
+  &.banner-notice {
+    background: @alert-info-bg;
   }
 }
 

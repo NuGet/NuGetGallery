@@ -133,8 +133,18 @@ body h3 {
   position: relative;
   top: 2px;
 }
+.banner a {
+  color: #23527c;
+}
+.banner a:hover,
+.banner a:focus {
+  color: #122b40;
+}
 .banner.banner-bright {
   background: yellow;
+}
+.banner.banner-notice {
+  background: #f4f4f4;
 }
 .alert a {
   color: #2e6da4;
