@@ -511,6 +511,11 @@ img.package-icon {
 .page-blog-post h1 {
   font-size: 60px;
 }
+.page-blog-post .post-content img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
 .page-package-details .no-border {
   border: 0;
 }
