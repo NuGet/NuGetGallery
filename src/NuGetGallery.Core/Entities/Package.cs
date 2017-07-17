@@ -221,6 +221,7 @@ namespace NuGetGallery
             IconUrl = edit.IconUrl;
             LicenseUrl = edit.LicenseUrl;
             ProjectUrl = edit.ProjectUrl;
+            RepositoryUrl = edit.RepositoryUrl;
             ReleaseNotes = edit.ReleaseNotes;
             RequiresLicenseAcceptance = edit.RequiresLicenseAcceptance;
             Summary = edit.Summary;
