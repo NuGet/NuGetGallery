@@ -1320,7 +1320,9 @@ namespace NuGetGallery
                     }
                 }
 
+
                 bool pendEdit = false;
+                bool hasReadMe = ReadMeHelper.HasReadMe(formData.ReadMe);
                 if (formData.Edit != null)
                 {
                     pendEdit = pendEdit || formData.Edit.RequiresLicenseAcceptance != packageMetadata.RequireLicenseAcceptance;
@@ -1336,7 +1338,7 @@ namespace NuGetGallery
                     pendEdit = pendEdit || IsDifferent(formData.Edit.Summary, packageMetadata.Summary);
                     pendEdit = pendEdit || IsDifferent(formData.Edit.Tags, PackageHelper.ParseTags(packageMetadata.Tags));
                     pendEdit = pendEdit || IsDifferent(formData.Edit.VersionTitle, packageMetadata.Title);
-                    pendEdit = pendEdit || formData.ReadMe != null;
+                    pendEdit = pendEdit || hasReadMe;
                 }
 
                 var packageStreamMetadata = new PackageStreamMetadata
@@ -1365,22 +1367,17 @@ namespace NuGetGallery
                 if (pendEdit)
                 {
                     // Checks to see if a ReadMe file has been added and uploads ReadMe
-                    if (ReadMeService.HasReadMe(formData.ReadMe))
+                    if (hasReadMe)
                     {
-                        using (MemoryStream readMeMemoryStream = new MemoryStream())
-                        {
-                            using (var readMeInputStream = ReadMeService.GetReadMeStream(formData.ReadMe))
-                            {
-                                readMeInputStream.CopyTo(readMeMemoryStream);
-                            }
-                            readMeMemoryStream.Position = 0;
 
+                        using (var readMeInputStream = ReadMeHelper.GetReadMeStream(formData.ReadMe).AsSeekableStream())
+                        {
                             // Saves ReadMe in markdown
-                            await _packageFileService.SaveReadMeFileAsync(package, readMeMemoryStream, Constants.MarkdownFileExtension);
-                            readMeMemoryStream.Position = 0;
+                            await _packageFileService.SaveReadMeFileAsync(package, readMeInputStream, Constants.MarkdownFileExtension);
+                            readMeInputStream.Position = 0;
 
                             // Saves ReadMe in HTML
-                            using (Stream readMeHTMLStream = ReadMeService.GetReadMeHTMLStream(readMeMemoryStream))
+                            using (Stream readMeHTMLStream = ReadMeHelper.GetReadMeHTMLStream(readMeInputStream))
                             {
                                 await _packageFileService.SaveReadMeFileAsync(package, readMeHTMLStream, Constants.HtmlFileExtension);
 
@@ -1516,9 +1513,9 @@ namespace NuGetGallery
         [HttpPost]
         public virtual JsonResult PreviewReadMe(ReadMeRequest formData)
         {
-            if (ReadMeService.HasReadMe(formData))
+            if (ReadMeHelper.HasReadMe(formData))
             {
-                Stream readMeHtmlStream = ReadMeService.GetReadMeHTMLStream(formData);
+                Stream readMeHtmlStream = ReadMeHelper.GetReadMeHTMLStream(formData);
                 using (var reader = new StreamReader(readMeHtmlStream))
                 {
                     var readMeHtmlString = reader.ReadToEnd();

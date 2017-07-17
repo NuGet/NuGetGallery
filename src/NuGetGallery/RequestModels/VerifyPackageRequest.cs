@@ -6,6 +6,7 @@ using NuGet.Packaging;
 using NuGet.Versioning;
 using System.IO;
 using NuGetGallery.RequestModels;
+using NuGetGallery.Packaging;
 
 namespace NuGetGallery
 {

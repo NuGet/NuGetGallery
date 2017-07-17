@@ -19,7 +19,6 @@ namespace NuGetGallery
         public const string ReleaseNotesStr = "Release Notes (for this version)";
         public const string RequiresLicenseAcceptanceStr = "Requires license acceptance";
         public const string RepositoryUrlStr = "Repository URL";
-        public const string ReadMeFileStr = "ReadMe file";
 
         public EditPackageVersionRequest()
         {
@@ -131,12 +130,7 @@ namespace NuGetGallery
 
         [Display(Name = RequiresLicenseAcceptanceStr)]
         public bool RequiresLicenseAcceptance { get; set; }
-
-
-        [Display(Name = ReadMeFileStr)]
-        public HttpPostedFileBase ReadMeFile { get; set; }
         
-
         /// <summary>
         /// Applied the edit to a package
         /// </summary>

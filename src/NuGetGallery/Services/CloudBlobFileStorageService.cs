@@ -155,7 +155,7 @@ namespace NuGetGallery
                 case Constants.ReadMeContainerName:
                     creationTask = PrepareContainer(folderName, isPublic: false);
                     break;
-         
+
                 default:
                     throw new InvalidOperationException(
                         String.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));
