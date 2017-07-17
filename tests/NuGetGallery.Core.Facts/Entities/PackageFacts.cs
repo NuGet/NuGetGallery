@@ -22,6 +22,7 @@ namespace NuGetGallery
                     FlattenedAuthors = "OldAuthors",
                     Copyright = "OldCopyright",
                     ReleaseNotes = "OldReleaseNotes",
+                    RepositoryUrl = "OldRepositoryUrl",
                     Hash = "OldHash",
                     HashAlgorithm = "SHA512",
                     PackageFileSize = 0,
@@ -36,6 +37,7 @@ namespace NuGetGallery
                     Authors = "NewAuthors",
                     Copyright = "NewCopyright",
                     ReleaseNotes = "NewReleaseNotes",
+                    RepositoryUrl = "NewRepositoryUrl",
                 };
 
                 p.PackageEdits.Add(pe);
@@ -50,6 +52,7 @@ namespace NuGetGallery
                 Assert.Equal("OldAuthors", h.Authors);
                 Assert.Equal("OldCopyright", h.Copyright);
                 Assert.Equal("OldReleaseNotes", h.ReleaseNotes);
+                Assert.Equal("OldRepositoryUrl", h.RepositoryUrl);
                 Assert.Equal("SHA512", h.HashAlgorithm);
                 Assert.Equal("OldHash", h.Hash);
                 Assert.Equal(0, h.PackageFileSize);
@@ -61,6 +64,7 @@ namespace NuGetGallery
                 Assert.Equal("NewAuthors", p.FlattenedAuthors);
                 Assert.Equal("NewCopyright", p.Copyright);
                 Assert.Equal("NewReleaseNotes", p.ReleaseNotes);
+                Assert.Equal("NewRepositoryUrl", p.RepositoryUrl);
                 Assert.Equal("SHA1024", p.HashAlgorithm);
                 Assert.Equal("NewHash", p.Hash);
                 Assert.Equal(1, p.PackageFileSize);
