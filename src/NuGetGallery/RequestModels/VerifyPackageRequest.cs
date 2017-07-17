@@ -1,9 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+using System.Collections.Generic;
+using System.Web;
 using NuGet.Packaging;
 using NuGet.Versioning;
+using System.IO;
+using NuGetGallery.RequestModels;
 using NuGetGallery.Packaging;
-using System.Collections.Generic;
 
 namespace NuGetGallery
 {
@@ -24,6 +27,7 @@ namespace NuGetGallery
             Dependencies = new DependencySetsViewModel(packageMetadata.GetDependencyGroups().AsPackageDependencyEnumerable());
             DevelopmentDependency = packageMetadata.GetValueFromMetadata("developmentDependency");
             Edit = new EditPackageVersionRequest(packageMetadata);
+            ReadMe = new ReadMeRequest();
         }
 
         public string Id { get; set; }
@@ -46,5 +50,6 @@ namespace NuGetGallery
         public string DevelopmentDependency { get; set; }
         public DependencySetsViewModel Dependencies { get; set; }
         public IReadOnlyCollection<FrameworkSpecificGroup> FrameworkReferenceGroups { get; set; }
+        public ReadMeRequest ReadMe { get; set; }
     }
 }

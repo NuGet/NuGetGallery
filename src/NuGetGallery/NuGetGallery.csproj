@@ -128,6 +128,9 @@
       <HintPath>..\..\packages\Autofac.WebApi2.3.4.0\lib\net45\Autofac.Integration.WebApi.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="CommonMark, Version=0.1.0.0, Culture=neutral, PublicKeyToken=001ef8810438905d, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\CommonMark.NET.0.15.1\lib\net45\CommonMark.dll</HintPath>
+    </Reference>
     <Reference Include="DynamicData.EFCodeFirstProvider, Version=0.3.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\DynamicData.EFCodeFirstProvider.0.3.0.0\lib\net40\DynamicData.EFCodeFirstProvider.dll</HintPath>
@@ -778,6 +781,7 @@
     <Compile Include="Migrations\201706262349176_AddRepositoryURL_ReadMe.Designer.cs">
       <DependentUpon>201706262349176_AddRepositoryURL_ReadMe.cs</DependentUpon>
     </Compile>
+    <Compile Include="RequestModels\ReadMeRequest.cs" />
     <Compile Include="Security\RequireSecurePushForCoOwnersPolicy.cs" />
     <Compile Include="Security\SecurePushSubscription.cs" />
     <Compile Include="Security\IUserSecurityPolicySubscription.cs" />
@@ -794,6 +798,7 @@
     <Compile Include="Security\UserSecurityPolicyEvaluationContext.cs" />
     <Compile Include="Security\SecurityPolicyResult.cs" />
     <Compile Include="Security\UserSecurityPolicySubscriptionContext.cs" />
+    <Compile Include="Helpers\ReadMeHelper.cs" />
     <Compile Include="Telemetry\ClientInformationTelemetryEnricher.cs" />
     <Compile Include="Telemetry\QuietExceptionLogger.cs" />
     <Compile Include="Infrastructure\Authentication\CredentialBuilder.cs" />
@@ -1819,6 +1824,8 @@
     <Content Include="Views\Authentication\_Register.cshtml" />
     <Content Include="Views\Users\_UserPackagesList.cshtml" />
     <Content Include="Views\Users\_ConfirmationResendForm.cshtml" />
+    <Content Include="Views\Packages\_ImportReadMe.cshtml" />
+    <Content Include="Views\Packages\_SubmitPackage.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />

@@ -1,12 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Text;
+using System.Web;
 using NuGetGallery.Packaging;
-
 namespace NuGetGallery
 {
     public class EditPackageVersionRequest
@@ -21,6 +18,7 @@ namespace NuGetGallery
         public const string TagsStr = "Tags (space separated - e.g. 'ASP.NET Templates MVC')";
         public const string ReleaseNotesStr = "Release Notes (for this version)";
         public const string RequiresLicenseAcceptanceStr = "Requires license acceptance";
+        public const string RepositoryUrlStr = "Repository URL";
 
         public EditPackageVersionRequest()
         {
@@ -52,6 +50,7 @@ namespace NuGetGallery
                 IconUrl = package.IconUrl,
                 LicenseUrl = package.LicenseUrl,
                 ProjectUrl = package.ProjectUrl,
+                RepositoryUrl = package.RepositoryUrl,
                 ReleaseNotes = package.ReleaseNotes,
                 RequiresLicenseAcceptance = package.RequiresLicenseAcceptance,
                 Summary = package.Summary,
@@ -64,6 +63,7 @@ namespace NuGetGallery
             IconUrl = metadata.IconUrl;
             LicenseUrl = metadata.LicenseUrl;
             ProjectUrl = metadata.ProjectUrl;
+            RepositoryUrl = metadata.RepositoryUrl;
             ReleaseNotes = metadata.ReleaseNotes;
             RequiresLicenseAcceptance = metadata.RequiresLicenseAcceptance;
             Summary = metadata.Summary;
@@ -102,6 +102,12 @@ namespace NuGetGallery
         [RegularExpression(Constants.UrlValidationRegEx, ErrorMessage = Constants.UrlValidationErrorMessage)]
         public string ProjectUrl { get; set; }
 
+        [StringLength(256)]
+        [Display(Name = RepositoryUrlStr)]
+        [DataType(DataType.Text)]
+        [RegularExpression(Constants.UrlValidationRegEx, ErrorMessage = Constants.UrlValidationErrorMessage)]
+        public string RepositoryUrl { get; set; }
+
         [StringLength(512)]
         [Display(Name = AuthorsStr)]
         [DataType(DataType.Text)]
@@ -124,7 +130,7 @@ namespace NuGetGallery
 
         [Display(Name = RequiresLicenseAcceptanceStr)]
         public bool RequiresLicenseAcceptance { get; set; }
-
+        
         /// <summary>
         /// Applied the edit to a package
         /// </summary>
@@ -138,6 +144,7 @@ namespace NuGetGallery
             package.IconUrl = IconUrl;
             package.LicenseUrl = LicenseUrl;
             package.ProjectUrl = ProjectUrl;
+            package.RepositoryUrl = RepositoryUrl;
             package.ReleaseNotes = ReleaseNotes;
             package.RequiresLicenseAcceptance = RequiresLicenseAcceptance;
             package.Summary = Summary;

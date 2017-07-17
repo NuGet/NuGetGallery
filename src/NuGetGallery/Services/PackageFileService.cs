@@ -59,6 +59,22 @@ namespace NuGetGallery
             return _fileStorageService.SaveFileAsync(Constants.PackagesFolderName, fileName, packageFile, overwrite: false);
         }
 
+
+        /// <summary>
+        /// Saves a ReadMe file asynchronously to the Pending ReadMe file folder.
+        /// </summary>
+        /// <param name="package">The package to which this readme belongs.</param>
+        /// <param name="readMe">The stream representing the readme's data.</param>
+        public Task SaveReadMeFileAsync(Package package, Stream readMe, string fileExtension)
+        {
+            if (readMe == null || package == null)
+            {
+                throw new ArgumentNullException(nameof(readMe));
+            }
+            var fileName = BuildReadMeFileName(package, fileExtension);
+            return _fileStorageService.SaveFileAsync(Constants.ReadMeContainerName, fileName, readMe, overwrite:false);
+        }
+
         public Task StorePackageFileInBackupLocationAsync(Package package, Stream packageFile)
         {
             if (package == null)
@@ -114,6 +130,31 @@ namespace NuGetGallery
                 Constants.NuGetPackageFileExtension);
         }
 
+        private static string BuildReadMeFileName(string id, string version, string fileExtension)
+        {
+            if (id == null)
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
+
+            if (version == null)
+            {
+                throw new ArgumentNullException(nameof(version));
+            }
+
+            // Note: packages should be saved and retrieved in blob storage using the lower case version of their filename because
+            // a) package IDs can and did change case over time
+            // b) blob storage is case sensitive
+            // c) we don't want to hit the database just to look up the right case
+            // and remember - version can contain letters too.
+            return String.Format(
+                CultureInfo.InvariantCulture,
+                Constants.ReadMeFileSavePathTemplate,
+                id.ToLowerInvariant(),
+                version.ToLowerInvariant(),
+                fileExtension);
+        }
+
         private static string BuildFileName(Package package)
         {
             if (package == null)
@@ -133,6 +174,27 @@ namespace NuGetGallery
                 String.IsNullOrEmpty(package.NormalizedVersion) ?
                     NuGetVersionFormatter.Normalize(package.Version) :
                     package.NormalizedVersion);
+        }
+
+        private static string BuildReadMeFileName(Package package, string fileExtension)
+        {
+            if (package == null)
+            {
+                throw new ArgumentNullException(nameof(package));
+            }
+
+            if (package.PackageRegistration == null ||
+                String.IsNullOrWhiteSpace(package.PackageRegistration.Id) ||
+                (String.IsNullOrWhiteSpace(package.NormalizedVersion) && String.IsNullOrWhiteSpace(package.Version)))
+            {
+                throw new ArgumentException(Strings.PackageIsMissingRequiredData, nameof(package));
+            }
+
+            return BuildReadMeFileName(
+                package.PackageRegistration.Id,
+                String.IsNullOrEmpty(package.NormalizedVersion) ?
+                    NuGetVersionFormatter.Normalize(package.Version) :
+                    package.NormalizedVersion, fileExtension);
         }
 
         private static string BuildBackupFileName(string id, string version, string hash)
