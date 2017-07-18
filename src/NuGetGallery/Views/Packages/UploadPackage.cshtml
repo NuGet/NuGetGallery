@@ -1,8 +1,8 @@
 ﻿@model SubmitPackageRequest
 @{
-    ViewBag.Title = "Upload Package";
-    ViewBag.Tab = "Upload";
-    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
+	ViewBag.Title = "Upload Package";
+	ViewBag.Tab = "Upload";
+	Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
 <div class="page-upload container main-container" role="main">
@@ -50,11 +50,11 @@
 
 
 			@if (Model != null && Model.IsUploadInProgress)
-            {
+			{
 				<div id="warning-container">
 					@ViewHelpers.AlertWarning(@<text>You had an upload in progress. You can continue it here or cancel to restart.</text>)
 				</div>
-            }
+			}
 			<form id="verify-metadata-form">
 				<div id="verify-collapser-container" class="hidden">
 					<h2>
@@ -100,15 +100,15 @@
 				@Html.Partial("_SubmitPackage")
 			</form>
 		</div>
-    </div>
+	</div>
 </div>
 
 @section BottomScripts
 {
-    @* Right now this is the only page that uses this script. If we increase our usage of it, we should put it in our bundles *@
-    <script type="text/javascript" src="@Url.Content("~/Scripts/gallery/async-file-upload.js")"></script>
-    <script type="text/javascript">
-        var InProgressPackage = @Html.Raw(Json.Encode(Model.InProgressUpload));
+	@* Right now this is the only page that uses this script. If we increase our usage of it, we should put it in our bundles *@
+	<script type="text/javascript" src="@Url.Content("~/Scripts/gallery/async-file-upload.js")"></script>
+	<script type="text/javascript">
+		var InProgressPackage = @Html.Raw(Json.Encode(Model.InProgressUpload));
 		window.nuget.configureExpander(
 			"upload-package-form",
 			"ChevronRight",
@@ -116,14 +116,14 @@
 			"ChevronDown",
 			"Upload");
 		
-        $(function () {
-            AsyncFileUploadManager.init(
-                '@Url.Action(actionName: "UploadPackageProgress", controllerName: "Packages")',
-                'uploadForm',
-                '@Scripts.Url("~/Scripts/jquery")',
-                '@Url.Action(actionName: "UploadPackage", controllerName: "Packages")',
-                '@Url.Action(actionName: "CancelUpload", controllerName: "Packages")',
+		$(function () {
+			AsyncFileUploadManager.init(
+				'@Url.Action(actionName: "UploadPackageProgress", controllerName: "Packages")',
+				'uploadForm',
+				'@Scripts.Url("~/Scripts/jquery")',
+				'@Url.Action(actionName: "UploadPackage", controllerName: "Packages")',
+				'@Url.Action(actionName: "CancelUpload", controllerName: "Packages")',
 				'@Url.Action(actionName: "VerifyPackage", controllerName: "Packages")');
-        });
-    </script>
+		});
+	</script>
 }

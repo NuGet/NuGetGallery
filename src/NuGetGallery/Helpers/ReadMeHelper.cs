@@ -41,11 +41,11 @@ namespace NuGetGallery.Helpers
                         {
                             readMeUrl = "http://" + formData.ReadMeUrl;
                         } 
-                        return formData.ReadMeUrl != null && formData.ReadMeUrl != "" && Uri.IsWellFormedUriString(readMeUrl, UriKind.Absolute);
+                        return !String.IsNullOrWhiteSpace(formData.ReadMeUrl) && Uri.IsWellFormedUriString(readMeUrl, UriKind.Absolute);
                     case ReadMeTypeFile:
                         return formData.ReadMeFile != null;
                     case ReadMeTypeWritten:
-                        return formData.ReadMeWritten != null && formData.ReadMeWritten != "";
+                        return !String.IsNullOrWhiteSpace(formData.ReadMeWritten);
                     default: return false;
                 }
             }
