@@ -8,7 +8,7 @@ using System;
 using NuGetGallery.RequestModels;
 using System.Text.RegularExpressions;
 
-namespace NuGetGallery.Services
+namespace NuGetGallery.Helpers
 {
     public class ReadMeHelper
     {
@@ -33,11 +33,18 @@ namespace NuGetGallery.Services
             {
                 switch (formData.ReadMeType)
                 {
-                    case "Url":
-                        return formData.ReadMeUrl != null && formData.ReadMeUrl != "";
-                    case "File":
+                    case ReadMeTypeUrl:
+                        string readMeUrl = formData.ReadMeUrl;
+                        string pattern = @"^(((ht|f)tp(s?))\:\/\/)?(www.|[a-zA-Z].)[a-zA-Z0-9\-\.]+\.(com|edu|gov|mil|net|org|biz|info|name|museum|us|ca|uk)(\:[0-9]+)*(\/($|[a-zA-Z0-9\.\,\;\?\'\\\+&amp;%\$#\=~_\-]+))*$";
+                        bool isValidUrl = Regex.IsMatch(readMeUrl, pattern);
+                        if (isValidUrl && !formData.ReadMeUrl.StartsWith("http://") && !formData.ReadMeUrl.StartsWith("https://"))
+                        {
+                            readMeUrl = "http://" + formData.ReadMeUrl;
+                        } 
+                        return formData.ReadMeUrl != null && formData.ReadMeUrl != "" && Uri.IsWellFormedUriString(readMeUrl, UriKind.Absolute);
+                    case ReadMeTypeFile:
                         return formData.ReadMeFile != null;
-                    case "Written":
+                    case ReadMeTypeWritten:
                         return formData.ReadMeWritten != null && formData.ReadMeWritten != "";
                     default: return false;
                 }
@@ -73,7 +80,7 @@ namespace NuGetGallery.Services
         /// Takes in a ReadMeRequest with a markdown ReadMe file, converts it to HTML
         /// and returns a stream with the data.
         /// </summary>
-        /// <param name="readMeRequest">The readMe type and mardown file</param>
+        /// <param name="readMeRequest">The readMe type and markdown file</param>
         /// <returns>A stream representing the ReadMe.html file</returns>
         public static Stream GetReadMeHTMLStream(ReadMeRequest readMeRequest)
         {
@@ -91,12 +98,14 @@ namespace NuGetGallery.Services
         {
             switch (formData.ReadMeType)
             {
-                case "Url":
+                case ReadMeTypeUrl:
                     return ReadMeUrlToFileStream(formData.ReadMeUrl);
-                case "File":
+                case ReadMeTypeFile:
                     return GetStreamFromFile(formData.ReadMeFile);
-                default: //Written
+                case ReadMeTypeWritten:
                     return GetStreamFromWritten(formData.ReadMeWritten);
+                default:
+                    throw new InvalidOperationException("No ReadMe available!");
             }
         }
 
