@@ -8,7 +8,7 @@ echo "Starting job - #{Jobs.catalog2registrationv3reg3.Title}"
 title #{Jobs.catalog2registrationv3reg3.Title}
 
 start /w ng.exe catalog2registration ^
-    -source #{Jobs.common.v3.Source} ^
+    -source #{Jobs.catalog2registrationv3reg3.Source} ^
     -contentBaseAddress #{Jobs.catalog2registrationv3reg3.ContentBaseAddress} ^
     -storageType azure ^
     -instrumentationkey #{Jobs.common.v3.Logging.InstrumentationKey} ^
