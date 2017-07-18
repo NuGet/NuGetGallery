@@ -130,7 +130,7 @@ namespace NuGetGallery
 
         [Display(Name = RequiresLicenseAcceptanceStr)]
         public bool RequiresLicenseAcceptance { get; set; }
-        
+
         /// <summary>
         /// Applied the edit to a package
         /// </summary>
