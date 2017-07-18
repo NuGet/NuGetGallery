@@ -116,7 +116,7 @@ namespace NuGetGallery.Helpers
         /// <returns>A stream to allow the file to be read</returns>
         public static Stream ReadMeUrlToFileStream(string readMeUrl)
         {
-            if (readMeUrl.IndexOf("http://") != 0 && readMeUrl.IndexOf("https://") != 0)
+            if (!readMeUrl.StartsWith("http://") && !readMeUrl.StartsWith("https://"))
             {
                 readMeUrl = "http://" + readMeUrl;
             }
