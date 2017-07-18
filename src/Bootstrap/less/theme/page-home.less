@@ -30,18 +30,15 @@
     }
   }
 
-  .triangle-left:after {
-    left: 30px;
-  }
-
-  .triangle-right:after {
-    right: 30px;
+  .jumbotron {
+    padding-bottom: 20px;
+    margin-bottom: 0;
   }
 
   .circuit-board {
-    margin-top: 50px;
+    margin-top: 20px;
     width: 768px;
-    height: 482px;
+    height: 396px;
     position: relative;
     margin: 0 auto;
     background-image: url('../img/circuit-board.svg');
@@ -61,24 +58,36 @@
     }
 
     .circuit-board-pd {
-      left: 135px;
-      top: 0;
+      left: 377px;
+      top: 10px;
       float: left;
       width: 200px;
+
+      &.triangle:after {
+        left: 20px;
+      }
     }
 
     .circuit-board-pv {
       left: 0;
-      top: 136px;
+      top: 63px;
       float: left;
       width: 144px;
+
+      &.triangle:after {
+        right: 30px;
+      }
     }
 
     .circuit-board-up {
       right: 0;
-      top: 159px;
+      top: 87px;
       float: right;
       width: 144px;
+
+      &.triangle:after {
+        left: 30px;
+      }
     }
   }
 }

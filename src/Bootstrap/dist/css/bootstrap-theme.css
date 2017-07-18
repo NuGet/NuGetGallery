@@ -650,18 +650,16 @@ img.package-icon {
     border: 1px solid windowText;
   }
 }
-.page-home .triangle-left:after {
-  left: 30px;
-}
-.page-home .triangle-right:after {
-  right: 30px;
+.page-home .jumbotron {
+  padding-bottom: 20px;
+  margin-bottom: 0;
 }
 .page-home .circuit-board {
   position: relative;
   width: 768px;
-  height: 482px;
+  height: 396px;
   margin: 0 auto;
-  margin-top: 50px;
+  margin-top: 20px;
   background-image: url('../img/circuit-board.svg');
   background-repeat: no-repeat;
   background-position: center bottom;
@@ -679,22 +677,31 @@ img.package-icon {
   margin: 9px 0 0 0;
 }
 .page-home .circuit-board .circuit-board-pd {
-  top: 0;
-  left: 135px;
+  top: 10px;
+  left: 377px;
   float: left;
   width: 200px;
 }
+.page-home .circuit-board .circuit-board-pd.triangle:after {
+  left: 20px;
+}
 .page-home .circuit-board .circuit-board-pv {
-  top: 136px;
+  top: 63px;
   left: 0;
   float: left;
   width: 144px;
 }
+.page-home .circuit-board .circuit-board-pv.triangle:after {
+  right: 30px;
+}
 .page-home .circuit-board .circuit-board-up {
-  top: 159px;
+  top: 87px;
   right: 0;
   float: right;
   width: 144px;
+}
+.page-home .circuit-board .circuit-board-up.triangle:after {
+  left: 30px;
 }
 .page-list-packages h1 {
   margin-bottom: 33px;
