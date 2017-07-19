@@ -12,6 +12,10 @@ namespace NuGet.Jobs
         private const string _packageBlobNameFormat = "{0}.{1}.nupkg";
         private const string _packageBackupBlobNameFormat = _packageBackupsDirectory + "/{0}/{1}/{2}.nupkg";
 
+        private const string ReadMeBlobTemplate = "{0}/{1}/{2}.{3}";
+        private const string PendingReadMeFolder = "pending";
+        private const string ActiveReadMeFolder = "active";
+
         public static string GetPackageBlobName(string id, string version)
         {
             return string.Format(
@@ -29,6 +33,27 @@ namespace NuGet.Jobs
                 id.ToLowerInvariant(),
                 version.ToLowerInvariant(),
                 WebUtility.UrlEncode(hash));
+        }
+
+        private static string GetReadMeBlobPath(string folder, string id, string version, string extension)
+        {
+            return string.Format(
+                CultureInfo.InvariantCulture,
+                ReadMeBlobTemplate,
+                folder,
+                id.ToLowerInvariant(),
+                version.ToLowerInvariant(),
+                extension);
+        }
+
+        public static string GetPendingReadMeBlobNamePath(string id, string version, string extension)
+        {
+            return GetReadMeBlobPath(PendingReadMeFolder, id, version, extension);
+        }
+
+        public static string GetActiveReadMeBlobNamePath(string id, string version, string extension)
+        {
+            return GetReadMeBlobPath(ActiveReadMeFolder, id, version, extension);
         }
     }
 }
