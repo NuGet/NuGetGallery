@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using Moq;
-using Xunit;
-using NuGetGallery.Helpers;
 using NuGetGallery.RequestModels;
-using System.Web;
+using Xunit;
 
 namespace NuGetGallery.Helpers
 {
@@ -71,7 +67,5 @@ namespace NuGetGallery.Helpers
             readMeRequest.ReadMeWritten = mockRequest.Object.ReadMeWritten;
             Assert.True(ReadMeHelper.HasReadMe(readMeRequest));
         }
-
-
     }
 }

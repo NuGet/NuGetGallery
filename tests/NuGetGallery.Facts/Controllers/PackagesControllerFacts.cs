@@ -1872,7 +1872,7 @@ namespace NuGetGallery
                 }
             }
         }
-        
+
         public class TheUploadProgressAction
         {
             private static readonly string FakeUploadName = "upload-" + TestUtility.FakeUserName;

@@ -14,7 +14,6 @@
         _pingUrl = pingUrl;
         _formId = formId;
         _actionUrl = actionUrl;
-        console.log(_actionUrl);
         _cancelUrl = cancelUrl;
         _submitVerifyUrl = submitVerifyUrl;
 
@@ -389,7 +388,7 @@
     }
 
     function validateReadMeFileName(fileName) {
-        var markdownExtensions = ["md", "mkdn", "mkd", "mdown", "markdown", "txt", ".text"];
+        var markdownExtensions = ["md", "mkdn", "mkd", "mdown", "markdown", "txt", "text"];
         return markdownExtensions.includes(fileName.split('.').pop());
     }
 

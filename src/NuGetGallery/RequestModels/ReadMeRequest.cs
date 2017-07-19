@@ -12,7 +12,7 @@ namespace NuGetGallery.RequestModels
     {
         public virtual HttpPostedFileBase ReadMeFile { get; set; }
         public virtual string ReadMeWritten { get; set; }
-        public virtual  string ReadMeUrl { get; set; }
+        public virtual string ReadMeUrl { get; set; }
         public virtual String ReadMeType { get; set; }
     }
 }

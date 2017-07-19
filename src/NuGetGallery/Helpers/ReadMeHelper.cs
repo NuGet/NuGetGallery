@@ -1,53 +1,45 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using NuGetGallery.RequestModels;
+using System;
 using System.IO;
 using System.Net;
-using System.Web;
-using System;
-using NuGetGallery.RequestModels;
 using System.Text.RegularExpressions;
+using System.Web;
 
 namespace NuGetGallery.Helpers
 {
-    public class ReadMeHelper
+    internal static class ReadMeHelper
     {
 
         public const string ReadMeTypeUrl = "Url";
         public const string ReadMeTypeFile = "File";
         public const string ReadMeTypeWritten = "Written";
 
-
         /// <summary>
-        /// Returns if a given package has a ReadMe.
+        /// Returns if posted package form contains a ReadMe.
         /// </summary>
         /// <param name="formData">A ReadMeRequest with the ReadMe data from the form.</param>
         /// <returns>Whether there is a ReadMe to upload.</returns>
         public static Boolean HasReadMe(ReadMeRequest formData)
         {
-            if (formData == null || formData.ReadMeType == null)
+            switch (formData?.ReadMeType)
             {
-                return false;
-            }
-            else
-            {
-                switch (formData.ReadMeType)
-                {
-                    case ReadMeTypeUrl:
-                        string readMeUrl = formData.ReadMeUrl;
-                        string pattern = @"^(((ht|f)tp(s?))\:\/\/)?(www.|[a-zA-Z].)[a-zA-Z0-9\-\.]+\.(com|edu|gov|mil|net|org|biz|info|name|museum|us|ca|uk)(\:[0-9]+)*(\/($|[a-zA-Z0-9\.\,\;\?\'\\\+&amp;%\$#\=~_\-]+))*$";
-                        bool isValidUrl = Regex.IsMatch(readMeUrl, pattern);
-                        if (isValidUrl && !formData.ReadMeUrl.StartsWith("http://") && !formData.ReadMeUrl.StartsWith("https://"))
-                        {
-                            readMeUrl = "http://" + formData.ReadMeUrl;
-                        } 
-                        return !String.IsNullOrWhiteSpace(formData.ReadMeUrl) && Uri.IsWellFormedUriString(readMeUrl, UriKind.Absolute);
-                    case ReadMeTypeFile:
-                        return formData.ReadMeFile != null;
-                    case ReadMeTypeWritten:
-                        return !String.IsNullOrWhiteSpace(formData.ReadMeWritten);
-                    default: return false;
-                }
+                case ReadMeTypeUrl:
+                    var readMeUrl = formData.ReadMeUrl;
+                    var pattern = @"^(((ht|f)tp(s?))\:\/\/)?(www.|[a-zA-Z].)[a-zA-Z0-9\-\.]+\.(com|edu|gov|mil|net|org|biz|info|name|museum|us|ca|uk)(\:[0-9]+)*(\/($|[a-zA-Z0-9\.\,\;\?\'\\\+&amp;%\$#\=~_\-]+))*$";
+                    bool isValidUrl = Regex.IsMatch(readMeUrl, pattern);
+                    if (isValidUrl && !formData.ReadMeUrl.StartsWith("http://") && !formData.ReadMeUrl.StartsWith("https://"))
+                    {
+                        readMeUrl = "http://" + formData.ReadMeUrl;
+                    } 
+                    return !String.IsNullOrWhiteSpace(formData.ReadMeUrl) && Uri.IsWellFormedUriString(readMeUrl, UriKind.Absolute);
+                case ReadMeTypeFile:
+                    return formData.ReadMeFile != null;
+                case ReadMeTypeWritten:
+                    return !String.IsNullOrWhiteSpace(formData.ReadMeWritten);
+                default: return false;
             }
         }
 
@@ -71,7 +63,7 @@ namespace NuGetGallery.Helpers
         {
             using (var reader = new StreamReader(readMeMarkdownStream))
             {
-                string readMeHtml = ConvertMarkDownToHTML(reader.ReadToEnd());
+                var readMeHtml = ConvertMarkDownToHTML(reader.ReadToEnd());
                 return GetStreamFromWritten(readMeHtml);
             }
         }
@@ -84,7 +76,7 @@ namespace NuGetGallery.Helpers
         /// <returns>A stream representing the ReadMe.html file</returns>
         public static Stream GetReadMeHTMLStream(ReadMeRequest readMeRequest)
         {
-            return GetReadMeHTMLStream(GetReadMeStream(readMeRequest));
+            return GetReadMeHTMLStream(GetReadMeMarkdownStream(readMeRequest));
         }
 
         /// <summary>
@@ -94,18 +86,18 @@ namespace NuGetGallery.Helpers
         /// <param name="formData">The current package's form data submitted through the verify page</param>
         /// <param name="packageMetadata">The package metadata from the nuspec file</param>
         /// <returns>A stream with the encoded ReadMe file</returns>
-        public static Stream GetReadMeStream(ReadMeRequest formData)
+        public static Stream GetReadMeMarkdownStream(ReadMeRequest formData)
         {
             switch (formData.ReadMeType)
             {
                 case ReadMeTypeUrl:
-                    return ReadMeUrlToFileStream(formData.ReadMeUrl);
+                    return ReadMeUrlToStream(formData.ReadMeUrl);
                 case ReadMeTypeFile:
-                    return GetStreamFromFile(formData.ReadMeFile);
+                    return formData.ReadMeFile.InputStream;
                 case ReadMeTypeWritten:
                     return GetStreamFromWritten(formData.ReadMeWritten);
                 default:
-                    throw new InvalidOperationException("No ReadMe available!");
+                    throw new InvalidOperationException('Form data contains an invalid ReadMeType.');
             }
         }
 
@@ -114,7 +106,7 @@ namespace NuGetGallery.Helpers
         /// </summary>
         /// <param name="readMeUrl">A link to the raw ReadMe.md file</param>
         /// <returns>A stream to allow the file to be read</returns>
-        public static Stream ReadMeUrlToFileStream(string readMeUrl)
+        private static Stream ReadMeUrlToStream(string readMeUrl)
         {
             if (!readMeUrl.StartsWith("http://") && !readMeUrl.StartsWith("https://"))
             {
@@ -123,22 +115,17 @@ namespace NuGetGallery.Helpers
             var webRequest = WebRequest.Create(readMeUrl);
             var response = webRequest.GetResponse();
             return response.GetResponseStream();
-
         }
 
-        public static Stream GetStreamFromWritten(string writtenText)
+        private static Stream GetStreamFromWritten(string writtenText)
         {
-            MemoryStream stream = new MemoryStream();
-            StreamWriter writer = new StreamWriter(stream);
+            var stream = new MemoryStream();
+            var writer = new StreamWriter(stream);
             writer.Write(writtenText);
             writer.Flush();
             stream.Position = 0;
             return stream;
         }
-
-        public static Stream GetStreamFromFile(HttpPostedFileBase file)
-        {
-            return file.InputStream;
-        }
+        
     }
 }
