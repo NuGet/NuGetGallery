@@ -37,7 +37,7 @@ namespace NuGetGallery
         public const string DownloadsFolderName = "downloads";
         public const string ContentFolderName = "content";
 
-        public const string ReadMeContainerName = "readmes";
+        public const string ReadMeFolderName = "readmes";
         public const string MarkdownFileExtension = ".md";
         public const string HtmlFileExtension = ".html";
         public const string ReadMeChanged = "changed";

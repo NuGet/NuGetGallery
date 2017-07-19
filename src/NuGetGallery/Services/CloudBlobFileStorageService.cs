@@ -152,7 +152,7 @@ namespace NuGetGallery
 
                 case Constants.ContentFolderName:
                 case Constants.UploadsFolderName:
-                case Constants.ReadMeContainerName:
+                case Constants.ReadMeFolderName:
                     creationTask = PrepareContainer(folderName, isPublic: false);
                     break;
 
@@ -226,7 +226,7 @@ namespace NuGetGallery
 
                 case Constants.DownloadsFolderName:
                     return Constants.OctetStreamContentType;
-                case Constants.ReadMeContainerName:
+                case Constants.ReadMeFolderName:
                     return Constants.TextContentType;
                 default:
                     throw new InvalidOperationException(

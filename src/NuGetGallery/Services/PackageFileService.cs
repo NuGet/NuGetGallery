@@ -22,13 +22,13 @@ namespace NuGetGallery
 
         public Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, Package package)
         {
-            var fileName = BuildFileName(package);
+            var fileName = BuildFileName(package, Constants.PackageFileSavePathTemplate, Constants.NuGetPackageFileExtension);
             return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, Constants.PackagesFolderName, fileName);
         }
 
         public Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, string id, string version)
         {
-            var fileName = BuildFileName(id, version);
+            var fileName = BuildFileName(id, version, Constants.PackageFileSavePathTemplate, Constants.NuGetPackageFileExtension);
             return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, Constants.PackagesFolderName, fileName);
         }
 
@@ -44,7 +44,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(version));
             }
 
-            var fileName = BuildFileName(id, version);
+            var fileName = BuildFileName(id, version, Constants.PackageFileSavePathTemplate, Constants.NuGetPackageFileExtension);
             return _fileStorageService.DeleteFileAsync(Constants.PackagesFolderName, fileName);
         }
 
@@ -55,7 +55,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(packageFile));
             }
 
-            var fileName = BuildFileName(package);
+            var fileName = BuildFileName(package, Constants.PackageFileSavePathTemplate, Constants.NuGetPackageFileExtension);
             return _fileStorageService.SaveFileAsync(Constants.PackagesFolderName, fileName, packageFile, overwrite: false);
         }
 
@@ -67,12 +67,16 @@ namespace NuGetGallery
         /// <param name="readMe">The stream representing the readme's data.</param>
         public Task SaveReadMeFileAsync(Package package, Stream readMe, string fileExtension)
         {
-            if (readMe == null || package == null)
+            if (readMe == null)
             {
                 throw new ArgumentNullException(nameof(readMe));
             }
-            var fileName = BuildReadMeFileName(package, fileExtension);
-            return _fileStorageService.SaveFileAsync(Constants.ReadMeContainerName, fileName, readMe, overwrite:false);
+            if (String.IsNullOrEmpty(fileExtension))
+            {
+                throw new ArgumentNullException(nameof(fileExtension));
+            }
+            var fileName = BuildFileName(package, Constants.ReadMeFileSavePathTemplate, fileExtension);
+            return _fileStorageService.SaveFileAsync(Constants.ReadMeFolderName, fileName, readMe, overwrite:false);
         }
 
         public Task StorePackageFileInBackupLocationAsync(Package package, Stream packageFile)
@@ -101,36 +105,11 @@ namespace NuGetGallery
 
         public async Task<Stream> DownloadPackageFileAsync(Package package)
         {
-            var fileName = BuildFileName(package);
+            var fileName = BuildFileName(package, Constants.PackageFileSavePathTemplate, Constants.NuGetPackageFileExtension);
             return (await _fileStorageService.GetFileAsync(Constants.PackagesFolderName, fileName));
         }
 
-        private static string BuildFileName(string id, string version)
-        {
-            if (id == null)
-            {
-                throw new ArgumentNullException(nameof(id));
-            }
-            
-            if (version == null)
-            {
-                throw new ArgumentNullException(nameof(version));
-            }
-
-            // Note: packages should be saved and retrieved in blob storage using the lower case version of their filename because
-            // a) package IDs can and did change case over time
-            // b) blob storage is case sensitive
-            // c) we don't want to hit the database just to look up the right case
-            // and remember - version can contain letters too.
-            return String.Format(
-                CultureInfo.InvariantCulture,
-                Constants.PackageFileSavePathTemplate,
-                id.ToLowerInvariant(),
-                version.ToLowerInvariant(),
-                Constants.NuGetPackageFileExtension);
-        }
-
-        private static string BuildReadMeFileName(string id, string version, string fileExtension)
+        private static string BuildFileName(string id, string version, string formatter, string fileExtension)
         {
             if (id == null)
             {
@@ -155,28 +134,7 @@ namespace NuGetGallery
                 fileExtension);
         }
 
-        private static string BuildFileName(Package package)
-        {
-            if (package == null)
-            {
-                throw new ArgumentNullException(nameof(package));
-            }
-
-            if (package.PackageRegistration == null || 
-                String.IsNullOrWhiteSpace(package.PackageRegistration.Id) ||
-                (String.IsNullOrWhiteSpace(package.NormalizedVersion) && String.IsNullOrWhiteSpace(package.Version)))
-            {
-                throw new ArgumentException(Strings.PackageIsMissingRequiredData, nameof(package));
-            }
-
-            return BuildFileName(
-                package.PackageRegistration.Id, 
-                String.IsNullOrEmpty(package.NormalizedVersion) ?
-                    NuGetVersionFormatter.Normalize(package.Version) :
-                    package.NormalizedVersion);
-        }
-
-        private static string BuildReadMeFileName(Package package, string fileExtension)
+        private static string BuildFileName(Package package, string formatter, string fileExtension)
         {
             if (package == null)
             {
@@ -190,11 +148,11 @@ namespace NuGetGallery
                 throw new ArgumentException(Strings.PackageIsMissingRequiredData, nameof(package));
             }
 
-            return BuildReadMeFileName(
+            return BuildFileName(
                 package.PackageRegistration.Id,
                 String.IsNullOrEmpty(package.NormalizedVersion) ?
                     NuGetVersionFormatter.Normalize(package.Version) :
-                    package.NormalizedVersion, fileExtension);
+                    package.NormalizedVersion, formatter, fileExtension);
         }
 
         private static string BuildBackupFileName(string id, string version, string hash)
