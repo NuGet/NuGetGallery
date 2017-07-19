@@ -30,7 +30,7 @@
                                 <div class="owner" role="listitem">
                                     <div class="row">
                                         <div class="col-xs-1">
-                                            @ViewHelpers.GravatarImage(manager.EmailAddress, manager.Username, 32)
+                                            @ViewHelpers.GravatarImage(manager.EmailAddress, manager.Username, Constants.GravatarElementSize)
                                         </div>
                                         <div class="col-xs-11 ms-font-xl">
                                             <a href="@Url.User(manager)" title="@manager.Username">@manager.Username</a>

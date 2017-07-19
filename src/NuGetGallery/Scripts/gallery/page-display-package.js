@@ -16,7 +16,7 @@ $(function () {
     }
 
     window.nuget.configureExpanderHeading("dependency-groups");
-    window.nuget.configureExpander("version-history");
+    window.nuget.configureExpanderHeading("version-history");
     window.nuget.configureExpander(
         "hidden-versions",
         "CalculatorAddition",

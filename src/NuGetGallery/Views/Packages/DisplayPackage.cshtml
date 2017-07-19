@@ -358,7 +358,7 @@
                 </table>
                 @if (rowCount > 5)
                 {
-                    <a role="button" data-toggle="collapse" class="icon-link" data-target="#hidden-versions"
+                    <a href="#" role="button" data-toggle="collapse" class="icon-link" data-target="#hidden-versions"
                             aria-expanded="false" aria-controls="hidden-versions" id="show-hidden-versions">
                         <i class="ms-Icon ms-Icon--CalculatorAddition" aria-hidden="true"></i>
                         <span>Show more</span>
@@ -498,18 +498,7 @@
                     <li>
                         @if (!String.IsNullOrEmpty(owner.EmailAddress))
                         {
-                            var size = 32;
-                            var gravatarHtml = Gravatar.GetHtml(
-                                owner.EmailAddress,
-                                size,
-                                "retro",
-                                GravatarRating.G,
-                                attributes: new { width = size, height = size, title = owner.Username });
-                            if (gravatarHtml != null && Request.IsSecureConnection)
-                            {
-                                gravatarHtml = new HtmlString(gravatarHtml.ToHtmlString().Replace("http://www.gravatar.com/", "https://secure.gravatar.com/"));
-                            }
-                            <a href="@Url.User(owner)" title="@owner.Username">@gravatarHtml</a>
+                            <a href="@Url.User(owner)" title="@owner.Username">@ViewHelpers.GravatarImage(owner.EmailAddress, owner.Username, Constants.GravatarElementSize)</a>
                         }
                         <a href="@Url.User(owner)" title="@owner.Username">
                             @owner.Username

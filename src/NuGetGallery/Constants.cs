@@ -19,6 +19,9 @@ namespace NuGetGallery
         public const int ColumnsWideAuthenticationMd = 6;
         public const int ColumnsFormMd = 10;
 
+        public const int GravatarElementSize = 32;
+        public const int GravatarImageSize = GravatarElementSize * 2;
+
         /// <summary>
         /// Parameters for calculating account lockout period after 
         /// wrong password entry.

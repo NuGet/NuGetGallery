@@ -34,6 +34,15 @@
                 <div class="banner-warning">@Config.Current.WarningBanner</div>
             </div>
         }
+        @if (!string.IsNullOrEmpty(Config.Current.RedesignBanner))
+        {
+            <div id="service-alert">
+                <div class="banner-redesign">
+                    <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
+                    @Html.Raw(WebUtility.HtmlDecode(Config.Current.RedesignBanner))
+                </div>
+            </div>
+        }
 
         <div id="outer-wrapper">
             <div id="content-wrapper">

@@ -161,15 +161,29 @@
 
                 <!-- ko if: $data.LicenseUrl -->
                 <div class="verify-package-field form-group editable">
-                    <div class="verify-package-field-heading">Require License Acceptance?</div>
-                    @Html.ShowSliderFor(new HtmlString("<input data-bind=\"attr: { 'checked' : $data.Edit.RequiresLicenseAcceptance ? $data.Edit.RequiresLicenseAcceptance : null }\" type=\"checkbox\" name=\"Edit.RequiresLicenseAcceptance\" id=\"Edit.RequiresLicenseAcceptance\" value=\"true\" />"))
+                    <div class="verify-package-field-heading">License Acceptance</div>
+                    <div class="checkbox">
+                        <label>
+                            <input data-bind="attr: { 'checked' : $data.Edit.RequiresLicenseAcceptance ? $data.Edit.RequiresLicenseAcceptance : null }"
+                                   type="checkbox" name="Edit.RequiresLicenseAcceptance" id="Edit.RequiresLicenseAcceptance" value="true" />
+                            Require license acceptance
+                        </label>
+                    </div>
                 </div>
                 <!-- /ko -->
 
+                <!-- ko if: typeof($data.Listed) === 'boolean' -->
                 <div class="verify-package-field form-group editable">
-                    <div class="verify-package-field-heading">Listed in Search Results?</div>
-                    @Html.ShowSliderFor(new HtmlString("<input data-bind=\"attr: { 'checked' : $data.Listed ? $data.Listed : null }\" type=\"checkbox\" name=\"Listed\" id=\"Listed\" value=\"true\" />"))
+                    <div class="verify-package-field-heading">Package Visibility</div>
+                    <div class="checkbox">
+                        <label>
+                            <input data-bind="attr: { 'checked' : $data.Listed ? $data.Listed : null }"
+                                   type="checkbox" name="Listed" id="Listed" value="true" />
+                            List package in search results
+                        </label>
+                    </div>
                 </div>
+                <!-- /ko -->
             </form>
         </div>
 
@@ -189,7 +203,7 @@
             </text>)
         <!-- /ko -->
 
-        <div class="verify-package-field form-group btn-toolbar row">
+        <div class="verify-package-field form-group row">
             <div class="col-xs-6">
                 <input type="button" class="btn btn-primary btn-block" value="Submit" id="verify-submit-button" />
             </div>

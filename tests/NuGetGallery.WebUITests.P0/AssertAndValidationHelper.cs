@@ -82,7 +82,6 @@ namespace NuGetGallery.FunctionalTests.Helpers
         {
             var logonPostRequest = new WebTestRequest(UrlHelper.SignInPageUrl);
             logonPostRequest.Method = "POST";
-            logonPostRequest.ExpectedResponseUrl = UrlHelper.BaseUrl;
 
             var logonRequestFormPostBody = new FormPostHttpBody();
             logonRequestFormPostBody.FormPostParameters.Add("__RequestVerificationToken", test.Context["$HIDDEN1.__RequestVerificationToken"].ToString());
@@ -104,7 +103,6 @@ namespace NuGetGallery.FunctionalTests.Helpers
         {
             var uploadPostRequest = new WebTestRequest(UrlHelper.UploadPageUrl);
             uploadPostRequest.Method = "POST";
-            uploadPostRequest.ExpectedResponseUrl = UrlHelper.VerifyUploadPageUrl;
 
             var uploadPostBody = new FormPostHttpBody();
             uploadPostBody.FormPostParameters.Add("__RequestVerificationToken", test.Context["$HIDDEN1.__RequestVerificationToken"].ToString());

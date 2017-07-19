@@ -178,8 +178,20 @@ body {
     top: 2px;
   }
 
+  a {
+    color: @link-hover-color;
+  }
+
+  a:hover, a:focus {
+    color: darken(@link-hover-color, 15%);
+  }
+
   &.banner-bright {
     background: yellow;
+  }
+
+  &.banner-notice {
+    background: @alert-info-bg;
   }
 }
 
@@ -236,6 +248,12 @@ h2, h3 {
     max-width: 60px;
     max-height: 60px;
   }
+}
+
+@media screen and (max-width: 480px) {
+    .hidden-tiny {
+        display: none;
+    }
 }
 
 img.package-icon {

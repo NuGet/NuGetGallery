@@ -78,7 +78,7 @@ namespace NuGetGallery
             {
                 name = o.Name,
                 profileUrl = Url.User(o.Name),
-                imageUrl = GravatarHelper.Url(o.EmailAddress, size: 32),
+                imageUrl = GravatarHelper.Url(o.EmailAddress, size: Constants.GravatarImageSize),
                 current = o.Current,
                 pending = o.Pending,
             });
@@ -131,7 +131,7 @@ namespace NuGetGallery
                     success = true,
                     name = model.User.Username,
                     profileUrl = Url.User(model.User.Username),
-                    imageUrl = GravatarHelper.Url(model.User.EmailAddress, size: 32),
+                    imageUrl = GravatarHelper.Url(model.User.EmailAddress, size: Constants.GravatarImageSize),
                     pending = true
                 });
             }

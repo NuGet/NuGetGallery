@@ -24,6 +24,12 @@ namespace NuGetGallery.Helpers
 
         public static HtmlString Image(string email, int size, object attributes = null)
         {
+            // The maximum Gravatar size is 512 pixels.
+            if (size > 512)
+            {
+                size = 512;
+            }
+
             var gravatarHtml = Gravatar.GetHtml(email, size, "retro", GravatarRating.G, attributes: attributes);
 
             if (gravatarHtml != null && ShouldUseSecureGravatar())

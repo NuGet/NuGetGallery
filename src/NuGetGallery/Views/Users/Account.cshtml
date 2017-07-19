@@ -309,7 +309,7 @@
             @Section(
                 "profile-picture",
                 @<text>Profile Picture @(Model.HasUnconfirmedEmailAddress ? "(preview)" : string.Empty)</text>,
-                @<text>@ViewHelpers.GravatarImage(Model.CurrentEmailAddress, CurrentUser.Username, 32)</text>,
+                @<text>@ViewHelpers.GravatarImage(Model.CurrentEmailAddress, CurrentUser.Username, Constants.GravatarElementSize)</text>,
                 @<text>
                     @if (Model.HasUnconfirmedEmailAddress)
                     {
