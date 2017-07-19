@@ -979,6 +979,9 @@ img.package-icon {
 .page-stats-per-package #stats-graph-svg .bartext {
   font-size: 1em;
 }
+.page-stats-per-package #stats-graph-svg p {
+  margin-bottom: none;
+}
 .page-status .status-general {
   padding: 13px;
   margin-bottom: 24px;
