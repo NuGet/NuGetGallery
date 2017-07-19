@@ -4,6 +4,7 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Net.Http;
@@ -33,7 +34,7 @@ namespace Ng.Jobs
         {
             return "Usage: ng catalog2lucene "
                    + $"-{Arguments.Source} <catalog> "
-                   + $"[-{Arguments.Registration} <registration-root>] "
+                   + $"[-{Arguments.Registration} <registration-root>. Multiple registration cursors are supported, separated by ';'.] "
                    + $"-{Arguments.LuceneDirectoryType} file|azure "
                    + $"[-{Arguments.LucenePath} <file-path>] "
                    + "|"
@@ -91,10 +92,9 @@ namespace Ng.Jobs
                     handlerFunc: _handlerFunc);
 
                 ReadWriteCursor front = new LuceneCursor(indexWriter, MemoryCursor.MinValue);
-
                 var back = _registration == null
-                    ? (ReadCursor)MemoryCursor.CreateMax()
-                    : new HttpReadCursor(new Uri(_registration), _handlerFunc);
+                                 ? (ReadCursor)MemoryCursor.CreateMax()
+                                 : GetTheLeastAdvancedRegistrationCursor(_registration, cancellationToken);
 
                 bool run;
                 do
@@ -105,6 +105,13 @@ namespace Ng.Jobs
                 }
                 while (run);
             }
+        }
+
+        private ReadCursor GetTheLeastAdvancedRegistrationCursor(string registrationArg, CancellationToken cancellationToken)
+        {
+            string[] registrations = registrationArg.Split(';');
+
+            return new AggregateCursor(registrations.Select(r => new HttpReadCursor(new Uri(r), _handlerFunc)));
         }
 
         public static IndexWriter CreateIndexWriter(Lucene.Net.Store.Directory directory)
