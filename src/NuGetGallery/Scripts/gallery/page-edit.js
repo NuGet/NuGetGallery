@@ -28,7 +28,7 @@ var EditViewManager = new function () {
             document.location = $(this).val();
         });
 
-        $('input[type="text"], input[type="checkbox"], textarea').on('change', function () {
+        $('input[type="text"], input[type="checkbox"], textarea').on('change keydown', function () {
             $(this).addClass("edited");
             _changedState[$(this).attr('id')] = true;
             $('#verify-submit-button').removeAttr('disabled');
