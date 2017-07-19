@@ -161,32 +161,6 @@
     }
 }
 
-@helper OwnersGravatar(IEnumerable<User> owners, int size, UrlHelper url, bool showName = true)
-{
-    <ul class="owners">
-        @foreach (var owner in owners)
-        {
-            <li>
-                @OwnerGravatar(owner, size, url, showName)
-            </li>
-        }
-    </ul>
-}
-
-@helper OwnerGravatar(User owner, int size, UrlHelper url, bool showName = true)
-{
-    <a class="owner" href="@url.User(owner)" title="@owner.Username">
-        @if (!String.IsNullOrEmpty(owner.EmailAddress))
-        {
-            @GravatarImage(owner.EmailAddress, owner.Username, size)
-        }
-        @if (showName)
-        {
-            <span class="owner-name">@owner.Username</span>
-        }
-    </a>
-}
-
 @helper GravatarImage(string email, string username, int size)
 {
     @GravatarImage(email, username, size, responsive: false);
@@ -196,7 +170,20 @@
 {
     var classAttribute = responsive ? "owner-image img-responsive" : "owner-image";
 
-    @GravatarHelper.Image(email, size, attributes: new { width = size, height = size, title = username, @class = classAttribute });
+    // Load a higher resolution image than the element requires, to improve high DPI display.
+    var imageSize = size * 2;
+    var elementSize = size;
+
+    @GravatarHelper.Image(
+        email,
+        imageSize,
+        attributes: new
+        {
+            width = elementSize,
+            height = elementSize,
+            title = username,
+            @class = classAttribute
+        });
 }
 
 @helper WriteMeta(string name, string val) {
