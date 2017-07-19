@@ -1,85 +1,88 @@
 ﻿@model ListPackageItemViewModel
 
-<article class="row package" role="listitem">
-    <div class="col-sm-1 hidden-xs hidden-sm">
-        <img class="package-icon img-responsive" aria-hidden="true" alt=""
-             src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))"
-             @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")) />
-    </div>
-    <div class="col-sm-11">
-        <div class="package-header">
-            <a class="package-title" href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null)">@Model.Title.Abbreviate(60)</a>
+<article class="package" role="listitem">
 
-            <span class="package-by">
-                by:
-                @foreach (var owner in Model.Owners)
-                {
-                    <a href="@Url.User(owner)" title="View @owner.Username's profile">@owner.Username</a>
-                }
-            </span>
+    <div class="row">
+        <div class="col-sm-1 hidden-xs hidden-sm">
+            <img class="package-icon img-responsive" aria-hidden="true" alt=""
+                 src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))"
+                 @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")) />
         </div>
+        <div class="col-sm-11">
+            <div class="package-header">
+                <a class="package-title" href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null)">@Model.Title.Abbreviate(60)</a>
 
-        <ul class="package-list">
-            <li>
-                <span>
-                    <i class="ms-Icon ms-Icon--Download" aria-hidden="true"></i>
-                    @Model.TotalDownloadCount.ToNuGetNumberString() total @(Model.TotalDownloadCount == 1 ? "download" : "downloads")
+                <span class="package-by">
+                    by:
+                    @foreach (var owner in Model.Owners)
+                    {
+                        <a href="@Url.User(owner)" title="View @owner.Username's profile">@owner.Username</a>
+                    }
                 </span>
-            </li>
-            <li>
-                <span>
-                    <i class="ms-Icon ms-Icon--History" aria-hidden="true"></i>
-                    last updated <span data-datetime="@Model.LastUpdated.ToJavaScriptUTC()"></span>
-                </span>
-            </li>
-            <li>
-                <span>
-                    <i class="ms-Icon ms-Icon--Flag" aria-hidden="true"></i>
-                    Latest version: <span class="text-nowrap">@Model.FullVersion @(Model.Prerelease ? "(prerelease)" : "")</span>
-                </span>
-            </li>
-        </ul>
-
-        <div class="package-details">
-            @Model.ShortDescription
-            @if (Model.IsDescriptionTruncated)
-            {
-                @Html.RouteLink("More information", RouteName.DisplayPackage, new { Model.Id, Model.Version })
-            }
-        </div>
-
-        @if (@Model.Tags.AnySafe())
-        {
-            <div class="package-tags">
-                @foreach (var tag in Model.Tags)
-                {
-                    <a href="@Url.Search("Tags:\"" + tag + "\"")" title="Search for @tag" class="tag">@tag</a>
-                }
             </div>
-        }
 
-        @if (Model.IsOwner(User))
-        {
-            <ul class="package-list manage-package">
+            <ul class="package-list">
                 <li>
-                    <a href="@Url.EditPackage(Model.Id, Model.Version)" class="icon-link">
-                        <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
-                        <span>Edit Package</span>
-                    </a>
+                    <span>
+                        <i class="ms-Icon ms-Icon--Download" aria-hidden="true"></i>
+                        @Model.TotalDownloadCount.ToNuGetNumberString() total @(Model.TotalDownloadCount == 1 ? "download" : "downloads")
+                    </span>
                 </li>
                 <li>
-                    <a href="@Url.ManagePackageOwners(Model)" class="icon-link">
-                        <i class="ms-Icon ms-Icon--People" aria-hidden="true"></i>
-                        <span>Manage Owners</span>
-                    </a>
+                    <span>
+                        <i class="ms-Icon ms-Icon--History" aria-hidden="true"></i>
+                        last updated <span data-datetime="@Model.LastUpdated.ToJavaScriptUTC()"></span>
+                    </span>
                 </li>
                 <li>
-                    <a href="@Url.DeletePackage(Model)" class="icon-link">
-                        <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
-                        <span>Delete Package</span>
-                    </a>
+                    <span>
+                        <i class="ms-Icon ms-Icon--Flag" aria-hidden="true"></i>
+                        Latest version: <span class="text-nowrap">@Model.FullVersion @(Model.Prerelease ? "(prerelease)" : "")</span>
+                    </span>
                 </li>
             </ul>
-        }
+
+            <div class="package-details">
+                @Model.ShortDescription
+                @if (Model.IsDescriptionTruncated)
+            {
+                    @Html.RouteLink("More information", RouteName.DisplayPackage, new { Model.Id, Model.Version })
+                }
+            </div>
+
+            @if (@Model.Tags.AnySafe())
+            {
+                <div class="package-tags">
+                    @foreach (var tag in Model.Tags)
+                {
+                        <a href="@Url.Search("Tags:\"" + tag + "\"")" title="Search for @tag" class="tag">@tag</a>
+                    }
+                </div>
+            }
+
+            @if (Model.IsOwner(User))
+            {
+                <ul class="package-list manage-package">
+                    <li>
+                        <a href="@Url.EditPackage(Model.Id, Model.Version)" class="icon-link">
+                            <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
+                            <span>Edit Package</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="@Url.ManagePackageOwners(Model)" class="icon-link">
+                            <i class="ms-Icon ms-Icon--People" aria-hidden="true"></i>
+                            <span>Manage Owners</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="@Url.DeletePackage(Model)" class="icon-link">
+                            <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
+                            <span>Delete Package</span>
+                        </a>
+                    </li>
+                </ul>
+            }
+        </div>
     </div>
 </article>
