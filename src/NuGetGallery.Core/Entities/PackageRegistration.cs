@@ -13,7 +13,7 @@ namespace NuGetGallery
         {
             Owners = new HashSet<User>();
             Packages = new HashSet<Package>();
-            ReservedPrefixes = new HashSet<ReservedPrefix>();
+            ReservedNamespaces = new HashSet<ReservedNamespace>();
         }
 
         [StringLength(CoreConstants.MaxPackageIdLength)]
@@ -22,11 +22,11 @@ namespace NuGetGallery
 
         public int DownloadCount { get; set; }
 
-        public bool Verified { get; set; }
+        public bool IsVerified { get; set; }
 
         public virtual ICollection<User> Owners { get; set; }
         public virtual ICollection<Package> Packages { get; set; }
-        public virtual ICollection<ReservedPrefix> ReservedPrefixes { get; set; }
+        public virtual ICollection<ReservedNamespace> ReservedNamespaces { get; set; }
 
         public int Key { get; set; }
     }

@@ -6,32 +6,32 @@ using System.ComponentModel.DataAnnotations;
 
 namespace NuGetGallery
 {
-    public class ReservedPrefix : IEntity
+    public class ReservedNamespace : IEntity
     {
-        public ReservedPrefix() 
-            : this(value: null, isPublicNamespace: false, isExactMatch: false)
+        public ReservedNamespace() 
+            : this(value: null, isSharedNamespace: false, isExactMatch: false)
         {
         }
 
-        public ReservedPrefix(string value, bool isPublicNamespace, bool isExactMatch)
+        public ReservedNamespace(string value, bool isSharedNamespace, bool isExactMatch)
         {
             Value = value;
-            IsPublicNamespace = isPublicNamespace;
-            IsExactMatch = isExactMatch;
+            IsSharedNamespace = isSharedNamespace;
+            IsPrefix = isExactMatch;
             PackageRegistrations = new HashSet<PackageRegistration>();
-            ReservedPrefixOwners = new HashSet<User>();
+            ReservedNamespaceOwners = new HashSet<User>();
         }
 
         [StringLength(CoreConstants.MaxPackageIdLength)]
         [Required]
         public string Value { get; set; }
 
-        public bool IsPublicNamespace { get; set; }
+        public bool IsSharedNamespace { get; set; }
 
-        public bool IsExactMatch { get; set; }
+        public bool IsPrefix { get; set; }
 
         public virtual ICollection<PackageRegistration> PackageRegistrations { get; set; }
-        public virtual ICollection<User> ReservedPrefixOwners { get; set; }
+        public virtual ICollection<User> ReservedNamespaceOwners { get; set; }
 
         [Key]
         public int Key { get; set; }
