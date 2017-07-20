@@ -14,8 +14,6 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
-[assembly: InternalsVisibleTo("NuGetGallery.Core.Facts")]
-
 #if !PORTABLE
 [assembly: ComVisible(false)]
 #endif

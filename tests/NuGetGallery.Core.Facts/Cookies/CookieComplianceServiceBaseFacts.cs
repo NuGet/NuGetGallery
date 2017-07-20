@@ -15,7 +15,7 @@ namespace NuGetGallery.Cookies
         [Fact]
         public void Domain_ThrowsInvalidOperationExceptionIfNotInitialized()
         {
-            var service = new Mock<CookieComplianceServiceBase>().Object;
+            var service = new Mock<InternalCookieComplianceService>().Object;
 
             Assert.Throws<InvalidOperationException>(() =>
             {
@@ -26,7 +26,7 @@ namespace NuGetGallery.Cookies
         [Fact]
         public void Diagnostics_ThrowsInvalidOperationExceptionIfNotInitialized()
         {
-            var service = new Mock<CookieComplianceServiceBase>().Object;
+            var service = new Mock<InternalCookieComplianceService>().Object;
 
             Assert.Throws<InvalidOperationException>(() =>
             {
@@ -38,7 +38,7 @@ namespace NuGetGallery.Cookies
         public async Task Domain_ReturnsValueIfInitialized()
         {
             // Arrange
-            var service = new Mock<CookieComplianceServiceBase>() { CallBase = true }.Object;
+            var service = new Mock<InternalCookieComplianceService>() { CallBase = true }.Object;
             var diagnostics = new Mock<IDiagnosticsService>().Object;
             await service.InitializeAsync("nuget.org", diagnostics, CancellationToken.None);
 
@@ -50,7 +50,7 @@ namespace NuGetGallery.Cookies
         public async Task Diagnostics_ReturnsValueIfInitialized()
         {
             // Arrange
-            var service = new Mock<CookieComplianceServiceBase>() { CallBase = true}.Object;
+            var service = new Mock<InternalCookieComplianceService>() { CallBase = true}.Object;
 
             var diagnostics = new Mock<IDiagnosticsService>();
             diagnostics.Setup(d => d.GetSource(It.IsAny<string>()))
@@ -60,6 +60,13 @@ namespace NuGetGallery.Cookies
 
             // Act & Assert
             Assert.NotNull(service.Diagnostics);
+        }
+
+        // Added to avoid InternalsVisibleTo in Gallery.Core which can be delay signed.
+        public class InternalCookieComplianceService : NullCookieComplianceService
+        {
+            public new IDiagnosticsSource Diagnostics => base.Diagnostics;
+            public new string Domain => base.Domain;
         }
     }
 }

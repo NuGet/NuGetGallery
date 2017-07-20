@@ -18,9 +18,9 @@ namespace NuGetGallery.Cookies
         private string _domain;
         private IDiagnosticsSource _diagnostics;
 
-        protected internal string Domain => _domain ?? throw new InvalidOperationException(CoreStrings.CookieComplianceServiceNotInitialized);
+        protected string Domain => _domain ?? throw new InvalidOperationException(CoreStrings.CookieComplianceServiceNotInitialized);
 
-        protected internal IDiagnosticsSource Diagnostics => _diagnostics ?? throw new InvalidOperationException(CoreStrings.CookieComplianceServiceNotInitialized);
+        protected IDiagnosticsSource Diagnostics => _diagnostics ?? throw new InvalidOperationException(CoreStrings.CookieComplianceServiceNotInitialized);
 
         public virtual Task InitializeAsync(string domain, IDiagnosticsService diagnostics, CancellationToken cancellationToken)
         {
