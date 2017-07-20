@@ -27,9 +27,9 @@ namespace NuGetGallery.Views
             get { return NuGetContext.CurrentUser; }
         }
         
-        public ICookieComplianceService Cookies
+        public ICookieComplianceService CookieComplianceService
         {
-            get { return NuGetContext.Cookies; }
+            get { return NuGetContext.CookieComplianceService; }
         }
 
         protected NuGetViewBase()
@@ -72,7 +72,7 @@ namespace NuGetGallery.Views
 
         public ICookieComplianceService Cookies
         {
-            get { return NuGetContext.Cookies; }
+            get { return NuGetContext.CookieComplianceService; }
         }
 
         protected NuGetViewBase()

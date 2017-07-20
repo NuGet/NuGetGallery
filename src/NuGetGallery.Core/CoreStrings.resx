@@ -183,4 +183,7 @@
   <data name="CookieComplianceServiceNotInitialized" xml:space="preserve">
     <value>The cookie compliance service is not initialized.</value>
   </data>
+  <data name="CookieComplianceServiceAlreadyInitialized" xml:space="preserve">
+    <value>The cookie compliance service is already initialized.</value>
+  </data>
 </root>

@@ -10,9 +10,11 @@ namespace NuGetGallery.Diagnostics
 {
     public interface IDiagnosticsSource
     {
+        void ExceptionEvent(Exception exception);
+        
         void TraceEvent(TraceEventType type, int id, string message,
             [CallerMemberName] string member = null, [CallerFilePath] string file = null, [CallerLineNumber] int line = 0);
-
+        
         void PerfEvent(string name, TimeSpan time, IEnumerable<KeyValuePair<string, object>> payload);
     }
 }

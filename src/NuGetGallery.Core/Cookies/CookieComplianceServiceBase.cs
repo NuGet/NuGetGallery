@@ -2,7 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Globalization;
+using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using NuGetGallery.Diagnostics;
@@ -14,50 +15,35 @@ namespace NuGetGallery.Cookies
     /// </summary>
     public abstract class CookieComplianceServiceBase : ICookieComplianceService
     {
-        private const string DiagnosticsSourceName = "CookieComplianceService";
-
-        private string _siteName;
+        private string _domain;
         private IDiagnosticsSource _diagnostics;
 
-        protected internal string SiteName
-        {
-            get
-            {
-                return _siteName ?? throw new InvalidOperationException(CoreStrings.CookieComplianceServiceNotInitialized);
-            }
-        }
+        protected internal string Domain => _domain ?? throw new InvalidOperationException(CoreStrings.CookieComplianceServiceNotInitialized);
 
-        protected internal IDiagnosticsSource Diagnostics
-        {
-            get
-            {
-                return _diagnostics ?? throw new InvalidOperationException(CoreStrings.CookieComplianceServiceNotInitialized);
-            }
-        }
+        protected internal IDiagnosticsSource Diagnostics => _diagnostics ?? throw new InvalidOperationException(CoreStrings.CookieComplianceServiceNotInitialized);
 
-        protected internal string Locale
+        public virtual Task InitializeAsync(string domain, IDiagnosticsService diagnostics, CancellationToken cancellationToken)
         {
-            get
+            // Service should only be initialized once.
+            if (_domain != null)
             {
-                return CultureInfo.CurrentCulture.Name;
+                throw new InvalidOperationException(CoreStrings.CookieComplianceServiceAlreadyInitialized);
             }
-        }
 
-        public virtual Task InitializeAsync(string siteName, IDiagnosticsService diagnostics)
-        {
-            _siteName = siteName;
-            _diagnostics = diagnostics.GetSource(DiagnosticsSourceName);
+            _domain = domain;
+            _diagnostics = diagnostics.GetSource(GetType().Name);
+
             return Task.Delay(0);
         }
         
-        public abstract bool CanWriteNonEssentialCookies(HttpRequestBase request);
+        public abstract bool CanWriteNonEssentialCookies(HttpContextBase httpContext);
 
-        public abstract bool NeedsConsentForNonEssentialCookies(HttpRequestBase request);
+        public abstract bool NeedsConsentForNonEssentialCookies(HttpContextBase httpContext);
 
-        public abstract string GetConsentMarkup();
+        public abstract string GetConsentMarkup(HttpContextBase httpContext, string locale = null);
 
-        public abstract string[] GetConsentScripts();
+        public abstract IEnumerable<string> GetConsentScripts(HttpContextBase httpContext, string locale = null);
 
-        public abstract string[] GetConsentStylesheets();
+        public abstract IEnumerable<string> GetConsentStylesheets(HttpContextBase httpContext, string locale = null);
     }
 }

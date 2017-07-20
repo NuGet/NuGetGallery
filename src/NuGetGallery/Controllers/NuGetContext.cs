@@ -15,14 +15,14 @@ namespace NuGetGallery
         public NuGetContext(AppController ctrl)
         {
             Config = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
-            Cookies = DependencyResolver.Current.GetService<ICookieComplianceService>();
+            CookieComplianceService = DependencyResolver.Current.GetService<ICookieComplianceService>();
 
             _currentUser = new Lazy<User>(() => ctrl.OwinContext.GetCurrentUser());
         }
 
         public IGalleryConfigurationService Config { get; internal set; }
 
-        public ICookieComplianceService Cookies { get; }
+        public ICookieComplianceService CookieComplianceService { get; }
 
         public User CurrentUser { get { return _currentUser.Value; } }
     }

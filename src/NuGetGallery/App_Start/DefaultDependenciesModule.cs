@@ -9,6 +9,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Mail;
 using System.Security.Principal;
+using System.Threading;
 using System.Web;
 using System.Web.Hosting;
 using System.Web.Mvc;
@@ -528,7 +529,7 @@ namespace NuGetGallery
             
             // Initialize the service on App_Start to avoid any performance degradation during initial requests.
             var siteName = configuration.GetSiteRoot(true);
-            HostingEnvironment.QueueBackgroundWorkItem(async cancellationToken => await service.InitializeAsync(siteName, diagnostics));
+            HostingEnvironment.QueueBackgroundWorkItem(async cancellationToken => await service.InitializeAsync(siteName, diagnostics, CancellationToken.None));
         }
     }
 }

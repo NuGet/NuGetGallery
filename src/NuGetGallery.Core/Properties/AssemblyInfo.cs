@@ -8,13 +8,13 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("NuGetGallery.Core")]
-[assembly: InternalsVisibleTo("NuGetGallery.Core.Facts")]
-
 [assembly: AssemblyCompany(".NET Foundation")]
 [assembly: AssemblyProduct("NuGet Services")]
 [assembly: AssemblyCopyright("\x00a9 .NET Foundation. All rights reserved.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
+
+[assembly: InternalsVisibleTo("NuGetGallery.Core.Facts")]
 
 #if !PORTABLE
 [assembly: ComVisible(false)]
@@ -35,4 +35,3 @@ using System.Runtime.InteropServices;
 // AssemblyVersion, AssemblyFileVersion, AssemblyInformationalVersion, AssemblyMetadata (for Branch, CommitId, and BuildDateUtc)
 
 [assembly: AssemblyMetadata("RepositoryUrl", "https://www.github.com/NuGet/NuGetGallery")]
-

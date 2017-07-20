@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
@@ -14,13 +13,13 @@ namespace NuGetGallery.Cookies
     public class CookieComplianceServiceBaseFacts
     {
         [Fact]
-        public void SiteName_ThrowsInvalidOperationExceptionIfNotInitialized()
+        public void Domain_ThrowsInvalidOperationExceptionIfNotInitialized()
         {
             var service = new Mock<CookieComplianceServiceBase>().Object;
 
             Assert.Throws<InvalidOperationException>(() =>
             {
-                var result = service.SiteName;
+                var result = service.Domain;
             });
         }
 
@@ -36,15 +35,15 @@ namespace NuGetGallery.Cookies
         }
 
         [Fact]
-        public async Task SiteName_ReturnsValueIfInitialized()
+        public async Task Domain_ReturnsValueIfInitialized()
         {
             // Arrange
             var service = new Mock<CookieComplianceServiceBase>() { CallBase = true }.Object;
             var diagnostics = new Mock<IDiagnosticsService>().Object;
-            await service.InitializeAsync("nuget.org", diagnostics);
+            await service.InitializeAsync("nuget.org", diagnostics, CancellationToken.None);
 
             // Act & Assert
-            Assert.Equal("nuget.org", service.SiteName);
+            Assert.Equal("nuget.org", service.Domain);
         }
 
         [Fact]
@@ -57,31 +56,10 @@ namespace NuGetGallery.Cookies
             diagnostics.Setup(d => d.GetSource(It.IsAny<string>()))
                 .Returns(new Mock<IDiagnosticsSource>().Object);
 
-            await service.InitializeAsync("nuget.org", diagnostics.Object);
+            await service.InitializeAsync("nuget.org", diagnostics.Object, CancellationToken.None);
 
             // Act & Assert
             Assert.NotNull(service.Diagnostics);
-        }
-
-        [Theory]
-        [InlineData("en-GB")]
-        [InlineData("fr-FR")]
-        public void Locale_ReturnsCurrentCulture(string currentCulture)
-        {
-            var culture = Thread.CurrentThread.CurrentCulture;
-            try
-            {
-                // Arrange
-                var service = new Mock<CookieComplianceServiceBase>().Object;
-                Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo(currentCulture);
-
-                // Act & Assert
-                Assert.Equal(currentCulture, service.Locale);
-            }
-            finally
-            {
-                Thread.CurrentThread.CurrentCulture = culture;
-            }
         }
     }
 }

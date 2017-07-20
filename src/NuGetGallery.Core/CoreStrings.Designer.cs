@@ -79,6 +79,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The cookie compliance service is already initialized..
+        /// </summary>
+        public static string CookieComplianceServiceAlreadyInitialized {
+            get {
+                return ResourceManager.GetString("CookieComplianceServiceAlreadyInitialized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The cookie compliance service is not initialized..
         /// </summary>
         public static string CookieComplianceServiceNotInitialized {
