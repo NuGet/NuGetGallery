@@ -22,9 +22,15 @@ body {
 .footer {
   background-color: @panel-footer-bg;
   color: @panel-footer-color;
-  font-size: 0.70em;
+  font-size: 1em;
   display: table-row;
   height: 1px;
+
+  .footer-heading {
+    display: block;
+    margin-bottom: 11px;
+    font-size: @font-size-h4;
+  }
 
   .container {
     margin-top: 50px;
@@ -33,6 +39,10 @@ body {
 
   a {
     color: @panel-footer-color;
+  }
+
+  .footer-release-info {
+    font-size: 0.85em;
   }
 
   @media (min-width: @screen-md-min) {

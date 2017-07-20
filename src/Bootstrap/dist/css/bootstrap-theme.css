@@ -19,9 +19,14 @@ body h3 {
 .footer {
   display: table-row;
   height: 1px;
-  font-size: .70em;
+  font-size: 1em;
   color: #e3ebf1;
   background-color: #002440;
+}
+.footer .footer-heading {
+  display: block;
+  margin-bottom: 11px;
+  font-size: 20px;
 }
 .footer .container {
   margin-top: 50px;
@@ -29,6 +34,9 @@ body h3 {
 }
 .footer a {
   color: #e3ebf1;
+}
+.footer .footer-release-info {
+  font-size: .85em;
 }
 @media (min-width: 992px) {
   .footer .footer-dotnet-foundation-logo {
