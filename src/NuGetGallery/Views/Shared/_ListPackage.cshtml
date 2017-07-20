@@ -10,7 +10,7 @@
         </div>
         <div class="col-sm-11">
             <div class="package-header">
-                <a class="package-title" href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null)">@Model.Id</a>
+                <a class="package-title" href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null)">@Html.BreakWord(Model.Id)</a>
 
                 <span class="package-by">
                     by:
@@ -24,7 +24,7 @@
             @if (!StringComparer.OrdinalIgnoreCase.Equals(Model.Id, Model.Title))
             {
                 <div class="package-title ms-fontSize-l">
-                    @Model.Title
+                    @Html.BreakWord(Model.Title)
                 </div>
             }
 

@@ -42,9 +42,20 @@ namespace NuGetGallery.Helpers
             return self.DropDownListFor(expression, items, htmlAttributes);
         }
 
+        public static IHtmlString BreakWord(this HtmlHelper self, string text)
+        {
+            return self.Raw(HttpUtility
+                .HtmlEncode(text)
+                .Replace("-", "-<wbr>")
+                .Replace(".", ".<wbr>"));
+        }
+
         public static IHtmlString PreFormattedText(this HtmlHelper self, string text)
         {
-            return self.Raw(HttpUtility.HtmlEncode(text).Replace("\n", "<br />").Replace("  ", "&nbsp; "));
+            return self.Raw(HttpUtility
+                .HtmlEncode(text)
+                .Replace("\n", "<br />")
+                .Replace("  ", "&nbsp; "));
         }
 
         public static IHtmlString ValidationSummaryFor(this HtmlHelper html, string key)

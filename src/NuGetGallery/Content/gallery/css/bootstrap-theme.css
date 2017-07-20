@@ -311,6 +311,8 @@ img.package-icon {
   font-size: 34px;
   font-weight: 300;
   line-height: .9;
+  word-break: break-all;
+  word-break: break-word;
 }
 .list-packages .package .package-header .package-by {
   margin-left: 10px;
@@ -333,6 +335,8 @@ img.package-icon {
   margin-top: 10px;
   line-height: 20px;
   color: #000;
+  word-break: break-all;
+  word-break: break-word;
 }
 .list-packages .package .package-tags {
   margin-top: 10px;
