@@ -6,7 +6,7 @@
 
 <section role="main" class="container main-container page-manage-owners">
     <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
-        <h1 class="text-center">Manage Owners for Package <a href="@Url.Package(Model.Id)">@Model.Title.Abbreviate(50)</a></h1>
+        <h1 class="text-center">Manage Owners for Package <a href="@Url.Package(Model.Id)">@Model.Id</a></h1>
 
         <div style="display: none" id="manage-owners-alert" data-bind="visible: message">
             @ViewHelpers.AlertDanger(
@@ -41,7 +41,7 @@
                         </span>
                     </div>
                     <div class="col-md-3 remove-owner">
-                        <a class="icon-link" href="#" title="Remove as owner of @Model.Title" data-bind="visible: !current  || $parent.hasMoreThanOneOwner, click: $root.removeOwner">
+                        <a class="icon-link" href="#" title="Remove as owner of @Model.Id" data-bind="visible: !current  || $parent.hasMoreThanOneOwner, click: $root.removeOwner">
                             <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
                             <span>Remove</span>
                         </a>
@@ -83,7 +83,7 @@
                     </div>
 
                     <div class="form-group">
-                        <input type="submit" class="btn btn-primary form-control" value="Add" title="Add the user as an owner to @Model.Title" data-bind="click: confirmAddOwner" />
+                        <input type="submit" class="btn btn-primary form-control" value="Add" title="Add the user as an owner to @Model.Id" data-bind="click: confirmAddOwner" />
                     </div>
                 </div>
 
@@ -101,7 +101,7 @@
 
                     <div class="row">
                         <div class="col-md-6">
-                            <input type="submit" class="btn btn-primary form-control" value="Confirm" title="Confirm adding the user as an owner to @Model.Title" data-bind="click: addOwner" />
+                            <input type="submit" class="btn btn-primary form-control" value="Confirm" title="Confirm adding the user as an owner to @Model.Id" data-bind="click: addOwner" />
                         </div>
                         <div class="col-md-6 text-right">
                             <a href="#" class="btn btn-default form-control text-right" title="Cancel changes and reload the page." role="button" data-bind="click: cancelAddOwnerConfirmation">Cancel</a>

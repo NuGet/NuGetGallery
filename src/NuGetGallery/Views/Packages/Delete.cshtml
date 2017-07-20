@@ -11,7 +11,7 @@
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             <h1 class="text-center">Manage Package Listing</h1>
             <div class="text-center ms-font-xxl">
-                <a href="@Url.Package(Model.Id, Model.Version)">@Model.Title.Abbreviate(40)</a>
+                <a href="@Url.Package(Model.Id, Model.Version)">@Model.Id</a>
             </div>
 
             <h2>
@@ -84,7 +84,7 @@
                     @Html.Hidden("version", @Model.Version)
                     <div class="form-group @Html.HasErrorFor(package => package.Listed)">
                         @Html.ShowCheckboxFor(package => package.Listed)
-                        @Html.ShowLabelFor(package => package.Listed, "List " + Model.Title + " " + Model.Version + " in search results.")
+                        @Html.ShowLabelFor(package => package.Listed, "List " + Model.Id + " " + Model.Version + " in search results.")
                         @Html.ShowValidationMessagesFor(package => package.Listed)
 
                         <p>Unlisted packages cannot be installed directly and do not show up in search results.</p>

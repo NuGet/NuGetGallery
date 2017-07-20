@@ -1,7 +1,7 @@
 @model DisplayPackageViewModel
 
 @{
-    ViewBag.Title = Model.Title + " " + Model.Version;
+    ViewBag.Title = Model.Id + " " + Model.Version;
     ViewBag.Tab = "Packages";
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
     var absolutePackageUrl = Url.Absolute(Url.Package(Model.Id));
@@ -15,7 +15,7 @@
     <meta name="twitter:card" content="summary">
     <meta name="twitter:site" content="@("@nuget")">
 
-    <meta property="og:title" content="@Model.Title" />
+    <meta property="og:title" content="@Model.Id @Model.Version" />
     <meta property="og:type" content="nugetgallery:package" />
     <meta property="og:url" content="@absolutePackageUrl" />
     <meta property="og:description" content="@Model.Description" />
@@ -68,10 +68,19 @@
             </h3>
         </aside>
         <article class="col-sm-8">
-            <h1 title="@Model.Title">
-                @Model.Title.Abbreviate(40)
-                <small class="text-nowrap">@Model.FullVersion</small>
-            </h1>
+            <div class="package-title">
+                <h1>
+                    @Model.Id
+                    <small class="text-nowrap">@Model.FullVersion</small>
+                </h1>
+
+                @if (!StringComparer.OrdinalIgnoreCase.Equals(Model.Id, Model.Title))
+                {
+                    <div class="ms-fontSize-xl">
+                        @Model.Title
+                    </div>
+                }
+            </div>
 
             @if (!String.IsNullOrWhiteSpace(Model.Description))
             {
@@ -114,7 +123,7 @@
             {
                 @ViewHelpers.AlertInfo(
                     @<text>
-                        This is a prerelease version of @(Model.Title.Abbreviate(65)).
+                        This is a prerelease version of @(Model.Id).
                     </text>
                 )
             }

@@ -10,7 +10,7 @@
         </div>
         <div class="col-sm-11">
             <div class="package-header">
-                <a class="package-title" href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null)">@Model.Title.Abbreviate(60)</a>
+                <a class="package-title" href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null)">@Model.Id</a>
 
                 <span class="package-by">
                     by:
@@ -21,7 +21,14 @@
                 </span>
             </div>
 
-            <ul class="package-list">
+            @if (!StringComparer.OrdinalIgnoreCase.Equals(Model.Id, Model.Title))
+            {
+                <div class="package-title ms-fontSize-l">
+                    @Model.Title
+                </div>
+            }
+
+            <ul class="package-list ms-fontWeight-semibold">
                 <li>
                     <span>
                         <i class="ms-Icon ms-Icon--Download" aria-hidden="true"></i>
@@ -45,7 +52,7 @@
             <div class="package-details">
                 @Model.ShortDescription
                 @if (Model.IsDescriptionTruncated)
-            {
+                {
                     @Html.RouteLink("More information", RouteName.DisplayPackage, new { Model.Id, Model.Version })
                 }
             </div>

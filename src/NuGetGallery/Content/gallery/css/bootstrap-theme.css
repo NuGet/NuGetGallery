@@ -313,6 +313,9 @@ img.package-icon {
     margin-left: 0;
   }
 }
+.list-packages .package .package-title {
+  margin-top: 2px;
+}
 .list-packages .package .manage-package {
   margin-top: 20px;
   margin-bottom: 0;
@@ -518,6 +521,15 @@ img.package-icon {
 }
 .page-package-details .no-border {
   border: 0;
+}
+.page-package-details h1 {
+  margin-bottom: 0;
+}
+.page-package-details .package-title {
+  margin-bottom: 24px;
+}
+.page-package-details .package-title div {
+  margin-top: 2px;
 }
 .page-package-details .package-details-info .ms-Icon-ul li {
   margin-bottom: 15px;
