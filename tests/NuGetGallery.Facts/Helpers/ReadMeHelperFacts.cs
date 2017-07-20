@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Moq;
-using NuGetGallery.RequestModels;
 using Xunit;
 
 namespace NuGetGallery.Helpers
@@ -21,23 +20,18 @@ namespace NuGetGallery.Helpers
             Assert.False(ReadMeHelper.HasReadMe(readMeRequest));
         }
 
-        [Fact]
-        public void HasReadMeUrlFact()
+        [Theory]
+        [InlineData("helloworld", false)]
+        [InlineData("http://www.github.com", true)]
+        public void HasReadMeUrlFact(string url, bool hasReadMe)
         {
+
             ReadMeRequest readMeRequest = new ReadMeRequest
             {
                 ReadMeType = "Url",
-                ReadMeUrl = ""
+                ReadMeUrl = url
             };
-            Assert.False(ReadMeHelper.HasReadMe(readMeRequest));
-            readMeRequest.ReadMeUrl = "helloworld";
-            Assert.False(ReadMeHelper.HasReadMe(readMeRequest));
-            readMeRequest.ReadMeUrl = "http://www.github.com";
-            Assert.True(ReadMeHelper.HasReadMe(readMeRequest));
-            readMeRequest.ReadMeUrl = "www.github.com";
-            Assert.True(ReadMeHelper.HasReadMe(readMeRequest));
-            readMeRequest.ReadMeUrl = "github.com";
-            Assert.True(ReadMeHelper.HasReadMe(readMeRequest));
+            Assert.Equal(hasReadMe, ReadMeHelper.HasReadMe(readMeRequest));
         }
 
         [Fact]

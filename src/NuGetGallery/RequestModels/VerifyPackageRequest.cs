@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using NuGet.Packaging;
 using NuGetGallery.Packaging;
-using NuGetGallery.RequestModels;
 
 namespace NuGetGallery
 {
