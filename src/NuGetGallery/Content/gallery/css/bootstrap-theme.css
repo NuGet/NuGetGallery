@@ -655,6 +655,11 @@ img.package-icon {
 .page-forgot-password .forgot-form {
   margin-top: 20px;
 }
+.page-home .jumbotron {
+  padding-top: 5px;
+  padding-bottom: 20px;
+  margin-bottom: 0;
+}
 .page-home .jumbotron h1 {
   margin: 32px;
 }
@@ -679,10 +684,6 @@ img.package-icon {
   .page-home .circuit-board-label {
     border: 1px solid windowText;
   }
-}
-.page-home .jumbotron {
-  padding-bottom: 20px;
-  margin-bottom: 0;
 }
 .page-home .circuit-board {
   position: relative;
