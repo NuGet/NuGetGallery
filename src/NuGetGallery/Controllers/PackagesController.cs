@@ -434,13 +434,19 @@ namespace NuGetGallery
 
             var model = new DisplayPackageViewModel(package, packageHistory);
 
-            if (package.HasReadMe.HasValue && package.HasReadMe.Value)
+            if (package.HasReadMe ?? false)
             {
-                //Reads the README file and push to the view
-                using (var reader = new StreamReader(await _packageFileService.DownloadReadmeFileAsync(package), Encoding.UTF8))
+                var readmeStream = await _packageFileService.DownloadReadmeFileAsync(package, Constants.HtmlFileExtension);
+                
+                if(readmeStream != null)
                 {
-                    model.ReadMe = reader.ReadToEnd();
+                    //Reads the README file and push to the view
+                    using (var reader = new StreamReader(await _packageFileService.DownloadReadmeFileAsync(package, Constants.HtmlFileExtension), Encoding.UTF8))
+                    {
+                        model.ReadMeHtml = await reader.ReadToEndAsync();
+                    }
                 }
+                
             }
 
             if (package.IsOwner(User))

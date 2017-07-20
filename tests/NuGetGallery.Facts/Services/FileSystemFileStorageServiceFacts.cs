@@ -203,7 +203,7 @@ namespace NuGetGallery
                 var service = CreateService();
 
                 var ex = await Assert.ThrowsAsync<ArgumentNullException>(
-                    () => service.GetPackageFileAsync(
+                    () => service.GetFileAsync(
                         folderName,
                         "theFileName"));
 
@@ -218,7 +218,7 @@ namespace NuGetGallery
                 var service = CreateService();
 
                 var ex = await Assert.ThrowsAsync<ArgumentNullException>(
-                    () => service.GetPackageFileAsync(
+                    () => service.GetFileAsync(
                         Constants.PackagesFolderName,
                         fileName));
 
@@ -236,7 +236,7 @@ namespace NuGetGallery
                     "theFolderName",
                     "theFileName");
 
-                await service.GetPackageFileAsync("theFolderName", "theFileName");
+                await service.GetFileAsync("theFolderName", "theFileName");
 
                 fakeFileSystemService.Verify(x => x.FileExists(expectedPath));
             }
@@ -252,7 +252,7 @@ namespace NuGetGallery
                     "theFolderName",
                     "theFileName");
 
-                await service.GetPackageFileAsync("theFolderName", "theFileName");
+                await service.GetFileAsync("theFolderName", "theFileName");
 
                 fakeFileSystemService.Verify(x => x.OpenRead(expectedPath));
             }
@@ -271,7 +271,7 @@ namespace NuGetGallery
                     fakeFileSystemService.Setup(x => x.OpenRead(expectedPath)).Returns(fakeFileStream);
                     var service = CreateService(fileSystemService: fakeFileSystemService);
 
-                    var fileStream = await service.GetPackageFileAsync("theFolderName", "theFileName");
+                    var fileStream = await service.GetFileAsync("theFolderName", "theFileName");
 
                     Assert.Same(fakeFileStream, fileStream);
                 }
@@ -284,7 +284,7 @@ namespace NuGetGallery
                 fakeFileSystemService.Setup(x => x.FileExists(It.IsAny<string>())).Returns(false);
                 var service = CreateService(fileSystemService: fakeFileSystemService);
 
-                var fileStream = await service.GetPackageFileAsync("theFolderName", "theFileName");
+                var fileStream = await service.GetFileAsync("theFolderName", "theFileName");
 
                 Assert.Null(fileStream);
             }
@@ -300,7 +300,7 @@ namespace NuGetGallery
                 var service = CreateService();
 
                 var ex = await Assert.ThrowsAsync<ArgumentNullException>(
-                    () => service.GetReadmeFileAsync(
+                    () => service.GetFileAsync(
                         folderName,
                         "theFileName"));
 
@@ -315,7 +315,7 @@ namespace NuGetGallery
                 var service = CreateService();
 
                 var ex = await Assert.ThrowsAsync<ArgumentNullException>(
-                    () => service.GetReadmeFileAsync(
+                    () => service.GetFileAsync(
                         Constants.PackagesFolderName,
                         fileName));
 
@@ -333,7 +333,7 @@ namespace NuGetGallery
                     "theFolderName",
                     "theFileName");
 
-                await service.GetReadmeFileAsync("theFolderName", "theFileName");
+                await service.GetFileAsync("theFolderName", "theFileName");
 
                 fakeFileSystemService.Verify(x => x.FileExists(expectedPath));
             }
@@ -349,7 +349,7 @@ namespace NuGetGallery
                     "theFolderName",
                     "theFileName");
 
-                await service.GetReadmeFileAsync("theFolderName", "theFileName");
+                await service.GetFileAsync("theFolderName", "theFileName");
 
                 fakeFileSystemService.Verify(x => x.OpenRead(expectedPath));
             }
@@ -368,7 +368,7 @@ namespace NuGetGallery
                     fakeFileSystemService.Setup(x => x.OpenRead(expectedPath)).Returns(fakeFileStream);
                     var service = CreateService(fileSystemService: fakeFileSystemService);
 
-                    var fileStream = await service.GetReadmeFileAsync("theFolderName", "theFileName");
+                    var fileStream = await service.GetFileAsync("theFolderName", "theFileName");
 
                     Assert.Same(fakeFileStream, fileStream);
                 }
@@ -381,7 +381,7 @@ namespace NuGetGallery
                 fakeFileSystemService.Setup(x => x.FileExists(It.IsAny<string>())).Returns(false);
                 var service = CreateService(fileSystemService: fakeFileSystemService);
 
-                var fileStream = await service.GetReadmeFileAsync("theFolderName", "theFileName");
+                var fileStream = await service.GetFileAsync("theFolderName", "theFileName");
 
                 Assert.Null(fileStream);
             }
@@ -396,7 +396,7 @@ namespace NuGetGallery
                 var service = CreateService(fileSystemService: fakeFileSystemService);
 
                 //Act
-                var fileStream = await service.GetReadmeFileAsync("readmes", "active\\fakename\\1.0.0.html");
+                var fileStream = await service.GetFileAsync("readmes", "active\\fakename\\1.0.0.html");
 
                 //Assert
                 fakeFileSystemService.Verify(x => x.FileExists(($"{FakeConfiguredFileStorageDirectory}\\readmes\\active\\fakename\\1.0.0.html")), Times.Once);
@@ -712,19 +712,6 @@ namespace NuGetGallery
                     return false;
                 }
             }
-
-            
-        }
-
-        static string BuildReadmeFileName(
-            string id,
-            string version)
-        {
-            return string.Format(
-                Constants.ReadMeFileSavePathTemplate,
-                id.ToLowerInvariant(),
-                NuGetVersionFormatter.Normalize(version).ToLowerInvariant(), // No matter what ends up getting passed in, the version should be normalized
-                Constants.HtmlFileExtension);
         }
     }
 }

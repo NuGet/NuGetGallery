@@ -54,24 +54,7 @@ namespace NuGetGallery
             return await blob.ExistsAsync();
         }
 
-         
-        public async Task<Stream> GetPackageFileAsync(string folderName, string fileName)
-        {
-            if (String.IsNullOrWhiteSpace(folderName))
-            {
-                throw new ArgumentNullException(nameof(folderName));
-            }
-
-            if (String.IsNullOrWhiteSpace(fileName))
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
-
-            return (await GetBlobContentAsync(folderName, fileName)).Data;
-        }
-
-        //Gets the README for the package from the Blob storage
-        public async Task<Stream> GetReadmeFileAsync(string folderName, string fileName)
+        public async Task<Stream> GetFileAsync(string folderName, string fileName)
         {
             if (String.IsNullOrWhiteSpace(folderName))
             {
@@ -144,8 +127,6 @@ namespace NuGetGallery
             await blob.SetPropertiesAsync();
         }
 
-        //todo: GetFileAsync Method to download README.md
-
         public async Task<bool> IsAvailableAsync()
         {
             var container = await GetContainer(Constants.PackagesFolderName);
@@ -164,7 +145,7 @@ namespace NuGetGallery
             switch (folderName)
             {
                 case Constants.PackagesFolderName:
-                case Constants.PackageReadMeFolderName:
+                case Constants.PackagesReadMeFolderName:
                 case Constants.PackageBackupsFolderName:
                 case Constants.DownloadsFolderName:
                     creationTask = PrepareContainer(folderName, isPublic: true);
@@ -174,6 +155,7 @@ namespace NuGetGallery
                 case Constants.UploadsFolderName:
                     creationTask = PrepareContainer(folderName, isPublic: false);
                     break;
+
                 default:
                     throw new InvalidOperationException(
                         String.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));

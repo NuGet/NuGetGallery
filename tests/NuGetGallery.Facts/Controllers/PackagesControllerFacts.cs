@@ -455,6 +455,55 @@ namespace NuGetGallery
                 Assert.Equal("1.1.1", model.Version);
                 Assert.Equal("A test package!", model.Title);
             }
+
+            [Fact]
+            public async Task GivenAValidPackageWithReadMeItDisplaysReadMe()
+            {
+                // Arrange
+                var packageService = new Mock<IPackageService>();
+                var indexingService = new Mock<IIndexingService>();
+                var fileService = new Mock<IPackageFileService>();
+                var controller = CreateController(
+                    packageService: packageService, indexingService: indexingService, packageFileService: fileService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+                
+                var stream = new MemoryStream();
+                var writer = new StreamWriter(stream);
+                writer.Write("<p>Hello World!</p>");
+                writer.Flush();
+                stream.Position = 0;
+                var readMeStream = stream;
+                
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = "Foo",
+                        Owners = new List<User>()
+                    },
+                    Version = "01.1.01",
+                    NormalizedVersion = "1.1.1",
+                    Title = "A test package!",
+                    HasReadMe = true
+                };
+
+                packageService.Setup(p => p.FindPackageByIdAndVersion("Foo", null, SemVerLevelKey.SemVer2, true))
+                    .Returns(package);
+
+                indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
+
+                fileService.Setup(f => f.DownloadReadmeFileAsync(package, Constants.HtmlFileExtension)).Returns(Task.FromResult((Stream)readMeStream));
+
+                // Act
+                var result = await controller.DisplayPackage("Foo", null);
+
+                // Assert
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                Assert.Equal("Foo", model.Id);
+                Assert.Equal("1.1.1", model.Version);
+                Assert.Equal("A test package!", model.Title);
+                Assert.Equal("<p>Hello World!</p>", model.ReadMeHtml);
+            }
         }
 
         public class TheConfirmOwnerMethod : TestContainer

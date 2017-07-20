@@ -86,34 +86,32 @@ namespace NuGetGallery
         public async Task<Stream> DownloadPackageFileAsync(Package package)
         {
             var fileName = BuildPackageFileName(package);
-            return (await _fileStorageService.GetPackageFileAsync(Constants.PackagesFolderName, fileName));
+            return (await _fileStorageService.GetFileAsync(Constants.PackagesFolderName, fileName));
         }
-
-        //Downloads the Readme for the package
-        public async Task<Stream> DownloadReadmeFileAsync(Package package)
+        
+        public async Task<Stream> DownloadReadmeFileAsync(Package package, string extension)
         {
             if(package == null)
             {
                 throw new ArgumentNullException("Package cannot be null!");
             }
-            var fileName = BuildReadmeFileName(package);
-            return (await _fileStorageService.GetReadmeFileAsync(Constants.PackageReadMeFolderName, fileName));
+            var fileName = BuildReadmeFileName(package, extension);
+            return (await _fileStorageService.GetFileAsync(Constants.PackagesReadMeFolderName, fileName));
         }
 
         private static string BuildPackageFileName(string id, string version)
         {
-
             return BuildFileName(Constants.PackageFileSavePathTemplate, id, version, Constants.NuGetPackageFileExtension);
         }
 
-        private static string BuildReadMeHtmlFileName(string id, string version)
+        public static string BuildReadmeFileName(string id, string version, string extension)
         {
-            return BuildFileName(Constants.ReadMeFileSavePathTemplate, id, version, Constants.HtmlFileExtension);
+            return BuildFileName(Constants.ReadMeFileSavePathTemplateActive, id, version, extension);
         }
 
         private static string BuildReadMeMarkdownFileName(string id, string version)
         {
-            return BuildFileName(Constants.ReadMeFileSavePathTemplate, id, version, Constants.MarkdownFileExtension);
+            return BuildFileName(Constants.ReadMeFileSavePathTemplateActive, id, version, Constants.MarkdownFileExtension);
         }
 
         private static string BuildFileName(string pathTemplate, string id, string version, string extension)
@@ -141,8 +139,7 @@ namespace NuGetGallery
                 version.ToLowerInvariant(),
                 extension);
         }
-
-        //Creates the name for the packages
+        
         private static string BuildPackageFileName(Package package)
         {
             if (package == null)
@@ -163,9 +160,8 @@ namespace NuGetGallery
                     NuGetVersionFormatter.Normalize(package.Version) :
                     package.NormalizedVersion);
         }
-
-        //Builds the name for the  Readme file
-        private static string BuildReadmeFileName(Package package)
+        
+        private static string BuildReadmeFileName(Package package, string extension)
         {
             if (package == null)
             {
@@ -179,11 +175,11 @@ namespace NuGetGallery
                 throw new ArgumentException(Strings.PackageIsMissingRequiredData, nameof(package));
             }
             
-            return BuildReadMeHtmlFileName(
+            return BuildReadmeFileName(
                 package.PackageRegistration.Id,
                 String.IsNullOrEmpty(package.NormalizedVersion) ?
                     NuGetVersionFormatter.Normalize(package.Version) :
-                    package.NormalizedVersion);
+                    package.NormalizedVersion, extension);
         }
 
         private static string BuildBackupFileName(string id, string version, string hash)
@@ -212,7 +208,6 @@ namespace NuGetGallery
                 version,
                 HttpServerUtility.UrlTokenEncode(hashBytes),
                 Constants.NuGetPackageFileExtension);
-        }
-        
+        }   
     }
 }
