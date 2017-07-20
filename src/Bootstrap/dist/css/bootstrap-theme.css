@@ -294,14 +294,15 @@ img.package-icon {
   border-top: 1px solid #dbdbdb;
 }
 .list-packages .package {
-  padding-top: 20px;
-  padding-bottom: 20px;
+  padding-top: 15px;
+  padding-bottom: 15px;
   font-size: 15px;
   border-bottom: 1px solid #dbdbdb;
 }
 .list-packages .package .package-header .package-title {
   font-size: 34px;
   font-weight: 300;
+  line-height: .9;
 }
 .list-packages .package .package-header .package-by {
   margin-left: 10px;
@@ -317,7 +318,7 @@ img.package-icon {
   margin-top: 2px;
 }
 .list-packages .package .manage-package {
-  margin-top: 20px;
+  margin-top: 10px;
   margin-bottom: 0;
 }
 .list-packages .package .package-details {
