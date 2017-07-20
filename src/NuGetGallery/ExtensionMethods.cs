@@ -317,6 +317,13 @@ namespace NuGetGallery
             return html.TextBoxFor(expression, htmlAttributes);
         }
 
+        public static HtmlString ShowEmailBoxFor<TModel, TProperty>(this HtmlHelper<TModel> html, Expression<Func<TModel, TProperty>> expression)
+        {
+            var htmlAttributes = GetHtmlAttributes(html, expression);
+            htmlAttributes["type"] = "email";
+            return html.TextBoxFor(expression, htmlAttributes);
+        }
+
         public static HtmlString ShowCheckboxFor<TModel>(this HtmlHelper<TModel> html, Expression<Func<TModel, bool>> expression)
         {
             var htmlAttributes = GetHtmlAttributes(html, expression, isFormControl: false);

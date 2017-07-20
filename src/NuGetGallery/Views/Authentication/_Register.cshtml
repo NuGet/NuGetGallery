@@ -33,7 +33,7 @@
     }
     <div class="form-group @Html.HasErrorFor(m => m.Register.EmailAddress)">
         @Html.ShowLabelFor(m => m.Register.EmailAddress)
-        @Html.ShowTextBoxFor(m => m.Register.EmailAddress)
+        @Html.ShowEmailBoxFor(m => m.Register.EmailAddress)
         @Html.ShowValidationMessagesFor(m => m.Register.EmailAddress)
     </div>
     <div class="panel panel-default text-center">
