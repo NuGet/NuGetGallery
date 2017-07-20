@@ -30,9 +30,9 @@
         @ViewHelpers.CookieComplianceScripts()
     </head>
     <body class="s-noclickonce">
-        @if (Cookies.NeedsConsentForNonEssentialCookies(Request))
+        @if (CookieComplianceService.NeedsConsentForNonEssentialCookies(Request))
         {
-            @Html.Raw(Cookies.GetConsentMarkup());
+            @Html.Raw(CookieComplianceService.GetConsentMarkup(Request));
         }
         @if (!string.IsNullOrWhiteSpace(Config.Current.WarningBanner))
         {

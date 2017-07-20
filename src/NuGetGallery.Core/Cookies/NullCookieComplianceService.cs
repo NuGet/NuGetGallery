@@ -22,16 +22,16 @@ namespace NuGetGallery.Cookies
 
         // Consent is not necessary and cookies can be written.
 
-        public bool NeedsConsentForNonEssentialCookies(HttpContextBase httpContext) => false;
+        public bool NeedsConsentForNonEssentialCookies(HttpRequestBase request) => false;
 
-        public bool CanWriteNonEssentialCookies(HttpContextBase httpContext) => true;
+        public bool CanWriteNonEssentialCookies(HttpRequestBase request) => true;
 
         // No markdown or scripts will be included.
 
-        public string GetConsentMarkup(HttpContextBase httpContext, string locale = null) => string.Empty;
+        public string GetConsentMarkup(HttpRequestBase request, string locale = null) => string.Empty;
 
-        public IEnumerable<string> GetConsentScripts(HttpContextBase httpContext, string locale = null) => EmptyStringArray;
+        public IEnumerable<string> GetConsentScripts(HttpRequestBase request, string locale = null) => EmptyStringArray;
 
-        public IEnumerable<string> GetConsentStylesheets(HttpContextBase httpContext, string locale = null) => EmptyStringArray;
+        public IEnumerable<string> GetConsentStylesheets(HttpRequestBase request, string locale = null) => EmptyStringArray;
     }
 }

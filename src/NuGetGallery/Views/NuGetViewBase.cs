@@ -70,7 +70,7 @@ namespace NuGetGallery.Views
             get { return NuGetContext.CurrentUser; }
         }
 
-        public ICookieComplianceService Cookies
+        public ICookieComplianceService CookieComplianceService
         {
             get { return NuGetContext.CookieComplianceService; }
         }

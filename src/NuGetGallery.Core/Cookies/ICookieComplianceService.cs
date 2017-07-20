@@ -23,27 +23,27 @@ namespace NuGetGallery.Cookies
         /// Determine if consent is still needed for writing non-essential cookies.
         /// </summary>
         /// <returns>True if consent is needed, false if consent is already provided or not required.</returns>
-        bool NeedsConsentForNonEssentialCookies(HttpContextBase httpContext);
+        bool NeedsConsentForNonEssentialCookies(HttpRequestBase request);
 
         /// <summary>
         /// Determine if non-essential cookies can be written.
         /// </summary>
         /// <returns>True if non-essential cookies can be written, false otherwise.</returns>
-        bool CanWriteNonEssentialCookies(HttpContextBase httpContext);
+        bool CanWriteNonEssentialCookies(HttpRequestBase request);
 
         /// <summary>
         /// Get HTML markup for the cookie consent banner.
         /// </summary>
-        string GetConsentMarkup(HttpContextBase httpContext, string locale = null);
+        string GetConsentMarkup(HttpRequestBase request, string locale = null);
 
         /// <summary>
         /// Get CSS links for the cookie consent banner.
         /// </summary>
-        IEnumerable<string> GetConsentStylesheets(HttpContextBase httpContext, string locale = null);
+        IEnumerable<string> GetConsentStylesheets(HttpRequestBase request, string locale = null);
 
         /// <summary>
         /// Get Javascript links for the cookie consent banner.
         /// </summary>
-        IEnumerable<string> GetConsentScripts(HttpContextBase httpContext, string locale = null);
+        IEnumerable<string> GetConsentScripts(HttpRequestBase request, string locale = null);
     }
 }

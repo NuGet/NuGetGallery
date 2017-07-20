@@ -36,14 +36,14 @@ namespace NuGetGallery.Cookies
             return Task.Delay(0);
         }
         
-        public abstract bool CanWriteNonEssentialCookies(HttpContextBase httpContext);
+        public abstract bool CanWriteNonEssentialCookies(HttpRequestBase request);
 
-        public abstract bool NeedsConsentForNonEssentialCookies(HttpContextBase httpContext);
+        public abstract bool NeedsConsentForNonEssentialCookies(HttpRequestBase request);
 
-        public abstract string GetConsentMarkup(HttpContextBase httpContext, string locale = null);
+        public abstract string GetConsentMarkup(HttpRequestBase request, string locale = null);
 
-        public abstract IEnumerable<string> GetConsentScripts(HttpContextBase httpContext, string locale = null);
+        public abstract IEnumerable<string> GetConsentScripts(HttpRequestBase request, string locale = null);
 
-        public abstract IEnumerable<string> GetConsentStylesheets(HttpContextBase httpContext, string locale = null);
+        public abstract IEnumerable<string> GetConsentStylesheets(HttpRequestBase request, string locale = null);
     }
 }
