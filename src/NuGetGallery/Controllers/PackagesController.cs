@@ -1,20 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using NuGet.Packaging;
-using NuGet.Versioning;
-using NuGetGallery.Areas.Admin;
-using NuGetGallery.AsyncFileUpload;
-using NuGetGallery.Auditing;
-using NuGetGallery.Configuration;
-using NuGetGallery.Filters;
-using NuGetGallery.Helpers;
-using NuGetGallery.Infrastructure.Lucene;
-using NuGetGallery.OData;
-using NuGetGallery.Packaging;
-using NuGetGallery.RequestModels;
-using NuGetGallery.Security;
-using PoliteCaptcha;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -30,6 +16,21 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Caching;
 using System.Web.Mvc;
+using NuGet.Packaging;
+using NuGet.Versioning;
+using NuGetGallery.Areas.Admin;
+using NuGetGallery.AsyncFileUpload;
+using NuGetGallery.Auditing;
+using NuGetGallery.Configuration;
+using NuGetGallery.Filters;
+using NuGetGallery.Helpers;
+using NuGetGallery.Infrastructure.Lucene;
+using NuGetGallery.OData;
+using NuGetGallery.Packaging;
+using NuGetGallery.RequestModels;
+using NuGetGallery.Security;
+using PoliteCaptcha;
+
 
 namespace NuGetGallery
 {
@@ -1363,10 +1364,13 @@ namespace NuGetGallery
 
                 if (pendEdit)
                 {
+                    var readMeChanged = Constants.ReadMeUnchanged;
+
                     // Checks to see if a ReadMe file has been added and uploads ReadMe
                     // Add the edit request to a queue where it will be processed in the background.
                     if (hasReadMe)
                     {
+                        readMeChanged = Constants.ReadMeChanged;
                         using (var readMeInputStream = ReadMeHelper.GetReadMeMarkdownStream(formData.ReadMe).AsSeekableStream())
                         {
                             // Saves ReadMe in markdown
@@ -1374,18 +1378,13 @@ namespace NuGetGallery
                             readMeInputStream.Position = 0;
 
                             // Saves ReadMe in HTML
-                            using (var readMeHTMLStream = ReadMeHelper.GetReadMeHTMLStream(readMeInputStream))
+                            using (var readMeHTMLStream = ReadMeHelper.GetReadMeHtmlStream(readMeInputStream))
                             {
                                 await _packageFileService.SaveReadMeFileAsync(package, readMeHTMLStream, Constants.HtmlFileExtension);
                             }
                         }
-                        _editPackageService.StartEditPackageRequest(package, formData.Edit, currentUser, Constants.ReadMeChanged);
-
                     }
-                    else
-                    {
-                        _editPackageService.StartEditPackageRequest(package, formData.Edit, currentUser, Constants.ReadMeUnchanged);
-                    }
+                    _editPackageService.StartEditPackageRequest(package, formData.Edit, currentUser, readMeChanged);
                 }
 
                 if (!formData.Listed)
@@ -1511,21 +1510,20 @@ namespace NuGetGallery
         {
             if (formData == null)
             {
-                throw new ArgumentNullException();
+                throw new ArgumentNullException(nameof(formData));
+            }
+            else if (ReadMeHelper.HasReadMe(formData))
+            {
+                throw new ArgumentException("There is no ReadMe to preview!"); 
             }
             else
             {
-                if (ReadMeHelper.HasReadMe(formData))
+                Stream readMeHtmlStream = ReadMeHelper.GetReadMeHtmlStream(formData);
+                using (var reader = new StreamReader(readMeHtmlStream))
                 {
-                    Stream readMeHtmlStream = ReadMeHelper.GetReadMeHTMLStream(formData);
-                    using (var reader = new StreamReader(readMeHtmlStream))
-                    {
-                        var readMeHtmlString = reader.ReadToEnd();
-                        return Json(new string[] { readMeHtmlString });
-                    }
+                    var readMeHtmlString = reader.ReadToEnd();
+                    return Json(new string[] { readMeHtmlString });
                 }
-                throw new ArgumentException("There is no ReadMe to preview!");
-            }
         }
 
         [Authorize]

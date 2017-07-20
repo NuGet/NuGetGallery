@@ -22,23 +22,21 @@ namespace NuGetGallery.Helpers
         /// </summary>
         /// <param name="formData">A ReadMeRequest with the ReadMe data from the form.</param>
         /// <returns>Whether there is a ReadMe to upload.</returns>
-        public static Boolean HasReadMe(ReadMeRequest formData)
+        public static bool HasReadMe(ReadMeRequest formData)
         {
             switch (formData?.ReadMeType)
             {
                 case ReadMeTypeUrl:
                     var readMeUrl = formData.ReadMeUrl;
-                    var pattern = @"^(((ht|f)tp(s?))\:\/\/)?(www.|[a-zA-Z].)[a-zA-Z0-9\-\.]+\.(com|edu|gov|mil|net|org|biz|info|name|museum|us|ca|uk)(\:[0-9]+)*(\/($|[a-zA-Z0-9\.\,\;\?\'\\\+&amp;%\$#\=~_\-]+))*$";
-                    bool isValidUrl = Regex.IsMatch(readMeUrl, pattern);
-                    if (isValidUrl && !formData.ReadMeUrl.StartsWith("http://") && !formData.ReadMeUrl.StartsWith("https://"))
+                    if (!formData.ReadMeUrl.StartsWith("http://") && !formData.ReadMeUrl.StartsWith("https://"))
                     {
-                        readMeUrl = "http://" + formData.ReadMeUrl;
+                        readMeUrl = "https://" + formData.ReadMeUrl;
                     } 
-                    return !String.IsNullOrWhiteSpace(formData.ReadMeUrl) && Uri.IsWellFormedUriString(readMeUrl, UriKind.Absolute);
+                    return !string.IsNullOrWhiteSpace(formData.ReadMeUrl) && Uri.IsWellFormedUriString(readMeUrl, UriKind.Absolute);
                 case ReadMeTypeFile:
                     return formData.ReadMeFile != null;
                 case ReadMeTypeWritten:
-                    return !String.IsNullOrWhiteSpace(formData.ReadMeWritten);
+                    return !string.IsNullOrWhiteSpace(formData.ReadMeWritten);
                 default: return false;
             }
         }
@@ -48,7 +46,7 @@ namespace NuGetGallery.Helpers
         /// </summary>
         /// <param name="readMe">A string containing a markdown file's contents</param>
         /// <returns>A string containing the HTML version of the markdown</returns>
-        private static string ConvertMarkDownToHTML(string readMe)
+        private static string ConvertMarkDownToHtml(string readMe)
         {
             return CommonMark.CommonMarkConverter.Convert(readMe);
         }
@@ -59,11 +57,11 @@ namespace NuGetGallery.Helpers
         /// </summary>
         /// <param name="readMeMarkdownStream">Stream containing a readMe in markdown</param>
         /// <returns>A stream with the HTML version of the readMe</returns>
-        public static Stream GetReadMeHTMLStream(Stream readMeMarkdownStream)
+        public static Stream GetReadMeHtmlStream(Stream readMeMarkdownStream)
         {
             using (var reader = new StreamReader(readMeMarkdownStream))
             {
-                var readMeHtml = ConvertMarkDownToHTML(reader.ReadToEnd());
+                var readMeHtml = ConvertMarkDownToHtml(reader.ReadToEnd());
                 return GetStreamFromWritten(readMeHtml);
             }
         }
@@ -74,9 +72,9 @@ namespace NuGetGallery.Helpers
         /// </summary>
         /// <param name="readMeRequest">The readMe type and markdown file</param>
         /// <returns>A stream representing the ReadMe.html file</returns>
-        public static Stream GetReadMeHTMLStream(ReadMeRequest readMeRequest)
+        public static Stream GetReadMeHtmlStream(ReadMeRequest readMeRequest)
         {
-            return GetReadMeHTMLStream(GetReadMeMarkdownStream(readMeRequest));
+            return GetReadMeHtmlStream(GetReadMeMarkdownStream(readMeRequest));
         }
 
         /// <summary>
@@ -97,7 +95,7 @@ namespace NuGetGallery.Helpers
                 case ReadMeTypeWritten:
                     return GetStreamFromWritten(formData.ReadMeWritten);
                 default:
-                    throw new InvalidOperationException('Form data contains an invalid ReadMeType.');
+                    throw new InvalidOperationException("Form data contains an invalid ReadMeType.");
             }
         }
 

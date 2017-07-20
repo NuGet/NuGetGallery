@@ -6,13 +6,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 
-namespace NuGetGallery.RequestModels
+namespace NuGetGallery
 {
     public class ReadMeRequest
     {
         public virtual HttpPostedFileBase ReadMeFile { get; set; }
         public virtual string ReadMeWritten { get; set; }
         public virtual string ReadMeUrl { get; set; }
-        public virtual String ReadMeType { get; set; }
+        public virtual string ReadMeType { get; set; }
     }
 }

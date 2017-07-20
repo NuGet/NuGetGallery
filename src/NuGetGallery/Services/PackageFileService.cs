@@ -71,7 +71,7 @@ namespace NuGetGallery
             {
                 throw new ArgumentNullException(nameof(readMe));
             }
-            if (String.IsNullOrEmpty(fileExtension))
+            if (string.IsNullOrEmpty(fileExtension))
             {
                 throw new ArgumentNullException(nameof(fileExtension));
             }
