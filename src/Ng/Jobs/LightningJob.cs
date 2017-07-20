@@ -73,6 +73,13 @@ namespace Ng.Jobs
             sw.WriteLine($"      Compressed only: Azure Storage account name.");
             sw.WriteLine($"  -{Arguments.CompressedStorageContainer} <container>");
             sw.WriteLine($"      Compressed only: Container to generate registrations in.");
+            sw.WriteLine($"  -{Arguments.ContentIsFlatContainer} true|false");
+            sw.WriteLine($"      Boolean to indicate if the registration blobs will have the content from the packages or flat container.");
+            sw.WriteLine($"  -{Arguments.FlatContainerName} <the flat container name>");
+            sw.WriteLine($"      It is required when the ContentIsFlatContainer flag is true.");
+            sw.WriteLine($"  -{Arguments.StorageSuffix} <storageSuffix>");
+            sw.WriteLine($"      String to indicate the target storage suffix. If china for example core.chinacloudapi.cn needs to be used.");
+            sw.WriteLine($"      The default value is blob.core.windows.net.");
             sw.WriteLine();
             sw.WriteLine($"  -{Arguments.UseSemVer2Storage} true|false");
             sw.WriteLine($"      Enable or disable SemVer 2.0.0 registration blobs.");
@@ -147,11 +154,20 @@ namespace Ng.Jobs
             // Hard code against Azure storage.
             arguments[Arguments.StorageType] = Arguments.AzureStorageType;
 
-            // Enable greater HTTP parallization.
+            // Enable greater HTTP parallelization.
             ServicePointManager.DefaultConnectionLimit = CatalogIndexReader.MaxDegreeOfParallelism;
 
             // Configure the package path provider.
-            RegistrationMakerCatalogItem.PackagePathProvider = new PackagesFolderPackagePathProvider();
+            var useFlatContainerAsPackageContent = arguments.GetOrDefault<bool>(Arguments.ContentIsFlatContainer, false);
+            if (!useFlatContainerAsPackageContent)
+            {
+                RegistrationMakerCatalogItem.PackagePathProvider = new PackagesFolderPackagePathProvider();
+            }
+            else
+            {
+                var flatContainerName = arguments.GetOrThrow<string>(Arguments.FlatContainerName);
+                RegistrationMakerCatalogItem.PackagePathProvider = new FlatContainerPackagePathProvider(flatContainerName);
+            }
 
             _command = arguments.GetOrThrow<string>(Arguments.Command);
             _verbose = arguments.GetOrDefault(Arguments.Verbose, false);
@@ -159,7 +175,6 @@ namespace Ng.Jobs
             _contentBaseAddress = arguments.GetOrThrow<string>(Arguments.ContentBaseAddress);
             _storageFactories = CommandHelpers.CreateRegistrationStorageFactories(arguments, _verbose);
             _shouldIncludeSemVer2 = RegistrationCollector.GetShouldIncludeRegistrationPackage(_storageFactories.SemVer2StorageFactory);
-
             // We save the arguments because the "prepare" command generates "strike" commands. Some of the arguments
             // used by "prepare" should be used when executing "strike".
             _arguments = arguments;
@@ -222,6 +237,8 @@ namespace Ng.Jobs
             var latestCommit = DateTime.MinValue;
             int numberOfEntries = 0;
             string indexFile = Path.Combine(_outputFolder, "index.txt");
+            string optionalArgumentsTemplate = "optionalArguments";
+
             using (var streamWriter = new StreamWriter(indexFile, false))
             {
                 var httpMessageHandlerFactory = CommandHelpers.GetHttpMessageHandlerFactory(_verbose);
@@ -269,17 +286,15 @@ namespace Ng.Jobs
 
             // Write cursor to storage
             _log.WriteLine("Start writing new cursor...");
-
             var storage = _storageFactories.LegacyStorageFactory.Create();
             var cursor = new DurableCursor(storage.ResolveUri("cursor.json"), storage, latestCommit);
             cursor.Value = latestCommit;
             await cursor.Save(CancellationToken.None);
-
             _log.WriteLine("Finished writing new cursor.");
 
             // Write command files
             _log.WriteLine("Start preparing lightning reindex command files...");
-
+           
             string templateFileContents;
             using (var templateStreamReader = new StreamReader(_templateFile))
             {
@@ -317,6 +332,24 @@ namespace Ng.Jobs
                             commandStreamContents = commandStreamContents
                                 .Replace($"[{replacement.Key}]", replacement.Value);
                         }
+
+                        //the not required arguments need to be added only if they were passed in
+                        //they cannot be hardcoded in the template
+                        string optionalArguments = string.Empty;
+                        if(_arguments.ContainsKey(Arguments.StorageSuffix))
+                        {
+                            optionalArguments = optionalArguments + $" -{Arguments.StorageSuffix} {_arguments[Arguments.StorageSuffix]}";
+                        }
+                        if (_arguments.ContainsKey(Arguments.ContentIsFlatContainer))
+                        {
+                            optionalArguments = optionalArguments + $" -{Arguments.ContentIsFlatContainer} {_arguments[Arguments.ContentIsFlatContainer]}";
+                        }
+                        if (_arguments.ContainsKey(Arguments.FlatContainerName))
+                        {
+                            optionalArguments = optionalArguments + $" -{Arguments.FlatContainerName} {_arguments[Arguments.FlatContainerName]}";
+                        }
+                        commandStreamContents = commandStreamContents
+                               .Replace($"[{optionalArgumentsTemplate}]", optionalArguments);
 
                         await cursorCommandStreamWriter.WriteLineAsync(commandStreamContents);
                         await cursorTextStreamWriter.WriteLineAsync(batchStart + "," + batchEnd);
@@ -455,7 +488,8 @@ namespace Ng.Jobs
                 new Uri(_contentBaseAddress),
                 RegistrationCollector.PartitionSize,
                 RegistrationCollector.PackageCountThreshold,
-                CancellationToken.None);
+                CancellationToken.None
+                );
 
             if (_storageFactories.SemVer2StorageFactory != null)
             {
@@ -466,7 +500,8 @@ namespace Ng.Jobs
                     new Uri(_contentBaseAddress),
                     RegistrationCollector.PartitionSize,
                     RegistrationCollector.PackageCountThreshold,
-                    CancellationToken.None);
+                    CancellationToken.None
+                    );
             }
         }
     }

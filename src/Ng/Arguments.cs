@@ -47,7 +47,6 @@ namespace Ng
         public const string Version = "version";
 
         public const string StorageSuffix = "storageSuffix";
- 
         #endregion
 
         #region Catalog2Lucene
@@ -71,6 +70,10 @@ namespace Ng
         public const string UnlistShouldDelete = "unlistShouldDelete";
         public const string UseCompressedStorage = "useCompressedStorage";
         public const string UseSemVer2Storage = "useSemVer2Storage";
+
+        public const string ContentIsFlatContainer = "contentIsFlatContainer";
+        public const string CursorUri = "cursorUri";
+        public const string FlatContainerName = "flatContainerName";
         #endregion
 
         #region CopyLucene
@@ -85,6 +88,7 @@ namespace Ng
         public const string SrcStorageAccountName = "srcStorageAccountName";
         public const string SrcStorageContainer = "srcStorageContainer";
         public const string SrcStorageKeyValue = "srcStorageKeyValue";
+
         #endregion
 
         #region Feed2Catalog

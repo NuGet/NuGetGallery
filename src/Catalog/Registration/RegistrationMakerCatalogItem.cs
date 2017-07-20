@@ -84,7 +84,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             return _itemAddress;
         }
 
-       private Uri GetRegistrationAddress()
+        private Uri GetRegistrationAddress()
         {
             if (_registrationAddress == null)
             {
@@ -96,7 +96,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
             return _registrationAddress;
         }
-                
+
         private DateTime GetPublishedDate()
         {
             if (_publishedDate == default(DateTime))

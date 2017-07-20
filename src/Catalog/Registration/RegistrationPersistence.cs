@@ -135,7 +135,6 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                 Uri pageUri = ((IUriNode)page.Subject).Uri;
 
                 //  note that this is explicit Uri comparison and deliberately ignores differences in the fragment
-                
                 if (pageUri != resourceUri)
                 {
                     tasks.Add(LoadCatalogPage(storage, pageUri, cancellationToken));
@@ -159,9 +158,8 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             IGraph graph = Utils.CreateGraph(json);
             return graph;
         }
-        
-        //  Save implementation
 
+        //  Save implementation
         static async Task Save(IStorage storage, Uri registrationBaseAddress, IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> registration, int partitionSize, int packageCountThreshold, Uri contentBaseAddress, CancellationToken cancellationToken)
         {
             Trace.TraceInformation("RegistrationPersistence.Save");

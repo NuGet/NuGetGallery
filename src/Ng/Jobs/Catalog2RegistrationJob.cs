@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -66,6 +67,7 @@ namespace Ng.Jobs
             var verbose = arguments.GetOrDefault(Arguments.Verbose, false);
 
             var contentBaseAddress = arguments.GetOrDefault<string>(Arguments.ContentBaseAddress);
+            var isContentFlatContainer = arguments.GetOrDefault<bool>(Arguments.ContentIsFlatContainer);
 
             // The term "legacy" here refers to the registration hives that do not contain any SemVer 2.0.0 packages.
             // In production, this is two registration hives:
@@ -78,7 +80,19 @@ namespace Ng.Jobs
                 source,
                 storageFactories.LegacyStorageFactory);
 
-            RegistrationMakerCatalogItem.PackagePathProvider = new PackagesFolderPackagePathProvider();
+            if (isContentFlatContainer)
+            {
+                var flatContainerCursorUriString = arguments.GetOrThrow<string>(Arguments.CursorUri);
+                var flatContainerName = arguments.GetOrThrow<string>(Arguments.FlatContainerName);
+                RegistrationMakerCatalogItem.PackagePathProvider = new FlatContainerPackagePathProvider(flatContainerName);
+                // In case that the flat container is used as the packages' source the registration needs to wait for the flatcontainer cursor
+                _back = new HttpReadCursor(new Uri(flatContainerCursorUriString));
+            }
+            else
+            {
+                RegistrationMakerCatalogItem.PackagePathProvider = new PackagesFolderPackagePathProvider();
+                _back = MemoryCursor.CreateMax();
+            }
 
             _collector = new RegistrationCollector(
                 new Uri(source),
@@ -93,8 +107,6 @@ namespace Ng.Jobs
 
             var cursorStorage = storageFactories.LegacyStorageFactory.Create();
             _front = new DurableCursor(cursorStorage.ResolveUri("cursor.json"), cursorStorage, MemoryCursor.MinValue);
-            _back = MemoryCursor.CreateMax();
-
             storageFactories.SemVer2StorageFactory?.Create();
         }
 

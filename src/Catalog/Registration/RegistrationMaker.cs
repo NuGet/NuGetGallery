@@ -54,11 +54,9 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> delta = PromoteRegistrationKey(newItems, shouldInclude);
 
             Trace.TraceInformation("RegistrationMaker.Process: delta = {0}", delta.Count);
-            
             IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> resulting = Apply(existing, delta);
 
             Trace.TraceInformation("RegistrationMaker.Process: resulting = {0}", resulting.Count);
-            
             await registration.Save(resulting, cancellationToken);
         }
 
@@ -82,7 +80,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         }
 
         private static IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> Apply(
-            IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> existing, 
+            IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> existing,
             IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> delta)
         {
             IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> resulting = new Dictionary<RegistrationEntryKey, RegistrationCatalogEntry>();
