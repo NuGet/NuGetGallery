@@ -338,6 +338,11 @@ img.package-icon {
   margin-top: 10px;
   margin-left: -2px;
 }
+.pager {
+  float: right;
+  margin-top: 75px;
+  margin-bottom: 0;
+}
 .page-about .contributors .contributor {
   padding: 5px;
 }
@@ -727,11 +732,6 @@ img.package-icon {
 .page-list-packages h1 {
   margin-bottom: 33px;
 }
-.page-list-packages .pager {
-  float: right;
-  margin-top: 75px;
-  margin-bottom: 0;
-}
 .page-manage-curated-feed .package-owners .owner {
   margin-bottom: 10px;
 }
@@ -797,9 +797,6 @@ img.package-icon {
   margin-left: 16px;
   font-size: 14px;
   color: #068918;
-}
-.page-profile .pager {
-  float: right;
 }
 .page-profile .profile-details img {
   margin-top: 50px;
