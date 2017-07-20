@@ -370,12 +370,11 @@ img.package-icon {
     text-align: right;
   }
 }
-.page-account-settings .form-section-data {
-  margin-top: 40px;
-}
 @media (min-width: 768px) {
   .page-account-settings .form-section-data {
     float: right;
+    margin-top: 40px;
+    line-height: 3;
     text-align: right;
   }
 }
