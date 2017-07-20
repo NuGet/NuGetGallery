@@ -213,6 +213,10 @@
         validator.reset();
     };
 
+    nuget.isGaAvailable = function () {
+        return typeof ga === 'function';
+    };
+
     window.nuget = nuget;
 
     initializeJQueryValidator();
@@ -244,7 +248,7 @@ $(function () {
         $(this).click(function (e) {
             var href = $(this).attr('href');
             var category = $(this).data().track;
-            if (ga && href && category) {
+            if (window.nuget.isGaAvailable() && href && category) {
                 e.preventDefault();
                 ga('send', 'event', category, 'click', href, {
                     'transport': 'beacon',

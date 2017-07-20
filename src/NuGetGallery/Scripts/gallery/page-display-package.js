@@ -32,4 +32,11 @@ $(function () {
         e.preventDefault();
         $(this).closest('form').submit();
     })
+
+    // Emit a Google Analytics event when the user expands or collapses the Dependencies section.
+    if (window.nuget.isGaAvailable()) {
+        $("#dependency-groups").on('hide.bs.collapse show.bs.collapse', function (e) {
+            ga('send', 'event', 'dependencies', e.type);
+        });
+    }
 });
