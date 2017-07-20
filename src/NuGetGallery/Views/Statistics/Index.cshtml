@@ -134,13 +134,13 @@
                     <table class="table col-xs-12 borderless">
                         <thead>
                             <tr>
-                                <th class="text-left">Client Version</th>
+                                <th class="text-left">NuGet Client Version</th>
                                 <th class="text-right">Downloads</th>
                             </tr>
                         </thead>
                         <tbody>
                             @{
-                                foreach (var item in Model.NuGetClientVersion)
+                                foreach (var item in Model.NuGetClientVersion.Reverse())
                                 {
                                     index++;
 
