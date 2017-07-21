@@ -42,7 +42,7 @@
                 var $self = this;
 
                 this.message = ko.observable('');
-                this.searchQuery = ko.observable('');
+                this.prefixSearchQuery = ko.observable('');
 
                 this.prefixSearchResults = ko.observableArray([]);
                 this.prefixSearchNotFoundResults = ko.observableArray([]);
@@ -55,7 +55,7 @@
                         dataType: 'json',
                         success: function (data) {
                             $self.prefixSearchResults.removeAll();
-                            $self.searchNotFoundResults.removeAll();
+                            $self.prefixSearchNotFoundResults.removeAll();
 
                             $self.prefixSearchResults(data.Prefixes);
                             $self.prefixSearchNotFoundResults(data.UsersNotFound);
