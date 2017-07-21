@@ -144,6 +144,7 @@
     <Compile Include="Auditing\ScopeAuditRecord.cs" />
     <Compile Include="Auditing\UserAuditRecord.cs" />
     <Compile Include="Cookies\CookieComplianceServiceBase.cs" />
+    <Compile Include="Cookies\CookieConsentMessage.cs" />
     <Compile Include="Cookies\ICookieComplianceService.cs" />
     <Compile Include="Cookies\NullCookieComplianceService.cs" />
     <Compile Include="CoreConstants.cs" />

@@ -2,10 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Web;
-using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery.Cookies
 {
@@ -23,6 +20,8 @@ namespace NuGetGallery.Cookies
         public override bool CanWriteNonEssentialCookies(HttpRequestBase request) => true;
 
         // No markdown or scripts will be included.
+
+        public override CookieConsentMessage GetConsentMessage(HttpRequestBase request, string locale = null) => null;
 
         public override string GetConsentMarkup(HttpRequestBase request, string locale = null) => string.Empty;
 

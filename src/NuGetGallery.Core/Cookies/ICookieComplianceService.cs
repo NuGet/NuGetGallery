@@ -32,18 +32,28 @@ namespace NuGetGallery.Cookies
         bool CanWriteNonEssentialCookies(HttpRequestBase request);
 
         /// <summary>
-        /// Get HTML markup for the cookie consent banner.
+        /// Get the cookie consent banner message and resources. This API is an alternative to the default
+        /// rendering APIs below and can be used to customize the UI. Note that the messaging must remain intact.
+        /// </summary>
+        CookieConsentMessage GetConsentMessage(HttpRequestBase request, string locale = null);
+
+        #region Default CookieConsent rendering
+
+        /// <summary>
+        /// Get the default HTML markup for the cookie consent banner.
         /// </summary>
         string GetConsentMarkup(HttpRequestBase request, string locale = null);
 
         /// <summary>
-        /// Get CSS links for the cookie consent banner.
+        /// Get the default CSS links for the cookie consent banner.
         /// </summary>
         IEnumerable<string> GetConsentStylesheets(HttpRequestBase request, string locale = null);
 
         /// <summary>
-        /// Get Javascript links for the cookie consent banner.
+        /// Get the default Javascript links for the cookie consent banner.
         /// </summary>
         IEnumerable<string> GetConsentScripts(HttpRequestBase request, string locale = null);
+
+        #endregion
     }
 }

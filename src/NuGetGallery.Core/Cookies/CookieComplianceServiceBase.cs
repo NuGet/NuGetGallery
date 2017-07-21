@@ -40,6 +40,8 @@ namespace NuGetGallery.Cookies
 
         public abstract bool NeedsConsentForNonEssentialCookies(HttpRequestBase request);
 
+        public abstract CookieConsentMessage GetConsentMessage(HttpRequestBase request, string locale = null);
+
         public abstract string GetConsentMarkup(HttpRequestBase request, string locale = null);
 
         public abstract IEnumerable<string> GetConsentScripts(HttpRequestBase request, string locale = null);
