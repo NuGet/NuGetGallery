@@ -8,8 +8,10 @@
         <div class="message" style="display: none" data-bind="text: message, visible: message"></div>
         <h2>Reserve Namespace</h2>
         <form>
-            <input type="text" placeholder="Search for a prefix" autocomplete="off" autofocus style="width: 128ch;" data-bind="value: prefixSearchQuery" />
-            <input type="button" value="Search Prefix" title="Search Prefix" data-bind="click: prefixSearch" />
+            <div class="form-horizontal">
+                <input type="text" placeholder="Search for a prefix" autocomplete="off" autofocus data-bind="value: prefixSearchQuery" />
+                <input type="button" value="Search Prefix" title="Search Prefix" data-bind="click: prefixSearch" />
+            </div>
         </form><br />
 
         <div data-bind="visible: prefixSearchResults().length > 0">
