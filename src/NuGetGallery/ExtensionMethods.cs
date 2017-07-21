@@ -377,10 +377,12 @@ namespace NuGetGallery
             var metadata = ModelMetadata.FromLambdaExpression(expression, html.ViewData);
             var propertyName = metadata.PropertyName.ToLower();
 
-            return html.ValidationMessageFor(expression, validationMessage: null, htmlAttributes: new
+            return html.ValidationMessageFor(expression, validationMessage: null, htmlAttributes: new Dictionary<string, object>
             {
-                id = $"{propertyName}-validation-message",
-                @class = "help-block"
+                { "id", $"{propertyName}-validation-message" },
+                { "class", "help-block" },
+                { "role", "alert" },
+                { "aria-live", "assertive" },
             });
         }
 
