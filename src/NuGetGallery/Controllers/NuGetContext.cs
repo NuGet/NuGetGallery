@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Web;
 using System.Web.Mvc;
 using NuGetGallery.Configuration;
 using NuGetGallery.Cookies;
@@ -22,8 +23,17 @@ namespace NuGetGallery
 
         public IGalleryConfigurationService Config { get; internal set; }
 
-        public ICookieComplianceService CookieComplianceService { get; }
-
         public User CurrentUser { get { return _currentUser.Value; } }
+
+        private ICookieComplianceService CookieComplianceService { get; }
+
+        public CookieConsentMessage GetCookieConsentMessage(HttpRequestBase request)
+        {
+            if (CookieComplianceService.NeedsConsentForNonEssentialCookies(request))
+            {
+                return CookieComplianceService.GetConsentMessage(request);
+            }
+            return null;
+        }
     }
 }

@@ -26,13 +26,17 @@
         @RenderSection("TopScripts", required: false)
         @ViewHelpers.ReleaseMeta()
         @ViewHelpers.InstrumentationScript()
-
-        @ViewHelpers.CookieComplianceScripts()
     </head>
     <body class="s-noclickonce">
-        @if (CookieComplianceService.NeedsConsentForNonEssentialCookies(Request))
+        @if (CookieConsentMessage != null)
         {
-            @Html.Raw(CookieComplianceService.GetConsentMarkup(Request));
+            <div id="service-alert">
+                <div class="banner-cookies">
+                    <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
+                    @CookieConsentMessage.Message
+                    <a href="@CookieConsentMessage.MoreInfoUrl" aria-label="@CookieConsentMessage.MoreInfoAriaLabel">@CookieConsentMessage.MoreInfoText</a>
+                </div>
+            </div>
         }
         @if (!string.IsNullOrWhiteSpace(Config.Current.WarningBanner))
         {
@@ -83,5 +87,13 @@
         </div>
         @Scripts.Render("~/Scripts/all")
         @RenderSection("BottomScripts", required: false)
+
+        @if (CookieConsentMessage != null)
+        {
+            foreach (var cookieScript in CookieConsentMessage.Javascripts)
+            {
+                <script src="@cookieScript" type="text/javascript"></script>
+            }
+        }
     </body>
 </html>

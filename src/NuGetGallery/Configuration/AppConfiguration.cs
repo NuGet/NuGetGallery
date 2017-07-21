@@ -19,6 +19,9 @@ namespace NuGetGallery.Configuration
         [DefaultValue("")]
         public string RedesignBanner { get; set; }
 
+        [DefaultValue(false)]
+        public bool CookieComplianceEnabled { get; set; }
+
         /// <summary>
         /// Gets a setting indicating if SSL is required for all operations once logged in.
         /// </summary>

@@ -520,16 +520,20 @@ namespace NuGetGallery
 
         private static void RegisterCookieComplianceService(ContainerBuilder builder, ConfigurationService configuration, DiagnosticsService diagnostics)
         {
-            var service = GetAddInServices<ICookieComplianceService>(builder).FirstOrDefault() ?? new NullCookieComplianceService();
+            ICookieComplianceService service = null;
+            if (configuration.Current.CookieComplianceEnabled)
+            {
+                service = GetAddInServices<ICookieComplianceService>(builder).FirstOrDefault();
+            }
             
-            builder.RegisterInstance(service)
+            builder.RegisterInstance(service ?? new NullCookieComplianceService())
                 .AsSelf()
                 .As<ICookieComplianceService>()
                 .SingleInstance();
             
             // Initialize the service on App_Start to avoid any performance degradation during initial requests.
             var siteName = configuration.GetSiteRoot(true);
-            HostingEnvironment.QueueBackgroundWorkItem(async cancellationToken => await service.InitializeAsync(siteName, diagnostics, CancellationToken.None));
+            HostingEnvironment.QueueBackgroundWorkItem(async cancellationToken => await service.InitializeAsync(siteName, diagnostics, cancellationToken));
         }
     }
 }

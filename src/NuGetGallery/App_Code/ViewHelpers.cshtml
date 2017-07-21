@@ -231,22 +231,6 @@
     }
 }
 
-@helper CookieComplianceScripts()
-{
-    var cookieService = DependencyResolver.Current.GetService<ICookieComplianceService>();
-    if (cookieService.NeedsConsentForNonEssentialCookies(Request))
-    {
-        foreach (var cookieScript in cookieService.GetConsentScripts(Request))
-        {
-            <script src="@cookieScript"></script>
-        }
-        foreach (var cookieStyle in cookieService.GetConsentStylesheets(Request))
-        {
-            <link rel="stylesheet" type="text/css" href="@cookieStyle" />
-        }
-    }
-}
-
 @helper AccordionBar(
     string groupName,
     WebViewPage page,
