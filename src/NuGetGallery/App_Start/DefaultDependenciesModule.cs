@@ -520,10 +520,10 @@ namespace NuGetGallery
 
         private static void RegisterCookieComplianceService(ContainerBuilder builder, ConfigurationService configuration, DiagnosticsService diagnostics)
         {
-            ICookieComplianceService service = null;
+            CookieComplianceServiceBase service = null;
             if (configuration.Current.CookieComplianceEnabled)
             {
-                service = GetAddInServices<ICookieComplianceService>(builder).FirstOrDefault();
+                service = GetAddInServices<CookieComplianceServiceBase>(builder).FirstOrDefault();
             }
             
             builder.RegisterInstance(service ?? new NullCookieComplianceService())

@@ -2,10 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Web;
-using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery.Cookies
 {
@@ -14,11 +11,6 @@ namespace NuGetGallery.Cookies
     /// </summary>
     public interface ICookieComplianceService
     {
-        /// <summary>
-        /// Run service startup initialization, on App_Start.
-        /// </summary>
-        Task InitializeAsync(string domain, IDiagnosticsService diagnostics, CancellationToken cancellationToken);
-
         /// <summary>
         /// Determine if consent is still needed for writing non-essential cookies.
         /// </summary>
