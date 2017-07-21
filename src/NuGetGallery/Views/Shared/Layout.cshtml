@@ -31,7 +31,7 @@
         @if (CookieConsentMessage != null)
         {
             <div id="service-alert">
-                <div class="banner-cookies">
+                <div class="banner-cookies" role="alert">
                     <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
                     @CookieConsentMessage.Message
                     <a href="@CookieConsentMessage.MoreInfoUrl" aria-label="@CookieConsentMessage.MoreInfoAriaLabel">@CookieConsentMessage.MoreInfoText</a>

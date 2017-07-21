@@ -523,7 +523,7 @@ namespace NuGetGallery
             CookieComplianceServiceBase service = null;
             if (configuration.Current.CookieComplianceEnabled)
             {
-                service = GetAddInServices<CookieComplianceServiceBase>(builder).FirstOrDefault();
+                service = GetAddInServices<ICookieComplianceService>(builder).FirstOrDefault() as CookieComplianceServiceBase;
             }
             
             builder.RegisterInstance(service ?? new NullCookieComplianceService())
