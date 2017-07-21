@@ -628,7 +628,7 @@ namespace NuGetGallery
         public class TheTotalsAllAction
         {
             [Fact]
-            public async Task UseServerCultureIfLanguageHeadersIsMissing()
+            public async Task IgnoresServerCultureAndReturnsStatisticsAsNumbers()
             {
                 // Arrange
                 var currentCulture = CultureInfo.CurrentCulture;
@@ -655,9 +655,9 @@ namespace NuGetGallery
                     Assert.NotNull(result);
                     dynamic data = result.Data;
 
-                    Assert.Equal("2,013", (string)data.Downloads);
-                    Assert.Equal("500", (string)data.UniquePackages);
-                    Assert.Equal("1,000", (string)data.TotalPackages);
+                    Assert.Equal(2013, data.Downloads);
+                    Assert.Equal(500, data.UniquePackages);
+                    Assert.Equal(1000, data.TotalPackages);
                 }
                 finally
                 {
@@ -666,7 +666,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task UseClientCultureIfLanguageHeadersIsPresent()
+            public async Task IgnoresUserCultureAndReturnsStatisticsAsNumbers()
             {
                 // Arrange
                 var aggregateStatsService = new Mock<IAggregateStatsService>(MockBehavior.Strict);
@@ -691,9 +691,9 @@ namespace NuGetGallery
                 Assert.NotNull(result);
                 dynamic data = result.Data;
 
-                Assert.Equal("2.013", (string)data.Downloads);
-                Assert.Equal("500", (string)data.UniquePackages);
-                Assert.Equal("1.000", (string)data.TotalPackages);
+                Assert.Equal(2013, data.Downloads);
+                Assert.Equal(500, data.UniquePackages);
+                Assert.Equal(1000, data.TotalPackages);
             }
 
             /// <summary>
