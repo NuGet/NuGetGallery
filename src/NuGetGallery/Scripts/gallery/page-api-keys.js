@@ -319,8 +319,8 @@
             };
 
             this.Copy = function () {
-                window.nuget.copyTextToClipboard(self.Value());
                 var $copyButton = self._GetCopyButton();
+                window.nuget.copyTextToClipboard(self.Value(), $copyButton);
                 $copyButton.popover('show');
                 setTimeout(function () {
                     $copyButton.popover('destroy');

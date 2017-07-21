@@ -62,7 +62,7 @@
 
     // source: http://stackoverflow.com/questions/400212/how-do-i-copy-to-the-clipboard-in-javascript
     // enhancement with special case for IEs, otherwise the temp textarea will be visible
-    nuget.copyTextToClipboard = function (text) {
+    nuget.copyTextToClipboard = function (text, elementToFocus) {
         if (detectIE()) {
             try {
                 window.clipboardData.setData('Text', text);
@@ -129,6 +129,11 @@
             }
 
             document.body.removeChild(textArea);
+
+            // Focus the element provided so that tab order is not reset to the beginning of the page.
+            if (elementToFocus) {
+                elementToFocus.focus();
+            }
         }
     };
 

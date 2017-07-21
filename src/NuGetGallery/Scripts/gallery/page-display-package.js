@@ -7,7 +7,7 @@ $(function () {
 
         copyButton.click(function () {
             var text = $('#' + id + '-text').text().trim();
-            window.nuget.copyTextToClipboard(text);
+            window.nuget.copyTextToClipboard(text, copyButton);
             copyButton.popover('show');
             setTimeout(function () {
                 copyButton.popover('destroy');
