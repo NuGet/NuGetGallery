@@ -279,7 +279,7 @@
             }
 
             if(ver.BuildDateUtc != DateTime.MinValue) {
-                @: Built at <span class="s-localtime" data-utc="@ver.BuildDateUtc.ToJavaScriptUTC()">@ver.BuildDateUtc.ToNuGetShortDateString()</span>.
+                @: Built on <span class="s-localtime" data-utc="@ver.BuildDateUtc.ToString("O")" title="@ver.BuildDateUtc.ToString("O")">@ver.BuildDateUtc.ToNuGetShortDateString()</span>.
             }
         } else {
             @:.

@@ -38,7 +38,7 @@
                 <li>
                     <span>
                         <i class="ms-Icon ms-Icon--History" aria-hidden="true"></i>
-                        last updated <span data-datetime="@Model.LastUpdated.ToJavaScriptUTC()"></span>
+                        last updated <span data-datetime="@Model.LastUpdated.ToString("O")">@Model.LastUpdated.ToNuGetShortDateString()</span>
                     </span>
                 </li>
                 <li>

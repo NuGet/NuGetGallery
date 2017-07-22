@@ -332,7 +332,7 @@
                                         @packageVersion.DownloadCount.ToNuGetNumberString()
                                     </td>
                                     <td>
-                                        <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetLongDateString()</span>
+                                        <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetShortDateString()</span>
                                     </td>
                                     @if ((Model.IsOwner(User) || User.IsAdministrator()))
                                     {
@@ -357,7 +357,7 @@
                                         @packageVersion.DownloadCount
                                     </td>
                                     <td>
-                                        <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetLongDateString()</span>
+                                        <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetShortDateString()</span>
                                     </td>
                                     <td></td>
                                 </tr>

@@ -58,7 +58,7 @@
         unparsedValue = ('' + unparsedValue).replace(/,/g, '');
         var parsedValue = parseInt(unparsedValue);
         return parsedValue;
-    }
+    };
 
     // source: http://stackoverflow.com/questions/400212/how-do-i-copy-to-the-clipboard-in-javascript
     // enhancement with special case for IEs, otherwise the temp textarea will be visible
@@ -170,8 +170,8 @@
     // Source: https://stackoverflow.com/a/27568129/52749
     // Detects whether SVG is supported in the browser.
     nuget.supportsSvg = function () {
-        return !!(document.createElementNS && document.createElementNS('http://www.w3.org/2000/svg','svg').createSVGRect);
-    }
+        return !!(document.createElementNS && document.createElementNS('http://www.w3.org/2000/svg', 'svg').createSVGRect);
+    };
 
     // Source: https://developers.google.com/analytics/devguides/collection/analyticsjs/sending-hits
     nuget.createFunctionWithTimeout = function (callback, opt_timeout) {
@@ -205,7 +205,7 @@
 
         var allButLast = items.slice(0, -1).join(', ');
         var last = items.slice(-1)[0];
-        return [allButLast, last].join(items.length < 2 ? '' : (items.length == 2 ? ' and ' : ', and '));
+        return [allButLast, last].join(items.length < 2 ? '' : items.length === 2 ? ' and ' : ', and ');
     };
 
     nuget.resetFormValidation = function (formElement) {
@@ -222,6 +222,31 @@
         return typeof ga === 'function';
     };
 
+    nuget.getDateFormats = function (input) {
+        var datetime = moment.utc(input);
+
+        if (!datetime.isValid()) {
+            return null;
+        }
+
+        var title = datetime.utc().format();
+
+        // Determine if the duration is less than 11 months, which is moment.js's threshold to switch to
+        // years display.
+        var duration = moment.duration(moment().diff(datetime)).abs();
+        var text;
+        if (duration.as('M') <= 10) {
+            text = datetime.fromNow();
+        } else {
+            text = datetime.format("l");
+        }
+
+        return {
+            title: title,
+            text: text
+        };
+    };
+
     window.nuget = nuget;
 
     initializeJQueryValidator();
@@ -230,11 +255,17 @@
 $(function () {
     // Use moment.js to format attributes with the "datetime" attribute to "X time ago".
     $.each($('*[data-datetime]'), function () {
-        var datetime = moment($(this).data().datetime);
-        if (!$(this).attr('title')) {
-            $(this).attr('title', datetime.utc().format());
+        var $el = $(this);
+        var formats = window.nuget.getDateFormats($el.data().datetime);
+        if (!formats) {
+            return;
         }
-        $(this).text(datetime.fromNow());
+
+        if (!$el.attr('title')) {
+            $el.attr('title', formats.title);
+        }
+
+        $el.text(formats.text);
     });
 
     // Handle confirm pop-ups.
