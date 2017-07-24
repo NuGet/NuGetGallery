@@ -48,7 +48,7 @@ namespace NuGetGallery
         }
 
         [AcceptVerbs(HttpVerbs.Get | HttpVerbs.Head)]
-        [OutputCache(VaryByHeader = "Accept-Language", Duration = 120, Location = OutputCacheLocation.Server)]
+        [OutputCache(VaryByHeader = "Accept-Language", Duration = 3600, Location = OutputCacheLocation.Server)]
         public virtual async Task<ActionResult> Totals()
         {
             var stats = await _aggregateStatsService.GetAggregateStats();
