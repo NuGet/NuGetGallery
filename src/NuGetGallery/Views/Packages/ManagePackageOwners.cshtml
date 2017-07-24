@@ -5,6 +5,10 @@
 }
 
 <section role="main" class="container main-container page-manage-owners">
+    <form id="AntiForgeryForm">
+        @Html.AntiForgeryToken()
+    </form>
+
     <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
         <h1 class="text-center">Manage Owners for Package <a href="@Url.Package(Model.Id)">@Model.Id</a></h1>
 

@@ -15,6 +15,12 @@
         "ChevronDown",
         "Add Owner");
 
+    function addAntiForgeryToken(data) {
+        var $field = $("#AntiForgeryForm input[name=__RequestVerificationToken]");
+        data["__RequestVerificationToken"] = $field.val();
+        return data;
+    }
+
     var failHandler = function (jqXHR, textStatus, errorThrown) {
         viewModel.message('An unexpected error occurred! "' + errorThrown + '"');
     };
@@ -31,10 +37,6 @@
 
         hasMoreThanOneOwner: function () {
             return true;
-        },
-
-        headers: function () {
-            return { '__RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() };
         },
 
         resetAddOwnerConfirmation: function () {
@@ -70,8 +72,6 @@
                 cache: false,
                 dataType: 'json',
                 type: 'GET',
-                headers: viewModel.headers(),
-                contentType: 'application/json; charset=utf-8',
                 success: function (data) {
                     if (data.success) {
                         viewModel.confirmation(data.confirmation);
@@ -100,9 +100,7 @@
                 url: addPackageOwnerUrl,
                 dataType: 'json',
                 type: 'POST',
-                headers: viewModel.headers(),
-                data: window.JSON.stringify(ownerInputModel),
-                contentType: 'application/json; charset=utf-8',
+                data: addAntiForgeryToken(ownerInputModel),
                 success: function (data) {
                     if (data.success) {
                         var newOwner = new Owner(data.name, data.profileUrl, data.imageUrl, /* pending */ true, data.current);
@@ -132,11 +130,13 @@
             }
 
             $.ajax({
-                url: removePackageOwnerUrl + '?id=' + viewModel.package.id + '&username=' + item.name(),
+                url: removePackageOwnerUrl,
                 dataType: 'json',
                 type: 'POST',
-                headers: viewModel.headers(),
-                contentType: 'application/json; charset=utf-8',
+                data: addAntiForgeryToken({
+                    id: viewModel.package.id,
+                    username: item.name(),
+                }),
                 success: function (data) {
                     if (data.success) {
                         if (item.current) {
@@ -180,7 +180,6 @@
         cache: false,
         dataType: 'json',
         type: 'GET',
-        contentType: 'application/json; charset=utf-8',
         success: function (data) {
             viewModel.owners($.map(data, function (item) { return new Owner(item.name, item.profileUrl, item.imageUrl, item.pending, item.current); }));
         }
