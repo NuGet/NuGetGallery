@@ -61,6 +61,7 @@ namespace NuGet.Jobs
         public const string SourceStorage = "SourceStorage";
         public const string BackupStorage = "BackupStorage";
         public const string BackupContainerName = "BackupContainerName";
+        public const string ReadMeContainerName = "ReadMeContainerName";
 
         //Arguments specific to UpdateLicenseReports
         public const string LicenseReportService = "LicenseReportService";
