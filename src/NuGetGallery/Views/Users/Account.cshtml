@@ -319,12 +319,12 @@
                              @Html.ValidationSummaryFor("ChangePassword")
                              <div class="form-field">
                                  @Html.LabelFor(m => m.ChangePassword.OldPassword)
-                                 @Html.PasswordFor(m => m.ChangePassword.OldPassword)
+                                 @Html.PasswordFor(m => m.ChangePassword.OldPassword, new { autocomplete = "off" })
                                  @Html.ValidationMessageFor(m => m.ChangePassword.OldPassword)
                              </div>
                              <div class="form-field">
                                  @Html.LabelFor(m => m.ChangePassword.NewPassword)
-                                 @Html.PasswordFor(m => m.ChangePassword.NewPassword)
+                                 @Html.PasswordFor(m => m.ChangePassword.NewPassword, new { autocomplete = "off" })
                                  @Html.ValidationMessageFor(m => m.ChangePassword.NewPassword)
                              </div>
                              <img src="@Url.Content("~/Content/images/required.png")" alt="Blue border on left means required." />
