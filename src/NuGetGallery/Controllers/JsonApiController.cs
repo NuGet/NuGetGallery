@@ -106,6 +106,7 @@ namespace NuGetGallery
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<JsonResult> AddPackageOwner(string id, string username, string message)
         {
             ManagePackageOwnerModel model;
@@ -142,6 +143,7 @@ namespace NuGetGallery
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<JsonResult> RemovePackageOwner(string id, string username)
         {
             ManagePackageOwnerModel model;

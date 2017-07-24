@@ -9,6 +9,11 @@ using System.Runtime.CompilerServices;
 
 namespace NuGetGallery.Diagnostics
 {
+    /// <summary>
+    /// Gallery diagnostics source. Trace events (including LogError extension) use System.Diagnostics traces, whereas
+    /// Exception events are tracked as exceptions in ApplicationInsights. Eventually this class should be updated to
+    /// use ApplicationInsights for trace events for consistency across the Gallery.
+    /// </summary>
     public class TraceDiagnosticsSource : IDiagnosticsSource, IDisposable
     {
         private const string ObjectName = "TraceDiagnosticsSource";
@@ -26,6 +31,24 @@ namespace NuGetGallery.Diagnostics
             _source.Listeners.AddRange(Trace.Listeners);
         }
 
+        /// <summary>
+        /// Write exception to ApplicationInsights.
+        /// 
+        /// Note that Source.Error (DiagnosticsSourceExtensions) currently uses TraceEvent instead.
+        /// </summary>
+        public virtual void ExceptionEvent(Exception exception)
+        {
+            if (exception == null)
+            {
+                throw new ArgumentNullException(nameof(exception));
+            }
+
+            Telemetry.TrackException(exception);
+        }
+
+        /// <summary>
+        /// Write a System.Diagnostics trace event.
+        /// </summary>
         public virtual void TraceEvent(TraceEventType type, int id, string message, [CallerMemberName] string member = null, [CallerFilePath] string file = null, [CallerLineNumber] int line = 0)
         {
             if (_source == null)
