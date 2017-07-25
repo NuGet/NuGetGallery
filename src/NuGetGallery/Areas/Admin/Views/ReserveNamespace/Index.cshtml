@@ -26,7 +26,7 @@
                         </thead>
                         <tbody id="prefixes" data-bind="foreach: prefixSearchResults">
                             <tr>
-                                <td><span data-bind="text: Prefix"></span></td>
+                                <td><span data-bind="text: Prefix.Value"></span></td>
                             </tr>
                         </tbody>
                     </table>
@@ -59,8 +59,8 @@
                             $self.prefixSearchResults.removeAll();
                             $self.prefixSearchNotFoundResults.removeAll();
 
-                            $self.prefixSearchResults(data.Prefixes);
-                            $self.prefixSearchNotFoundResults(data.UsersNotFound);
+                            $self.prefixSearchResults(data.MatchingPrefixes);
+                            $self.prefixSearchNotFoundResults(data.NonMatchingPrefix);
                         }
                     })
                     .error(function(jqXhr, textStatus, errorThrown) {
