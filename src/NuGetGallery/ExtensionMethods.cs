@@ -308,6 +308,7 @@ namespace NuGetGallery
         public static HtmlString ShowPasswordFor<TModel, TProperty>(this HtmlHelper<TModel> html, Expression<Func<TModel, TProperty>> expression)
         {
             var htmlAttributes = GetHtmlAttributes(html, expression);
+            htmlAttributes["autocomplete"] = "off";
             return html.PasswordFor(expression, htmlAttributes);
         }
 
