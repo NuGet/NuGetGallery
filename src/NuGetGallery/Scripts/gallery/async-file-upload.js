@@ -295,7 +295,9 @@
         $(".readme-btn-group").change(changeReadMeFormTab);
 
         $("#repositoryurl-field").blur(function () {
-            $("#ReadMeUrlInput").val(fillReadMeUrl($("#repositoryurl-field").val()));
+            if (!$("#ReadMeUrlInput").val()) {
+                $("#ReadMeUrlInput").val(fillReadMeUrl($("#repositoryurl-field").val()));
+            }
         });
 
         $("#ReadMeUrlInput").on("change blur", function () {
