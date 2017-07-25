@@ -19,47 +19,47 @@ namespace NuGetGallery.Migrations
                 .PrimaryKey(t => t.Key);
             
             CreateTable(
-                "dbo.PackageRegistrationReservedNamespaces",
+                "dbo.ReservedNamespaceOwners",
                 c => new
                     {
-                        PackageRegistration_Key = c.Int(nullable: false),
-                        ReservedNamespace_Key = c.Int(nullable: false),
+                        ReservedNamespaceKey = c.Int(nullable: false),
+                        UserKey = c.Int(nullable: false),
                     })
-                .PrimaryKey(t => new { t.PackageRegistration_Key, t.ReservedNamespace_Key })
-                .ForeignKey("dbo.PackageRegistrations", t => t.PackageRegistration_Key, cascadeDelete: true)
-                .ForeignKey("dbo.ReservedNamespaces", t => t.ReservedNamespace_Key, cascadeDelete: true)
-                .Index(t => t.PackageRegistration_Key)
-                .Index(t => t.ReservedNamespace_Key);
+                .PrimaryKey(t => new { t.ReservedNamespaceKey, t.UserKey })
+                .ForeignKey("dbo.ReservedNamespaces", t => t.ReservedNamespaceKey, cascadeDelete: true)
+                .ForeignKey("dbo.Users", t => t.UserKey, cascadeDelete: true)
+                .Index(t => t.ReservedNamespaceKey)
+                .Index(t => t.UserKey);
             
             CreateTable(
-                "dbo.ReservedNamespaceUsers",
+                "dbo.ReservedNamespaceRegistrations",
                 c => new
                     {
-                        ReservedNamespace_Key = c.Int(nullable: false),
-                        User_Key = c.Int(nullable: false),
+                        ReservedNamespaceKey = c.Int(nullable: false),
+                        PackageRegistrationKey = c.Int(nullable: false),
                     })
-                .PrimaryKey(t => new { t.ReservedNamespace_Key, t.User_Key })
-                .ForeignKey("dbo.ReservedNamespaces", t => t.ReservedNamespace_Key, cascadeDelete: true)
-                .ForeignKey("dbo.Users", t => t.User_Key, cascadeDelete: true)
-                .Index(t => t.ReservedNamespace_Key)
-                .Index(t => t.User_Key);
+                .PrimaryKey(t => new { t.ReservedNamespaceKey, t.PackageRegistrationKey })
+                .ForeignKey("dbo.ReservedNamespaces", t => t.ReservedNamespaceKey, cascadeDelete: true)
+                .ForeignKey("dbo.PackageRegistrations", t => t.PackageRegistrationKey, cascadeDelete: true)
+                .Index(t => t.ReservedNamespaceKey)
+                .Index(t => t.PackageRegistrationKey);
             
             AddColumn("dbo.PackageRegistrations", "IsVerified", c => c.Boolean(nullable: false));
         }
-
+        
         public override void Down()
         {
-            DropForeignKey("dbo.ReservedNamespaceUsers", "User_Key", "dbo.Users");
-            DropForeignKey("dbo.ReservedNamespaceUsers", "ReservedNamespace_Key", "dbo.ReservedNamespaces");
-            DropForeignKey("dbo.PackageRegistrationReservedNamespaces", "ReservedNamespace_Key", "dbo.ReservedNamespaces");
-            DropForeignKey("dbo.PackageRegistrationReservedNamespaces", "PackageRegistration_Key", "dbo.PackageRegistrations");
-            DropIndex("dbo.ReservedNamespaceUsers", new[] { "User_Key" });
-            DropIndex("dbo.ReservedNamespaceUsers", new[] { "ReservedNamespace_Key" });
-            DropIndex("dbo.PackageRegistrationReservedNamespaces", new[] { "ReservedNamespace_Key" });
-            DropIndex("dbo.PackageRegistrationReservedNamespaces", new[] { "PackageRegistration_Key" });
+            DropForeignKey("dbo.ReservedNamespaceRegistrations", "PackageRegistrationKey", "dbo.PackageRegistrations");
+            DropForeignKey("dbo.ReservedNamespaceRegistrations", "ReservedNamespaceKey", "dbo.ReservedNamespaces");
+            DropForeignKey("dbo.ReservedNamespaceOwners", "UserKey", "dbo.Users");
+            DropForeignKey("dbo.ReservedNamespaceOwners", "ReservedNamespaceKey", "dbo.ReservedNamespaces");
+            DropIndex("dbo.ReservedNamespaceRegistrations", new[] { "PackageRegistrationKey" });
+            DropIndex("dbo.ReservedNamespaceRegistrations", new[] { "ReservedNamespaceKey" });
+            DropIndex("dbo.ReservedNamespaceOwners", new[] { "UserKey" });
+            DropIndex("dbo.ReservedNamespaceOwners", new[] { "ReservedNamespaceKey" });
             DropColumn("dbo.PackageRegistrations", "IsVerified");
-            DropTable("dbo.ReservedNamespaceUsers");
-            DropTable("dbo.PackageRegistrationReservedNamespaces");
+            DropTable("dbo.ReservedNamespaceRegistrations");
+            DropTable("dbo.ReservedNamespaceOwners");
             DropTable("dbo.ReservedNamespaces");
         }
     }
