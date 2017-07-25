@@ -19,7 +19,7 @@ namespace NuGetGallery
             IsSharedNamespace = isSharedNamespace;
             IsPrefix = isExactMatch;
             PackageRegistrations = new HashSet<PackageRegistration>();
-            ReservedNamespaceOwners = new HashSet<User>();
+            Owners = new HashSet<User>();
         }
 
         [StringLength(CoreConstants.MaxPackageIdLength)]
@@ -31,7 +31,7 @@ namespace NuGetGallery
         public bool IsPrefix { get; set; }
 
         public virtual ICollection<PackageRegistration> PackageRegistrations { get; set; }
-        public virtual ICollection<User> ReservedNamespaceOwners { get; set; }
+        public virtual ICollection<User> Owners { get; set; }
 
         [Key]
         public int Key { get; set; }
