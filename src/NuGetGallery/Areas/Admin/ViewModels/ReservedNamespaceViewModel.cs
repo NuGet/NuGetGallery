@@ -5,7 +5,7 @@ using System.Web;
 
 namespace NuGetGallery.Areas.Admin.ViewModels
 {
-    public class ReserveNamespaceViewModel
+    public class ReservedNamespaceViewModel
     {
     }
 }

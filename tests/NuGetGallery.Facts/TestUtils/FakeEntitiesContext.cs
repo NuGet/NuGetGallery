@@ -110,6 +110,18 @@ namespace NuGetGallery
             }
         }
 
+        public IDbSet<ReservedNamespace> ReservedNamespaces
+        {
+            get
+            {
+                return Set<ReservedNamespace>();
+            }
+            set
+            {
+                throw new NotSupportedException();
+            }
+        }
+
         public Task<int> SaveChangesAsync()
         {
             _areChangesSaved = true;

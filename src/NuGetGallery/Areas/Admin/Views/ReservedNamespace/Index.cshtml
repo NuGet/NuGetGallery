@@ -1,4 +1,4 @@
-﻿@model ReserveNamespaceViewModel
+﻿@model ReservedNamespaceViewModel
 @{
     ViewBag.Title = "Index";
 }
@@ -15,6 +15,12 @@
         </form><br />
 
         <div data-bind="visible: prefixSearchResults().length > 0">
+
+            <div class="message warning" style="display: none;" data-bind="visible: prefixSearchNotFoundResults().length > 0">
+                <strong>The following prefixes were not found:</strong><br />
+                <span data-bind="text: prefixSearchNotFoundResults().join(',')"></span>
+            </div>
+
             @using (Html.BeginForm())
             {
                 <div>
@@ -26,7 +32,7 @@
                         </thead>
                         <tbody id="prefixes" data-bind="foreach: prefixSearchResults">
                             <tr>
-                                <td><span data-bind="text: Prefix.Value"></span></td>
+                                <td><span data-bind="text: Value"></span></td>
                             </tr>
                         </tbody>
                     </table>
@@ -52,15 +58,15 @@
                 this.prefixSearch = function () {
                     $self.message("");
                     $.ajax({
-                        url: '@Url.Action("SearchPrefix", "ReserveNamespace", new {area = "Admin"})?query=' + encodeURIComponent($self.prefixSearchQuery()),
+                        url: '@Url.Action("SearchPrefix", "ReservedNamespace", new {area = "Admin"})?query=' + encodeURIComponent($self.prefixSearchQuery()),
                         cache: false,
                         dataType: 'json',
                         success: function (data) {
                             $self.prefixSearchResults.removeAll();
                             $self.prefixSearchNotFoundResults.removeAll();
 
-                            $self.prefixSearchResults(data.MatchingPrefixes);
-                            $self.prefixSearchNotFoundResults(data.NonMatchingPrefix);
+                            $self.prefixSearchResults(data.FoundPrefixes);
+                            $self.prefixSearchNotFoundResults(data.NotFoundPrefixes);
                         }
                     })
                     .error(function(jqXhr, textStatus, errorThrown) {
