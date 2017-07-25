@@ -43,6 +43,7 @@ namespace NuGetGallery
         public IDbSet<Scope> Scopes { get; set; }
         public IDbSet<User> Users { get; set; }
         public IDbSet<UserSecurityPolicy> UserSecurityPolicies { get; set; }
+        public IDbSet<ReservedNamespace> ReservedNamespaces { get; set; }
 
         IDbSet<T> IEntitiesContext.Set<T>()
         {
@@ -126,6 +127,23 @@ namespace NuGetGallery
                 .WithMany(cr => cr.SecurityPolicies)
                 .HasForeignKey(p => p.UserKey)
                 .WillCascadeOnDelete(true);
+
+            modelBuilder.Entity<ReservedNamespace>()
+                .HasKey(p => p.Key);
+
+            modelBuilder.Entity<ReservedNamespace>()
+                .HasMany<PackageRegistration>(rn => rn.PackageRegistrations)
+                .WithMany(pr => pr.ReservedNamespaces)
+                .Map(prrn => prrn.ToTable("ReservedNamespaceRegistrations")
+                                .MapLeftKey("ReservedNamespaceKey")
+                                .MapRightKey("PackageRegistrationKey"));
+
+            modelBuilder.Entity<ReservedNamespace>()
+                .HasMany<User>(pr => pr.Owners)
+                .WithMany(u => u.ReservedNamespaces)
+                .Map(c => c.ToTable("ReservedNamespaceOwners")
+                           .MapLeftKey("ReservedNamespaceKey")
+                           .MapRightKey("UserKey"));
 
             modelBuilder.Entity<UserSecurityPolicy>()
                 .HasKey(p => p.Key);
