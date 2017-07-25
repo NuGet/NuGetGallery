@@ -1370,17 +1370,26 @@ namespace NuGetGallery
                     if (hasReadMe)
                     {
                         readMeChanged = Constants.ReadMeChanged;
-                        using (var readMeInputStream = ReadMeHelper.GetReadMeMarkdownStream(formData.ReadMe).AsSeekableStream())
+                        try
                         {
-                            // Saves ReadMe in markdown
-                            await _packageFileService.SaveReadMeFileAsync(package, readMeInputStream, Constants.MarkdownFileExtension);
-                            readMeInputStream.Position = 0;
-
-                            // Saves ReadMe in HTML
-                            using (var readMeHTMLStream = ReadMeHelper.GetReadMeHtmlStream(readMeInputStream))
+                            using (var readMeInputStream = ReadMeHelper.GetReadMeMarkdownStream(formData.ReadMe).AsSeekableStream())
                             {
-                                await _packageFileService.SaveReadMeFileAsync(package, readMeHTMLStream, Constants.HtmlFileExtension);
+                                // Saves ReadMe in markdown
+                                await _packageFileService.SaveReadMeFileAsync(package, readMeInputStream, Constants.MarkdownFileExtension);
+                                readMeInputStream.Position = 0;
+
+                                // Saves ReadMe in HTML
+                                using (var readMeHTMLStream = ReadMeHelper.GetReadMeHtmlStream(readMeInputStream))
+                                {
+                                    await _packageFileService.SaveReadMeFileAsync(package, readMeHTMLStream, Constants.HtmlFileExtension);
+                                }
                             }
+                        } catch (Exception ex)
+                        {
+                            TempData["Message"] = ex.Message;
+
+                            Response.StatusCode = 400;
+                            return Json(new string[] { ex.GetUserSafeMessage() });
                         }
                     }
                     _editPackageService.StartEditPackageRequest(package, formData.Edit, currentUser, readMeChanged);
@@ -1505,24 +1514,31 @@ namespace NuGetGallery
 
         [Authorize]
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public virtual JsonResult PreviewReadMe(ReadMeRequest formData)
         {
-            if (formData == null)
+            if (formData == null || !ReadMeHelper.HasReadMe(formData))
             {
-                throw new ArgumentNullException(nameof(formData));
-            }
-            else if (ReadMeHelper.HasReadMe(formData))
-            {
-                throw new ArgumentException("There is no ReadMe to preview!");
+                Response.StatusCode = 400;
+                return Json(new string[] { "There is no ReadMe available to preview." });
             }
             else
             {
-                Stream readMeHtmlStream = ReadMeHelper.GetReadMeHtmlStream(formData);
-                using (var reader = new StreamReader(readMeHtmlStream))
+                try
                 {
-                    var readMeHtmlString = reader.ReadToEnd();
-                    return Json(new string[] { readMeHtmlString });
+                    Stream readMeHtmlStream = ReadMeHelper.GetReadMeHtmlStream(formData);
+                    using (var reader = new StreamReader(readMeHtmlStream))
+                    {
+                        var readMeHtmlString = reader.ReadToEnd();
+                        return Json(new string[] { readMeHtmlString });
+                    }
                 }
+                catch (Exception ex)
+                {
+                    Response.StatusCode = 400;
+                    return Json(new string[] { ex.Message });
+                }
+                
             }
         }
 

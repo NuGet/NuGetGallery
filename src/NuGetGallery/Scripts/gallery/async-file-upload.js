@@ -72,22 +72,25 @@
 
     function previewReadMeAsync(callback, error) {
         var formData = new FormData();
+
+        // Validate anti-forgery token
+        var token = $('[name=__RequestVerificationToken]').val();
+        formData.append("__RequestVerificationToken", token);
+
+        // Assemble ReadMe data
         formData.append("ReadMeType", $("input[name='ReadMe.ReadMeType']:checked").val());
-
-        if (validateReadMeUrl($("#ReadMeUrlInput").val())) {
-            formData.append("ReadMeUrl", $("#ReadMeUrlInput").val());
-        }
-
-        if ($("#readme-select-file") && $("#readme-select-file")[0] && validateReadMeFileName($('#readme-select-file').val().split("\\").pop())) {
-            formData.append("ReadMeFile", $("#readme-select-file")[0].files[0]);
+        
+        formData.append("ReadMeUrl", $("#ReadMeUrlInput").val());
+        
+        var readMeFile = $("#readme-select-file");
+        if (readMeFile && readMeFile[0] && validateReadMeFileName(readMeFile.val().split("\\").pop())) {
+            formData.append("ReadMeFile", readMeFile[0].files[0]);
         } else {
             formData.append("ReadMeFile", null);
         }
+
         formData.append("ReadMeWritten", $("#readme-written").val());
 
-        var type = formData.get("ReadMeType");
-        var url = formData.get("ReadMeUrl");
-        var written = formData.get("ReadMeWritten");
 
         $.ajax({
             url: "preview-readme",
@@ -98,8 +101,16 @@
             success: function (model, resultCodeString, fullResponse) {
                 displayReadMePreview(model);
             },
-            error: function (error) {
-                displayReadMeError("Please insert a ReadMe in order to preview it.");
+            error: function (jqXHR, exception) {
+                var message = "";
+                if (jqXHR.status == 400) {
+                    try {
+                        message = JSON.parse(jqXHR.responseText);
+                    } catch (err) {
+                        message = "Bad request. [400]";
+                    }
+                }
+                displayReadMeError(message);
             }
         });
     }
@@ -287,13 +298,8 @@
             $("#ReadMeUrlInput").val(fillReadMeUrl($("#repositoryurl-field").val()));
         });
 
-        $("#ReadMeUrlInput").on("change", function () {
-            var fileName = $("#ReadMeUrlInput").val();
-            if (validateReadMeUrl(fileName)) {
-                clearReadMeError();
-            } else {
-                displayReadMeError("Please add a valid link to a raw file with one of the following extensions: '.md', '.mkdn', '.mkd', '.mdown', '.markdown', '.txt' or '.text'.");
-            }
+        $("#ReadMeUrlInput").on("change blur", function () {
+            clearReadMeError();
         });
 
         $('#readme-select-feedback').on('click', function () {
@@ -332,7 +338,7 @@
     }
 
     function displayReadMePreview(response) {
-        $("#readme-preview div div").html(response);
+        $("#readme-preview-contents").html(response);
         $("#readme-preview").removeClass("hidden");
         $(".readme-write").addClass("hidden");
         $(".readme-file").addClass("hidden");
@@ -343,7 +349,7 @@
     }
 
     function displayReadMeEditMarkdown() {
-        $("#readme-preview div div").html("");
+        $("#readme-preview-contents").html("");
         $("#readme-preview").addClass("hidden");
         $(".readme-write").removeClass("hidden");
         $(".readme-file").removeClass("hidden");
@@ -382,11 +388,6 @@
         clearReadMeError();
     }
 
-    function validateReadMeUrl(url) {
-        var urlRegex = new RegExp("^" + "(?:(?:https?)://)?" + "(?:\\S+(?::\\S*)?@)?" + "(?:" + "(?!(?:10|127)(?:\\.\\d{1,3}){3})" + "(?!(?:169\\.254|192\\.168)(?:\\.\\d{1,3}){2})" + "(?!172\\.(?:1[6-9]|2\\d|3[0-1])(?:\\.\\d{1,3}){2})" + "(?:[1-9]\\d?|1\\d\\d|2[01]\\d|22[0-3])" + "(?:\\.(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])){2}" + "(?:\\.(?:[1-9]\\d?|1\\d\\d|2[0-4]\\d|25[0-4]))" + "|" + "(?:(?:[a-z\\u00a1-\\uffff0-9]-*)*[a-z\\u00a1-\\uffff0-9]+)" + "(?:\\.(?:[a-z\\u00a1-\\uffff0-9]-*)*[a-z\\u00a1-\\uffff0-9]+)*" + "(?:\\.(?:[a-z\\u00a1-\\uffff]{2,}))" + "\\.?" + ")" + "(?::\\d{2,5})?" + "(?:[/?#]\\S*)?" + "$" + "i");
-        return validateReadMeFileName(url) && urlRegex.test(url) && url.split(".").length > 2;
-    }
-
     function validateReadMeFileName(fileName) {
         var markdownExtensions = ["md", "mkdn", "mkd", "mdown", "markdown", "txt", "text"];
         return markdownExtensions.includes(fileName.split('.').pop());
@@ -399,14 +400,9 @@
             repositoryUrl += "/";
         }
 
-        var githubRegex = /^(http(s)?:\/\/)?([a-zA-Z0-9]+\.)?github\.com\/([a-zA-Z0-9])+\/([a-zA-Z0-9])+(\/)?$/;
-
+        var githubRegex = /^((https?:\/\/)([a-zA-Z0-9]+\.)?github\.com\/)([a-zA-Z0-9])+\/([a-zA-Z0-9])+(\/)?$/;
         if (githubRegex.test(repositoryUrl)) {
-            if (repositoryUrl.toLowerCase().includes("www.")) {
-                readMeUrl = repositoryUrl.toLowerCase().replace("www.github", "raw.githubusercontent");
-            } else {
-                readMeUrl = repositoryUrl.toLowerCase().replace("github", "raw.githubusercontent");
-            }
+            readMeUrl = repositoryUrl.replace(githubRegex.exec(repositoryUrl)[1], "https://raw.githubusercontent.com/")
             return readMeUrl + "master/README.md";
         } else {
             return "";

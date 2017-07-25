@@ -25,10 +25,6 @@ namespace NuGetGallery.Helpers
             {
                 case ReadMeTypeUrl:
                     var readMeUrl = formData.ReadMeUrl;
-                    if (!formData.ReadMeUrl.StartsWith("http://") && !formData.ReadMeUrl.StartsWith("https://"))
-                    {
-                        readMeUrl = "https://" + formData.ReadMeUrl;
-                    } 
                     return !string.IsNullOrWhiteSpace(formData.ReadMeUrl) && Uri.IsWellFormedUriString(readMeUrl, UriKind.Absolute);
                 case ReadMeTypeFile:
                     return formData.ReadMeFile != null;
@@ -83,17 +79,36 @@ namespace NuGetGallery.Helpers
         /// <returns>A stream with the encoded ReadMe file</returns>
         public static Stream GetReadMeMarkdownStream(ReadMeRequest formData)
         {
+            Stream readMeStream;
             switch (formData.ReadMeType)
             {
                 case ReadMeTypeUrl:
-                    return ReadMeUrlToStream(formData.ReadMeUrl);
+                    readMeStream = ReadMeUrlToStream(formData.ReadMeUrl);
+                    break;
                 case ReadMeTypeFile:
-                    return formData.ReadMeFile.InputStream;
+                    readMeStream = formData.ReadMeFile.InputStream;
+                    break;
                 case ReadMeTypeWritten:
-                    return GetStreamFromWritten(formData.ReadMeWritten);
+                    readMeStream = GetStreamFromWritten(formData.ReadMeWritten);
+                    break;
                 default:
                     throw new InvalidOperationException("Form data contains an invalid ReadMeType.");
             }
+            if (ValidateReadMeStreamLength(readMeStream))
+            {
+                return readMeStream;
+            }
+            else
+            {
+                throw new ArgumentException("ReadMe file exceeds size limitations. (40 kB)");
+            }
+        }
+        
+        /// <param name="readMeStream">A stream representing the package readme.</param>
+        /// <returns>Whether the stream is less than 40 kilobytes.</returns>
+        private static bool ValidateReadMeStreamLength(Stream readMeStream)
+        {
+            return readMeStream.AsSeekableStream().Length < 40000;
         }
 
         /// <summary>
@@ -103,13 +118,15 @@ namespace NuGetGallery.Helpers
         /// <returns>A stream to allow the file to be read</returns>
         private static Stream ReadMeUrlToStream(string readMeUrl)
         {
-            if (!readMeUrl.StartsWith("http://") && !readMeUrl.StartsWith("https://"))
+            var readMeUri = new Uri(readMeUrl);
+            if (readMeUri.Host != "https://raw.githubusercontent.com")
             {
-                readMeUrl = "http://" + readMeUrl;
+                throw new ArgumentException("Url must link to a raw markdown file hosted on Github. [https://raw.githubusercontent.com/]");
             }
             var webRequest = WebRequest.Create(readMeUrl);
+            webRequest.Timeout = 10000; // 10 seconds
             var response = webRequest.GetResponse();
-            return response.GetResponseStream();
+            return response.GetResponseStream().AsSeekableStream();
         }
 
         private static Stream GetStreamFromWritten(string writtenText)

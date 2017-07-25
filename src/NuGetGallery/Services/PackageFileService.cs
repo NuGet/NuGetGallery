@@ -128,7 +128,7 @@ namespace NuGetGallery
             // and remember - version can contain letters too.
             return String.Format(
                 CultureInfo.InvariantCulture,
-                Constants.ReadMeFileSavePathTemplate,
+                formatter,
                 id.ToLowerInvariant(),
                 version.ToLowerInvariant(),
                 fileExtension);
