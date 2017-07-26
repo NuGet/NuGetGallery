@@ -7,7 +7,7 @@
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
-<div class="container main-container page-edit-package">
+<section role="main" class="container main-container page-edit-package">
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             @Html.Partial("_PackageHeading", new PackageHeadingModel
@@ -78,7 +78,7 @@
             @Html.Partial("_EditMetadata")
         </div>
     </div>
-</div>
+</section>
 
 @section BottomScripts {
     @Scripts.Render("~/Scripts/jquery-ui-1.10.3.js")

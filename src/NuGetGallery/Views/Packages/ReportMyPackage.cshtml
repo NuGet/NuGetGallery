@@ -6,7 +6,7 @@
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
-<div class="container main-container page-report-abuse">
+<section role="main" class="container main-container page-report-abuse">
     <div class="row report-form">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             @Html.Partial("_PackageHeading", new PackageHeadingModel
@@ -43,7 +43,7 @@
             }
         </div>
     </div>
-</div>
+</section>
 
 @section BottomScripts {
     @Html.SpamPreventionScript()
