@@ -313,7 +313,7 @@ $(function () {
     $(document).on('keydown', function (e) {
         var code = (e.keyCode || e.which);
 
-        if (code != 9 && document.activeElement == document.body) {
+        if (code != 9 /*tab*/ && document.activeElement == document.body) {
             $("#search").focus();
         }
     });
