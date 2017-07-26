@@ -1362,13 +1362,13 @@ namespace NuGetGallery
 
                 if (pendEdit)
                 {
-                    var readMeChanged = Constants.ReadMeUnchanged;
+                    var readMeChanged = PackageEditReadMeState.Unchanged;
 
                     // Checks to see if a ReadMe file has been added and uploads ReadMe
                     // Add the edit request to a queue where it will be processed in the background.
                     if (hasReadMe)
                     {
-                        readMeChanged = Constants.ReadMeChanged;
+                        readMeChanged = PackageEditReadMeState.Changed;
                         try
                         {
                             using (var readMeInputStream = ReadMeHelper.GetReadMeMarkdownStream(formData.ReadMe).AsSeekableStream())
@@ -1392,7 +1392,8 @@ namespace NuGetGallery
                             return Json(new string[] { ex.GetUserSafeMessage() });
                         }
                     }
-                    _editPackageService.StartEditPackageRequest(package, formData.Edit, currentUser, readMeChanged);
+                    formData.ReadMe.ReadMeState = readMeChanged;
+                    _editPackageService.StartEditPackageRequest(package, formData.Edit, currentUser);
                 }
 
                 if (!formData.Listed)

@@ -70,6 +70,7 @@ namespace NuGetGallery
             Summary = metadata.Summary;
             Tags = metadata.Tags;
             VersionTitle = metadata.Title;
+            ReadMeState = metadata.ReadMeState;
         }
 
         // We won't show this in the UI, and we won't actually honor edits to it at the moment, by our current policy.
@@ -131,6 +132,8 @@ namespace NuGetGallery
 
         [Display(Name = RequiresLicenseAcceptanceStr)]
         public bool RequiresLicenseAcceptance { get; set; }
+
+        public PackageEditReadMeState ReadMeState { get; set; }
 
         /// <summary>
         /// Applied the edit to a package

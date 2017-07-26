@@ -3,6 +3,7 @@
 
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace NuGetGallery
 {
@@ -48,7 +49,18 @@ namespace NuGetGallery
         /// <summary>
         /// changed, null (means unchanged), deleted
         /// </summary>
-        public string ReadMeState { get; set; }
+        [Column("ReadMeState")]
+        public string ReadMeStateInternal { get; set; }
+        public PackageEditReadMeState ReadMeState {
+            get
+            {
+                return GetReadMeStateString();
+            }
+            set
+            {
+                SetReadMeStateString(value);
+            }
+        }
         public string ReleaseNotes { get; set; }
         public bool RequiresLicenseAcceptance { get; set; }
         public string Summary { get; set; }
@@ -57,6 +69,45 @@ namespace NuGetGallery
         public void Apply(string hashAlgorithm, string hash, long packageFileSize)
         {
             Package.ApplyEdit(this, hashAlgorithm, hash, packageFileSize);
+        }
+
+        private PackageEditReadMeState GetReadMeStateString()
+        {
+            if (ReadMeStateInternal.Equals("changed", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return PackageEditReadMeState.Changed;
+            }
+            else if (ReadMeStateInternal.Equals("deleted", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return PackageEditReadMeState.Deleted;
+            }
+            else if (ReadMeStateInternal.Equals(null))
+            {
+                return PackageEditReadMeState.Unchanged;
+            }
+            else
+            {
+                throw new InvalidOperationException("Invalid ReadMeState.");
+            }
+        }
+
+        private void SetReadMeStateString(PackageEditReadMeState readMeState)
+        {
+            ReadMeState = readMeState;
+            switch (readMeState)
+            {
+                case PackageEditReadMeState.Changed:
+                    ReadMeStateInternal = "changed";
+                    break;
+                case PackageEditReadMeState.Unchanged:
+                    ReadMeStateInternal = null;
+                    break;
+                case PackageEditReadMeState.Deleted:
+                    ReadMeStateInternal = "deleted";
+                    break;
+                default:
+                    throw new InvalidOperationException("Invalid ReadMeState.");
+            }
         }
     }
 }

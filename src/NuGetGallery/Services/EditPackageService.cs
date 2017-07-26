@@ -32,7 +32,7 @@ namespace NuGetGallery
                 .FirstOrDefault();
         }
 
-        public virtual void StartEditPackageRequest(Package p, EditPackageVersionRequest request, User editingUser, string readMeState)
+        public virtual void StartEditPackageRequest(Package p, EditPackageVersionRequest request, User editingUser)
         {
             if (PackageNamingConflictValidator.TitleConflictsWithExistingRegistrationId(p.PackageRegistration.Id, request.VersionTitle))
             {
@@ -55,7 +55,7 @@ namespace NuGetGallery
                 Summary = request.Summary,
                 Tags = request.Tags,
                 Title = request.VersionTitle,
-                ReadMeState = readMeState,
+                ReadMeState = request.ReadMeState,
 
                 // Other
                 Package = p,
