@@ -396,6 +396,9 @@ img.package-icon {
 .page-account-settings .form-group + .form-group .btn {
   margin-top: 20px;
 }
+.page-account-settings .checkbox .description {
+  padding-left: 20px;
+}
 .page-api-keys .example-commands {
   padding: 8px 10px;
   font-family: Consolas, Menlo, Monaco, "Courier New", monospace;
