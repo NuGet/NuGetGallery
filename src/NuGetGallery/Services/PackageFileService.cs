@@ -91,7 +91,7 @@ namespace NuGetGallery
         
         public async Task<Stream> DownloadReadmeFileAsync(Package package, string extension)
         {
-            if(package == null)
+            if (package == null)
             {
                 throw new ArgumentNullException("Package cannot be null!");
             }
@@ -104,14 +104,9 @@ namespace NuGetGallery
             return BuildFileName(Constants.PackageFileSavePathTemplate, id, version, Constants.NuGetPackageFileExtension);
         }
 
-        public static string BuildReadmeFileName(string id, string version, string extension)
+        private static string BuildReadmeFileName(string id, string version, string extension)
         {
             return BuildFileName(Constants.ReadMeFileSavePathTemplateActive, id, version, extension);
-        }
-
-        private static string BuildReadMeMarkdownFileName(string id, string version)
-        {
-            return BuildFileName(Constants.ReadMeFileSavePathTemplateActive, id, version, Constants.MarkdownFileExtension);
         }
 
         private static string BuildFileName(string pathTemplate, string id, string version, string extension)
