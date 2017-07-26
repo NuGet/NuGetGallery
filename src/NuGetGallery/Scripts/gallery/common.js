@@ -309,4 +309,12 @@ $(function () {
     $(document).on('click', '.dropdown-menu', function (e) {
         e.stopPropagation();
     });
+
+    $(document).on('keydown', function (e) {
+        var code = (e.keyCode || e.which);
+
+        if (code != 9 && document.activeElement == document.body) {
+            $("#search").focus();
+        }
+    });
 });
