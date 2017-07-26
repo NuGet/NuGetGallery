@@ -398,7 +398,7 @@
     function fillReadMeUrl(repositoryUrl) {
         var readMeUrl;
 
-        if (repositoryUrl.slice(-1) !== "/") {
+        if (!repositoryUrl.endsWith("/")) {
             repositoryUrl += "/";
         }
 

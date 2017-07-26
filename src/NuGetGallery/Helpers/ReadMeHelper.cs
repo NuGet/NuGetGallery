@@ -10,9 +10,12 @@ namespace NuGetGallery.Helpers
     internal static class ReadMeHelper
     {
 
-        public const string ReadMeTypeUrl = "Url";
-        public const string ReadMeTypeFile = "File";
-        public const string ReadMeTypeWritten = "Written";
+        private const string ReadMeTypeUrl = "Url";
+        private const string ReadMeTypeFile = "File";
+        private const string ReadMeTypeWritten = "Written";
+        private const string ReadMeUriHostRequirement = "https://raw.githubusercontent.com";
+        private const int ReadMeUrlTimeout = 10000;
+        private const int ReadMeMaxFileSize = 40000;
 
         /// <summary>
         /// Returns if posted package form contains a ReadMe.
@@ -108,7 +111,7 @@ namespace NuGetGallery.Helpers
         /// <returns>Whether the stream is less than 40 kilobytes.</returns>
         private static bool ValidateReadMeStreamLength(Stream readMeStream)
         {
-            return readMeStream.AsSeekableStream().Length < 40000;
+            return readMeStream.AsSeekableStream().Length < ReadMeMaxFileSize;
         }
 
         /// <summary>
@@ -119,12 +122,12 @@ namespace NuGetGallery.Helpers
         private static Stream ReadMeUrlToStream(string readMeUrl)
         {
             var readMeUri = new Uri(readMeUrl);
-            if (readMeUri.Host != "https://raw.githubusercontent.com")
+            if (readMeUri.Host != ReadMeUriHostRequirement)
             {
                 throw new ArgumentException("Url must link to a raw markdown file hosted on Github. [https://raw.githubusercontent.com/]");
             }
             var webRequest = WebRequest.Create(readMeUrl);
-            webRequest.Timeout = 10000; // 10 seconds
+            webRequest.Timeout = ReadMeUrlTimeout;
             var response = webRequest.GetResponse();
             return response.GetResponseStream().AsSeekableStream();
         }
@@ -138,6 +141,5 @@ namespace NuGetGallery.Helpers
             stream.Position = 0;
             return stream;
         }
-        
     }
 }

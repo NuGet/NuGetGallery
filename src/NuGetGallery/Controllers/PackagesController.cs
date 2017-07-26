@@ -30,7 +30,6 @@ using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using PoliteCaptcha;
 
-
 namespace NuGetGallery
 {
     public partial class PackagesController
@@ -1384,7 +1383,8 @@ namespace NuGetGallery
                                     await _packageFileService.SaveReadMeFileAsync(package, readMeHTMLStream, Constants.HtmlFileExtension);
                                 }
                             }
-                        } catch (Exception ex)
+                        }
+                        catch (Exception ex)
                         {
                             TempData["Message"] = ex.Message;
 

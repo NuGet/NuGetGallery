@@ -15,7 +15,7 @@ namespace NuGetGallery.Helpers
 
             ReadMeRequest readMeRequest = new ReadMeRequest
             {
-                ReadMeType = ""
+                ReadMeType = string.Empty
             };
             Assert.False(ReadMeHelper.HasReadMe(readMeRequest));
         }
@@ -25,7 +25,6 @@ namespace NuGetGallery.Helpers
         [InlineData("http://www.github.com", true)]
         public void HasReadMeUrlFact(string url, bool hasReadMe)
         {
-
             ReadMeRequest readMeRequest = new ReadMeRequest
             {
                 ReadMeType = "Url",
