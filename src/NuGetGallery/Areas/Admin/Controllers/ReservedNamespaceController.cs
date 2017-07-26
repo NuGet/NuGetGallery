@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -53,6 +55,13 @@ namespace NuGetGallery.Areas.Admin.Controllers
             return null;
         }
 
+        public async Task<JsonResult> AddPrefix(List<string> prefixJson)
+        {
+            await Task.Yield();
+            var newPrefix = prefixJson?.Select(JsonConvert.DeserializeObject<ReservedNamespace>);
+
+            return null;
+        }
         private static string[] GetPrefixesFromQuery(string query)
         {
             return query.Split(',', '\r', '\n',';')

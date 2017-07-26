@@ -15,37 +15,62 @@
         </form><br />
 
         <div data-bind="visible: prefixSearchResults().length > 0">
-
-            <div class="message warning" style="display: none;" data-bind="visible: prefixSearchNotFoundResults().length > 0">
-                <strong>The following prefixes were not found:</strong><br />
-                <span data-bind="text: prefixSearchNotFoundResults().join(',')"></span>
-            </div>
-
             @using (Html.BeginForm())
             {
                 <div>
-                    <table id="prefixSearchResults" class="sexy-table">
-                        <thead>
-                            <tr>
-                                <th>Prefix</th>
-                            </tr>
-                        </thead>
-                        <tbody id="prefixes" data-bind="foreach: prefixSearchResults">
-                            <tr>
-                                <td><span data-bind="text: Value"></span></td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <h3>Existing Prefixes</h3>
+                    <div id="prefixResult" data-bind="foreach: prefixSearchResults">
+                        <div>
+                            <span>Namespace: </span>
+                            <span data-bind="text: $data.Value" />
+                        </div>
+                        <div>
+                            <span>IsSharedNamespace: </span>
+                            <input type="checkbox" data-bind="checked: $data.IsSharedNamespace" />
+                        </div>
+                        <div>
+                            <span>IsPrefix: </span>
+                            <input type="checkbox" data-bind="checked: $data.IsPrefix" />
+                        </div>
+                        <div>
+                            <span>Pattern: </span>
+                            <span data-bind="text: $parent.generatePattern($data.Value, $data.IsPrefix)" />
+                        </div>
+                    </div>
                 </div>
             }
         </div>
-</article>
+        <div data-bind="visible: prefixSearchNotFoundResults().length > 0">
+            <h3>Non-matching Prefixes</h3>
+            <strong>The following prefixes were not found:</strong><br />
+            <div id="prefixNotFoundResult" data-bind="foreach: prefixSearchNotFoundResults">
+                <div>
+                    <span>Prefix: </span>
+                    <span data-bind="text: $data.Value" />
+                </div>
+                <div>
+                    <span>IsSharedNamespace: </span>
+                    <input type="checkbox" data-bind="checked: $data.IsSharedNamespace" />
+                </div>
+                <div>
+                    <span>IsPrefix: </span>
+                    <input type="checkbox" data-bind="checked: $data.IsPrefix" />
+                </div>
+                <div>
+                    <span>Pattern: </span>
+                    <span data-bind="text: $parent.generatePattern($data.Value, $data.IsPrefix)" />
+                </div>
+                <input type="submit" value="Reserve Prefix" title="Reserve this namespace" data-bind="click: $parent.addPrefix.bind(this, $data)" />
+            </div>
+        </div>
+    </article>
+
 </section>
 
 @section BottomScripts {
     <script src="@Url.Content("~/Scripts/knockout-2.2.1.js")"></script>
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             var viewModel = function () {
                 var $self = this;
 
@@ -74,6 +99,25 @@
                     });
                 };
 
+                this.addPrefix = function (data) {
+                    $self.message("");
+                    $.ajax({
+                        url: '@Url.Action("AddPrefix", "ReservedNamespace", new {area = "Admin"})',
+                        cache: false,
+                        dataType: 'json',
+                        type: 'POST',
+                        data: JSON.stringify(data),
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (data) {
+                            console.log("Added prefix");
+                            this.prefixSearch();
+                        }
+                    })
+                    .error(function (jqXhr, textStatus, errorThrown) {
+                        alert("Error: " + errorThrown);
+                    });
+                };
+
                 this.generateValue = function (user, subscription) {
                     return JSON.stringify({ "u": user.Username, "g": subscription, "v": user.Selected[subscription]() })
                 };
@@ -82,6 +126,9 @@
                     return '/profiles/' + user.Username;
                 };
 
+                this.generatePattern = function (value, isPrefix) {
+                    return isPrefix ? value + "*" : value;
+                };
             };
 
             ko.applyBindings(new viewModel(), $('#stage').get(0));
