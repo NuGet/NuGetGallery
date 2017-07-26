@@ -1068,7 +1068,8 @@ namespace NuGetGallery
             {
                 try
                 {
-                    _editPackageService.StartEditPackageRequest(package, formData.Edit, user, Constants.ReadMeUnchanged);
+                    formData.Edit.ReadMeState = PackageEditReadMeState.Unchanged;
+                    _editPackageService.StartEditPackageRequest(package, formData.Edit, user);
                     await _entitiesContext.SaveChangesAsync();
 
                     var packageWithEditsApplied = formData.Edit.ApplyTo(package);
@@ -1373,15 +1374,15 @@ namespace NuGetGallery
                         {
                             using (var readMeInputStream = ReadMeHelper.GetReadMeMarkdownStream(formData.ReadMe).AsSeekableStream())
                             {
-                                // Saves ReadMe in markdown
-                                await _packageFileService.SaveReadMeFileAsync(package, readMeInputStream, Constants.MarkdownFileExtension);
-                                readMeInputStream.Position = 0;
-
                                 // Saves ReadMe in HTML
                                 using (var readMeHTMLStream = ReadMeHelper.GetReadMeHtmlStream(readMeInputStream))
                                 {
                                     await _packageFileService.SaveReadMeFileAsync(package, readMeHTMLStream, Constants.HtmlFileExtension);
                                 }
+                                readMeInputStream.Position = 0;
+
+                                // Saves ReadMe in markdown
+                                await _packageFileService.SaveReadMeFileAsync(package, readMeInputStream, Constants.MarkdownFileExtension);
                             }
                         }
                         catch (Exception ex)

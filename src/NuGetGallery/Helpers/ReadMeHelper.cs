@@ -24,6 +24,10 @@ namespace NuGetGallery.Helpers
         /// <returns>Whether there is a ReadMe to upload.</returns>
         public static bool HasReadMe(ReadMeRequest formData)
         {
+            if (formData == null)
+            {
+                return false;
+            }
             switch (formData?.ReadMeType)
             {
                 case ReadMeTypeUrl:
@@ -55,11 +59,9 @@ namespace NuGetGallery.Helpers
         /// <returns>A stream with the HTML version of the readMe</returns>
         public static Stream GetReadMeHtmlStream(Stream readMeMarkdownStream)
         {
-            using (var reader = new StreamReader(readMeMarkdownStream))
-            {
-                var readMeHtml = ConvertMarkDownToHtml(reader.ReadToEnd());
-                return GetStreamFromWritten(readMeHtml);
-            }
+            var reader = new StreamReader(readMeMarkdownStream);
+            var readMeHtml = ConvertMarkDownToHtml(reader.ReadToEnd());
+            return GetStreamFromWritten(readMeHtml);
         }
 
         /// <summary>
