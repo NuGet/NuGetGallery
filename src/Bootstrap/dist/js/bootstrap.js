@@ -2136,11 +2136,13 @@ if (typeof jQuery === 'undefined') {
         .end()
         .find('[data-toggle="tab"]')
           .attr('aria-expanded', false)
+          .attr('aria-selected', false)
 
       element
         .addClass('active')
         .find('[data-toggle="tab"]')
           .attr('aria-expanded', true)
+          .attr('aria-selected', true)
 
       if (transition) {
         element[0].offsetWidth // reflow for transition

@@ -32,8 +32,10 @@
 @helper CommandTab(string label, string id, bool active)
 {
     <li role="presentation" class="@(active ? "active" : string.Empty)">
-        <a href="#@id" aria-controls="@id" title="Switch to tab panel which contains package installation command for @label"
-           role="tab" data-toggle="tab">
+        <a href="#@id" aria-expanded="@(active ? "true" : "false")"
+           aria-selected="@(active ? "true" : "false")"
+           aria-controls="@id" role="tab" data-toggle="tab"
+           title="Switch to tab panel which contains package installation command for @label">
             @label
         </a>
     </li>
