@@ -164,24 +164,26 @@
                             <label>
                                 @Html.ShowCheckboxFor(x => x.ChangeNotifications.EmailAllowed)
                                 <b>Users can contact me through the @Config.Current.Brand</b>
-                                <br />
+                            </label>
+                            <div class="description">
                                 This setting allows other registered users of the site to contact you
                                 about packages that you own using the <em>Contact Owners</em> form, or to request
                                 that you become an owner of their package. Disabling this setting means users cannot
                                 contact you for these reasons.
-                            </label>
+                            </div>
                         </div>
 
                         <div class="checkbox">
                             <label>
                                 @Html.ShowCheckboxFor(x => x.ChangeNotifications.NotifyPackagePushed)
                                 <b>Notify me when a package is pushed to @Config.Current.Brand using my account</b>
-                                <br />
+                            </label>
+                            <div class="description">
                                 This setting enables notifications whenever a package is pushed using your
                                 account. We recommend to enable this setting so that you can inspect whether a
                                 package was pushed intentionally or not. Disabling this setting means no notification
                                 will be sent on push.
-                            </label>
+                            </div>
                         </div>
 
                         <p>
