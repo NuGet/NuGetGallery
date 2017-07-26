@@ -1,7 +1,7 @@
 ﻿@using PoliteCaptcha
 @model ReportAbuseViewModel
 @{
-    ViewBag.Tab = "Packages";
+    ViewBag.Title = "Report Abuse by " + Model.PackageId + " " + Model.PackageVersion;
     ViewBag.MdPageColumns = Constants.ColumnsFormMd;
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
     string returnUrl = ViewData.ContainsKey(Constants.ReturnUrlViewDataKey) ? (string)ViewData[Constants.ReturnUrlViewDataKey] : Request.RawUrl;
