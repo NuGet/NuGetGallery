@@ -36,6 +36,7 @@
                             <span>Pattern: </span>
                             <span data-bind="text: $parent.generatePattern($data.Value, $data.IsPrefix)" />
                         </div>
+                        <input type="submit" value="Deallocate Namespace" title="Delete this namespace" data-bind="click: $parent.managePrefix.bind(this, $data, true)" />
                     </div>
                 </div>
             }
@@ -60,7 +61,7 @@
                     <span>Pattern: </span>
                     <span data-bind="text: $parent.generatePattern($data.Value, $data.IsPrefix)" />
                 </div>
-                <input type="submit" value="Reserve Prefix" title="Reserve this namespace" data-bind="click: $parent.addPrefix.bind(this, $data)" />
+                <input type="submit" value="Reserve Prefix" title="Reserve this namespace" data-bind="click: $parent.managePrefix.bind(this, $data, false)" />
             </div>
         </div>
     </article>
@@ -99,18 +100,22 @@
                     });
                 };
 
-                this.addPrefix = function (data) {
+                this.managePrefix = function (data, remove) {
+                    console.log(data);
+                    var prefixToAdd = data;
+                    var url = remove
+                        ? '@Url.Action("RemovePrefix", "ReservedNamespace", new { area = "Admin" })'
+                        : '@Url.Action("AddPrefix", "ReservedNamespace", new { area = "Admin" })'
                     $self.message("");
                     $.ajax({
-                        url: '@Url.Action("AddPrefix", "ReservedNamespace", new {area = "Admin"})',
+                        url: url,
                         cache: false,
                         dataType: 'json',
                         type: 'POST',
-                        data: JSON.stringify(data),
+                        data: JSON.stringify(prefixToAdd),
                         contentType: 'application/json; charset=utf-8',
                         success: function (data) {
                             console.log("Added prefix");
-                            this.prefixSearch();
                         }
                     })
                     .error(function (jqXhr, textStatus, errorThrown) {

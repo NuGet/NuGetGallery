@@ -12,14 +12,16 @@ namespace NuGetGallery.Areas.Admin.Controllers
     public class ReservedNamespaceController : AdminControllerBase
     {
         protected IEntitiesContext EntitiesContext { get; set; }
+        public IReservedNamespaceService ReservedNamespaceService { get; private set; }
 
         protected ReservedNamespaceController()
         {
         }
 
-        public ReservedNamespaceController(IEntitiesContext entitiesContext)
+        public ReservedNamespaceController(IEntitiesContext entitiesContext, IReservedNamespaceService reservedNamespaceService)
         {
             EntitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
+            ReservedNamespaceService = reservedNamespaceService ?? throw new ArgumentNullException(nameof(reservedNamespaceService));
         }
 
         [HttpGet]
@@ -55,13 +57,37 @@ namespace NuGetGallery.Areas.Admin.Controllers
             return null;
         }
 
-        public async Task<JsonResult> AddPrefix(List<string> prefixJson)
+        [HttpPost]
+        public async Task<JsonResult> AddPrefix(ReservedNamespace prefix)
         {
-            await Task.Yield();
-            var newPrefix = prefixJson?.Select(JsonConvert.DeserializeObject<ReservedNamespace>);
-
-            return null;
+            try
+            {
+                await ReservedNamespaceService.AddReservedNamespaceAsync(prefix);
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return Json(new { success = false });
+            }
         }
+
+        [HttpPost]
+        public async Task<JsonResult> RemovePrefix(ReservedNamespace prefix)
+        {
+            try
+            {
+                await ReservedNamespaceService.DeleteReservedNamespaceAsync(prefix);
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return Json(new { success = false });
+            }
+
+        }
+
         private static string[] GetPrefixesFromQuery(string query)
         {
             return query.Split(',', '\r', '\n',';')
