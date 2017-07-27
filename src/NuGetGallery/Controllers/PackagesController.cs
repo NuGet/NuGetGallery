@@ -434,7 +434,7 @@ namespace NuGetGallery
 
             var model = new DisplayPackageViewModel(package, packageHistory);
 
-            if (package.HasReadMe ?? false)
+            if (package.HasReadMe)
             {
                 // Note that the underlying abstraction for storage is inconsistent
                 // If the ReadMe doesn't exist then the file system storage will return a null stream

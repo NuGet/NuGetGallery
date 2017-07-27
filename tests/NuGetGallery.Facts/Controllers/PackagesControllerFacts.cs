@@ -521,7 +521,7 @@ namespace NuGetGallery
                     Version = "01.1.01",
                     NormalizedVersion = "1.1.1",
                     Title = "A test package!",
-                    HasReadMe = null
+                    HasReadMe = false
                 };
 
                 packageService.Setup(p => p.FindPackageByIdAndVersion(It.Is<string>(s => s == "Foo"), It.Is<string>(s => s == null), It.Is<int>(i => i == SemVerLevelKey.SemVer2), It.Is<bool>(b => b == true)))
@@ -568,10 +568,7 @@ namespace NuGetGallery
 
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
 
-                fileService.Setup(f => f.DownloadReadmeFileAsync(It.IsAny<Package>(), It.Is<string>(s => s == Constants.HtmlFileExtension))).Returns<Package, string>((p, s) =>
-                {
-                    return null;
-                });
+                fileService.Setup(f => f.DownloadReadmeFileAsync(It.IsAny<Package>(), It.IsAny<string>())).Returns(Task.FromResult((Stream)null));
 
                 // Act
                 var result = await controller.DisplayPackage("Foo", null);

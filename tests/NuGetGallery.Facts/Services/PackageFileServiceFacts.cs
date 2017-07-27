@@ -433,6 +433,33 @@ namespace NuGetGallery
             }
         }
 
+        public class TheRetrieveReadMeMethod
+        {
+            [Fact]
+            public async Task WillDownloadReadMeAsync()
+            {
+                var fileStorageSvc = new Mock<IFileStorageService>();
+                var service = CreateService(fileStorageSvc: fileStorageSvc);
+                var stream = new MemoryStream(Encoding.UTF8.GetBytes("<p>Hello World!</p>"));
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = "Foo",
+                    },
+                    Version = "01.1.01",
+                };
+                fileStorageSvc.Setup(f => f.GetFileAsync(It.IsAny<string>(), It.IsAny<string>())).Returns(Task.FromResult((Stream)stream)).Verifiable();
+
+                var result = await service.DownloadReadmeFileAsync(package, Constants.HtmlFileExtension);
+
+                var reader = new StreamReader(result);
+
+                Assert.Equal("<p>Hello World!</p>", await reader.ReadToEndAsync());
+                fileStorageSvc.Verify(f => f.GetFileAsync(Constants.PackagesReadMeFolderName, "active/foo/1.1.1.html"), Times.Once);
+            }
+        }
+
         static string BuildFileName(
             string id,
             string version, string extension, string path)
