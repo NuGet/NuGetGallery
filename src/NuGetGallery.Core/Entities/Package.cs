@@ -139,7 +139,6 @@ namespace NuGetGallery
             {
                 return HasReadMeInternal ?? false;
             }
-
             set
             {
                 HasReadMeInternal = value ? (bool?)true : null; 

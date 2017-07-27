@@ -433,11 +433,12 @@ namespace NuGetGallery
             }
         }
 
-        public class TheRetrieveReadMeMethod
+        public class TheDownloadReadMeFileAsyncMethod
         {
             [Fact]
             public async Task WillDownloadReadMeAsync()
             {
+                //Arrange
                 var fileStorageSvc = new Mock<IFileStorageService>();
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
                 var stream = new MemoryStream(Encoding.UTF8.GetBytes("<p>Hello World!</p>"));
@@ -451,10 +452,11 @@ namespace NuGetGallery
                 };
                 fileStorageSvc.Setup(f => f.GetFileAsync(It.IsAny<string>(), It.IsAny<string>())).Returns(Task.FromResult((Stream)stream)).Verifiable();
 
+                //Act
                 var result = await service.DownloadReadmeFileAsync(package, Constants.HtmlFileExtension);
-
                 var reader = new StreamReader(result);
 
+                //Assert
                 Assert.Equal("<p>Hello World!</p>", await reader.ReadToEndAsync());
                 fileStorageSvc.Verify(f => f.GetFileAsync(Constants.PackagesReadMeFolderName, "active/foo/1.1.1.html"), Times.Once);
             }

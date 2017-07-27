@@ -435,11 +435,7 @@ namespace NuGetGallery
             var model = new DisplayPackageViewModel(package, packageHistory);
 
             if (package.HasReadMe)
-            {
-                // Note that the underlying abstraction for storage is inconsistent
-                // If the ReadMe doesn't exist then the file system storage will return a null stream
-                // The blob storage system will throw a storage exception. This ensure that both are handled correctly.
-            
+            {            
                 var readmeStream = await _packageFileService.DownloadReadmeFileAsync(package, Constants.HtmlFileExtension);
                 if (readmeStream != null)
                 {
@@ -449,14 +445,10 @@ namespace NuGetGallery
                         model.ReadMeHtml = await reader.ReadToEndAsync();
                     }
                 }
-                else
-                {                   
-                    if (User.IsInRole(Constants.AdminRoleName) || package.IsOwner(User))
-                    {
-                        TempData["Message"] = ("The ReadMe for this package could not be found");
-                    }
+                else if(User.IsInRole(Constants.AdminRoleName) || package.IsOwner(User))
+                { 
+                    TempData["Message"] = ("The ReadMe for this package could not be found");
                 }
-                
             }
 
             if (package.IsOwner(User))

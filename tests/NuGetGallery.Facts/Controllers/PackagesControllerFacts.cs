@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Mail;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
@@ -23,7 +24,6 @@ using NuGetGallery.Helpers;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using Xunit;
-using System.Text;
 
 namespace NuGetGallery
 {
@@ -461,42 +461,26 @@ namespace NuGetGallery
             [Fact]
             public async Task GivenAValidPackageWithReadMeItDisplaysReadMe()
             {
-                // Arrange
-                var packageService = new Mock<IPackageService>();
-                var indexingService = new Mock<IIndexingService>();
-                var fileService = new Mock<IPackageFileService>();
-                var controller = CreateController(
-                    packageService: packageService, indexingService: indexingService, packageFileService: fileService);
-                controller.SetCurrentUser(TestUtility.FakeUser);
-
+                //Arrange
                 var readMeStream = new MemoryStream(Encoding.UTF8.GetBytes("<p>Hello World!</p>"));
                 
-                var package = new Package()
-                {
-                    PackageRegistration = new PackageRegistration()
-                    {
-                        Id = "Foo",
-                        Owners = new List<User>()
-                    },
-                    Version = "01.1.01",
-                    NormalizedVersion = "1.1.1",
-                    Title = "A test package!",
-                    HasReadMe = true
-                };
-
-                packageService.Setup(p => p.FindPackageByIdAndVersion(It.Is<string>(s => s == "Foo"), It.Is<string>(s => s == null), It.Is<int>(i => i == SemVerLevelKey.SemVer2), It.Is<bool>(b => b == true)))
-                    .Returns(package);
-
-                indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
-
-                fileService.Setup(f => f.DownloadReadmeFileAsync(package, Constants.HtmlFileExtension)).Returns(Task.FromResult((Stream)readMeStream));
-
-                // Act
-                var result = await controller.DisplayPackage("Foo", null);
+                //Act
+                var result = await CreateANewViewModelForReadMeTests((Stream)readMeStream);
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal("<p>Hello World!</p>", model.ReadMeHtml);
+            }
+
+            [Fact]
+            public async Task GivenAPackageWithReadMeHandlesFailedDownload()
+            {
+                //Arrange and Act
+                var result = await CreateANewViewModelForReadMeTests((Stream)null);
+
+                //Assert
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                Assert.Null(model.ReadMeHtml);
             }
 
             [Fact]
@@ -528,47 +512,6 @@ namespace NuGetGallery
                     .Returns(package);
 
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
-
-                fileService.Setup(f => f.DownloadReadmeFileAsync(It.IsAny<Package>(), It.Is<string>(s => s == Constants.HtmlFileExtension)));
-
-                // Act
-                var result = await controller.DisplayPackage("Foo", null);
-
-                //Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
-                Assert.Null(model.ReadMeHtml);
-            }
-
-            [Fact]
-            public async Task GivenAPackageWithReadMeHandlesFailedDownload()
-            {
-                // Arrange
-                var packageService = new Mock<IPackageService>();
-                var indexingService = new Mock<IIndexingService>();
-                var fileService = new Mock<IPackageFileService>();
-                var controller = CreateController(
-                    packageService: packageService, indexingService: indexingService, packageFileService: fileService);
-                controller.SetCurrentUser(TestUtility.FakeUser);
-
-                var package = new Package()
-                {
-                    PackageRegistration = new PackageRegistration()
-                    {
-                        Id = "Foo",
-                        Owners = new List<User>()
-                    },
-                    Version = "01.1.01",
-                    NormalizedVersion = "1.1.1",
-                    Title = "A test package!",
-                    HasReadMe = true
-                };
-
-                packageService.Setup(p => p.FindPackageByIdAndVersion(It.Is<string>(s => s == "Foo"), It.Is<string>(s => s == null), It.Is<int>(i => i == SemVerLevelKey.SemVer2), It.Is<bool>(b => b == true)))
-                    .Returns(package);
-
-                indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
-
-                fileService.Setup(f => f.DownloadReadmeFileAsync(It.IsAny<Package>(), It.IsAny<string>())).Returns(Task.FromResult((Stream)null));
 
                 // Act
                 var result = await controller.DisplayPackage("Foo", null);
@@ -2081,6 +2024,38 @@ namespace NuGetGallery
                 Assert.IsType<RedirectResult>(result);
                 Assert.Equal(@"~\Bar.cshtml", ((RedirectResult)result).Url);
             }
+        }
+
+        private static async Task<ActionResult> CreateANewViewModelForReadMeTests(Stream stream)
+        {
+            var packageService = new Mock<IPackageService>();
+            var indexingService = new Mock<IIndexingService>();
+            var fileService = new Mock<IPackageFileService>();
+            var controller = CreateController(
+                packageService: packageService, indexingService: indexingService, packageFileService: fileService);
+            controller.SetCurrentUser(TestUtility.FakeUser);
+
+            var package = new Package()
+            {
+                PackageRegistration = new PackageRegistration()
+                {
+                    Id = "Foo",
+                    Owners = new List<User>()
+                },
+                Version = "01.1.01",
+                NormalizedVersion = "1.1.1",
+                Title = "A test package!",
+                HasReadMe = true
+            };
+
+            packageService.Setup(p => p.FindPackageByIdAndVersion(It.Is<string>(s => s == "Foo"), It.Is<string>(s => s == null), It.Is<int>(i => i == SemVerLevelKey.SemVer2), It.Is<bool>(b => b == true)))
+                .Returns(package);
+
+            indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
+
+            fileService.Setup(f => f.DownloadReadmeFileAsync(It.IsAny<Package>(), It.IsAny<string>())).Returns(Task.FromResult(stream));
+            
+            return await controller.DisplayPackage("Foo", /*version*/null);
         }
     }
 }
