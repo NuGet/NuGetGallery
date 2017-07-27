@@ -306,18 +306,24 @@
                         <ul role="presentation" data-bind="css: { disabled: !PushEnabled() }">
                             <li>
                                 <div class="radio">
-                                    <label>
+                                    <div class="label-sibling">
                                         <input name="PushScope" type="radio" value="@NuGetScopes.PackagePush"
-                                               data-bind="checked: PushScope, enable: PushEnabled" checked />
+                                               data-bind="checked: PushScope, enable: PushEnabled,
+                                                          attr: { id: PackagePushId }" checked />
+                                    </div>
+                                    <label data-bind="attr: { for: PackagePushId }">
                                         @NuGetScopes.Describe(NuGetScopes.PackagePush)
                                     </label>
                                 </div>
                             </li>
                             <li>
                                 <div class="radio">
-                                    <label>
+                                    <div class="label-sibling">
                                         <input name="PushScope" type="radio" value="@NuGetScopes.PackagePushVersion"
-                                               data-bind="checked: PushScope, enable: PushEnabled" />
+                                               data-bind="checked: PushScope, enable: PushEnabled,
+                                                          attr: { id: PackagePushVersionId }" />
+                                    </div>
+                                    <label data-bind="attr: { for: PackagePushVersionId }">
                                         @NuGetScopes.Describe(NuGetScopes.PackagePushVersion)
                                     </label>
                                 </div>

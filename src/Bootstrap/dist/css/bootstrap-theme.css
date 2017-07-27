@@ -243,6 +243,10 @@ img.package-icon {
   pointer-events: none;
   opacity: .75;
 }
+.radio .label-sibling,
+.checkbox .label-sibling {
+  margin-left: 20px;
+}
 #edit-metadata-form-container .loading:after {
   display: inline-block;
   /* ascii code for the ellipsis character */
@@ -395,9 +399,6 @@ img.package-icon {
 }
 .page-account-settings .form-group + .form-group .btn {
   margin-top: 20px;
-}
-.page-account-settings .checkbox .description {
-  padding-left: 20px;
 }
 .page-api-keys .example-commands {
   padding: 8px 10px;
