@@ -73,9 +73,9 @@ namespace NuGetGallery
             }
             if (string.IsNullOrEmpty(fileExtension))
             {
-                throw new ArgumentNullException(nameof(fileExtension));
+                throw new ArgumentException(nameof(fileExtension));
             }
-            var fileName = BuildFileName(package, Constants.ReadMeFileSavePathTemplate, fileExtension);
+            var fileName = BuildFileName(package, Constants.ReadMeFileSavePathTemplatePending, fileExtension);
             return _fileStorageService.SaveFileAsync(Constants.ReadMeFolderName, fileName, readMe, overwrite:false);
         }
 

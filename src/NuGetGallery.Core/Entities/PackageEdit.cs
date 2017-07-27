@@ -47,7 +47,7 @@ namespace NuGetGallery
         public string ProjectUrl { get; set; }
         public string RepositoryUrl { get; set; }
         /// <summary>
-        /// changed, null (means unchanged), deleted
+        /// <see cref = "PackageEditReadMeState.Changed" >, <see cref = "PackageEditReadMeState.Deleted" >, or null for unchanged.
         /// </summary>
         [Column("ReadMeState")]
         public string ReadMeStateInternal { get; set; }

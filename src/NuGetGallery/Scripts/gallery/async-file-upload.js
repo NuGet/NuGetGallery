@@ -362,12 +362,13 @@
     function displayReadMeError(errorMsg) {
         $("#readme-errors").removeClass("hidden");
         $("#preview-readme-button").attr("disabled", "disabled");
-        $("#readme-errors div ul li span").text(errorMsg);
+        $("#readme-error-content").text(errorMsg);
     }
 
     function clearReadMeError() {
         if (!$("#readme-errors").hasClass("hidden")) {
             $("#readme-errors").addClass("hidden");
+            $("#readme-error-content").text("");
         }
         $("#preview-readme-button").removeAttr("disabled");
     }

@@ -1363,10 +1363,10 @@ namespace NuGetGallery
 
                 if (pendEdit)
                 {
-                    var readMeChanged = PackageEditReadMeState.Unchanged;
-
                     // Checks to see if a ReadMe file has been added and uploads ReadMe
                     // Add the edit request to a queue where it will be processed in the background.
+                    var readMeChanged = PackageEditReadMeState.Unchanged;
+
                     if (hasReadMe)
                     {
                         readMeChanged = PackageEditReadMeState.Changed;
@@ -1542,7 +1542,7 @@ namespace NuGetGallery
                 catch (Exception ex)
                 {
                     Response.StatusCode = 400;
-                    return Json(new string[] { "Failed to convert markdown to Html:" + ex.Message });
+                    return Json(new string[] { "Failed to convert markdown to Html: " + ex.Message });
                 }
             }
         }

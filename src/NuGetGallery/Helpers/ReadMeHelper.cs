@@ -95,6 +95,7 @@ namespace NuGetGallery.Helpers
                 default:
                     throw new InvalidOperationException("Form data contains an invalid ReadMeType.");
             }
+
             if (ValidateReadMeStreamLength(readMeStream))
             {
                 return readMeStream;
