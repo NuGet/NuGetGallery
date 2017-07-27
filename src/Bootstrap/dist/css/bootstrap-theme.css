@@ -603,6 +603,12 @@ img.package-icon {
   background-color: #002440;
   border: 0;
 }
+@media screen and (-ms-high-contrast: active) {
+  .page-package-details .install-tabs .nav-tabs > li.active > a {
+    font-weight: 600;
+    text-decoration: underline;
+  }
+}
 .page-package-details .install-tabs .tab-pane > div {
   display: table;
   height: 1px;

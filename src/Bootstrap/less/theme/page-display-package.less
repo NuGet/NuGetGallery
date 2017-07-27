@@ -69,6 +69,13 @@
       background-color: @panel-footer-bg;
       border: 0;
       color: #fff;
+
+      @media screen and (-ms-high-contrast: active){
+        & {
+          font-weight: 600;
+          text-decoration: underline;
+        }
+      }
     }
 
     .tab-pane {
