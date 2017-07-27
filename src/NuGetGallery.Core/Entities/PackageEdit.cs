@@ -93,7 +93,6 @@ namespace NuGetGallery
 
         private void SetReadMeStateString(PackageEditReadMeState readMeState)
         {
-            ReadMeState = readMeState;
             switch (readMeState)
             {
                 case PackageEditReadMeState.Changed:

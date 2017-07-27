@@ -91,7 +91,6 @@
 
         formData.append("ReadMeWritten", $("#readme-written").val());
 
-
         $.ajax({
             url: "preview-readme",
             type: 'POST',

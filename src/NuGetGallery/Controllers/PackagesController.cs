@@ -1538,9 +1538,8 @@ namespace NuGetGallery
                 catch (Exception ex)
                 {
                     Response.StatusCode = 400;
-                    return Json(new string[] { ex.Message });
+                    return Json(new string[] { "Failed to convert markdown to Html:" + ex.Message });
                 }
-                
             }
         }
 

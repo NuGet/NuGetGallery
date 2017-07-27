@@ -10,12 +10,12 @@ namespace NuGetGallery.Helpers
     internal static class ReadMeHelper
     {
 
-        private const string ReadMeTypeUrl = "Url";
-        private const string ReadMeTypeFile = "File";
-        private const string ReadMeTypeWritten = "Written";
-        private const string ReadMeUriHostRequirement = "https://raw.githubusercontent.com";
-        private const int ReadMeUrlTimeout = 10000;
-        private const int ReadMeMaxFileSize = 40000;
+        private const string TypeUrl = "Url";
+        private const string TypeFile = "File";
+        private const string TypeWritten = "Written";
+        private const string UriHostRequirement = "https://raw.githubusercontent.com";
+        private const int UrlTimeout = 10000;
+        private const int MaxFileSize = 40000;
 
         /// <summary>
         /// Returns if posted package form contains a ReadMe.
@@ -24,18 +24,14 @@ namespace NuGetGallery.Helpers
         /// <returns>Whether there is a ReadMe to upload.</returns>
         public static bool HasReadMe(ReadMeRequest formData)
         {
-            if (formData == null)
-            {
-                return false;
-            }
             switch (formData?.ReadMeType)
             {
-                case ReadMeTypeUrl:
+                case TypeUrl:
                     var readMeUrl = formData.ReadMeUrl;
                     return !string.IsNullOrWhiteSpace(formData.ReadMeUrl) && Uri.IsWellFormedUriString(readMeUrl, UriKind.Absolute);
-                case ReadMeTypeFile:
+                case TypeFile:
                     return formData.ReadMeFile != null;
-                case ReadMeTypeWritten:
+                case TypeWritten:
                     return !string.IsNullOrWhiteSpace(formData.ReadMeWritten);
                 default: return false;
             }
@@ -87,13 +83,13 @@ namespace NuGetGallery.Helpers
             Stream readMeStream;
             switch (formData.ReadMeType)
             {
-                case ReadMeTypeUrl:
+                case TypeUrl:
                     readMeStream = ReadMeUrlToStream(formData.ReadMeUrl);
                     break;
-                case ReadMeTypeFile:
+                case TypeFile:
                     readMeStream = formData.ReadMeFile.InputStream;
                     break;
-                case ReadMeTypeWritten:
+                case TypeWritten:
                     readMeStream = GetStreamFromWritten(formData.ReadMeWritten);
                     break;
                 default:
@@ -113,7 +109,7 @@ namespace NuGetGallery.Helpers
         /// <returns>Whether the stream is less than 40 kilobytes.</returns>
         private static bool ValidateReadMeStreamLength(Stream readMeStream)
         {
-            return readMeStream.AsSeekableStream().Length < ReadMeMaxFileSize;
+            return readMeStream.AsSeekableStream().Length < MaxFileSize;
         }
 
         /// <summary>
@@ -124,12 +120,12 @@ namespace NuGetGallery.Helpers
         private static Stream ReadMeUrlToStream(string readMeUrl)
         {
             var readMeUri = new Uri(readMeUrl);
-            if (readMeUri.Host != ReadMeUriHostRequirement)
+            if (readMeUri.Host != UriHostRequirement)
             {
                 throw new ArgumentException("Url must link to a raw markdown file hosted on Github. [https://raw.githubusercontent.com/]");
             }
             var webRequest = WebRequest.Create(readMeUrl);
-            webRequest.Timeout = ReadMeUrlTimeout;
+            webRequest.Timeout = UrlTimeout;
             var response = webRequest.GetResponse();
             return response.GetResponseStream().AsSeekableStream();
         }

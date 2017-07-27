@@ -1860,7 +1860,10 @@ namespace NuGetGallery
 
                     var fakeEditPackageService = new Mock<EditPackageService>();
 
-                    var controller = CreateController(packageService: packageService, editPackageService: fakeEditPackageService, uploadFileService: fakeUploadFileService);
+                    var fakePackageFileService = new Mock<IPackageFileService>();
+                    fakePackageFileService.Setup(x => x.SaveReadMeFileAsync(fakePackage, It.IsAny<Stream>(), It.IsAny<String>())).Returns(Task.CompletedTask);
+
+                    var controller = CreateController(packageService: packageService, editPackageService: fakeEditPackageService, uploadFileService: fakeUploadFileService, packageFileService: fakePackageFileService);
                     controller.SetCurrentUser(TestUtility.FakeUser);
                 
                     // Act
@@ -1868,6 +1871,7 @@ namespace NuGetGallery
 
                     // Assert 
                     fakeEditPackageService.Verify(x => x.StartEditPackageRequest(fakePackage, edit, TestUtility.FakeUser), Times.Once);
+                    fakePackageFileService.Verify(x => x.SaveReadMeFileAsync(fakePackage, It.IsAny<Stream>(), It.IsAny<String>()), Times.Never);
                 }
             }
         }
