@@ -4,12 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using Moq;
 using Xunit;
-using System.Text;
 
 namespace NuGetGallery
 {
@@ -438,27 +438,31 @@ namespace NuGetGallery
             [Fact]
             public async Task WillDownloadReadMeAsync()
             {
-                //Arrange
-                var fileStorageSvc = new Mock<IFileStorageService>();
-                var service = CreateService(fileStorageSvc: fileStorageSvc);
-                var stream = new MemoryStream(Encoding.UTF8.GetBytes("<p>Hello World!</p>"));
-                var package = new Package()
+                using (var stream = new MemoryStream(Encoding.UTF8.GetBytes("<p>Hello World!</p>")))
                 {
-                    PackageRegistration = new PackageRegistration()
+                    //Arrange
+                    var fileStorageSvc = new Mock<IFileStorageService>();
+                    var service = CreateService(fileStorageSvc: fileStorageSvc);
+
+                    var package = new Package()
                     {
-                        Id = "Foo",
-                    },
-                    Version = "01.1.01",
-                };
-                fileStorageSvc.Setup(f => f.GetFileAsync(It.IsAny<string>(), It.IsAny<string>())).Returns(Task.FromResult((Stream)stream)).Verifiable();
+                        PackageRegistration = new PackageRegistration()
+                        {
+                            Id = "Foo",
+                        },
+                        Version = "01.1.01",
+                    };
+                    fileStorageSvc.Setup(f => f.GetFileAsync(It.IsAny<string>(), It.IsAny<string>())).Returns(Task.FromResult((Stream)stream)).Verifiable();
 
-                //Act
-                var result = await service.DownloadReadmeFileAsync(package, Constants.HtmlFileExtension);
-                var reader = new StreamReader(result);
-
-                //Assert
-                Assert.Equal("<p>Hello World!</p>", await reader.ReadToEndAsync());
-                fileStorageSvc.Verify(f => f.GetFileAsync(Constants.PackagesReadMeFolderName, "active/foo/1.1.1.html"), Times.Once);
+                    //Act
+                    var result = await service.DownloadReadmeFileAsync(package, Constants.HtmlFileExtension);
+                    using (var reader = new StreamReader(result))
+                    {
+                        //Assert
+                        Assert.Equal("<p>Hello World!</p>", await reader.ReadToEndAsync());
+                        fileStorageSvc.Verify(f => f.GetFileAsync(Constants.PackagesReadMeFolderName, "active/foo/1.1.1.html"), Times.Once);
+                    }
+                }
             }
         }
 

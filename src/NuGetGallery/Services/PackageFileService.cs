@@ -164,15 +164,15 @@ namespace NuGetGallery
             }
 
             if (package.PackageRegistration == null ||
-                String.IsNullOrWhiteSpace(package.PackageRegistration.Id) ||
-                (String.IsNullOrWhiteSpace(package.NormalizedVersion) && String.IsNullOrWhiteSpace(package.Version)))
+                string.IsNullOrWhiteSpace(package.PackageRegistration.Id) ||
+                (string.IsNullOrWhiteSpace(package.NormalizedVersion) && string.IsNullOrWhiteSpace(package.Version)))
             {
                 throw new ArgumentException(Strings.PackageIsMissingRequiredData, nameof(package));
             }
             
             return BuildReadmeFileName(
                 package.PackageRegistration.Id,
-                String.IsNullOrEmpty(package.NormalizedVersion) ?
+                string.IsNullOrEmpty(package.NormalizedVersion) ?
                     NuGetVersionFormatter.Normalize(package.Version) :
                     package.NormalizedVersion, extension);
         }

@@ -435,19 +435,21 @@ namespace NuGetGallery
             var model = new DisplayPackageViewModel(package, packageHistory);
 
             if (package.HasReadMe)
-            {            
-                var readmeStream = await _packageFileService.DownloadReadmeFileAsync(package, Constants.HtmlFileExtension);
-                if (readmeStream != null)
+            {
+                using (var readmeStream = await _packageFileService.DownloadReadmeFileAsync(package, Constants.HtmlFileExtension))
                 {
-                    // Reads the README file and push to the view
-                    using (var reader = new StreamReader(readmeStream, Encoding.UTF8))
+                    if (readmeStream != null)
                     {
-                        model.ReadMeHtml = await reader.ReadToEndAsync();
+                        // Reads the README file and push to the view
+                        using (var reader = new StreamReader(readmeStream, Encoding.UTF8))
+                        {
+                            model.ReadMeHtml = await reader.ReadToEndAsync();
+                        }
                     }
-                }
-                else if(User.IsInRole(Constants.AdminRoleName) || package.IsOwner(User))
-                { 
-                    TempData["Message"] = ("The ReadMe for this package could not be found");
+                    else if (User.IsInRole(Constants.AdminRoleName) || package.IsOwner(User))
+                    {
+                        TempData["Message"] = ("The ReadMe for this package could not be found");
+                    }
                 }
             }
 

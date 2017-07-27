@@ -465,7 +465,7 @@ namespace NuGetGallery
                 var readMeStream = new MemoryStream(Encoding.UTF8.GetBytes("<p>Hello World!</p>"));
                 
                 //Act
-                var result = await CreateANewViewModelForReadMeTests((Stream)readMeStream);
+                var result = await GetDisplayPackageResultWithReadMeStream(readMeStream);
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
@@ -476,7 +476,7 @@ namespace NuGetGallery
             public async Task GivenAPackageWithReadMeHandlesFailedDownload()
             {
                 //Arrange and Act
-                var result = await CreateANewViewModelForReadMeTests((Stream)null);
+                var result = await GetDisplayPackageResultWithReadMeStream((Stream)null);
 
                 //Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
@@ -486,7 +486,6 @@ namespace NuGetGallery
             [Fact]
             public async Task GivenAPackageWithNoReadMeShowsThatReadMeIsEmpty()
             {
-
                 // Arrange
                 var packageService = new Mock<IPackageService>();
                 var indexingService = new Mock<IIndexingService>();
@@ -2026,7 +2025,7 @@ namespace NuGetGallery
             }
         }
 
-        private static async Task<ActionResult> CreateANewViewModelForReadMeTests(Stream stream)
+        private static async Task<ActionResult> GetDisplayPackageResultWithReadMeStream(Stream readMeHtmlStream)
         {
             var packageService = new Mock<IPackageService>();
             var indexingService = new Mock<IIndexingService>();
@@ -2053,7 +2052,7 @@ namespace NuGetGallery
 
             indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
 
-            fileService.Setup(f => f.DownloadReadmeFileAsync(It.IsAny<Package>(), It.IsAny<string>())).Returns(Task.FromResult(stream));
+            fileService.Setup(f => f.DownloadReadmeFileAsync(It.IsAny<Package>(), It.IsAny<string>())).Returns(Task.FromResult(readMeHtmlStream));
             
             return await controller.DisplayPackage("Foo", /*version*/null);
         }
