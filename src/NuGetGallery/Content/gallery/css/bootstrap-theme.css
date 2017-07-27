@@ -304,6 +304,12 @@ img.package-icon {
   svg text {
     fill: WindowText;
   }
+  .popover .arrow {
+    display: none;
+  }
+  .dropdown-menu .divider {
+    border-bottom: 1px solid windowText;
+  }
 }
 .list-packages {
   border-top: 1px solid #dbdbdb;
