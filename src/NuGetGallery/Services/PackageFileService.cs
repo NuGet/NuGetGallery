@@ -28,7 +28,7 @@ namespace NuGetGallery
 
         public Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, string id, string version)
         {
-            var fileName = BuildPackageFileName(id, version);
+            var fileName = BuildFileName(id, version, Constants.NuGetPackageFileExtension);
             return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, Constants.PackagesFolderName, fileName);
         }
 
@@ -44,7 +44,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(version));
             }
 
-            var fileName = BuildPackageFileName(id, version);
+            var fileName = BuildFileName(id, version, Constants.NuGetPackageFileExtension);
             return _fileStorageService.DeleteFileAsync(Constants.PackagesFolderName, fileName);
         }
 
@@ -99,14 +99,9 @@ namespace NuGetGallery
             return (await _fileStorageService.GetFileAsync(Constants.PackagesReadMeFolderName, fileName));
         }
 
-        private static string BuildPackageFileName(string id, string version)
+        private static string BuildFileName(string id, string version, string extension)
         {
-            return BuildFileName(Constants.PackageFileSavePathTemplate, id, version, Constants.NuGetPackageFileExtension);
-        }
-
-        private static string BuildReadmeFileName(string id, string version, string extension)
-        {
-            return BuildFileName(Constants.ReadMeFileSavePathTemplateActive, id, version, extension);
+            return BuildFileName(Constants.PackageFileSavePathTemplate, id, version, extension);
         }
 
         private static string BuildFileName(string pathTemplate, string id, string version, string extension)
@@ -149,11 +144,11 @@ namespace NuGetGallery
                 throw new ArgumentException(Strings.PackageIsMissingRequiredData, nameof(package));
             }
 
-            return BuildPackageFileName(
+            return BuildFileName(
                 package.PackageRegistration.Id, 
                 String.IsNullOrEmpty(package.NormalizedVersion) ?
                     NuGetVersionFormatter.Normalize(package.Version) :
-                    package.NormalizedVersion);
+                    package.NormalizedVersion, Constants.NuGetPackageFileExtension);
         }
         
         private static string BuildReadmeFileName(Package package, string extension)
@@ -170,7 +165,7 @@ namespace NuGetGallery
                 throw new ArgumentException(Strings.PackageIsMissingRequiredData, nameof(package));
             }
             
-            return BuildReadmeFileName(
+            return BuildFileName(
                 package.PackageRegistration.Id,
                 string.IsNullOrEmpty(package.NormalizedVersion) ?
                     NuGetVersionFormatter.Normalize(package.Version) :

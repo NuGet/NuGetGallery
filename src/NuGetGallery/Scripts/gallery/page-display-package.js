@@ -14,6 +14,7 @@ $(function () {
             }, 1000);
         });
     }    
+
     $clamp(document.getElementById("readme-clamped"),
         { clamp: 10 });
     var readmeClamped = $("#readme-clamped");
