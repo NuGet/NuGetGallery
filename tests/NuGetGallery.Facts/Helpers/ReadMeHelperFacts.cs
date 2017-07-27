@@ -9,7 +9,7 @@ namespace NuGetGallery.Helpers
     public class ReadMeHelperFacts
     {
         [Fact]
-        public void HasReadMeNullFormDataFact()
+        public void ReturnsFalseIfReadMeIsNullOrEmpty()
         {
             Assert.False(ReadMeHelper.HasReadMe(null));
 
@@ -23,7 +23,7 @@ namespace NuGetGallery.Helpers
         [Theory]
         [InlineData("helloworld", false)]
         [InlineData("http://www.github.com", true)]
-        public void HasReadMeUrlFact(string url, bool hasReadMe)
+        public void AssertsReadMeIsUrlType(string url, bool hasReadMe)
         {
             ReadMeRequest readMeRequest = new ReadMeRequest
             {
@@ -34,7 +34,7 @@ namespace NuGetGallery.Helpers
         }
 
         [Fact]
-        public void HasReadMeFilePathFact()
+        public void AssertsReadMeFalseIfFileNull()
         {
             ReadMeRequest readMeRequest = new ReadMeRequest
             {
@@ -45,7 +45,7 @@ namespace NuGetGallery.Helpers
         }
 
         [Fact]
-        public void HasReadMeWritten()
+        public void HasReadMeWorksForReadMeWritten()
         {
             ReadMeRequest readMeRequest = new ReadMeRequest
             {

@@ -1896,7 +1896,7 @@ namespace NuGetGallery
 
         [Theory]
         [MemberData("WillApplyReadMe_Data")]
-        public async Task WillApplyReadMe(EditPackageVersionRequest edit)
+        public async Task WillApplyReadMeForWrittenReadMeData(EditPackageVersionRequest edit)
         {
             // Arrange
             using (var fakeFileStream = new MemoryStream())
