@@ -106,7 +106,8 @@
         have
         <!-- /ko -->
         expired.
-        </text>)
+        </text>,
+        isAlertRole: true)
     <!-- /ko -->
     <!-- ko if: AnyJustCreated -->
     @ViewHelpers.AlertWarning(
@@ -114,7 +115,8 @@
         A new API key has been created. Make sure to copy your new API key now using the
         <b>Copy</b>
         button below. You will not be able to do so again.
-        </text>)
+        </text>,
+        isAlertRole: true)
     <!-- /ko -->
     <!-- ko if: AnyJustRegenerated -->
     @ViewHelpers.AlertWarning(
@@ -122,7 +124,8 @@
             Your API key has been regenerated. Make sure to copy your new API key now using the
             <b>Copy</b>
             button below. You will not be able to do so again.
-        </text>)
+        </text>,
+        isAlertRole: true)
     <!-- /ko -->
     <div data-bind="template: { name: 'api-key-details', foreach: ApiKeys }">
     </div>
