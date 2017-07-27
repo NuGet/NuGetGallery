@@ -101,12 +101,12 @@ namespace NuGetGallery.Helpers
             }
             else
             {
-                throw new ArgumentException("ReadMe file exceeds size limitations. (40 kB)");
+                throw new ArgumentException("ReadMe file exceeds size limitations. (" + MaxFileSize + ")");
             }
         }
-        
+
         /// <param name="readMeStream">A stream representing the package readme.</param>
-        /// <returns>Whether the stream is less than 40 kilobytes.</returns>
+        /// <returns>Whether the stream is less than MaxFileSize.</returns>
         private static bool ValidateReadMeStreamLength(Stream readMeStream)
         {
             return readMeStream.AsSeekableStream().Length < MaxFileSize;
@@ -122,7 +122,7 @@ namespace NuGetGallery.Helpers
             var readMeUri = new Uri(readMeUrl);
             if (readMeUri.Host != UriHostRequirement)
             {
-                throw new ArgumentException("Url must link to a raw markdown file hosted on Github. [https://raw.githubusercontent.com/]");
+                throw new ArgumentException("Url must link to a raw markdown file hosted on Github. [" + UriHostRequirement + "]");
             }
             var webRequest = WebRequest.Create(readMeUrl);
             webRequest.Timeout = UrlTimeout;
