@@ -40,9 +40,6 @@ namespace NuGetGallery
         public const string ReadMeFolderName = "readmes";
         public const string MarkdownFileExtension = ".md";
         public const string HtmlFileExtension = ".html";
-        public const string ReadMeChanged = "changed";
-        public const string ReadMeUnchanged = null;
-        public const string ReadMeDeleted = "deleted";
   
         public const string PopularitySortOrder = "package-download-count";
         public const string RecentSortOrder = "package-created";
