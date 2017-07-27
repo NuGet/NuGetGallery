@@ -10,8 +10,14 @@
 <div class="container main-container page-edit-package">
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
-            <h1 class="page-heading text-center">Edit Package</h1>
-            <h3 class="page-subheading text-center"><a href="@Url.Package(Model.PackageId)" class="">@Model.PackageId</a></h3>
+            @Html.Partial("_PackageHeading", new PackageHeadingModel
+                   {
+                       PageHeading = "Edit Package",
+                       PackageDisplay = Model.PackageId,
+                       Id = Model.PackageId,
+                       Version = Model.Version,
+                       LinkIdOnly = true
+                   })
             <div id="select-package-version-container">
                 <h2>
                     <a href="#" role="button" data-toggle="collapse" data-target="#select-package-version-form"

@@ -233,6 +233,9 @@ img.package-icon {
     border-left-style: solid;
   }
 }
+.package-title-text {
+  margin-bottom: 0;
+}
 .icon-bar {
   border: 1px solid #fff;
 }
@@ -827,9 +830,6 @@ img.package-icon {
 }
 .page-profile .profile-details .statistics .statistic .description {
   font-size: 24px;
-}
-.page-report-abuse .report-form {
-  margin-top: 40px;
 }
 .page-report-abuse .report-form #alreadycontactedowner-label {
   display: inline;
