@@ -301,6 +301,7 @@ a:focus {
   text-decoration: underline;
 }
 a:focus {
+  outline: 2px auto Highlight;
   outline: 5px auto -webkit-focus-ring-color;
   outline-offset: -2px;
 }
@@ -1730,6 +1731,7 @@ select[size] {
 input[type="file"]:focus,
 input[type="radio"]:focus,
 input[type="checkbox"]:focus {
+  outline: 2px auto Highlight;
   outline: 5px auto -webkit-focus-ring-color;
   outline-offset: -2px;
 }
@@ -2221,6 +2223,7 @@ select[multiple].input-lg {
 .btn.focus,
 .btn:active.focus,
 .btn.active.focus {
+  outline: 2px auto Highlight;
   outline: 5px auto -webkit-focus-ring-color;
   outline-offset: -2px;
 }
