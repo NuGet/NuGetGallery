@@ -464,6 +464,31 @@ namespace NuGetGallery
                     }
                 }
             }
+
+            [Fact]
+            public async Task FailedDownloadOfReadMeResultsInNullValue()
+            {
+                //Arrange
+                var fileStorageSvc = new Mock<IFileStorageService>();
+                var service = CreateService(fileStorageSvc: fileStorageSvc);
+
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = "Foo",
+                    },
+                    Version = "01.1.01",
+                };
+                fileStorageSvc.Setup(f => f.GetFileAsync(It.IsAny<string>(), It.IsAny<string>())).Returns(Task.FromResult((Stream)null)).Verifiable();
+
+                //Act
+                var result = await service.DownloadReadmeFileAsync(package, Constants.HtmlFileExtension);
+
+                //Assert
+                Assert.Null(result);
+                fileStorageSvc.Verify(f => f.GetFileAsync(Constants.PackagesReadMeFolderName, "active/foo/1.1.1.html"), Times.Once);
+            }
         }
 
         static string BuildFileName(

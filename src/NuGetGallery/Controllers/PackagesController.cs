@@ -448,7 +448,7 @@ namespace NuGetGallery
                     }
                     else if (User.IsInRole(Constants.AdminRoleName) || package.IsOwner(User))
                     {
-                        TempData["Message"] = ("The ReadMe for this package could not be found");
+                        TempData["Message"] = "The ReadMe for this package could not be found";
                     }
                 }
             }

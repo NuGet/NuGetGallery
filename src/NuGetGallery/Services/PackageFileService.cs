@@ -28,7 +28,7 @@ namespace NuGetGallery
 
         public Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, string id, string version)
         {
-            var fileName = BuildFileName(id, version, Constants.NuGetPackageFileExtension);
+            var fileName = BuildFileName(id, version, Constants.PackageFileSavePathTemplate, Constants.NuGetPackageFileExtension);
             return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, Constants.PackagesFolderName, fileName);
         }
 
@@ -44,7 +44,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(version));
             }
 
-            var fileName = BuildFileName(id, version, Constants.NuGetPackageFileExtension);
+            var fileName = BuildFileName(id, version, Constants.PackageFileSavePathTemplate, Constants.NuGetPackageFileExtension);
             return _fileStorageService.DeleteFileAsync(Constants.PackagesFolderName, fileName);
         }
 
@@ -89,22 +89,16 @@ namespace NuGetGallery
             return (await _fileStorageService.GetFileAsync(Constants.PackagesFolderName, fileName));
         }
         
-        public async Task<Stream> DownloadReadmeFileAsync(Package package, string extension)
+        public Task<Stream> DownloadReadmeFileAsync(Package package, string extension)
         {
             if (package == null)
             {
                 throw new ArgumentNullException("Package cannot be null!");
             }
             var fileName = BuildReadmeFileName(package, extension);
-            return (await _fileStorageService.GetFileAsync(Constants.PackagesReadMeFolderName, fileName));
+            return  _fileStorageService.GetFileAsync(Constants.PackagesReadMeFolderName, fileName);
         }
-
-        private static string BuildFileName(string id, string version, string extension)
-        {
-            return BuildFileName(Constants.PackageFileSavePathTemplate, id, version, extension);
-        }
-
-        private static string BuildFileName(string pathTemplate, string id, string version, string extension)
+        private static string BuildFileName(string id, string version, string pathTemplate, string extension)
 
         {
             if (id == null)
@@ -148,7 +142,7 @@ namespace NuGetGallery
                 package.PackageRegistration.Id, 
                 String.IsNullOrEmpty(package.NormalizedVersion) ?
                     NuGetVersionFormatter.Normalize(package.Version) :
-                    package.NormalizedVersion, Constants.NuGetPackageFileExtension);
+                    package.NormalizedVersion, Constants.PackageFileSavePathTemplate, Constants.NuGetPackageFileExtension);
         }
         
         private static string BuildReadmeFileName(Package package, string extension)
@@ -169,7 +163,7 @@ namespace NuGetGallery
                 package.PackageRegistration.Id,
                 string.IsNullOrEmpty(package.NormalizedVersion) ?
                     NuGetVersionFormatter.Normalize(package.Version) :
-                    package.NormalizedVersion, extension);
+                    package.NormalizedVersion,Constants.ReadMeFileSavePathTemplateActive, extension);
         }
 
         private static string BuildBackupFileName(string id, string version, string hash)
