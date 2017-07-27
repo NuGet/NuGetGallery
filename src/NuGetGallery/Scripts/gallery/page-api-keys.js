@@ -160,6 +160,8 @@
             this.DescriptionId = ComputedId("description");
             this.GlobPatternId = ComputedId("glob-pattern");
             this.ExpiresInId = ComputedId("expires-in");
+            this.PackagePushId = ComputedId("package-push");
+            this.PackagePushVersionId = ComputedId("package-push-version");
             this.IconUrl = ko.pureComputed(function () {
                 if (this.HasExpired()) {
                     return initialData.ImageUrls.ApiKeyExpired;
