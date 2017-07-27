@@ -40,7 +40,7 @@
 
 @helper Alert(Func<MvcHtmlString, HelperResult> htmlContent, string subclass, string icon, bool isAlertRole = false)
 {
-    <div class="alert alert-@subclass" @if (isAlertRole) { <text> role="alert" </text>   }>
+    <div class="alert alert-@subclass" @if (isAlertRole) { <text> role="alert" aria-live="assertive" </text>   }>
         <ul class="list-unstyled ms-Icon-ul">
             <li>
                 <i class="ms-Icon ms-Icon--@icon" aria-hidden="true"></i>
