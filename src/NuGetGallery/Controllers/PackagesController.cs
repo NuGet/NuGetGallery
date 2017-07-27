@@ -1385,7 +1385,11 @@ namespace NuGetGallery
                                 await _packageFileService.SaveReadMeFileAsync(package, readMeInputStream, Constants.MarkdownFileExtension);
                             }
                         }
-                        catch (Exception ex)
+                        catch (Exception ex) when (
+                            ex is InvalidOperationException
+                            || ex is ArgumentException
+                            || ex is ArgumentNullException
+                        )
                         {
                             TempData["Message"] = ex.Message;
 
