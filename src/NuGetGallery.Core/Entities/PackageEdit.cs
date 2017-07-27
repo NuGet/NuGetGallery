@@ -51,6 +51,7 @@ namespace NuGetGallery
         /// </summary>
         [Column("ReadMeState")]
         public string ReadMeStateInternal { get; set; }
+        [NotMapped]
         public PackageEditReadMeState ReadMeState {
             get
             {
