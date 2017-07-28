@@ -25,8 +25,8 @@
                     <thead>
                         <tr class="manage-package-headings">
                             <th class="col-sm-1"></th>
-                            <th class="col-sm-3">Package Id</th>
-                            <th class="col-sm-2">Authors</th>
+                            <th class="col-sm-3">Package ID</th>
+                            <th class="col-sm-2">Owners</th>
                             <th class="col-sm-2">Downloads</th>
                             <th class="col-sm-2">Latest Version</th>
                             <th class="col-sm-2"></th>
@@ -46,10 +46,10 @@
                             <td class="col-sm-2 align-middle">
                             @foreach (var owner in package.Owners)
                             {
-                                <a href="@Url.User(owner.Username)">@owner.Username  </a>
+                                <a href="@Url.User(owner.Username)">@owner.Username</a>
                             }
                             </td>
-                            <td class="col-sm-2 align-middle">@package.TotalDownloadCount</td>
+                            <td class="col-sm-2 align-middle">@package.TotalDownloadCount.ToNuGetNumberString()</td>
                             <td class="col-sm-2 align-middle">@package.Version</td>
                             <td class="col-sm-2 text-right align-middle">
                                 <div class="btn-group">
