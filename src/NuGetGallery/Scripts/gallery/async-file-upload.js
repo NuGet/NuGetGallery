@@ -311,7 +311,6 @@ var AsyncFileUploadManager = new function () {
         $("#readme-collapser-container").removeClass("hidden");
         $("#submit-collapser-container").removeClass("hidden");
 
-        // todo: should this be here?
         window.nuget.configureExpanderHeading("edit-metadata-form-container");
 
         window.nuget.configureExpander(
