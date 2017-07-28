@@ -72,14 +72,14 @@
         <article class="col-sm-8">
             <div class="package-title">
                 <h1>
-                    @Model.Id
+                    @Html.BreakWord(Model.Id)
                     <small class="text-nowrap">@Model.FullVersion</small>
                 </h1>
 
                 @if (!StringComparer.OrdinalIgnoreCase.Equals(Model.Id, Model.Title))
                 {
                     <div class="ms-fontSize-xl">
-                        @Model.Title
+                        @Html.BreakWord(Model.Title)
                     </div>
                 }
             </div>
