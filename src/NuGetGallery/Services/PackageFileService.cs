@@ -76,7 +76,7 @@ namespace NuGetGallery
                 throw new ArgumentException(nameof(fileExtension));
             }
             var fileName = BuildFileName(package, Constants.ReadMeFileSavePathTemplatePending, fileExtension);
-            return _fileStorageService.SaveFileAsync(Constants.ReadMeFolderName, fileName, readMe, overwrite:false);
+            return _fileStorageService.SaveFileAsync(Constants.PackagesReadMeFolderName, fileName, readMe, overwrite:false);
         }
 
         public Task StorePackageFileInBackupLocationAsync(Package package, Stream packageFile)
@@ -136,7 +136,7 @@ namespace NuGetGallery
             // c) we don't want to hit the database just to look up the right case
             // and remember - version can contain letters too.
             return String.Format(
-                CultureInfo.InvariantCulture
+                CultureInfo.InvariantCulture,
                 pathTemplate,
                 id.ToLowerInvariant(),
                 version.ToLowerInvariant(),
