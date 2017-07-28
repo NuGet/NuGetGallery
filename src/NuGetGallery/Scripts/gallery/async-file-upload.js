@@ -312,7 +312,7 @@ var AsyncFileUploadManager = new function () {
         $("#submit-collapser-container").removeClass("hidden");
 
         window.nuget.configureExpanderHeading("edit-metadata-form-container");
-    }
+
         window.nuget.configureExpander(
             "verify-package-form",
             "ChevronRight",
