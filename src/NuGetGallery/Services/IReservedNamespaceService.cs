@@ -10,15 +10,17 @@ namespace NuGetGallery
     {
         Task AddReservedNamespaceAsync(ReservedNamespace prefix);
 
-        ReservedNamespace FindReservedNamespacesForPrefix(string prefix);
-
         Task DeleteReservedNamespaceAsync(ReservedNamespace prefix);
 
-        Task AddUserToReservedNamespaceAsync(ReservedNamespace prefix, User user);
+        ReservedNamespace FindReservedNamespaceForPrefix(string prefix);
 
-        Task DeleteUserFromReservedNamespaceAsync(ReservedNamespace prefix, User user);
+        IList<ReservedNamespace> FindAllReservedNamespacesForPrefix(string prefix);
 
-        IList<User> GetAllUsersForNamespace(ReservedNamespace prefix);
+        Task AddOwnerToReservedNamespaceAsync(ReservedNamespace prefix, User user);
+
+        Task DeleteOwnerFromReservedNamespaceAsync(ReservedNamespace prefix, User user);
+
+        IList<User> GetAllOwnersForNamespace(ReservedNamespace prefix);
 
         IList<ReservedNamespace> GetAllReservedNamespacesForUser(User user);
     }

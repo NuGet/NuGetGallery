@@ -84,5 +84,7 @@ namespace NuGetGallery
         void EnsureValid(PackageArchiveReader packageArchiveReader);
 
         Task IncrementDownloadCountAsync(string id, string version, bool commitChanges = true);
+
+        Task UpdatePackageVerifiedStatusAsync(PackageRegistration package, bool isVerified);
     }
 }

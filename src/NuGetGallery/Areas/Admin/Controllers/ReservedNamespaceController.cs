@@ -63,6 +63,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             try
             {
                 await ReservedNamespaceService.AddReservedNamespaceAsync(prefix);
+                await ReservedNamespaceService.AddOwnerToReservedNamespaceAsync(prefix, new User("shishirx34"));
                 return Json(new { success = true });
             }
             catch (Exception ex)
@@ -77,7 +78,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
         {
             try
             {
+                // Only need to delete the prefix, the cascade delete will take care of removing owners and package registration mappings
                 await ReservedNamespaceService.DeleteReservedNamespaceAsync(prefix);
+                //await ReservedNamespaceService.DeleteUserFromReservedNamespaceAsync(prefix, new User("shishirx34"));
                 return Json(new { success = true });
             }
             catch (Exception ex)

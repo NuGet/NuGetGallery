@@ -954,5 +954,17 @@ namespace NuGetGallery
                 }
             }
         }
+
+        public async Task UpdatePackageVerifiedStatusAsync(PackageRegistration package, bool isVerified)
+        {
+            await Task.Yield();
+
+            var packageRegistration = FindPackageRegistrationById(package.Id);
+            if (packageRegistration.IsVerified != isVerified)
+            {
+                packageRegistration.IsVerified = isVerified;
+                await _packageRepository.CommitChangesAsync();
+            }
+        }
     }
 }
