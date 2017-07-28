@@ -1556,6 +1556,7 @@ if (typeof jQuery === 'undefined') {
         })
       }
     }, offset), 0)
+    
     this.replaceArrow(arrowDelta, $tip[0][arrowOffsetPosition], isVertical)
   }
 
