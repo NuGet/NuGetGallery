@@ -11,7 +11,7 @@ namespace NuGetGallery
         public string PackageId { get; set; }
         public string PackageTitle { get; set; }
         public string Version { get; set; }
-
+        public ReadMeRequest ReadMe { get; set; }
         public IList<Package> PackageVersions { get; set; }
     }
 }

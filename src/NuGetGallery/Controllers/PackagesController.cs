@@ -429,6 +429,7 @@ namespace NuGetGallery
                     {
                         using (var readMeHTMLStream = ReadMeHelper.GetReadMeHtmlStream(readMeMdStream))
                         {
+                            await readMeHTMLStream.FlushAsync();
                             // Reads the README file and push to the view
                             using (var reader = new StreamReader(readMeHTMLStream, Encoding.UTF8))
                             {
@@ -1017,7 +1018,7 @@ namespace NuGetGallery
         [HttpGet]
         [Authorize]
         [RequiresAccountConfirmation("edit a package")]
-        public virtual ActionResult Edit(string id, string version)
+        public virtual async Task<ActionResult> Edit(string id, string version)
         {
             var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
@@ -1031,6 +1032,30 @@ namespace NuGetGallery
             }
 
             var packageRegistration = _packageService.FindPackageRegistrationById(id);
+
+            string readMeMarkdownString;
+            if (package.HasReadMe)
+            {
+                using (var readMeMdStream =  await _packageFileService.DownloadReadmeFileAsync(package))
+                {
+                    if (readMeMdStream != null)
+                    {
+                        using (var reader = new StreamReader(readMeMdStream, Encoding.UTF8))
+                        {
+                            readMeMarkdownString = reader.ReadToEnd();
+                        }
+                    }
+                    else
+                    {
+                        readMeMarkdownString = string.Empty;
+                    }
+                }
+            }
+            else
+            {
+                readMeMarkdownString = string.Empty;
+            }
+
             var model = new EditPackageRequest
             {
                 PackageId = package.PackageRegistration.Id,
@@ -1039,6 +1064,11 @@ namespace NuGetGallery
                 PackageVersions = packageRegistration.Packages
                     .OrderByDescending(p => new NuGetVersion(p.Version), Comparer<NuGetVersion>.Create((a, b) => a.CompareTo(b)))
                     .ToList(),
+                ReadMe = new ReadMeRequest()
+                {
+                    ReadMeWritten = readMeMarkdownString,
+                    ReadMeType = "Written"
+                }
             };
 
             var pendingMetadata = _editPackageService.GetPendingMetadata(package);
@@ -1071,13 +1101,58 @@ namespace NuGetGallery
                 var errorMessages = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage));
                 return Json(400, errorMessages);
             }
+            
+            if (ReadMeHelper.HasReadMe(formData.ReadMe))
+            {
+                string newReadMeString;
+                using (var reader = new StreamReader(ReadMeHelper.GetReadMeMarkdownStream(formData.ReadMe)))
+                {
+                    newReadMeString = reader.ReadToEnd();
+                }
+
+                if (package.HasReadMe)
+                {
+                    string oldReadMeString;
+                    using (var readMeMdStream = await _packageFileService.DownloadReadmeFileAsync(package))
+                    {
+                        using (var reader = new StreamReader(readMeMdStream, Encoding.UTF8))
+                        {
+                            oldReadMeString = reader.ReadToEnd();
+                        }
+                    }
+                    if (newReadMeString.Trim().Equals(oldReadMeString.Trim()))
+                    {
+                        formData.Edit.ReadMeState = PackageEditReadMeState.Unchanged;
+                    }
+                    else
+                    {
+                        formData.Edit.ReadMeState = PackageEditReadMeState.Changed;
+                        formData.ReadMe.Overwriting = true;
+                    }
+                }
+                else
+                {
+                    formData.Edit.ReadMeState = PackageEditReadMeState.Changed;
+                    formData.ReadMe.Overwriting = false;
+                }
+            }
+            else
+            {
+                formData.Edit.ReadMeState = PackageEditReadMeState.Unchanged;
+            }
 
             // Add the edit request to a queue where it will be processed in the background.
             if (formData.Edit != null)
             {
+                if (formData.Edit.ReadMeState == PackageEditReadMeState.Changed)
+                {
+                    using (var readMeMdStream = ReadMeHelper.GetReadMeMarkdownStream(formData.ReadMe))
+                    {
+                        await _packageFileService.SaveReadMeFileAsync(package, readMeMdStream, formData.ReadMe.Overwriting);
+                    }
+                }
                 try
                 {
-                    formData.Edit.ReadMeState = PackageEditReadMeState.Unchanged;
                     _editPackageService.StartEditPackageRequest(package, formData.Edit, user);
                     await _entitiesContext.SaveChangesAsync();
 

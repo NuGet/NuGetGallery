@@ -83,7 +83,7 @@ var EditViewManager = new function () {
         formData.append("ReadMeWritten", $("#readme-written").val());
 
         $.ajax({
-            url: "preview-readme",
+            url: "/packages/manage/preview-readme",
             type: 'POST',
             contentType: false,
             processData: false,
@@ -304,6 +304,11 @@ var EditViewManager = new function () {
         $("#preview-readme-button").on('click', function () {
             previewReadMeAsync();
         });
+
+        if ($("#readme-written").val() !== "") {
+            $("#readme-write-btn").button('toggle');
+            previewReadMeAsync();
+        }
 
         $("#edit-markdown-button").on('click', function () {
             displayReadMeEditMarkdown();
