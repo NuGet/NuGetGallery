@@ -455,12 +455,12 @@ namespace NuGetGallery
                     fileStorageSvc.Setup(f => f.GetFileAsync(It.IsAny<string>(), It.IsAny<string>())).Returns(Task.FromResult((Stream)stream)).Verifiable();
 
                     //Act
-                    var result = await service.DownloadReadmeFileAsync(package, Constants.HtmlFileExtension);
+                    var result = await service.DownloadReadmeFileAsync(package);
                     using (var reader = new StreamReader(result))
                     {
                         //Assert
                         Assert.Equal("<p>Hello World!</p>", await reader.ReadToEndAsync());
-                        fileStorageSvc.Verify(f => f.GetFileAsync(Constants.PackagesReadMeFolderName, "active/foo/1.1.1.html"), Times.Once);
+                        fileStorageSvc.Verify(f => f.GetFileAsync(Constants.PackagesReadMeFolderName, "active/foo/1.1.1.md"), Times.Once);
                     }
                 }
             }
@@ -483,11 +483,11 @@ namespace NuGetGallery
                 fileStorageSvc.Setup(f => f.GetFileAsync(It.IsAny<string>(), It.IsAny<string>())).Returns(Task.FromResult((Stream)null)).Verifiable();
 
                 //Act
-                var result = await service.DownloadReadmeFileAsync(package, Constants.HtmlFileExtension);
+                var result = await service.DownloadReadmeFileAsync(package);
 
                 //Assert
                 Assert.Null(result);
-                fileStorageSvc.Verify(f => f.GetFileAsync(Constants.PackagesReadMeFolderName, "active/foo/1.1.1.html"), Times.Once);
+                fileStorageSvc.Verify(f => f.GetFileAsync(Constants.PackagesReadMeFolderName, "active/foo/1.1.1.md"), Times.Once);
             }
         }
 

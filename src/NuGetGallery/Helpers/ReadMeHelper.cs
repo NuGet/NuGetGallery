@@ -13,7 +13,7 @@ namespace NuGetGallery.Helpers
         private const string TypeUrl = "Url";
         private const string TypeFile = "File";
         private const string TypeWritten = "Written";
-        private const string UriHostRequirement = "https://raw.githubusercontent.com";
+        private const string UriHostRequirement = "raw.githubusercontent.com";
         private const int UrlTimeout = 10000;
         private const int MaxFileSize = 40000;
 
@@ -44,7 +44,7 @@ namespace NuGetGallery.Helpers
         /// <returns>A string containing the HTML version of the markdown</returns>
         private static string ConvertMarkDownToHtml(string readMe)
         {
-            return CommonMark.CommonMarkConverter.Convert(readMe);
+            return CommonMark.CommonMarkConverter.Convert(readMe).Trim();
         }
 
         /// <summary>

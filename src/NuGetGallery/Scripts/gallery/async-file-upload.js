@@ -310,7 +310,7 @@ var AsyncFileUploadManager = new function () {
         $("#verify-collapser-container").removeClass("hidden");
         $("#readme-collapser-container").removeClass("hidden");
         $("#submit-collapser-container").removeClass("hidden");
-        
+
         window.nuget.configureExpander(
             "verify-package-form",
             "ChevronRight",

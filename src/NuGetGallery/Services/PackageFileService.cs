@@ -65,17 +65,14 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="package">The package to which this readme belongs.</param>
         /// <param name="readMe">The stream representing the readme's data.</param>
-        public Task SaveReadMeFileAsync(Package package, Stream readMe, string fileExtension)
+        public Task SaveReadMeFileAsync(Package package, Stream readMe)
         {
             if (readMe == null)
             {
                 throw new ArgumentNullException(nameof(readMe));
             }
-            if (string.IsNullOrEmpty(fileExtension))
-            {
-                throw new ArgumentException(nameof(fileExtension));
-            }
-            var fileName = BuildFileName(package, Constants.ReadMeFileSavePathTemplatePending, fileExtension);
+
+            var fileName = BuildFileName(package, Constants.ReadMeFileSavePathTemplatePending, Constants.MarkdownFileExtension);
             return _fileStorageService.SaveFileAsync(Constants.PackagesReadMeFolderName, fileName, readMe, overwrite:false);
         }
 
@@ -109,15 +106,16 @@ namespace NuGetGallery
             return (await _fileStorageService.GetFileAsync(Constants.PackagesFolderName, fileName));
         }
         
-        public Task<Stream> DownloadReadmeFileAsync(Package package, string extension)
+        public Task<Stream> DownloadReadmeFileAsync(Package package)
         {
             if (package == null)
             {
                 throw new ArgumentNullException("Package cannot be null!");
             }
-            var fileName = BuildFileName(package, Constants.ReadMeFileSavePathTemplateActive, extension);
+            var fileName = BuildFileName(package, Constants.ReadMeFileSavePathTemplateActive, Constants.MarkdownFileExtension);
             return  _fileStorageService.GetFileAsync(Constants.PackagesReadMeFolderName, fileName);
         }
+
         private static string BuildFileName(string id, string version, string pathTemplate, string extension)
         {
             if (id == null)
