@@ -309,4 +309,23 @@ $(function () {
     $(document).on('click', '.dropdown-menu', function (e) {
         e.stopPropagation();
     });
+
+    $(document).on('keydown', function (e) {
+        var code = (e.keyCode || e.which);
+        var isValidInputCharacter =
+            ((code >= 48 && code <= 57)           // numbers 0-9
+                || (code >= 64 && code <= 90)     // letters a-z
+                || (code >= 96 && code <= 111)    // numpad
+                || (code >= 186 && code <= 192)   // ; = , - . / `
+                || (code >= 219 && code <= 222))  // [\ ] '
+            && !e.altKey && !e.ctrlKey && !e.metaKey;
+
+        if (isValidInputCharacter && document.activeElement == document.body) {
+            var searchbox = $("#search");
+            searchbox.focus();
+            var currInput = searchbox.val();
+            searchbox.val("");
+            searchbox.val(currInput);
+        }
+    });
 });

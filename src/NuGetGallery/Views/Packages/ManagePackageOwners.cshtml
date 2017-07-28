@@ -11,7 +11,14 @@
     </form>
 
     <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
-        <h1 class="text-center">Manage Owners for Package <a href="@Url.Package(Model.Id)">@Model.Id</a></h1>
+        @Html.Partial("_PackageHeading", new PackageHeadingModel
+                   {
+                       PageHeading = "Manage Owners for Package",
+                       PackageDisplay = Model.Id,
+                       Id = Model.Id,
+                       Version = Model.Version,
+                       LinkIdOnly = true
+                   })
 
         <div style="display: none" id="manage-owners-alert" data-bind="visible: message">
             @ViewHelpers.AlertDanger(

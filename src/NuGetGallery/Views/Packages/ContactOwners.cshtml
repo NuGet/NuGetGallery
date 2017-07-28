@@ -9,7 +9,13 @@
 <section role="main" class="container main-container page-contact-owners">
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
-            <h1 class="text-center">Contact the Owners of <a href="@Url.Package(Model.PackageId)">@Model.PackageId.Abbreviate(50)</a></h1>
+            @Html.Partial("_PackageHeading", new PackageHeadingModel
+                   {
+                       PageHeading = "Contact the Owners of",
+                       PackageDisplay = Model.PackageId.Abbreviate(50),
+                       Id = Model.PackageId,
+                       LinkIdOnly = true
+                   })
             @if (Model.Owners.Any())
             {
                 @ViewHelpers.AlertInfo(
