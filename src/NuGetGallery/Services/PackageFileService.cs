@@ -73,7 +73,7 @@ namespace NuGetGallery
             }
 
             var fileName = BuildFileName(package, Constants.ReadMeFileSavePathTemplatePending, Constants.MarkdownFileExtension);
-            return _fileStorageService.SaveFileAsync(Constants.PackagesReadMeFolderName, fileName, readMe, overwrite:false);
+            return _fileStorageService.SaveFileAsync(Constants.PackageReadMesFolderName, fileName, readMe, overwrite:false);
         }
 
         public Task StorePackageFileInBackupLocationAsync(Package package, Stream packageFile)
@@ -113,7 +113,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException("Package cannot be null!");
             }
             var fileName = BuildFileName(package, Constants.ReadMeFileSavePathTemplateActive, Constants.MarkdownFileExtension);
-            return  _fileStorageService.GetFileAsync(Constants.PackagesReadMeFolderName, fileName);
+            return  _fileStorageService.GetFileAsync(Constants.PackageReadMesFolderName, fileName);
         }
 
         private static string BuildFileName(string id, string version, string pathTemplate, string extension)

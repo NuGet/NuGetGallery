@@ -460,7 +460,7 @@ namespace NuGetGallery
                     {
                         //Assert
                         Assert.Equal("<p>Hello World!</p>", await reader.ReadToEndAsync());
-                        fileStorageSvc.Verify(f => f.GetFileAsync(Constants.PackagesReadMeFolderName, "active/foo/1.1.1.md"), Times.Once);
+                        fileStorageSvc.Verify(f => f.GetFileAsync(Constants.PackageReadMesFolderName, "active/foo/1.1.1.md"), Times.Once);
                     }
                 }
             }
@@ -487,7 +487,7 @@ namespace NuGetGallery
 
                 //Assert
                 Assert.Null(result);
-                fileStorageSvc.Verify(f => f.GetFileAsync(Constants.PackagesReadMeFolderName, "active/foo/1.1.1.md"), Times.Once);
+                fileStorageSvc.Verify(f => f.GetFileAsync(Constants.PackageReadMesFolderName, "active/foo/1.1.1.md"), Times.Once);
             }
         }
 
