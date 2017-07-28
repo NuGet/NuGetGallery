@@ -74,17 +74,17 @@ namespace NuGetGallery
 
         private PackageEditReadMeState GetReadMeStateString()
         {
-            if (ReadMeStateInternal.Equals("changed", StringComparison.InvariantCultureIgnoreCase))
+            if (ReadMeStateInternal == null)
+            {
+                return PackageEditReadMeState.Unchanged;
+            }
+            else if (ReadMeStateInternal.Equals("changed", StringComparison.InvariantCultureIgnoreCase))
             {
                 return PackageEditReadMeState.Changed;
             }
             else if (ReadMeStateInternal.Equals("deleted", StringComparison.InvariantCultureIgnoreCase))
             {
                 return PackageEditReadMeState.Deleted;
-            }
-            else if (ReadMeStateInternal.Equals(null))
-            {
-                return PackageEditReadMeState.Unchanged;
             }
             else
             {
