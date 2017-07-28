@@ -23,5 +23,7 @@ namespace NuGetGallery
         IList<User> GetAllOwnersForNamespace(ReservedNamespace prefix);
 
         IList<ReservedNamespace> GetAllReservedNamespacesForUser(User user);
+
+        IList<PackageRegistration> GetAllPackagesForNamespace(ReservedNamespace prefix);
     }
 }

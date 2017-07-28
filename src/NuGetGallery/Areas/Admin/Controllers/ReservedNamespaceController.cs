@@ -68,7 +68,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Console.WriteLine("Issue in Add Prefix: " + ex.Message);
                 return Json(new { success = false });
             }
         }
