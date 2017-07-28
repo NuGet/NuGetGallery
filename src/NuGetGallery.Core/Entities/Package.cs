@@ -127,7 +127,23 @@ namespace NuGetGallery
         /// <summary>
         /// Signifies whether or not ReadMe exists (optimization for pulling from blob storage)
         /// </summary>
-        public bool? HasReadMe { get; set; }
+        [Column("HasReadMe")]
+        public bool? HasReadMeInternal { get; set; }
+
+        /// <summary>
+        /// Signifies whether or not the ReadMe exists by treating falses as nulls to avoid updating existing rows in the DB
+        /// </summary>
+        [NotMapped]
+        public bool HasReadMe {
+            get
+            {
+                return HasReadMeInternal ?? false;
+            }
+            set
+            {
+                HasReadMeInternal = value ? (bool?)true : null; 
+            }
+        }
 
         public bool RequiresLicenseAcceptance { get; set; }
 
