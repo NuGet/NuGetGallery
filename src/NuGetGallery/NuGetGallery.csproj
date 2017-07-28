@@ -784,9 +784,6 @@
     <Compile Include="Migrations\201706262349176_AddRepositoryURL_ReadMe.cs" />
     <Compile Include="Migrations\201706262349176_AddRepositoryURL_ReadMe.Designer.cs">
       <DependentUpon>201706262349176_AddRepositoryURL_ReadMe.cs</DependentUpon>
-    <Compile Include="Migrations\201706221634506_AddRepositoryURL_ReadMe.cs" />
-    <Compile Include="Migrations\201706221634506_AddRepositoryURL_ReadMe.Designer.cs">
-      <DependentUpon>201706221634506_AddRepositoryURL_ReadMe.cs</DependentUpon>
     </Compile>
     <Compile Include="RequestModels\ReadMeRequest.cs" />
     <Compile Include="Security\RequireSecurePushForCoOwnersPolicy.cs" />
@@ -1781,8 +1778,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201706262349176_AddRepositoryURL_ReadMe.resx">
       <DependentUpon>201706262349176_AddRepositoryURL_ReadMe.cs</DependentUpon>
-    <EmbeddedResource Include="Migrations\201706221634506_AddRepositoryURL_ReadMe.resx">
-      <DependentUpon>201706221634506_AddRepositoryURL_ReadMe.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
