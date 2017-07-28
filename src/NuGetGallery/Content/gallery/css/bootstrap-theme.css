@@ -233,12 +233,19 @@ img.package-icon {
     border-left-style: solid;
   }
 }
+.package-title-text {
+  margin-bottom: 0;
+}
 .icon-bar {
   border: 1px solid #fff;
 }
 .disabled {
   pointer-events: none;
   opacity: .75;
+}
+.radio .label-sibling,
+.checkbox .label-sibling {
+  margin-left: 20px;
 }
 #edit-metadata-form-container .loading:after {
   display: inline-block;
@@ -297,6 +304,12 @@ img.package-icon {
   svg text {
     fill: WindowText;
   }
+  .popover .arrow {
+    display: none;
+  }
+  .dropdown-menu .divider {
+    border-bottom: 1px solid windowText;
+  }
 }
 .list-packages {
   border-top: 1px solid #dbdbdb;
@@ -346,6 +359,15 @@ img.package-icon {
   float: right;
   margin-top: 75px;
   margin-bottom: 0;
+}
+.user-package-list .manage-package-listing .package-icon {
+  max-height: 2em;
+}
+.user-package-list .manage-package-listing .align-middle {
+  vertical-align: middle;
+}
+.user-package-list .table {
+  border-bottom: 1px solid #ddd;
 }
 .page-about .contributors .contributor {
   padding: 5px;
@@ -544,6 +566,8 @@ img.package-icon {
 }
 .page-package-details .package-title {
   margin-bottom: 24px;
+  word-break: break-all;
+  word-break: break-word;
 }
 .page-package-details .package-title div {
   margin-top: 2px;
@@ -586,6 +610,12 @@ img.package-icon {
   color: #fff;
   background-color: #002440;
   border: 0;
+}
+@media screen and (-ms-high-contrast: active) {
+  .page-package-details .install-tabs .nav-tabs > li.active > a {
+    font-weight: 600;
+    text-decoration: underline;
+  }
 }
 .page-package-details .install-tabs .tab-pane > div {
   display: table;
@@ -818,9 +848,6 @@ img.package-icon {
 }
 .page-profile .profile-details .statistics .statistic .description {
   font-size: 24px;
-}
-.page-report-abuse .report-form {
-  margin-top: 40px;
 }
 .page-report-abuse .report-form #alreadycontactedowner-label {
   display: inline;

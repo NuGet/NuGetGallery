@@ -1,9 +1,10 @@
 ﻿@model CreateCuratedPackageRequest
 @{
+    ViewBag.Title = "Include Package in " + ViewBag.CuratedFeedName;
     ViewBag.MdPageColumns = Constants.ColumnsFormMd;
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
-<section class="main-container container">
+<section role="main" class="container main-container">
     <div class="row">
         <div class="col-md-12">
             <h1 class="text-center">Include Package in <a href="@Url.CuratedPackageList(0, "", (string)ViewBag.CuratedFeedName)" class="ms-noWrap">@ViewBag.CuratedFeedName</a></h1>

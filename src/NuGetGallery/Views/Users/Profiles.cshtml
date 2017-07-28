@@ -5,7 +5,7 @@
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
-<div class="container main-container page-profile">
+<section role="main" class="container main-container page-profile">
     <section role="main" class="row">
         <aside class="col-md-3 col-md-push-9 profile-details">
             @ViewHelpers.GravatarImage(Model.EmailAddress ?? Model.UnconfirmedEmailAddress, Model.Username, 332, responsive: true)
@@ -44,4 +44,4 @@
             @ViewHelpers.PreviousNextPager(Model.Pager)
         </article>
     </section>
-</div>
+</section>
