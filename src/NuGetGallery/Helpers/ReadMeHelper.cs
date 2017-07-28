@@ -4,18 +4,21 @@
 using System;
 using System.IO;
 using System.Net;
+using CommonMark;
+using Ganss.XSS;
 
 namespace NuGetGallery.Helpers
 {
     internal static class ReadMeHelper
     {
-
         private const string TypeUrl = "Url";
         private const string TypeFile = "File";
         private const string TypeWritten = "Written";
         private const string UriHostRequirement = "raw.githubusercontent.com";
         private const int UrlTimeout = 10000;
         private const int MaxFileSize = 40000;
+
+        private static Lazy<HtmlSanitizer> Sanitizer = new Lazy<HtmlSanitizer>(() => new HtmlSanitizer());
 
         /// <summary>
         /// Returns if posted package form contains a ReadMe.
@@ -44,7 +47,8 @@ namespace NuGetGallery.Helpers
         /// <returns>A string containing the HTML version of the markdown</returns>
         private static string ConvertMarkDownToHtml(string readMe)
         {
-            return CommonMark.CommonMarkConverter.Convert(readMe).Trim();
+            var html = CommonMarkConverter.Convert(readMe).Trim();
+            return Sanitizer.Value.Sanitize(html);
         }
 
         /// <summary>
