@@ -459,10 +459,10 @@ namespace NuGetGallery
             [Fact]
             public async Task GivenAValidPackageWithReadMeItDisplaysReadMe()
             {
-                //Arrange
+                // Arrange
                 var readMeStream = new MemoryStream(Encoding.UTF8.GetBytes("<p>Hello World!</p>"));
                 
-                //Act
+                // Act
                 var result = await GetDisplayPackageResultWithReadMeStream(readMeStream, true);
 
                 // Assert
@@ -473,10 +473,10 @@ namespace NuGetGallery
             [Fact]
             public async Task GivenAPackageWithReadMeHandlesFailedDownload()
             {
-                //Arrange and Act
+                // Arrange & Act
                 var result = await GetDisplayPackageResultWithReadMeStream((Stream)null, true);
 
-                //Assert
+                // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Null(model.ReadMeHtml);
             }
@@ -487,7 +487,7 @@ namespace NuGetGallery
                 // Arrange and Act
                 var result = await GetDisplayPackageResultWithReadMeStream((Stream)null, false);
 
-                //Assert
+                // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Null(model.ReadMeHtml);
             }
@@ -1899,7 +1899,7 @@ namespace NuGetGallery
                     var fakeEditPackageService = new Mock<EditPackageService>();
 
                     var fakePackageFileService = new Mock<IPackageFileService>();
-                    fakePackageFileService.Setup(x => x.SaveReadMeFileAsync(fakePackage, It.IsAny<Stream>(), It.IsAny<String>())).Returns(Task.CompletedTask);
+                    fakePackageFileService.Setup(x => x.SaveReadMeFileAsync(fakePackage, It.IsAny<Stream>())).Returns(Task.CompletedTask);
 
                     var controller = CreateController(packageService: packageService, editPackageService: fakeEditPackageService, uploadFileService: fakeUploadFileService, packageFileService: fakePackageFileService);
                     controller.SetCurrentUser(TestUtility.FakeUser);
@@ -1909,7 +1909,7 @@ namespace NuGetGallery
 
                     // Assert 
                     fakeEditPackageService.Verify(x => x.StartEditPackageRequest(fakePackage, edit, TestUtility.FakeUser), Times.Once);
-                    fakePackageFileService.Verify(x => x.SaveReadMeFileAsync(fakePackage, It.IsAny<Stream>(), It.IsAny<String>()), Times.Never);
+                    fakePackageFileService.Verify(x => x.SaveReadMeFileAsync(fakePackage, It.IsAny<Stream>()), Times.Never);
                 }
             }
         }
@@ -1952,7 +1952,7 @@ namespace NuGetGallery
                 var fakeEditPackageService = new Mock<EditPackageService>();
 
                 var fakePackageFileService = new Mock<IPackageFileService>();
-                fakePackageFileService.Setup(x => x.SaveReadMeFileAsync(fakePackage, It.IsAny<Stream>(), It.IsAny<String>())).Returns(Task.CompletedTask);
+                fakePackageFileService.Setup(x => x.SaveReadMeFileAsync(fakePackage, It.IsAny<Stream>())).Returns(Task.CompletedTask);
                 
                 var controller = CreateController(packageService: packageService, editPackageService: fakeEditPackageService, uploadFileService: fakeUploadFileService, packageFileService: fakePackageFileService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
@@ -1968,9 +1968,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal(PackageEditReadMeState.Changed, fakeVerifyPackageRequest.ReadMe.ReadMeState);
-                fakePackageFileService.Verify(x => x.SaveReadMeFileAsync(fakePackage, It.IsAny<Stream>(), It.IsAny<String>()), Times.Exactly(2));
-                fakePackageFileService.Verify(x => x.SaveReadMeFileAsync(fakePackage, It.IsAny<Stream>(), Constants.HtmlFileExtension), Times.Once);
-                fakePackageFileService.Verify(x => x.SaveReadMeFileAsync(fakePackage, It.IsAny<Stream>(), Constants.MarkdownFileExtension), Times.Once);
+                fakePackageFileService.Verify(x => x.SaveReadMeFileAsync(fakePackage, It.IsAny<Stream>()), Times.Once);
                 fakeEditPackageService.Verify(x => x.StartEditPackageRequest(fakePackage, edit, TestUtility.FakeUser), Times.Once);
             }
         }
@@ -2092,7 +2090,7 @@ namespace NuGetGallery
 
             if (hasReadMe)
             {
-                fileService.Setup(f => f.DownloadReadmeFileAsync(It.IsAny<Package>(), It.IsAny<string>())).Returns(Task.FromResult(readMeHtmlStream));
+                fileService.Setup(f => f.DownloadReadmeFileAsync(It.IsAny<Package>())).Returns(Task.FromResult(readMeHtmlStream));
             }
 
             return await controller.DisplayPackage("Foo", /*version*/null);

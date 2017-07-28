@@ -423,14 +423,17 @@ namespace NuGetGallery
 
             if (package.HasReadMe)
             {
-                using (var readmeStream = await _packageFileService.DownloadReadmeFileAsync(package, Constants.HtmlFileExtension))
+                using (var readMeMdStream = await _packageFileService.DownloadReadmeFileAsync(package))
                 {
-                    if (readmeStream != null)
+                    if (readMeMdStream != null)
                     {
-                        // Reads the README file and push to the view
-                        using (var reader = new StreamReader(readmeStream, Encoding.UTF8))
+                        using (var readMeHTMLStream = ReadMeHelper.GetReadMeHtmlStream(readMeMdStream))
                         {
-                            model.ReadMeHtml = await reader.ReadToEndAsync();
+                            // Reads the README file and push to the view
+                            using (var reader = new StreamReader(readMeHTMLStream, Encoding.UTF8))
+                            {
+                                model.ReadMeHtml = await reader.ReadToEndAsync();
+                            }
                         }
                     }
                     else if (User.IsInRole(Constants.AdminRoleName) || package.IsOwner(User))
@@ -1360,15 +1363,7 @@ namespace NuGetGallery
                         {
                             using (var readMeInputStream = ReadMeHelper.GetReadMeMarkdownStream(formData.ReadMe).AsSeekableStream())
                             {
-                                // Saves ReadMe in HTML
-                                using (var readMeHTMLStream = ReadMeHelper.GetReadMeHtmlStream(readMeInputStream))
-                                {
-                                    await _packageFileService.SaveReadMeFileAsync(package, readMeHTMLStream, Constants.HtmlFileExtension);
-                                }
-                                readMeInputStream.Position = 0;
-
-                                // Saves ReadMe in markdown
-                                await _packageFileService.SaveReadMeFileAsync(package, readMeInputStream, Constants.MarkdownFileExtension);
+                                await _packageFileService.SaveReadMeFileAsync(package, readMeInputStream);
                             }
                         }
                         catch (Exception ex) when (
