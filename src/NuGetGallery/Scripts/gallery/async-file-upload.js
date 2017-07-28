@@ -460,6 +460,153 @@ var AsyncFileUploadManager = new function () {
             return "";
         }
     }
+        window.nuget.configureExpander(
+            "verify-package-form",
+            "ChevronRight",
+            "Verify",
+            "ChevronDown",
+            "Verify");
+        window.nuget.configureExpander(
+            "readme-package-form",
+            "ChevronRight",
+            "Import ReadMe",
+            "ChevronDown",
+            "Import ReadMe");
+        window.nuget.configureExpander(
+            "submit-package-form",
+            "ChevronRight",
+            "Submit",
+            "ChevronDown",
+            "Submit");
+
+        $(".readme-file").hide();
+        $(".readme-write").hide();
+        $(".markdown-popover").popover({
+            trigger: 'click focus',
+            html: true,
+            placement: 'bottom',
+            content: "# Heading<br />## Sub-heading<br />Paragraphs are separated by a blank line.<br />--- Horizontal Rule<br />* Bullet List<br />1. Numbered List<br />A [link](http://www.example.com)<br />`Code Snippet`<br />_italic_ *italic*<br />__bold__ **bold** "
+        });
+
+        $(".readme-btn-group").change(changeReadMeFormTab);
+
+        $("#repositoryurl-field").blur(function () {
+            if (!$("#ReadMeUrlInput").val()) {
+                $("#ReadMeUrlInput").val(fillReadMeUrl($("#repositoryurl-field").val()));
+            }
+        });
+
+        $("#ReadMeUrlInput").on("change blur", function () {
+            clearReadMeError();
+        });
+
+        $('#readme-select-feedback').on('click', function () {
+            $('#readme-select-file').click();
+        });
+
+        $('#readme-select-file').on('change', function () {
+            clearErrors();
+            clearReadMeError();
+            displayReadMeEditMarkdown();
+            var fileName = $('#readme-select-file').val().split("\\").pop();
+            if (fileName.length > 0 && validateReadMeFileName(fileName)) {
+                $('#readme-select-feedback').attr('placeholder', fileName);
+                clearReadMeError();
+            } else if (fileName.length > 0) {
+                $('#readme-select-feedback').attr('placeholder', 'Browse to select a package file...');
+                displayReadMeError("Please enter a markdown file with one of the following extensions: '.md', '.mkdn', '.mkd', '.mdown', '.markdown', '.txt' or '.text'.");
+            }
+            else {
+                $('#readme-select-feedback').attr('placeholder', 'Browse to select a package file...');
+                displayReadMeError("Please select a file.")
+            }
+        });
+
+        $("#readme-written").on("change", function () {
+            clearReadMeError();
+        })
+
+        $("#preview-readme-button").on('click', function () {
+            previewReadMeAsync();
+        });
+
+        $("#edit-markdown-button").on('click', function () {
+            displayReadMeEditMarkdown();
+        });
+    }
+
+    function displayReadMePreview(response) {
+        $("#readme-preview-contents").html(response);
+        $("#readme-preview").removeClass("hidden");
+        $(".readme-write").addClass("hidden");
+        $(".readme-file").addClass("hidden");
+        $(".readme-url").addClass("hidden");
+        $("#edit-markdown").removeClass("hidden");
+        $("#preview-html").addClass("hidden");
+        clearReadMeError();
+    }
+
+    function displayReadMeEditMarkdown() {
+        $("#readme-preview-contents").html("");
+        $("#readme-preview").addClass("hidden");
+        $(".readme-write").removeClass("hidden");
+        $(".readme-file").removeClass("hidden");
+        $(".readme-url").removeClass("hidden");
+        $("#edit-markdown").addClass("hidden");
+        $("#preview-html").removeClass("hidden");
+    }
+
+    function displayReadMeError(errorMsg) {
+        $("#readme-errors").removeClass("hidden");
+        $("#preview-readme-button").attr("disabled", "disabled");
+        $("#readme-error-content").text(errorMsg);
+    }
+
+    function clearReadMeError() {
+        if (!$("#readme-errors").hasClass("hidden")) {
+            $("#readme-errors").addClass("hidden");
+            $("#readme-error-content").text("");
+        }
+        $("#preview-readme-button").removeAttr("disabled");
+    }
+
+    function changeReadMeFormTab() {
+        if ($("#readme-url-btn").hasClass("active")) {
+            $(".readme-url").show();
+            $(".readme-file").hide();
+            $(".readme-write").hide();
+        } else if ($("#readme-file-btn").hasClass("active")) {
+            $(".readme-url").hide();
+            $(".readme-file").show();
+            $(".readme-write").hide();
+        } else if ($("#readme-write-btn").hasClass("active")) {
+            $(".readme-url").hide();
+            $(".readme-file").hide();
+            $(".readme-write").show();
+        }
+        clearReadMeError();
+    }
+
+    function validateReadMeFileName(fileName) {
+        var markdownExtensions = ["md", "mkdn", "mkd", "mdown", "markdown", "txt", "text"];
+        return markdownExtensions.includes(fileName.split('.').pop());
+    }
+
+    function fillReadMeUrl(repositoryUrl) {
+        var readMeUrl;
+
+        if (!repositoryUrl.endsWith("/")) {
+            repositoryUrl += "/";
+        }
+
+        var githubRegex = /^((https?:\/\/)([a-zA-Z0-9]+\.)?github\.com\/)([a-zA-Z0-9])+\/([a-zA-Z0-9])+(\/)?$/;
+        if (githubRegex.test(repositoryUrl)) {
+            readMeUrl = repositoryUrl.replace(githubRegex.exec(repositoryUrl)[1], "https://raw.githubusercontent.com/")
+            return readMeUrl + "master/README.md";
+        } else {
+            return "";
+        }
+    }
 
     function navigateToPage(verifyResponse) {
         document.location = verifyResponse.location;
