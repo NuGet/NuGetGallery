@@ -68,6 +68,7 @@
 
 @section BottomScripts {
     @Scripts.Render("~/Scripts/jquery-ui-1.10.3.js")
+    @Scripts.Render("~/Scripts/gallery/bootstrap.js")
     @Scripts.Render("~/Scripts/gallery/page-edit.js")
     <script>
         $(function () {
@@ -75,7 +76,10 @@
         var realModel = {
             "Id": '@Model.PackageId',
             "Version": '@Model.Version',
-            "Edit": viewModel
+            "Edit": viewModel,
+            "ReadMe": {
+                "ReadMeWritten": '@HttpUtility.JavaScriptStringEncode(Model.ReadMe.ReadMeWritten)'
+            }
         };
         EditViewManager.init(realModel,
             '@Url.EditPackage(Model.PackageId, Model.Version)',
