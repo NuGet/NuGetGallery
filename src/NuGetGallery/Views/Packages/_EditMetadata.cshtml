@@ -41,11 +41,9 @@
     </div>
 </script>
 
-<script type="text/html" id="edit-metadata-template">
-    <div class="collapse in" id="edit-metadata-form-container">
+<script type="text/html" id="verify-metadata-template">
+    <div class="collapse in">
         <div data-bind="if: $data">
-            <form id="edit-metadata-form">
-                @Html.AntiForgeryToken()
 
                 <div class="verify-package-field form-group readonly">
                     <label for="Id" class="verify-package-field-heading">Package ID</label>
@@ -117,6 +115,11 @@
                 <div class="verify-package-field form-group editable">
                     <label for="projecturl-field" class="verify-package-field-heading">Project URL</label>
                     <input data-bind="value: Edit.ProjectUrl" type="text" class="form-control" name="Edit.ProjectUrl" id="projecturl-field" />
+                </div>
+
+                <div class="verify-package-field form-group editable">
+                    <div class="verify-package-field-heading">Repository URL</div>
+                    <input data-bind="value: Edit.RepositoryUrl" type="text" class="form-control" name="Edit.RepositoryUrl" id="repositoryurl-field" />
                 </div>
 
                 <div class="verify-package-field form-group editable">

@@ -173,6 +173,7 @@
     <Compile Include="Entities\PackageAuthor.cs" />
     <Compile Include="Entities\PackageDependency.cs" />
     <Compile Include="Entities\PackageEdit.cs" />
+    <Compile Include="Entities\PackageEditReadMeState.cs" />
     <Compile Include="Entities\PackageFramework.cs" />
     <Compile Include="Entities\PackageHistory.cs" />
     <Compile Include="Entities\PackageLicense.cs" />

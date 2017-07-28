@@ -57,20 +57,7 @@
                 </div>
             }
 
-            <div id="verify-collapser-container" class="hidden">
-                <h2>
-                    <a href="#" role="button" data-toggle="collapse" data-target="#edit-metadata-form-container"
-                       aria-expanded="true" aria-controls="edit-metadata-form-container" id="show-edit-metadata-form-container">
-                        <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
-                        <span>Verify</span>
-                    </a>
-                </h2>
-            </div>
-
-            <div id="verify-package-container">
-            </div>
-
-            @Html.Partial("_EditMetadata")
+            @Html.Partial("_EditForm")
         </div>
     </div>
 </section>
@@ -81,7 +68,13 @@
     <script type="text/javascript" src="@Url.Content("~/Scripts/gallery/async-file-upload.js")"></script>
     <script type="text/javascript">
         var InProgressPackage = @Html.Raw(Json.Encode(Model.InProgressUpload));
-        window.nuget.configureExpanderHeading("upload-package-form");
+        window.nuget.configureExpander(
+            "upload-package-form",
+            "ChevronRight",
+            "Upload",
+            "ChevronDown",
+            "Upload");
+        
         $(function () {
             $("#browse-for-package-button").on("keypress", function (e) {
                 var code = (e.keyCode || e.which);
