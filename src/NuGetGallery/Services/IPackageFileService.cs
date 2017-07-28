@@ -45,5 +45,10 @@ namespace NuGetGallery
         ///     Downloads the package from the file storage and reads it into a Stream asynchronously.
         /// </summary>
         Task<Stream> DownloadPackageFileAsync(Package packge);
+
+        /// <summary>
+        ///     Downloads the README from the file storage and reads it into a Stream asynchronously.
+        /// </summary>
+        Task<Stream> DownloadReadmeFileAsync(Package package, string extension);
     }
 }

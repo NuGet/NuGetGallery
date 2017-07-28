@@ -145,6 +145,7 @@ namespace NuGetGallery
             switch (folderName)
             {
                 case Constants.PackagesFolderName:
+                case Constants.PackagesReadMeFolderName:
                 case Constants.PackageBackupsFolderName:
                 case Constants.DownloadsFolderName:
                     creationTask = PrepareContainer(folderName, isPublic: true);

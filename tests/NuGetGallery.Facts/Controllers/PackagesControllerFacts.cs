@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Mail;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
@@ -452,6 +453,43 @@ namespace NuGetGallery
                 Assert.Equal("Foo", model.Id);
                 Assert.Equal("1.1.1", model.Version);
                 Assert.Equal("A test package!", model.Title);
+                Assert.Null(model.ReadMeHtml);
+            }
+
+            [Fact]
+            public async Task GivenAValidPackageWithReadMeItDisplaysReadMe()
+            {
+                //Arrange
+                var readMeStream = new MemoryStream(Encoding.UTF8.GetBytes("<p>Hello World!</p>"));
+                
+                //Act
+                var result = await GetDisplayPackageResultWithReadMeStream(readMeStream, true);
+
+                // Assert
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                Assert.Equal("<p>Hello World!</p>", model.ReadMeHtml);
+            }
+
+            [Fact]
+            public async Task GivenAPackageWithReadMeHandlesFailedDownload()
+            {
+                //Arrange and Act
+                var result = await GetDisplayPackageResultWithReadMeStream((Stream)null, true);
+
+                //Assert
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                Assert.Null(model.ReadMeHtml);
+            }
+
+            [Fact]
+            public async Task GivenAPackageWithNoReadMeShowsThatReadMeIsEmpty()
+            {
+                // Arrange and Act
+                var result = await GetDisplayPackageResultWithReadMeStream((Stream)null, false);
+
+                //Assert
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                Assert.Null(model.ReadMeHtml);
             }
         }
 
@@ -2057,6 +2095,41 @@ namespace NuGetGallery
                 Assert.IsType<RedirectResult>(result);
                 Assert.Equal(@"~\Bar.cshtml", ((RedirectResult)result).Url);
             }
+        }
+
+        private static async Task<ActionResult> GetDisplayPackageResultWithReadMeStream(Stream readMeHtmlStream, bool hasReadMe)
+        {
+            var packageService = new Mock<IPackageService>();
+            var indexingService = new Mock<IIndexingService>();
+            var fileService = new Mock<IPackageFileService>();
+            var controller = CreateController(
+                packageService: packageService, indexingService: indexingService, packageFileService: fileService);
+            controller.SetCurrentUser(TestUtility.FakeUser);
+
+            var package = new Package()
+            {
+                PackageRegistration = new PackageRegistration()
+                {
+                    Id = "Foo",
+                    Owners = new List<User>()
+                },
+                Version = "01.1.01",
+                NormalizedVersion = "1.1.1",
+                Title = "A test package!",
+                HasReadMe = hasReadMe
+            };
+
+            packageService.Setup(p => p.FindPackageByIdAndVersion(It.Is<string>(s => s == "Foo"), It.Is<string>(s => s == null), It.Is<int>(i => i == SemVerLevelKey.SemVer2), It.Is<bool>(b => b == true)))
+                .Returns(package);
+
+            indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
+
+            if (hasReadMe)
+            {
+                fileService.Setup(f => f.DownloadReadmeFileAsync(It.IsAny<Package>(), It.IsAny<string>())).Returns(Task.FromResult(readMeHtmlStream));
+            }
+
+            return await controller.DisplayPackage("Foo", /*version*/null);
         }
     }
 }
