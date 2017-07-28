@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
@@ -59,7 +60,7 @@ namespace NuGetGallery
             {
                 var fileStorageSvc = new Mock<IFileStorageService>();
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
-                fileStorageSvc.Setup(x => x.DeleteFileAsync(It.IsAny<string>(), BuildFileName("theId", "theVersion")))
+                fileStorageSvc.Setup(x => x.DeleteFileAsync(It.IsAny<string>(), BuildFileName("theId", "theVersion", Constants.NuGetPackageFileExtension, Constants.PackageFileSavePathTemplate)))
                     .Completes()
                     .Verifiable();
 
@@ -138,7 +139,7 @@ namespace NuGetGallery
             {
                 var fileStorageSvc = new Mock<IFileStorageService>();
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
-                fileStorageSvc.Setup(x => x.CreateDownloadFileActionResultAsync(new Uri("http://fake"), It.IsAny<string>(), BuildFileName("theId", "theNormalizedVersion")))
+                fileStorageSvc.Setup(x => x.CreateDownloadFileActionResultAsync(new Uri("http://fake"), It.IsAny<string>(), BuildFileName("theId", "theNormalizedVersion", Constants.NuGetPackageFileExtension, Constants.PackageFileSavePathTemplate)))
                     .CompletesWithNull()
                     .Verifiable();
 
@@ -154,7 +155,7 @@ namespace NuGetGallery
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
                 var packageRegistraion = new PackageRegistration { Id = "theId" };
                 var package = new Package { PackageRegistration = packageRegistraion, NormalizedVersion = null, Version = "01.01.01" };
-                fileStorageSvc.Setup(x => x.CreateDownloadFileActionResultAsync(new Uri("http://fake"), It.IsAny<string>(), BuildFileName("theId", "1.1.1")))
+                fileStorageSvc.Setup(x => x.CreateDownloadFileActionResultAsync(new Uri("http://fake"), It.IsAny<string>(), BuildFileName("theId", "1.1.1",Constants.NuGetPackageFileExtension, Constants.PackageFileSavePathTemplate)))
                     .CompletesWithNull()
                     .Verifiable();
 
@@ -246,7 +247,7 @@ namespace NuGetGallery
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
                 var packageRegistraion = new PackageRegistration { Id = "theId" };
                 var package = new Package { PackageRegistration = packageRegistraion, NormalizedVersion = null, Version = "01.01.01" };
-                fileStorageSvc.Setup(x => x.SaveFileAsync(It.IsAny<string>(), BuildFileName("theId", "1.1.1"), It.IsAny<Stream>(), It.Is<bool>(b => !b)))
+                fileStorageSvc.Setup(x => x.SaveFileAsync(It.IsAny<string>(), BuildFileName("theId", "1.1.1",Constants.NuGetPackageFileExtension, Constants.PackageFileSavePathTemplate), It.IsAny<Stream>(), It.Is<bool>(b => !b)))
                     .Completes()
                     .Verifiable();
 
@@ -274,7 +275,7 @@ namespace NuGetGallery
             {
                 var fileStorageSvc = new Mock<IFileStorageService>();
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
-                fileStorageSvc.Setup(x => x.SaveFileAsync(It.IsAny<string>(), BuildFileName("theId", "theNormalizedVersion"), It.IsAny<Stream>(), It.Is<bool>(b => !b)))
+                fileStorageSvc.Setup(x => x.SaveFileAsync(It.IsAny<string>(), BuildFileName("theId", "theNormalizedVersion", Constants.NuGetPackageFileExtension, Constants.PackageFileSavePathTemplate), It.IsAny<Stream>(), It.Is<bool>(b => !b)))
                     .Completes()
                     .Verifiable();
 
@@ -432,15 +433,73 @@ namespace NuGetGallery
             }
         }
 
+        public class TheDownloadReadMeFileAsyncMethod
+        {
+            [Fact]
+            public async Task WillDownloadReadMeAsync()
+            {
+                using (var stream = new MemoryStream(Encoding.UTF8.GetBytes("<p>Hello World!</p>")))
+                {
+                    //Arrange
+                    var fileStorageSvc = new Mock<IFileStorageService>();
+                    var service = CreateService(fileStorageSvc: fileStorageSvc);
+
+                    var package = new Package()
+                    {
+                        PackageRegistration = new PackageRegistration()
+                        {
+                            Id = "Foo",
+                        },
+                        Version = "01.1.01",
+                    };
+                    fileStorageSvc.Setup(f => f.GetFileAsync(It.IsAny<string>(), It.IsAny<string>())).Returns(Task.FromResult((Stream)stream)).Verifiable();
+
+                    //Act
+                    var result = await service.DownloadReadmeFileAsync(package, Constants.HtmlFileExtension);
+                    using (var reader = new StreamReader(result))
+                    {
+                        //Assert
+                        Assert.Equal("<p>Hello World!</p>", await reader.ReadToEndAsync());
+                        fileStorageSvc.Verify(f => f.GetFileAsync(Constants.PackagesReadMeFolderName, "active/foo/1.1.1.html"), Times.Once);
+                    }
+                }
+            }
+
+            [Fact]
+            public async Task FailedDownloadOfReadMeResultsInNullValue()
+            {
+                //Arrange
+                var fileStorageSvc = new Mock<IFileStorageService>();
+                var service = CreateService(fileStorageSvc: fileStorageSvc);
+
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = "Foo",
+                    },
+                    Version = "01.1.01",
+                };
+                fileStorageSvc.Setup(f => f.GetFileAsync(It.IsAny<string>(), It.IsAny<string>())).Returns(Task.FromResult((Stream)null)).Verifiable();
+
+                //Act
+                var result = await service.DownloadReadmeFileAsync(package, Constants.HtmlFileExtension);
+
+                //Assert
+                Assert.Null(result);
+                fileStorageSvc.Verify(f => f.GetFileAsync(Constants.PackagesReadMeFolderName, "active/foo/1.1.1.html"), Times.Once);
+            }
+        }
+
         static string BuildFileName(
             string id,
-            string version)
+            string version, string extension, string path)
         {
             return string.Format(
-                Constants.PackageFileSavePathTemplate,
+                path,
                 id.ToLowerInvariant(),
                 NuGetVersionFormatter.Normalize(version).ToLowerInvariant(), // No matter what ends up getting passed in, the version should be normalized
-                Constants.NuGetPackageFileExtension);
+                extension);
         }
 
         private static string BuildBackupFileName(string id, string version, string hash)
