@@ -410,6 +410,7 @@
     <Compile Include="Controllers\UsersControllerFacts.cs" />
     <Compile Include="Framework\TestGalleryConfigurationService.cs" />
     <Compile Include="Helpers\HtmlExtensionsFacts.cs" />
+    <Compile Include="Helpers\ReadMeHelperFacts.cs" />
     <Compile Include="Infrastructure\UserAuditRecordFacts.cs" />
     <Compile Include="OData\Filter\ODataFilterFacts.cs" />
     <Compile Include="OData\SearchService\SearchHijackerFacts.cs" />

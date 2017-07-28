@@ -209,7 +209,6 @@ namespace NuGetGallery
                     model.InProgressUpload = verifyRequest;
                 }
             }
-
             return View(model);
         }
 
@@ -1081,6 +1080,7 @@ namespace NuGetGallery
             {
                 try
                 {
+                    formData.Edit.ReadMeState = PackageEditReadMeState.Unchanged;
                     _editPackageService.StartEditPackageRequest(package, formData.Edit, user);
                     await _entitiesContext.SaveChangesAsync();
 
@@ -1316,13 +1316,15 @@ namespace NuGetGallery
                     }
                 }
 
-                bool pendEdit = false;
+                bool hasReadMe = ReadMeHelper.HasReadMe(formData.ReadMe);
+                bool pendEdit = hasReadMe;
                 if (formData.Edit != null)
                 {
                     pendEdit = pendEdit || formData.Edit.RequiresLicenseAcceptance != packageMetadata.RequireLicenseAcceptance;
 
                     pendEdit = pendEdit || IsDifferent(formData.Edit.IconUrl, packageMetadata.IconUrl.ToEncodedUrlStringOrNull());
                     pendEdit = pendEdit || IsDifferent(formData.Edit.ProjectUrl, packageMetadata.ProjectUrl.ToEncodedUrlStringOrNull());
+                    pendEdit = pendEdit || IsDifferent(formData.Edit.RepositoryUrl, packageMetadata.RepositoryUrl.ToEncodedUrlStringOrNull());
 
                     pendEdit = pendEdit || IsDifferent(formData.Edit.Authors, packageMetadata.Authors.Flatten());
                     pendEdit = pendEdit || IsDifferent(formData.Edit.Copyright, packageMetadata.Copyright);
@@ -1363,7 +1365,41 @@ namespace NuGetGallery
 
                 if (pendEdit)
                 {
+                    // Checks to see if a ReadMe file has been added and uploads ReadMe
                     // Add the edit request to a queue where it will be processed in the background.
+                    var readMeChanged = PackageEditReadMeState.Unchanged;
+
+                    if (hasReadMe)
+                    {
+                        readMeChanged = PackageEditReadMeState.Changed;
+                        try
+                        {
+                            using (var readMeInputStream = ReadMeHelper.GetReadMeMarkdownStream(formData.ReadMe).AsSeekableStream())
+                            {
+                                // Saves ReadMe in HTML
+                                using (var readMeHTMLStream = ReadMeHelper.GetReadMeHtmlStream(readMeInputStream))
+                                {
+                                    await _packageFileService.SaveReadMeFileAsync(package, readMeHTMLStream, Constants.HtmlFileExtension);
+                                }
+                                readMeInputStream.Position = 0;
+
+                                // Saves ReadMe in markdown
+                                await _packageFileService.SaveReadMeFileAsync(package, readMeInputStream, Constants.MarkdownFileExtension);
+                            }
+                        }
+                        catch (Exception ex) when (
+                            ex is InvalidOperationException
+                            || ex is ArgumentException
+                            || ex is ArgumentNullException
+                        )
+                        {
+                            TempData["Message"] = ex.Message;
+
+                            Response.StatusCode = 400;
+                            return Json(new string[] { ex.GetUserSafeMessage() });
+                        }
+                    }
+                    formData.ReadMe.ReadMeState = readMeChanged;
                     _editPackageService.StartEditPackageRequest(package, formData.Edit, currentUser);
                 }
 
@@ -1477,6 +1513,35 @@ namespace NuGetGallery
             await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
 
             return Json(null);
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual JsonResult PreviewReadMe(ReadMeRequest formData)
+        {
+            if (formData == null || !ReadMeHelper.HasReadMe(formData))
+            {
+                Response.StatusCode = 400;
+                return Json(new string[] { "There is no ReadMe available to preview." });
+            }
+            else
+            {
+                try
+                {
+                    Stream readMeHtmlStream = ReadMeHelper.GetReadMeHtmlStream(formData);
+                    using (var reader = new StreamReader(readMeHtmlStream))
+                    {
+                        var readMeHtmlString = reader.ReadToEnd();
+                        return Json(new string[] { readMeHtmlString });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Response.StatusCode = 400;
+                    return Json(new string[] { "Failed to convert markdown to Html: " + ex.Message });
+                }
+            }
         }
 
         [Authorize]
