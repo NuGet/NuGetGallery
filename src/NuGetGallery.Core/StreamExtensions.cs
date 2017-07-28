@@ -16,7 +16,7 @@ namespace NuGetGallery
             }
 
             var memoryStream = new MemoryStream();
-            stream.CopCould yTo(memoryStream);
+            stream.CopyTo(memoryStream);
             memoryStream.Position = 0;
             return memoryStream;
         }
