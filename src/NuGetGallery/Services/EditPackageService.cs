@@ -49,11 +49,13 @@ namespace NuGetGallery
                 IconUrl = request.IconUrl,
                 LicenseUrl = p.LicenseUrl, // Our current policy is not to allow editing the license URL, so just clone it from its previous value.
                 ProjectUrl = request.ProjectUrl,
+                RepositoryUrl = request.RepositoryUrl,
                 ReleaseNotes = request.ReleaseNotes,
                 RequiresLicenseAcceptance = request.RequiresLicenseAcceptance,
                 Summary = request.Summary,
                 Tags = request.Tags,
                 Title = request.VersionTitle,
+                ReadMeState = request.ReadMeState,
 
                 // Other
                 Package = p,

@@ -59,6 +59,26 @@ namespace NuGetGallery
             return _fileStorageService.SaveFileAsync(Constants.PackagesFolderName, fileName, packageFile, overwrite: false);
         }
 
+
+        /// <summary>
+        /// Saves a ReadMe file asynchronously to the Pending ReadMe file folder.
+        /// </summary>
+        /// <param name="package">The package to which this readme belongs.</param>
+        /// <param name="readMe">The stream representing the readme's data.</param>
+        public Task SaveReadMeFileAsync(Package package, Stream readMe, string fileExtension)
+        {
+            if (readMe == null)
+            {
+                throw new ArgumentNullException(nameof(readMe));
+            }
+            if (string.IsNullOrEmpty(fileExtension))
+            {
+                throw new ArgumentException(nameof(fileExtension));
+            }
+            var fileName = BuildFileName(package, Constants.ReadMeFileSavePathTemplatePending, fileExtension);
+            return _fileStorageService.SaveFileAsync(Constants.ReadMeFolderName, fileName, readMe, overwrite:false);
+        }
+
         public Task StorePackageFileInBackupLocationAsync(Package package, Stream packageFile)
         {
             if (package == null)
@@ -99,13 +119,12 @@ namespace NuGetGallery
             return  _fileStorageService.GetFileAsync(Constants.PackagesReadMeFolderName, fileName);
         }
         private static string BuildFileName(string id, string version, string pathTemplate, string extension)
-
         {
             if (id == null)
             {
                 throw new ArgumentNullException(nameof(id));
             }
-            
+
             if (version == null)
             {
                 throw new ArgumentNullException(nameof(version));
@@ -117,7 +136,7 @@ namespace NuGetGallery
             // c) we don't want to hit the database just to look up the right case
             // and remember - version can contain letters too.
             return String.Format(
-                CultureInfo.InvariantCulture,
+                CultureInfo.InvariantCulture
                 pathTemplate,
                 id.ToLowerInvariant(),
                 version.ToLowerInvariant(),
@@ -132,8 +151,8 @@ namespace NuGetGallery
             }
 
             if (package.PackageRegistration == null ||
-                string.IsNullOrWhiteSpace(package.PackageRegistration.Id) ||
-                (string.IsNullOrWhiteSpace(package.NormalizedVersion) && string.IsNullOrWhiteSpace(package.Version)))
+                String.IsNullOrWhiteSpace(package.PackageRegistration.Id) ||
+                (String.IsNullOrWhiteSpace(package.NormalizedVersion) && String.IsNullOrWhiteSpace(package.Version)))
             {
                 throw new ArgumentException(Strings.PackageIsMissingRequiredData, nameof(package));
             }
