@@ -430,6 +430,7 @@ namespace NuGetGallery
                         using (var readMeHTMLStream = ReadMeHelper.GetReadMeHtmlStream(readMeMdStream))
                         {
                             await readMeHTMLStream.FlushAsync();
+                            
                             // Reads the README file and push to the view
                             using (var reader = new StreamReader(readMeHTMLStream, Encoding.UTF8))
                             {
@@ -1083,7 +1084,6 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("edit a package")]
         public virtual async Task<JsonResult> Edit(string id, string version, VerifyPackageRequest formData, string returnUrl)
         {
-
             var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
@@ -1148,11 +1148,40 @@ namespace NuGetGallery
                 {
                     using (var readMeMdStream = ReadMeHelper.GetReadMeMarkdownStream(formData.ReadMe))
                     {
-                        await _packageFileService.SaveReadMeFileAsync(package, readMeMdStream, formData.ReadMe.Overwriting);
+                        await _packageFileService.SaveReadMeFileAsync(package, readMeMdStream);
                     }
                 }
                 try
                 {
+                    // Checks to see if a ReadMe file has been added and uploads ReadMe
+                    // Add the edit request to a queue where it will be processed in the background.
+                    var readMeChanged = PackageEditReadMeState.Unchanged;
+
+                    if (ReadMeHelper.HasReadMe(formData.ReadMe))
+                    {
+                        readMeChanged = PackageEditReadMeState.Changed;
+                        try
+                        {
+                            using (var readMeInputStream = ReadMeHelper.GetReadMeMarkdownStream(formData.ReadMe).AsSeekableStream())
+                            {
+                                await _packageFileService.SaveReadMeFileAsync(package, readMeInputStream);
+                            }
+                        }
+                        catch (Exception ex) when (
+                            ex is InvalidOperationException
+                            || ex is ArgumentException
+                            || ex is ArgumentNullException
+                        )
+                        {
+                            TempData["Message"] = ex.Message;
+
+                            Response.StatusCode = 400;
+                            return Json(new string[] { ex.GetUserSafeMessage() });
+                        }
+                    }
+
+                    formData.ReadMe.ReadMeState = readMeChanged;
+
                     _editPackageService.StartEditPackageRequest(package, formData.Edit, user);
                     await _entitiesContext.SaveChangesAsync();
 

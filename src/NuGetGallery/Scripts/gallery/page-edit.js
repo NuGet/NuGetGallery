@@ -28,7 +28,7 @@ var EditViewManager = new function () {
             document.location = $(this).val();
         });
 
-        $('input[type="text"], input[type="checkbox"], textarea').on('change keydown', function () {
+        $('input[type="text"], input[type="checkbox"], input[type="url"], textarea').on('change keydown', function () {
             $(this).addClass("edited");
             _changedState[$(this).attr('id')] = true;
             $('#verify-submit-button').removeAttr('disabled');
@@ -196,7 +196,7 @@ var EditViewManager = new function () {
         $(reportContainerElement).attr("id", "verify-package-block");
         $(reportContainerElement).attr("class", "collapse in");
         $(reportContainerElement).attr("aria-expanded", "true");
-        $(reportContainerElement).attr("data-bind", "template: { name: 'verify-metadata-template', data: data }");
+        $(reportContainerElement).attr("data-bind", "template: { name: 'edit-metadata-template', data: data }");
         $("#verify-package-container").append(reportContainerElement);
         ko.applyBindings({ data: model }, reportContainerElement);
 
@@ -206,7 +206,7 @@ var EditViewManager = new function () {
         $(readMeContainerElement).attr("aria-expanded", "true");
         $(readMeContainerElement).attr("data-bind", "template: { name: 'import-readme-template', data: data }");
         $("#import-readme-container").append(readMeContainerElement);
-        ko.applyBindings({ data: model }, readMeContainerElement);
+        ko.applyBindings({ data: model.Edit }, readMeContainerElement);
 
         var submitContainerElement = document.createElement("div");
         $(submitContainerElement).attr("id", "submit-block");
