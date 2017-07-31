@@ -28,6 +28,15 @@
     }
 }
 
+@helper VersionListDivider(int rowCount, bool versionsExpanded)
+{
+    if (rowCount == Constants.VisibleVersions + 1)
+    {
+        @:</tbody><tbody class="no-border collapse @(versionsExpanded ? "in" : string.Empty)" id="hidden-versions">
+    }
+}
+
+
 @helper CommandTab(string label, string id, bool active)
 {
     <li role="presentation" class="@(active ? "active" : string.Empty)">
@@ -301,26 +310,31 @@
                         </tr>
                     </thead>
                     <tbody class="no-border">
-                        @{var rowCount = 0;}
+                        @{
+                            var rowCount = 0;
+                            var versionsExpanded = Model
+                                .PackageVersions
+                                .Skip(Constants.VisibleVersions)
+                                .Any(v => v.IsCurrent(Model));
+                        }
                         @foreach (var packageVersion in Model.PackageVersions)
                         {
                             if (!packageVersion.Deleted && (packageVersion.Listed || (Model.IsOwner(User) || User.IsAdministrator())))
                             {
                                 rowCount++;
-                                if (rowCount == 6)
-                                {
-                                    @:</tbody><tbody class="no-border collapse" id="hidden-versions">
-                                }
+                                @VersionListDivider(rowCount, versionsExpanded)
                                 <tr>
                                     <td>
                                         @if (packageVersion.IsCurrent(Model))
                                         {
                                             <a href="@Url.Package(packageVersion)">
-                                                @packageVersion.FullVersion
-                                                @if (packageVersion.IsCurrent(Model))
-                                                {
-                                                    @:(current version)
-                                                }
+                                                <b>
+                                                    @packageVersion.FullVersion
+                                                    @if (packageVersion.IsCurrent(Model))
+                                                    {
+                                                        @:(current version)
+                                                    }
+                                                </b>
                                             </a>
                                         }
                                         else
@@ -347,13 +361,10 @@
                             else if (packageVersion.Deleted)
                             {
                                 rowCount++;
-                                if (rowCount == 6)
-                                {
-                                    @:</tbody><tbody class="no-border collapse" id="hidden-versions">
-                                }
+                                @VersionListDivider(rowCount, versionsExpanded)
                                 <tr class="deleted">
                                     <td class="version">
-                                        <s>@packageVersion.FullVersion</s> (deleted)
+                                        @packageVersion.FullVersion (deleted)
                                     </td>
                                     <td>
                                         @packageVersion.DownloadCount
@@ -367,12 +378,12 @@
                         }
                     </tbody>
                 </table>
-                @if (rowCount > 5)
+                @if (rowCount > Constants.VisibleVersions)
                 {
                     <a href="#" role="button" data-toggle="collapse" class="icon-link" data-target="#hidden-versions"
-                            aria-expanded="false" aria-controls="hidden-versions" id="show-hidden-versions">
-                        <i class="ms-Icon ms-Icon--CalculatorAddition" aria-hidden="true"></i>
-                        <span>Show more</span>
+                       aria-expanded="@(versionsExpanded ? "true" : "false")" aria-controls="hidden-versions" id="show-hidden-versions">
+                        <i class="ms-Icon ms-Icon--Calculator@(versionsExpanded ? "Subtract" : "Addition")" aria-hidden="true"></i>
+                        <span>@(versionsExpanded ? "Show less" : "Show more")</span>
                     </a>
                 }
             </div>
