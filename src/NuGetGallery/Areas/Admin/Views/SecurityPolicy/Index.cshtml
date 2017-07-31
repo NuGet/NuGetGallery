@@ -4,6 +4,10 @@
     ViewBag.Title = "Security Policies";
 }
 
+<form id="AntiForgeryForm">
+    @Html.AntiForgeryToken()
+</form>
+
 <section>
     <article id="stage">
 
@@ -68,7 +72,13 @@
 @section BottomScripts {
     <script src="@Url.Content("~/Scripts/knockout-2.2.1.js")"></script>
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
+            var addAntiForgeryToken = function (data) {
+                var $field = $("#AntiForgeryForm input[name=__RequestVerificationToken]");
+                data["__RequestVerificationToken"] = $field.val();
+                return data;
+            }
+
             var viewModel = function () {
                 var $self = this;
 
@@ -89,8 +99,7 @@
                         cache: false,
                         dataType: 'json',
                         type: 'POST',
-                        data: JSON.stringify(subscriptions),
-                        contentType: 'application/json; charset=utf-8',
+                        data: addAntiForgeryToken({ subscriptionsJson: subscriptions }),
                         success: function (data) {
                             $self.changeTracker(false);
                             $self.message("Security policies updated!");
