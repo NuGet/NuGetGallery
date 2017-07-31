@@ -71,6 +71,9 @@ namespace NuGetGallery
 
                     processor.SuccessfulResponseCodes.Add(400);
                     processor.SuccessfulResponseCodes.Add(404);
+                    processor.SuccessfulResponseCodes.Add(405);
+                    processor.SuccessfulResponseCodes.Add(406);
+                    processor.SuccessfulResponseCodes.Add(409);
 
                     return processor;
                 });
