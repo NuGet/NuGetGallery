@@ -1049,7 +1049,6 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("edit a package")]
         public virtual async Task<JsonResult> Edit(string id, string version, VerifyPackageRequest formData, string returnUrl)
         {
-
             var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
@@ -1073,7 +1072,35 @@ namespace NuGetGallery
             {
                 try
                 {
-                    formData.Edit.ReadMeState = PackageEditReadMeState.Unchanged;
+                    // Checks to see if a ReadMe file has been added and uploads ReadMe
+                    // Add the edit request to a queue where it will be processed in the background.
+                    var readMeChanged = PackageEditReadMeState.Unchanged;
+
+                    if (ReadMeHelper.HasReadMe(formData.ReadMe))
+                    {
+                        readMeChanged = PackageEditReadMeState.Changed;
+                        try
+                        {
+                            using (var readMeInputStream = ReadMeHelper.GetReadMeMarkdownStream(formData.ReadMe).AsSeekableStream())
+                            {
+                                await _packageFileService.SaveReadMeFileAsync(package, readMeInputStream);
+                            }
+                        }
+                        catch (Exception ex) when (
+                            ex is InvalidOperationException
+                            || ex is ArgumentException
+                            || ex is ArgumentNullException
+                        )
+                        {
+                            TempData["Message"] = ex.Message;
+
+                            Response.StatusCode = 400;
+                            return Json(new string[] { ex.GetUserSafeMessage() });
+                        }
+                    }
+
+                    formData.ReadMe.ReadMeState = readMeChanged;
+
                     _editPackageService.StartEditPackageRequest(package, formData.Edit, user);
                     await _entitiesContext.SaveChangesAsync();
 

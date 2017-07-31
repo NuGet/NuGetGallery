@@ -28,7 +28,7 @@ var EditViewManager = new function () {
             document.location = $(this).val();
         });
 
-        $('input[type="text"], input[type="checkbox"], textarea').on('change keydown', function () {
+        $('input[type="text"], input[type="checkbox"], input[type="url"], textarea').on('change keydown', function () {
             $(this).addClass("edited");
             _changedState[$(this).attr('id')] = true;
             $('#verify-submit-button').removeAttr('disabled');
@@ -83,7 +83,7 @@ var EditViewManager = new function () {
         formData.append("ReadMeWritten", $("#readme-written").val());
 
         $.ajax({
-            url: "preview-readme",
+            url: "/packages/manage/preview-readme",
             type: 'POST',
             contentType: false,
             processData: false,
@@ -206,7 +206,7 @@ var EditViewManager = new function () {
         $(readMeContainerElement).attr("aria-expanded", "true");
         $(readMeContainerElement).attr("data-bind", "template: { name: 'import-readme-template', data: data }");
         $("#import-readme-container").append(readMeContainerElement);
-        ko.applyBindings({ data: model }, readMeContainerElement);
+        ko.applyBindings({ data: model.Edit }, readMeContainerElement);
 
         var submitContainerElement = document.createElement("div");
         $(submitContainerElement).attr("id", "submit-block");
