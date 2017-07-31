@@ -1,4 +1,10 @@
-﻿function HistoryViewModel() {
+﻿var addAntiForgeryToken = function (data) {
+    var $field = $("#AntiForgeryForm input[name=__RequestVerificationToken]");
+    data["__RequestVerificationToken"] = $field.val();
+    return data;
+}
+
+function HistoryViewModel() {
     var $self = this;
 
     this.issue = ko.observable();
@@ -16,20 +22,19 @@ function EditViewModel(editUrl) {
     this.issueStatusChoices = ko.observableArray();
 
     this.updateSupportRequest = function (success, error) {
-        var model = JSON.stringify({
+        var model = {
             issueKey: $self.issue.Key,
             assignedToId: $self.editAssignedToId,
             issueStatusId: $self.editIssueStatusId,
             comment: $self.editIssueComment()
-        });
+        };
 
         $.ajax({
             url: editUrl,
             type: 'POST',
             cache: false,
             dataType: 'json',
-            contentType: 'application/json; charset=utf-8',
-            data: model,
+            data: addAntiForgeryToken(model),
             success: success
         })
         .error(error);

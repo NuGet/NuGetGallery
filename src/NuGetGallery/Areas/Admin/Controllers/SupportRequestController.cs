@@ -54,6 +54,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> DisableAdmin(int key)
         {
             try
@@ -69,6 +70,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> EnableAdmin(int key)
         {
             try
@@ -84,6 +86,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> AddAdmin(string galleryUsername, string pagerDutyUsername)
         {
             try
@@ -99,6 +102,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> UpdateAdmin(int key, string galleryUsername, string pagerDutyUsername)
         {
             try
@@ -114,6 +118,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> Save(int issueKey, int? assignedToId, int issueStatusId, string comment)
         {
             try

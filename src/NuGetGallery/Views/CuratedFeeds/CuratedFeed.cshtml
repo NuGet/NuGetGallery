@@ -2,14 +2,27 @@
 @{
     ViewBag.Title = "Curated Feed: " + Model.Name;
 }
+
+<form id="AntiForgeryForm">
+    @Html.AntiForgeryToken()
+</form>
+
 @section BottomScripts {
     <script>
         var urlFormat = "@Url.RouteUrl(RouteName.CuratedPackage, new { curatedFeedName = Model.Name, curatedPackageId = "PACKAGE_ID" })";
 
+        var addAntiForgeryToken = function (data) {
+            var $field = $("#AntiForgeryForm input[name=__RequestVerificationToken]");
+            data["__RequestVerificationToken"] = $field.val();
+            return data;
+        }
+
         function deleteCuratedPackage(packageId) {
             $.ajax({
                 type: 'delete',
-                url: urlFormat.replace("PACKAGE_ID", packageId)
+                url: urlFormat.replace("PACKAGE_ID", packageId),
+                dataType: 'json',
+                data: addAntiForgeryToken({})
             })
                 .error(function(jqXhr, textStatus, errorThrown) {
                     alert("Error: " + errorThrown);
@@ -23,7 +36,7 @@
             $.ajax({
                 type: 'patch',
                 url: urlFormat.replace("PACKAGE_ID", packageId),
-                data: { included: included },
+                data: addAntiForgeryToken({ included: included }),
                 dataType: 'json'
             })
                 .error(function(jqXhr, textStatus, errorThrown) {

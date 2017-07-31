@@ -10,11 +10,14 @@
     @Styles.Render("~/Content/supportrequests")
 }
 
+<form id="AntiForgeryForm">
+    @Html.AntiForgeryToken()
+</form>
+
 <section>
     <article id="supportrequests">
         <div style="display: none;" id="addAdmin-dialog">
             <form id="addAdmin-form">
-                @Html.AntiForgeryToken()
                 <fieldset class="form">
                     <legend>Add</legend>
 
@@ -39,7 +42,6 @@
 
         <div style="display: none;" id="editAdmin-dialog">
             <form id="editAdmin-form">
-                @Html.AntiForgeryToken()
                 <fieldset class="form">
                     <legend>Edit</legend>
 
@@ -115,6 +117,12 @@
 
     <script type="text/javascript">
         $(function () {
+            var addAntiForgeryToken = function (data) {
+                var $field = $("#AntiForgeryForm input[name=__RequestVerificationToken]");
+                data["__RequestVerificationToken"] = $field.val();
+                return data;
+            }
+
             function AddAdminViewModel() {
                 var $self = this;
                 this.newGalleryUsername = ko.observable();
@@ -122,18 +130,17 @@
 
                 this.createAdmin = function (success, error) {
                     var url = '@Url.Action("AddAdmin")';
-                    var model = JSON.stringify({
+                    var model = {
                         galleryUsername: $self.newGalleryUsername(),
                         pagerDutyUsername: $self.newPagerDutyUsername()
-                    });
+                    };
 
                     $.ajax({
                         url: url,
                         type: 'POST',
                         cache: false,
                         dataType: 'json',
-                        contentType: 'application/json; charset=utf-8',
-                        data: model,
+                        data: addAntiForgeryToken(model),
                         success: success
                     })
                     .error(error);
@@ -148,19 +155,18 @@
 
                 this.updateAdmin = function (success, error) {
                     var url = '@Url.Action("UpdateAdmin")';
-                    var model = JSON.stringify({
+                    var model = {
                         key: $self.admin.Key,
                         galleryUsername: $self.editGalleryUsername,
                         pagerDutyUsername: $self.editPagerDutyUsername
-                    });
+                    };
 
                     $.ajax({
                         url: url,
                         type: 'POST',
                         cache: false,
                         dataType: 'json',
-                        contentType: 'application/json; charset=utf-8',
-                        data: model,
+                        data: addAntiForgeryToken(model),
                         success: success
                     })
                     .error(error);
@@ -204,9 +210,9 @@
 
                 this.toggleAdminAccess = function (data) {
                     var confirmationText, url;
-                    var model = JSON.stringify({
+                    var model = {
                         key: data.Key
-                    });
+                    };
 
                     if (data.AccessDisabled !== false) {
                         confirmationText = 'Are you sure you want to enable access for ' + data.GalleryUsername + '?';
@@ -222,8 +228,7 @@
                             type: 'POST',
                             cache: false,
                             dataType: 'json',
-                            contentType: 'application/json; charset=utf-8',
-                            data: model,
+                            data: addAntiForgeryToken(model),
                             success: function () {
                                 $self.refresh();
                             }

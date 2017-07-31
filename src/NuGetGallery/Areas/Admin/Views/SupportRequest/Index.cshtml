@@ -10,6 +10,10 @@
     @Styles.Render("~/Content/supportrequests")
 }
 
+<form id="AntiForgeryForm">
+    @Html.AntiForgeryToken()
+</form>
+
 <section>
     <article id="supportrequests">
         <div id="sr-nav-menu">
@@ -50,7 +54,6 @@
 
             <div style="display: none;" id="editSupportRequest-dialog">
                 <form id="editSupportRequest-form">
-                    @Html.AntiForgeryToken()
                     <fieldset class="form">
                         <legend>Edit</legend>
 
