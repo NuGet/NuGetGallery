@@ -36,6 +36,7 @@ namespace NuGetGallery
         public const string PasswordSet = "PasswordSet";
         public const string NewSubmission = "NewSubmission";
         public const string VerifyPackage = "VerifyPackage";
+        public const string PreviewReadMe = "PreviewReadMe";
         public const string CreatePackageVerificationKey = "CreatePackageVerificationKey";
         public const string VerifyPackageKey = "VerifyPackageKey";
         public const string CancelUpload = "CancelUpload";
@@ -54,7 +55,6 @@ namespace NuGetGallery
         public const string StatisticsDownloadsApi = "StatisticsDownloadsApi";
         public const string LegacyRegister = "LegacyRegister";
         public const string LegacyRegister2 = "LegacyRegister2";
-        public const string PreviewReadMe = "PreviewReadMe";
         public const string PackageEnableLicenseReport = "EnableLicenseReport";
         public const string PackageDisableLicenseReport = "DisableLicenseReport";
         public const string OwinRoute = "OwinRoute";

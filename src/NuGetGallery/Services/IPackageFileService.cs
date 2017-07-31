@@ -34,7 +34,7 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="package">The package that this file belongs to</param>
         /// <param name="readMe">The stream representing the ReadMe file</param>
-        Task SaveReadMeFileAsync(Package package, Stream readMe, bool overwrite=false);
+        Task SaveReadMeFileAsync(Package package, Stream readMe);
 
         /// <summary>
         ///     Copies the contents of the package represented by the stream into the file storage backup location.

@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.ComponentModel.DataAnnotations;
-using System.Web;
 using NuGetGallery.Packaging;
 
 namespace NuGetGallery
@@ -39,6 +38,8 @@ namespace NuGetGallery
             Summary = packageMetadata.Summary;
             Tags = PackageHelper.ParseTags(packageMetadata.Tags);
             VersionTitle = packageMetadata.Title;
+
+            ReadMe = new ReadMeRequest();
         }
 
         public EditPackageVersionRequest(Package package, PackageEdit pendingMetadata)
@@ -71,6 +72,8 @@ namespace NuGetGallery
             Tags = metadata.Tags;
             VersionTitle = metadata.Title;
             ReadMeState = metadata.ReadMeState;
+
+            ReadMe = new ReadMeRequest();
         }
 
         // We won't show this in the UI, and we won't actually honor edits to it at the moment, by our current policy.
@@ -134,6 +137,8 @@ namespace NuGetGallery
         public bool RequiresLicenseAcceptance { get; set; }
 
         public PackageEditReadMeState ReadMeState { get; set; }
+
+        public ReadMeRequest ReadMe { get; set; }
 
         /// <summary>
         /// Applied the edit to a package
