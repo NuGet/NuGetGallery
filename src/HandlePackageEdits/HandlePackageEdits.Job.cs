@@ -36,7 +36,7 @@ namespace HandlePackageEdits
 
         private const string ReadMeChanged = "changed";
         private const string ReadMeDeleted = "deleted";
-        private const string MarkdownExtension = "md";
+        private const string MarkdownExtension = ".md";
 
         /// <summary>
         /// Gets or sets an Azure Storage Uri referring to a container to use as the source for package blobs
