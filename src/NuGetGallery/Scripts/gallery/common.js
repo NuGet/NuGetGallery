@@ -285,13 +285,17 @@ $(function () {
             var href = $(this).attr('href');
             var category = $(this).data().track;
             if (window.nuget.isGaAvailable() && href && category) {
-                e.preventDefault();
-                ga('send', 'event', category, 'click', href, {
-                    'transport': 'beacon',
-                    'hitCallback': window.nuget.createFunctionWithTimeout(function () {
-                        document.location = href;
-                    })
-                });
+                if (e.altKey || e.ctrlKey || e.metaKey) {
+                    ga('send', 'event', category, 'click', href);
+                } else {
+                    e.preventDefault();
+                    ga('send', 'event', category, 'click', href, {
+                        'transport': 'beacon',
+                        'hitCallback': window.nuget.createFunctionWithTimeout(function () {
+                            document.location = href;
+                        })
+                    });
+                }
             }
         });
     });
