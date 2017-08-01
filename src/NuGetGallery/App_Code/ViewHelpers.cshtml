@@ -311,3 +311,10 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
         }
     </li>
 }
+
+@helper AjaxAntiForgeryToken(System.Web.Mvc.HtmlHelper html)
+{
+    <form id="AntiForgeryForm">
+        @html.AntiForgeryToken()
+    </form>
+}

@@ -1,10 +1,4 @@
-﻿var addAntiForgeryToken = function (data) {
-    var $field = $("#AntiForgeryForm input[name=__RequestVerificationToken]");
-    data["__RequestVerificationToken"] = $field.val();
-    return data;
-}
-
-function HistoryViewModel() {
+﻿function HistoryViewModel() {
     var $self = this;
 
     this.issue = ko.observable();
@@ -34,7 +28,7 @@ function EditViewModel(editUrl) {
             type: 'POST',
             cache: false,
             dataType: 'json',
-            data: addAntiForgeryToken(model),
+            data: addAjaxAntiForgeryToken(model),
             success: success
         })
         .error(error);

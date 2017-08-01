@@ -10,9 +10,7 @@
     @Styles.Render("~/Content/supportrequests")
 }
 
-<form id="AntiForgeryForm">
-    @Html.AntiForgeryToken()
-</form>
+@ViewHelpers.AjaxAntiForgeryToken(Html)
 
 <section>
     <article id="supportrequests">

@@ -10,9 +10,7 @@
     @Styles.Render("~/Content/supportrequests")
 }
 
-<form id="AntiForgeryForm">
-    @Html.AntiForgeryToken()
-</form>
+@ViewHelpers.AjaxAntiForgeryToken(Html)
 
 <section>
     <article id="supportrequests">
@@ -117,12 +115,6 @@
 
     <script type="text/javascript">
         $(function () {
-            var addAntiForgeryToken = function (data) {
-                var $field = $("#AntiForgeryForm input[name=__RequestVerificationToken]");
-                data["__RequestVerificationToken"] = $field.val();
-                return data;
-            }
-
             function AddAdminViewModel() {
                 var $self = this;
                 this.newGalleryUsername = ko.observable();
@@ -140,7 +132,7 @@
                         type: 'POST',
                         cache: false,
                         dataType: 'json',
-                        data: addAntiForgeryToken(model),
+                        data: addAjaxAntiForgeryToken(model),
                         success: success
                     })
                     .error(error);
@@ -166,7 +158,7 @@
                         type: 'POST',
                         cache: false,
                         dataType: 'json',
-                        data: addAntiForgeryToken(model),
+                        data: addAjaxAntiForgeryToken(model),
                         success: success
                     })
                     .error(error);
@@ -228,7 +220,7 @@
                             type: 'POST',
                             cache: false,
                             dataType: 'json',
-                            data: addAntiForgeryToken(model),
+                            data: addAjaxAntiForgeryToken(model),
                             success: function () {
                                 $self.refresh();
                             }
