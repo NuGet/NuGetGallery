@@ -364,6 +364,7 @@ namespace NuGetGallery
 
         [HttpPost]
         [Authorize]
+        [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> ChangeEmail(AccountViewModel model)
         {
             if (!ModelState.IsValidField("ChangeEmail.NewEmail"))
@@ -424,6 +425,7 @@ namespace NuGetGallery
 
         [HttpPost]
         [Authorize]
+        [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> CancelChangeEmail(AccountViewModel model)
         {
             var user = GetCurrentUser();
