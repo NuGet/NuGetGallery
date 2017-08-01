@@ -26,8 +26,6 @@
     <UseGlobalApplicationHostFile />
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
-    <ApplicationInsightsResourceId>/subscriptions/fa8b3229-dc0f-4633-a285-ad597076921d/resourcegroups/NugetDev/providers/microsoft.insights/components/NuGetCDNRedirect</ApplicationInsightsResourceId>
-    <ApplicationInsightsAnnotationResourceId>/subscriptions/fa8b3229-dc0f-4633-a285-ad597076921d/resourcegroups/NugetDev/providers/microsoft.insights/components/NuGetCDNRedirect</ApplicationInsightsAnnotationResourceId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
