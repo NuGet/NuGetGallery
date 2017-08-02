@@ -246,7 +246,7 @@ namespace NuGet.Services.BasicSearch
                     shouldRetry: e =>
                     {
                         // Retry on any exception (but log it)
-                        _logger.LogError("Startup: An error occurred initializing searcher manager. Going to retry...",
+                        _logger.LogError("Startup: An error occurred initializing searcher manager. Going to retry... Exception: {Exception}",
                             e);
                         _searchTelemetryClient.TrackMetric(SearchTelemetryClient.MetricName.SearchIndexReopenFailed, 1);
 
@@ -259,7 +259,7 @@ namespace NuGet.Services.BasicSearch
             }
             catch (Exception e)
             {
-                _logger.LogCritical("Startup: A critical error occurred initializing searcher manager. Number of retries exhausted.", e);
+                _logger.LogCritical("Startup: A critical error occurred initializing searcher manager. Number of retries exhausted. Exception: {Exception}", e);
                 _searchTelemetryClient.TrackMetric(SearchTelemetryClient.MetricName.SearchIndexReopenFailed, maxRetries);
 
                 return false;
