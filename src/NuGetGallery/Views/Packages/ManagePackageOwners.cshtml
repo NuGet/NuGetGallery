@@ -3,9 +3,7 @@
     ViewBag.Tab = "Packages";
 }
 
-<form id="AntiForgeryForm">
-    @Html.AntiForgeryToken()
-</form>
+@ViewHelpers.AjaxAntiForgeryToken(Html)
 
 <h1 class="page-heading">Manage Owners for Package "@Model.Title.Abbreviate(50)"</h1>
 
@@ -65,12 +63,6 @@
             var failHandler = function (jqXHR, textStatus, errorThrown) {
                 alert('An unexpected error occurred! "' + errorThrown + '"');
             };
-
-            var addAntiForgeryToken = function (data) {
-                var $field = $("#AntiForgeryForm input[name=__RequestVerificationToken]");
-                data["__RequestVerificationToken"] = $field.val();
-                return data;
-            }
 
             var viewModel = {
                 package: { id: '@Model.Id' },
@@ -145,7 +137,7 @@
                         dataType: 'json',
                         type: 'POST',
                         dataType: 'json',
-                        data: addAntiForgeryToken(ownerInputModel),
+                        data: addAjaxAntiForgeryToken(ownerInputModel),
                         success: function (data) {
                             if (data.success) {
                                 var newOwner = new Owner(data.name, /* pending */ true, data.current);
@@ -182,7 +174,7 @@
                         dataType: 'json',
                         type: 'POST',
                         dataType: 'json',
-                        data: addAntiForgeryToken({}),
+                        data: addAjaxAntiForgeryToken({}),
                         success: function (data) {
                             if (data.success) {
                                 if (item.current) {
