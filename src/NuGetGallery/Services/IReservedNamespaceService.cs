@@ -12,18 +12,14 @@ namespace NuGetGallery
 
         Task DeleteReservedNamespaceAsync(ReservedNamespace prefix);
 
-        ReservedNamespace FindReservedNamespaceForPrefix(string prefix);
-
-        IList<ReservedNamespace> FindAllReservedNamespacesForPrefix(string prefix);
-
         Task AddOwnerToReservedNamespaceAsync(ReservedNamespace prefix, User user);
 
         Task DeleteOwnerFromReservedNamespaceAsync(ReservedNamespace prefix, User user);
 
-        IList<User> GetAllOwnersForNamespace(ReservedNamespace prefix);
+        ReservedNamespace FindReservedNamespaceForPrefix(string prefix);
 
-        IList<ReservedNamespace> GetAllReservedNamespacesForUser(User user);
+        IList<ReservedNamespace> FindAllReservedNamespacesForPrefix(string prefix);
 
-        IList<PackageRegistration> GetAllPackagesForNamespace(ReservedNamespace prefix);
+        Task<IList<ReservedNamespace>> FindReservedNamespacesForPrefixesAsync(IList<string> prefixList);
     }
 }

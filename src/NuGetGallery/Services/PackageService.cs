@@ -955,13 +955,22 @@ namespace NuGetGallery
             }
         }
 
-        public async Task UpdatePackageVerifiedStatusAsync(PackageRegistration package, bool isVerified)
+        public async Task UpdatePackageVerifiedStatusAsync(IList<PackageRegistration> packageRegistrationList, bool isVerified)
         {
-            var packageRegistration = FindPackageRegistrationById(package.Id);
-            if (packageRegistration.IsVerified != isVerified)
+            var allPackageRegistrations = _packageRegistrationRepository
+                .GetAll()
+                .ToList();
+
+            var packageRegistrationsToUpdate = allPackageRegistrations
+                .Where(pr => packageRegistrationList.Any(prl => prl.Id == pr.Id))
+                .ToList();
+
+            packageRegistrationsToUpdate
+                .ForEach(pru => pru.IsVerified = isVerified);
+
+            if (packageRegistrationsToUpdate.Count > 0)
             {
-                packageRegistration.IsVerified = isVerified;
-                await _packageRepository.CommitChangesAsync();
+                await _packageRegistrationRepository.CommitChangesAsync();
             }
         }
     }

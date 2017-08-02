@@ -61,8 +61,7 @@ namespace NuGetGallery
                         .Where(pr => pr.ReservedNamespaces.Count() == 1)
                         .ToList();
 
-                    packageRegistrationsToMarkUnVerified
-                        .ForEach(pr => _packageService.UpdatePackageVerifiedStatusAsync(pr, false));
+                    await _packageService.UpdatePackageVerifiedStatusAsync(packageRegistrationsToMarkUnVerified, false);
                 }
 
                 _reservedNamespaceRepository.DeleteOnCommit(namespaceToDelete);
@@ -99,8 +98,7 @@ namespace NuGetGallery
                         if (!namespaceToModify.IsSharedNamespace)
                         {
                             // May be move PR modification of isverifed here.
-                            packageRegistrationsMatchingPrefix
-                                .ForEach(pr => _packageService.UpdatePackageVerifiedStatusAsync(pr, isVerified: true));
+                            await _packageService.UpdatePackageVerifiedStatusAsync(packageRegistrationsMatchingPrefix, isVerified: true);
                         }
                     }
 
@@ -144,8 +142,7 @@ namespace NuGetGallery
                             .ForEach(pr => namespaceToModify.PackageRegistrations.Remove(pr));
 
                         // Need a transaction here?
-                        removeVerifiedMarksForPackages
-                            .ForEach(pr => _packageService.UpdatePackageVerifiedStatusAsync(pr, isVerified: false));
+                        await _packageService.UpdatePackageVerifiedStatusAsync(removeVerifiedMarksForPackages, isVerified: false);
 
                         namespaceToModify.Owners.Remove(userToRemove);
                         await _reservedNamespaceRepository.CommitChangesAsync();
@@ -180,22 +177,9 @@ namespace NuGetGallery
                     select request).ToList();
         }
 
-        public IList<ReservedNamespace> GetAllReservedNamespacesForUser(User user)
+        public Task<IList<ReservedNamespace>> FindReservedNamespacesForPrefixesAsync(IList<string> prefixList)
         {
-            var userObject = _userService.FindByUsername(user.Username);
-            return userObject.ReservedNamespaces.ToList();
-        }
-
-        public IList<User> GetAllOwnersForNamespace(ReservedNamespace prefix)
-        {
-            var prefixObject = FindReservedNamespaceForPrefix(prefix.Value);
-            return prefixObject.Owners.ToList();
-        }
-
-        public IList<PackageRegistration> GetAllPackagesForNamespace(ReservedNamespace prefix)
-        {
-            var prefixObject = FindReservedNamespaceForPrefix(prefix.Value);
-            return prefixObject.PackageRegistrations.ToList();
+            throw new NotImplementedException();
         }
     }
 }
