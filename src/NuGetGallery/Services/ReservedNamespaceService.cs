@@ -177,9 +177,19 @@ namespace NuGetGallery
                     select request).ToList();
         }
 
-        public Task<IList<ReservedNamespace>> FindReservedNamespacesForPrefixesAsync(IList<string> prefixList)
+        public IList<ReservedNamespace> FindReservedNamespacesForPrefixList(IList<string> prefixList)
         {
-            throw new NotImplementedException();
+            return (from dbPrefix in _reservedNamespaceRepository.GetAll()
+                    join queryPrefix in prefixList
+                    on dbPrefix.Value equals queryPrefix
+                    select dbPrefix).ToList();
+        }
+
+        public IList<ReservedNamespace> GetReservedNamespacesForId(string id)
+        {
+            return (from request in _reservedNamespaceRepository.GetAll()
+                    where id.StartsWith(request.Value)
+                    select request).ToList();
         }
     }
 }

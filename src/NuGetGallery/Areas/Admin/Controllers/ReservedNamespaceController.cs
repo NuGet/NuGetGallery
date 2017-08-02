@@ -35,16 +35,13 @@ namespace NuGetGallery.Areas.Admin.Controllers
         {
             // TODO: validate query
             var prefixQueries = GetPrefixesFromQuery(query);
-            var foundPrefixes = EntitiesContext.ReservedNamespaces.Where(p => 
-                    prefixQueries.Any(qPrefix => p.Value == qPrefix))
-                .ToList();
-
+            var foundPrefixes = ReservedNamespaceService.FindReservedNamespacesForPrefixList(prefixQueries.ToList());
             var notFoundPrefixes = prefixQueries.Except(foundPrefixes.Select(p => p.Value));
             var results = new
             {
-                FoundPrefixes = foundPrefixes?.Select(
+                FoundPrefixes = foundPrefixes.Select(
                     p => new ReservedNamespace(p.Value, p.IsSharedNamespace, p.IsPrefix)),
-                NotFoundPrefixes = notFoundPrefixes?.Select(
+                NotFoundPrefixes = notFoundPrefixes.Select(
                     p => new ReservedNamespace(p.ToString(), isSharedNamespace: false, isExactMatch: true))
             };
 

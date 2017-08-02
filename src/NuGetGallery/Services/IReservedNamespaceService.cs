@@ -20,6 +20,8 @@ namespace NuGetGallery
 
         IList<ReservedNamespace> FindAllReservedNamespacesForPrefix(string prefix);
 
-        Task<IList<ReservedNamespace>> FindReservedNamespacesForPrefixesAsync(IList<string> prefixList);
+        IList<ReservedNamespace> FindReservedNamespacesForPrefixList(IList<string> prefixList);
+
+        IList<ReservedNamespace> GetReservedNamespacesForId(string id);
     }
 }
