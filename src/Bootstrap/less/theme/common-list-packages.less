@@ -1,15 +1,13 @@
 .list-packages {
-  border-top: 1px solid @gray-lighter;
 
   .package {
     padding-top: (@padding-large-vertical * 1.5);
     padding-bottom: (@padding-large-vertical * 1.5);
-    border-bottom: 1px solid @gray-lighter;
     font-size: 15px;
 
     .package-header {
       .package-title {
-        font-size: @font-size-h2;
+        font-size: 24px;
         font-weight: 300;
         line-height: 0.9;
         word-break: break-all;
@@ -28,25 +26,34 @@
     }
 
     .package-title {
+      font-size: 16px;
       margin-top: 2px;
     }
 
     .manage-package {
-      margin-top: @padding-large-vertical;
+      margin-top: 8px;
       margin-bottom: 0;
     }
 
     .package-details {
-      margin-top: @padding-large-vertical;
+      margin-top: 8px;
       color: @text-color;
       line-height: 20px;
       word-break: break-all;
       word-break: break-word;
     }
 
-    .package-tags {
-      margin-top: @padding-large-vertical;
-      margin-left: -2px;
+
+    .package-list {
+      @media (min-width: @screen-sm-min) {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+
+        li {
+          display: inline;
+        }
+      }
     }
   }
 }

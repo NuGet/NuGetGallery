@@ -23,30 +23,42 @@
 
             @if (!StringComparer.OrdinalIgnoreCase.Equals(Model.Id, Model.Title))
             {
-                <div class="package-title ms-fontSize-l">
+                <div class="package-title">
                     @Html.BreakWord(Model.Title)
                 </div>
             }
 
-            <ul class="package-list ms-fontWeight-semibold">
+            <ul class="package-list">
                 <li>
-                    <span>
+                    <span class="icon-link">
                         <i class="ms-Icon ms-Icon--Download" aria-hidden="true"></i>
                         @Model.TotalDownloadCount.ToNuGetNumberString() total @(Model.TotalDownloadCount == 1 ? "download" : "downloads")
                     </span>
                 </li>
                 <li>
-                    <span>
+                    <span class="icon-link">
                         <i class="ms-Icon ms-Icon--History" aria-hidden="true"></i>
                         last updated <span data-datetime="@Model.LastUpdated.ToString("O")">@Model.LastUpdated.ToNuGetShortDateString()</span>
                     </span>
                 </li>
                 <li>
-                    <span>
+                    <span class="icon-link">
                         <i class="ms-Icon ms-Icon--Flag" aria-hidden="true"></i>
                         Latest version: <span class="text-nowrap">@Model.FullVersion @(Model.Prerelease ? "(prerelease)" : "")</span>
                     </span>
                 </li>
+                @if (Model.Tags.AnySafe())
+                {
+                    <li class="package-tags">
+                        <span class="icon-link">
+                            <i class="ms-Icon ms-Icon--Tag" aria-hidden="true"></i>
+                            @foreach (var tag in Model.Tags)
+                            {
+                                <a href="@Url.Search("Tags:\"" + tag + "\"")" title="Search for @tag">@tag</a>
+                            }
+                        </span>
+                    </li>
+                }
             </ul>
 
             <div class="package-details">
@@ -56,16 +68,6 @@
                     @Html.RouteLink("More information", RouteName.DisplayPackage, new { Model.Id, Model.Version })
                 }
             </div>
-
-            @if (@Model.Tags.AnySafe())
-            {
-                <div class="package-tags">
-                    @foreach (var tag in Model.Tags)
-                {
-                        <a href="@Url.Search("Tags:\"" + tag + "\"")" title="Search for @tag" class="tag">@tag</a>
-                    }
-                </div>
-            }
 
             @if (Model.IsOwner(User))
             {

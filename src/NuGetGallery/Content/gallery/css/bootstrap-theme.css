@@ -212,16 +212,20 @@ img.package-icon {
 }
 .package-list {
   padding-left: 0;
-  margin-top: 10px;
+  margin-top: 8px;
+  margin-bottom: 8px;
   margin-left: -5px;
   line-height: 20px;
+  color: #666;
+}
+.package-list a {
   color: #666;
 }
 .package-list li {
   display: list-item;
   list-style: none;
 }
-@media (min-width: 480px) {
+@media (min-width: 768px) {
   .package-list li {
     display: inline-block;
   }
@@ -311,17 +315,13 @@ img.package-icon {
     border-bottom: 1px solid windowText;
   }
 }
-.list-packages {
-  border-top: 1px solid #dbdbdb;
-}
 .list-packages .package {
   padding-top: 15px;
   padding-bottom: 15px;
   font-size: 15px;
-  border-bottom: 1px solid #dbdbdb;
 }
 .list-packages .package .package-header .package-title {
-  font-size: 34px;
+  font-size: 24px;
   font-weight: 300;
   line-height: .9;
   word-break: break-all;
@@ -339,21 +339,28 @@ img.package-icon {
 }
 .list-packages .package .package-title {
   margin-top: 2px;
+  font-size: 16px;
 }
 .list-packages .package .manage-package {
-  margin-top: 10px;
+  margin-top: 8px;
   margin-bottom: 0;
 }
 .list-packages .package .package-details {
-  margin-top: 10px;
+  margin-top: 8px;
   line-height: 20px;
   color: #000;
   word-break: break-all;
   word-break: break-word;
 }
-.list-packages .package .package-tags {
-  margin-top: 10px;
-  margin-left: -2px;
+@media (min-width: 768px) {
+  .list-packages .package .package-list {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .list-packages .package .package-list li {
+    display: inline;
+  }
 }
 .pager {
   float: right;

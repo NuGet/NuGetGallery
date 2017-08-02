@@ -272,18 +272,23 @@ img.package-icon {
 }
 
 .package-list {
-  margin-top: @padding-large-vertical;
+  margin-top: 8px;
+  margin-bottom: 8px;
   margin-left: -5px;
   padding-left: 0;
   line-height: 20px;
   color: @gray-light;
+
+  a {
+    color: @gray-light;
+  }
 
   li {
     list-style: none;
     display: list-item;
   }
 
-  @media (min-width: @screen-xs-min) {
+  @media (min-width: @screen-sm-min) {
     li {
       display: inline-block;
     }
