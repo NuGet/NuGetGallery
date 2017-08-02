@@ -9,15 +9,15 @@ namespace NuGetGallery
     public class ReservedNamespace : IEntity
     {
         public ReservedNamespace() 
-            : this(value: null, isSharedNamespace: false, isExactMatch: false)
+            : this(value: null, isSharedNamespace: false, isPrefix: false)
         {
         }
 
-        public ReservedNamespace(string value, bool isSharedNamespace, bool isExactMatch)
+        public ReservedNamespace(string value, bool isSharedNamespace, bool isPrefix)
         {
             Value = value;
             IsSharedNamespace = isSharedNamespace;
-            IsPrefix = isExactMatch;
+            IsPrefix = isPrefix;
             PackageRegistrations = new HashSet<PackageRegistration>();
             Owners = new HashSet<User>();
         }
