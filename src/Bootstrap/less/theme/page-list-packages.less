@@ -2,4 +2,30 @@
   h1 {
     margin-bottom: 33px;
   }
+
+  .row-heading {
+    .cell-heading {
+      h1 {
+        word-break: break-all;
+        word-break: break-word;
+      }
+    }
+
+    @media (min-width: @screen-md-min) {
+      display: table;
+      width: 100%;
+
+      .cell-heading {
+        text-align: left;
+        display: table-cell;
+      }
+
+      .cell-controls {
+        margin-top: 42px;
+        display: table-cell;
+        text-align: right;
+        white-space: nowrap;
+      }
+    }
+  }
 }

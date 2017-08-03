@@ -67,6 +67,7 @@ namespace NuGetGallery
             var searchFilter = SearchAdaptor.GetSearchFilter(
                 q,
                 page,
+                includePrerelease: true,
                 sortOrder: null,
                 context: SearchFilter.UISearchContext,
                 semVerLevel: SemVerLevelKey.SemVerLevel2);
@@ -93,7 +94,8 @@ namespace NuGetGallery
                 page - 1,
                 Constants.DefaultPackageListPageSize,
                 Url,
-                curatedFeedName);
+                curatedFeedName,
+                includePrerelease: true);
 
             ViewBag.SearchTerm = q;
 

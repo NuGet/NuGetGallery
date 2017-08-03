@@ -25,14 +25,14 @@ namespace NuGetGallery.OData
         /// </summary>
         internal const int MaxPageSize = 100;
 
-        public static SearchFilter GetSearchFilter(string q, int page, string sortOrder, string context, string semVerLevel)
+        public static SearchFilter GetSearchFilter(string q, int page, bool includePrerelease, string sortOrder, string context, string semVerLevel)
         {
             var searchFilter = new SearchFilter(context)
             {
                 SearchTerm = q,
                 Skip = (page - 1) * Constants.DefaultPackageListPageSize, // pages are 1-based. 
                 Take = Constants.DefaultPackageListPageSize,
-                IncludePrerelease = true,
+                IncludePrerelease = includePrerelease,
                 SemVerLevel = semVerLevel
             };
 

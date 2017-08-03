@@ -773,6 +773,26 @@ img.package-icon {
 .page-list-packages h1 {
   margin-bottom: 33px;
 }
+.page-list-packages .row-heading .cell-heading h1 {
+  word-break: break-all;
+  word-break: break-word;
+}
+@media (min-width: 992px) {
+  .page-list-packages .row-heading {
+    display: table;
+    width: 100%;
+  }
+  .page-list-packages .row-heading .cell-heading {
+    display: table-cell;
+    text-align: left;
+  }
+  .page-list-packages .row-heading .cell-controls {
+    display: table-cell;
+    margin-top: 42px;
+    text-align: right;
+    white-space: nowrap;
+  }
+}
 .page-manage-curated-feed .package-owners .owner {
   margin-bottom: 10px;
 }
