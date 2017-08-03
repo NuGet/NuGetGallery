@@ -41,6 +41,10 @@ namespace NuGetGallery
             ServicePointManager.UseNagleAlgorithm = false;
             ServicePointManager.Expect100Continue = false;
 
+            // Ensure that SSLv3 is disabled and that Tls v1.2 is enabled.
+            ServicePointManager.SecurityProtocol &= ~SecurityProtocolType.Ssl3;
+            ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
+
             // Register IoC
             app.UseAutofacInjection(GlobalConfiguration.Configuration);
             var dependencyResolver = DependencyResolver.Current;
