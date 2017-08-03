@@ -20,7 +20,8 @@ start /w Ng.exe catalog2dnx -source #{Jobs.ngcatalog2dnx.Catalog.Source} ^
     -certificateThumbprint #{Deployment.Azure.KeyVault.CertificateThumbprint} ^
     -verbose true ^
     -interval #{Jobs.ngcatalog2dnx.Interval} ^
-    -storageSuffix #{Jobs.Common.China.StorageSuffix}
+    -storageSuffix #{Jobs.Common.China.StorageSuffix} ^
+    -storageOperationMaxExecutionTimeInSeconds #{Jobs.Common.China.AzureOperationMaxTimeout}
 
 echo "Finished #{Jobs.ngcatalog2dnxChina.Title}"
 

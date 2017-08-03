@@ -119,7 +119,8 @@ namespace Ng
                 { Arguments.StorageKeyValue, Arguments.StorageKeyValue },
                 { Arguments.StorageContainer, Arguments.StorageContainer },
                 { Arguments.StoragePath, Arguments.StoragePath },
-                { Arguments.StorageSuffix, Arguments.StorageSuffix }
+                { Arguments.StorageSuffix, Arguments.StorageSuffix },
+                { Arguments.StorageOperationMaxExecutionTimeInSeconds, Arguments.StorageOperationMaxExecutionTimeInSeconds },
             };
 
             return CreateStorageFactoryImpl(arguments, names, verbose, compressed: false);
@@ -139,7 +140,8 @@ namespace Ng
                 { Arguments.StorageKeyValue, Arguments.CompressedStorageKeyValue },
                 { Arguments.StorageContainer, Arguments.CompressedStorageContainer },
                 { Arguments.StoragePath, Arguments.CompressedStoragePath },
-                { Arguments.StorageSuffix, Arguments.StorageSuffix }
+                { Arguments.StorageSuffix, Arguments.StorageSuffix },
+                { Arguments.StorageOperationMaxExecutionTimeInSeconds, Arguments.StorageOperationMaxExecutionTimeInSeconds },
             };
 
             return CreateStorageFactoryImpl(arguments, names, verbose, compressed: true);
@@ -159,7 +161,8 @@ namespace Ng
                 { Arguments.StorageKeyValue, Arguments.SemVer2StorageKeyValue },
                 { Arguments.StorageContainer, Arguments.SemVer2StorageContainer },
                 { Arguments.StoragePath, Arguments.SemVer2StoragePath },
-                { Arguments.StorageSuffix, Arguments.StorageSuffix }
+                { Arguments.StorageSuffix, Arguments.StorageSuffix },
+                { Arguments.StorageOperationMaxExecutionTimeInSeconds, Arguments.StorageOperationMaxExecutionTimeInSeconds },
             };
 
             return CreateStorageFactoryImpl(arguments, names, verbose, compressed: true);
@@ -179,7 +182,8 @@ namespace Ng
                 { Arguments.StorageKeyValue, Arguments.StorageKeyValue + suffix },
                 { Arguments.StorageContainer, Arguments.StorageContainer + suffix },
                 { Arguments.StoragePath, Arguments.StoragePath + suffix },
-                { Arguments.StorageSuffix, Arguments.StorageSuffix + suffix }
+                { Arguments.StorageSuffix, Arguments.StorageSuffix + suffix },
+                { Arguments.StorageOperationMaxExecutionTimeInSeconds, Arguments.StorageOperationMaxExecutionTimeInSeconds + suffix },
             };
 
             return CreateStorageFactoryImpl(arguments, names, verbose, compressed: false);
@@ -221,16 +225,34 @@ namespace Ng
                 var storageContainer = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageContainer]);
                 var storagePath = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StoragePath]);
                 var storageSuffix = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageSuffix]);
+                var storageOperationMaxExecutionTimeInSeconds = MaxExecutionTime(arguments.GetOrDefault<int>(argumentNameMap[Arguments.StorageOperationMaxExecutionTimeInSeconds]));
 
                 var credentials = new StorageCredentials(storageAccountName, storageKeyValue);
 
                 var account = string.IsNullOrEmpty(storageSuffix) ?
                                 new CloudStorageAccount(credentials, true) :
                                 new CloudStorageAccount(credentials, storageSuffix, true);
-                return new AzureStorageFactory(account, storageContainer, storagePath, storageBaseAddress)
+                return new AzureStorageFactory(account,
+                                               storageContainer,
+                                               storageOperationMaxExecutionTimeInSeconds,
+                                               storagePath,
+                                               storageBaseAddress)
                 { Verbose = verbose, CompressContent = compressed };
             }
             throw new ArgumentException($"Unrecognized storageType \"{storageType}\"");
+        }
+
+        private static TimeSpan MaxExecutionTime(int seconds)
+        {
+            if(seconds < 0)
+            {
+                throw new ArgumentException($"{nameof(seconds)} cannot be negative.");
+            }
+            if(seconds == 0)
+            {
+                return AzureStorage.DefaultMaxExecutionTime;
+            }
+            return TimeSpan.FromSeconds(seconds);
         }
 
         public static Lucene.Net.Store.Directory GetLuceneDirectory(IDictionary<string, string> arguments, bool required = true)

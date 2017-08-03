@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -15,14 +16,31 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public class AzureStorage : Storage
     {
+        private readonly TimeSpan _defaultServerTimeout = TimeSpan.FromSeconds(30);
         private readonly CloudBlobDirectory _directory;
+        private readonly BlobRequestOptions _blobRequestOptions;
 
-        public AzureStorage(CloudStorageAccount account, string containerName, string path, Uri baseAddress)
-            : this(account.CreateCloudBlobClient().GetContainerReference(containerName).GetDirectoryReference(path), baseAddress)
+       
+        public AzureStorage(CloudStorageAccount account,
+                            string containerName,
+                            string path,
+                            Uri baseAddress)
+            : this(account, containerName, path, baseAddress, DefaultMaxExecutionTime)
         {
         }
 
-        private AzureStorage(CloudBlobDirectory directory, Uri baseAddress)
+        public AzureStorage(CloudStorageAccount account,
+                           string containerName,
+                           string path,
+                           Uri baseAddress,
+                           TimeSpan maxExecutionTime)
+           : this(account.CreateCloudBlobClient().GetContainerReference(containerName).GetDirectoryReference(path),
+                 baseAddress,
+                 maxExecutionTime)
+        {
+        }
+
+        private AzureStorage(CloudBlobDirectory directory, Uri baseAddress, TimeSpan maxExecutionTime)
             : base(baseAddress ?? GetDirectoryUri(directory))
         {
             _directory = directory;
@@ -37,6 +55,15 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 }
             }
             ResetStatistics();
+            this._blobRequestOptions = CreateBlobRequestOptions(maxExecutionTime);
+        }
+
+        public static TimeSpan DefaultMaxExecutionTime
+        {
+            get
+            {
+                return TimeSpan.FromSeconds(600);
+            }
         }
 
         public bool CompressContent
@@ -90,7 +117,6 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         }
 
         //  save
-
         protected override async Task OnSave(Uri resourceUri, StorageContent content, CancellationToken cancellationToken)
         {
             string name = GetName(resourceUri);
@@ -112,7 +138,11 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                     }
 
                     destinationStream.Seek(0, SeekOrigin.Begin);
-                    await blob.UploadFromStreamAsync(destinationStream, cancellationToken);
+                    await blob.UploadFromStreamAsync(destinationStream,
+                                                     accessCondition: null,
+                                                     options: _blobRequestOptions,
+                                                     operationContext: null,
+                                                     cancellationToken: cancellationToken);
                     Trace.WriteLine(String.Format("Saved compressed blob {0} to container {1}", blob.Uri.ToString(), _directory.Container.Name));
                 }
             }
@@ -120,11 +150,25 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             {
                 using (Stream stream = content.GetContentStream())
                 {
-                    await blob.UploadFromStreamAsync(stream, cancellationToken);
+                    await blob.UploadFromStreamAsync(stream,
+                                                     accessCondition: null,
+                                                     options: _blobRequestOptions,
+                                                     operationContext: null,
+                                                     cancellationToken: cancellationToken);
                     Trace.WriteLine(String.Format("Saved uncompressed blob {0} to container {1}", blob.Uri.ToString(), _directory.Container.Name));
                 }
             }
             await TryTakeBlobSnapshotAsync(blob);
+        }
+
+        private BlobRequestOptions CreateBlobRequestOptions(TimeSpan maxExecutionTime)
+        {           
+            return new BlobRequestOptions
+            {
+                ServerTimeout = _defaultServerTimeout,
+                MaximumExecutionTime = maxExecutionTime,
+                RetryPolicy = new ExponentialRetry()
+            };
         }
 
         /// <summary>
@@ -164,8 +208,8 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 return false;
             }
         }
+        
         //  load
-
         protected override async Task<StorageContent> OnLoad(Uri resourceUri, CancellationToken cancellationToken)
         {
             // the Azure SDK will treat a starting / as an absolute URL,
@@ -178,7 +222,11 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             if (blob.Exists())
             {
                 MemoryStream originalStream = new MemoryStream();
-                await blob.DownloadToStreamAsync(originalStream, cancellationToken);
+                await blob.DownloadToStreamAsync(originalStream,
+                                                 accessCondition: null,
+                                                 options: _blobRequestOptions,
+                                                 operationContext: null,
+                                                 cancellationToken: cancellationToken);
 
                 originalStream.Seek(0, SeekOrigin.Begin);
 
@@ -214,13 +262,16 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         }
 
         //  delete
-
         protected override async Task OnDelete(Uri resourceUri, CancellationToken cancellationToken)
         {
             string name = GetName(resourceUri);
 
             CloudBlockBlob blob = _directory.GetBlockBlobReference(name);
-            await blob.DeleteAsync(deleteSnapshotsOption:DeleteSnapshotsOption.IncludeSnapshots, accessCondition:null, options:null, operationContext:null,  cancellationToken:cancellationToken);
+            await blob.DeleteAsync(deleteSnapshotsOption:DeleteSnapshotsOption.IncludeSnapshots,
+                                   accessCondition:null,
+                                   options:_blobRequestOptions,
+                                   operationContext:null,
+                                   cancellationToken:cancellationToken);
         }
     }
 }

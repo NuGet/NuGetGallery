@@ -47,6 +47,8 @@ namespace Ng
         public const string Version = "version";
 
         public const string StorageSuffix = "storageSuffix";
+        public const string StorageOperationMaxExecutionTimeInSeconds = "storageOperationMaxExecutionTimeInSeconds";
+
         #endregion
 
         #region Catalog2Lucene
