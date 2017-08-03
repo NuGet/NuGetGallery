@@ -2,6 +2,7 @@
 using NuGetGallery.Auditing;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -30,9 +31,11 @@ namespace NuGetGallery.Services
                 reservedNamespaceRepository.Object,
                 userService.Object,
                 packageService.Object,
-                auditingService.Object);
+                auditingService.Object)
+            {
+                CallBase = true
+            };
 
-            reservedNamespaceService.CallBase = true;
             if (setup != null)
             {
                 setup(reservedNamespaceService);
@@ -41,13 +44,106 @@ namespace NuGetGallery.Services
             return reservedNamespaceService.Object;
         }
 
-        public class ReservedNamepsaceManagement
+        public class ReservedNamespaceManagement
         {
             [Fact]
-            public async Task NewPrefixIsAddedCorrectly()
+            public async Task NewNamespaceIsReservedCorrectly()
             {
-                var newNamespace = new ReservedNamespace("Microsoft.", isSharedNamespace: false, isExactMatch: false);
-                await Task.Yield();
+                var prefixList = GetTestNamespaces();
+                var newNamespace = prefixList.SingleOrDefault(rn => rn.Value == "Microsoft.");
+
+                var regRepositiory = SetupReservedNamespaceRepository();
+                var service = CreateService(reservedNamespaceRepository: regRepositiory);
+
+                await service.AddReservedNamespaceAsync(newNamespace);
+
+                regRepositiory.Verify(
+                    x => x.InsertOnCommit(
+                        It.Is<ReservedNamespace>(
+                            rn => rn.Value == newNamespace.Value
+                                && rn.IsPrefix == newNamespace.IsPrefix
+                                && rn.IsSharedNamespace == newNamespace.IsSharedNamespace)));
+
+                regRepositiory.Verify(x => x.CommitChangesAsync());
+            }
+
+            [Fact]
+            public async Task NullNamespaceReservationThrowsException()
+            {
+                var regRepositiory = SetupReservedNamespaceRepository();
+                var service = CreateService(reservedNamespaceRepository: regRepositiory);
+
+                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.AddReservedNamespaceAsync(null));
+            }
+
+            [Fact]
+            public async Task VanillaReservedNamespaceIsDeletedCorrectly()
+            {
+                var prefixList = GetTestNamespaces();
+                var existingNamespace = prefixList.SingleOrDefault(rn => rn.Value == "Microsoft.");
+
+                var regRepositiory = SetupReservedNamespaceRepository();
+                var entititesContext = SetupEntitiesContext();
+                var service = CreateService(entitiesContext: entititesContext, reservedNamespaceRepository: regRepositiory);
+
+                await service.DeleteReservedNamespaceAsync(existingNamespace);
+
+                regRepositiory.Verify(
+                    x => x.DeleteOnCommit(
+                        It.Is<ReservedNamespace>(
+                            rn => rn.Value == existingNamespace.Value
+                                && rn.IsPrefix == existingNamespace.IsPrefix
+                                && rn.IsSharedNamespace == existingNamespace.IsSharedNamespace)));
+
+                regRepositiory.Verify(x => x.CommitChangesAsync());
+            }
+
+            private static IList<ReservedNamespace> GetTestNamespaces()
+            {
+                var result = new List<ReservedNamespace>();
+                result.Add(new ReservedNamespace("Microsoft.", isSharedNamespace: false, isPrefix: true));
+                result.Add(new ReservedNamespace("Microsoft.AspNet.", isSharedNamespace: false, isPrefix: true));
+                result.Add(new ReservedNamespace("BaseTest.", isSharedNamespace: false, isPrefix: true));
+                result.Add(new ReservedNamespace("jQuery", isSharedNamespace: false, isPrefix: false));
+                result.Add(new ReservedNamespace("jQuery.Extentions.", isSharedNamespace: true, isPrefix: true));
+                result.Add(new ReservedNamespace("Random.", isSharedNamespace: false, isPrefix: true));
+
+                return result;
+            }
+
+            private static Mock<IEntityRepository<ReservedNamespace>> SetupReservedNamespaceRepository()
+            {
+                var obj = new Mock<IEntityRepository<ReservedNamespace>>();
+                var prefixList = GetTestNamespaces();
+
+                obj.Setup(x => x.GetAll())
+                    .Returns(prefixList.AsQueryable());
+
+                return obj;
+            }
+            private static Mock<UserService> SetupUserService()
+            {
+                return null;
+            }
+            private static Mock<PackageService> SetupPackageService()
+            {
+                return null;
+            }
+            private static Mock<AuditingService> SetupAuditingService()
+            {
+                return null;
+            }
+
+            private static Mock<IEntitiesContext> SetupEntitiesContext()
+            {
+                var obj = new Mock<IEntitiesContext>();
+                var dbContext = new Mock<DbContext>();
+
+                obj
+                    .Setup(m => m.GetDatabase())
+                    .Returns(dbContext.Object.Database);
+
+                return obj;
             }
         }
     }

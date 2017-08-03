@@ -42,7 +42,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 FoundPrefixes = foundPrefixes.Select(
                     p => new ReservedNamespace(p.Value, p.IsSharedNamespace, p.IsPrefix)),
                 NotFoundPrefixes = notFoundPrefixes.Select(
-                    p => new ReservedNamespace(p.ToString(), isSharedNamespace: false, isExactMatch: true))
+                    p => new ReservedNamespace(p.ToString(), isSharedNamespace: false, isPrefix: true))
             };
 
             return Json(results, JsonRequestBehavior.AllowGet);
