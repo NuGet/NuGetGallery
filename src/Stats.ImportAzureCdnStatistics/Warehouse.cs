@@ -749,10 +749,7 @@ namespace Stats.ImportAzureCdnStatistics
         {
             var results = new List<DateDimension>();
 
-            var command = connection.CreateCommand();
-            command.CommandText = SqlQueries.GetDateDimensions(min, max);
-            command.CommandTimeout = _defaultCommandTimeout;
-            command.CommandType = CommandType.Text;
+            var command = SqlQueries.GetDateDimensions(connection, _defaultCommandTimeout, min, max);
 
             using (var dataReader = await command.ExecuteReaderAsync())
             {
@@ -775,10 +772,7 @@ namespace Stats.ImportAzureCdnStatistics
         {
             var results = new List<TimeDimension>();
 
-            var command = connection.CreateCommand();
-            command.CommandText = SqlQueries.GetAllTimeDimensions();
-            command.CommandTimeout = _defaultCommandTimeout;
-            command.CommandType = CommandType.Text;
+            var command = SqlQueries.GetAllTimeDimensions(connection, _defaultCommandTimeout);
 
             using (var dataReader = await command.ExecuteReaderAsync())
             {

@@ -31,7 +31,7 @@ namespace Search.GenerateAuxiliaryData
         {
             var rankingsTotalCommand = new SqlCommand(GetEmbeddedSqlScript(_rankingsTotalScript), connection);
             rankingsTotalCommand.CommandType = CommandType.Text;
-            rankingsTotalCommand.Parameters.Add(new SqlParameter(_rankingCountParameterName, _rankingCount));
+            rankingsTotalCommand.Parameters.AddWithValue(_rankingCountParameterName, _rankingCount);
             rankingsTotalCommand.CommandTimeout = 60;
 
             return GetRankings(rankingsTotalCommand.ExecuteReader());

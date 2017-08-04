@@ -122,7 +122,8 @@ namespace Gallery.CredentialExpiration
                         _galleryDatabase.InitialCatalog);
 
                     expiredCredentials = (await galleryConnection.QueryWithRetryAsync<ExpiredCredentialData>(
-                        string.Format(Strings.GetExpiredCredentialsQuery, _warnDaysBeforeExpiration),
+                        Strings.GetExpiredCredentialsQuery,
+                        param: new { DaysBeforeExpiration = _warnDaysBeforeExpiration },
                         maxRetries: 3,
                         commandTimeout: _defaultCommandTimeout)).ToList();
 

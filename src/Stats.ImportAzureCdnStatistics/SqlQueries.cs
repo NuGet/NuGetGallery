@@ -2,22 +2,42 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Data;
+using System.Data.SqlClient;
 
 namespace Stats.ImportAzureCdnStatistics
 {
     internal static class SqlQueries
     {
         private const string _sqlGetAllTimeDimensions = "SELECT [Id], [HourOfDay] FROM [dbo].[Dimension_Time]";
-        private const string _sqlGetDateDimensions = "SELECT [Id], [Date] FROM [dbo].[Dimension_Date] WHERE [Date] >= '{0}' AND [Date] <= '{1}'";
 
-        public static string GetAllTimeDimensions()
+        private const string _timeFormat = "yyyy-MM-dd";
+        private const string _minParameterName = "@Min";
+        private const string _maxParameterName = "@Max";
+        private const string _sqlGetDateDimensions = "SELECT [Id], [Date] FROM [dbo].[Dimension_Date] WHERE [Date] >= " + _minParameterName + " AND [Date] <= " + _maxParameterName;
+
+        public static SqlCommand GetAllTimeDimensions(SqlConnection connection, int commandTimeout)
         {
-            return _sqlGetAllTimeDimensions;
+            var command = connection.CreateCommand();
+            command.CommandText = _sqlGetAllTimeDimensions;
+            command.CommandTimeout = commandTimeout;
+            command.CommandType = CommandType.Text;
+
+            return command;
         }
 
-        public static string GetDateDimensions(DateTime min, DateTime max)
+        public static SqlCommand GetDateDimensions(SqlConnection connection, int commandTimeout, DateTime min, DateTime max)
         {
-            return string.Format(_sqlGetDateDimensions, min.ToString("yyyy-MM-dd"), max.ToString("yyyy-MM-dd"));
+            var command = connection.CreateCommand();
+            command.CommandText = _sqlGetDateDimensions;
+
+            command.Parameters.AddWithValue(_minParameterName, min.ToString(_timeFormat));
+            command.Parameters.AddWithValue(_maxParameterName, max.ToString(_timeFormat));
+
+            command.CommandTimeout = commandTimeout;
+            command.CommandType = CommandType.Text;
+
+            return command;
         }
     }
 }

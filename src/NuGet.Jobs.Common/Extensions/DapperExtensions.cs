@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
 
@@ -10,11 +11,16 @@ namespace System.Data.SqlClient
 {
     public static class DapperExtensions
     {
-        public static Task<int> ExecuteAsync(this SqlConnection connection, string sql, SqlTransaction transaction = null, TimeSpan? commandTimeout = null)
+        public static Task<int> ExecuteAsync(this SqlConnection connection, string sql, SqlParameter[] parameters = null, SqlTransaction transaction = null, TimeSpan? commandTimeout = null)
         {
             SqlCommand cmd = connection.CreateCommand();
             cmd.CommandText = sql;
             cmd.CommandType = CommandType.Text;
+
+            if (parameters != null)
+            {
+                cmd.Parameters.AddRange(parameters);
+            }
 
             if (commandTimeout.HasValue)
             {

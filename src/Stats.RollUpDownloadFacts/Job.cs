@@ -63,7 +63,7 @@ namespace Stats.RollUpDownloadFacts
                     var sqlCommand = new SqlCommand("[dbo].[RollUpDownloadFacts]", connection);
                     sqlCommand.CommandType = CommandType.StoredProcedure;
                     sqlCommand.CommandTimeout = 23 * 60 * 60;
-                    sqlCommand.Parameters.Add(new SqlParameter("MinAgeInDays", _minAgeInDays));
+                    sqlCommand.Parameters.AddWithValue("MinAgeInDays", _minAgeInDays);
 
                     await sqlCommand.ExecuteScalarAsync();
                 }
