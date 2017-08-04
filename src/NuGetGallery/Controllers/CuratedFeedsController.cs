@@ -55,7 +55,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        public virtual async Task<ActionResult> ListPackages(string curatedFeedName, string q, int page = 1)
+        public virtual async Task<ActionResult> ListPackages(string curatedFeedName, string q, int page = 1, bool prerel = true)
         {
             if (page < 1)
             {
@@ -67,7 +67,7 @@ namespace NuGetGallery
             var searchFilter = SearchAdaptor.GetSearchFilter(
                 q,
                 page,
-                includePrerelease: true,
+                includePrerelease: prerel,
                 sortOrder: null,
                 context: SearchFilter.UISearchContext,
                 semVerLevel: SemVerLevelKey.SemVerLevel2);
@@ -95,7 +95,7 @@ namespace NuGetGallery
                 Constants.DefaultPackageListPageSize,
                 Url,
                 curatedFeedName,
-                includePrerelease: true);
+                includePrerelease: prerel);
 
             ViewBag.SearchTerm = q;
 
