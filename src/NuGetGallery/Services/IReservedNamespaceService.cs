@@ -18,7 +18,7 @@ namespace NuGetGallery
 
         ReservedNamespace FindReservedNamespaceForPrefix(string prefix);
 
-        IList<ReservedNamespace> FindAllReservedNamespacesForPrefix(string prefix);
+        IList<ReservedNamespace> FindAllReservedNamespacesForPrefix(string prefix, bool getExactMatches);
 
         IList<ReservedNamespace> FindReservedNamespacesForPrefixList(IList<string> prefixList);
 

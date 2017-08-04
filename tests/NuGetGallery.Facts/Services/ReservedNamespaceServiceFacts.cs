@@ -49,9 +49,66 @@ namespace NuGetGallery.Services
             [Fact]
             public async Task NewNamespaceIsReservedCorrectly()
             {
-                var prefixList = GetTestNamespaces();
-                var newNamespace = prefixList.SingleOrDefault(rn => rn.Value == "Microsoft.");
+                var newNamespace = new ReservedNamespace("NewNamespace.", isSharedNamespace: false, isPrefix: true);
+                var regRepositiory = SetupReservedNamespaceRepository();
+                var service = CreateService(reservedNamespaceRepository: regRepositiory);
 
+                await service.AddReservedNamespaceAsync(newNamespace);
+
+                regRepositiory.Verify(
+                    x => x.InsertOnCommit(
+                        It.Is<ReservedNamespace>(
+                            rn => rn.Value == newNamespace.Value
+                                && rn.IsPrefix == newNamespace.IsPrefix
+                                && rn.IsSharedNamespace == newNamespace.IsSharedNamespace)));
+
+                regRepositiory.Verify(x => x.CommitChangesAsync());
+            }
+
+            [Fact]
+            public async Task ReservingNullNamespaceThrowsException()
+            {
+                var regRepositiory = SetupReservedNamespaceRepository();
+                var service = CreateService(reservedNamespaceRepository: regRepositiory);
+
+                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.AddReservedNamespaceAsync(null));
+            }
+
+            [Fact]
+            public async Task ReservingExistingNamespaceThrowsException()
+            {
+                var newNamespace = new ReservedNamespace("Microsoft.", isSharedNamespace: false, isPrefix: true);
+                var regRepositiory = SetupReservedNamespaceRepository();
+                var service = CreateService(reservedNamespaceRepository: regRepositiory);
+
+                await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.AddReservedNamespaceAsync(newNamespace));
+                
+            }
+
+            [Fact]
+            public async Task ReservingExistingNamespaceWithDifferentPrefixStateThrowsException()
+            {
+                var newNamespace = new ReservedNamespace("jQuery", isSharedNamespace: false, isPrefix: true);
+                var regRepositiory = SetupReservedNamespaceRepository();
+                var service = CreateService(reservedNamespaceRepository: regRepositiory);
+
+                await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.AddReservedNamespaceAsync(newNamespace));
+            }
+
+            [Fact]
+            public async Task ReservingLiberalNamespaceThrowsException()
+            {
+                var newNamespace = new ReservedNamespace("Micro", isSharedNamespace: false, isPrefix: true);
+                var regRepositiory = SetupReservedNamespaceRepository();
+                var service = CreateService(reservedNamespaceRepository: regRepositiory);
+
+                await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.AddReservedNamespaceAsync(newNamespace));
+            }
+
+            [Fact]
+            public async Task ReservingLiberalNamespaceForExactMatchIsAllowed()
+            {
+                var newNamespace = new ReservedNamespace("Microsoft", isSharedNamespace: false, isPrefix: false/*exact match*/);
                 var regRepositiory = SetupReservedNamespaceRepository();
                 var service = CreateService(reservedNamespaceRepository: regRepositiory);
 
@@ -96,6 +153,26 @@ namespace NuGetGallery.Services
                                 && rn.IsSharedNamespace == existingNamespace.IsSharedNamespace)));
 
                 regRepositiory.Verify(x => x.CommitChangesAsync());
+            }
+
+            [Fact]
+            public async Task NullNamespaceDeletionThrowsException()
+            {
+                var regRepositiory = SetupReservedNamespaceRepository();
+                var service = CreateService(reservedNamespaceRepository: regRepositiory);
+
+                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.DeleteReservedNamespaceAsync(null));
+            }
+
+            [Fact]
+            public async Task NonExistingNamespaceDeletionThrowsException()
+            {
+                var nonExistentNamespace = new ReservedNamespace("NewNamespace.", isSharedNamespace: false, isPrefix: true);
+                var regRepositiory = SetupReservedNamespaceRepository();
+                var entititesContext = SetupEntitiesContext();
+                var service = CreateService(entitiesContext: entititesContext, reservedNamespaceRepository: regRepositiory);
+
+                await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.DeleteReservedNamespaceAsync(nonExistentNamespace));
             }
 
             private static IList<ReservedNamespace> GetTestNamespaces()
