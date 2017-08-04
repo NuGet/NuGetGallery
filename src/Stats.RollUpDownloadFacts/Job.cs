@@ -18,7 +18,6 @@ namespace Stats.RollUpDownloadFacts
         : JobBase
     {
         private const string _startTemplateRecordsDeletion = "Package Dimension ID ";
-        private const string _endTemplateDimProjectTypeDeletion = " records from [dbo].[Fact_Download_Dimension_ProjectType]";
         private const string _endTemplateFactDownloadDeletion = " records from [dbo].[Fact_Download]";
         private const int DefaultMinAgeInDays = 43;
         private static int _minAgeInDays;
@@ -64,7 +63,7 @@ namespace Stats.RollUpDownloadFacts
                     var sqlCommand = new SqlCommand("[dbo].[RollUpDownloadFacts]", connection);
                     sqlCommand.CommandType = CommandType.StoredProcedure;
                     sqlCommand.CommandTimeout = 23 * 60 * 60;
-                    sqlCommand.Parameters.Add(new SqlParameter("MinAgeInDays", _minAgeInDays));
+                    sqlCommand.Parameters.AddWithValue("MinAgeInDays", _minAgeInDays);
 
                     await sqlCommand.ExecuteScalarAsync();
                 }
@@ -89,20 +88,7 @@ namespace Stats.RollUpDownloadFacts
             _logger.LogInformation(e.Message);
 
             if (e.Message.StartsWith(_startTemplateRecordsDeletion) &&
-                e.Message.EndsWith(_endTemplateDimProjectTypeDeletion))
-            {
-                var parts = e.Message
-                    .Replace(_startTemplateRecordsDeletion, string.Empty)
-                    .Replace(_endTemplateDimProjectTypeDeletion, string.Empty)
-                    .Split(' ');
-
-                var value = double.Parse(parts.Last());
-                var packageDimensionId = parts.First().Replace(":", string.Empty);
-
-                ApplicationInsightsHelper.TrackRollUpMetric("ProjectType Links Deleted", value, packageDimensionId);
-            }
-            else if (e.Message.StartsWith(_startTemplateRecordsDeletion) &&
-                     e.Message.EndsWith(_endTemplateFactDownloadDeletion))
+                e.Message.EndsWith(_endTemplateFactDownloadDeletion))
             {
                 var parts = e.Message
                     .Replace(_startTemplateRecordsDeletion, string.Empty)

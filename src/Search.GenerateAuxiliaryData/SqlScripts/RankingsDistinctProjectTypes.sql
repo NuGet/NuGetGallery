@@ -1,1 +1,0 @@
-SELECT DISTINCT [Dimension_ProjectType].[ProjectType] FROM [Dimension_ProjectType] (NOLOCK)

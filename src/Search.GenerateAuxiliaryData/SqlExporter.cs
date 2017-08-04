@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.IO;
@@ -13,7 +14,8 @@ using Newtonsoft.Json.Linq;
 
 namespace Search.GenerateAuxiliaryData
 {
-    internal abstract class SqlExporter
+    // Public only to facilitate testing.
+    public abstract class SqlExporter
     {
         private static Assembly _executingAssembly = Assembly.GetExecutingAssembly();
         private static string _assemblyName = _executingAssembly.GetName().Name;
@@ -54,7 +56,7 @@ namespace Search.GenerateAuxiliaryData
 
         protected abstract JContainer GetResultOfQuery(SqlConnection connection);
 
-        protected static Dictionary<string, int> GetColMappingFromSqlDataReader(SqlDataReader reader)
+        protected static Dictionary<string, int> GetColMappingFromSqlDataReader(IDataReader reader)
         {
             var colNames = new Dictionary<string, int>();
             for (var i = 0; i < reader.FieldCount; i++)
