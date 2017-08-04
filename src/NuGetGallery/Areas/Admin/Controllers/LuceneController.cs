@@ -55,6 +55,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public virtual Task<ActionResult> Rebuild()
         {
             IndexingService.UpdateIndex(forceRefresh: true);

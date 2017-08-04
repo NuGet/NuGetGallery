@@ -15,12 +15,6 @@
         "ChevronDown",
         "Add Owner");
 
-    function addAntiForgeryToken(data) {
-        var $field = $("#AntiForgeryForm input[name=__RequestVerificationToken]");
-        data["__RequestVerificationToken"] = $field.val();
-        return data;
-    }
-
     var failHandler = function (jqXHR, textStatus, errorThrown) {
         viewModel.message('An unexpected error occurred! "' + errorThrown + '"');
     };
@@ -100,7 +94,7 @@
                 url: addPackageOwnerUrl,
                 dataType: 'json',
                 type: 'POST',
-                data: addAntiForgeryToken(ownerInputModel),
+                data: window.nuget.addAjaxAntiForgeryToken(ownerInputModel),
                 success: function (data) {
                     if (data.success) {
                         var newOwner = new Owner(data.name, data.profileUrl, data.imageUrl, /* pending */ true, data.current);
@@ -133,7 +127,7 @@
                 url: removePackageOwnerUrl,
                 dataType: 'json',
                 type: 'POST',
-                data: addAntiForgeryToken({
+                data: window.nuget.addAjaxAntiForgeryToken({
                     id: viewModel.package.id,
                     username: item.name(),
                 }),

@@ -247,6 +247,13 @@
         };
     };
 
+    // Shared function for adding an anti-forgery token defined by ViewHelpers.AjaxAntiForgeryToken to an ajax request
+    nuget.addAjaxAntiForgeryToken = function (data) {
+        var $field = $("#AntiForgeryForm input[name=__RequestVerificationToken]");
+        data["__RequestVerificationToken"] = $field.val();
+        return data;
+    };
+
     window.nuget = nuget;
 
     initializeJQueryValidator();

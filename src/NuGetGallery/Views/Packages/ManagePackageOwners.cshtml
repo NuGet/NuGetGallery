@@ -6,9 +6,7 @@
 }
 
 <section role="main" class="container main-container page-manage-owners">
-    <form id="AntiForgeryForm">
-        @Html.AntiForgeryToken()
-    </form>
+    @ViewHelpers.AjaxAntiForgeryToken(Html)
 
     <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
         @Html.Partial("_PackageHeading", new PackageHeadingModel
