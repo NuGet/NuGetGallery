@@ -1522,6 +1522,9 @@
     <Compile Include="ViewModels\ManagePackagesListViewModel.cs" />
     <Compile Include="ViewModels\ApiKeyListViewModel.cs" />
     <Compile Include="ViewModels\ApiKeyViewModel.cs" />
+    <Compile Include="ViewModels\OwnerRequestsListItemViewModel.cs" />
+    <Compile Include="ViewModels\OwnerRequestsListViewModel.cs" />
+    <Compile Include="ViewModels\OwnerRequestsViewModel.cs" />
     <Compile Include="ViewModels\PackageHeadingModel.cs" />
     <Compile Include="ViewModels\PackageManagerViewModel.cs" />
     <Compile Include="ViewModels\ReportMyPackageViewModel.cs" />
@@ -1872,6 +1875,8 @@
     <Content Include="Views\Packages\_ImportReadMe.cshtml" />
     <Content Include="Views\Packages\_SubmitPackage.cshtml" />
     <Content Include="Views\Packages\_EditForm.cshtml" />
+    <Content Include="Views\Users\OwnerRequests.cshtml" />
+    <Content Include="Views\Users\_OwnerRequestsList.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />

@@ -1,0 +1,15 @@
+﻿@model OwnerRequestsViewModel
+@{
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
+}
+
+<section role="main" class="container main-container">
+    <div class="row">
+        <div class="col-xs-12">
+            <h1>Manage Package Owner Requests</h1>
+        </div>
+    </div>
+
+    @Html.Partial("_OwnerRequestsList", Model.Incoming)
+    @Html.Partial("_OwnerRequestsList", Model.Outgoing)
+</section>
