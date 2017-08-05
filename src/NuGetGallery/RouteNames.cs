@@ -27,6 +27,8 @@ namespace NuGetGallery
         public const string PackageFilePathAction = "PackageFilePathAction";
         public const string PackageFileContentsAction = "PackageFileContentsAction";
         public const string PackageOwnerConfirmation = "PackageOwnerConfirmation";
+        public const string PackageOwnerRejection = "PackageOwnerRejection";
+        public const string PackageOwnerCancellation = "PackageOwnerCancellation";
         public const string PackageAction = "PackageAction";
         public const string PushPackageApi = "PushPackageApi";
         public const string PublishPackageApi = "PublishPackageApi";
@@ -57,6 +59,7 @@ namespace NuGetGallery
         public const string PackageEnableLicenseReport = "EnableLicenseReport";
         public const string PackageDisableLicenseReport = "DisableLicenseReport";
         public const string OwinRoute = "OwinRoute";
+        public const string OwnerRequests = "OwnerRequests";
         public const string Pages = "Pages";
         public const string ExternalAuthentication = "ExternalAuthentication";
         public const string ExternalAuthenticationCallback = "ExternalAuthenticationCallback";

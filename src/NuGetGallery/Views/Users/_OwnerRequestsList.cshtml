@@ -1,0 +1,77 @@
+﻿@model OwnerRequestsListViewModel
+@{
+    var requestsString = "request" + (Model.RequestItems.Count() != 1 ? "s" : "");
+}
+
+<div class="row user-package-list">
+    <div class="col-md-12">
+        <h2>
+            <a href="#" role="button" data-toggle="collapse" data-target="#packages-@Model.Name"
+               aria-expanded="true" aria-controls="requests-@Model.Name" id="show-packages-@Model.Name">
+                <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+                <span>My @Model.Name Ownership Requests</span>
+            </a>
+        </h2>
+        <div class="panel-collapse collapse in" id="requests-@Model.Name" aria-expanded="true">
+            <p>
+                You have <b>@Model.RequestItems.Count().ToNuGetNumberString() @Model.Name.ToLowerInvariant() @requestsString</b>
+            </p>
+            <div class="list-packages" role="list">
+                <table class="table">
+                    <thead>
+                        <tr class="manage-package-headings">
+                            <th class="col-sm-1"></th>
+                            <th class="col-sm-3">Package ID</th>
+                            <th class="col-sm-3">Existing Owner</th>
+                            <th class="col-sm-3">New Owner</th>
+                            <th class="col-sm-2"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var requestItem in @Model.RequestItems)
+                        {
+                            var packageId = requestItem.Request.PackageRegistration.Id;
+
+                            <tr class="manage-package-listing">
+                                <td class="col-sm-1 align-middle">
+                                    <img class="package-icon img-responsive" aria-hidden="true" alt=""
+                                         src="@(PackageHelper.ShouldRenderUrl(requestItem.Package.IconUrl) ? requestItem.Package.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))"
+                                         @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")) />
+                                </td>
+                                <td class="col-sm-3 align-middle"><a href="@Url.Package(packageId)">packageId</a></td>
+                                <td class="col-sm-3 align-middle">
+                                    <a href="@Url.User(requestItem.Request.RequestingOwner)">@requestItem.Request.RequestingOwner.Username</a>
+                                </td>
+                                <td class="col-sm-3 align-middle">
+                                    <a href="@Url.User(requestItem.Request.NewOwner)">@requestItem.Request.NewOwner.Username</a>
+                                </td>
+                                <td class="col-sm-2 text-right align-middle">
+                                    <div class="btn-group">
+                                        @{
+                                            if (CurrentUser.Key == requestItem.Request.NewOwnerKey)
+                                            {
+                                                <a href="@Url.ConfirmOwner(packageId, CurrentUser.Username, requestItem.Request.ConfirmationCode)" class="btn" title="Confirm Ownership" aria-label="Confirm Ownership of @packageId">
+                                                    <i class="ms-Icon ms-Icon--Accept" aria-hidden="true"></i>
+                                                </a>
+
+                                                <a href="@Url.RejectOwner(packageId, CurrentUser.Username, requestItem.Request.ConfirmationCode)" class="btn" title="Reject Ownership" aria-lable="Reject Ownership Request of @packageId">
+                                                    <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <a href="@Url.CancelOwner(packageId, CurrentUser.Username, requestItem.Request.NewOwner.Username)" class="btn" title="Cancel Ownership" aria-lable="Cancel Ownership Request of @requestItem.Request.NewOwner.Username to Own @packageId">
+                                                    <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
+                                                </a>
+                                            }
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

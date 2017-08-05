@@ -425,7 +425,7 @@ namespace NuGetGallery
             package.Owners.Add(newOwner);
             await _packageRepository.CommitChangesAsync();
 
-            var request = FindExistingPackageOwnerRequest(package, newOwner);
+            var request = FindExistingPackageOwnerRequestByPending(package, newOwner);
             if (request != null)
             {
                 _packageOwnerRequestRepository.DeleteOnCommit(request);
@@ -443,7 +443,7 @@ namespace NuGetGallery
                 throw new InvalidOperationException("You can't remove the only owner from a package.");
             }
 
-            var pendingOwner = FindExistingPackageOwnerRequest(package, user);
+            var pendingOwner = FindExistingPackageOwnerRequestByPending(package, user);
             if (pendingOwner != null)
             {
                 _packageOwnerRequestRepository.DeleteOnCommit(pendingOwner);
@@ -456,6 +456,11 @@ namespace NuGetGallery
 
             await _auditingService.SaveAuditRecordAsync(
                 new PackageRegistrationAuditRecord(package, AuditedPackageRegistrationAction.RemoveOwner, user.Username));
+        }
+
+        public PackageOwnerRequest GetPackageOwnerRequestAsync(PackageRegistration package, User requestingUser, User pendingUser)
+        {
+            return FindExistingPackageOwnerRequest(package, requestingUser, pendingUser);
         }
 
         public async Task MarkPackageListedAsync(Package package, bool commitChanges = true)
@@ -525,7 +530,7 @@ namespace NuGetGallery
 
         public async Task<PackageOwnerRequest> CreatePackageOwnerRequestAsync(PackageRegistration package, User currentOwner, User newOwner)
         {
-            var existingRequest = FindExistingPackageOwnerRequest(package, newOwner);
+            var existingRequest = FindExistingPackageOwnerRequestByPending(package, newOwner);
             if (existingRequest != null)
             {
                 return existingRequest;
@@ -562,7 +567,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(token));
             }
 
-            var request = FindExistingPackageOwnerRequest(package, pendingOwner);
+            var request = FindExistingPackageOwnerRequestByPending(package, pendingOwner);
             return (request != null && request.ConfirmationCode == token);
         }
 
@@ -916,10 +921,20 @@ namespace NuGetGallery
             return packages.First(pv => pv.Version.Equals(version.OriginalVersion, StringComparison.OrdinalIgnoreCase));
         }
 
-        private PackageOwnerRequest FindExistingPackageOwnerRequest(PackageRegistration package, User pendingOwner)
+        private PackageOwnerRequest FindExistingPackageOwnerRequestByPending(PackageRegistration package, User pendingOwner)
         {
             return (from request in _packageOwnerRequestRepository.GetAll()
-                    where request.PackageRegistrationKey == package.Key && request.NewOwnerKey == pendingOwner.Key
+                    where request.PackageRegistrationKey == package.Key && 
+                        request.NewOwnerKey == pendingOwner.Key
+                    select request).FirstOrDefault();
+        }
+
+        private PackageOwnerRequest FindExistingPackageOwnerRequest(PackageRegistration package, User requestingOwner, User pendingOwner)
+        {
+            return (from request in _packageOwnerRequestRepository.GetAll()
+                    where request.PackageRegistrationKey == package.Key && 
+                        request.RequestingOwnerKey == requestingOwner.Key &&
+                        request.NewOwnerKey == pendingOwner.Key
                     select request).FirstOrDefault();
         }
 

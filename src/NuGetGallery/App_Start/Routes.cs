@@ -144,6 +144,16 @@ namespace NuGetGallery
                 "packages/{id}/owners/{username}/confirm/{token}",
                 new { controller = "Packages", action = "ConfirmOwner" });
 
+            routes.MapRoute(
+                RouteName.PackageOwnerRejection,
+                "packages/{id}/owners/{username}/reject/{token}",
+                new { controller = "Packages", action = "RejectOwner" });
+
+            routes.MapRoute(
+                RouteName.PackageOwnerCancellation,
+                "packages/{id}/owners/{username}/cancel/{token}",
+                new { controller = "Packages", action = "CancelOwner" });
+
             // We need the following two routes (rather than just one) due to Routing's
             // Consecutive Optional Parameter bug. :(
             var packageDisplayRoute = routes.MapRoute(
@@ -268,6 +278,11 @@ namespace NuGetGallery
                 RouteName.ApiKeys,
                 "account/apikeys",
                 new { controller = "Users", action = "ApiKeys" });
+
+            routes.MapRoute(
+                RouteName.OwnerRequests,
+                "account/ownerrequests",
+                new { controller = "Users", action = "OwnerRequests" });
 
             routes.MapRoute(
                 RouteName.CuratedFeed,

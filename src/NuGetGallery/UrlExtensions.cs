@@ -312,6 +312,50 @@ namespace NuGetGallery
                 });
         }
 
+        public static string OwnerRequests(this UrlHelper url)
+        {
+            return url.Action(actionName: "OwnerRequests", controllerName: "Users");
+        }
+
+        public static string ConfirmOwner(this UrlHelper url, string packageId, string username, string confirmationCode)
+        {
+            return url.Action(
+                actionName: "ConfirmOwner",
+                controllerName: "Packages",
+                routeValues: new
+                {
+                    id = packageId,
+                    username = username,
+                    token = confirmationCode
+                });
+        }
+
+        public static string RejectOwner(this UrlHelper url, string packageId, string username, string confirmationCode)
+        {
+            return url.Action(
+                actionName: "RejectOwner",
+                controllerName: "Packages",
+                routeValues: new
+                {
+                    id = packageId,
+                    username = username,
+                    token = confirmationCode
+                });
+        }
+
+        public static string CancelOwner(this UrlHelper url, string packageId, string requestingUsername, string pendingUsername)
+        {
+            return url.Action(
+                actionName: "CancelOwner",
+                controllerName: "Packages",
+                routeValues: new
+                {
+                    id = packageId,
+                    requestingUsername = requestingUsername,
+                    pendingUsername = pendingUsername
+                });
+        }
+
         public static string ConfirmationUrl(this UrlHelper url, string action, string controller, string username, string token)
         {
             return ConfirmationUrl(url, action, controller, username, token, null);

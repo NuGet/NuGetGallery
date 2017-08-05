@@ -12,11 +12,19 @@
             @if (Model.Result == ConfirmOwnershipResult.Success
                 || Model.Result == ConfirmOwnershipResult.AlreadyOwner)
             {
-                @:Email Confirmed
+                @:Ownership Confirmed
+            }
+            else if (Model.Result == ConfirmOwnershipResult.Rejected)
+            {
+                @:Ownership Rejected
+            }
+            else if (Model.Result == ConfirmOwnershipResult.Cancelled)
+            {
+                @:Ownership Request Cancelled
             }
             else
             {
-                @:Email Confirmation Failed
+                @:Ownership Confirmation Failed
             }
         </h1>
     </div>
@@ -25,6 +33,20 @@
         {
             <p class="text-center">
                 You are now an owner of the
+                '<strong><a href="@Url.Package(@Model.PackageId)" title="The @Model.PackageId package">@Model.PackageId</a></strong>' package!
+            </p>
+        }
+        else if (Model.Result == ConfirmOwnershipResult.Rejected)
+        {
+            <p class="text-center">
+                You have rejected a request to become an owner of the
+                '<strong><a href="@Url.Package(@Model.PackageId)" title="The @Model.PackageId package">@Model.PackageId</a></strong>' package!
+            </p>
+        }
+        else if (Model.Result == ConfirmOwnershipResult.Cancelled)
+        {
+            <p class="text-center">
+                You have cancelled your request for <strong>@Model.Username</strong> become an owner of the
                 '<strong><a href="@Url.Package(@Model.PackageId)" title="The @Model.PackageId package">@Model.PackageId</a></strong>' package!
             </p>
         }

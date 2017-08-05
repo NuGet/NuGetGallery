@@ -79,6 +79,8 @@ namespace NuGetGallery
 
         Task RemovePackageOwnerAsync(PackageRegistration package, User user);
 
+        PackageOwnerRequest GetPackageOwnerRequestAsync(PackageRegistration package, User requestingUser, User pendingUser);
+
         Task SetLicenseReportVisibilityAsync(Package package, bool visible, bool commitChanges = true);
 
         void EnsureValid(PackageArchiveReader packageArchiveReader);
