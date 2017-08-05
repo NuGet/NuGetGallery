@@ -77,7 +77,10 @@ namespace NuGetGallery
                         .Where(pr => pr.ReservedNamespaces.Count() == 1)
                         .ToList();
 
-                    await _packageService.UpdatePackageVerifiedStatusAsync(packageRegistrationsToMarkUnVerified, isVerified: false);
+                    if (packageRegistrationsToMarkUnVerified.Count() > 0)
+                    {
+                        await _packageService.UpdatePackageVerifiedStatusAsync(packageRegistrationsToMarkUnVerified, isVerified: false);
+                    }
                 }
 
                 _reservedNamespaceRepository.DeleteOnCommit(namespaceToDelete);

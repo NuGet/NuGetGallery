@@ -157,7 +157,7 @@ namespace NuGetGallery.Services
                 var prefixList = GetTestNamespaces();
                 var existingNamespace = prefixList.SingleOrDefault(rn => rn.Value == "Microsoft.");
 
-                var rnRepository = SetupReservedNamespaceRepository();
+                var rnRepository = SetupReservedNamespaceRepository(prefixList);
                 var entititesContext = SetupEntitiesContext();
                 var packageService = SetupPackageService();
 
@@ -173,6 +173,7 @@ namespace NuGetGallery.Services
                                 && rn.IsSharedNamespace == existingNamespace.IsSharedNamespace)));
 
                 rnRepository.Verify(x => x.CommitChangesAsync());
+                packageService.Verify(p => p.UpdatePackageVerifiedStatusAsync(It.IsAny<IList<PackageRegistration>>(), It.IsAny<bool>()), Times.Never);
             }
 
             [Fact]
@@ -217,7 +218,6 @@ namespace NuGetGallery.Services
                 await service.DeleteReservedNamespaceAsync(msPrefix);
 
                 var registrationsShouldUpdate = msPrefix.PackageRegistrations;
-                Assert.True(registrationsShouldUpdate.Count() > 0);
                 rnRepository.Verify(
                     x => x.DeleteOnCommit(
                         It.Is<ReservedNamespace>(
@@ -283,10 +283,10 @@ namespace NuGetGallery.Services
             private static Mock<PackageService> SetupPackageService(IList<PackageRegistration> registrations = null)
             {
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
-                var registrationList = registrations != null ? registrations.AsQueryable() : null;
+                registrations = registrations ?? GetRegistrations();
                 packageRegistrationRepository
                     .Setup(x => x.GetAll())
-                    .Returns(registrationList)
+                    .Returns(registrations.AsQueryable())
                     .Verifiable();
 
                 var packageRepository = new Mock<IEntityRepository<Package>>();
