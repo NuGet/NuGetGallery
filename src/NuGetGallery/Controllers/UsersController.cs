@@ -21,6 +21,7 @@ namespace NuGetGallery
         private readonly IUserService _userService;
         private readonly IMessageService _messageService;
         private readonly IPackageService _packageService;
+        private readonly IEntityRepository<PackageOwnerRequest> _packageOwnerRequestRepository;
         private readonly IAppConfiguration _config;
         private readonly AuthenticationService _authService;
         private readonly ICredentialBuilder _credentialBuilder;
@@ -29,6 +30,7 @@ namespace NuGetGallery
             ICuratedFeedService feedsQuery,
             IUserService userService,
             IPackageService packageService,
+            IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository,
             IMessageService messageService,
             IAppConfiguration config,
             AuthenticationService authService,
@@ -37,6 +39,7 @@ namespace NuGetGallery
             _curatedFeedService = feedsQuery ?? throw new ArgumentNullException(nameof(feedsQuery));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
+            _packageOwnerRequestRepository = packageOwnerRequestRepository ?? throw new ArgumentNullException(nameof(packageOwnerRequestRepository));
             _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _authService = authService ?? throw new ArgumentNullException(nameof(authService));
@@ -159,6 +162,22 @@ namespace NuGetGallery
             {
                 Packages = packages
             };
+            return View(model);
+        }
+
+        [HttpGet]
+        [Authorize]
+        public virtual ActionResult OwnerRequests()
+        {
+            var user = GetCurrentUser();
+
+            var requests = _packageOwnerRequestRepository.GetAll();
+
+            var incoming = requests.Where(r => r.NewOwnerKey == user.Key);
+            var outgoing = requests.Where(r => r.RequestingOwnerKey == user.Key);
+
+            var model = new OwnerRequestsViewModel(incoming, outgoing, user, _packageService);
+
             return View(model);
         }
 
