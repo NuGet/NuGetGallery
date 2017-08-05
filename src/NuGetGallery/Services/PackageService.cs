@@ -955,7 +955,7 @@ namespace NuGetGallery
             }
         }
 
-        public async Task UpdatePackageVerifiedStatusAsync(IList<PackageRegistration> packageRegistrationList, bool isVerified)
+        public virtual async Task UpdatePackageVerifiedStatusAsync(IList<PackageRegistration> packageRegistrationList, bool isVerified)
         {
             var allPackageRegistrations = _packageRegistrationRepository
                 .GetAll()
