@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Mvc.Html;
@@ -52,10 +53,28 @@ namespace NuGetGallery.Helpers
 
         public static IHtmlString PreFormattedText(this HtmlHelper self, string text)
         {
-            return self.Raw(HttpUtility
-                .HtmlEncode(text)
-                .Replace("\n", "<br />")
-                .Replace("  ", "&nbsp; "));
+            // Encode HTML entities. Important! Security!
+            var encodedText = HttpUtility.HtmlEncode(text);
+
+            // Turn HTTP and HTTPS URLs into links.
+            // Source: https://stackoverflow.com/a/4750468
+            encodedText = RegexEx.TryReplaceWithTimeout(
+                encodedText,
+                @"((http|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?)",
+                match => $"<a href=\"{match.Value}\">{match.Value}</a>",
+                RegexOptions.IgnoreCase);
+
+            // Replace new lines with the <br /> tag.
+            encodedText = encodedText.Replace("\n", "<br />");
+
+            // Replace more than one space in a row with a space then &nbsp;.
+            encodedText = RegexEx.TryReplaceWithTimeout(
+                encodedText,
+                "  +",
+                match => " " + string.Join(string.Empty, Enumerable.Repeat("&nbsp;", match.Value.Length - 1)),
+                RegexOptions.None);
+
+            return self.Raw(encodedText);
         }
 
         public static IHtmlString ValidationSummaryFor(this HtmlHelper html, string key)
