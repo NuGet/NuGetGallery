@@ -226,6 +226,9 @@ namespace NuGetGallery
                 case Constants.DownloadsFolderName:
                     return Constants.OctetStreamContentType;
 
+                case Constants.PackageDeletesFolderName:
+                    return Constants.JsonStreamContentType;
+
                 default:
                     throw new InvalidOperationException(
                         String.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));

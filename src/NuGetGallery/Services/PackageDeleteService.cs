@@ -32,6 +32,7 @@ namespace NuGetGallery
         private readonly IEntityRepository<PackageDelete> _packageDeletesRepository;
         private readonly IEntitiesContext _entitiesContext;
         private readonly IPackageService _packageService;
+        private readonly IPackageDeletionRecordService _deletionRecordService;
         private readonly IIndexingService _indexingService;
         private readonly IPackageFileService _packageFileService;
         private readonly IAuditingService _auditingService;
@@ -41,6 +42,7 @@ namespace NuGetGallery
             IEntityRepository<PackageDelete> packageDeletesRepository,
             IEntitiesContext entitiesContext,
             IPackageService packageService,
+            IPackageDeletionRecordService deletionRecordService,
             IIndexingService indexingService,
             IPackageFileService packageFileService,
             IAuditingService auditingService)
@@ -49,6 +51,7 @@ namespace NuGetGallery
             _packageDeletesRepository = packageDeletesRepository;
             _entitiesContext = entitiesContext;
             _packageService = packageService;
+            _deletionRecordService = deletionRecordService;
             _indexingService = indexingService;
             _packageFileService = packageFileService;
             _auditingService = auditingService;
@@ -88,6 +91,8 @@ namespace NuGetGallery
                     packageDelete.Packages.Add(package);
 
                     await _auditingService.SaveAuditRecordAsync(CreateAuditRecord(package, package.PackageRegistration, AuditedPackageAction.SoftDelete, reason));
+
+                    await _deletionRecordService.SaveDeletionRecord(package);
                 }
 
                 _packageDeletesRepository.InsertOnCommit(packageDelete);
@@ -136,6 +141,8 @@ namespace NuGetGallery
                         new SqlParameter("@key", package.Key));
 
                     await _auditingService.SaveAuditRecordAsync(CreateAuditRecord(package, package.PackageRegistration, AuditedPackageAction.Delete, reason));
+
+                    await _deletionRecordService.SaveDeletionRecord(package);
 
                     package.PackageRegistration.Packages.Remove(package);
                     _packageRepository.DeleteOnCommit(package);

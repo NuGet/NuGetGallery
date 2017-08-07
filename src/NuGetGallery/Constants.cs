@@ -24,6 +24,7 @@ namespace NuGetGallery
         internal static readonly NuGetVersion MaxSupportedMinClientVersion = new NuGetVersion("4.1.0.0");
         public const string PackageContentType = "binary/octet-stream";
         public const string OctetStreamContentType = "application/octet-stream";
+        public const string JsonStreamContentType = "application/json";
         public const string NuGetPackageFileExtension = ".nupkg";
         public const string PackageFileDownloadUriTemplate = "packages/{0}/{1}/download";
         public const string PackageFileSavePathTemplate = "{0}.{1}{2}";
@@ -31,6 +32,7 @@ namespace NuGetGallery
 
         public const string PackagesFolderName = "packages";
         public const string PackageBackupsFolderName = "package-backups";
+        public const string PackageDeletesFolderName = "package-deletes";
         public const string DownloadsFolderName = "downloads";
         public const string ContentFolderName = "content";
 

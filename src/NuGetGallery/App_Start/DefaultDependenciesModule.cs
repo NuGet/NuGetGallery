@@ -182,6 +182,11 @@ namespace NuGetGallery
                 .As<IPackageDeleteService>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<PackageDeletionRecordService>()
+                .AsSelf()
+                .As<IPackageDeletionRecordService>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<EditPackageService>()
                 .AsSelf()
                 .InstancePerLifetimeScope();
