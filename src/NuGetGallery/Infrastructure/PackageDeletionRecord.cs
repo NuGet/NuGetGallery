@@ -17,9 +17,9 @@ namespace NuGetGallery
         public string Id { get; private set; }
 
         /// <summary>
-        /// The version of the package that was deleted.
+        /// The normalized version of the package that was deleted.
         /// </summary>
-        public string Version { get; private set; }
+        public string NormalizedVersion { get; private set; }
 
         /// <summary>
         /// The timestamp that the package was deleted.
@@ -29,18 +29,18 @@ namespace NuGetGallery
         /// As a result, there is no guarantee that the timestamps of multiple deletes are in order.
         /// In other words, it is possible that a package deleted at time X and a package deleted at time X + 1 have timestamps of Y + 1 and Y respectively.
         /// </remarks>
-        public DateTimeOffset DeletedTimestamp { get; private set; }
+        public DateTime DeletedTimestamp { get; private set; }
 
         [JsonConstructor]
-        public PackageDeletionRecord(string id, string version, DateTimeOffset deletedTimestamp)
+        public PackageDeletionRecord(string id, string normalizedVersion, DateTime deletedTimestamp)
         {
             Id = id;
-            Version = version;
+            NormalizedVersion = normalizedVersion;
             DeletedTimestamp = deletedTimestamp;
         }
 
         public PackageDeletionRecord(Package package)
-            : this(package.PackageRegistration.Id, package.Version, DateTimeOffset.UtcNow)
+            : this(package.PackageRegistration.Id, package.NormalizedVersion, DateTime.UtcNow)
         {
         }
     }

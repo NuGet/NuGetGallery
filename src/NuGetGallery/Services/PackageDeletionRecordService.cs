@@ -32,7 +32,7 @@ namespace NuGetGallery
 
         private string GetDeletionRecordFileName(PackageDeletionRecord deletionRecord)
         {
-            return $"{deletionRecord.Id}/{deletionRecord.Version}/{deletionRecord.DeletedTimestamp.UtcTicks}.json";
+            return $"{deletionRecord.Id.ToLowerInvariant()}/{deletionRecord.NormalizedVersion.ToLowerInvariant()}/{deletionRecord.DeletedTimestamp.ToUniversalTime().Ticks}.json";
         }
     }
 }
