@@ -475,7 +475,7 @@ namespace NuGetGallery
             return new CloudAuditingService(instanceId, localIp, configuration.Current.AzureStorageConnectionString, AuditActor.GetAspNetOnBehalfOfAsync);
         }
 
-        private static IAuditingService CombineServices(IEnumerable<IAuditingService> services)
+        private static IAuditingService CombineAuditingServices(IEnumerable<IAuditingService> services)
         {
             if (!services.Any())
             {
@@ -502,15 +502,16 @@ namespace NuGetGallery
 
         private static void RegisterAuditingServices(ContainerBuilder builder, IAuditingService defaultAuditingService)
         {
-            var auditingServices = GetAddInServices<IAuditingService>(builder);
-            var services = new List<IAuditingService>(auditingServices);
+            IAuditingService service = defaultAuditingService;
 
-            if (defaultAuditingService != null)
+            var addInAuditingServices = GetAddInServices<IAuditingService>(builder).ToList();
+
+            // If there are add-in auditing services, use them.
+            // Otherwise, use the default service.
+            if (addInAuditingServices.Any())
             {
-                services.Add(defaultAuditingService);
+                service = CombineAuditingServices(addInAuditingServices);
             }
-
-            var service = CombineServices(services);
 
             builder.RegisterInstance(service)
                 .AsSelf()
