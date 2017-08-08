@@ -10,11 +10,11 @@ namespace NuGetGallery
 {
     public class ReservedNamespaceService : IReservedNamespaceService
     {
-        private readonly IEntitiesContext _entitiesContext;
-        private readonly IEntityRepository<ReservedNamespace> _reservedNamespaceRepository;
-        private readonly IUserService _userService;
-        private readonly IPackageService _packageService;
-        private readonly IAuditingService _auditingService;
+        public IEntitiesContext EntitiesContext { get; protected set; }
+        public IEntityRepository<ReservedNamespace> ReservedNamespaceRepository { get; protected set; }
+        public IUserService UserService { get; protected set; }
+        public IPackageService PackageService { get; protected set; }
+        public IAuditingService AuditingService { get; protected set; }
 
         protected ReservedNamespaceService() { }
 
@@ -26,12 +26,12 @@ namespace NuGetGallery
             IAuditingService auditing)
             : this()
         {
-            _entitiesContext = entitiesContext;
-            _reservedNamespaceRepository = reservedNamespaceRepository;
-            _userService = userService;
-            _packageService = packageService;
+            EntitiesContext = entitiesContext;
+            ReservedNamespaceRepository = reservedNamespaceRepository;
+            UserService = userService;
+            PackageService = packageService;
             // TODO: Add auditing everywhere
-            _auditingService = auditing;
+            AuditingService = auditing;
         }
 
         public async Task AddReservedNamespaceAsync(ReservedNamespace prefix)
@@ -47,8 +47,8 @@ namespace NuGetGallery
                 throw new InvalidOperationException($"The specified namespace is already reserved or is a more liberal namespace.");
             }
 
-            _reservedNamespaceRepository.InsertOnCommit(prefix);
-            await _reservedNamespaceRepository.CommitChangesAsync();
+            ReservedNamespaceRepository.InsertOnCommit(prefix);
+            await ReservedNamespaceRepository.CommitChangesAsync();
         }
 
         public async Task DeleteReservedNamespaceAsync(ReservedNamespace prefix)
@@ -59,7 +59,7 @@ namespace NuGetGallery
             }
 
             EntitiesConfiguration.SuspendExecutionStrategy = true;
-            using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
+            using (var transaction = EntitiesContext.GetDatabase().BeginTransaction())
             {
                 var namespaceToDelete = FindReservedNamespaceForPrefix(prefix.Value);
                 if (namespaceToDelete == null)
@@ -79,12 +79,12 @@ namespace NuGetGallery
 
                     if (packageRegistrationsToMarkUnVerified.Count() > 0)
                     {
-                        await _packageService.UpdatePackageVerifiedStatusAsync(packageRegistrationsToMarkUnVerified, isVerified: false);
+                        await PackageService.UpdatePackageVerifiedStatusAsync(packageRegistrationsToMarkUnVerified, isVerified: false);
                     }
                 }
 
-                _reservedNamespaceRepository.DeleteOnCommit(namespaceToDelete);
-                await _reservedNamespaceRepository.CommitChangesAsync();
+                ReservedNamespaceRepository.DeleteOnCommit(namespaceToDelete);
+                await ReservedNamespaceRepository.CommitChangesAsync();
 
                 transaction.Commit();
             }
@@ -105,7 +105,7 @@ namespace NuGetGallery
             }
 
             EntitiesConfiguration.SuspendExecutionStrategy = true;
-            using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
+            using (var transaction = EntitiesContext.GetDatabase().BeginTransaction())
             {
                 var namespaceToModify = FindReservedNamespaceForPrefix(prefix.Value);
                 if (namespaceToModify == null)
@@ -113,31 +113,31 @@ namespace NuGetGallery
                     throw new InvalidOperationException($"Namespace '{prefix.Value}' not found.");
                 }
 
-                var userToAdd = _userService.FindByUsername(user.Username);
+                var userToAdd = UserService.FindByUsername(user.Username);
                 if (userToAdd == null)
                 {
                     throw new InvalidOperationException($"User not found with username: {user.Username}");
                 }
 
-                if (!namespaceToModify.IsSharedNamespace)
+                // Find all packages owned by this user which starts with the given namespace to be marked as verified.
+                var allPackageRegistrationsForUser = PackageService.FindPackageRegistrationsByOwner(userToAdd);
+                var packageRegistrationsMatchingNamespace = allPackageRegistrationsForUser
+                    .Where(pr => pr.Id.StartsWith(namespaceToModify.Value, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+                if (packageRegistrationsMatchingNamespace.Count > 0)
                 {
-                    // Find all packages owned by this user which starts with the given namespace to be marked as verified.
-                    var allPackageRegistrationsForUser = _packageService.FindPackageRegistrationsByOwner(userToAdd);
-                    var packageRegistrationsMatchingNamespace = allPackageRegistrationsForUser
-                        .Where(pr => pr.Id.StartsWith(namespaceToModify.Value, StringComparison.OrdinalIgnoreCase))
-                        .ToList();
+                    packageRegistrationsMatchingNamespace
+                        .ForEach(pr => namespaceToModify.PackageRegistrations.Add(pr));
 
-                    if (packageRegistrationsMatchingNamespace.Count > 0)
+                    if (!namespaceToModify.IsSharedNamespace)
                     {
-                        packageRegistrationsMatchingNamespace
-                            .ForEach(pr => namespaceToModify.PackageRegistrations.Add(pr));
-
-                        await _packageService.UpdatePackageVerifiedStatusAsync(packageRegistrationsMatchingNamespace, isVerified: true);
+                        await PackageService.UpdatePackageVerifiedStatusAsync(packageRegistrationsMatchingNamespace, isVerified: true);
                     }
                 }
 
                 namespaceToModify.Owners.Add(userToAdd);
-                await _reservedNamespaceRepository.CommitChangesAsync();
+                await ReservedNamespaceRepository.CommitChangesAsync();
 
                 transaction.Commit();
             }
@@ -158,7 +158,7 @@ namespace NuGetGallery
             }
 
             EntitiesConfiguration.SuspendExecutionStrategy = true;
-            using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
+            using (var transaction = EntitiesContext.GetDatabase().BeginTransaction())
             {
                 var namespaceToModify = FindReservedNamespaceForPrefix(prefix.Value);
                 if (namespaceToModify == null)
@@ -166,7 +166,7 @@ namespace NuGetGallery
                     throw new InvalidOperationException($"Namespace '{prefix.Value}' not found.");
                 }
 
-                var userToRemove = _userService.FindByUsername(user.Username);
+                var userToRemove = UserService.FindByUsername(user.Username);
                 if (userToRemove == null)
                 {
                     throw new InvalidOperationException($"User not found with username: {user.Username}");
@@ -187,13 +187,16 @@ namespace NuGetGallery
                         .Where(pr => pr.Owners.Intersect(namespaceToModify.Owners).Count() == 1)
                         .ToList();
 
-                    removeVerifiedMarksForPackages
-                        .ForEach(pr => namespaceToModify.PackageRegistrations.Remove(pr));
+                    if (removeVerifiedMarksForPackages.Count > 0)
+                    {
+                        removeVerifiedMarksForPackages
+                            .ForEach(pr => namespaceToModify.PackageRegistrations.Remove(pr));
 
-                    await _packageService.UpdatePackageVerifiedStatusAsync(removeVerifiedMarksForPackages, isVerified: false);
+                        await PackageService.UpdatePackageVerifiedStatusAsync(removeVerifiedMarksForPackages, isVerified: false);
+                    }
 
                     namespaceToModify.Owners.Remove(userToRemove);
-                    await _reservedNamespaceRepository.CommitChangesAsync();
+                    await ReservedNamespaceRepository.CommitChangesAsync();
                 }
                 else
                 {
@@ -208,19 +211,19 @@ namespace NuGetGallery
 
         public ReservedNamespace FindReservedNamespaceForPrefix(string prefix)
         {
-            return (from request in _reservedNamespaceRepository.GetAll()
+            return (from request in ReservedNamespaceRepository.GetAll()
                     where request.Value.Equals(prefix, StringComparison.OrdinalIgnoreCase)
                     select request).FirstOrDefault();
         }
 
         public IList<ReservedNamespace> FindAllReservedNamespacesForPrefix(string prefix, bool getExactMatches)
         {
-            Expression<Func<ReservedNamespace, bool>> prefixMatch = 
+            Expression<Func<ReservedNamespace, bool>> prefixMatch =
                 dbPrefix => getExactMatches
                     ? dbPrefix.Value.Equals(prefix)
                     : dbPrefix.Value.StartsWith(prefix);
 
-            return _reservedNamespaceRepository
+            return ReservedNamespaceRepository
                 .GetAll()
                 .Where(prefixMatch)
                 .ToList();
@@ -228,7 +231,7 @@ namespace NuGetGallery
 
         public IList<ReservedNamespace> FindReservedNamespacesForPrefixList(IList<string> prefixList)
         {
-            return (from dbPrefix in _reservedNamespaceRepository.GetAll()
+            return (from dbPrefix in ReservedNamespaceRepository.GetAll()
                     join queryPrefix in prefixList
                     on dbPrefix.Value.ToLower() equals queryPrefix.ToLower()
                     select dbPrefix).ToList();
@@ -236,7 +239,7 @@ namespace NuGetGallery
 
         public IList<ReservedNamespace> GetReservedNamespacesForId(string id)
         {
-            return (from request in _reservedNamespaceRepository.GetAll()
+            return (from request in ReservedNamespaceRepository.GetAll()
                     where id.StartsWith(request.Value, StringComparison.OrdinalIgnoreCase)
                     select request).ToList();
         }

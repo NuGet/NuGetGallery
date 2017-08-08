@@ -53,7 +53,7 @@ namespace NuGetGallery
             public async Task ReturnsNullWhenPackageNotFound()
             {
                 // Arrange
-                var package = TestServiceUtility.CreateTestPackage();
+                var package = PackageServiceUtility.CreateTestPackage();
 
                 var packageService = SetupPackageService(package);
                 var entitiesContext = SetupEntitiesContext();
@@ -75,7 +75,7 @@ namespace NuGetGallery
             public async Task RetrievesOriginalPackageBinary()
             {
                 // Arrange
-                var package = TestServiceUtility.CreateTestPackage();
+                var package = PackageServiceUtility.CreateTestPackage();
 
                 var packageService = SetupPackageService(package);
                 var entitiesContext = SetupEntitiesContext();
@@ -97,7 +97,7 @@ namespace NuGetGallery
             public async Task RetrievesOriginalPackageMetadata()
             {
                 // Arrange
-                var package = TestServiceUtility.CreateTestPackage();
+                var package = PackageServiceUtility.CreateTestPackage();
 
                 var packageService = SetupPackageService(package);
                 var entitiesContext = SetupEntitiesContext();
@@ -119,7 +119,7 @@ namespace NuGetGallery
             public async Task RemovesOriginalFrameworks_Authors_Dependencies()
             {
                 // Arrange
-                var package = TestServiceUtility.CreateTestPackage();
+                var package = PackageServiceUtility.CreateTestPackage();
 
                 var packageService = SetupPackageService(package);
                 var entitiesContext = SetupEntitiesContext();
@@ -141,7 +141,7 @@ namespace NuGetGallery
             public async Task UpdatesPackageMetadata()
             {
                 // Arrange
-                var package = TestServiceUtility.CreateTestPackage();
+                var package = PackageServiceUtility.CreateTestPackage();
 
                 var packageService = SetupPackageService(package);
                 var entitiesContext = SetupEntitiesContext();
@@ -195,7 +195,7 @@ namespace NuGetGallery
             public async Task UpdatesPackageLastEdited()
             {
                 // Arrange
-                var package = TestServiceUtility.CreateTestPackage();
+                var package = PackageServiceUtility.CreateTestPackage();
                 var lastEdited = package.LastEdited;
 
                 var packageService = SetupPackageService(package);
@@ -220,7 +220,7 @@ namespace NuGetGallery
             public async Task DoesNotUpdatePackageListed(bool listed)
             {
                 // Arrange
-                var package = TestServiceUtility.CreateTestPackage();
+                var package = PackageServiceUtility.CreateTestPackage();
                 package.Listed = listed;
 
                 var packageService = SetupPackageService(package);
@@ -243,7 +243,7 @@ namespace NuGetGallery
             public async Task CallsUpdateIsLatestAsync()
             {
                 // Arrange
-                var package = TestServiceUtility.CreateTestPackage();
+                var package = PackageServiceUtility.CreateTestPackage();
 
                 var packageService = SetupPackageService(package);
                 var entitiesContext = SetupEntitiesContext();

@@ -1,14 +1,8 @@
 ﻿using Moq;
-using NuGet.Packaging;
-using NuGetGallery.Auditing;
-using NuGetGallery.Framework;
-using NuGetGallery.Packaging;
 using NuGetGallery.TestUtils;
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -16,253 +10,162 @@ namespace NuGetGallery.Services
 {
     public class ReservedNamespaceServiceFacts
     {
-        private static IReservedNamespaceService CreateService(
-            Mock<IEntitiesContext> entitiesContext = null,
-            Mock<IEntityRepository<ReservedNamespace>> reservedNamespaceRepository = null,
-            Mock<IUserService> userService = null,
-            Mock<PackageService> packageService = null,
-            Mock<IAuditingService> auditingService = null,
-            Action<Mock<ReservedNamespaceService>> setup = null)
+        [Fact]
+        public async Task NewNamespaceIsReservedCorrectly()
         {
-            entitiesContext = entitiesContext ?? new Mock<IEntitiesContext>();
-            reservedNamespaceRepository = reservedNamespaceRepository ?? new Mock<IEntityRepository<ReservedNamespace>>();
-            userService = userService ?? new Mock<IUserService>();
-            packageService = packageService ?? new Mock<PackageService>();
-            auditingService = auditingService ?? new Mock<IAuditingService>();
+            var newNamespace = new ReservedNamespace("NewNamespace.", isSharedNamespace: false, isPrefix: true);
 
-            var reservedNamespaceService = new Mock<ReservedNamespaceService>(
-                entitiesContext.Object,
-                reservedNamespaceRepository.Object,
-                userService.Object,
-                packageService.Object,
-                auditingService.Object)
-            {
-                CallBase = true
-            };
+            var service = new TestableReservedNamespaceService();
+            await service.AddReservedNamespaceAsync(newNamespace);
 
-            if (setup != null)
-            {
-                setup(reservedNamespaceService);
-            }
+            service.MockReservedNamespaceRepository.Verify(
+                x => x.InsertOnCommit(
+                    It.Is<ReservedNamespace>(
+                        rn => rn.Value == newNamespace.Value
+                            && rn.IsPrefix == newNamespace.IsPrefix
+                            && rn.IsSharedNamespace == newNamespace.IsSharedNamespace)));
 
-            return reservedNamespaceService.Object;
+            service.MockReservedNamespaceRepository.Verify(x => x.CommitChangesAsync());
         }
 
-        public class ReservedNamespaceManagement
+        [Fact]
+        public async Task ReservingNullNamespaceThrowsException()
         {
-            [Fact]
-            public async Task NewNamespaceIsReservedCorrectly()
-            {
-                var newNamespace = new ReservedNamespace("NewNamespace.", isSharedNamespace: false, isPrefix: true);
-                var rnRepository = SetupReservedNamespaceRepository();
-                var packageService = SetupPackageService();
+            var service = new TestableReservedNamespaceService();
 
-                var service = CreateService(reservedNamespaceRepository: rnRepository, packageService: packageService);
+            await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.AddReservedNamespaceAsync(null));
+        }
 
-                await service.AddReservedNamespaceAsync(newNamespace);
+        [Fact]
+        public async Task ReservingExistingNamespaceThrowsException()
+        {
+            var testNamespaces = GetTestNamespaces();
+            var newNamespace = testNamespaces.FirstOrDefault();
+            var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces);
 
-                rnRepository.Verify(
-                    x => x.InsertOnCommit(
-                        It.Is<ReservedNamespace>(
-                            rn => rn.Value == newNamespace.Value
-                                && rn.IsPrefix == newNamespace.IsPrefix
-                                && rn.IsSharedNamespace == newNamespace.IsSharedNamespace)));
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.AddReservedNamespaceAsync(newNamespace));
+        }
 
-                rnRepository.Verify(x => x.CommitChangesAsync());
-            }
+        [Fact]
+        public async Task ReservingExistingNamespaceWithDifferentPrefixStateThrowsException()
+        {
+            var testNamespaces = GetTestNamespaces();
+            var newNamespace = testNamespaces.FirstOrDefault(x => x.Value == "jQuery");
+            newNamespace.IsPrefix = !newNamespace.IsPrefix;
+            var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces);
 
-            [Fact]
-            public async Task ReservingNullNamespaceThrowsException()
-            {
-                var rnRepository = SetupReservedNamespaceRepository();
-                var packageService = SetupPackageService();
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.AddReservedNamespaceAsync(newNamespace));
+        }
 
-                var service = CreateService(reservedNamespaceRepository: rnRepository, packageService: packageService);
+        [Fact]
+        public async Task ReservingLiberalNamespaceThrowsException()
+        {
+            var testNamespaces = GetTestNamespaces();
+            // test case has a namespace with "Microsoft." as the value.
+            var newNamespace = new ReservedNamespace("Micro", isSharedNamespace: false, isPrefix: true);
+            var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces);
 
-                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.AddReservedNamespaceAsync(null));
-            }
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.AddReservedNamespaceAsync(newNamespace));
+        }
 
-            [Fact]
-            public async Task ReservingExistingNamespaceThrowsException()
-            {
-                var newNamespace = new ReservedNamespace("Microsoft.", isSharedNamespace: false, isPrefix: true);
-                var rnRepository = SetupReservedNamespaceRepository();
-                var packageService = SetupPackageService();
+        [Fact]
+        public async Task ReservingLiberalNamespaceForExactMatchIsAllowed()
+        {
+            var testNamespaces = GetTestNamespaces();
+            // test case has a namespace with "Microsoft." as the value.
+            var newNamespace = new ReservedNamespace("Micro", isSharedNamespace: false, isPrefix: false /*exact match*/);
+            var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces);
 
-                var service = CreateService(reservedNamespaceRepository: rnRepository, packageService: packageService);
+            await service.AddReservedNamespaceAsync(newNamespace);
 
-                await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.AddReservedNamespaceAsync(newNamespace));
+            service.MockReservedNamespaceRepository.Verify(
+                x => x.InsertOnCommit(
+                    It.Is<ReservedNamespace>(
+                        rn => rn.Value == newNamespace.Value
+                            && rn.IsPrefix == newNamespace.IsPrefix
+                            && rn.IsSharedNamespace == newNamespace.IsSharedNamespace)));
 
-            }
+            service.MockReservedNamespaceRepository.Verify(x => x.CommitChangesAsync());
+        }
 
-            [Fact]
-            public async Task ReservingExistingNamespaceWithDifferentPrefixStateThrowsException()
-            {
-                var newNamespace = new ReservedNamespace("jQuery", isSharedNamespace: false, isPrefix: true);
-                var rnRepository = SetupReservedNamespaceRepository();
-                var packageService = SetupPackageService();
+        [Fact]
+        public async Task NullNamespaceReservationThrowsException()
+        {
+            var service = new TestableReservedNamespaceService();
 
-                var service = CreateService(reservedNamespaceRepository: rnRepository, packageService: packageService);
+            await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.AddReservedNamespaceAsync(null));
+        }
 
-                await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.AddReservedNamespaceAsync(newNamespace));
-            }
+        [Fact]
+        public async Task VanillaReservedNamespaceIsDeletedCorrectly()
+        {
+            var testNamespaces = GetTestNamespaces();
+            var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value == "Microsoft.");
+            var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces);
 
-            [Fact]
-            public async Task ReservingLiberalNamespaceThrowsException()
-            {
-                var newNamespace = new ReservedNamespace("Micro", isSharedNamespace: false, isPrefix: true);
-                var rnRepository = SetupReservedNamespaceRepository();
-                var packageService = SetupPackageService();
+            await service.DeleteReservedNamespaceAsync(existingNamespace);
 
-                var service = CreateService(reservedNamespaceRepository: rnRepository, packageService: packageService);
+            service.MockReservedNamespaceRepository.Verify(
+                x => x.DeleteOnCommit(
+                    It.Is<ReservedNamespace>(
+                        rn => rn.Value == existingNamespace.Value
+                            && rn.IsPrefix == existingNamespace.IsPrefix
+                            && rn.IsSharedNamespace == existingNamespace.IsSharedNamespace)));
 
-                await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.AddReservedNamespaceAsync(newNamespace));
-            }
+            service
+                .MockReservedNamespaceRepository
+                .Verify(x => x.CommitChangesAsync());
+            service
+                .MockPackageService
+                .Verify(p => p.UpdatePackageVerifiedStatusAsync(It.IsAny<IList<PackageRegistration>>(), It.IsAny<bool>()), Times.Never);
+        }
 
-            [Fact]
-            public async Task ReservingLiberalNamespaceForExactMatchIsAllowed()
-            {
-                var newNamespace = new ReservedNamespace("Microsoft", isSharedNamespace: false, isPrefix: false/*exact match*/);
-                var rnRepository = SetupReservedNamespaceRepository();
-                var packageService = SetupPackageService();
+        [Fact]
+        public async Task NullNamespaceDeletionThrowsException()
+        {
+            var service = new TestableReservedNamespaceService();
 
-                var service = CreateService(reservedNamespaceRepository: rnRepository, packageService: packageService);
+            await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.DeleteReservedNamespaceAsync(null));
+        }
 
-                await service.AddReservedNamespaceAsync(newNamespace);
+        [Fact]
+        public async Task NonExistingNamespaceDeletionThrowsException()
+        {
+            var nonExistentNamespace = new ReservedNamespace("NewNamespace.", isSharedNamespace: false, isPrefix: true);
+            var testNamespaces = GetTestNamespaces();
+            var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces);
 
-                rnRepository.Verify(
-                    x => x.InsertOnCommit(
-                        It.Is<ReservedNamespace>(
-                            rn => rn.Value == newNamespace.Value
-                                && rn.IsPrefix == newNamespace.IsPrefix
-                                && rn.IsSharedNamespace == newNamespace.IsSharedNamespace)));
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.DeleteReservedNamespaceAsync(nonExistentNamespace));
+        }
 
-                rnRepository.Verify(x => x.CommitChangesAsync());
-            }
+        [Fact]
+        public async Task DeletingNamespaceClearsVerifiedFlagOnPackage()
+        {
+            var namespaces = GetTestNamespaces();
+            var registrations = GetRegistrations();
+            var msPrefix = namespaces.First(x => x.Value == "Microsoft.");
+            msPrefix.PackageRegistrations = registrations.Where(x => x.Id.StartsWith(msPrefix.Value)).ToList();
+            msPrefix.PackageRegistrations.ToList().ForEach(x => x.ReservedNamespaces.Add(msPrefix));
 
-            [Fact]
-            public async Task NullNamespaceReservationThrowsException()
-            {
-                var rnRepository = SetupReservedNamespaceRepository();
-                var packageService = SetupPackageService();
+            var service = new TestableReservedNamespaceService(reservedNamespaces: namespaces, packageRegistrations: registrations);
+            await service.DeleteReservedNamespaceAsync(msPrefix);
 
-                var service = CreateService(reservedNamespaceRepository: rnRepository, packageService: packageService);
-
-                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.AddReservedNamespaceAsync(null));
-            }
-
-            [Fact]
-            public async Task VanillaReservedNamespaceIsDeletedCorrectly()
-            {
-                var prefixList = GetTestNamespaces();
-                var existingNamespace = prefixList.SingleOrDefault(rn => rn.Value == "Microsoft.");
-
-                var rnRepository = SetupReservedNamespaceRepository(prefixList);
-                var entititesContext = SetupEntitiesContext();
-                var packageService = SetupPackageService();
-
-                var service = CreateService(entitiesContext: entititesContext, reservedNamespaceRepository: rnRepository, packageService: packageService);
-
-                await service.DeleteReservedNamespaceAsync(existingNamespace);
-
-                rnRepository.Verify(
-                    x => x.DeleteOnCommit(
-                        It.Is<ReservedNamespace>(
-                            rn => rn.Value == existingNamespace.Value
-                                && rn.IsPrefix == existingNamespace.IsPrefix
-                                && rn.IsSharedNamespace == existingNamespace.IsSharedNamespace)));
-
-                rnRepository.Verify(x => x.CommitChangesAsync());
-                packageService.Verify(p => p.UpdatePackageVerifiedStatusAsync(It.IsAny<IList<PackageRegistration>>(), It.IsAny<bool>()), Times.Never);
-            }
-
-            [Fact]
-            public async Task NullNamespaceDeletionThrowsException()
-            {
-                var rnRepository = SetupReservedNamespaceRepository();
-                var packageService = SetupPackageService();
-
-                var service = CreateService(reservedNamespaceRepository: rnRepository, packageService: packageService);
-
-                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.DeleteReservedNamespaceAsync(null));
-            }
-
-            [Fact]
-            public async Task NonExistingNamespaceDeletionThrowsException()
-            {
-                var nonExistentNamespace = new ReservedNamespace("NewNamespace.", isSharedNamespace: false, isPrefix: true);
-                var rnRepository = SetupReservedNamespaceRepository();
-                var entititesContext = SetupEntitiesContext();
-                var packageService = SetupPackageService();
-
-                var service = CreateService(entitiesContext: entititesContext, reservedNamespaceRepository: rnRepository, packageService: packageService);
-
-                await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.DeleteReservedNamespaceAsync(nonExistentNamespace));
-            }
-
-            [Fact]
-            public async Task AddingOwnerToNullNamespaceThrowsException()
-            {
-                var rnRepository = SetupReservedNamespaceRepository();
-                var packageService = SetupPackageService();
-
-                var service = CreateService(reservedNamespaceRepository: rnRepository, packageService: packageService);
-
-                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.AddOwnerToReservedNamespaceAsync(null, new User("test1")));
-            }
-
-            [Fact]
-            public async Task AddingNullOwnerToNamespaceThrowsException()
-            {
-                var nonExistentNamespace = new ReservedNamespace("NewNamespace.", isSharedNamespace: false, isPrefix: true);
-                var rnRepository = SetupReservedNamespaceRepository();
-                var packageService = SetupPackageService();
-
-                var service = CreateService(reservedNamespaceRepository: rnRepository, packageService: packageService);
-
-                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.AddOwnerToReservedNamespaceAsync(nonExistentNamespace, null));
-            }
-
-            [Fact]
-            public async Task AddingOwnerToNonExistentNamesapceThrowsException()
-            {
-                var nonExistentNamespace = new ReservedNamespace("NewNamespace.", isSharedNamespace: false, isPrefix: true);
-                var rnRepository = SetupReservedNamespaceRepository();
-                var entititesContext = SetupEntitiesContext();
-                var packageService = SetupPackageService();
-
-                var service = CreateService(entitiesContext: entititesContext, reservedNamespaceRepository: rnRepository, packageService: packageService);
-
-                await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.AddOwnerToReservedNamespaceAsync(nonExistentNamespace, new User("test1")));
-            }
-
-            [Fact]
-            public async Task DeletingNamespaceClearsVerifiedFlagOnPackage()
-            {
-                var namespaces = GetTestNamespaces();
-                var registrations = GetRegistrations();
-                var msPrefix = namespaces.First(x => x.Value == "Microsoft.");
-                msPrefix.PackageRegistrations = registrations.Where(x => x.Id.StartsWith(msPrefix.Value)).ToList();
-                msPrefix.PackageRegistrations.ToList().ForEach(x => x.ReservedNamespaces.Add(msPrefix));
-
-                var entititesContext = SetupEntitiesContext();
-                var rnRepository = SetupReservedNamespaceRepository(namespaces);
-                var packageService = SetupPackageService(registrations);
-
-                var service = CreateService(entitiesContext: entititesContext, reservedNamespaceRepository: rnRepository, packageService: packageService);
-
-                await service.DeleteReservedNamespaceAsync(msPrefix);
-
-                var registrationsShouldUpdate = msPrefix.PackageRegistrations;
-                rnRepository.Verify(
+            var registrationsShouldUpdate = msPrefix.PackageRegistrations;
+            service
+                .MockReservedNamespaceRepository
+                .Verify(
                     x => x.DeleteOnCommit(
                         It.Is<ReservedNamespace>(
                             rn => rn.Value == msPrefix.Value
                                 && rn.IsPrefix == msPrefix.IsPrefix
                                 && rn.IsSharedNamespace == msPrefix.IsSharedNamespace)));
 
-                rnRepository.Verify(x => x.CommitChangesAsync());
-                packageService.Verify(
+            service
+                .MockReservedNamespaceRepository
+                .Verify(x => x.CommitChangesAsync());
+            service
+                .MockPackageService
+                .Verify(
                     p => p.UpdatePackageVerifiedStatusAsync(
                         It.Is<IList<PackageRegistration>>(
                             list => list.Count() == registrationsShouldUpdate.Count()
@@ -270,117 +173,284 @@ namespace NuGetGallery.Services
                         false),
                     Times.Once);
 
-                msPrefix.PackageRegistrations.ToList().ForEach(rn => Assert.False(rn.IsVerified));
-            }
+            msPrefix.PackageRegistrations.ToList().ForEach(rn => Assert.False(rn.IsVerified));
+        }
 
-            private static IList<ReservedNamespace> GetTestNamespaces()
-            {
-                var result = new List<ReservedNamespace>();
-                result.Add(new ReservedNamespace("Microsoft.", isSharedNamespace: false, isPrefix: true));
-                result.Add(new ReservedNamespace("Microsoft.AspNet.", isSharedNamespace: false, isPrefix: true));
-                result.Add(new ReservedNamespace("BaseTest.", isSharedNamespace: false, isPrefix: true));
-                result.Add(new ReservedNamespace("jQuery", isSharedNamespace: false, isPrefix: false));
-                result.Add(new ReservedNamespace("jQuery.Extentions.", isSharedNamespace: true, isPrefix: true));
-                result.Add(new ReservedNamespace("Random.", isSharedNamespace: false, isPrefix: true));
+        [Fact]
+        public async Task AddingOwnerToNullNamespaceThrowsException()
+        {
+            var service = new TestableReservedNamespaceService();
 
-                return result;
-            }
+            await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.AddOwnerToReservedNamespaceAsync(null, new User("test1")));
+        }
 
-            private static IList<PackageRegistration> GetRegistrations()
-            {
-                var result = new List<PackageRegistration>();
-                result.Add(new PackageRegistration { Id = "Microsoft.Package1", IsVerified = true });
-                result.Add(new PackageRegistration { Id = "Microsoft.AspNet.Package2", IsVerified = true });
-                result.Add(new PackageRegistration { Id = "Random.Package1", IsVerified = true });
-                result.Add(new PackageRegistration { Id = "jQuery", IsVerified = true });
-                result.Add(new PackageRegistration { Id = "jQuery.Extentions.OwnerView", IsVerified = true });
-                result.Add(new PackageRegistration { Id = "jQuery.Extentions.ThirdPartyView", IsVerified = false });
-                result.Add(new PackageRegistration { Id = "DeltaX.Test1", IsVerified = false });
+        [Fact]
+        public async Task AddingOwnerToNonExistentNamespaceThrowsException()
+        {
+            var nonExistentNamespace = new ReservedNamespace("NewNamespace.", isSharedNamespace: false, isPrefix: true);
+            var testNamespaces = GetTestNamespaces();
+            var testUsers = GetTestUsers();
+            var existingUser = testUsers.First();
+            var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
 
-                return result;
-            }
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.AddOwnerToReservedNamespaceAsync(nonExistentNamespace, existingUser));
+        }
 
-            private static IList<User> GetUsers()
-            {
-                var result = new List<User>();
-                result.Add(new User("test1"));
-                result.Add(new User("test2"));
-                result.Add(new User("test3"));
-                result.Add(new User("test4"));
-                result.Add(new User("test5"));
+        [Fact]
+        public async Task AddingNullOwnerToNamespaceThrowsException()
+        {
+            var testNamespaces = GetTestNamespaces();
+            var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value == "Microsoft.");
+            var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces);
 
-                return result;
-            }
+            await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.AddOwnerToReservedNamespaceAsync(existingNamespace, null));
+        }
 
-            private static Mock<IEntityRepository<ReservedNamespace>> SetupReservedNamespaceRepository(IList<ReservedNamespace> prefixList = null)
-            {
-                var obj = new Mock<IEntityRepository<ReservedNamespace>>();
-                prefixList = prefixList ?? GetTestNamespaces();
+        [Fact]
+        public async Task AddingNonExistentUserToNamespaceThrowsException()
+        {
+            var testNamespaces = GetTestNamespaces();
+            var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value == "Microsoft.");
+            var testUsers = GetTestUsers();
+            var nonExistentUser = new User("NonExistentUser");
+            var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
 
-                obj.Setup(x => x.GetAll())
-                    .Returns(prefixList.AsQueryable());
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.AddOwnerToReservedNamespaceAsync(existingNamespace, nonExistentUser));
+        }
 
-                return obj;
-            }
+        [Fact]
+        public async Task AddAnOwnerToNamespaceSuccessfully()
+        {
+            var testNamespaces = GetTestNamespaces();
+            var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value == "Microsoft.");
+            var testUsers = GetTestUsers();
+            var owner = testUsers.First();
+            var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
 
-            private static Mock<UserService> SetupUserService()
-            {
-                return null;
-            }
+            await service.AddOwnerToReservedNamespaceAsync(existingNamespace, owner);
 
-            private static Mock<PackageService> SetupPackageService(IList<PackageRegistration> registrations = null)
-            {
-                var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
-                registrations = registrations ?? GetRegistrations();
-                packageRegistrationRepository
-                    .Setup(x => x.GetAll())
-                    .Returns(registrations.AsQueryable())
-                    .Verifiable();
+            service
+                .MockReservedNamespaceRepository
+                .Verify(x => x.CommitChangesAsync());
 
-                var packageRepository = new Mock<IEntityRepository<Package>>();
-                var packageOwnerRequestRepo = new Mock<IEntityRepository<PackageOwnerRequest>>();
-                var indexingService = new Mock<IIndexingService>();
-                var packageNamingConflictValidator = new PackageNamingConflictValidator(
-                        packageRegistrationRepository.Object,
-                        packageRepository.Object);
-                var auditingService = new TestAuditingService();
+            service
+                .MockPackageService
+                .Verify(p => p.UpdatePackageVerifiedStatusAsync(
+                    It.IsAny<IList<PackageRegistration>>(), It.IsAny<bool>()),
+                    Times.Never);
 
-                var packageService = new Mock<PackageService>(
-                    packageRegistrationRepository.Object,
-                    packageRepository.Object,
-                    packageOwnerRequestRepo.Object,
-                    indexingService.Object,
-                    packageNamingConflictValidator,
-                    auditingService);
+            Assert.True(existingNamespace.Owners.Contains(owner));
+        }
 
-                packageService.CallBase = true;
+        [Fact]
+        public async Task AddingOwnerToNamespaceMarksRegistrationsVerified()
+        {
+            var testNamespaces = GetTestNamespaces();
+            var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value == "Microsoft.");
+            var testUsers = GetTestUsers();
+            var owner1 = testUsers.First(u => u.Username == "test1");
+            var owner2 = testUsers.First(u => u.Username == "test2");
+            var registrations = GetRegistrations();
+            var pr1 = registrations.ToList().FirstOrDefault(pr => (pr.Id == "Microsoft.Package1"));
+            var pr2 = registrations.ToList().FirstOrDefault(pr => (pr.Id == "Microsoft.Package2"));
+            var pr3 = registrations.ToList().FirstOrDefault(pr => (pr.Id == "Microsoft.AspNet.Package2"));
+            pr1.Owners.Add(owner1);
+            pr2.Owners.Add(owner1);
+            pr3.Owners.Add(owner2);
 
-                //packageService
-                //    .Setup(s => s.UpdatePackageVerifiedStatusAsync(
-                //        It.IsAny<IList<PackageRegistration>>(),
-                //        It.IsAny<bool>()))
-                //    .Returns(Task.CompletedTask)
-                //    .Verifiable();
+            var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers, packageRegistrations: registrations);
 
-                return packageService;
-            }
+            Assert.True(existingNamespace.PackageRegistrations.Count() == 0);
 
-            private static Mock<AuditingService> SetupAuditingService()
-            {
-                return null;
-            }
+            await service.AddOwnerToReservedNamespaceAsync(existingNamespace, owner1);
 
-            private static Mock<IEntitiesContext> SetupEntitiesContext()
-            {
-                var obj = new Mock<IEntitiesContext>();
-                var dbContext = new Mock<DbContext>();
+            service
+                .MockReservedNamespaceRepository
+                .Verify(x => x.CommitChangesAsync());
 
-                obj
-                    .Setup(m => m.GetDatabase())
-                    .Returns(dbContext.Object.Database);
+            service
+                .MockPackageService
+                .Verify(p => p.UpdatePackageVerifiedStatusAsync(
+                    It.IsAny<IList<PackageRegistration>>(), It.IsAny<bool>()),
+                    Times.Once);
 
-                return obj;
-            }
+            Assert.True(existingNamespace.Owners.Contains(owner1));
+            // Only Microsoft.Package1 should match the namespace
+            Assert.True(existingNamespace.PackageRegistrations.Count() == 2);
+            existingNamespace
+                .PackageRegistrations
+                .ToList()
+                .ForEach(pr => {
+                    Assert.True(pr.IsVerified);
+                    Assert.True(pr.Id == pr1.Id || pr.Id == pr2.Id);
+                });
+        }
+
+
+        [Fact]
+        public async Task DeletingOwnerFromNullNamespaceThrowsException()
+        {
+            var service = new TestableReservedNamespaceService();
+
+            await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.DeleteOwnerFromReservedNamespaceAsync(null, new User("test1")));
+        }
+
+        [Fact]
+        public async Task DeletingOwnerFromNonExistentNamespaceThrowsException()
+        {
+            var nonExistentNamespace = new ReservedNamespace("NewNamespace.", isSharedNamespace: false, isPrefix: true);
+            var testNamespaces = GetTestNamespaces();
+            var testUsers = GetTestUsers();
+            var existingUser = testUsers.First();
+            var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.DeleteOwnerFromReservedNamespaceAsync(nonExistentNamespace, existingUser));
+        }
+
+        [Fact]
+        public async Task DeletingNullOwnerFromNamespaceThrowsException()
+        {
+            var testNamespaces = GetTestNamespaces();
+            var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value == "Microsoft.");
+            var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces);
+
+            await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.DeleteOwnerFromReservedNamespaceAsync(existingNamespace, null));
+        }
+
+        [Fact]
+        public async Task DeletingNonExistentUserFromNamespaceThrowsException()
+        {
+            var testNamespaces = GetTestNamespaces();
+            var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value == "Microsoft.");
+            var testUsers = GetTestUsers();
+            var nonExistentUser = new User("NonExistentUser");
+            var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.DeleteOwnerFromReservedNamespaceAsync(existingNamespace, nonExistentUser));
+        }
+
+        [Fact]
+        public async Task DeletingNonOwnerFromNamespaceThrowsException()
+        {
+            var testNamespaces = GetTestNamespaces();
+            var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value == "Microsoft.");
+            var testUsers = GetTestUsers();
+            var user1 = testUsers.First(u => u.Username == "test1");
+            var user2 = testUsers.First(u => u.Username == "test2");
+            existingNamespace.Owners.Add(user1);
+            var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.DeleteOwnerFromReservedNamespaceAsync(existingNamespace, user2));
+        }
+
+        [Fact]
+        public async Task DeleteOwnerFromNamespaceSuccessfully()
+        {
+            var testNamespaces = GetTestNamespaces();
+            var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value == "Microsoft.");
+            var testUsers = GetTestUsers();
+            var owner = testUsers.First();
+            existingNamespace.Owners.Add(owner);
+            var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
+
+            await service.DeleteOwnerFromReservedNamespaceAsync(existingNamespace, owner);
+
+            service
+                .MockReservedNamespaceRepository
+                .Verify(x => x.CommitChangesAsync());
+
+            service
+                .MockPackageService
+                .Verify(p => p.UpdatePackageVerifiedStatusAsync(
+                    It.IsAny<IList<PackageRegistration>>(), It.IsAny<bool>()),
+                    Times.Never);
+
+            Assert.False(existingNamespace.Owners.Contains(owner));
+        }
+
+        [Fact]
+        public async Task DeletingOwnerFromNamespaceMarksRegistrationsUnVerified()
+        {
+            var testNamespaces = GetTestNamespaces();
+            var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value == "Microsoft.");
+            var testUsers = GetTestUsers();
+            var owner1 = testUsers.First(u => u.Username == "test1");
+            var owner2 = testUsers.First(u => u.Username == "test2");
+            var registrations = GetRegistrations();
+            var pr1 = registrations.ToList().FirstOrDefault(pr => (pr.Id == "Microsoft.Package1"));
+            var pr2 = registrations.ToList().FirstOrDefault(pr => (pr.Id == "Microsoft.Package2"));
+            var pr3 = registrations.ToList().FirstOrDefault(pr => (pr.Id == "Microsoft.AspNet.Package2"));
+            pr1.Owners.Add(owner1);
+            pr2.Owners.Add(owner1);
+            pr3.Owners.Add(owner2);
+            pr1.IsVerified = true;
+            pr2.IsVerified = true;
+            pr3.IsVerified = true;
+            existingNamespace.Owners.Add(owner1);
+            existingNamespace.PackageRegistrations.Add(pr1);
+            existingNamespace.PackageRegistrations.Add(pr2);
+
+            var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers, packageRegistrations: registrations);
+
+            Assert.True(existingNamespace.PackageRegistrations.Count == 2);
+
+            await service.DeleteOwnerFromReservedNamespaceAsync(existingNamespace, owner1);
+
+            service
+                .MockReservedNamespaceRepository
+                .Verify(x => x.CommitChangesAsync());
+
+            service
+                .MockPackageService
+                .Verify(p => p.UpdatePackageVerifiedStatusAsync(
+                    It.IsAny<IList<PackageRegistration>>(), It.IsAny<bool>()),
+                    Times.Once);
+
+            Assert.False(existingNamespace.Owners.Contains(owner1));
+            Assert.True(existingNamespace.PackageRegistrations.Count == 0);
+            Assert.False(pr1.IsVerified);
+            Assert.False(pr2.IsVerified);
+            Assert.True(pr3.IsVerified);
+        }
+
+        private static IList<ReservedNamespace> GetTestNamespaces()
+        {
+            var result = new List<ReservedNamespace>();
+            result.Add(new ReservedNamespace("Microsoft.", isSharedNamespace: false, isPrefix: true));
+            result.Add(new ReservedNamespace("Microsoft.AspNet.", isSharedNamespace: false, isPrefix: true));
+            result.Add(new ReservedNamespace("BaseTest.", isSharedNamespace: false, isPrefix: true));
+            result.Add(new ReservedNamespace("jQuery", isSharedNamespace: false, isPrefix: false));
+            result.Add(new ReservedNamespace("jQuery.Extentions.", isSharedNamespace: true, isPrefix: true));
+            result.Add(new ReservedNamespace("Random.", isSharedNamespace: false, isPrefix: true));
+
+            return result;
+        }
+
+        private static IList<PackageRegistration> GetRegistrations()
+        {
+            var result = new List<PackageRegistration>();
+            result.Add(new PackageRegistration { Id = "Microsoft.Package1", IsVerified = false });
+            result.Add(new PackageRegistration { Id = "Microsoft.Package2", IsVerified = false });
+            result.Add(new PackageRegistration { Id = "Microsoft.AspNet.Package2", IsVerified = false });
+            result.Add(new PackageRegistration { Id = "Random.Package1", IsVerified = false });
+            result.Add(new PackageRegistration { Id = "jQuery", IsVerified = false });
+            result.Add(new PackageRegistration { Id = "jQuery.Extentions.OwnerView", IsVerified = false });
+            result.Add(new PackageRegistration { Id = "jQuery.Extentions.ThirdPartyView", IsVerified = false });
+            result.Add(new PackageRegistration { Id = "DeltaX.Test1", IsVerified = false });
+
+            return result;
+        }
+
+        private static IList<User> GetTestUsers()
+        {
+            var result = new List<User>();
+            result.Add(new User("test1"));
+            result.Add(new User("test2"));
+            result.Add(new User("test3"));
+            result.Add(new User("test4"));
+            result.Add(new User("test5"));
+
+            return result;
         }
     }
 }
