@@ -33,7 +33,7 @@ namespace NuGetGallery
                 // calculate the number of days since the package registration was created
                 // round to the nearest integer, with a min value of 1
                 // divide the total download count by this number
-                TotalDaysSinceCreated = Convert.ToInt32(Math.Max(1, Math.Round((DateTime.UtcNow - packageHistory.Last().Created).TotalDays)));
+                TotalDaysSinceCreated = Convert.ToInt32(Math.Max(1, Math.Round((DateTime.UtcNow - packageHistory.Min(p => p.Created)).TotalDays)));
                 DownloadsPerDay = TotalDownloadCount / TotalDaysSinceCreated; // for the package
             }
             else
