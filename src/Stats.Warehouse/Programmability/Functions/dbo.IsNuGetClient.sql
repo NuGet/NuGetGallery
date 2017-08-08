@@ -29,6 +29,8 @@ BEGIN
 
 			-- dotnet restore / msbuild /t:Restore
         OR	CHARINDEX('NuGet MSBuild Task', @ClientName) > 0
+        OR	CHARINDEX('NuGet .NET Core MSBuild Task', @ClientName) > 0
+        OR	CHARINDEX('NuGet Desktop MSBuild Task', @ClientName) > 0
 		)
 		RETURN 1
 
