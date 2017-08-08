@@ -408,6 +408,7 @@
     <Compile Include="Controllers\StatisticsControllerFacts.cs" />
     <Compile Include="Controllers\UsersControllerFacts.cs" />
     <Compile Include="Framework\TestGalleryConfigurationService.cs" />
+    <Compile Include="Infrastructure\PackageDeletionRecordFacts.cs" />
     <Compile Include="Infrastructure\UserAuditRecordFacts.cs" />
     <Compile Include="OData\Filter\ODataFilterFacts.cs" />
     <Compile Include="OData\SearchService\SearchHijackerFacts.cs" />
@@ -426,6 +427,7 @@
     <Compile Include="Security\TestUserSecurityPolicyData.cs" />
     <Compile Include="Services\AllowLocalHttpRedirectPolicyFacts.cs" />
     <Compile Include="Services\NoLessSecureDestinationRedirectPolicyFacts.cs" />
+    <Compile Include="Services\PackageDeletionRecordServiceFacts.cs" />
     <Compile Include="Services\PagerDutyClientFacts.cs" />
     <Compile Include="Services\ReflowPackageServiceFacts.cs" />
     <Compile Include="Services\ScopeEvaluatorFacts.cs" />

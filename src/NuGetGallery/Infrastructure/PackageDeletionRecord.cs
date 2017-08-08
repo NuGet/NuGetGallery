@@ -34,13 +34,23 @@ namespace NuGetGallery
         [JsonConstructor]
         public PackageDeletionRecord(string id, string normalizedVersion, DateTime deletedTimestamp)
         {
+            if (string.IsNullOrEmpty(id))
+            {
+                throw new ArgumentException(nameof(id));
+            }
+
+            if (string.IsNullOrEmpty(normalizedVersion))
+            {
+                throw new ArgumentException(nameof(normalizedVersion));
+            }
+
             Id = id;
             NormalizedVersion = normalizedVersion;
             DeletedTimestamp = deletedTimestamp;
         }
 
         public PackageDeletionRecord(Package package)
-            : this(package.PackageRegistration.Id, package.NormalizedVersion, DateTime.UtcNow)
+            : this(package?.PackageRegistration?.Id, package?.NormalizedVersion, DateTime.UtcNow)
         {
         }
     }
