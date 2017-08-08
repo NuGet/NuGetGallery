@@ -262,7 +262,6 @@ namespace NuGetGallery
             }
         }
 
-
         private static Mock<PackageService> SetupPackageService(Package package)
         {
             var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();

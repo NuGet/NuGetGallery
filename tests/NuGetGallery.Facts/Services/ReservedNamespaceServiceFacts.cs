@@ -201,6 +201,42 @@ namespace NuGetGallery.Services
             }
 
             [Fact]
+            public async Task AddingOwnerToNullNamespaceThrowsException()
+            {
+                var rnRepository = SetupReservedNamespaceRepository();
+                var packageService = SetupPackageService();
+
+                var service = CreateService(reservedNamespaceRepository: rnRepository, packageService: packageService);
+
+                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.AddOwnerToReservedNamespaceAsync(null, new User("test1")));
+            }
+
+            [Fact]
+            public async Task AddingNullOwnerToNamespaceThrowsException()
+            {
+                var nonExistentNamespace = new ReservedNamespace("NewNamespace.", isSharedNamespace: false, isPrefix: true);
+                var rnRepository = SetupReservedNamespaceRepository();
+                var packageService = SetupPackageService();
+
+                var service = CreateService(reservedNamespaceRepository: rnRepository, packageService: packageService);
+
+                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.AddOwnerToReservedNamespaceAsync(nonExistentNamespace, null));
+            }
+
+            [Fact]
+            public async Task AddingOwnerToNonExistentNamesapceThrowsException()
+            {
+                var nonExistentNamespace = new ReservedNamespace("NewNamespace.", isSharedNamespace: false, isPrefix: true);
+                var rnRepository = SetupReservedNamespaceRepository();
+                var entititesContext = SetupEntitiesContext();
+                var packageService = SetupPackageService();
+
+                var service = CreateService(entitiesContext: entititesContext, reservedNamespaceRepository: rnRepository, packageService: packageService);
+
+                await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.AddOwnerToReservedNamespaceAsync(nonExistentNamespace, new User("test1")));
+            }
+
+            [Fact]
             public async Task DeletingNamespaceClearsVerifiedFlagOnPackage()
             {
                 var namespaces = GetTestNamespaces();
@@ -260,6 +296,18 @@ namespace NuGetGallery.Services
                 result.Add(new PackageRegistration { Id = "jQuery.Extentions.OwnerView", IsVerified = true });
                 result.Add(new PackageRegistration { Id = "jQuery.Extentions.ThirdPartyView", IsVerified = false });
                 result.Add(new PackageRegistration { Id = "DeltaX.Test1", IsVerified = false });
+
+                return result;
+            }
+
+            private static IList<User> GetUsers()
+            {
+                var result = new List<User>();
+                result.Add(new User("test1"));
+                result.Add(new User("test2"));
+                result.Add(new User("test3"));
+                result.Add(new User("test4"));
+                result.Add(new User("test5"));
 
                 return result;
             }
