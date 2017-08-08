@@ -47,6 +47,48 @@ namespace NuGetGallery.ViewModels
         }
 
         [Fact]
+        public void AvgDownloadsPerDayConsidersOldestPackageVersionInHistory()
+        {
+            // Arrange
+            var utcNow = DateTime.UtcNow;
+            const int daysSinceFirstPackageCreated = 10;
+            const int totalDownloadCount = 250;
+
+            var packageRegistration = new PackageRegistration
+            {
+                Owners = Enumerable.Empty<User>().ToList(),
+                DownloadCount = totalDownloadCount
+            };
+
+            var package = new Package
+            {
+                // Simulating that lowest package version was pushed latest, on-purpose, 
+                // to assert we use the *oldest* package version in the calculation.
+                Created = utcNow,
+                Dependencies = Enumerable.Empty<PackageDependency>().ToList(),
+                DownloadCount = 10,
+                PackageRegistration = packageRegistration,
+                Version = "1.0.0"
+            };
+
+            package.PackageRegistration.Packages = new[]
+                {
+                    package,
+                    new Package { Version = "1.0.1", PackageRegistration = packageRegistration, DownloadCount = 100, Created = utcNow.AddDays(-daysSinceFirstPackageCreated) },
+                    new Package { Version = "2.0.1", PackageRegistration = packageRegistration, DownloadCount = 140, Created = utcNow.AddDays(-3) }
+                };
+
+            var packageHistory = packageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version));
+
+            // Act
+            var viewModel = new DisplayPackageViewModel(package, packageHistory);
+            
+            // Assert
+            Assert.Equal(daysSinceFirstPackageCreated, viewModel.TotalDaysSinceCreated);
+            Assert.Equal(totalDownloadCount / daysSinceFirstPackageCreated, viewModel.DownloadsPerDay);
+        }
+
+        [Fact]
         public void DownloadsPerDayLabelShowsLessThanOneWhenAverageBelowOne()
         {
             // Arrange
