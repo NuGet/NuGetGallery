@@ -413,6 +413,49 @@ namespace NuGetGallery.Services
             Assert.True(pr3.IsVerified);
         }
 
+        [Fact]
+        public async Task DeletingOwnerFromMultipleOwnedNamespaceDoesNotMarkPackagesUnVerfied()
+        {
+            var testNamespaces = GetTestNamespaces();
+            var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value == "Microsoft.");
+            var testUsers = GetTestUsers();
+            var owner1 = testUsers.First(u => u.Username == "test1");
+            var owner2 = testUsers.First(u => u.Username == "test2");
+            var registrations = GetRegistrations();
+            var pr1 = registrations.ToList().FirstOrDefault(pr => (pr.Id == "Microsoft.Package1"));
+            var pr2 = registrations.ToList().FirstOrDefault(pr => (pr.Id == "Microsoft.Package2"));
+            pr1.Owners.Add(owner1);
+            pr2.Owners.Add(owner1);
+            pr2.Owners.Add(owner2);
+            pr1.IsVerified = true;
+            pr2.IsVerified = true;
+            existingNamespace.Owners.Add(owner1);
+            existingNamespace.Owners.Add(owner2);
+            existingNamespace.PackageRegistrations.Add(pr1);
+            existingNamespace.PackageRegistrations.Add(pr2);
+
+            var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers, packageRegistrations: registrations);
+
+            Assert.True(existingNamespace.PackageRegistrations.Count == 2);
+
+            await service.DeleteOwnerFromReservedNamespaceAsync(existingNamespace, owner1);
+
+            service
+                .MockReservedNamespaceRepository
+                .Verify(x => x.CommitChangesAsync());
+
+            service
+                .MockPackageService
+                .Verify(p => p.UpdatePackageVerifiedStatusAsync(
+                    It.IsAny<IList<PackageRegistration>>(), It.IsAny<bool>()),
+                    Times.Once);
+
+            Assert.False(existingNamespace.Owners.Contains(owner1));
+            Assert.True(existingNamespace.PackageRegistrations.Count == 1);
+            Assert.False(pr1.IsVerified);
+            Assert.True(pr2.IsVerified);
+        }
+
         private static IList<ReservedNamespace> GetTestNamespaces()
         {
             var result = new List<ReservedNamespace>();
