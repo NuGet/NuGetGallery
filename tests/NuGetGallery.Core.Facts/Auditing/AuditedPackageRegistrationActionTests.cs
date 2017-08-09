@@ -13,7 +13,9 @@ namespace NuGetGallery.Auditing
             var expectedNames = new[]
             {
                 "AddOwner",
-                "RemoveOwner"
+                "RemoveOwner",
+                "AddNamespace",
+                "RemoveNamespace"
             };
 
             Verify(typeof(AuditedPackageRegistrationAction), expectedNames);

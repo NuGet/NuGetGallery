@@ -50,17 +50,20 @@ namespace NuGetGallery.Auditing
             IsSharedNamespace = prefix.IsSharedNamespace;
             IsPrefix = prefix.IsPrefix;
 
-            if (action == AuditedReservedNamespaceAction.AddOwner)
+            var packageRegistrationAction = AuditedPackageRegistrationAction.AddNamespace;
+            var userAuditAction = AuditedUserAction.GainNamespaceOwnership;
+            if (action == AuditedReservedNamespaceAction.DeleteOwner)
             {
-                AffectedUser = new UserAuditRecord(user, AuditedUserAction.GainNamespaceOwnership);
-                AffectedRegistrations = registrations
-                    .Select(x => new PackageRegistrationAuditRecord(x, AuditedPackageRegistrationAction.AddNamespace, prefix)).ToArray();
+                userAuditAction = AuditedUserAction.LoseNamesapceOwnership;
+                packageRegistrationAction = AuditedPackageRegistrationAction.RemoveNamespace;
             }
-            else if (action == AuditedReservedNamespaceAction.DeleteOwner)
+
+            AffectedUser = new UserAuditRecord(user, userAuditAction);
+
+            if (registrations != null)
             {
-               AffectedUser = new UserAuditRecord(user, AuditedUserAction.LoseNamesapceOwnership);
                 AffectedRegistrations = registrations
-                    .Select(x => new PackageRegistrationAuditRecord(x, AuditedPackageRegistrationAction.RemoveNamespace, prefix)).ToArray();
+                    .Select(x => new PackageRegistrationAuditRecord(x, packageRegistrationAction, prefix)).ToArray();
             }
 
             Action = action;

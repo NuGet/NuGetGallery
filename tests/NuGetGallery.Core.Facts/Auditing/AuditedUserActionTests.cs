@@ -10,7 +10,7 @@ namespace NuGetGallery.Auditing
         [Fact]
         public void Definition_HasNotChanged()
         {
-            var expectedNames = new []
+            var expectedNames = new[]
             {
                 "AddCredential",
                 "CancelChangeEmail",
@@ -23,7 +23,9 @@ namespace NuGetGallery.Auditing
                 "RemoveCredential",
                 "RequestPasswordReset",
                 "SubscribeToPolicies",
-                "UnsubscribeFromPolicies"
+                "UnsubscribeFromPolicies",
+                "GainNamespaceOwnership",
+                "LoseNamesapceOwnership"
             };
 
             Verify(typeof(AuditedUserAction), expectedNames);
