@@ -3,11 +3,11 @@
 
 namespace NuGetGallery.Auditing
 {
-    public enum AuditedPackageRegistrationAction
+    public enum AuditedReservedNamespaceAction
     {
+        AllocateNamespace,
+        DeallocateNamespace,
         AddOwner,
-        RemoveOwner,
-        AddNamespace,
-        RemoveNamespace
+        DeleteOwner
     }
 }

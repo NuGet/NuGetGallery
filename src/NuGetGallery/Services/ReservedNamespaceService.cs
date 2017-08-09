@@ -30,7 +30,6 @@ namespace NuGetGallery
             ReservedNamespaceRepository = reservedNamespaceRepository;
             UserService = userService;
             PackageService = packageService;
-            // TODO: Add auditing everywhere
             AuditingService = auditing;
         }
 
@@ -87,6 +86,7 @@ namespace NuGetGallery
                 await ReservedNamespaceRepository.CommitChangesAsync();
 
                 transaction.Commit();
+
             }
 
             EntitiesConfiguration.SuspendExecutionStrategy = false;

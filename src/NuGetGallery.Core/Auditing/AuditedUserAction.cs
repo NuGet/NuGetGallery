@@ -16,6 +16,8 @@ namespace NuGetGallery.Auditing
         ConfirmEmail,
         Login,
         SubscribeToPolicies,
-        UnsubscribeFromPolicies
+        UnsubscribeFromPolicies,
+        GainNamespaceOwnership,
+        LoseNamesapceOwnership
     }
 }
