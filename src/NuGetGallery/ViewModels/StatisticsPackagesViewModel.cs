@@ -10,6 +10,16 @@ namespace NuGetGallery
 {
     public class StatisticsPackagesViewModel
     {
+        public enum WeekFormats
+        {
+            StartOnly,
+            EndOnly,
+            FullDate,
+            YearWeekNumber
+        }
+
+        private readonly string[] _magnitudeAbbreviations = new string[] { "", "k", "M", "B", "T", "q", "Q", "s", "S", "o", "n" };
+
         private DateTime? _lastUpdatedUtc;
 
         public StatisticsPackagesViewModel()
@@ -76,19 +86,71 @@ namespace NuGetGallery
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic", Justification = "We want to be able to use this easily in the related view.")]
-        public string DisplayWeek(int year, int weekOfYear)
+        public string DisplayWeek(int year, int weekOfYear, WeekFormats format = WeekFormats.FullDate)
         {
             if (weekOfYear < 1 || weekOfYear > 53)
             {
                 return string.Empty;
             }
-            return string.Format(CultureInfo.CurrentCulture, "{0} wk {1}", year, weekOfYear);
+
+            var outputStringTemplate = "";
+            switch(format)
+            {
+                case WeekFormats.YearWeekNumber:
+                    return string.Format(CultureInfo.CurrentCulture, "{0} wk {1}", year, weekOfYear);
+                case WeekFormats.StartOnly:
+                    outputStringTemplate = "{0:MM/dd/yy}";
+                    break;
+                case WeekFormats.EndOnly:
+                    outputStringTemplate = "{1:MM/dd/yy}";
+                    break;
+                case WeekFormats.FullDate:
+                    outputStringTemplate = "{0:MM/dd/yy} - {1:MM/dd/yy}";
+                    break;
+                default:
+                    break;
+            }
+
+            var yearStart = new DateTime(year, 1, 1);
+            var offsetToThursday = DayOfWeek.Thursday - yearStart.DayOfWeek;
+
+            var firstThursday = yearStart.AddDays(offsetToThursday);
+            var calendar = CultureInfo.CurrentCulture.Calendar;
+            var firstWeek = calendar.GetWeekOfYear(firstThursday, CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Monday);
+
+            var offsetWeek = 0;
+            if (firstWeek <= 1)
+            {
+                offsetWeek = 1;
+            }
+
+            var startOfWeek = firstThursday.AddDays((weekOfYear - offsetWeek) * 7 - 3);
+
+            return string.Format(CultureInfo.CurrentCulture, outputStringTemplate, startOfWeek, startOfWeek.AddDays(7));
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic", Justification = "We want to be able to use this easily in the related view.")]
         public string DisplayPercentage(float amount, float total)
         {
             return (amount / total).ToString("P0", CultureInfo.CurrentCulture);
+        }
+
+        public string DisplayShortNumber(int number)
+        {
+            var numDiv = 0;
+
+            while (number >= 1000)
+            {
+                number = number / 1000;
+                numDiv++;
+            }
+
+            if (numDiv >= _magnitudeAbbreviations.Length)
+            {
+                return number + $"10^{numDiv*3}";
+            }
+
+            return number + _magnitudeAbbreviations[numDiv];
         }
     }
 }

@@ -91,7 +91,7 @@
                         cache: false,
                         dataType: 'json',
                         type: 'POST',
-                        data: addAjaxAntiForgeryToken({ subscriptionsJson: subscriptions }),
+                        data: window.nuget.addAjaxAntiForgeryToken({ subscriptionsJson: subscriptions }),
                         success: function (data) {
                             $self.changeTracker(false);
                             $self.message("Security policies updated!");

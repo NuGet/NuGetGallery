@@ -1,0 +1,56 @@
+.page-statistics-most-downloaded {
+    .table {
+        margin-top: 40px;
+        table-layout: fixed;
+        
+        thead {
+            padding-bottom: 4px;
+            margin-bottom: 10px;
+            
+            th {
+                font-weight: bold;
+            }
+    
+            .packages {
+                th:nth-child(1) {
+                    width: 10%;
+                }
+                
+                th:nth-child(2) {
+                    width: 70%;
+                }
+                
+                th:nth-child(3) {
+                    width: 20%;
+                }
+            }
+    
+            .package-versions {
+                th:nth-child(1) {
+                    width: 10%;
+                }
+                
+                th:nth-child(2) {
+                    width: 50%;
+                }
+                
+                th:nth-child(3) {
+                    width: 20%;
+                }
+                
+                th:nth-child(4) {
+                    width: 20%;
+                }
+            }
+        }
+        
+        tbody {
+            margin-bottom: 20px;
+            
+            td {
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        }
+    }
+}

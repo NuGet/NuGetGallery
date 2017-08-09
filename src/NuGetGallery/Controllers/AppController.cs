@@ -48,6 +48,23 @@ namespace NuGetGallery
             return new SafeRedirectResult(returnUrl, Url.Home());
         }
 
+        /// <summary>
+        /// This method is to set TrySkipIisCustomErrors flag on failed requests so Json returns for failed requests don't get overwritten by IIS.
+        /// </summary>
+        /// <param name="statusCode">HTTP status code for response</param>
+        /// <param name="obj">Object to Jsonify and return</param>
+        /// <returns></returns>
+        protected internal JsonResult Json(int statusCode, object obj)
+        {
+            Response.StatusCode = statusCode;
+            if (statusCode >= 400)
+            {
+                Response.TrySkipIisCustomErrors = true;
+            }
+
+            return Json(obj);
+        }
+
 
         /// <summary>
         /// Called before the action method is invoked.

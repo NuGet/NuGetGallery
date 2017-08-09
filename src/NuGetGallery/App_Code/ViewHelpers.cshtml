@@ -1,9 +1,95 @@
 ﻿@using System.Web.Mvc
+@using System.Web.Mvc.Html
 @using Microsoft.Web.Helpers
 @using NuGetGallery
 @using NuGetGallery.Helpers
 @using NuGetGallery.Configuration
 @using NuGetGallery.Cookies
+
+@helper GetColumnClasses(string screenSize, int? columns)
+{
+    const int TotalColumns = 12;
+    if (!columns.HasValue)
+    {
+        return;
+    }
+
+    var offset = (TotalColumns - columns.Value) / 2;
+    var columnsClass = "col-" + screenSize + "-" + columns.Value;
+    var offsetClass = offset == 0 ? string.Empty : " col-" + screenSize + "-offset-" + offset;
+
+    @(columnsClass + " " + offsetClass)
+}
+
+@helper GetColumnClasses(dynamic viewBag)
+{
+    int? smPageColumns = 12;
+    if (viewBag.SmPageColumns != null)
+    {
+        smPageColumns = (int)viewBag.SmPageColumns;
+    }
+
+    int? mdPageColumns = null;
+    if (viewBag.MdPageColumns != null)
+    {
+        mdPageColumns = (int)viewBag.MdPageColumns;
+    }
+
+    @(GetColumnClasses("sm", smPageColumns) + " " + GetColumnClasses("md", mdPageColumns))
+}
+
+@helper Alert(Func<MvcHtmlString, HelperResult> htmlContent, string subclass, string icon, bool isAlertRole = false)
+{
+    <div class="icon-link alert alert-@subclass" @if (isAlertRole) { <text> role="alert" aria-live="assertive" </text>   }>
+        <i class="ms-Icon ms-Icon--@icon" aria-hidden="true"></i>
+        @htmlContent(MvcHtmlString.Empty)
+    </div>
+}
+
+@helper AlertInfo(Func<MvcHtmlString, HelperResult> htmlContent, bool isAlertRole = false)
+{
+    @Alert(htmlContent, "info", "Info", isAlertRole)
+}
+
+@helper AlertWarning(Func<MvcHtmlString, HelperResult> htmlContent, bool isAlertRole = false)
+{
+    @Alert(htmlContent, "warning", "Warning", isAlertRole)
+}
+
+@helper AlertDanger(Func<MvcHtmlString, HelperResult> htmlContent, bool isAlertRole = true)
+{
+    @Alert(htmlContent, "danger", "ErrorBadge", isAlertRole)
+}
+
+@helper ErrorPage(UrlHelper url, System.Web.Mvc.HtmlHelper html, string errorNumber, string errorName, Func<MvcHtmlString, HelperResult> errorTextMain, Func<MvcHtmlString, HelperResult> errorTextSub = null)
+{
+    <section role="main" class="container main-container">
+        <div class="row page-error">
+            <div class="col-sm-12 ms-fontWeight-light">
+                <p class="oops">Oops!</p>
+                <p class="error-title">Error @errorNumber - @errorName</p>
+                <div class="error-text">
+                    <div class="text-main">
+                        @errorTextMain(MvcHtmlString.Empty)
+                    </div>
+                    @if (errorTextSub != null)
+                    {
+                        <div class="text-subtext">
+                            @errorTextSub(MvcHtmlString.Empty)
+                        </div>
+                    }
+                </div>
+
+                <p class="error-action">Get me out of here! <a href="@url.Action("Home", "Pages")">Go home</a></p>
+                <p class="error-action">Wondering if NuGet is down? <a href="https://status.nuget.org/">Check our status</a></p>
+                <p class="error-action">Looking for a package? <a href="@url.Action("ListPackages", "Packages")">Try searching</a></p>
+                <p class="error-action">Package you're looking for doesn't exist? <a href="https://docs.microsoft.com/en-us/nuget/quickstart/create-and-publish-a-package">Make one</a></p>
+                <p class="error-action">Pretty sure we messed up? <a href="https://github.com/NuGet/NuGetGallery/issues">File a bug</a></p>
+                <p class="error-action">Can't get enough NuGet? <a href="https://twitter.com/nuget">Follow us</a></p>
+            </div>
+        </div>
+    </section>
+}
 
 @helper PreviousNextPager(IPreviousNextPager pager)
 {
@@ -32,6 +118,11 @@
             </li>
         </ul>
     }
+}
+
+@helper ImageFallback(string url)
+{
+    <text>onerror="this.src='@url'; this.onerror = null;"</text>
 }
 
 @helper Option(string value, string label, string currentValue)
@@ -67,40 +158,29 @@
     }
 }
 
-@helper OwnersGravatar(IEnumerable<User> owners, int size, UrlHelper url, bool showName = true)
-{
-    <ul class="owners">
-        @foreach (var owner in owners)
-        {
-            <li>
-                @OwnerGravatar(owner, size, url, showName)
-            </li>
-        }
-    </ul>
-}
-
-@helper OwnerGravatar(User owner, int size, UrlHelper url, bool showName = true)
-{
-    <a class="owner" href="@url.User(owner)" title="@owner.Username">
-        @if (!String.IsNullOrEmpty(owner.EmailAddress))
-        {
-            @GravatarImage(owner.EmailAddress, owner.Username, size)
-        }
-        @if (showName)
-        {
-            <span class="owner-name">@owner.Username</span>
-        }
-    </a>
-}
-
 @helper GravatarImage(string email, string username, int size)
 {
-    var gravatarHtml = Gravatar.GetHtml(email, size, "retro", GravatarRating.G, attributes: new { width = size, height = size, title = username, @class = "owner-image" });
-    if (gravatarHtml != null && Request.IsSecureConnection)
-    {
-        gravatarHtml = new HtmlString(gravatarHtml.ToHtmlString().Replace("http://www.gravatar.com/", "https://secure.gravatar.com/"));
-    }
-    @gravatarHtml
+    @GravatarImage(email, username, size, responsive: false);
+}
+
+@helper GravatarImage(string email, string username, int size, bool responsive)
+{
+    var classAttribute = responsive ? "owner-image img-responsive" : "owner-image";
+
+    // Load a higher resolution image than the element requires, to improve high DPI display.
+    var imageSize = size * 2;
+    var elementSize = size;
+
+    @GravatarHelper.Image(
+        email,
+        imageSize,
+        attributes: new
+        {
+            width = elementSize,
+            height = elementSize,
+            title = username,
+            @class = classAttribute
+        });
 }
 
 @helper WriteMeta(string name, string val) {
@@ -195,7 +275,7 @@
             }
 
             if(ver.BuildDateUtc != DateTime.MinValue) {
-                @: Built at <span class="s-localtime" data-utc="@ver.BuildDateUtc.ToJavaScriptUTC()">@ver.BuildDateUtc.ToNuGetShortDateString()</span>.
+                @: Built on <span class="s-localtime" data-utc="@ver.BuildDateUtc.ToString("O")" title="@ver.BuildDateUtc.ToString("O")">@ver.BuildDateUtc.ToNuGetShortDateString()</span>.
             }
         } else {
             @:.

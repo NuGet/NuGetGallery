@@ -1,0 +1,47 @@
+//
+// Pager pagination
+// --------------------------------------------------
+
+
+.pager {
+  padding-left: 0;
+  margin: @line-height-computed 0;
+  list-style: none;
+  text-align: center;
+  &:extend(.clearfix all);
+  li {
+    display: inline;
+    display: inline-block;
+    padding: 5px 14px;
+    font-size: 20px;
+    color: @gray-light;
+
+    > a,
+    > span {
+      color: @link-color;
+    }
+  }
+
+  .next {
+    border-left-style: solid;
+    border-left-width: 1px;
+    border-left-color: @brand-primary;
+  }
+
+  .previous {
+    > a,
+    > span {
+    }
+  }
+
+  .disabled {
+    > a,
+    > a:hover,
+    > a:focus,
+    > span {
+      color: @pager-disabled-color;
+      background-color: @pager-bg;
+      cursor: @cursor-disabled;
+    }
+  }
+}

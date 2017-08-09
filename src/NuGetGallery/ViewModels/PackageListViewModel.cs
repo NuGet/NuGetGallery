@@ -16,8 +16,11 @@ namespace NuGetGallery
             int totalCount,
             int pageIndex,
             int pageSize,
-            UrlHelper url)
-            : this(packages, indexTimestampUtc, searchTerm, totalCount, pageIndex, pageSize, url, curatedFeed: null) { }
+            UrlHelper url,
+            bool includePrerelease)
+            : this(packages, indexTimestampUtc, searchTerm, totalCount, pageIndex, pageSize, url, curatedFeed: null, includePrerelease: includePrerelease)
+        {
+        }
 
         public PackageListViewModel(
             IQueryable<Package> packages,
@@ -27,7 +30,8 @@ namespace NuGetGallery
             int pageIndex,
             int pageSize,
             UrlHelper url,
-            string curatedFeed)
+            string curatedFeed,
+            bool includePrerelease)
         {
             // TODO: Implement actual sorting
             IEnumerable<ListPackageItemViewModel> items = packages.ToList().Select(pv => new ListPackageItemViewModel(pv));
@@ -43,31 +47,34 @@ namespace NuGetGallery
                 PageIndex,
                 pageCount,
                 page => curatedFeed == null ?
-                    url.PackageList(page, searchTerm) :
+                    url.PackageList(page, searchTerm, includePrerelease) :
                     url.CuratedPackageList(page, searchTerm, curatedFeed)
                 );
             Items = pager.Items;
             FirstResultIndex = 1 + (PageIndex * PageSize);
             LastResultIndex = FirstResultIndex + Items.Count() - 1;
             Pager = pager;
+            IncludePrerelease = includePrerelease;
         }
 
-        public int FirstResultIndex { get; set; }
+        public int FirstResultIndex { get; }
 
-        public IEnumerable<ListPackageItemViewModel> Items { get; private set; }
+        public IEnumerable<ListPackageItemViewModel> Items { get; }
 
-        public int LastResultIndex { get; set; }
+        public int LastResultIndex { get; }
 
-        public IPreviousNextPager Pager { get; private set; }
+        public IPreviousNextPager Pager { get; }
 
-        public int TotalCount { get; private set; }
+        public int TotalCount { get; }
 
-        public string SearchTerm { get; private set; }
+        public string SearchTerm { get;  }
 
-        public int PageIndex { get; private set; }
+        public int PageIndex { get; }
 
-        public int PageSize { get; private set; }
+        public int PageSize { get; }
 
-        public DateTime? IndexTimestampUtc { get; private set; }
+        public DateTime? IndexTimestampUtc { get; }
+
+        public bool IncludePrerelease { get; }
     }
 }

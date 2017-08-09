@@ -72,11 +72,14 @@ namespace NuGetGallery
 
                 // Assert
                 var model = ResultAssert.IsView<AccountViewModel>(result, viewName: "Account");
-                var descs = model.Credentials.ToDictionary(c => c.Kind); // Should only be one of each kind
+                var descs = model
+                    .CredentialGroups
+                    .SelectMany(x => x.Value)
+                    .ToDictionary(c => c.Kind); // Should only be one of each kind
                 Assert.Equal(3, descs.Count);
                 Assert.Equal(Strings.CredentialType_Password, descs[CredentialKind.Password].TypeCaption);
                 Assert.Equal(Strings.CredentialType_ApiKey, descs[CredentialKind.Token].TypeCaption);
-                Assert.Equal(Strings.MicrosoftAccount_Caption, descs[CredentialKind.External].TypeCaption);
+                Assert.Equal(Strings.MicrosoftAccount_AccountNoun, descs[CredentialKind.External].TypeCaption);
             }
 
 
@@ -108,7 +111,10 @@ namespace NuGetGallery
 
                 // Assert
                 var model = ResultAssert.IsView<AccountViewModel>(result, viewName: "Account");
-                var descs = model.Credentials.ToDictionary(c => c.Type); // Should only be one of each type
+                var descs = model
+                    .CredentialGroups
+                    .SelectMany(x => x.Value)
+                    .ToDictionary(c => c.Type); // Should only be one of each type
                 Assert.Equal(6, descs.Count);
                 Assert.True(descs.ContainsKey(credentials[0].Type));
                 Assert.True(descs.ContainsKey(credentials[1].Type));
@@ -171,7 +177,14 @@ namespace NuGetGallery
                     .Setup(u => u.ChangeEmailSubscriptionAsync(user, false, true))
                     .Returns(Task.CompletedTask);
 
-                var result = await controller.ChangeEmailSubscription(false, true);
+                var result = await controller.ChangeEmailSubscription(new AccountViewModel
+                {
+                    ChangeNotifications =
+                    {
+                        EmailAllowed = false,
+                        NotifyPackagePushed = true
+                    }
+                });
 
                 ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
                 GetMock<IUserService>().Verify(u => u.ChangeEmailSubscriptionAsync(user, false, true));
@@ -555,8 +568,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
-                Assert.IsType<JsonResult>(result);
-                Assert.True(string.Compare((string)((JsonResult)result).Data, Strings.ApiKeyDescriptionRequired) == 0);
+                Assert.True(string.Compare((string)result.Data, Strings.ApiKeyDescriptionRequired) == 0);
             }
 
             [InlineData(180, 180)]
@@ -694,6 +706,10 @@ namespace NuGetGallery
             {
                 var user = new User { Username = "the-username" };
 
+                GetMock<IAppConfiguration>()
+                    .Setup(x => x.ExpirationInDaysForApiKeyV1)
+                    .Returns(365);
+
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
@@ -703,9 +719,7 @@ namespace NuGetGallery
                     subjects: new [] { "a" },
                     expirationInDays: 90);
 
-                Assert.IsType<JsonResult>(result);
-
-                var credentialViewModel = ((JsonResult) result).Data as CredentialViewModel;
+                var credentialViewModel = result.Data as ApiKeyViewModel;
                 Assert.NotNull(credentialViewModel);
 
                 var apiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKey.V2);
@@ -713,7 +727,7 @@ namespace NuGetGallery
                 Assert.Equal(apiKey.Value, credentialViewModel.Value);
                 Assert.Equal(apiKey.Key, credentialViewModel.Key);
                 Assert.Equal(apiKey.Description, credentialViewModel.Description);
-                Assert.Equal(apiKey.Expires, credentialViewModel.Expires);
+                Assert.Equal(apiKey.Expires.Value.ToString("O"), credentialViewModel.Expires);
             }
 
             [Fact]
@@ -933,7 +947,13 @@ namespace NuGetGallery
                 // Arrange
                 var controller = GetController<UsersController>();
                 controller.ModelState.AddModelError("ChangePassword.blarg", "test");
-                var inputModel = new AccountViewModel();
+                var inputModel = new AccountViewModel
+                {
+                    ChangePassword =
+                    {
+                        EnablePasswordLogin = true,
+                    }
+                };
                 controller.SetCurrentUser(new User()
                 {
                     Credentials = new List<Credential> {
@@ -947,6 +967,47 @@ namespace NuGetGallery
                 // Assert
                 var outputModel = ResultAssert.IsView<AccountViewModel>(result, viewName: "Account");
                 Assert.Same(inputModel, outputModel);
+            }
+
+            [Fact]
+            public async Task GivenMismatchedNewPassword_ItAddsModelError()
+            {
+                // Arrange
+                var user = new User("foo");
+                user.Credentials.Add(new CredentialBuilder().CreatePasswordCredential("old"));
+
+                GetMock<AuthenticationService>()
+                    .Setup(u => u.ChangePassword(user, "old", "new"))
+                    .CompletesWith(false);
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                var inputModel = new AccountViewModel()
+                {
+                    ChangePassword = new ChangePasswordViewModel()
+                    {
+                        EnablePasswordLogin = true,
+                        OldPassword = "old",
+                        NewPassword = "new",
+                        VerifyPassword = "new2",
+                    }
+                };
+
+                // Act
+                var result = await controller.ChangePassword(inputModel);
+
+                // Assert
+                var outputModel = ResultAssert.IsView<AccountViewModel>(result, viewName: "Account");
+                Assert.Same(inputModel, outputModel);
+                Assert.NotEqual(inputModel.ChangePassword.NewPassword, inputModel.ChangePassword.VerifyPassword);
+
+                var errorMessages = controller
+                    .ModelState["ChangePassword.VerifyPassword"]
+                    .Errors
+                    .Select(e => e.ErrorMessage)
+                    .ToArray();
+                Assert.Equal(errorMessages, new[] { Strings.PasswordDoesNotMatch });
             }
 
             [Fact]
@@ -967,8 +1028,10 @@ namespace NuGetGallery
                 {
                     ChangePassword = new ChangePasswordViewModel()
                     {
+                        EnablePasswordLogin = true,
                         OldPassword = "old",
                         NewPassword = "new",
+                        VerifyPassword = "new",
                     }
                 };
 
@@ -988,6 +1051,42 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task GivenDisabledPasswordLogin_RemovesCredentialAndSendsNotice()
+            {
+                // Arrange
+                var user = new User("foo");
+                var cred = new CredentialBuilder().CreatePasswordCredential("old");
+                user.Credentials.Add(cred);
+                user.Credentials.Add(new CredentialBuilder()
+                    .CreateExternalCredential("MicrosoftAccount", "blorg", "bloog"));
+                
+                GetMock<AuthenticationService>()
+                    .Setup(a => a.RemoveCredential(user, cred))
+                    .Completes()
+                    .Verifiable();
+                GetMock<IMessageService>()
+                    .Setup(m => m.SendCredentialRemovedNotice(user, cred))
+                    .Verifiable();
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+                var inputModel = new AccountViewModel()
+                {
+                    ChangePassword = new ChangePasswordViewModel()
+                    {
+                        EnablePasswordLogin = false,
+                    }
+                };
+
+                // Act
+                var result = await controller.ChangePassword(inputModel);
+
+                // Assert
+                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
+                Assert.Equal(Strings.PasswordRemoved, controller.TempData["Message"]);
+            }
+
+            [Fact]
             public async Task GivenSuccessInAuthService_ItRedirectsBackToManageCredentialsWithMessage()
             {
                 // Arrange
@@ -1003,8 +1102,10 @@ namespace NuGetGallery
                 {
                     ChangePassword = new ChangePasswordViewModel()
                     {
+                        EnablePasswordLogin = true,
                         OldPassword = "old",
                         NewPassword = "new",
+                        VerifyPassword = "new",
                     }
                 };
 
@@ -1275,8 +1376,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.NotFound, controller.Response.StatusCode);
-                Assert.IsType<JsonResult>(result);
-                Assert.True(string.Compare((string)((JsonResult)result).Data, Strings.CredentialNotFound) == 0);
+                Assert.True(string.Compare((string)result.Data, Strings.CredentialNotFound) == 0);
 
                 Assert.Equal(1, user.Credentials.Count);
                 Assert.True(user.Credentials.Contains(cred));
@@ -1298,8 +1398,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
-                Assert.IsType<JsonResult>(result);
-                Assert.True(string.Compare((string)((JsonResult)result).Data, Strings.Unsupported) == 0);
+                Assert.True(string.Compare((string)result.Data, Strings.Unsupported) == 0);
             }
 
             public static IEnumerable<object[]> RegenerateApiKeyCredential_Input
@@ -1370,20 +1469,19 @@ namespace NuGetGallery
                     credentialKey: CredentialKey);
 
                 // Assert
-                Assert.IsType<JsonResult>(result);
-                var credentialViewModel = ((JsonResult) result).Data as CredentialViewModel;
+                var viewModel = result.Data as ApiKeyViewModel;
 
-                Assert.NotNull(credentialViewModel);
+                Assert.NotNull(viewModel);
 
                 GetMock<AuthenticationService>().VerifyAll();
 
                 var newApiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKey.V2);
 
                 Assert.NotNull(newApiKey);
-                Assert.Equal(newApiKey.Value, credentialViewModel.Value);
-                Assert.Equal(newApiKey.Key, credentialViewModel.Key);
-                Assert.Equal(description, credentialViewModel.Description);
-                Assert.Equal(newApiKey.Expires, credentialViewModel.Expires);
+                Assert.Equal(newApiKey.Value, viewModel.Value);
+                Assert.Equal(newApiKey.Key, viewModel.Key);
+                Assert.Equal(description, viewModel.Description);
+                Assert.Equal(newApiKey.Expires.Value.ToString("O"), viewModel.Expires);
 
                 Assert.Equal(description, newApiKey.Description);
                 Assert.Equal(scopes.Length, newApiKey.Scopes.Count);
@@ -1419,8 +1517,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
-                Assert.IsType<JsonResult>(result);
-                Assert.True(string.CompareOrdinal((string)((JsonResult)result).Data, Strings.Unsupported) == 0);
+                Assert.True(string.CompareOrdinal((string)result.Data, Strings.Unsupported) == 0);
             }
 
             [Fact]
@@ -1448,8 +1545,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.NotFound, controller.Response.StatusCode);
-                Assert.IsType<JsonResult>(result);
-                Assert.True(String.CompareOrdinal((string)((JsonResult)result).Data, Strings.CredentialNotFound) == 0);
+                Assert.True(String.CompareOrdinal((string)result.Data, Strings.CredentialNotFound) == 0);
 
                 authenticationService.Verify(x => x.EditCredentialScopes(It.IsAny<User>(), It.IsAny<Credential>(), It.IsAny<ICollection<Scope>>()), Times.Never);
             }
@@ -1552,20 +1648,17 @@ namespace NuGetGallery
                 GetMock<AuthenticationService>().Verify(x => x.EditCredentialScopes(user, apiKey, It.IsAny<ICollection<Scope>>()), Times.Once);
 
                 // Check return value
-                Assert.IsType<JsonResult>(result);
-                var credentialViewModel = ((JsonResult)result).Data as CredentialViewModel;
-                Assert.NotNull(credentialViewModel);
+                var viewModel = result.Data as ApiKeyViewModel;
+                Assert.NotNull(viewModel);
 
-                Assert.Null(credentialViewModel.Value);
-                Assert.Equal(description, credentialViewModel.Description);
-                Assert.Equal(expectedScopes.Length, credentialViewModel.Scopes.Count);
+                Assert.Null(viewModel.Value);
+                Assert.Equal(description, viewModel.Description);
+                Assert.Equal(expectedScopes.Select(s => s.AllowedAction).Distinct().Count(), viewModel.Scopes.Count);
 
                 foreach (var expectedScope in expectedScopes)
                 {
                     var expectedAction = NuGetScopes.Describe(expectedScope.AllowedAction);
-                    var actualScope =
-                        credentialViewModel.Scopes.First(x => x.AllowedAction == expectedAction &&
-                                                 x.Subject == expectedScope.Subject);
+                    var actualScope = viewModel.Scopes.First(x => x == expectedAction);
                     Assert.NotNull(actualScope);
                 }
 

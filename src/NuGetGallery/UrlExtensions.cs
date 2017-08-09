@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Globalization;
 using System.Web;
@@ -63,13 +64,26 @@ namespace NuGetGallery
             return result + "?groupby=ClientName";
         }
 
-        public static string PackageList(this UrlHelper url, int page, string q)
+        public static string PackageList(this UrlHelper url, int page, string q, bool includePrerelease)
         {
-            return url.Action("ListPackages", "Packages", new
+            var routeValues = new RouteValueDictionary();
+
+            if (page > 1)
             {
-                q,
-                page
-            });
+                routeValues["page"] = page;
+            }
+
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                routeValues["q"] = q;
+            }
+
+            if (!includePrerelease)
+            {
+                routeValues["prerel"] = "false";
+            }
+
+            return url.Action("ListPackages", "Packages", routeValues);
         }
 
 
@@ -171,6 +185,16 @@ namespace NuGetGallery
             return url.RouteUrl(RouteName.Authentication, new { action = "LogOn", returnUrl = returnUrl });
         }
 
+        public static string SignUp(this UrlHelper url)
+        {
+            return url.RouteUrl(RouteName.Authentication, new { action = "SignUp" });
+        }
+
+        public static string SignUp(this UrlHelper url, string returnUrl)
+        {
+            return url.RouteUrl(RouteName.Authentication, new { action = "SignUp", returnUrl = returnUrl });
+        }
+
         public static string ConfirmationRequired(this UrlHelper url)
         {
             return url.Action("ConfirmationRequired", controllerName: "Users");
@@ -204,34 +228,28 @@ namespace NuGetGallery
 
         public static string User(this UrlHelper url, User user, int page = 1, string scheme = null)
         {
-            string result;
             if (page == 1)
             {
-                result = url.Action(actionName: "Profiles",
+                return url.Action(actionName: "Profiles",
                                     controllerName: "Users",
                                     routeValues: new { username = user.Username.TrimEnd() },
                                     protocol: scheme);
             }
             else
             {
-                result = url.Action(actionName: "Profiles",
+                return url.Action(actionName: "Profiles",
                                     controllerName: "Users",
                                     routeValues: new { username = user.Username.TrimEnd(), page = page },
                                     protocol: scheme);
             }
-
-
-            return result;
         }
 
-        public static string UserShowAllPackages(this UrlHelper url, string username, string scheme = null)
+        public static string User(this UrlHelper url, string username, string scheme = null)
         {
-            string result;
-                result = url.Action(actionName: "Profiles",
+            return url.Action(actionName: "Profiles",
                                     controllerName: "Users",
-                                    routeValues: new { username = username, showAllPackages = true },
+                                    routeValues: new { username = username },
                                     protocol: scheme);
-            return result;
         }
 
         public static string EditPackage(this UrlHelper url, string id, string version)
@@ -266,6 +284,21 @@ namespace NuGetGallery
                     id = package.Id,
                     version = package.Version
                 });
+        }
+
+        public static string AccountSettings(this UrlHelper url)
+        {
+            return url.Action(actionName: "Account", controllerName: "Users");
+        }
+
+        public static string ManageMyApiKeys(this UrlHelper url)
+        {
+            return url.Action(actionName: "ApiKeys", controllerName: "Users");
+        }
+
+        public static string ManageMyPackages(this UrlHelper url)
+        {
+            return url.Action(actionName: "Packages", controllerName: "Users");
         }
 
         public static string ManagePackageOwners(this UrlHelper url, IPackageVersionModel package)
@@ -305,6 +338,31 @@ namespace NuGetGallery
         public static string CancelUpload(this UrlHelper url)
         {
             return url.Action(actionName: "CancelUpload", controllerName: "Packages");
+        }
+
+        public static string Downloads(this UrlHelper url)
+        {
+            return url.RouteUrl(RouteName.Downloads);
+        }
+
+        public static string Contact(this UrlHelper url)
+        {
+            return url.Action(actionName: "Contact", controllerName: "Pages");
+        }
+
+        public static string Terms(this UrlHelper url)
+        {
+            return url.Action(actionName: "Terms", controllerName: "Pages");
+        }
+
+        public static string Privacy(this UrlHelper url)
+        {
+            return url.Action(actionName: "Privacy", controllerName: "Pages");
+        }
+
+        public static string About(this UrlHelper url)
+        {
+            return url.Action(actionName: "About", controllerName: "Pages");
         }
 
         private static UriBuilder GetCanonicalUrl(UrlHelper url)

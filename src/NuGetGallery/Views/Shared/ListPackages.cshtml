@@ -3,50 +3,88 @@
     ViewBag.Title = String.IsNullOrWhiteSpace(Model.SearchTerm) ? "Packages" : "Packages matching " + Model.SearchTerm;
     ViewBag.SortText = String.IsNullOrWhiteSpace(Model.SearchTerm) ? "recent installs" : "relevance";
     ViewBag.Tab = "Packages";
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
-<div class="search">
-    @if (!String.IsNullOrEmpty(Model.SearchTerm))
-    {
-        <h1>Search for <i>@Model.SearchTerm</i> returned @Model.TotalCount @if (Model.TotalCount == 1)
-                                                                      {
-                                                                          <text>package</text>
-                                                                      }
-                                                                      else
-                                                                      {
-                                                                          <text>packages</text>
-                                                                      }</h1>
-    }
-    else
-    {
-        <h1>@if (Model.TotalCount == 1)
-            {
-                <text>There is 1 package</text>
-            }
-            else
-            {
-                <text>There are @Model.TotalCount.ToNuGetNumberString() packages</text>
-            }</h1>
-    }
-    <span class="sorted-by">Sorted by @ViewBag.SortText</span>
-    @if (Model.LastResultIndex > 0)
-    {
-        <h2>Displaying results @Model.FirstResultIndex.ToNuGetNumberString() - @Model.LastResultIndex.ToNuGetNumberString().</h2>
-    }
-    @if(Model.IndexTimestampUtc.HasValue)
-    {
-        <p class="package-list-lastupdated" title="The time the Search Index was last modified to incorporate new packages.">Search Index last updated <time class="timeago" datetime="@Model.IndexTimestampUtc.Value.ToJavaScriptUTC()">@Model.IndexTimestampUtc.Value.ToNuGetShortDateTimeString() UTC</time></p>
-    }
-</div>
+<section role="main" class="container main-container page-list-packages">
+    <div class="row-heading clearfix">
+        <div class="cell-heading">
+            <h1>
+                @if (String.IsNullOrEmpty(Model.SearchTerm))
+                {
+                    if (Model.TotalCount == 1)
+                    {
+                        <text>There is 1 package</text>
+                    }
+                    else
+                    {
+                        <text>There are @Model.TotalCount.ToNuGetNumberString() packages</text>
+                    }
+                }
+                else
+                {
+                    if (Model.TotalCount == 1)
+                    {
+                        <text>1 package </text>
+                    }
+                    else
+                    {
+                        <text>@Model.TotalCount.ToNuGetNumberString() packages </text>
+                    }
 
-<ul id="searchResults">
-    @foreach (var package in Model.Items)
-    {
-        <li>
+                    <text>returned for @Html.BreakWord(Model.SearchTerm)</text>
+                }
+
+            </h1>
+        </div>
+        <div class="cell-controls">
+            <form action="@Url.PackageList()" method="get">
+                @Html.Hidden("q", Model.SearchTerm, new { id = "search-term" })
+                <label>
+                    <input type="checkbox" id="include-prerelease" @(Model.IncludePrerelease ? "checked" : string.Empty) />
+                    Include prerelease
+                </label>
+            </form>
+        </div>
+    </div>
+
+    <div class="list-packages" role="list">
+        @foreach (var package in Model.Items)
+        {
             @Html.Partial("_ListPackage", package)
-        </li>
-    }
-</ul>
+        }
+    </div>
 
+    <div class="row">
+        <div class="col-xs-12 clearfix">
+            @ViewHelpers.PreviousNextPager(Model.Pager)
+        </div>
+    </div>
+</section>
 
-@ViewHelpers.PreviousNextPager(Model.Pager)
+@section bottomScripts {
+    <script type="text/javascript">
+        $(function () {
+            $("#include-prerelease").on('change', function () {
+                var parameters = {};
+                var q = $('#search-term').val();
+                if (q) {
+                    parameters.q = q;
+                }
+                if (!$("#include-prerelease").is(':checked')) {
+                    parameters.prerel = 'false'
+                }
+                var queryString = $.param(parameters);
+                var url = [
+                    location.protocol,
+                    '//',
+                    location.host,
+                    location.pathname,
+                    queryString ? '?' : '',
+                    queryString
+                ].join('');
+                window.location.href = url;
+            })
+        });
+    </script>
+}

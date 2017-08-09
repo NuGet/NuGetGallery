@@ -744,6 +744,8 @@
     <Compile Include="Controllers\PagesController.cs" />
     <Compile Include="Filters\ApiScopeRequiredAttribute.cs" />
     <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="Helpers\GravatarHelper.cs" />
+    <Compile Include="Helpers\RegexEx.cs" />
     <Compile Include="Infrastructure\HttpStatusCodeWithServerWarningResult.cs" />
     <Compile Include="Migrations\201704191802404_AddIndexPackageRegistrationKeySemVer.cs" />
     <Compile Include="Migrations\201704191802404_AddIndexPackageRegistrationKeySemVer.Designer.cs">
@@ -1489,13 +1491,17 @@
     <Compile Include="Services\NoLessSecureDestinationRedirectPolicy.cs" />
     <Compile Include="Services\ReflowPackageService.cs" />
     <Compile Include="Services\TelemetryService.cs" />
+    <Compile Include="ViewModels\ManagePackagesListViewModel.cs" />
+    <Compile Include="ViewModels\ApiKeyListViewModel.cs" />
+    <Compile Include="ViewModels\ApiKeyViewModel.cs" />
+    <Compile Include="ViewModels\PackageHeadingModel.cs" />
+    <Compile Include="ViewModels\ReportMyPackageViewModel.cs" />
     <Compile Include="ViewModels\ScopeViewModel.cs" />
     <Compile Include="ViewModels\PackageListSearchViewModel.cs" />
     <Compile Include="WebApi\PlainTextResult.cs" />
     <Compile Include="WebApi\QueryResult.cs" />
     <Compile Include="WebApi\QueryResultDefaults.cs" />
     <Compile Include="WebApi\QueryResultExtensions.cs" />
-    <Content Include="App_Data\Files\Content\ReadOnly.md" />
     <Content Include="ApplicationInsights.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
@@ -1513,6 +1519,7 @@
     <Content Include="Content\Images\icons\edit.png" />
     <Content Include="Content\Images\icons\expire.png" />
     <Content Include="Content\Images\icons\regenerate.png" />
+    <Content Include="Content\gallery\**\*" />
     <Content Include="Content\themes\base\images\animated-overlay.gif" />
     <Content Include="Content\themes\base\images\ui-bg_flat_0_aaaaaa_40x100.png" />
     <Content Include="Content\themes\base\images\ui-bg_flat_75_ffffff_40x100.png" />
@@ -1729,12 +1736,13 @@
     <Compile Include="ViewModels\UserProfileModel.cs" />
     <Content Include="Branding\Views\_ViewStart.cshtml" />
     <Content Include="App_Data\Files\Content\Privacy-Policy.md" />
+    <Content Include="App_Data\Files\Content\ReadOnly.md" />
+    <Content Include="App_Data\Files\Content\Team.json" />
     <Content Include="App_Data\Files\Content\Terms-Of-Use.md" />
     <Content Include="Branding\Views\web.config" />
     <Compile Include="Views\NuGetViewBase.cs" />
     <Content Include="Public\Blocked.html" />
-    <Content Include="Scripts\d3.v3.js" />
-    <Content Include="Scripts\d3.v3.min.js" />
+    <Content Include="Scripts\gallery\d3.v3.js" />
     <Content Include="Areas\Admin\Views\SupportRequest\Index.cshtml" />
     <Content Include="Areas\Admin\Views\SupportRequest\Admins.cshtml" />
     <EmbeddedResource Include="Migrations\201703221228170_AddSemVerLevelKeyColumn.resx">
@@ -1806,10 +1814,23 @@
     <Content Include="Views\Pages\Terms.cshtml" />
     <Content Include="Views\Pages\About.cshtml" />
     <Content Include="Views\Users\ApiKeys.cshtml" />
+    <Content Include="Views\Shared\Gallery\Layout.cshtml" />
+    <Content Include="Views\Shared\Gallery\Footer.cshtml" />
+    <Content Include="Views\Shared\Gallery\Header.cshtml" />
+    <Content Include="Views\Authentication\SignIn.cshtml" />
+    <Content Include="Views\Pages\_PagesView.cshtml" />
+    <Content Include="Views\Shared\_SearchBar.cshtml" />
+    <Content Include="Views\Pages\Downloads.cshtml" />
+    <Content Include="Views\Packages\_EditMetadata.cshtml" />
+    <Content Include="Views\Authentication\LinkExternal.cshtml" />
+    <Content Include="Views\Authentication\_SignIn.cshtml" />
+    <Content Include="Views\Authentication\_Register.cshtml" />
+    <Content Include="Views\Users\_UserPackagesList.cshtml" />
+    <Content Include="Views\Users\_ConfirmationResendForm.cshtml" />
+    <Content Include="Views\Shared\_PackageHeading.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />
-    <Content Include="App_Data\Files\Content\Home.html" />
     <Content Include="App_Offline-Planned.htm" />
     <Content Include="App_Offline-Unplanned.htm" />
     <Content Include="Areas\Admin\DynamicData\Content\GridViewPager.ascx" />
@@ -1910,15 +1931,14 @@
     <Content Include="Content\font\fontawesome-webfont.woff" />
     <Content Include="Content\font\FontAwesome.otf" />
     <None Include="Properties\PublishProfiles\nuget-staging-frontend.pubxml" />
+    <Content Include="packages.config" />
     <Content Include="packages.config">
       <SubType>Designer</SubType>
     </Content>
-    <Content Include="Scripts\perpackagestatsgraphs.js" />
     <Content Include="Scripts\statsgraphs.js" />
     <Content Include="Scripts\nugetgallery.js" />
-    <Content Include="Scripts\statsdimensions.js" />
-    <Content Include="Scripts\async-file-upload.js" />
     <Content Include="Scripts\stats.js" />
+    <Content Include="Scripts\gallery\**\*" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>
@@ -1934,15 +1954,13 @@
     <Content Include="Views\Users\Confirm.cshtml" />
     <Content Include="Views\Users\Thanks.cshtml" />
     <Content Include="Views\Users\Profiles.cshtml" />
-    <Content Include="Views\Authentication\LogOn.cshtml" />
+    <Content Include="Views\Authentication\Register.cshtml" />
     <Content Include="Views\Packages\ContactOwners.cshtml" />
     <Content Include="Views\Packages\DisplayPackage.cshtml" />
     <Content Include="Views\Shared\ListPackages.cshtml" />
-    <Content Include="Views\Packages\VerifyPackage.cshtml" />
     <Content Include="Views\Packages\ReportAbuse.cshtml" />
     <Content Include="Views\Packages\UploadPackage.cshtml" />
     <Content Include="Views\Shared\_ListPackage.cshtml" />
-    <Content Include="Views\Shared\EditorTemplates\Object.cshtml" />
     <Content Include="Views\Shared\Layout.cshtml" />
     <Content Include="Views\Shared\UserDisplay.cshtml" />
     <Content Include="Views\Users\Packages.cshtml" />
@@ -1952,7 +1970,6 @@
     <Content Include="Views\Users\PasswordSent.cshtml" />
     <Content Include="Views\Users\ResetPassword.cshtml" />
     <Content Include="Views\Users\Account.cshtml" />
-    <Content Include="Views\Packages\Download.cshtml" />
     <Content Include="Views\Packages\ConfirmOwner.cshtml" />
     <Content Include="Views\Errors\NotFound.cshtml" />
     <Content Include="Views\Packages\Delete.cshtml" />
@@ -1964,9 +1981,6 @@
     <Content Include="Views\CuratedPackages\CreateCuratedPackageForm.cshtml" />
     <Content Include="Views\Users\ConfirmationRequired.cshtml" />
     <Content Include="Views\Pages\Contact.cshtml" />
-    <Content Include="T4MVC.tt.settings.t4" />
-    <Content Include="Views\Authentication\_SignIn.cshtml" />
-    <Content Include="Views\Authentication\_Register.cshtml" />
     <Content Include="Scripts\jquery-1.11.0.min.map" />
   </ItemGroup>
   <ItemGroup>
@@ -2115,7 +2129,7 @@
       <SubType>Code</SubType>
     </Content>
     <Content Include="Areas\Admin\Views\Config\Index.cshtml" />
-    <Content Include="Views\Errors\CookieError.cshtml" />
+    <Content Include="Views\Errors\BadRequest.cshtml" />
     <Content Include="Views\Packages\_PackageDependencies.cshtml" />
     <Content Include="Views\Statistics\Index.cshtml" />
     <Content Include="Views\Statistics\Packages.cshtml" />
@@ -2176,4 +2190,11 @@
     </PropertyGroup>
     <Error Condition="!Exists('..\..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets'))" />
   </Target>
+  <PropertyGroup>
+    <PreBuildEvent>
+      copy "$(ProjectDir)..\Bootstrap\dist\css\bootstrap.css" "$(ProjectDir)Content\gallery\css" &gt;NUL
+      copy "$(ProjectDir)..\Bootstrap\dist\css\bootstrap-theme.css" "$(ProjectDir)Content\gallery\css" &gt;NUL
+      copy "$(ProjectDir)..\Bootstrap\dist\js\bootstrap.js" "$(ProjectDir)Scripts\gallery" &gt;NUL
+</PreBuildEvent>
+  </PropertyGroup>
 </Project>

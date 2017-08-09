@@ -176,6 +176,58 @@ namespace NuGetGallery
                 .Include("~/Scripts/knockout-projections.js")
                 .Include("~/Scripts/supportrequests.js");
             BundleTable.Bundles.Add(supportRequestsBundle);
+
+            // Add bundles for the site redesign
+            var newStyleBundle = new StyleBundle("~/Content/gallery/css/site.min.css");
+            newStyleBundle
+                .Include("~/Content/gallery/css/bootstrap.css")
+                .Include("~/Content/gallery/css/bootstrap-theme.css")
+                .Include("~/Content/gallery/css/fabric.css");
+            BundleTable.Bundles.Add(newStyleBundle);
+
+            var newScriptBundle = new ScriptBundle("~/Scripts/gallery/site.min.js")
+                .Include("~/Scripts/gallery/jquery-1.12.4.js")
+                .Include("~/Scripts/gallery/jquery.validate-1.16.0.js")
+                .Include("~/Scripts/gallery/jquery.validate.unobtrusive-3.2.6.js")
+                .Include("~/Scripts/gallery/knockout-3.4.2.js")
+                .Include("~/Scripts/gallery/bootstrap.js")
+                .Include("~/Scripts/gallery/moment-2.18.1.js")
+                .Include("~/Scripts/gallery/common.js");
+            BundleTable.Bundles.Add(newScriptBundle);
+
+            var d3ScriptBundle = new ScriptBundle("~/Scripts/gallery/stats.min.js")
+                .Include("~/Scripts/gallery/d3.v3.js")
+                .Include("~/Scripts/gallery/stats-perpackagestatsgraphs.js")
+                .Include("~/Scripts/gallery/stats-dimensions.js");
+            BundleTable.Bundles.Add(d3ScriptBundle);
+
+            var homeScriptBundle = new ScriptBundle("~/Scripts/gallery/page-home.min.js")
+                .Include("~/Scripts/gallery/page-home.js");
+            BundleTable.Bundles.Add(homeScriptBundle);
+
+            var displayPackageScriptBundle = new ScriptBundle("~/Scripts/gallery/page-display-package.min.js")
+                .Include("~/Scripts/gallery/page-display-package.js");
+            BundleTable.Bundles.Add(displayPackageScriptBundle);
+
+            var managePackagesScriptBundle = new ScriptBundle("~/Scripts/gallery/page-manage-packages.min.js")
+                .Include("~/Scripts/gallery/page-manage-packages.js");
+            BundleTable.Bundles.Add(managePackagesScriptBundle);
+
+            var manageOwnersScriptBundle = new ScriptBundle("~/Scripts/gallery/page-manage-owners.min.js")
+                .Include("~/Scripts/gallery/page-manage-owners.js");
+            BundleTable.Bundles.Add(manageOwnersScriptBundle);
+
+            var aboutScriptBundle = new ScriptBundle("~/Scripts/gallery/page-about.min.js")
+                .Include("~/Scripts/gallery/page-about.js");
+            BundleTable.Bundles.Add(aboutScriptBundle);
+
+            var apiKeysScriptBundle = new ScriptBundle("~/Scripts/gallery/page-api-keys.min.js")
+                .Include("~/Scripts/gallery/page-api-keys.js");
+            BundleTable.Bundles.Add(apiKeysScriptBundle);
+
+            var accountScriptBundle = new ScriptBundle("~/Scripts/gallery/page-account.min.js")
+                .Include("~/Scripts/gallery/page-account.js");
+            BundleTable.Bundles.Add(accountScriptBundle);
         }
 
         private static void AppPostStart(IAppConfiguration configuration)

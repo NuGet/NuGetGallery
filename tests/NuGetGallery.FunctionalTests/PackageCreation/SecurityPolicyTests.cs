@@ -67,7 +67,7 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
         public async Task VerifyPackageKey_Returns400IfPackageVerifyScopePolicyNotMet()
         {
             // Arrange
-            var id = $"{nameof(VerifyPackageKey_Returns400IfPackageVerifyScopePolicyNotMet)}.{DateTime.UtcNow.Ticks}";
+            var id = $"VerifyKeyReturns400IfScopeNotMet.{DateTime.UtcNow.Ticks}";
 
             var pushResponse = await PushPackageAsync(EnvironmentSettings.TestSecurityPoliciesAccountApiKey, id, "4.1.0");
             Assert.Equal(HttpStatusCode.Created, pushResponse.StatusCode);

@@ -1,5 +1,94 @@
 ﻿@{
     ViewBag.Title = "Home";
-    ViewBag.Tab = "Home";
+    ViewBag.ShowSearchInNavbar = false;
+    ViewBag.HasJumbotron = true;
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
-@ViewBag.Content
+
+<section role="main" class="page-home">
+    <div class="jumbotron text-center">
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    <h1>Create .NET apps faster with NuGet</h1>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-8 col-sm-offset-2">
+                    <form action="@Url.PackageList()" method="get">
+                        @Html.Partial("_SearchBar")
+                    </form>
+                </div>
+            </div>            
+        </div>
+        <div class="circuit-board hidden-xs" role="img" data-bind="attr: { 'aria-label': label }">
+            <div class="circuit-board-label circuit-board-pd triangle">
+                <span class="ms-font-xxl" data-bind="animateNumber: packageDownloads">0</span>
+                <br />
+                <span class="ms-fontSize-l">package downloads</span>
+            </div>
+            <div class="circuit-board-label circuit-board-pv triangle">
+                <span class="ms-font-xxl" data-bind="animateNumber: packageVersions">0</span>
+                <br />
+                <span class="ms-fontSize-l">package versions</span>
+            </div>
+            <div class="circuit-board-label circuit-board-up triangle">
+                <span class="ms-font-xxl" data-bind="animateNumber: uniquePackages">0</span>
+                <br />
+                <span class="ms-fontSize-l">unique packages</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container text-center what-is-nuget">
+        <div class="row">
+            <h1>What is NuGet?</h1>
+            <p>
+                NuGet is the package manager for .NET. The NuGet client tools provide the ability to produce and consume packages. 
+                The NuGet Gallery is the central package repository used by all package authors and consumers.
+            </p>
+        </div>
+        <div class="row row-gap">
+            <div class="col-sm-4">
+                <a href="https://docs.microsoft.com/en-us/nuget/quickstart/use-a-package"
+                   title="Learn about how to use NuGet packages">
+                    <img width="225" height="225"
+                         src="~/Content/gallery/img/orange-circle.svg"
+                         @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/orange-circle-225x225.png")) />
+                    <h3>Learn</h3>
+                </a>
+                <p>
+                    New to NuGet? Start with a walkthrough showing how NuGet powers your .NET development.
+                </p>
+            </div>
+            <div class="col-sm-4">
+                <a href="@Url.PackageList()"
+                   title="Explore packages available on NuGet.org">
+                    <img width="225" height="225"
+                         src="~/Content/gallery/img/purple-circle.svg"
+                         @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/purple-circle-225x225.png")) />
+                    <h3>Explore</h3>
+                </a>
+                <p>
+                    Browse the thousands of packages that developers like you have created and shared with the .NET community.
+                </p>
+            </div>
+            <div class="col-sm-4">
+                <a href="https://docs.microsoft.com/en-us/nuget/quickstart/create-and-publish-a-package"
+                   title="Learn how to create a NuGet package">
+                    <img width="225" height="225"
+                         src="~/Content/gallery/img/blue-circle.svg"
+                         @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/blue-circle-225x225.png")) />
+                    <h3>Create</h3>
+                </a>
+                <p>
+                    Want to make your first NuGet package and share it with the community? Start with this walkthrough!
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section BottomScripts {
+    @Scripts.Render("~/Scripts/gallery/page-home.min.js")
+}

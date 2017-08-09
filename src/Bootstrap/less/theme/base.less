@@ -1,0 +1,324 @@
+//== Theme Variables
+@panel-footer-color:  @navbar-inverse-color;
+
+//== Theme Definition
+html, body {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  display: table;
+
+  h1, h2, h3, p {
+    margin-bottom: 24px;
+  }
+
+  h2, h3 {
+    margin-top: 40px;
+  }
+}
+
+.footer {
+  background-color: @panel-footer-bg;
+  color: @panel-footer-color;
+  font-size: 1em;
+  display: table-row;
+  height: 1px;
+
+  .footer-heading {
+    display: block;
+    margin-bottom: 11px;
+    font-size: @font-size-h4;
+  }
+
+  .container {
+    margin-top: 50px;
+    margin-bottom: 50px;
+  }
+
+  a {
+    color: @panel-footer-color;
+  }
+
+  .footer-release-info {
+    font-size: 0.85em;
+  }
+
+  @media (min-width: @screen-md-min) {
+    .footer-dotnet-foundation-logo {
+      text-align: right;
+    }
+
+    .footer-release-info {
+      padding-left: 0;
+    }
+  }
+}
+
+.row-gap {
+  margin-top: 50px;
+}
+
+.search-container {
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+
+.main-container {
+  padding-bottom: 75px;
+  height: auto;
+  
+  .page-subheading {
+    color: #777;
+  }
+}
+
+.navbar-logo {
+  margin: 8px 20px 0 0;
+}
+
+.navbar-seperated {
+  .seperator {
+    padding: 11px 0;
+    color: #fff;
+    display: block;
+    font-weight: 100;
+
+    > span::after {
+      content: " | ";
+    }
+  }
+}
+
+.dropdown-menu {
+  padding-top: (@padding-large-vertical * 2);
+  padding-bottom: (@padding-large-vertical * 2);
+
+  .dropdown-profile {
+    @media (max-width: @grid-float-breakpoint-max) {
+      padding-top: 5px;
+    }
+
+    .dropdown-username {
+      font-size: @font-size-large;
+    }
+
+    .dropdown-email {
+      font-size: @font-size-small;
+    }
+  }
+}
+
+.btn-search {
+  height: 36px;
+}
+
+.icon-link {
+  .ms-Icon {
+    position: relative;
+    top: 2px;
+  }
+}
+
+.icon-link:hover, .icon-link:focus {
+  text-decoration: none;
+
+  span {
+    text-decoration: underline;
+  }
+}
+
+.dependency-groups {
+  h4 {
+    line-height: 1.4;
+
+    > span {
+      border-bottom: 1px solid #d8d8d8;
+      margin-bottom: 3px;
+    }
+  }
+}
+
+.dependency-group {
+
+  li span {
+    color: #666;
+  }
+}
+
+.borderless {
+  > tbody {
+    > tr {
+      > td {
+        border: none;
+      }
+    }
+  }
+}
+
+.no-clickonce {
+  display: none;
+}
+
+.tag {
+  color: @link-color-darker;
+  background-color: #eff9ff;
+  padding: 2px 10px;
+  line-height: 2em;
+  margin: 0 2px;
+
+  &:hover,
+  &:focus {
+    color: @link-hover-color;
+  }
+}
+
+.banner {
+  padding-bottom: 10px;
+  padding-top: 5px;
+
+  span {
+    font-size: 1.25em;
+    line-height: 1.75em;
+  }
+
+  .ms-Icon {
+    position: relative;
+    top: 2px;
+  }
+
+  a {
+    color: @link-hover-color;
+  }
+
+  a:hover, a:focus {
+    color: darken(@link-hover-color, 15%);
+  }
+
+  &.banner-bright {
+    background: yellow;
+  }
+
+  &.banner-notice {
+    background: @alert-info-bg;
+  }
+}
+
+.alert {
+  a {
+    color: @link-color-darker;
+
+    &:hover,
+    &:focus {
+      color: @link-hover-color;
+    }
+  }
+}
+
+.alert-transient {
+  .alert {
+    margin: 0;
+    padding: 10px;
+  } 
+}
+
+.alert-transient-jumbotron {
+  background-color: #004880
+}
+
+.ms-Icon-ul {
+  margin-left: 24px;
+
+  li {
+    position: relative;
+    
+    i.ms-Icon {
+      position: absolute;
+      left: -24px;
+    }
+  }
+}
+
+h2, h3 {
+  .ms-Icon {
+    font-size: 0.6em;
+    position: relative;
+    top: -2px;
+  }
+
+  a, a:hover, a:focus, a:active {
+    color: @text-color;
+    text-decoration: none;
+  }
+}
+
+@media screen and (max-width: @screen-sm) {
+  img.package-icon {
+    max-width: 60px;
+    max-height: 60px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+    .hidden-tiny {
+        display: none;
+    }
+}
+
+img.package-icon {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.package-list {
+  margin-top: 8px;
+  margin-bottom: 8px;
+  margin-left: -5px;
+  padding-left: 0;
+  line-height: 20px;
+  color: @gray-light;
+
+  a {
+    color: @gray-light;
+  }
+
+  li {
+    list-style: none;
+    display: list-item;
+  }
+
+  @media (min-width: @screen-sm-min) {
+    li {
+      display: inline-block;
+    }
+
+    li + li {
+      margin-left: @padding-small-horizontal;
+      padding-left: @padding-small-horizontal;
+      border-left-style: solid;
+      border-width: 1px;
+      border-color: @gray-lighter;
+    }
+  }
+}
+
+.package-title-text {
+  margin-bottom: 0;
+}
+
+// Make the hamburger button visible on high contrast.
+.icon-bar {
+  border: 1px solid #fff;
+}
+
+.disabled {
+  pointer-events: none;
+  opacity: 0.75;
+}
+
+.radio, .checkbox {
+  .label-sibling {
+    margin-left: 20px;
+  }
+}
