@@ -368,10 +368,20 @@ img.package-icon {
   margin-bottom: 0;
 }
 .user-package-list .manage-package-listing .package-icon {
+  min-width: 20px;
   max-height: 2em;
 }
 .user-package-list .manage-package-listing .align-middle {
   vertical-align: middle;
+}
+.user-package-list .manage-package-listing .package-id {
+  word-break: break-all;
+  word-break: break-word;
+}
+@media (min-width: 768px) {
+  .user-package-list .manage-package-listing .package-controls {
+    white-space: nowrap;
+  }
 }
 .user-package-list .table {
   border-bottom: 1px solid #ddd;

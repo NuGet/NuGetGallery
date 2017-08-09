@@ -24,45 +24,42 @@
                 <table class="table">
                     <thead>
                         <tr class="manage-package-headings">
-                            <th class="col-sm-1"></th>
-                            <th class="col-sm-3">Package ID</th>
-                            <th class="col-sm-2">Owners</th>
-                            <th class="col-sm-2">Downloads</th>
-                            <th class="col-sm-2">Latest Version</th>
-                            <th class="col-sm-2"></th>
+                            <th class="hidden-xs"></th>
+                            <th>Package ID</th>
+                            <th>Owners</th>
+                            <th>Downloads</th>
+                            <th>Latest Version</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
                     @foreach (var package in @Model.Packages)
                     {
-                        //@Html.Partial("_ListPackage", package)
                         <tr class="manage-package-listing">
-                            <td class="col-sm-1 align-middle">
+                            <td class="align-middle hidden-xs">
                                 <img class="package-icon img-responsive" aria-hidden="true" alt="" 
                                      src="@(PackageHelper.ShouldRenderUrl(package.IconUrl) ? package.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))" 
                                      @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")) />
                             </td>
-                            <td class="col-sm-3 align-middle"><a href="@Url.Package(package.Id)">@package.Id</a></td>
-                            <td class="col-sm-2 align-middle">
+                            <td class="align-middle package-id"><a href="@Url.Package(package.Id)">@Html.BreakWord(package.Id)</a></td>
+                            <td class="align-middle">
                             @foreach (var owner in package.Owners)
                             {
                                 <a href="@Url.User(owner.Username)">@owner.Username</a>
                             }
                             </td>
-                            <td class="col-sm-2 align-middle">@package.TotalDownloadCount.ToNuGetNumberString()</td>
-                            <td class="col-sm-2 align-middle">@package.Version</td>
-                            <td class="col-sm-2 text-right align-middle">
-                                <div class="btn-group">
-                                    <a href="@Url.EditPackage(package.Id, package.Version)" class="btn" title="Edit Package" aria-label="Edit Package @package.Id  Version @package.Version">
-                                        <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
-                                    </a>
-                                    <a href="@Url.ManagePackageOwners(package)" class="btn" title="Manage Owners" aria-label="Manage Owners for Package @package.Id">
-                                        <i class="ms-Icon ms-Icon--People" aria-hidden="true"></i>
-                                    </a>
-                                    <a href="@Url.DeletePackage(package)" class="btn" title="Delete Package" aria-lable="Delete Package @package.Id  Version @package.Version">
-                                        <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
-                                    </a>
-                                </div>
+                            <td class="align-middle text-nowrap">@package.TotalDownloadCount.ToNuGetNumberString()</td>
+                            <td class="align-middle text-nowrap">@package.Version</td>
+                            <td class="text-right align-middle package-controls">
+                                <a href="@Url.EditPackage(package.Id, package.Version)" class="btn" title="Edit Package" aria-label="Edit Package @package.Id  Version @package.Version">
+                                    <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
+                                </a>
+                                <a href="@Url.ManagePackageOwners(package)" class="btn" title="Manage Owners" aria-label="Manage Owners for Package @package.Id">
+                                    <i class="ms-Icon ms-Icon--People" aria-hidden="true"></i>
+                                </a>
+                                <a href="@Url.DeletePackage(package)" class="btn" title="Delete Package" aria-lable="Delete Package @package.Id  Version @package.Version">
+                                    <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
+                                </a>
                             </td>
                         </tr>
                     }
