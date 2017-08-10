@@ -90,7 +90,8 @@ body h3 {
 .btn-search {
   height: 36px;
 }
-.icon-link .ms-Icon {
+.icon-link .ms-Icon,
+.icon-text .ms-Icon {
   position: relative;
   top: 2px;
 }
@@ -624,15 +625,11 @@ img.package-icon {
   border: 0;
 }
 .page-package-details .install-tabs .nav-tabs > li.active > a {
+  font-weight: 600;
   color: #fff;
+  text-decoration: underline;
   background-color: #002440;
   border: 0;
-}
-@media screen and (-ms-high-contrast: active) {
-  .page-package-details .install-tabs .nav-tabs > li.active > a {
-    font-weight: 600;
-    text-decoration: underline;
-  }
 }
 .page-package-details .install-tabs .tab-pane > div {
   display: table;

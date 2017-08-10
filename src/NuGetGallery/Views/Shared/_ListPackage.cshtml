@@ -30,19 +30,19 @@
 
             <ul class="package-list">
                 <li>
-                    <span class="icon-link">
+                    <span class="icon-text">
                         <i class="ms-Icon ms-Icon--Download" aria-hidden="true"></i>
                         @Model.TotalDownloadCount.ToNuGetNumberString() total @(Model.TotalDownloadCount == 1 ? "download" : "downloads")
                     </span>
                 </li>
                 <li>
-                    <span class="icon-link">
+                    <span class="icon-text">
                         <i class="ms-Icon ms-Icon--History" aria-hidden="true"></i>
                         last updated <span data-datetime="@Model.LastUpdated.ToString("O")">@Model.LastUpdated.ToNuGetShortDateString()</span>
                     </span>
                 </li>
                 <li>
-                    <span class="icon-link">
+                    <span class="icon-text">
                         <i class="ms-Icon ms-Icon--Flag" aria-hidden="true"></i>
                         Latest version: <span class="text-nowrap">@Model.FullVersion @(Model.Prerelease ? "(prerelease)" : "")</span>
                     </span>
@@ -50,7 +50,7 @@
                 @if (Model.Tags.AnySafe())
                 {
                     <li class="package-tags">
-                        <span class="icon-link">
+                        <span class="icon-text">
                             <i class="ms-Icon ms-Icon--Tag" aria-hidden="true"></i>
                             @foreach (var tag in Model.Tags)
                             {
