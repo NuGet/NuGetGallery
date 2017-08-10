@@ -1,10 +1,12 @@
-﻿using NuGetGallery.Auditing;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using NuGetGallery.Auditing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace NuGetGallery
 {
@@ -30,48 +32,47 @@ namespace NuGetGallery
             ReservedNamespaceRepository = reservedNamespaceRepository;
             UserService = userService;
             PackageService = packageService;
-            // TODO: Add auditing everywhere
+            // TODO: Add auditing
             AuditingService = auditing;
         }
 
-        public async Task AddReservedNamespaceAsync(ReservedNamespace prefix)
+        public async Task AddReservedNamespaceAsync(ReservedNamespace newNamespace)
         {
-            if (prefix == null)
+            if (newNamespace == null)
             {
-                throw new ArgumentNullException(nameof(prefix));
+                throw new ArgumentNullException(nameof(newNamespace));
             }
 
-            var matchingReservedNamespaces = FindAllReservedNamespacesForPrefix(prefix.Value, !prefix.IsPrefix);
+            var matchingReservedNamespaces = FindAllReservedNamespacesForPrefix(newNamespace.Value, !newNamespace.IsPrefix);
             if (matchingReservedNamespaces.Count() > 0)
             {
                 throw new InvalidOperationException($"The specified namespace is already reserved or is a more liberal namespace.");
             }
 
-            ReservedNamespaceRepository.InsertOnCommit(prefix);
+            ReservedNamespaceRepository.InsertOnCommit(newNamespace);
             await ReservedNamespaceRepository.CommitChangesAsync();
         }
 
-        public async Task DeleteReservedNamespaceAsync(ReservedNamespace prefix)
+        public async Task DeleteReservedNamespaceAsync(ReservedNamespace existingNamespace)
         {
-            if (prefix == null)
+            if (existingNamespace == null)
             {
-                throw new ArgumentNullException(nameof(prefix));
+                throw new ArgumentNullException(nameof(existingNamespace));
             }
 
             EntitiesConfiguration.SuspendExecutionStrategy = true;
             using (var transaction = EntitiesContext.GetDatabase().BeginTransaction())
             {
-                var namespaceToDelete = FindReservedNamespaceForPrefix(prefix.Value);
+                var namespaceToDelete = FindReservedNamespaceForPrefix(existingNamespace.Value);
                 if (namespaceToDelete == null)
                 {
-                    throw new InvalidOperationException($"Namespace '{prefix.Value}' not found.");
+                    throw new InvalidOperationException($"Namespace '{existingNamespace.Value}' not found.");
                 }
 
-                // Delete verified tags on corresponding packages for this prefix if it is the only prefix matching the 
-                // package registration or the only prefix with no shared namespace.
+                // Delete verified flags on corresponding packages for this prefix if it is the only prefix matching the 
+                // package registration.
                 if (namespaceToDelete.IsSharedNamespace == false)
                 {
-                    // Double check for cases where multiple namespaces for a given PR but all could be shared namespace
                     var packageRegistrationsToMarkUnVerified = namespaceToDelete
                         .PackageRegistrations
                         .Where(pr => pr.ReservedNamespaces.Count() == 1)
@@ -130,10 +131,7 @@ namespace NuGetGallery
                     packageRegistrationsMatchingNamespace
                         .ForEach(pr => namespaceToModify.PackageRegistrations.Add(pr));
 
-                    if (!namespaceToModify.IsSharedNamespace)
-                    {
-                        await PackageService.UpdatePackageVerifiedStatusAsync(packageRegistrationsMatchingNamespace, isVerified: true);
-                    }
+                    await PackageService.UpdatePackageVerifiedStatusAsync(packageRegistrationsMatchingNamespace, isVerified: true);
                 }
 
                 namespaceToModify.Owners.Add(userToAdd);
@@ -172,36 +170,34 @@ namespace NuGetGallery
                     throw new InvalidOperationException($"User not found with username: {user.Username}");
                 }
 
-                if (namespaceToModify.Owners.Contains(userToRemove))
+                if (!namespaceToModify.Owners.Contains(userToRemove))
                 {
-                    var packagesOwnedByUserMatchingPrefix = namespaceToModify
+                    throw new InvalidOperationException($"User {user.Username} is not an owner of this namespace.");
+                }
+
+                var packagesOwnedByUserMatchingPrefix = namespaceToModify
                         .PackageRegistrations
                         .Where(pr => pr
                             .Owners
                             .Any(pro => pro.Username == userToRemove.Username))
                         .ToList();
 
-                    // Remove verified mark for package registrations if the user to be removed is the only prefix owner
-                    // for the given package registration.
-                    var removeVerifiedMarksForPackages = packagesOwnedByUserMatchingPrefix
-                        .Where(pr => pr.Owners.Intersect(namespaceToModify.Owners).Count() == 1)
-                        .ToList();
+                // Remove verified mark for package registrations if the user to be removed is the only prefix owner
+                // for the given package registration.
+                var removeVerifiedMarksForPackages = packagesOwnedByUserMatchingPrefix
+                    .Where(pr => pr.Owners.Intersect(namespaceToModify.Owners).Count() == 1)
+                    .ToList();
 
-                    if (removeVerifiedMarksForPackages.Count > 0)
-                    {
-                        removeVerifiedMarksForPackages
-                            .ForEach(pr => namespaceToModify.PackageRegistrations.Remove(pr));
-
-                        await PackageService.UpdatePackageVerifiedStatusAsync(removeVerifiedMarksForPackages, isVerified: false);
-                    }
-
-                    namespaceToModify.Owners.Remove(userToRemove);
-                    await ReservedNamespaceRepository.CommitChangesAsync();
-                }
-                else
+                if (removeVerifiedMarksForPackages.Count > 0)
                 {
-                    throw new InvalidOperationException($"User {user.Username} is not an owner of this namespace.");
+                    removeVerifiedMarksForPackages
+                        .ForEach(pr => namespaceToModify.PackageRegistrations.Remove(pr));
+
+                    await PackageService.UpdatePackageVerifiedStatusAsync(removeVerifiedMarksForPackages, isVerified: false);
                 }
+
+                namespaceToModify.Owners.Remove(userToRemove);
+                await ReservedNamespaceRepository.CommitChangesAsync();
 
                 transaction.Commit();
             }
@@ -223,8 +219,7 @@ namespace NuGetGallery
                     ? dbPrefix.Value.Equals(prefix)
                     : dbPrefix.Value.StartsWith(prefix);
 
-            return ReservedNamespaceRepository
-                .GetAll()
+            return ReservedNamespaceRepository.GetAll()
                 .Where(prefixMatch)
                 .ToList();
         }
