@@ -24,7 +24,7 @@ namespace NuGetGallery.FunctionalTests.WebUITests.BasicPages
 
             // Checks for the presence of the rank element. This means there is at least one package in the list.
             var validationRule = AssertAndValidationHelper.GetValidationRuleForFindText(
-                @"<td class=""statistics-rank"">1</td>");
+                @"<h2 class=""stats-title-text"">");
             statsPageRequest.ValidateResponse += validationRule.Validate;
 
             // Validation rule to check for the default text in stats page.

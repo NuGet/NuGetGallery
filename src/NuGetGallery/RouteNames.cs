@@ -10,6 +10,7 @@ namespace NuGetGallery
         public const string V2ApiFeed = "V2ApiFeed";
         public const string ApiFeed = "ApiFeed";
         public const string Account = "Account";
+        public const string ApiKeys = "ApiKeys";
         public const string Profile = "Profile";
         public const string DisplayPackage = "package-route";
         public const string DownloadPackage = "DownloadPackage";
@@ -63,8 +64,10 @@ namespace NuGetGallery
         public const string RemovePassword = "RemovePassword";
         public const string ConfirmAccount = "ConfirmAccount";
         public const string ChangeEmailSubscription = "ChangeEmailSubscription";
+        public const string ErrorReadOnly = "ErrorReadOnly";
         public const string Error500 = "Error500";
         public const string Error404 = "Error404";
+        public const string Error400 = "Error400";
         public const string Status = "Status";
         public const string HealthProbe = "HealthProbe";
         public const string Contributors = "Contributors";

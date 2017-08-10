@@ -54,8 +54,8 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectory
         {
             return new AuthenticatorUI(
                 Strings.AzureActiveDirectory_SignInMessage,
-                Strings.AzureActiveDirectory_AccountNoun, 
-                Strings.AzureActiveDirectory_Caption)
+                Strings.AzureActiveDirectory_RegisterMessage,
+                Strings.AzureActiveDirectory_AccountNoun)
             {
                 ShowOnLoginPage = Config.ShowOnLoginPage
             };

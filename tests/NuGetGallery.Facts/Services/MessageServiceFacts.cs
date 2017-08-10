@@ -488,7 +488,7 @@ namespace NuGetGallery
                     .Setup(a => a.DescribeCredential(cred))
                     .Returns(new CredentialViewModel
                     {
-                        AuthUI = new AuthenticatorUI("sign in", MicrosoftAccountCredentialName, MicrosoftAccountCredentialName)
+                        AuthUI = new AuthenticatorUI("sign in", "register", MicrosoftAccountCredentialName)
                     });
 
                 messageService.SendCredentialRemovedNotice(user, cred);
@@ -560,7 +560,7 @@ namespace NuGetGallery
                     .Setup(a => a.DescribeCredential(cred))
                     .Returns(new CredentialViewModel
                     {
-                        AuthUI = new AuthenticatorUI("sign in", MicrosoftAccountCredentialName, MicrosoftAccountCredentialName)
+                        AuthUI = new AuthenticatorUI("sign in", "register", MicrosoftAccountCredentialName)
                     });
 
                 messageService.SendCredentialAddedNotice(user, cred);

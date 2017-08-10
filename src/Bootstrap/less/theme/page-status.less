@@ -1,0 +1,119 @@
+.page-status {
+    @status-general-margin-bottom: 24px;
+    
+    .status-general {
+        padding: 13px;
+        margin-bottom: @status-general-margin-bottom;
+        
+        p {
+            margin: 0;
+        }
+        
+        i {
+            vertical-align: middle;
+        }
+        
+        .text-span {
+            font-size: 1.5em;
+            vertical-align: middle;
+        }
+        
+        .last-checked {
+            margin-left: 10px;
+        }
+    }
+    
+    .status-up {
+        background-color: #D1F0D5;
+    }
+    
+    .status-down {
+        background-color: #FDE7E9;
+        
+        .ms-Icon {
+            color: red;
+        }
+    }
+    
+    .status-degraded {
+        background-color: #FFF4CE;
+        
+        .ms-Icon {
+            color: orange;
+        }
+    }
+    
+    .latest-updates + p {
+        margin-top: @status-general-margin-bottom;
+    }
+    
+    .ms-Icon {
+        margin-right: 10px;
+        font-size: 1.25em;
+    }
+        
+    .ms-Icon--CheckMark {
+        color: green;
+    }
+        
+    .ms-Icon--Warning {
+        color: yellow;
+    }
+    
+    .ms-Icon--Cancel {
+        color: red;
+    }
+    
+    .table {
+        thead {
+            th:nth-child(1) {
+                width: 50%;
+            }
+            
+            th:nth-child(2) {
+                width: 30%;
+            }
+            
+            th:nth-child(3) {
+                width: 20%;
+            }
+        }
+        
+        tbody {
+            border: none;
+            
+            tr td {
+                vertical-align: middle;
+                
+                .nonaggregate {
+                    margin-left: 20px;
+                }
+                
+                i {
+                    vertical-align: middle;
+                }
+                
+                span {
+                    vertical-align: middle;
+                }
+            }
+        }
+        
+        tbody.aggregate tr td:first-child {
+            font-size: 1.5em;
+            
+            a, a:hover, a:focus, a:active {
+                color: @text-color;
+                text-decoration: none;
+            }
+            
+            .ms-Icon {
+                font-size: .75em;
+            }
+        }
+        
+        tbody + tbody {
+            border: none;
+        }
+    }
+}

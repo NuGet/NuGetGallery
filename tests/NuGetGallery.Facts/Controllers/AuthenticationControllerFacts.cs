@@ -20,6 +20,10 @@ namespace NuGetGallery.Controllers
 {
     public class AuthenticationControllerFacts
     {
+        private const string RegisterViewName = "Register";
+        private const string SignInViewName = "SignIn";
+        private const string LinkExternalViewName = "LinkExternal";
+
         public class TheLogOnAction : TestContainer
         {
             [Fact]
@@ -49,7 +53,7 @@ namespace NuGetGallery.Controllers
                 var result = controller.LogOn("/foo");
 
                 // Assert
-                var model = ResultAssert.IsView<LogOnViewModel>(result, viewName: "LogOn");
+                var model = ResultAssert.IsView<LogOnViewModel>(result, viewName: SignInViewName);
                 Assert.NotNull(model.SignIn);
                 Assert.NotNull(model.Register);
                 Assert.Equal(2, model.Providers.Count);
@@ -117,7 +121,7 @@ namespace NuGetGallery.Controllers
 
                 var result = await controller.SignIn(new LogOnViewModel(), null, linkingAccount: false);
 
-                ResultAssert.IsView(result, viewName: "LogOn", viewData: new
+                ResultAssert.IsView(result, viewName: SignInViewName, viewData: new
                 {
                     ReturnUrl = (string)null
                 });
@@ -135,9 +139,9 @@ namespace NuGetGallery.Controllers
                     new LogOnViewModel() { SignIn = new SignInViewModel() },
                     "theReturnUrl", linkingAccount: false);
 
-                ResultAssert.IsView(result, viewName: "LogOn");
+                ResultAssert.IsView(result, viewName: SignInViewName);
                 Assert.False(controller.ModelState.IsValid);
-                Assert.Equal(Strings.UsernameAndPasswordNotFound, controller.ModelState["SignIn"].Errors[0].ErrorMessage);
+                Assert.Equal(Strings.UsernameAndPasswordNotFound, controller.ModelState[SignInViewName].Errors[0].ErrorMessage);
             }
 
             [Fact]
@@ -422,7 +426,7 @@ namespace NuGetGallery.Controllers
 
                 var result = await controller.Register(new LogOnViewModel(), null, linkingAccount: false);
 
-                ResultAssert.IsView(result, viewName: "LogOn", viewData: new
+                ResultAssert.IsView(result, viewName: RegisterViewName, viewData: new
                 {
                     ReturnUrl = (string)null
                 });
@@ -447,7 +451,7 @@ namespace NuGetGallery.Controllers
                 };
                 var result = await controller.Register(request, null, linkingAccount: false);
 
-                ResultAssert.IsView(result, viewName: "LogOn");
+                ResultAssert.IsView(result, viewName: RegisterViewName);
                 Assert.False(controller.ModelState.IsValid);
                 Assert.Equal("aMessage", controller.ModelState["Register"].Errors[0].ErrorMessage);
             }
@@ -872,7 +876,7 @@ namespace NuGetGallery.Controllers
                 var result = await controller.LinkExternalAccount("theReturnUrl");
 
                 // Assert
-                var model = ResultAssert.IsView<LogOnViewModel>(result, viewName: "LogOn");
+                var model = ResultAssert.IsView<LogOnViewModel>(result, viewName: LinkExternalViewName);
                 Assert.Equal(msaUI.AccountNoun, model.External.ProviderAccountNoun);
                 Assert.Null(model.External.AccountName);
                 Assert.False(model.External.FoundExistingUser);
@@ -905,7 +909,7 @@ namespace NuGetGallery.Controllers
                 var result = await controller.LinkExternalAccount("theReturnUrl");
 
                 // Assert
-                var model = ResultAssert.IsView<LogOnViewModel>(result, viewName: "LogOn");
+                var model = ResultAssert.IsView<LogOnViewModel>(result, viewName: LinkExternalViewName);
                 Assert.Equal(msaUI.AccountNoun, model.External.ProviderAccountNoun);
                 Assert.Equal("Joe Bloggs", model.External.AccountName);
                 Assert.False(model.External.FoundExistingUser);
@@ -939,7 +943,7 @@ namespace NuGetGallery.Controllers
                 var result = await controller.LinkExternalAccount("theReturnUrl");
 
                 // Assert
-                var model = ResultAssert.IsView<LogOnViewModel>(result, viewName: "LogOn");
+                var model = ResultAssert.IsView<LogOnViewModel>(result, viewName: LinkExternalViewName);
                 Assert.Equal(msaUI.AccountNoun, model.External.ProviderAccountNoun);
                 Assert.Null(model.External.AccountName);
                 Assert.False(model.External.FoundExistingUser);
@@ -981,7 +985,7 @@ namespace NuGetGallery.Controllers
                 var result = await controller.LinkExternalAccount("theReturnUrl");
 
                 // Assert
-                var model = ResultAssert.IsView<LogOnViewModel>(result, viewName: "LogOn");
+                var model = ResultAssert.IsView<LogOnViewModel>(result, viewName: LinkExternalViewName);
                 Assert.Equal(msaUI.AccountNoun, model.External.ProviderAccountNoun);
                 Assert.Null(model.External.AccountName);
                 Assert.True(model.External.FoundExistingUser);

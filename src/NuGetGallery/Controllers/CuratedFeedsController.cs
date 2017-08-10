@@ -41,7 +41,7 @@ namespace NuGetGallery
                 new CuratedFeedViewModel
                     {
                         Name = curatedFeed.Name,
-                        Managers = curatedFeed.Managers.Select(user => user.Username),
+                        Managers = curatedFeed.Managers,
                         IncludedPackages = curatedFeed.Packages
                             .Where(cp => cp.Included)
                             .Select(
@@ -55,7 +55,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        public virtual async Task<ActionResult> ListPackages(string curatedFeedName, string q, int page = 1)
+        public virtual async Task<ActionResult> ListPackages(string curatedFeedName, string q, int page = 1, bool prerel = true)
         {
             if (page < 1)
             {
@@ -67,6 +67,7 @@ namespace NuGetGallery
             var searchFilter = SearchAdaptor.GetSearchFilter(
                 q,
                 page,
+                includePrerelease: prerel,
                 sortOrder: null,
                 context: SearchFilter.UISearchContext,
                 semVerLevel: SemVerLevelKey.SemVerLevel2);
@@ -93,7 +94,8 @@ namespace NuGetGallery
                 page - 1,
                 Constants.DefaultPackageListPageSize,
                 Url,
-                curatedFeedName);
+                curatedFeedName,
+                includePrerelease: prerel);
 
             ViewBag.SearchTerm = q;
 

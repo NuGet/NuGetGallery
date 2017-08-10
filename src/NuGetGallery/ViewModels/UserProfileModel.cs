@@ -8,7 +8,7 @@ namespace NuGetGallery
 {
     public class UserProfileModel
     {
-        public UserProfileModel(User user, List<PackageViewModel> allPackages, int pageIndex, int pageSize, UrlHelper url)
+        public UserProfileModel(User user, List<ListPackageItemViewModel> allPackages, int pageIndex, int pageSize, UrlHelper url)
         {
             User = user;
             Username = user.Username;
@@ -23,7 +23,7 @@ namespace NuGetGallery
 
             PackagePageTotalCount = (TotalPackages + PackagePageSize - 1) / PackagePageSize;
 
-            var pager = new PreviousNextPagerViewModel<PackageViewModel>(allPackages, pageIndex, PackagePageTotalCount,
+            var pager = new PreviousNextPagerViewModel<ListPackageItemViewModel>(allPackages, pageIndex, PackagePageTotalCount,
                 page => url.User(user, page));
 
             Pager = pager;
@@ -36,13 +36,12 @@ namespace NuGetGallery
         public string Username { get; private set; }
         public string EmailAddress { get; private set; }
         public string UnconfirmedEmailAddress { get; set; }
-        public ICollection<PackageViewModel> AllPackages { get; private set; }
-        public ICollection<PackageViewModel> PagedPackages { get; private set; }
+        public ICollection<ListPackageItemViewModel> AllPackages { get; private set; }
+        public ICollection<ListPackageItemViewModel> PagedPackages { get; private set; }
         public int TotalPackageDownloadCount { get; private set; }
         public int TotalPackages { get; private set; }
         public int PackagePage { get; private set; }
         public int PackagePageSize { get; private set; }
         public IPreviousNextPager Pager { get; private set; }
-        public bool ShowAllPackages { get; set; }
     }
 }

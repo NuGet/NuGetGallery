@@ -34,60 +34,20 @@ namespace NuGetGallery
             AuthenticationService authService,
             ICredentialBuilder credentialBuilder)
         {
-            if (feedsQuery == null)
-            {
-                throw new ArgumentNullException(nameof(feedsQuery));
-            }
-
-            if (userService == null)
-            {
-                throw new ArgumentNullException(nameof(userService));
-            }
-
-            if (packageService == null)
-            {
-                throw new ArgumentNullException(nameof(packageService));
-            }
-
-            if (messageService == null)
-            {
-                throw new ArgumentNullException(nameof(messageService));
-            }
-
-            if (config == null)
-            {
-                throw new ArgumentNullException(nameof(config));
-            }
-
-            if (authService == null)
-            {
-                throw new ArgumentNullException(nameof(authService));
-            }
-
-            if (credentialBuilder == null)
-            {
-                throw new ArgumentNullException(nameof(credentialBuilder));
-            }
-
-            _curatedFeedService = feedsQuery;
-            _userService = userService;
-            _packageService = packageService;
-            _messageService = messageService;
-            _config = config;
-            _authService = authService;
-            _credentialBuilder = credentialBuilder;
+            _curatedFeedService = feedsQuery ?? throw new ArgumentNullException(nameof(feedsQuery));
+            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+            _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
+            _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
+            _config = config ?? throw new ArgumentNullException(nameof(config));
+            _authService = authService ?? throw new ArgumentNullException(nameof(authService));
+            _credentialBuilder = credentialBuilder ?? throw new ArgumentNullException(nameof(credentialBuilder));
         }
 
         [HttpGet]
         [Authorize]
         public virtual ActionResult ConfirmationRequired()
         {
-            User user = GetCurrentUser();
-            var model = new ConfirmationViewModel
-            {
-                ConfirmingNewAccount = !(user.Confirmed),
-                UnconfirmedEmailAddress = user.UnconfirmedEmailAddress,
-            };
+            var model = new ConfirmationViewModel(GetCurrentUser());
             return View(model);
         }
 
@@ -108,16 +68,14 @@ namespace NuGetGallery
             {
                 _messageService.SendNewAccountEmail(new MailAddress(user.UnconfirmedEmailAddress, user.Username), confirmationUrl);
 
-                model = new ConfirmationViewModel
+                model = new ConfirmationViewModel(user)
                 {
-                    ConfirmingNewAccount = !(user.Confirmed),
-                    UnconfirmedEmailAddress = user.UnconfirmedEmailAddress,
-                    SentEmail = true,
+                    SentEmail = true
                 };
             }
             else
             {
-                model = new ConfirmationViewModel {AlreadyConfirmed = true};
+                model = new ConfirmationViewModel(user);
             }
             return View(model);
         }
@@ -129,22 +87,53 @@ namespace NuGetGallery
             return AccountView(new AccountViewModel());
         }
 
+        [HttpGet]
+        [Authorize]
+        public virtual ActionResult ApiKeys()
+        {
+            var user = GetCurrentUser();
+
+            // Get API keys
+            if (!GetCredentialGroups(user).TryGetValue(CredentialKind.Token, out List<CredentialViewModel> credentials))
+            {
+                credentials = new List<CredentialViewModel>();
+            }
+
+            var apiKeys = credentials
+                .Select(c => new ApiKeyViewModel(c))
+                .ToList();
+
+            // Get package IDs
+            var packageIds = _packageService
+                .FindPackageRegistrationsByOwner(user)
+                .Select(p => p.Id)
+                .OrderBy(i => i)
+                .ToList();
+
+            var model = new ApiKeyListViewModel
+            {
+                ApiKeys = apiKeys,
+                ExpirationInDaysForApiKeyV1 = _config.ExpirationInDaysForApiKeyV1,
+                PackageIds = packageIds,
+            };
+
+            return View("ApiKeys", model);
+        }
+
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> ChangeEmailSubscription(bool? emailAllowed, bool? notifyPackagePushed)
+        public virtual async Task<ActionResult> ChangeEmailSubscription(AccountViewModel model)
         {
             var user = GetCurrentUser();
-            if (user == null)
-            {
-                return HttpNotFound();
-            }
-            
-            await _userService.ChangeEmailSubscriptionAsync(user, 
-                emailAllowed.HasValue && emailAllowed.Value, 
-                notifyPackagePushed.HasValue && notifyPackagePushed.Value);
+
+            await _userService.ChangeEmailSubscriptionAsync(
+                user, 
+                model.ChangeNotifications.EmailAllowed, 
+                model.ChangeNotifications.NotifyPackagePushed);
 
             TempData["Message"] = Strings.EmailPreferencesUpdated;
+
             return RedirectToAction("Account");
         }
 
@@ -164,11 +153,7 @@ namespace NuGetGallery
         {
             var user = GetCurrentUser();
             var packages = _packageService.FindPackagesByOwner(user, includeUnlisted: true)
-                .Select(p => new PackageViewModel(p)
-                {
-                    DownloadCount = p.PackageRegistration.DownloadCount,
-                    Version = null
-                }).ToList();
+                .Select(p => new ListPackageItemViewModel(p)).OrderBy(p => p.Id).ToList();
 
             var model = new ManagePackagesViewModel
             {
@@ -281,40 +266,29 @@ namespace NuGetGallery
         [Authorize]
         public virtual async Task<ActionResult> Confirm(string username, string token)
         {
-            // We don't want Login to have us as a return URL
+            // We don't want Login to go to this page as a return URL
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
             ViewData[Constants.ReturnUrlViewDataKey] = null;
 
-            if (!String.Equals(username, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
-            {
-                return View(new ConfirmationViewModel
-                    {
-                        WrongUsername = true,
-                        SuccessfulConfirmation = false,
-                    });
-            }
-
             var user = GetCurrentUser();
 
-            var alreadyConfirmed = user.UnconfirmedEmailAddress == null;
+            if (!String.Equals(username, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
+            {
+                return View(new ConfirmationViewModel(user)
+                {
+                    WrongUsername = true,
+                    SuccessfulConfirmation = false,
+                });
+            }
 
             string existingEmail = user.EmailAddress;
-            var model = new ConfirmationViewModel
-            {
-                ConfirmingNewAccount = String.IsNullOrEmpty(existingEmail),
-                SuccessfulConfirmation = !alreadyConfirmed,
-                AlreadyConfirmed = alreadyConfirmed
-            };
+            var model = new ConfirmationViewModel(user);
 
-            if (!alreadyConfirmed)
+            if (!model.AlreadyConfirmed)
             {
-
                 try
                 {
-                    if (!(await _userService.ConfirmEmailAddress(user, token)))
-                    {
-                        model.SuccessfulConfirmation = false;
-                    }
+                    model.SuccessfulConfirmation = await _userService.ConfirmEmailAddress(user, token);
                 }
                 catch (EntityException)
                 {
@@ -341,7 +315,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        public virtual ActionResult Profiles(string username, int page = 1, bool showAllPackages = false)
+        public virtual ActionResult Profiles(string username, int page = 1)
         {
             var user = _userService.FindByUsername(username);
             if (user == null)
@@ -351,19 +325,19 @@ namespace NuGetGallery
 
             var packages = _packageService.FindPackagesByOwner(user, includeUnlisted: false)
                 .OrderByDescending(p => p.PackageRegistration.DownloadCount)
-                .Select(p => new PackageViewModel(p)
+                .Select(p => new ListPackageItemViewModel(p)
                 {
                     DownloadCount = p.PackageRegistration.DownloadCount
                 }).ToList();
 
             var model = new UserProfileModel(user, packages, page - 1, Constants.DefaultPackageListPageSize, Url);
-            model.ShowAllPackages = showAllPackages;
 
             return View(model);
         }
 
         [HttpPost]
         [Authorize]
+        [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> ChangeEmail(AccountViewModel model)
         {
             if (!ModelState.IsValidField("ChangeEmail.NewEmail"))
@@ -424,6 +398,7 @@ namespace NuGetGallery
 
         [HttpPost]
         [Authorize]
+        [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> CancelChangeEmail(AccountViewModel model)
         {
             var user = GetCurrentUser();
@@ -460,8 +435,19 @@ namespace NuGetGallery
             }
             else
             {
+                if (!model.ChangePassword.EnablePasswordLogin)
+                {
+                    return await RemovePassword();
+                }
+
                 if (!ModelState.IsValidField("ChangePassword"))
                 {
+                    return AccountView(model);
+                }
+
+                if (model.ChangePassword.NewPassword != model.ChangePassword.VerifyPassword)
+                {
+                    ModelState.AddModelError("ChangePassword.VerifyPassword", Strings.PasswordDoesNotMatch);
                     return AccountView(model);
                 }
 
@@ -509,7 +495,7 @@ namespace NuGetGallery
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> RegenerateCredential(string credentialType, int? credentialKey)
+        public virtual async Task<JsonResult> RegenerateCredential(string credentialType, int? credentialKey)
         {
             if (credentialType != CredentialTypes.ApiKey.V2)
             {
@@ -539,7 +525,7 @@ namespace NuGetGallery
             var credentialViewModel = _authService.DescribeCredential(newCredential);
             credentialViewModel.Value = newCredential.Value;
 
-            return Json(credentialViewModel);
+            return Json(new ApiKeyViewModel(credentialViewModel));
         }
 
         private static bool CredentialKeyMatches(int? credentialKey, Credential c)
@@ -556,7 +542,7 @@ namespace NuGetGallery
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> GenerateApiKey(string description, string[] scopes = null, string[] subjects = null, int? expirationInDays = null)
+        public virtual async Task<JsonResult> GenerateApiKey(string description, string[] scopes = null, string[] subjects = null, int? expirationInDays = null)
         {
             if (string.IsNullOrWhiteSpace(description))
             {
@@ -582,13 +568,13 @@ namespace NuGetGallery
 
             _messageService.SendCredentialAddedNotice(GetCurrentUser(), newCredential);
 
-            return Json(credentialViewModel);
+            return Json(new ApiKeyViewModel(credentialViewModel));
         }
 
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> EditCredential(string credentialType, int? credentialKey, string[] subjects)
+        public virtual async Task<JsonResult> EditCredential(string credentialType, int? credentialKey, string[] subjects)
         {
             if (credentialType != CredentialTypes.ApiKey.V2)
             {
@@ -614,7 +600,7 @@ namespace NuGetGallery
 
             var credentialViewModel = _authService.DescribeCredential(cred);
 
-            return Json(credentialViewModel);
+            return Json(new ApiKeyViewModel(credentialViewModel));
         }
 
         private async Task<Credential> GenerateApiKeyInternal(string description, ICollection<Scope> scopes, TimeSpan? expiration)
@@ -664,7 +650,7 @@ namespace NuGetGallery
         }
 
 
-        private async Task<ActionResult> RemoveApiKeyCredential(User user, Credential cred)
+        private async Task<JsonResult> RemoveApiKeyCredential(User user, Credential cred)
         {
             if (cred == null)
             {
@@ -709,23 +695,44 @@ namespace NuGetGallery
 
         private ActionResult AccountView(AccountViewModel model)
         {
-            // Load user info
             var user = GetCurrentUser();
-            var curatedFeeds = _curatedFeedService.GetFeedsForManager(user.Key);
-            var creds = user.Credentials.Where(c => CredentialTypes.IsViewSupportedCredential(c))
-                                        .Select(c => _authService.DescribeCredential(c)).ToList();
-            var packageNames = _packageService.FindPackageRegistrationsByOwner(user).Select(p => p.Id).ToList();
 
-            packageNames.Sort();
-           
-
-            model.Credentials = creds;
-            model.CuratedFeeds = curatedFeeds.Select(f => f.Name);
-            model.Packages = packageNames;
+            model.CuratedFeeds = _curatedFeedService
+                .GetFeedsForManager(user.Key)
+                .Select(f => f.Name)
+                .ToList();
+            model.CredentialGroups = GetCredentialGroups(user);
+            model.SignInCredentialCount = model
+                .CredentialGroups
+                .Where(p => p.Key == CredentialKind.Password || p.Key == CredentialKind.External)
+                .Sum(p => p.Value.Count);
 
             model.ExpirationInDaysForApiKeyV1 = _config.ExpirationInDaysForApiKeyV1;
-            
+            model.HasPassword = model.CredentialGroups.ContainsKey(CredentialKind.Password);
+            model.CurrentEmailAddress = user.UnconfirmedEmailAddress ?? user.EmailAddress;
+            model.HasConfirmedEmailAddress = !string.IsNullOrEmpty(user.EmailAddress);
+            model.HasUnconfirmedEmailAddress = !string.IsNullOrEmpty(user.UnconfirmedEmailAddress);
+
+            model.ChangePassword = model.ChangePassword ?? new ChangePasswordViewModel();
+            model.ChangePassword.EnablePasswordLogin = model.HasPassword;
+
+            model.ChangeNotifications = model.ChangeNotifications ?? new ChangeNotificationsViewModel();
+            model.ChangeNotifications.EmailAllowed = user.EmailAllowed;
+            model.ChangeNotifications.NotifyPackagePushed = user.NotifyPackagePushed;
+
             return View("Account", model);
+        }
+
+        private Dictionary<CredentialKind, List<CredentialViewModel>> GetCredentialGroups(User user)
+        {
+            return user
+                .Credentials
+                .Where(CredentialTypes.IsViewSupportedCredential)
+                .OrderByDescending(c => c.Created)
+                .ThenBy(c => c.Description)
+                .Select(_authService.DescribeCredential)
+                .GroupBy(c => c.Kind)
+                .ToDictionary(g => g.Key, g => g.ToList());
         }
 
         private static int CountLoginCredentials(User user)

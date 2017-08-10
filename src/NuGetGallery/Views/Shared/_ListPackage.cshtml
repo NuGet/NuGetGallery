@@ -1,79 +1,97 @@
 ﻿@model ListPackageItemViewModel
-<section class="package @(Model.IsOwner(User) ? "my-package" : null)">
-    <div class="side">
-        <a href="@Url.Package(Model)" title="View more about @Model.Title">
-            <img src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/Images/packageDefaultIcon-50x50.png"))" alt="@Model.Id icon" onerror="this.src = '@Url.Absolute("~/Content/Images/packageDefaultIcon-50x50.png")';" />
-        </a>
-    </div>
-    <div class="main">
-        <header class="package-list-header">
-            <h1><a href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null)">@Model.Title.Abbreviate(60)</a></h1>
-            <h2 id="owners-subheader">By:</h2>
-            <ul class="owners">
-                @foreach (var owner in Model.Owners)
+
+<article class="package" role="listitem">
+
+    <div class="row">
+        <div class="col-sm-1 hidden-xs hidden-sm">
+            <img class="package-icon img-responsive" aria-hidden="true" alt=""
+                 src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))"
+                 @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")) />
+        </div>
+        <div class="col-sm-11">
+            <div class="package-header">
+                <a class="package-title" href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null)">@Html.BreakWord(Model.Id)</a>
+
+                <span class="package-by">
+                    by:
+                    @foreach (var owner in Model.Owners)
+                    {
+                        <a href="@Url.User(owner)" title="View @owner.Username's profile">@owner.Username</a>
+                    }
+                </span>
+            </div>
+
+            @if (!StringComparer.OrdinalIgnoreCase.Equals(Model.Id, Model.Title))
+            {
+                <div class="package-title">
+                    @Html.BreakWord(Model.Title)
+                </div>
+            }
+
+            <ul class="package-list">
+                <li>
+                    <span class="icon-text">
+                        <i class="ms-Icon ms-Icon--Download" aria-hidden="true"></i>
+                        @Model.TotalDownloadCount.ToNuGetNumberString() total @(Model.TotalDownloadCount == 1 ? "download" : "downloads")
+                    </span>
+                </li>
+                <li>
+                    <span class="icon-text">
+                        <i class="ms-Icon ms-Icon--History" aria-hidden="true"></i>
+                        last updated <span data-datetime="@Model.LastUpdated.ToString("O")">@Model.LastUpdated.ToNuGetShortDateString()</span>
+                    </span>
+                </li>
+                <li>
+                    <span class="icon-text">
+                        <i class="ms-Icon ms-Icon--Flag" aria-hidden="true"></i>
+                        Latest version: <span class="text-nowrap">@Model.FullVersion @(Model.Prerelease ? "(prerelease)" : "")</span>
+                    </span>
+                </li>
+                @if (Model.Tags.AnySafe())
                 {
-                    <li><a href="@Url.User(owner)" title="@owner.Username">@owner.Username</a></li>
+                    <li class="package-tags">
+                        <span class="icon-text">
+                            <i class="ms-Icon ms-Icon--Tag" aria-hidden="true"></i>
+                            @foreach (var tag in Model.Tags)
+                            {
+                                <a href="@Url.Search("Tags:\"" + tag + "\"")" title="Search for @tag">@tag</a>
+                            }
+                        </span>
+                    </li>
                 }
             </ul>
-        </header>
 
-        <article>
-            <p>
-                <span class="smaller">
-                    Last Published: <time datetime="@Model.LastUpdated.ToJavaScriptUTC()" pubdate>@Model.LastUpdated.ToNuGetShortDateString()</time> |
-                    Latest Version: @Model.Version @(Model.Prerelease ? "(prerelease)" : "")
-                </span>
-            </p>
-            <p>
+            <div class="package-details">
                 @Model.ShortDescription
                 @if (Model.IsDescriptionTruncated)
                 {
                     @Html.RouteLink("More information", RouteName.DisplayPackage, new { Model.Id, Model.Version })
                 }
-            </p>
+            </div>
 
-            @if (!String.IsNullOrEmpty(Model.MinClientVersion))
+            @if (Model.IsOwner(User))
             {
-                <p class="minimum-client-version">
-                    Requires NuGet @Model.MinClientVersion or higher.
-                </p>
+                <ul class="package-list manage-package">
+                    <li>
+                        <a href="@Url.EditPackage(Model.Id, Model.Version)" class="icon-link">
+                            <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
+                            <span>Edit Package</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="@Url.ManagePackageOwners(Model)" class="icon-link">
+                            <i class="ms-Icon ms-Icon--People" aria-hidden="true"></i>
+                            <span>Manage Owners</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="@Url.DeletePackage(Model)" class="icon-link">
+                            <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
+                            <span>Delete Package</span>
+                        </a>
+                    </li>
+                </ul>
             }
-        </article>
-
-        <footer>
-            <p class="downloads">
-                @Model.TotalDownloadCount.ToNuGetNumberString() total @(Model.TotalDownloadCount == 1 ? "download" : "downloads")
-            </p>
-
-            @if (@Model.Tags.AnySafe())
-            {
-                <div class="tags">
-                    <h2>Tags</h2>
-                    <ul class="tags">
-                    @foreach (var tag in Model.Tags)
-                    {
-                        <li><a href="@Url.Search("Tags:\"" + tag + "\"")" title="Search for @tag">@tag</a></li>
-                    }
-                    </ul>
-                </div>
-            }
-
-            @if (Config.Features.FriendlyLicenses && !Model.HideLicenseReport && Model.LicenseNames.AnySafe())
-            {
-                <div class="licenses">
-                    <h2>Licenses</h2>
-                    <p>
-                        @if (Model.LicenseNames.Count() > 3)
-                        {
-                            @String.Concat(String.Join(", ", Model.LicenseNames.Take(3)), ", ...")
-                        }
-                        else
-                        {
-                            @String.Join(", ", Model.LicenseNames)
-                        }
-                    </p>
-                </div>
-            }
-        </footer>
+        </div>
     </div>
-</section>
+</article>

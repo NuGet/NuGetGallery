@@ -104,7 +104,7 @@ namespace NuGetGallery
                 var viewModel = (controller.CuratedFeed("aName") as ViewResult).Model as CuratedFeedViewModel;
 
                 Assert.NotNull(viewModel);
-                Assert.Equal(controller.Fakes.User.Username, viewModel.Managers.First());
+                Assert.Equal(controller.Fakes.User, viewModel.Managers.First());
             }
 
             [Fact]

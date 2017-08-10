@@ -13,6 +13,17 @@ namespace NuGetGallery
         public const string DefaultPackageListSortOrder = "package-download-count";
         public const int PasswordResetTokenExpirationHours = 1;
 
+        public const int ColumnsAuthenticationSm = 6;
+        public const int ColumnsAuthenticationMd = 4;
+        public const int ColumnsWideAuthenticationSm = 8;
+        public const int ColumnsWideAuthenticationMd = 6;
+        public const int ColumnsFormMd = 10;
+
+        public const int VisibleVersions = 5;
+
+        public const int GravatarElementSize = 32;
+        public const int GravatarImageSize = GravatarElementSize * 2;
+
         /// <summary>
         /// Parameters for calculating account lockout period after 
         /// wrong password entry.
@@ -64,7 +75,6 @@ namespace NuGetGallery
 
         public static class ContentNames
         {
-            public static readonly string Home = "Home";
             public static readonly string ReadOnly = "ReadOnly";
             public static readonly string TermsOfUse = "Terms-Of-Use";
             public static readonly string PrivacyPolicy = "Privacy-Policy";

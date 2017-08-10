@@ -16,7 +16,7 @@ namespace NuGetGallery.Infrastructure
 
                 context.Result = new ViewResult
                 {
-                    ViewName = "~/Views/Errors/CookieError.cshtml",
+                    ViewName = "~/Views/Errors/BadRequest.cshtml",
                 };
 
                 context.ExceptionHandled = true;

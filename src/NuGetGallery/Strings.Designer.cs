@@ -207,7 +207,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You are already logged in!.
+        ///   Looks up a localized string similar to You are already signed in!.
         /// </summary>
         public static string AlreadyLoggedIn {
             get {
@@ -289,7 +289,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Azure Active Directory Account.
+        ///   Looks up a localized string similar to Azure Active Directory account.
         /// </summary>
         public static string AzureActiveDirectory_AccountNoun {
             get {
@@ -298,11 +298,11 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Azure Active Directory.
+        ///   Looks up a localized string similar to Register with Azure Active Directory.
         /// </summary>
-        public static string AzureActiveDirectory_Caption {
+        public static string AzureActiveDirectory_RegisterMessage {
             get {
-                return ResourceManager.GetString("AzureActiveDirectory_Caption", resourceCulture);
+                return ResourceManager.GetString("AzureActiveDirectory_RegisterMessage", resourceCulture);
             }
         }
         
@@ -325,7 +325,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Oops! You can&apos;t remove the only credential that can be used to log in to the website!.
+        ///   Looks up a localized string similar to Oops! You can&apos;t remove the only credential that can be used to sign in to the website!.
         /// </summary>
         public static string CannotRemoveOnlyLoginCredential {
             get {
@@ -479,7 +479,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A {0} was added to your account and can now be used to log in. If you did not request this change, please reply to this email to contact support..
+        ///   Looks up a localized string similar to A {0} was added to your account and can now be used to sign in. If you did not request this change, please reply to this email to contact support..
         /// </summary>
         public static string Emails_CredentialAdded_Body {
             get {
@@ -497,7 +497,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A {0} was removed from your account and can no longer be used to log in. If you did not request this change, please reply to this email to contact support..
+        ///   Looks up a localized string similar to A {0} was removed from your account and can no longer be used to sign in. If you did not request this change, please reply to this email to contact support..
         /// </summary>
         public static string Emails_CredentialRemoved_Body {
             get {
@@ -666,16 +666,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Microsoft account.
-        /// </summary>
-        public static string MicrosoftAccount_Caption {
-            get {
-                return ResourceManager.GetString("MicrosoftAccount_Caption", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Sign in with a Microsoft account.
+        ///   Looks up a localized string similar to Sign in with Microsoft.
         /// </summary>
         public static string MicrosoftAccount_SignInMessage {
             get {
@@ -860,6 +851,15 @@ namespace NuGetGallery {
         public static string PasswordCredentialsCannotBeUsedHere {
             get {
                 return ResourceManager.GetString("PasswordCredentialsCannotBeUsedHere", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The new password does not match the verify password field..
+        /// </summary>
+        public static string PasswordDoesNotMatch {
+            get {
+                return ResourceManager.GetString("PasswordDoesNotMatch", resourceCulture);
             }
         }
         
@@ -1102,6 +1102,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot upload file because an upload is already in progress..
+        /// </summary>
+        public static string UploadPackage_UploadInProgress {
+            get {
+                return ResourceManager.GetString("UploadPackage_UploadInProgress", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Your account was locked after too many unsuccessful sign-in attempts. Please try again in {0}..
         /// </summary>
         public static string UserAccountLocked {
@@ -1152,6 +1161,33 @@ namespace NuGetGallery {
         public static string UserNotFound {
             get {
                 return ResourceManager.GetString("UserNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your attempt to verify the package submission failed, because the package file appears to have changed. Please try again..
+        /// </summary>
+        public static string VerifyPackage_PackageFileModified {
+            get {
+                return ResourceManager.GetString("VerifyPackage_PackageFileModified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to There was an unexpected error. Please try uploading the package again..
+        /// </summary>
+        public static string VerifyPackage_UnexpectedError {
+            get {
+                return ResourceManager.GetString("VerifyPackage_UnexpectedError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your attempt to verify the package submission failed, because we could not find the uploaded package file. Please try again..
+        /// </summary>
+        public static string VerifyPackage_UploadNotFound {
+            get {
+                return ResourceManager.GetString("VerifyPackage_UploadNotFound", resourceCulture);
             }
         }
         

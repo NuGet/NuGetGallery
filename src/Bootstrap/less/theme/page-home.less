@@ -1,0 +1,92 @@
+﻿.page-home {
+  .jumbotron {
+    padding-bottom: 20px;
+    padding-top: 5px;
+    margin-bottom: 0;
+
+    h1 {
+      margin: 32px;
+    }
+  }
+
+  .what-is-nuget {
+    font-size: 1.15em;
+    padding-bottom: 75px;
+  }
+
+  .triangle:after {
+    content: "";
+    position: absolute;
+    bottom: -7px;
+    border-width: 7px 7px 0;
+    border-style: solid;
+    border-color: #fff transparent;
+    display: block;
+    width: 0;
+  }
+
+  @media screen and (-ms-high-contrast: active) {
+    .triangle:after {
+      display: none;
+    }
+    .circuit-board-label {
+      border: 1px solid windowText;
+    }
+  }
+
+  .circuit-board {
+    margin-top: 20px;
+    width: 768px;
+    height: 396px;
+    position: relative;
+    margin: 0 auto;
+    background-image: url('../img/circuit-board.svg');
+    background-repeat: no-repeat;
+    background-position: center bottom;
+
+    .circuit-board-label {
+      position: absolute;
+      height: 75px;
+      background-color: #fff;
+      color: @text-color;
+      box-shadow: 0 0 3px black;
+
+      h3, h5 {
+        margin: 9px 0 0 0;
+      }
+    }
+
+    .circuit-board-pd {
+      left: 377px;
+      top: 10px;
+      float: left;
+      width: 200px;
+
+      &.triangle:after {
+        left: 20px;
+      }
+    }
+
+    .circuit-board-pv {
+      left: 0;
+      top: 63px;
+      float: left;
+      width: 144px;
+
+      &.triangle:after {
+        right: 30px;
+      }
+    }
+
+    .circuit-board-up {
+      right: 0;
+      top: 87px;
+      float: right;
+      width: 144px;
+
+      &.triangle:after {
+        left: 30px;
+      }
+    }
+  }
+}

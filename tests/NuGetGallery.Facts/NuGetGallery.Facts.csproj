@@ -395,6 +395,7 @@
     <Compile Include="Controllers\AppControllerFacts.cs" />
     <Compile Include="Controllers\AuthenticationControllerFacts.cs" />
     <Compile Include="Controllers\ApiControllerFacts.cs" />
+    <Compile Include="Controllers\ControllerTests.cs" />
     <Compile Include="Controllers\CuratedFeedsControllerFacts.cs" />
     <Compile Include="Controllers\CuratedPackagesControllerFacts.cs" />
     <Compile Include="Controllers\JsonApiControllerFacts.cs" />
@@ -407,6 +408,7 @@
     <Compile Include="Controllers\StatisticsControllerFacts.cs" />
     <Compile Include="Controllers\UsersControllerFacts.cs" />
     <Compile Include="Framework\TestGalleryConfigurationService.cs" />
+    <Compile Include="Helpers\HtmlExtensionsFacts.cs" />
     <Compile Include="Infrastructure\UserAuditRecordFacts.cs" />
     <Compile Include="OData\Filter\ODataFilterFacts.cs" />
     <Compile Include="OData\SearchService\SearchHijackerFacts.cs" />

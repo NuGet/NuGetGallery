@@ -18,29 +18,9 @@ namespace NuGetGallery
             return date < DateTime.UtcNow;
         }
 
-        public static string ToJavaScriptUTC(this DateTime self)
-        {
-            return ToJavaScript(self.ToUniversalTime());
-        }
-
-        public static string ToJavaScript(this DateTime self)
-        {
-            return self.ToString("O", CultureInfo.CurrentCulture);
-        }
-
-        public static string ToNuGetShortDateTimeString(this DateTime self)
-        {
-            return self.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.CurrentCulture);
-        }
-
         public static string ToNuGetShortDateString(this DateTime self)
         {
-            return self.ToString("yyyy-MM-dd", CultureInfo.CurrentCulture);
-        }
-
-        public static string ToNuGetLongDateString(this DateTime self)
-        {
-            return self.ToString("D", CultureInfo.CurrentCulture);
+            return self.ToString("d", CultureInfo.CurrentCulture);
         }
     }
 }

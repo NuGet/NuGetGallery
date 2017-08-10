@@ -7,7 +7,7 @@ namespace NuGetGallery
     public class CuratedFeedViewModel
     {
         public string Name { get; set; }
-        public IEnumerable<string> Managers { get; set; }
+        public IEnumerable<User> Managers { get; set; }
         public IEnumerable<string> ExcludedPackages { get; set; }
         public IEnumerable<IncludedPackage> IncludedPackages { get; set; }
 
