@@ -238,7 +238,7 @@
         if (duration.as('M') <= 10) {
             text = datetime.fromNow();
         } else {
-            text = datetime.format("l");
+            text = null;
         }
 
         return {
@@ -272,7 +272,9 @@ $(function () {
             $el.attr('title', formats.title);
         }
 
-        $el.text(formats.text);
+        if (formats.text) {
+            $el.text(formats.text);
+        }
     });
 
     // Handle confirm pop-ups.
