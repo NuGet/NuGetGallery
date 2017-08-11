@@ -168,7 +168,11 @@ namespace NuGet.Services.BasicSearch
             ServicePointManager.DefaultConnectionLimit = Int32.MaxValue;
             ServicePointManager.Expect100Continue = false;
             ServicePointManager.UseNagleAlgorithm = false;
-            
+
+            // Ensure that SSLv3 is disabled and that Tls v1.2 is enabled.
+            ServicePointManager.SecurityProtocol &= ~SecurityProtocolType.Ssl3;
+            ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
+
             var secretReaderFactory = new SecretReaderFactory();
             var secretReader = secretReaderFactory.CreateSecretReader();
 
