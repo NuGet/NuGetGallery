@@ -12,12 +12,18 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         string _containerName;
         string _path;
         private Uri _differentBaseAddress = null;
+        TimeSpan _maxExecutionTime;
 
-        public AzureStorageFactory(CloudStorageAccount account, string containerName, string path = null, Uri baseAddress = null)
+        public AzureStorageFactory(CloudStorageAccount account,
+                                   string containerName,
+                                   TimeSpan maxExecutionTime,
+                                   string path = null,
+                                   Uri baseAddress = null)
         {
             _account = account;
             _containerName = containerName;
             _path = null;
+            _maxExecutionTime = maxExecutionTime;
 
             if (path != null)
             {
@@ -64,7 +70,8 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 newBase = new Uri(_differentBaseAddress, name + "/");
             }
 
-            return new AzureStorage(_account, _containerName, path, newBase) { Verbose = Verbose, CompressContent = CompressContent };
+            return new AzureStorage(_account, _containerName, path, newBase, _maxExecutionTime)
+                                   { Verbose = Verbose, CompressContent = CompressContent };
         }
     }
 }

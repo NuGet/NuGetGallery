@@ -57,7 +57,10 @@ namespace Ng.Jobs
                    + $"-{Arguments.SemVer2StorageAccountName} <azure-acc> "
                    + $"-{Arguments.SemVer2StorageKeyValue} <azure-key> "
                    + $"-{Arguments.SemVer2StorageContainer} <azure-container> "
-                   + $"-{Arguments.SemVer2StoragePath} <path>";
+                   + $"-{Arguments.SemVer2StoragePath} <path>"
+                   + Environment.NewLine
+                   + "Optional Arguments"
+                   + $"-{Arguments.StorageOperationMaxExecutionTimeInSeconds} <azureOperationMaxExecutionTimeInSeconds>";
         }
 
         protected override void Init(IDictionary<string, string> arguments, CancellationToken cancellationToken)

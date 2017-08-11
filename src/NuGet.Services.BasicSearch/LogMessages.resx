@@ -133,7 +133,7 @@
     <value>Reopening the search index took {ElapsedSeconds} seconds on thread ID {ThreadId}</value>
   </data>
   <data name="SearchIndexReopenFailed" xml:space="preserve">
-    <value>Search index reopen failed with an exception</value>
+    <value>Search index reopen failed with exception: {Exception}</value>
   </data>
   <data name="SearchIndexReopenStarted" xml:space="preserve">
     <value>Beginning to reopen the search index on thread ID {ThreadId}</value>
