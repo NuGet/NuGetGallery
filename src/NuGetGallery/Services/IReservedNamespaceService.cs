@@ -18,10 +18,10 @@ namespace NuGetGallery
 
         ReservedNamespace FindReservedNamespaceForPrefix(string prefix);
 
-        IList<ReservedNamespace> FindAllReservedNamespacesForPrefix(string prefix, bool getExactMatches);
+        IReadOnlyCollection<ReservedNamespace> FindAllReservedNamespacesForPrefix(string prefix, bool getExactMatches);
 
-        IList<ReservedNamespace> FindReservedNamespacesForPrefixList(IList<string> prefixList);
+        IReadOnlyCollection<ReservedNamespace> FindReservedNamespacesForPrefixList(IReadOnlyCollection<string> prefixList);
 
-        IList<ReservedNamespace> GetReservedNamespacesForId(string id);
+        IReadOnlyCollection<ReservedNamespace> GetReservedNamespacesForId(string id);
     }
 }
