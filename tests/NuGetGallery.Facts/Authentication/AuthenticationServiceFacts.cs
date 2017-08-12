@@ -978,7 +978,7 @@ namespace NuGetGallery.Authentication
                 authService.Entities.Users.Add(user);
 
                 // Act/Assert
-                await AssertEx.Throws<InvalidOperationException>(() => authService.GeneratePasswordResetToken(user.Username, 1440));
+                await AssertEx.Throws<UserSafeException>(() => authService.GeneratePasswordResetToken(user.Username, 1440));
             }
 
             [Fact]
