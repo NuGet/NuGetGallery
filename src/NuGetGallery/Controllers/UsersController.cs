@@ -194,6 +194,8 @@ namespace NuGetGallery
                 }
                 catch (Exception e)
                 {
+                    e.Log();
+
                     ModelState.AddModelError("Email", e.GetUserSafeMessage());
                 }
             }
