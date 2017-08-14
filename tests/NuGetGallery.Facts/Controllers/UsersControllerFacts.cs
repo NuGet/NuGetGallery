@@ -282,24 +282,6 @@ namespace NuGetGallery
                 Assert.NotNull(result);
                 Assert.IsNotType(typeof(RedirectResult), result);
             }
-
-            [Fact]
-            public async Task ShowsErrorIfUnconfirmedAccount()
-            {
-                var user = new User("user") { UnconfirmedEmailAddress = "unique@example.com" };
-                var authService = Get<AuthenticationService>();
-                authService.Entities.Users.Add(user);
-
-                var controller = GetController<UsersController>();
-
-                var model = new ForgotPasswordViewModel { Email = user.Username };
-
-                var result = await controller.ForgotPassword(model) as ViewResult;
-
-                Assert.NotNull(result);
-                Assert.IsNotType(typeof(RedirectResult), result);
-                Assert.Equal("You cannot reset your password until you confirm your account.", controller.ModelState["Email"].Errors[0].ErrorMessage);
-            }
         }
 
         public class TheResetPasswordAction : TestContainer
