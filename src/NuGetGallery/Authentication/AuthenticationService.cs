@@ -354,7 +354,7 @@ namespace NuGetGallery.Authentication
             return null;
         }
 
-        public virtual async Task<User> GeneratePasswordResetToken(string usernameOrEmail, int expirationInMinutes)
+        public virtual async Task<PasswordResetResult> GeneratePasswordResetToken(string usernameOrEmail, int expirationInMinutes)
         {
             if (String.IsNullOrEmpty(usernameOrEmail))
             {
@@ -368,13 +368,13 @@ namespace NuGetGallery.Authentication
             var user = FindByUserNameOrEmail(usernameOrEmail);
             if (user == null)
             {
-                return null;
+                return new PasswordResetResult(PasswordResetResultType.UserNotFound, user: null);
             }
-            await GeneratePasswordResetToken(user, expirationInMinutes);
-            return user;
+            var resultType = await GeneratePasswordResetToken(user, expirationInMinutes);
+            return new PasswordResetResult(resultType, user);
         }
 
-        public virtual async Task GeneratePasswordResetToken(User user, int expirationInMinutes)
+        public virtual async Task<PasswordResetResultType> GeneratePasswordResetToken(User user, int expirationInMinutes)
         {
             if (user == null)
             {
@@ -388,12 +388,12 @@ namespace NuGetGallery.Authentication
 
             if (!user.Confirmed)
             {
-                throw new UserSafeException(Strings.UserIsNotYetConfirmed);
+                return PasswordResetResultType.UserNotConfirmed;
             }
 
             if (!string.IsNullOrEmpty(user.PasswordResetToken) && !user.PasswordResetTokenExpirationDate.IsInThePast())
             {
-                return;
+                return PasswordResetResultType.Success;
             }
 
             user.PasswordResetToken = CryptographyService.GenerateToken();
@@ -416,6 +416,8 @@ namespace NuGetGallery.Authentication
             await Auditing.SaveAuditRecordAsync(auditRecord);
 
             await Entities.SaveChangesAsync();
+
+            return PasswordResetResultType.Success;
         }
 
         public virtual async Task<bool> ChangePassword(User user, string oldPassword, string newPassword)

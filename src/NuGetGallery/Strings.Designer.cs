@@ -352,11 +352,11 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not find anyone with that email..
+        ///   Looks up a localized string similar to Could not find anyone with that username or email..
         /// </summary>
-        public static string CouldNotFindAnyoneWithThatEmail {
+        public static string CouldNotFindAnyoneWithThatUsernameOrEmail {
             get {
-                return ResourceManager.GetString("CouldNotFindAnyoneWithThatEmail", resourceCulture);
+                return ResourceManager.GetString("CouldNotFindAnyoneWithThatUsernameOrEmail", resourceCulture);
             }
         }
         

@@ -182,21 +182,19 @@ namespace NuGetGallery
 
             if (ModelState.IsValid)
             {
-                try
+                var result = await _authService.GeneratePasswordResetToken(model.Email, Constants.PasswordResetTokenExpirationHours * 60);
+                switch (result.Type)
                 {
-                    var user = await _authService.GeneratePasswordResetToken(model.Email, Constants.PasswordResetTokenExpirationHours * 60);
-                    if (user != null)
-                    {
-                        return SendPasswordResetEmail(user, forgotPassword: true);
-                    }
-
-                    ModelState.AddModelError("Email", Strings.CouldNotFindAnyoneWithThatEmail);
-                }
-                catch (Exception e)
-                {
-                    e.Log();
-
-                    ModelState.AddModelError("Email", e.GetUserSafeMessage());
+                    case PasswordResetResultType.UserNotConfirmed:
+                        ModelState.AddModelError("Email", Strings.UserIsNotYetConfirmed);
+                        break;
+                    case PasswordResetResultType.UserNotFound:
+                        ModelState.AddModelError("Email", Strings.CouldNotFindAnyoneWithThatUsernameOrEmail);
+                        break;
+                    case PasswordResetResultType.Success:
+                        return SendPasswordResetEmail(result.User, forgotPassword: true);
+                    default:
+                        throw new NotImplementedException($"The passwword reset result type '{result.Type}' is not supported.");
                 }
             }
 

@@ -957,28 +957,35 @@ namespace NuGetGallery.Authentication
         public class TheGeneratePasswordResetTokenMethod : TestContainer
         {
             [Fact]
-            public async Task ReturnsNullIfEmailIsNotFound()
+            public async Task ReturnsUserNotFoundTypeIfUserDoesNotExist()
             {
                 // Arrange
                 var authService = Get<AuthenticationService>();
 
                 // Act
-                var token = await authService.GeneratePasswordResetToken("nobody@nowhere.com", 1440);
+                var result = await authService.GeneratePasswordResetToken("nobody@nowhere.com", 1440);
 
                 // Assert
-                Assert.Null(token);
+                Assert.NotNull(result);
+                Assert.Equal(PasswordResetResultType.UserNotFound, result.Type);
+                Assert.Null(result.User);
             }
 
             [Fact]
-            public async Task ThrowsExceptionIfUserIsNotConfirmed()
+            public async Task ReturnsUserNotConfirmedTypeIfUserIsNotConfirmed()
             {
                 // Arrange
                 var user = new User("user") { UnconfirmedEmailAddress = "unique@example.com" };
                 var authService = Get<AuthenticationService>();
                 authService.Entities.Users.Add(user);
 
-                // Act/Assert
-                await AssertEx.Throws<UserSafeException>(() => authService.GeneratePasswordResetToken(user.Username, 1440));
+                // Act
+                var result = await authService.GeneratePasswordResetToken(user.Username, 1440);
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(PasswordResetResultType.UserNotConfirmed, result.Type);
+                Assert.Same(user, result.User);
             }
 
             [Fact]
@@ -996,10 +1003,12 @@ namespace NuGetGallery.Authentication
                 var currentDate = DateTime.UtcNow;
 
                 // Act
-                var returnedUser = await authService.GeneratePasswordResetToken(user.EmailAddress, 1440);
+                var result = await authService.GeneratePasswordResetToken(user.EmailAddress, 1440);
 
                 // Assert
-                Assert.Same(user, returnedUser);
+                Assert.NotNull(result);
+                Assert.Equal(PasswordResetResultType.Success, result.Type);
+                Assert.Same(user, result.User);
                 Assert.NotNull(user.PasswordResetToken);
                 Assert.NotEmpty(user.PasswordResetToken);
                 Assert.True(user.PasswordResetTokenExpirationDate >= currentDate.AddMinutes(1440));
@@ -1020,10 +1029,12 @@ namespace NuGetGallery.Authentication
                 authService.Entities.Users.Add(user);
 
                 // Act
-                var returnedUser = await authService.GeneratePasswordResetToken(user.EmailAddress, 1440);
+                var result = await authService.GeneratePasswordResetToken(user.EmailAddress, 1440);
 
                 // Assert
-                Assert.Same(user, returnedUser);
+                Assert.NotNull(result);
+                Assert.Equal(PasswordResetResultType.Success, result.Type);
+                Assert.Same(user, result.User);
                 Assert.Equal("existing-token", user.PasswordResetToken);
             }
 
@@ -1043,11 +1054,12 @@ namespace NuGetGallery.Authentication
                 var currentDate = DateTime.UtcNow;
 
                 // Act
-                var returnedUser = await authService.GeneratePasswordResetToken(user.EmailAddress, 1440);
+                var result = await authService.GeneratePasswordResetToken(user.EmailAddress, 1440);
 
                 // Assert
-                Assert.Same(user, returnedUser);
-                Assert.NotEmpty(user.PasswordResetToken);
+                Assert.NotNull(result);
+                Assert.Equal(PasswordResetResultType.Success, result.Type);
+                Assert.Same(user, result.User);
                 Assert.NotEqual("existing-token", user.PasswordResetToken);
                 Assert.True(user.PasswordResetTokenExpirationDate >= currentDate.AddMinutes(1440));
             }
