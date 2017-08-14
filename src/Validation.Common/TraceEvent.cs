@@ -13,6 +13,7 @@ namespace NuGet.Jobs.Validation.Common
         public static readonly EventId FailedToProcessArguments = CreateEventId(3, "Failed to process arguments");
         public static readonly EventId HelperFailed = CreateEventId(4, "Failed to run helper action");
         public static readonly EventId AuditBlobLeaseReleaseFailed = CreateEventId(5, "Exception occurred while trying to release the lease on audit blob");
+        public static readonly EventId PackageValidationAuditorException = CreateEventId(6, "Exception occurred while trying to update the package validation auditing blob");
 
         /// <summary>
         /// Random number used as a base for EventIds and to make sure they don't clash with 
