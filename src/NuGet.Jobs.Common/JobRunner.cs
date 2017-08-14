@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -131,6 +132,10 @@ namespace NuGet.Jobs
             }
 
             job.ConsoleLogOnly = consoleLogOnly;
+
+            // Ensure that SSLv3 is disabled and that Tls v1.2 is enabled.
+            ServicePointManager.SecurityProtocol &= ~SecurityProtocolType.Ssl3;
+            ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
         }
 
         private static async Task JobLoop(JobBase job, bool runContinuously, int sleepDuration, bool consoleLogOnly, IDictionary<string, string> jobArgsDictionary)
