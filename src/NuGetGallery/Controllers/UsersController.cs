@@ -182,22 +182,13 @@ namespace NuGetGallery
 
             if (ModelState.IsValid)
             {
-                try
+                var user = await _authService.GeneratePasswordResetToken(model.Email, Constants.PasswordResetTokenExpirationHours * 60);
+                if (user != null)
                 {
-                    var user = await _authService.GeneratePasswordResetToken(model.Email, Constants.PasswordResetTokenExpirationHours * 60);
-                    if (user != null)
-                    {
-                        return SendPasswordResetEmail(user, forgotPassword: true);
-                    }
-
-                    ModelState.AddModelError("Email", Strings.CouldNotFindAnyoneWithThatEmail);
+                    return SendPasswordResetEmail(user, forgotPassword: true);
                 }
-                catch (Exception e)
-                {
-                    e.Log();
 
-                    ModelState.AddModelError("Email", e.GetUserSafeMessage());
-                }
+                ModelState.AddModelError("Email", Strings.CouldNotFindAnyoneWithThatEmail);
             }
 
             return View(model);

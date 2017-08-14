@@ -388,7 +388,7 @@ namespace NuGetGallery.Authentication
 
             if (!user.Confirmed)
             {
-                throw new UserSafeException(Strings.UserIsNotYetConfirmed);
+                throw new InvalidOperationException(Strings.UserIsNotYetConfirmed);
             }
 
             if (!string.IsNullOrEmpty(user.PasswordResetToken) && !user.PasswordResetTokenExpirationDate.IsInThePast())
