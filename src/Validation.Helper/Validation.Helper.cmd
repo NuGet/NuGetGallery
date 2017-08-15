@@ -1,15 +1,15 @@
 @echo off
 
 if "%1"=="" (
-	echo Usage:
-	echo 	%~nx0 -Action Rescan -PackageId ^<package id^> -PackageVersion ^<package version^>
-	echo 	%~nx0 -Action MarkClean -PackageId ^<package id^> -PackageVersion ^<package version^> -ValidationId ^<validation Id ^(GUID^)^> -Alias ^<your alias^> -Comment ^<comment^>
-	exit 1
+    echo Usage:
+    echo 	%~nx0 -Action Rescan -PackageId ^<package id^> -PackageVersion ^<package version^>
+    echo 	%~nx0 -Action MarkClean -PackageId ^<package id^> -PackageVersion ^<package version^> -ValidationId ^<validation Id ^(GUID^)^> -Alias ^<your alias^> -Comment ^<comment^>
+    exit 1
 )
 
-SET vn=#{KeyVault:VaultName}
-SET clientid=#{KeyVault:ClientId}
-SET tp=#{KeyVault:CertificateThumbprint}
+SET vn=#{Deployment.Azure.Test.KeyVault.VaultName}
+SET clientid=#{Deployment.Azure.Test.KeyVault.ClientId}
+SET tp=#{Deployment.Azure.Test.KeyVault.CertificateThumbprint}
 SET la=#{Jobs.validation.DataStorageAccount}
 SET dsa=#{Jobs.validation.DataStorageAccount}
 SET cn=#{Jobs.validation.ContainerName}
