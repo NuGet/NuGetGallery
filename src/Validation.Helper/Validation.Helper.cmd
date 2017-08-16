@@ -7,9 +7,9 @@ if "%1"=="" (
     exit 1
 )
 
-SET vn=#{Deployment.Azure.Test.KeyVault.VaultName}
-SET clientid=#{Deployment.Azure.Test.KeyVault.ClientId}
-SET tp=#{Deployment.Azure.Test.KeyVault.CertificateThumbprint}
+SET vn=#{Deployment.Azure.KeyVault.VaultName}
+SET clientid=#{Deployment.Azure.KeyVault.ClientId}
+SET tp=#{Deployment.Azure.KeyVault.CertificateThumbprint}
 SET la=#{Jobs.validation.DataStorageAccount}
 SET dsa=#{Jobs.validation.DataStorageAccount}
 SET cn=#{Jobs.validation.ContainerName}
