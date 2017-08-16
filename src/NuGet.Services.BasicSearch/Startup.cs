@@ -119,6 +119,13 @@ namespace NuGet.Services.BasicSearch
                 await next.Invoke();
             });
 
+            // Disable content type sniffing
+            app.Use(async (context, next) =>
+            {
+                context.Response.Headers.Add("X-Content-Type-Options", new[] { "nosniff" });
+                await next.Invoke();
+            });
+
             // Enable CORS
             var corsPolicy = new CorsPolicy
             {
