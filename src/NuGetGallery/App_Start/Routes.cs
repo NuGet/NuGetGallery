@@ -280,11 +280,6 @@ namespace NuGetGallery
                 new { controller = "Users", action = "ApiKeys" });
 
             routes.MapRoute(
-                RouteName.OwnerRequests,
-                "account/ownerrequests",
-                new { controller = "Users", action = "OwnerRequests" });
-
-            routes.MapRoute(
                 RouteName.CuratedFeed,
                 "curated-feeds/{name}",
                 new { controller = "CuratedFeeds", action = "CuratedFeed" });

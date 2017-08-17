@@ -312,11 +312,6 @@ namespace NuGetGallery
                 });
         }
 
-        public static string OwnerRequests(this UrlHelper url)
-        {
-            return url.Action(actionName: "OwnerRequests", controllerName: "Users");
-        }
-
         public static string ConfirmOwner(this UrlHelper url, string packageId, string username, string confirmationCode)
         {
             return url.Action(
