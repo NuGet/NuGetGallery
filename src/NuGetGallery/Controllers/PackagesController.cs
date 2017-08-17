@@ -1121,14 +1121,14 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("accept ownership of a package")]
         public virtual Task<ActionResult> ConfirmOwner(string id, string username, string token)
         {
-            return HandleOwnershipRequest(id, username, token, true);
+            return HandleOwnershipRequest(id, username, token, accept: true);
         }
 
         [Authorize]
         [RequiresAccountConfirmation("reject ownership of a package")]
         public virtual Task<ActionResult> RejectOwner(string id, string username, string token)
         {
-            return HandleOwnershipRequest(id, username, token, false);
+            return HandleOwnershipRequest(id, username, token, accept: false);
         }
 
         private async Task<ActionResult> HandleOwnershipRequest(string id, string username, string token, bool accept)
