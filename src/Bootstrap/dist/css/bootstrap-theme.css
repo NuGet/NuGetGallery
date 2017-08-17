@@ -252,6 +252,10 @@ img.package-icon {
 .checkbox .label-sibling {
   margin-left: 20px;
 }
+.break-word {
+  word-break: break-all;
+  word-break: break-word;
+}
 #edit-metadata-form-container .loading:after {
   display: inline-block;
   /* ascii code for the ellipsis character */
@@ -584,11 +588,13 @@ img.package-icon {
 }
 .page-package-details .package-title {
   margin-bottom: 24px;
-  word-break: break-all;
-  word-break: break-word;
 }
 .page-package-details .package-title div {
   margin-top: 2px;
+}
+.page-package-details .package-details-main {
+  word-break: break-all;
+  word-break: break-word;
 }
 .page-package-details .package-details-info .ms-Icon-ul li {
   margin-bottom: 15px;
@@ -643,7 +649,6 @@ img.package-icon {
   font-family: Consolas, Menlo, Monaco, "Courier New", monospace;
   line-height: 1.5;
   color: #fff;
-  word-wrap: break-word;
   background-color: #002440;
   border-color: #002440;
   border-style: solid;
