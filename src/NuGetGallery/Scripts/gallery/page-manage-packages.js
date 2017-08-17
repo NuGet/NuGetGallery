@@ -1,16 +1,9 @@
 ﻿$(function () {
     'use strict';
 
-    window.nuget.configureExpander(
-        "packages-Published",
-        "ChevronRight",
-        "My Published Packages",
-        "ChevronDown",
-        "My Published Packages");
-    window.nuget.configureExpander(
-        "packages-Unlisted",
-        "ChevronRight",
-        "My Unlisted Packages",
-        "ChevronDown",
-        "My Unlisted Packages");
+    window.nuget.configureExpanderHeading("packages-Published");
+    window.nuget.configureExpanderHeading("packages-Unlisted");
+
+    window.nuget.configureExpanderHeading("requests-Incoming");
+    window.nuget.configureExpanderHeading("requests-Outgoing");
 });

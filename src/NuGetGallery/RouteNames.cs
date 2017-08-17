@@ -22,7 +22,6 @@ namespace NuGetGallery
         public const string Authentication = "SignIn";
         public const string UploadPackage = "UploadPackage";
         public const string UploadPackageProgress = "UploadPackageProgress";
-        public const string ManagePackageOwners = "ManagePackageOwners";
         public const string PackageVersionAction = "PackageVersionAction";
         public const string PackageFilePathAction = "PackageFilePathAction";
         public const string PackageFileContentsAction = "PackageFileContentsAction";
@@ -60,7 +59,6 @@ namespace NuGetGallery
         public const string PackageEnableLicenseReport = "EnableLicenseReport";
         public const string PackageDisableLicenseReport = "DisableLicenseReport";
         public const string OwinRoute = "OwinRoute";
-        public const string OwnerRequests = "OwnerRequests";
         public const string Pages = "Pages";
         public const string ExternalAuthentication = "ExternalAuthentication";
         public const string ExternalAuthenticationCallback = "ExternalAuthenticationCallback";

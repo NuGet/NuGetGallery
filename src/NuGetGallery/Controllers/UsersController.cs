@@ -157,27 +157,19 @@ namespace NuGetGallery
             var user = GetCurrentUser();
             var packages = _packageService.FindPackagesByOwner(user, includeUnlisted: true)
                 .Select(p => new ListPackageItemViewModel(p)).OrderBy(p => p.Id).ToList();
-
-            var model = new ManagePackagesViewModel
-            {
-                Packages = packages
-            };
-            return View(model);
-        }
-
-        [HttpGet]
-        [Authorize]
-        public virtual ActionResult OwnerRequests()
-        {
-            var user = GetCurrentUser();
-
+            
             var requests = _packageOwnerRequestRepository.GetAll();
-
+            
             var incoming = requests.Where(r => r.NewOwnerKey == user.Key);
             var outgoing = requests.Where(r => r.RequestingOwnerKey == user.Key);
 
-            var model = new OwnerRequestsViewModel(incoming, outgoing, user, _packageService);
+            var ownerRequests = new OwnerRequestsViewModel(incoming, outgoing, user, _packageService);
 
+            var model = new ManagePackagesViewModel
+            {
+                Packages = packages,
+                OwnerRequests = ownerRequests
+            };
             return View(model);
         }
 
