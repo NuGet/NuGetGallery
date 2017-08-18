@@ -185,6 +185,7 @@
     <Compile Include="Entities\Scope.cs" />
     <Compile Include="Entities\UserSecurityPolicy.cs" />
     <Compile Include="Entities\User.cs" />
+    <Compile Include="ICloudStorageStatusDependency.cs" />
     <Compile Include="Infrastructure\AzureEntityList.cs" />
     <Compile Include="Infrastructure\TableErrorLog.cs" />
     <Compile Include="PackageReaderCoreExtensions.cs" />
