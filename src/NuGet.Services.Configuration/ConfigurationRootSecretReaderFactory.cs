@@ -24,7 +24,12 @@ namespace NuGet.Services.Configuration
             _certificateThumbprint = config[Constants.KeyVaultCertificateThumbprintKey];
             _storeName = config[Constants.KeyVaultStoreNameKey];
             _storeLocation = config[Constants.KeyVaultStoreLocationKey];
-            _validateCertificate = bool.Parse(config[Constants.KeyVaultValidateCertificateKey]);
+
+            string validateCertificate = config[Constants.KeyVaultValidateCertificateKey];
+            if (!string.IsNullOrEmpty(validateCertificate))
+            {
+                _validateCertificate = bool.Parse(validateCertificate);
+            }
         }
 
         public ISecretReader CreateSecretReader()
