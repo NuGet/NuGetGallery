@@ -1,0 +1,12 @@
+﻿{
+  "dependencies": {
+    "Microsoft.IdentityModel.Clients.ActiveDirectory": "3.13.5",
+    "Newtonsoft.Json": "10.0.3"
+  },
+  "frameworks": {
+    "net45": {}
+  },
+  "runtimes": {
+    "win": {}
+  }
+}
