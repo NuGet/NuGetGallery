@@ -1119,14 +1119,14 @@ namespace NuGetGallery
 
         [Authorize]
         [RequiresAccountConfirmation("accept ownership of a package")]
-        public virtual Task<ActionResult> ConfirmOwner(string id, string username, string token)
+        public virtual Task<ActionResult> ConfirmPendingOwnershipRequest(string id, string username, string token)
         {
             return HandleOwnershipRequest(id, username, token, accept: true);
         }
 
         [Authorize]
         [RequiresAccountConfirmation("reject ownership of a package")]
-        public virtual Task<ActionResult> RejectOwner(string id, string username, string token)
+        public virtual Task<ActionResult> RejectPendingOwnershipRequest(string id, string username, string token)
         {
             return HandleOwnershipRequest(id, username, token, accept: false);
         }
@@ -1140,7 +1140,7 @@ namespace NuGetGallery
 
             if (!String.Equals(username, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
             {
-                return View(new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.NotYourRequest));
+                return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.NotYourRequest));
             }
 
             var package = _packageService.FindPackageRegistrationById(id);
@@ -1152,12 +1152,12 @@ namespace NuGetGallery
             var user = GetCurrentUser();
             if (package.IsOwner(user))
             {
-                return View(new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.AlreadyOwner));
+                return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.AlreadyOwner));
             }
 
             if (!_packageService.IsValidPackageOwnerRequest(package, user, token))
             {
-                return View(new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.Failure));
+                return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.Failure));
             }
 
             if (accept)
@@ -1168,7 +1168,7 @@ namespace NuGetGallery
 
                 SendAddPackageOwnerNotification(package, user, result.Item1, result.Item2);
 
-                return View(new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.Success));
+                return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.Success));
             }
             else
             {
@@ -1180,11 +1180,11 @@ namespace NuGetGallery
 
         [Authorize]
         [RequiresAccountConfirmation("cancel ownership of a package")]
-        public virtual async Task<ActionResult> CancelOwner(string id, string requestingUsername, string pendingUsername)
+        public virtual async Task<ActionResult> CancelPendingOwnershipRequest(string id, string requestingUsername, string pendingUsername)
         {
             if (!String.Equals(requestingUsername, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
             {
-                return View(new PackageOwnerConfirmationModel(id, requestingUsername, ConfirmOwnershipResult.NotYourRequest));
+                return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, requestingUsername, ConfirmOwnershipResult.NotYourRequest));
             }
 
             var package = _packageService.FindPackageRegistrationById(id);
@@ -1201,7 +1201,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            var request = _packageService.GetPackageOwnerRequestAsync(package, requestingUser, pendingUser);
+            var request = _packageService.GetPackageOwnershipRequest(package, requestingUser, pendingUser);
             if (request == null)
             {
                 return HttpNotFound();
