@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System.Collections.Generic;
 
 namespace NuGetGallery
 {
@@ -9,14 +12,9 @@ namespace NuGetGallery
         public OwnerRequestsListViewModel Outgoing { get; private set; }
 
         public OwnerRequestsViewModel(IEnumerable<PackageOwnerRequest> incoming, IEnumerable<PackageOwnerRequest> outgoing, User currentUser, IPackageService packageService)
-            : this(new OwnerRequestsListViewModel(incoming, "Incoming", currentUser, packageService), new OwnerRequestsListViewModel(outgoing, "Outgoing", currentUser, packageService))
         {
-        }
-
-        public OwnerRequestsViewModel(OwnerRequestsListViewModel incoming, OwnerRequestsListViewModel outgoing)
-        {
-            Incoming = incoming;
-            Outgoing = outgoing;
+            Incoming = new OwnerRequestsListViewModel(incoming, nameof(Incoming), currentUser, packageService);
+            Outgoing = new OwnerRequestsListViewModel(outgoing, nameof(Outgoing), currentUser, packageService);
         }
     }
 }
