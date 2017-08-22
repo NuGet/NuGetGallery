@@ -537,11 +537,7 @@ namespace NuGetGallery
 
         private static void RegisterCookieComplianceService(ContainerBuilder builder, ConfigurationService configuration, DiagnosticsService diagnostics)
         {
-            CookieComplianceServiceBase service = null;
-            if (configuration.Current.CookieComplianceEnabled)
-            {
-                service = GetAddInServices<ICookieComplianceService>(builder).FirstOrDefault() as CookieComplianceServiceBase;
-            }
+            var service = GetAddInServices<ICookieComplianceService>(builder).FirstOrDefault() as CookieComplianceServiceBase;
 
             if (service == null)
             {
