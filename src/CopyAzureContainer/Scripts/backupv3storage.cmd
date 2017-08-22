@@ -6,7 +6,7 @@ echo "Starting job - #{Jobs.backupv3storage.Title}"
 
 title #{Jobs.backupv3storage.Title}
 
-start /w CopyAzureContainer.exe -ConsoleLogOnly ^
+start /w CopyAzureContainer.exe ^
     -SourceContainerInfo_lucene #{Jobs.common.v3.Storage.Primary.Name}:#{Jobs.common.v3.Storage.Primary.Key}:#{Jobs.catalog2lucenev3reg2.LuceneContainer} ^
     -SourceContainerInfo_catalog #{Jobs.common.v3.c2r.StorageAccountName}:#{Jobs.common.v3.c2r.StorageAccountKey}:#{Jobs.feed2catalogv3.StorageContainer} ^
     -SourceContainerInfo_registration #{Jobs.common.v3.c2r.StorageAccountName}:#{Jobs.common.v3.c2r.StorageAccountKey}:#{Jobs.catalog2registrationv3reg1.StorageContainer} ^

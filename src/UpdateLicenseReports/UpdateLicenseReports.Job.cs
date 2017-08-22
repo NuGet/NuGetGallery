@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Dapper;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
 using NuGet.Jobs;
@@ -54,7 +55,7 @@ namespace UpdateLicenseReports
             return report;
         }
 
-        public override bool Init(IDictionary<string, string> jobArgsDictionary)
+        public override void Init(IDictionary<string, string> jobArgsDictionary)
         {
             _packageDatabase = new SqlConnectionStringBuilder(
                         JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.PackageDatabase));
@@ -89,11 +90,9 @@ namespace UpdateLicenseReports
             {
                 _licenseReportCredentials = new NetworkCredential(string.Empty, _licenseReportPassword);
             }
-
-            return true;
         }
 
-        public override async Task<bool> Run()
+        public override async Task Run()
         {
             // Fetch next report url
             var nextLicenseReport = await FetchNextReportUrlAsync();
@@ -103,13 +102,11 @@ namespace UpdateLicenseReports
             {
                 nextLicenseReport = await FetchNextReportUrlAsync();
             }
-
-            return true;
         }
 
         private async Task<Uri> FetchNextReportUrlAsync()
         {
-            Trace.TraceInformation("Fetching next report URL from {0}/{1}", _packageDatabase.DataSource, _packageDatabase.InitialCatalog);
+            Logger.LogInformation("Fetching next report URL from {DataSource}/{InitialCatalog}", _packageDatabase.DataSource, _packageDatabase.InitialCatalog);
 
             Uri nextLicenseReport = null;
             using (var connection = await _packageDatabase.ConnectTo())
@@ -119,17 +116,17 @@ namespace UpdateLicenseReports
 
                 if (string.IsNullOrEmpty(nextReportUrl))
                 {
-                    Trace.TraceInformation("No next report URL found, using default");
+                    Logger.LogInformation("No next report URL found, using default");
                 }
                 else if (!Uri.TryCreate(nextReportUrl, UriKind.Absolute, out nextLicenseReport))
                 {
-                    Trace.TraceInformation("Next Report URL '{0}' is invalid. Using default", nextReportUrl);
+                    Logger.LogInformation("Next Report URL '{NextReportUrl}' is invalid. Using default", nextReportUrl);
                 }
 
                 nextLicenseReport = nextLicenseReport ?? _licenseReportService;
             }
 
-            Trace.TraceInformation("Fetched next report URL '{2}' from {0}/{1}", _packageDatabase.DataSource, _packageDatabase.InitialCatalog, (nextLicenseReport == null ? string.Empty : nextLicenseReport.AbsoluteUri));
+            Logger.LogInformation("Fetched next report URL '{NextReportUrl}' from {DataSource}/{InitialCatalog}", (nextLicenseReport == null ? string.Empty : nextLicenseReport.AbsoluteUri), _packageDatabase.DataSource, _packageDatabase.InitialCatalog);
 
             return nextLicenseReport;
         }
@@ -139,7 +136,7 @@ namespace UpdateLicenseReports
             HttpWebResponse response = null;
             var tries = 0;
 
-            Trace.TraceInformation("Downloading license report {0}", nextLicenseReport.AbsoluteUri);
+            Logger.LogInformation("Downloading license report {ReportUrl}", nextLicenseReport.AbsoluteUri);
 
             while (tries < _retryCount.Value && response == null)
             {
@@ -178,19 +175,19 @@ namespace UpdateLicenseReports
 
                 if (thrown != null)
                 {
-                    Trace.TraceInformation("Error downloading report {0}, retrying. {1}", nextLicenseReport.AbsoluteUri, thrown);
+                    Logger.LogInformation("Error downloading report {ReportUrl}, retrying. {Exception}", nextLicenseReport.AbsoluteUri, thrown);
                     await Task.Delay(10 * 1000);
                 }
             }
 
-            Trace.TraceInformation("Downloaded license report {0}", nextLicenseReport.AbsoluteUri);
-            Trace.TraceInformation("Processing license report {0}", nextLicenseReport.AbsoluteUri);
+            Logger.LogInformation("Downloaded license report {ReportUrl}", nextLicenseReport.AbsoluteUri);
+            Logger.LogInformation("Processing license report {ReportUrl}", nextLicenseReport.AbsoluteUri);
 
             using (response)
             {
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    Trace.TraceInformation("Reading license report {0}", nextLicenseReport.AbsoluteUri);
+                    Logger.LogInformation("Reading license report {ReportUrl}", nextLicenseReport.AbsoluteUri);
 
                     string content;
                     using (var reader = new StreamReader(response.GetResponseStream()))
@@ -198,12 +195,12 @@ namespace UpdateLicenseReports
                         content = await reader.ReadToEndAsync();
                     }
 
-                    Trace.TraceInformation("Read license report {0}", nextLicenseReport.AbsoluteUri);
+                    Logger.LogInformation("Read license report {ReportUrl}", nextLicenseReport.AbsoluteUri);
 
                     var sonatypeMessage = JObject.Parse(content);
                     if (!sonatypeMessage.IsValid(_sonatypeSchema))
                     {
-                        Trace.TraceInformation("Invalid license report in {0}. {1}", nextLicenseReport.AbsoluteUri, Strings.UpdateLicenseReportsJob_JsonDoesNotMatchSchema);
+                        Logger.LogInformation("Invalid license report in {ReportUrl}. {Error}", nextLicenseReport.AbsoluteUri, Strings.UpdateLicenseReportsJob_JsonDoesNotMatchSchema);
                         return false;
                     }
 
@@ -212,15 +209,15 @@ namespace UpdateLicenseReports
                     {
                         var report = CreateReport(messageEvent);
 
-                        Trace.TraceInformation("Storing license report for {0} {1}", report.PackageId, report.Version);
+                        Logger.LogInformation("Storing license report for {PackageId} {PackageVersion}", report.PackageId, report.Version);
 
                         if (await StoreReportAsync(report) == -1)
                         {
-                            Trace.TraceInformation("Unable to store report for {0} {1}. Package does not exist in database.", report.PackageId, report.Version);
+                            Logger.LogInformation("Unable to store report for {PackageId} {PackageVersion}. Package does not exist in database.", report.PackageId, report.Version);
                         }
                         else
                         {
-                            Trace.TraceInformation("Stored license report for {0} {1}", report.PackageId, report.Version);
+                            Logger.LogInformation("Stored license report for {PackageId} {PackageVersion}", report.PackageId, report.Version);
                         }
                     }
 
@@ -230,11 +227,11 @@ namespace UpdateLicenseReports
                         var nextReportUrl = sonatypeMessage["next"].Value<string>();
                         if (!Uri.TryCreate(nextReportUrl, UriKind.Absolute, out nextLicenseReport))
                         {
-                            Trace.TraceInformation("Invalid next report URL: {0}", nextReportUrl);
+                            Logger.LogInformation("Invalid next report URL: {NextReportUrl}", nextReportUrl);
                             return false;
                         }
 
-                        Trace.TraceInformation("Storing next license report URL: {0}", nextLicenseReport.AbsoluteUri);
+                        Logger.LogInformation("Storing next license report URL: {NextReportUrl}", nextLicenseReport.AbsoluteUri);
 
                         // Record the next report to the database so we can check it again if we get aborted before finishing.
                         using (var connection = await _packageDatabase.ConnectTo())
@@ -252,15 +249,15 @@ namespace UpdateLicenseReports
                         nextLicenseReport = null;
                     }
 
-                    Trace.TraceInformation("Processing license report {0}", nextLicenseReport.AbsoluteUri);
+                    Logger.LogInformation("Processing license report {NextReportUrl}", nextLicenseReport.AbsoluteUri);
                 }
                 else if (response.StatusCode != HttpStatusCode.NoContent)
                 {
-                    Trace.TraceInformation("No report for {0} yet.", nextLicenseReport.AbsoluteUri);
+                    Logger.LogInformation("No report for {NextReportUrl} yet.", nextLicenseReport.AbsoluteUri);
                 }
                 else
                 {
-                    Trace.TraceInformation("HTTP {1} error requesting {0}: {2}", nextLicenseReport.AbsoluteUri, (int)response.StatusCode, response.StatusDescription);
+                    Logger.LogInformation("HTTP {StatusCode} error requesting {NextReportUrl}: {StatusDescription}", response.StatusCode, nextLicenseReport.AbsoluteUri, response.StatusDescription);
                 }
 
                 return false;

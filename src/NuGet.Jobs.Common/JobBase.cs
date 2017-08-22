@@ -2,16 +2,15 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace NuGet.Jobs
 {
     public abstract class JobBase
     {
         private readonly EventSource _jobEventSource;
-        private JobTraceEventListener _jobTraceEventListener;
 
         protected JobBase()
             : this(null)
@@ -26,29 +25,18 @@ namespace NuGet.Jobs
 
         public string JobName { get; private set; }
 
-        public JobTraceListener JobTraceListener { get; private set; }
+        protected ILoggerFactory LoggerFactory { get; private set; }
 
-        public bool ConsoleLogOnly { get; set; }
+        protected ILogger Logger { get; private set; }
 
-        public void SetJobTraceListener(JobTraceListener jobTraceListener)
+        public void SetLogger(ILoggerFactory loggerFactory, ILogger logger)
         {
-            JobTraceListener = jobTraceListener;
-            Trace.Listeners.Add(jobTraceListener);
-
-            if (_jobTraceEventListener != null)
-            {
-                _jobTraceEventListener.Dispose();
-            }
-
-            if (_jobEventSource != null)
-            {
-                _jobTraceEventListener = new JobTraceEventListener(JobTraceListener);
-                _jobTraceEventListener.EnableEvents(_jobEventSource, EventLevel.LogAlways);
-            }
+            LoggerFactory = loggerFactory;
+            Logger = logger;
         }
 
-        public abstract bool Init(IDictionary<string, string> jobArgsDictionary);
+        public abstract void Init(IDictionary<string, string> jobArgsDictionary);
 
-        public abstract Task<bool> Run();
+        public abstract Task Run();
     }
 }

@@ -15,7 +15,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
 using NuGet.Jobs;
-using NuGet.Services.Logging;
 using NuGet.Services.Storage;
 
 namespace Gallery.CredentialExpiration
@@ -42,57 +41,37 @@ namespace Gallery.CredentialExpiration
 
         private Storage _storage;
 
-        private ILogger _logger;
-
-        public override bool Init(IDictionary<string, string> jobArgsDictionary)
+        public override void Init(IDictionary<string, string> jobArgsDictionary)
         {
-            try
-            {
-                var instrumentationKey = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.InstrumentationKey);
-                ApplicationInsights.Initialize(instrumentationKey);
+            _whatIf = JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, JobArgumentNames.WhatIf);
 
-                var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(ConsoleLogOnly);
-                var loggerFactory = LoggingSetup.CreateLoggerFactory(loggerConfiguration);
-                _logger = loggerFactory.CreateLogger<Job>();
+            var databaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.GalleryDatabase);
+            _galleryDatabase = new SqlConnectionStringBuilder(databaseConnectionString);
 
-                _whatIf = JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, JobArgumentNames.WhatIf);
+            _galleryBrand = JobConfigurationManager.GetArgument(jobArgsDictionary, MyJobArgumentNames.GalleryBrand);
+            _galleryAccountUrl = JobConfigurationManager.GetArgument(jobArgsDictionary, MyJobArgumentNames.GalleryAccountUrl);
 
-                var databaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.GalleryDatabase);
-                _galleryDatabase = new SqlConnectionStringBuilder(databaseConnectionString);
+            _mailFrom = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.MailFrom);
 
-                _galleryBrand = JobConfigurationManager.GetArgument(jobArgsDictionary, MyJobArgumentNames.GalleryBrand);
-                _galleryAccountUrl = JobConfigurationManager.GetArgument(jobArgsDictionary, MyJobArgumentNames.GalleryAccountUrl);
+            var smtpConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.SmtpUri);
+            var smtpUri = new SmtpUri(new Uri(smtpConnectionString));
+            _smtpClient = CreateSmtpClient(smtpUri);
 
-                _mailFrom = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.MailFrom);
+            _warnDaysBeforeExpiration = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, MyJobArgumentNames.WarnDaysBeforeExpiration)
+                ?? _warnDaysBeforeExpiration;
 
-                var smtpConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.SmtpUri);
-                var smtpUri = new SmtpUri(new Uri(smtpConnectionString));
-                _smtpClient = CreateSmtpClient(smtpUri);
+            _allowEmailResendAfterDays = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, MyJobArgumentNames.AllowEmailResendAfterDays)
+                ?? _allowEmailResendAfterDays;
 
-                _warnDaysBeforeExpiration = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, MyJobArgumentNames.WarnDaysBeforeExpiration)
-                    ?? _warnDaysBeforeExpiration;
+            var storageConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.DataStorageAccount);
+            var storageContainerName = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.ContainerName);
 
-                _allowEmailResendAfterDays = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, MyJobArgumentNames.AllowEmailResendAfterDays)
-                    ?? _allowEmailResendAfterDays;
-
-                var storageConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.DataStorageAccount);
-                var storageContainerName = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.ContainerName);
-
-                var csa = CloudStorageAccount.Parse(storageConnectionString);
-                var storageFactory = new AzureStorageFactory(csa, storageContainerName, loggerFactory);
-                _storage = storageFactory.Create();
-            }
-            catch (Exception exception)
-            {
-                _logger.LogCritical(LogEvents.JobInitFailed, exception, "Failed to initialize job!");
-
-                return false;
-            }
-
-            return true;
+            var storageAccount = CloudStorageAccount.Parse(storageConnectionString);
+            var storageFactory = new AzureStorageFactory(storageAccount, storageContainerName, LoggerFactory);
+            _storage = storageFactory.Create();
         }
 
-        public override async Task<bool> Run()
+        public override async Task Run()
         {
             try
             {
@@ -118,7 +97,7 @@ namespace Gallery.CredentialExpiration
                 {
                     // Fetch credentials that expire in _warnDaysBeforeExpiration days 
                     // + the user's e-mail address
-                    _logger.LogInformation("Retrieving expired credentials from {InitialCatalog}...",
+                    Logger.LogInformation("Retrieving expired credentials from {InitialCatalog}...",
                         _galleryDatabase.InitialCatalog);
 
                     expiredCredentials = (await galleryConnection.QueryWithRetryAsync<ExpiredCredentialData>(
@@ -127,7 +106,7 @@ namespace Gallery.CredentialExpiration
                         maxRetries: 3,
                         commandTimeout: _defaultCommandTimeout)).ToList();
 
-                    _logger.LogInformation("Retrieved {ExpiredCredentials} expired credentials.",
+                    Logger.LogInformation("Retrieved {ExpiredCredentials} expired credentials.",
                         expiredCredentials.Count);
                 }
 
@@ -168,16 +147,10 @@ namespace Gallery.CredentialExpiration
                     }
                     else
                     {
-                        _logger.LogDebug("Skipping expired credential for user {Username} - already handled at {JobRuntime}.",
+                        Logger.LogDebug("Skipping expired credential for user {Username} - already handled at {JobRuntime}.",
                             username, userContactTime);
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogCritical(LogEvents.JobRunFailed, ex, "Job run failed!");
-
-                return false;
             }
             finally
             {
@@ -187,8 +160,6 @@ namespace Gallery.CredentialExpiration
                 var content = new StringStorageContent(json, "application/json");
                 await _storage.Save(_storage.ResolveUri(_cursorFile), content, CancellationToken.None);
             }
-
-            return true;
         }
 
         private async Task HandleExpiredCredentialEmail(string username, List<ExpiredCredentialData> credentialList, DateTimeOffset jobRunTime, bool expired)
@@ -198,7 +169,7 @@ namespace Gallery.CredentialExpiration
                 return;
             }
 
-            _logger.LogInformation("Handling {Expired} credential(s) for user {Username} (Keys: {Descriptions})...",
+            Logger.LogInformation("Handling {Expired} credential(s) for user {Username} (Keys: {Descriptions})...",
                 expired ? "expired" : "expiring",
                 username,
                 string.Join(", ", credentialList.Select(x => x.Description).ToList()));
@@ -232,7 +203,7 @@ namespace Gallery.CredentialExpiration
                     await _smtpClient.SendMailAsync(mailMessage);
                 }
 
-                _logger.LogInformation("Handled {Expired} credential for user {Username}.",
+                Logger.LogInformation("Handled {Expired} credential for user {Username}.",
                     expired ? "expired" : "expiring",
                     username);
 
@@ -240,13 +211,13 @@ namespace Gallery.CredentialExpiration
             }
             catch (SmtpFailedRecipientException ex)
             {
-                var logMessage = $"Failed to handle credential for user {username} - recipient failed!";
-                _logger.LogWarning(LogEvents.FailedToSendMail, ex, logMessage);
+                var logMessage = "Failed to handle credential for user {Username} - recipient failed!";
+                Logger.LogWarning(LogEvents.FailedToSendMail, ex, logMessage, username);
             }
             catch (Exception ex)
             {
-                var logMessage = $"Failed to handle credential for user {username}.";
-                _logger.LogCritical(LogEvents.FailedToHandleExpiredCredential, ex, logMessage);
+                var logMessage = "Failed to handle credential for user {Username}.";
+                Logger.LogCritical(LogEvents.FailedToHandleExpiredCredential, ex, logMessage, username);
 
                 throw;
             }

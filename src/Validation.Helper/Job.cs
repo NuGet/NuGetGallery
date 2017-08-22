@@ -5,128 +5,60 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs.Validation.Common;
 using NuGet.Jobs.Validation.Common.OData;
-using NuGet.Jobs.Validation.Common.Validators.Vcs;
-using NuGet.Services.Logging;
 
 namespace NuGet.Jobs.Validation.Helper
 {
     public class Job : JobBase
     {
-        private ILoggerFactory _loggerFactory;
-        private ILogger<Job> _logger;
         private ICommand _command;
 
-        public override bool Init(IDictionary<string, string> jobArgsDictionary)
+        public override void Init(IDictionary<string, string> jobArgsDictionary)
         {
-            try
+            var action = ParseEnum<Action>(JobConfigurationManager.GetArgument(jobArgsDictionary, CommandLineArguments.Action));
+
+            var azureStorageConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.DataStorageAccount);
+            var containerName = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.ContainerName);
+            var cloudStorageAccount = CloudStorageAccount.Parse(azureStorageConnectionString);
+            var galleryBaseAddress = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.GalleryBaseAddress);
+
+            switch (action)
             {
-                if (!ApplicationInsights.Initialized)
-                {
-                    string instrumentationKey = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.InstrumentationKey);
-                    if (!string.IsNullOrWhiteSpace(instrumentationKey))
-                    {
-                        ApplicationInsights.Initialize(instrumentationKey);
-                    }
-                }
-
-                _loggerFactory = LoggingSetup.CreateLoggerFactory(LoggingSetup.CreateDefaultLoggerConfiguration(true));
-                _logger = _loggerFactory.CreateLogger<Job>();
-
-                // A hack to prevent Trace.<something> from printing to console. This code uses ILogger,
-                // JobRunner unfortunately uses Trace and prints stuff that is not related to this tool. 
-                // When (and if) JobRunner and all other jobs are updatedto use ILogger, this call should 
-                // be removed.
-                DisableTrace();
-
-                var action = ParseEnum<Action>(JobConfigurationManager.GetArgument(jobArgsDictionary, CommandLineArguments.Action));
-
-                var azureStorageConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.DataStorageAccount);
-                var containerName = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.ContainerName);
-                var cloudStorageAccount = CloudStorageAccount.Parse(azureStorageConnectionString);
-                var galleryBaseAddress = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.GalleryBaseAddress);
-
-                switch (action)
-                {
                 case Action.Rescan:
                     _command = new Rescan(
-                        jobArgsDictionary, 
-                        _loggerFactory.CreateLogger<Rescan>(),
+                        jobArgsDictionary,
+                        LoggerFactory.CreateLogger<Rescan>(),
                         cloudStorageAccount,
                         containerName,
-                        new NuGetV2Feed(new HttpClient(), _loggerFactory.CreateLogger<NuGetV2Feed>()),
-                        new PackageValidationService(cloudStorageAccount, containerName, _loggerFactory),
+                        new NuGetV2Feed(new HttpClient(), LoggerFactory.CreateLogger<NuGetV2Feed>()),
+                        new PackageValidationService(cloudStorageAccount, containerName, LoggerFactory),
                         galleryBaseAddress);
                     break;
 
                 case Action.MarkClean:
                     _command = new MarkClean(
                         jobArgsDictionary,
-                        _loggerFactory.CreateLogger<MarkClean>(),
+                        LoggerFactory.CreateLogger<MarkClean>(),
                         cloudStorageAccount,
                         containerName,
-                        new NuGetV2Feed(new HttpClient(), _loggerFactory.CreateLogger<NuGetV2Feed>()),
-                        new PackageValidationAuditor(cloudStorageAccount, containerName, _loggerFactory),
+                        new NuGetV2Feed(new HttpClient(), LoggerFactory.CreateLogger<NuGetV2Feed>()),
+                        new PackageValidationAuditor(cloudStorageAccount, containerName, LoggerFactory),
                         galleryBaseAddress);
                     break;
-                }
-
-                return true;
-            }
-            catch (Exception e)
-            {
-                if (_logger != null)
-                {
-                    _logger.LogError(TraceEvent.CommandLineProcessingFailed, e, "Exception occurred while processing command line arguments");
-                }
-                else
-                {
-                    Trace.TraceError("Exception occurred while processing command line arguments: {0}", e);
-                }
-
-                PrintUsage();
-            }
-
-            return false;
-        }
-
-        private static void DisableTrace()
-        {
-            int i = 0;
-            while (i < Trace.Listeners.Count)
-            {
-                if (Trace.Listeners[i] is JobTraceListener)
-                {
-                    Trace.Listeners.RemoveAt(i);
-                }
-                else
-                {
-                    ++i;
-                }
             }
         }
 
-        public async override Task<bool> Run()
+        public async override Task Run()
         {
-            using (_logger.BeginScope("Processing action {Action} scope id: {RunTraceId}", _command.Action, Guid.NewGuid()))
+            using (Logger.BeginScope("Processing action {Action} scope id: {RunTraceId}", _command.Action, Guid.NewGuid()))
             {
-                try
-                {
-                    return await _command.Run();
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError(TraceEvent.HelperFailed, e, "Failed to run action");
-                }
+                await _command.Run();
             }
-
-            return false;
         }
 
         public static void PrintUsage()
@@ -135,7 +67,6 @@ namespace NuGet.Jobs.Validation.Helper
                     $"-{JobArgumentNames.VaultName} <KeyVault name> " +
                     $"-{JobArgumentNames.ClientId} <KeyVault clientId> " +
                     $"-{JobArgumentNames.CertificateThumbprint} <KeyVault certificate thumbprint> " +
-                    $"-{JobArgumentNames.LogsAzureStorageConnectionString} <azure logs blob storage connection string> " +
                     $"-{JobArgumentNames.DataStorageAccount} <Azure Blob Storage connection string> " +
                     $"-{JobArgumentNames.ContainerName} <validation job container name> " +
                     $"-{JobArgumentNames.GalleryBaseAddress} <gallery base address> " +

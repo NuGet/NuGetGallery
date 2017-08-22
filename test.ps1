@@ -24,7 +24,11 @@ Function Run-Tests {
     
     $xUnitExe = (Join-Path $PSScriptRoot "packages\xunit.runner.console\tools\xunit.console.exe")
     
-    $TestAssemblies = "tests\Tests.Stats.CollectAzureCdnLogs\bin\$Configuration\Tests.Stats.CollectAzureCdnLogs.dll", "tests\Tests.Stats.ImportAzureCdnStatistics\bin\$Configuration\Tests.Stats.ImportAzureCdnStatistics.dll"
+    $TestAssemblies = "tests\Tests.Gallery.Maintenance\bin\$Configuration\Tests.Gallery.Maintenance.dll", `
+        "tests\Tests.Search.GenerateAuxiliaryData\bin\$Configuration\Tests.Search.GenerateAuxiliaryData.dll", `
+        "tests\Tests.Stats.CollectAzureCdnLogs\bin\$Configuration\Tests.Stats.CollectAzureCdnLogs.dll", `
+        "tests\Tests.Stats.ImportAzureCdnStatistics\bin\$Configuration\Tests.Stats.ImportAzureCdnStatistics.dll", `
+        "tests\Validation.Helper.Tests\bin\$Configuration\Validation.Helper.Tests.dll"
     
     $TestCount = 0
     

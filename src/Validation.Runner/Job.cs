@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -14,7 +13,6 @@ using NuGet.Jobs.Validation.Common.OData;
 using NuGet.Jobs.Validation.Common.Validators;
 using NuGet.Jobs.Validation.Common.Validators.Unzip;
 using NuGet.Jobs.Validation.Common.Validators.Vcs;
-using NuGet.Services.Logging;
 
 namespace NuGet.Jobs.Validation.Runner
 {
@@ -28,72 +26,39 @@ namespace NuGet.Jobs.Validation.Runner
         private string _containerName;
         private string[] _runValidationTasks;
         private string[] _requestValidationTasks;
-        private ILoggerFactory _loggerFactory;
-        private ILogger<Job> _logger;
 
-        public override bool Init(IDictionary<string, string> jobArgsDictionary)
+        public override void Init(IDictionary<string, string> jobArgsDictionary)
         {
-            try
+            _galleryBaseAddress = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.GalleryBaseAddress);
+
+            var storageConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.DataStorageAccount);
+            _cloudStorageAccount = CreateCloudStorageAccount(JobArgumentNames.DataStorageAccount, storageConnectionString);
+
+            _containerName = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.ContainerName);
+
+            _runValidationTasks = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.RunValidationTasks).Split(';');
+            _requestValidationTasks = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.RequestValidationTasks).Split(';');
+
+            // Add validators
+            if (_runValidationTasks.Contains(UnzipValidator.ValidatorName))
             {
-                if (!ApplicationInsights.Initialized)
-                {
-                    string instrumentationKey = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.InstrumentationKey);
-                    if (!string.IsNullOrWhiteSpace(instrumentationKey))
-                    {
-                        ApplicationInsights.Initialize(instrumentationKey);
-                    }
-                }
-
-                _loggerFactory = LoggingSetup.CreateLoggerFactory();
-                _logger = _loggerFactory.CreateLogger<Job>();
-
-                // Configure job
-                _galleryBaseAddress = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.GalleryBaseAddress);
-
-                var storageConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.DataStorageAccount);
-                _cloudStorageAccount = CreateCloudStorageAccount(JobArgumentNames.DataStorageAccount, storageConnectionString);
-
-                _containerName = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.ContainerName);
-
-                _runValidationTasks = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.RunValidationTasks).Split(';');
-                _requestValidationTasks = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.RequestValidationTasks).Split(';');
-
-                // Add validators
-                if (_runValidationTasks.Contains(UnzipValidator.ValidatorName))
-                {
-                    _validators.Add(new UnzipValidator(_loggerFactory));
-                }
-                if (_runValidationTasks.Contains(VcsValidator.ValidatorName))
-                {
-                    // if contact alias set, use it, if not, use submitter alias.
-                    string submitterAlias = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.VcsValidatorSubmitterAlias);
-                    string contactAlias = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.VcsContactAlias) 
-                        ?? submitterAlias;
-
-                    _validators.Add(new VcsValidator(
-                        JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.VcsValidatorServiceUrl),
-                        JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.VcsValidatorCallbackUrl),
-                        contactAlias,
-                        submitterAlias,
-                        JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.VcsPackageUrlTemplate),
-                        _loggerFactory));
-                }
-
-                return true;
+                _validators.Add(new UnzipValidator(LoggerFactory));
             }
-            catch (Exception ex)
+            if (_runValidationTasks.Contains(VcsValidator.ValidatorName))
             {
-                if (_logger != null)
-                {
-                    _logger.LogError(TraceEvent.CommandLineProcessingFailed, ex, "Exception occurred while processing command line arguments");
-                }
-                else
-                {
-                    Trace.TraceError("Exception occurred while processing command line arguments: {0}", ex);
-                }
-            }
+                // if contact alias set, use it, if not, use submitter alias.
+                string submitterAlias = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.VcsValidatorSubmitterAlias);
+                string contactAlias = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.VcsContactAlias)
+                    ?? submitterAlias;
 
-            return false;
+                _validators.Add(new VcsValidator(
+                    JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.VcsValidatorServiceUrl),
+                    JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.VcsValidatorCallbackUrl),
+                    contactAlias,
+                    submitterAlias,
+                    JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.VcsPackageUrlTemplate),
+                    LoggerFactory));
+            }
         }
 
         private static CloudStorageAccount CreateCloudStorageAccount(string argumentName, string storageConnectionString)
@@ -112,7 +77,7 @@ namespace NuGet.Jobs.Validation.Runner
             throw new ArgumentException("Job parameter " + argumentName + " for Azure Cloud Storage Account is invalid.");
         }
 
-        public override async Task<bool> Run()
+        public override async Task Run()
         {
             if (!_runValidationTasks.Any())
             {
@@ -142,21 +107,19 @@ namespace NuGet.Jobs.Validation.Runner
                     await RunOrchestrateAsync();
                 }
             }
-
-            return true;
         }
 
         private async Task RunValidationsAsync(IValidator validator)
         {
-            _logger.LogInformation($"{{{TraceConstant.EventName}}}: " +
+            Logger.LogInformation($"{{{TraceConstant.EventName}}}: " +
                     $"Checking the queue of {{{TraceConstant.ValidatorName}}}",
                 "ValidatorQueueCheck",
                 validator.Name);
 
             // Services
             var packageValidationTable = new PackageValidationTable(_cloudStorageAccount, _containerName);
-            var packageValidationAuditor = new PackageValidationAuditor(_cloudStorageAccount, _containerName, _loggerFactory);
-            var packageValidationQueue = new PackageValidationQueue(_cloudStorageAccount, _containerName, _loggerFactory);
+            var packageValidationAuditor = new PackageValidationAuditor(_cloudStorageAccount, _containerName, LoggerFactory);
+            var packageValidationQueue = new PackageValidationQueue(_cloudStorageAccount, _containerName, LoggerFactory);
             var notificationService = new NotificationService(_cloudStorageAccount, _containerName);
 
             // Get messages to process
@@ -186,7 +149,7 @@ namespace NuGet.Jobs.Validation.Runner
                     try
                     {
                         // Perform the validation
-                        _logger.LogInformation($"Starting validator {{{TraceConstant.ValidatorName}}} " +
+                        Logger.LogInformation($"Starting validator {{{TraceConstant.ValidatorName}}} " +
                                 $"for validation {{{TraceConstant.ValidationId}}} " +
                                 $"- package {{{TraceConstant.PackageId}}} " +
                                 $"v. {{{TraceConstant.PackageVersion}}}...", 
@@ -197,7 +160,7 @@ namespace NuGet.Jobs.Validation.Runner
 
                         validationResult = await validator.ValidateAsync(message, auditEntries);
 
-                        _logger.LogInformation($"Finished running validator {{{TraceConstant.ValidatorName}}} " +
+                        Logger.LogInformation($"Finished running validator {{{TraceConstant.ValidatorName}}} " +
                                 $"for validation {{{TraceConstant.ValidationId}}} " +
                                 $"- package {{{TraceConstant.PackageId}}} " +
                                 $"v. {{{TraceConstant.PackageVersion}}}. " +
@@ -220,7 +183,7 @@ namespace NuGet.Jobs.Validation.Runner
                             EventId = ValidationEvent.ValidatorException,
                         });
 
-                        _logger.LogError(TraceEvent.ValidatorException, ex, 
+                        Logger.LogError(TraceEvent.ValidatorException, ex, 
                                 $"Exception while running validator {{{TraceConstant.ValidatorName}}} " +
                                 $"for validation {{{TraceConstant.ValidationId}}} " +
                                 $"- package {{{TraceConstant.PackageId}}} " +
@@ -264,20 +227,20 @@ namespace NuGet.Jobs.Validation.Runner
                 }
             }
 
-            _logger.LogInformation($"Done checking the queue of {{{TraceConstant.ValidatorName}}}", validator.Name);
+            Logger.LogInformation($"Done checking the queue of {{{TraceConstant.ValidatorName}}}", validator.Name);
         }
 
         private async Task RunOrchestrateAsync()
         {
-            _logger.LogInformation($"{{{TraceConstant.EventName}}}: Attempting orchestration",
+            Logger.LogInformation($"{{{TraceConstant.EventName}}}: Attempting orchestration",
                 "OrchestrationAttempt");
 
             // Retrieve cursor (last created / last edited)
-            var cursor = new PackageValidationOrchestrationCursor(_cloudStorageAccount, _containerName + "-audit", "cursor.json", _loggerFactory);
+            var cursor = new PackageValidationOrchestrationCursor(_cloudStorageAccount, _containerName + "-audit", "cursor.json", LoggerFactory);
             await cursor.LoadAsync();
             
             // Setup package validation service
-            var packageValidationService = new PackageValidationService(_cloudStorageAccount, _containerName, _loggerFactory);
+            var packageValidationService = new PackageValidationService(_cloudStorageAccount, _containerName, LoggerFactory);
 
             // Get reference timestamps
             var referenceLastCreated = cursor.LastCreated ?? DateTimeOffset.UtcNow.AddMinutes(-15);
@@ -288,10 +251,10 @@ namespace NuGet.Jobs.Validation.Runner
             {
                 var packages = new HashSet<NuGetPackage>(new NuGetV2PackageEqualityComparer());
 
-                var feed = new NuGetV2Feed(client, _loggerFactory.CreateLogger<NuGetV2Feed>());
+                var feed = new NuGetV2Feed(client, LoggerFactory.CreateLogger<NuGetV2Feed>());
 
                 var createdPackagesUrl = MakePackageQueryUrl(_galleryBaseAddress, "Created", referenceLastCreated);
-                _logger.LogInformation("Querying packages created since {StartTime}, URL: {QueryUrl}", referenceLastCreated, createdPackagesUrl);
+                Logger.LogInformation("Querying packages created since {StartTime}, URL: {QueryUrl}", referenceLastCreated, createdPackagesUrl);
                 var createdPackages = await feed.GetPackagesAsync(createdPackagesUrl, continuationsToFollow: 0);
                 foreach (var package in createdPackages)
                 {
@@ -352,7 +315,7 @@ namespace NuGet.Jobs.Validation.Runner
         {
             if (result == ValidationResult.Asynchronous.ToString())
             {
-                _logger.LogInformation($"{{{TraceConstant.EventName}}}: " +
+                Logger.LogInformation($"{{{TraceConstant.EventName}}}: " +
                         $"running a {{{TraceConstant.ValidatorName}}} " +
                         $"ValidationID: {{{TraceConstant.ValidationId}}} " +
                         $"for package {{{TraceConstant.PackageId}}} " +
@@ -365,7 +328,7 @@ namespace NuGet.Jobs.Validation.Runner
             }
             else
             {
-                _logger.TrackValidatorResult(validatorName, validationId, result, packageId, packageVersion);
+                Logger.TrackValidatorResult(validatorName, validationId, result, packageId, packageVersion);
             }
         }
     }

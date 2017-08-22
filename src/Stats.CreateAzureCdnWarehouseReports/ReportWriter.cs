@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace Stats.CreateAzureCdnWarehouseReports
@@ -12,8 +13,11 @@ namespace Stats.CreateAzureCdnWarehouseReports
         private const string _contentTypeJson = "application/json";
         private readonly CloudBlobContainer _destinationContainer;
 
-        public ReportWriter(CloudBlobContainer destinationContainer)
+        private ILogger<ReportWriter> _logger;
+
+        public ReportWriter(ILogger<ReportWriter> logger, CloudBlobContainer destinationContainer)
         {
+            _logger = logger;
             _destinationContainer = destinationContainer;
         }
 
@@ -22,10 +26,10 @@ namespace Stats.CreateAzureCdnWarehouseReports
             var blob = _destinationContainer.GetBlockBlobReference(reportName + ".json");
             blob.Properties.ContentType = _contentTypeJson;
 
-            Trace.TraceInformation("{0}: Writing report to {1}", reportName, blob.Uri.AbsoluteUri);
+            _logger.LogInformation("{ReportName}: Writing report to {ReportUri}", reportName, blob.Uri.AbsoluteUri);
 
             await blob.UploadTextAsync(json);
-            Trace.TraceInformation("{0}: Wrote report to {1}", reportName, blob.Uri.AbsoluteUri);
+            _logger.LogInformation("{ReportName}: Wrote report to {ReportUri}", reportName, blob.Uri.AbsoluteUri);
         }
     }
 }

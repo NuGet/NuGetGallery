@@ -187,7 +187,7 @@ namespace Stats.CollectAzureCdnLogs.Ftp
             if (contentOffset == 0)
             {
                 Logger.LogInformation("Beginning download from '{FtpBlobUri}'.", uri.ToString());
-                Trace.TraceInformation("Downloading file '{0}'.", uri);
+                Logger.LogInformation("Downloading file '{FtpBlobUri}'.", uri);
             }
             else
             {

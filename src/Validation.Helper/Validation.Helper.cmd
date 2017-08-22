@@ -16,5 +16,5 @@ SET cn=#{Jobs.validation.ContainerName}
 SET ik=#{Jobs.validation.VcsValidatorInstrumentationKey}
 SET gba=#{Jobs.validation.GalleryBaseAddress}
 
-NuGet.Jobs.Validation.Helper.exe -VaultName "%vn%" -ClientId "%clientid%" -CertificateThumbprint "%tp%" -LogsAzureStorageConnectionString "%la%" -DataStorageAccount "%dsa%" -ContainerName "%cn%" -InstrumentationKey "%ik%" -GalleryBaseAddress "%gba%" %*
+NuGet.Jobs.Validation.Helper.exe -VaultName "%vn%" -ClientId "%clientid%" -CertificateThumbprint "%tp%" -DataStorageAccount "%dsa%" -ContainerName "%cn%" -InstrumentationKey "%ik%" -GalleryBaseAddress "%gba%" %*
 

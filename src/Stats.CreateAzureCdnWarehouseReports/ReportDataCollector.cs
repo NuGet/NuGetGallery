@@ -7,6 +7,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace Stats.CreateAzureCdnWarehouseReports
 {
@@ -16,36 +17,39 @@ namespace Stats.CreateAzureCdnWarehouseReports
         private readonly string _procedureName;
         private readonly SqlConnectionStringBuilder _sourceDatabase;
 
-        public ReportDataCollector(string procedureName, SqlConnectionStringBuilder sourceDatabase)
+        private ILogger<ReportDataCollector> _logger;
+
+        public ReportDataCollector(ILogger<ReportDataCollector> logger, string procedureName, SqlConnectionStringBuilder sourceDatabase)
         {
+            _logger = logger;
             _procedureName = procedureName;
             _sourceDatabase = sourceDatabase;
         }
 
         public async Task<DataTable> CollectAsync(DateTime reportGenerationTime, params Tuple<string, int, string>[] parameters)
         {
-            Trace.TraceInformation("{0}: Collecting data", _procedureName);
+            _logger.LogInformation("{ProcedureName}: Collecting data", _procedureName);
 
             DataTable table = null;
 
             // Get the data
-            await WithRetry(async () => table = await ExecuteSql(reportGenerationTime, parameters));
+            await WithRetry(async () => table = await ExecuteSql(reportGenerationTime, parameters), _logger);
 
             Debug.Assert(table != null);
-            Trace.TraceInformation("{0}: Collected {1} rows", _procedureName, table.Rows.Count);
+            _logger.LogInformation("{ProcedureName}: Collected {RowsCount} rows", _procedureName, table.Rows.Count);
             return table;
         }
 
-        public static async Task<IReadOnlyCollection<DirtyPackageId>> GetDirtyPackageIds(SqlConnectionStringBuilder sourceDatabase, DateTime reportGenerationTime)
+        public static async Task<IReadOnlyCollection<DirtyPackageId>> GetDirtyPackageIds(ILogger logger, SqlConnectionStringBuilder sourceDatabase, DateTime reportGenerationTime)
         {
-            Trace.TraceInformation("Getting list of dirty packages IDs.");
+            logger.LogInformation("Getting list of dirty packages IDs.");
 
             IReadOnlyCollection<DirtyPackageId> packageIds = new List<DirtyPackageId>();
 
             // Get the data
-            await WithRetry(async () => packageIds = await GetDirtyPackageIdsFromWarehouse(sourceDatabase, reportGenerationTime));
+            await WithRetry(async () => packageIds = await GetDirtyPackageIdsFromWarehouse(sourceDatabase, reportGenerationTime), logger);
 
-            Trace.TraceInformation("Found {0} dirty packages to update.", packageIds.Count);
+            logger.LogInformation("Found {DirtyPackagesCount} dirty packages to update.", packageIds.Count);
 
             return packageIds;
         }
@@ -73,7 +77,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
             }
         }
 
-        private static async Task WithRetry(Func<Task> action)
+        private static async Task WithRetry(Func<Task> action, ILogger logger)
         {
             int attempts = 10;
 
@@ -98,7 +102,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
                 }
 
                 SqlConnection.ClearAllPools();
-                Trace.TraceError("SQL Invocation failed, retrying. {0} attempts remaining. Exception: {1}", attempts, caught);
+                logger.LogError("SQL Invocation failed, retrying. {RemainingAttempts} attempts remaining. Exception: {Exception}", attempts, caught);
                 await Task.Delay(20 * 1000);
             }
         }

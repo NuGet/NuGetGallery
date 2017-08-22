@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Data;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json;
 using Search.GenerateAuxiliaryData;
@@ -40,6 +41,7 @@ namespace Tests.Search.GenerateAuxiliaryData
         private static RankingsExporter CreateExporter()
         {
             return new RankingsExporter(
+                new LoggerFactory().CreateLogger<RankingsExporter>(),
                 defaultConnectionString: "a",
                 defaultDestinationContainer: null,
                 defaultRankingsScript: "b",
