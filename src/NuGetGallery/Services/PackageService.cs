@@ -434,9 +434,9 @@ namespace NuGetGallery
                 new PackageRegistrationAuditRecord(package, AuditedPackageRegistrationAction.RemoveOwner, user.Username));
         }
 
-        public PackageOwnerRequest GetPackageOwnerRequestAsync(PackageRegistration package, User requestingUser, User pendingUser)
+        public PackageOwnerRequest GetPackageOwnershipRequest(PackageRegistration package, User requestingUser, User pendingUser)
         {
-            return FindExistingPackageOwnerRequest(package, requestingUser, pendingUser);
+            return GetPendingOwnershipRequest(package, requestingUser, pendingUser);
         }
 
         public async Task MarkPackageListedAsync(Package package, bool commitChanges = true)
@@ -797,7 +797,7 @@ namespace NuGetGallery
                     select request).FirstOrDefault();
         }
 
-        private PackageOwnerRequest FindExistingPackageOwnerRequest(PackageRegistration package, User requestingOwner, User pendingOwner)
+        private PackageOwnerRequest GetPendingOwnershipRequest(PackageRegistration package, User requestingOwner, User pendingOwner)
         {
             return (from request in _packageOwnerRequestRepository.GetAll()
                     where request.PackageRegistrationKey == package.Key && 

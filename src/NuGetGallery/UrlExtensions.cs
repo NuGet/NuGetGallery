@@ -612,10 +612,10 @@ namespace NuGetGallery
             return GetActionLink(url, "RemovePackageOwner", "JsonApi", relativeUrl);
         }
         
-        public static string ConfirmOwner(this UrlHelper url, string packageId, string username, string confirmationCode)
+        public static string ConfirmPendingOwnershipRequest(this UrlHelper url, string packageId, string username, string confirmationCode)
         {
             return url.Action(
-                actionName: "ConfirmOwner",
+                actionName: "ConfirmPendingOwnershipRequest",
                 controllerName: "Packages",
                 routeValues: new
                 {
@@ -625,10 +625,10 @@ namespace NuGetGallery
                 });
         }
 
-        public static string RejectOwner(this UrlHelper url, string packageId, string username, string confirmationCode)
+        public static string RejectPendingOwnershipRequest(this UrlHelper url, string packageId, string username, string confirmationCode)
         {
             return url.Action(
-                actionName: "RejectOwner",
+                actionName: "RejectPendingOwnershipRequest",
                 controllerName: "Packages",
                 routeValues: new
                 {
@@ -638,10 +638,10 @@ namespace NuGetGallery
                 });
         }
 
-        public static string CancelOwner(this UrlHelper url, string packageId, string requestingUsername, string pendingUsername)
+        public static string CancelPendingOwnershipRequest(this UrlHelper url, string packageId, string requestingUsername, string pendingUsername)
         {
             return url.Action(
-                actionName: "CancelOwner",
+                actionName: "CancelPendingOwnershipRequest",
                 controllerName: "Packages",
                 routeValues: new
                 {
