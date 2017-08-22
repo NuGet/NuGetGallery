@@ -13,6 +13,7 @@ using Serilog.Events;
 using System.Threading.Tasks;
 using Ng.Jobs;
 using NuGet.Services.Configuration;
+using System.Net;
 
 namespace Ng
 {
@@ -39,6 +40,11 @@ namespace Ng
             {
                 // Get arguments
                 var arguments = CommandHelpers.GetArguments(args, 1);
+
+                // Ensure that SSLv3 is disabled and that Tls v1.2 is enabled.
+                ServicePointManager.SecurityProtocol &= ~SecurityProtocolType.Ssl3;
+                ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
+
 
                 // Configure ApplicationInsights
                 ApplicationInsights.Initialize(arguments.GetOrDefault<string>(Arguments.InstrumentationKey));
