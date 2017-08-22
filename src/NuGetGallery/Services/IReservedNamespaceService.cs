@@ -8,13 +8,41 @@ namespace NuGetGallery
 {
     public interface IReservedNamespaceService
     {
+        /// <summary>
+        /// Create a new namespace with the given prefix
+        /// </summary>
+        /// <param name="prefix">The reserved namespace to be created</param>
+        /// <returns>Awaitable Task</returns>
         Task AddReservedNamespaceAsync(ReservedNamespace prefix);
 
-        Task DeleteReservedNamespaceAsync(ReservedNamespace prefix);
+        /// <summary>
+        /// Deallocate the reserved namespace with the given prefix, also removes
+        /// the verified property on all the package registrations which match
+        /// this reserved namespace only.
+        /// </summary>
+        /// <param name="prefix">The reserved namespace to be deleted</param>
+        /// <returns>Awaitable Task</returns>
+        Task DeleteReservedNamespaceAsync(string prefix);
 
-        Task AddOwnerToReservedNamespaceAsync(ReservedNamespace prefix, User user);
+        /// <summary>
+        /// Adds the specified user as an owner to the reserved namespace.
+        /// Also, all the package registrations owned by this user which match the 
+        /// specified namespace will be marked as verified.
+        /// </summary>
+        /// <param name="prefix">The reserved namespace to modify</param>
+        /// <param name="username">The user who gets ownership of the namespace</param>
+        /// <returns>Awaitable Task</returns>
+        Task AddOwnerToReservedNamespaceAsync(string prefix, string username);
 
-        Task DeleteOwnerFromReservedNamespaceAsync(ReservedNamespace prefix, User user);
+        /// <summary>
+        /// Remove the specified user as an owner from the reserved namespace.
+        /// Also, all the package registrations owned by this user which match the 
+        /// specified namespace only will be marked as unverifed.
+        /// </summary>
+        /// <param name="prefix">The reserved namespace to modify</param>
+        /// <param name="username">The user to remove the ownership for the namespace</param>
+        /// <returns>Awaitable Task</returns>
+        Task DeleteOwnerFromReservedNamespaceAsync(string prefix, string username);
 
         ReservedNamespace FindReservedNamespaceForPrefix(string prefix);
 
