@@ -962,11 +962,10 @@ namespace NuGetGallery
                 .Where(pr => packageRegistrationList.Any(prl => prl.Id == pr.Id))
                 .ToList();
 
-            packageRegistrationsToUpdate
-                .ForEach(pru => pru.IsVerified = isVerified);
-
             if (packageRegistrationsToUpdate.Count > 0)
             {
+                packageRegistrationsToUpdate
+                    .ForEach(pru => pru.IsVerified = isVerified);
                 await _packageRegistrationRepository.CommitChangesAsync();
             }
         }
