@@ -135,7 +135,7 @@ namespace NuGetGallery.Services
                     .Verify(x => x.CommitChangesAsync());
                 service
                     .MockPackageService
-                    .Verify(p => p.UpdatePackageVerifiedStatusAsync(It.IsAny<IList<PackageRegistration>>(), It.IsAny<bool>()), Times.Never);
+                    .Verify(p => p.UpdatePackageVerifiedStatusAsync(It.IsAny<IReadOnlyCollection<PackageRegistration>>(), It.IsAny<bool>()), Times.Never);
             }
 
             [Theory]
@@ -187,7 +187,7 @@ namespace NuGetGallery.Services
                     .MockPackageService
                     .Verify(
                         p => p.UpdatePackageVerifiedStatusAsync(
-                            It.Is<IList<PackageRegistration>>(
+                            It.Is<IReadOnlyCollection<PackageRegistration>>(
                                 list => list.Count() == registrationsShouldUpdate.Count()
                                     && list.Any(pr => registrationsShouldUpdate.Any(ru => ru.Id == pr.Id))),
                             false),
@@ -264,7 +264,7 @@ namespace NuGetGallery.Services
                 service
                     .MockPackageService
                     .Verify(p => p.UpdatePackageVerifiedStatusAsync(
-                        It.IsAny<IList<PackageRegistration>>(), It.IsAny<bool>()),
+                        It.IsAny<IReadOnlyCollection<PackageRegistration>>(), It.IsAny<bool>()),
                         Times.Never);
 
                 Assert.True(existingNamespace.Owners.Contains(owner));
@@ -300,7 +300,7 @@ namespace NuGetGallery.Services
                 service
                     .MockPackageService
                     .Verify(p => p.UpdatePackageVerifiedStatusAsync(
-                        It.IsAny<IList<PackageRegistration>>(), It.IsAny<bool>()),
+                        It.IsAny<IReadOnlyCollection<PackageRegistration>>(), It.IsAny<bool>()),
                         Times.Once);
 
                 Assert.True(existingNamespace.Owners.Contains(owner1));
@@ -400,7 +400,7 @@ namespace NuGetGallery.Services
                 service
                     .MockPackageService
                     .Verify(p => p.UpdatePackageVerifiedStatusAsync(
-                        It.IsAny<IList<PackageRegistration>>(), It.IsAny<bool>()),
+                        It.IsAny<IReadOnlyCollection<PackageRegistration>>(), It.IsAny<bool>()),
                         Times.Never);
 
                 Assert.False(existingNamespace.Owners.Contains(owner));
@@ -442,7 +442,7 @@ namespace NuGetGallery.Services
                 service
                     .MockPackageService
                     .Verify(p => p.UpdatePackageVerifiedStatusAsync(
-                        It.IsAny<IList<PackageRegistration>>(), It.IsAny<bool>()),
+                        It.IsAny<IReadOnlyCollection<PackageRegistration>>(), It.IsAny<bool>()),
                         Times.Once);
 
                 Assert.False(existingNamespace.Owners.Contains(owner1));
@@ -487,7 +487,7 @@ namespace NuGetGallery.Services
                 service
                     .MockPackageService
                     .Verify(p => p.UpdatePackageVerifiedStatusAsync(
-                        It.IsAny<IList<PackageRegistration>>(), It.IsAny<bool>()),
+                        It.IsAny<IReadOnlyCollection<PackageRegistration>>(), It.IsAny<bool>()),
                         Times.Once);
 
                 Assert.False(existingNamespace.Owners.Contains(owner1));

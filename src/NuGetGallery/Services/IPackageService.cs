@@ -85,6 +85,6 @@ namespace NuGetGallery
 
         Task IncrementDownloadCountAsync(string id, string version, bool commitChanges = true);
 
-        Task UpdatePackageVerifiedStatusAsync(IList<PackageRegistration> package, bool isVerified);
+        Task UpdatePackageVerifiedStatusAsync(IReadOnlyCollection<PackageRegistration> package, bool isVerified);
     }
 }
