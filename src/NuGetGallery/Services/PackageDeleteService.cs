@@ -56,7 +56,7 @@ namespace NuGetGallery
 
         public async Task SoftDeletePackagesAsync(IEnumerable<Package> packages, User deletedBy, string reason, string signature)
         {
-            EntitiesConfiguration.SuspendExecutionStrategy = true;
+            using (var strategy = new SuspendDbExecutionStrategy())
             using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
             {
                 // Increase command timeout
@@ -100,7 +100,6 @@ namespace NuGetGallery
                 await _packageDeletesRepository.CommitChangesAsync();
                 transaction.Commit();
             }
-            EntitiesConfiguration.SuspendExecutionStrategy = false;
 
 
             // Force refresh the index
@@ -109,7 +108,7 @@ namespace NuGetGallery
 
         public async Task HardDeletePackagesAsync(IEnumerable<Package> packages, User deletedBy, string reason, string signature, bool deleteEmptyPackageRegistration)
         {
-            EntitiesConfiguration.SuspendExecutionStrategy = true;
+            using (var strategy = new SuspendDbExecutionStrategy())
             using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
             {
                 // Increase command timeout
@@ -156,7 +155,6 @@ namespace NuGetGallery
                 // Commit transaction
                 transaction.Commit();
             }
-            EntitiesConfiguration.SuspendExecutionStrategy = false;
 
             // Force refresh the index
             UpdateSearchIndex();
