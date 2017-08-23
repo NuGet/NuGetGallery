@@ -75,7 +75,7 @@ namespace NuGetGallery
 
                 // Delete verified flags on corresponding packages for this prefix if it is the only prefix matching the 
                 // package registration.
-                if (namespaceToDelete.IsSharedNamespace == false)
+                if (!namespaceToDelete.IsSharedNamespace)
                 {
                     var packageRegistrationsToMarkUnverified = namespaceToDelete
                         .PackageRegistrations
@@ -239,7 +239,7 @@ namespace NuGetGallery
             // Same restrictions as that of NuGetGallery.Core.Packaging.PackageIdValidator except for the regex change, a namespace could end in a '.'
             if (string.IsNullOrWhiteSpace(value))
             {
-                throw new ArgumentException(nameof(value));
+                throw new ArgumentException(Strings.ReservedNamespace_InvalidNamespace);
             }
 
             if (value.Length > CoreConstants.MaxPackageIdLength)
