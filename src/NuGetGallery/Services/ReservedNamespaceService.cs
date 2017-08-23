@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -15,7 +16,7 @@ namespace NuGetGallery
 {
     public class ReservedNamespaceService : IReservedNamespaceService
     {
-        private static readonly Regex NamespaceRegex = new Regex(@"^\w+([_.-|\w+])*$", RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture);
+        private static readonly Regex NamespaceRegex = new Regex(@"^\w+([_.-]\w+)*[.]?$", RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture);
 
         public IEntitiesContext EntitiesContext { get; protected set; }
         public IEntityRepository<ReservedNamespace> ReservedNamespaceRepository { get; protected set; }
@@ -234,7 +235,7 @@ namespace NuGetGallery
                     select request).ToList();
         }
 
-        private static void ValidateNamespace(string value)
+        public static void ValidateNamespace(string value)
         {
             // Same restrictions as that of NuGetGallery.Core.Packaging.PackageIdValidator except for the regex change, a namespace could end in a '.'
             if (string.IsNullOrWhiteSpace(value))

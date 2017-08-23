@@ -495,6 +495,35 @@ namespace NuGetGallery.Services
                 Assert.False(pr1.IsVerified);
                 Assert.True(pr2.IsVerified);
             }
+
+            public class NamespaceRegexValidation
+            {
+                [Theory]
+                [InlineData(null)]
+                [InlineData("")]
+                [InlineData("  ")]
+                [InlineData("@startsWithSpecialChars")]
+                [InlineData("ends.With.Special.Char$")]
+                [InlineData("Cont@ins$pecia|C#aracters")]
+                [InlineData("Endswithperods..")]
+                [InlineData("Multiple.Sequential..Periods.")]
+                public void InvalidNamespacesThrowsException(string value)
+                {
+                    Assert.Throws<ArgumentException>(() => ReservedNamespaceService.ValidateNamespace(value));
+                }
+
+                [Theory]
+                [InlineData("Namespace")]
+                [InlineData("Nam-e_s.pace")]
+                [InlineData("Name.Space.")]
+                [InlineData("123_Name.space.")]
+                [InlineData("123-Namespace.")]
+                public void ValidNamespacesDontThrowException(string value)
+                {
+                    var ex = Record.Exception(() => ReservedNamespaceService.ValidateNamespace(value));
+                    Assert.Null(ex);
+                }
+            }
         }
 
         private static IList<ReservedNamespace> GetTestNamespaces()
