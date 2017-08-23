@@ -150,12 +150,12 @@ namespace NuGetGallery.Services
             }
 
             [Fact]
-            public async Task NonExistingNamespaceThrowsException()
+            public async Task NonexistentNamespaceThrowsException()
             {
                 var testNamespaces = GetTestNamespaces();
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces);
 
-                await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.DeleteReservedNamespaceAsync("NonExistent.Namespace."));
+                await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.DeleteReservedNamespaceAsync("Nonexistent.Namespace."));
             }
 
             [Fact]
