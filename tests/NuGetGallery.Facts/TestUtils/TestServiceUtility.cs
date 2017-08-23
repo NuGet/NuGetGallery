@@ -9,7 +9,7 @@ namespace NuGetGallery.TestUtils
 {
     public static class PackageServiceUtility
     {
-        private static readonly string _packageHashForTests = "NzMzMS1QNENLNEczSDQ1SA==";
+        private const string _packageHashForTests = "NzMzMS1QNENLNEczSDQ1SA==";
 
         public static Package CreateTestPackage(string id = null)
         {

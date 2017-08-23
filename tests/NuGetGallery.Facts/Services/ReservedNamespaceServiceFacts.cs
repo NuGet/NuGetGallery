@@ -13,7 +13,7 @@ namespace NuGetGallery.Services
 {
     public class ReservedNamespaceServiceFacts
     {
-        public class AllocateNamespace
+        public class TheAddReservedNamespaceAsyncMethod
         {
             [Theory]
             [InlineData("NewNamespace", false, true)]
@@ -112,7 +112,7 @@ namespace NuGetGallery.Services
             }
         }
 
-        public class DeallocateReservedNamespace
+        public class TheDeleteReservedNamespaceAsyncMethod
         {
             [Fact]
             public async Task VanillaReservedNamespaceIsDeletedCorrectly()
@@ -197,7 +197,7 @@ namespace NuGetGallery.Services
             }
         }
 
-        public class AddOwnerToReservedNamespace
+        public class TheAddOwnerToReservedNamespaceAsyncMethod
         {
             [Theory]
             [InlineData(null)]
@@ -317,7 +317,7 @@ namespace NuGetGallery.Services
             }
         }
 
-        public class DeleteOwnerFromReservedNamespace
+        public class TheDeleteOwnerFromReservedNamespaceAsyncMethod
         {
             [Theory]
             [InlineData(null)]
@@ -495,34 +495,34 @@ namespace NuGetGallery.Services
                 Assert.False(pr1.IsVerified);
                 Assert.True(pr2.IsVerified);
             }
+        }
 
-            public class NamespaceRegexValidation
+        public class ValidateNamespaceMethod
+        {
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            [InlineData("  ")]
+            [InlineData("@startsWithSpecialChars")]
+            [InlineData("ends.With.Special.Char$")]
+            [InlineData("Cont@ins$pecia|C#aracters")]
+            [InlineData("Endswithperods..")]
+            [InlineData("Multiple.Sequential..Periods.")]
+            public void InvalidNamespacesThrowsException(string value)
             {
-                [Theory]
-                [InlineData(null)]
-                [InlineData("")]
-                [InlineData("  ")]
-                [InlineData("@startsWithSpecialChars")]
-                [InlineData("ends.With.Special.Char$")]
-                [InlineData("Cont@ins$pecia|C#aracters")]
-                [InlineData("Endswithperods..")]
-                [InlineData("Multiple.Sequential..Periods.")]
-                public void InvalidNamespacesThrowsException(string value)
-                {
-                    Assert.Throws<ArgumentException>(() => ReservedNamespaceService.ValidateNamespace(value));
-                }
+                Assert.Throws<ArgumentException>(() => ReservedNamespaceService.ValidateNamespace(value));
+            }
 
-                [Theory]
-                [InlineData("Namespace")]
-                [InlineData("Nam-e_s.pace")]
-                [InlineData("Name.Space.")]
-                [InlineData("123_Name.space.")]
-                [InlineData("123-Namespace.")]
-                public void ValidNamespacesDontThrowException(string value)
-                {
-                    var ex = Record.Exception(() => ReservedNamespaceService.ValidateNamespace(value));
-                    Assert.Null(ex);
-                }
+            [Theory]
+            [InlineData("Namespace")]
+            [InlineData("Nam-e_s.pace")]
+            [InlineData("Name.Space.")]
+            [InlineData("123_Name.space.")]
+            [InlineData("123-Namespace.")]
+            public void ValidNamespacesDontThrowException(string value)
+            {
+                var ex = Record.Exception(() => ReservedNamespaceService.ValidateNamespace(value));
+                Assert.Null(ex);
             }
         }
 

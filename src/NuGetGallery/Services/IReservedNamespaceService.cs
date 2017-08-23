@@ -44,12 +44,32 @@ namespace NuGetGallery
         /// <returns>Awaitable Task</returns>
         Task DeleteOwnerFromReservedNamespaceAsync(string prefix, string username);
 
+        /// <summary>
+        /// Retrieves the first reserved namespace which matches the given prefix.
+        /// </summary>
+        /// <param name="prefix">The prefix to lookup</param>
+        /// <returns>Reserved namespace matching the prefix</returns>
         ReservedNamespace FindReservedNamespaceForPrefix(string prefix);
 
+        /// <summary>
+        /// Retrieves all the reserved namespaces which matches the given prefix.
+        /// </summary>
+        /// <param name="prefix">The prefix to lookup</param>
+        /// <returns>The list of reserved namespaces matching the prefix</returns>
         IReadOnlyCollection<ReservedNamespace> FindAllReservedNamespacesForPrefix(string prefix, bool getExactMatches);
 
+        /// <summary>
+        /// Retrieves all the reserved namespaces which matches the given list of prefixes.
+        /// </summary>
+        /// <param name="prefixList">The list of prefixes to lookup</param>
+        /// <returns>The list of reserved namespaces matching the prefixes</returns>
         IReadOnlyCollection<ReservedNamespace> FindReservedNamespacesForPrefixList(IReadOnlyCollection<string> prefixList);
 
+        /// <summary>
+        /// Retrieves all the reserved namespaces which match the given id
+        /// </summary>
+        /// <param name="id">The package id to lookup</param>
+        /// <returns>The list of reserved namespaces which are prefixes for the given id</returns>
         IReadOnlyCollection<ReservedNamespace> GetReservedNamespacesForId(string id);
     }
 }
