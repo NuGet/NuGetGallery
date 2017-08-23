@@ -36,22 +36,23 @@ namespace NuGetGallery
         public const string PackageContentType = "binary/octet-stream";
         public const string OctetStreamContentType = "application/octet-stream";
         public const string TextContentType = "text/plain";
-        public const string NuGetPackageFileExtension = ".nupkg";
         public const string PackageFileDownloadUriTemplate = "packages/{0}/{1}/download";
         public const string PackageFileSavePathTemplate = "{0}.{1}{2}";
+        public const string PackageFileBackupSavePathTemplate = "{0}/{1}/{2}.{3}";
         public const string ReadMeFileSavePathTemplateActive = "active/{0}/{1}{2}";
         public const string ReadMeFileSavePathTemplatePending = "pending/{0}/{1}{2}";
-        public const string PackageFileBackupSavePathTemplate = "{0}/{1}/{2}.{3}";
 
         public const string PackagesFolderName = "packages";
         public const string PackageBackupsFolderName = "package-backups";
         public const string DownloadsFolderName = "downloads";
         public const string ContentFolderName = "content";
-
         public const string PackageReadMesFolderName = "readmes";
+
+        public const string NuGetPackageFileExtension = ".nupkg";
         public const string MarkdownFileExtension = ".md";
         public const string HtmlFileExtension = ".html";
-  
+        public const string JsonFileExtension = ".json";
+
         public const string PopularitySortOrder = "package-download-count";
         public const string RecentSortOrder = "package-created";
         public const string RelevanceSortOrder = "relevance";

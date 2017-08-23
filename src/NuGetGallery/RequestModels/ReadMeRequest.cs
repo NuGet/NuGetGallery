@@ -18,6 +18,5 @@ namespace NuGetGallery
         public virtual string ReadMeType { get; set; }
 
         public PackageEditReadMeState ReadMeState { get; set; }
-        public bool Overwriting { get; set; }
     }
 }
