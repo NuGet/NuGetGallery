@@ -27,11 +27,6 @@ namespace NuGetGallery.Configuration
         /// Gets the warning banner text
         /// </summary>
         string RedesignBanner { get; set; }
-        
-        /// <summary>
-        /// Gets a setting if cookie compliance shim should be enabled.
-        /// </summary>
-        bool CookieComplianceEnabled { get; set; }
 
         /// <summary>
         /// Gets a setting indicating if SSL is required for all operations once logged in.
