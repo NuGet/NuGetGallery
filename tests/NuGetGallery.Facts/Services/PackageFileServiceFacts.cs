@@ -433,14 +433,65 @@ namespace NuGetGallery
             }
         }
 
-        public class TheDownloadReadMeFileAsyncMethod
+        public class TheSaveReadMeFileAsyncMethod
         {
             [Fact]
-            public async Task WillDownloadReadMeAsync()
+            public async Task WhenPackageNull_ThrowsArgumentNull()
+            {
+                var service = CreateService();
+                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.SaveReadMeFileAsync(null, new MemoryStream()));
+            }
+
+            [Fact]
+            public async Task WhenStreamNull_ThrowsArgumentNull()
+            {
+                var service = CreateService();
+                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.SaveReadMeFileAsync(new Package(), null));
+            }
+
+            [Fact]
+            public async Task WhenValid_SavesReadMeFile()
             {
                 using (var stream = new MemoryStream(Encoding.UTF8.GetBytes("<p>Hello World!</p>")))
                 {
-                    //Arrange
+                    // Arrange
+                    var fileStorageSvc = new Mock<IFileStorageService>();
+                    fileStorageSvc.Setup(f => f.SaveFileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Stream>(), It.IsAny<bool>()))
+                        .Returns(Task.CompletedTask)
+                        .Verifiable();
+                    var service = CreateService(fileStorageSvc: fileStorageSvc);
+
+                    var package = new Package()
+                    {
+                        PackageRegistration = new PackageRegistration() { Id = "Foo", },
+                        Version = "1.0.0",
+                    };
+
+                    // Act
+                    await service.SaveReadMeFileAsync(package, stream);
+
+                    // Assert
+                    fileStorageSvc.Verify(f => f.SaveFileAsync(Constants.PackageReadMesFolderName, "pending/foo/1.0.0.md", stream, false),
+                        Times.Once);
+                }
+            }
+        }
+
+        public class TheDownloadReadMeFileAsyncMethod
+        {
+            [Fact]
+            public async Task WhenPackageNull_ThrowsArgumentNull()
+            {
+                var service = CreateService();
+                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.DownloadReadmeFileAsync(null));
+            }
+
+            [Fact]
+            public async Task WhenExists_ReturnsMarkdownStream()
+            {
+                using (var stream = new MemoryStream(Encoding.UTF8.GetBytes("<p>Hello World!</p>")))
+                {
+                    // Arrange
                     var fileStorageSvc = new Mock<IFileStorageService>();
                     var service = CreateService(fileStorageSvc: fileStorageSvc);
 
@@ -454,11 +505,11 @@ namespace NuGetGallery
                     };
                     fileStorageSvc.Setup(f => f.GetFileAsync(It.IsAny<string>(), It.IsAny<string>())).Returns(Task.FromResult((Stream)stream)).Verifiable();
 
-                    //Act
+                    // Act
                     var result = await service.DownloadReadmeFileAsync(package);
                     using (var reader = new StreamReader(result))
                     {
-                        //Assert
+                        // Assert
                         Assert.Equal("<p>Hello World!</p>", await reader.ReadToEndAsync());
                         fileStorageSvc.Verify(f => f.GetFileAsync(Constants.PackageReadMesFolderName, "active/foo/1.1.1.md"), Times.Once);
                     }
@@ -466,9 +517,9 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task FailedDownloadOfReadMeResultsInNullValue()
+            public async Task WhenDoesNotExist_ReturnsNull()
             {
-                //Arrange
+                // Arrange
                 var fileStorageSvc = new Mock<IFileStorageService>();
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
 
@@ -482,10 +533,10 @@ namespace NuGetGallery
                 };
                 fileStorageSvc.Setup(f => f.GetFileAsync(It.IsAny<string>(), It.IsAny<string>())).Returns(Task.FromResult((Stream)null)).Verifiable();
 
-                //Act
+                // Act
                 var result = await service.DownloadReadmeFileAsync(package);
 
-                //Assert
+                // Assert
                 Assert.Null(result);
                 fileStorageSvc.Verify(f => f.GetFileAsync(Constants.PackageReadMesFolderName, "active/foo/1.1.1.md"), Times.Once);
             }

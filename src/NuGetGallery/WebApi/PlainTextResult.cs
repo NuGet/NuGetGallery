@@ -34,7 +34,7 @@ namespace NuGetGallery.WebApi
         {
             var response = new HttpResponseMessage()
             {
-                Content = new StringContent(Content, Encoding.UTF8, "text/plain"),
+                Content = new StringContent(Content, Encoding.UTF8, Constants.TextContentType),
                 RequestMessage = _request,
                 StatusCode = this.StatusCode
             };

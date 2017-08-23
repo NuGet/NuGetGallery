@@ -131,7 +131,7 @@ namespace NuGetGallery
         public bool? HasReadMeInternal { get; set; }
 
         /// <summary>
-        /// Signifies whether or not the ReadMe exists by treating falses as nulls to avoid updating existing rows in the DB
+        /// Signifies whether or not the ReadMe exists. Falses stored as NULL in database to avoid updating existing rows.
         /// </summary>
         [NotMapped]
         public bool HasReadMe {
@@ -141,7 +141,7 @@ namespace NuGetGallery
             }
             set
             {
-                HasReadMeInternal = value ? (bool?)true : null; 
+                HasReadMeInternal = value ? (bool?)true : null;
             }
         }
 

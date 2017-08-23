@@ -11,12 +11,12 @@ namespace NuGetGallery.Helpers
 {
     internal static class ReadMeHelper
     {
-        private const string TypeUrl = "Url";
-        private const string TypeFile = "File";
-        private const string TypeWritten = "Written";
-        private const string UriHostRequirement = "raw.githubusercontent.com";
+        internal const string TypeUrl = "Url";
+        internal const string TypeFile = "File";
+        internal const string TypeWritten = "Written";
+        internal const int MaxFileSize = 40000;
         private const int UrlTimeout = 10000;
-        private const int MaxFileSize = 40000;
+        private const string UriHostRequirement = "raw.githubusercontent.com";
 
         private static Lazy<HtmlSanitizer> Sanitizer = new Lazy<HtmlSanitizer>(() => new HtmlSanitizer());
 
@@ -31,24 +31,17 @@ namespace NuGetGallery.Helpers
             {
                 case TypeUrl:
                     var readMeUrl = formData.ReadMeUrl;
-                    return !string.IsNullOrWhiteSpace(formData.ReadMeUrl) && Uri.IsWellFormedUriString(readMeUrl, UriKind.Absolute);
+                    return !string.IsNullOrWhiteSpace(readMeUrl) && Uri.IsWellFormedUriString(readMeUrl, UriKind.Absolute);
+
                 case TypeFile:
                     return formData.ReadMeFile != null;
+
                 case TypeWritten:
                     return !string.IsNullOrWhiteSpace(formData.ReadMeWritten);
-                default: return false;
-            }
-        }
 
-        /// <summary>
-        /// Takes in a string containing a markdown file and converts it to HTML.
-        /// </summary>
-        /// <param name="readMe">A string containing a markdown file's contents</param>
-        /// <returns>A string containing the HTML version of the markdown</returns>
-        private static string ConvertMarkDownToHtml(string readMe)
-        {
-            var html = CommonMarkConverter.Convert(readMe).Trim();
-            return Sanitizer.Value.Sanitize(html);
+                default:
+                    return false;
+            }
         }
 
         /// <summary>
@@ -60,8 +53,11 @@ namespace NuGetGallery.Helpers
         public static Stream GetReadMeHtmlStream(Stream readMeMarkdownStream)
         {
             var reader = new StreamReader(readMeMarkdownStream);
-            var readMeHtml = ConvertMarkDownToHtml(reader.ReadToEnd());
-            return GetStreamFromWritten(readMeHtml);
+
+            var html = CommonMarkConverter.Convert(reader.ReadToEnd());
+            var sanitizedHtml = Sanitizer.Value.Sanitize(html).Trim();
+
+            return GetStreamFromWritten(sanitizedHtml);
         }
 
         /// <summary>
@@ -120,7 +116,7 @@ namespace NuGetGallery.Helpers
         /// <summary>
         /// Converts a ReadMe's url to a file stream.
         /// </summary>
-        /// <param name="readMeUrl">A link to the raw ReadMe.md file</param>
+        /// <param name="readMeUrl">A link to the raw ReadMe markdown file</param>
         /// <returns>A stream to allow the file to be read</returns>
         private static Stream ReadMeUrlToStream(string readMeUrl)
         {

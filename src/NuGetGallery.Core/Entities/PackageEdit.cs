@@ -35,6 +35,29 @@ namespace NuGetGallery
         public int TriedCount { get; set; }
         public string LastError { get; set; }
 
+        /// <summary>
+        /// README state string as stored in the database. Callers should use the ReadMeState property for enum support.
+        /// <see cref="PackageEditReadMeState.Changed">, <see cref="PackageEditReadMeState.Deleted">, or null for <see cref="PackageEditReadMeState.Unchanged">.
+        /// </summary>
+        [Column("ReadMeState")]
+        public string ReadMeStateInternal { get; set; }
+
+        /// <summary>
+        /// README state for a pending package edit. Callers should use this property instead of ReadMeStateInternal.
+        /// </summary>
+        [NotMapped]
+        public PackageEditReadMeState ReadMeState
+        {
+            get
+            {
+                return GetReadMeStateString();
+            }
+            set
+            {
+                SetReadMeStateString(value);
+            }
+        }
+
         //////////////// The rest are same as on Package ////////////
 
         [StringLength(256)]
@@ -46,22 +69,6 @@ namespace NuGetGallery
         public string LicenseUrl { get; set; }
         public string ProjectUrl { get; set; }
         public string RepositoryUrl { get; set; }
-        /// <summary>
-        /// <see cref = "PackageEditReadMeState.Changed" >, <see cref = "PackageEditReadMeState.Deleted" >, or null for unchanged.
-        /// </summary>
-        [Column("ReadMeState")]
-        public string ReadMeStateInternal { get; set; }
-        [NotMapped]
-        public PackageEditReadMeState ReadMeState {
-            get
-            {
-                return GetReadMeStateString();
-            }
-            set
-            {
-                SetReadMeStateString(value);
-            }
-        }
         public string ReleaseNotes { get; set; }
         public bool RequiresLicenseAcceptance { get; set; }
         public string Summary { get; set; }

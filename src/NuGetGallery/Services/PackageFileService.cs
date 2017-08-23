@@ -64,16 +64,16 @@ namespace NuGetGallery
         /// Saves a ReadMe file asynchronously to the Pending ReadMe file folder.
         /// </summary>
         /// <param name="package">The package to which this readme belongs.</param>
-        /// <param name="readMe">The stream representing the readme's data.</param>
-        public Task SaveReadMeFileAsync(Package package, Stream readMe)
+        /// <param name="readMeStream">The stream representing the readme's data.</param>
+        public Task SaveReadMeFileAsync(Package package, Stream readMeStream)
         {
-            if (readMe == null)
+            if (readMeStream == null)
             {
-                throw new ArgumentNullException(nameof(readMe));
+                throw new ArgumentNullException(nameof(readMeStream));
             }
 
             var fileName = BuildFileName(package, Constants.ReadMeFileSavePathTemplatePending, Constants.MarkdownFileExtension);
-            return _fileStorageService.SaveFileAsync(Constants.PackageReadMesFolderName, fileName, readMe, overwrite:false);
+            return _fileStorageService.SaveFileAsync(Constants.PackageReadMesFolderName, fileName, readMeStream, overwrite:false);
         }
 
         public Task StorePackageFileInBackupLocationAsync(Package package, Stream packageFile)
@@ -112,6 +112,7 @@ namespace NuGetGallery
             {
                 throw new ArgumentNullException("Package cannot be null!");
             }
+
             var fileName = BuildFileName(package, Constants.ReadMeFileSavePathTemplateActive, Constants.MarkdownFileExtension);
             return  _fileStorageService.GetFileAsync(Constants.PackageReadMesFolderName, fileName);
         }
@@ -154,7 +155,7 @@ namespace NuGetGallery
             {
                 throw new ArgumentException(Strings.PackageIsMissingRequiredData, nameof(package));
             }
-            
+
             return BuildFileName(
                 package.PackageRegistration.Id,
                 string.IsNullOrEmpty(package.NormalizedVersion) ?
@@ -188,6 +189,6 @@ namespace NuGetGallery
                 version,
                 HttpServerUtility.UrlTokenEncode(hashBytes),
                 Constants.NuGetPackageFileExtension);
-        }   
+        }
     }
 }
