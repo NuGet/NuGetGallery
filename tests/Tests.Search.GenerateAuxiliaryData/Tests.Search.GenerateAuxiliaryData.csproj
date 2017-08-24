@@ -107,6 +107,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="RankingsExporterTests.cs" />
+    <Compile Include="VerifiedPackagesExporterTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

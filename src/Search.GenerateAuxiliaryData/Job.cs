@@ -31,6 +31,9 @@ namespace Search.GenerateAuxiliaryData
         private const string ScriptRankingsTotal = "SqlScripts.Rankings.sql";
         private const string OutputNameRankings = "rankings.v1.json";
 
+        private const string ScriptVerifiedPackages = "SqlScripts.VerifiedPackages.sql";
+        private const string OutputNameVerifiedPackages = "verifiedPackages.json";
+
         private List<SqlExporter> _sqlExportScriptsToRun;
         private CloudBlobContainer _destContainer;
 
@@ -52,6 +55,7 @@ namespace Search.GenerateAuxiliaryData
             _destContainer = destination.CreateCloudBlobClient().GetContainerReference(destinationContainerName);
 
             _sqlExportScriptsToRun = new List<SqlExporter> {
+                new VerifiedPackagesExporter(LoggerFactory.CreateLogger<VerifiedPackagesExporter>(), packageDatabaseConnString, _destContainer, ScriptVerifiedPackages, OutputNameVerifiedPackages),
                 new NestedJArrayExporter(LoggerFactory.CreateLogger<NestedJArrayExporter>(), packageDatabaseConnString, _destContainer, ScriptCuratedFeed, OutputNameCuratedFeed, Col0CuratedFeed, Col1CuratedFeed),
                 new NestedJArrayExporter(LoggerFactory.CreateLogger<NestedJArrayExporter>(), packageDatabaseConnString, _destContainer, ScriptOwners, OutputNameOwners, Col0Owners, Col1Owners),
                 new RankingsExporter(LoggerFactory.CreateLogger<RankingsExporter>(), statisticsDatabaseConnString, _destContainer, ScriptRankingsTotal, OutputNameRankings)
