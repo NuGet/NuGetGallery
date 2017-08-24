@@ -1,0 +1,144 @@
+﻿@model ReservedNamespaceViewModel
+@{
+    ViewBag.Title = "Index";
+}
+
+@ViewHelpers.AjaxAntiForgeryToken(Html)
+
+<section>
+    <article id="stage">
+        <div class="message" style="display: none" data-bind="text: message, visible: message"></div>
+        <h2>Reserve Namespace</h2>
+        <form>
+            <div class="form-horizontal">
+                <input type="text" placeholder="Search for a prefix" autocomplete="off" autofocus data-bind="value: prefixSearchQuery" />
+                <input type="button" value="Search Prefix" title="Search Prefix" data-bind="click: prefixSearch" />
+            </div>
+        </form><br />
+
+        <div data-bind="visible: prefixSearchResults().length > 0">
+            @using (Html.BeginForm())
+            {
+                <div>
+                    <h3>Existing Prefixes</h3>
+                    <div id="prefixResult" data-bind="foreach: prefixSearchResults">
+                        <div>
+                            <span>Namespace: </span>
+                            <span data-bind="text: $data.Value" />
+                        </div>
+                        <div>
+                            <span>IsSharedNamespace: </span>
+                            <input type="checkbox" data-bind="checked: $data.IsSharedNamespace" />
+                        </div>
+                        <div>
+                            <span>IsPrefix: </span>
+                            <input type="checkbox" data-bind="checked: $data.IsPrefix" />
+                        </div>
+                        <div>
+                            <span>Pattern: </span>
+                            <span data-bind="text: $parent.generatePattern($data.Value, $data.IsPrefix)" />
+                        </div>
+                        <input type="submit" value="Deallocate Namespace" title="Delete this namespace" data-bind="click: $parent.managePrefix.bind(this, $data, true)" />
+                    </div>
+                </div>
+            }
+        </div>
+        <div data-bind="visible: prefixSearchNotFoundResults().length > 0">
+            <h3>Non-matching Prefixes</h3>
+            <strong>The following prefixes were not found:</strong><br />
+            <div id="prefixNotFoundResult" data-bind="foreach: prefixSearchNotFoundResults">
+                <div>
+                    <span>Prefix: </span>
+                    <span data-bind="text: $data.Value" />
+                </div>
+                <div>
+                    <span>IsSharedNamespace: </span>
+                    <input type="checkbox" data-bind="checked: $data.IsSharedNamespace" />
+                </div>
+                <div>
+                    <span>IsPrefix: </span>
+                    <input type="checkbox" data-bind="checked: $data.IsPrefix" />
+                </div>
+                <div>
+                    <span>Pattern: </span>
+                    <span data-bind="text: $parent.generatePattern($data.Value, $data.IsPrefix)" />
+                </div>
+                <input type="submit" value="Reserve Prefix" title="Reserve this namespace" data-bind="click: $parent.managePrefix.bind(this, $data, false)" />
+            </div>
+        </div>
+    </article>
+
+</section>
+
+@section BottomScripts {
+    <script src="@Url.Content("~/Scripts/knockout-2.2.1.js")"></script>
+    <script>
+        $(document).ready(function () {
+            var viewModel = function () {
+                var $self = this;
+
+                this.message = ko.observable('');
+                this.prefixSearchQuery = ko.observable('');
+
+                this.prefixSearchResults = ko.observableArray([]);
+                this.prefixSearchNotFoundResults = ko.observableArray([]);
+
+                this.prefixSearch = function () {
+                    $self.message("");
+                    $.ajax({
+                        url: '@Url.Action("SearchPrefix", "ReservedNamespace", new {area = "Admin"})?query=' + encodeURIComponent($self.prefixSearchQuery()),
+                        cache: false,
+                        dataType: 'json',
+                        success: function (data) {
+                            $self.prefixSearchResults.removeAll();
+                            $self.prefixSearchNotFoundResults.removeAll();
+
+                            $self.prefixSearchResults(data.FoundPrefixes);
+                            $self.prefixSearchNotFoundResults(data.NotFoundPrefixes);
+                        }
+                    })
+                    .error(function(jqXhr, textStatus, errorThrown) {
+                        alert("Error: " + errorThrown);
+                    });
+                };
+
+                this.managePrefix = function (data, remove) {
+                    console.log(data);
+                    var prefixToAdd = data;
+                    var url = remove
+                        ? '@Url.Action("RemovePrefix", "ReservedNamespace", new { area = "Admin" })'
+                        : '@Url.Action("AddPrefix", "ReservedNamespace", new { area = "Admin" })'
+                    $self.message("");
+                    $.ajax({
+                        url: url,
+                        cache: false,
+                        dataType: 'json',
+                        type: 'POST',
+                        data: JSON.stringify(prefixToAdd),
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (data) {
+                            console.log("Added prefix");
+                        }
+                    })
+                    .error(function (jqXhr, textStatus, errorThrown) {
+                        alert("Error: " + errorThrown);
+                    });
+                };
+
+                this.generateValue = function (user, subscription) {
+                    return JSON.stringify({ "u": user.Username, "g": subscription, "v": user.Selected[subscription]() })
+                };
+
+                this.generateUserUrl = function (user) {
+                    return '/profiles/' + user.Username;
+                };
+
+                this.generatePattern = function (value, isPrefix) {
+                    return isPrefix ? value + "*" : value;
+                };
+            };
+
+            ko.applyBindings(new viewModel(), $('#stage').get(0));
+        });
+    </script>
+}
