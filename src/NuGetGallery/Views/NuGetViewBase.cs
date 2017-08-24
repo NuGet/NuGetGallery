@@ -4,12 +4,14 @@
 using System;
 using System.Web.Mvc;
 using NuGetGallery.Configuration;
+using NuGetGallery.Cookies;
 
 namespace NuGetGallery.Views
 {
     public abstract class NuGetViewBase : WebViewPage
     {
         private readonly Lazy<NuGetContext> _nugetContext;
+        private readonly Lazy<CookieConsentMessage> _cookieConsentMessage;
 
         public NuGetContext NuGetContext
         {
@@ -26,9 +28,15 @@ namespace NuGetGallery.Views
             get { return NuGetContext.CurrentUser; }
         }
 
+        public CookieConsentMessage CookieConsentMessage
+        {
+            get { return _cookieConsentMessage.Value; }
+        }
+
         protected NuGetViewBase()
         {
             _nugetContext = new Lazy<NuGetContext>(GetNuGetContextThunk(this));
+            _cookieConsentMessage = new Lazy<CookieConsentMessage>(() => NuGetContext.GetCookieConsentMessage(Request));
         }
 
         internal static Func<NuGetContext> GetNuGetContextThunk(WebViewPage self)
@@ -48,6 +56,7 @@ namespace NuGetGallery.Views
     public abstract class NuGetViewBase<T> : WebViewPage<T>
     {
         private readonly Lazy<NuGetContext> _nugetContext;
+        private readonly Lazy<CookieConsentMessage> _cookieConsentMessage;
 
         public NuGetContext NuGetContext
         {
@@ -64,9 +73,15 @@ namespace NuGetGallery.Views
             get { return NuGetContext.CurrentUser; }
         }
 
+        public CookieConsentMessage CookieConsentMessage
+        {
+            get { return _cookieConsentMessage.Value; }
+        }
+
         protected NuGetViewBase()
         {
             _nugetContext = new Lazy<NuGetContext>(NuGetViewBase.GetNuGetContextThunk(this));
+            _cookieConsentMessage = new Lazy<CookieConsentMessage>(() => NuGetContext.GetCookieConsentMessage(Request));
         }
     }
 }

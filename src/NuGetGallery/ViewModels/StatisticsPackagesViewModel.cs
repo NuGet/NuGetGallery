@@ -99,13 +99,13 @@ namespace NuGetGallery
                 case WeekFormats.YearWeekNumber:
                     return string.Format(CultureInfo.CurrentCulture, "{0} wk {1}", year, weekOfYear);
                 case WeekFormats.StartOnly:
-                    outputStringTemplate = "{0:MM/dd/yy}";
+                    outputStringTemplate = "{0:d}";
                     break;
                 case WeekFormats.EndOnly:
-                    outputStringTemplate = "{1:MM/dd/yy}";
+                    outputStringTemplate = "{1:d}";
                     break;
                 case WeekFormats.FullDate:
-                    outputStringTemplate = "{0:MM/dd/yy} - {1:MM/dd/yy}";
+                    outputStringTemplate = "{0:d} - {1:d}";
                     break;
                 default:
                     break;

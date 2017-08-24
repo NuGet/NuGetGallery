@@ -3,6 +3,22 @@
     border: 0;
   }
 
+  h1 {
+    margin-bottom: 0;
+  }
+
+  .package-title {
+    margin-bottom: 24px;
+
+    div {
+      margin-top: 2px;
+    }
+  }
+
+  .package-details-main {
+    .break-word;
+  }
+
   .package-details-info {
     .ms-Icon-ul {
       li {
@@ -57,6 +73,8 @@
       background-color: @panel-footer-bg;
       border: 0;
       color: #fff;
+      font-weight: 600;
+      text-decoration: underline;
     }
 
     .tab-pane {
@@ -73,7 +91,6 @@
         padding: 0 10px 8px 10px;
         width: 100%;
         max-width: 1px;
-        word-wrap: break-word;
         line-height: 1.5;
         // Add a border with the same color as the background to support visual callout
         // in high contrast mode (since borders are shown).

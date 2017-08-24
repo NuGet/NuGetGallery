@@ -28,6 +28,16 @@
         @ViewHelpers.InstrumentationScript()
     </head>
     <body class="s-noclickonce">
+        @if (CookieConsentMessage != null)
+        {
+            <div id="service-alert">
+                <div class="banner-cookies" role="alert">
+                    <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
+                    @CookieConsentMessage.Message
+                    <a href="@CookieConsentMessage.MoreInfoUrl" aria-label="@CookieConsentMessage.MoreInfoAriaLabel">@CookieConsentMessage.MoreInfoText</a>
+                </div>
+            </div>
+        }
         @if (!string.IsNullOrWhiteSpace(Config.Current.WarningBanner))
         {
             <div id="service-alert">
@@ -77,5 +87,13 @@
         </div>
         @Scripts.Render("~/Scripts/all")
         @RenderSection("BottomScripts", required: false)
+
+        @if (CookieConsentMessage != null)
+        {
+            foreach (var cookieScript in CookieConsentMessage.Javascripts)
+            {
+                <script src="@cookieScript" type="text/javascript"></script>
+            }
+        }
     </body>
 </html>

@@ -19,9 +19,14 @@ body h3 {
 .footer {
   display: table-row;
   height: 1px;
-  font-size: .70em;
+  font-size: 1em;
   color: #e3ebf1;
   background-color: #002440;
+}
+.footer .footer-heading {
+  display: block;
+  margin-bottom: 11px;
+  font-size: 20px;
 }
 .footer .container {
   margin-top: 50px;
@@ -29,6 +34,9 @@ body h3 {
 }
 .footer a {
   color: #e3ebf1;
+}
+.footer .footer-release-info {
+  font-size: .85em;
 }
 @media (min-width: 992px) {
   .footer .footer-dotnet-foundation-logo {
@@ -82,7 +90,8 @@ body h3 {
 .btn-search {
   height: 36px;
 }
-.icon-link .ms-Icon {
+.icon-link .ms-Icon,
+.icon-text .ms-Icon {
   position: relative;
   top: 2px;
 }
@@ -204,16 +213,20 @@ img.package-icon {
 }
 .package-list {
   padding-left: 0;
-  margin-top: 10px;
+  margin-top: 8px;
+  margin-bottom: 8px;
   margin-left: -5px;
   line-height: 20px;
+  color: #666;
+}
+.package-list a {
   color: #666;
 }
 .package-list li {
   display: list-item;
   list-style: none;
 }
-@media (min-width: 480px) {
+@media (min-width: 768px) {
   .package-list li {
     display: inline-block;
   }
@@ -225,12 +238,23 @@ img.package-icon {
     border-left-style: solid;
   }
 }
+.package-title-text {
+  margin-bottom: 0;
+}
 .icon-bar {
   border: 1px solid #fff;
 }
 .disabled {
   pointer-events: none;
   opacity: .75;
+}
+.radio .label-sibling,
+.checkbox .label-sibling {
+  margin-left: 20px;
+}
+.break-word {
+  word-break: break-all;
+  word-break: break-word;
 }
 #edit-metadata-form-container .loading:after {
   display: inline-block;
@@ -289,19 +313,24 @@ img.package-icon {
   svg text {
     fill: WindowText;
   }
-}
-.list-packages {
-  border-top: 1px solid #dbdbdb;
+  .popover .arrow {
+    display: none;
+  }
+  .dropdown-menu .divider {
+    border-bottom: 1px solid windowText;
+  }
 }
 .list-packages .package {
-  padding-top: 20px;
-  padding-bottom: 20px;
+  padding-top: 15px;
+  padding-bottom: 15px;
   font-size: 15px;
-  border-bottom: 1px solid #dbdbdb;
 }
 .list-packages .package .package-header .package-title {
-  font-size: 34px;
+  font-size: 24px;
   font-weight: 300;
+  line-height: .9;
+  word-break: break-all;
+  word-break: break-word;
 }
 .list-packages .package .package-header .package-by {
   margin-left: 10px;
@@ -313,18 +342,54 @@ img.package-icon {
     margin-left: 0;
   }
 }
+.list-packages .package .package-title {
+  margin-top: 2px;
+  font-size: 16px;
+}
 .list-packages .package .manage-package {
-  margin-top: 20px;
+  margin-top: 8px;
   margin-bottom: 0;
 }
 .list-packages .package .package-details {
-  margin-top: 10px;
+  margin-top: 8px;
   line-height: 20px;
   color: #000;
+  word-break: break-all;
+  word-break: break-word;
 }
-.list-packages .package .package-tags {
-  margin-top: 10px;
-  margin-left: -2px;
+@media (min-width: 768px) {
+  .list-packages .package .package-list {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .list-packages .package .package-list li {
+    display: inline;
+  }
+}
+.pager {
+  float: right;
+  margin-top: 75px;
+  margin-bottom: 0;
+}
+.user-package-list .manage-package-listing .package-icon {
+  min-width: 20px;
+  max-height: 2em;
+}
+.user-package-list .manage-package-listing .align-middle {
+  vertical-align: middle;
+}
+.user-package-list .manage-package-listing .package-id {
+  word-break: break-all;
+  word-break: break-word;
+}
+@media (min-width: 768px) {
+  .user-package-list .manage-package-listing .package-controls {
+    white-space: nowrap;
+  }
+}
+.user-package-list .table {
+  border-bottom: 1px solid #ddd;
 }
 .page-about .contributors .contributor {
   padding: 5px;
@@ -349,12 +414,11 @@ img.package-icon {
     text-align: right;
   }
 }
-.page-account-settings .form-section-data {
-  margin-top: 40px;
-}
 @media (min-width: 768px) {
   .page-account-settings .form-section-data {
     float: right;
+    margin-top: 40px;
+    line-height: 3;
     text-align: right;
   }
 }
@@ -519,6 +583,19 @@ img.package-icon {
 .page-package-details .no-border {
   border: 0;
 }
+.page-package-details h1 {
+  margin-bottom: 0;
+}
+.page-package-details .package-title {
+  margin-bottom: 24px;
+}
+.page-package-details .package-title div {
+  margin-top: 2px;
+}
+.page-package-details .package-details-main {
+  word-break: break-all;
+  word-break: break-word;
+}
 .page-package-details .package-details-info .ms-Icon-ul li {
   margin-bottom: 15px;
 }
@@ -554,7 +631,9 @@ img.package-icon {
   border: 0;
 }
 .page-package-details .install-tabs .nav-tabs > li.active > a {
+  font-weight: 600;
   color: #fff;
+  text-decoration: underline;
   background-color: #002440;
   border: 0;
 }
@@ -570,7 +649,6 @@ img.package-icon {
   font-family: Consolas, Menlo, Monaco, "Courier New", monospace;
   line-height: 1.5;
   color: #fff;
-  word-wrap: break-word;
   background-color: #002440;
   border-color: #002440;
   border-style: solid;
@@ -625,6 +703,11 @@ img.package-icon {
 .page-forgot-password .forgot-form {
   margin-top: 20px;
 }
+.page-home .jumbotron {
+  padding-top: 5px;
+  padding-bottom: 20px;
+  margin-bottom: 0;
+}
 .page-home .jumbotron h1 {
   margin: 32px;
 }
@@ -649,10 +732,6 @@ img.package-icon {
   .page-home .circuit-board-label {
     border: 1px solid windowText;
   }
-}
-.page-home .jumbotron {
-  padding-bottom: 20px;
-  margin-bottom: 0;
 }
 .page-home .circuit-board {
   position: relative;
@@ -706,10 +785,25 @@ img.package-icon {
 .page-list-packages h1 {
   margin-bottom: 33px;
 }
-.page-list-packages .pager {
-  float: right;
-  margin-top: 75px;
-  margin-bottom: 0;
+.page-list-packages .row-heading .cell-heading h1 {
+  word-break: break-all;
+  word-break: break-word;
+}
+@media (min-width: 992px) {
+  .page-list-packages .row-heading {
+    display: table;
+    width: 100%;
+  }
+  .page-list-packages .row-heading .cell-heading {
+    display: table-cell;
+    text-align: left;
+  }
+  .page-list-packages .row-heading .cell-controls {
+    display: table-cell;
+    margin-top: 42px;
+    text-align: right;
+    white-space: nowrap;
+  }
 }
 .page-manage-curated-feed .package-owners .owner {
   margin-bottom: 10px;
@@ -777,9 +871,6 @@ img.package-icon {
   font-size: 14px;
   color: #068918;
 }
-.page-profile .pager {
-  float: right;
-}
 .page-profile .profile-details img {
   margin-top: 50px;
 }
@@ -796,9 +887,6 @@ img.package-icon {
 }
 .page-profile .profile-details .statistics .statistic .description {
   font-size: 24px;
-}
-.page-report-abuse .report-form {
-  margin-top: 40px;
 }
 .page-report-abuse .report-form #alreadycontactedowner-label {
   display: inline;

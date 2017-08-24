@@ -6,7 +6,11 @@
 }
 
 <section role="main" class="container main-container page-manage-packages page-package-details">
-    <h1>Manage Packages</h1>
+    <div class="row">
+        <div class="col-xs-12">
+            <h1>Manage Packages</h1>
+        </div>
+    </div>
     @{
         var listedPackages = Model.Packages.Where(p => p.Listed);
         var unlistedPackages = Model.Packages.Where(p => !p.Listed);

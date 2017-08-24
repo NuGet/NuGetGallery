@@ -643,6 +643,7 @@
     <Compile Include="App_Start\NuGetODataV1FeedConfig.cs" />
     <Compile Include="App_Start\NuGetODataConfig.cs" />
     <Compile Include="App_Start\RuntimeServiceProvider.cs" />
+    <Compile Include="App_Start\StorageDependent.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="App_Start\AutofacConfig.cs" />
     <Compile Include="Areas\Admin\Controllers\DeleteController.cs" />
@@ -694,6 +695,7 @@
     <Compile Include="Authentication\NuGetPackagePattern.cs" />
     <Compile Include="Authentication\PasswordAuthenticationResult.cs" />
     <Compile Include="Authentication\NuGetScopes.cs" />
+    <Compile Include="Authentication\PasswordResetResult.cs" />
     <Compile Include="Authentication\Providers\AuthenticatorT.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticator.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticatorConfiguration.cs" />
@@ -745,6 +747,7 @@
     <Compile Include="Filters\ApiScopeRequiredAttribute.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Helpers\GravatarHelper.cs" />
+    <Compile Include="Helpers\RegexEx.cs" />
     <Compile Include="Infrastructure\HttpStatusCodeWithServerWarningResult.cs" />
     <Compile Include="Migrations\201704191802404_AddIndexPackageRegistrationKeySemVer.cs" />
     <Compile Include="Migrations\201704191802404_AddIndexPackageRegistrationKeySemVer.Designer.cs">
@@ -781,6 +784,9 @@
     <Compile Include="Migrations\201707131923337_PrefixReservation.cs" />
     <Compile Include="Migrations\201707131923337_PrefixReservation.Designer.cs">
       <DependentUpon>201707131923337_PrefixReservation.cs</DependentUpon>
+    <Compile Include="Migrations\201706262349176_AddRepositoryURL_ReadMe.cs" />
+    <Compile Include="Migrations\201706262349176_AddRepositoryURL_ReadMe.Designer.cs">
+      <DependentUpon>201706262349176_AddRepositoryURL_ReadMe.cs</DependentUpon>
     </Compile>
     <Compile Include="Security\RequireSecurePushForCoOwnersPolicy.cs" />
     <Compile Include="Security\SecurePushSubscription.cs" />
@@ -922,8 +928,8 @@
     <Compile Include="Infrastructure\MessageQueue.cs" />
     <Compile Include="Diagnostics\NullDiagnosticsSource.cs" />
     <Compile Include="Diagnostics\TraceDiagnosticsSource.cs" />
-    <Compile Include="Diagnostics\IDiagnosticsService.cs" />
-    <Compile Include="Diagnostics\IDiagnosticsSource.cs" />
+    <Compile Include="Diagnostics\DiagnosticsServiceExtensions.cs" />
+    <Compile Include="Diagnostics\DiagnosticsSourceExtensions.cs" />
     <Compile Include="Configuration\StorageType.cs" />
     <Content Include="bin\NuGetGallery.dll.config">
       <SubType>Designer</SubType>
@@ -1495,6 +1501,7 @@
     <Compile Include="ViewModels\ManagePackagesListViewModel.cs" />
     <Compile Include="ViewModels\ApiKeyListViewModel.cs" />
     <Compile Include="ViewModels\ApiKeyViewModel.cs" />
+    <Compile Include="ViewModels\PackageHeadingModel.cs" />
     <Compile Include="ViewModels\ReportMyPackageViewModel.cs" />
     <Compile Include="ViewModels\ScopeViewModel.cs" />
     <Compile Include="ViewModels\PackageListSearchViewModel.cs" />
@@ -1774,6 +1781,8 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201707131923337_PrefixReservation.resx">
       <DependentUpon>201707131923337_PrefixReservation.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201706262349176_AddRepositoryURL_ReadMe.resx">
+      <DependentUpon>201706262349176_AddRepositoryURL_ReadMe.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
@@ -1827,6 +1836,7 @@
     <Content Include="Views\Authentication\_Register.cshtml" />
     <Content Include="Views\Users\_UserPackagesList.cshtml" />
     <Content Include="Views\Users\_ConfirmationResendForm.cshtml" />
+    <Content Include="Views\Shared\_PackageHeading.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />

@@ -329,8 +329,8 @@ The {1} Team</value>
   <data name="UserKeyIsRequired" xml:space="preserve">
     <value>A user key is required.</value>
   </data>
-  <data name="CouldNotFindAnyoneWithThatEmail" xml:space="preserve">
-    <value>Could not find anyone with that email.</value>
+  <data name="CouldNotFindAnyoneWithThatUsernameOrEmail" xml:space="preserve">
+    <value>Could not find anyone with that username or email.</value>
   </data>
   <data name="InvalidOrExpiredPasswordResetToken" xml:space="preserve">
     <value>The Password Reset Token is not valid or expired.</value>

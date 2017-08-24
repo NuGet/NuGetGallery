@@ -55,9 +55,9 @@ namespace NuGetGallery
             return Json(
                 new
                 {
-                    Downloads = stats.Downloads.ToNuGetNumberString(),
-                    UniquePackages = stats.UniquePackages.ToNuGetNumberString(),
-                    TotalPackages = stats.TotalPackages.ToNuGetNumberString(),
+                    Downloads = stats.Downloads,
+                    UniquePackages = stats.UniquePackages,
+                    TotalPackages = stats.TotalPackages,
                     LastUpdatedDateUtc = stats.LastUpdateDateUtc
                 },
                 JsonRequestBehavior.AllowGet);

@@ -7,5 +7,6 @@ namespace NuGetGallery
         [AllowHtml]
         public string Q { get; set; }
         public int Page { get; set; }
+        public bool? Prerel { get; set; }
     }
 }

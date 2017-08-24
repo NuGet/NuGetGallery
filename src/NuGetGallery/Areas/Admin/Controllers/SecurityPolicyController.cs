@@ -71,6 +71,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<JsonResult> Update(List<string> subscriptionsJson)
         {
             var subscribeRequests =  subscriptionsJson?.Select(JsonConvert.DeserializeObject<JObject>)

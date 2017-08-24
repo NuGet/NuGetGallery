@@ -1,5 +1,13 @@
 ﻿// Global utility script for NuGetGallery
 /// <reference path="jquery-1.11.0.js" />
+
+// Shared function for adding an anti-forgery token defined by ViewHelpers.AjaxAntiForgeryToken to an ajax request
+function addAjaxAntiForgeryToken(data) {
+    var $field = $("#AntiForgeryForm input[name=__RequestVerificationToken]");
+    data["__RequestVerificationToken"] = $field.val();
+    return data;
+}
+
 (function (window, $, undefined) {
     $(function () {
         // Export an object with global config data

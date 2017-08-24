@@ -452,12 +452,12 @@ namespace NuGetGallery
 
                     var searchFilter = SearchAdaptor.GetSearchFilter(
                             q: "id:\"" + normalizedRegistrationId + "\" AND version:\"" + package.Version + "\"",
-                            page: 1,
-                            sortOrder: null,
-                            context: SearchFilter.ODataSearchContext,
-                            semVerLevel: SemVerLevelKey.SemVerLevel2);
-
-                    searchFilter.IncludePrerelease = true;
+                        page: 1,
+                        includePrerelease: true,
+                        sortOrder: null,
+                        context: SearchFilter.ODataSearchContext,
+                        semVerLevel: SemVerLevelKey.SemVerLevel2);
+                    
                     searchFilter.IncludeAllVersions = true;
 
                     var results = await externalSearchService.RawSearch(searchFilter);
@@ -507,6 +507,7 @@ namespace NuGetGallery
         {
             var page = searchAndListModel.Page;
             var q = searchAndListModel.Q;
+            var includePrerelease = searchAndListModel.Prerel ?? true;
 
             if (page < 1)
             {
@@ -528,7 +529,7 @@ namespace NuGetGallery
             SearchResults results;
 
             // fetch most common query from cache to relieve load on the search service
-            if (string.IsNullOrEmpty(q) && page == 1)
+            if (string.IsNullOrEmpty(q) && page == 1 && includePrerelease)
             {
                 var cachedResults = HttpContext.Cache.Get("DefaultSearchResults");
                 if (cachedResults == null)
@@ -536,6 +537,7 @@ namespace NuGetGallery
                     var searchFilter = SearchAdaptor.GetSearchFilter(
                         q,
                         page,
+                        includePrerelease: includePrerelease,
                         sortOrder: null,
                         context: SearchFilter.UISearchContext,
                         semVerLevel: SemVerLevelKey.SemVerLevel2);
@@ -562,6 +564,7 @@ namespace NuGetGallery
                 var searchFilter = SearchAdaptor.GetSearchFilter(
                     q,
                     page,
+                    includePrerelease: includePrerelease,
                     sortOrder: null,
                     context: SearchFilter.UISearchContext,
                     semVerLevel: SemVerLevelKey.SemVerLevel2);
@@ -583,7 +586,8 @@ namespace NuGetGallery
                 totalHits,
                 page - 1,
                 Constants.DefaultPackageListPageSize,
-                Url);
+                Url,
+                includePrerelease);
 
             ViewBag.SearchTerm = q;
 

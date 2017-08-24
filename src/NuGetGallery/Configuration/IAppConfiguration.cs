@@ -46,9 +46,39 @@ namespace NuGetGallery.Configuration
         string[] ForceSslExclusion { get; set; }
 
         /// <summary>
-        /// Gets the connection string to use when connecting to azure storage
+        /// The Azure Storage connection string used for auditing.
         /// </summary>
-        string AzureStorageConnectionString { get; set; }
+        string AzureStorage_Auditing_ConnectionString { get; set; }
+        
+        /// <summary>
+        /// The Azure Storage connection string used for static content.
+        /// </summary>
+        string AzureStorage_Content_ConnectionString { get; set; }
+
+        /// <summary>
+        /// The Azure Storage connection string used for Elmah error logs.
+        /// </summary>
+        string AzureStorage_Errors_ConnectionString { get; set; }
+
+        /// <summary>
+        /// The Azure Storage connection string used for downloading nuget.exe.
+        /// </summary>
+        string AzureStorage_NuGetExe_ConnectionString { get; set; }
+
+        /// <summary>
+        /// The Azure Storage connection string used for packages, after upload.
+        /// </summary>
+        string AzureStorage_Packages_ConnectionString { get; set; }
+
+        /// <summary>
+        /// The Azure Storage connection string used for statistics.
+        /// </summary>
+        string AzureStorage_Statistics_ConnectionString { get; set; }
+
+        /// <summary>
+        /// The Azure Storage connection string used for package uploads, before publishing.
+        /// </summary>
+        string AzureStorage_Uploads_ConnectionString { get; set; }
 
         /// <summary>
         /// Gets a setting if Read Access Geo Redundant is enabled in azure storage

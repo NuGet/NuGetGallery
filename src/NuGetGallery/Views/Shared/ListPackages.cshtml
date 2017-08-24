@@ -7,33 +7,46 @@
 }
 
 <section role="main" class="container main-container page-list-packages">
-    <h1>
-        @if (String.IsNullOrEmpty(Model.SearchTerm))
-        {
-            if (Model.TotalCount == 1)
-            {
-                <text>There is 1 package</text>
-            }
-            else
-            {
-                <text>There are @Model.TotalCount packages</text>
-            }
-        }
-        else
-        {
-            if (Model.TotalCount == 1)
-            {
-                <text>1 package </text>
-            }
-            else
-            {
-                <text>@Model.TotalCount.ToNuGetNumberString() packages </text>
-            }
+    <div class="row-heading clearfix">
+        <div class="cell-heading">
+            <h1>
+                @if (String.IsNullOrEmpty(Model.SearchTerm))
+                {
+                    if (Model.TotalCount == 1)
+                    {
+                        <text>There is 1 package</text>
+                    }
+                    else
+                    {
+                        <text>There are @Model.TotalCount.ToNuGetNumberString() packages</text>
+                    }
+                }
+                else
+                {
+                    if (Model.TotalCount == 1)
+                    {
+                        <text>1 package </text>
+                    }
+                    else
+                    {
+                        <text>@Model.TotalCount.ToNuGetNumberString() packages </text>
+                    }
 
-            <text>returned for @Model.SearchTerm</text>
-        }
+                    <text>returned for @Html.BreakWord(Model.SearchTerm)</text>
+                }
 
-    </h1>
+            </h1>
+        </div>
+        <div class="cell-controls">
+            <form action="@Url.PackageList()" method="get">
+                @Html.Hidden("q", Model.SearchTerm, new { id = "search-term" })
+                <label>
+                    <input type="checkbox" id="include-prerelease" @(Model.IncludePrerelease ? "checked" : string.Empty) />
+                    Include prerelease
+                </label>
+            </form>
+        </div>
+    </div>
 
     <div class="list-packages" role="list">
         @foreach (var package in Model.Items)
@@ -42,5 +55,36 @@
         }
     </div>
 
-    @ViewHelpers.PreviousNextPager(Model.Pager)
+    <div class="row">
+        <div class="col-xs-12 clearfix">
+            @ViewHelpers.PreviousNextPager(Model.Pager)
+        </div>
+    </div>
 </section>
+
+@section bottomScripts {
+    <script type="text/javascript">
+        $(function () {
+            $("#include-prerelease").on('change', function () {
+                var parameters = {};
+                var q = $('#search-term').val();
+                if (q) {
+                    parameters.q = q;
+                }
+                if (!$("#include-prerelease").is(':checked')) {
+                    parameters.prerel = 'false'
+                }
+                var queryString = $.param(parameters);
+                var url = [
+                    location.protocol,
+                    '//',
+                    location.host,
+                    location.pathname,
+                    queryString ? '?' : '',
+                    queryString
+                ].join('');
+                window.location.href = url;
+            })
+        });
+    </script>
+}

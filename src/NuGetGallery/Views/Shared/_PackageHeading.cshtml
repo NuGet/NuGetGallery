@@ -1,0 +1,12 @@
+﻿@model PackageHeadingModel
+<h1 class="text-center package-title-text">@Model.PageHeading</h1>
+<div class="text-center ms-font-xxl">
+    @if (Model.LinkIdOnly)
+    {
+        <a href="@Url.Package(Model.Id)">@Model.PackageDisplay</a>
+    }
+    else
+    {
+        <a href="@Url.Package(Model.Id, Model.Version)">@Model.PackageDisplay</a>
+    }
+</div>

@@ -1,18 +1,22 @@
 ﻿@model DeletePackageViewModel
 @{
-    ViewBag.Title = "Delete Package";
+    ViewBag.Title = "Manage Package Listing for " + Model.Id;
     ViewBag.Tab = "Packages";
     ViewBag.MdPageColumns = Constants.ColumnsFormMd;
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
-<section class="container main-container page-delete-package">
+<section role="main" class="container main-container page-delete-package">
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
-            <h1 class="text-center">Manage Package Listing</h1>
-            <div class="text-center ms-font-xxl">
-                <a href="@Url.Package(Model.Id, Model.Version)">@Model.Title.Abbreviate(40)</a>
-            </div>
+            @Html.Partial("_PackageHeading", new PackageHeadingModel
+                   {
+                       PageHeading = "Manage Package Listing",
+                       PackageDisplay = Model.Id,
+                       Id = Model.Id,
+                       Version = Model.Version,
+                       LinkIdOnly = false
+                   })
 
             <h2>
                 <a href="#" role="button" data-toggle="collapse" data-target="#select-version" aria-expanded="true" aria-controls="select-version" id="show-select-version">
@@ -55,9 +59,9 @@
                 @if (!User.IsAdministrator())
                 {
                     @ViewHelpers.AlertInfo(
-                        @<text>
-                            Note - Permanently deleting packages is not supported, but you can control how they are listed.
-                        </text>
+                @<text>
+                    Note - Permanently deleting packages is not supported, but you can control how they are listed.
+                </text>
                     )
                     <h3>Why can't I delete my package?</h3>
                     <p>
@@ -84,7 +88,7 @@
                     @Html.Hidden("version", @Model.Version)
                     <div class="form-group @Html.HasErrorFor(package => package.Listed)">
                         @Html.ShowCheckboxFor(package => package.Listed)
-                        @Html.ShowLabelFor(package => package.Listed, "List " + Model.Title + " " + Model.Version + " in search results.")
+                        @Html.ShowLabelFor(package => package.Listed, "List " + Model.Id + " " + Model.Version + " in search results.")
                         @Html.ShowValidationMessagesFor(package => package.Listed)
 
                         <p>Unlisted packages cannot be installed directly and do not show up in search results.</p>
@@ -107,17 +111,21 @@
                 </h2>
                 <div class="list-unstyled panel-collapse collapse" id="delete-package">
                     @ViewHelpers.AlertDanger(
-                        @<text>
-                            <strong>Deleting this package will make it unavailable for download and package restore.</strong><br />
-                            This package version has been downloaded @Model.DownloadCount times (@Model.TotalDownloadCount downloads in total).
-                            Deleting it may break a large number of development teams.
-                            If the package should be removed from search results but still be available for restore, consider unlisting the package instead.
-                        </text>
+                @<text>
+                    <strong>Deleting this package will make it unavailable for download and package restore.</strong><br />
+                    This package version has been downloaded @Model.DownloadCount times (@Model.TotalDownloadCount downloads in total).
+                    Deleting it may break a large number of development teams.
+                    If the package should be removed from search results but still be available for restore, consider unlisting the package instead.
+                </text>
                     )
 
                     @using (Html.BeginForm("Delete", "Packages", FormMethod.Post, new { id = "delete-form" }))
                     {
                         @Html.AntiForgeryToken()
+                        foreach (var p in Model.DeletePackagesRequest.Packages)
+                        {
+                            <input type="hidden" name="DeletePackagesRequest.Packages[]" value="@p" />
+                        }
 
                         <div id="form-field-reason" class="form-group @Html.HasErrorFor(m => m.DeletePackagesRequest.Reason)">
                             @Html.ShowLabelFor(m => m.DeletePackagesRequest.Reason)

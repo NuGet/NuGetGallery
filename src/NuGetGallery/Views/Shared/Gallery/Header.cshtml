@@ -22,6 +22,21 @@
     </div>
 }
 
+@if (CookieConsentMessage != null)
+{
+    <div class="container-fluid banner banner-notice text-center">
+        <div class="row">
+            <div class="col-sm-12" role="alert">
+                <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
+                <span>
+                    @CookieConsentMessage.Message
+                    <a href="@CookieConsentMessage.MoreInfoUrl" aria-label="@CookieConsentMessage.MoreInfoAriaLabel">@CookieConsentMessage.MoreInfoText</a>
+                </span>
+            </div>
+        </div>
+    </div>
+}
+
 @helper DisplayNavigationItem(string tab, string url, bool bold = false, string title = null)
 {
     <li class="@(ViewBag.Tab == tab ? "active" : string.Empty)"
@@ -51,9 +66,9 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <a href="@Url.Home()"><img class="navbar-logo" width="94" height="28" alt="NuGet home"
-                                               src="~/Content/gallery/img/logo.svg"
-                                               @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/logo-94x28.png")) /></a>
+                    <a href="@Url.Home()"><img class="navbar-logo" width="94" height="29" alt="NuGet home"
+                                               src="~/Content/gallery/img/logo-header.svg"
+                                               @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/logo-header-94x29.png")) /></a>
                 </div>
                 <div id="navbar" class="navbar-collapse collapse" role="menubar">
                     <ul class="nav navbar-nav" role="menu">
@@ -138,7 +153,7 @@
     <div class="alert-transient @(ViewBag.HasJumbotron == true ? "alert-transient-jumbotron" : string.Empty)">
         <div class="container">
             <div class="row">
-                <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
+                <div class="@ViewHelpers.GetColumnClasses(ViewBag)" role="alert" aria-live="assertive">
                     @ViewHelpers.AlertInfo(@<text>@TempData["Message"]</text>)
                 </div>
             </div>

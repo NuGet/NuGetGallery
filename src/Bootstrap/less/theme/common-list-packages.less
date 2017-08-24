@@ -1,16 +1,16 @@
 .list-packages {
-  border-top: 1px solid @gray-lighter;
 
   .package {
-    padding-top: (@padding-large-vertical * 2);
-    padding-bottom: (@padding-large-vertical * 2);
-    border-bottom: 1px solid @gray-lighter;
+    padding-top: (@padding-large-vertical * 1.5);
+    padding-bottom: (@padding-large-vertical * 1.5);
     font-size: 15px;
 
     .package-header {
       .package-title {
-        font-size: @font-size-h2;
+        .break-word;
+        font-size: 24px;
         font-weight: 300;
+        line-height: 0.9;
       }
 
       .package-by {
@@ -24,20 +24,40 @@
       }
     }
 
+    .package-title {
+      font-size: 16px;
+      margin-top: 2px;
+    }
+
     .manage-package {
-      margin-top: 20px;
-      margin-bottom: 0px;
+      margin-top: 8px;
+      margin-bottom: 0;
     }
 
     .package-details {
-      margin-top: @padding-large-vertical;
+      .break-word;
+      margin-top: 8px;
       color: @text-color;
       line-height: 20px;
     }
 
-    .package-tags {
-      margin-top: @padding-large-vertical;
-      margin-left: -2px;
+
+    .package-list {
+      @media (min-width: @screen-sm-min) {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+
+        li {
+          display: inline;
+        }
+      }
     }
   }
+}
+
+.pager {
+  margin-top: 75px;
+  margin-bottom: 0px;
+  float: right;
 }

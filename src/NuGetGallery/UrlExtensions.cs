@@ -1,11 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Globalization;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
-using Microsoft.Web.Helpers;
 
 namespace NuGetGallery
 {
@@ -64,13 +64,26 @@ namespace NuGetGallery
             return result + "?groupby=ClientName";
         }
 
-        public static string PackageList(this UrlHelper url, int page, string q)
+        public static string PackageList(this UrlHelper url, int page, string q, bool includePrerelease)
         {
-            return url.Action("ListPackages", "Packages", new
+            var routeValues = new RouteValueDictionary();
+
+            if (page > 1)
             {
-                q,
-                page
-            });
+                routeValues["page"] = page;
+            }
+
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                routeValues["q"] = q;
+            }
+
+            if (!includePrerelease)
+            {
+                routeValues["prerel"] = "false";
+            }
+
+            return url.Action("ListPackages", "Packages", routeValues);
         }
 
 

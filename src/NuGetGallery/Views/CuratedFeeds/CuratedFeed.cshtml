@@ -5,7 +5,9 @@
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
-<section class="main-container container page-manage-curated-feed">
+<section role="main" class="container main-container page-manage-curated-feed">
+    @ViewHelpers.AjaxAntiForgeryToken(Html)
+
     <div class="row">
         <div class="col-md-12">
             <h1 class="text-center">Curated Feed <a href="@Url.CuratedPackageList(0, "", Model.Name)" class="ms-noWrap">@Model.Name</a></h1>
@@ -130,7 +132,9 @@
         function deleteCuratedPackage(packageId) {
             $.ajax({
                 type: 'delete',
-                url: urlFormat.replace("PACKAGE_ID", packageId)
+                url: urlFormat.replace("PACKAGE_ID", packageId),
+                dataType: 'json',
+                data: window.nuget.addAjaxAntiForgeryToken({})
             })
                 .error(function(jqXhr, textStatus, errorThrown) {
                     alert("Error: " + errorThrown);
@@ -144,7 +148,7 @@
             $.ajax({
                 type: 'patch',
                 url: urlFormat.replace("PACKAGE_ID", packageId),
-                data: { included: included },
+                data: window.nuget.addAjaxAntiForgeryToken({ included: included }),
                 dataType: 'json'
             })
                 .error(function(jqXhr, textStatus, errorThrown) {

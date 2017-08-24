@@ -824,6 +824,40 @@ namespace NuGetGallery
                 var model = result.Model as PackageListViewModel;
                 Assert.Equal("test", model.SearchTerm);
             }
+
+            [Fact]
+            public async Task DefaultsToFirstPageAndIncludingPrerelease()
+            {
+                var searchService = new Mock<ISearchService>();
+                searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns(
+                    Task.FromResult(new SearchResults(0, DateTime.UtcNow)));
+                var controller = CreateController(searchService: searchService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var result = (await controller.ListPackages(new PackageListSearchViewModel { Q = "test" })) as ViewResult;
+
+                var model = result.Model as PackageListViewModel;
+                Assert.True(model.IncludePrerelease);
+                Assert.Equal(0, model.PageIndex);
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task PassesPrerelParameterOnToSearchFilter(bool prerel)
+            {
+                var searchService = new Mock<ISearchService>();
+                searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns(
+                    Task.FromResult(new SearchResults(0, DateTime.UtcNow)));
+                var controller = CreateController(searchService: searchService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var result = (await controller.ListPackages(new PackageListSearchViewModel { Q = "test", Prerel = prerel })) as ViewResult;
+
+                var model = result.Model as PackageListViewModel;
+                Assert.Equal(prerel, model.IncludePrerelease);
+                searchService.Verify(x => x.Search(It.Is<SearchFilter>(f => f.IncludePrerelease == prerel)));
+            }
         }
 
         public class TheReportAbuseMethod

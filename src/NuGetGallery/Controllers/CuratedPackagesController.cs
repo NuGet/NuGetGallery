@@ -46,6 +46,7 @@ namespace NuGetGallery
 
         [ActionName("CuratedPackage")]
         [HttpDelete]
+        [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> DeleteCuratedPackage(
             string curatedFeedName,
             string curatedPackageId)
@@ -76,6 +77,7 @@ namespace NuGetGallery
 
         [ActionName("CuratedPackage")]
         [AcceptVerbs("patch")]
+        [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> PatchCuratedPackage(
             string curatedFeedName,
             string curatedPackageId,
@@ -113,6 +115,7 @@ namespace NuGetGallery
 
         [ActionName("CuratedPackages")]
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> PostCuratedPackages(
             string curatedFeedName,
             CreateCuratedPackageRequest request)
