@@ -781,12 +781,13 @@
     <Compile Include="Migrations\201706080930506_AddIndexSemVerLevelKeyPackageRegistrationKey.Designer.cs">
       <DependentUpon>201706080930506_AddIndexSemVerLevelKeyPackageRegistrationKey.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201707131923337_PrefixReservation.cs" />
-    <Compile Include="Migrations\201707131923337_PrefixReservation.Designer.cs">
-      <DependentUpon>201707131923337_PrefixReservation.cs</DependentUpon>
     <Compile Include="Migrations\201706262349176_AddRepositoryURL_ReadMe.cs" />
     <Compile Include="Migrations\201706262349176_AddRepositoryURL_ReadMe.Designer.cs">
       <DependentUpon>201706262349176_AddRepositoryURL_ReadMe.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201708241907124_PrefixReservation.cs" />
+    <Compile Include="Migrations\201708241907124_PrefixReservation.Designer.cs">
+      <DependentUpon>201708241907124_PrefixReservation.cs</DependentUpon>
     </Compile>
     <Compile Include="Security\RequireSecurePushForCoOwnersPolicy.cs" />
     <Compile Include="Security\SecurePushSubscription.cs" />
@@ -1779,10 +1780,11 @@
     <EmbeddedResource Include="Migrations\201706080930506_AddIndexSemVerLevelKeyPackageRegistrationKey.resx">
       <DependentUpon>201706080930506_AddIndexSemVerLevelKeyPackageRegistrationKey.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201707131923337_PrefixReservation.resx">
-      <DependentUpon>201707131923337_PrefixReservation.cs</DependentUpon>
     <EmbeddedResource Include="Migrations\201706262349176_AddRepositoryURL_ReadMe.resx">
       <DependentUpon>201706262349176_AddRepositoryURL_ReadMe.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201708241907124_PrefixReservation.resx">
+      <DependentUpon>201708241907124_PrefixReservation.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
