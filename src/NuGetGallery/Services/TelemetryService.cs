@@ -15,6 +15,7 @@ namespace NuGetGallery
         public const string PackagePushEvent = "PackagePush";
         public const string CreatePackageVerificationKeyEvent = "CreatePackageVerificationKeyEvent";
         public const string VerifyPackageKeyEvent = "VerifyPackageKeyEvent";
+        public const string CookieComplianceServiceExceptionEvent = "CookieComplianceServiceExceptionEvent";
 
         // ODataQueryFilter properties
         public const string CallContext = "CallContext";

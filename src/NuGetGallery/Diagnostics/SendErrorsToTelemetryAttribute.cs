@@ -4,6 +4,7 @@
 using System;
 using System.Web.Mvc;
 using Microsoft.ApplicationInsights;
+using NuGetGallery.Cookies;
 
 namespace NuGetGallery.Diagnostics
 {
@@ -21,6 +22,13 @@ namespace NuGetGallery.Diagnostics
                 {
                     if (context.HttpContext != null && context.Exception != null)
                     {
+                        // Track CookieComplianceServiceExceptions, because we need to monitor the availability of the CookieComplianceService
+                        if (context.Exception is CookieComplianceServiceException)
+                        {
+                            var telemetryClient = new TelemetryClient();
+                            telemetryClient.TrackEvent(TelemetryService.CookieComplianceServiceExceptionEvent);
+                        }
+
                         // If customError is Off, then AppInsights HTTP module will report the exception. If not, handle it explicitly.
                         // http://blogs.msdn.com/b/visualstudioalm/archive/2014/12/12/application-insights-exception-telemetry.aspx
                         if (context.HttpContext.IsCustomErrorEnabled)
