@@ -10,9 +10,9 @@ using Lucene.Net.Search;
 using Lucene.Net.Store;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using FrameworkLogger = Microsoft.Extensions.Logging.ILogger;
 using NuGet.Indexing.IndexDirectoryProvider;
 using Directory = Lucene.Net.Store.Directory;
+using FrameworkLogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace NuGet.Indexing
 {
@@ -37,6 +37,7 @@ namespace NuGet.Indexing
         private readonly IDictionary<string, HashSet<string>> _curatedFeeds = new Dictionary<string, HashSet<string>>();
         private readonly Downloads _downloads = new Downloads();
         private IReadOnlyDictionary<string, int> _rankings;
+        private HashSet<string> _verifiedPackages;
 
         private QueryBoostingContext _queryBoostingContext = QueryBoostingContext.Default;
 
@@ -206,7 +207,7 @@ namespace NuGet.Indexing
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError("NuGetSearcherManager.CreateSearcher: Error loading auxiliary data.", e);
+                    _logger.LogError("NuGetSearcherManager.CreateSearcher - Exception thrown while loading auxiliary data: {Exception}", e);
                     throw;
                 }
 
@@ -311,7 +312,8 @@ namespace NuGet.Indexing
                     latestStableBitSet,
                     latestBitSetSemVer2,
                     latestStableBitSetSemVer2,
-                    ownersHandler.Result);
+                    ownersHandler.Result,
+                    _verifiedPackages);
             }
             catch (Exception ex)
             {
@@ -329,6 +331,7 @@ namespace NuGet.Indexing
                 _downloads.Load(AuxiliaryFiles.DownloadsV1, _loader, _logger);
                 _rankings = DownloadRankings.Load(AuxiliaryFiles.RankingsV1, _loader, _logger);
                 _queryBoostingContext = QueryBoostingContext.Load(AuxiliaryFiles.SearchSettingsV1, _loader, _logger);
+                _verifiedPackages = VerifiedPackages.Load(AuxiliaryFiles.VerifiedPackages, _loader, _logger);
 
                 LastAuxiliaryDataLoadTime = DateTime.UtcNow;
                 AuxiliaryFiles.UpdateLastModifiedTime();

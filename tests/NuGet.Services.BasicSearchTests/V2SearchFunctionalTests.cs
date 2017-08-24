@@ -1,8 +1,12 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NuGet.Services.BasicSearchTests.Models;
 using NuGet.Services.BasicSearchTests.TestSupport;
 using Xunit;
@@ -157,6 +161,51 @@ namespace NuGet.Services.BasicSearchTests
                 Assert.True(withoutPrereleaseSemVer2.ContainsPackage("semverA", "1.0.0"));             // SemVerLevel 2 packages are included
                 var prerelease2SemVer2 = withoutPrereleaseSemVer2.GetPackage("bootstrap", "4.0.0-alpha");
                 Assert.False(prerelease2SemVer2.Listed);                                               // unlisted version is in the results
+            }
+        }
+
+        [Fact]
+        public async Task ReturnsCorrectSchema()
+        {
+            // Arrange
+            var packages = new[]
+            {
+                new PackageVersion("EntityFramework", "6.1.3-beta1", 30), // EntityFramework has all of the fields populated.
+                new PackageVersion("EntityFramework", "6.1.2", 20),
+                new PackageVersion("angularjs", "1.4.8", 10, verified: true)              // AngularJS a) has multiple authors and b) has no summary.
+            };
+            var expectedPath = Path.Combine("Data", "V2SearchFunctionalTests.ReturnsCorrectSchema.json");
+            var expectedJsonText = File.ReadAllText(expectedPath);
+            var expected = JsonConvert.DeserializeObject<JObject>(expectedJsonText, new JsonSerializerSettings
+            {
+                DateParseHandling = DateParseHandling.DateTimeOffset
+            });
+            var before = DateTimeOffset.UtcNow;
+
+            using (var app = await StartedWebApp.StartAsync(packages))
+            {
+                // Act
+                var response = await app.Client.GetAsync(new V2SearchBuilder { Prerelease = true }.RequestUri);
+                var actual = await response.Content.ReadAsAsync<JObject>();
+
+                // Assert
+                /// The results' "Published" and "LastUpdated" properties are set to the time that the package's
+                /// metadata was extracted by the test infrastructure's <see cref="NuGet.Indexing.NupkgPackageMetadataExtraction"/>.
+                /// We'll do a sanity check for these properties and set them to the expected response's dummy values.
+                foreach (var actualData in actual["data"])
+                {
+                    var published = actualData["Published"].Value<DateTime>();
+                    var lastUpdated = actualData["LastUpdated"].Value<DateTime>();
+
+                    Assert.True(published >= before);
+                    Assert.True(lastUpdated >= before);
+
+                    actualData["Published"] = expected["data"].First["Published"];
+                    actualData["LastUpdated"] = expected["data"].First["LastUpdated"];
+                }
+
+                // Validate the rest of the payload.
+                Assert.Equal(expected, actual);
             }
         }
     }

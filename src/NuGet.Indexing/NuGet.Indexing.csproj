@@ -346,6 +346,7 @@
     <Compile Include="ShingledIdentifierAnalyzer.cs" />
     <Compile Include="TagsAnalyzer.cs" />
     <Compile Include="TokenizingHelper.cs" />
+    <Compile Include="VerifiedPackages.cs" />
     <Compile Include="VersionAnalyzer.cs" />
     <Compile Include="VersionDetail.cs" />
     <Compile Include="VersionDownloads.cs" />

@@ -12,10 +12,10 @@ using System.Xml.Serialization;
 using Lucene.Net.Store;
 using Microsoft.Owin.Hosting;
 using Newtonsoft.Json;
+using NuGet.Indexing;
 using NuGet.Services.BasicSearch;
 using NuGet.Services.Configuration;
 using Formatting = Newtonsoft.Json.Formatting;
-using NuGet.Indexing;
 
 namespace NuGet.Services.BasicSearchTests.TestSupport
 {
@@ -68,6 +68,7 @@ namespace NuGet.Services.BasicSearchTests.TestSupport
                 { "downloads.v1.json", BuildDownloadsFile(enumeratedPackages) },
                 { "curatedfeeds.json", "[]" },
                 { "owners.json", "[]" },
+                { "verifiedPackages.json", BuildVerifiedPackagesFile(enumeratedPackages) },
                 { "rankings.v1.json", BuildRankingsFile(enumeratedPackages) },
                 { "searchSettings.v1.json", JsonConvert.SerializeObject(QueryBoostingContext.Default) },
             };
@@ -116,6 +117,17 @@ namespace NuGet.Services.BasicSearchTests.TestSupport
             }
 
             return JsonConvert.SerializeObject(downloadsFile, Formatting.Indented);
+        }
+
+        private string BuildVerifiedPackagesFile(PackageVersion[] packages)
+        {
+            var verifiedPackages = packages
+                .Where(p => p.Verified)
+                .Select(p => p.Id)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            return JsonConvert.SerializeObject(verifiedPackages, Formatting.Indented);
         }
 
         private string BuildRankingsFile(PackageVersion[] packages)
