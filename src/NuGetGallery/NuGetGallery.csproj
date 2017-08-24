@@ -785,6 +785,10 @@
     <Compile Include="Migrations\201706262349176_AddRepositoryURL_ReadMe.Designer.cs">
       <DependentUpon>201706262349176_AddRepositoryURL_ReadMe.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201708241907124_PrefixReservation.cs" />
+    <Compile Include="Migrations\201708241907124_PrefixReservation.Designer.cs">
+      <DependentUpon>201708241907124_PrefixReservation.cs</DependentUpon>
+    </Compile>
     <Compile Include="Security\RequireSecurePushForCoOwnersPolicy.cs" />
     <Compile Include="Security\SecurePushSubscription.cs" />
     <Compile Include="Security\IUserSecurityPolicySubscription.cs" />
@@ -801,6 +805,8 @@
     <Compile Include="Security\UserSecurityPolicyEvaluationContext.cs" />
     <Compile Include="Security\SecurityPolicyResult.cs" />
     <Compile Include="Security\UserSecurityPolicySubscriptionContext.cs" />
+    <Compile Include="Services\IReservedNamespaceService.cs" />
+    <Compile Include="Services\ReservedNamespaceService.cs" />
     <Compile Include="Telemetry\ClientInformationTelemetryEnricher.cs" />
     <Compile Include="Telemetry\QuietExceptionLogger.cs" />
     <Compile Include="Infrastructure\Authentication\CredentialBuilder.cs" />
@@ -1776,6 +1782,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201706262349176_AddRepositoryURL_ReadMe.resx">
       <DependentUpon>201706262349176_AddRepositoryURL_ReadMe.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201708241907124_PrefixReservation.resx">
+      <DependentUpon>201708241907124_PrefixReservation.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

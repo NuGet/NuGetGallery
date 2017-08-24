@@ -89,6 +89,11 @@ namespace NuGetGallery
                 .As<IEntityRepository<User>>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<EntityRepository<ReservedNamespace>>()
+                .AsSelf()
+                .As<IEntityRepository<ReservedNamespace>>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<EntityRepository<CuratedFeed>>()
                 .AsSelf()
                 .As<IEntityRepository<CuratedFeed>>()
@@ -184,6 +189,11 @@ namespace NuGetGallery
             builder.RegisterType<SecurityPolicyService>()
                 .AsSelf()
                 .As<ISecurityPolicyService>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<ReservedNamespaceService>()
+                .AsSelf()
+                .As<IReservedNamespaceService>()
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<SecurePushSubscription>()
