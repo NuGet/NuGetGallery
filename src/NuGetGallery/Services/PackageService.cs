@@ -957,9 +957,10 @@ namespace NuGetGallery
 
         public virtual async Task UpdatePackageVerifiedStatusAsync(IReadOnlyCollection<PackageRegistration> packageRegistrationList, bool isVerified)
         {
+            var list = packageRegistrationList.Select(prl => prl.Key);
             var allPackageRegistrations = _packageRegistrationRepository.GetAll();
             var packageRegistrationsToUpdate = allPackageRegistrations
-                .Where(pr => packageRegistrationList.Any(prl => prl.Id == pr.Id))
+                .Where(pr => list.Contains(pr.Key))
                 .ToList();
 
             if (packageRegistrationsToUpdate.Count > 0)

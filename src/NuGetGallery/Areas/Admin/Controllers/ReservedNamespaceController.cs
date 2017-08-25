@@ -55,7 +55,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        // Add validate anti forgery token
         public async Task<JsonResult> AddPrefix(ReservedNamespace prefix)
         {
             try
@@ -72,14 +72,12 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        // TODO : Add validate anti forgery token
         public async Task<JsonResult> RemovePrefix(ReservedNamespace prefix)
         {
             try
             {
-                // Only need to delete the prefix, the cascade delete will take care of removing owners and package registration mappings
                 await ReservedNamespaceService.DeleteReservedNamespaceAsync(prefix.Value);
-                //await ReservedNamespaceService.DeleteUserFromReservedNamespaceAsync(prefix, new User("shishirx34"));
                 return Json(new { success = true });
             }
             catch (Exception ex)

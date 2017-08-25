@@ -130,7 +130,7 @@ namespace NuGetGallery
                     packageRegistrationsMatchingNamespace
                         .ForEach(pr => namespaceToModify.PackageRegistrations.Add(pr));
 
-                    await PackageService.UpdatePackageVerifiedStatusAsync(packageRegistrationsMatchingNamespace, isVerified: true);
+                    await PackageService.UpdatePackageVerifiedStatusAsync(packageRegistrationsMatchingNamespace.AsReadOnly(), isVerified: true);
                 }
 
                 namespaceToModify.Owners.Add(userToAdd);
@@ -208,11 +208,11 @@ namespace NuGetGallery
             Expression<Func<ReservedNamespace, bool>> prefixMatch;
             if (getExactMatches)
             {
-                prefixMatch = dbPrefix => dbPrefix.Value.Equals(prefix, StringComparison.OrdinalIgnoreCase);
+                prefixMatch = dbPrefix => dbPrefix.Value.Equals(prefix);
             }
             else
             {
-                prefixMatch = dbPrefix => dbPrefix.Value.StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
+                prefixMatch = dbPrefix => dbPrefix.Value.StartsWith(prefix);
             }
 
             return ReservedNamespaceRepository.GetAll()
