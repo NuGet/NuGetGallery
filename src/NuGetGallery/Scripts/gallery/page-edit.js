@@ -62,25 +62,45 @@ var EditViewManager = new function () {
     }
 
     function previewReadMeAsync(callback, error) {
-        var formData = new FormData();
+        // collect and validate readme data
+        var readMeType = $("input[name='ReadMe.ReadMeType']:checked").val();
+        var readMeUrl = $("#ReadMeUrlInput").val();
+        var readMeWritten = $("#readme-written").val();
+        var readMeFileInput = $("#readme-select-file");
+        var readMeFileName = readMeFileInput && readMeFileInput[0] ? readMeFileInput.val().split("\\").pop() : null;
+        var readMeFile = readMeFileName && validateReadMeFileName(readMeFileName) ? readMeFileInput[0].files[0] : null;
 
-        // Validate anti-forgery token
-        var token = $('[name=__RequestVerificationToken]').val();
-        formData.append("__RequestVerificationToken", token);
-
-        // Assemble ReadMe data
-        formData.append("ReadMeType", $("input[name='ReadMe.ReadMeType']:checked").val());
-
-        formData.append("ReadMeUrl", $("#ReadMeUrlInput").val());
-
-        var readMeFile = $("#readme-select-file");
-        if (readMeFile && readMeFile[0] && validateReadMeFileName(readMeFile.val().split("\\").pop())) {
-            formData.append("ReadMeFile", readMeFile[0].files[0]);
-        } else {
-            formData.append("ReadMeFile", null);
+        if (readMeType === undefined) {
+            if (readMeUrl) {
+                readMeType = "Url";
+            }
+            else if (readMeWritten) {
+                readMeType = "Written";
+            }
+            else if (readMeFile) {
+                readMeType = "File";
+            }
         }
 
-        formData.append("ReadMeWritten", $("#readme-written").val());
+        // prepare form data with antiforgery token
+        var formData = new FormData();
+        var token = $('[name=__RequestVerificationToken]').val();
+        formData.append("__RequestVerificationToken", token);
+        formData.append("ReadMeType", readMeType);
+
+        if (readMeType === "Url" && readMeUrl) {
+            formData.append("ReadMeUrl", readMeUrl);
+        }
+        else if (readMeType === "Written" && readMeWritten) {
+            formData.append("ReadMeWritten", readMeWritten);
+        }
+        else if (readMeType === "File" && readMeFile) {
+            formData.append("ReadMeFile", readMeFile);
+        }
+        else {
+            console.warn("Skipping preview: Missing or invalid README data.")
+            return;
+        }
 
         $.ajax({
             url: "/packages/manage/preview-readme",
@@ -206,7 +226,7 @@ var EditViewManager = new function () {
         $(readMeContainerElement).attr("aria-expanded", "true");
         $(readMeContainerElement).attr("data-bind", "template: { name: 'import-readme-template', data: data }");
         $("#import-readme-container").append(readMeContainerElement);
-        ko.applyBindings({ data: model.Edit }, readMeContainerElement);
+        ko.applyBindings({ data: model }, readMeContainerElement);
 
         var submitContainerElement = document.createElement("div");
         $(submitContainerElement).attr("id", "submit-block");

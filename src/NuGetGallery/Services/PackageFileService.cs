@@ -73,7 +73,7 @@ namespace NuGetGallery
             }
 
             var fileName = BuildFileName(package, Constants.ReadMeFileSavePathTemplatePending, Constants.MarkdownFileExtension);
-            return _fileStorageService.SaveFileAsync(Constants.PackageReadMesFolderName, fileName, readMeStream, overwrite:false);
+            return _fileStorageService.SaveFileAsync(Constants.PackageReadMesFolderName, fileName, readMeStream, overwrite: true);
         }
 
         public Task StorePackageFileInBackupLocationAsync(Package package, Stream packageFile)
@@ -105,15 +105,19 @@ namespace NuGetGallery
             var fileName = BuildFileName(package, Constants.PackageFileSavePathTemplate, Constants.NuGetPackageFileExtension);
             return (await _fileStorageService.GetFileAsync(Constants.PackagesFolderName, fileName));
         }
-        
-        public Task<Stream> DownloadReadmeFileAsync(Package package)
+
+        public Task<Stream> DownloadReadmeFileAsync(Package package, bool pending = false)
         {
             if (package == null)
             {
                 throw new ArgumentNullException("Package cannot be null!");
             }
 
-            var fileName = BuildFileName(package, Constants.ReadMeFileSavePathTemplateActive, Constants.MarkdownFileExtension);
+            var formatter = pending ?
+                Constants.ReadMeFileSavePathTemplatePending :
+                Constants.ReadMeFileSavePathTemplateActive;
+            var fileName = BuildFileName(package, formatter, Constants.MarkdownFileExtension);
+
             return  _fileStorageService.GetFileAsync(Constants.PackageReadMesFolderName, fileName);
         }
 

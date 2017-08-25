@@ -4,13 +4,13 @@
         <div class="text-center">
             <div class="btn-group readme-btn-group row" style="padding-bottom:2em; padding-top:1.5em;" data-toggle="buttons">
                 <label class="btn btn-primary active" id="readme-url-btn">
-                    <input type="radio" value="Url" name="ReadMe.ReadMeType" autocomplete="off" checked> Import From Github
+                    <input type="radio" value="Url" name="Edit.ReadMe.ReadMeType" autocomplete="off" checked> Import From Github
                 </label>
                 <label class="btn btn-primary" id="readme-file-btn">
-                    <input type="radio" value="File" name="ReadMe.ReadMeType" autocomplete="off"> Upload File
+                    <input type="radio" value="File" name="Edit.ReadMe.ReadMeType" autocomplete="off"> Upload File
                 </label>
                 <label class="btn btn-primary" id="readme-write-btn">
-                    <input type="radio" value="Written" name="ReadMe.ReadMeType" autocomplete="off"> Write Your Own
+                    <input type="radio" value="Written" name="Edit.ReadMe.ReadMeType" autocomplete="off"> Write Your Own
                 </label>
             </div>
 
@@ -24,11 +24,11 @@
                     </ul>
                 </div>
             </div>
+
             @Html.AntiForgeryToken()
             <div class="readme-url row">
                 <div class="input-group col-xs-12">
-
-                    <input type="url" data-bind="value: ReadMe.ReadMeUrl" name="ReadMe.ReadMeUrl" class="form-control" id="ReadMeUrlInput" placeholder="Enter the URL to your raw ReadMe file..." />
+                    <input type="url" data-bind="value: Edit.ReadMe.ReadMeUrl" name="Edit.ReadMe.ReadMeUrl" class="form-control" id="ReadMeUrlInput" placeholder="Enter the URL to your raw ReadMe file..." />
                     <label id="ReadMeURLLabel" class="input-group-btn"></label>
                 </div>
             </div>
@@ -37,7 +37,7 @@
                     <input type="text" id="readme-select-feedback" class="form-control" placeholder="Browse to select a ReadMe file..." readonly />
                     <label for="readme-select-file" id="ReadMeFileLabel" class="input-group-btn">
                         <span class="btn btn-primary form-control">
-                            Browse&hellip;<input type="file" accept=".md,.mkd,.mkdn,.mdown,.markdown,.txt,.text" data-bind="value: ReadMe.ReadMeFile" name="ReadMe.ReadMeFile" aria-labelledby="ReadMeFileLabel" id="readme-select-file" style="display:none;" />
+                            Browse&hellip;<input type="file" accept=".md,.mkd,.mkdn,.mdown,.markdown,.txt,.text" data-bind="value: Edit.ReadMe.ReadMeFile" name="Edit.ReadMe.ReadMeFile" aria-labelledby="ReadMeFileLabel" id="readme-select-file" style="display:none;" />
                         </span>
                     </label>
                 </div>
@@ -49,7 +49,7 @@
                     <button type="button" class="btn btn-primary markdown-popover" data-toggle="popover" title="Markdown Syntax">Markdown</button>
                 </div>
                 <div>
-                    <textarea class="col-xs-12" data-bind="value: ReadMe.ReadMeWritten" name="ReadMe.ReadMeWritten" id="readme-written" rows="30" placeholder="Write your own ReadMe here..."></textarea>
+                    <textarea class="col-xs-12" data-bind="value: Edit.ReadMe.ReadMeWritten" name="Edit.ReadMe.ReadMeWritten" id="readme-written" rows="30" placeholder="Write your own ReadMe here..."></textarea>
                 </div>
             </div>
         </div>

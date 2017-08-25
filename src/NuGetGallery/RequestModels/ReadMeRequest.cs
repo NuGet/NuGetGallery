@@ -16,7 +16,5 @@ namespace NuGetGallery
         public virtual string ReadMeUrl { get; set; }
 
         public virtual string ReadMeType { get; set; }
-
-        public PackageEditReadMeState ReadMeState { get; set; }
     }
 }

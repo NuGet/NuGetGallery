@@ -126,7 +126,7 @@ var AsyncFileUploadManager = new function () {
         formData.append("__RequestVerificationToken", token);
 
         // Assemble ReadMe data
-        formData.append("ReadMeType", $("input[name='ReadMe.ReadMeType']:checked").val());
+        formData.append("ReadMeType", $("input[name='Edit.ReadMe.ReadMeType']:checked").val());
         
         formData.append("ReadMeUrl", $("#ReadMeUrlInput").val());
         

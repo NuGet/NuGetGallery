@@ -471,7 +471,7 @@ namespace NuGetGallery
                     await service.SaveReadMeFileAsync(package, stream);
 
                     // Assert
-                    fileStorageSvc.Verify(f => f.SaveFileAsync(Constants.PackageReadMesFolderName, "pending/foo/1.0.0.md", stream, false),
+                    fileStorageSvc.Verify(f => f.SaveFileAsync(Constants.PackageReadMesFolderName, "pending/foo/1.0.0.md", stream, true),
                         Times.Once);
                 }
             }

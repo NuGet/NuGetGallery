@@ -81,21 +81,19 @@ namespace NuGetGallery
 
         private PackageEditReadMeState GetReadMeStateString()
         {
-            if (ReadMeStateInternal == null)
-            {
-                return PackageEditReadMeState.Unchanged;
-            }
-            else if (ReadMeStateInternal.Equals("changed", StringComparison.InvariantCultureIgnoreCase))
+            var state = ReadMeStateInternal ?? string.Empty;
+            
+            if (state.Equals("changed", StringComparison.InvariantCultureIgnoreCase))
             {
                 return PackageEditReadMeState.Changed;
             }
-            else if (ReadMeStateInternal.Equals("deleted", StringComparison.InvariantCultureIgnoreCase))
+            else if (state.Equals("deleted", StringComparison.InvariantCultureIgnoreCase))
             {
                 return PackageEditReadMeState.Deleted;
             }
             else
             {
-                throw new InvalidOperationException("Invalid ReadMeState.");
+                return PackageEditReadMeState.Unchanged;
             }
         }
 
@@ -106,14 +104,13 @@ namespace NuGetGallery
                 case PackageEditReadMeState.Changed:
                     ReadMeStateInternal = "changed";
                     break;
-                case PackageEditReadMeState.Unchanged:
-                    ReadMeStateInternal = null;
-                    break;
                 case PackageEditReadMeState.Deleted:
                     ReadMeStateInternal = "deleted";
                     break;
+                case PackageEditReadMeState.Unchanged:
                 default:
-                    throw new InvalidOperationException("Invalid ReadMeState.");
+                    ReadMeStateInternal = null;
+                    break;
             }
         }
     }

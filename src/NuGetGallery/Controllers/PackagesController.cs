@@ -18,6 +18,7 @@ using System.Web.Caching;
 using System.Web.Mvc;
 using NuGet.Packaging;
 using NuGet.Versioning;
+using NuGetGallery;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Auditing;
@@ -219,20 +220,20 @@ namespace NuGetGallery
             {
                 if (existingUploadFile != null)
                 {
-                    return Json(409, new [] { Strings.UploadPackage_UploadInProgress });
+                    return Json(409, new[] { Strings.UploadPackage_UploadInProgress });
                 }
             }
 
             if (uploadFile == null)
             {
                 ModelState.AddModelError(String.Empty, Strings.UploadFileIsRequired);
-                return Json(400, new [] { Strings.UploadFileIsRequired });
+                return Json(400, new[] { Strings.UploadFileIsRequired });
             }
 
             if (!Path.GetExtension(uploadFile.FileName).Equals(Constants.NuGetPackageFileExtension, StringComparison.OrdinalIgnoreCase))
             {
                 ModelState.AddModelError(String.Empty, Strings.UploadFileMustBeNuGetPackage);
-                return Json(400, new [] { Strings.UploadFileMustBeNuGetPackage });
+                return Json(400, new[] { Strings.UploadFileMustBeNuGetPackage });
             }
 
             using (var uploadStream = uploadFile.InputStream)
@@ -250,8 +251,8 @@ namespace NuGetGallery
                            CultureInfo.CurrentCulture,
                            Strings.PackageEntryFromTheFuture,
                            entryInTheFuture.Name));
-                        
-                        return Json(400, new [] {
+
+                        return Json(400, new[] {
                             string.Format(CultureInfo.CurrentCulture, Strings.PackageEntryFromTheFuture, entryInTheFuture.Name) });
                     }
                 }
@@ -275,7 +276,7 @@ namespace NuGetGallery
 
                     ModelState.AddModelError(String.Empty, message);
 
-                    return Json(400, new [] { message });
+                    return Json(400, new[] { message });
                 }
                 finally
                 {
@@ -292,7 +293,7 @@ namespace NuGetGallery
                         errorStrings.Add(error.ErrorMessage);
                         ModelState.AddModelError(String.Empty, error.ErrorMessage);
                     }
-                    
+
                     return Json(400, errorStrings);
                 }
 
@@ -305,8 +306,8 @@ namespace NuGetGallery
                             CultureInfo.CurrentCulture,
                             Strings.UploadPackage_MinClientVersionOutOfRange,
                             nuspec.GetMinClientVersion()));
-                    
-                    return Json(400, new [] {
+
+                    return Json(400, new[] {
                         string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_MinClientVersionOutOfRange, nuspec.GetMinClientVersion()) });
                 }
 
@@ -315,8 +316,8 @@ namespace NuGetGallery
                 {
                     ModelState.AddModelError(
                         string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id));
-                    
-                    return Json(409, new [] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id) });
+
+                    return Json(409, new[] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id) });
                 }
 
                 var nuspecVersion = nuspec.GetVersion();
@@ -348,8 +349,8 @@ namespace NuGetGallery
                     ModelState.AddModelError(
                         string.Empty,
                         message);
-                    
-                    return Json(409, new [] { message });
+
+                    return Json(409, new[] { message });
                 }
 
                 await _uploadFileService.SaveUploadFileAsync(currentUser.Key, uploadStream);
@@ -361,13 +362,13 @@ namespace NuGetGallery
                 if (uploadedFile == null)
                 {
                     ModelState.AddModelError(String.Empty, Strings.UploadFileIsRequired);
-                    return Json(400, new [] { Strings.UploadFileIsRequired });
+                    return Json(400, new[] { Strings.UploadFileIsRequired });
                 }
 
                 var package = await SafeCreatePackage(currentUser, uploadedFile);
                 if (package == null)
                 {
-                    return Json(400, new [] { Strings.UploadFileIsRequired });
+                    return Json(400, new[] { Strings.UploadFileIsRequired });
                 }
 
                 try
@@ -378,14 +379,34 @@ namespace NuGetGallery
                 catch (Exception ex)
                 {
                     TempData["Message"] = ex.GetUserSafeMessage();
-                    
-                    return Json(400, new [] { ex.GetUserSafeMessage() });
+
+                    return Json(400, new[] { ex.GetUserSafeMessage() });
                 }
             }
 
             var model = new VerifyPackageRequest(packageMetadata);
 
             return Json(model);
+        }
+
+        private async Task<string> GetPackageReadMeHtml(Package package, bool pending = false)
+        {
+            if (package.HasReadMe)
+            {
+                using (var readMeMdStream = await _packageFileService.DownloadReadmeFileAsync(package, pending))
+                {
+                    if (readMeMdStream != null)
+                    {
+                        return await (await ReadMeHelper.GetReadMeHtmlStream(readMeMdStream)).ReadToEndAsync();
+                    }
+                    else
+                    {
+                        // log exception?
+                    }
+                }
+            }
+
+            return null;
         }
 
         public virtual async Task<ActionResult> DisplayPackage(string id, string version)
@@ -417,30 +438,7 @@ namespace NuGetGallery
 
             var model = new DisplayPackageViewModel(package, packageHistory);
 
-            if (package.HasReadMe)
-            {
-                using (var readMeMdStream = await _packageFileService.DownloadReadmeFileAsync(package))
-                {
-                    if (readMeMdStream != null)
-                    {
-                        using (var readMeHTMLStream = ReadMeHelper.GetReadMeHtmlStream(readMeMdStream))
-                        {
-                            //await readMeHTMLStream.FlushAsync();
-                            
-                            // Reads the README file and push to the view
-                            using (var reader = new StreamReader(readMeHTMLStream))
-                            {
-                                model.ReadMeHtml = await reader.ReadToEndAsync();
-                            }
-                        }
-                    }
-                    else if (User.IsInRole(Constants.AdminRoleName) || package.IsOwner(User))
-                    {
-                        TempData["Message"] = "The ReadMe for this package could not be found";
-                    }
-                }
-            }
-
+            var pendingReadMe = false;
             if (package.IsOwner(User))
             {
                 // Tell logged-in package owners not to cache the package page,
@@ -454,9 +452,11 @@ namespace NuGetGallery
                 if (pendingMetadata != null)
                 {
                     model.SetPendingMetadata(pendingMetadata);
+                    pendingReadMe = pendingMetadata.ReadMeState == PackageEditReadMeState.Changed;
                 }
             }
 
+            model.ReadMeHtml = await GetPackageReadMeHtml(package, pendingReadMe);
             model.PolicyMessage = GetDisplayPackagePolicyMessage(package.PackageRegistration);
 
             var externalSearchService = _searchService as ExternalSearchService;
@@ -1028,30 +1028,8 @@ namespace NuGetGallery
                 return Json(403, new [] { Strings.Unauthorized });
             }
 
+            // create model from package
             var packageRegistration = _packageService.FindPackageRegistrationById(id);
-
-            string readMeMarkdownString;
-            if (package.HasReadMe)
-            {
-                using (var readMeMdStream =  await _packageFileService.DownloadReadmeFileAsync(package))
-                {
-                    if (readMeMdStream != null)
-                    {
-                        using (var reader = new StreamReader(readMeMdStream))
-                        {
-                            readMeMarkdownString = reader.ReadToEnd();
-                        }
-                    }
-                    else
-                    {
-                        readMeMarkdownString = string.Empty;
-                    }
-                }
-            }
-            else
-            {
-                readMeMarkdownString = string.Empty;
-            }
 
             var model = new EditPackageRequest
             {
@@ -1060,16 +1038,22 @@ namespace NuGetGallery
                 Version = package.Version,
                 PackageVersions = packageRegistration.Packages
                     .OrderByDescending(p => new NuGetVersion(p.Version), Comparer<NuGetVersion>.Create((a, b) => a.CompareTo(b)))
-                    .ToList(),
-                ReadMe = new ReadMeRequest()
-                {
-                    ReadMeWritten = readMeMarkdownString,
-                    ReadMeType = "Written"
-                }
+                    .ToList()
             };
 
+            // create edit model from latest pending edit
             var pendingMetadata = _editPackageService.GetPendingMetadata(package);
+
             model.Edit = new EditPackageVersionRequest(package, pendingMetadata);
+
+            // update edit model with active or pending readme data
+            var pendingReadMe = pendingMetadata.ReadMeState == PackageEditReadMeState.Changed;
+            if (package.HasReadMe || pendingReadMe)
+            {
+                model.Edit.ReadMe.ReadMeType = ReadMeHelper.TypeWritten;
+                model.Edit.ReadMe.ReadMeWritten = await (await _packageFileService.DownloadReadmeFileAsync(package, pendingReadMe)).ReadToEndAsync();
+            }
+
             return View(model);
         }
 
@@ -1091,95 +1075,27 @@ namespace NuGetGallery
                 return Json(403, new [] { Strings.Unauthorized });
             }
 
-            var user = GetCurrentUser();
             if (!ModelState.IsValid)
             {
                 var errorMessages = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage));
                 return Json(400, errorMessages);
             }
             
-            if (ReadMeHelper.HasReadMe(formData.ReadMe))
-            {
-                string newReadMeString;
-                using (var reader = new StreamReader(ReadMeHelper.GetReadMeMarkdownStream(formData.ReadMe)))
-                {
-                    newReadMeString = reader.ReadToEnd();
-                }
-
-                if (package.HasReadMe)
-                {
-                    string oldReadMeString;
-                    using (var readMeMdStream = await _packageFileService.DownloadReadmeFileAsync(package))
-                    {
-                        using (var reader = new StreamReader(readMeMdStream))
-                        {
-                            oldReadMeString = reader.ReadToEnd();
-                        }
-                    }
-                    if (newReadMeString.Trim().Equals(oldReadMeString.Trim()))
-                    {
-                        formData.Edit.ReadMeState = PackageEditReadMeState.Unchanged;
-                    }
-                    else
-                    {
-                        formData.Edit.ReadMeState = PackageEditReadMeState.Changed;
-                    }
-                }
-                else
-                {
-                    formData.Edit.ReadMeState = PackageEditReadMeState.Changed;
-                }
-            }
-            else
-            {
-                formData.Edit.ReadMeState = PackageEditReadMeState.Unchanged;
-            }
-
-            // Add the edit request to a queue where it will be processed in the background.
             if (formData.Edit != null)
-            {
-                if (formData.Edit.ReadMeState == PackageEditReadMeState.Changed)
-                {
-                    using (var readMeMdStream = ReadMeHelper.GetReadMeMarkdownStream(formData.ReadMe))
-                    {
-                        await _packageFileService.SaveReadMeFileAsync(package, readMeMdStream);
-                    }
-                }
+            {                
                 try
                 {
-                    // Checks to see if a ReadMe file has been added and uploads ReadMe
-                    // Add the edit request to a queue where it will be processed in the background.
-                    var readMeChanged = PackageEditReadMeState.Unchanged;
+                    // Update pending README file, if modified.
+                    var hasReadMe = await SaveReadMeIfChanged(package, formData.Edit);
 
-                    if (ReadMeHelper.HasReadMe(formData.ReadMe))
-                    {
-                        readMeChanged = PackageEditReadMeState.Changed;
-                        try
-                        {
-                            using (var readMeInputStream = ReadMeHelper.GetReadMeMarkdownStream(formData.ReadMe).AsSeekableStream())
-                            {
-                                await _packageFileService.SaveReadMeFileAsync(package, readMeInputStream);
-                            }
-                        }
-                        catch (Exception ex) when (
-                            ex is InvalidOperationException
-                            || ex is ArgumentException
-                            || ex is ArgumentNullException
-                        )
-                        {
-                            TempData["Message"] = ex.Message;
-                            
-                            return Json(400, new [] { ex.GetUserSafeMessage() });
-                        }
-                    }
-
-                    formData.ReadMe.ReadMeState = readMeChanged;
-
+                    // Queue package edit in database for processing in background (HandlePackageEdits job).
+                    var user = GetCurrentUser();
                     _editPackageService.StartEditPackageRequest(package, formData.Edit, user);
                     await _entitiesContext.SaveChangesAsync();
-
+                    
+                    // Add an auditing record for the package edit. HasReadMe flag is updated in DB by background job.
                     var packageWithEditsApplied = formData.Edit.ApplyTo(package);
-
+                    packageWithEditsApplied.HasReadMe = hasReadMe;
                     await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(packageWithEditsApplied, AuditedPackageAction.Edit));
                 }
                 catch (EntityException ex)
@@ -1193,6 +1109,46 @@ namespace NuGetGallery
             {
                 location = returnUrl ?? Url.Package(id, version)
             });
+        }
+
+        private string NormalizeNewLines(string content)
+        {
+            return content?.Replace("\r\n", "\n").Replace("\n", Environment.NewLine);
+        }
+
+        /// <summary>
+        /// Saves pending README to storage if any changes were made.
+        /// </summary>
+        /// <param name="package">Package with pending edits.</param>
+        /// <param name="edit">Edit request.</param>
+        /// <returns>True if has readme, false otherwise.</returns>
+        private async Task<bool> SaveReadMeIfChanged(Package package, EditPackageVersionRequest edit)
+        {
+            var oldReadMe = package.HasReadMe ?
+                NormalizeNewLines(await (await _packageFileService.DownloadReadmeFileAsync(package)).ReadToEndAsync()) :
+                null;
+
+            var newReadMe = ReadMeHelper.HasReadMe(edit?.ReadMe) ?
+                NormalizeNewLines(await (await ReadMeHelper.GetReadMeMarkdownStream(edit.ReadMe)).ReadToEndAsync()) :
+                null;
+
+            var hasReadMe = !string.IsNullOrWhiteSpace(newReadMe);
+            if (hasReadMe && !newReadMe.Equals(oldReadMe))
+            {
+                await _packageFileService.SaveReadMeFileAsync(package, new MemoryStream(Encoding.UTF8.GetBytes(newReadMe)));
+                edit.ReadMeState = PackageEditReadMeState.Changed;
+            }
+            else if (!hasReadMe && !string.IsNullOrEmpty(oldReadMe))
+            {
+                await _packageFileService.DeletePackageFileAsync(package.PackageRegistration.Id, package.Version);
+                edit.ReadMeState = PackageEditReadMeState.Deleted;
+            }
+            else
+            {
+                edit.ReadMeState = PackageEditReadMeState.Unchanged;
+            }
+
+            return hasReadMe;
         }
 
         [Authorize]
@@ -1410,25 +1366,6 @@ namespace NuGetGallery
                     }
                 }
 
-                bool hasReadMe = ReadMeHelper.HasReadMe(formData.ReadMe);
-                bool pendEdit = hasReadMe;
-                if (formData.Edit != null)
-                {
-                    pendEdit = pendEdit || formData.Edit.RequiresLicenseAcceptance != packageMetadata.RequireLicenseAcceptance;
-
-                    pendEdit = pendEdit || IsDifferent(formData.Edit.IconUrl, packageMetadata.IconUrl.ToEncodedUrlStringOrNull());
-                    pendEdit = pendEdit || IsDifferent(formData.Edit.ProjectUrl, packageMetadata.ProjectUrl.ToEncodedUrlStringOrNull());
-                    pendEdit = !string.IsNullOrEmpty(formData.Edit.RepositoryUrl); // not supported in nuspec yet
-
-                    pendEdit = pendEdit || IsDifferent(formData.Edit.Authors, packageMetadata.Authors.Flatten());
-                    pendEdit = pendEdit || IsDifferent(formData.Edit.Copyright, packageMetadata.Copyright);
-                    pendEdit = pendEdit || IsDifferent(formData.Edit.Description, packageMetadata.Description);
-                    pendEdit = pendEdit || IsDifferent(formData.Edit.ReleaseNotes, packageMetadata.ReleaseNotes);
-                    pendEdit = pendEdit || IsDifferent(formData.Edit.Summary, packageMetadata.Summary);
-                    pendEdit = pendEdit || IsDifferent(formData.Edit.Tags, PackageHelper.ParseTags(packageMetadata.Tags));
-                    pendEdit = pendEdit || IsDifferent(formData.Edit.VersionTitle, packageMetadata.Title);
-                }
-
                 var packageStreamMetadata = new PackageStreamMetadata
                 {
                     HashAlgorithm = Constants.Sha512HashAlgorithmId,
@@ -1445,40 +1382,34 @@ namespace NuGetGallery
                 catch (InvalidPackageException ex)
                 {
                     TempData["Message"] = ex.Message;
+
+                    return Json(400, new[] { ex.GetUserSafeMessage() });
+                }
+
+                bool pendEdit = false;
+                if (formData.Edit != null)
+                {
+                    pendEdit = await SaveReadMeIfChanged(package, formData.Edit);
                     
-                    return Json(400, new [] { ex.GetUserSafeMessage() });
+                    pendEdit = pendEdit || formData.Edit.RequiresLicenseAcceptance != packageMetadata.RequireLicenseAcceptance;
+
+                    pendEdit = pendEdit || IsDifferent(formData.Edit.IconUrl, packageMetadata.IconUrl.ToEncodedUrlStringOrNull());
+                    pendEdit = pendEdit || IsDifferent(formData.Edit.ProjectUrl, packageMetadata.ProjectUrl.ToEncodedUrlStringOrNull());
+                    pendEdit = pendEdit || !string.IsNullOrEmpty(formData.Edit.RepositoryUrl); // not supported in nuspec yet
+
+                    pendEdit = pendEdit || IsDifferent(formData.Edit.Authors, packageMetadata.Authors.Flatten());
+                    pendEdit = pendEdit || IsDifferent(formData.Edit.Copyright, packageMetadata.Copyright);
+                    pendEdit = pendEdit || IsDifferent(formData.Edit.Description, packageMetadata.Description);
+                    pendEdit = pendEdit || IsDifferent(formData.Edit.ReleaseNotes, packageMetadata.ReleaseNotes);
+                    pendEdit = pendEdit || IsDifferent(formData.Edit.Summary, packageMetadata.Summary);
+                    pendEdit = pendEdit || IsDifferent(formData.Edit.Tags, PackageHelper.ParseTags(packageMetadata.Tags));
+                    pendEdit = pendEdit || IsDifferent(formData.Edit.VersionTitle, packageMetadata.Title);
                 }
 
                 await _packageService.PublishPackageAsync(package, commitChanges: false);
 
                 if (pendEdit)
                 {
-                    // Checks to see if a ReadMe file has been added and uploads ReadMe
-                    // Add the edit request to a queue where it will be processed in the background.
-                    var readMeChanged = PackageEditReadMeState.Unchanged;
-
-                    if (hasReadMe)
-                    {
-                        readMeChanged = PackageEditReadMeState.Changed;
-                        try
-                        {
-                            using (var readMeInputStream = ReadMeHelper.GetReadMeMarkdownStream(formData.ReadMe).AsSeekableStream())
-                            {
-                                await _packageFileService.SaveReadMeFileAsync(package, readMeInputStream);
-                            }
-                        }
-                        catch (Exception ex) when (
-                            ex is InvalidOperationException
-                            || ex is ArgumentException
-                            || ex is ArgumentNullException
-                        )
-                        {
-                            TempData["Message"] = ex.Message;
-                            
-                            return Json(400, new [] { ex.GetUserSafeMessage() });
-                        }
-                    }
-                    formData.ReadMe.ReadMeState = readMeChanged;
                     _editPackageService.StartEditPackageRequest(package, formData.Edit, currentUser);
                 }
 
@@ -1601,27 +1532,21 @@ namespace NuGetGallery
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual JsonResult PreviewReadMe(ReadMeRequest formData)
+        public virtual async Task<JsonResult> PreviewReadMe(ReadMeRequest formData)
         {
             if (formData == null || !ReadMeHelper.HasReadMe(formData))
             {
                 return Json(400, new [] { "There is no ReadMe available to preview." });
             }
-            else
+
+            try
             {
-                try
-                {
-                    Stream readMeHtmlStream = ReadMeHelper.GetReadMeHtmlStream(formData);
-                    using (var reader = new StreamReader(readMeHtmlStream))
-                    {
-                        var readMeHtmlString = reader.ReadToEnd();
-                        return Json(new [] { readMeHtmlString });
-                    }
-                }
-                catch (Exception ex)
-                {
-                    return Json(400, new string[] { "Failed to convert markdown to Html: " + ex.Message });
-                }
+                var readMeHtml = await (await ReadMeHelper.GetReadMeHtmlStream(formData)).ReadToEndAsync();
+                return Json(new [] { readMeHtml });
+            }
+            catch (Exception ex)
+            {
+                return Json(400, new string[] { "Failed to convert markdown to Html: " + ex.Message });
             }
         }
 
