@@ -412,26 +412,6 @@ namespace NuGetGallery
             return Json(model);
         }
 
-        private async Task<string> GetPackageReadMeHtml(Package package, bool pending = false)
-        {
-            if (package.HasReadMe)
-            {
-                using (var readMeMdStream = await _packageFileService.DownloadReadmeFileAsync(package, pending))
-                {
-                    if (readMeMdStream != null)
-                    {
-                        return await (await ReadMeHelper.GetReadMeHtmlStream(readMeMdStream)).ReadToEndAsync();
-                    }
-                    else
-                    {
-                        // log exception?
-                    }
-                }
-            }
-
-            return null;
-        }
-
         public virtual async Task<ActionResult> DisplayPackage(string id, string version)
         {
             string normalized = NuGetVersionFormatter.Normalize(version);
@@ -1066,7 +1046,7 @@ namespace NuGetGallery
             model.Edit = new EditPackageVersionRequest(package, pendingMetadata);
 
             // update edit model with active or pending readme data
-            var pendingReadMe = pendingMetadata.ReadMeState == PackageEditReadMeState.Changed;
+            var pendingReadMe = model.Edit.ReadMeState == PackageEditReadMeState.Changed;
             if (package.HasReadMe || pendingReadMe)
             {
                 model.Edit.ReadMe.ReadMeType = ReadMeHelper.TypeWritten;
@@ -1101,7 +1081,7 @@ namespace NuGetGallery
             }
             
             if (formData.Edit != null)
-            {                
+            {
                 try
                 {
                     // Update pending README file, if modified.
@@ -1130,6 +1110,9 @@ namespace NuGetGallery
             });
         }
 
+        /// <summary>
+        ///  Normalize new lines, used for README change detection.
+        /// </summary>
         private string NormalizeNewLines(string content)
         {
             return content?.Replace("\r\n", "\n").Replace("\n", Environment.NewLine);
@@ -1168,6 +1151,25 @@ namespace NuGetGallery
             }
 
             return hasReadMe;
+        }
+
+        /// <summary>
+        /// Get the HTML that results from markdown conversion, encoding and sanitization.
+        /// </summary>
+        private async Task<string> GetPackageReadMeHtml(Package package, bool pending = false)
+        {
+            if (package.HasReadMe || pending)
+            {
+                using (var readMeMdStream = await _packageFileService.DownloadReadmeFileAsync(package, pending))
+                {
+                    if (readMeMdStream != null)
+                    {
+                        return await (await ReadMeHelper.GetReadMeHtmlStream(readMeMdStream)).ReadToEndAsync();
+                    }
+                }
+            }
+
+            return null;
         }
 
         [Authorize]

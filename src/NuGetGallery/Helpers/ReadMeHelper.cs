@@ -36,7 +36,8 @@ namespace NuGetGallery.Helpers
                     return !string.IsNullOrWhiteSpace(readMeUrl) && Uri.IsWellFormedUriString(readMeUrl, UriKind.Absolute);
 
                 case TypeFile:
-                    return formData.ReadMeFile != null;
+                    var readMeFile = formData.ReadMeFile;
+                    return readMeFile != null && readMeFile.ContentLength > 0;
 
                 case TypeWritten:
                     return !string.IsNullOrWhiteSpace(formData.ReadMeWritten);
