@@ -118,50 +118,6 @@ var AsyncFileUploadManager = new function () {
         });
     }
 
-    function previewReadMeAsync(callback, error) {
-        var formData = new FormData();
-
-        // Validate anti-forgery token
-        var token = $('[name=__RequestVerificationToken]').val();
-        formData.append("__RequestVerificationToken", token);
-
-        // Assemble ReadMe data
-        formData.append("ReadMeType", $("input[name='Edit.ReadMe.ReadMeType']:checked").val());
-        
-        formData.append("ReadMeUrl", $("#ReadMeUrlInput").val());
-        
-        var readMeFile = $("#readme-select-file");
-        if (readMeFile && readMeFile[0] && validateReadMeFileName(readMeFile.val().split("\\").pop())) {
-            formData.append("ReadMeFile", readMeFile[0].files[0]);
-        } else {
-            formData.append("ReadMeFile", null);
-        }
-
-        formData.append("ReadMeWritten", $("#readme-written").val());
-
-        $.ajax({
-            url: "preview-readme",
-            type: 'POST',
-            contentType: false,
-            processData: false,
-            data: formData,
-            success: function (model, resultCodeString, fullResponse) {
-                displayReadMePreview(model);
-            },
-            error: function (jqXHR, exception) {
-                var message = "";
-                if (jqXHR.status == 400) {
-                    try {
-                        message = JSON.parse(jqXHR.responseText);
-                    } catch (err) {
-                        message = "Bad request. [400]";
-                    }
-                }
-                displayReadMeError(message);
-            }
-        });
-    }
-
     function submitVerifyAsync(callback, error) {
         $.ajax({
             url: _submitVerifyUrl,
