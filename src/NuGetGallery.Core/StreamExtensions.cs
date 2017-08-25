@@ -22,14 +22,9 @@ namespace NuGetGallery
             return memoryStream;
         }
 
-        public static StreamReader GetReader(this Stream stream)
-        {
-            return new StreamReader(stream, System.Text.Encoding.UTF8);
-        }
-
         public static async Task<string> ReadToEndAsync(this Stream stream)
         {
-            using (var reader = stream.GetReader())
+            using (var reader = new StreamReader(stream, System.Text.Encoding.UTF8))
             {
                 return await reader.ReadToEndAsync();
             }

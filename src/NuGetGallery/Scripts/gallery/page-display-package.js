@@ -15,19 +15,22 @@ $(function () {
         });
     }    
 
-    $clamp(document.getElementById("readme-clamped"),
-        { clamp: 10 });
     var readmeClamped = $("#readme-clamped");
-    $("#show-readme-original").click(function () {
-        readmeClamped.collapse("toggle");
-    });
-   
-    readmeClamped.on('hide.bs.collapse', function (e) {
-        e.stopPropagation();
-    });
-    readmeClamped.on('show.bs.collapse', function (e) {
-        e.stopPropagation();
-    });
+    if (readmeClamped[0])
+    {
+        $clamp(document.getElementById("readme-clamped"), { clamp: 10 });
+
+        $("#show-readme-original").click(function () {
+            readmeClamped.collapse("toggle");
+        });
+
+        readmeClamped.on('hide.bs.collapse', function (e) {
+            e.stopPropagation();
+        });
+        readmeClamped.on('show.bs.collapse', function (e) {
+            e.stopPropagation();
+        });
+    }
 
     window.nuget.configureExpander(
         "readme-original",

@@ -100,10 +100,10 @@ namespace NuGetGallery
             return _fileStorageService.SaveFileAsync(Constants.PackageBackupsFolderName, fileName, packageFile);
         }
 
-        public async Task<Stream> DownloadPackageFileAsync(Package package)
+        public Task<Stream> DownloadPackageFileAsync(Package package)
         {
             var fileName = BuildFileName(package, Constants.PackageFileSavePathTemplate, Constants.NuGetPackageFileExtension);
-            return (await _fileStorageService.GetFileAsync(Constants.PackagesFolderName, fileName));
+            return _fileStorageService.GetFileAsync(Constants.PackagesFolderName, fileName);
         }
 
         public Task<Stream> DownloadReadmeFileAsync(Package package, bool pending = false)

@@ -70,9 +70,17 @@ namespace NuGetGallery.Helpers
         }
 
         [Fact]
-        public void HasReadMe_WhenFileIsNotNull_ReturnsTrue()
+        public void HasReadMe_WhenFileIsEmpty_ReturnsFalse()
         {
             var request = GetReadMeRequest(ReadMeHelper.TypeFile, string.Empty);
+
+            Assert.False(ReadMeHelper.HasReadMe(request));
+        }
+
+        [Fact]
+        public void HasReadMe_WhenFileIsNotNullOrEmpty_ReturnsTrue()
+        {
+            var request = GetReadMeRequest(ReadMeHelper.TypeFile, "markdown");
 
             Assert.True(ReadMeHelper.HasReadMe(request));
         }
@@ -137,6 +145,7 @@ namespace NuGetGallery.Helpers
             {
                 case ReadMeHelper.TypeFile:
                     var fileMock = new Mock<HttpPostedFileBase>();
+                    fileMock.Setup(f => f.ContentLength).Returns(markdown.Length);
                     fileMock.Setup(f => f.InputStream).Returns(new MemoryStream(Encoding.UTF8.GetBytes(markdown)));
                     request.ReadMeFile = fileMock.Object;
                     break;
