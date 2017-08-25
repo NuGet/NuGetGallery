@@ -78,7 +78,8 @@
             "Version": '@Model.Version',
             "Edit": viewModel,
             "ReadMe": {
-                "ReadMeWritten": '@HttpUtility.JavaScriptStringEncode(Model.ReadMe.ReadMeWritten)'
+                "ReadMeType": "Written",
+                "ReadMeWritten": '@HttpUtility.JavaScriptStringEncode(Model.Edit.ReadMe.ReadMeWritten)'
             }
         };
         EditViewManager.init(realModel,

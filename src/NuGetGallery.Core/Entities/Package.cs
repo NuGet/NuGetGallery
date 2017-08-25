@@ -125,7 +125,7 @@ namespace NuGetGallery
         public string RepositoryUrl { get; set; }
 
         /// <summary>
-        /// Signifies whether or not ReadMe exists (optimization for pulling from blob storage)
+        /// Nullable flag stored in the database. Callers should use the HasReadMe property instead.
         /// </summary>
         [Column("HasReadMe")]
         public bool? HasReadMeInternal { get; set; }

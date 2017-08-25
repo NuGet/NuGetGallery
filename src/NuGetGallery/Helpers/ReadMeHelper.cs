@@ -4,6 +4,8 @@
 using System;
 using System.IO;
 using System.Net;
+using System.Text;
+using System.Threading.Tasks;
 using CommonMark;
 using Ganss.XSS;
 
@@ -50,14 +52,13 @@ namespace NuGetGallery.Helpers
         /// </summary>
         /// <param name="readMeMarkdownStream">Stream containing a readMe in markdown</param>
         /// <returns>A stream with the HTML version of the readMe</returns>
-        public static Stream GetReadMeHtmlStream(Stream readMeMarkdownStream)
+        public static async Task<Stream> GetReadMeHtmlStream(Stream readMeMarkdownStream)
         {
-            var reader = new StreamReader(readMeMarkdownStream);
-
-            var html = CommonMarkConverter.Convert(reader.ReadToEnd());
+            var markdown = await readMeMarkdownStream.ReadToEndAsync();
+            var html = CommonMarkConverter.Convert(markdown);
             var sanitizedHtml = Sanitizer.Value.Sanitize(html).Trim();
 
-            return GetStreamFromWritten(sanitizedHtml);
+            return new MemoryStream(Encoding.UTF8.GetBytes(sanitizedHtml));
         }
 
         /// <summary>
@@ -66,51 +67,47 @@ namespace NuGetGallery.Helpers
         /// </summary>
         /// <param name="readMeRequest">The readMe type and markdown file</param>
         /// <returns>A stream representing the ReadMe.html file</returns>
-        public static Stream GetReadMeHtmlStream(ReadMeRequest readMeRequest)
+        public static async Task<Stream> GetReadMeHtmlStream(ReadMeRequest readMeRequest)
         {
-            return GetReadMeHtmlStream(GetReadMeMarkdownStream(readMeRequest));
+            var markdownStream = await GetReadMeMarkdownStream(readMeRequest);
+
+            return await GetReadMeHtmlStream(markdownStream);
         }
 
         /// <summary>
         /// Finds the highest priority ReadMe file stream and returns it. Highest priority is an uploaded file,
         /// then a repository URL inputted via the website, then a repository URL entered through the nuspec.
         /// </summary>
-        /// <param name="formData">The current package's form data submitted through the verify page</param>
+        /// <param name="readMeRequest">The current package's form data submitted through the verify page</param>
         /// <param name="packageMetadata">The package metadata from the nuspec file</param>
         /// <returns>A stream with the encoded ReadMe file</returns>
-        public static Stream GetReadMeMarkdownStream(ReadMeRequest formData)
+        public static async Task<Stream> GetReadMeMarkdownStream(ReadMeRequest readMeRequest)
         {
             Stream readMeStream;
-            switch (formData.ReadMeType)
+            var readMeType = readMeRequest.ReadMeType;
+            if (readMeType.Equals(TypeUrl, StringComparison.InvariantCultureIgnoreCase))
             {
-                case TypeUrl:
-                    readMeStream = ReadMeUrlToStream(formData.ReadMeUrl);
-                    break;
-                case TypeFile:
-                    readMeStream = formData.ReadMeFile.InputStream;
-                    break;
-                case TypeWritten:
-                    readMeStream = GetStreamFromWritten(formData.ReadMeWritten);
-                    break;
-                default:
-                    throw new InvalidOperationException("Form data contains an invalid ReadMeType.");
+                readMeStream = await GetReadMeStreamFromUrl(readMeRequest.ReadMeUrl);
             }
-
-            if (ValidateReadMeStreamLength(readMeStream))
+            else if (readMeType.Equals(TypeWritten, StringComparison.InvariantCultureIgnoreCase))
             {
-                return readMeStream;
+                readMeStream = new MemoryStream(Encoding.UTF8.GetBytes(readMeRequest.ReadMeWritten));
+            }
+            else if (readMeType.Equals(TypeFile, StringComparison.InvariantCultureIgnoreCase))
+            {
+                readMeStream = readMeRequest.ReadMeFile.InputStream;
             }
             else
             {
+                throw new InvalidOperationException("Form data contains an invalid ReadMeType.");
+            }
+
+            readMeStream = readMeStream.AsSeekableStream();
+            if (readMeStream.Length >= MaxFileSize)
+            {
                 throw new ArgumentException("ReadMe file exceeds size limitations. (" + MaxFileSize + ")");
             }
-        }
-
-        /// <param name="readMeStream">A stream representing the package readme.</param>
-        /// <returns>Whether the stream is less than MaxFileSize.</returns>
-        private static bool ValidateReadMeStreamLength(Stream readMeStream)
-        {
-            return readMeStream.AsSeekableStream().Length < MaxFileSize;
+            return readMeStream;
         }
 
         /// <summary>
@@ -118,27 +115,19 @@ namespace NuGetGallery.Helpers
         /// </summary>
         /// <param name="readMeUrl">A link to the raw ReadMe markdown file</param>
         /// <returns>A stream to allow the file to be read</returns>
-        private static Stream ReadMeUrlToStream(string readMeUrl)
+        private static async Task<Stream> GetReadMeStreamFromUrl(string readMeUrl)
         {
             var readMeUri = new Uri(readMeUrl);
             if (readMeUri.Host != UriHostRequirement)
             {
                 throw new ArgumentException("Url must link to a raw markdown file hosted on Github. [" + UriHostRequirement + "]");
             }
+
             var webRequest = WebRequest.Create(readMeUrl);
             webRequest.Timeout = UrlTimeout;
-            var response = webRequest.GetResponse();
-            return response.GetResponseStream().AsSeekableStream();
-        }
 
-        private static Stream GetStreamFromWritten(string writtenText)
-        {
-            var stream = new MemoryStream();
-            var writer = new StreamWriter(stream);
-            writer.Write(writtenText);
-            writer.Flush();
-            stream.Position = 0;
-            return stream;
+            var response = await webRequest.GetResponseAsync();
+            return response.GetResponseStream().AsSeekableStream();
         }
     }
 }

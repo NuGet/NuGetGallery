@@ -20,9 +20,10 @@ namespace NuGetGallery
         }
 
         [Theory]
-        [InlineData(null, PackageEditReadMeState.Unchanged)]
         [InlineData("changed", PackageEditReadMeState.Changed)]
         [InlineData("deleted", PackageEditReadMeState.Deleted)]
+        [InlineData(null, PackageEditReadMeState.Unchanged)]
+        [InlineData("unchanged", PackageEditReadMeState.Unchanged)]
         public void ReadMeState_WhenInternalIsStringReturnsState(string internalValue, PackageEditReadMeState expectedState)
         {
             // Arrange & Act

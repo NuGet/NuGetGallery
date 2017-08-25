@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using Moq;
+using NuGetGallery;
 using Xunit;
 
 namespace NuGetGallery.Helpers
@@ -103,29 +104,29 @@ namespace NuGetGallery.Helpers
             var markdown = "# Hello, World!";
             var request = GetReadMeRequest(readMeType, markdown);
 
-            using (var mdStream = ReadMeHelper.GetReadMeMarkdownStream(request))
+            using (var mdStream = await ReadMeHelper.GetReadMeMarkdownStream(request))
             {
                 Assert.Equal(markdown, await mdStream.ReadToEndAsync());
             }
         }
 
         [Fact]
-        public void GetReadMeMarkdownStream_WhenInvalidType_Throws()
+        public async Task GetReadMeMarkdownStream_WhenInvalidType_Throws()
         {
             var request = GetReadMeRequest("UnknownType", string.Empty);
 
-            Assert.Throws<InvalidOperationException>(() => ReadMeHelper.GetReadMeMarkdownStream(request));
+            await Assert.ThrowsAsync<InvalidOperationException>(() => ReadMeHelper.GetReadMeMarkdownStream(request));
         }
 
         [Theory]
         [InlineData(ReadMeHelper.TypeFile)]
         [InlineData(ReadMeHelper.TypeWritten)]
-        public void GetReadMeMarkdownStream_WhenMaxFileSizeReached_ThrowsArgumentException(string readMeType)
+        public async Task GetReadMeMarkdownStream_WhenMaxFileSizeReached_ThrowsArgumentException(string readMeType)
         {
             var largeMarkdown = new string('x', ReadMeHelper.MaxFileSize);
             var request = GetReadMeRequest(readMeType, largeMarkdown);
 
-            Assert.Throws<ArgumentException>(() => ReadMeHelper.GetReadMeMarkdownStream(request));
+            await Assert.ThrowsAsync<ArgumentException>(() => ReadMeHelper.GetReadMeMarkdownStream(request));
         }
 
         private ReadMeRequest GetReadMeRequest(string readMeType, string markdown)
@@ -161,7 +162,7 @@ namespace NuGetGallery.Helpers
         {
             var request = GetReadMeRequest(ReadMeHelper.TypeWritten, writtenText);
 
-            using (var stream = ReadMeHelper.GetReadMeHtmlStream(request))
+            using (var stream = await ReadMeHelper.GetReadMeHtmlStream(request))
             {
                 return await stream.ReadToEndAsync();
             }

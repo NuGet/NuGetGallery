@@ -552,14 +552,16 @@ namespace NuGetGallery
                     HasReadMe = hasReadMe
                 };
 
-                packageService.Setup(p => p.FindPackageByIdAndVersion(It.Is<string>(s => s == "Foo"), It.Is<string>(s => s == null), It.Is<int>(i => i == SemVerLevelKey.SemVer2), It.Is<bool>(b => b == true)))
+                packageService.Setup(p => p.FindPackageByIdAndVersion(It.Is<string>(s => s == "Foo"),
+                    It.Is<string>(s => s == null), It.Is<int>(i => i == SemVerLevelKey.SemVer2), It.Is<bool>(b => b == true)))
                     .Returns(package);
 
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
 
                 if (hasReadMe)
                 {
-                    fileService.Setup(f => f.DownloadReadmeFileAsync(It.IsAny<Package>())).Returns(Task.FromResult(readMeHtmlStream));
+                    fileService.Setup(f => f.DownloadReadmeFileAsync(It.IsAny<Package>(), It.IsAny<bool>()))
+                        .Returns(Task.FromResult(readMeHtmlStream));
                 }
 
                 return await controller.DisplayPackage("Foo", /*version*/null);
@@ -2211,7 +2213,8 @@ namespace NuGetGallery
                     controller.SetCurrentUser(TestUtility.FakeUser);
 
                     // Act
-                    await controller.VerifyPackage(new VerifyPackageRequest { Listed = true, Edit = edit, ReadMe = new ReadMeRequest() });
+                    edit.ReadMe = new ReadMeRequest();
+                    await controller.VerifyPackage(new VerifyPackageRequest { Listed = true, Edit = edit});
 
                     // Assert 
                     fakeEditPackageService.Verify(x => x.StartEditPackageRequest(fakePackage, edit, TestUtility.FakeUser), Times.Once);
@@ -2274,18 +2277,19 @@ namespace NuGetGallery
                 fakeReadMeRequest.Setup(x => x.ReadMeWritten).Returns("fakeReadMeStream");
                 fakeReadMeRequest.Setup(x => x.ReadMeType).Returns("Written");
 
-                var fakeVerifyPackageRequest = new VerifyPackageRequest { Listed = true, Edit = edit, ReadMe = fakeReadMeRequest.Object };
-
+                edit.ReadMe = fakeReadMeRequest.Object;
+                var fakeVerifyPackageRequest = new VerifyPackageRequest { Listed = true, Edit = edit };
+                
                 // Act
                 await controller.VerifyPackage(fakeVerifyPackageRequest);
 
                 // Assert
-                Assert.Equal(PackageEditReadMeState.Changed, fakeVerifyPackageRequest.ReadMe.ReadMeState);
+                Assert.Equal(PackageEditReadMeState.Changed, fakeVerifyPackageRequest.Edit.ReadMeState);
                 fakePackageFileService.Verify(x => x.SaveReadMeFileAsync(fakePackage, It.IsAny<Stream>()), Times.Once);
                 fakeEditPackageService.Verify(x => x.StartEditPackageRequest(fakePackage, edit, TestUtility.FakeUser), Times.Once);
             }
         }
-
+        
         public class TheUploadProgressAction : TestContainer
         {
             private static readonly string FakeUploadName = "upload-" + TestUtility.FakeUserName;
