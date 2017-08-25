@@ -189,6 +189,12 @@ namespace NuGet.Services.BasicSearchTests
                 var actual = await response.Content.ReadAsAsync<JObject>();
 
                 // Assert
+                // The actual result's index timestamp is formatted using the current culture. Verify the timestamp is as expected,
+                // and then set the result to the expected dummy value.
+                Assert.Equal(DateTime.MinValue.ToUniversalTime().ToString("G"), actual["indexTimestamp"]);
+
+                actual["indexTimestamp"] = expected["indexTimestamp"];
+
                 /// The results' "Published" and "LastUpdated" properties are set to the time that the package's
                 /// metadata was extracted by the test infrastructure's <see cref="NuGet.Indexing.NupkgPackageMetadataExtraction"/>.
                 /// We'll do a sanity check for these properties and set them to the expected response's dummy values.
