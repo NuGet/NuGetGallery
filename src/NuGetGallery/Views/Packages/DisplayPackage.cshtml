@@ -83,6 +83,10 @@
                 <h1>
                     @Html.BreakWord(Model.Id)
                     <small class="text-nowrap">@Model.FullVersion</small>
+                    @if (Model.IsVerified.HasValue && Model.IsVerified.Value)
+                    {
+                        <img style="vertical-align: middle; width: 25px" src="~/Content/gallery/img/reserved-indicator.svg"/>
+                    }
                 </h1>
 
                 @if (!StringComparer.OrdinalIgnoreCase.Equals(Model.Id, Model.Title))

@@ -43,6 +43,8 @@ namespace NuGetGallery
             }
 
             DownloadsPerDayLabel = DownloadsPerDay < 1 ? "<1" : DownloadsPerDay.ToNuGetNumberString();
+
+            IsVerified = package.PackageRegistration.IsVerified;
         }
 
         public void SetPendingMetadata(PackageEdit pendingMetadata)
@@ -88,5 +90,7 @@ namespace NuGetGallery
         public bool? IsIndexed { get; set; }
 
         public string DownloadsPerDayLabel { get; private set; }
+
+        public bool? IsVerified { get; private set; }
     }
 }
