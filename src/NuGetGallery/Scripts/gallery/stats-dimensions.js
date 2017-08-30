@@ -122,12 +122,19 @@ var setupHiddenRows = function (data) {
                 if (item.Uri != null) {
                     content = $(document.createElement("a"));
                     content.attr("href", item.Uri);
+                    content.text(item.Data);
                 } else {
-                    content = $(document.createElement("span"));
-                    content.attr("aria-label", item.Data);
+                    if (item.IsNumeric) {
+                        content = $(document.createElement("span"));
+                        content.attr("aria-label", parseInt(item.Data).toLocaleString());
+                        content.text(parseInt(item.Data).toLocaleString());
+                    } else {
+                        content = $(document.createElement("span"));
+                        content.attr("aria-label", item.Data);
+                        content.text(item.Data);
+                    }
                 }
 
-                content.text(item.Data);
                 tempTd.append(content);
                 tdArr.push(tempTd);
             }
