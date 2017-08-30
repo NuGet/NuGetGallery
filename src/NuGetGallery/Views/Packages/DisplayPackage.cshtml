@@ -30,8 +30,8 @@
 
 @helper VersionListDivider(int rowCount, bool versionsExpanded)
 {
-    if (rowCount == Constants.VisibleVersions + 1)
-    {
+if (rowCount == Constants.VisibleVersions + 1)
+{
         @:</tbody><tbody class="no-border collapse @(versionsExpanded ? "in" : string.Empty)" id="hidden-versions">
     }
 }
@@ -85,7 +85,10 @@
                     <small class="text-nowrap">@Model.FullVersion</small>
                     @if (Model.IsVerified.HasValue && Model.IsVerified.Value)
                     {
-                        <img style="vertical-align: middle; width: 25px" src="~/Content/gallery/img/reserved-indicator.svg" title="The ID prefix of this package has been reserved for one of the owner of this package by NuGet.org."/>
+                        <img style="vertical-align: middle; width: 25px"
+                             src="~/Content/gallery/img/reserved-indicator.svg"
+                             @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-25x25.png"))
+                             title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
                     }
                 </h1>
 
@@ -114,11 +117,11 @@
                     @Html.AntiForgeryToken()
 
                     @ViewHelpers.AlertInfo(
-                        @<text>
-                            An edit is pending for this package version. You are seeing the <em>edited</em> package description now.
-                            These changes will be applied to the package file and become visible to everybody soon unless you
-                            <a href="#" role="button" id="undo-pending-edits">undo pending edits</a> first.
-                        </text>
+                @<text>
+                    An edit is pending for this package version. You are seeing the <em>edited</em> package description now.
+                    These changes will be applied to the package file and become visible to everybody soon unless you
+                    <a href="#" role="button" id="undo-pending-edits">undo pending edits</a> first.
+                </text>
                     )
                 }
             }
@@ -126,60 +129,60 @@
             @if (Model.IsLastEditFailed)
             {
                 @ViewHelpers.AlertDanger(
-                    @<text>
-                        Your last edit to this package was not successfully applied.
-                        You can <a href="@Url.EditPackage(Model.Id, Model.Version)">edit</a>
-                        the package and submit the edit again to retry the edit.
-                    </text>
+            @<text>
+                Your last edit to this package was not successfully applied.
+                You can <a href="@Url.EditPackage(Model.Id, Model.Version)">edit</a>
+                the package and submit the edit again to retry the edit.
+            </text>
                 )
             }
 
             @if (Model.Prerelease)
             {
                 @ViewHelpers.AlertInfo(
-                    @<text>
-                        This is a prerelease version of @(Model.Id).
-                    </text>
+            @<text>
+                This is a prerelease version of @(Model.Id).
+            </text>
                 )
             }
 
             @if (Model.LatestStableVersionSemVer2 && Model.HasNewerPrerelease)
             {
                 @ViewHelpers.AlertInfo(
-                    @<text>
-                        There is a newer prerelease version of this package available.
-                        <br /> See the version list below for details.
-                    </text>
+            @<text>
+                There is a newer prerelease version of this package available.
+                <br /> See the version list below for details.
+            </text>
                 )
             }
 
             @if (Model.Listed && Model.IsIndexed.HasValue && !Model.IsIndexed.Value)
             {
                 @ViewHelpers.AlertWarning(
-                    @<text>
-                        <strong>This package has not been indexed yet.</strong> It will appear in search results
-                        and will be available for install/restore after indexing is completed.
-                    </text>
+            @<text>
+                <strong>This package has not been indexed yet.</strong> It will appear in search results
+                and will be available for install/restore after indexing is completed.
+            </text>
                 )
             }
 
             @if (Model.Deleted)
             {
                 @ViewHelpers.AlertDanger(
-                    @<text>
-                        <strong>This package has been deleted from the gallery.</strong> It is no longer available
-                        for install/restore.
-                    </text>
+            @<text>
+                <strong>This package has been deleted from the gallery.</strong> It is no longer available
+                for install/restore.
+            </text>
                 )
             }
 
             @if (Model.IsSemVer2)
             {
                 @ViewHelpers.AlertWarning(
-                    @<text>
-                        This package is only available for download with Visual Studio 2017 (version 15.3) and above or with NuGet client 4.3.0 and above.
-                        Reach out to support if you have more questions.
-                    </text>
+            @<text>
+                This package is only available for download with Visual Studio 2017 (version 15.3) and above or with NuGet client 4.3.0 and above.
+                Reach out to support if you have more questions.
+            </text>
                 )
             }
 
@@ -188,20 +191,20 @@
                 if ((Model.IsOwner(User) || User.IsAdministrator()))
                 {
                     @ViewHelpers.AlertWarning(
-                        @<text>
-                            This package is unlisted and hidden from package listings.
-                            You can see the package because you are one of its owners. To list the package again,
-                            <a href="@Url.DeletePackage(Model)">change its listing setting</a>.
-                        </text>
+                @<text>
+                    This package is unlisted and hidden from package listings.
+                    You can see the package because you are one of its owners. To list the package again,
+                    <a href="@Url.DeletePackage(Model)">change its listing setting</a>.
+                </text>
                     )
                 }
                 else
                 {
                     @ViewHelpers.AlertWarning(
-                        @<text>
-                            The owner has unlisted this package.
-                            This could mean that the package is deprecated or shouldn't be used anymore.
-                        </text>
+                @<text>
+                    The owner has unlisted this package.
+                    This could mean that the package is deprecated or shouldn't be used anymore.
+                </text>
                     )
                 }
             }
@@ -225,7 +228,7 @@
             @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
             {
                 <h2>Release Notes</h2>
-                
+
                 <p>@Html.PreFormattedText(Model.ReleaseNotes)</p>
             }
 
@@ -404,7 +407,7 @@
                     <li>
                         <i class="ms-Icon ms-Icon--Globe" aria-hidden="true"></i>
                         <a href="@Model.ProjectUrl" data-track="outbound-project-url" title="Visit the project site to learn more about this package" rel="nofollow">
-                            @if(Model.ProjectUrl.Length <= 28)
+                            @if (Model.ProjectUrl.Length <= 28)
                             {
                                 @Model.ProjectUrl
                             }
@@ -420,7 +423,7 @@
                     <li>
                         <i class="ms-Icon ms-Icon--Certificate" aria-hidden="true"></i>
                         <a href="@Model.LicenseUrl" data-track="outbound-license-url" title="Make sure you agree with the license" rel="nofollow">
-                            @if(Model.LicenseNames.AnySafe())
+                            @if (Model.LicenseNames.AnySafe())
                             {
                                 @(string.Join(", ", Model.LicenseNames.Select(x => x + " License")))
                             }
@@ -558,14 +561,16 @@
                 var encodedText = Url.Encode(string.Format("Check out {0} on #NuGet.", Model.Id));
             }
             <p class="share-buttons">
-                <a href="https://www.facebook.com/sharer/sharer.php?u=@absolutePackageUrl&t=@encodedText" target="_blank"><img
-                    width="24" height="24" alt="Share this package on Facebook"
-                    src="@Url.Absolute("~/Content/gallery/img/facebook.svg")"
-                    @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/facebook-24x24.png")) /></a>
-                <a href="https://twitter.com/intent/tweet?url=@absolutePackageUrl&text=@encodedText" target="_blank"><img
-                    width="24" height="24" alt="Tweet this package"
-                    src="@Url.Absolute("~/Content/gallery/img/twitter.svg")"
-                    @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/twitter-24x24.png")) /></a>
+                <a href="https://www.facebook.com/sharer/sharer.php?u=@absolutePackageUrl&t=@encodedText" target="_blank">
+                    <img width="24" height="24" alt="Share this package on Facebook"
+                         src="@Url.Absolute("~/Content/gallery/img/facebook.svg")"
+                         @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/facebook-24x24.png")) />
+                </a>
+                <a href="https://twitter.com/intent/tweet?url=@absolutePackageUrl&text=@encodedText" target="_blank">
+                    <img width="24" height="24" alt="Tweet this package"
+                         src="@Url.Absolute("~/Content/gallery/img/twitter.svg")"
+                         @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/twitter-24x24.png")) />
+                </a>
             </p>
         </aside>
     </div>

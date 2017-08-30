@@ -14,7 +14,10 @@
 
                 @if (Model.IsVerfied.HasValue && Model.IsVerfied.Value)
                 {
-                    <img style="vertical-align: top; margin-left: 3px; margin-top: 3px; width: 20px" src="~/Content/gallery/img/reserved-indicator.svg" title="The ID prefix of this package has been reserved for one of the owner of this package by NuGet.org."/>
+                    <img style="vertical-align: top; margin-left: 3px; margin-top: 3px; width: 20px" 
+                         src="~/Content/gallery/img/reserved-indicator.svg" 
+                         @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-20x20.png"))
+                         title="@Strings.ReservedNamespace_ReservedIndicatorTooltip"/>
                 }
 
                 <span class="package-by">

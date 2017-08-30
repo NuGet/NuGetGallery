@@ -936,6 +936,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The ID prefix of this package has been reserved for one of the owner of this package by NuGet.org..
+        /// </summary>
+        public static string ReservedNamespace_ReservedIndicatorTooltip {
+            get {
+                return ResourceManager.GetString("ReservedNamespace_ReservedIndicatorTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to User &apos;{0}&apos; is not an owner of the specified namespace.
         /// </summary>
         public static string ReservedNamespace_UserNotAnOwner {
