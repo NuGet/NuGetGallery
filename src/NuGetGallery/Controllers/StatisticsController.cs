@@ -298,7 +298,7 @@ namespace NuGetGallery
 
             if (groupby != null)
             {
-                Tuple<StatisticsPivot.TableEntry[][], string> result = StatisticsPivot.GroupBy(report.Facts, pivot);
+                Tuple<StatisticsPivot.TableEntry[][], int> result = StatisticsPivot.GroupBy(report.Facts, pivot);
 
                 if (id != null)
                 {
@@ -355,7 +355,7 @@ namespace NuGetGallery
                 }
 
                 report.Table = null;
-                report.Total = report.Facts.Sum(fact => fact.Amount).ToNuGetNumberString();
+                report.Total = report.Facts.Sum(fact => fact.Amount);
             }
         }
 
