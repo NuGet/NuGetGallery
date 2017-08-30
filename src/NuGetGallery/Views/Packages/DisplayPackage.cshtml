@@ -30,8 +30,8 @@
 
 @helper VersionListDivider(int rowCount, bool versionsExpanded)
 {
-if (rowCount == Constants.VisibleVersions + 1)
-{
+    if (rowCount == Constants.VisibleVersions + 1)
+    {
         @:</tbody><tbody class="no-border collapse @(versionsExpanded ? "in" : string.Empty)" id="hidden-versions">
     }
 }
@@ -83,6 +83,7 @@ if (rowCount == Constants.VisibleVersions + 1)
                 <h1>
                     @Html.BreakWord(Model.Id)
                     <small class="text-nowrap">@Model.FullVersion</small>
+
                     @if (Model.IsVerified.HasValue && Model.IsVerified.Value)
                     {
                         <img style="vertical-align: middle; width: 25px"
@@ -117,11 +118,11 @@ if (rowCount == Constants.VisibleVersions + 1)
                     @Html.AntiForgeryToken()
 
                     @ViewHelpers.AlertInfo(
-                @<text>
-                    An edit is pending for this package version. You are seeing the <em>edited</em> package description now.
-                    These changes will be applied to the package file and become visible to everybody soon unless you
-                    <a href="#" role="button" id="undo-pending-edits">undo pending edits</a> first.
-                </text>
+                        @<text>
+                            An edit is pending for this package version. You are seeing the <em>edited</em> package description now.
+                            These changes will be applied to the package file and become visible to everybody soon unless you
+                            <a href="#" role="button" id="undo-pending-edits">undo pending edits</a> first.
+                        </text>
                     )
                 }
             }
@@ -129,60 +130,60 @@ if (rowCount == Constants.VisibleVersions + 1)
             @if (Model.IsLastEditFailed)
             {
                 @ViewHelpers.AlertDanger(
-            @<text>
-                Your last edit to this package was not successfully applied.
-                You can <a href="@Url.EditPackage(Model.Id, Model.Version)">edit</a>
-                the package and submit the edit again to retry the edit.
-            </text>
+                    @<text>
+                        Your last edit to this package was not successfully applied.
+                        You can <a href="@Url.EditPackage(Model.Id, Model.Version)">edit</a>
+                        the package and submit the edit again to retry the edit.
+                    </text>
                 )
             }
 
             @if (Model.Prerelease)
             {
                 @ViewHelpers.AlertInfo(
-            @<text>
-                This is a prerelease version of @(Model.Id).
-            </text>
+                    @<text>
+                        This is a prerelease version of @(Model.Id).
+                    </text>
                 )
             }
 
             @if (Model.LatestStableVersionSemVer2 && Model.HasNewerPrerelease)
             {
                 @ViewHelpers.AlertInfo(
-            @<text>
-                There is a newer prerelease version of this package available.
-                <br /> See the version list below for details.
-            </text>
+                    @<text>
+                        There is a newer prerelease version of this package available.
+                        <br /> See the version list below for details.
+                    </text>
                 )
             }
 
             @if (Model.Listed && Model.IsIndexed.HasValue && !Model.IsIndexed.Value)
             {
                 @ViewHelpers.AlertWarning(
-            @<text>
-                <strong>This package has not been indexed yet.</strong> It will appear in search results
-                and will be available for install/restore after indexing is completed.
-            </text>
+                    @<text>
+                        <strong>This package has not been indexed yet.</strong> It will appear in search results
+                        and will be available for install/restore after indexing is completed.
+                    </text>
                 )
             }
 
             @if (Model.Deleted)
             {
                 @ViewHelpers.AlertDanger(
-            @<text>
-                <strong>This package has been deleted from the gallery.</strong> It is no longer available
-                for install/restore.
-            </text>
+                    @<text>
+                        <strong>This package has been deleted from the gallery.</strong> It is no longer available
+                        for install/restore.
+                    </text>
                 )
             }
 
             @if (Model.IsSemVer2)
             {
                 @ViewHelpers.AlertWarning(
-            @<text>
-                This package is only available for download with Visual Studio 2017 (version 15.3) and above or with NuGet client 4.3.0 and above.
-                Reach out to support if you have more questions.
-            </text>
+                    @<text>
+                        This package is only available for download with Visual Studio 2017 (version 15.3) and above or with NuGet client 4.3.0 and above.
+                        Reach out to support if you have more questions.
+                    </text>
                 )
             }
 
@@ -191,20 +192,20 @@ if (rowCount == Constants.VisibleVersions + 1)
                 if ((Model.IsOwner(User) || User.IsAdministrator()))
                 {
                     @ViewHelpers.AlertWarning(
-                @<text>
-                    This package is unlisted and hidden from package listings.
-                    You can see the package because you are one of its owners. To list the package again,
-                    <a href="@Url.DeletePackage(Model)">change its listing setting</a>.
-                </text>
+                        @<text>
+                            This package is unlisted and hidden from package listings.
+                            You can see the package because you are one of its owners. To list the package again,
+                            <a href="@Url.DeletePackage(Model)">change its listing setting</a>.
+                        </text>
                     )
                 }
                 else
                 {
                     @ViewHelpers.AlertWarning(
-                @<text>
-                    The owner has unlisted this package.
-                    This could mean that the package is deprecated or shouldn't be used anymore.
-                </text>
+                        @<text>
+                            The owner has unlisted this package.
+                            This could mean that the package is deprecated or shouldn't be used anymore.
+                        </text>
                     )
                 }
             }
