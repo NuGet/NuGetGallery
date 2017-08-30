@@ -124,6 +124,7 @@ namespace NuGetGallery
             document.Add(new Field("Hash", Package.Hash.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("HashAlgorithm", Package.HashAlgorithm.ToStringSafe(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("Id-Original", Package.PackageRegistration.Id, Field.Store.YES, Field.Index.NO));
+            document.Add(new Field("IsVerified-Original", Package.PackageRegistration.IsVerified.ToString(), Field.Store.YES, Field.Index.NO));
             document.Add(new Field("LastUpdated", Package.LastUpdated.ToString(CultureInfo.InvariantCulture), Field.Store.YES, Field.Index.NO));
             if (Package.LastEdited != null)
             {
