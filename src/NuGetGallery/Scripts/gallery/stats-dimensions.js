@@ -124,15 +124,10 @@ var setupHiddenRows = function (data) {
                     content.attr("href", item.Uri);
                     content.text(item.Data);
                 } else {
-                    if (item.IsNumeric) {
-                        content = $(document.createElement("span"));
-                        content.attr("aria-label", parseInt(item.Data).toLocaleString());
-                        content.text(parseInt(item.Data).toLocaleString());
-                    } else {
-                        content = $(document.createElement("span"));
-                        content.attr("aria-label", item.Data);
-                        content.text(item.Data);
-                    }
+                    var textValue = item.IsNumeric ? parseInt(item.Data).toLocaleString() : item.Data;
+                    content = $(document.createElement("span"));
+                    content.attr("aria-label", textValue);
+                    content.text(textValue);
                 }
 
                 tempTd.append(content);
