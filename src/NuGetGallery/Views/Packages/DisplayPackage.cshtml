@@ -83,6 +83,14 @@
                 <h1>
                     @Html.BreakWord(Model.Id)
                     <small class="text-nowrap">@Model.FullVersion</small>
+
+                    @if (Model.IsVerified.HasValue && Model.IsVerified.Value)
+                    {
+                        <img class="reserved-indicator"
+                             src="~/Content/gallery/img/reserved-indicator.svg"
+                             @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-25x25.png"))
+                             title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
+                    }
                 </h1>
 
                 @if (!StringComparer.OrdinalIgnoreCase.Equals(Model.Id, Model.Title))
@@ -221,7 +229,7 @@
             @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
             {
                 <h2>Release Notes</h2>
-                
+
                 <p>@Html.PreFormattedText(Model.ReleaseNotes)</p>
             }
 
@@ -400,7 +408,7 @@
                     <li>
                         <i class="ms-Icon ms-Icon--Globe" aria-hidden="true"></i>
                         <a href="@Model.ProjectUrl" data-track="outbound-project-url" title="Visit the project site to learn more about this package" rel="nofollow">
-                            @if(Model.ProjectUrl.Length <= 28)
+                            @if (Model.ProjectUrl.Length <= 28)
                             {
                                 @Model.ProjectUrl
                             }
@@ -416,7 +424,7 @@
                     <li>
                         <i class="ms-Icon ms-Icon--Certificate" aria-hidden="true"></i>
                         <a href="@Model.LicenseUrl" data-track="outbound-license-url" title="Make sure you agree with the license" rel="nofollow">
-                            @if(Model.LicenseNames.AnySafe())
+                            @if (Model.LicenseNames.AnySafe())
                             {
                                 @(string.Join(", ", Model.LicenseNames.Select(x => x + " License")))
                             }
@@ -554,14 +562,16 @@
                 var encodedText = Url.Encode(string.Format("Check out {0} on #NuGet.", Model.Id));
             }
             <p class="share-buttons">
-                <a href="https://www.facebook.com/sharer/sharer.php?u=@absolutePackageUrl&t=@encodedText" target="_blank"><img
-                    width="24" height="24" alt="Share this package on Facebook"
-                    src="@Url.Absolute("~/Content/gallery/img/facebook.svg")"
-                    @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/facebook-24x24.png")) /></a>
-                <a href="https://twitter.com/intent/tweet?url=@absolutePackageUrl&text=@encodedText" target="_blank"><img
-                    width="24" height="24" alt="Tweet this package"
-                    src="@Url.Absolute("~/Content/gallery/img/twitter.svg")"
-                    @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/twitter-24x24.png")) /></a>
+                <a href="https://www.facebook.com/sharer/sharer.php?u=@absolutePackageUrl&t=@encodedText" target="_blank">
+                    <img width="24" height="24" alt="Share this package on Facebook"
+                         src="@Url.Absolute("~/Content/gallery/img/facebook.svg")"
+                         @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/facebook-24x24.png")) />
+                </a>
+                <a href="https://twitter.com/intent/tweet?url=@absolutePackageUrl&text=@encodedText" target="_blank">
+                    <img width="24" height="24" alt="Tweet this package"
+                         src="@Url.Absolute("~/Content/gallery/img/twitter.svg")"
+                         @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/twitter-24x24.png")) />
+                </a>
             </p>
         </aside>
     </div>

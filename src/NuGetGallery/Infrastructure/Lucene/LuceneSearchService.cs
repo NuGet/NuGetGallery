@@ -112,6 +112,7 @@ namespace NuGetGallery
             int key = Int32.Parse(doc.Get("Key"), CultureInfo.InvariantCulture);
             int packageRegistrationKey = Int32.Parse(doc.Get("PackageRegistrationKey"), CultureInfo.InvariantCulture);
             int packageSize = Int32.Parse(doc.Get("PackageFileSize"), CultureInfo.InvariantCulture);
+            bool isVerified = Boolean.Parse(doc.Get("IsVerified-Original"));
             bool isLatest = Boolean.Parse(doc.Get("IsLatest"));
             bool isLatestStable = Boolean.Parse(doc.Get("IsLatestStable"));
             bool isLatestSemVer2 = Boolean.Parse(doc.Get("IsLatestSemVer2"));
@@ -172,6 +173,7 @@ namespace NuGetGallery
                     Id = doc.Get("Id-Original"),
                     DownloadCount = downloadCount,
                     Key = packageRegistrationKey,
+                    IsVerified = isVerified,
                     Owners = owners
                 },
                 PackageRegistrationKey = packageRegistrationKey,

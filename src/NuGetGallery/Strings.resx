@@ -561,4 +561,7 @@ For more information, please contact '{2}'.</value>
   <data name="ReservedNamespace_UserNotFound" xml:space="preserve">
     <value>User not found with username '{0}'</value>
   </data>
+  <data name="ReservedNamespace_ReservedIndicatorTooltip" xml:space="preserve">
+    <value>The ID prefix of this package has been reserved for one of the owner of this package by NuGet.org.</value>
+  </data>
 </root>

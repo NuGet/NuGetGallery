@@ -24,6 +24,7 @@ namespace NuGetGallery
             Authors = package.FlattenedAuthors;
             MinClientVersion = package.MinClientVersion;
             Owners = package.PackageRegistration?.Owners;
+            IsVerified = package.PackageRegistration?.IsVerified;
 
             bool wasTruncated;
             ShortDescription = Description.TruncateAtWordBoundary(_descriptionLengthLimit, _omissionString, out wasTruncated);
@@ -37,6 +38,7 @@ namespace NuGetGallery
         public string ShortDescription { get; set; }
         public bool IsDescriptionTruncated { get; set; }
         public string PolicyMessage { get; set; }
+        public bool? IsVerified { get; set; }
 
         public bool UseVersion
         {
