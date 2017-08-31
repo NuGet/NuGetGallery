@@ -86,7 +86,7 @@
 
                     @if (Model.IsVerified.HasValue && Model.IsVerified.Value)
                     {
-                        <img style="vertical-align: middle; width: 25px"
+                        <img class="reserved-indicator"
                              src="~/Content/gallery/img/reserved-indicator.svg"
                              @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-25x25.png"))
                              title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
