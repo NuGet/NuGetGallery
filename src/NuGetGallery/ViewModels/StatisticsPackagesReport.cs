@@ -10,7 +10,7 @@ namespace NuGetGallery
     public class StatisticsPackagesReport
     {
         public IList<StatisticsPackagesItemViewModel> Rows { get; private set; }
-        public string Total { get; set; }
+        public int Total { get; set; }
 
         public IList<StatisticsDimension> Dimensions { get; private set; }
         public IList<StatisticsFact> Facts { get; set; }
@@ -24,7 +24,7 @@ namespace NuGetGallery
 
         public StatisticsPackagesReport()
         {
-            Total = String.Empty;
+            Total = 0;
             Id = String.Empty;
             Columns = Enumerable.Empty<string>();
             Facts = new List<StatisticsFact>();
