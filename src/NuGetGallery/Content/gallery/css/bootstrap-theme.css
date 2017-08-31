@@ -672,6 +672,10 @@ img.package-icon {
   line-height: 1.5;
   vertical-align: baseline;
 }
+.page-package-details .install-tabs .tab-pane .alert {
+  width: 100%;
+  margin: 0;
+}
 .page-package-details .install-tabs #package-manager .install-script span::before {
   content: "PM> ";
 }

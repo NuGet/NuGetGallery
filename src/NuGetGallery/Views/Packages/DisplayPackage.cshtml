@@ -49,7 +49,7 @@
     </li>
 }
 
-@helper CommandPanel(Func<MvcHtmlString, HelperResult> htmlContent, string label, string id, bool active)
+@helper CommandPanel(Func<MvcHtmlString, HelperResult> htmlContent, string label, string id, bool active, string thirdPartyUrl = null)
 {
     <div role="tabpanel" class="tab-pane @(active ? "active" : string.Empty)" id="@id">
         <div>
@@ -66,6 +66,13 @@
                 </button>
             </div>
         </div>
+        @if (!string.IsNullOrEmpty(thirdPartyUrl))
+        {
+            @ViewHelpers.AlertWarning(
+                @<text>
+                    This client is not supported by the NuGet team. <a href="@thirdPartyUrl">Contact its maintainers for support</a>
+                </text>)
+        }
     </div>
 }
 
