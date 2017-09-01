@@ -672,11 +672,9 @@ img.package-icon {
   line-height: 1.5;
   vertical-align: baseline;
 }
-.page-package-details .install-tabs #package-manager .install-script span::before {
-  content: "PM> ";
-}
-.page-package-details .install-tabs #dotnet-cli .install-script span::before {
-  content: "> ";
+.page-package-details .install-tabs .tab-pane .alert {
+  width: 100%;
+  margin: 0;
 }
 .page-downloads .list-tools li {
   margin-top: 20px;
