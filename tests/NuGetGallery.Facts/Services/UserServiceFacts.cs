@@ -2,14 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Moq;
-using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.Auditing;
 using Xunit;
+using NuGetGallery.TestUtils;
 
 namespace NuGetGallery
 {
@@ -359,46 +357,6 @@ namespace NuGetGallery
                 var service = new TestableUserService();
 
                 await ContractAssert.ThrowsArgNullAsync(async () => await service.ChangeEmailSubscriptionAsync(null, emailAllowed: true, notifyPackagePushed: true), "user");
-            }
-        }
-
-        public class TestableUserService : UserService
-        {
-            public Mock<IAppConfiguration> MockConfig { get; protected set; }
-            public Mock<IEntityRepository<User>> MockUserRepository { get; protected set; }
-            public Mock<IEntityRepository<Credential>> MockCredentialRepository { get; protected set; }
-
-            public TestableUserService()
-            {
-                Config = (MockConfig = new Mock<IAppConfiguration>()).Object;
-                UserRepository = (MockUserRepository = new Mock<IEntityRepository<User>>()).Object;
-                CredentialRepository = (MockCredentialRepository = new Mock<IEntityRepository<Credential>>()).Object;
-                Auditing = new TestAuditingService();
-
-                // Set ConfirmEmailAddress to a default of true
-                MockConfig.Setup(c => c.ConfirmEmailAddresses).Returns(true);
-            }
-        }
-
-        public class TestableUserServiceWithDBFaking : UserService
-        {
-            public Mock<IAppConfiguration> MockConfig { get; protected set; }
-
-            public FakeEntitiesContext FakeEntitiesContext { get; set; }
-
-            public IEnumerable<User> Users
-            {
-                set
-                {
-                    foreach (User u in value) FakeEntitiesContext.Set<User>().Add(u);
-                }
-            }
-
-            public TestableUserServiceWithDBFaking()
-            {
-                Config = (MockConfig = new Mock<IAppConfiguration>()).Object;
-                UserRepository = new EntityRepository<User>(FakeEntitiesContext = new FakeEntitiesContext());
-                Auditing = new TestAuditingService();
             }
         }
     }

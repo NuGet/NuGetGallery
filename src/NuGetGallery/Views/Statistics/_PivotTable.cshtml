@@ -10,7 +10,12 @@
         <a data-bind="attr: { href: Uri }, text: Data"></a>
         <!-- /ko -->
         <!-- ko ifnot: Uri -->
+        <!-- ko if: IsNumeric -->
+        <span data-bind="attr: { 'aria-label': Data }, text: parseInt(Data).toLocaleString()" tabindex="0"></span>
+        <!-- /ko -->
+        <!-- ko ifnot: IsNumeric -->
         <span data-bind="attr: { 'aria-label': Data }, text: Data" tabindex="0"></span>
+        <!-- /ko -->
         <!-- /ko -->
     </td>
     <!-- /ko -->

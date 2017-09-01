@@ -238,7 +238,7 @@ namespace NuGetGallery
                     .Returns(user);
                 GetMock<AuthenticationService>()
                     .Setup(s => s.GeneratePasswordResetToken("user", Constants.PasswordResetTokenExpirationHours * 60))
-                    .CompletesWith(user);
+                    .CompletesWith(new PasswordResetResult(PasswordResetResultType.Success, user));
                 var controller = GetController<UsersController>();
                 var model = new ForgotPasswordViewModel { Email = "user" };
 
@@ -254,7 +254,7 @@ namespace NuGetGallery
                 var user = new User { EmailAddress = "some@example.com", Username = "somebody" };
                 GetMock<AuthenticationService>()
                     .Setup(s => s.GeneratePasswordResetToken("user", Constants.PasswordResetTokenExpirationHours * 60))
-                    .CompletesWith(user)
+                    .CompletesWith(new PasswordResetResult(PasswordResetResultType.Success, user))
                     .Verifiable();
                 var controller = GetController<UsersController>();
 
@@ -268,11 +268,11 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task ReturnsSameViewIfTokenGenerationFails()
+            public async Task ShowsErrorIfUserWasNotFound()
             {
                 GetMock<AuthenticationService>()
                     .Setup(s => s.GeneratePasswordResetToken("user", Constants.PasswordResetTokenExpirationHours * 60))
-                    .CompletesWithNull();
+                    .ReturnsAsync(new PasswordResetResult(PasswordResetResultType.UserNotFound, user: null));
                 var controller = GetController<UsersController>();
 
                 var model = new ForgotPasswordViewModel { Email = "user" };
@@ -281,6 +281,75 @@ namespace NuGetGallery
 
                 Assert.NotNull(result);
                 Assert.IsNotType(typeof(RedirectResult), result);
+                Assert.Contains(Strings.CouldNotFindAnyoneWithThatUsernameOrEmail, result.ViewData.ModelState["Email"].Errors.Select(e => e.ErrorMessage));
+            }
+
+            [Fact]
+            public async Task ShowsErrorIfUnconfirmedAccount()
+            {
+                var user = new User("user") { UnconfirmedEmailAddress = "unique@example.com" };
+                var authService = Get<AuthenticationService>();
+                authService.Entities.Users.Add(user);
+
+                var controller = GetController<UsersController>();
+
+                var model = new ForgotPasswordViewModel { Email = user.Username };
+
+                var result = await controller.ForgotPassword(model) as ViewResult;
+
+                Assert.NotNull(result);
+                Assert.IsNotType(typeof(RedirectResult), result);
+                Assert.Contains(Strings.UserIsNotYetConfirmed, result.ViewData.ModelState["Email"].Errors.Select(e => e.ErrorMessage));
+            }
+
+            [Fact]
+            public async Task ThrowsNotImplementedExceptionWhenResultTypeIsUnknown()
+            {
+                // Arrange
+                GetMock<AuthenticationService>()
+                    .Setup(s => s.GeneratePasswordResetToken("user", Constants.PasswordResetTokenExpirationHours * 60))
+                    .ReturnsAsync(new PasswordResetResult((PasswordResetResultType)(-1), user: new User()));
+                var controller = GetController<UsersController>();
+
+                var model = new ForgotPasswordViewModel { Email = "user" };
+
+                // Act & Assert
+                await Assert.ThrowsAsync<NotImplementedException>(() => controller.ForgotPassword(model));
+            }
+
+            [Theory]
+            [MemberData(nameof(ResultTypes))]
+            public async Task NoResultsTypesThrow(PasswordResetResultType resultType)
+            {
+                // Arrange
+                GetMock<AuthenticationService>()
+                    .Setup(s => s.GeneratePasswordResetToken("user", Constants.PasswordResetTokenExpirationHours * 60))
+                    .ReturnsAsync(new PasswordResetResult(resultType, user: new User()));
+                var controller = GetController<UsersController>();
+
+                var model = new ForgotPasswordViewModel { Email = "user" };
+                
+                try
+                {
+                    // Act 
+                    await controller.ForgotPassword(model);
+                }
+                catch (Exception e)
+                {
+                    // Assert
+                    Assert.True(false, $"No exception should be thrown for result type {resultType}: {e}");
+                }
+            }
+
+            public static IEnumerable<object[]> ResultTypes
+            {
+                get
+                {
+                    return Enum
+                        .GetValues(typeof(PasswordResetResultType))
+                        .Cast<PasswordResetResultType>()
+                        .Select(v => new object[] { v });
+                }
             }
         }
 
@@ -1127,8 +1196,8 @@ namespace NuGetGallery
 
                 GetMock<AuthenticationService>()
                     .Setup(a => a.GeneratePasswordResetToken(user, It.IsAny<int>()))
-                    .Callback<User, int>((u, _) => u.PasswordResetToken = "t0k3n")
-                    .Completes();
+                    .ReturnsAsync(PasswordResetResultType.Success)
+                    .Callback<User, int>((u, _) => u.PasswordResetToken = "t0k3n");
 
                 string actualConfirmUrl = null;
                 GetMock<IMessageService>()

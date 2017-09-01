@@ -28,6 +28,7 @@ namespace NuGetGallery.Infrastructure
                     PackageRegistration = new PackageRegistration
                     {
                         Id = "Package #1",
+                        IsVerified = false
                     },
                     Title = "Package #1 4.2.0",
                     Description = "Package #1 is an awesome package",
@@ -69,6 +70,7 @@ namespace NuGetGallery.Infrastructure
                     PackageRegistration = new PackageRegistration
                     {
                         Id = "Package #1",
+                        IsVerified = false
                     },
                     Title = "Package #1 4.2.0",
                     Description = "Package #1 is an awesome package",
@@ -109,6 +111,7 @@ namespace NuGetGallery.Infrastructure
                     PackageRegistration = new PackageRegistration
                     {
                         Id = "Package #1",
+                        IsVerified = false
                     },
                     Title = "Package #1 4.2.0",
                     Description = "Package #1 is an awesome package",
@@ -150,7 +153,8 @@ namespace NuGetGallery.Infrastructure
                     {
                         Id = "DavidTest123",
                         Key = 11500,
-                        DownloadCount = 495
+                        DownloadCount = 495,
+                        IsVerified = false
                     },
                     Description = "Description",
                     Listed = true,
@@ -185,7 +189,8 @@ namespace NuGetGallery.Infrastructure
                     {
                         Id = "SuperzipLib",
                         Key = 12,
-                        DownloadCount = 41
+                        DownloadCount = 41,
+                        IsVerified = false
                     },
                     Description = "Library for compressing your filez",
                     Listed = true,
@@ -218,7 +223,8 @@ namespace NuGetGallery.Infrastructure
                     {
                         Id = "RedDeath",
                         Key = 12,
-                        DownloadCount = 41
+                        DownloadCount = 41,
+                        IsVerified = false
                     },
                     Description = "Yeah",
                     Listed = true,
@@ -238,7 +244,8 @@ namespace NuGetGallery.Infrastructure
                     {
                         Id = "RedHerring",
                         Key = 12,
-                        DownloadCount = 41
+                        DownloadCount = 41,
+                        IsVerified = false
                     },
                     Description = "Library for compressing your filez",
                     Listed = true,
@@ -273,7 +280,8 @@ namespace NuGetGallery.Infrastructure
                     {
                         Id = "NuGet.Core",
                         Key = 12,
-                        DownloadCount = 25
+                        DownloadCount = 25,
+                        IsVerified = false
                     },
                     Description = "NuGet.Core is the core framework assembly for NuGet",
                     DownloadCount = 3,
@@ -296,6 +304,7 @@ namespace NuGetGallery.Infrastructure
                         Id = "SomeotherNuGet.Core.SimilarlyNamedPackage",
                         Key = 13,
                         DownloadCount = 25,
+                        IsVerified = false
                     },
                     Description =
                         "This isn't really NuGet.Core. The confusing package ID is the test!",
@@ -351,6 +360,7 @@ namespace NuGetGallery.Infrastructure
                         Id = "NuGet.Core",
                         Key = 12,
                         DownloadCount = 41,
+                        IsVerified = false,
                         Owners = { new User { Username = "NugetCoreOwner" } },
                     },
                     Description = "NuGet.Core is the core framework assembly for NuGet that the rest of NuGet builds upon.",
@@ -373,6 +383,7 @@ namespace NuGetGallery.Infrastructure
                         Id = "SomeotherNuGet.Core.SimilarlyNamedPackage",
                         Key = 13,
                         DownloadCount = 2,
+                        IsVerified = false,
                         Owners = { new User { Username = "SomeOtherOwner" } },
                     },
                     Description = "This isn't really NuGet.Core. But it needs to look a bit like it for the test case!",
@@ -413,7 +424,8 @@ namespace NuGetGallery.Infrastructure
                     {
                         Id = "JQuery.UI.Combined",
                         Key = 12,
-                        DownloadCount = 41
+                        DownloadCount = 41,
+                        IsVerified = false
                     },
                     Description = "jQuery UI is etc etc and many more important things",
                     Listed = true,
@@ -447,7 +459,8 @@ namespace NuGetGallery.Infrastructure
                     {
                         Id = "JQuery.UI.Combined",
                         Key = 12,
-                        DownloadCount = 41
+                        DownloadCount = 41,
+                        IsVerified = false
                     },
                     Description = "jQuery UI is etc etc and many more important things",
                     Listed = true,
@@ -481,7 +494,8 @@ namespace NuGetGallery.Infrastructure
                         {
                             Id = "FooQuery",
                             Key = 13,
-                            DownloadCount = 21
+                            DownloadCount = 21,
+                            IsVerified = false
                         },
                         Description = "FooQuery is overall much less popular than JQuery UI",
                         DownloadCount = 5,
@@ -502,7 +516,8 @@ namespace NuGetGallery.Infrastructure
                         {
                             Id = "JQuery.UI.Combined",
                             Key = 12,
-                            DownloadCount = 42
+                            DownloadCount = 42,
+                            IsVerified = false
                         },
                         DownloadCount = 3,
                         Description = "jQuery UI has only a few downloads of its latest and greatest version, but many total downloads",
@@ -538,7 +553,8 @@ namespace NuGetGallery.Infrastructure
                 {
                     Id = "Pride",
                     Key = 456,
-                    DownloadCount = 123456
+                    DownloadCount = 123456,
+                    IsVerified = false
                 },
                 Created = new DateTime(2019, 2, 28, 0, 5, 59, DateTimeKind.Utc),
                 Description = "DescriptionText",
@@ -579,7 +595,7 @@ namespace NuGetGallery.Infrastructure
             var packages = new[] { p };
             var results = IndexAndSearch(packages, string.Empty, semVerLevel);
             var r = results.AsQueryable().ToV2FeedPackageQuery(
-                "http://www.nuget.org/", 
+                "http://www.nuget.org/",
                 includeLicenseReport: true,
                 semVerLevelKey: SemVerLevelKey.Unknown).First();
 
@@ -629,7 +645,8 @@ namespace NuGetGallery.Infrastructure
                     {
                         Id = "NuGet.Core",
                         Key = 12,
-                        DownloadCount = 41
+                        DownloadCount = 41,
+                        IsVerified = false
                     },
                     Description = "NuGet.Core is the core framework assembly for NuGet that the rest of NuGet builds upon.",
                     Listed = true,

@@ -24,8 +24,10 @@ $(function () {
         "CalculatorSubtract",
         "Show more");    
 
-    configureCopyButton('package-manager');
-    configureCopyButton('dotnet-cli');
+    for (var i in packageManagers)
+    {
+        configureCopyButton(packageManagers[i]);
+    }
 
     // Enable the undo edit link.
     $("#undo-pending-edits").click(function (e) {
