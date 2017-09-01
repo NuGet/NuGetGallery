@@ -676,12 +676,6 @@ img.package-icon {
   width: 100%;
   margin: 0;
 }
-.page-package-details .install-tabs #package-manager .install-script span::before {
-  content: "PM> ";
-}
-.page-package-details .install-tabs #dotnet-cli .install-script span::before {
-  content: "> ";
-}
 .page-downloads .list-tools li {
   margin-top: 20px;
 }
