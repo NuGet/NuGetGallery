@@ -21,6 +21,7 @@ namespace Stats.ImportAzureCdnStatistics
         private const int _maxLeasesPerJobRun = 3;
         private readonly TimeSpan _defaultLeaseTime = TimeSpan.FromSeconds(60);
         private readonly CloudBlobContainer _container;
+        private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger _logger;
         private string _lastProcessedBlobUri;
         private List<IListBlobItem> _allBlobs;
@@ -37,7 +38,8 @@ namespace Stats.ImportAzureCdnStatistics
             }
 
             _container = container;
-            _logger = loggerFactory.CreateLogger<LogFileProvider>();
+            _loggerFactory = loggerFactory;
+            _logger = _loggerFactory.CreateLogger<LogFileProvider>();
         }
 
         public async Task<IReadOnlyCollection<ILeasedLogFile>> LeaseNextLogFilesToBeProcessedAsync(string prefix, IReadOnlyCollection<string> alreadyAggregatedLogFiles)
@@ -96,7 +98,7 @@ namespace Stats.ImportAzureCdnStatistics
                         continue;
                     }
 
-                    leasedFiles.Add(new LeasedLogFile(logFileBlob, leaseId));
+                    leasedFiles.Add(new LeasedLogFile(_loggerFactory.CreateLogger<LeasedLogFile>(), logFileBlob, leaseId));
                 }
 
                 foreach (var logFile in alreadyProcessedBlobs)
@@ -162,12 +164,15 @@ namespace Stats.ImportAzureCdnStatistics
         private class LeasedLogFile
             : ILeasedLogFile
         {
+            private ILogger<LeasedLogFile> _logger;
             private readonly Thread _autoRenewLeaseThread;
             private readonly TimeSpan _leaseExpirationThreshold = TimeSpan.FromSeconds(40);
             private readonly CancellationTokenSource _cancellationTokenSource;
 
-            internal LeasedLogFile(CloudBlockBlob blob, string leaseId)
+            internal LeasedLogFile(ILogger<LeasedLogFile> logger, CloudBlockBlob blob, string leaseId)
             {
+                _logger = logger;
+
                 if (blob == null)
                     throw new ArgumentNullException(nameof(blob));
                 if (leaseId == null)
@@ -204,7 +209,7 @@ namespace Stats.ImportAzureCdnStatistics
                     async () =>
                     {
 #if DEBUG
-                        Trace.TraceInformation("Thread [{0}] started.", Thread.CurrentThread.ManagedThreadId);
+                        _logger.LogInformation("Thread [{ThreadId}] started.", Thread.CurrentThread.ManagedThreadId);
 #endif
                         var blobUriString = blob.Uri.ToString();
                         try
@@ -216,20 +221,20 @@ namespace Stats.ImportAzureCdnStatistics
                                 Thread.Sleep(_leaseExpirationThreshold);
 
 #if DEBUG
-                                Trace.TraceInformation("Thread [{0}] working.", Thread.CurrentThread.ManagedThreadId);
-                                Trace.TraceInformation("Beginning to renew lease for blob {0}.", blobUriString);
+                                _logger.LogInformation("Thread [{ThreadId}] working.", Thread.CurrentThread.ManagedThreadId);
+                                _logger.LogInformation("Beginning to renew lease for blob {LeasedBlobUri}.", blobUriString);
 #endif
 
                                 await blob.RenewLeaseAsync(AccessCondition.GenerateLeaseCondition(leaseId), cancellationToken);
 
-                                Trace.TraceInformation("Finished to renew lease for blob {0}.", blobUriString);
+                                _logger.LogInformation("Finished to renew lease for blob {LeasedBlobUri}.", blobUriString);
                             }
                         }
                         catch (TaskCanceledException)
                         {
                             // No need to track
 #if DEBUG
-                            Trace.TraceWarning("Thread [{0}] cancelled.", Thread.CurrentThread.ManagedThreadId);
+                            _logger.LogWarning("Thread [{ThreadId}] cancelled.", Thread.CurrentThread.ManagedThreadId);
 #endif
                         }
                         catch
@@ -237,7 +242,7 @@ namespace Stats.ImportAzureCdnStatistics
 #if DEBUG
                             // The blob could have been deleted in the meantime and this thread will be killed either way.
                             // No need to track in Application Insights.
-                            Trace.TraceError("Thread [{0}] error.", Thread.CurrentThread.ManagedThreadId);
+                            _logger.LogError("Thread [{ThreadId}] error.", Thread.CurrentThread.ManagedThreadId);
 #endif
                         }
                     });
@@ -250,12 +255,12 @@ namespace Stats.ImportAzureCdnStatistics
                 if (_autoRenewLeaseThread != null)
                 {
 #if DEBUG
-                    Trace.TraceInformation("Thread [{0}] disposing.", _autoRenewLeaseThread.ManagedThreadId);
+                    _logger.LogInformation("Thread [{ThreadId}] disposing.", _autoRenewLeaseThread.ManagedThreadId);
 #endif
                     _cancellationTokenSource.Cancel(false);
                     _autoRenewLeaseThread.Join();
 #if DEBUG
-                    Trace.TraceInformation("Thread [{0}] disposed.", _autoRenewLeaseThread.ManagedThreadId);
+                    _logger.LogInformation("Thread [{ThreadId}] disposed.", _autoRenewLeaseThread.ManagedThreadId);
 #endif
                 }
             }

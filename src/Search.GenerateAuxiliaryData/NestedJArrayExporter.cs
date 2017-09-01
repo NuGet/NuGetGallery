@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json.Linq;
 
@@ -18,8 +19,8 @@ namespace Search.GenerateAuxiliaryData
         public string Col1 { get; }
         public string SqlScript { get; }
 
-        public NestedJArrayExporter(string defaultConnectionString, CloudBlobContainer defaultDestinationContainer, string defaultSqlScript, string defaultName, string defaultCol0, string defaultCol1)
-            : base(defaultConnectionString, defaultDestinationContainer, defaultName)
+        public NestedJArrayExporter(ILogger<NestedJArrayExporter> logger, string defaultConnectionString, CloudBlobContainer defaultDestinationContainer, string defaultSqlScript, string defaultName, string defaultCol0, string defaultCol1)
+            : base(logger, defaultConnectionString, defaultDestinationContainer, defaultName)
         {
             Col0 = defaultCol0;
             Col1 = defaultCol1;

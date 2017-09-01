@@ -3,35 +3,40 @@
 
 using System.Data;
 using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace Stats.CreateAzureCdnWarehouseReports
 {
     internal class ReportBuilder
     {
-        public ReportBuilder(string reportName)
+        public string ReportName { get; private set; }
+        public string ReportArtifactName { get; private set; }
+
+        private ILogger<ReportBuilder> _logger;
+
+        public ReportBuilder(ILogger<ReportBuilder> logger, string reportName)
         {
+            _logger = logger;
             ReportName = reportName;
             ReportArtifactName = reportName;
         }
 
-        public ReportBuilder(string reportName, string reportArtifactName)
+        public ReportBuilder(ILogger<ReportBuilder> logger, string reportName, string reportArtifactName)
         {
+            _logger = logger;
             ReportName = reportName;
             ReportArtifactName = reportArtifactName;
         }
-
-        public string ReportName { get; private set; }
-        public string ReportArtifactName { get; private set; }
-
+        
         public string CreateReport(DataTable table)
         {
             // Transform the data table to JSON and process it with any provided transforms
-            Trace.TraceInformation("{0}: Creating report", ReportName);
+            _logger.LogInformation("{ReportName}: Creating report", ReportName);
 
             string json = JsonSerialize(table);
 
-            Trace.TraceInformation("{0}: Created report", ReportName);
+            _logger.LogInformation("{ReportName}: Created report", ReportName);
 
             return json;
         }

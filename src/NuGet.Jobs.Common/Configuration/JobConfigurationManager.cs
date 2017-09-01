@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.Extensions.Logging;
 using NuGet.Services.Configuration;
 
 namespace NuGet.Jobs
@@ -23,7 +24,7 @@ namespace NuGet.Jobs
         /// <param name="jobName">Jobname to be used to infer environment variable settings</param>
         /// <param name="secretReaderFactory">Creates a secret reader.</param>
         /// <returns>Returns a dictionary of arguments</returns>
-        public static IDictionary<string, string> GetJobArgsDictionary(string[] commandLineArgs, string jobName, ISecretReaderFactory secretReaderFactory)
+        public static IDictionary<string, string> GetJobArgsDictionary(ILogger logger, string[] commandLineArgs, string jobName, ISecretReaderFactory secretReaderFactory)
         {
             if (secretReaderFactory == null)
             {
@@ -35,11 +36,11 @@ namespace NuGet.Jobs
             var allArgsList = commandLineArgs.ToList();
             if (allArgsList.Count == 0)
             {
-                Trace.TraceInformation("No command-line arguments provided.");
+                logger.LogInformation("No command-line arguments provided.");
             }
             else
             {
-                Trace.TraceInformation("Total number of arguments : " + allArgsList.Count);
+                logger.LogInformation("Total number of arguments : " + allArgsList.Count);
 
                 // Arguments are expected to be a set of pairs, where each pair is of the form '-<argName> <argValue>'
                 // Or, in singles as a switch '-<switch>'

@@ -8,6 +8,7 @@ using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -21,8 +22,8 @@ namespace Stats.CreateAzureCdnWarehouseReports
         private readonly TimeSpan _defaultCommandTimeout = TimeSpan.FromMinutes(30);
         internal const string ReportName = "tools.v1.json";
 
-        public DownloadsPerToolVersionReport(CloudStorageAccount cloudStorageAccount, string statisticsContainerName, SqlConnectionStringBuilder statisticsDatabase, SqlConnectionStringBuilder galleryDatabase)
-            : base(new[] { new StorageContainerTarget(cloudStorageAccount, statisticsContainerName) }, statisticsDatabase, galleryDatabase)
+        public DownloadsPerToolVersionReport(ILogger<DownloadsPerToolVersionReport> logger, CloudStorageAccount cloudStorageAccount, string statisticsContainerName, SqlConnectionStringBuilder statisticsDatabase, SqlConnectionStringBuilder galleryDatabase)
+            : base(logger, new[] { new StorageContainerTarget(cloudStorageAccount, statisticsContainerName) }, statisticsDatabase, galleryDatabase)
         {
         }
 
@@ -30,7 +31,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
         {
             // Gather download count data from statistics warehouse
             IReadOnlyCollection<ToolDownloadCountData> data;
-            Trace.TraceInformation("Gathering Tools Download Counts from {0}/{1}...", StatisticsDatabase.DataSource, StatisticsDatabase.InitialCatalog);
+            _logger.LogInformation("Gathering Tools Download Counts from {DataSource}/{InitialCatalog}...", StatisticsDatabase.DataSource, StatisticsDatabase.InitialCatalog);
             using (var connection = await StatisticsDatabase.ConnectTo())
             using (var transaction = connection.BeginTransaction(IsolationLevel.Snapshot))
             {
@@ -38,7 +39,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
                     _storedProcedureName, commandType: CommandType.StoredProcedure, transaction: transaction, commandTimeout: _defaultCommandTimeout)).ToList();
             }
 
-            Trace.TraceInformation("Gathered {0} rows of data.", data.Count);
+            _logger.LogInformation("Gathered {DownloadedRowsCount} rows of data.", data.Count);
 
             if (data.Any())
             {
@@ -65,16 +66,17 @@ namespace Stats.CreateAzureCdnWarehouseReports
                     {
                         var targetBlobContainer = await GetBlobContainer(storageContainerTarget);
                         var blob = targetBlobContainer.GetBlockBlobReference(ReportName);
-                        Trace.TraceInformation("Writing report to {0}", blob.Uri.AbsoluteUri);
+                        _logger.LogInformation("Writing report to {ReportUri}", blob.Uri.AbsoluteUri);
                         blob.Properties.ContentType = "application/json";
                         await blob.UploadTextAsync(reportText);
-                        Trace.TraceInformation("Wrote report to {0}", blob.Uri.AbsoluteUri);
+                        _logger.LogInformation("Wrote report to {ReportUri}", blob.Uri.AbsoluteUri);
                     }
                     catch (Exception ex)
                     {
-                        Trace.TraceError("Error writing report to storage account {0}, container {1}. {2} {3}",
+                        _logger.LogError("Error writing report to storage account {StorageAccount}, container {ReportContainer}. {Exception}",
                             storageContainerTarget.StorageAccount.Credentials.AccountName,
-                            storageContainerTarget.ContainerName, ex.Message, ex.StackTrace);
+                            storageContainerTarget.ContainerName,
+                            ex);
                     }
                 }
             }

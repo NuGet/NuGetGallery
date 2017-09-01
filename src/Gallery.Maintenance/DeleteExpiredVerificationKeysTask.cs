@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Gallery.Maintenance
 {
-    internal class DeleteExpiredVerificationKeysTask : IMaintenanceTask
+    internal class DeleteExpiredVerificationKeysTask : MaintenanceTask
     {
         private readonly TimeSpan _commandTimeout = TimeSpan.FromMinutes(5);
 
@@ -28,7 +28,12 @@ WHERE c.[Type] LIKE 'apikey.verify%' AND c.[Expires] < GETUTCDATE()
 DELETE FROM [dbo].[Scopes] WHERE [CredentialKey] IN ({0})
 DELETE FROM [dbo].[Credentials] WHERE [Key] IN ({0})";
 
-        public async Task<bool> RunAsync(Job job)
+        public DeleteExpiredVerificationKeysTask(ILogger<DeleteExpiredVerificationKeysTask> logger)
+            : base(logger)
+        {
+        }
+
+        public override async Task RunAsync(Job job)
         {
             IEnumerable<PackageVerificationKey> expiredKeys;
 
@@ -42,7 +47,7 @@ DELETE FROM [dbo].[Credentials] WHERE [Key] IN ({0})";
 
             var credentialKeys = expiredKeys.Select(expiredKey =>
             {
-                job.Logger.LogInformation(
+                _logger.LogInformation(
                     "Found expired verification key: Credential='{credentialKey}' UserKey='{userKey}', User='{userName}', Subject='{scopeSubject}', Expires={expires}",
                     expiredKey.CredentialKey, expiredKey.UserKey, expiredKey.Username, expiredKey.ScopeSubject, expiredKey.Expires);
 
@@ -71,9 +76,12 @@ DELETE FROM [dbo].[Credentials] WHERE [Key] IN ({0})";
                 }
             }
 
-            job.Logger.LogInformation("Deleted {0} expired verification keys and scopes. Expected={1}.", rowCount, expectedRowCount);
+            _logger.LogInformation("Deleted {0} expired verification keys and scopes. Expected={1}.", rowCount, expectedRowCount);
 
-            return rowCount == expectedRowCount;
+            if (expectedRowCount != rowCount)
+            {
+                throw new Exception($"Expected to delete {expectedRowCount} verification keys, but only deleted {rowCount}!");
+            }
         }
     }
 }

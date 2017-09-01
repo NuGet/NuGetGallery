@@ -9,50 +9,27 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Jobs;
-using NuGet.Services.Logging;
 
 namespace Gallery.Maintenance
 {
     /// <summary>
-    /// Runs all <see cref="IMaintenanceTask"/>s against the Gallery database.
+    /// Runs all <see cref="MaintenanceTask"/>s against the Gallery database.
     /// </summary>
     public class Job : JobBase
     {
-        private static readonly Lazy<IEnumerable<IMaintenanceTask>> _tasks = new Lazy<IEnumerable<IMaintenanceTask>>(GetMaintenanceTasks);
-
         public SqlConnectionStringBuilder GalleryDatabase { get; private set; }
 
-        public ILogger Logger { get; private set; }
-
-        public override bool Init(IDictionary<string, string> jobArgsDictionary)
+        public override void Init(IDictionary<string, string> jobArgsDictionary)
         {
-            try
-            {
-                var instrumentationKey = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.InstrumentationKey);
-                ApplicationInsights.Initialize(instrumentationKey);
-
-                var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(ConsoleLogOnly);
-                var loggerFactory = LoggingSetup.CreateLoggerFactory(loggerConfiguration);
-                Logger = loggerFactory.CreateLogger<Job>();
-
-                var databaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.GalleryDatabase);
-                GalleryDatabase = new SqlConnectionStringBuilder(databaseConnectionString);
-            }
-            catch (Exception exception)
-            {
-                Logger.LogCritical(LogEvents.JobInitFailed, exception, "Failed to initialize job!");
-
-                return false;
-            }
-
-            return true;
+            var databaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.GalleryDatabase);
+            GalleryDatabase = new SqlConnectionStringBuilder(databaseConnectionString);
         }
 
-        public override async Task<bool> Run()
+        public override async Task Run()
         {
-            var result = true;
+            var failedTasks = new List<string>();
 
-            foreach (var task in _tasks.Value)
+            foreach (var task in GetMaintenanceTasks())
             {
                 var taskName = task.GetType().Name;
 
@@ -60,33 +37,51 @@ namespace Gallery.Maintenance
                 {
                     Logger.LogInformation("Running task '{taskName}'...", taskName);
 
-                    if (await task.RunAsync(this))
-                    {
-                        Logger.LogInformation("Finished task '{taskName}'.", taskName);
-                    }
-                    else
-                    {
-                        Logger.LogWarning("Task '{taskName}' returned failure status.", taskName);
-                        result = false;
-                    }
+                    await task.RunAsync(this);
+
+                    Logger.LogInformation("Finished task '{taskName}'.", taskName);
                 }
                 catch (Exception exception)
                 {
-                    Logger.LogCritical(LogEvents.JobRunFailed, exception, "Job run failed for task '{taskName}'.", taskName);
-                    result = false;
+                    Logger.LogError("Task '{taskName}' failed: {Exception}", taskName, exception);
+                    failedTasks.Add(taskName);
                 }
             }
-
-            return result;
+            
+            if (failedTasks.Any())
+            {
+                throw new Exception($"{failedTasks.Count()} tasks failed: {string.Join(", ", failedTasks)}");
+            }
         }
 
-        private static IEnumerable<IMaintenanceTask> GetMaintenanceTasks()
+        public IEnumerable<MaintenanceTask> GetMaintenanceTasks()
         {
-            var taskBaseType = typeof(IMaintenanceTask);
+            var taskBaseType = typeof(MaintenanceTask);
 
             return taskBaseType.Assembly.GetTypes()
                 .Where(type => type.IsClass && taskBaseType.IsAssignableFrom(type))
-                .Select(type => (IMaintenanceTask)Activator.CreateInstance(type));
+                .Select(type => 
+                    (MaintenanceTask) type.GetConstructor(
+                        new Type[] { typeof(ILogger<>).MakeGenericType(type) })
+                            .Invoke(new[] { CreateTypedLogger(type) }));
+        }
+
+
+        /// <summary>
+        /// This is necessary because <see cref="LoggerFactoryExtensions.CreateLogger(ILoggerFactory, Type)"/> does not create a typed logger. 
+        /// </summary>
+        public ILogger CreateTypedLogger(Type type)
+        {
+            var typedCreateLoggerMethod =
+                typeof(LoggerFactoryExtensions)
+                .GetMethods()
+                .SingleOrDefault(m =>
+                    m.Name == nameof(LoggerFactoryExtensions.CreateLogger) &&
+                    m.IsGenericMethod);
+
+            return typedCreateLoggerMethod
+                .MakeGenericMethod(type)
+                .Invoke(null, new object[] { LoggerFactory }) as ILogger;
         }
     }
 }

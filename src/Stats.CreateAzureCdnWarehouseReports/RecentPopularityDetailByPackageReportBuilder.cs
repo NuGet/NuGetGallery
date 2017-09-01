@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 
 namespace Stats.CreateAzureCdnWarehouseReports
@@ -11,8 +12,8 @@ namespace Stats.CreateAzureCdnWarehouseReports
     internal class RecentPopularityDetailByPackageReportBuilder
         : ReportBuilder
     {
-        public RecentPopularityDetailByPackageReportBuilder(string reportName, string reportArtifactName)
-            : base(reportName, reportArtifactName)
+        public RecentPopularityDetailByPackageReportBuilder(ILogger<RecentPopularityDetailByPackageReportBuilder> logger, string reportName, string reportArtifactName)
+            : base(logger, reportName, reportArtifactName)
         {
         }
 

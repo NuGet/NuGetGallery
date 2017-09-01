@@ -1,9 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using NuGet.Jobs;
@@ -28,10 +31,13 @@ namespace Search.GenerateAuxiliaryData
         private const string ScriptRankingsTotal = "SqlScripts.Rankings.sql";
         private const string OutputNameRankings = "rankings.v1.json";
 
+        private const string ScriptVerifiedPackages = "SqlScripts.VerifiedPackages.sql";
+        private const string OutputNameVerifiedPackages = "verifiedPackages.json";
+
         private List<SqlExporter> _sqlExportScriptsToRun;
         private CloudBlobContainer _destContainer;
 
-        public override bool Init(IDictionary<string, string> jobArgsDictionary)
+        public override void Init(IDictionary<string, string> jobArgsDictionary)
         {
             var packageDatabaseConnString = new SqlConnectionStringBuilder(
                 JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.PackageDatabase)).ToString();
@@ -48,25 +54,36 @@ namespace Search.GenerateAuxiliaryData
 
             _destContainer = destination.CreateCloudBlobClient().GetContainerReference(destinationContainerName);
 
-            _sqlExportScriptsToRun = new List<GenerateAuxiliaryData.SqlExporter> {
-                new NestedJArrayExporter(packageDatabaseConnString, _destContainer, ScriptCuratedFeed, OutputNameCuratedFeed, Col0CuratedFeed, Col1CuratedFeed),
-                new NestedJArrayExporter(packageDatabaseConnString, _destContainer, ScriptOwners, OutputNameOwners, Col0Owners, Col1Owners),
-                new RankingsExporter(statisticsDatabaseConnString, _destContainer, ScriptRankingsTotal, OutputNameRankings)
+            _sqlExportScriptsToRun = new List<SqlExporter> {
+                new VerifiedPackagesExporter(LoggerFactory.CreateLogger<VerifiedPackagesExporter>(), packageDatabaseConnString, _destContainer, ScriptVerifiedPackages, OutputNameVerifiedPackages),
+                new NestedJArrayExporter(LoggerFactory.CreateLogger<NestedJArrayExporter>(), packageDatabaseConnString, _destContainer, ScriptCuratedFeed, OutputNameCuratedFeed, Col0CuratedFeed, Col1CuratedFeed),
+                new NestedJArrayExporter(LoggerFactory.CreateLogger<NestedJArrayExporter>(), packageDatabaseConnString, _destContainer, ScriptOwners, OutputNameOwners, Col0Owners, Col1Owners),
+                new RankingsExporter(LoggerFactory.CreateLogger<RankingsExporter>(), statisticsDatabaseConnString, _destContainer, ScriptRankingsTotal, OutputNameRankings)
             };
-
-            return true;
         }
 
-        public override async Task<bool> Run()
+        public override async Task Run()
         {
-            var result = true;
+            var failedSqlExporters = new List<string>();
 
             foreach (SqlExporter exporter in _sqlExportScriptsToRun)
             {
-                result &= await exporter.RunSqlExportAsync();
+                try
+                {
+                    await exporter.RunSqlExportAsync();
+                }
+                catch (Exception e)
+                {
+                    var exporterName = exporter.GetType().Name;
+                    Logger.LogError("SQL exporter '{ExporterName}' failed: {Exception}", exporterName, e);
+                    failedSqlExporters.Add(exporterName);
+                }
             }
-
-            return result;
+            
+            if (failedSqlExporters.Any())
+            {
+                throw new SqlExporterException($"{failedSqlExporters.Count()} tasks failed: {string.Join(", ", failedSqlExporters)}");
+            }
         }
     }
 }

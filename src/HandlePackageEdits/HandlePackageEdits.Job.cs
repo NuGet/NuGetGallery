@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -15,7 +14,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using NuGet.Jobs;
-using NuGet.Services.Logging;
 using NuGetGallery.Packaging;
 
 namespace HandlePackageEdits
@@ -74,7 +72,6 @@ namespace HandlePackageEdits
         private CloudBlobContainer BackupsContainer { get; set; }
         private CloudBlobContainer ReadMeContainer { get; set; }
         protected long MaxManifestSize { get; set; }
-        private ILogger _logger;
 
         private class ReadMeBlobs
         {
@@ -83,54 +80,38 @@ namespace HandlePackageEdits
             public CloudBlockBlob activeSnapshot = null;
         }
 
-        public override bool Init(IDictionary<string, string> jobArgsDictionary)
+        public override void Init(IDictionary<string, string> jobArgsDictionary)
         {
-            try
-            {
-                var instrumentationKey = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.InstrumentationKey);
-                ApplicationInsights.Initialize(instrumentationKey);
+            var retrievedMaxManifestSize = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.MaxManifestSize);
+            MaxManifestSize = retrievedMaxManifestSize == null
+                ? DefaultMaxAllowedManifestBytes
+                : Convert.ToInt64(retrievedMaxManifestSize);
 
-                var loggerFactory = LoggingSetup.CreateLoggerFactory();
-                _logger = loggerFactory.CreateLogger<Job>();
+            PackageDatabase = new SqlConnectionStringBuilder(
+                        JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.PackageDatabase));
 
-                var retrievedMaxManifestSize = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.MaxManifestSize);
-                MaxManifestSize = retrievedMaxManifestSize == null
-                    ? DefaultMaxAllowedManifestBytes
-                    : Convert.ToInt64(retrievedMaxManifestSize);
+            Source = CloudStorageAccount.Parse(
+                                       JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.SourceStorage));
+            Backups = CloudStorageAccount.Parse(
+                                       JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.BackupStorage));
+            SourceContainerName = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.SourceContainerName) ?? DefaultSourceContainerName;
+            BackupsContainerName = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.BackupContainerName) ?? DefaultBackupContainerName;
+            ReadMeContainerName = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.ReadMeContainerName) ?? DefaultReadMeContainerName;
 
-                PackageDatabase = new SqlConnectionStringBuilder(
-                            JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.PackageDatabase));
+            SourceContainer = Source.CreateCloudBlobClient().GetContainerReference(SourceContainerName);
+            BackupsContainer = Backups.CreateCloudBlobClient().GetContainerReference(BackupsContainerName);
+            ReadMeContainer = Source.CreateCloudBlobClient().GetContainerReference(ReadMeContainerName);
 
-                Source = CloudStorageAccount.Parse(
-                                           JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.SourceStorage));
-                Backups = CloudStorageAccount.Parse(
-                                           JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.BackupStorage));
-                SourceContainerName = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.SourceContainerName) ?? DefaultSourceContainerName;
-                BackupsContainerName = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.BackupContainerName) ?? DefaultBackupContainerName;
-                ReadMeContainerName = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.ReadMeContainerName) ?? DefaultReadMeContainerName;
-
-                SourceContainer = Source.CreateCloudBlobClient().GetContainerReference(SourceContainerName);
-                BackupsContainer = Backups.CreateCloudBlobClient().GetContainerReference(BackupsContainerName);
-                ReadMeContainer = Source.CreateCloudBlobClient().GetContainerReference(ReadMeContainerName);
-
-                MaxTryCount = DefaultMaxRetryCount;
-            }
-            catch (Exception exception)
-            {
-                Trace.TraceError($"Failed to initalize job! {exception}");
-                return false;
-            }
-
-            return true;
+            MaxTryCount = DefaultMaxRetryCount;
         }
 
         protected string TempDirectory;
 
-        public override async Task<bool> Run()
+        public override async Task Run()
         {
             // Grab package edits
             IList<PackageEdit> edits;
-            Trace.TraceInformation($"Fetching queued edits from {PackageDatabase.DataSource}/{PackageDatabase.InitialCatalog}");
+            Logger.LogInformation("Fetching queued edits from {DataSource}/{InitialCatalog}", PackageDatabase.DataSource, PackageDatabase.InitialCatalog);
             using (var connection = await PackageDatabase.ConnectTo())
             {
                 if (MaxTryCount.HasValue)
@@ -150,7 +131,7 @@ namespace HandlePackageEdits
                 }
             }
 
-            Trace.TraceInformation("Fetched {2} queued edits from {0}/{1}", PackageDatabase.DataSource, PackageDatabase.InitialCatalog, edits.Count);
+            Logger.LogInformation("Fetched {2} queued edits from {0}/{1}", PackageDatabase.DataSource, PackageDatabase.InitialCatalog, edits.Count);
 
             // Group by package and take just the most recent edit for each package
             edits = edits
@@ -162,19 +143,18 @@ namespace HandlePackageEdits
             // Process packages
             foreach (var edit in edits)
             {
-                Trace.TraceInformation($"Editing {edit.Id} {edit.Version}");
+                Logger.LogInformation("Editing {EditId} {EditVersion}", edit.Id, edit.Version);
                 try
                 {
                     await ApplyEdit(edit);
-                    Trace.TraceInformation($"Edited {edit.Id} {edit.Version}");
+                    Logger.LogInformation("Edited {EditId} {EditVersion}", edit.Id, edit.Version);
                 }
                 catch (Exception exception)
                 {
-                    Trace.TraceError($"Error editing package {edit.Id} {edit.Version} (try {edit.TriedCount + 1} / {MaxTryCount})! {exception}");
+                    Logger.LogInformation("Error editing package {EditId} {EditVersion} (try {Attempts} / {MaxTryCount})! {Exception}", edit.Id, edit.Version, edit.TriedCount + 1, MaxTryCount, exception);
                     await UpdatePackageEditDbWithError(exception, edit.Key);
                 }
             }
-            return true;
         }
 
         private async Task ApplyEdit(PackageEdit edit)
@@ -193,47 +173,47 @@ namespace HandlePackageEdits
                 }
 
                 originalPath = Path.Combine(directory, "original.nupkg");
-                Trace.TraceInformation($"Downloading nupkg to {originalPath}");
+                Logger.LogInformation("Downloading nupkg to {OriginalPath}", originalPath);
 
                 var sourceBlob = SourceContainer.GetBlockBlobReference(
                     StorageHelpers.GetPackageBlobName(edit.Id, edit.Version));
-                Trace.TraceInformation($"Name is {sourceBlob.Name}, storage uri is {sourceBlob.StorageUri}");
+                Logger.LogInformation("Name is {SourceBlobName}, storage uri is {StorageUri}", sourceBlob.Name, sourceBlob.StorageUri);
 
                 // Download the original file
-                Trace.TraceInformation($"Downloading original copy of {edit.Id} {edit.Version}");
+                Logger.LogInformation("Downloading original copy of {EditId} {EditVersion}", edit.Id, edit.Version);
                 await sourceBlob.DownloadToFileAsync(originalPath, FileMode.Create);
-                Trace.TraceInformation($"Downloaded original copy of {edit.Id} {edit.Version}");
+                Logger.LogInformation("Downloaded original copy of {EditId} {EditVersion}", edit.Id, edit.Version);
 
                 // Check that a backup exists
                 var backupBlob = BackupsContainer.GetBlockBlobReference(
                     StorageHelpers.GetPackageBackupBlobName(edit.Id, edit.Version, edit.Hash));
                 if (!await backupBlob.ExistsAsync())
                 {
-                    Trace.TraceInformation($"Backing up original copy of {edit.Id} {edit.Version}");
+                    Logger.LogInformation("Backing up original copy of {EditId} {EditVersion}", edit.Id, edit.Version);
                     await backupBlob.UploadFromFileAsync(originalPath);
-                    Trace.TraceInformation($"Backed up original copy of {edit.Id} {edit.Version}");
+                    Logger.LogInformation("Backed up original copy of {EditId} {EditVersion}", edit.Id, edit.Version);
                 }
 
                 // Update the nupkg manifest with the new metadata
                 using (var originalStream = File.Open(originalPath, FileMode.Open, FileAccess.ReadWrite))
                 {
-                    Trace.TraceInformation($"Rewriting package file for {edit.Id} {edit.Version}");
+                    Logger.LogInformation("Rewriting package file for {EditId} {EditVersion}", edit.Id, edit.Version);
 
                     var editActionList = edit.GetEditsAsActionList();
                     NupkgRewriter.RewriteNupkgManifest(originalStream, editActionList);
 
-                    Trace.TraceInformation($"Rewrote package file for {edit.Id} {edit.Version}");
+                    Logger.LogInformation("Rewrote package file for {EditId} {EditVersion}", edit.Id, edit.Version);
                 }
 
                 // Snapshot the original blob
-                Trace.TraceInformation($"Snapshotting original blob for {edit.Id} {edit.Version} ({sourceBlob.Uri.AbsoluteUri}).");
+                Logger.LogInformation("Snapshotting original blob for {EditId} {EditVersion} ({BlobUri}).", edit.Id, edit.Version, sourceBlob.Uri.AbsoluteUri);
                 var sourceSnapshot = await sourceBlob.CreateSnapshotAsync();
-                Trace.TraceInformation($"Snapshotted original blob for {edit.Id} {edit.Version} ({sourceBlob.Uri.AbsoluteUri}).");
+                Logger.LogInformation("Snapshotted original blob for {EditId} {EditVersion} ({BlobUri}).", edit.Id, edit.Version, sourceBlob.Uri.AbsoluteUri);
 
                 // Upload the updated file
-                Trace.TraceInformation($"Uploading modified package file for {edit.Id} {edit.Version} to {sourceBlob.Uri.AbsoluteUri}");
+                Logger.LogInformation("Uploading modified package file for {EditId} {EditVersion} to {BlobUri}", edit.Id, edit.Version, sourceBlob.Uri.AbsoluteUri);
                 await sourceBlob.UploadFromFileAsync(originalPath);
-                Trace.TraceInformation($"Uploaded modified package file for {edit.Id} {edit.Version} to {sourceBlob.Uri.AbsoluteUri}");
+                Logger.LogInformation("Uploaded modified package file for {EditId} {EditVersion} to {BlobUri}", edit.Id, edit.Version, sourceBlob.Uri.AbsoluteUri);
 
                 // Calculate new size and hash
                 string hash;
@@ -254,23 +234,25 @@ namespace HandlePackageEdits
 
                 try
                 {
-                    Trace.TraceInformation($"Updating package record for {edit.Id} {edit.Version}");
+                    Logger.LogInformation("Updating package record for {EditId} {EditVersion}", edit.Id, edit.Version);
                     await UpdateDatabaseWithEdit(edit, hash, size);
-                    Trace.TraceInformation($"Updated package record for {edit.Id} {edit.Version}");
+                    Logger.LogInformation("Updated package record for {EditId} {EditVersion}", edit.Id, edit.Version);
                 }
                 catch (Exception exception)
                 {
                     // Error occurred while updaing database, roll back the blob to the snapshot
-                    Trace.TraceError($"Failed to update database! {exception}");
-                    Trace.TraceWarning(
-                        $"Rolling back updated blob for {edit.Id} {edit.Version}. Copying snapshot {sourceSnapshot.Uri.AbsoluteUri} to {sourceBlob.Uri.AbsoluteUri}");
+                    Logger.LogError("Failed to update database! {Exception}", exception);
+                    Logger.LogWarning(
+                        "Rolling back updated blob for {EditId} {EditVersion}. Copying snapshot {SnapshotUri} to {BlobUri}", 
+                        edit.Id, edit.Version, sourceSnapshot.Uri.AbsoluteUri, sourceBlob.Uri.AbsoluteUri);
                     await sourceBlob.StartCopyAsync(sourceSnapshot);
                     while (sourceBlob.CopyState.Status != CopyStatus.Success)
                     {
                         await Task.Delay(1000);
                     }
-                    Trace.TraceWarning(
-                        $"Rolled back updated blob for {edit.Id} {edit.Version}. Copying snapshot {sourceSnapshot.Uri.AbsoluteUri} to {sourceBlob.Uri.AbsoluteUri}");
+                    Logger.LogWarning(
+                        "Rolled back updated blob for {EditId} {EditVersion}. Copying snapshot {SnapshotUri} to {BlobUri}", 
+                        sourceSnapshot.Uri.AbsoluteUri, sourceBlob.Uri.AbsoluteUri);
 
                     await RollBackReadMeAsync(edit, directory, originalReadMeMDPath, readMeMDBlob.activeSnapshot, readMeMDBlob.activeBlob);
                     await RollBackReadMeAsync(edit, directory, originalReadMeHTMLPath, readMeHTMLBlob.activeSnapshot, readMeHTMLBlob.activeBlob);
@@ -281,31 +263,31 @@ namespace HandlePackageEdits
                 if (edit.ReadMeState == ReadMeChanged)
                 {
                     // Delete pending ReadMes
-                    Trace.TraceInformation($"Deleting pending ReadMe for {edit.Id} {edit.Version} from {readMeMDBlob.pendingBlob.Uri.AbsoluteUri}");
+                    Logger.LogInformation("Deleting pending ReadMe for {EditId} {EditVersion} from {PendingReadMeMdUri}", edit.Id, edit.Version, readMeMDBlob.pendingBlob.Uri.AbsoluteUri);
                     await readMeMDBlob.pendingBlob.DeleteIfExistsAsync();
-                    Trace.TraceInformation($"Deleted pending ReadMe for {edit.Id} {edit.Version} from {readMeMDBlob.pendingBlob.Uri.AbsoluteUri}");
+                    Logger.LogInformation("Deleted pending ReadMe for {EditId} {EditVersion} from {PendingReadMeMdUri}", edit.Id, edit.Version, readMeMDBlob.pendingBlob.Uri.AbsoluteUri);
 
-                    Trace.TraceInformation($"Deleting pending ReadMe for {edit.Id} {edit.Version} from {readMeHTMLBlob.pendingBlob.Uri.AbsoluteUri}");
+                    Logger.LogInformation("Deleting pending ReadMe for {EditId} {EditVersion} from {PendingReadMeHtmlUri}", edit.Id, edit.Version, readMeHTMLBlob.pendingBlob.Uri.AbsoluteUri);
                     await readMeHTMLBlob.pendingBlob.DeleteIfExistsAsync();
-                    Trace.TraceInformation($"Deleted pending ReadMe for {edit.Id} {edit.Version} from {readMeHTMLBlob.pendingBlob.Uri.AbsoluteUri}");
+                    Logger.LogInformation("Deleted pending ReadMe for {EditId} {EditVersion} from {PendingReadMeHtmlUri}", edit.Id, edit.Version, readMeHTMLBlob.pendingBlob.Uri.AbsoluteUri);
                 }
 
-                Trace.TraceInformation("Deleting snapshot blob {2} for {0} {1}.", edit.Id, edit.Version, sourceSnapshot.Uri.AbsoluteUri);
+                Logger.LogInformation("Deleting snapshot blob {SnapshotUri} for {EditId} {EditVersion}.", sourceSnapshot.Uri.AbsoluteUri, edit.Id, edit.Version);
                 await sourceSnapshot.DeleteAsync();
-                Trace.TraceInformation("Deleted snapshot blob {2} for {0} {1}.", edit.Id, edit.Version, sourceSnapshot.Uri.AbsoluteUri);
+                Logger.LogInformation("Deleted snapshot blob {SnapshotUri} for {EditId} {EditVersion}.", sourceSnapshot.Uri.AbsoluteUri, edit.Id, edit.Version);
 
                 if (readMeMDBlob.activeSnapshot != null)
                 {
-                    Trace.TraceInformation("Deleting snapshot ReadMe {2} for {0} {1}.", edit.Id, edit.Version, readMeMDBlob.activeSnapshot.Uri.AbsoluteUri);
+                    Logger.LogInformation("Deleting snapshot ReadMe Md {ActiveReadMeMdUri} for {EditId} {EditVersion}.", readMeMDBlob.activeSnapshot.Uri.AbsoluteUri, edit.Id, edit.Version);
                     await readMeMDBlob.activeSnapshot.DeleteAsync();
-                    Trace.TraceInformation("Deleted snapshot ReadMe{2} for {0} {1}.", edit.Id, edit.Version, readMeMDBlob.activeSnapshot.Uri.AbsoluteUri);
+                    Logger.LogInformation("Deleted snapshot ReadMe Md {ActiveReadMeMdUri} for {EditId} {EditVersion}.", readMeMDBlob.activeSnapshot.Uri.AbsoluteUri, edit.Id, edit.Version);
                 }
 
                 if (readMeHTMLBlob.activeSnapshot != null)
                 {
-                    Trace.TraceInformation("Deleting snapshot ReadMe {2} for {0} {1}.", edit.Id, edit.Version, readMeHTMLBlob.activeSnapshot.Uri.AbsoluteUri);
+                    Logger.LogInformation("Deleting snapshot ReadMe Html {ActiveReadMeHtmlUri} for {EditId} {EditVersion}.", readMeHTMLBlob.activeSnapshot.Uri.AbsoluteUri, edit.Id, edit.Version);
                     await readMeHTMLBlob.activeSnapshot.DeleteAsync();
-                    Trace.TraceInformation("Deleted snapshot ReadMe {2} for {0} {1}.", edit.Id, edit.Version, readMeHTMLBlob.activeSnapshot.Uri.AbsoluteUri);
+                    Logger.LogInformation("Deleted snapshot ReadMe Html {ActiveReadMeHtmlUri} for {EditId} {EditVersion}.", readMeHTMLBlob.activeSnapshot.Uri.AbsoluteUri, edit.Id, edit.Version);
                 }
             }
             finally
@@ -465,7 +447,7 @@ namespace HandlePackageEdits
             }
             catch (Exception ex)
             {
-                Trace.TraceError($"Error updating the package edit database with error! {ex}");
+                Logger.LogError($"Error updating the package edit database with error! {ex}");
             }
         }
 
@@ -481,11 +463,11 @@ namespace HandlePackageEdits
             }
 
             originalReadMePath = Path.Combine(directory, "readme" + readMeExtension);
-            Trace.TraceInformation($"Attempting to save ReadMe at {originalReadMePath}");
+            Logger.LogInformation("Attempting to save ReadMe at {OriginalReadMePath}", originalReadMePath);
 
             currentBlob.activeBlob = ReadMeContainer.GetBlockBlobReference(
                         StorageHelpers.GetActiveReadMeBlobNamePath(edit.Id, edit.Version, readMeExtension));
-            Trace.TraceInformation($"Found active ReadMe {currentBlob.activeBlob.Name} at storage URI {currentBlob.activeBlob.StorageUri}");
+            Logger.LogInformation("Found active ReadMe {ActiveBlobName} at storage URI {ActiveReadMeUri}", currentBlob.activeBlob.Name, currentBlob.activeBlob.StorageUri);
 
             // Update ReadMe in blob storage
             if (edit.ReadMeState == ReadMeChanged)
@@ -495,25 +477,25 @@ namespace HandlePackageEdits
                 {
                     currentBlob.pendingBlob = ReadMeContainer.GetBlockBlobReference(
                         StorageHelpers.GetPendingReadMeBlobNamePath(edit.Id, edit.Version, readMeExtension));
-                    Trace.TraceInformation($"Found pending ReadMe {currentBlob.pendingBlob.Name} at storage URI {currentBlob.pendingBlob.StorageUri}");
+                    Logger.LogInformation("Found pending ReadMe {PendingBlobName} at storage URI {PendingReadMeUri}", currentBlob.pendingBlob.Name, currentBlob.pendingBlob.StorageUri);
 
                     if (edit.HasReadMe)
                     {
                         // Snapshot the original blob if it exists (so if it's an edit, not an upload)
-                        Trace.TraceInformation($"Snapshotting original blob for {edit.Id} {edit.Version} ({currentBlob.activeBlob.Uri.AbsoluteUri}).");
+                        Logger.LogInformation("Snapshotting original blob for {EditId} {EditVersion} ({ActiveReadMeUri}).", edit.Id, edit.Version, currentBlob.activeBlob.Uri.AbsoluteUri);
                         currentBlob.activeSnapshot = await currentBlob.activeBlob.CreateSnapshotAsync();
-                        Trace.TraceInformation($"Snapshotted original blob for {edit.Id} {edit.Version} ({currentBlob.activeBlob.Uri.AbsoluteUri}).");
+                        Logger.LogInformation("Snapshotted original blob for {EditId} {EditVersion} ({ActiveReadMeUri}).", edit.Id, edit.Version, currentBlob.activeBlob.Uri.AbsoluteUri);
                     }
 
                     // Download pending ReadMe
-                    Trace.TraceInformation($"Downloading new ReadMe for {edit.Id} {edit.Version}");
+                    Logger.LogInformation("Downloading new ReadMe for {EditId} {EditVersion}", edit.Id, edit.Version);
                     await currentBlob.pendingBlob.DownloadToFileAsync(originalReadMePath, FileMode.Create);
-                    Trace.TraceInformation($"Downloaded new ReadMe for {edit.Id} {edit.Version}");
+                    Logger.LogInformation("Downloaded new ReadMe for {EditId} {EditVersion}", edit.Id, edit.Version);
 
                     // Upload pending ReadMe to active
-                    Trace.TraceInformation($"Uploading new ReadMe for {edit.Id} {edit.Version} to {currentBlob.activeBlob.Uri.AbsoluteUri}");
+                    Logger.LogInformation("Uploading new ReadMe for {EditId} {EditVersion} to {ActiveReadMeUri}", edit.Id, edit.Version, currentBlob.activeBlob.Uri.AbsoluteUri);
                     await currentBlob.activeBlob.UploadFromFileAsync(originalReadMePath);
-                    Trace.TraceInformation($"Uploaded new ReadMe for {edit.Id} {edit.Version} to {currentBlob.activeBlob.Uri.AbsoluteUri}");
+                    Logger.LogInformation("Uploaded new ReadMe for {EditId} {EditVersion} to {ActiveReadMeUri}", edit.Id, edit.Version, currentBlob.activeBlob.Uri.AbsoluteUri);
                 }
                 finally
                 {
@@ -527,14 +509,14 @@ namespace HandlePackageEdits
             else if (edit.ReadMeState == ReadMeDeleted)
             {
                 // Download active ReadMe
-                Trace.TraceInformation($"Downloading old ReadMe for {edit.Id} {edit.Version}");
+                Logger.LogInformation("Downloading old ReadMe for {EditId} {EditVersion}", edit.Id, edit.Version);
                 await currentBlob.activeBlob.DownloadToFileAsync(originalReadMePath, FileMode.Create);
-                Trace.TraceInformation($"Downloaded old ReadMe for {edit.Id} {edit.Version}");
+                Logger.LogInformation("Downloaded old ReadMe for {EditId} {EditVersion}", edit.Id, edit.Version);
 
                 // Delete active ReadMe
-                Trace.TraceInformation($"Deleting ReadMe of {edit.Id} {edit.Version} from {currentBlob.activeBlob.Uri.AbsoluteUri}");
+                Logger.LogInformation("Deleting ReadMe of {EditId} {EditVersion} from {ActiveReadMeUri}", edit.Id, edit.Version, currentBlob.activeBlob.Uri.AbsoluteUri);
                 await currentBlob.activeBlob.DeleteIfExistsAsync();
-                Trace.TraceInformation($"Deleted ReadMe of {edit.Id} {edit.Version} from {currentBlob.activeBlob.Uri.AbsoluteUri}");
+                Logger.LogInformation("Deleted ReadMe of {EditId} {EditVersion} from {ActiveReadMeUri}", edit.Id, edit.Version, currentBlob.activeBlob.Uri.AbsoluteUri);
             }
             return currentBlob;
         }
@@ -548,22 +530,25 @@ namespace HandlePackageEdits
                 {
                     if (edit.HasReadMe)
                     {
-                        Trace.TraceWarning(
-                        $"Rolling back ReadMe blob for {edit.Id} {edit.Version}. Copying snapshot {activeReadMeSnapshot.Uri.AbsoluteUri} to {activeReadMeBlob.Uri.AbsoluteUri}");
+                        Logger.LogWarning(
+                        "Rolling back ReadMe blob for {EditId} {EditVersion}. Copying snapshot {ActiveReadMeSnapshotUri} to {ActiveReadMeUri}", edit.Id, edit.Version, activeReadMeSnapshot.Uri.AbsoluteUri, activeReadMeBlob.Uri.AbsoluteUri);
                         activeReadMeBlob.StartCopy(activeReadMeSnapshot);
                         while (activeReadMeBlob.CopyState.Status != CopyStatus.Success)
                         {
                             await Task.Delay(1000);
                         }
-                        Trace.TraceWarning(
-                            $"Rolled back ReadMe blob for {edit.Id} {edit.Version}. Copying snapshot {activeReadMeSnapshot.Uri.AbsoluteUri} to {activeReadMeBlob.Uri.AbsoluteUri}");
+                        Logger.LogWarning(
+                            "Rolled back ReadMe blob for {EditId} {EditVersion}. Copying snapshot {ActiveReadMeSnapshotUri} to {ActiveReadMeUri}", 
+                            edit.Id, edit.Version, activeReadMeSnapshot.Uri.AbsoluteUri, activeReadMeBlob.Uri.AbsoluteUri);
                     }
                     else
                     {
                         // Delete ReadMes from active
-                        Trace.TraceInformation($"Deleting ReadMe of {edit.Id} {edit.Version} from {activeReadMeBlob.Uri.AbsoluteUri}");
+                        Logger.LogInformation("Deleting ReadMe of {EditId} {EditVersion} from {ActiveReadMeUri}", 
+                            edit.Id, edit.Version, activeReadMeBlob.Uri.AbsoluteUri);
                         await activeReadMeBlob.DeleteIfExistsAsync();
-                        Trace.TraceInformation($"Deleted ReadMe of {edit.Id} {edit.Version} from {activeReadMeBlob.Uri.AbsoluteUri}");
+                        Logger.LogInformation("Deleted ReadMe of {EditId} {EditVersion} from {ActiveReadMeUri}", 
+                            edit.Id, edit.Version, activeReadMeBlob.Uri.AbsoluteUri);
                     }
                 }
                 else if (edit.ReadMeState == ReadMeDeleted)
@@ -571,9 +556,11 @@ namespace HandlePackageEdits
                     try
                     {
                         // Upload original ReadMe back to active
-                        Trace.TraceInformation($"Uploading old ReadMe for {edit.Id} {edit.Version} to {activeReadMeBlob.Uri.AbsoluteUri}");
+                        Logger.LogInformation("Uploading old ReadMe for {EditId} {EditVersion} to {ActiveReadMeUri}", 
+                            edit.Id, edit.Version, activeReadMeBlob.Uri.AbsoluteUri);
                         await activeReadMeBlob.UploadFromFileAsync(originalReadMePath);
-                        Trace.TraceInformation($"Uploaded old ReadMe for {edit.Id} {edit.Version} to {activeReadMeBlob.Uri.AbsoluteUri}");
+                        Logger.LogInformation("Uploaded old ReadMe for {EditId} {EditVersion} to {ActiveReadMeUri}", 
+                            edit.Id, edit.Version, activeReadMeBlob.Uri.AbsoluteUri);
                     }
                     finally
                     {

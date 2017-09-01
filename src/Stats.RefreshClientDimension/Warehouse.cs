@@ -5,14 +5,14 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Stats.ImportAzureCdnStatistics;
 
 namespace Stats.RefreshClientDimension
 {
-    internal class Warehouse
+    static internal class Warehouse
     {
         private const int _defaultCommandTimeout = 1800; // 30 minutes max
 
@@ -130,7 +130,7 @@ namespace Stats.RefreshClientDimension
             return results;
         }
 
-        public static async Task PatchClientDimension(SqlConnection connection, IReadOnlyCollection<UserAgentToClientDimensionLink> links)
+        public static async Task PatchClientDimension(ILogger logger, SqlConnection connection, IReadOnlyCollection<UserAgentToClientDimensionLink> links)
         {
             var count = links.Count;
             var i = 0;
@@ -148,7 +148,8 @@ namespace Stats.RefreshClientDimension
                 command.Parameters.AddWithValue("NewClientDimensionId", link.NewClientDimensionId);
                 command.Parameters.AddWithValue("UserAgentId", link.UserAgentId);
 
-                Trace.WriteLine(string.Format("[{0}/{1}]: User Agent '{2}', User Agent Id '{3}', Old Client Id '{4}', New Client Id '{5}'", i, count, link.UserAgent, link.UserAgentId, link.CurrentClientDimensionId, link.NewClientDimensionId));
+                logger.LogInformation("[{LinkIndex}/{TotalLinksCount}]: User Agent '{UserAgent}', User Agent Id '{UserAgentId}', Old Client Id '{OldClientId}', New Client Id '{NewClientId}'", 
+                    i, count, link.UserAgent, link.UserAgentId, link.CurrentClientDimensionId, link.NewClientDimensionId);
 
                 await command.ExecuteNonQueryAsync();
             }

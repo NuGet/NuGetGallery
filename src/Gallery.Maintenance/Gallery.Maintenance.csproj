@@ -78,9 +78,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DeleteExpiredVerificationKeysTask.cs" />
-    <Compile Include="IMaintenanceTask.cs" />
     <Compile Include="Job.cs" />
     <Compile Include="LogEvents.cs" />
+    <Compile Include="MaintenanceTask.cs" />
     <Compile Include="Models\PackageVerificationKey.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -91,19 +91,13 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="project.json" />
-    <None Include="Scripts\Functions.ps1" />
-    <None Include="Scripts\Gallery.Maintenance.cmd" />
-    <None Include="Scripts\PostDeploy.ps1" />
-    <None Include="Scripts\PreDeploy.ps1" />
+    <None Include="Scripts\*" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj">
       <Project>{4b4b1efb-8f33-42e6-b79f-54e7f3293d31}</Project>
       <Name>NuGet.Jobs.Common</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Scripts\nssm.exe" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\..\build\sign.targets" Condition="Exists('..\..\build\sign.targets')" />

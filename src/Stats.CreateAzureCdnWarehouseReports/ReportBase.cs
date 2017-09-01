@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
 
@@ -13,12 +14,14 @@ namespace Stats.CreateAzureCdnWarehouseReports
 {
     public abstract class ReportBase
     {
+        protected ILogger _logger;
         protected readonly IReadOnlyCollection<StorageContainerTarget> Targets;
         protected readonly SqlConnectionStringBuilder StatisticsDatabase;
         protected SqlConnectionStringBuilder GalleryDatabase;
 
-        protected ReportBase(IEnumerable<StorageContainerTarget> targets, SqlConnectionStringBuilder statisticsDatabase, SqlConnectionStringBuilder galleryDatabase)
+        protected ReportBase(ILogger<ReportBase> logger, IEnumerable<StorageContainerTarget> targets, SqlConnectionStringBuilder statisticsDatabase, SqlConnectionStringBuilder galleryDatabase)
         {
+            _logger = logger;
             Targets = targets.ToList().AsReadOnly();
             StatisticsDatabase = statisticsDatabase;
             GalleryDatabase = galleryDatabase;

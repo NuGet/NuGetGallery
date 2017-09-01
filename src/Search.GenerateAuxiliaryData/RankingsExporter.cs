@@ -4,6 +4,7 @@
 using System;
 using System.Data;
 using System.Data.SqlClient;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json.Linq;
 
@@ -18,11 +19,12 @@ namespace Search.GenerateAuxiliaryData
         private readonly string _rankingsTotalScript;
 
         public RankingsExporter(
+            ILogger<SqlExporter> logger,
             string defaultConnectionString,
             CloudBlobContainer defaultDestinationContainer,
             string defaultRankingsScript,
             string defaultName)
-            : base(defaultConnectionString, defaultDestinationContainer, defaultName)
+            : base(logger, defaultConnectionString, defaultDestinationContainer, defaultName)
         {
             _rankingsTotalScript = defaultRankingsScript;
         }

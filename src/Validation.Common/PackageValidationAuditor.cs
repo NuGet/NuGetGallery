@@ -98,17 +98,31 @@ namespace NuGet.Jobs.Validation.Common
                 packageId, 
                 packageVersion);
 
-            await StoreAuditAsync(validationId, packageId, packageVersion, 
-                packageValidationAudit =>
-                {
-                    packageValidationAudit.Completed = completed;
-                    return packageValidationAudit;
-                });
+            try
+            {
+                await StoreAuditAsync(validationId, packageId, packageVersion, 
+                    packageValidationAudit =>
+                    {
+                        packageValidationAudit.Completed = completed;
+                        return packageValidationAudit;
+                    });
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(TraceEvent.PackageValidationAuditorException, e, "Failed to update the audit blob for " +
+                        $"validation {{{TraceConstant.ValidationId}}} " +
+                        $"- package {{{TraceConstant.PackageId}}} " +
+                        $"{{{TraceConstant.PackageVersion}}}",
+                    validationId,
+                    packageId,
+                    packageVersion);
+                throw;
+            }
 
             _logger.LogInformation("Finished writing Complete PackageValidationAudit for " +
                     $"validation {{{TraceConstant.ValidationId}}} " +
                     $"- package {{{TraceConstant.PackageId}}} " +
-                    $"v. {{{TraceConstant.PackageVersion}}}.",
+                    $"{{{TraceConstant.PackageVersion}}}.",
                 validationId,
                 packageId,
                 packageVersion);

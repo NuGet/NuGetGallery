@@ -1,16 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Jobs;
-using NuGet.Services.Logging;
 
 namespace Stats.RollUpDownloadFacts
 {
@@ -22,59 +19,29 @@ namespace Stats.RollUpDownloadFacts
         private const int DefaultMinAgeInDays = 43;
         private static int _minAgeInDays;
         private static SqlConnectionStringBuilder _targetDatabase;
-        private ILoggerFactory _loggerFactory;
-        private ILogger _logger;
 
-        public override bool Init(IDictionary<string, string> jobArgsDictionary)
+        public override void Init(IDictionary<string, string> jobArgsDictionary)
         {
-            try
-            {
-                var instrumentationKey = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.InstrumentationKey);
-                ApplicationInsights.Initialize(instrumentationKey);
+            var databaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatisticsDatabase);
+            _targetDatabase = new SqlConnectionStringBuilder(databaseConnectionString);
 
-                _loggerFactory = LoggingSetup.CreateLoggerFactory();
-                _logger = _loggerFactory.CreateLogger<Job>();
-
-                var databaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatisticsDatabase);
-                _targetDatabase = new SqlConnectionStringBuilder(databaseConnectionString);
-
-                _minAgeInDays = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, "MinAgeInDays") ?? DefaultMinAgeInDays;
-                Trace.TraceInformation("Min age in days: " + _minAgeInDays);
-
-                return true;
-            }
-            catch (Exception exception)
-            {
-                _logger.LogCritical("Job failed to initialize. {Exception}", exception);
-            }
-
-            return false;
+            _minAgeInDays = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.MinAgeInDays) ?? DefaultMinAgeInDays;
+            Logger.LogInformation("Min age in days: {MinAgeInDays}", _minAgeInDays);
         }
 
-        public override async Task<bool> Run()
+        public override async Task Run()
         {
-            try
+            using (var connection = await _targetDatabase.ConnectTo())
             {
-                using (var connection = await _targetDatabase.ConnectTo())
-                {
-                    connection.InfoMessage -= OnSqlConnectionInfoMessage;
-                    connection.InfoMessage += OnSqlConnectionInfoMessage;
+                connection.InfoMessage -= OnSqlConnectionInfoMessage;
+                connection.InfoMessage += OnSqlConnectionInfoMessage;
 
-                    var sqlCommand = new SqlCommand("[dbo].[RollUpDownloadFacts]", connection);
-                    sqlCommand.CommandType = CommandType.StoredProcedure;
-                    sqlCommand.CommandTimeout = 23 * 60 * 60;
-                    sqlCommand.Parameters.AddWithValue("MinAgeInDays", _minAgeInDays);
+                var sqlCommand = new SqlCommand("[dbo].[RollUpDownloadFacts]", connection);
+                sqlCommand.CommandType = CommandType.StoredProcedure;
+                sqlCommand.CommandTimeout = 23 * 60 * 60;
+                sqlCommand.Parameters.AddWithValue("MinAgeInDays", _minAgeInDays);
 
-                    await sqlCommand.ExecuteScalarAsync();
-                }
-
-                return true;
-            }
-            catch (Exception exception)
-            {
-                _logger.LogCritical("Job run failed. {Exception}", exception);
-
-                return false;
+                await sqlCommand.ExecuteScalarAsync();
             }
         }
 
@@ -85,7 +52,7 @@ namespace Stats.RollUpDownloadFacts
                 return;
             }
 
-            _logger.LogInformation(e.Message);
+            Logger.LogInformation("SqlConnection info message: {Message}", e.Message);
 
             if (e.Message.StartsWith(_startTemplateRecordsDeletion) &&
                 e.Message.EndsWith(_endTemplateFactDownloadDeletion))

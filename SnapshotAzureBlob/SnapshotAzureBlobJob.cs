@@ -11,7 +11,6 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.Extensions.Logging;
 using NuGet.Jobs;
-using NuGet.Services.Logging;
 
 namespace SnapshotAzureBlob
 {
@@ -20,24 +19,10 @@ namespace SnapshotAzureBlob
         private string _connectionString;
         private string _container;
 
-        public ILogger Logger { get; private set; }
-
-        public override bool Init(IDictionary<string, string> jobArgsDictionary)
+        public override void Init(IDictionary<string, string> jobArgsDictionary)
         {
-            try
-            {
-                var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(ConsoleLogOnly);
-                var loggerFactory = LoggingSetup.CreateLoggerFactory(loggerConfiguration);
-                Logger = loggerFactory.CreateLogger<SnapshotAzureBlobJob>();
-                _connectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, ArgumentNames.SnapshotAzureBlobJob_ConnectionString);
-                _container = JobConfigurationManager.GetArgument(jobArgsDictionary, ArgumentNames.SnapshotAzureBlobJob_Container);
-            }
-            catch (Exception exception)
-            {
-                Logger.LogCritical(LogEvents.JobInitFailed, exception, "Failed to initialize job!");
-                return false;
-            }
-            return true;
+            _connectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, ArgumentNames.SnapshotAzureBlobJob_ConnectionString);
+            _container = JobConfigurationManager.GetArgument(jobArgsDictionary, ArgumentNames.SnapshotAzureBlobJob_Container);
         }
 
         public string GetUsage()
@@ -48,12 +33,13 @@ namespace SnapshotAzureBlob
                    + $"-{JobArgumentNames.InstrumentationKey} <intrumentationKey> ";
         }
 
-        public override Task<bool> Run()
+        public override Task Run()
         {
             var storageAccount = CloudStorageAccount.Parse(_connectionString);
             var blobClient = storageAccount.CreateCloudBlobClient();
             EnsureOneSnapshot(_container, blobClient);
-            return Task.FromResult(true);
+
+            return Task.FromResult(0);
         }
 
         private void EnsureOneSnapshot(string containerName, CloudBlobClient client)
@@ -85,12 +71,12 @@ namespace SnapshotAzureBlob
                 }
                 catch (Exception ex)
                 {
-                    this.Logger.LogCritical(LogEvents.SnaphotFailed, ex, "The snapshot failed for blob {Blob}.", item.Uri);
+                    Logger.LogCritical(LogEvents.SnaphotFailed, ex, "The snapshot failed for blob {Blob}.", item.Uri);
                 }
             });
             sw.Stop();
 
-            this.Logger.LogInformation("Created {snapshotCount} snapshots in {timeInMilliseconds} milliseconds", snapshotCount, sw.ElapsedMilliseconds);
+            Logger.LogInformation("Created {snapshotCount} snapshots in {timeInMilliseconds} milliseconds", snapshotCount, sw.ElapsedMilliseconds);
         }
     }
 }
