@@ -4,14 +4,14 @@
 namespace NuGetGallery
 {
     /// <summary>
-    /// A Package Manager that conforms to the NuGet protocol but isn't
-    /// maintained by the NuGet team.
+    /// A Package Manager that conforms to the NuGet protocol but isn't maintained
+    /// by the NuGet team.
     /// </summary>
     public class ThirdPartyPackageManagerViewModel : PackageManagerViewModel
     {
         /// <summary>
-        /// The URL that links should be used to contact the package manager's
-        /// maintainers for support.
+        /// The URL that should be used to contact this package manager's maintainers
+        /// for support.
         /// </summary>
         public string ContactUrl { get; set; }
     }
