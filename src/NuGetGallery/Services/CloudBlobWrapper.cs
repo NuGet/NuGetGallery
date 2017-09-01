@@ -47,9 +47,14 @@ namespace NuGetGallery
         public Task DeleteIfExistsAsync()
         {
             return Task.Factory.FromAsync<bool>(
-                (cb, state) => _blob.BeginDeleteIfExists(cb, state), 
-                ar => _blob.EndDeleteIfExists(ar),
-                state: null);
+                    (cb, state) => _blob.BeginDeleteIfExists(deleteSnapshotsOption: DeleteSnapshotsOption.IncludeSnapshots,
+                    accessCondition: null,
+                    options: null,
+                    operationContext: null,
+                    callback: cb,
+                    state: state),
+                    ar => _blob.EndDeleteIfExists(ar),
+                    state: null);
         }
 
         public Task DownloadToStreamAsync(Stream target)
