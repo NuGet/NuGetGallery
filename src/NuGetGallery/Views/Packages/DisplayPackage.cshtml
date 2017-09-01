@@ -4,6 +4,15 @@
     ViewBag.Tab = "Packages";
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
     var absolutePackageUrl = Url.Absolute(Url.Package(Model.Id));
+
+        new ThirdPartyPackageManagerViewModel()
+        {
+            Id = "paket-cli",
+            Name = "Paket CLI",
+            CommandPrefix = "> ",
+            InstallPackageCommand = string.Format("paket add {0} --version {1}", Model.Id, Model.Version),
+            ContactUrl = "https://github.com/fsprojects/Paket/issues"
+        },
 }
 @section SocialMeta {
     @if (!String.IsNullOrWhiteSpace(ViewBag.FacebookAppID))
