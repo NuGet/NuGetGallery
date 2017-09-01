@@ -267,6 +267,7 @@ namespace NuGetGallery.Infrastructure.Lucene
                        .Select(v => new User { Username = v.Value<string>() })
                        .ToArray(),
                     DownloadCount = reg.Value<int>("DownloadCount"),
+                    IsVerified = reg.Value<bool>("Verified"),
                     Key = reg.Value<int>("Key")
                 };
             }
