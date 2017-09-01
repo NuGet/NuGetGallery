@@ -14,6 +14,7 @@ namespace NuGet.Indexing
         internal const string CuratedFeeds = "curatedfeeds.json";
         internal const string RankingsV1 = "rankings.v1.json";
         internal const string SearchSettingsV1 = "searchSettings.v1.json";
+        internal const string VerifiedPackages = "verifiedPackages.json";
 
         public virtual IDictionary<string, DateTime?> LastModifiedTimeForFiles { get; }
 
@@ -24,7 +25,8 @@ namespace NuGet.Indexing
             DownloadsV1,
             CuratedFeeds,
             RankingsV1,
-            SearchSettingsV1
+            SearchSettingsV1,
+            VerifiedPackages,
         };
 
         public AuxiliaryFiles(ILoader loader)

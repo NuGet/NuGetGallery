@@ -7,12 +7,13 @@ namespace NuGet.Services.BasicSearchTests.TestSupport
 {
     public class PackageVersion
     {
-        public PackageVersion(string id, string version, int downloads = 0, bool listed = true)
+        public PackageVersion(string id, string version, int downloads = 0, bool listed = true, bool verified = false)
         {
             Id = id;
             Version = version;
             Downloads = downloads;
             Listed = listed;
+            Verified = verified;
         }
 
         public string Id { get; }
@@ -22,6 +23,8 @@ namespace NuGet.Services.BasicSearchTests.TestSupport
         public int Downloads { get; }
 
         public bool Listed { get; }
+
+        public bool Verified { get; }
 
         public override bool Equals(object obj)
         {

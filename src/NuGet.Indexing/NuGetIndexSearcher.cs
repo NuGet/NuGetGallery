@@ -32,7 +32,8 @@ namespace NuGet.Indexing
             OpenBitSet latestStableBitSet,
             OpenBitSet latestSemVer2BitSet,
             OpenBitSet latestStableSemVer2BitSet,
-            OwnersResult owners)
+            OwnersResult owners,
+            HashSet<string> verifiedPackages)
             : base(reader)
         {
             Manager = manager;
@@ -54,6 +55,7 @@ namespace NuGet.Indexing
             LatestSemVer2BitSet = latestSemVer2BitSet;
             LatestStableSemVer2BitSet = latestStableSemVer2BitSet;
             Owners = owners;
+            VerifiedPackages = verifiedPackages;
             QueryBoostingContext = context;
             LastReopen = DateTime.UtcNow;
         }
@@ -68,6 +70,7 @@ namespace NuGet.Indexing
         public OpenBitSet LatestSemVer2BitSet { get; }
         public OpenBitSet LatestStableSemVer2BitSet { get; }
         public OwnersResult Owners { get; }
+        public HashSet<string> VerifiedPackages { get; }
         public DateTime LastReopen { get; }
         public IReadOnlyDictionary<string, int[]> DocIdMapping { get; }
         public QueryBoostingContext QueryBoostingContext { get; }

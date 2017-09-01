@@ -117,6 +117,7 @@ namespace NuGet.Indexing
                 WriteDocumentValueAsArray(jsonWriter, "tags", document, "Tags");
                 WriteDocumentValueAsArray(jsonWriter, "authors", document, "Authors", true);
                 WriteProperty(jsonWriter, "totalDownloads", searcher.Versions[scoreDoc.Doc].AllVersionDetails.Select(item => item.Downloads).Sum());
+                WriteProperty(jsonWriter, "verified", searcher.VerifiedPackages.Contains(id));
                 WriteVersions(jsonWriter, baseAddress, id, includePrerelease, semVerLevel, searcher.Versions[scoreDoc.Doc]);
 
                 if (includeExplanation)
@@ -280,13 +281,14 @@ namespace NuGet.Indexing
             WriteProperty(jsonWriter, "indexTimestamp", timestamp);
         }
 
-        private static void WriteRegistrationV2(JsonWriter jsonWriter, string id, int downloadCount, IEnumerable<string> owners)
+        private static void WriteRegistrationV2(JsonWriter jsonWriter, string id, int downloadCount, IEnumerable<string> owners, bool isVerified)
         {
             jsonWriter.WritePropertyName("PackageRegistration");
             jsonWriter.WriteStartObject();
 
             WriteProperty(jsonWriter, "Id", id);
             WriteProperty(jsonWriter, "DownloadCount", downloadCount);
+            WriteProperty(jsonWriter, "Verified", isVerified);
 
             jsonWriter.WritePropertyName("Owners");
             jsonWriter.WriteStartArray();
@@ -323,11 +325,12 @@ namespace NuGet.Indexing
 
                 Tuple<int, int> downloadCounts = NuGetIndexSearcher.DownloadCounts(searcher.Versions[scoreDoc.Doc], normalizedVersion);
 
+                bool isVerified = searcher.VerifiedPackages.Contains(id);
                 bool isLatest = isLatestBitSet.Get(scoreDoc.Doc);
                 bool isLatestStable = isLatestStableBitSet.Get(scoreDoc.Doc);
 
                 jsonWriter.WriteStartObject();
-                WriteRegistrationV2(jsonWriter, id, downloadCounts.Item1, NuGetIndexSearcher.GetOwners(searcher, id));
+                WriteRegistrationV2(jsonWriter, id, downloadCounts.Item1, NuGetIndexSearcher.GetOwners(searcher, id), isVerified);
                 WriteDocumentValue(jsonWriter, "Version", document, LuceneMetadataConstants.VerbatimVersionPropertyName);
                 WriteProperty(jsonWriter, "NormalizedVersion", normalizedVersion);
                 WriteDocumentValue(jsonWriter, "Title", document, "Title");

@@ -29,7 +29,8 @@ namespace NuGet.IndexingTests.TestSupport
                   latestStableBitSet: Constants.LatestStableBitSet,
                   latestSemVer2BitSet: Constants.LatestSemVer2BitSet,
                   latestStableSemVer2BitSet: Constants.LatestStableSemVer2BitSet,
-                  owners: Constants.EmptyOwnersResult)
+                  owners: Constants.EmptyOwnersResult,
+                  verifiedPackages: new HashSet<string>())
         {
             MockObjectFactory.MockPrefix = Constants.MockBase;
         }

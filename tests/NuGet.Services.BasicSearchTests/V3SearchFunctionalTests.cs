@@ -103,7 +103,7 @@ namespace NuGet.Services.BasicSearchTests
             {
                 new PackageVersion("EntityFramework", "6.1.3-beta1", 30), // EntityFramework has all of the fields populated.
                 new PackageVersion("EntityFramework", "6.1.2", 20),
-                new PackageVersion("angularjs", "1.4.8", 10)              // AngularJS a) has multiple authors and b) has no summary.
+                new PackageVersion("angularjs", "1.4.8", 10, verified: true)              // AngularJS a) has multiple authors and b) has no summary.
             };
             var expectedPath = Path.Combine("Data", "V3SearchFunctionalTests.ReturnsCorrectSchema.json");
             var expectedJsonText = File.ReadAllText(expectedPath);
