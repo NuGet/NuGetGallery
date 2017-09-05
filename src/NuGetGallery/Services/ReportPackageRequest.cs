@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Globalization;
 using System.Net.Mail;
@@ -25,6 +26,7 @@ namespace NuGetGallery
         {
             // note, format blocks {xxx} are matched by ordinal-case-sensitive comparison
             var builder = new StringBuilder(subject);
+            var protocol = config.RequireSSL ? Uri.UriSchemeHttps: Uri.UriSchemeHttp;
 
             Substitute(builder, "{GalleryOwnerName}", config.GalleryOwner.DisplayName);
             Substitute(builder, "{Id}", Package.PackageRegistration.Id);
@@ -38,7 +40,7 @@ namespace NuGetGallery
                     RequestingUser.Username,
                     RequestingUser.EmailAddress,
                     Environment.NewLine,
-                    Url.User(RequestingUser, scheme: "http")));
+                    Url.User(RequestingUser, scheme: protocol)));
             }
             else
             {
@@ -47,8 +49,8 @@ namespace NuGetGallery
             Substitute(builder, "{Name}", FromAddress.DisplayName);
             Substitute(builder, "{Address}", FromAddress.Address);
             Substitute(builder, "{AlreadyContactedOwners}", AlreadyContactedOwners ? "Yes" : "No");
-            Substitute(builder, "{PackageUrl}", Url.Package(Package.PackageRegistration.Id, null, scheme: "http"));
-            Substitute(builder, "{VersionUrl}", Url.Package(Package.PackageRegistration.Id, Package.Version, scheme: "http"));
+            Substitute(builder, "{PackageUrl}", Url.Package(Package.PackageRegistration.Id, version: null, scheme: protocol));
+            Substitute(builder, "{VersionUrl}", Url.Package(Package.PackageRegistration.Id, Package.Version, protocol));
             Substitute(builder, "{Reason}", Reason);
             Substitute(builder, "{Signature}", Signature);
             Substitute(builder, "{Message}", Message);
