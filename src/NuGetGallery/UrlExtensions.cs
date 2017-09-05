@@ -25,20 +25,9 @@ namespace NuGetGallery
 
         private static string GetProtocol(UrlHelper url)
         {
-            return url.RequestContext.HttpContext.Request.IsSecureConnection ? "https" : "http";
+            return url.RequestContext.HttpContext.Request.IsSecureConnection ? Uri.UriSchemeHttps : Uri.UriSchemeHttp;
         }
-
-        private static string GetConfiguredSiteRoot(UrlHelper url)
-        {
-            if (_configuration == null)
-            {
-                SetConfigurationService(new ConfigurationService(new SecretReaderFactory(new DiagnosticsService())));
-            }
-
-            return _configuration.GetSiteRoot(useHttps: url.RequestContext.HttpContext.Request.IsSecureConnection);
-        }
-
-        // For testing purposes only!
+                
         internal static void SetConfigurationService(ConfigurationService configurationService)
         {
             _configuration = configurationService;
@@ -46,7 +35,7 @@ namespace NuGetGallery
 
         private static string GetConfiguredSiteHostName(UrlHelper url)
         {
-            var siteRoot = GetConfiguredSiteRoot(url);
+            var siteRoot = _configuration.GetSiteRoot(useHttps: url.RequestContext.HttpContext.Request.IsSecureConnection);
             return new Uri(siteRoot).Host;
         }
 
