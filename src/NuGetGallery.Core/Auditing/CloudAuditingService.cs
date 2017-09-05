@@ -14,7 +14,7 @@ namespace NuGetGallery.Auditing
     /// <summary>
     /// Writes audit records to a specific container in the Cloud Storage Account provided
     /// </summary>
-    public class CloudAuditingService : AuditingService
+    public class CloudAuditingService : AuditingService, ICloudStorageStatusDependency
     {
         public static readonly string DefaultContainerName = "auditing";
 
@@ -26,7 +26,6 @@ namespace NuGetGallery.Auditing
         public CloudAuditingService(string instanceId, string localIP, string storageConnectionString, Func<Task<AuditActor>> getOnBehalfOf)
             : this(instanceId, localIP, GetContainer(storageConnectionString), getOnBehalfOf)
         {
-
         }
 
         public CloudAuditingService(string instanceId, string localIP, CloudBlobContainer auditContainer, Func<Task<AuditActor>> getOnBehalfOf)
@@ -120,6 +119,11 @@ namespace NuGetGallery.Auditing
                 }
                 throw;
             }
+        }
+
+        public Task<bool> IsAvailableAsync()
+        {
+            return _auditContainer.ExistsAsync();
         }
     }
 }

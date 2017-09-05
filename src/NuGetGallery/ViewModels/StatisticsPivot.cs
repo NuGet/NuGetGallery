@@ -14,7 +14,7 @@ namespace NuGetGallery
 {
     public class StatisticsPivot
     {
-        public static Tuple<TableEntry[][], string> GroupBy(IList<StatisticsFact> facts, string[] pivot)
+        public static Tuple<TableEntry[][], int> GroupBy(IList<StatisticsFact> facts, string[] pivot)
         {
             // Firstly take the facts and the pivot vector and produce a tree structure
 
@@ -36,7 +36,7 @@ namespace NuGetGallery
 
             PopulateTable(level, table);
 
-            return new Tuple<TableEntry[][], string>(table, level.Total.ToNuGetNumberString());
+            return new Tuple<TableEntry[][], int>(table, level.Total);
         }
 
         private static void AddOrderedNext(Level level)
@@ -61,7 +61,7 @@ namespace NuGetGallery
                 if (item.Value.Next == null)
                 {
                     table[row][col] = new TableEntry { Data = item.Key };
-                    table[row][col + 1] = new TableEntry { Data = item.Value.Amount.ToNuGetNumberString(), IsNumeric = true };
+                    table[row][col + 1] = new TableEntry { Data = item.Value.Amount.ToString(), IsNumeric = true };
                     row++;
                 }
                 else

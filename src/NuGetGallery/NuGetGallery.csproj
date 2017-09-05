@@ -643,6 +643,7 @@
     <Compile Include="App_Start\NuGetODataV1FeedConfig.cs" />
     <Compile Include="App_Start\NuGetODataConfig.cs" />
     <Compile Include="App_Start\RuntimeServiceProvider.cs" />
+    <Compile Include="App_Start\StorageDependent.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="App_Start\AutofacConfig.cs" />
     <Compile Include="Areas\Admin\Controllers\DeleteController.cs" />
@@ -694,6 +695,7 @@
     <Compile Include="Authentication\NuGetPackagePattern.cs" />
     <Compile Include="Authentication\PasswordAuthenticationResult.cs" />
     <Compile Include="Authentication\NuGetScopes.cs" />
+    <Compile Include="Authentication\PasswordResetResult.cs" />
     <Compile Include="Authentication\Providers\AuthenticatorT.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticator.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticatorConfiguration.cs" />
@@ -783,6 +785,10 @@
     <Compile Include="Migrations\201706262349176_AddRepositoryURL_ReadMe.Designer.cs">
       <DependentUpon>201706262349176_AddRepositoryURL_ReadMe.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201708241907124_PrefixReservation.cs" />
+    <Compile Include="Migrations\201708241907124_PrefixReservation.Designer.cs">
+      <DependentUpon>201708241907124_PrefixReservation.cs</DependentUpon>
+    </Compile>
     <Compile Include="Security\RequireSecurePushForCoOwnersPolicy.cs" />
     <Compile Include="Security\SecurePushSubscription.cs" />
     <Compile Include="Security\IUserSecurityPolicySubscription.cs" />
@@ -799,6 +805,8 @@
     <Compile Include="Security\UserSecurityPolicyEvaluationContext.cs" />
     <Compile Include="Security\SecurityPolicyResult.cs" />
     <Compile Include="Security\UserSecurityPolicySubscriptionContext.cs" />
+    <Compile Include="Services\IReservedNamespaceService.cs" />
+    <Compile Include="Services\ReservedNamespaceService.cs" />
     <Compile Include="Telemetry\ClientInformationTelemetryEnricher.cs" />
     <Compile Include="Telemetry\QuietExceptionLogger.cs" />
     <Compile Include="Infrastructure\Authentication\CredentialBuilder.cs" />
@@ -1495,9 +1503,11 @@
     <Compile Include="ViewModels\ApiKeyListViewModel.cs" />
     <Compile Include="ViewModels\ApiKeyViewModel.cs" />
     <Compile Include="ViewModels\PackageHeadingModel.cs" />
+    <Compile Include="ViewModels\PackageManagerViewModel.cs" />
     <Compile Include="ViewModels\ReportMyPackageViewModel.cs" />
     <Compile Include="ViewModels\ScopeViewModel.cs" />
     <Compile Include="ViewModels\PackageListSearchViewModel.cs" />
+    <Compile Include="ViewModels\ThirdPartyPackageManagerViewModel.cs" />
     <Compile Include="WebApi\PlainTextResult.cs" />
     <Compile Include="WebApi\QueryResult.cs" />
     <Compile Include="WebApi\QueryResultDefaults.cs" />
@@ -1774,6 +1784,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201706262349176_AddRepositoryURL_ReadMe.resx">
       <DependentUpon>201706262349176_AddRepositoryURL_ReadMe.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201708241907124_PrefixReservation.resx">
+      <DependentUpon>201708241907124_PrefixReservation.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

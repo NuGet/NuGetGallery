@@ -434,7 +434,7 @@ namespace NuGetGallery
             }
 
             Assert.Equal(603, sum);
-            Assert.Equal("603", actualReport.Total);
+            Assert.Equal(603, actualReport.Total);
             Assert.True(actualReport.LastUpdatedUtc.HasValue);
             Assert.Equal(updatedUtc, actualReport.LastUpdatedUtc.Value);
         }
@@ -518,7 +518,7 @@ namespace NuGetGallery
             }
 
             Assert.Equal(603, sum);
-            Assert.Equal("603", actualReport.Total);
+            Assert.Equal(603, actualReport.Total);
             Assert.True(actualReport.LastUpdatedUtc.HasValue);
             Assert.Equal(updatedUtc, actualReport.LastUpdatedUtc.Value);
             Assert.DoesNotContain(invalidDimension, actualReport.Columns);
@@ -620,7 +620,7 @@ namespace NuGetGallery
             }
 
             Assert.Equal(502, sum);
-            Assert.Equal("502", actualReport.Total);
+            Assert.Equal(502, actualReport.Total);
             Assert.True(actualReport.LastUpdatedUtc.HasValue);
             Assert.Equal(updatedUtc, actualReport.LastUpdatedUtc.Value);
         }

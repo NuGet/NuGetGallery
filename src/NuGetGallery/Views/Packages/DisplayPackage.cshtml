@@ -3,7 +3,27 @@
     ViewBag.Title = Model.Id + " " + Model.Version;
     ViewBag.Tab = "Packages";
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
+
     var absolutePackageUrl = Url.Absolute(Url.Package(Model.Id));
+
+    var packageManagers = new PackageManagerViewModel[]
+    {
+        new PackageManagerViewModel()
+        {
+            Id = "package-manager",
+            Name = "Package Manager",
+            CommandPrefix = "PM> ",
+            InstallPackageCommand = string.Format("Install-Package {0} -Version {1}", Model.Id, Model.Version)
+        },
+
+        new PackageManagerViewModel()
+        {
+            Id = "dotnet-cli",
+            Name = ".NET CLI",
+            CommandPrefix = "> ",
+            InstallPackageCommand = string.Format("dotnet add package {0} --version {1}", Model.Id, Model.Version)
+        },
+    };
 }
 @section SocialMeta {
     @if (!String.IsNullOrWhiteSpace(ViewBag.FacebookAppID))
@@ -37,35 +57,45 @@
 }
 
 
-@helper CommandTab(string label, string id, bool active)
+@helper CommandTab(PackageManagerViewModel packageManager, bool active)
 {
     <li role="presentation" class="@(active ? "active" : string.Empty)">
-        <a href="#@id" aria-expanded="@(active ? "true" : "false")"
+        <a href="#@packageManager.Id" aria-expanded="@(active ? "true" : "false")"
            aria-selected="@(active ? "true" : "false")"
-           aria-controls="@id" role="tab" data-toggle="tab"
-           title="Switch to tab panel which contains package installation command for @label">
-            @label
+           aria-controls="@packageManager.Id" role="tab" data-toggle="tab"
+           title="Switch to tab panel which contains package installation command for @packageManager.Name">
+            @packageManager.Name
         </a>
     </li>
 }
 
-@helper CommandPanel(Func<MvcHtmlString, HelperResult> htmlContent, string label, string id, bool active)
+@helper CommandPanel(PackageManagerViewModel packageManager, bool active)
 {
-    <div role="tabpanel" class="tab-pane @(active ? "active" : string.Empty)" id="@id">
+    var thirdPartyPackageManager = packageManager as ThirdPartyPackageManagerViewModel;
+
+    <div role="tabpanel" class="tab-pane @(active ? "active" : string.Empty)" id="@packageManager.Id">
         <div>
-            <div class="install-script" id="@id-text">
+            <div class="install-script" id="@packageManager.Id-text">
                 <span>
-                    @htmlContent(MvcHtmlString.Empty)
+                    @packageManager.InstallPackageCommand
                 </span>
             </div>
             <div class="copy-button">
-                <button id="@id-button" class="btn btn-default btn-warning" type="button"
+                <button id="@packageManager.Id-button" class="btn btn-default btn-warning" type="button"
                         data-toggle="popover" data-placement="bottom" data-content="Copied."
-                        aria-label="Copy the @label command">
+                        aria-label="Copy the @packageManager.Name command">
                     <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
                 </button>
             </div>
         </div>
+        @if (thirdPartyPackageManager != null)
+        {
+            @ViewHelpers.AlertWarning(
+                @<text>
+                    This client is not supported by the NuGet team.
+                    <a href="@thirdPartyPackageManager.ContactUrl">Contact its maintainers for support</a>.
+                </text>)
+        }
     </div>
 }
 
@@ -78,11 +108,19 @@
                      @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")) />
             </h3>
         </aside>
-        <article class="col-sm-8">
+        <article class="col-sm-8 package-details-main">
             <div class="package-title">
                 <h1>
                     @Html.BreakWord(Model.Id)
                     <small class="text-nowrap">@Model.FullVersion</small>
+
+                    @if (Model.IsVerified.HasValue && Model.IsVerified.Value)
+                    {
+                        <img class="reserved-indicator"
+                             src="~/Content/gallery/img/reserved-indicator.svg"
+                             @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-25x25.png"))
+                             title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
+                    }
                 </h1>
 
                 @if (!StringComparer.OrdinalIgnoreCase.Equals(Model.Id, Model.Title))
@@ -209,19 +247,29 @@
 
             <div class="install-tabs">
                 <ul class="nav nav-tabs" role="tablist">
-                    @CommandTab("Package Manager", "package-manager", active: true)
-                    @CommandTab(".NET CLI", "dotnet-cli", active: false)
+                    @{ var firstPackageManager = true; }
+                    @foreach (var packageManager in packageManagers)
+                    {
+                        @CommandTab(packageManager, active: firstPackageManager)
+
+                        firstPackageManager = false;
+                    }
                 </ul>
                 <div class="tab-content">
-                    @CommandPanel(@<text>Install-Package @Model.Id -Version @Model.Version</text>, "Package Manager", "package-manager", active: true)
-                    @CommandPanel(@<text>dotnet add package @Model.Id --version @Model.Version</text>, ".NET CLI", "dotnet-cli", active: false)
+                    @{ firstPackageManager = true; }
+                    @foreach (var packageManager in packageManagers)
+                    {
+                        @CommandPanel(packageManager, active: firstPackageManager)
+
+                        firstPackageManager = false;
+                    }
                 </div>
             </div>
 
             @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
             {
                 <h2>Release Notes</h2>
-                
+
                 <p>@Html.PreFormattedText(Model.ReleaseNotes)</p>
             }
 
@@ -400,7 +448,7 @@
                     <li>
                         <i class="ms-Icon ms-Icon--Globe" aria-hidden="true"></i>
                         <a href="@Model.ProjectUrl" data-track="outbound-project-url" title="Visit the project site to learn more about this package" rel="nofollow">
-                            @if(Model.ProjectUrl.Length <= 28)
+                            @if (Model.ProjectUrl.Length <= 28)
                             {
                                 @Model.ProjectUrl
                             }
@@ -416,7 +464,7 @@
                     <li>
                         <i class="ms-Icon ms-Icon--Certificate" aria-hidden="true"></i>
                         <a href="@Model.LicenseUrl" data-track="outbound-license-url" title="Make sure you agree with the license" rel="nofollow">
-                            @if(Model.LicenseNames.AnySafe())
+                            @if (Model.LicenseNames.AnySafe())
                             {
                                 @(string.Join(", ", Model.LicenseNames.Select(x => x + " License")))
                             }
@@ -554,19 +602,42 @@
                 var encodedText = Url.Encode(string.Format("Check out {0} on #NuGet.", Model.Id));
             }
             <p class="share-buttons">
-                <a href="https://www.facebook.com/sharer/sharer.php?u=@absolutePackageUrl&t=@encodedText" target="_blank"><img
-                    width="24" height="24" alt="Share this package on Facebook"
-                    src="@Url.Absolute("~/Content/gallery/img/facebook.svg")"
-                    @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/facebook-24x24.png")) /></a>
-                <a href="https://twitter.com/intent/tweet?url=@absolutePackageUrl&text=@encodedText" target="_blank"><img
-                    width="24" height="24" alt="Tweet this package"
-                    src="@Url.Absolute("~/Content/gallery/img/twitter.svg")"
-                    @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/twitter-24x24.png")) /></a>
+                <a href="https://www.facebook.com/sharer/sharer.php?u=@absolutePackageUrl&t=@encodedText" target="_blank">
+                    <img width="24" height="24" alt="Share this package on Facebook"
+                         src="@Url.Absolute("~/Content/gallery/img/facebook.svg")"
+                         @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/facebook-24x24.png")) />
+                </a>
+                <a href="https://twitter.com/intent/tweet?url=@absolutePackageUrl&text=@encodedText" target="_blank">
+                    <img width="24" height="24" alt="Tweet this package"
+                         src="@Url.Absolute("~/Content/gallery/img/twitter.svg")"
+                         @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/twitter-24x24.png")) />
+                </a>
             </p>
         </aside>
     </div>
 </section>
 
+
+
 @section BottomScripts {
+    @{
+        var packageManagersCss = string.Empty;
+
+        foreach (var packageManager in packageManagers)
+        {
+            packageManagersCss += "#" + packageManager.Id + " .install-script span::before {";
+            packageManagersCss += "    content: \"" + packageManager.CommandPrefix + "\"";
+            packageManagersCss += "}";
+        }
+    }
+
+    <style type="text/css">
+        @Html.Raw(packageManagersCss)
+    </style>
+
+    <script type="text/javascript">
+        var packageManagers = [@Html.Raw(string.Join(",", packageManagers.Select(pm => "\"" + pm.Id + "\"")))];
+    </script>
+
     @Scripts.Render("~/Scripts/gallery/page-display-package.min.js")
 }

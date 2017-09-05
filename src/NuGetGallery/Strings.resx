@@ -329,8 +329,8 @@ The {1} Team</value>
   <data name="UserKeyIsRequired" xml:space="preserve">
     <value>A user key is required.</value>
   </data>
-  <data name="CouldNotFindAnyoneWithThatEmail" xml:space="preserve">
-    <value>Could not find anyone with that email.</value>
+  <data name="CouldNotFindAnyoneWithThatUsernameOrEmail" xml:space="preserve">
+    <value>Could not find anyone with that username or email.</value>
   </data>
   <data name="InvalidOrExpiredPasswordResetToken" xml:space="preserve">
     <value>The Password Reset Token is not valid or expired.</value>
@@ -536,5 +536,32 @@ For more information, please contact '{2}'.</value>
   </data>
   <data name="WarningSemVer2PackagePushed" xml:space="preserve">
     <value>This package will only be available to download with SemVer 2.0.0 compatible NuGet clients, such as Visual Studio 2017 (version 15.3) and above or NuGet client 4.3 and above. For more information, see https://go.microsoft.com/fwlink/?linkid=852248.</value>
+  </data>
+  <data name="ReservedNamespace_InvalidCharactersInNamespace" xml:space="preserve">
+    <value>The namespace '{0}' contains invalid characters. Examples of valid namespaces include 'MyNamespace' and 'MyNamespace.'.</value>
+  </data>
+  <data name="ReservedNamespace_InvalidNamespace" xml:space="preserve">
+    <value>Invalid namespace specified</value>
+  </data>
+  <data name="ReservedNamespace_InvalidUsername" xml:space="preserve">
+    <value>Invalid or null username specified.</value>
+  </data>
+  <data name="ReservedNamespace_NamespaceExceedsLength" xml:space="preserve">
+    <value>Namespace must not exceed {0} characters.</value>
+  </data>
+  <data name="ReservedNamespace_NamespaceNotAvailable" xml:space="preserve">
+    <value>The specified namespace is already reserved or is a more liberal namespace.</value>
+  </data>
+  <data name="ReservedNamespace_NamespaceNotFound" xml:space="preserve">
+    <value>Namespace '{0}' not found.</value>
+  </data>
+  <data name="ReservedNamespace_UserNotAnOwner" xml:space="preserve">
+    <value>User '{0}' is not an owner of the specified namespace</value>
+  </data>
+  <data name="ReservedNamespace_UserNotFound" xml:space="preserve">
+    <value>User not found with username '{0}'</value>
+  </data>
+  <data name="ReservedNamespace_ReservedIndicatorTooltip" xml:space="preserve">
+    <value>The ID prefix of this package has been reserved for one of the owner of this package by NuGet.org.</value>
   </data>
 </root>

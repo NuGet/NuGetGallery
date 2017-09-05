@@ -12,6 +12,14 @@
             <div class="package-header">
                 <a class="package-title" href="@Url.Package(Model.Id, Model.UseVersion ? Model.Version : null)">@Html.BreakWord(Model.Id)</a>
 
+                @if (Model.IsVerified.HasValue && Model.IsVerified.Value)
+                {
+                    <img class="reserved-indicator" 
+                         src="~/Content/gallery/img/reserved-indicator.svg" 
+                         @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-20x20.png"))
+                         title="@Strings.ReservedNamespace_ReservedIndicatorTooltip"/>
+                }
+
                 <span class="package-by">
                     by:
                     @foreach (var owner in Model.Owners)

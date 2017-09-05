@@ -19,9 +19,6 @@ namespace NuGetGallery.Configuration
         [DefaultValue("")]
         public string RedesignBanner { get; set; }
 
-        [DefaultValue(false)]
-        public bool CookieComplianceEnabled { get; set; }
-
         /// <summary>
         /// Gets a setting indicating if SSL is required for all operations once logged in.
         /// </summary>
@@ -42,10 +39,27 @@ namespace NuGetGallery.Configuration
         [TypeConverter(typeof(StringArrayConverter))]
         public string[] ForceSslExclusion { get; set; }
 
-        /// <summary>
-        /// Gets the connection string to use when connecting to azure storage
-        /// </summary>
-        public string AzureStorageConnectionString { get; set; }
+
+        [DisplayName("AzureStorage.Auditing.ConnectionString")]
+        public string AzureStorage_Auditing_ConnectionString { get; set; }
+
+        [DisplayName("AzureStorage.Content.ConnectionString")]
+        public string AzureStorage_Content_ConnectionString { get; set; }
+
+        [DisplayName("AzureStorage.Errors.ConnectionString")]
+        public string AzureStorage_Errors_ConnectionString { get; set; }
+
+        [DisplayName("AzureStorage.NuGetExe.ConnectionString")]
+        public string AzureStorage_NuGetExe_ConnectionString { get; set; }
+
+        [DisplayName("AzureStorage.Packages.ConnectionString")]
+        public string AzureStorage_Packages_ConnectionString { get; set; }
+
+        [DisplayName("AzureStorage.Statistics.ConnectionString")]
+        public string AzureStorage_Statistics_ConnectionString { get; set; }
+
+        [DisplayName("AzureStorage.Uploads.ConnectionString")]
+        public string AzureStorage_Uploads_ConnectionString { get; set; }
 
         /// <summary>
         /// Gets a setting if Read Access Geo Redundant is enabled in azure storage
