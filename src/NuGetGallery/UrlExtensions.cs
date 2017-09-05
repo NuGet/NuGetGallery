@@ -23,17 +23,6 @@ namespace NuGetGallery
             return url.RequestContext.HttpContext.Request.RawUrl;
         }
 
-        public static string Absolute(this UrlHelper url, string path)
-        {
-            UriBuilder builder = GetCanonicalUrl(url);
-            if (path.StartsWith("~/", StringComparison.OrdinalIgnoreCase))
-            {
-                path = VirtualPathUtility.ToAbsolute(path, url.RequestContext.HttpContext.Request.ApplicationPath);
-            }
-            builder.Path = path;
-            return builder.Uri.AbsoluteUri;
-        }
-
         private static string GetProtocol(UrlHelper url)
         {
             return url.RequestContext.HttpContext.Request.IsSecureConnection ? "https" : "http";
@@ -684,18 +673,7 @@ namespace NuGetGallery
                 protocol: GetProtocol(url),
                 hostName: GetConfiguredSiteHostName(url));
         }
-
-        private static UriBuilder GetCanonicalUrl(UrlHelper url)
-        {
-            UriBuilder builder = new UriBuilder(url.RequestContext.HttpContext.Request.Url);
-            builder.Query = String.Empty;
-            if (builder.Host.StartsWith("www.", StringComparison.OrdinalIgnoreCase))
-            {
-                builder.Host = builder.Host.Substring(4);
-            }
-            return builder;
-        }
-
+        
         internal static string EnsureTrailingSlash(string url)
         {
             if (url != null && !url.EndsWith("/", StringComparison.OrdinalIgnoreCase))
