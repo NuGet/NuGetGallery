@@ -214,16 +214,7 @@ namespace NuGetGallery.Configuration
         private string GetHttpSiteRoot()
         {
             var request = GetCurrentRequest();
-            string siteRoot;
-
-            if (request.IsLocal)
-            {
-                siteRoot = request.Url.GetLeftPart(UriPartial.Authority) + '/';
-            }
-            else
-            {
-                siteRoot = Current.SiteRoot;
-            }
+            var siteRoot = Current.SiteRoot;
 
             if (!siteRoot.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
                 && !siteRoot.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
