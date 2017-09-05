@@ -29,6 +29,11 @@ namespace NuGetGallery
             builder.Path = path;
             return builder.Uri.AbsoluteUri;
         }
+        
+        private static string GetProtocol(UrlHelper url)
+        {
+            return url.RequestContext.HttpContext.Request.IsSecureConnection ? "https" : "http";
+        }
 
         public static string Home(this UrlHelper url)
         {
@@ -137,7 +142,7 @@ namespace NuGetGallery
 
         public static string PackageGallery(this UrlHelper url, string id, string version)
         {
-            string protocol = url.RequestContext.HttpContext.Request.IsSecureConnection ? "https" : "http";
+            var protocol = GetProtocol(url);
             string result = url.RouteUrl(RouteName.DisplayPackage, new { Id = id, Version = version }, protocol: protocol);
 
             // Ensure trailing slashes for versionless package URLs, as a fix for package filenames that look like known file extensions
@@ -146,7 +151,7 @@ namespace NuGetGallery
 
         public static string PackageDefaultIcon(this UrlHelper url)
         {
-            string protocol = url.RequestContext.HttpContext.Request.IsSecureConnection ? "https" : "http";
+            var protocol = GetProtocol(url);
             string result = url.RouteUrl(RouteName.Home, null, protocol: protocol);
             result = result.TrimEnd('/') + VirtualPathUtility.ToAbsolute("~/Content/Images/packageDefaultIcon-50x50.png", url.RequestContext.HttpContext.Request.ApplicationPath);
             return result;
@@ -155,7 +160,7 @@ namespace NuGetGallery
         public static string PackageDownload(this UrlHelper url, int feedVersion, string id, string version)
         {
             string routeName = "v" + feedVersion + RouteName.DownloadPackage;
-            string protocol = url.RequestContext.HttpContext.Request.IsSecureConnection ? "https" : "http";
+            var protocol = GetProtocol(url);
             string result = url.RouteUrl(routeName, new { Id = id, Version = version }, protocol: protocol);
 
             // Ensure trailing slashes for versionless package URLs, as a fix for package filenames that look like known file extensions
@@ -165,7 +170,7 @@ namespace NuGetGallery
         public static string ExplorerDeepLink(this UrlHelper url, int feedVersion, string id, string version)
         {
             string routeName = "v" + feedVersion + RouteName.DownloadPackage;
-            string protocol = url.RequestContext.HttpContext.Request.IsSecureConnection ? "https" : "http";
+            var protocol = GetProtocol(url);
             string urlResult = url.RouteUrl(routeName, new { Id = id }, protocol: protocol);
 
             urlResult = EnsureTrailingSlash(urlResult);
