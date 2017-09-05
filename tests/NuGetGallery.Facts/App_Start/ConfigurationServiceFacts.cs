@@ -40,11 +40,6 @@ namespace NuGetGallery.App_Start
 
                     return string.Empty;
                 }
-
-                protected override HttpRequestBase GetCurrentRequest()
-                {
-                    return StubRequest.Object;
-                }
             }
 
             [Fact]

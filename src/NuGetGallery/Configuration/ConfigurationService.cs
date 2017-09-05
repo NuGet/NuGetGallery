@@ -147,12 +147,6 @@ namespace NuGetGallery.Configuration
             return value;
         }
 
-        protected virtual HttpRequestBase GetCurrentRequest()
-        {
-            return new HttpRequestWrapper(HttpContext.Current.Request);
-        }
-
-
         private ISecretInjector InitSecretInjector()
         {
             return _secretReaderFactory.CreateSecretInjector(_secretReaderFactory.CreateSecretReader(new ConfigurationService(new EmptySecretReaderFactory())));
@@ -213,7 +207,6 @@ namespace NuGetGallery.Configuration
       
         private string GetHttpSiteRoot()
         {
-            var request = GetCurrentRequest();
             var siteRoot = Current.SiteRoot;
 
             if (!siteRoot.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
