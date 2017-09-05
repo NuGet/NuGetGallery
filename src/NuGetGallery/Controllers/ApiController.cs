@@ -151,14 +151,14 @@ namespace NuGetGallery
                 try
                 {
                     var package = PackageService.FindPackageByIdAndVersion(
-                        id, 
-                        version, 
-                        SemVerLevelKey.SemVer2, 
+                        id,
+                        version,
+                        SemVerLevelKey.SemVer2,
                         allowPrerelease: false);
 
                     if (package == null)
                     {
-                       return new HttpStatusCodeWithBodyResult(HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
+                        return new HttpStatusCodeWithBodyResult(HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
                     }
                     version = package.NormalizedVersion;
 
@@ -174,7 +174,7 @@ namespace NuGetGallery
                 {
                     QuietLog.LogHandledException(e);
 
-			        // Database was unavailable and we don't have a version, return a 503
+                    // Database was unavailable and we don't have a version, return a 503
                     return new HttpStatusCodeWithBodyResult(HttpStatusCode.ServiceUnavailable, Strings.DatabaseUnavailable_TrySpecificVersion);
                 }
             }
@@ -261,7 +261,7 @@ namespace NuGetGallery
             {
                 await AuthenticationService.RemoveCredential(user, credential);
             }
-            
+
             TelemetryService.TrackVerifyPackageKeyEvent(id, version, user, User.Identity, result?.StatusCode ?? 200);
 
             return (ActionResult)result ?? new EmptyResult();
@@ -285,7 +285,7 @@ namespace NuGetGallery
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
             }
-            
+
             if (CredentialTypes.IsPackageVerificationApiKey(credential.Type))
             {
                 // Secure path: verify that verification key matches package scope.
@@ -370,7 +370,7 @@ namespace NuGetGallery
                             {
                                 message = ex.Message;
                             }
-                            
+
                             return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, message);
                         }
 
@@ -399,7 +399,7 @@ namespace NuGetGallery
                         {
                             // Check if API key allows pushing a new package id
                             if (!ApiKeyScopeAllows(
-                                subject: nuspec.GetId(), 
+                                subject: nuspec.GetId(),
                                 requestedActions: NuGetScopes.PackagePush))
                             {
                                 // User cannot push a new package ID as the API key scope does not allow it
@@ -414,8 +414,8 @@ namespace NuGetGallery
                                 // Audit that a non-owner tried to push the package
                                 await AuditingService.SaveAuditRecordAsync(
                                     new FailedAuthenticatedOperationAuditRecord(
-                                        user.Username, 
-                                        AuditedAuthenticatedOperationAction.PackagePushAttemptByNonOwner, 
+                                        user.Username,
+                                        AuditedAuthenticatedOperationAction.PackagePushAttemptByNonOwner,
                                         attemptedPackage: new AuditedPackageIdentifier(
                                             nuspec.GetId(), nuspec.GetVersion().ToNormalizedStringSafe())));
 
@@ -427,7 +427,7 @@ namespace NuGetGallery
 
                             // Check if API key allows pushing the current package id
                             if (!ApiKeyScopeAllows(
-                                packageRegistration.Id, 
+                                packageRegistration.Id,
                                 NuGetScopes.PackagePushVersion, NuGetScopes.PackagePush))
                             {
                                 // User cannot push a package as the API key scope does not allow it
@@ -460,7 +460,7 @@ namespace NuGetGallery
                         };
 
                         var package = await PackageService.CreatePackageAsync(
-                            packageToPush, 
+                            packageToPush,
                             packageStreamMetadata,
                             user,
                             commitChanges: false);
@@ -495,16 +495,16 @@ namespace NuGetGallery
                         }
 
                         IndexingService.UpdatePackage(package);
-                        
+
                         // Write an audit record
                         await AuditingService.SaveAuditRecordAsync(
                             new PackageAuditRecord(package, AuditedPackageAction.Create, PackageCreatedVia.Api));
 
                         // Notify user of push
                         MessageService.SendPackageAddedNotice(package,
-                            Url.Action("DisplayPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.NormalizedVersion }, protocol: Request.Url.Scheme),
-                            Url.Action("ReportMyPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.NormalizedVersion }, protocol: Request.Url.Scheme),
-                            Url.Action("Account", "Users", routeValues: null, protocol: Request.Url.Scheme));
+                            Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, Request.Url.Scheme),
+                            Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, Request.Url.Scheme),
+                            Url.AccountSettings(Request.Url.Scheme));
 
                         TelemetryService.TrackPackagePushEvent(package, user, User.Identity);
 
@@ -570,7 +570,7 @@ namespace NuGetGallery
 
             // Check if API key allows listing/unlisting the current package id
             if (!ApiKeyScopeAllows(
-                subject: id, 
+                subject: id,
                 requestedActions: NuGetScopes.PackageUnlist))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
@@ -602,7 +602,7 @@ namespace NuGetGallery
 
             // Check if API key allows listing/unlisting the current package id
             if (!ApiKeyScopeAllows(
-                subject: id, 
+                subject: id,
                 requestedActions: NuGetScopes.PackageUnlist))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
@@ -657,7 +657,7 @@ namespace NuGetGallery
         [HttpGet]
         [ActionName("PackageIDs")]
         public virtual async Task<ActionResult> GetPackageIds(
-            string partialId, 
+            string partialId,
             bool? includePrerelease,
             string semVerLevel = null)
         {
@@ -672,7 +672,7 @@ namespace NuGetGallery
         [HttpGet]
         [ActionName("PackageVersions")]
         public virtual async Task<ActionResult> GetPackageVersions(
-            string id, 
+            string id,
             bool? includePrerelease,
             string semVerLevel = null)
         {
@@ -701,7 +701,7 @@ namespace NuGetGallery
 
                     item.Add("PackageId", row.PackageId);
                     item.Add("PackageVersion", row.PackageVersion);
-                    item.Add("Gallery", Url.PackageGallery(row.PackageId, row.PackageVersion));
+                    item.Add("Gallery", Url.Package(row.PackageId, row.PackageVersion));
                     item.Add("PackageTitle", row.PackageTitle ?? row.PackageId);
                     item.Add("PackageDescription", row.PackageDescription);
                     item.Add("PackageIconUrl", row.PackageIconUrl ?? Url.PackageDefaultIcon());
