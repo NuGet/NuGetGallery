@@ -20,26 +20,26 @@ function bindReadMeData(model) {
         clearReadMeError();
     });
 
-    $('#readme-select-feedback').on('click', function () {
-        $('#readme-select-file').click();
+    $('#ReadMeFileText').on('click', function () {
+        $('#ReadMeFileInput').click();
     });
 
-    $('#readme-select-file').on('change', function () {
+    $('#ReadMeFileInput').on('change', function () {
         clearReadMeError();
         //displayReadMeEditMarkdown();
-        var fileName = window.nuget.getFileName($('#readme-select-file').val());
+        var fileName = window.nuget.getFileName($('#ReadMeFileInput').val());
 
         if (fileName.length > 0) {
-            $('#readme-select-feedback').attr('value', fileName);
+            $('#ReadMeFileText').attr('value', fileName);
             // todo: prepare upload data, cancel existing upload (see async-file-upload example)
         }
         else {
-            $('#readme-select-feedback').attr('placeholder', 'Browse or Drop files to select a ReadMe.md file...');
+            $('#ReadMeFileText').attr('placeholder', 'Browse or Drop files to select a ReadMe.md file...');
             //displayReadMeError("Please select a file.")
         }
     });
 
-    $("#readme-written").on("change", function () {
+    $("#ReadMeTextInput").on("change", function () {
         clearReadMeError();
     })
 
@@ -47,8 +47,8 @@ function bindReadMeData(model) {
         previewReadMeAsync();
     });
 
-    if ($("#readme-written").val() !== "") {
-        $('#readme-tabs a[href="#readme-write"]').tab('show');
+    if ($("#ReadMeTextInput").val() !== "") {
+        $('#readme-tabs a[href="#readme-written"]').tab('show');
         //$("#readme-write-btn").button('toggle');
         previewReadMeAsync();
     }
@@ -59,27 +59,33 @@ function bindReadMeData(model) {
 }
 
 function previewReadMeAsync(callback, error) {
+    // Request source type is generated off the ReadMe tab ids.
     var readMeType = $(".readme-tabs div.active")[0].id.substring(7);
-    var readMeUrl = $("#ReadMeUrlInput").val();
-    var readMeWritten = $("#readme-written").val();
-    var readMeFileInput = $("#readme-select-file");
-    var readMeFileName = readMeFileInput && readMeFileInput[0] ? window.nuget.getFileName(readMeFileInput.val()) : null;
-    var readMeFile = readMeFileName ? readMeFileInput[0].files[0] : null;
-        
-    if (readMeType == "write") { readMeType = "Written" } // hack to remove
 
-    // Review: FormData is required for ajax file upload support?
-    var readmeInputModel = {
-        "ReadMeSourceType": readMeType,
-        "SourceUrl": readMeUrl,
-        "SourceText": readMeWritten,
-        "SourceFile": readMeFile
-    };
+    var formData = new FormData();
+    formData.append("ReadMeSourceType", readMeType);
+
+    if (readMeType == "written") {
+        var readMeWritten = $("#ReadMeTextInput").val();
+        formData.append("SourceText", readMeWritten);
+    }
+    else if (readMeType == "url") {
+        var readMeUrl = $("#ReadMeUrlInput").val();
+        formData.append("SourceUrl", readMeUrl);
+    }
+    else if (readMeType == "file") {
+        var readMeFileInput = $("#ReadMeFileInput");
+        var readMeFileName = readMeFileInput && readMeFileInput[0] ? window.nuget.getFileName(readMeFileInput.val()) : null;
+        var readMeFile = readMeFileName ? readMeFileInput[0].files[0] : null;
+        formData.append("SourceFile", readMeFile);
+    }
 
     $.ajax({
         url: "/packages/manage/preview-readme",
         type: "POST",
-        data: window.nuget.addAjaxAntiForgeryToken(readmeInputModel),
+        contentType: false,
+        processData: false,
+        data: window.nuget.addAjaxAntiForgeryToken(formData),
         success: function (model, resultCodeString, fullResponse) {
             displayReadMePreview(model);
         },

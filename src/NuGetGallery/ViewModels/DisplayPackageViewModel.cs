@@ -70,7 +70,8 @@ namespace NuGetGallery
         public DependencySetsViewModel Dependencies { get; set; }
         public IEnumerable<DisplayPackageViewModel> PackageVersions { get; set; }
         public string Copyright { get; set; }
-        public string ReadMeHtml { get; set; } 
+        public string ReadMeHtml { get; set; }
+        public string ReadMeHtmlClamped { get; set; }
         public bool HasPendingMetadata { get; private set; }
         public bool IsLastEditFailed { get; private set; }
         public DateTime? LastEdited { get; set; }

@@ -14,33 +14,20 @@ $(function () {
             }, 1000);
         });
     }    
-
-    var readmeClamped = $("#readme-clamped");
-    if (readmeClamped[0])
+    
+    var readmeContainer = $("#readme-container");
+    if (readmeContainer[0])
     {
-        $clamp(document.getElementById("readme-clamped"), { clamp: 10 });
+        window.nuget.configureExpanderHeading(
+            "readme-container");   
 
-        $("#show-readme-original").click(function () {
-            readmeClamped.collapse("toggle");
-        });
-
-        readmeClamped.on('hide.bs.collapse', function (e) {
-            e.stopPropagation();
-        });
-        readmeClamped.on('show.bs.collapse', function (e) {
-            e.stopPropagation();
-        });
+        window.nuget.configureExpander(
+            "readme-full",
+            "CalculatorAddition",
+            "Show less",
+            "CalculatorSubtract",
+            "Show more");
     }
-
-    window.nuget.configureExpander(
-        "readme-original",
-        "CalculatorAddition",
-        "Show less",
-        "CalculatorSubtract",
-        "Show more"); 
-
-    window.nuget.configureExpanderHeading(
-        "readme-container");   
 
     window.nuget.configureExpanderHeading("dependency-groups");
     window.nuget.configureExpanderHeading("version-history");

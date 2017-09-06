@@ -253,8 +253,16 @@
 
     // Shared function for adding an anti-forgery token defined by ViewHelpers.AjaxAntiForgeryToken to an ajax request
     nuget.addAjaxAntiForgeryToken = function (data) {
+        var $tokenKey = "__RequestVerificationToken";
         var $field = $("#AntiForgeryForm input[name=__RequestVerificationToken]");
-        data["__RequestVerificationToken"] = $field.val();
+        if (data instanceof FormData)
+        {
+            data.append($tokenKey, $field.val())
+        }
+        else
+        {
+            data["__RequestVerificationToken"] = $field.val();
+        }
         return data;
     };
 

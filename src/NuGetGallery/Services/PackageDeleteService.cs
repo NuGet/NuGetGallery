@@ -204,10 +204,18 @@ namespace NuGetGallery
                         await _packageFileService.StorePackageFileInBackupLocationAsync(package, packageStream);
                     }
                 }
-                await _packageFileService.DeletePackageFileAsync(package.PackageRegistration.Id,
-                        string.IsNullOrEmpty(package.NormalizedVersion)
+                var id = package.PackageRegistration.Id;
+                var version = string.IsNullOrEmpty(package.NormalizedVersion)
                             ? NuGetVersion.Parse(package.Version).ToNormalizedString()
-                            : package.NormalizedVersion);
+                            : package.NormalizedVersion;
+
+                await _packageFileService.DeletePackageFileAsync(id, version);
+
+                if (package.HasReadMe)
+                {
+                    await _packageFileService.DeleteReadMeFileAsync(id, version, isPending: false);
+                    // todo: what about pending readmes
+                }
             }
         }
 

@@ -51,30 +51,18 @@ namespace NuGetGallery.Helpers
             return false;
         }
         
-        /// <summary>
-        /// Converts readme.md data from a stream into HTML.
-        /// </summary>
-        /// <param name="readMeMarkdownStream">Stream containing readme.md data.</param>
-        /// <returns>Stream containing HTML version of the readme.md data.</returns>
-        public static async Task<Stream> GetReadMeHtmlStream(Stream readMeMarkdownStream)
+        public static string GetReadMeHtml(string markdown)
         {
-            var markdown = await readMeMarkdownStream.ReadToEndAsync();
             var encodedMarkdown = HttpUtility.HtmlEncode(markdown);
-            var html = CommonMarkConverter.Convert(encodedMarkdown);
-
-            return new MemoryStream(Encoding.UTF8.GetBytes(html));
+            return CommonMarkConverter.Convert(encodedMarkdown);
         }
-
-        /// <summary>
-        /// Converts readme.md source data from a request into HTML.
-        /// </summary>
-        /// <param name="readMeRequest">Request containing readme.md source data.</param>
-        /// <returns>Stream containing HTML version of the readme.md data.</returns>
-        public static async Task<Stream> GetReadMeHtmlStream(ReadMeRequest readMeRequest)
+        
+        public static async Task<string> GetReadMeHtmlAsync(ReadMeRequest readMeRequest)
         {
-            var markdownStream = await GetReadMeMarkdownStream(readMeRequest);
-
-            return await GetReadMeHtmlStream(markdownStream);
+            using (var markdownStream = await GetReadMeMarkdownStream(readMeRequest))
+            {
+                return GetReadMeHtml(await markdownStream.ReadToEndAsync());
+            }
         }
 
         /// <summary>

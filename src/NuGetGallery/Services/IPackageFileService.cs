@@ -30,7 +30,12 @@ namespace NuGetGallery
         Task SavePackageFileAsync(Package package, Stream packageFile);
 
         /// <summary>
-        /// Saves the contents of the ReadMe.md file to file storage.
+        /// Deletes the package readme.md file from storage.
+        /// </summary>
+        Task DeleteReadMeFileAsync(string id, string version, bool isPending = false);
+
+        /// <summary>
+        /// Saves the package readme.md file to storage.
         /// </summary>
         /// <param name="package">The package that this file belongs to</param>
         /// <param name="readMe">The stream representing the readme.md file</param>
@@ -49,6 +54,6 @@ namespace NuGetGallery
         /// <summary>
         /// Downloads the readme.md from the file storage and reads it into a Stream asynchronously.
         /// </summary>
-        Task<Stream> DownloadReadMeFileAsync(Package package, bool pending = false);
+        Task<Stream> DownloadReadMeFileAsync(Package package, bool isPending = false);
     }
 }
