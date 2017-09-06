@@ -17,8 +17,6 @@ namespace NuGetGallery
             _configuration = configuration;
         }
 
-        private const string ForceSSLCookieName = "ForceSSL";
-
         public void SetAuthCookie(
             string userName,
             bool createPersistentCookie,
@@ -48,42 +46,11 @@ namespace NuGetGallery
                 Secure = _configuration.RequireSSL
             };
             context.Response.Cookies.Add(formsCookie);
-
-            if (_configuration.RequireSSL)
-            {
-                // Drop a second cookie indicating that the user is logged in via SSL (no secret data, just tells us to redirect them to SSL)
-                HttpCookie responseCookie = new HttpCookie(ForceSSLCookieName, "true");
-                responseCookie.HttpOnly = true;
-                context.Response.Cookies.Add(responseCookie);
-            }
         }
 
         public void SignOut()
         {
             FormsAuthentication.SignOut();
-
-            // Delete the "LoggedIn" cookie
-            HttpContext context = HttpContext.Current;
-            var cookie = context.Request.Cookies[ForceSSLCookieName];
-            if (cookie != null)
-            {
-                cookie.Expires = DateTime.UtcNow.AddDays(-1d);
-                context.Response.Cookies.Add(cookie);
-            }
-        }
-
-
-        public bool ShouldForceSSL(HttpContextBase context)
-        {
-            var cookie = context.Request.Cookies[ForceSSLCookieName];
-            
-            bool value;
-            if (cookie != null && Boolean.TryParse(cookie.Value, out value))
-            {
-                return value;
-            }
-            
-            return false;
         }
     }
 }
