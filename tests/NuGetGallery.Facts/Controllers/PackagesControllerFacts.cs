@@ -1923,7 +1923,8 @@ namespace NuGetGallery
                 var result = controller.UploadPackageProgress();
 
                 // Assert
-                Assert.IsType<JsonResult>(result);
+                var jsonResult = Assert.IsType<JsonResult>(result);
+                Assert.Equal(JsonRequestBehavior.AllowGet, jsonResult.JsonRequestBehavior);
             }
 
             [Fact]

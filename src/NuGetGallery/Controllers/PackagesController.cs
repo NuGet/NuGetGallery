@@ -102,7 +102,7 @@ namespace NuGetGallery
             AsyncFileUploadProgress progress = _cacheService.GetProgress(username);
             if (progress == null)
             {
-                return Json(404, null);
+                return Json(404, null, JsonRequestBehavior.AllowGet);
             }
 
             return Json(progress, JsonRequestBehavior.AllowGet);
@@ -1001,12 +1001,18 @@ namespace NuGetGallery
             var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
-                return Json(404, new string[] { string.Format(Strings.PackageWithIdAndVersionNotFound, id, version) });
+                return Json(
+                    404,
+                    new string[]
+                    {
+                        string.Format(Strings.PackageWithIdAndVersionNotFound, id, version)
+                    },
+                    JsonRequestBehavior.AllowGet);
             }
 
             if (!package.IsOwner(User))
             {
-                return Json(403, new string[] { Strings.Unauthorized });
+                return Json(403, new string[] { Strings.Unauthorized }, JsonRequestBehavior.AllowGet);
             }
 
             var packageRegistration = _packageService.FindPackageRegistrationById(id);
