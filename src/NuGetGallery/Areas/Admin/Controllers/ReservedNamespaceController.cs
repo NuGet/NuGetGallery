@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NuGetGallery.Areas.Admin.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,9 +37,13 @@ namespace NuGetGallery.Areas.Admin.Controllers
             // TODO: validate query
             var prefixQueries = GetPrefixesFromQuery(query);
             var foundPrefixes = ReservedNamespaceService.FindReservedNamespacesForPrefixList(prefixQueries.ToList());
-            var notFoundPrefixes = prefixQueries.Except(foundPrefixes.Select(p => p.Value));
+            var notFoundPrefixQueries = prefixQueries.Except(foundPrefixes.Select(p => p.Value));
+            var resultModel = foundPrefixes.Select(fp => new ReservedNamespaceViewModel(fp, isExisting: true));
+            var notFoundPrefixes = notFoundPrefixQueries.Select(q => new ReservedNamespace(q, isSharedNamespace: false, isPrefix: true));
+            resultModel = resultModel.Concat(notFoundPrefixes.Select(nfp => new ReservedNamespaceViewModel(nfp, isExisting: false)).ToList());
             var results = new
             {
+                Prefixes = resultModel,
                 FoundPrefixes = foundPrefixes.Select(
                     p => new ReservedNamespace(p.Value, p.IsSharedNamespace, p.IsPrefix)),
                 NotFoundPrefixes = notFoundPrefixes.Select(

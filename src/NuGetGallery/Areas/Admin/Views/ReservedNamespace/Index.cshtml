@@ -16,55 +16,42 @@
             </div>
         </form><br />
 
-        <div data-bind="visible: prefixSearchResults().length > 0">
+        <div data-bind="visible: allPrefixResults().length > 0">
             @using (Html.BeginForm())
             {
                 <div>
-                    <h3>Existing Prefixes</h3>
-                    <div id="prefixResult" data-bind="foreach: prefixSearchResults">
+                    <div id="prefixResult" data-bind="foreach: allPrefixResults">
                         <div>
-                            <span>Namespace: </span>
-                            <span data-bind="text: $data.Value" />
+                            <span style="font-weight: bold">Namespace: </span>
+                            <span data-bind="text: $data.prefix.Value" />
                         </div>
                         <div>
-                            <span>IsSharedNamespace: </span>
-                            <input type="checkbox" data-bind="checked: $data.IsSharedNamespace" />
+                            <label>
+                                <input type="checkbox" data-bind="checked: $data.prefix.IsSharedNamespace" />IsSharedNamespace
+                            </label>
                         </div>
                         <div>
-                            <span>IsPrefix: </span>
-                            <input type="checkbox" data-bind="checked: $data.IsPrefix" />
+                            <label>
+                                <input type="checkbox" data-bind="checked: $data.prefix.IsPrefix" value="IsPrefix"/>IsPrefix
+                            </label>
                         </div>
                         <div>
-                            <span>Pattern: </span>
-                            <span data-bind="text: $parent.generatePattern($data.Value, $data.IsPrefix)" />
+                            <span style="font-weight: bold">Matching Pattern: </span>
+                            <span data-bind="text: $parent.generatePattern($data.prefix.Value, $data.prefix.IsPrefix)" />
                         </div>
-                        <input type="submit" value="Deallocate Namespace" title="Delete this namespace" data-bind="click: $parent.managePrefix.bind(this, $data, true)" />
+                        <div>
+                            Owners:
+                            <div id="prefixOwners" data-bind="foreach: $data.owners">
+                                <div>
+                                    <span data-bind="text: $data" />
+                                    <input type="button" value="Remove" title="Remove this owner" data-bind="click:$parent.removeOwner.bind(this, $data, null)" />
+                                </div>
+                            </div>
+                        </div>
+                        <input style="margin-top: 5px" type="submit" value="Deallocate Namespace" title="Delete this namespace" data-bind="click: $parent.managePrefix.bind(this, $data.prefix, true)" />
                     </div>
                 </div>
             }
-        </div>
-        <div data-bind="visible: prefixSearchNotFoundResults().length > 0">
-            <h3>Non-matching Prefixes</h3>
-            <strong>The following prefixes were not found:</strong><br />
-            <div id="prefixNotFoundResult" data-bind="foreach: prefixSearchNotFoundResults">
-                <div>
-                    <span>Prefix: </span>
-                    <span data-bind="text: $data.Value" />
-                </div>
-                <div>
-                    <span>IsSharedNamespace: </span>
-                    <input type="checkbox" data-bind="checked: $data.IsSharedNamespace" />
-                </div>
-                <div>
-                    <span>IsPrefix: </span>
-                    <input type="checkbox" data-bind="checked: $data.IsPrefix" />
-                </div>
-                <div>
-                    <span>Pattern: </span>
-                    <span data-bind="text: $parent.generatePattern($data.Value, $data.IsPrefix)" />
-                </div>
-                <input type="submit" value="Reserve Prefix" title="Reserve this namespace" data-bind="click: $parent.managePrefix.bind(this, $data, false)" />
-            </div>
         </div>
     </article>
 
@@ -80,9 +67,7 @@
                 this.message = ko.observable('');
                 this.prefixSearchQuery = ko.observable('');
 
-                this.prefixSearchResults = ko.observableArray([]);
-                this.prefixSearchNotFoundResults = ko.observableArray([]);
-
+                this.allPrefixResults = ko.observableArray([]);
                 this.prefixSearch = function () {
                     $self.message("");
                     $.ajax({
@@ -90,11 +75,9 @@
                         cache: false,
                         dataType: 'json',
                         success: function (data) {
-                            $self.prefixSearchResults.removeAll();
-                            $self.prefixSearchNotFoundResults.removeAll();
+                            $self.allPrefixResults.removeAll();
 
-                            $self.prefixSearchResults(data.FoundPrefixes);
-                            $self.prefixSearchNotFoundResults(data.NotFoundPrefixes);
+                            $self.allPrefixResults(data.Prefixes);
                         }
                     })
                     .error(function(jqXhr, textStatus, errorThrown) {
@@ -118,6 +101,30 @@
                         contentType: 'application/json; charset=utf-8',
                         success: function (data) {
                             console.log("Added prefix");
+                        }
+                    })
+                    .error(function (jqXhr, textStatus, errorThrown) {
+                        alert("Error: " + errorThrown);
+                    });
+                };
+
+                this.removeOwner = function (owner, prefix) {
+                    var obj = {
+                        prefix: prefix,
+                        owner: owner,
+                        action: "remove"
+                    };
+
+                    $self.message("");
+                    $.ajax({
+                        url: '@Url.Action("Update", "ReservedNamespace", new { area = "Admin" })',
+                        cache: false,
+                        dataType: 'json',
+                        type: 'POST',
+                        data: JSON.stringify(obj),
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (data) {
+                            console.log("Owner updated!");
                         }
                     })
                     .error(function (jqXhr, textStatus, errorThrown) {
