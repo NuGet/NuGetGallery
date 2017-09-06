@@ -209,12 +209,7 @@
 
             @if (Model.IsSemVer2)
             {
-                @ViewHelpers.AlertWarning(
-                    @<text>
-                        This package is only available for download with Visual Studio 2017 (version 15.3) and above or with NuGet client 4.3.0 and above.
-                        Reach out to support if you have more questions.
-                    </text>
-                )
+                @ViewHelpers.AlertIsSemVer2Package(Model.HasSemVer2Version, Model.HasSemVer2Dependency)
             }
 
             @if (!Model.Listed && !Model.Deleted)
