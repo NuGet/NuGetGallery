@@ -35,6 +35,7 @@ namespace NuGetGallery.ViewModels
         {
             var package = new Package
             {
+                Version = "1.0.0",
                 LicenseNames = "l1,l2, l3 ,l4  ,  l5 ",
             };
             var packageViewModel = new PackageViewModel(package);
@@ -46,6 +47,7 @@ namespace NuGetGallery.ViewModels
         {
             var package = new Package
             {
+                Version = "1.0.0",
                 HideLicenseReport = true,
                 LicenseNames = "l1",
                 LicenseReportUrl = "url"
@@ -60,6 +62,7 @@ namespace NuGetGallery.ViewModels
         {
             var package = new Package
             {
+                Version = "1.0.0",
                 HideLicenseReport = false,
                 LicenseReportUrl = "url"
             };
@@ -72,6 +75,7 @@ namespace NuGetGallery.ViewModels
         {
             var package = new Package
             {
+                Version = "1.0.0",
                 HideLicenseReport = false,
                 LicenseNames = "l1"
             };
@@ -84,6 +88,7 @@ namespace NuGetGallery.ViewModels
         {
             var package = new Package
             {
+                Version = "1.0.0",
                 HideLicenseReport = true,
                 LicenseUrl = "url"
             };

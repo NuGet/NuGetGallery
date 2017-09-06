@@ -399,8 +399,8 @@ namespace NuGetGallery
                             Id = "Foo",
                             Owners = new List<User>()
                         },
-                        Version = "2.0.0a",
-                        NormalizedVersion = "2.0.0a",
+                        Version = "2.0.0",
+                        NormalizedVersion = "2.0.0",
                         IsLatest = true,
                         Title = "A test package!"
                     });
@@ -414,7 +414,7 @@ namespace NuGetGallery
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal("Foo", model.Id);
-                Assert.Equal("2.0.0a", model.Version);
+                Assert.Equal("2.0.0", model.Version);
                 Assert.Equal("A test package!", model.Title);
                 Assert.True(model.LatestVersion);
             }

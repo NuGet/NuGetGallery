@@ -40,6 +40,7 @@ namespace NuGetGallery.ViewModels
         {
             var package = new Package
             {
+                Version = "1.0.0",
                 LicenseNames = "l1,l2, l3 ,l4  ,  l5 ",
             };
             var packageViewModel = new ListPackageItemViewModel(package);
@@ -51,6 +52,7 @@ namespace NuGetGallery.ViewModels
         {
             var package = new Package
             {
+                Version = "1.0.0",
                 HideLicenseReport = true,
                 LicenseNames = "l1",
                 LicenseReportUrl = "url"
@@ -65,6 +67,7 @@ namespace NuGetGallery.ViewModels
         {
             var package = new Package
             {
+                Version = "1.0.0",
                 HideLicenseReport = false,
                 LicenseReportUrl = "url"
             };
@@ -77,6 +80,7 @@ namespace NuGetGallery.ViewModels
         {
             var package = new Package
             {
+                Version = "1.0.0",
                 HideLicenseReport = false,
                 LicenseNames = "l1"
             };
@@ -89,6 +93,7 @@ namespace NuGetGallery.ViewModels
         {
             var package = new Package
             {
+                Version = "1.0.0",
                 HideLicenseReport = true,
                 LicenseUrl = "url"
             };
@@ -103,6 +108,7 @@ namespace NuGetGallery.ViewModels
             var description = "A Short Description";
             var package = new Package()
             {
+                Version = "1.0.0",
                 Description = description
             };
 
@@ -122,6 +128,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
 
             var package = new Package()
             {
+                Version = "1.0.0",
                 Description = description
             };
 
@@ -142,6 +149,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
 
             var package = new Package()
             {
+                Version = "1.0.0",
                 Description = description
             };
 
@@ -155,7 +163,10 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
         [Fact]
         public void EmptyTagsAreParsedEmpty()
         {
-            var package = new Package() { };
+            var package = new Package()
+            {
+                Version = "1.0.0"
+            };
 
             var listPackageItemViewModel = new ListPackageItemViewModel(package);
 
@@ -167,6 +178,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
         {
             var package = new Package()
             {
+                Version = "1.0.0",
                 Tags = "tag1 tag2 tag3"
             };
 
@@ -198,6 +210,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
 
             var package = new Package()
             {
+                Version = "1.0.0",
                 Authors = authors,
                 FlattenedAuthors = flattenedAuthors
             };
@@ -212,6 +225,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
         {
             var package = new Package()
             {
+                Version = "1.0.0",
                 IsLatest = true,
                 IsLatestStable = false
             };
@@ -237,6 +251,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
         {
             var package = new Package()
             {
+                Version = "1.0.0",
                 SemVerLevelKey = SemVerLevelKey.SemVer2,
                 IsLatestSemVer2 = true,
                 IsLatestStableSemVer2 = false
