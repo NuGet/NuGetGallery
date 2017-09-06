@@ -10,45 +10,45 @@ namespace NuGetGallery
     public interface IPackageFileService
     {
         /// <summary>
-        ///     Creates an ActionResult that allows a third-party client to download the nupkg for the package.
+        /// Creates an ActionResult that allows a third-party client to download the nupkg for the package.
         /// </summary>
         Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, Package package);
 
         /// <summary>
-        ///     Creates an ActionResult that allows a third-party client to download the nupkg for the package.
+        /// Creates an ActionResult that allows a third-party client to download the nupkg for the package.
         /// </summary>
         Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, string unsafeId, string unsafeVersion);
 
         /// <summary>
-        ///     Deletes the nupkg from the file storage.
+        /// Deletes the nupkg from the file storage.
         /// </summary>
         Task DeletePackageFileAsync(string id, string version);
 
         /// <summary>
-        ///     Saves the contents of the package represented by the stream into the file storage.
+        /// Saves the contents of the package represented by the stream into the file storage.
         /// </summary>
         Task SavePackageFileAsync(Package package, Stream packageFile);
 
         /// <summary>
-        /// Saves the contents of the ReadMe file to file storage.
+        /// Saves the contents of the ReadMe.md file to file storage.
         /// </summary>
         /// <param name="package">The package that this file belongs to</param>
-        /// <param name="readMe">The stream representing the ReadMe file</param>
+        /// <param name="readMe">The stream representing the readme.md file</param>
         Task SaveReadMeFileAsync(Package package, Stream readMe);
 
         /// <summary>
-        ///     Copies the contents of the package represented by the stream into the file storage backup location.
+        /// Copies the contents of the package represented by the stream into the file storage backup location.
         /// </summary>
         Task StorePackageFileInBackupLocationAsync(Package package, Stream packageFile);
 
         /// <summary>
-        ///     Downloads the package from the file storage and reads it into a Stream asynchronously.
+        /// Downloads the package from the file storage and reads it into a Stream asynchronously.
         /// </summary>
         Task<Stream> DownloadPackageFileAsync(Package packge);
 
         /// <summary>
-        ///     Downloads the README from the file storage and reads it into a Stream asynchronously.
+        /// Downloads the readme.md from the file storage and reads it into a Stream asynchronously.
         /// </summary>
-        Task<Stream> DownloadReadmeFileAsync(Package package, bool pending = false);
+        Task<Stream> DownloadReadMeFileAsync(Package package, bool pending = false);
     }
 }

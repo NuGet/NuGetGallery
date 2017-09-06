@@ -247,6 +247,10 @@
         };
     };
 
+    nuget.getFileName = function (fullPath) {
+        return fullPath.split(/(\\|\/)/g).pop();
+    };
+
     // Shared function for adding an anti-forgery token defined by ViewHelpers.AjaxAntiForgeryToken to an ajax request
     nuget.addAjaxAntiForgeryToken = function (data) {
         var $field = $("#AntiForgeryForm input[name=__RequestVerificationToken]");

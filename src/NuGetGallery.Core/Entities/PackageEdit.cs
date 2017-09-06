@@ -79,15 +79,20 @@ namespace NuGetGallery
             Package.ApplyEdit(this, hashAlgorithm, hash, packageFileSize);
         }
 
+        #region ReadMeState helpers
+
+        private const string ReadMeStateChanged = "changed";
+        private const string ReadMeStateDeleted = "deleted";
+
         private PackageEditReadMeState GetReadMeStateString()
         {
             var state = ReadMeStateInternal ?? string.Empty;
             
-            if (state.Equals("changed", StringComparison.InvariantCultureIgnoreCase))
+            if (state.Equals(ReadMeStateChanged, StringComparison.InvariantCultureIgnoreCase))
             {
                 return PackageEditReadMeState.Changed;
             }
-            else if (state.Equals("deleted", StringComparison.InvariantCultureIgnoreCase))
+            else if (state.Equals(ReadMeStateDeleted, StringComparison.InvariantCultureIgnoreCase))
             {
                 return PackageEditReadMeState.Deleted;
             }
@@ -102,10 +107,10 @@ namespace NuGetGallery
             switch (readMeState)
             {
                 case PackageEditReadMeState.Changed:
-                    ReadMeStateInternal = "changed";
+                    ReadMeStateInternal = ReadMeStateChanged;
                     break;
                 case PackageEditReadMeState.Deleted:
-                    ReadMeStateInternal = "deleted";
+                    ReadMeStateInternal = ReadMeStateDeleted;
                     break;
                 case PackageEditReadMeState.Unchanged:
                 default:
@@ -113,5 +118,7 @@ namespace NuGetGallery
                     break;
             }
         }
+        #endregion
+
     }
 }

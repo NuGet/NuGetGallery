@@ -14,23 +14,7 @@ function bindReadMeData(model) {
 
     $("#readme-collapser-container").removeClass("hidden");
 
-    window.nuget.configureExpander(
-        "readme-package-form",
-        "ChevronRight",
-        "Import ReadMe",
-        "ChevronDown",
-        "Import ReadMe");
-
-    $(".readme-file").hide();
-    $(".readme-write").hide();
-
-    $(".readme-btn-group").change(changeReadMeFormTab);
-
-    $("#repositoryurl-field").blur(function () {
-        if (!$("#ReadMeUrlInput").val()) {
-            $("#ReadMeUrlInput").val(fillReadMeUrl($("#repositoryurl-field").val()));
-        }
-    });
+    window.nuget.configureExpanderHeading("readme-package-form");
 
     $("#ReadMeUrlInput").on("change blur", function () {
         clearReadMeError();
@@ -42,18 +26,16 @@ function bindReadMeData(model) {
 
     $('#readme-select-file').on('change', function () {
         clearReadMeError();
-        displayReadMeEditMarkdown();
-        var fileName = $('#readme-select-file').val().split("\\").pop();
-        if (fileName.length > 0 && validateReadMeFileName(fileName)) {
-            $('#readme-select-feedback').attr('placeholder', fileName);
-            clearReadMeError();
-        } else if (fileName.length > 0) {
-            $('#readme-select-feedback').attr('placeholder', 'Browse to select a package file...');
-            displayReadMeError("Please enter a markdown file with one of the following extensions: '.md', '.mkdn', '.mkd', '.mdown', '.markdown', '.txt' or '.text'.");
+        //displayReadMeEditMarkdown();
+        var fileName = window.nuget.getFileName($('#readme-select-file').val());
+
+        if (fileName.length > 0) {
+            $('#readme-select-feedback').attr('value', fileName);
+            // todo: prepare upload data, cancel existing upload (see async-file-upload example)
         }
         else {
-            $('#readme-select-feedback').attr('placeholder', 'Browse to select a package file...');
-            displayReadMeError("Please select a file.")
+            $('#readme-select-feedback').attr('placeholder', 'Browse or Drop files to select a ReadMe.md file...');
+            //displayReadMeError("Please select a file.")
         }
     });
 
@@ -66,7 +48,8 @@ function bindReadMeData(model) {
     });
 
     if ($("#readme-written").val() !== "") {
-        $("#readme-write-btn").button('toggle');
+        $('#readme-tabs a[href="#readme-write"]').tab('show');
+        //$("#readme-write-btn").button('toggle');
         previewReadMeAsync();
     }
 
@@ -76,52 +59,27 @@ function bindReadMeData(model) {
 }
 
 function previewReadMeAsync(callback, error) {
-    // collect and validate readme data
-    var readMeType = $("input[name='ReadMe.ReadMeType']:checked").val();
+    var readMeType = $(".readme-tabs div.active")[0].id.substring(7);
     var readMeUrl = $("#ReadMeUrlInput").val();
     var readMeWritten = $("#readme-written").val();
     var readMeFileInput = $("#readme-select-file");
-    var readMeFileName = readMeFileInput && readMeFileInput[0] ? readMeFileInput.val().split("\\").pop() : null;
-    var readMeFile = readMeFileName && validateReadMeFileName(readMeFileName) ? readMeFileInput[0].files[0] : null;
+    var readMeFileName = readMeFileInput && readMeFileInput[0] ? window.nuget.getFileName(readMeFileInput.val()) : null;
+    var readMeFile = readMeFileName ? readMeFileInput[0].files[0] : null;
+        
+    if (readMeType == "write") { readMeType = "Written" } // hack to remove
 
-    if (readMeType === undefined) {
-        if (readMeUrl) {
-            readMeType = "Url";
-        }
-        else if (readMeWritten) {
-            readMeType = "Written";
-        }
-        else if (readMeFile) {
-            readMeType = "File";
-        }
-    }
-
-    // prepare form data with antiforgery token
-    var formData = new FormData();
-    var token = $('[name=__RequestVerificationToken]').val();
-    formData.append("__RequestVerificationToken", token);
-    formData.append("ReadMeType", readMeType);
-
-    if (readMeType === "Url" && readMeUrl) {
-        formData.append("ReadMeUrl", readMeUrl);
-    }
-    else if (readMeType === "Written" && readMeWritten) {
-        formData.append("ReadMeWritten", readMeWritten);
-    }
-    else if (readMeType === "File" && readMeFile) {
-        formData.append("ReadMeFile", readMeFile);
-    }
-    else {
-        console.warn("Skipping preview: Missing or invalid README data.")
-        return;
-    }
+    // Review: FormData is required for ajax file upload support?
+    var readmeInputModel = {
+        "ReadMeSourceType": readMeType,
+        "SourceUrl": readMeUrl,
+        "SourceText": readMeWritten,
+        "SourceFile": readMeFile
+    };
 
     $.ajax({
         url: "/packages/manage/preview-readme",
-        type: 'POST',
-        contentType: false,
-        processData: false,
-        data: formData,
+        type: "POST",
+        data: window.nuget.addAjaxAntiForgeryToken(readmeInputModel),
         success: function (model, resultCodeString, fullResponse) {
             displayReadMePreview(model);
         },
@@ -142,9 +100,9 @@ function previewReadMeAsync(callback, error) {
 function displayReadMePreview(response) {
     $("#readme-preview-contents").html(response);
     $("#readme-preview").removeClass("hidden");
-    $(".readme-write").addClass("hidden");
-    $(".readme-file").addClass("hidden");
-    $(".readme-url").addClass("hidden");
+
+    $('.readme-tabs').children().hide();
+        
     $("#edit-markdown").removeClass("hidden");
     $("#preview-html").addClass("hidden");
     clearReadMeError();
@@ -153,9 +111,9 @@ function displayReadMePreview(response) {
 function displayReadMeEditMarkdown() {
     $("#readme-preview-contents").html("");
     $("#readme-preview").addClass("hidden");
-    $(".readme-write").removeClass("hidden");
-    $(".readme-file").removeClass("hidden");
-    $(".readme-url").removeClass("hidden");
+
+    $('.readme-tabs').children().show();
+
     $("#edit-markdown").addClass("hidden");
     $("#preview-html").removeClass("hidden");
 }
@@ -172,42 +130,4 @@ function clearReadMeError() {
         $("#readme-error-content").text("");
     }
     $("#preview-readme-button").removeAttr("disabled");
-}
-
-function changeReadMeFormTab() {
-    if ($("#readme-url-btn").hasClass("active")) {
-        $(".readme-url").show();
-        $(".readme-file").hide();
-        $(".readme-write").hide();
-    } else if ($("#readme-file-btn").hasClass("active")) {
-        $(".readme-url").hide();
-        $(".readme-file").show();
-        $(".readme-write").hide();
-    } else if ($("#readme-write-btn").hasClass("active")) {
-        $(".readme-url").hide();
-        $(".readme-file").hide();
-        $(".readme-write").show();
-    }
-    clearReadMeError();
-}
-
-function validateReadMeFileName(fileName) {
-    var markdownExtensions = ["md", "mkdn", "mkd", "mdown", "markdown", "txt", "text"];
-    return markdownExtensions.includes(fileName.split('.').pop());
-}
-
-function fillReadMeUrl(repositoryUrl) {
-    var readMeUrl;
-
-    if (!repositoryUrl.endsWith("/")) {
-        repositoryUrl += "/";
-    }
-
-    var githubRegex = /^((https?:\/\/)([a-zA-Z0-9]+\.)?github\.com\/)([a-zA-Z0-9])+\/([a-zA-Z0-9])+(\/)?$/;
-    if (githubRegex.test(repositoryUrl)) {
-        readMeUrl = repositoryUrl.replace(githubRegex.exec(repositoryUrl)[1], "https://raw.githubusercontent.com/")
-        return readMeUrl + "master/README.md";
-    } else {
-        return "";
-    }
 }

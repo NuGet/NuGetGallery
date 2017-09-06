@@ -494,14 +494,14 @@ namespace NuGetGallery
             public async Task GivenAValidPackageWithReadMeItDisplaysReadMe()
             {
                 // Arrange
-                var readMeStream = new MemoryStream(Encoding.UTF8.GetBytes("<p>Hello World!</p>"));
+                var readMeStream = new MemoryStream(Encoding.UTF8.GetBytes("# Hello World!"));
                 
                 // Act
                 var result = await GetDisplayPackageResultWithReadMeStream(readMeStream, true);
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
-                Assert.Equal("<p>Hello World!</p>", model.ReadMeHtml);
+                Assert.Equal("<h1>Hello World!</h1>", model.ReadMeHtml);
             }
 
             [Fact]
@@ -560,7 +560,7 @@ namespace NuGetGallery
 
                 if (hasReadMe)
                 {
-                    fileService.Setup(f => f.DownloadReadmeFileAsync(It.IsAny<Package>(), It.IsAny<bool>()))
+                    fileService.Setup(f => f.DownloadReadMeFileAsync(It.IsAny<Package>(), It.IsAny<bool>()))
                         .Returns(Task.FromResult(readMeHtmlStream));
                 }
 
@@ -2242,7 +2242,7 @@ namespace NuGetGallery
         }
 
         [Theory]
-        [MemberData("WillApplyReadMe_Data")]
+        [MemberData(nameof(WillApplyReadMe_Data))]
         public async Task WillApplyReadMeForWrittenReadMeData(EditPackageVersionRequest edit)
         {
             // Arrange
@@ -2273,11 +2273,12 @@ namespace NuGetGallery
 
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
-                var fakeReadMeRequest = new Mock<ReadMeRequest>();
-                fakeReadMeRequest.Setup(x => x.ReadMeWritten).Returns("fakeReadMeStream");
-                fakeReadMeRequest.Setup(x => x.ReadMeType).Returns("Written");
-
-                edit.ReadMe = fakeReadMeRequest.Object;
+                edit.ReadMe = new ReadMeRequest()
+                {
+                    SourceText = "fakeReadMeStream",
+                    ReadMeSourceType = "Written"
+                };
+                
                 var fakeVerifyPackageRequest = new VerifyPackageRequest { Listed = true, Edit = edit };
                 
                 // Act

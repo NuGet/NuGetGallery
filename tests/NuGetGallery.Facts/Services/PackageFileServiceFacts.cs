@@ -155,6 +155,7 @@ namespace NuGetGallery
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
                 var packageRegistraion = new PackageRegistration { Id = "theId" };
                 var package = new Package { PackageRegistration = packageRegistraion, NormalizedVersion = null, Version = "01.01.01" };
+
                 fileStorageSvc.Setup(x => x.CreateDownloadFileActionResultAsync(new Uri("http://fake"), It.IsAny<string>(), BuildFileName("theId", "1.1.1",Constants.NuGetPackageFileExtension, Constants.PackageFileSavePathTemplate)))
                     .CompletesWithNull()
                     .Verifiable();
@@ -247,6 +248,7 @@ namespace NuGetGallery
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
                 var packageRegistraion = new PackageRegistration { Id = "theId" };
                 var package = new Package { PackageRegistration = packageRegistraion, NormalizedVersion = null, Version = "01.01.01" };
+
                 fileStorageSvc.Setup(x => x.SaveFileAsync(It.IsAny<string>(), BuildFileName("theId", "1.1.1",Constants.NuGetPackageFileExtension, Constants.PackageFileSavePathTemplate), It.IsAny<Stream>(), It.Is<bool>(b => !b)))
                     .Completes()
                     .Verifiable();
@@ -483,7 +485,7 @@ namespace NuGetGallery
             public async Task WhenPackageNull_ThrowsArgumentNull()
             {
                 var service = CreateService();
-                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.DownloadReadmeFileAsync(null));
+                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.DownloadReadMeFileAsync(null));
             }
 
             [Fact]
@@ -506,7 +508,7 @@ namespace NuGetGallery
                     fileStorageSvc.Setup(f => f.GetFileAsync(It.IsAny<string>(), It.IsAny<string>())).Returns(Task.FromResult((Stream)stream)).Verifiable();
 
                     // Act
-                    var result = await service.DownloadReadmeFileAsync(package);
+                    var result = await service.DownloadReadMeFileAsync(package);
                     using (var reader = new StreamReader(result))
                     {
                         // Assert
@@ -534,7 +536,7 @@ namespace NuGetGallery
                 fileStorageSvc.Setup(f => f.GetFileAsync(It.IsAny<string>(), It.IsAny<string>())).Returns(Task.FromResult((Stream)null)).Verifiable();
 
                 // Act
-                var result = await service.DownloadReadmeFileAsync(package);
+                var result = await service.DownloadReadMeFileAsync(package);
 
                 // Assert
                 Assert.Null(result);

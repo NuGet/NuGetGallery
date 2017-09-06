@@ -6,15 +6,30 @@ using System.Web.Mvc;
 
 namespace NuGetGallery
 {
-    public class ReadMeRequest
+    /// <summary>
+    /// ReadMe markdown request model for package version edits.
+    /// </summary>
+    public sealed class ReadMeRequest
     {
-        public virtual HttpPostedFileBase ReadMeFile { get; set; }
+        /// <summary>
+        /// Source posted file, used for readme.md import when <see cref="ReadMeSourceType"/> is 'file'.
+        /// </summary>
+        public HttpPostedFileBase SourceFile { get; set; }
 
+        /// <summary>
+        /// Source text, used for readme.md import when <see cref="ReadMeSourceType"/> is 'written'.
+        /// </summary>
         [AllowHtml]
-        public virtual string ReadMeWritten { get; set; }
+        public string SourceText { get; set; }
 
-        public virtual string ReadMeUrl { get; set; }
+        /// <summary>
+        /// Source uri, used for readme.md import when <see cref="ReadMeSourceType"/> is 'url'.
+        /// </summary>
+        public string SourceUrl { get; set; }
 
-        public virtual string ReadMeType { get; set; }
+        /// <summary>
+        /// Source type for an imported readme.md file. Supported types are 'file', 'url' or 'written'.
+        /// </summary>
+        public string ReadMeSourceType { get; set; }
     }
 }

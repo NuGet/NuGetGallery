@@ -3,11 +3,11 @@
 
 using System;
 using System.IO;
-using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 using CommonMark;
-using Ganss.XSS;
 
 namespace NuGetGallery.Helpers
 {
@@ -16,58 +16,60 @@ namespace NuGetGallery.Helpers
         internal const string TypeUrl = "Url";
         internal const string TypeFile = "File";
         internal const string TypeWritten = "Written";
-        internal const int MaxFileSize = 40000;
-        private const int UrlTimeout = 10000;
+        internal const int MaxReadMeLengthBytes = 8000;
         private const string UriHostRequirement = "raw.githubusercontent.com";
-
-        private static Lazy<HtmlSanitizer> Sanitizer = new Lazy<HtmlSanitizer>(() => new HtmlSanitizer());
+        private static readonly TimeSpan UrlTimeout = TimeSpan.FromSeconds(10);
 
         /// <summary>
-        /// Returns if posted package form contains a ReadMe.
+        /// Returns if posted package form contains readme.md source data.
+        /// 
+        /// Note the following differences between source types:
+        /// * 'TypeUrl' validates the URL string, allowing empty or whitespace-only files.
+        /// * 'TypeFile' validates file length, allowing whitespace-only (but not empty) files.
+        /// * 'TypeWritten' validates string content, NOT allowing empty or whitespace-only files.
         /// </summary>
-        /// <param name="formData">A ReadMeRequest with the ReadMe data from the form.</param>
-        /// <returns>Whether there is a ReadMe to upload.</returns>
-        public static bool HasReadMe(ReadMeRequest formData)
+        /// <param name="readMeRequest">Request associated with package edit that can post readme.md source data.</param>
+        /// <returns>True if the request contains readme.md source data, false otherwise.</returns>
+        public static bool HasReadMe(ReadMeRequest readMeRequest)
         {
-            switch (formData?.ReadMeType)
+            var readMeType = readMeRequest?.ReadMeSourceType;
+            if (TypeUrl.Equals(readMeType, StringComparison.InvariantCultureIgnoreCase))
             {
-                case TypeUrl:
-                    var readMeUrl = formData.ReadMeUrl;
-                    return !string.IsNullOrWhiteSpace(readMeUrl) && Uri.IsWellFormedUriString(readMeUrl, UriKind.Absolute);
-
-                case TypeFile:
-                    var readMeFile = formData.ReadMeFile;
-                    return readMeFile != null && readMeFile.ContentLength > 0;
-
-                case TypeWritten:
-                    return !string.IsNullOrWhiteSpace(formData.ReadMeWritten);
-
-                default:
-                    return false;
+                var readMeUrl = readMeRequest.SourceUrl;
+                return !string.IsNullOrWhiteSpace(readMeUrl) && Uri.IsWellFormedUriString(readMeUrl, UriKind.Absolute);
             }
-        }
+            else if (TypeWritten.Equals(readMeType, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return !string.IsNullOrWhiteSpace(readMeRequest.SourceText);
+            }
+            else if (TypeFile.Equals(readMeType, StringComparison.InvariantCultureIgnoreCase))
+            {
+                var readMeFile = readMeRequest.SourceFile;
+                return readMeFile != null && readMeFile.ContentLength > 0;
+            }
 
+            return false;
+        }
+        
         /// <summary>
-        /// Takes in a Stream representing a readme file in markdown, converts it to HTML and 
-        /// returns a Stream representing the HTML version of the readme.
+        /// Converts readme.md data from a stream into HTML.
         /// </summary>
-        /// <param name="readMeMarkdownStream">Stream containing a readMe in markdown</param>
-        /// <returns>A stream with the HTML version of the readMe</returns>
+        /// <param name="readMeMarkdownStream">Stream containing readme.md data.</param>
+        /// <returns>Stream containing HTML version of the readme.md data.</returns>
         public static async Task<Stream> GetReadMeHtmlStream(Stream readMeMarkdownStream)
         {
             var markdown = await readMeMarkdownStream.ReadToEndAsync();
-            var html = CommonMarkConverter.Convert(markdown);
-            var sanitizedHtml = Sanitizer.Value.Sanitize(html).Trim();
+            var encodedMarkdown = HttpUtility.HtmlEncode(markdown);
+            var html = CommonMarkConverter.Convert(encodedMarkdown);
 
-            return new MemoryStream(Encoding.UTF8.GetBytes(sanitizedHtml));
+            return new MemoryStream(Encoding.UTF8.GetBytes(html));
         }
 
         /// <summary>
-        /// Takes in a ReadMeRequest with a markdown ReadMe file, converts it to HTML
-        /// and returns a stream with the data.
+        /// Converts readme.md source data from a request into HTML.
         /// </summary>
-        /// <param name="readMeRequest">The readMe type and markdown file</param>
-        /// <returns>A stream representing the ReadMe.html file</returns>
+        /// <param name="readMeRequest">Request containing readme.md source data.</param>
+        /// <returns>Stream containing HTML version of the readme.md data.</returns>
         public static async Task<Stream> GetReadMeHtmlStream(ReadMeRequest readMeRequest)
         {
             var markdownStream = await GetReadMeMarkdownStream(readMeRequest);
@@ -76,59 +78,63 @@ namespace NuGetGallery.Helpers
         }
 
         /// <summary>
-        /// Finds the highest priority ReadMe file stream and returns it. Highest priority is an uploaded file,
-        /// then a repository URL inputted via the website, then a repository URL entered through the nuspec.
+        /// Gets the readme.md source data from a request.
         /// </summary>
-        /// <param name="readMeRequest">The current package's form data submitted through the verify page</param>
-        /// <param name="packageMetadata">The package metadata from the nuspec file</param>
-        /// <returns>A stream with the encoded ReadMe file</returns>
+        /// <param name="readMeRequest">Request containing readme.md source data.</param>
+        /// <returns>Stream containing the readme.md data.</returns>
         public static async Task<Stream> GetReadMeMarkdownStream(ReadMeRequest readMeRequest)
         {
             Stream readMeStream;
-            var readMeType = readMeRequest.ReadMeType;
-            if (readMeType.Equals(TypeUrl, StringComparison.InvariantCultureIgnoreCase))
+            var readMeType = readMeRequest?.ReadMeSourceType;
+            if (TypeUrl.Equals(readMeType, StringComparison.InvariantCultureIgnoreCase))
             {
-                readMeStream = await GetReadMeStreamFromUrl(readMeRequest.ReadMeUrl);
+                readMeStream = await GetReadMeStreamFromUrl(readMeRequest.SourceUrl);
             }
-            else if (readMeType.Equals(TypeWritten, StringComparison.InvariantCultureIgnoreCase))
+            else if (TypeWritten.Equals(readMeType, StringComparison.InvariantCultureIgnoreCase))
             {
-                readMeStream = new MemoryStream(Encoding.UTF8.GetBytes(readMeRequest.ReadMeWritten));
+                readMeStream = new MemoryStream(Encoding.UTF8.GetBytes(readMeRequest.SourceText));
             }
-            else if (readMeType.Equals(TypeFile, StringComparison.InvariantCultureIgnoreCase))
+            else if (TypeFile.Equals(readMeType, StringComparison.InvariantCultureIgnoreCase))
             {
-                readMeStream = readMeRequest.ReadMeFile.InputStream;
+                var uploadFileName = readMeRequest.SourceFile.FileName;
+                if (!Path.GetExtension(uploadFileName).Equals(Constants.MarkdownFileExtension, StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new InvalidOperationException($"ReadMe file must end with extension '{Constants.MarkdownFileExtension}'.");
+                }
+
+                readMeStream = readMeRequest.SourceFile.InputStream;
             }
             else
             {
-                throw new InvalidOperationException("Form data contains an invalid ReadMeType.");
+                throw new InvalidOperationException($"'{readMeType}' is not a valid ReadMeType.");
             }
 
             readMeStream = readMeStream.AsSeekableStream();
-            if (readMeStream.Length >= MaxFileSize)
+            if (readMeStream.Length >= MaxReadMeLengthBytes)
             {
-                throw new ArgumentException("ReadMe file exceeds size limitations. (" + MaxFileSize + ")");
+                throw new InvalidOperationException($"ReadMe file must be less than '{MaxReadMeLengthBytes}' bytes.");
             }
             return readMeStream;
         }
 
         /// <summary>
-        /// Converts a ReadMe's url to a file stream.
+        /// Gets the readme.md source data from a url.
         /// </summary>
-        /// <param name="readMeUrl">A link to the raw ReadMe markdown file</param>
-        /// <returns>A stream to allow the file to be read</returns>
+        /// <param name="readMeRequest">Request containing readme.md source data.</param>
+        /// <returns>Stream containing the readme.md data.</returns>
         private static async Task<Stream> GetReadMeStreamFromUrl(string readMeUrl)
         {
             var readMeUri = new Uri(readMeUrl);
             if (readMeUri.Host != UriHostRequirement)
             {
-                throw new ArgumentException("Url must link to a raw markdown file hosted on Github. [" + UriHostRequirement + "]");
+                throw new ArgumentException($"ReadMe URL must be a raw markdown file hosted on GitHub.");
             }
 
-            var webRequest = WebRequest.Create(readMeUrl);
-            webRequest.Timeout = UrlTimeout;
-
-            var response = await webRequest.GetResponseAsync();
-            return response.GetResponseStream().AsSeekableStream();
+            using (var client = new HttpClient())
+            {
+                client.Timeout = UrlTimeout;
+                return (await client.GetStreamAsync(readMeUri)).AsSeekableStream();
+            };
         }
     }
 }

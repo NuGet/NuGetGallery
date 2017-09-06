@@ -69,13 +69,7 @@
     @Scripts.Render("~/Scripts/gallery/async-file-upload.js")
     <script type="text/javascript">
         var InProgressPackage = @Html.Raw(Json.Encode(Model.InProgressUpload));
-        window.nuget.configureExpander(
-            "upload-package-form",
-            "ChevronRight",
-            "Upload",
-            "ChevronDown",
-            "Upload");
-        
+        window.nuget.configureExpanderHeading("upload-package-form");
         $(function () {
             $("#browse-for-package-button").on("keypress", function (e) {
                 var code = (e.keyCode || e.which);

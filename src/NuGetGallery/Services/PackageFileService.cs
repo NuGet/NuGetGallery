@@ -61,10 +61,10 @@ namespace NuGetGallery
 
 
         /// <summary>
-        /// Saves a ReadMe file asynchronously to the Pending ReadMe file folder.
+        /// Saves a readme.md file asynchronously to the pending folder.
         /// </summary>
-        /// <param name="package">The package to which this readme belongs.</param>
-        /// <param name="readMeStream">The stream representing the readme's data.</param>
+        /// <param name="package">The package to which this readme.md belongs.</param>
+        /// <param name="readMeStream">The stream containing the readme.md data.</param>
         public Task SaveReadMeFileAsync(Package package, Stream readMeStream)
         {
             if (readMeStream == null)
@@ -106,17 +106,17 @@ namespace NuGetGallery
             return _fileStorageService.GetFileAsync(Constants.PackagesFolderName, fileName);
         }
 
-        public Task<Stream> DownloadReadmeFileAsync(Package package, bool pending = false)
+        public Task<Stream> DownloadReadMeFileAsync(Package package, bool pending = false)
         {
             if (package == null)
             {
-                throw new ArgumentNullException("Package cannot be null!");
+                throw new ArgumentNullException(nameof(package));
             }
 
-            var formatter = pending ?
+            var format = pending ?
                 Constants.ReadMeFileSavePathTemplatePending :
                 Constants.ReadMeFileSavePathTemplateActive;
-            var fileName = BuildFileName(package, formatter, Constants.MarkdownFileExtension);
+            var fileName = BuildFileName(package, format, Constants.MarkdownFileExtension);
 
             return  _fileStorageService.GetFileAsync(Constants.PackageReadMesFolderName, fileName);
         }
@@ -146,7 +146,7 @@ namespace NuGetGallery
                 extension);
         }
 
-        private static string BuildFileName(Package package, string formatter, string extension)
+        private static string BuildFileName(Package package, string format, string extension)
         {
             if (package == null)
             {
@@ -164,7 +164,7 @@ namespace NuGetGallery
                 package.PackageRegistration.Id,
                 string.IsNullOrEmpty(package.NormalizedVersion) ?
                     NuGetVersionFormatter.Normalize(package.Version) :
-                    package.NormalizedVersion, formatter, extension);
+                    package.NormalizedVersion, format, extension);
         }
 
         private static string BuildBackupFileName(string id, string version, string hash)

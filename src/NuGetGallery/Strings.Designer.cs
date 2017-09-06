@@ -882,6 +882,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Conversion of Markdown to HTML failed with &apos;{0}&apos;..
+        /// </summary>
+        public static string PreviewReadMe_ConversionFailed {
+            get {
+                return ResourceManager.GetString("PreviewReadMe_ConversionFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to There is no ReadMe available to preview..
+        /// </summary>
+        public static string PreviewReadMe_ReadMeMissing {
+            get {
+                return ResourceManager.GetString("PreviewReadMe_ReadMeMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The namespace &apos;{0}&apos; contains invalid characters. Examples of valid namespaces include &apos;MyNamespace&apos; and &apos;MyNamespace.&apos;..
         /// </summary>
         public static string ReservedNamespace_InvalidCharactersInNamespace {

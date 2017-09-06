@@ -179,22 +179,10 @@ var EditViewManager = new function () {
         $('#iconurl-field').on('change', function () {
             $('#icon-preview').attr('src', $('#iconurl-field').val());
         });
-
-        $("#verify-collapser-container").removeClass("hidden");
-        $("#submit-collapser-container").removeClass("hidden");
-
-        window.nuget.configureExpander(
-            "verify-package-form",
-            "ChevronRight",
-            "Verify",
-            "ChevronDown",
-            "Verify");
-        window.nuget.configureExpander(
-            "submit-package-form",
-            "ChevronRight",
-            "Submit",
-            "ChevronDown",
-            "Submit");
+        
+        window.nuget.configureExpanderHeading("verify-package-form");
+        window.nuget.configureExpanderHeading("submit-package-form");
+        
         $(".markdown-popover").popover({
             trigger: 'click focus',
             html: true,

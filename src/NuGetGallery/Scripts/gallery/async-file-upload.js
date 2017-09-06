@@ -61,7 +61,7 @@ var AsyncFileUploadManager = new function () {
 
         $('#input-select-file').on('change', function () {
             clearErrors();
-            var fileName = $('#input-select-file').val().split("\\").pop();
+            var fileName = window.nuget.getFileName($('#input-select-file').val());
 
             if (fileName.length > 0) {
                 $('#file-select-feedback').attr('value', fileName);
@@ -256,18 +256,8 @@ var AsyncFileUploadManager = new function () {
         $("#verify-collapser-container").removeClass("hidden");
         $("#submit-collapser-container").removeClass("hidden");
 
-        window.nuget.configureExpander(
-            "verify-package-form",
-            "ChevronRight",
-            "Verify",
-            "ChevronDown",
-            "Verify");
-        window.nuget.configureExpander(
-            "submit-package-form",
-            "ChevronRight",
-            "Submit",
-            "ChevronDown",
-            "Submit");
+        window.nuget.configureExpanderHeading("verify-package-form");
+        window.nuget.configureExpanderHeading("submit-package-form");
         
         $(".markdown-popover").popover({
             trigger: 'click focus',

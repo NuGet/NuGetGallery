@@ -24,7 +24,7 @@ namespace NuGetGallery
 
         public static async Task<string> ReadToEndAsync(this Stream stream)
         {
-            using (var reader = new StreamReader(stream, System.Text.Encoding.UTF8))
+            using (var reader = new StreamReader(stream))
             {
                 return await reader.ReadToEndAsync();
             }

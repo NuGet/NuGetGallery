@@ -67,8 +67,6 @@
 </section>
 
 @section BottomScripts {
-    @Scripts.Render("~/Scripts/jquery-ui-1.10.3.js")
-    @Scripts.Render("~/Scripts/gallery/bootstrap.js")
     @Scripts.Render("~/Scripts/gallery/page-edit-readme.js")
     @Scripts.Render("~/Scripts/gallery/page-edit.js")
     <script>
@@ -77,11 +75,7 @@
         var realModel = {
             "Id": '@Model.PackageId',
             "Version": '@Model.Version',
-            "Edit": viewModel,
-            "ReadMe": {
-                "ReadMeType": "Written",
-                "ReadMeWritten": '@HttpUtility.JavaScriptStringEncode(Model.Edit.ReadMe.ReadMeWritten)'
-            }
+            "Edit": viewModel
         };
         EditViewManager.init(realModel,
             '@Url.EditPackage(Model.PackageId, Model.Version)',

@@ -1,73 +1,98 @@
-﻿<script type="text/html" id="import-readme-template">
-    @*<pre data-bind="text: ko.toJSON($data, null, 2)"></pre>*@
+﻿@helper ReadMeTab(string label, string id, bool active)
+{
+    <li role="presentation" class="@(active ? "active" : string.Empty)">
+        <a href="#@id" aria-expanded="@(active ? "true" : "false")"
+           aria-selected="@(active ? "true" : "false")"
+           aria-controls="@id" role="tab" data-toggle="tab"
+           title="Switch to tab panel which allows import of readme from @label">
+            @label
+        </a>
+    </li>
+}
+
+@helper ReadMePanel(Func<MvcHtmlString, HelperResult> htmlContent, string id, bool active)
+{
+    <div role="tabpanel" class="tab-pane @(active ? "active" : string.Empty)" id="@id">
+        <div class="readme-pane" id="@id-text">
+            <span>
+                @htmlContent(MvcHtmlString.Empty)
+            </span>
+        </div>
+    </div>
+}
+
+<script type="text/html" id="import-readme-template">
+
     <div class="collapse in" id="readme-package-form">
-        <div class="text-center">
-            <div class="btn-group readme-btn-group row" style="padding-bottom:2em; padding-top:1.5em;" data-toggle="buttons">
-                <label class="btn btn-primary active" id="readme-url-btn">
-                    <input type="radio" value="Url" name="Edit.ReadMe.ReadMeType" autocomplete="off" checked> Import From Github
-                </label>
-                <label class="btn btn-primary" id="readme-file-btn">
-                    <input type="radio" value="File" name="Edit.ReadMe.ReadMeType" autocomplete="off"> Upload File
-                </label>
-                <label class="btn btn-primary" id="readme-write-btn">
-                    <input type="radio" value="Written" name="Edit.ReadMe.ReadMeType" autocomplete="off"> Write Your Own
-                </label>
-            </div>
 
-            <div id="readme-errors" class="hidden" style="padding-bottom:2em;">
-                <div class="alert alert-danger" role="alert" aria-live="assertive">
-                    <ul class="list-unstyled ms-Icon-ul">
-                        <li>
-                            <i class="ms-Icon ms-Icon--ErrorBadge" aria-hidden="true"></i>
-                            <span id="readme-error-content"></span>
-                        </li>
-                    </ul>
-                </div>
-            </div>
+        @ViewHelpers.AjaxAntiForgeryToken(Html)
 
-            @Html.AntiForgeryToken()
-            <div class="readme-url row">
-                <div class="input-group col-xs-12">
-                    <input type="url" data-bind="value: Edit.ReadMe.ReadMeUrl" name="Edit.ReadMe.ReadMeUrl" class="form-control" id="ReadMeUrlInput" placeholder="Enter the URL to your raw ReadMe file..." />
-                    <label id="ReadMeURLLabel" class="input-group-btn"></label>
-                </div>
-            </div>
-            <div class="readme-file row">
-                <div class="input-group col-xs-12">
-                    <input type="text" id="readme-select-feedback" class="form-control" placeholder="Browse to select a ReadMe file..." readonly />
-                    <label for="readme-select-file" id="ReadMeFileLabel" class="input-group-btn">
-                        <span class="btn btn-primary form-control">
-                            Browse&hellip;<input type="file" accept=".md,.mkd,.mkdn,.mdown,.markdown,.txt,.text" data-bind="value: Edit.ReadMe.ReadMeFile" name="Edit.ReadMe.ReadMeFile" aria-labelledby="ReadMeFileLabel" id="readme-select-file" style="display:none;" />
-                        </span>
-                    </label>
-                </div>
+        <div id="readme-errors" class="hidden">
+            <div class="alert alert-danger" role="alert" aria-live="assertive">
+                <ul class="list-unstyled ms-Icon-ul">
+                    <li>
+                        <i class="ms-Icon ms-Icon--ErrorBadge" aria-hidden="true"></i>
+                        <span id="readme-error-content"></span>
+                    </li>
+                </ul>
             </div>
         </div>
-        <div class="row readme-write">
-            <div class="col-sm-10 col-sm-offset-1">
-                <div>
-                    <button type="button" class="btn btn-primary markdown-popover" data-toggle="popover" title="Markdown Syntax">Markdown</button>
-                </div>
-                <div>
-                    <textarea class="col-xs-12" data-bind="value: Edit.ReadMe.ReadMeWritten" name="Edit.ReadMe.ReadMeWritten" id="readme-written" rows="30" placeholder="Write your own ReadMe here..."></textarea>
-                </div>
+
+        <div class="readme-tabs">
+            <ul class="nav nav-tabs" role="tablist">
+                @ReadMeTab("Custom", "readme-write", active: true)
+                @ReadMeTab("Url", "readme-url", active: false)
+                @ReadMeTab("File", "readme-file", active: false)
+            </ul>
+            <div class="tab-content">
+
+                @ReadMePanel(
+                    @<div class="col-sm-10 col-sm-offset-1">
+                        <div>
+                            <button type="button" class="btn btn-primary markdown-popover" data-toggle="popover" title="Markdown Syntax">Markdown</button>
+                        </div>
+                        <div>
+                            <textarea class="col-xs-12" data-bind="value: Edit.ReadMe.SourceText" name="Edit.ReadMe.SourceText" id="readme-written" rows="30" placeholder="Write your own ReadMe here..."></textarea>
+                        </div>
+                    </div>,
+                    "readme-write", active: true)
+
+                @ReadMePanel(
+                    @<div class="input-group col-xs-12">
+                        <input type="url" data-bind="value: Edit.ReadMe.SourceUrl" name="Edit.ReadMe.SourceUrl" class="form-control" id="ReadMeUrlInput" placeholder="https://raw.githubusercontent.com/" />
+                        <label id="ReadMeURLLabel" class="input-group-btn"></label>
+                    </div>,        
+                   "readme-url", active: false)
+
+                @ReadMePanel(
+                    @<div class="input-group col-xs-12">
+                        <input type="text" id="readme-select-feedback" class="form-control" value="Browse or Drop files to select a ReadMe.md file..." aria-label="Upload Your ReadMe.md" readonly />
+                        <label for="readme-select-file" id="ReadMeFileLabel" class="input-group-btn">
+                            <span class="btn btn-primary form-control" aria-label="Browse for ReadMe.md file" role="button">
+                                Browse&hellip;<input type="file" accept=".md,.txt" data-bind="value: Edit.ReadMe.SourceFile" name="Edit.ReadMe.SourceFile" aria-labelledby="ReadMeFileLabel" id="readme-select-file" style="display:none;" />
+                            </span>
+                        </label>
+                    </div>                ,
+                    "readme-file", active: false)
+
             </div>
         </div>
+
         <div class="hidden" id="readme-preview" style="padding-top:3em;">
             <div class="row">
-                <div class="col-xs-12" id="readme-preview-contents">
-
-                </div>
+                <div class="col-xs-12" id="readme-preview-contents"></div>
             </div>
         </div>
+
         <div class="text-center hidden" id="edit-markdown" style="padding-top:3em; padding-bottom:3em">
             <div class="row">
-                <input type="button" value="Edit ReadMe" id="edit-markdown-button" class="btn btn-primary col-xs-10 col-xs-offset-1 col-lg-2 col-lg-offset-5"/>
+                <input type="button" value="Edit ReadMe" id="edit-markdown-button" class="btn btn-primary col-xs-10 col-xs-offset-1 col-lg-2 col-lg-offset-5" />
             </div>
         </div>
+
         <div class="text-center" id="preview-html" style="padding-top:3em; padding-bottom:3em">
             <div class="row">
-                <input type="button" value="Preview" id="preview-readme-button" class="btn btn-primary col-xs-10 col-xs-offset-1 col-lg-2 col-lg-offset-5"/>
+                <input type="button" value="Preview" id="preview-readme-button" class="btn btn-primary col-xs-10 col-xs-offset-1 col-lg-2 col-lg-offset-5" />
             </div>
         </div>
     </div>
