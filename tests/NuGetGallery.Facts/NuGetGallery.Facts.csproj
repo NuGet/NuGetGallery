@@ -504,6 +504,7 @@
     <Compile Include="ViewModels\ListPackageItemViewModelFacts.cs" />
     <Compile Include="ViewModels\PackageViewModelFacts.cs" />
     <Compile Include="ViewModels\PreviousNextPagerViewModelFacts.cs" />
+    <Compile Include="Views\UrlHelperFacts.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
