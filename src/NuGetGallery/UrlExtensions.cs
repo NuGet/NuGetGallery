@@ -87,6 +87,15 @@ namespace NuGetGallery
             return result + "?groupby=Version";
         }
 
+        public static string StatisticsPackageDownloadByVersionReport(this UrlHelper url)
+        {
+            return url.RouteUrl(
+                RouteName.StatisticsPackageDownloadsByVersionReport,
+                routeValues: null,
+                protocol: GetProtocol(url),
+                hostName: GetConfiguredSiteHostName(url));
+        }
+
         public static string StatisticsPackageDownloadsDetail(this UrlHelper url, string id, string version)
         {
             string result = url.RouteUrl(
@@ -100,6 +109,15 @@ namespace NuGetGallery
                 hostName: GetConfiguredSiteHostName(url));
 
             return result + "?groupby=ClientName";
+        }
+
+        public static string StatisticsPackageDownloadsDetailReport(this UrlHelper url)
+        {
+            return url.RouteUrl(
+                RouteName.StatisticsPackageDownloadsDetailReport,
+                routeValues: null,
+                protocol: GetProtocol(url),
+                hostName: GetConfiguredSiteHostName(url));
         }
 
         public static string PackageList(this UrlHelper url, int page, string q, bool includePrerelease)
@@ -377,6 +395,15 @@ namespace NuGetGallery
                 hostName: GetConfiguredSiteHostName(url));
         }
 
+        public static string UploadPackageProgress(this UrlHelper url)
+        {
+            return url.RouteUrl(
+                RouteName.UploadPackageProgress,
+                routeValues: null,
+                protocol: GetProtocol(url),
+                hostName: GetConfiguredSiteHostName(url));
+        }
+
         public static string User(this UrlHelper url, User user, int page = 1, string scheme = null)
         {
             var configuredSiteHostName = GetConfiguredSiteHostName(url);
@@ -527,7 +554,6 @@ namespace NuGetGallery
                 hostName: GetConfiguredSiteHostName(url));
         }
 
-
         public static string ManageMyApiKeys(this UrlHelper url)
         {
             return url.Action(
@@ -557,6 +583,46 @@ namespace NuGetGallery
                 {
                     { "id", package.Id}
                 },
+                protocol: GetProtocol(url),
+                hostName: GetConfiguredSiteHostName(url));
+        }
+
+        public static string GetAddPackageOwnerConfirmation(this UrlHelper url)
+        {
+            return url.Action(
+                "GetAddPackageOwnerConfirmation", 
+                "JsonApi",
+                routeValues: null,
+                protocol: GetProtocol(url),
+                hostName: GetConfiguredSiteHostName(url));
+        }
+
+        public static string GetPackageOwners(this UrlHelper url)
+        {
+            return url.Action(
+                "GetPackageOwners",                 
+                "JsonApi",
+                routeValues: null,
+                protocol: GetProtocol(url),
+                hostName: GetConfiguredSiteHostName(url));
+        }
+
+        public static string AddPackageOwner(this UrlHelper url)
+        {
+            return url.Action(
+                "AddPackageOwner", 
+                "JsonApi",
+                routeValues: null,
+                protocol: GetProtocol(url),
+                hostName: GetConfiguredSiteHostName(url));
+        }
+
+        public static string RemovePackageOwner(this UrlHelper url)
+        {
+            return url.Action(
+                "RemovePackageOwner", 
+                "JsonApi",
+                routeValues: null,
                 protocol: GetProtocol(url),
                 hostName: GetConfiguredSiteHostName(url));
         }
@@ -618,6 +684,19 @@ namespace NuGetGallery
                 hostName: GetConfiguredSiteHostName(url));
         }
 
+        public static string ContactOwners(this UrlHelper url, string id)
+        {
+            return url.Action(
+                actionName: "ContactOwners",
+                controllerName: "Packages",
+                routeValues: new RouteValueDictionary
+                {
+                    { "id", id }
+                },
+                protocol: GetProtocol(url),
+                hostName: GetConfiguredSiteHostName(url));
+        }
+
         public static string Terms(this UrlHelper url)
         {
             return url.Action(
@@ -656,6 +735,20 @@ namespace NuGetGallery
                 routeValues: new RouteValueDictionary
                 {
                     { "area", "Admin" }
+                },
+                protocol: GetProtocol(url),
+                hostName: GetConfiguredSiteHostName(url));
+        }
+
+        public static string Authenticate(this UrlHelper url, string providerName, string returnUrl)
+        {
+            return url.Action(
+                actionName: "Authenticate",
+                controllerName: "Authentication",
+                routeValues: new RouteValueDictionary
+                {
+                    { "provider", providerName },
+                    { "returnUrl", returnUrl }
                 },
                 protocol: GetProtocol(url),
                 hostName: GetConfiguredSiteHostName(url));

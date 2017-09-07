@@ -472,7 +472,7 @@
                 }
                 <li>
                     <i class="ms-Icon ms-Icon--Mail" aria-hidden="true"></i>
-                    <a href="@Url.Action(actionName: "ContactOwners", controllerName: "Packages", routeValues: new { id = Model.Id })" title="Ask the package owners a question">Contact owners</a>
+                    <a href="@Url.ContactOwners(Model.Id)" title="Ask the package owners a question">Contact owners</a>
                 </li>
                 @if ((Model.IsOwner(User) || User.IsAdministrator()))
                 {

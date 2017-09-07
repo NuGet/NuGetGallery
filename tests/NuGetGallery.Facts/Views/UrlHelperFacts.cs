@@ -24,7 +24,7 @@ namespace NuGetGallery.Views
         [Theory]
         [InlineData("@Url.Action")]
         [InlineData("@Url.Route")]
-        public void ViewsDoNotUseUrlActionHelper(string unsupportedTerm)
+        public void ViewsDoNotUseDefaultUrlHelperRoutes(string unsupportedTerm)
         {
             // We should not use Url.Action or Url.Route in our views as the gallery
             // may be deployed behind a proxy (such as APIM),
