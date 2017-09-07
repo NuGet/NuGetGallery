@@ -28,7 +28,7 @@ namespace NuGetGallery
 
             HasSemVer2Version = NuGetVersion.Parse(_fullVersion).IsSemVer2;
             HasSemVer2Dependency = package.Dependencies.ToList()
-                .Where(pd => pd.VersionSpec != null)
+                .Where(pd => !string.IsNullOrEmpty(pd.VersionSpec))
                 .Select(pd => VersionRange.Parse(pd.VersionSpec))
                 .Any(p => (p.HasUpperBound && p.MaxVersion.IsSemVer2) || (p.HasLowerBound && p.MinVersion.IsSemVer2));
 

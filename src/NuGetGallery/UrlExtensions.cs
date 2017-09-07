@@ -86,8 +86,6 @@ namespace NuGetGallery
             return url.Action("ListPackages", "Packages", routeValues);
         }
 
-
-
         public static string CuratedPackageList(this UrlHelper url, int page, string q, string curatedFeedName)
         {
             return url.Action("ListPackages", "CuratedFeeds", new

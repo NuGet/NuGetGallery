@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using Xunit;
 
 namespace NuGetGallery.ViewModels
@@ -94,6 +95,112 @@ namespace NuGetGallery.ViewModels
             };
             var packageViewModel = new PackageViewModel(package);
             Assert.NotNull(packageViewModel.LicenseUrl);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void HasSemVer2DependencyIsFalseWhenInvalidDependencyVersionRange(string versionSpec)
+        {
+            // Arrange
+            var package = new Package
+            {
+                Version = "1.0.0",
+                Dependencies = new List<PackageDependency>
+                {
+                    new PackageDependency { VersionSpec = versionSpec}
+                }
+            };
+
+            // Act
+            var viewModel = new PackageViewModel(package);
+
+            // Assert
+            Assert.False(viewModel.HasSemVer2Dependency);
+        }
+
+        [Theory]
+        [InlineData("2.0.0-alpha.1")]
+        [InlineData("2.0.0+metadata")]
+        [InlineData("2.0.0-alpha+metadata")]
+        public void HasSemVer2DependencyWhenSemVer2DependencyVersionSpec(string versionSpec)
+        {
+            // Arrange
+            var package = new Package
+            {
+                Version = "1.0.0",
+                Dependencies = new List<PackageDependency>
+                {
+                    new PackageDependency { VersionSpec = versionSpec}
+                }
+            };
+
+            // Act
+            var viewModel = new PackageViewModel(package);
+
+            // Assert
+            Assert.True(viewModel.HasSemVer2Dependency);
+        }
+
+        [Theory]
+        [InlineData("2.0.0-alpha")]
+        [InlineData("2.0.0")]
+        [InlineData("2.0.0.0")]
+        public void HasSemVer2DependencyIsFalseWhenNonSemVer2DependencyVersionSpec(string versionSpec)
+        {
+            // Arrange
+            var package = new Package
+            {
+                Version = "1.0.0",
+                Dependencies = new List<PackageDependency>
+                {
+                    new PackageDependency { VersionSpec = versionSpec}
+                }
+            };
+
+            // Act
+            var viewModel = new PackageViewModel(package);
+
+            // Assert
+            Assert.False(viewModel.HasSemVer2Dependency);
+        }
+        
+        [Theory]
+        [InlineData("2.0.0-alpha")]
+        [InlineData("2.0.0")]
+        [InlineData("2.0.0.0")]
+        public void HasSemVer2VersionIsFalseWhenNonSemVer2Version(string version)
+        {
+            // Arrange
+            var package = new Package
+            {
+                Version = version
+            };
+
+            // Act
+            var viewModel = new PackageViewModel(package);
+
+            // Assert
+            Assert.False(viewModel.HasSemVer2Version);
+        }
+
+        [Theory]
+        [InlineData("2.0.0-alpha.1")]
+        [InlineData("2.0.0+metadata")]
+        [InlineData("2.0.0-alpha+metadata")]
+        public void HasSemVer2VersionIsTrueWhenSemVer2Version(string version)
+        {
+            // Arrange
+            var package = new Package
+            {
+                Version = version
+            };
+
+            // Act
+            var viewModel = new PackageViewModel(package);
+
+            // Assert
+            Assert.True(viewModel.HasSemVer2Version);
         }
     }
 }
