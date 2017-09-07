@@ -44,11 +44,19 @@
                             <div id="prefixOwners" data-bind="foreach: $data.owners">
                                 <div>
                                     <span data-bind="text: $data" />
-                                    <input type="button" value="Remove" title="Remove this owner" data-bind="click:$parent.removeOwner.bind(this, $data, null)" />
+                                    <input type="button" value="Remove" title="Remove this owner" 
+                                               data-bind="click:$parent.removeOwner.bind(this, $data, $parent.prefix)"/>
                                 </div>
                             </div>
                         </div>
-                        <input style="margin-top: 5px" type="submit" value="Deallocate Namespace" title="Delete this namespace" data-bind="click: $parent.managePrefix.bind(this, $data.prefix, true)" />
+                        <!-- ko if: $data.isExisting -->
+                            <input style="margin-top: 5px" type="submit" value="Deallocate Namespace" title="Delete this namespace" 
+                                   data-bind="click: $parent.managePrefix.bind(this, $data.prefix, true)" />
+                        <!-- /ko -->
+                        <!-- ko ifnot: $data.isExisting -->
+                            <input style="margin-top: 5px" type="submit" value="Reserve Namespace" title="Add this namespace"
+                                   data-bind="click: $parent.managePrefix.bind(this, $data.prefix, false)" />
+                        <!-- /ko -->
                     </div>
                 </div>
             }
