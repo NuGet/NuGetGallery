@@ -39,9 +39,13 @@ namespace NuGetGallery.Views
         private void AssertNoViolationsOfUnsupportedTermInRazorFiles(string unsupportedTerm)
         {
             var violations = new ConcurrentBag<Tuple<int, string, string>>();
+            var razorFiles = GetRazorFiles();
+
+            // Catch working directory issues.
+            Assert.NotEmpty(razorFiles);
 
             Parallel.ForEach(
-                GetRazorFiles(),
+                razorFiles,
                 file =>
                 {
                     var lineNumber = 0;
