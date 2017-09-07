@@ -55,7 +55,7 @@ namespace NuGetGallery.Views
 
                         if (line.Contains(unsupportedTerm))
                         {
-                            violations.Add(new Tuple<int, string, string>(lineNumber, file, line.TrimStart(' ').TrimEnd(' ')));
+                            violations.Add(Tuple.Create(lineNumber, file, line.TrimStart(' ').TrimEnd(' ')));
                         }
                     }
                 });
