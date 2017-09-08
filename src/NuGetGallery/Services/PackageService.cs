@@ -30,7 +30,8 @@ namespace NuGetGallery
             IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository,
             IIndexingService indexingService,
             IPackageNamingConflictValidator packageNamingConflictValidator,
-            IAuditingService auditingService)
+            IAuditingService auditingService,
+            IReservedNamespaceService reservedNamespaceService)
         {
             if (packageRegistrationRepository == null)
             {

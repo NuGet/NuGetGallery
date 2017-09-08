@@ -21,6 +21,7 @@ using NuGetGallery.Helpers;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using Xunit;
+using NuGetGallery.TestUtils;
 
 namespace NuGetGallery
 {
@@ -45,7 +46,8 @@ namespace NuGetGallery
             Mock<ISupportRequestService> supportRequestService = null,
             IAuditingService auditingService = null,
             Mock<ITelemetryService> telemetryService = null,
-            Mock<ISecurityPolicyService> securityPolicyService = null)
+            Mock<ISecurityPolicyService> securityPolicyService = null,
+            IReservedNamespaceService reservedNamespaceService = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
             if (uploadFileService == null)
@@ -85,6 +87,8 @@ namespace NuGetGallery
 
             securityPolicyService = securityPolicyService ?? new Mock<ISecurityPolicyService>();
 
+            reservedNamespaceService = reservedNamespaceService ?? new TestableReservedNamespaceService();
+
             var controller = new Mock<PackagesController>(
                 packageService.Object,
                 uploadFileService.Object,
@@ -101,7 +105,8 @@ namespace NuGetGallery
                 supportRequestService.Object,
                 auditingService,
                 telemetryService.Object,
-                securityPolicyService.Object);
+                securityPolicyService.Object,
+                reservedNamespaceService);
 
             controller.CallBase = true;
             controller.Object.SetOwinContextOverride(Fakes.CreateOwinContext());

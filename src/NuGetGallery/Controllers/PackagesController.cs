@@ -55,6 +55,7 @@ namespace NuGetGallery
         private readonly IAuditingService _auditingService;
         private readonly ITelemetryService _telemetryService;
         private readonly ISecurityPolicyService _securityPolicyService;
+        private readonly IReservedNamespaceService _reservedNamespaceService;
 
         public PackagesController(
             IPackageService packageService,
@@ -72,7 +73,8 @@ namespace NuGetGallery
             ISupportRequestService supportRequestService,
             IAuditingService auditingService,
             ITelemetryService telemetryService,
-            ISecurityPolicyService securityPolicyService)
+            ISecurityPolicyService securityPolicyService,
+            IReservedNamespaceService reservedNamespaceService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -90,6 +92,7 @@ namespace NuGetGallery
             _auditingService = auditingService;
             _telemetryService = telemetryService;
             _securityPolicyService = securityPolicyService;
+            _reservedNamespaceService = reservedNamespaceService;
         }
 
         [HttpGet]
@@ -315,13 +318,26 @@ namespace NuGetGallery
                             nuspec.GetMinClientVersion()) });
                 }
 
-                var packageRegistration = _packageService.FindPackageRegistrationById(nuspec.GetId());
+                var id = nuspec.GetId();
+                var packageRegistration = _packageService.FindPackageRegistrationById(id);
                 if (packageRegistration != null && !packageRegistration.Owners.AnySafe(x => x.Key == currentUser.Key))
                 {
                     ModelState.AddModelError(
                         string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id));
                     
                     return Json(409, new string [] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id) });
+                }
+
+                // For new package id verify if it is owned by the current user
+                var matchingNamespaces = _reservedNamespaceService.GetReservedNamespacesForId(id);
+                if (packageRegistration == null 
+                    && matchingNamespaces.Count > 0 
+                    && !matchingNamespaces.Any(rn => rn.Owners.AnySafe(o => o.Key == currentUser.Key)))
+                {
+                    ModelState.AddModelError(
+                        string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.ReservedNamespace_UserNotAnOwner, currentUser.Username));
+
+                    return Json(409, new string[] { string.Format(CultureInfo.CurrentCulture, Strings.ReservedNamespace_UserNotAnOwner, currentUser.Username) });
                 }
 
                 var nuspecVersion = nuspec.GetVersion();

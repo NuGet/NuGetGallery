@@ -24,6 +24,7 @@ using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using Xunit;
+using NuGetGallery.TestUtils;
 
 namespace NuGetGallery
 {
@@ -59,6 +60,7 @@ namespace NuGetGallery
             AutoCuratePackage = (MockAutoCuratePackage = new Mock<IAutomaticallyCuratePackageCommand>()).Object;
             AuthenticationService = (MockAuthenticationService = new Mock<AuthenticationService>()).Object;
             SecurityPolicyService = (MockSecurityPolicyService = new Mock<ISecurityPolicyService>()).Object;
+            ReservedNamespaceService = new TestableReservedNamespaceService();
 
             CredentialBuilder = new CredentialBuilder();
 
