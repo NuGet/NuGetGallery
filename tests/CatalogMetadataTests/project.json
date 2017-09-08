@@ -2,7 +2,7 @@
   "dependencies": {
     "Microsoft.Extensions.Logging.Abstractions": "1.0.0",
     "Moq": "4.5.23",
-    "NuGet.Common": "4.3.0-preview3-4146",
+    "NuGet.Common": "4.3.0",
     "xunit": "2.1.0",
     "xunit.runner.visualstudio": "2.1.0"
   },
