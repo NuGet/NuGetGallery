@@ -12,24 +12,24 @@ namespace NuGetGallery
     public sealed class ReadMeRequest
     {
         /// <summary>
-        /// Source posted file, used for readme.md import when <see cref="ReadMeSourceType"/> is 'file'.
+        /// Source type for an imported readme.md file. Supported types are 'file', 'url' or 'written'.
+        /// </summary>
+        public string SourceType { get; set; }
+
+        /// <summary>
+        /// Source posted file, used for readme.md import when <see cref="SourceType"/> is 'file'.
         /// </summary>
         public HttpPostedFileBase SourceFile { get; set; }
 
         /// <summary>
-        /// Source text, used for readme.md import when <see cref="ReadMeSourceType"/> is 'written'.
+        /// Source text, used for readme.md import when <see cref="SourceType"/> is 'written'.
         /// </summary>
         [AllowHtml]
         public string SourceText { get; set; }
 
         /// <summary>
-        /// Source uri, used for readme.md import when <see cref="ReadMeSourceType"/> is 'url'.
+        /// Source uri, used for readme.md import when <see cref="SourceType"/> is 'url'.
         /// </summary>
         public string SourceUrl { get; set; }
-
-        /// <summary>
-        /// Source type for an imported readme.md file. Supported types are 'file', 'url' or 'written'.
-        /// </summary>
-        public string ReadMeSourceType { get; set; }
     }
 }

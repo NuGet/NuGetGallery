@@ -182,13 +182,6 @@ var EditViewManager = new function () {
         
         window.nuget.configureExpanderHeading("verify-package-form");
         window.nuget.configureExpanderHeading("submit-package-form");
-        
-        $(".markdown-popover").popover({
-            trigger: 'click focus',
-            html: true,
-            placement: 'bottom',
-            content: "# Heading<br />## Sub-heading<br />Paragraphs are separated by a blank line.<br />--- Horizontal Rule<br />* Bullet List<br />1. Numbered List<br />A [link](http://www.example.com)<br />`Code Snippet`<br />_italic_ *italic*<br />__bold__ **bold** "
-        });
 
         bindReadMeData(model);
     }

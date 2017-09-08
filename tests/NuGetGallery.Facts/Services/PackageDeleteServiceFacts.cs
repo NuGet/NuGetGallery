@@ -199,6 +199,9 @@ namespace NuGetGallery
                 var packageFileService = new Mock<IPackageFileService>();
                 packageFileService.Setup(x => x.DownloadPackageFileAsync(It.IsAny<Package>()))
                     .ReturnsAsync(new MemoryStream());
+                packageFileService.Setup(x => x.DeleteReadMeMdFileAsync(It.IsAny<Package>(), It.IsAny<bool>()))
+                    .Returns(Task.CompletedTask)
+                    .Verifiable();
 
                 var service = CreateService(packageFileService: packageFileService);
                 var packageRegistration = new PackageRegistration();
@@ -210,6 +213,9 @@ namespace NuGetGallery
 
                 packageFileService.Verify(x => x.StorePackageFileInBackupLocationAsync(package, It.IsAny<Stream>()));
                 packageFileService.Verify(x => x.DeletePackageFileAsync(package.PackageRegistration.Id, package.Version));
+
+                packageFileService.Verify(x => x.DeleteReadMeMdFileAsync(package, true), Times.Once);
+                packageFileService.Verify(x => x.DeleteReadMeMdFileAsync(package, false), Times.Once);
             }
 
             [Fact]

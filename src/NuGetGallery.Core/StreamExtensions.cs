@@ -21,13 +21,5 @@ namespace NuGetGallery
             memoryStream.Position = 0;
             return memoryStream;
         }
-
-        public static async Task<string> ReadToEndAsync(this Stream stream)
-        {
-            using (var reader = new StreamReader(stream))
-            {
-                return await reader.ReadToEndAsync();
-            }
-        }
     }
 }

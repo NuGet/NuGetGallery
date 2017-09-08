@@ -13,138 +13,184 @@ namespace NuGetGallery.Helpers
 {
     public class ReadMeHelperFacts
     {
-        [Fact]
-        public void HasReadMe_WhenRequestIsNull_ReturnsFalse()
+        public class TheHasReadMeSourceMethod
         {
-            Assert.False(ReadMeHelper.HasReadMe(null));
-        }
+            [Fact]
+            public void WhenRequestIsNull_ReturnsFalse()
+            {
+                Assert.False(ReadMeHelper.HasReadMeSource(null));
+            }
 
-        [Theory]
-        [InlineData(null)]
-        [InlineData("")]
-        [InlineData("InvalidType")]
-        public void HasReadMe_WhenTypeIsUnknown_ReturnsFalse(string readMeType)
-        {
-            Assert.False(ReadMeHelper.HasReadMe(new ReadMeRequest() { ReadMeSourceType = readMeType }));
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            [InlineData("InvalidType")]
+            public void WhenTypeIsUnknown_ReturnsFalse(string sourceType)
+            {
+                Assert.False(ReadMeHelper.HasReadMeSource(new ReadMeRequest() { SourceType = sourceType }));
+            }
+
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            [InlineData("   ")]
+            public void WhenWrittenAndSourceTextMissing_ReturnsFalse(string sourceText)
+            {
+                Assert.False(ReadMeHelper.HasReadMeSource(new ReadMeRequest() { SourceType = ReadMeHelper.TypeWritten, SourceText = sourceText }));
+            }
+
+            [Fact]
+            public void WhenWrittenAndHasSourceText_ReturnsTrue()
+            {
+                Assert.True(ReadMeHelper.HasReadMeSource(new ReadMeRequest() { SourceType = ReadMeHelper.TypeWritten, SourceText = "markdown" }));
+            }
+
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            [InlineData("   ")]
+            public void WhenUrlAndSourceUrlMissing_ReturnsFalse(string sourceUrl)
+            {
+                Assert.False(ReadMeHelper.HasReadMeSource(new ReadMeRequest() { SourceType = ReadMeHelper.TypeUrl, SourceUrl = sourceUrl }));
+            }
+
+            [Fact]
+            public void WhenUrlAndHasSourceUrl_ReturnsTrue()
+            {
+                Assert.True(ReadMeHelper.HasReadMeSource(new ReadMeRequest() { SourceType = ReadMeHelper.TypeUrl, SourceUrl = "sourceUrl" }));
+            }
+
+            [Fact]
+            public void WhenFileAndSourceFileMissing_ReturnsFalse()
+            {
+                Assert.False(ReadMeHelper.HasReadMeSource(new ReadMeRequest() { SourceType = ReadMeHelper.TypeFile }));
+            }
+
+            [Fact]
+            public void WhenFileAndSourceFileEmpty_ReturnsFalse()
+            {
+                // Arrange.
+                var sourceFile = new Mock<HttpPostedFileBase>();
+                sourceFile.Setup(f => f.ContentLength).Returns(0);
+
+                // Act & Assert.
+                Assert.False(ReadMeHelper.HasReadMeSource(new ReadMeRequest() { SourceType = ReadMeHelper.TypeFile, SourceFile = sourceFile.Object }));
+            }
+
+            [Fact]
+            public void WhenFileAndSourceFileNotEmpty_ReturnsTrue()
+            {
+                // Arrange.
+                var sourceFile = new Mock<HttpPostedFileBase>();
+                sourceFile.Setup(f => f.ContentLength).Returns(10);
+
+                // Act & Assert.
+                Assert.True(ReadMeHelper.HasReadMeSource(new ReadMeRequest() { SourceType = ReadMeHelper.TypeFile, SourceFile = sourceFile.Object }));
+            }
         }
         
-        [Theory]
-        [InlineData("")]
-        [InlineData(null)]
-        [InlineData("github.com")]
-        public void HasReadMe_WhenUrlIsInvalid_ReturnsFalse(string invalidUrl)
+        public class TheGetReadMeHtmlMethod
         {
-            var request = new ReadMeRequest
+            [Theory]
+            [InlineData("<script>alert('test')</script>", "<p>&lt;script&gt;alert('test')&lt;/script&gt;</p>")]
+            [InlineData("<img src=\"javascript:alert('test');\">", "<p>&lt;img src=&quot;javascript:alert('test');&quot;&gt;</p>")]
+            [InlineData("<a href=\"javascript:alert('test');\">", "<p>&lt;a href=&quot;javascript:alert('test');&quot;&gt;</p>")]
+            public void EncodesHtmlInMarkdown(string originalMd, string expectedHtml)
             {
-                ReadMeSourceType = ReadMeHelper.TypeUrl,
-                SourceUrl = invalidUrl
-            };
+                Assert.Equal(expectedHtml, StripNewLines(ReadMeHelper.GetReadMeHtml(originalMd)));
+            }
 
-            Assert.False(ReadMeHelper.HasReadMe(request));
-        }
-
-        [Theory]
-        [InlineData("http://unit.test/host-not-validated-here/")]
-        [InlineData("https://raw.githubusercontent.com/NuGet/NuGetGallery/master/README.md")]
-        public void HasReadMe_WhenUrlIsValid_ReturnsTrue(string validUrl)
-        {
-            var request = new ReadMeRequest
+            [Theory]
+            [InlineData("# Heading", "<h1>Heading</h1>")]
+            [InlineData("- List", "<ul><li>List</li></ul>")]
+            [InlineData("[text](http://www.test.com)", "<p><a href=\"http://www.test.com\">text</a></p>")]
+            public void ConvertsMarkdownToHtml(string originalMd, string expectedHtml)
             {
-                ReadMeSourceType = ReadMeHelper.TypeUrl,
-                SourceUrl = validUrl
-            };
+                Assert.Equal(expectedHtml, StripNewLines(ReadMeHelper.GetReadMeHtml(originalMd)));
+            }
 
-            Assert.True(ReadMeHelper.HasReadMe(request));
-        }
-
-        [Fact]
-        public void HasReadMe_WhenFileIsNull_ReturnsFalse()
-        {
-            var request = new ReadMeRequest
+            private static string StripNewLines(string text)
             {
-                ReadMeSourceType = ReadMeHelper.TypeFile
-            };
-
-            Assert.False(ReadMeHelper.HasReadMe(request));
-        }
-
-        [Fact]
-        public void HasReadMe_WhenFileIsEmpty_ReturnsFalse()
-        {
-            var request = GetReadMeRequest(ReadMeHelper.TypeFile, string.Empty);
-
-            Assert.False(ReadMeHelper.HasReadMe(request));
-        }
-
-        [Fact]
-        public void HasReadMe_WhenFileIsNotNullOrEmpty_ReturnsTrue()
-        {
-            var request = GetReadMeRequest(ReadMeHelper.TypeFile, "markdown");
-
-            Assert.True(ReadMeHelper.HasReadMe(request));
-        }
-
-        [Theory]
-        [InlineData(null)]
-        [InlineData("")]
-        [InlineData("   ")]
-        public void HasReadMe_WhenWrittenIsMissing_ReturnsFalse(string writtenText)
-        {
-            var request = GetReadMeRequest(ReadMeHelper.TypeWritten, writtenText);
-
-            Assert.False(ReadMeHelper.HasReadMe(request));
-        }
-
-        [Fact]
-        public void HasReadMe_WhenWrittenIsMissing_ReturnsTrue()
-        {
-            var request = GetReadMeRequest(ReadMeHelper.TypeWritten, "# ReadMe Example");
-
-            Assert.True(ReadMeHelper.HasReadMe(request));
-        }
-
-        [Theory]
-        [InlineData(ReadMeHelper.TypeFile)]
-        [InlineData(ReadMeHelper.TypeWritten)]
-        public async Task GetReadMeMarkdownStream_WhenValid_ReturnsMarkdownData(string readMeType)
-        {
-            var markdown = "# Hello, World!";
-            var request = GetReadMeRequest(readMeType, markdown);
-
-            using (var mdStream = await ReadMeHelper.GetReadMeMarkdownStream(request))
-            {
-                Assert.Equal(markdown, await mdStream.ReadToEndAsync());
+                return text.Replace("\r\n", "").Replace("\n", "");
             }
         }
 
-        [Fact]
-        public async Task GetReadMeMarkdownStream_WhenInvalidType_Throws()
+        public class TheGetReadMeMdAsyncMethod
         {
-            var request = GetReadMeRequest("UnknownType", string.Empty);
+            private readonly string LargeMarkdown = new string('x', ReadMeHelper.MaxMdLengthBytes + 1);
 
-            await Assert.ThrowsAsync<InvalidOperationException>(() => ReadMeHelper.GetReadMeMarkdownStream(request));
+            [Theory]
+            [InlineData("")]
+            [InlineData(null)]
+            [InlineData("invalid")]
+            public async Task WhenInvalidSourceType_ThrowsInvalidOperationException(string sourceType)
+            {
+                // Arrange.
+                var request = ReadMeHelperFacts.GetReadMeRequest(sourceType, "markdown");
+
+                // Act & Assert.
+                await Assert.ThrowsAsync<InvalidOperationException>(() => ReadMeHelper.GetReadMeMdAsync(request));
+            }
+
+            [Theory]
+            [InlineData(ReadMeHelper.TypeWritten)]
+            [InlineData(ReadMeHelper.TypeFile)]
+            public async Task WhenMaxLengthExceeded_ThrowsInvalidOperationException(string sourceType)
+            {
+                // Arrange.
+                var request = ReadMeHelperFacts.GetReadMeRequest(ReadMeHelper.TypeWritten, LargeMarkdown);
+
+                // Act & Assert.
+                await Assert.ThrowsAsync<InvalidOperationException>(() => ReadMeHelper.GetReadMeMdAsync(request));
+            }
+
+            [Theory]
+            [InlineData(ReadMeHelper.TypeWritten)]
+            [InlineData(ReadMeHelper.TypeFile)]
+            public async Task WhenValid_ReturnsSourceContent(string sourceType)
+            {
+                // Arrange.
+                var request = ReadMeHelperFacts.GetReadMeRequest(sourceType, "markdown");
+
+                // Act & Assert.
+                Assert.Equal("markdown", await ReadMeHelper.GetReadMeMdAsync(request));
+            }
+
+            [Theory]
+            [InlineData("exe")]
+            [InlineData("txt")]
+            [InlineData("zip")]
+            public async Task WhenFileAndExtensionInvalid_ThrowsInvalidOperationException(string fileExt)
+            {
+                // Arrange.
+                var request = ReadMeHelperFacts.GetReadMeRequest(ReadMeHelper.TypeFile, "markdown", fileName: $"README.{fileExt}");
+
+                // Act & Assert.
+                await Assert.ThrowsAsync<InvalidOperationException>(() => ReadMeHelper.GetReadMeMdAsync(request));
+            }
+
+            [Theory]
+            [InlineData("invalid")]
+            [InlineData("www.github.com")]
+            public async Task WhenInvalidUrl_ThrowsInvalidOperationException(string url)
+            {
+                // Arrange.
+                var request = ReadMeHelperFacts.GetReadMeRequest(ReadMeHelper.TypeUrl, "markdown");
+
+                // Act & Assert.
+                await Assert.ThrowsAsync<ArgumentException>(() => ReadMeHelper.GetReadMeMdAsync(request));
+            }
         }
 
-        [Theory]
-        [InlineData(ReadMeHelper.TypeFile)]
-        [InlineData(ReadMeHelper.TypeWritten)]
-        public async Task GetReadMeMarkdownStream_WhenMaxFileSizeReached_ThrowsArgumentException(string readMeType)
+        private static ReadMeRequest GetReadMeRequest(string sourceType, string markdown, string fileName = "README.md", string url = "")
         {
-            var largeMarkdown = new string('x', ReadMeHelper.MaxReadMeLengthBytes);
-            var request = GetReadMeRequest(readMeType, largeMarkdown);
+            var request = new ReadMeRequest() { SourceType = sourceType };
 
-            await Assert.ThrowsAsync<InvalidOperationException>(() => ReadMeHelper.GetReadMeMarkdownStream(request));
-        }
-
-        private ReadMeRequest GetReadMeRequest(string readMeType, string markdown)
-        {
-            var request = new ReadMeRequest() { ReadMeSourceType = readMeType };
-
-            switch (readMeType)
+            switch (sourceType)
             {
                 case ReadMeHelper.TypeFile:
                     var fileMock = new Mock<HttpPostedFileBase>();
-                    fileMock.Setup(f => f.FileName).Returns("README.md");
+                    fileMock.Setup(f => f.FileName).Returns(fileName);
                     fileMock.Setup(f => f.ContentLength).Returns(markdown.Length);
                     fileMock.Setup(f => f.InputStream).Returns(new MemoryStream(Encoding.UTF8.GetBytes(markdown)));
                     request.SourceFile = fileMock.Object;
@@ -152,6 +198,10 @@ namespace NuGetGallery.Helpers
 
                 case ReadMeHelper.TypeWritten:
                     request.SourceText = markdown;
+                    break;
+
+                case ReadMeHelper.TypeUrl:
+                    request.SourceUrl = url;
                     break;
             }
 

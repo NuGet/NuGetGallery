@@ -2,9 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Globalization;
 using System.IO;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using CommonMark;
@@ -16,112 +16,143 @@ namespace NuGetGallery.Helpers
         internal const string TypeUrl = "Url";
         internal const string TypeFile = "File";
         internal const string TypeWritten = "Written";
-        internal const int MaxReadMeLengthBytes = 8000;
-        private const string UriHostRequirement = "raw.githubusercontent.com";
+        internal const int MaxMdLengthBytes = 8000;
+        private const string UrlHostRequirement = "raw.githubusercontent.com";
         private static readonly TimeSpan UrlTimeout = TimeSpan.FromSeconds(10);
 
         /// <summary>
-        /// Returns if posted package form contains readme.md source data.
-        /// 
-        /// Note the following differences between source types:
-        /// * 'TypeUrl' validates the URL string, allowing empty or whitespace-only files.
-        /// * 'TypeFile' validates file length, allowing whitespace-only (but not empty) files.
-        /// * 'TypeWritten' validates string content, NOT allowing empty or whitespace-only files.
+        /// Determine if a readMeRequest is populated with source input.
         /// </summary>
-        /// <param name="readMeRequest">Request associated with package edit that can post readme.md source data.</param>
-        /// <returns>True if the request contains readme.md source data, false otherwise.</returns>
-        public static bool HasReadMe(ReadMeRequest readMeRequest)
+        /// <param name="readMeRequest">ReadMeRequest object.</param>
+        /// <returns>True if readMe input source is provided, false otherwise.</returns>
+        public static bool HasReadMeSource(ReadMeRequest readMeRequest)
         {
-            var readMeType = readMeRequest?.ReadMeSourceType;
-            if (TypeUrl.Equals(readMeType, StringComparison.InvariantCultureIgnoreCase))
+            var readMeType = readMeRequest?.SourceType;
+
+            if (TypeWritten.Equals(readMeType, StringComparison.InvariantCultureIgnoreCase))
             {
-                var readMeUrl = readMeRequest.SourceUrl;
-                return !string.IsNullOrWhiteSpace(readMeUrl) && Uri.IsWellFormedUriString(readMeUrl, UriKind.Absolute);
-            }
-            else if (TypeWritten.Equals(readMeType, StringComparison.InvariantCultureIgnoreCase))
-            {
+                // Text (markdown) provided.
                 return !string.IsNullOrWhiteSpace(readMeRequest.SourceText);
+            }
+            else if (TypeUrl.Equals(readMeType, StringComparison.InvariantCultureIgnoreCase))
+            {
+                // URL provided.
+                return !string.IsNullOrWhiteSpace(readMeRequest.SourceUrl);
             }
             else if (TypeFile.Equals(readMeType, StringComparison.InvariantCultureIgnoreCase))
             {
+                // File upload provided.
                 var readMeFile = readMeRequest.SourceFile;
                 return readMeFile != null && readMeFile.ContentLength > 0;
             }
 
             return false;
         }
-        
-        public static string GetReadMeHtml(string markdown)
+
+        /// <summary>
+        /// Get converted HTML for readme.md string content.
+        /// </summary>
+        /// <param name="readMeMd">ReadMe.md content.</param>
+        /// <returns>HTML content.</returns>
+        public static string GetReadMeHtml(string readMeMd)
         {
-            var encodedMarkdown = HttpUtility.HtmlEncode(markdown);
+            var encodedMarkdown = HttpUtility.HtmlEncode(readMeMd);
             return CommonMarkConverter.Convert(encodedMarkdown);
         }
         
+        /// <summary>
+        /// Get converted HTML for readme.md content from a ReadMeRequest object.
+        /// </summary>
+        /// <param name="readMeRequest">ReadMe request from Verify or Edit package page.</param>
+        /// <returns>HTML content.</returns>
         public static async Task<string> GetReadMeHtmlAsync(ReadMeRequest readMeRequest)
         {
-            using (var markdownStream = await GetReadMeMarkdownStream(readMeRequest))
-            {
-                return GetReadMeHtml(await markdownStream.ReadToEndAsync());
-            }
+            var markdown = await GetReadMeMdAsync(readMeRequest);
+            return GetReadMeHtml(markdown);
         }
 
         /// <summary>
-        /// Gets the readme.md source data from a request.
+        /// Get readme.md content from a ReadMeRequest object.
         /// </summary>
-        /// <param name="readMeRequest">Request containing readme.md source data.</param>
-        /// <returns>Stream containing the readme.md data.</returns>
-        public static async Task<Stream> GetReadMeMarkdownStream(ReadMeRequest readMeRequest)
+        /// <param name="readMeRequest">ReadMe request from Verify or Edit package page.</param>
+        /// <returns>Markdown content.</returns>
+        public static async Task<string> GetReadMeMdAsync(ReadMeRequest readMeRequest)
         {
-            Stream readMeStream;
-            var readMeType = readMeRequest?.ReadMeSourceType;
-            if (TypeUrl.Equals(readMeType, StringComparison.InvariantCultureIgnoreCase))
+            var readMeType = readMeRequest?.SourceType;
+
+            if (TypeWritten.Equals(readMeType, StringComparison.InvariantCultureIgnoreCase))
             {
-                readMeStream = await GetReadMeStreamFromUrl(readMeRequest.SourceUrl);
+                if (readMeRequest.SourceText.Length > MaxMdLengthBytes)
+                {
+                    throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture,
+                        Strings.ReadMeMaxLengthExceeded, MaxMdLengthBytes));
+                }
+                return readMeRequest.SourceText;
             }
-            else if (TypeWritten.Equals(readMeType, StringComparison.InvariantCultureIgnoreCase))
+            else if (TypeUrl.Equals(readMeType, StringComparison.InvariantCultureIgnoreCase))
             {
-                readMeStream = new MemoryStream(Encoding.UTF8.GetBytes(readMeRequest.SourceText));
+                return await GetReadMeMdFromUrlAsync(readMeRequest.SourceUrl);
             }
             else if (TypeFile.Equals(readMeType, StringComparison.InvariantCultureIgnoreCase))
             {
-                var uploadFileName = readMeRequest.SourceFile.FileName;
-                if (!Path.GetExtension(uploadFileName).Equals(Constants.MarkdownFileExtension, StringComparison.OrdinalIgnoreCase))
-                {
-                    throw new InvalidOperationException($"ReadMe file must end with extension '{Constants.MarkdownFileExtension}'.");
-                }
-
-                readMeStream = readMeRequest.SourceFile.InputStream;
+                return await GetReadMeMdFromPostedFileAsync(readMeRequest.SourceFile);
             }
             else
             {
-                throw new InvalidOperationException($"'{readMeType}' is not a valid ReadMeType.");
+                throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture,
+                    Strings.ReadMeInvalidSourceType, readMeType));
             }
-
-            readMeStream = readMeStream.AsSeekableStream();
-            if (readMeStream.Length >= MaxReadMeLengthBytes)
-            {
-                throw new InvalidOperationException($"ReadMe file must be less than '{MaxReadMeLengthBytes}' bytes.");
-            }
-            return readMeStream;
         }
 
         /// <summary>
-        /// Gets the readme.md source data from a url.
+        /// Get readme.md content from a posted file.
         /// </summary>
-        /// <param name="readMeRequest">Request containing readme.md source data.</param>
-        /// <returns>Stream containing the readme.md data.</returns>
-        private static async Task<Stream> GetReadMeStreamFromUrl(string readMeUrl)
+        /// <param name="readMeMdPostedFile">Posted readme.md file.</param>
+        /// <returns>Markdown content.</returns>
+        private static async Task<string> GetReadMeMdFromPostedFileAsync(HttpPostedFileBase readMeMdPostedFile)
         {
-            var readMeUri = new Uri(readMeUrl);
-            if (readMeUri.Host != UriHostRequirement)
+            if (!Path.GetExtension(readMeMdPostedFile.FileName).Equals(Constants.MarkdownFileExtension, StringComparison.InvariantCulture))
             {
-                throw new ArgumentException($"ReadMe URL must be a raw markdown file hosted on GitHub.");
+                throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture,
+                    Strings.ReadMePostedFileExtensionInvalid, Constants.MarkdownFileExtension));
             }
 
-            using (var client = new HttpClient())
+            if (readMeMdPostedFile.ContentLength > MaxMdLengthBytes)
             {
-                client.Timeout = UrlTimeout;
-                return (await client.GetStreamAsync(readMeUri)).AsSeekableStream();
+                throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture,
+                    Strings.ReadMeMaxLengthExceeded, MaxMdLengthBytes));
+            }
+
+            using (var readMeMdStream = readMeMdPostedFile.InputStream)
+            {
+                using (var reader = new StreamReader(readMeMdStream))
+                {
+                    return await reader.ReadToEndAsync();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get readme.md content from a url.
+        /// </summary>
+        /// <param name="readMeMdUrl">ReadMe.md URL, which must be a raw github file.</param>
+        /// <returns>Markdown content.</returns>
+        private static async Task<string> GetReadMeMdFromUrlAsync(string readMeMdUrl)
+        {
+            if (!Uri.IsWellFormedUriString(readMeMdUrl, UriKind.Absolute) || new Uri(readMeMdUrl).Host != UrlHostRequirement)
+            {
+                throw new ArgumentException(Strings.ReadMeUrlHostInvalid, nameof(readMeMdUrl));
+            }
+
+            using (var client = new HttpClient() { Timeout = UrlTimeout, MaxResponseContentBufferSize = MaxMdLengthBytes })
+            {
+                using (var readMeMdStream = await client.GetStreamAsync(readMeMdUrl))
+                {
+                    using (var reader = new StreamReader(readMeMdStream))
+                    {
+                        return await reader.ReadToEndAsync();
+                    }
+                }
             };
         }
     }

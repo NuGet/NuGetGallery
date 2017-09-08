@@ -435,112 +435,166 @@ namespace NuGetGallery
             }
         }
 
-        public class TheSaveReadMeFileAsyncMethod
+        public class TheDeleteReadMeMdFileAsync
         {
             [Fact]
-            public async Task WhenPackageNull_ThrowsArgumentNull()
+            public async Task WhenPackageNull_ThrowsArgumentNullException()
             {
                 var service = CreateService();
-                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.SaveReadMeFileAsync(null, new MemoryStream()));
+
+                await Assert.ThrowsAsync<ArgumentNullException>(() => service.DeleteReadMeMdFileAsync(null));
             }
 
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task WhenValid_DeletesFromStorage(bool isPending = true)
+            {
+                // Arrange.
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration() { Id = "Test" },
+                    Version = "1.0.0",
+                };
+
+                var fileServiceMock = new Mock<IFileStorageService>();
+                fileServiceMock.Setup(fs => fs.DeleteFileAsync(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(Task.CompletedTask)
+                    .Verifiable();
+
+                var service = CreateService(fileServiceMock);
+                var expectedFolder = isPending ? "pending" : "active";
+
+                // Act.
+                await service.DeleteReadMeMdFileAsync(package, isPending: isPending);
+
+                // Assert.
+                fileServiceMock.Verify(fs => fs.DeleteFileAsync(Constants.PackageReadMesFolderName, $"{expectedFolder}/test/1.0.0.md"), Times.Once);
+            }
+        }
+
+        public class TheSavePendingReadMeMdFileAsyncMethod
+        {
             [Fact]
-            public async Task WhenStreamNull_ThrowsArgumentNull()
+            public async Task WhenPackageNull_ThrowsArgumentNullException()
             {
                 var service = CreateService();
-                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.SaveReadMeFileAsync(new Package(), null));
+
+                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.SavePendingReadMeMdFileAsync(null, ""));
+            }
+
+            [Theory]
+            [InlineData("")]
+            [InlineData(null)]
+            [InlineData("   ")]
+            public async Task WhenReadMeMdMissing_ThrowsArgumentException(string markdown)
+            {
+                var service = CreateService();
+
+                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.SavePendingReadMeMdFileAsync(new Package(), markdown));
             }
 
             [Fact]
             public async Task WhenValid_SavesReadMeFile()
             {
-                using (var stream = new MemoryStream(Encoding.UTF8.GetBytes("<p>Hello World!</p>")))
+                // Arrange.
+                var fileServiceMock = new Mock<IFileStorageService>();
+                fileServiceMock.Setup(f => f.SaveFileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Stream>(), It.IsAny<bool>()))
+                    .Returns(Task.CompletedTask)
+                    .Verifiable();
+                var service = CreateService(fileServiceMock);
+
+                var package = new Package()
                 {
-                    // Arrange
-                    var fileStorageSvc = new Mock<IFileStorageService>();
-                    fileStorageSvc.Setup(f => f.SaveFileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Stream>(), It.IsAny<bool>()))
-                        .Returns(Task.CompletedTask)
-                        .Verifiable();
-                    var service = CreateService(fileStorageSvc: fileStorageSvc);
+                    PackageRegistration = new PackageRegistration() { Id = "Foo" },
+                    Version = "1.0.0",
+                };
 
-                    var package = new Package()
-                    {
-                        PackageRegistration = new PackageRegistration() { Id = "Foo", },
-                        Version = "1.0.0",
-                    };
+                // Act.
+                await service.SavePendingReadMeMdFileAsync(package, "<p>Hello World!</p>");
 
-                    // Act
-                    await service.SaveReadMeFileAsync(package, stream);
-
-                    // Assert
-                    fileStorageSvc.Verify(f => f.SaveFileAsync(Constants.PackageReadMesFolderName, "pending/foo/1.0.0.md", stream, true),
-                        Times.Once);
-                }
+                // Assert.
+                fileServiceMock.Verify(f => f.SaveFileAsync(Constants.PackageReadMesFolderName, "pending/foo/1.0.0.md", It.IsAny<Stream>(), true),
+                    Times.Once);
             }
         }
 
-        public class TheDownloadReadMeFileAsyncMethod
+        public class TheDownloadReadMeMdFileAsyncMethod
         {
             [Fact]
             public async Task WhenPackageNull_ThrowsArgumentNull()
             {
                 var service = CreateService();
-                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.DownloadReadMeFileAsync(null));
+
+                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.DownloadReadMeMdFileAsync(null));
             }
 
-            [Fact]
-            public async Task WhenExists_ReturnsMarkdownStream()
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task WhenExists_ReturnsMarkdownStream(bool isPending)
             {
-                using (var stream = new MemoryStream(Encoding.UTF8.GetBytes("<p>Hello World!</p>")))
+                var expectedMd = "<p>Hello World!</p>";
+                var expectedFolder = isPending ? "pending" : "active";
+
+                // Arrange.
+                using (Stream stream = new MemoryStream(Encoding.UTF8.GetBytes(expectedMd)))
                 {
-                    // Arrange
-                    var fileStorageSvc = new Mock<IFileStorageService>();
-                    var service = CreateService(fileStorageSvc: fileStorageSvc);
+                    var fileServiceMock = new Mock<IFileStorageService>();
+                    var service = CreateService(fileStorageSvc: fileServiceMock);
 
                     var package = new Package()
                     {
                         PackageRegistration = new PackageRegistration()
                         {
-                            Id = "Foo",
+                            Id = "Foo"
                         },
-                        Version = "01.1.01",
+                        Version = "01.1.01"
                     };
-                    fileStorageSvc.Setup(f => f.GetFileAsync(It.IsAny<string>(), It.IsAny<string>())).Returns(Task.FromResult((Stream)stream)).Verifiable();
+                    fileServiceMock.Setup(f => f.GetFileAsync(It.IsAny<string>(), It.IsAny<string>()))
+                        .Returns(Task.FromResult(stream))
+                        .Verifiable();
 
-                    // Act
-                    var result = await service.DownloadReadMeFileAsync(package);
-                    using (var reader = new StreamReader(result))
-                    {
-                        // Assert
-                        Assert.Equal("<p>Hello World!</p>", await reader.ReadToEndAsync());
-                        fileStorageSvc.Verify(f => f.GetFileAsync(Constants.PackageReadMesFolderName, "active/foo/1.1.1.md"), Times.Once);
-                    }
+                    // Act.
+                    var actualMd = await service.DownloadReadMeMdFileAsync(package, isPending);
+
+                    // Assert.
+                    Assert.Equal(expectedMd, actualMd);
+
+                    fileServiceMock.Verify(f => f.GetFileAsync(Constants.PackageReadMesFolderName, $"{expectedFolder}/foo/1.1.1.md"), Times.Once);
                 }
             }
 
-            [Fact]
-            public async Task WhenDoesNotExist_ReturnsNull()
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task WhenDoesNotExist_ReturnsNull(bool isPending)
             {
+                var expectedFolder = isPending ? "pending" : "active";
+
                 // Arrange
-                var fileStorageSvc = new Mock<IFileStorageService>();
-                var service = CreateService(fileStorageSvc: fileStorageSvc);
+                var fileServiceMock = new Mock<IFileStorageService>();
+                var service = CreateService(fileServiceMock);
 
                 var package = new Package()
                 {
                     PackageRegistration = new PackageRegistration()
                     {
-                        Id = "Foo",
+                        Id = "Foo"
                     },
-                    Version = "01.1.01",
+                    Version = "01.1.01"
                 };
-                fileStorageSvc.Setup(f => f.GetFileAsync(It.IsAny<string>(), It.IsAny<string>())).Returns(Task.FromResult((Stream)null)).Verifiable();
+                fileServiceMock.Setup(f => f.GetFileAsync(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(Task.FromResult((Stream)null))
+                    .Verifiable();
 
                 // Act
-                var result = await service.DownloadReadMeFileAsync(package);
+                var result = await service.DownloadReadMeMdFileAsync(package, isPending);
 
                 // Assert
                 Assert.Null(result);
-                fileStorageSvc.Verify(f => f.GetFileAsync(Constants.PackageReadMesFolderName, "active/foo/1.1.1.md"), Times.Once);
+
+                fileServiceMock.Verify(f => f.GetFileAsync(Constants.PackageReadMesFolderName, $"{expectedFolder}/foo/1.1.1.md"), Times.Once);
             }
         }
 

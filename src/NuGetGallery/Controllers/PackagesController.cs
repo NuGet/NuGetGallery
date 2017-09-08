@@ -455,12 +455,12 @@ namespace NuGetGallery
                 if (pendingMetadata != null)
                 {
                     model.SetPendingMetadata(pendingMetadata);
-                    isReadMePending = pendingMetadata.ReadMeState == PackageEditReadMeState.Changed;
+                    isReadMePending = pendingMetadata.ReadMeState != PackageEditReadMeState.Unchanged;
                 }
             }
 
-            model.ReadMeHtml = await GetPackageReadMeHtmlAsync(package, isReadMePending);
-            model.ReadMeHtmlClamped = await GetPackageReadMeHtmlAsync(package, isReadMePending, isClamped: true);
+            await GetPackageReadMeHtml(package, model, isReadMePending);
+
             model.PolicyMessage = GetDisplayPackagePolicyMessage(package.PackageRegistration);
 
             var externalSearchService = _searchService as ExternalSearchService;
@@ -1047,10 +1047,10 @@ namespace NuGetGallery
             model.Edit = new EditPackageVersionRequest(package, pendingMetadata);
 
             // Update edit model with the active or pending readme.md data.
-            var isReadMePending = model.Edit.ReadMeState == PackageEditReadMeState.Changed;
+            var isReadMePending = model.Edit.ReadMeState != PackageEditReadMeState.Unchanged;
             if (package.HasReadMe || isReadMePending)
             {
-                model.Edit.ReadMe.ReadMeSourceType = ReadMeHelper.TypeWritten;
+                model.Edit.ReadMe.SourceType = ReadMeHelper.TypeWritten;
                 model.Edit.ReadMe.SourceText = await GetPackageReadMeMdAsync(package, isReadMePending);
             }
 
@@ -1086,7 +1086,7 @@ namespace NuGetGallery
                 try
                 {
                     // Update pending readme.md file, if modified.
-                    var hasReadMe = await SaveReadMeIfChangedAsync(package, formData.Edit);
+                    var hasReadMe = await SavePendingPackageReadMeMdIfChanged(package, formData.Edit);
 
                     // Queue package edit in database for processing in background (HandlePackageEdits job).
                     var user = GetCurrentUser();
@@ -1116,37 +1116,34 @@ namespace NuGetGallery
         /// </summary>
         private string NormalizeNewLines(string content)
         {
-            return content?.Replace("\r\n", "\n").Replace("\n", Environment.NewLine);
+            return content?.Replace("\r\n", "\n").Replace("\n", Environment.NewLine).Trim();
         }
 
         /// <summary>
-        /// Saves pending readme.md to storage if any changes were made.
+        /// Saves pending readme.md blob if the content is different from the active version.
         /// </summary>
-        /// <param name="package">Package with pending edits.</param>
+        /// <param name="package">Package being edited.</param>
         /// <param name="edit">Edit request.</param>
-        /// <returns>True if has readme.md, false otherwise.</returns>
-        private async Task<bool> SaveReadMeIfChangedAsync(Package package, EditPackageVersionRequest edit)
+        /// <returns>True if edited package will have a readme.md, false otherwise.</returns>
+        private async Task<bool> SavePendingPackageReadMeMdIfChanged(Package package, EditPackageVersionRequest edit)
         {
-            var oldReadMe = package.HasReadMe ?
+            var activeReadMe = package.HasReadMe ?
                 NormalizeNewLines(await GetPackageReadMeMdAsync(package)) :
                 null;
 
-            var newReadMe = ReadMeHelper.HasReadMe(edit?.ReadMe) ?
-                NormalizeNewLines(await (await ReadMeHelper.GetReadMeMarkdownStream(edit.ReadMe)).ReadToEndAsync()) :
+            var newReadMe = ReadMeHelper.HasReadMeSource(edit?.ReadMe) ?
+                NormalizeNewLines(await ReadMeHelper.GetReadMeMdAsync(edit.ReadMe)) :
                 null;
 
             var hasReadMe = !string.IsNullOrWhiteSpace(newReadMe);
-            if (hasReadMe && !newReadMe.Equals(oldReadMe))
+            if (hasReadMe && !newReadMe.Equals(activeReadMe))
             {
-                using (var newReadMeStream = new MemoryStream(Encoding.UTF8.GetBytes(newReadMe)))
-                {
-                    await _packageFileService.SaveReadMeFileAsync(package, newReadMeStream);
-                }
+                await _packageFileService.SavePendingReadMeMdFileAsync(package, newReadMe);
                 edit.ReadMeState = PackageEditReadMeState.Changed;
             }
-            else if (!hasReadMe && !string.IsNullOrEmpty(oldReadMe))
+            else if (!hasReadMe && !string.IsNullOrEmpty(activeReadMe))
             {
-                await _packageFileService.DeleteReadMeFileAsync(package.PackageRegistration.Id, package.Version, isPending: true);
+                await _packageFileService.DeleteReadMeMdFileAsync(package, isPending: true);
                 edit.ReadMeState = PackageEditReadMeState.Deleted;
             }
             else
@@ -1164,43 +1161,32 @@ namespace NuGetGallery
         {
             if (package.HasReadMe || isPending)
             {
-                using (var readMeMdStream = await _packageFileService.DownloadReadMeFileAsync(package, isPending))
-                {
-                    if (readMeMdStream != null)
-                    {
-                        return (await readMeMdStream.ReadToEndAsync()).Trim();
-                    }
-                }
+                return await _packageFileService.DownloadReadMeMdFileAsync(package, isPending);
             }
 
             return null;
         }
 
+        private const int ReadMeClampedLineCount = 10;
+
         /// <summary>
-        /// Get the HTML that results from markdown encoding and conversion.
+        /// Gets the package readme.md if available and converts it to HTML. Populates both full and clamped
+        /// versions on the display package view model.
         /// </summary>
-        private async Task<string> GetPackageReadMeHtmlAsync(Package package, bool isPending = false, bool isClamped = false)
+        /// <param name="package">Package entity.</param>
+        /// <param name="model">View model for the Display Package page.</param>
+        /// <param name="isPending">True to retrieve pending edits, false otherwise.</param>
+        private async Task GetPackageReadMeHtml(Package package, DisplayPackageViewModel model, bool isPending = false)
         {
-            if (package.HasReadMe || isPending)
+            var readMeMd = await GetPackageReadMeMdAsync(package, isPending);
+            if (!string.IsNullOrWhiteSpace(readMeMd))
             {
-                using (var readMeMdStream = await _packageFileService.DownloadReadMeFileAsync(package, isPending))
-                {
-                    if (readMeMdStream != null)
-                    {
-                        var readMeMd = await readMeMdStream.ReadToEndAsync();
+                var readMeMdClamped = string.Join(Environment.NewLine,
+                    readMeMd.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Take(ReadMeClampedLineCount));
 
-                        if (isClamped)
-                        {
-                            readMeMd = string.Join(Environment.NewLine,
-                                readMeMd.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Take(10));
-                        }
-
-                        return ReadMeHelper.GetReadMeHtml(readMeMd).Trim();
-                    }
-                }
+                model.ReadMeHtml = ReadMeHelper.GetReadMeHtml(readMeMd).Trim();
+                model.ReadMeHtmlClamped = ReadMeHelper.GetReadMeHtml(readMeMdClamped).Trim();
             }
-
-            return null;
         }
 
         [Authorize]
@@ -1447,7 +1433,7 @@ namespace NuGetGallery
                 var pendEdit = false;
                 if (formData.Edit != null)
                 {
-                    pendEdit = await SaveReadMeIfChangedAsync(package, formData.Edit);
+                    pendEdit = await SavePendingPackageReadMeMdIfChanged(package, formData.Edit);
                     
                     pendEdit = pendEdit || formData.Edit.RequiresLicenseAcceptance != packageMetadata.RequireLicenseAcceptance;
 
@@ -1587,7 +1573,7 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<JsonResult> PreviewReadMe(ReadMeRequest formData)
         {
-            if (formData == null || !ReadMeHelper.HasReadMe(formData))
+            if (formData == null || !ReadMeHelper.HasReadMeSource(formData))
             {
                 return Json(400, new [] { Strings.PreviewReadMe_ReadMeMissing });
             }
@@ -1599,7 +1585,7 @@ namespace NuGetGallery
             }
             catch (Exception ex)
             {
-                return Json(400, new string[] { string.Format(CultureInfo.CurrentCulture, Strings.PreviewReadMe_ConversionFailed, ex.Message) });
+                return Json(400, new [] { string.Format(CultureInfo.CurrentCulture, Strings.PreviewReadMe_ConversionFailed, ex.Message) });
             }
         }
 

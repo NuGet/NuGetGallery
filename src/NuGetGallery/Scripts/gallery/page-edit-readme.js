@@ -26,16 +26,14 @@ function bindReadMeData(model) {
 
     $('#ReadMeFileInput').on('change', function () {
         clearReadMeError();
-        //displayReadMeEditMarkdown();
+        displayReadMeEditMarkdown();
         var fileName = window.nuget.getFileName($('#ReadMeFileInput').val());
 
         if (fileName.length > 0) {
             $('#ReadMeFileText').attr('value', fileName);
-            // todo: prepare upload data, cancel existing upload (see async-file-upload example)
         }
         else {
             $('#ReadMeFileText').attr('placeholder', 'Browse or Drop files to select a ReadMe.md file...');
-            //displayReadMeError("Please select a file.")
         }
     });
 
@@ -48,8 +46,6 @@ function bindReadMeData(model) {
     });
 
     if ($("#ReadMeTextInput").val() !== "") {
-        $('#readme-tabs a[href="#readme-written"]').tab('show');
-        //$("#readme-write-btn").button('toggle');
         previewReadMeAsync();
     }
 
@@ -63,7 +59,7 @@ function previewReadMeAsync(callback, error) {
     var readMeType = $(".readme-tabs div.active")[0].id.substring(7);
 
     var formData = new FormData();
-    formData.append("ReadMeSourceType", readMeType);
+    formData.append("SourceType", readMeType);
 
     if (readMeType == "written") {
         var readMeWritten = $("#ReadMeTextInput").val();

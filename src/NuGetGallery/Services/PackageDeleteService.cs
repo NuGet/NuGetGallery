@@ -7,6 +7,7 @@ using System.Data.Entity;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.WindowsAzure.Storage;
 using NuGet.Versioning;
 using NuGetGallery.Auditing;
 
@@ -211,12 +212,23 @@ namespace NuGetGallery
 
                 await _packageFileService.DeletePackageFileAsync(id, version);
 
-                if (package.HasReadMe)
-                {
-                    await _packageFileService.DeleteReadMeFileAsync(id, version, isPending: false);
-                    // todo: what about pending readmes
-                }
+                // Delete any active or pending readme files for this package.
+                await TryDeleteReadMeMdFile(package, false);
+                await TryDeleteReadMeMdFile(package, true);
             }
+        }
+
+        /// <summary>
+        /// Delete package readme.md file, if it exists. Doing a force delete here
+        /// rather than checking the HasReadMe (active) flag or PackageEdits (pending).
+        /// </summary>
+        private async Task TryDeleteReadMeMdFile(Package package, bool isPending)
+        {
+            try
+            {
+                await _packageFileService.DeleteReadMeMdFileAsync(package, isPending: isPending);
+            }
+            catch (StorageException) { }
         }
 
         private void UpdateSearchIndex()

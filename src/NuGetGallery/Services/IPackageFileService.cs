@@ -30,18 +30,6 @@ namespace NuGetGallery
         Task SavePackageFileAsync(Package package, Stream packageFile);
 
         /// <summary>
-        /// Deletes the package readme.md file from storage.
-        /// </summary>
-        Task DeleteReadMeFileAsync(string id, string version, bool isPending = false);
-
-        /// <summary>
-        /// Saves the package readme.md file to storage.
-        /// </summary>
-        /// <param name="package">The package that this file belongs to</param>
-        /// <param name="readMe">The stream representing the readme.md file</param>
-        Task SaveReadMeFileAsync(Package package, Stream readMe);
-
-        /// <summary>
         /// Copies the contents of the package represented by the stream into the file storage backup location.
         /// </summary>
         Task StorePackageFileInBackupLocationAsync(Package package, Stream packageFile);
@@ -52,8 +40,24 @@ namespace NuGetGallery
         Task<Stream> DownloadPackageFileAsync(Package packge);
 
         /// <summary>
-        /// Downloads the readme.md from the file storage and reads it into a Stream asynchronously.
+        /// Deletes the package readme.md file from storage.
         /// </summary>
-        Task<Stream> DownloadReadMeFileAsync(Package package, bool isPending = false);
+        /// <param name="package">The package associated with the readme.</param>
+        /// <param name="isPending">True to delete pending blob, false for active.</param>
+        Task DeleteReadMeMdFileAsync(Package package, bool isPending = false);
+
+        /// <summary>
+        /// Saves the (pending) package readme.md file to storage.
+        /// </summary>
+        /// <param name="package">The package associated with the readme.</param>
+        /// <param name="readMeMd">Markdown content.</param>
+        Task SavePendingReadMeMdFileAsync(Package package, string readMeMd);
+
+        /// <summary>
+        /// Downloads the readme.md from storage.
+        /// </summary>
+        /// <param name="package">The package associated with the readme.</param>
+        /// <param name="isPending">True to download the pending blob, false for active.</param>
+        Task<string> DownloadReadMeMdFileAsync(Package package, bool isPending = false);
     }
 }
