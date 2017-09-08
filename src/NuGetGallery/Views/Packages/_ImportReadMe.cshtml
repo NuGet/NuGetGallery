@@ -1,9 +1,11 @@
-﻿@helper ReadMeTab(string label, string id, bool active)
+﻿@helper ReadMeTab(string label, string id, string sourceType, bool active)
 {
     <li role="presentation" class="@(active ? "active" : string.Empty)">
         <a href="#@id" aria-expanded="@(active ? "true" : "false")"
            aria-selected="@(active ? "true" : "false")"
            aria-controls="@id" role="tab" data-toggle="tab"
+           data-source-type="@sourceType"
+           data-bind="event: { 'show.bs.tab': OnReadmeTabChange }"
            title="Switch to tab panel which allows import of readme from @label">
             @label
         </a>
@@ -39,30 +41,29 @@
         </div>
 
         <div class="readme-tabs">
+            <input type="hidden" data-bind="value: SelectedTab" name="Edit.ReadMe.SourceType" />
             <ul class="nav nav-tabs" role="tablist">
-                @ReadMeTab("Custom", "readme-written", active: true)
-                @ReadMeTab("Url", "readme-url", active: false)
-                @ReadMeTab("File", "readme-file", active: false)
+                @ReadMeTab("Custom", "readme-written", "written", active: true)
+                @ReadMeTab("Url", "readme-url", "url", active: false)
+                @ReadMeTab("File", "readme-file", "file", active: false)
             </ul>
             <div class="tab-content">
 
                 @ReadMePanel(
-                    @<div class="col-sm-10 col-sm-offset-1">
-                        <div>
-                            <textarea class="col-xs-12" data-bind="value: Edit.ReadMe.SourceText" name="Edit.ReadMe.SourceText" id="ReadMeTextInput" rows="30" placeholder="Write your own ReadMe here..."></textarea>
-                        </div>
+                    @<div class="form-group editable">
+                        <textarea class="form-control" data-bind="value: Edit.ReadMe.SourceText" name="Edit.ReadMe.SourceText" id="ReadMeTextInput" rows="30" placeholder="Write your own ReadMe here..."></textarea>
                     </div>,
                     "readme-written", active: true)
 
                 @ReadMePanel(
-                    @<div class="input-group col-xs-12">
+                    @<div class="form-group editable">
                         <input type="url" data-bind="value: Edit.ReadMe.SourceUrl" name="Edit.ReadMe.SourceUrl" class="form-control" id="ReadMeUrlInput" placeholder="https://raw.githubusercontent.com/" />
                         <label id="ReadMeURLLabel" class="input-group-btn"></label>
                     </div>,        
                    "readme-url", active: false)
 
                 @ReadMePanel(
-                    @<div class="input-group col-xs-12">
+                    @<div class="form-group editable">
                         <input type="text" id="ReadMeFileText" class="form-control" value="Browse or Drop files to select a ReadMe.md file..." aria-label="Upload Your ReadMe.md" readonly />
                         <label for="ReadMeFileInput" id="ReadMeFileLabel" class="input-group-btn">
                             <span class="btn btn-primary form-control" aria-label="Browse for ReadMe.md file" role="button">

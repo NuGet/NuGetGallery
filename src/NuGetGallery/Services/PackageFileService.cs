@@ -4,12 +4,11 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
-using NuGetGallery;
 using NuGet.Versioning;
-using System.Text;
 
 namespace NuGetGallery
 {
@@ -119,7 +118,7 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="package">The package associated with the readme.</param>
         /// <param name="readMeMd">Markdown content.</param>
-        public Task SavePendingReadMeMdFileAsync(Package package, string readMeMd)
+        public async Task SavePendingReadMeMdFileAsync(Package package, string readMeMd)
         {
             if (string.IsNullOrWhiteSpace(readMeMd))
             {
@@ -129,7 +128,7 @@ namespace NuGetGallery
             var fileName = BuildFileName(package, ReadMeFilePathTemplatePending, Constants.MarkdownFileExtension);
             using (var readMeMdStream = new MemoryStream(Encoding.UTF8.GetBytes(readMeMd)))
             {
-                return _fileStorageService.SaveFileAsync(Constants.PackageReadMesFolderName, fileName, readMeMdStream, overwrite: true);
+                await _fileStorageService.SaveFileAsync(Constants.PackageReadMesFolderName, fileName, readMeMdStream, overwrite: true);
             }
         }
 

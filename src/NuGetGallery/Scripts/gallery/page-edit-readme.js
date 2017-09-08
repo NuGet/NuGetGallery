@@ -1,6 +1,12 @@
 ﻿'use strict';
 
 function bindReadMeData(model) {
+    model.SelectedTab = ko.observable('written');
+    model.OnReadmeTabChange = function (_, e) {
+        model.SelectedTab($(e.target).data('source-type'));
+        return true;
+    };
+
     $("#import-readme-block").remove();
     $("#readme-collapser-container").addClass("hidden");
 
@@ -26,6 +32,7 @@ function bindReadMeData(model) {
 
     $('#ReadMeFileInput').on('change', function () {
         clearReadMeError();
+
         displayReadMeEditMarkdown();
         var fileName = window.nuget.getFileName($('#ReadMeFileInput').val());
 
@@ -50,13 +57,14 @@ function bindReadMeData(model) {
     }
 
     $("#edit-markdown-button").on('click', function () {
+        clearReadMeError();
         displayReadMeEditMarkdown();
     });
 }
 
 function previewReadMeAsync(callback, error) {
     // Request source type is generated off the ReadMe tab ids.
-    var readMeType = $(".readme-tabs div.active")[0].id.substring(7);
+    var readMeType = $(".readme-tabs li.active a").data("source-type")
 
     var formData = new FormData();
     formData.append("SourceType", readMeType);
@@ -83,6 +91,7 @@ function previewReadMeAsync(callback, error) {
         processData: false,
         data: window.nuget.addAjaxAntiForgeryToken(formData),
         success: function (model, resultCodeString, fullResponse) {
+            clearReadMeError();
             displayReadMePreview(model);
         },
         error: function (jqXHR, exception) {
