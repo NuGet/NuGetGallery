@@ -48,7 +48,6 @@
                 @ReadMeTab("File", "readme-file", "file", active: false)
             </ul>
             <div class="tab-content">
-
                 @ReadMePanel(
                     @<div class="form-group editable">
                         <textarea class="form-control" data-bind="value: Edit.ReadMe.SourceText" name="Edit.ReadMe.SourceText" id="ReadMeTextInput" rows="30" placeholder="Write your own ReadMe here..."></textarea>
@@ -63,16 +62,15 @@
                    "readme-url", active: false)
 
                 @ReadMePanel(
-                    @<div class="form-group editable">
+                    @<div class="input-group">
                         <input type="text" id="ReadMeFileText" class="form-control" value="Browse or Drop files to select a ReadMe.md file..." aria-label="Upload Your ReadMe.md" readonly />
                         <label for="ReadMeFileInput" id="ReadMeFileLabel" class="input-group-btn">
                             <span class="btn btn-primary form-control" aria-label="Browse for ReadMe.md file" role="button">
-                                Browse&hellip;<input type="file" accept=".md,.txt" data-bind="value: Edit.ReadMe.SourceFile" name="Edit.ReadMe.SourceFile" aria-labelledby="ReadMeFileLabel" id="ReadMeFileInput" style="display:none;" />
+                                Browse&hellip;<input type="file" accept=".md" data-bind="value: Edit.ReadMe.SourceFile" name="Edit.ReadMe.SourceFile" aria-labelledby="ReadMeFileLabel" id="ReadMeFileInput" style="display:none;" />
                             </span>
                         </label>
-                    </div>                ,
+                    </div>,
                     "readme-file", active: false)
-
             </div>
         </div>
 
