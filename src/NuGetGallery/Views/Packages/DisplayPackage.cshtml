@@ -4,6 +4,15 @@
     ViewBag.Tab = "Packages";
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
     var absolutePackageUrl = Url.Absolute(Url.Package(Model.Id));
+
+        new ThirdPartyPackageManagerViewModel()
+        {
+            Id = "paket-cli",
+            Name = "Paket CLI",
+            CommandPrefix = "> ",
+            InstallPackageCommand = string.Format("paket add {0} --version {1}", Model.Id, Model.Version),
+            ContactUrl = "https://fsprojects.github.io/Paket/"
+        },
 }
 @section SocialMeta {
     @if (!String.IsNullOrWhiteSpace(ViewBag.FacebookAppID))
@@ -211,10 +220,12 @@
                 <ul class="nav nav-tabs" role="tablist">
                     @CommandTab("Package Manager", "package-manager", active: true)
                     @CommandTab(".NET CLI", "dotnet-cli", active: false)
+                    @CommandTab("Paket CLI", "paket-cli", active: false)
                 </ul>
                 <div class="tab-content">
                     @CommandPanel(@<text>Install-Package @Model.Id -Version @Model.Version</text>, "Package Manager", "package-manager", active: true)
                     @CommandPanel(@<text>dotnet add package @Model.Id --version @Model.Version</text>, ".NET CLI", "dotnet-cli", active: false)
+                    @CommandPanel(@<text>paket add @Model.Id --version @Model.Version</text>, "paket-cli", active: false)
                 </div>
             </div>
 
