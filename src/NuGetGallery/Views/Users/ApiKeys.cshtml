@@ -1,6 +1,5 @@
 ﻿@model ApiKeyListViewModel
 @using NuGetGallery.Authentication
-
 @{
     ViewBag.Title = "API Keys";
     ViewBag.MdPageColumns = Constants.ColumnsFormMd;
@@ -107,7 +106,8 @@
         have
         <!-- /ko -->
         expired.
-        </text>)
+        </text>,
+        isAlertRole: true)
     <!-- /ko -->
     <!-- ko if: AnyJustCreated -->
     @ViewHelpers.AlertWarning(
@@ -115,7 +115,8 @@
         A new API key has been created. Make sure to copy your new API key now using the
         <b>Copy</b>
         button below. You will not be able to do so again.
-        </text>)
+        </text>,
+        isAlertRole: true)
     <!-- /ko -->
     <!-- ko if: AnyJustRegenerated -->
     @ViewHelpers.AlertWarning(
@@ -123,7 +124,8 @@
             Your API key has been regenerated. Make sure to copy your new API key now using the
             <b>Copy</b>
             button below. You will not be able to do so again.
-        </text>)
+        </text>,
+        isAlertRole: true)
     <!-- /ko -->
     <div data-bind="template: { name: 'api-key-details', foreach: ApiKeys }">
     </div>
@@ -304,18 +306,24 @@
                         <ul role="presentation" data-bind="css: { disabled: !PushEnabled() }">
                             <li>
                                 <div class="radio">
-                                    <label>
+                                    <div class="label-sibling">
                                         <input name="PushScope" type="radio" value="@NuGetScopes.PackagePush"
-                                               data-bind="checked: PushScope, enable: PushEnabled" checked />
+                                               data-bind="checked: PushScope, enable: PushEnabled,
+                                                          attr: { id: PackagePushId }" checked />
+                                    </div>
+                                    <label data-bind="attr: { for: PackagePushId }">
                                         @NuGetScopes.Describe(NuGetScopes.PackagePush)
                                     </label>
                                 </div>
                             </li>
                             <li>
                                 <div class="radio">
-                                    <label>
+                                    <div class="label-sibling">
                                         <input name="PushScope" type="radio" value="@NuGetScopes.PackagePushVersion"
-                                               data-bind="checked: PushScope, enable: PushEnabled" />
+                                               data-bind="checked: PushScope, enable: PushEnabled,
+                                                          attr: { id: PackagePushVersionId }" />
+                                    </div>
+                                    <label data-bind="attr: { for: PackagePushVersionId }">
                                         @NuGetScopes.Describe(NuGetScopes.PackagePushVersion)
                                     </label>
                                 </div>

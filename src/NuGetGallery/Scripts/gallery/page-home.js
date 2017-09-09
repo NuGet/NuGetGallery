@@ -1,18 +1,8 @@
 $(function () {
     'use strict';
 
-    function commaThousands(value) {
-        var output = value.toString();
-        for (var i = output.length - 3; i > 0; i -= 3)
-        {
-            output = output.slice(0, i) + ',' + output.slice(i);
-        }
-
-        return output;
-    }
-
     function updateStat(observable, unparsedValue) {
-        var parsedValue = window.nuget.parseNumber(unparsedValue);
+        var parsedValue = parseInt(unparsedValue);
         if (!isNaN(parsedValue)) {
             observable(parsedValue);
         }
@@ -46,20 +36,22 @@ $(function () {
     ko.bindingHandlers.animateNumber = {
         init: function (element, valueAccessor) {
             var value = ko.unwrap(valueAccessor());
-            $(element).text(value);
+            $(element).data('value', value);
+            $(element).text(value.toLocaleString());
         },
         update: function (element, valueAccessor) {
-            var oldValue = window.nuget.parseNumber($(element).text());
+            var oldValue = $(element).data('value');
             var newValue = ko.unwrap(valueAccessor());
+            $(element).data('value', newValue);
 
             $({ value: oldValue }).animate({ value: newValue }, {
                 duration: 250,
                 easing: 'swing',
                 step: function () {
-                    $(element).text(commaThousands(Math.floor(this.value)));
+                    $(element).text(Math.floor(this.value).toLocaleString());
                 },
                 done: function () {
-                    $(element).text(commaThousands(newValue));
+                    $(element).text(newValue.toLocaleString());
                 }
             });
         }

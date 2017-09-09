@@ -308,12 +308,20 @@ namespace NuGetGallery
         public static HtmlString ShowPasswordFor<TModel, TProperty>(this HtmlHelper<TModel> html, Expression<Func<TModel, TProperty>> expression)
         {
             var htmlAttributes = GetHtmlAttributes(html, expression);
+            htmlAttributes["autocomplete"] = "off";
             return html.PasswordFor(expression, htmlAttributes);
         }
 
         public static HtmlString ShowTextBoxFor<TModel, TProperty>(this HtmlHelper<TModel> html, Expression<Func<TModel, TProperty>> expression)
         {
             var htmlAttributes = GetHtmlAttributes(html, expression);
+            return html.TextBoxFor(expression, htmlAttributes);
+        }
+
+        public static HtmlString ShowEmailBoxFor<TModel, TProperty>(this HtmlHelper<TModel> html, Expression<Func<TModel, TProperty>> expression)
+        {
+            var htmlAttributes = GetHtmlAttributes(html, expression);
+            htmlAttributes["type"] = "email";
             return html.TextBoxFor(expression, htmlAttributes);
         }
 
@@ -369,10 +377,12 @@ namespace NuGetGallery
             var metadata = ModelMetadata.FromLambdaExpression(expression, html.ViewData);
             var propertyName = metadata.PropertyName.ToLower();
 
-            return html.ValidationMessageFor(expression, validationMessage: null, htmlAttributes: new
+            return html.ValidationMessageFor(expression, validationMessage: null, htmlAttributes: new Dictionary<string, object>
             {
-                id = $"{propertyName}-validation-message",
-                @class = "help-block"
+                { "id", $"{propertyName}-validation-message" },
+                { "class", "help-block" },
+                { "role", "alert" },
+                { "aria-live", "assertive" },
             });
         }
 

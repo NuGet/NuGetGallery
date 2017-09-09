@@ -27,11 +27,11 @@ namespace NuGetGallery.FunctionalTests
         public const string ReadOnlyModeRegisterNewUserText = "503 : Please try again later! (Read-only)";
         public const string SearchTerm = "elmah";
         public const string CreateNewAccountText = "Create A New Account";
-        public const string StatsPageDefaultText = "Statistics last updated at";
+        public const string StatsPageDefaultText = "Statistics last updated";
         public const string ContactOwnersText = "Your message has been sent to the owners of";
         public const string UnListedPackageText = "This package is unlisted and hidden from package listings";
         public const string TestPackageId = "BaseTestPackage";
-        public const string ReadOnlyModeError = "503 : Please try again later! (Read-only)";
+        public const string ReadOnlyModeError = "Error 503 - Read-only Mode";
         public const string UploadFailureMessage = "The package upload via Nuget.exe didnt succeed properly. Check the logs to see the process error and output stream";
         public const string PackageInstallFailureMessage = "Package install failed. Either the file is not present on disk or it is corrupted. Check logs for details";
         public const string PackageNotFoundAfterUpload = "Package {0} is not found in the site {1} after uploading.";

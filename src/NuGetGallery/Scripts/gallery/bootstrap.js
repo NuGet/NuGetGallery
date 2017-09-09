@@ -1548,7 +1548,15 @@ if (typeof jQuery === 'undefined') {
     var arrowDelta          = isVertical ? delta.left * 2 - width + actualWidth : delta.top * 2 - height + actualHeight
     var arrowOffsetPosition = isVertical ? 'offsetWidth' : 'offsetHeight'
 
-    $tip.offset(offset)
+    $.offset.setOffset($tip[0], $.extend({
+      using: function (props) {
+        $tip.css({
+          top: Math.round(props.top),
+          left: Math.round(props.left)
+        })
+      }
+    }, offset), 0)
+    
     this.replaceArrow(arrowDelta, $tip[0][arrowOffsetPosition], isVertical)
   }
 
@@ -2136,11 +2144,13 @@ if (typeof jQuery === 'undefined') {
         .end()
         .find('[data-toggle="tab"]')
           .attr('aria-expanded', false)
+          .attr('aria-selected', false)
 
       element
         .addClass('active')
         .find('[data-toggle="tab"]')
           .attr('aria-expanded', true)
+          .attr('aria-selected', true)
 
       if (transition) {
         element[0].offsetWidth // reflow for transition

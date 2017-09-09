@@ -58,11 +58,11 @@
         unparsedValue = ('' + unparsedValue).replace(/,/g, '');
         var parsedValue = parseInt(unparsedValue);
         return parsedValue;
-    }
+    };
 
     // source: http://stackoverflow.com/questions/400212/how-do-i-copy-to-the-clipboard-in-javascript
     // enhancement with special case for IEs, otherwise the temp textarea will be visible
-    nuget.copyTextToClipboard = function (text) {
+    nuget.copyTextToClipboard = function (text, elementToFocus) {
         if (detectIE()) {
             try {
                 window.clipboardData.setData('Text', text);
@@ -129,6 +129,11 @@
             }
 
             document.body.removeChild(textArea);
+
+            // Focus the element provided so that tab order is not reset to the beginning of the page.
+            if (elementToFocus) {
+                elementToFocus.focus();
+            }
         }
     };
 
@@ -165,8 +170,8 @@
     // Source: https://stackoverflow.com/a/27568129/52749
     // Detects whether SVG is supported in the browser.
     nuget.supportsSvg = function () {
-        return !!(document.createElementNS && document.createElementNS('http://www.w3.org/2000/svg','svg').createSVGRect);
-    }
+        return !!(document.createElementNS && document.createElementNS('http://www.w3.org/2000/svg', 'svg').createSVGRect);
+    };
 
     // Source: https://developers.google.com/analytics/devguides/collection/analyticsjs/sending-hits
     nuget.createFunctionWithTimeout = function (callback, opt_timeout) {
@@ -200,7 +205,7 @@
 
         var allButLast = items.slice(0, -1).join(', ');
         var last = items.slice(-1)[0];
-        return [allButLast, last].join(items.length < 2 ? '' : (items.length == 2 ? ' and ' : ', and '));
+        return [allButLast, last].join(items.length < 2 ? '' : items.length === 2 ? ' and ' : ', and ');
     };
 
     nuget.resetFormValidation = function (formElement) {
@@ -213,6 +218,42 @@
         validator.reset();
     };
 
+    nuget.isGaAvailable = function () {
+        return typeof ga === 'function';
+    };
+
+    nuget.getDateFormats = function (input) {
+        var datetime = moment.utc(input);
+
+        if (!datetime.isValid()) {
+            return null;
+        }
+
+        var title = datetime.utc().format();
+
+        // Determine if the duration is less than 11 months, which is moment.js's threshold to switch to
+        // years display.
+        var duration = moment.duration(moment().diff(datetime)).abs();
+        var text;
+        if (duration.as('M') <= 10) {
+            text = datetime.fromNow();
+        } else {
+            text = datetime.format("l");
+        }
+
+        return {
+            title: title,
+            text: text
+        };
+    };
+
+    // Shared function for adding an anti-forgery token defined by ViewHelpers.AjaxAntiForgeryToken to an ajax request
+    nuget.addAjaxAntiForgeryToken = function (data) {
+        var $field = $("#AntiForgeryForm input[name=__RequestVerificationToken]");
+        data["__RequestVerificationToken"] = $field.val();
+        return data;
+    };
+
     window.nuget = nuget;
 
     initializeJQueryValidator();
@@ -221,11 +262,17 @@
 $(function () {
     // Use moment.js to format attributes with the "datetime" attribute to "X time ago".
     $.each($('*[data-datetime]'), function () {
-        var datetime = moment($(this).data().datetime);
-        if (!$(this).attr('title')) {
-            $(this).attr('title', datetime.utc().format());
+        var $el = $(this);
+        var formats = window.nuget.getDateFormats($el.data().datetime);
+        if (!formats) {
+            return;
         }
-        $(this).text(datetime.fromNow());
+
+        if (!$el.attr('title')) {
+            $el.attr('title', formats.title);
+        }
+
+        $el.text(formats.text);
     });
 
     // Handle confirm pop-ups.
@@ -244,14 +291,18 @@ $(function () {
         $(this).click(function (e) {
             var href = $(this).attr('href');
             var category = $(this).data().track;
-            if (ga && href && category) {
-                e.preventDefault();
-                ga('send', 'event', category, 'click', href, {
-                    'transport': 'beacon',
-                    'hitCallback': window.nuget.createFunctionWithTimeout(function () {
-                        document.location = href;
-                    })
-                });
+            if (window.nuget.isGaAvailable() && href && category) {
+                if (e.altKey || e.ctrlKey || e.metaKey) {
+                    ga('send', 'event', category, 'click', href);
+                } else {
+                    e.preventDefault();
+                    ga('send', 'event', category, 'click', href, {
+                        'transport': 'beacon',
+                        'hitCallback': window.nuget.createFunctionWithTimeout(function () {
+                            document.location = href;
+                        })
+                    });
+                }
             }
         });
     });
@@ -268,5 +319,24 @@ $(function () {
     // Don't close the dropdown on click events inside of the dropdown.
     $(document).on('click', '.dropdown-menu', function (e) {
         e.stopPropagation();
+    });
+
+    $(document).on('keydown', function (e) {
+        var code = (e.keyCode || e.which);
+        var isValidInputCharacter =
+            ((code >= 48 && code <= 57)           // numbers 0-9
+                || (code >= 64 && code <= 90)     // letters a-z
+                || (code >= 96 && code <= 111)    // numpad
+                || (code >= 186 && code <= 192)   // ; = , - . / `
+                || (code >= 219 && code <= 222))  // [\ ] '
+            && !e.altKey && !e.ctrlKey && !e.metaKey;
+
+        if (isValidInputCharacter && document.activeElement == document.body) {
+            var searchbox = $("#search");
+            searchbox.focus();
+            var currInput = searchbox.val();
+            searchbox.val("");
+            searchbox.val(currInput);
+        }
     });
 });

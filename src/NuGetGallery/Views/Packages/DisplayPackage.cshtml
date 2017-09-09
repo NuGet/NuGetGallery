@@ -1,7 +1,6 @@
 @model DisplayPackageViewModel
-
 @{
-    ViewBag.Title = Model.Title + " " + Model.Version;
+    ViewBag.Title = Model.Id + " " + Model.Version;
     ViewBag.Tab = "Packages";
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
     var absolutePackageUrl = Url.Absolute(Url.Package(Model.Id));
@@ -15,7 +14,7 @@
     <meta name="twitter:card" content="summary">
     <meta name="twitter:site" content="@("@nuget")">
 
-    <meta property="og:title" content="@Model.Title" />
+    <meta property="og:title" content="@Model.Id @Model.Version" />
     <meta property="og:type" content="nugetgallery:package" />
     <meta property="og:url" content="@absolutePackageUrl" />
     <meta property="og:description" content="@Model.Description" />
@@ -29,17 +28,28 @@
     }
 }
 
+@helper VersionListDivider(int rowCount, bool versionsExpanded)
+{
+    if (rowCount == Constants.VisibleVersions + 1)
+    {
+        @:</tbody><tbody class="no-border collapse @(versionsExpanded ? "in" : string.Empty)" id="hidden-versions">
+    }
+}
+
+
 @helper CommandTab(string label, string id, bool active)
 {
     <li role="presentation" class="@(active ? "active" : string.Empty)">
-        <a href="#@id" aria-controls="@id" title="Switch to tab panel which contains package installation command for @label"
-           role="tab" data-toggle="tab">
+        <a href="#@id" aria-expanded="@(active ? "true" : "false")"
+           aria-selected="@(active ? "true" : "false")"
+           aria-controls="@id" role="tab" data-toggle="tab"
+           title="Switch to tab panel which contains package installation command for @label">
             @label
         </a>
     </li>
 }
 
-@helper CommandPanel(Func<MvcHtmlString, HelperResult> htmlContent, string id, bool active)
+@helper CommandPanel(Func<MvcHtmlString, HelperResult> htmlContent, string label, string id, bool active)
 {
     <div role="tabpanel" class="tab-pane @(active ? "active" : string.Empty)" id="@id">
         <div>
@@ -50,7 +60,8 @@
             </div>
             <div class="copy-button">
                 <button id="@id-button" class="btn btn-default btn-warning" type="button"
-                        data-toggle="popover" data-placement="bottom" data-content="Copied.">
+                        data-toggle="popover" data-placement="bottom" data-content="Copied."
+                        aria-label="Copy the @label command">
                     <span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>
                 </button>
             </div>
@@ -68,10 +79,19 @@
             </h3>
         </aside>
         <article class="col-sm-8">
-            <h1 title="@Model.Title">
-                @Model.Title.Abbreviate(40)
-                <small class="text-nowrap">@Model.FullVersion</small>
-            </h1>
+            <div class="package-title">
+                <h1>
+                    @Html.BreakWord(Model.Id)
+                    <small class="text-nowrap">@Model.FullVersion</small>
+                </h1>
+
+                @if (!StringComparer.OrdinalIgnoreCase.Equals(Model.Id, Model.Title))
+                {
+                    <div class="ms-fontSize-xl">
+                        @Html.BreakWord(Model.Title)
+                    </div>
+                }
+            </div>
 
             @if (!String.IsNullOrWhiteSpace(Model.Description))
             {
@@ -114,7 +134,7 @@
             {
                 @ViewHelpers.AlertInfo(
                     @<text>
-                        This is a prerelease version of @(Model.Title.Abbreviate(65)).
+                        This is a prerelease version of @(Model.Id).
                     </text>
                 )
             }
@@ -194,8 +214,8 @@
                     @CommandTab("Paket CLI", "paket-cli", active: false)
                 </ul>
                 <div class="tab-content">
-                    @CommandPanel(@<text>Install-Package @Model.Id -Version @Model.Version</text>, "package-manager", active: true)
-                    @CommandPanel(@<text>dotnet add package @Model.Id --version @Model.Version</text>, "dotnet-cli", active: false)
+                    @CommandPanel(@<text>Install-Package @Model.Id -Version @Model.Version</text>, "Package Manager", "package-manager", active: true)
+                    @CommandPanel(@<text>dotnet add package @Model.Id --version @Model.Version</text>, ".NET CLI", "dotnet-cli", active: false)
                     @CommandPanel(@<text>paket add @Model.Id --version @Model.Version</text>, "paket-cli", active: false)
                 </div>
             </div>
@@ -292,26 +312,31 @@
                         </tr>
                     </thead>
                     <tbody class="no-border">
-                        @{var rowCount = 0;}
+                        @{
+                            var rowCount = 0;
+                            var versionsExpanded = Model
+                                .PackageVersions
+                                .Skip(Constants.VisibleVersions)
+                                .Any(v => v.IsCurrent(Model));
+                        }
                         @foreach (var packageVersion in Model.PackageVersions)
                         {
                             if (!packageVersion.Deleted && (packageVersion.Listed || (Model.IsOwner(User) || User.IsAdministrator())))
                             {
                                 rowCount++;
-                                if (rowCount == 6)
-                                {
-                                    @:</tbody><tbody class="no-border collapse" id="hidden-versions">
-                                }
+                                @VersionListDivider(rowCount, versionsExpanded)
                                 <tr>
                                     <td>
                                         @if (packageVersion.IsCurrent(Model))
                                         {
                                             <a href="@Url.Package(packageVersion)">
-                                                @packageVersion.FullVersion
-                                                @if (packageVersion.IsCurrent(Model))
-                                                {
-                                                    @:(current version)
-                                                }
+                                                <b>
+                                                    @packageVersion.FullVersion
+                                                    @if (packageVersion.IsCurrent(Model))
+                                                    {
+                                                        @:(current version)
+                                                    }
+                                                </b>
                                             </a>
                                         }
                                         else
@@ -325,7 +350,7 @@
                                         @packageVersion.DownloadCount.ToNuGetNumberString()
                                     </td>
                                     <td>
-                                        <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetLongDateString()</span>
+                                        <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetShortDateString()</span>
                                     </td>
                                     @if ((Model.IsOwner(User) || User.IsAdministrator()))
                                     {
@@ -338,19 +363,16 @@
                             else if (packageVersion.Deleted)
                             {
                                 rowCount++;
-                                if (rowCount == 6)
-                                {
-                                    @:</tbody><tbody class="no-border collapse" id="hidden-versions">
-                                }
+                                @VersionListDivider(rowCount, versionsExpanded)
                                 <tr class="deleted">
                                     <td class="version">
-                                        <s>@packageVersion.FullVersion</s> (deleted)
+                                        @packageVersion.FullVersion (deleted)
                                     </td>
                                     <td>
                                         @packageVersion.DownloadCount
                                     </td>
                                     <td>
-                                        <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetLongDateString()</span>
+                                        <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetShortDateString()</span>
                                     </td>
                                     <td></td>
                                 </tr>
@@ -358,12 +380,12 @@
                         }
                     </tbody>
                 </table>
-                @if (rowCount > 5)
+                @if (rowCount > Constants.VisibleVersions)
                 {
                     <a href="#" role="button" data-toggle="collapse" class="icon-link" data-target="#hidden-versions"
-                            aria-expanded="false" aria-controls="hidden-versions" id="show-hidden-versions">
-                        <i class="ms-Icon ms-Icon--CalculatorAddition" aria-hidden="true"></i>
-                        <span>Show more</span>
+                       aria-expanded="@(versionsExpanded ? "true" : "false")" aria-controls="hidden-versions" id="show-hidden-versions">
+                        <i class="ms-Icon ms-Icon--Calculator@(versionsExpanded ? "Subtract" : "Addition")" aria-hidden="true"></i>
+                        <span>@(versionsExpanded ? "Show less" : "Show more")</span>
                     </a>
                 }
             </div>

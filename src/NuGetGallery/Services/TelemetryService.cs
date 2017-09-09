@@ -126,13 +126,13 @@ namespace NuGetGallery
 
         private static string GetAccountCreationDate(User user)
         {
-            return user.CreatedUtc != null ? user.CreatedUtc.Value.ToString("o") : "N/A";
+            return user.CreatedUtc?.ToString("O") ?? "N/A";
         }
 
         private static string GetApiKeyCreationDate(User user, IIdentity identity)
         {
             var apiKey = user.GetCurrentApiKeyCredential(identity);
-            return apiKey?.Created.ToString("o") ?? "N/A";
+            return apiKey?.Created.ToString("O") ?? "N/A";
         }
 
         private static void TrackEvent(string eventName, Action<Dictionary<string, string>> addProperties)

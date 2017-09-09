@@ -51,7 +51,7 @@ ul.share-buttons i {
         text-decoration: underline;
     }
 
-.banner-redesign {
+.banner-redesign, .banner-cookies {
     padding: 0.25em;
     text-align: center;
     color: #FFFFFF;
@@ -62,13 +62,13 @@ ul.share-buttons i {
     line-height: 40px;
 }
 
-    .banner-redesign .ms-Icon {
+    .banner-redesign .ms-Icon, .banner-cookies .ms-Icon {
         position: relative;
         top: .1em;
         font-size: 0.8em;
     }
 
-    .banner-redesign a {
+    .banner-redesign a, .banner-cookies a {
         color: white;
         text-decoration: underline;
     }

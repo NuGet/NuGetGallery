@@ -153,7 +153,7 @@ namespace NuGetGallery
         {
             var user = GetCurrentUser();
             var packages = _packageService.FindPackagesByOwner(user, includeUnlisted: true)
-                .Select(p => new ListPackageItemViewModel(p)).ToList();
+                .Select(p => new ListPackageItemViewModel(p)).OrderBy(p => p.Id).ToList();
 
             var model = new ManagePackagesViewModel
             {
@@ -337,6 +337,7 @@ namespace NuGetGallery
 
         [HttpPost]
         [Authorize]
+        [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> ChangeEmail(AccountViewModel model)
         {
             if (!ModelState.IsValidField("ChangeEmail.NewEmail"))

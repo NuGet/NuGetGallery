@@ -22,9 +22,15 @@ body {
 .footer {
   background-color: @panel-footer-bg;
   color: @panel-footer-color;
-  font-size: 0.70em;
+  font-size: 1em;
   display: table-row;
   height: 1px;
+
+  .footer-heading {
+    display: block;
+    margin-bottom: 11px;
+    font-size: @font-size-h4;
+  }
 
   .container {
     margin-top: 50px;
@@ -33,6 +39,10 @@ body {
 
   a {
     color: @panel-footer-color;
+  }
+
+  .footer-release-info {
+    font-size: 0.85em;
   }
 
   @media (min-width: @screen-md-min) {
@@ -262,18 +272,23 @@ img.package-icon {
 }
 
 .package-list {
-  margin-top: @padding-large-vertical;
+  margin-top: 8px;
+  margin-bottom: 8px;
   margin-left: -5px;
   padding-left: 0;
   line-height: 20px;
   color: @gray-light;
+
+  a {
+    color: @gray-light;
+  }
 
   li {
     list-style: none;
     display: list-item;
   }
 
-  @media (min-width: @screen-xs-min) {
+  @media (min-width: @screen-sm-min) {
     li {
       display: inline-block;
     }
@@ -288,6 +303,10 @@ img.package-icon {
   }
 }
 
+.package-title-text {
+  margin-bottom: 0;
+}
+
 // Make the hamburger button visible on high contrast.
 .icon-bar {
   border: 1px solid #fff;
@@ -296,4 +315,10 @@ img.package-icon {
 .disabled {
   pointer-events: none;
   opacity: 0.75;
+}
+
+.radio, .checkbox {
+  .label-sibling {
+    margin-left: 20px;
+  }
 }

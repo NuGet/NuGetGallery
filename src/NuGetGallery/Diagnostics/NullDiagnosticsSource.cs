@@ -1,10 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
 
 namespace NuGetGallery.Diagnostics
 {
@@ -14,6 +13,11 @@ namespace NuGetGallery.Diagnostics
         public static readonly NullDiagnosticsSource Instance = new NullDiagnosticsSource();
 
         private NullDiagnosticsSource() { }
+
+        public void ExceptionEvent(Exception exception)
+        {
+            // No-op!
+        }
 
         public void TraceEvent(System.Diagnostics.TraceEventType type, int id, string message, string member = null, string file = null, int line = 0)
         {

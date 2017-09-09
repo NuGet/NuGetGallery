@@ -2,6 +2,6 @@
 @if (Model.LastUpdatedUtc != null)
 {
     <div class="last-updated">
-        Statistics last updated at @Model.LastUpdatedUtc.Value.ToNuGetShortDateTimeString() UTC.
+        Statistics last updated <span data-datetime="@Model.LastUpdatedUtc.Value.ToString("O")">@Model.LastUpdatedUtc.Value.ToString("f")</span>.
     </div>
 }

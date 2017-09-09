@@ -160,6 +160,8 @@
             this.DescriptionId = ComputedId("description");
             this.GlobPatternId = ComputedId("glob-pattern");
             this.ExpiresInId = ComputedId("expires-in");
+            this.PackagePushId = ComputedId("package-push");
+            this.PackagePushVersionId = ComputedId("package-push-version");
             this.IconUrl = ko.pureComputed(function () {
                 if (this.HasExpired()) {
                     return initialData.ImageUrls.ApiKeyExpired;
@@ -319,8 +321,8 @@
             };
 
             this.Copy = function () {
-                window.nuget.copyTextToClipboard(self.Value());
                 var $copyButton = self._GetCopyButton();
+                window.nuget.copyTextToClipboard(self.Value(), $copyButton);
                 $copyButton.popover('show');
                 setTimeout(function () {
                     $copyButton.popover('destroy');

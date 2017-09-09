@@ -6,7 +6,7 @@
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
-<div class="page-upload container main-container" role="main">
+<section role="main" class="container main-container page-upload">
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             <h1 class="page-heading text-center">Upload Your Package</h1>
@@ -31,9 +31,9 @@
                         @Html.ValidationSummary(true)
 
                         <div class="input-group">
-                            <input type="text" class="form-control" id="file-select-feedback" value="Browse to select a package file..." readonly />
+                            <input type="text" class="form-control" id="file-select-feedback" value="Browse or Drop files to select a package..." aria-label="Upload Your Package" readonly />
                             <label for="input-select-file" id="PackageFileLabel" class="input-group-btn">
-                                <span id="browse-for-package-button" class="btn btn-primary form-control">
+                                <span id="browse-for-package-button" class="btn btn-primary form-control" tabindex="0" aria-label="Browse for package" role="button">
                                     Browse&hellip;<input type="file" name="UploadFile" accept=".nupkg" aria-labelledby="PackageFileLabel" id="input-select-file" style="display:none;" />
                                 </span>
                             </label>
@@ -73,7 +73,7 @@
             @Html.Partial("_EditMetadata")
         </div>
     </div>
-</div>
+</section>
 
 @section BottomScripts
 {
@@ -83,6 +83,14 @@
         var InProgressPackage = @Html.Raw(Json.Encode(Model.InProgressUpload));
         window.nuget.configureExpanderHeading("upload-package-form");
         $(function () {
+            $("#browse-for-package-button").on("keypress", function (e) {
+                var keyCode = (e.keyCode || e.which);
+                var isInteract = (code == 13 /*enter*/ || code == 32 /*space*/) && !e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey;
+                if (isInteract) {
+                    $(this).click();
+                }
+            });
+
             AsyncFileUploadManager.init(
                 '@Url.Action(actionName: "UploadPackageProgress", controllerName: "Packages")',
                 'uploadForm',

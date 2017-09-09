@@ -22,6 +22,21 @@
     </div>
 }
 
+@if (CookieConsentMessage != null)
+{
+    <div class="container-fluid banner banner-notice text-center">
+        <div class="row">
+            <div class="col-sm-12" role="alert">
+                <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
+                <span>
+                    @CookieConsentMessage.Message
+                    <a href="@CookieConsentMessage.MoreInfoUrl" aria-label="@CookieConsentMessage.MoreInfoAriaLabel">@CookieConsentMessage.MoreInfoText</a>
+                </span>
+            </div>
+        </div>
+    </div>
+}
+
 @helper DisplayNavigationItem(string tab, string url, bool bold = false, string title = null)
 {
     <li class="@(ViewBag.Tab == tab ? "active" : string.Empty)"
@@ -138,7 +153,7 @@
     <div class="alert-transient @(ViewBag.HasJumbotron == true ? "alert-transient-jumbotron" : string.Empty)">
         <div class="container">
             <div class="row">
-                <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
+                <div class="@ViewHelpers.GetColumnClasses(ViewBag)" role="alert" aria-live="assertive">
                     @ViewHelpers.AlertInfo(@<text>@TempData["Message"]</text>)
                 </div>
             </div>
