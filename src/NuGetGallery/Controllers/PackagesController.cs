@@ -320,25 +320,36 @@ namespace NuGetGallery
 
                 var id = nuspec.GetId();
                 var packageRegistration = _packageService.FindPackageRegistrationById(id);
-                if (packageRegistration != null && !packageRegistration.Owners.AnySafe(x => x.Key == currentUser.Key))
+                if (packageRegistration != null)
                 {
-                    ModelState.AddModelError(
-                        string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id));
-                    
-                    return Json(409, new string [] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id) });
+                    if (!packageRegistration.Owners.AnySafe(x => x.Key == currentUser.Key))
+                    {
+                        ModelState.AddModelError(
+                            string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id));
+
+                        return Json(409, new string[] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id) });
+                    }
+                }
+                else
+                {
+                    var matchingNamespaces = _reservedNamespaceService.GetReservedNamespacesForId(id);
+                    // Allow push to a new package ID only if there
+                    // 1. Is no namespace match for the given ID
+                    // 2. One of the matching namespace is a shared namespace.
+                    // 3. The user is the owner of one of the namespace.
+                    var namespacePushAllowed = matchingNamespaces.Count == 0
+                        || matchingNamespaces.Any(rn => rn.IsSharedNamespace || rn.Owners.AnySafe(o => o.Key == currentUser.Key));
+
+                    if (!namespacePushAllowed)
+                    {
+                        ModelState.AddModelError(
+                            string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.ReservedNamespace_UserNotAnOwner, currentUser.Username));
+
+                        return Json(409, new string[] { string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict) });
+                    }
                 }
 
                 // For new package id verify if it is owned by the current user
-                var matchingNamespaces = _reservedNamespaceService.GetReservedNamespacesForId(id);
-                if (packageRegistration == null 
-                    && matchingNamespaces.Count > 0 
-                    && !matchingNamespaces.Any(rn => rn.Owners.AnySafe(o => o.Key == currentUser.Key)))
-                {
-                    ModelState.AddModelError(
-                        string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.ReservedNamespace_UserNotAnOwner, currentUser.Username));
-
-                    return Json(409, new string[] { string.Format(CultureInfo.CurrentCulture, Strings.ReservedNamespace_UserNotAnOwner, currentUser.Username) });
-                }
 
                 var nuspecVersion = nuspec.GetVersion();
                 var existingPackage = _packageService.FindPackageByIdAndVersionStrict(nuspec.GetId(), nuspecVersion.ToStringSafe());
@@ -1340,7 +1351,13 @@ namespace NuGetGallery
                 // update relevant database tables
                 try
                 {
-                    package = await _packageService.CreatePackageAsync(nugetPackage, packageStreamMetadata, currentUser, commitChanges: false);
+                    var matchingNamespaces = _reservedNamespaceService.GetReservedNamespacesForId(packageMetadata.Id);
+                    var userOwnedNamespaces = matchingNamespaces.Where(rn => rn.Owners.AnySafe(o => o.Key == currentUser.Key)).ToList();
+
+                    package = await _packageService.CreatePackageAsync(nugetPackage, packageStreamMetadata, currentUser, commitChanges: false, isVerified: userOwnedNamespaces.Any());
+                    await Task.WhenAll(userOwnedNamespaces
+                                .Select(rn => _reservedNamespaceService.AddPackageRegistrationToNamespaceAsync(rn.Value, package.PackageRegistration, commitChanges: false)));
+
                     Debug.Assert(package.PackageRegistration != null);
                 }
                 catch (InvalidPackageException ex)

@@ -81,13 +81,13 @@ namespace NuGetGallery
             MockTelemetryService = new Mock<ITelemetryService>();
             TelemetryService = MockTelemetryService.Object;
 
-            MockPackageService.Setup(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>())).
-                Returns((PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool commitChanges) =>
+            MockPackageService.Setup(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>(), It.IsAny<bool>())).
+                Returns((PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool commitChanges, bool isVerified) =>
                 {
                     var packageMetadata = PackageMetadata.FromNuspecReader(nugetPackage.GetNuspecReader());
 
                     var package = new Package();
-                    package.PackageRegistration = new PackageRegistration { Id = packageMetadata.Id };
+                    package.PackageRegistration = new PackageRegistration { Id = packageMetadata.Id, IsVerified = isVerified };
                     package.Version = packageMetadata.Version.ToString();
                     package.SemVerLevelKey = SemVerLevelKey.ForPackage(packageMetadata.Version, packageMetadata.GetDependencyGroups().AsPackageDependencyEnumerable());
 
@@ -152,7 +152,7 @@ namespace NuGetGallery
                     .Returns(Task.CompletedTask).Verifiable();
                 controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
                     .Returns(packageRegistration);
-                controller.MockPackageService.Setup(p => p.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), false))
+                controller.MockPackageService.Setup(p => p.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), false, It.IsAny<bool>()))
                     .Returns(Task.FromResult(package));
 
                 var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
@@ -195,7 +195,7 @@ namespace NuGetGallery
                 controller.MockPackageService.Setup(
                         p =>
                             p.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(),
-                                It.IsAny<User>(), false))
+                                It.IsAny<User>(), false, It.IsAny<bool>()))
                     .Returns(Task.FromResult(package));
                 controller.MockEntitiesContext.Setup(e => e.SaveChangesAsync()).Throws<Exception>();
 
@@ -224,7 +224,7 @@ namespace NuGetGallery
 
                 var controller = new TestableApiController();
                 controller.SetCurrentUser(user);
-                controller.MockPackageService.Setup(p => p.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), false))
+                controller.MockPackageService.Setup(p => p.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), false, It.IsAny<bool>()))
                     .Returns(Task.FromResult(package));
 
                 var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
@@ -257,7 +257,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(user);
                 controller.MockMessageService.Setup(p => p.SendPackageAddedNotice(package, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                     .Verifiable();
-                controller.MockPackageService.Setup(p => p.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), false))
+                controller.MockPackageService.Setup(p => p.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), false, It.IsAny<bool>()))
                     .Returns(Task.FromResult(package));
 
                 var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
@@ -481,7 +481,7 @@ namespace NuGetGallery
 
                 await controller.CreatePackagePut();
 
-                controller.MockPackageService.Verify(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), false));
+                controller.MockPackageService.Verify(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), false, It.IsAny<bool>()));
                 controller.MockEntitiesContext.VerifyCommitted();
             }
 
@@ -544,7 +544,7 @@ namespace NuGetGallery
 
                 await controller.CreatePackagePut();
 
-                controller.MockPackageService.Verify(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), user, false));
+                controller.MockPackageService.Verify(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), user, false, It.IsAny<bool>()));
                 controller.MockEntitiesContext.VerifyCommitted();
             }
 
@@ -570,7 +570,7 @@ namespace NuGetGallery
                 controller.MockPackageService.Setup(
                     x =>
                         x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), user,
-                            It.IsAny<bool>())).Returns(Task.FromResult(package));
+                            It.IsAny<bool>(), It.IsAny<bool>())).Returns(Task.FromResult(package));
 
                 // Act
                 var result = await controller.CreatePackagePut();
@@ -579,7 +579,7 @@ namespace NuGetGallery
                 if (isPushAllowed)
                 {
                     controller.MockPackageService.Verify(
-                        x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), user, false));
+                        x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), user, false, It.IsAny<bool>()));
                     controller.MockEntitiesContext.VerifyCommitted();
                 }
                 else
@@ -589,6 +589,7 @@ namespace NuGetGallery
                             It.IsAny<PackageArchiveReader>(),
                             It.IsAny<PackageStreamMetadata>(),
                             It.IsAny<User>(),
+                            It.IsAny<bool>(),
                             It.IsAny<bool>()),
                         Times.Never);
 
@@ -629,7 +630,7 @@ namespace NuGetGallery
                 controller.MockPackageService.Setup(
                     x =>
                         x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), user,
-                            It.IsAny<bool>())).Returns(Task.FromResult(package));
+                            It.IsAny<bool>(), It.IsAny<bool>())).Returns(Task.FromResult(package));
 
                 // Act
                 var result = await controller.CreatePackagePut();
@@ -638,7 +639,7 @@ namespace NuGetGallery
                 if (isPushAllowed)
                 {
                     controller.MockPackageService.Verify(
-                        x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), user, false));
+                        x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), user, false, It.IsAny<bool>()));
                     controller.MockEntitiesContext.VerifyCommitted();
                 }
                 else
@@ -648,6 +649,7 @@ namespace NuGetGallery
                             It.IsAny<PackageArchiveReader>(),
                             It.IsAny<PackageStreamMetadata>(),
                             It.IsAny<User>(),
+                            It.IsAny<bool>(), 
                             It.IsAny<bool>()),
                         Times.Never);
 

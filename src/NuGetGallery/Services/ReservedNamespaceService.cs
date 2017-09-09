@@ -111,7 +111,7 @@ namespace NuGetGallery
             using (var strategy = new SuspendDbExecutionStrategy())
             using (var transaction = EntitiesContext.GetDatabase().BeginTransaction())
             {
-                var namespaceToModify = FindReservedNamespaceForPrefix(prefix) 
+                var namespaceToModify = FindReservedNamespaceForPrefix(prefix)
                     ?? throw new InvalidOperationException(string.Format(
                         CultureInfo.CurrentCulture, Strings.ReservedNamespace_NamespaceNotFound, prefix));
 
@@ -193,6 +193,30 @@ namespace NuGetGallery
                 await ReservedNamespaceRepository.CommitChangesAsync();
 
                 transaction.Commit();
+            }
+        }
+
+        public async Task AddPackageRegistrationToNamespaceAsync(string prefix, PackageRegistration pr, bool commitChanges = true)
+        {
+            if (string.IsNullOrWhiteSpace(prefix))
+            {
+                throw new ArgumentException(Strings.ReservedNamespace_InvalidNamespace);
+            }
+
+            if (pr == null)
+            {
+                throw new ArgumentException(Strings.ReservedNamespace_InvalidUsername);
+            }
+
+            var namespaceToModify = FindReservedNamespaceForPrefix(prefix)
+                ?? throw new InvalidOperationException(string.Format(
+                    CultureInfo.CurrentCulture, Strings.ReservedNamespace_NamespaceNotFound, prefix));
+
+            namespaceToModify.PackageRegistrations.Add(pr);
+
+            if (commitChanges)
+            {
+                await ReservedNamespaceRepository.CommitChangesAsync();
             }
         }
 

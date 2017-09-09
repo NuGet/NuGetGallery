@@ -400,6 +400,9 @@ namespace NuGetGallery
                         // Ensure that the user can push packages for this partialId.
                         var id = nuspec.GetId();
                         var packageRegistration = PackageService.FindPackageRegistrationById(id);
+                        var matchingNamespaces = ReservedNamespaceService.GetReservedNamespacesForId(id);
+                        var userOwnedNamespaces = matchingNamespaces.Where(rn => rn.Owners.AnySafe(o => o.Key == user.Key)).ToList();
+
                         if (packageRegistration == null)
                         {
                             // Check if API key allows pushing a new package id
@@ -411,12 +414,14 @@ namespace NuGetGallery
                                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Unauthorized, Strings.ApiKeyNotAuthorized);
                             }
 
-                            // For new package id verify if it owns any matching namespace, if exists, by the current user
-                            var matchingNamespaces = ReservedNamespaceService.GetReservedNamespacesForId(id);
-                            if (matchingNamespaces.Count > 0 
-                                && !matchingNamespaces.Any(rn => rn.Owners.Select(o => o.Username).Contains(user.Username)))
+                            // For new package id verify that the user owns any matching namespace 
+                            // or the user is allowed to push to a matching namespace
+                            var anyoneCanPushToThisNamespace = matchingNamespaces.Count == 0
+                                || matchingNamespaces.Any(rn => rn.IsSharedNamespace);
+
+                            if (!anyoneCanPushToThisNamespace && !userOwnedNamespaces.Any())
                             {
-                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict, string.Format(Strings.ReservedNamespace_UserNotAnOwner, user.Username));
+                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict, Strings.UploadPackage_IdNamespaceConflict);
                             }
                         }
                         else
@@ -476,7 +481,11 @@ namespace NuGetGallery
                             packageToPush,
                             packageStreamMetadata,
                             user,
-                            commitChanges: false);
+                            commitChanges: false,
+                            isVerified: userOwnedNamespaces.Any());
+
+                        await Task.WhenAll(userOwnedNamespaces
+                                    .Select(rn => ReservedNamespaceService.AddPackageRegistrationToNamespaceAsync(rn.Value, package.PackageRegistration, commitChanges: false)));
 
                         await AutoCuratePackage.ExecuteAsync(package, packageToPush, commitChanges: false);
 
