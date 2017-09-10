@@ -44,6 +44,7 @@ namespace NuGetGallery
         public Mock<ITelemetryService> MockTelemetryService { get; private set; }
         public Mock<AuthenticationService> MockAuthenticationService { get; private set; }
         public Mock<ISecurityPolicyService> MockSecurityPolicyService { get; private set; }
+        public Mock<IReservedNamespaceService> MockReservedNamespaceService { get; private set; }
 
         private Stream PackageFromInputStream { get; set; }
 
@@ -60,7 +61,7 @@ namespace NuGetGallery
             AutoCuratePackage = (MockAutoCuratePackage = new Mock<IAutomaticallyCuratePackageCommand>()).Object;
             AuthenticationService = (MockAuthenticationService = new Mock<AuthenticationService>()).Object;
             SecurityPolicyService = (MockSecurityPolicyService = new Mock<ISecurityPolicyService>()).Object;
-            ReservedNamespaceService = new TestableReservedNamespaceService();
+            ReservedNamespaceService = (MockReservedNamespaceService = new Mock<IReservedNamespaceService>()).Object;
 
             CredentialBuilder = new CredentialBuilder();
 
@@ -96,6 +97,9 @@ namespace NuGetGallery
 
             MockSecurityPolicyService.Setup(s => s.EvaluateAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>()))
                 .Returns(Task.FromResult(SecurityPolicyResult.SuccessResult));
+
+            MockReservedNamespaceService.Setup(s => s.GetReservedNamespacesForId(It.IsAny<string>()))
+                .Returns(new List<ReservedNamespace>());
 
             TestUtility.SetupHttpContextMockForUrlGeneration(new Mock<HttpContextBase>(), this);
         }
@@ -311,7 +315,7 @@ namespace NuGetGallery
                 var controller = new TestableApiController();
                 controller.SetCurrentUser(user);
                 controller.SetupPackageFromInputStream(nuGetPackage);
-                
+
                 var exception =
                     exceptionType.GetConstructor(new[] { typeof(string) }).Invoke(new[] { EnsureValidExceptionMessage });
 
@@ -470,6 +474,42 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task WillReturnConflictIfAPackageWithTheIdMatchesNonOwnedNamespace()
+            {
+                // Arrange
+                var user1 = new User { Key = 1, Username = "random1" };
+                var user2 = new User { Key = 2, Username = "random2" };
+                var packageId = "Random.Extention.Package1";
+                var packageRegistration = new PackageRegistration();
+                packageRegistration.Id = packageId;
+                var package = new Package();
+                package.PackageRegistration = packageRegistration;
+                package.Version = "1.0.0";
+                packageRegistration.Packages.Add(package);
+
+                var controller = new TestableApiController();
+                controller.SetCurrentUser(user1);
+                controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
+                    .Returns(() => null);
+
+                var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, "1.0.0");
+                controller.SetupPackageFromInputStream(nuGetPackage);
+                var testNamespace = new ReservedNamespace("random.", isSharedNamespace: false, isPrefix: true);
+                testNamespace.Owners.Add(user2);
+                controller.MockReservedNamespaceService.Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
+                    .Returns(() => new List<ReservedNamespace> { testNamespace });
+
+                // Act
+                var result = await controller.CreatePackagePut();
+
+                // Assert
+                ResultAssert.IsStatusCode(
+                    result,
+                    HttpStatusCode.Conflict,
+                    String.Format(Strings.UploadPackage_IdNamespaceConflict));
+            }
+
+            [Fact]
             public async Task WillCreateAPackageFromTheNuGetPackage()
             {
                 var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
@@ -481,6 +521,74 @@ namespace NuGetGallery
 
                 await controller.CreatePackagePut();
 
+                controller.MockPackageService.Verify(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), false, It.IsAny<bool>()));
+                controller.MockEntitiesContext.VerifyCommitted();
+            }
+
+            [Fact]
+            public async Task WillCreatePackageIfIdMatchesSharedNamespace()
+            {
+                // Arrange
+                var user1 = new User { Key = 1, Username = "random1" };
+                var user2 = new User { Key = 2, Username = "random2" };
+                var packageId = "Random.Extention.Package1";
+                var packageRegistration = new PackageRegistration();
+                packageRegistration.Id = packageId;
+                var package = new Package();
+                package.PackageRegistration = packageRegistration;
+                package.Version = "1.0.0";
+                packageRegistration.Packages.Add(package);
+
+                var controller = new TestableApiController();
+                controller.SetCurrentUser(user1);
+                controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
+                    .Returns(() => null);
+
+                var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, "1.0.0");
+                controller.SetupPackageFromInputStream(nuGetPackage);
+                var testNamespace = new ReservedNamespace("random.", isSharedNamespace: true, isPrefix: true);
+                testNamespace.Owners.Add(user2);
+                controller.MockReservedNamespaceService.Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
+                    .Returns(() => new List<ReservedNamespace> { testNamespace });
+
+                // Act
+                var result = await controller.CreatePackagePut();
+
+                // Assert
+                controller.MockPackageService.Verify(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), false, It.IsAny<bool>()));
+                controller.MockEntitiesContext.VerifyCommitted();
+            }
+
+            [Fact]
+            public async Task WillCreatePackageIfIdMatchesAnOwnedNamespace()
+            {
+                // Arrange
+                var user1 = new User { Key = 1, Username = "random1" };
+                var user2 = new User { Key = 2, Username = "random2" };
+                var packageId = "Random.Extention.Package1";
+                var packageRegistration = new PackageRegistration();
+                packageRegistration.Id = packageId;
+                var package = new Package();
+                package.PackageRegistration = packageRegistration;
+                package.Version = "1.0.0";
+                packageRegistration.Packages.Add(package);
+
+                var controller = new TestableApiController();
+                controller.SetCurrentUser(user1);
+                controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
+                    .Returns(() => null);
+
+                var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, "1.0.0");
+                controller.SetupPackageFromInputStream(nuGetPackage);
+                var testNamespace = new ReservedNamespace("random.", isSharedNamespace: false, isPrefix: true);
+                testNamespace.Owners.Add(user1);
+                controller.MockReservedNamespaceService.Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
+                    .Returns(() => new List<ReservedNamespace> { testNamespace });
+
+                // Act
+                var result = await controller.CreatePackagePut();
+
+                // Assert
                 controller.MockPackageService.Verify(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), false, It.IsAny<bool>()));
                 controller.MockEntitiesContext.VerifyCommitted();
             }
@@ -558,7 +666,7 @@ namespace NuGetGallery
                 // Arrange
                 var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
 
-                var user = new User {EmailAddress = "confirmed@email.com", Username = "username"};
+                var user = new User { EmailAddress = "confirmed@email.com", Username = "username" };
 
                 var package = new Package();
                 package.PackageRegistration = new PackageRegistration();
@@ -649,7 +757,7 @@ namespace NuGetGallery
                             It.IsAny<PackageArchiveReader>(),
                             It.IsAny<PackageStreamMetadata>(),
                             It.IsAny<User>(),
-                            It.IsAny<bool>(), 
+                            It.IsAny<bool>(),
                             It.IsAny<bool>()),
                         Times.Never);
 
@@ -699,9 +807,9 @@ namespace NuGetGallery
             {
                 var notOwner = new User { Key = 1 };
                 var package = new Package
-                    {
-                        PackageRegistration = new PackageRegistration { Owners = new[] { new User() } }
-                    };
+                {
+                    PackageRegistration = new PackageRegistration { Owners = new[] { new User() } }
+                };
 
                 var controller = new TestableApiController();
                 controller.SetCurrentUser(notOwner);
@@ -722,10 +830,10 @@ namespace NuGetGallery
             [Theory]
             public async Task WillVerifyApiKeyScopeBeforeDelete(string apiKeyScope, bool isDeleteAllowed)
             {
-                var owner = new User {Key = 1, Username = "owner"};
+                var owner = new User { Key = 1, Username = "owner" };
                 var package = new Package
                 {
-                    PackageRegistration = new PackageRegistration {Owners = new[] {owner}}
+                    PackageRegistration = new PackageRegistration { Owners = new[] { owner } }
                 };
 
                 var controller = new TestableApiController();
@@ -738,7 +846,7 @@ namespace NuGetGallery
                 if (!isDeleteAllowed)
                 {
                     Assert.IsType<HttpStatusCodeWithBodyResult>(result);
-                    var statusCodeResult = (HttpStatusCodeWithBodyResult) result;
+                    var statusCodeResult = (HttpStatusCodeWithBodyResult)result;
                     Assert.Equal(string.Format(Strings.ApiKeyNotAuthorized, "delete"),
                         statusCodeResult.StatusDescription);
 
@@ -756,9 +864,9 @@ namespace NuGetGallery
             {
                 var owner = new User { Key = 1 };
                 var package = new Package
-                    {
-                        PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner } }
-                    };
+                {
+                    PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner } }
+                };
                 var controller = new TestableApiController();
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(package);
                 controller.SetCurrentUser(owner);
@@ -941,9 +1049,9 @@ namespace NuGetGallery
                 controller.MockPackageService
                     .Setup(x => x.FindPackageByIdAndVersion("Baz", string.Empty, SemVerLevelKey.SemVer2, false))
                     .Throws(new DataException("Oh noes, database broken!"));
- 		        controller.MockPackageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, packageId, package.NormalizedVersion))
-                             .Returns(Task.FromResult<ActionResult>(actionResult))
-                             .Verifiable();
+                controller.MockPackageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, packageId, package.NormalizedVersion))
+                            .Returns(Task.FromResult<ActionResult>(actionResult))
+                            .Verifiable();
 
                 NameValueCollection headers = new NameValueCollection();
                 headers.Add("NuGet-Operation", "Install");
@@ -964,9 +1072,9 @@ namespace NuGetGallery
 
                 // Assert
                 ResultAssert.IsStatusCode(result, HttpStatusCode.ServiceUnavailable, Strings.DatabaseUnavailable_TrySpecificVersion);
-               // controller.MockPackageFileService.Verify();
+                // controller.MockPackageFileService.Verify();
                 controller.MockPackageService.Verify();
-               // controller.MockUserService.Verify();
+                // controller.MockUserService.Verify();
             }
         }
 
@@ -997,9 +1105,9 @@ namespace NuGetGallery
                 // Arrange
                 var owner = new User { Key = 1 };
                 var package = new Package
-                    {
-                        PackageRegistration = new PackageRegistration { Owners = new[] { new User() } }
-                    };
+                {
+                    PackageRegistration = new PackageRegistration { Owners = new[] { new User() } }
+                };
 
                 var controller = new TestableApiController();
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict("theId", "1.0.42")).Returns(package);
@@ -1108,7 +1216,7 @@ namespace NuGetGallery
                 Assert.True(DateTime.TryParse(json.Expires, out expires));
 
                 controller.MockAuthenticationService.Verify(s => s.AddCredential(It.IsAny<User>(), It.IsAny<Credential>()), Times.Once);
-                
+
                 controller.MockTelemetryService.Verify(x => x.TrackCreatePackageVerificationKeyEvent("foo", "1.0.0",
                     It.IsAny<User>(), controller.OwinContext.Request.User.Identity), Times.Once);
             }
@@ -1201,7 +1309,7 @@ namespace NuGetGallery
                     Strings.ApiKeyNotAuthorized);
 
                 controller.MockAuthenticationService.Verify(s => s.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()), Times.Never);
-                
+
                 controller.MockTelemetryService.Verify(x => x.TrackVerifyPackageKeyEvent("foo", "1.0.0",
                     It.IsAny<User>(), controller.OwinContext.Request.User.Identity, 403), Times.Once);
             }
@@ -1310,13 +1418,13 @@ namespace NuGetGallery
                     Version = "1.0.0"
                 };
                 var controller = SetupController(CredentialTypes.ApiKey.V2, scope, package);
-                
+
                 // Act
                 var result = await controller.VerifyPackageKeyAsync("foo", "1.0.0");
 
                 // Assert
                 ResultAssert.IsEmpty(result);
-                
+
                 controller.MockAuthenticationService.Verify(s => s.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()), Times.Never);
 
                 controller.MockTelemetryService.Verify(x => x.TrackVerifyPackageKeyEvent("foo", "1.0.0",

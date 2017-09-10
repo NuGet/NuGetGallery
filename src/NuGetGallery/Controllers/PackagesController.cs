@@ -334,7 +334,7 @@ namespace NuGetGallery
                     if (!namespacePushAllowed)
                     {
                         ModelState.AddModelError(
-                            string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.ReservedNamespace_UserNotAnOwner, currentUser.Username));
+                            string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict));
 
                         return Json(409, new string[] { string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict) });
                     }
@@ -1354,7 +1354,7 @@ namespace NuGetGallery
 
                     package = await _packageService.CreatePackageAsync(nugetPackage, packageStreamMetadata, currentUser, commitChanges: false, isVerified: userOwnedNamespaces.Any());
                     await Task.WhenAll(userOwnedNamespaces
-                                .Select(rn => _reservedNamespaceService.AddPackageRegistrationToNamespaceAsync(rn.Value, package.PackageRegistration, commitChanges: false)));
+                        .Select(rn => _reservedNamespaceService.AddPackageRegistrationToNamespaceAsync(rn.Value, package.PackageRegistration, commitChanges: false)));
 
                     Debug.Assert(package.PackageRegistration != null);
                 }

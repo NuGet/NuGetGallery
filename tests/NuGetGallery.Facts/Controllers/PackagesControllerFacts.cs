@@ -47,7 +47,7 @@ namespace NuGetGallery
             IAuditingService auditingService = null,
             Mock<ITelemetryService> telemetryService = null,
             Mock<ISecurityPolicyService> securityPolicyService = null,
-            IReservedNamespaceService reservedNamespaceService = null)
+            Mock<IReservedNamespaceService> reservedNamespaceService = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
             if (uploadFileService == null)
@@ -87,7 +87,12 @@ namespace NuGetGallery
 
             securityPolicyService = securityPolicyService ?? new Mock<ISecurityPolicyService>();
 
-            reservedNamespaceService = reservedNamespaceService ?? new TestableReservedNamespaceService();
+            if (reservedNamespaceService == null)
+            {
+                reservedNamespaceService = new Mock<IReservedNamespaceService>();
+                reservedNamespaceService.Setup(s => s.GetReservedNamespacesForId(It.IsAny<string>()))
+                    .Returns(new List<ReservedNamespace>());
+            }
 
             var controller = new Mock<PackagesController>(
                 packageService.Object,
@@ -106,7 +111,7 @@ namespace NuGetGallery
                 auditingService,
                 telemetryService.Object,
                 securityPolicyService.Object,
-                reservedNamespaceService);
+                reservedNamespaceService.Object);
 
             controller.CallBase = true;
             controller.Object.SetOwinContextOverride(Fakes.CreateOwinContext());
@@ -1252,6 +1257,117 @@ namespace NuGetGallery
                 Assert.NotNull(result);
                 Assert.False(controller.ModelState.IsValid);
                 Assert.Equal(String.Format(Strings.PackageIdNotAvailable, "theId"), controller.ModelState[String.Empty].Errors[0].ErrorMessage);
+            }
+
+            [Fact]
+            public async Task WillShowTheViewWithErrorsWhenThePackageIdMatchesNonOwnedNamespace()
+            {
+                var fakeUploadedFile = new Mock<HttpPostedFileBase>();
+                fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
+                var fakeFileStream = TestPackage.CreateTestPackageStream("Random.Package1", "1.0.0");
+                fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
+
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult(0));
+                fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(null));
+                fakeUploadFileService.Setup(x => x.SaveUploadFileAsync(TestUtility.FakeUser.Key, It.IsAny<Stream>())).Returns(Task.FromResult(0));
+                var fakePackageService = new Mock<IPackageService>();
+                fakePackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns(() => null);
+
+                var fakeReservedNamespaceService = new Mock<IReservedNamespaceService>();
+                var testNamespace = new ReservedNamespace("random.", isSharedNamespace: false, isPrefix: true);
+                var user1 = new User { Key = 1, Username = "random1" };
+                testNamespace.Owners.Add(user1);
+                fakeReservedNamespaceService.Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
+                    .Returns(() => new List<ReservedNamespace> { testNamespace });
+
+                var controller = CreateController(
+                    uploadFileService: fakeUploadFileService,
+                    packageService: fakePackageService,
+                    fakeNuGetPackage: fakeFileStream,
+                    reservedNamespaceService: fakeReservedNamespaceService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
+
+                Assert.NotNull(result);
+                Assert.False(controller.ModelState.IsValid);
+                Assert.Equal(String.Format(Strings.UploadPackage_IdNamespaceConflict), controller.ModelState[String.Empty].Errors[0].ErrorMessage);
+            }
+
+            [Fact]
+            public async Task WillUploadThePackageWhenIdMatchesSharedNamespace()
+            {
+                var fakeUploadedFile = new Mock<HttpPostedFileBase>();
+                fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
+                var fakeFileStream = TestPackage.CreateTestPackageStream("Random.Package1", "1.0.0");
+                fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
+
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult(0));
+                fakeUploadFileService.SetupSequence(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key))
+                    .Returns(Task.FromResult<Stream>(null))
+                    .Returns(Task.FromResult<Stream>(TestPackage.CreateTestPackageStream("Random.Package1", "1.0.0")));
+                fakeUploadFileService.Setup(x => x.SaveUploadFileAsync(TestUtility.FakeUser.Key, It.IsAny<Stream>())).Returns(Task.FromResult(0));
+                var fakePackageService = new Mock<IPackageService>();
+                fakePackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns(() => null);
+
+                var fakeReservedNamespaceService = new Mock<IReservedNamespaceService>();
+                var testNamespace = new ReservedNamespace("random.", isSharedNamespace: true, isPrefix: true);
+                var user1 = new User { Key = 1, Username = "random1" };
+                testNamespace.Owners.Add(user1);
+                fakeReservedNamespaceService.Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
+                    .Returns(() => new List<ReservedNamespace> { testNamespace });
+
+                var controller = CreateController(
+                    uploadFileService: fakeUploadFileService,
+                    packageService: fakePackageService,
+                    fakeNuGetPackage: fakeFileStream,
+                    reservedNamespaceService: fakeReservedNamespaceService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                await controller.UploadPackage(fakeUploadedFile.Object);
+
+                Assert.True(controller.ModelState.IsValid);
+                fakeUploadFileService.Verify(x => x.SaveUploadFileAsync(TestUtility.FakeUser.Key, fakeFileStream));
+                fakeFileStream.Dispose();
+            }
+
+            [Fact]
+            public async Task WillUploadThePackageWhenIdMatchesOwnedNamespace()
+            {
+                var fakeUploadedFile = new Mock<HttpPostedFileBase>();
+                fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
+                var fakeFileStream = TestPackage.CreateTestPackageStream("Random.Package1", "1.0.0");
+                fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
+
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult(0));
+                fakeUploadFileService.SetupSequence(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key))
+                    .Returns(Task.FromResult<Stream>(null))
+                    .Returns(Task.FromResult<Stream>(TestPackage.CreateTestPackageStream("Random.Package1", "1.0.0")));
+                fakeUploadFileService.Setup(x => x.SaveUploadFileAsync(TestUtility.FakeUser.Key, It.IsAny<Stream>())).Returns(Task.FromResult(0));
+                var fakePackageService = new Mock<IPackageService>();
+                fakePackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns(() => null);
+
+                var fakeReservedNamespaceService = new Mock<IReservedNamespaceService>();
+                var testNamespace = new ReservedNamespace("random.", isSharedNamespace: true, isPrefix: true);
+                testNamespace.Owners.Add(TestUtility.FakeUser);
+                fakeReservedNamespaceService.Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
+                    .Returns(() => new List<ReservedNamespace> { testNamespace });
+
+                var controller = CreateController(
+                    uploadFileService: fakeUploadFileService,
+                    packageService: fakePackageService,
+                    fakeNuGetPackage: fakeFileStream,
+                    reservedNamespaceService: fakeReservedNamespaceService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                await controller.UploadPackage(fakeUploadedFile.Object);
+
+                Assert.True(controller.ModelState.IsValid);
+                fakeUploadFileService.Verify(x => x.SaveUploadFileAsync(TestUtility.FakeUser.Key, fakeFileStream));
+                fakeFileStream.Dispose();
             }
 
             [Fact]

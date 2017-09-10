@@ -196,6 +196,8 @@ namespace NuGetGallery
             }
         }
 
+        // Add the Package registration entry to the reserved namespace, the provided package registration
+        // should be an entry in the database or an entity from memory to be referenced.
         public async Task AddPackageRegistrationToNamespaceAsync(string prefix, PackageRegistration pr, bool commitChanges = true)
         {
             if (string.IsNullOrWhiteSpace(prefix))
