@@ -205,7 +205,7 @@ namespace NuGetGallery
 
             if (pr == null)
             {
-                throw new ArgumentException(Strings.ReservedNamespace_InvalidUsername);
+                throw new ArgumentNullException(nameof(pr));
             }
 
             var namespaceToModify = FindReservedNamespaceForPrefix(prefix)

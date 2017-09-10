@@ -317,6 +317,74 @@ namespace NuGetGallery.Services
             }
         }
 
+        public class TheAddPackageRegistrationToNamespaceAsyncMethod
+        {
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            [InlineData("  ")]
+            public async Task NullNamespaceThrowsException(string value)
+            {
+                var service = new TestableReservedNamespaceService();
+
+                await Assert.ThrowsAsync<ArgumentException>(async () => await service.AddPackageRegistrationToNamespaceAsync(value, new PackageRegistration()));
+
+            }
+
+            [Fact]
+            public async Task NullPackageRegistrationThrowsException()
+            {
+                var service = new TestableReservedNamespaceService();
+
+                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.AddPackageRegistrationToNamespaceAsync("Microsoft.", null));
+            }
+
+            [Fact]
+            public async Task NonExistentNamespaceThrowsException()
+            {
+                var testNamespaces = GetTestNamespaces();
+                var testPackageRegistrations = GetRegistrations();
+                var existingReg = testPackageRegistrations.First();
+                var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, packageRegistrations: testPackageRegistrations);
+
+                await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.AddPackageRegistrationToNamespaceAsync("Non.Existent.Namespace.", existingReg));
+            }
+
+            [Fact]
+            public async Task PackageRegistrationIsAddedWithCommitSuccessfully()
+            {
+                var testNamespaces = GetTestNamespaces();
+                var existingNamespace = testNamespaces.First();
+                var testPackageRegistrations = GetRegistrations();
+                var existingReg = testPackageRegistrations.First();
+                var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, packageRegistrations: testPackageRegistrations);
+
+                await service.AddPackageRegistrationToNamespaceAsync(existingNamespace.Value, existingReg, commitChanges: true);
+
+                service
+                    .MockReservedNamespaceRepository
+                    .Verify(x => x.CommitChangesAsync());
+                Assert.True(existingNamespace.PackageRegistrations.Contains(existingReg));
+            }
+
+            [Fact]
+            public async Task CommitChangesIsNotExecuted()
+            {
+                var testNamespaces = GetTestNamespaces();
+                var existingNamespace = testNamespaces.First();
+                var testPackageRegistrations = GetRegistrations();
+                var existingReg = testPackageRegistrations.First();
+                var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, packageRegistrations: testPackageRegistrations);
+
+                await service.AddPackageRegistrationToNamespaceAsync(existingNamespace.Value, existingReg, commitChanges: false);
+
+                service
+                    .MockReservedNamespaceRepository
+                    .Verify(x => x.CommitChangesAsync(), Times.Never);
+                Assert.True(existingNamespace.PackageRegistrations.Contains(existingReg));
+            }
+        }
+
         public class TheDeleteOwnerFromReservedNamespaceAsyncMethod
         {
             [Theory]
