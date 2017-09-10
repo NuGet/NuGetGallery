@@ -328,7 +328,6 @@ namespace NuGetGallery.Services
                 var service = new TestableReservedNamespaceService();
 
                 await Assert.ThrowsAsync<ArgumentException>(async () => await service.AddPackageRegistrationToNamespaceAsync(value, new PackageRegistration()));
-
             }
 
             [Fact]

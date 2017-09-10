@@ -401,7 +401,8 @@ namespace NuGetGallery
                         var id = nuspec.GetId();
                         var packageRegistration = PackageService.FindPackageRegistrationById(id);
                         var matchingNamespaces = ReservedNamespaceService.GetReservedNamespacesForId(id);
-                        var userOwnedNamespaces = matchingNamespaces.Where(rn => rn.Owners.AnySafe(o => o.Key == user.Key)).ToList();
+                        var userOwnedNamespaces = matchingNamespaces
+                            .Where(rn => rn.Owners.AnySafe(o => o.Key == user.Key)).ToList();
 
                         if (packageRegistration == null)
                         {
@@ -485,7 +486,7 @@ namespace NuGetGallery
                             isVerified: userOwnedNamespaces.Any());
 
                         await Task.WhenAll(userOwnedNamespaces
-                                    .Select(rn => ReservedNamespaceService.AddPackageRegistrationToNamespaceAsync(rn.Value, package.PackageRegistration, commitChanges: false)));
+                            .Select(rn => ReservedNamespaceService.AddPackageRegistrationToNamespaceAsync(rn.Value, package.PackageRegistration, commitChanges: false)));
 
                         await AutoCuratePackage.ExecuteAsync(package, packageToPush, commitChanges: false);
 

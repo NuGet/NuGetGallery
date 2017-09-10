@@ -1350,9 +1350,16 @@ namespace NuGetGallery
                 try
                 {
                     var matchingNamespaces = _reservedNamespaceService.GetReservedNamespacesForId(packageMetadata.Id);
-                    var userOwnedNamespaces = matchingNamespaces.Where(rn => rn.Owners.AnySafe(o => o.Key == currentUser.Key)).ToList();
+                    var userOwnedNamespaces = matchingNamespaces
+                        .Where(rn => rn.Owners.AnySafe(o => o.Key == currentUser.Key));
 
-                    package = await _packageService.CreatePackageAsync(nugetPackage, packageStreamMetadata, currentUser, commitChanges: false, isVerified: userOwnedNamespaces.Any());
+                    package = await _packageService.CreatePackageAsync(
+                        nugetPackage, 
+                        packageStreamMetadata, 
+                        currentUser, 
+                        commitChanges: false, 
+                        isVerified: userOwnedNamespaces.Any());
+
                     await Task.WhenAll(userOwnedNamespaces
                         .Select(rn => _reservedNamespaceService.AddPackageRegistrationToNamespaceAsync(rn.Value, package.PackageRegistration, commitChanges: false)));
 
