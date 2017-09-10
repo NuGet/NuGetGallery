@@ -229,13 +229,13 @@ namespace NuGetGallery
             if (uploadFile == null)
             {
                 ModelState.AddModelError(String.Empty, Strings.UploadFileIsRequired);
-                return Json(400, new string [] { Strings.UploadFileIsRequired });
+                return Json(400, new string[] { Strings.UploadFileIsRequired });
             }
 
             if (!Path.GetExtension(uploadFile.FileName).Equals(Constants.NuGetPackageFileExtension, StringComparison.OrdinalIgnoreCase))
             {
                 ModelState.AddModelError(String.Empty, Strings.UploadFileMustBeNuGetPackage);
-                return Json(400, new string [] { Strings.UploadFileMustBeNuGetPackage });
+                return Json(400, new string[] { Strings.UploadFileMustBeNuGetPackage });
             }
 
             using (var uploadStream = uploadFile.InputStream)
@@ -253,8 +253,8 @@ namespace NuGetGallery
                            CultureInfo.CurrentCulture,
                            Strings.PackageEntryFromTheFuture,
                            entryInTheFuture.Name));
-                        
-                        return Json(400, new string [] { string.Format(
+
+                        return Json(400, new string[] { string.Format(
                            CultureInfo.CurrentCulture,
                            Strings.PackageEntryFromTheFuture,
                            entryInTheFuture.Name) });
@@ -280,7 +280,7 @@ namespace NuGetGallery
 
                     ModelState.AddModelError(String.Empty, message);
 
-                    return Json(400, new string [] { message });
+                    return Json(400, new string[] { message });
                 }
                 finally
                 {
@@ -297,7 +297,7 @@ namespace NuGetGallery
                         errorStrings.Add(error.ErrorMessage);
                         ModelState.AddModelError(String.Empty, error.ErrorMessage);
                     }
-                    
+
                     return Json(400, errorStrings);
                 }
 
@@ -310,8 +310,8 @@ namespace NuGetGallery
                             CultureInfo.CurrentCulture,
                             Strings.UploadPackage_MinClientVersionOutOfRange,
                             nuspec.GetMinClientVersion()));
-                    
-                    return Json(400, new string [] {
+
+                    return Json(400, new string[] {
                         string.Format(
                             CultureInfo.CurrentCulture,
                             Strings.UploadPackage_MinClientVersionOutOfRange,
@@ -320,23 +320,14 @@ namespace NuGetGallery
 
                 var id = nuspec.GetId();
                 var packageRegistration = _packageService.FindPackageRegistrationById(id);
-                if (packageRegistration != null)
-                {
-                    if (!packageRegistration.Owners.AnySafe(x => x.Key == currentUser.Key))
-                    {
-                        ModelState.AddModelError(
-                            string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id));
-
-                        return Json(409, new string[] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id) });
-                    }
-                }
-                else
+                // For a new package id verify if the user is allowed to use it.
+                if (packageRegistration == null)
                 {
                     var matchingNamespaces = _reservedNamespaceService.GetReservedNamespacesForId(id);
-                    // Allow push to a new package ID only if there
-                    // 1. Is no namespace match for the given ID
-                    // 2. One of the matching namespace is a shared namespace.
-                    // 3. The user is the owner of one of the namespace.
+                    // Allow push to a new package ID only if
+                    // 1. There is no namespace match for the given ID
+                    // 2. Or one of the matching namespace is a shared namespace.
+                    // 3. Or the current user is one of the owner of a matching namespace.
                     var namespacePushAllowed = matchingNamespaces.Count == 0
                         || matchingNamespaces.Any(rn => rn.IsSharedNamespace || rn.Owners.AnySafe(o => o.Key == currentUser.Key));
 
@@ -349,7 +340,14 @@ namespace NuGetGallery
                     }
                 }
 
-                // For new package id verify if it is owned by the current user
+                // For existing package id verify if it is owned by the current user
+                if (packageRegistration != null && !packageRegistration.Owners.AnySafe(x => x.Key == currentUser.Key))
+                {
+                    ModelState.AddModelError(
+                        string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id));
+
+                    return Json(409, new string[] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id) });
+                }
 
                 var nuspecVersion = nuspec.GetVersion();
                 var existingPackage = _packageService.FindPackageByIdAndVersionStrict(nuspec.GetId(), nuspecVersion.ToStringSafe());
@@ -380,8 +378,8 @@ namespace NuGetGallery
                     ModelState.AddModelError(
                         string.Empty,
                         message);
-                    
-                    return Json(409, new string [] { message });
+
+                    return Json(409, new string[] { message });
                 }
 
                 await _uploadFileService.SaveUploadFileAsync(currentUser.Key, uploadStream);
@@ -393,13 +391,13 @@ namespace NuGetGallery
                 if (uploadedFile == null)
                 {
                     ModelState.AddModelError(String.Empty, Strings.UploadFileIsRequired);
-                    return Json(400, new string [] { Strings.UploadFileIsRequired });
+                    return Json(400, new string[] { Strings.UploadFileIsRequired });
                 }
 
                 var package = await SafeCreatePackage(currentUser, uploadedFile);
                 if (package == null)
                 {
-                    return Json(400, new string [] { Strings.UploadFileIsRequired });
+                    return Json(400, new string[] { Strings.UploadFileIsRequired });
                 }
 
                 try
@@ -410,8 +408,8 @@ namespace NuGetGallery
                 catch (Exception ex)
                 {
                     TempData["Message"] = ex.GetUserSafeMessage();
-                    
-                    return Json(400, new string [] { ex.GetUserSafeMessage() });
+
+                    return Json(400, new string[] { ex.GetUserSafeMessage() });
                 }
             }
 
@@ -484,7 +482,7 @@ namespace NuGetGallery
                         sortOrder: null,
                         context: SearchFilter.ODataSearchContext,
                         semVerLevel: SemVerLevelKey.SemVerLevel2);
-                    
+
                     searchFilter.IncludeAllVersions = true;
 
                     var results = await externalSearchService.RawSearch(searchFilter);
@@ -1294,15 +1292,15 @@ namespace NuGetGallery
                 if (uploadFile == null)
                 {
                     TempData["Message"] = Strings.VerifyPackage_UploadNotFound;
-                    
-                    return Json(400, new string [] { Strings.VerifyPackage_UploadNotFound });
+
+                    return Json(400, new string[] { Strings.VerifyPackage_UploadNotFound });
                 }
 
                 var nugetPackage = await SafeCreatePackage(currentUser, uploadFile);
                 if (nugetPackage == null)
                 {
                     // Send the user back
-                    return Json(400, new string [] { Strings.VerifyPackage_UnexpectedError });
+                    return Json(400, new string[] { Strings.VerifyPackage_UnexpectedError });
                 }
 
                 Debug.Assert(nugetPackage != null);
@@ -1319,8 +1317,8 @@ namespace NuGetGallery
                         && String.Equals(packageMetadata.Version.OriginalVersion, formData.OriginalVersion, StringComparison.OrdinalIgnoreCase)))
                     {
                         TempData["Message"] = Strings.VerifyPackage_PackageFileModified;
-                        
-                        return Json(400, new string [] { Strings.VerifyPackage_PackageFileModified });
+
+                        return Json(400, new string[] { Strings.VerifyPackage_PackageFileModified });
                     }
                 }
 
@@ -1363,8 +1361,8 @@ namespace NuGetGallery
                 catch (InvalidPackageException ex)
                 {
                     TempData["Message"] = ex.Message;
-                    
-                    return Json(400, new string [] { ex.GetUserSafeMessage() });
+
+                    return Json(400, new string[] { ex.GetUserSafeMessage() });
                 }
 
                 await _packageService.PublishPackageAsync(package, commitChanges: false);
@@ -1392,8 +1390,8 @@ namespace NuGetGallery
                 {
                     ex.Log();
                     TempData["Message"] = Strings.UploadPackage_IdVersionConflict;
-                    
-                    return Json(409, new string [] { Strings.UploadPackage_IdVersionConflict });
+
+                    return Json(409, new string[] { Strings.UploadPackage_IdVersionConflict });
                 }
 
                 try
