@@ -332,12 +332,9 @@ namespace NuGetGallery.Controllers
             {
                 var enforcedProvider = "AzureActiveDirectory";
 
-                var mockConfig = GetMock<IGalleryConfigurationService>();
-                mockConfig.Setup(x => x.Current).Returns(new AppConfiguration
-                {
-                    ConfirmEmailAddresses = false,
-                    EnforcedAuthProviderForAdmin = enforcedProvider
-                });
+                var configurationService = GetConfigurationService();
+                configurationService.Current.ConfirmEmailAddresses = false;
+                configurationService.Current.EnforcedAuthProviderForAdmin = enforcedProvider;
 
                 var externalCred = new CredentialBuilder().CreateExternalCredential(providerUsedForLogin, "blorg", "Bloog");
 
@@ -385,7 +382,7 @@ namespace NuGetGallery.Controllers
                        .Returns(Task.FromResult(0))
                        .Verifiable();
                 }
-                
+
                 GetMock<AuthenticationService>()
                     .Setup(x => x.ReadExternalLoginCredential(controller.OwinContext))
                     .CompletesWith(new AuthenticateExternalLoginResult()
@@ -438,6 +435,7 @@ namespace NuGetGallery.Controllers
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Register(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Credential>()))
                     .Throws(new EntityException("aMessage"));
+
                 var controller = GetController<AuthenticationController>();
 
                 var request = new LogOnViewModel()
@@ -446,7 +444,7 @@ namespace NuGetGallery.Controllers
                     {
                         Username = "theUsername",
                         Password = "thePassword",
-                        EmailAddress = "theEmailAddress",
+                        EmailAddress = "someone@example.com",
                     }
                 };
                 var result = await controller.Register(request, null, linkingAccount: false);
@@ -461,18 +459,20 @@ namespace NuGetGallery.Controllers
             {
                 // Arrange
                 var authUser = new AuthenticatedUser(
-                    new User("theUsername") {
+                    new User("theUsername")
+                    {
                         UnconfirmedEmailAddress = "unconfirmed@example.com",
                         EmailConfirmationToken = "t0k3n"
                     },
                     new Credential());
-                GetMock<AuthenticationService>()
-                    .Setup(x => x.Register("theUsername", "unconfirmed@example.com", It.IsAny<Credential>()))
-                    .CompletesWith(authUser);
-
+                
+                var authenticationService = GetMock<AuthenticationService>();
                 var controller = GetController<AuthenticationController>();
 
-                GetMock<AuthenticationService>()
+                authenticationService.Setup(x => x.Register(authUser.User.Username, authUser.User.UnconfirmedEmailAddress, It.IsAny<Credential>()))
+                    .CompletesWith(authUser);
+
+                authenticationService
                     .Setup(x => x.CreateSessionAsync(controller.OwinContext, authUser))
                     .Returns(Task.FromResult(0))
                     .Verifiable();
@@ -483,9 +483,9 @@ namespace NuGetGallery.Controllers
                     {
                         Register = new RegisterViewModel
                         {
-                            Username = "theUsername",
+                            Username = authUser.User.Username,
                             Password = "thePassword",
-                            EmailAddress = "unconfirmed@example.com",
+                            EmailAddress = authUser.User.UnconfirmedEmailAddress,
                         }
                     }, "/theReturnUrl", linkingAccount: false);
 
@@ -496,7 +496,7 @@ namespace NuGetGallery.Controllers
                 GetMock<IMessageService>()
                     .Verify(x => x.SendNewAccountEmail(
                         expectedAddress,
-                        "https://nuget.local/account/confirm/theUsername/t0k3n"));
+                        TestUtility.GallerySiteRootHttps + "account/confirm/" + authUser.User.Username + "/" + authUser.User.EmailConfirmationToken));
                 ResultAssert.IsSafeRedirectTo(result, "/theReturnUrl");
             }
 
@@ -512,8 +512,8 @@ namespace NuGetGallery.Controllers
                     },
                     new Credential());
 
-                var mockConfig = GetMock<IGalleryConfigurationService>();
-                mockConfig.Setup(x => x.Current).Returns(new AppConfiguration { ConfirmEmailAddresses = false });
+                var configurationService = GetConfigurationService();
+                configurationService.Current.ConfirmEmailAddresses = false;
 
                 GetMock<AuthenticationService>()
                     .Setup(x => x.Register("theUsername", "unconfirmed@example.com", It.IsAny<Credential>()))
@@ -591,20 +591,20 @@ namespace NuGetGallery.Controllers
                         EmailConfirmationToken = "t0k3n"
                     },
                     new Credential());
+
                 var externalCred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
-
-                GetMock<AuthenticationService>()
-                    .Setup(x => x.Register("theUsername", "theEmailAddress", externalCred))
-                    .CompletesWith(authUser);
-
+                
+                var authenticationServiceMock = GetMock<AuthenticationService>();
                 var controller = GetController<AuthenticationController>();
-
-                GetMock<AuthenticationService>()
+                authenticationServiceMock
+                    .Setup(x => x.Register(authUser.User.Username, authUser.User.UnconfirmedEmailAddress, externalCred))
+                    .CompletesWith(authUser);
+                authenticationServiceMock
                     .Setup(x => x.CreateSessionAsync(controller.OwinContext, authUser))
                     .Returns(Task.FromResult(0))
                     .Verifiable();
 
-                GetMock<AuthenticationService>()
+                authenticationServiceMock
                     .Setup(x => x.ReadExternalLoginCredential(controller.OwinContext))
                     .CompletesWith(new AuthenticateExternalLoginResult()
                     {
@@ -621,19 +621,19 @@ namespace NuGetGallery.Controllers
                     {
                         Register = new RegisterViewModel
                         {
-                            Username = "theUsername",
-                            EmailAddress = "theEmailAddress",
+                            Username = authUser.User.Username,
+                            EmailAddress = authUser.User.UnconfirmedEmailAddress,
                         }
                     }, "/theReturnUrl", linkingAccount: true);
 
                 // Assert
-                GetMock<AuthenticationService>().VerifyAll();
+                authenticationServiceMock.VerifyAll();
 
                 var expectedAddress = new MailAddress(authUser.User.UnconfirmedEmailAddress, authUser.User.Username);
                 GetMock<IMessageService>()
                     .Verify(x => x.SendNewAccountEmail(
                         expectedAddress,
-                        "https://nuget.local/account/confirm/theUsername/t0k3n"));
+                        TestUtility.GallerySiteRootHttps + "account/confirm/" + authUser.User.Username + "/" + authUser.User.EmailConfirmationToken));
 
                 ResultAssert.IsSafeRedirectTo(result, "/theReturnUrl");
             }
@@ -646,12 +646,9 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 var enforcedProvider = "AzureActiveDirectory";
 
-                var mockConfig = GetMock<IGalleryConfigurationService>();
-                mockConfig.Setup(x => x.Current).Returns(new AppConfiguration
-                {
-                    ConfirmEmailAddresses = false,
-                    EnforcedAuthProviderForAdmin = enforcedProvider
-                });
+                var configurationService = GetConfigurationService();
+                configurationService.Current.ConfirmEmailAddresses = false;
+                configurationService.Current.EnforcedAuthProviderForAdmin = enforcedProvider;
 
                 var externalCred = new CredentialBuilder().CreateExternalCredential(providerUsedForLogin, "blorg", "Bloog");
 
@@ -734,7 +731,7 @@ namespace NuGetGallery.Controllers
                 var result = controller.ChallengeAuthentication("/theReturnUrl", "MicrosoftAccount");
 
                 // Assert
-                ResultAssert.IsChallengeResult(result, "MicrosoftAccount", "/users/account/authenticate/return?ReturnUrl=%2FtheReturnUrl");
+                ResultAssert.IsChallengeResult(result, "MicrosoftAccount", TestUtility.GallerySiteRootHttps + "users/account/authenticate/return?ReturnUrl=%2FtheReturnUrl");
             }
         }
 
@@ -762,10 +759,7 @@ namespace NuGetGallery.Controllers
             {
                 // Arrange
                 var fakes = Get<Fakes>();
-
-                var mockConfig = GetMock<IGalleryConfigurationService>();
-                mockConfig.Setup(x => x.Current).Returns(new AppConfiguration());
-
+                
                 GetMock<AuthenticationService>(); // Force a mock to be created
                 var controller = GetController<AuthenticationController>();
                 var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
@@ -797,12 +791,9 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 var enforcedProvider = "AzureActiveDirectory";
 
-                var mockConfig = GetMock<IGalleryConfigurationService>();
-                mockConfig.Setup(x => x.Current).Returns(new AppConfiguration
-                {
-                    ConfirmEmailAddresses = false,
-                    EnforcedAuthProviderForAdmin = enforcedProvider
-                });
+                var configurationService = GetConfigurationService();
+                configurationService.Current.ConfirmEmailAddresses = false;
+                configurationService.Current.EnforcedAuthProviderForAdmin = enforcedProvider;
 
                 var fakes = Get<Fakes>();
                 GetMock<AuthenticationService>(); // Force a mock to be created
@@ -975,7 +966,7 @@ namespace NuGetGallery.Controllers
                     .Setup(x => x.AuthenticateExternalLogin(controller.OwinContext))
                     .CompletesWith(new AuthenticateExternalLoginResult()
                     {
-                        ExternalIdentity = new ClaimsIdentity(new [] {
+                        ExternalIdentity = new ClaimsIdentity(new[] {
                             new Claim(ClaimTypes.Email, existingUser.EmailAddress)
                         }),
                         Authenticator = msAuther
@@ -1031,7 +1022,8 @@ namespace NuGetGallery.Controllers
             }
         }
 
-        public static void VerifyExternalLinkExpiredResult(AuthenticationController controller, ActionResult result) {
+        public static void VerifyExternalLinkExpiredResult(AuthenticationController controller, ActionResult result)
+        {
             ResultAssert.IsRedirectToRoute(result, new { action = "LogOn" });
             Assert.Equal(Strings.ExternalAccountLinkExpired, controller.TempData["Message"]);
         }

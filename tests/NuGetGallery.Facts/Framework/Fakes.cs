@@ -153,7 +153,7 @@ namespace NuGetGallery.Framework
         {
             var ctx = new OwinContext();
 
-            ctx.Request.SetUrl("http://nuget.local/");
+            ctx.Request.SetUrl(TestUtility.GallerySiteRootHttps);
 
             // Fill in some values that cause exceptions if not present
             ctx.Set<Action<Action<object>, object>>("server.OnSendingHeaders", (_, __) => { });
