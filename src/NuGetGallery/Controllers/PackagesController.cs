@@ -1346,15 +1346,20 @@ namespace NuGetGallery
                 {
                     _reservedNamespaceService.IsPushAllowed(packageMetadata.Id, currentUser, out IReadOnlyCollection<ReservedNamespace> userOwnedNamespaces);
 
+                    var shouldMarkIdVerified = userOwnedNamespaces != null && userOwnedNamespaces.Any();
                     package = await _packageService.CreatePackageAsync(
                         nugetPackage,
                         packageStreamMetadata,
                         currentUser,
-                        isVerified: userOwnedNamespaces.Any(),
+                        isVerified: shouldMarkIdVerified,
                         commitChanges: false);
 
-                    await Task.WhenAll(userOwnedNamespaces
-                        .Select(rn => _reservedNamespaceService.AddPackageRegistrationToNamespaceAsync(rn.Value, package.PackageRegistration, commitChanges: false)));
+                    if (shouldMarkIdVerified)
+                    {
+                        // Add all relevant package registrations to the applicable namespaces
+                        await Task.WhenAll(userOwnedNamespaces
+                            .Select(rn => _reservedNamespaceService.AddPackageRegistrationToNamespaceAsync(rn.Value, package.PackageRegistration, commitChanges: false)));
+                    }
 
                     Debug.Assert(package.PackageRegistration != null);
                 }

@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Globalization;
@@ -25,7 +26,6 @@ using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using PackageIdValidator = NuGetGallery.Packaging.PackageIdValidator;
-using System.Collections.Generic;
 
 namespace NuGetGallery
 {
@@ -401,22 +401,20 @@ namespace NuGetGallery
                         // Ensure that the user can push packages for this partialId.
                         var id = nuspec.GetId();
                         var packageRegistration = PackageService.FindPackageRegistrationById(id);
-                        var isPushAllowed = ReservedNamespaceService
-                            .IsPushAllowed(id, user, out IReadOnlyCollection<ReservedNamespace> userOwnedNamespaces);
-
+                        IReadOnlyCollection<ReservedNamespace> userOwnedNamespaces = null;
                         if (packageRegistration == null)
                         {
                             // Check if API key allows pushing a new package id
                             if (!ApiKeyScopeAllows(
-                                subject: nuspec.GetId(),
+                                subject: id,
                                 requestedActions: NuGetScopes.PackagePush))
                             {
                                 // User cannot push a new package ID as the API key scope does not allow it
                                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Unauthorized, Strings.ApiKeyNotAuthorized);
                             }
 
-                            // For new package id verify that the user owns any matching namespace 
-                            // or the user is allowed to push to a matching namespace
+                            // For a new package id verify that the user is allowed to push to the matching namespaces, if any.
+                            var isPushAllowed = ReservedNamespaceService.IsPushAllowed(id, user, out userOwnedNamespaces);
                             if (!isPushAllowed)
                             {
                                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict, Strings.UploadPackage_IdNamespaceConflict);
@@ -433,12 +431,12 @@ namespace NuGetGallery
                                         user.Username,
                                         AuditedAuthenticatedOperationAction.PackagePushAttemptByNonOwner,
                                         attemptedPackage: new AuditedPackageIdentifier(
-                                            nuspec.GetId(), nuspec.GetVersion().ToNormalizedStringSafe())));
+                                            id, nuspec.GetVersion().ToNormalizedStringSafe())));
 
                                 // User cannot push a package to an ID owned by another user.
                                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict,
                                     string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable,
-                                        nuspec.GetId()));
+                                        id));
                             }
 
                             // Check if API key allows pushing the current package id
@@ -464,7 +462,7 @@ namespace NuGetGallery
                                 return new HttpStatusCodeWithBodyResult(
                                     HttpStatusCode.Conflict,
                                     string.Format(CultureInfo.CurrentCulture, Strings.PackageExistsAndCannotBeModified,
-                                        nuspec.GetId(), nuspec.GetVersion().ToNormalizedStringSafe()));
+                                        id, nuspec.GetVersion().ToNormalizedStringSafe()));
                             }
                         }
 
@@ -475,15 +473,19 @@ namespace NuGetGallery
                             Size = packageStream.Length
                         };
 
+                        var markIdAsVerified = userOwnedNamespaces != null && userOwnedNamespaces.Any();
                         var package = await PackageService.CreatePackageAsync(
                             packageToPush,
                             packageStreamMetadata,
                             user,
-                            isVerified: userOwnedNamespaces.Any(),
+                            isVerified: markIdAsVerified,
                             commitChanges: false);
 
-                        await Task.WhenAll(userOwnedNamespaces
-                            .Select(rn => ReservedNamespaceService.AddPackageRegistrationToNamespaceAsync(rn.Value, package.PackageRegistration, commitChanges: false)));
+                        if (markIdAsVerified)
+                        {
+                            await Task.WhenAll(userOwnedNamespaces
+                                .Select(rn => ReservedNamespaceService.AddPackageRegistrationToNamespaceAsync(rn.Value, package.PackageRegistration, commitChanges: false)));
+                        }
 
                         await AutoCuratePackage.ExecuteAsync(package, packageToPush, commitChanges: false);
 

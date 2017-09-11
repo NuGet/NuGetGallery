@@ -196,8 +196,16 @@ namespace NuGetGallery
             }
         }
 
-        // Add the Package registration entry to the reserved namespace, the provided package registration
-        // should be an entry in the database or an entity from memory to be referenced.
+        /// <summary>
+        /// This method fetches the reserved namespace matching the prefix and adds the 
+        /// package registration entry to the reserved namespace, the provided package registration
+        /// should be an entry in the database or an entity from memory to be committed.
+        /// </summary>
+        /// <param name="prefix">The prefix value of the reserved namespace to modify</param>
+        /// <param name="pr">The package registration entity entry to be added.</param>
+        /// <param name="commitChanges">Flag to commit the modifications to the database, if set to false
+        /// the caller of this method should take care of saving changes for entities context.</param>
+        /// <returns>Awaitable task</returns>
         public async Task AddPackageRegistrationToNamespaceAsync(string prefix, PackageRegistration pr, bool commitChanges = true)
         {
             if (string.IsNullOrWhiteSpace(prefix))
