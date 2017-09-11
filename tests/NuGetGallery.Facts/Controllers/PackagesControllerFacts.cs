@@ -90,8 +90,9 @@ namespace NuGetGallery
             if (reservedNamespaceService == null)
             {
                 reservedNamespaceService = new Mock<IReservedNamespaceService>();
-                reservedNamespaceService.Setup(s => s.GetReservedNamespacesForId(It.IsAny<string>()))
-                    .Returns(new List<ReservedNamespace>());
+                IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces = new List<ReservedNamespace>();
+                reservedNamespaceService.Setup(s => s.TryGetMatchingNamespacesForUserIfPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out userOwnedMatchingNamespaces))
+                    .Returns(true);
             }
 
             var controller = new Mock<PackagesController>(
@@ -1278,8 +1279,10 @@ namespace NuGetGallery
                 var testNamespace = new ReservedNamespace("random.", isSharedNamespace: false, isPrefix: true);
                 var user1 = new User { Key = 1, Username = "random1" };
                 testNamespace.Owners.Add(user1);
-                fakeReservedNamespaceService.Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
-                    .Returns(() => new List<ReservedNamespace> { testNamespace });
+                IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace> { testNamespace };
+                fakeReservedNamespaceService
+                    .Setup(r => r.TryGetMatchingNamespacesForUserIfPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
+                    .Returns(false);
 
                 var controller = CreateController(
                     uploadFileService: fakeUploadFileService,
@@ -1316,8 +1319,10 @@ namespace NuGetGallery
                 var testNamespace = new ReservedNamespace("random.", isSharedNamespace: true, isPrefix: true);
                 var user1 = new User { Key = 1, Username = "random1" };
                 testNamespace.Owners.Add(user1);
-                fakeReservedNamespaceService.Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
-                    .Returns(() => new List<ReservedNamespace> { testNamespace });
+                IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace> { testNamespace };
+                fakeReservedNamespaceService
+                    .Setup(r => r.TryGetMatchingNamespacesForUserIfPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
+                    .Returns(true);
 
                 var controller = CreateController(
                     uploadFileService: fakeUploadFileService,
@@ -1353,8 +1358,11 @@ namespace NuGetGallery
                 var fakeReservedNamespaceService = new Mock<IReservedNamespaceService>();
                 var testNamespace = new ReservedNamespace("random.", isSharedNamespace: true, isPrefix: true);
                 testNamespace.Owners.Add(TestUtility.FakeUser);
-                fakeReservedNamespaceService.Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
-                    .Returns(() => new List<ReservedNamespace> { testNamespace });
+
+                IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace> { testNamespace };
+                fakeReservedNamespaceService
+                    .Setup(r => r.TryGetMatchingNamespacesForUserIfPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
+                    .Returns(true);
 
                 var controller = CreateController(
                     uploadFileService: fakeUploadFileService,

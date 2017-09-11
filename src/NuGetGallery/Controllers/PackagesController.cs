@@ -323,15 +323,10 @@ namespace NuGetGallery
                 // For a new package id verify if the user is allowed to use it.
                 if (packageRegistration == null)
                 {
-                    var matchingNamespaces = _reservedNamespaceService.GetReservedNamespacesForId(id);
-                    // Allow push to a new package ID only if
-                    // 1. There is no namespace match for the given ID
-                    // 2. Or one of the matching namespace is a shared namespace.
-                    // 3. Or the current user is one of the owner of a matching namespace.
-                    var namespacePushAllowed = matchingNamespaces.Count == 0
-                        || matchingNamespaces.Any(rn => rn.IsSharedNamespace || rn.Owners.AnySafe(o => o.Key == currentUser.Key));
+                    var isPushAllowed = _reservedNamespaceService
+                        .TryGetMatchingNamespacesForUserIfPushAllowed(id, currentUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
 
-                    if (!namespacePushAllowed)
+                    if (!isPushAllowed)
                     {
                         ModelState.AddModelError(
                             string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict));
@@ -1349,9 +1344,7 @@ namespace NuGetGallery
                 // update relevant database tables
                 try
                 {
-                    var matchingNamespaces = _reservedNamespaceService.GetReservedNamespacesForId(packageMetadata.Id);
-                    var userOwnedNamespaces = matchingNamespaces
-                        .Where(rn => rn.Owners.AnySafe(o => o.Key == currentUser.Key));
+                    _reservedNamespaceService.TryGetMatchingNamespacesForUserIfPushAllowed(packageMetadata.Id, currentUser, out IReadOnlyCollection<ReservedNamespace> userOwnedNamespaces);
 
                     package = await _packageService.CreatePackageAsync(
                         nugetPackage,

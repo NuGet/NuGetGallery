@@ -25,6 +25,7 @@ using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using PackageIdValidator = NuGetGallery.Packaging.PackageIdValidator;
+using System.Collections.Generic;
 
 namespace NuGetGallery
 {
@@ -400,9 +401,8 @@ namespace NuGetGallery
                         // Ensure that the user can push packages for this partialId.
                         var id = nuspec.GetId();
                         var packageRegistration = PackageService.FindPackageRegistrationById(id);
-                        var matchingNamespaces = ReservedNamespaceService.GetReservedNamespacesForId(id);
-                        var userOwnedNamespaces = matchingNamespaces
-                            .Where(rn => rn.Owners.AnySafe(o => o.Key == user.Key)).ToList();
+                        var isPushAllowed = ReservedNamespaceService
+                            .TryGetMatchingNamespacesForUserIfPushAllowed(id, user, out IReadOnlyCollection<ReservedNamespace> userOwnedNamespaces);
 
                         if (packageRegistration == null)
                         {
@@ -417,10 +417,7 @@ namespace NuGetGallery
 
                             // For new package id verify that the user owns any matching namespace 
                             // or the user is allowed to push to a matching namespace
-                            var anyoneCanPushToThisNamespace = matchingNamespaces.Count == 0
-                                || matchingNamespaces.Any(rn => rn.IsSharedNamespace);
-
-                            if (!anyoneCanPushToThisNamespace && !userOwnedNamespaces.Any())
+                            if (!isPushAllowed)
                             {
                                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict, Strings.UploadPackage_IdNamespaceConflict);
                             }

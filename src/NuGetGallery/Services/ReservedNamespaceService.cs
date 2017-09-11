@@ -287,7 +287,7 @@ namespace NuGetGallery
             }
         }
 
-        public bool IsPushAllowed(string id, User user, out bool shouldMarkIdVerified)
+        public bool TryGetMatchingNamespacesForUserIfPushAllowed(string id, User user, out IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces)
         {
             // Allow push to a new package ID only if
             // 1. There is no namespace match for the given ID
@@ -296,10 +296,12 @@ namespace NuGetGallery
             var matchingNamespaces = GetReservedNamespacesForId(id);
             var noNamespaceMatches = matchingNamespaces.Count() == 0;
             var idMatchesSharedNamespace = matchingNamespaces.Any(rn => rn.IsSharedNamespace);
-            var userOwnsMatchingNamespace = matchingNamespaces.Any(rn => rn.Owners.AnySafe(o => o.Username == user.Username));
-            shouldMarkIdVerified = userOwnsMatchingNamespace;
+            userOwnedMatchingNamespaces = matchingNamespaces
+                .Where(rn => rn.Owners.AnySafe(o => o.Username == user.Username))
+                .ToList()
+                .AsReadOnly();
 
-            return noNamespaceMatches || idMatchesSharedNamespace || userOwnsMatchingNamespace;
+            return noNamespaceMatches || idMatchesSharedNamespace || userOwnedMatchingNamespaces.Any();
         }
     }
 }

@@ -98,8 +98,10 @@ namespace NuGetGallery
             MockSecurityPolicyService.Setup(s => s.EvaluateAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>()))
                 .Returns(Task.FromResult(SecurityPolicyResult.SuccessResult));
 
-            MockReservedNamespaceService.Setup(s => s.GetReservedNamespacesForId(It.IsAny<string>()))
-                .Returns(new List<ReservedNamespace>());
+            IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace>();
+            MockReservedNamespaceService
+                .Setup(r => r.TryGetMatchingNamespacesForUserIfPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
+                .Returns(true);
 
             TestUtility.SetupHttpContextMockForUrlGeneration(new Mock<HttpContextBase>(), this);
         }
@@ -496,8 +498,10 @@ namespace NuGetGallery
                 controller.SetupPackageFromInputStream(nuGetPackage);
                 var testNamespace = new ReservedNamespace("random.", isSharedNamespace: false, isPrefix: true);
                 testNamespace.Owners.Add(user2);
-                controller.MockReservedNamespaceService.Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
-                    .Returns(() => new List<ReservedNamespace> { testNamespace });
+                IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace> { testNamespace };
+                controller.MockReservedNamespaceService
+                    .Setup(r => r.TryGetMatchingNamespacesForUserIfPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
+                    .Returns(false);
 
                 // Act
                 var result = await controller.CreatePackagePut();
@@ -548,8 +552,10 @@ namespace NuGetGallery
                 controller.SetupPackageFromInputStream(nuGetPackage);
                 var testNamespace = new ReservedNamespace("random.", isSharedNamespace: true, isPrefix: true);
                 testNamespace.Owners.Add(user2);
-                controller.MockReservedNamespaceService.Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
-                    .Returns(() => new List<ReservedNamespace> { testNamespace });
+                IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace> { testNamespace };
+                controller.MockReservedNamespaceService
+                    .Setup(r => r.TryGetMatchingNamespacesForUserIfPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
+                    .Returns(true);
 
                 // Act
                 var result = await controller.CreatePackagePut();
@@ -582,8 +588,10 @@ namespace NuGetGallery
                 controller.SetupPackageFromInputStream(nuGetPackage);
                 var testNamespace = new ReservedNamespace("random.", isSharedNamespace: false, isPrefix: true);
                 testNamespace.Owners.Add(user1);
-                controller.MockReservedNamespaceService.Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
-                    .Returns(() => new List<ReservedNamespace> { testNamespace });
+                IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace> { testNamespace };
+                controller.MockReservedNamespaceService
+                    .Setup(r => r.TryGetMatchingNamespacesForUserIfPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
+                    .Returns(true);
 
                 // Act
                 var result = await controller.CreatePackagePut();

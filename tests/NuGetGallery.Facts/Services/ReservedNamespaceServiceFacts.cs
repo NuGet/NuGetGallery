@@ -564,6 +564,149 @@ namespace NuGetGallery.Services
             }
         }
 
+        public class TheTryGetMatchingNamespacesForUserIfPushAllowedMethod
+        {
+            [Theory]
+            [InlineData("Microsoft.Aspnet")]
+            [InlineData("Microsoft.Aspnet.Newpackage")]
+            [InlineData("jquery")]
+            public void NonOwnedNamespacesRejectPush(string id)
+            {
+                var testNamespaces = GetTestNamespaces();
+                var prefix = "microsoft.";
+                var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value.Equals(prefix, StringComparison.OrdinalIgnoreCase));
+                var testUsers = GetTestUsers();
+                var firstUser = testUsers.First();
+                var lastUser = testUsers.Last();
+                existingNamespace.Owners.Add(firstUser);
+                var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
+
+                var isPushAllowed = service.TryGetMatchingNamespacesForUserIfPushAllowed(id, lastUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
+                Assert.Empty(matchingNamespaces);
+                Assert.False(isPushAllowed);
+            }
+
+            [Theory]
+            [InlineData("Microsoft.Aspnet")]
+            [InlineData("Microsoft.Aspnet.Newpackage")]
+            public void SharedNamespacesAllowsPush(string id)
+            {
+                var testNamespaces = GetTestNamespaces();
+                var prefix = "microsoft.";
+                var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value.Equals(prefix, StringComparison.OrdinalIgnoreCase));
+                existingNamespace.IsSharedNamespace = true;
+                var testUsers = GetTestUsers();
+                var firstUser = testUsers.First();
+                var lastUser = testUsers.Last();
+                existingNamespace.Owners.Add(firstUser);
+                var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
+
+                var isPushAllowed = service.TryGetMatchingNamespacesForUserIfPushAllowed(id, lastUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
+                Assert.Empty(matchingNamespaces);
+                Assert.True(isPushAllowed);
+            }
+
+            [Theory]
+            [InlineData("Microsoft.Aspnet")]
+            [InlineData("Microsoft.Aspnet.Newpackage")]
+            public void OwnedSharedNamespacesAllowsPushAndReturnsDataCorrectly(string id)
+            {
+                var testNamespaces = GetTestNamespaces();
+                var prefix = "microsoft.";
+                var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value.Equals(prefix, StringComparison.OrdinalIgnoreCase));
+                existingNamespace.IsSharedNamespace = true;
+                var testUsers = GetTestUsers();
+                var firstUser = testUsers.First();
+                existingNamespace.Owners.Add(firstUser);
+                var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
+
+                var isPushAllowed = service.TryGetMatchingNamespacesForUserIfPushAllowed(id, firstUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
+                Assert.NotEmpty(matchingNamespaces);
+                Assert.True(isPushAllowed);
+            }
+
+            [Theory]
+            [InlineData("Non.Matching.Id")]
+            [InlineData("RandomId")]
+            public void NonMatchingNamespacesAllowsPush(string id)
+            {
+                var testNamespaces = GetTestNamespaces();
+                var prefix = "microsoft.";
+                var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value.Equals(prefix, StringComparison.OrdinalIgnoreCase));
+                var testUsers = GetTestUsers();
+                var firstUser = testUsers.First();
+                var lastUser = testUsers.Last();
+                existingNamespace.Owners.Add(firstUser);
+                var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
+
+                var isPushAllowed = service.TryGetMatchingNamespacesForUserIfPushAllowed(id, lastUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
+                Assert.Empty(matchingNamespaces);
+                Assert.True(isPushAllowed);
+            }
+
+            [Theory]
+            [InlineData("jquer")]
+            [InlineData("j.query")]
+            [InlineData("jqueryextention")]
+            [InlineData("jquery.extention")]
+            public void NonPrefixNamespaceDoesNotBlockPush(string id)
+            {
+                var testNamespaces = GetTestNamespaces();
+                var prefix = "jQuery";
+                var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value.Equals(prefix, StringComparison.OrdinalIgnoreCase));
+                existingNamespace.IsPrefix = false;
+                var testUsers = GetTestUsers();
+                var firstUser = testUsers.First();
+                var lastUser = testUsers.Last();
+                existingNamespace.Owners.Add(firstUser);
+                var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
+
+                var isPushAllowed = service.TryGetMatchingNamespacesForUserIfPushAllowed(id, lastUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
+                Assert.Empty(matchingNamespaces);
+                Assert.True(isPushAllowed);
+            }
+
+            [Theory]
+            [InlineData("Microsoft.Aspnet")]
+            [InlineData("Microsoft.Aspnet.Newpackage")]
+            public void OwnedNamespacesAllowsPush(string id)
+            {
+                var testNamespaces = GetTestNamespaces();
+                var prefix = "microsoft.";
+                var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value.Equals(prefix, StringComparison.OrdinalIgnoreCase));
+                var testUsers = GetTestUsers();
+                var firstUser = testUsers.First();
+                existingNamespace.Owners.Add(firstUser);
+                var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
+
+                var isPushAllowed = service.TryGetMatchingNamespacesForUserIfPushAllowed(id, firstUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
+                Assert.True(isPushAllowed);
+                Assert.NotEmpty(matchingNamespaces);
+                Assert.True(matchingNamespaces.Count() == 1);
+            }
+
+            [Theory]
+            [InlineData("Microsoft.Aspnet.Newpackage")]
+            public void MultipleOwnedNamespacesAreReturnedCorrectly(string id)
+            {
+                var testNamespaces = GetTestNamespaces();
+                var prefixes = new List<string> { "microsoft.", "microsoft.aspnet." };
+                var testUsers = GetTestUsers();
+                var firstUser = testUsers.First();
+                prefixes.ForEach(p => {
+                    var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value.Equals(p, StringComparison.OrdinalIgnoreCase));
+                    existingNamespace.Owners.Add(firstUser);
+                });
+
+                var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
+
+                var isPushAllowed = service.TryGetMatchingNamespacesForUserIfPushAllowed(id, firstUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
+                Assert.True(isPushAllowed);
+                Assert.NotEmpty(matchingNamespaces);
+                Assert.True(matchingNamespaces.Count() == prefixes.Count());
+            }
+        }
+
         public class ValidateNamespaceMethod
         {
             [Theory]
@@ -597,7 +740,7 @@ namespace NuGetGallery.Services
         {
             var result = new List<ReservedNamespace>();
             result.Add(new ReservedNamespace("Microsoft.", isSharedNamespace: false, isPrefix: true));
-            result.Add(new ReservedNamespace("microsoft.aspnet.", isSharedNamespace: false, isPrefix: true));
+            result.Add(new ReservedNamespace("Microsoft.Aspnet.", isSharedNamespace: false, isPrefix: true));
             result.Add(new ReservedNamespace("baseTest.", isSharedNamespace: false, isPrefix: true));
             result.Add(new ReservedNamespace("jquery", isSharedNamespace: false, isPrefix: false));
             result.Add(new ReservedNamespace("jquery.Extentions.", isSharedNamespace: true, isPrefix: true));
