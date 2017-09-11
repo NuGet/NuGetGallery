@@ -269,7 +269,7 @@ namespace UpdateLicenseReports
             using (var connection = await _packageDatabase.ConnectTo())
             using (var command = connection.CreateCommand())
             {
-                command.CommandText = "AddPackageLicenseReport";
+                command.CommandText = "AddPackageLicenseReport2";
                 command.CommandType = CommandType.StoredProcedure;
 
                 var licensesNames = new DataTable();
