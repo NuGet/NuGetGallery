@@ -287,7 +287,7 @@ namespace NuGetGallery
             }
         }
 
-        public bool TryGetMatchingNamespacesForUserIfPushAllowed(string id, User user, out IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces)
+        public bool IsPushAllowed(string id, User user, out IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces)
         {
             // Allow push to a new package ID only if
             // 1. There is no namespace match for the given ID

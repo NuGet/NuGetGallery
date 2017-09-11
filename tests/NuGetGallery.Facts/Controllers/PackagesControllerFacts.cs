@@ -91,7 +91,7 @@ namespace NuGetGallery
             {
                 reservedNamespaceService = new Mock<IReservedNamespaceService>();
                 IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces = new List<ReservedNamespace>();
-                reservedNamespaceService.Setup(s => s.TryGetMatchingNamespacesForUserIfPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out userOwnedMatchingNamespaces))
+                reservedNamespaceService.Setup(s => s.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out userOwnedMatchingNamespaces))
                     .Returns(true);
             }
 
@@ -1281,7 +1281,7 @@ namespace NuGetGallery
                 testNamespace.Owners.Add(user1);
                 IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace> { testNamespace };
                 fakeReservedNamespaceService
-                    .Setup(r => r.TryGetMatchingNamespacesForUserIfPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
+                    .Setup(r => r.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
                     .Returns(false);
 
                 var controller = CreateController(
@@ -1321,7 +1321,7 @@ namespace NuGetGallery
                 testNamespace.Owners.Add(user1);
                 IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace> { testNamespace };
                 fakeReservedNamespaceService
-                    .Setup(r => r.TryGetMatchingNamespacesForUserIfPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
+                    .Setup(r => r.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
                     .Returns(true);
 
                 var controller = CreateController(
@@ -1361,7 +1361,7 @@ namespace NuGetGallery
 
                 IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace> { testNamespace };
                 fakeReservedNamespaceService
-                    .Setup(r => r.TryGetMatchingNamespacesForUserIfPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
+                    .Setup(r => r.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
                     .Returns(true);
 
                 var controller = CreateController(

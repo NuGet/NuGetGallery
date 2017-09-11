@@ -324,7 +324,7 @@ namespace NuGetGallery
                 if (packageRegistration == null)
                 {
                     var isPushAllowed = _reservedNamespaceService
-                        .TryGetMatchingNamespacesForUserIfPushAllowed(id, currentUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
+                        .IsPushAllowed(id, currentUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
 
                     if (!isPushAllowed)
                     {
@@ -1344,7 +1344,7 @@ namespace NuGetGallery
                 // update relevant database tables
                 try
                 {
-                    _reservedNamespaceService.TryGetMatchingNamespacesForUserIfPushAllowed(packageMetadata.Id, currentUser, out IReadOnlyCollection<ReservedNamespace> userOwnedNamespaces);
+                    _reservedNamespaceService.IsPushAllowed(packageMetadata.Id, currentUser, out IReadOnlyCollection<ReservedNamespace> userOwnedNamespaces);
 
                     package = await _packageService.CreatePackageAsync(
                         nugetPackage,

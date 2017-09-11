@@ -100,7 +100,7 @@ namespace NuGetGallery
 
             IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace>();
             MockReservedNamespaceService
-                .Setup(r => r.TryGetMatchingNamespacesForUserIfPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
+                .Setup(r => r.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
                 .Returns(true);
 
             TestUtility.SetupHttpContextMockForUrlGeneration(new Mock<HttpContextBase>(), this);
@@ -500,7 +500,7 @@ namespace NuGetGallery
                 testNamespace.Owners.Add(user2);
                 IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace> { testNamespace };
                 controller.MockReservedNamespaceService
-                    .Setup(r => r.TryGetMatchingNamespacesForUserIfPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
+                    .Setup(r => r.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
                     .Returns(false);
 
                 // Act
@@ -554,7 +554,7 @@ namespace NuGetGallery
                 testNamespace.Owners.Add(user2);
                 IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace> { testNamespace };
                 controller.MockReservedNamespaceService
-                    .Setup(r => r.TryGetMatchingNamespacesForUserIfPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
+                    .Setup(r => r.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
                     .Returns(true);
 
                 // Act
@@ -590,7 +590,7 @@ namespace NuGetGallery
                 testNamespace.Owners.Add(user1);
                 IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace> { testNamespace };
                 controller.MockReservedNamespaceService
-                    .Setup(r => r.TryGetMatchingNamespacesForUserIfPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
+                    .Setup(r => r.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
                     .Returns(true);
 
                 // Act

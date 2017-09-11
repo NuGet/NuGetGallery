@@ -89,6 +89,6 @@ namespace NuGetGallery
         /// <param name="user">The user to verify for permission to push to new id</param>
         /// <param name="userOwnedMatchingNamespaces">The out list of namespaces owned by the user</param>
         /// <returns>True if the push is allowed for the specified user for the given id, false otherwise</returns>
-        bool TryGetMatchingNamespacesForUserIfPushAllowed(string id, User user, out IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces);
+        bool IsPushAllowed(string id, User user, out IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces);
     }
 }

@@ -564,7 +564,7 @@ namespace NuGetGallery.Services
             }
         }
 
-        public class TheTryGetMatchingNamespacesForUserIfPushAllowedMethod
+        public class TheIsPushAllowedMethod
         {
             [Theory]
             [InlineData("Microsoft.Aspnet")]
@@ -581,7 +581,7 @@ namespace NuGetGallery.Services
                 existingNamespace.Owners.Add(firstUser);
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
 
-                var isPushAllowed = service.TryGetMatchingNamespacesForUserIfPushAllowed(id, lastUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
+                var isPushAllowed = service.IsPushAllowed(id, lastUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
                 Assert.Empty(matchingNamespaces);
                 Assert.False(isPushAllowed);
             }
@@ -601,7 +601,7 @@ namespace NuGetGallery.Services
                 existingNamespace.Owners.Add(firstUser);
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
 
-                var isPushAllowed = service.TryGetMatchingNamespacesForUserIfPushAllowed(id, lastUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
+                var isPushAllowed = service.IsPushAllowed(id, lastUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
                 Assert.Empty(matchingNamespaces);
                 Assert.True(isPushAllowed);
             }
@@ -620,7 +620,7 @@ namespace NuGetGallery.Services
                 existingNamespace.Owners.Add(firstUser);
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
 
-                var isPushAllowed = service.TryGetMatchingNamespacesForUserIfPushAllowed(id, firstUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
+                var isPushAllowed = service.IsPushAllowed(id, firstUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
                 Assert.NotEmpty(matchingNamespaces);
                 Assert.True(isPushAllowed);
             }
@@ -639,7 +639,7 @@ namespace NuGetGallery.Services
                 existingNamespace.Owners.Add(firstUser);
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
 
-                var isPushAllowed = service.TryGetMatchingNamespacesForUserIfPushAllowed(id, lastUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
+                var isPushAllowed = service.IsPushAllowed(id, lastUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
                 Assert.Empty(matchingNamespaces);
                 Assert.True(isPushAllowed);
             }
@@ -661,7 +661,7 @@ namespace NuGetGallery.Services
                 existingNamespace.Owners.Add(firstUser);
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
 
-                var isPushAllowed = service.TryGetMatchingNamespacesForUserIfPushAllowed(id, lastUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
+                var isPushAllowed = service.IsPushAllowed(id, lastUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
                 Assert.Empty(matchingNamespaces);
                 Assert.True(isPushAllowed);
             }
@@ -679,7 +679,7 @@ namespace NuGetGallery.Services
                 existingNamespace.Owners.Add(firstUser);
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
 
-                var isPushAllowed = service.TryGetMatchingNamespacesForUserIfPushAllowed(id, firstUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
+                var isPushAllowed = service.IsPushAllowed(id, firstUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
                 Assert.True(isPushAllowed);
                 Assert.NotEmpty(matchingNamespaces);
                 Assert.True(matchingNamespaces.Count() == 1);
@@ -700,7 +700,7 @@ namespace NuGetGallery.Services
 
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
 
-                var isPushAllowed = service.TryGetMatchingNamespacesForUserIfPushAllowed(id, firstUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
+                var isPushAllowed = service.IsPushAllowed(id, firstUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
                 Assert.True(isPushAllowed);
                 Assert.NotEmpty(matchingNamespaces);
                 Assert.True(matchingNamespaces.Count() == prefixes.Count());

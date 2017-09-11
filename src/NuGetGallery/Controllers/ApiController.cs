@@ -402,7 +402,7 @@ namespace NuGetGallery
                         var id = nuspec.GetId();
                         var packageRegistration = PackageService.FindPackageRegistrationById(id);
                         var isPushAllowed = ReservedNamespaceService
-                            .TryGetMatchingNamespacesForUserIfPushAllowed(id, user, out IReadOnlyCollection<ReservedNamespace> userOwnedNamespaces);
+                            .IsPushAllowed(id, user, out IReadOnlyCollection<ReservedNamespace> userOwnedNamespaces);
 
                         if (packageRegistration == null)
                         {
