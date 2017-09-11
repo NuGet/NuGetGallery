@@ -14,6 +14,7 @@ using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
 using NuGet;
+using NuGetGallery.Framework;
 
 namespace NuGetGallery
 {
@@ -51,14 +52,17 @@ namespace NuGetGallery
 
         public static UrlHelper MockUrlHelper()
         {
+            var siteRoot = "http://unittest.nuget.org/";
+
             var mockHttpContext = new Mock<HttpContextBase>(MockBehavior.Loose);
             var mockHttpRequest = new Mock<HttpRequestBase>(MockBehavior.Strict);
             var mockHttpResponse = new Mock<HttpResponseBase>(MockBehavior.Strict);
             mockHttpContext.Setup(httpContext => httpContext.Request).Returns(mockHttpRequest.Object);
             mockHttpContext.Setup(httpContext => httpContext.Response).Returns(mockHttpResponse.Object);
-            mockHttpRequest.Setup(httpRequest => httpRequest.Url).Returns(new Uri("http://unittest.nuget.org/"));
-            mockHttpRequest.Setup(httpRequest => httpRequest.ApplicationPath).Returns("http://unittest.nuget.org/");
+            mockHttpRequest.Setup(httpRequest => httpRequest.Url).Returns(new Uri(siteRoot));
+            mockHttpRequest.Setup(httpRequest => httpRequest.ApplicationPath).Returns(siteRoot);
             mockHttpRequest.Setup(httpRequest => httpRequest.ServerVariables).Returns(new NameValueCollection());
+            mockHttpRequest.Setup(httpRequest => httpRequest.IsSecureConnection).Returns(false);
 
             string value = null;
             Action<string> saveValue = x =>
@@ -71,6 +75,12 @@ namespace NuGetGallery
             var requestContext = new RequestContext(mockHttpContext.Object, new RouteData());
             var routes = new RouteCollection();
             Routes.RegisterRoutes(routes);
+
+            var configurationService = new TestGalleryConfigurationService();
+            configurationService.Current.SiteRoot = siteRoot;
+
+            UrlExtensions.SetConfigurationService(configurationService);
+
             return new UrlHelper(requestContext, routes);
         }
 

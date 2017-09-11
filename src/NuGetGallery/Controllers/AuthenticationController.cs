@@ -180,7 +180,7 @@ namespace NuGetGallery
                     // Challenge authentication using the first required authentication provider
                     challenge = _authService.Challenge(
                         providers.First(),
-                        Url.Action("LinkExternalAccount", "Authentication", new { ReturnUrl = returnUrl }));
+                        Url.LinkExternalAccount(returnUrl));
 
                     return true;
                 }
@@ -308,9 +308,7 @@ namespace NuGetGallery
         [NonAction]
         public ActionResult ChallengeAuthentication(string returnUrl, string provider)
         {
-            return _authService.Challenge(
-                provider,
-                Url.Action("LinkExternalAccount", "Authentication", new { ReturnUrl = returnUrl }));
+            return _authService.Challenge(provider, Url.LinkExternalAccount(returnUrl));
         }
 
         public virtual async Task<ActionResult> LinkExternalAccount(string returnUrl)

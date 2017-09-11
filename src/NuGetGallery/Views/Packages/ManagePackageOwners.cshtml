@@ -127,10 +127,10 @@
     <script type="text/javascript">
         var packageId = "@Model.Id";
         var packageUrl = "@Url.Package(Model.Id)";
-        var getPackageOwnersUrl = "@Url.Action("GetPackageOwners", "JsonApi")";
-        var getAddPackageOwnerConfirmationUrl = "@Url.Action("GetAddPackageOwnerConfirmation", "JsonApi")";
-        var addPackageOwnerUrl = "@Url.Action("AddPackageOwner", "JsonApi")";
-        var removePackageOwnerUrl = "@Url.Action("RemovePackageOwner", "JsonApi")";
+        var getPackageOwnersUrl = "@Url.GetPackageOwners()";
+        var getAddPackageOwnerConfirmationUrl = "@Url.GetAddPackageOwnerConfirmation()";
+        var addPackageOwnerUrl = "@Url.AddPackageOwner()";
+        var removePackageOwnerUrl = "@Url.RemovePackageOwner()";
     </script>
 
     @Scripts.Render("~/Scripts/gallery/page-manage-owners.min.js")
