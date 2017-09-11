@@ -234,11 +234,11 @@ namespace NuGetGallery
             Expression<Func<ReservedNamespace, bool>> prefixMatch;
             if (getExactMatches)
             {
-                prefixMatch = dbPrefix => dbPrefix.Value.Equals(prefix, StringComparison.OrdinalIgnoreCase);
+                prefixMatch = dbPrefix => dbPrefix.Value.Equals(prefix);
             }
             else
             {
-                prefixMatch = dbPrefix => dbPrefix.Value.StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
+                prefixMatch = dbPrefix => dbPrefix.Value.StartsWith(prefix);
             }
 
             return ReservedNamespaceRepository.GetAll()
@@ -257,7 +257,8 @@ namespace NuGetGallery
         public IReadOnlyCollection<ReservedNamespace> GetReservedNamespacesForId(string id)
         {
             return (from request in ReservedNamespaceRepository.GetAll()
-                    where id.StartsWith(request.Value)
+                    where (request.IsPrefix && id.StartsWith(request.Value))
+                        || (!request.IsPrefix && id.Equals(request.Value))
                     select request).ToList();
         }
 
@@ -284,6 +285,21 @@ namespace NuGetGallery
                     Strings.ReservedNamespace_InvalidCharactersInNamespace,
                     value));
             }
+        }
+
+        public bool IsPushAllowed(string id, User user, out bool shouldMarkIdVerified)
+        {
+            // Allow push to a new package ID only if
+            // 1. There is no namespace match for the given ID
+            // 2. Or one of the matching namespace is a shared namespace.
+            // 3. Or the current user is one of the owner of a matching namespace.
+            var matchingNamespaces = GetReservedNamespacesForId(id);
+            var noNamespaceMatches = matchingNamespaces.Count() == 0;
+            var idMatchesSharedNamespace = matchingNamespaces.Any(rn => rn.IsSharedNamespace);
+            var userOwnsMatchingNamespace = matchingNamespaces.Any(rn => rn.Owners.AnySafe(o => o.Username == user.Username));
+            shouldMarkIdVerified = userOwnsMatchingNamespace;
+
+            return noNamespaceMatches || idMatchesSharedNamespace || userOwnsMatchingNamespace;
         }
     }
 }

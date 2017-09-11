@@ -80,5 +80,14 @@ namespace NuGetGallery
         /// <param name="id">The package id to lookup</param>
         /// <returns>The list of reserved namespaces which are prefixes for the given id</returns>
         IReadOnlyCollection<ReservedNamespace> GetReservedNamespacesForId(string id);
+
+        /// <summary>
+        /// Verifies if the id is allowed to be pushed by the user or not.
+        /// </summary>
+        /// <param name="id">The package id to lookup</param>
+        /// <param name="user">The user to verify for permission to push to new id</param>
+        /// <param name="shouldMarkIdVerified">The out boolean set if the id should be marked as verified</param>
+        /// <returns>True if the push is allowed for the specified user for the given id, false otherwise</returns>
+        bool IsPushAllowed(string id, User user, out bool shouldMarkIdVerified);
     }
 }

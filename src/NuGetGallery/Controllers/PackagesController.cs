@@ -1354,11 +1354,11 @@ namespace NuGetGallery
                         .Where(rn => rn.Owners.AnySafe(o => o.Key == currentUser.Key));
 
                     package = await _packageService.CreatePackageAsync(
-                        nugetPackage, 
-                        packageStreamMetadata, 
-                        currentUser, 
-                        commitChanges: false, 
-                        isVerified: userOwnedNamespaces.Any());
+                        nugetPackage,
+                        packageStreamMetadata,
+                        currentUser,
+                        isVerified: userOwnedNamespaces.Any(),
+                        commitChanges: false);
 
                     await Task.WhenAll(userOwnedNamespaces
                         .Select(rn => _reservedNamespaceService.AddPackageRegistrationToNamespaceAsync(rn.Value, package.PackageRegistration, commitChanges: false)));

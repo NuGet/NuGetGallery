@@ -482,8 +482,8 @@ namespace NuGetGallery
                             packageToPush,
                             packageStreamMetadata,
                             user,
-                            commitChanges: false,
-                            isVerified: userOwnedNamespaces.Any());
+                            isVerified: userOwnedNamespaces.Any(),
+                            commitChanges: false);
 
                         await Task.WhenAll(userOwnedNamespaces
                             .Select(rn => ReservedNamespaceService.AddPackageRegistrationToNamespaceAsync(rn.Value, package.PackageRegistration, commitChanges: false)));
