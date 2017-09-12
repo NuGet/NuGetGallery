@@ -429,6 +429,7 @@
     <Compile Include="Services\AllowLocalHttpRedirectPolicyFacts.cs" />
     <Compile Include="Services\NoLessSecureDestinationRedirectPolicyFacts.cs" />
     <Compile Include="Services\PagerDutyClientFacts.cs" />
+    <Compile Include="Services\PackageUploadServiceFacts.cs" />
     <Compile Include="Services\ReflowPackageServiceFacts.cs" />
     <Compile Include="Services\ReservedNamespaceServiceFacts.cs" />
     <Compile Include="Services\ScopeEvaluatorFacts.cs" />
@@ -497,6 +498,7 @@
     <Compile Include="TestUtils\ResultAssert.cs" />
     <Compile Include="TestUtils\TaskAssert.cs" />
     <Compile Include="TestUtils\TestServiceUtility.cs" />
+    <Compile Include="TestUtils\TestDataUtility.cs" />
     <Compile Include="TestUtils\TestUtility.cs" />
     <Compile Include="UrlExtensionsFacts.cs" />
     <Compile Include="ViewModels\DependencySetsViewModelFacts.cs" />

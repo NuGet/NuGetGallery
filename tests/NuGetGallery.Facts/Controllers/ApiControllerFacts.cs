@@ -23,7 +23,6 @@ using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using Xunit;
 using NuGetGallery.Configuration;
-using NuGetGallery.TestUtils;
 
 namespace NuGetGallery
 {

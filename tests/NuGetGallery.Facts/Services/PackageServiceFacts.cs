@@ -13,85 +13,12 @@ using NuGetGallery.Auditing;
 using NuGetGallery.Framework;
 using NuGetGallery.Packaging;
 using Xunit;
+using NuGetGallery.TestUtils;
 
 namespace NuGetGallery
 {
     public class PackageServiceFacts
     {
-        private static Mock<TestPackageReader> CreateNuGetPackage(
-            string id = "theId",
-            string version = "01.0.42.0",
-            string title = "theTitle",
-            string summary = "theSummary",
-            string authors = "theFirstAuthor, theSecondAuthor",
-            string owners = "Package owners",
-            string description = "theDescription",
-            string tags = "theTags",
-            string language = null,
-            string copyright = "theCopyright",
-            string releaseNotes = "theReleaseNotes",
-            string minClientVersion = null,
-            Uri licenseUrl = null,
-            Uri projectUrl = null,
-            Uri iconUrl = null,
-            bool requireLicenseAcceptance = true,
-            IEnumerable<PackageDependencyGroup> packageDependencyGroups = null,
-            IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes = null)
-        {
-            licenseUrl = licenseUrl ?? new Uri("http://thelicenseurl/");
-            projectUrl = projectUrl ?? new Uri("http://theprojecturl/");
-            iconUrl = iconUrl ?? new Uri("http://theiconurl/");
-
-            if (packageDependencyGroups == null)
-            {
-                packageDependencyGroups = new[]
-                {
-                    new PackageDependencyGroup(
-                        new NuGetFramework("net40"),
-                        new[]
-                        {
-                            new NuGet.Packaging.Core.PackageDependency(
-                                "theFirstDependency",
-                                VersionRange.Parse("[1.0.0, 2.0.0)")),
-
-                            new NuGet.Packaging.Core.PackageDependency(
-                                "theSecondDependency",
-                                VersionRange.Parse("[1.0]")),
-
-                            new NuGet.Packaging.Core.PackageDependency(
-                                "theThirdDependency")
-                        }),
-
-                    new PackageDependencyGroup(
-                        new NuGetFramework("net35"),
-                        new[]
-                        {
-                            new NuGet.Packaging.Core.PackageDependency(
-                                "theFourthDependency",
-                                VersionRange.Parse("[1.0]"))
-                        })
-                };
-            }
-
-            if (packageTypes == null)
-            {
-                packageTypes = new[]
-                {
-                    new NuGet.Packaging.Core.PackageType("dependency", new Version("1.0.0")),
-                    new NuGet.Packaging.Core.PackageType("DotNetCliTool", new Version("2.1.1"))
-                };
-            }
-
-            var testPackage = TestPackage.CreateTestPackageStream(
-                id, version, title, summary, authors, owners,
-                description, tags, language, copyright, releaseNotes,
-                minClientVersion, licenseUrl, projectUrl, iconUrl,
-                requireLicenseAcceptance, packageDependencyGroups, packageTypes);
-
-            var mock = new Mock<TestPackageReader>(testPackage);
-            mock.CallBase = true;
-            return mock;
-        }
 
         private static IPackageService CreateService(
             Mock<IEntityRepository<PackageRegistration>> packageRegistrationRepository = null,
@@ -250,7 +177,7 @@ namespace NuGetGallery
                         mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
                     });
 
-                var nugetPackage = CreateNuGetPackage();
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage();
                 var currentUser = new User();
 
                 service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, isVerified: false);
@@ -293,7 +220,7 @@ namespace NuGetGallery
                     });
 
                 // Act
-                var nugetPackage = CreateNuGetPackage(id: idThatMatchesExistingTitle);
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(id: idThatMatchesExistingTitle);
 
                 // Assert
                 var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, isVerified: false, commitChanges: true));
@@ -307,7 +234,7 @@ namespace NuGetGallery
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
                 var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
-                var nugetPackage = CreateNuGetPackage();
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage();
                 var currentUser = new User();
 
                 service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, isVerified: false);
@@ -321,7 +248,7 @@ namespace NuGetGallery
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
                 var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
-                var nugetPackage = CreateNuGetPackage();
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage();
                 var currentUser = new User();
 
                 var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, isVerified: false);
@@ -358,7 +285,7 @@ namespace NuGetGallery
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
                 var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
-                var nugetPackage = CreateNuGetPackage(language: "fr");
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(language: "fr");
                 var currentUser = new User();
 
                 var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, isVerified: false);
@@ -378,7 +305,7 @@ namespace NuGetGallery
                     .Returns(Task.CompletedTask).Verifiable();
                 var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
-                var nugetPackage = CreateNuGetPackage(version: "2.14.0-a");
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(version: "2.14.0-a");
                 var currentUser = new User();
 
                 // Act
@@ -398,7 +325,7 @@ namespace NuGetGallery
                 packageRegistrationRepository.Setup(r => r.InsertOnCommit(It.IsAny<PackageRegistration>())).Returns(1).Verifiable();
                 var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
-                var nugetPackage = CreateNuGetPackage(version: "2.14.0-a");
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(version: "2.14.0-a");
                 var currentUser = new User();
 
                 // Act
@@ -419,7 +346,7 @@ namespace NuGetGallery
                 var service = CreateService(indexingService: indexingService, packageRegistrationRepository: packageRegistrationRepository, setup:
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
 
-                var nugetPackage = CreateNuGetPackage(version: "2.14.0-a");
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(version: "2.14.0-a");
                 var currentUser = new User();
 
                 // Act
@@ -439,7 +366,7 @@ namespace NuGetGallery
                 indexingService.Setup(s => s.UpdateIndex()).Verifiable();
                 var service = CreateService(indexingService: indexingService, packageRegistrationRepository: packageRegistrationRepository, setup:
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
-                var nugetPackage = CreateNuGetPackage(version: "2.14.0-a");
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(version: "2.14.0-a");
                 var currentUser = new User();
 
                 // Act
@@ -462,7 +389,7 @@ namespace NuGetGallery
                     .Returns(Task.CompletedTask).Verifiable();
                 var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
-                var nugetPackage = CreateNuGetPackage(version: "2.14.0-a");
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(version: "2.14.0-a");
                 var currentUser = new User();
 
                 // Act
@@ -477,7 +404,7 @@ namespace NuGetGallery
             {
                 var service = CreateService(setup:
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
-                var nugetPackage = CreateNuGetPackage();
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage();
                 var currentUser = new User();
 
                 var packageStream = nugetPackage.Object.GetStream().AsSeekableStream();
@@ -499,7 +426,7 @@ namespace NuGetGallery
             {
                 var service = CreateService(setup:
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
-                var nugetPackage = CreateNuGetPackage();
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage();
                 var currentUser = new User();
 
                 var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, isVerified: false);
@@ -512,7 +439,7 @@ namespace NuGetGallery
             {
                 var service = CreateService(setup:
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
-                var nugetPackage = CreateNuGetPackage();
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage();
                 var currentUser = new User();
 
                 var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, isVerified: false);
@@ -525,7 +452,7 @@ namespace NuGetGallery
             {
                 var service = CreateService(setup:
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
-                var nugetPackage = CreateNuGetPackage();
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage();
                 var currentUser = new User();
 
                 var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, isVerified: false);
@@ -538,7 +465,7 @@ namespace NuGetGallery
             {
                 var service = CreateService(setup:
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
-                var nugetPackage = CreateNuGetPackage();
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage();
                 var currentUser = new User();
 
                 var packageStream = nugetPackage.Object.GetStream().AsSeekableStream();
@@ -560,7 +487,7 @@ namespace NuGetGallery
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
                 var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
-                var nugetPackage = CreateNuGetPackage();
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage();
                 var currentUser = new User();
 
                 var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, isVerified: false);
@@ -581,7 +508,7 @@ namespace NuGetGallery
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
                 var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns(packageRegistration); });
-                var nugetPackage = CreateNuGetPackage();
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage();
 
                 var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, isVerified: false);
 
@@ -601,7 +528,7 @@ namespace NuGetGallery
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
                 var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns(packageRegistration); });
-                var nugetPackage = CreateNuGetPackage();
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage();
 
                 var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, isVerified: false, commitChanges: true));
 
@@ -628,7 +555,7 @@ namespace NuGetGallery
                 var service = CreateService(packageRegistrationRepository: packageRegistrationRepository);
 
                 // Act
-                var nugetPackage = CreateNuGetPackage(title: newPackageTitle);
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(title: newPackageTitle);
 
                 // Assert
                 var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, isVerified: false, commitChanges: true));
@@ -640,7 +567,7 @@ namespace NuGetGallery
             private async Task WillThrowIfTheNuGetPackageIdIsLongerThanMaxPackageIdLength()
             {
                 var service = CreateService();
-                var nugetPackage = CreateNuGetPackage(id: "theId".PadRight(131, '_'));
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(id: "theId".PadRight(131, '_'));
 
                 var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), user: null, isVerified: false));
 
@@ -651,7 +578,7 @@ namespace NuGetGallery
             private async Task DoesNotThrowIfTheNuGetPackageSpecialVersionContainsADot()
             {
                 var service = CreateService();
-                var nugetPackage = CreateNuGetPackage(id: "theId", version: "1.2.3-alpha.0");
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(id: "theId", version: "1.2.3-alpha.0");
 
                 await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), user: null, isVerified: false);
             }
@@ -660,7 +587,7 @@ namespace NuGetGallery
             private async Task DoesNotThrowIfTheNuGetPackageSpecialVersionContainsOnlyNumbers()
             {
                 var service = CreateService();
-                var nugetPackage = CreateNuGetPackage(id: "theId", version: "1.2.3-12345");
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(id: "theId", version: "1.2.3-12345");
 
                 await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), user: null, isVerified: false);
             }
@@ -669,7 +596,7 @@ namespace NuGetGallery
             private async Task WillThrowIfTheNuGetPackageAuthorsIsLongerThan4000()
             {
                 var service = CreateService();
-                var nugetPackage = CreateNuGetPackage(authors: "theFirstAuthor".PadRight(2001, '_') + ", " + "theSecondAuthor".PadRight(2001, '_'));
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(authors: "theFirstAuthor".PadRight(2001, '_') + ", " + "theSecondAuthor".PadRight(2001, '_'));
 
                 var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), user: null, isVerified: false));
 
@@ -680,7 +607,7 @@ namespace NuGetGallery
             private async Task WillThrowIfTheNuGetPackageCopyrightIsLongerThan4000()
             {
                 var service = CreateService();
-                var nugetPackage = CreateNuGetPackage(copyright: "theCopyright".PadRight(4001, '_'));
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(copyright: "theCopyright".PadRight(4001, '_'));
 
                 var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), user: null, isVerified: false));
 
@@ -692,7 +619,7 @@ namespace NuGetGallery
             {
                 var service = CreateService();
                 var versionString = "1.0.0-".PadRight(65, 'a');
-                var nugetPackage = CreateNuGetPackage(version: versionString);
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(version: versionString);
 
                 var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), user: null, isVerified: false));
 
@@ -712,7 +639,7 @@ namespace NuGetGallery
                     packageDependencies.Add(new NuGet.Packaging.Core.PackageDependency("dependency" + i, versionSpec));
                 }
 
-                var nugetPackage = CreateNuGetPackage(packageDependencyGroups: new[]
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(packageDependencyGroups: new[]
                 {
                     new PackageDependencyGroup(
                         new NuGetFramework("net40"),
@@ -728,7 +655,7 @@ namespace NuGetGallery
             private async Task WillThrowIfThePackageDependencyIdIsLongerThanMaxPackageIdLength()
             {
                 var service = CreateService();
-                var nugetPackage = CreateNuGetPackage(packageDependencyGroups: new[]
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(packageDependencyGroups: new[]
                     {
                         new PackageDependencyGroup(
                             new NuGetFramework("net40"),
@@ -750,7 +677,7 @@ namespace NuGetGallery
             private async Task WillThrowIfThePackageDependencyVersionSpecIsLongerThan256()
             {
                 var service = CreateService();
-                var nugetPackage = CreateNuGetPackage(packageDependencyGroups: new[]
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(packageDependencyGroups: new[]
                     {
                         new PackageDependencyGroup(
                             new NuGetFramework("net40"),
@@ -772,7 +699,7 @@ namespace NuGetGallery
             public async Task WillThrowIfTheNuGetPackageDescriptionIsNull()
             {
                 var service = CreateService();
-                var nugetPackage = CreateNuGetPackage(description: null);
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(description: null);
 
                 var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), user: null, isVerified: false));
 
@@ -784,7 +711,7 @@ namespace NuGetGallery
             private async Task WillThrowIfTheNuGetPackageDescriptionIsLongerThan4000()
             {
                 var service = CreateService();
-                var nugetPackage = CreateNuGetPackage(description: "theDescription".PadRight(4001, '_'));
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(description: "theDescription".PadRight(4001, '_'));
 
                 var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), user: null, isVerified: false));
 
@@ -795,7 +722,7 @@ namespace NuGetGallery
             private async Task WillThrowIfTheNuGetPackageIconUrlIsLongerThan4000()
             {
                 var service = CreateService();
-                var nugetPackage = CreateNuGetPackage(iconUrl: new Uri("http://theIconUrl/".PadRight(4001, '-'), UriKind.Absolute));
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(iconUrl: new Uri("http://theIconUrl/".PadRight(4001, '-'), UriKind.Absolute));
 
                 var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), user: null, isVerified: false));
 
@@ -806,7 +733,7 @@ namespace NuGetGallery
             private async Task WillThrowIfTheNuGetPackageLicenseUrlIsLongerThan4000()
             {
                 var service = CreateService();
-                var nugetPackage = CreateNuGetPackage(licenseUrl: new Uri("http://theLicenseUrl/".PadRight(4001, '-'), UriKind.Absolute));
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(licenseUrl: new Uri("http://theLicenseUrl/".PadRight(4001, '-'), UriKind.Absolute));
 
                 var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), user: null, isVerified: false));
 
@@ -817,7 +744,7 @@ namespace NuGetGallery
             private async Task WillThrowIfTheNuGetPackageProjectUrlIsLongerThan4000()
             {
                 var service = CreateService();
-                var nugetPackage = CreateNuGetPackage(projectUrl: new Uri("http://theProjectUrl/".PadRight(4001, '-'), UriKind.Absolute));
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(projectUrl: new Uri("http://theProjectUrl/".PadRight(4001, '-'), UriKind.Absolute));
 
                 var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), user: null, isVerified: false));
 
@@ -828,7 +755,7 @@ namespace NuGetGallery
             private async Task WillThrowIfTheNuGetPackageSummaryIsLongerThan4000()
             {
                 var service = CreateService();
-                var nugetPackage = CreateNuGetPackage(summary: "theSummary".PadRight(4001, '_'));
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(summary: "theSummary".PadRight(4001, '_'));
 
                 var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), user: null, isVerified: false));
 
@@ -839,7 +766,7 @@ namespace NuGetGallery
             private async Task WillThrowIfTheNuGetPackageTagsIsLongerThan4000()
             {
                 var service = CreateService();
-                var nugetPackage = CreateNuGetPackage(tags: "theTags".PadRight(4001, '_'));
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(tags: "theTags".PadRight(4001, '_'));
 
                 var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), user: null, isVerified: false));
 
@@ -850,7 +777,7 @@ namespace NuGetGallery
             private async Task WillThrowIfTheNuGetPackageTitleIsLongerThan4000()
             {
                 var service = CreateService();
-                var nugetPackage = CreateNuGetPackage(title: "theTitle".PadRight(4001, '_'));
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(title: "theTitle".PadRight(4001, '_'));
 
                 var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), user: null, isVerified: false));
 
@@ -862,7 +789,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var service = CreateService();
-                var nugetPackage = CreateNuGetPackage(language: new string('a', 21));
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(language: new string('a', 21));
 
                 // Act
                 var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), user: null, isVerified: false));
@@ -885,7 +812,7 @@ namespace NuGetGallery
                                            NuGetFramework.Parse("net35")
                                        });
                                });
-                var nugetPackage = CreateNuGetPackage();
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage();
                 var currentUser = new User();
 
                 var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, isVerified: false);
@@ -908,7 +835,7 @@ namespace NuGetGallery
                             NuGetFramework.Parse("net35")
                         });
                 });
-                var nugetPackage = CreateNuGetPackage();
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage();
                 var currentUser = new User();
 
                 var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, isVerified: false);
