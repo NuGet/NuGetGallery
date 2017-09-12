@@ -1,9 +1,11 @@
 ﻿using Moq;
 using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
+using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace NuGetGallery.TestUtils
 {
@@ -120,7 +122,39 @@ namespace NuGetGallery.TestUtils
 
             AuditingService = new TestAuditingService();
         }
-        
+
+        public override ReservedNamespace FindReservedNamespaceForPrefix(string prefix)
+        {
+            return (from request in ReservedNamespaceRepository.GetAll()
+                    where request.Value.Equals(prefix, StringComparison.OrdinalIgnoreCase)
+                    select request).FirstOrDefault();
+        }
+
+        public override IReadOnlyCollection<ReservedNamespace> FindAllReservedNamespacesForPrefix(string prefix, bool getExactMatches)
+        {
+            Expression<Func<ReservedNamespace, bool>> prefixMatch;
+            if (getExactMatches)
+            {
+                prefixMatch = dbPrefix => dbPrefix.Value.Equals(prefix, StringComparison.OrdinalIgnoreCase);
+            }
+            else
+            {
+                prefixMatch = dbPrefix => dbPrefix.Value.StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
+            }
+
+            return ReservedNamespaceRepository.GetAll()
+                .Where(prefixMatch)
+                .ToList();
+        }
+
+        public override IReadOnlyCollection<ReservedNamespace> GetReservedNamespacesForId(string id)
+        {
+            return (from request in ReservedNamespaceRepository.GetAll()
+                    where (request.IsPrefix && id.StartsWith(request.Value, StringComparison.OrdinalIgnoreCase))
+                        || (!request.IsPrefix && id.Equals(request.Value, StringComparison.OrdinalIgnoreCase))
+                    select request).ToList();
+        }
+
         private Mock<IEntityRepository<ReservedNamespace>> SetupReservedNamespaceRepository()
         {
             var obj = new Mock<IEntityRepository<ReservedNamespace>>();

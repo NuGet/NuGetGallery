@@ -24,15 +24,16 @@ namespace NuGetGallery
 
         public async Task<Package> GeneratePackageAsync(string id, PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool commitChanges)
         {
-            _reservedNamespaceService.IsPushAllowed(id, user, out IReadOnlyCollection<ReservedNamespace> userOwnedNamespaces);
+            // We can ignore the return of this method, because the package could be allowed to push
+            var isPushAllowed = _reservedNamespaceService.IsPushAllowed(id, user, out IReadOnlyCollection<ReservedNamespace> userOwnedNamespaces);
 
-            var shouldMarkIdVerified = userOwnedNamespaces != null && userOwnedNamespaces.Any();
+            var shouldMarkIdVerified = isPushAllowed && userOwnedNamespaces != null && userOwnedNamespaces.Any();
             var package = await _packageService.CreatePackageAsync(
                 nugetPackage,
                 packageStreamMetadata,
                 user,
                 isVerified: shouldMarkIdVerified,
-                commitChanges: false);
+                commitChanges: commitChanges);
 
             if (shouldMarkIdVerified)
             {

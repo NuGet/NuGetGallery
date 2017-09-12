@@ -48,7 +48,7 @@ namespace NuGetGallery
         /// Add the specified package registration to the reserved namespace
         /// </summary>
         /// <param name="prefix">The reserved namespace to modify</param>
-        /// <param name="pr">The package registration to be added</param>
+        /// <param name="packageRegistration">The package registration to be added</param>
         /// <param name="commitChanges">Commit changes to the database, defaults to true</param>
         /// <returns>Awaitable Task</returns>
         Task AddPackageRegistrationToNamespaceAsync(string prefix, PackageRegistration packageRegistration, bool commitChanges = true);

@@ -584,7 +584,6 @@ namespace NuGetGallery
             {
                 // Arrange
                 var user1 = new User { Key = 1, Username = "random1" };
-                var user2 = new User { Key = 2, Username = "random2" };
                 var packageId = "Random.Extention.Package1";
                 var packageRegistration = new PackageRegistration();
                 packageRegistration.Id = packageId;

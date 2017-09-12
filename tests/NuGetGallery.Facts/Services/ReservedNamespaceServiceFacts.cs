@@ -568,8 +568,11 @@ namespace NuGetGallery.Services
         {
             [Theory]
             [InlineData("Microsoft.Aspnet")]
+            [InlineData("microsoft.aspnet")]
             [InlineData("Microsoft.Aspnet.Newpackage")]
+            [InlineData("microsoft.aspnet.newpackage")]
             [InlineData("jquery")]
+            [InlineData("jQuery")]
             public void NonOwnedNamespacesRejectPush(string id)
             {
                 var testNamespaces = GetTestNamespaces();
@@ -588,6 +591,7 @@ namespace NuGetGallery.Services
 
             [Theory]
             [InlineData("Microsoft.Aspnet")]
+            [InlineData("microsoft.aspnet")]
             [InlineData("Microsoft.Aspnet.Newpackage")]
             public void SharedNamespacesAllowsPush(string id)
             {
@@ -608,6 +612,7 @@ namespace NuGetGallery.Services
 
             [Theory]
             [InlineData("Microsoft.Aspnet")]
+            [InlineData("microsoft.aspnet")]
             [InlineData("Microsoft.Aspnet.Newpackage")]
             public void OwnedSharedNamespacesAllowsPushAndReturnsDataCorrectly(string id)
             {
@@ -668,6 +673,7 @@ namespace NuGetGallery.Services
 
             [Theory]
             [InlineData("Microsoft.Aspnet")]
+            [InlineData("microsoft.aspnet")]
             [InlineData("Microsoft.Aspnet.Newpackage")]
             public void OwnedNamespacesAllowsPush(string id)
             {
@@ -687,6 +693,7 @@ namespace NuGetGallery.Services
 
             [Theory]
             [InlineData("Microsoft.Aspnet.Newpackage")]
+            [InlineData("microsoft.aspnet.newpackage")]
             public void MultipleOwnedNamespacesAreReturnedCorrectly(string id)
             {
                 var testNamespaces = GetTestNamespaces();
