@@ -300,7 +300,7 @@ Function Install-NuGet {
     }
     
     Trace-Log 'Downloading latest prerelease of nuget.exe'
-    wget -UseBasicParsing https://dist.nuget.org/win-x86-commandline/latest-prerelease/nuget.exe -OutFile $NuGetExe
+    wget -UseBasicParsing https://dist.nuget.org/win-x86-commandline/v4.1.0/nuget.exe -OutFile $NuGetExe
 }
 
 Function Configure-NuGetCredentials {
