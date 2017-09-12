@@ -5,6 +5,7 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using CommonMark;
@@ -82,7 +83,7 @@ namespace NuGetGallery.Helpers
 
             if (TypeWritten.Equals(readMeType, StringComparison.InvariantCultureIgnoreCase))
             {
-                if (readMeRequest.SourceText.Length > MaxMdLengthBytes)
+                if (Encoding.UTF8.GetByteCount(readMeRequest.SourceText) > MaxMdLengthBytes)
                 {
                     throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture,
                         Strings.ReadMeMaxLengthExceeded, MaxMdLengthBytes));
@@ -144,16 +145,19 @@ namespace NuGetGallery.Helpers
                 throw new ArgumentException(Strings.ReadMeUrlHostInvalid, nameof(readMeMdUrl));
             }
 
-            using (var client = new HttpClient() { Timeout = UrlTimeout, MaxResponseContentBufferSize = MaxMdLengthBytes })
+            using (var client = new HttpClient() { Timeout = UrlTimeout })
             {
-                using (var readMeMdStream = await client.GetStreamAsync(readMeMdUrl))
+                using (var response = await client.GetAsync(readMeMdUrl))
                 {
-                    using (var reader = new StreamReader(readMeMdStream))
+                    if (response.Content.Headers.ContentLength > MaxMdLengthBytes)
                     {
-                        return await reader.ReadToEndAsync();
+                        throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture,
+                            Strings.ReadMeMaxLengthExceeded, MaxMdLengthBytes));
                     }
+
+                    return await response.Content.ReadAsStringAsync();
                 }
-            };
+            }
         }
     }
 }
