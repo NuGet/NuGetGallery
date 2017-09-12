@@ -565,6 +565,6 @@ For more information, please contact '{2}'.</value>
     <value>The ID prefix of this package has been reserved for one of the owner of this package by NuGet.org.</value>
   </data>
   <data name="UploadPackage_IdNamespaceConflict" xml:space="preserve">
-    <value>This package ID has been reserved. Please request access to push to this reserved namespace from the owner of this reserved prefix or re-upload the package with a different ID</value>
+    <value>This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID.</value>
   </data>
 </root>
