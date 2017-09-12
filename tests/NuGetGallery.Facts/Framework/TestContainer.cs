@@ -23,7 +23,8 @@ namespace NuGetGallery.Framework
             Container = container;
         }
 
-        protected TController GetController<TController>() where TController : Controller
+        protected TController GetController<TController>()
+            where TController : Controller
         {
             if (!Container.IsRegistered(typeof(TController)))
             {
@@ -47,10 +48,15 @@ namespace NuGetGallery.Framework
             if (appCtrl != null)
             {
                 appCtrl.SetOwinContextOverride(Fakes.CreateOwinContext());
-                appCtrl.NuGetContext.Config = Container.Resolve<IGalleryConfigurationService>();
+                appCtrl.NuGetContext.Config = GetConfigurationService();
             }
 
             return c;
+        }
+
+        protected TestGalleryConfigurationService GetConfigurationService()
+        {
+            return Container.Resolve<IGalleryConfigurationService>() as TestGalleryConfigurationService;
         }
 
         protected TService GetService<TService>()
@@ -90,7 +96,8 @@ namespace NuGetGallery.Framework
 
         protected T Get<T>()
         {
-            if (typeof(Controller).IsAssignableFrom(typeof(T))) {
+            if (typeof(Controller).IsAssignableFrom(typeof(T)))
+            {
                 throw new InvalidOperationException("Use GetController<T> to get a controller instance");
             }
 
@@ -100,7 +107,7 @@ namespace NuGetGallery.Framework
         protected Mock<T> GetMock<T>() where T : class
         {
             bool registerMock = false;
-            if (Container.IsRegistered(typeof (T)))
+            if (Container.IsRegistered(typeof(T)))
             {
                 try
                 {
@@ -114,7 +121,7 @@ namespace NuGetGallery.Framework
 
             if (registerMock || !Container.IsRegistered(typeof(T)))
             {
-                var mockInstance = (new Mock<T>() {CallBase = true}).Object;
+                var mockInstance = (new Mock<T>() { CallBase = true }).Object;
 
                 var updater = new ContainerBuilder();
                 updater.RegisterInstance(mockInstance).As<T>();
@@ -140,4 +147,3 @@ namespace NuGetGallery.Framework
         }
     }
 }
-

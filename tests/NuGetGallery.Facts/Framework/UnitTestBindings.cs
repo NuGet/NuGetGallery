@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Net.Mail;
 using System.Web;
 using Autofac;
 using Microsoft.Owin;
@@ -48,7 +49,8 @@ namespace NuGetGallery.Framework
             builder.Register(_ =>
             {
                 var mockContext = new Mock<HttpContextBase>();
-                mockContext.Setup(c => c.Request.Url).Returns(new Uri("https://nuget.local/"));
+                mockContext.Setup(c => c.Request.Url).Returns(new Uri(TestUtility.GallerySiteRootHttps));
+                mockContext.Setup(c => c.Request.IsSecureConnection).Returns(true);
                 mockContext.Setup(c => c.Request.ApplicationPath).Returns("/");
                 mockContext.Setup(c => c.Response.ApplyAppPathModifier(It.IsAny<string>())).Returns<string>(s => s);
                 return mockContext.Object;
@@ -90,13 +92,31 @@ namespace NuGetGallery.Framework
                 .As<IOwinContext>()
                 .SingleInstance();
 
-            builder.Register(_ => new TestGalleryConfigurationService())
+            var configurationService = CreateTestConfigurationService();
+            UrlExtensions.SetConfigurationService(configurationService);
+
+            builder.Register(_ => configurationService)
                 .As<IGalleryConfigurationService>()
+                .SingleInstance();
+
+            builder.Register(_ => configurationService.Current)
+                .As<IAppConfiguration>()
                 .SingleInstance();
 
             builder.RegisterType<CredentialBuilder>().As<ICredentialBuilder>().SingleInstance();
             builder.RegisterType<CredentialValidator>().As<ICredentialValidator>().SingleInstance();
             builder.RegisterType<DateTimeProvider>().As<IDateTimeProvider>().SingleInstance();
+        }
+
+        private static IGalleryConfigurationService CreateTestConfigurationService()
+        {
+            // We configure HTTP site root, but require SSL.
+            var configurationService = new TestGalleryConfigurationService();
+            configurationService.Current.SiteRoot = TestUtility.GallerySiteRootHttp;
+            configurationService.Current.RequireSSL = true;
+            configurationService.Current.GalleryOwner = new MailAddress("support@example.com");
+
+            return configurationService;
         }
     }
 }
