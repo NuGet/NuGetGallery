@@ -51,7 +51,7 @@ namespace NuGetGallery
         /// <param name="pr">The package registration to be added</param>
         /// <param name="commitChanges">Commit changes to the database, defaults to true</param>
         /// <returns>Awaitable Task</returns>
-        Task AddPackageRegistrationToNamespaceAsync(string prefix, PackageRegistration pr, bool commitChanges = true);
+        Task AddPackageRegistrationToNamespaceAsync(string prefix, PackageRegistration packageRegistration, bool commitChanges = true);
 
         /// <summary>
         /// Retrieves the first reserved namespace which matches the given prefix.

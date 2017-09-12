@@ -11,23 +11,20 @@ namespace NuGetGallery
 {
     public class PackageUploadService: IPackageUploadService
     {
-        private readonly IEntitiesContext _entitiesContext;
         private readonly IPackageService _packageService;
         private readonly IReservedNamespaceService _reservedNamespaceService;
 
         public PackageUploadService(
-            IEntitiesContext entitiesContext,
             IPackageService packageService,
             IReservedNamespaceService reservedNamespaceService)
         {
-            _entitiesContext = entitiesContext;
             _packageService = packageService;
             _reservedNamespaceService = reservedNamespaceService;
         }
 
-        public async Task<Package> CreatePackageAsync(string id, PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool commitChanges)
+        public async Task<Package> GeneratePackageAsync(string id, PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool commitChanges)
         {
-            var isPushAllowed = _reservedNamespaceService.IsPushAllowed(id, user, out IReadOnlyCollection<ReservedNamespace> userOwnedNamespaces);
+            _reservedNamespaceService.IsPushAllowed(id, user, out IReadOnlyCollection<ReservedNamespace> userOwnedNamespaces);
 
             var shouldMarkIdVerified = userOwnedNamespaces != null && userOwnedNamespaces.Any();
             var package = await _packageService.CreatePackageAsync(
@@ -41,7 +38,7 @@ namespace NuGetGallery
             {
                 // Add all relevant package registrations to the applicable namespaces
                 await Task.WhenAll(userOwnedNamespaces
-                    .Select(rn => _reservedNamespaceService.AddPackageRegistrationToNamespaceAsync(rn.Value, package.PackageRegistration, commitChanges: false)));
+                    .Select(rn => _reservedNamespaceService.AddPackageRegistrationToNamespaceAsync(rn.Value, package.PackageRegistration, commitChanges)));
             }
 
             return package;

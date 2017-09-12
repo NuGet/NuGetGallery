@@ -202,27 +202,27 @@ namespace NuGetGallery
         /// should be an entry in the database or an entity from memory to be committed.
         /// </summary>
         /// <param name="prefix">The prefix value of the reserved namespace to modify</param>
-        /// <param name="pr">The package registration entity entry to be added.</param>
+        /// <param name="packageRegistration">The package registration entity entry to be added.</param>
         /// <param name="commitChanges">Flag to commit the modifications to the database, if set to false
         /// the caller of this method should take care of saving changes for entities context.</param>
         /// <returns>Awaitable task</returns>
-        public async Task AddPackageRegistrationToNamespaceAsync(string prefix, PackageRegistration pr, bool commitChanges = true)
+        public async Task AddPackageRegistrationToNamespaceAsync(string prefix, PackageRegistration packageRegistration, bool commitChanges = true)
         {
             if (string.IsNullOrWhiteSpace(prefix))
             {
                 throw new ArgumentException(Strings.ReservedNamespace_InvalidNamespace);
             }
 
-            if (pr == null)
+            if (packageRegistration == null)
             {
-                throw new ArgumentNullException(nameof(pr));
+                throw new ArgumentNullException(nameof(packageRegistration));
             }
 
             var namespaceToModify = FindReservedNamespaceForPrefix(prefix)
                 ?? throw new InvalidOperationException(string.Format(
                     CultureInfo.CurrentCulture, Strings.ReservedNamespace_NamespaceNotFound, prefix));
 
-            namespaceToModify.PackageRegistrations.Add(pr);
+            namespaceToModify.PackageRegistrations.Add(packageRegistration);
 
             if (commitChanges)
             {

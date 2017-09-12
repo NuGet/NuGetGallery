@@ -51,6 +51,7 @@ namespace NuGetGallery
         public ICredentialBuilder CredentialBuilder { get; set; }
         protected ISecurityPolicyService SecurityPolicyService { get; set; }
         public IReservedNamespaceService ReservedNamespaceService { get; set; }
+        public IPackageUploadService PackageUploadService { get; set; }
 
         protected ApiController()
         {
@@ -75,7 +76,8 @@ namespace NuGetGallery
             AuthenticationService authenticationService,
             ICredentialBuilder credentialBuilder,
             ISecurityPolicyService securityPolicies,
-            IReservedNamespaceService reservedNamespaceService)
+            IReservedNamespaceService reservedNamespaceService,
+            IPackageUploadService packageUploadService)
         {
             EntitiesContext = entitiesContext;
             PackageService = packageService;
@@ -95,6 +97,7 @@ namespace NuGetGallery
             CredentialBuilder = credentialBuilder;
             SecurityPolicyService = securityPolicies;
             ReservedNamespaceService = reservedNamespaceService;
+            PackageUploadService = packageUploadService;
             StatisticsService = null;
         }
 
@@ -117,10 +120,12 @@ namespace NuGetGallery
             AuthenticationService authenticationService,
             ICredentialBuilder credentialBuilder,
             ISecurityPolicyService securityPolicies,
-            IReservedNamespaceService reservedNamespaceService)
+            IReservedNamespaceService reservedNamespaceService,
+            IPackageUploadService packageUploadService)
             : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService,
                   indexingService, searchService, autoCuratePackage, statusService, messageService, auditingService,
-                  configurationService, telemetryService, authenticationService, credentialBuilder, securityPolicies, reservedNamespaceService)
+                  configurationService, telemetryService, authenticationService, credentialBuilder, securityPolicies, 
+                  reservedNamespaceService, packageUploadService)
         {
             StatisticsService = statisticsService;
         }
@@ -473,19 +478,12 @@ namespace NuGetGallery
                             Size = packageStream.Length
                         };
 
-                        var markIdAsVerified = userOwnedNamespaces != null && userOwnedNamespaces.Any();
-                        var package = await PackageService.CreatePackageAsync(
+                        var package = await PackageUploadService.GeneratePackageAsync(
+                            id,
                             packageToPush,
                             packageStreamMetadata,
                             user,
-                            isVerified: markIdAsVerified,
                             commitChanges: false);
-
-                        if (markIdAsVerified)
-                        {
-                            await Task.WhenAll(userOwnedNamespaces
-                                .Select(rn => ReservedNamespaceService.AddPackageRegistrationToNamespaceAsync(rn.Value, package.PackageRegistration, commitChanges: false)));
-                        }
 
                         await AutoCuratePackage.ExecuteAsync(package, packageToPush, commitChanges: false);
 

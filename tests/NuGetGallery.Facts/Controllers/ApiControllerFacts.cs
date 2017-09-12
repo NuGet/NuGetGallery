@@ -45,6 +45,7 @@ namespace NuGetGallery
         public Mock<AuthenticationService> MockAuthenticationService { get; private set; }
         public Mock<ISecurityPolicyService> MockSecurityPolicyService { get; private set; }
         public Mock<IReservedNamespaceService> MockReservedNamespaceService { get; private set; }
+        public Mock<IPackageUploadService> MockPackageUploadService { get; private set; }
 
         private Stream PackageFromInputStream { get; set; }
 
@@ -62,6 +63,7 @@ namespace NuGetGallery
             AuthenticationService = (MockAuthenticationService = new Mock<AuthenticationService>()).Object;
             SecurityPolicyService = (MockSecurityPolicyService = new Mock<ISecurityPolicyService>()).Object;
             ReservedNamespaceService = (MockReservedNamespaceService = new Mock<IReservedNamespaceService>()).Object;
+            PackageUploadService = (MockPackageUploadService = new Mock<IPackageUploadService>()).Object;
 
             CredentialBuilder = new CredentialBuilder();
 
@@ -102,6 +104,11 @@ namespace NuGetGallery
             MockReservedNamespaceService
                 .Setup(r => r.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
                 .Returns(true);
+
+            MockPackageUploadService.Setup(x => x.GeneratePackageAsync(It.IsAny<string>(), It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>()))
+                .Returns((string id, PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool commitChanges) => {
+                    return MockPackageService.Object.CreatePackageAsync(nugetPackage, packageStreamMetadata, user, isVerified: false, commitChanges: commitChanges);
+                });
 
             TestUtility.SetupHttpContextMockForUrlGeneration(new Mock<HttpContextBase>(), this);
         }

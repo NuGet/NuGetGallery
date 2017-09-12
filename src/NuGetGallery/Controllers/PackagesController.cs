@@ -56,6 +56,7 @@ namespace NuGetGallery
         private readonly ITelemetryService _telemetryService;
         private readonly ISecurityPolicyService _securityPolicyService;
         private readonly IReservedNamespaceService _reservedNamespaceService;
+        private readonly IPackageUploadService _packageUploadService;
 
         public PackagesController(
             IPackageService packageService,
@@ -74,7 +75,8 @@ namespace NuGetGallery
             IAuditingService auditingService,
             ITelemetryService telemetryService,
             ISecurityPolicyService securityPolicyService,
-            IReservedNamespaceService reservedNamespaceService)
+            IReservedNamespaceService reservedNamespaceService,
+            IPackageUploadService packageUploadService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -93,6 +95,7 @@ namespace NuGetGallery
             _telemetryService = telemetryService;
             _securityPolicyService = securityPolicyService;
             _reservedNamespaceService = reservedNamespaceService;
+            _packageUploadService = packageUploadService;
         }
 
         [HttpGet]
@@ -1344,22 +1347,12 @@ namespace NuGetGallery
                 // update relevant database tables
                 try
                 {
-                    _reservedNamespaceService.IsPushAllowed(packageMetadata.Id, currentUser, out IReadOnlyCollection<ReservedNamespace> userOwnedNamespaces);
-
-                    var shouldMarkIdVerified = userOwnedNamespaces != null && userOwnedNamespaces.Any();
-                    package = await _packageService.CreatePackageAsync(
+                    package = await _packageUploadService.GeneratePackageAsync(
+                        packageMetadata.Id,
                         nugetPackage,
                         packageStreamMetadata,
                         currentUser,
-                        isVerified: shouldMarkIdVerified,
                         commitChanges: false);
-
-                    if (shouldMarkIdVerified)
-                    {
-                        // Add all relevant package registrations to the applicable namespaces
-                        await Task.WhenAll(userOwnedNamespaces
-                            .Select(rn => _reservedNamespaceService.AddPackageRegistrationToNamespaceAsync(rn.Value, package.PackageRegistration, commitChanges: false)));
-                    }
 
                     Debug.Assert(package.PackageRegistration != null);
                 }

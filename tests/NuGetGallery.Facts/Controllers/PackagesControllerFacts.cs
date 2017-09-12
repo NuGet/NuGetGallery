@@ -47,7 +47,8 @@ namespace NuGetGallery
             IAuditingService auditingService = null,
             Mock<ITelemetryService> telemetryService = null,
             Mock<ISecurityPolicyService> securityPolicyService = null,
-            Mock<IReservedNamespaceService> reservedNamespaceService = null)
+            Mock<IReservedNamespaceService> reservedNamespaceService = null,
+            Mock<IPackageUploadService> packageUploadService = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
             if (uploadFileService == null)
@@ -95,6 +96,13 @@ namespace NuGetGallery
                     .Returns(true);
             }
 
+            packageUploadService = packageUploadService ?? new Mock<IPackageUploadService>();
+
+            packageUploadService.Setup(x => x.GeneratePackageAsync(It.IsAny<string>(), It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>()))
+                .Returns((string id, PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool commitChanges) => {
+                    return packageService.Object.CreatePackageAsync(nugetPackage, packageStreamMetadata, user, isVerified: false, commitChanges: commitChanges);
+                });
+
             var controller = new Mock<PackagesController>(
                 packageService.Object,
                 uploadFileService.Object,
@@ -112,7 +120,8 @@ namespace NuGetGallery
                 auditingService,
                 telemetryService.Object,
                 securityPolicyService.Object,
-                reservedNamespaceService.Object);
+                reservedNamespaceService.Object,
+                packageUploadService.Object);
 
             controller.CallBase = true;
             controller.Object.SetOwinContextOverride(Fakes.CreateOwinContext());
