@@ -1,9 +1,14 @@
 ﻿using Moq;
+using NuGet.Frameworks;
+using NuGet.Packaging;
+using NuGet.Versioning;
 using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
+using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace NuGetGallery.TestUtils
 {
@@ -45,6 +50,81 @@ namespace NuGetGallery.TestUtils
             packageRegistration.Packages.Add(package);
 
             return package;
+        }
+
+        public static Mock<TestPackageReader> CreateNuGetPackage(
+            string id = "theId",
+            string version = "01.0.42.0",
+            string title = "theTitle",
+            string summary = "theSummary",
+            string authors = "theFirstAuthor, theSecondAuthor",
+            string owners = "Package owners",
+            string description = "theDescription",
+            string tags = "theTags",
+            string language = null,
+            string copyright = "theCopyright",
+            string releaseNotes = "theReleaseNotes",
+            string minClientVersion = null,
+            Uri licenseUrl = null,
+            Uri projectUrl = null,
+            Uri iconUrl = null,
+            bool requireLicenseAcceptance = true,
+            IEnumerable<PackageDependencyGroup> packageDependencyGroups = null,
+            IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes = null)
+        {
+            licenseUrl = licenseUrl ?? new Uri("http://thelicenseurl/");
+            projectUrl = projectUrl ?? new Uri("http://theprojecturl/");
+            iconUrl = iconUrl ?? new Uri("http://theiconurl/");
+
+            if (packageDependencyGroups == null)
+            {
+                packageDependencyGroups = new[]
+                {
+                    new PackageDependencyGroup(
+                        new NuGetFramework("net40"),
+                        new[]
+                        {
+                            new NuGet.Packaging.Core.PackageDependency(
+                                "theFirstDependency",
+                                VersionRange.Parse("[1.0.0, 2.0.0)")),
+
+                            new NuGet.Packaging.Core.PackageDependency(
+                                "theSecondDependency",
+                                VersionRange.Parse("[1.0]")),
+
+                            new NuGet.Packaging.Core.PackageDependency(
+                                "theThirdDependency")
+                        }),
+
+                    new PackageDependencyGroup(
+                        new NuGetFramework("net35"),
+                        new[]
+                        {
+                            new NuGet.Packaging.Core.PackageDependency(
+                                "theFourthDependency",
+                                VersionRange.Parse("[1.0]"))
+                        })
+                };
+            }
+
+            if (packageTypes == null)
+            {
+                packageTypes = new[]
+                {
+                    new NuGet.Packaging.Core.PackageType("dependency", new Version("1.0.0")),
+                    new NuGet.Packaging.Core.PackageType("DotNetCliTool", new Version("2.1.1"))
+                };
+            }
+
+            var testPackage = TestPackage.CreateTestPackageStream(
+                id, version, title, summary, authors, owners,
+                description, tags, language, copyright, releaseNotes,
+                minClientVersion, licenseUrl, projectUrl, iconUrl,
+                requireLicenseAcceptance, packageDependencyGroups, packageTypes);
+
+            var mock = new Mock<TestPackageReader>(testPackage);
+            mock.CallBase = true;
+            return mock;
         }
     }
 
@@ -120,7 +200,39 @@ namespace NuGetGallery.TestUtils
 
             AuditingService = new TestAuditingService();
         }
-        
+
+        public override ReservedNamespace FindReservedNamespaceForPrefix(string prefix)
+        {
+            return (from request in ReservedNamespaceRepository.GetAll()
+                    where request.Value.Equals(prefix, StringComparison.OrdinalIgnoreCase)
+                    select request).FirstOrDefault();
+        }
+
+        public override IReadOnlyCollection<ReservedNamespace> FindAllReservedNamespacesForPrefix(string prefix, bool getExactMatches)
+        {
+            Expression<Func<ReservedNamespace, bool>> prefixMatch;
+            if (getExactMatches)
+            {
+                prefixMatch = dbPrefix => dbPrefix.Value.Equals(prefix, StringComparison.OrdinalIgnoreCase);
+            }
+            else
+            {
+                prefixMatch = dbPrefix => dbPrefix.Value.StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
+            }
+
+            return ReservedNamespaceRepository.GetAll()
+                .Where(prefixMatch)
+                .ToList();
+        }
+
+        public override IReadOnlyCollection<ReservedNamespace> GetReservedNamespacesForId(string id)
+        {
+            return (from request in ReservedNamespaceRepository.GetAll()
+                    where (request.IsPrefix && id.StartsWith(request.Value, StringComparison.OrdinalIgnoreCase))
+                        || (!request.IsPrefix && id.Equals(request.Value, StringComparison.OrdinalIgnoreCase))
+                    select request).ToList();
+        }
+
         private Mock<IEntityRepository<ReservedNamespace>> SetupReservedNamespaceRepository()
         {
             var obj = new Mock<IEntityRepository<ReservedNamespace>>();

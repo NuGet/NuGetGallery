@@ -62,7 +62,7 @@ namespace NuGetGallery.Services
             [Fact]
             public async Task ExistingNamespaceThrowsException()
             {
-                var testNamespaces = GetTestNamespaces();
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
                 var newNamespace = testNamespaces.FirstOrDefault();
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces);
 
@@ -72,7 +72,7 @@ namespace NuGetGallery.Services
             [Fact]
             public async Task ExistingNamespaceWithDifferentPrefixStateThrowsException()
             {
-                var testNamespaces = GetTestNamespaces();
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
                 var newNamespace = testNamespaces.FirstOrDefault(x => x.Value == "jquery");
                 newNamespace.IsPrefix = !newNamespace.IsPrefix;
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces);
@@ -83,7 +83,7 @@ namespace NuGetGallery.Services
             [Fact]
             public async Task LiberalNamespaceThrowsException()
             {
-                var testNamespaces = GetTestNamespaces();
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
                 // test case has a namespace with "Microsoft." as the value.
                 var newNamespace = new ReservedNamespace("Micro", isSharedNamespace: false, isPrefix: true);
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces);
@@ -94,7 +94,7 @@ namespace NuGetGallery.Services
             [Fact]
             public async Task LiberalNamespaceForExactMatchIsAllowed()
             {
-                var testNamespaces = GetTestNamespaces();
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
                 // test case has a namespace with "Microsoft." as the value.
                 var newNamespace = new ReservedNamespace("Micro", isSharedNamespace: false, isPrefix: false /*exact match*/);
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces);
@@ -117,7 +117,7 @@ namespace NuGetGallery.Services
             [Fact]
             public async Task VanillaReservedNamespaceIsDeletedCorrectly()
             {
-                var testNamespaces = GetTestNamespaces();
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
                 var existingNamespace = testNamespaces.First();
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces);
 
@@ -152,7 +152,7 @@ namespace NuGetGallery.Services
             [Fact]
             public async Task NonexistentNamespaceThrowsException()
             {
-                var testNamespaces = GetTestNamespaces();
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces);
 
                 await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.DeleteReservedNamespaceAsync("Nonexistent.Namespace."));
@@ -161,8 +161,8 @@ namespace NuGetGallery.Services
             [Fact]
             public async Task DeletingNamespaceClearsVerifiedFlagOnPackage()
             {
-                var namespaces = GetTestNamespaces();
-                var registrations = GetRegistrations();
+                var namespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
+                var registrations = ReservedNamespaceServiceTestData.GetRegistrations();
                 var msPrefix = namespaces.First();
                 msPrefix.PackageRegistrations = registrations.Where(x => x.Id.StartsWith(msPrefix.Value)).ToList();
                 msPrefix.PackageRegistrations.ToList().ForEach(x => x.ReservedNamespaces.Add(msPrefix));
@@ -213,8 +213,8 @@ namespace NuGetGallery.Services
             [Fact]
             public async Task NonExistentNamespaceThrowsException()
             {
-                var testNamespaces = GetTestNamespaces();
-                var testUsers = GetTestUsers();
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
+                var testUsers = ReservedNamespaceServiceTestData.GetTestUsers();
                 var existingUser = testUsers.First();
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
 
@@ -227,7 +227,7 @@ namespace NuGetGallery.Services
             [InlineData("   ")]
             public async Task AddingInvalidOwnerToNamespaceThrowsException(string username)
             {
-                var testNamespaces = GetTestNamespaces();
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
                 var existingNamespace = testNamespaces.First();
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces);
 
@@ -237,9 +237,9 @@ namespace NuGetGallery.Services
             [Fact]
             public async Task AddingNonExistentUserToNamespaceThrowsException()
             {
-                var testNamespaces = GetTestNamespaces();
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
                 var existingNamespace = testNamespaces.First();
-                var testUsers = GetTestUsers();
+                var testUsers = ReservedNamespaceServiceTestData.GetTestUsers();
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
 
                 await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.AddOwnerToReservedNamespaceAsync(existingNamespace.Value, "NonExistentUser"));
@@ -248,10 +248,10 @@ namespace NuGetGallery.Services
             [Fact]
             public async Task AddAnOwnerToNamespaceSuccessfully()
             {
-                var testNamespaces = GetTestNamespaces();
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
                 var prefix = "microsoft.";
                 var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value.Equals(prefix, StringComparison.OrdinalIgnoreCase));
-                var testUsers = GetTestUsers();
+                var testUsers = ReservedNamespaceServiceTestData.GetTestUsers();
                 var owner = testUsers.First();
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
 
@@ -273,13 +273,13 @@ namespace NuGetGallery.Services
             [Fact]
             public async Task AddingOwnerToNamespaceMarksRegistrationsVerified()
             {
-                var testNamespaces = GetTestNamespaces();
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
                 var prefix = "microsoft.";
                 var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value.Equals(prefix, StringComparison.OrdinalIgnoreCase));
-                var testUsers = GetTestUsers();
+                var testUsers = ReservedNamespaceServiceTestData.GetTestUsers();
                 var owner1 = testUsers.First(u => u.Username == "test1");
                 var owner2 = testUsers.First(u => u.Username == "test2");
-                var registrations = GetRegistrations();
+                var registrations = ReservedNamespaceServiceTestData.GetRegistrations();
                 var pr1 = registrations.ToList().FirstOrDefault(pr => (pr.Id == "Microsoft.Package1"));
                 var pr2 = registrations.ToList().FirstOrDefault(pr => (pr.Id == "Microsoft.Package2"));
                 var pr3 = registrations.ToList().FirstOrDefault(pr => (pr.Id == "Microsoft.AspNet.Package2"));
@@ -341,8 +341,8 @@ namespace NuGetGallery.Services
             [Fact]
             public async Task NonExistentNamespaceThrowsException()
             {
-                var testNamespaces = GetTestNamespaces();
-                var testPackageRegistrations = GetRegistrations();
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
+                var testPackageRegistrations = ReservedNamespaceServiceTestData.GetRegistrations();
                 var existingReg = testPackageRegistrations.First();
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, packageRegistrations: testPackageRegistrations);
 
@@ -352,9 +352,9 @@ namespace NuGetGallery.Services
             [Fact]
             public async Task PackageRegistrationIsAddedWithCommitSuccessfully()
             {
-                var testNamespaces = GetTestNamespaces();
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
                 var existingNamespace = testNamespaces.First();
-                var testPackageRegistrations = GetRegistrations();
+                var testPackageRegistrations = ReservedNamespaceServiceTestData.GetRegistrations();
                 var existingReg = testPackageRegistrations.First();
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, packageRegistrations: testPackageRegistrations);
 
@@ -369,9 +369,9 @@ namespace NuGetGallery.Services
             [Fact]
             public async Task CommitChangesIsNotExecuted()
             {
-                var testNamespaces = GetTestNamespaces();
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
                 var existingNamespace = testNamespaces.First();
-                var testPackageRegistrations = GetRegistrations();
+                var testPackageRegistrations = ReservedNamespaceServiceTestData.GetRegistrations();
                 var existingReg = testPackageRegistrations.First();
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, packageRegistrations: testPackageRegistrations);
 
@@ -400,8 +400,8 @@ namespace NuGetGallery.Services
             [Fact]
             public async Task NonExistentNamespaceThrowsException()
             {
-                var testNamespaces = GetTestNamespaces();
-                var testUsers = GetTestUsers();
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
+                var testUsers = ReservedNamespaceServiceTestData.GetTestUsers();
                 var existingUser = testUsers.First();
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
 
@@ -414,7 +414,7 @@ namespace NuGetGallery.Services
             [InlineData("   ")]
             public async Task DeletingInvalidOwnerFromNamespaceThrowsException(string username)
             {
-                var testNamespaces = GetTestNamespaces();
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
                 var existingNamespace = testNamespaces.First();
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces);
 
@@ -424,9 +424,9 @@ namespace NuGetGallery.Services
             [Fact]
             public async Task DeletingNonExistentUserFromNamespaceThrowsException()
             {
-                var testNamespaces = GetTestNamespaces();
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
                 var existingNamespace = testNamespaces.First();
-                var testUsers = GetTestUsers();
+                var testUsers = ReservedNamespaceServiceTestData.GetTestUsers();
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
 
                 await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.DeleteOwnerFromReservedNamespaceAsync(existingNamespace.Value, "NonExistentUser"));
@@ -435,10 +435,10 @@ namespace NuGetGallery.Services
             [Fact]
             public async Task DeletingNonOwnerFromNamespaceThrowsException()
             {
-                var testNamespaces = GetTestNamespaces();
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
                 var prefix = "microsoft.";
                 var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value.Equals(prefix, StringComparison.OrdinalIgnoreCase));
-                var testUsers = GetTestUsers();
+                var testUsers = ReservedNamespaceServiceTestData.GetTestUsers();
                 var user1 = testUsers.First(u => u.Username == "test1");
                 var user2 = testUsers.First(u => u.Username == "test2");
                 existingNamespace.Owners.Add(user1);
@@ -450,10 +450,10 @@ namespace NuGetGallery.Services
             [Fact]
             public async Task DeleteOwnerFromNamespaceSuccessfully()
             {
-                var testNamespaces = GetTestNamespaces();
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
                 var prefix = "microsoft.";
                 var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value.Equals(prefix, StringComparison.OrdinalIgnoreCase));
-                var testUsers = GetTestUsers();
+                var testUsers = ReservedNamespaceServiceTestData.GetTestUsers();
                 var owner = testUsers.First();
                 existingNamespace.Owners.Add(owner);
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
@@ -476,13 +476,13 @@ namespace NuGetGallery.Services
             [Fact]
             public async Task DeletingOwnerFromNamespaceMarksRegistrationsUnverified()
             {
-                var testNamespaces = GetTestNamespaces();
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
                 var prefix = "microsoft.";
                 var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value.Equals(prefix, StringComparison.OrdinalIgnoreCase));
-                var testUsers = GetTestUsers();
+                var testUsers = ReservedNamespaceServiceTestData.GetTestUsers();
                 var owner1 = testUsers.First(u => u.Username == "test1");
                 var owner2 = testUsers.First(u => u.Username == "test2");
-                var registrations = GetRegistrations();
+                var registrations = ReservedNamespaceServiceTestData.GetRegistrations();
                 var pr1 = registrations.ToList().FirstOrDefault(pr => (pr.Id == "Microsoft.Package1"));
                 var pr2 = registrations.ToList().FirstOrDefault(pr => (pr.Id == "Microsoft.Package2"));
                 var pr3 = registrations.ToList().FirstOrDefault(pr => (pr.Id == "Microsoft.AspNet.Package2"));
@@ -522,13 +522,13 @@ namespace NuGetGallery.Services
             [Fact]
             public async Task DeletingOwnerFromMultipleOwnedNamespaceDoesNotMarkPackagesUnVerfied()
             {
-                var testNamespaces = GetTestNamespaces();
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
                 var prefix = "microsoft.";
                 var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value.Equals(prefix, StringComparison.OrdinalIgnoreCase));
-                var testUsers = GetTestUsers();
+                var testUsers = ReservedNamespaceServiceTestData.GetTestUsers();
                 var owner1 = testUsers.First(u => u.Username == "test1");
                 var owner2 = testUsers.First(u => u.Username == "test2");
-                var registrations = GetRegistrations();
+                var registrations = ReservedNamespaceServiceTestData.GetRegistrations();
                 var pr1 = registrations.ToList().FirstOrDefault(pr => (pr.Id == "Microsoft.Package1"));
                 var pr2 = registrations.ToList().FirstOrDefault(pr => (pr.Id == "Microsoft.Package2"));
                 pr1.Owners.Add(owner1);
@@ -568,14 +568,17 @@ namespace NuGetGallery.Services
         {
             [Theory]
             [InlineData("Microsoft.Aspnet")]
+            [InlineData("microsoft.aspnet")]
             [InlineData("Microsoft.Aspnet.Newpackage")]
+            [InlineData("microsoft.aspnet.newpackage")]
             [InlineData("jquery")]
+            [InlineData("jQuery")]
             public void NonOwnedNamespacesRejectPush(string id)
             {
-                var testNamespaces = GetTestNamespaces();
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
                 var prefix = "microsoft.";
                 var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value.Equals(prefix, StringComparison.OrdinalIgnoreCase));
-                var testUsers = GetTestUsers();
+                var testUsers = ReservedNamespaceServiceTestData.GetTestUsers();
                 var firstUser = testUsers.First();
                 var lastUser = testUsers.Last();
                 existingNamespace.Owners.Add(firstUser);
@@ -588,14 +591,15 @@ namespace NuGetGallery.Services
 
             [Theory]
             [InlineData("Microsoft.Aspnet")]
+            [InlineData("microsoft.aspnet")]
             [InlineData("Microsoft.Aspnet.Newpackage")]
             public void SharedNamespacesAllowsPush(string id)
             {
-                var testNamespaces = GetTestNamespaces();
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
                 var prefix = "microsoft.";
                 var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value.Equals(prefix, StringComparison.OrdinalIgnoreCase));
                 existingNamespace.IsSharedNamespace = true;
-                var testUsers = GetTestUsers();
+                var testUsers = ReservedNamespaceServiceTestData.GetTestUsers();
                 var firstUser = testUsers.First();
                 var lastUser = testUsers.Last();
                 existingNamespace.Owners.Add(firstUser);
@@ -608,14 +612,15 @@ namespace NuGetGallery.Services
 
             [Theory]
             [InlineData("Microsoft.Aspnet")]
+            [InlineData("microsoft.aspnet")]
             [InlineData("Microsoft.Aspnet.Newpackage")]
             public void OwnedSharedNamespacesAllowsPushAndReturnsDataCorrectly(string id)
             {
-                var testNamespaces = GetTestNamespaces();
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
                 var prefix = "microsoft.";
                 var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value.Equals(prefix, StringComparison.OrdinalIgnoreCase));
                 existingNamespace.IsSharedNamespace = true;
-                var testUsers = GetTestUsers();
+                var testUsers = ReservedNamespaceServiceTestData.GetTestUsers();
                 var firstUser = testUsers.First();
                 existingNamespace.Owners.Add(firstUser);
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
@@ -630,10 +635,10 @@ namespace NuGetGallery.Services
             [InlineData("RandomId")]
             public void NonMatchingNamespacesAllowsPush(string id)
             {
-                var testNamespaces = GetTestNamespaces();
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
                 var prefix = "microsoft.";
                 var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value.Equals(prefix, StringComparison.OrdinalIgnoreCase));
-                var testUsers = GetTestUsers();
+                var testUsers = ReservedNamespaceServiceTestData.GetTestUsers();
                 var firstUser = testUsers.First();
                 var lastUser = testUsers.Last();
                 existingNamespace.Owners.Add(firstUser);
@@ -651,11 +656,11 @@ namespace NuGetGallery.Services
             [InlineData("jquery.extention")]
             public void NonPrefixNamespaceDoesNotBlockPush(string id)
             {
-                var testNamespaces = GetTestNamespaces();
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
                 var prefix = "jQuery";
                 var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value.Equals(prefix, StringComparison.OrdinalIgnoreCase));
                 existingNamespace.IsPrefix = false;
-                var testUsers = GetTestUsers();
+                var testUsers = ReservedNamespaceServiceTestData.GetTestUsers();
                 var firstUser = testUsers.First();
                 var lastUser = testUsers.Last();
                 existingNamespace.Owners.Add(firstUser);
@@ -668,13 +673,14 @@ namespace NuGetGallery.Services
 
             [Theory]
             [InlineData("Microsoft.Aspnet")]
+            [InlineData("microsoft.aspnet")]
             [InlineData("Microsoft.Aspnet.Newpackage")]
             public void OwnedNamespacesAllowsPush(string id)
             {
-                var testNamespaces = GetTestNamespaces();
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
                 var prefix = "microsoft.";
                 var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value.Equals(prefix, StringComparison.OrdinalIgnoreCase));
-                var testUsers = GetTestUsers();
+                var testUsers = ReservedNamespaceServiceTestData.GetTestUsers();
                 var firstUser = testUsers.First();
                 existingNamespace.Owners.Add(firstUser);
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
@@ -687,11 +693,12 @@ namespace NuGetGallery.Services
 
             [Theory]
             [InlineData("Microsoft.Aspnet.Newpackage")]
+            [InlineData("microsoft.aspnet.newpackage")]
             public void MultipleOwnedNamespacesAreReturnedCorrectly(string id)
             {
-                var testNamespaces = GetTestNamespaces();
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
                 var prefixes = new List<string> { "microsoft.", "microsoft.aspnet." };
-                var testUsers = GetTestUsers();
+                var testUsers = ReservedNamespaceServiceTestData.GetTestUsers();
                 var firstUser = testUsers.First();
                 prefixes.ForEach(p => {
                     var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value.Equals(p, StringComparison.OrdinalIgnoreCase));
@@ -734,46 +741,6 @@ namespace NuGetGallery.Services
                 var ex = Record.Exception(() => ReservedNamespaceService.ValidateNamespace(value));
                 Assert.Null(ex);
             }
-        }
-
-        private static IList<ReservedNamespace> GetTestNamespaces()
-        {
-            var result = new List<ReservedNamespace>();
-            result.Add(new ReservedNamespace("Microsoft.", isSharedNamespace: false, isPrefix: true));
-            result.Add(new ReservedNamespace("Microsoft.Aspnet.", isSharedNamespace: false, isPrefix: true));
-            result.Add(new ReservedNamespace("baseTest.", isSharedNamespace: false, isPrefix: true));
-            result.Add(new ReservedNamespace("jquery", isSharedNamespace: false, isPrefix: false));
-            result.Add(new ReservedNamespace("jquery.Extentions.", isSharedNamespace: true, isPrefix: true));
-            result.Add(new ReservedNamespace("Random.", isSharedNamespace: false, isPrefix: true));
-
-            return result;
-        }
-
-        private static IList<PackageRegistration> GetRegistrations()
-        {
-            var result = new List<PackageRegistration>();
-            result.Add(new PackageRegistration { Id = "Microsoft.Package1", IsVerified = false });
-            result.Add(new PackageRegistration { Id = "Microsoft.Package2", IsVerified = false });
-            result.Add(new PackageRegistration { Id = "Microsoft.AspNet.Package2", IsVerified = false });
-            result.Add(new PackageRegistration { Id = "Random.Package1", IsVerified = false });
-            result.Add(new PackageRegistration { Id = "jQuery", IsVerified = false });
-            result.Add(new PackageRegistration { Id = "jQuery.Extentions.OwnerView", IsVerified = false });
-            result.Add(new PackageRegistration { Id = "jQuery.Extentions.ThirdPartyView", IsVerified = false });
-            result.Add(new PackageRegistration { Id = "DeltaX.Test1", IsVerified = false });
-
-            return result;
-        }
-
-        private static IList<User> GetTestUsers()
-        {
-            var result = new List<User>();
-            result.Add(new User("test1"));
-            result.Add(new User("test2"));
-            result.Add(new User("test3"));
-            result.Add(new User("test4"));
-            result.Add(new User("test5"));
-
-            return result;
         }
     }
 }

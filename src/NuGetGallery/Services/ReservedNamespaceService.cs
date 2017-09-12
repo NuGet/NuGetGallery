@@ -230,14 +230,14 @@ namespace NuGetGallery
             }
         }
 
-        public ReservedNamespace FindReservedNamespaceForPrefix(string prefix)
+        public virtual ReservedNamespace FindReservedNamespaceForPrefix(string prefix)
         {
             return (from request in ReservedNamespaceRepository.GetAll()
-                    where request.Value.Equals(prefix, StringComparison.OrdinalIgnoreCase)
+                    where request.Value.Equals(prefix)
                     select request).FirstOrDefault();
         }
 
-        public IReadOnlyCollection<ReservedNamespace> FindAllReservedNamespacesForPrefix(string prefix, bool getExactMatches)
+        public virtual IReadOnlyCollection<ReservedNamespace> FindAllReservedNamespacesForPrefix(string prefix, bool getExactMatches)
         {
             Expression<Func<ReservedNamespace, bool>> prefixMatch;
             if (getExactMatches)
@@ -262,7 +262,7 @@ namespace NuGetGallery
                     select dbPrefix).ToList();
         }
 
-        public IReadOnlyCollection<ReservedNamespace> GetReservedNamespacesForId(string id)
+        public virtual IReadOnlyCollection<ReservedNamespace> GetReservedNamespacesForId(string id)
         {
             return (from request in ReservedNamespaceRepository.GetAll()
                     where (request.IsPrefix && id.StartsWith(request.Value))
