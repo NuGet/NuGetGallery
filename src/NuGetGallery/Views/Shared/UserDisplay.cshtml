@@ -8,7 +8,7 @@
     }
     else
     {
-        <span class="welcome"><a href="@Url.Action("Account", "Users", new { area = "" })">@(User.Identity.Name)</a></span>
+        <span class="welcome"><a href="@Url.AccountSettings()">@(User.Identity.Name)</a></span>
         <text>/</text>
         <span class="user-actions">
             <a href="@Url.LogOff()">Sign out</a>

@@ -127,7 +127,7 @@
 
 @section BottomScripts {
     <script>
-        var urlFormat = "@Url.RouteUrl(RouteName.CuratedPackage, new { curatedFeedName = Model.Name, curatedPackageId = "PACKAGE_ID" })";
+        var urlFormat = "@Url.CuratedPackage(curatedFeedName: Model.Name, id: "PACKAGE_ID")";
 
         function deleteCuratedPackage(packageId) {
             $.ajax({

@@ -44,6 +44,8 @@ namespace NuGetGallery
 
             var configuration = new ConfigurationService(new SecretReaderFactory(diagnosticsService));
 
+            UrlExtensions.SetConfigurationService(configuration);
+
             builder.RegisterInstance(configuration)
                 .AsSelf()
                 .As<PoliteCaptcha.IConfigurationSource>();

@@ -660,7 +660,7 @@ namespace NuGetGallery
                 }
             }
 
-            ViewData[Constants.ReturnUrlViewDataKey] = Url.Action("ReportMyPackage", new { id, version });
+            ViewData[Constants.ReturnUrlViewDataKey] = Url.ReportPackage(id, version);
             return View(model);
         }
 
@@ -860,11 +860,7 @@ namespace NuGetGallery
                 fromAddress,
                 package,
                 contactForm.Message,
-                Url.Action(
-                    actionName: "Account",
-                    controllerName: "Users",
-                    routeValues: null,
-                    protocol: Request.Url.Scheme),
+                Url.AccountSettings(),
                 contactForm.CopySender);
 
             string message = String.Format(CultureInfo.CurrentCulture, "Your message has been sent to the owners of {0}.", id);
@@ -1413,9 +1409,9 @@ namespace NuGetGallery
 
                 // notify user
                 _messageService.SendPackageAddedNotice(package,
-                    Url.Action("DisplayPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.NormalizedVersion }, protocol: Request.Url.Scheme),
-                    Url.Action("ReportMyPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.NormalizedVersion }, protocol: Request.Url.Scheme),
-                    Url.Action("Account", "Users", routeValues: null, protocol: Request.Url.Scheme));
+                    Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, Request.Url.Scheme),
+                    Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, Request.Url.Scheme),
+                    Url.AccountSettings(Request.Url.Scheme));
             }
 
             // delete the uploaded binary in the Uploads container
@@ -1428,11 +1424,7 @@ namespace NuGetGallery
 
             return Json(new
             {
-                location = Url.RouteUrl(RouteName.DisplayPackage, new
-                {
-                    id = package.PackageRegistration.Id,
-                    version = package.NormalizedVersion
-                })
+                location = Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, Request.Url.Scheme)
             });
         }
 

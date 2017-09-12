@@ -15,20 +15,20 @@ using System.Web.Routing;
 using Moq;
 using Newtonsoft.Json.Linq;
 using NuGet.Packaging;
-using NuGet.Protocol;
 using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
-using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using Xunit;
+using NuGetGallery.Configuration;
 using NuGetGallery.TestUtils;
 
 namespace NuGetGallery
 {
-    class TestableApiController : ApiController
+    internal class TestableApiController
+        : ApiController
     {
         public Mock<IEntitiesContext> MockEntitiesContext { get; private set; }
         public Mock<IPackageService> MockPackageService { get; private set; }
@@ -40,7 +40,6 @@ namespace NuGetGallery
         public Mock<IIndexingService> MockIndexingService { get; private set; }
         public Mock<IAutomaticallyCuratePackageCommand> MockAutoCuratePackage { get; private set; }
         public Mock<IMessageService> MockMessageService { get; private set; }
-        public Mock<IGalleryConfigurationService> MockConfigurationService { get; private set; }
         public Mock<ITelemetryService> MockTelemetryService { get; private set; }
         public Mock<AuthenticationService> MockAuthenticationService { get; private set; }
         public Mock<ISecurityPolicyService> MockSecurityPolicyService { get; private set; }
@@ -49,7 +48,9 @@ namespace NuGetGallery
 
         private Stream PackageFromInputStream { get; set; }
 
-        public TestableApiController(MockBehavior behavior = MockBehavior.Default)
+        public TestableApiController(
+            IGalleryConfigurationService configurationService,
+            MockBehavior behavior = MockBehavior.Default)
         {
             SetOwinContextOverride(Fakes.CreateOwinContext());
             EntitiesContext = (MockEntitiesContext = new Mock<IEntitiesContext>()).Object;
@@ -74,10 +75,8 @@ namespace NuGetGallery
 
             MessageService = (MockMessageService = new Mock<IMessageService>()).Object;
 
-            MockConfigurationService = new Mock<IGalleryConfigurationService>();
-            MockConfigurationService.SetupGet(s => s.Features.TrackPackageDownloadCountInLocalDatabase)
-                .Returns(false);
-            ConfigurationService = MockConfigurationService.Object;
+            configurationService.Features.TrackPackageDownloadCountInLocalDatabase = false;
+            ConfigurationService = configurationService;
 
             AuditingService = new TestAuditingService();
 
@@ -110,7 +109,14 @@ namespace NuGetGallery
                     return MockPackageService.Object.CreatePackageAsync(nugetPackage, packageStreamMetadata, user, isVerified: false, commitChanges: commitChanges);
                 });
 
-            TestUtility.SetupHttpContextMockForUrlGeneration(new Mock<HttpContextBase>(), this);
+            var requestMock = new Mock<HttpRequestBase>();
+            requestMock.Setup(m => m.IsSecureConnection).Returns(true);
+            requestMock.Setup(m => m.Url).Returns(new Uri(TestUtility.GallerySiteRootHttps));
+
+            var httpContextMock = new Mock<HttpContextBase>();
+            httpContextMock.Setup(m => m.Request).Returns(requestMock.Object);
+
+            TestUtility.SetupHttpContextMockForUrlGeneration(httpContextMock, this);
         }
 
         internal void SetupPackageFromInputStream(Stream packageStream)
@@ -130,12 +136,13 @@ namespace NuGetGallery
         private static readonly Uri HttpsRequestUrl = new Uri("https://nuget.org/api/v2/something");
 
         public class TheCreatePackageAction
+            : TestContainer
         {
             [Fact]
             public async Task CreatePackage_Returns400IfSecurityPolicyFails()
             {
                 // Arrange
-                var controller = new TestableApiController();
+                var controller = new TestableApiController(GetConfigurationService());
                 controller.MockSecurityPolicyService.Setup(s => s.EvaluateAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>()))
                     .Returns(Task.FromResult(SecurityPolicyResult.CreateErrorResult("A")));
 
@@ -159,7 +166,7 @@ namespace NuGetGallery
                 package.Version = "1.0.42";
                 packageRegistration.Packages.Add(package);
 
-                var controller = new TestableApiController();
+                var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(user);
                 controller.MockPackageFileService.Setup(p => p.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()))
                     .Returns(Task.CompletedTask).Verifiable();
@@ -193,7 +200,7 @@ namespace NuGetGallery
                 package.Version = "1.0.42";
                 packageRegistration.Packages.Add(package);
 
-                var controller = new TestableApiController();
+                var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(user);
                 controller.MockPackageFileService.Setup(
                         p => p.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()))
@@ -235,7 +242,7 @@ namespace NuGetGallery
                 package.Version = "1.0.42";
                 packageRegistration.Packages.Add(package);
 
-                var controller = new TestableApiController();
+                var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(user);
                 controller.MockPackageService.Setup(p => p.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>(), false))
                     .Returns(Task.FromResult(package));
@@ -266,7 +273,7 @@ namespace NuGetGallery
                 package.Version = "1.0.42";
                 packageRegistration.Packages.Add(package);
 
-                var controller = new TestableApiController();
+                var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(user);
                 controller.MockMessageService.Setup(p => p.SendPackageAddedNotice(package, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                     .Verifiable();
@@ -291,7 +298,7 @@ namespace NuGetGallery
                 var packageRegistration = new PackageRegistration();
                 packageRegistration.Owners.Add(user);
 
-                var controller = new TestableApiController();
+                var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(user);
                 controller.MockPackageFileService.Setup(p => p.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()))
                     .Returns(Task.CompletedTask).Verifiable();
@@ -321,7 +328,7 @@ namespace NuGetGallery
                 var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
 
                 var user = new User() { EmailAddress = "confirmed@email.com" };
-                var controller = new TestableApiController();
+                var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(user);
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
@@ -354,7 +361,7 @@ namespace NuGetGallery
                 var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, "1.0.42");
 
                 var user = new User() { EmailAddress = "confirmed@email.com" };
-                var controller = new TestableApiController();
+                var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(user);
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
@@ -377,7 +384,7 @@ namespace NuGetGallery
                 package.Version = "1.0.42";
                 packageRegistration.Packages.Add(package);
 
-                var controller = new TestableApiController();
+                var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(user);
                 controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
                     .Returns(packageRegistration);
@@ -408,7 +415,7 @@ namespace NuGetGallery
                     Owners = new List<User> { user }
                 };
 
-                var controller = new TestableApiController();
+                var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(new User());
                 controller.MockPackageService.Setup(x => x.FindPackageRegistrationById("theId")).Returns(packageRegistration);
                 controller.SetupPackageFromInputStream(nuGetPackage);
@@ -436,7 +443,7 @@ namespace NuGetGallery
                 package.Version = "1.0.42";
                 packageRegistration.Packages.Add(package);
 
-                var controller = new TestableApiController();
+                var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(user);
                 controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
                     .Returns(packageRegistration);
@@ -460,7 +467,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var user = new User { EmailAddress = "confirmed@email.com" };
-                var controller = new TestableApiController();
+                var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(user);
                 controller.MockPackageFileService.Setup(
                         x => x.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()))
@@ -496,7 +503,7 @@ namespace NuGetGallery
                 package.Version = "1.0.0";
                 packageRegistration.Packages.Add(package);
 
-                var controller = new TestableApiController();
+                var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(user1);
                 controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
                     .Returns(() => null);
@@ -526,7 +533,7 @@ namespace NuGetGallery
                 var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
 
                 var user = new User() { EmailAddress = "confirmed@email.com" };
-                var controller = new TestableApiController();
+                var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(user);
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
@@ -550,7 +557,7 @@ namespace NuGetGallery
                 package.Version = "1.0.0";
                 packageRegistration.Packages.Add(package);
 
-                var controller = new TestableApiController();
+                var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(user1);
                 controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
                     .Returns(() => null);
@@ -586,7 +593,7 @@ namespace NuGetGallery
                 package.Version = "1.0.0";
                 packageRegistration.Packages.Add(package);
 
-                var controller = new TestableApiController();
+                var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(user1);
                 controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
                     .Returns(() => null);
@@ -614,7 +621,7 @@ namespace NuGetGallery
                 var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42+metadata");
 
                 var user = new User() { EmailAddress = "confirmed@email.com" };
-                var controller = new TestableApiController();
+                var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(user);
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
@@ -629,7 +636,7 @@ namespace NuGetGallery
                 var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
 
                 var user = new User() { EmailAddress = "confirmed@email.com" };
-                var controller = new TestableApiController();
+                var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(user);
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
@@ -645,7 +652,7 @@ namespace NuGetGallery
                 var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
 
                 var user = new User() { EmailAddress = "confirmed@email.com" };
-                var controller = new TestableApiController();
+                var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(user);
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
@@ -661,7 +668,7 @@ namespace NuGetGallery
                 var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
 
                 var user = new User() { EmailAddress = "confirmed@email.com" };
-                var controller = new TestableApiController();
+                var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(user);
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
@@ -687,7 +694,7 @@ namespace NuGetGallery
                 package.PackageRegistration = new PackageRegistration();
                 package.Version = "1.0.42";
 
-                var controller = new TestableApiController();
+                var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(user, apiKeyScopes);
                 controller.SetupPackageFromInputStream(nuGetPackage);
                 controller.MockPackageService.Setup(
@@ -736,7 +743,7 @@ namespace NuGetGallery
 
                 var user = new User { EmailAddress = "confirmed@email.com", Username = "username", Key = 1 };
 
-                var controller = new TestableApiController();
+                var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(user, apiKeyScopes);
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
@@ -789,7 +796,7 @@ namespace NuGetGallery
                 var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
 
                 var user = new User() { EmailAddress = "confirmed@email.com" };
-                var controller = new TestableApiController();
+                var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(user);
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
@@ -800,11 +807,12 @@ namespace NuGetGallery
         }
 
         public class TheDeletePackageAction
+            : TestContainer
         {
             [Fact]
             public async Task WillThrowIfAPackageWithTheIdAndNuGetVersionDoesNotExist()
             {
-                var controller = new TestableApiController();
+                var controller = new TestableApiController(GetConfigurationService());
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict("theId", "1.0.42")).Returns((Package)null);
                 controller.SetCurrentUser(new User());
 
@@ -826,7 +834,7 @@ namespace NuGetGallery
                     PackageRegistration = new PackageRegistration { Owners = new[] { new User() } }
                 };
 
-                var controller = new TestableApiController();
+                var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(notOwner);
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict("theId", "1.0.42")).Returns(package);
 
@@ -851,7 +859,7 @@ namespace NuGetGallery
                     PackageRegistration = new PackageRegistration { Owners = new[] { owner } }
                 };
 
-                var controller = new TestableApiController();
+                var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(owner, apiKeyScope);
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict("theId", "1.0.42"))
                     .Returns(package);
@@ -882,7 +890,7 @@ namespace NuGetGallery
                 {
                     PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner } }
                 };
-                var controller = new TestableApiController();
+                var controller = new TestableApiController(GetConfigurationService());
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(package);
                 controller.SetCurrentUser(owner);
 
@@ -894,11 +902,12 @@ namespace NuGetGallery
         }
 
         public class TheGetPackageAction
+            : TestContainer
         {
             [Fact]
             public async Task GetPackageReturns400ForEvilPackageName()
             {
-                var controller = new TestableApiController();
+                var controller = new TestableApiController(GetConfigurationService());
                 var result = await controller.GetPackage("../..", "1.0.0.0");
                 var badRequestResult = (HttpStatusCodeWithBodyResult)result;
                 Assert.Equal(400, badRequestResult.StatusCode);
@@ -907,7 +916,7 @@ namespace NuGetGallery
             [Fact]
             public async Task GetPackageReturns400ForEvilPackageVersion()
             {
-                var controller = new TestableApiController();
+                var controller = new TestableApiController(GetConfigurationService());
                 var result2 = await controller.GetPackage("Foo", "10../..1.0");
                 var badRequestResult2 = (HttpStatusCodeWithBodyResult)result2;
                 Assert.Equal(400, badRequestResult2.StatusCode);
@@ -921,7 +930,7 @@ namespace NuGetGallery
                 const string packageVersion = "1.0.1";
                 var actionResult = new RedirectResult("http://foo");
 
-                var controller = new TestableApiController(MockBehavior.Strict);
+                var controller = new TestableApiController(GetConfigurationService(), MockBehavior.Strict);
                 controller.MockPackageService
                     .Setup(x => x.FindPackageByIdAndVersion(packageId, packageVersion, SemVerLevelKey.SemVer2, false))
                     .Returns((Package)null).Verifiable();
@@ -946,7 +955,7 @@ namespace NuGetGallery
                 const string packageId = "Baz";
                 var package = new Package() { Version = "1.0.01", NormalizedVersion = "1.0.1" };
                 var actionResult = new EmptyResult();
-                var controller = new TestableApiController(MockBehavior.Strict);
+                var controller = new TestableApiController(GetConfigurationService(), MockBehavior.Strict);
                 // controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion(PackageId, "1.0.1", false)).Returns(package);
                 // controller.MockPackageService.Setup(x => x.AddDownloadStatistics(It.IsAny<PackageStatistics>())).Verifiable();
                 controller.MockPackageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, packageId, package.NormalizedVersion))
@@ -983,7 +992,7 @@ namespace NuGetGallery
                 // Arrange
                 var actionResult = new EmptyResult();
 
-                var controller = new TestableApiController(MockBehavior.Strict);
+                var controller = new TestableApiController(GetConfigurationService(), MockBehavior.Strict);
                 //controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion("Baz", "1.0.0", false)).Throws(new DataException("Can't find the database")).Verifiable();
                 controller.MockPackageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, "Baz", "1.0.0"))
                               .Returns(Task.FromResult<ActionResult>(actionResult))
@@ -1019,7 +1028,7 @@ namespace NuGetGallery
                 const string packageId = "Baz";
                 var package = new Package() { Version = "1.2.0408", NormalizedVersion = "1.2.408" };
                 var actionResult = new EmptyResult();
-                var controller = new TestableApiController(MockBehavior.Strict);
+                var controller = new TestableApiController(GetConfigurationService(), MockBehavior.Strict);
                 controller.MockPackageService
                     .Setup(x => x.FindPackageByIdAndVersion(packageId, string.Empty, SemVerLevelKey.SemVer2, false))
                     .Returns(package);
@@ -1060,7 +1069,7 @@ namespace NuGetGallery
                 const string packageId = "Baz";
                 var package = new Package();
                 var actionResult = new EmptyResult();
-                var controller = new TestableApiController(MockBehavior.Strict);
+                var controller = new TestableApiController(GetConfigurationService(), MockBehavior.Strict);
                 controller.MockPackageService
                     .Setup(x => x.FindPackageByIdAndVersion("Baz", string.Empty, SemVerLevelKey.SemVer2, false))
                     .Throws(new DataException("Oh noes, database broken!"));
@@ -1094,12 +1103,13 @@ namespace NuGetGallery
         }
 
         public class ThePublishPackageAction
+            : TestContainer
         {
             [Fact]
             public async Task WillThrowIfAPackageWithTheIdAndNuGetVersionDoesNotExist()
             {
                 // Arrange
-                var controller = new TestableApiController();
+                var controller = new TestableApiController(GetConfigurationService());
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict("theId", "1.0.42")).Returns((Package)null);
                 controller.SetCurrentUser(new User());
 
@@ -1124,7 +1134,7 @@ namespace NuGetGallery
                     PackageRegistration = new PackageRegistration { Owners = new[] { new User() } }
                 };
 
-                var controller = new TestableApiController();
+                var controller = new TestableApiController(GetConfigurationService());
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict("theId", "1.0.42")).Returns(package);
                 controller.SetCurrentUser(owner);
 
@@ -1150,7 +1160,7 @@ namespace NuGetGallery
                     PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner } }
                 };
 
-                var controller = new TestableApiController();
+                var controller = new TestableApiController(GetConfigurationService());
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(package);
                 controller.SetCurrentUser(owner);
 
@@ -1182,7 +1192,7 @@ namespace NuGetGallery
                     package.PackageRegistration.Owners.Add(user);
                 }
 
-                var controller = new TestableApiController();
+                var controller = new TestableApiController(GetConfigurationService());
 
                 controller.MockAuthenticationService
                     .Setup(s => s.AddCredential(It.IsAny<User>(), It.IsAny<Credential>()))
@@ -1206,7 +1216,8 @@ namespace NuGetGallery
             }
         }
 
-        public class TheCreatePackageVerificationKeyAsyncAction : PackageVerificationKeyContainer
+        public class TheCreatePackageVerificationKeyAsyncAction
+            : PackageVerificationKeyContainer
         {
             [Theory]
             [InlineData("")]
@@ -1237,7 +1248,8 @@ namespace NuGetGallery
             }
         }
 
-        public class TheVerifyPackageKeyAsyncAction : PackageVerificationKeyContainer
+        public class TheVerifyPackageKeyAsyncAction
+            : PackageVerificationKeyContainer
         {
             [Fact]
             public async Task VerifyPackageKeyAsync_Returns400IfSecurityPolicyFails()
@@ -1493,6 +1505,7 @@ namespace NuGetGallery
         }
 
         public class TheGetStatsDownloadsAction
+            : TestContainer
         {
             [Fact]
             public async Task VerifyRecentPopularityStatsDownloads()
@@ -1529,14 +1542,16 @@ namespace NuGetGallery
 
                 var fakeReportService = new Mock<IReportService>();
 
-                fakeReportService.Setup(x => x.Load("recentpopularitydetail.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageVersionReport, DateTime.UtcNow)));
+                fakeReportService
+                    .Setup(x => x.Load("recentpopularitydetail.json"))
+                    .Returns(Task.FromResult(new StatisticsReport(fakePackageVersionReport, DateTime.UtcNow)));
 
-                var controller = new TestableApiController
+                var controller = new TestableApiController(GetConfigurationService())
                 {
                     StatisticsService = new JsonStatisticsService(fakeReportService.Object),
                 };
 
-                TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
+                TestUtility.SetupUrlHelperForUrlGeneration(controller);
 
                 ActionResult actionResult = await controller.GetStatsDownloads(null);
 
@@ -1544,17 +1559,17 @@ namespace NuGetGallery
 
                 JArray result = JArray.Parse(contentResult.Content);
 
-                Assert.True((string)result[3]["Gallery"] == "http://nuget.org/packages/B/1.1", "unexpected content result[3].Gallery");
+                Assert.True((string)result[3]["Gallery"] == TestUtility.GallerySiteRootHttps + "packages/B/1.1", "unexpected content result[3].Gallery");
                 Assert.True((int)result[2]["Downloads"] == 5, "unexpected content result[2].Downloads");
             }
 
             [Fact]
             public async Task VerifyStatsDownloadsReturnsNotFoundWhenStatsNotAvailable()
             {
-                var controller = new TestableApiController();
+                var controller = new TestableApiController(GetConfigurationService());
                 controller.MockStatisticsService.Setup(x => x.LoadDownloadPackageVersions()).Returns(Task.FromResult(StatisticsReportResult.Failed));
 
-                TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
+                TestUtility.SetupUrlHelperForUrlGeneration(controller);
 
                 ActionResult actionResult = await controller.GetStatsDownloads(null);
 
@@ -1582,12 +1597,12 @@ namespace NuGetGallery
 
                 fakeReportService.Setup(x => x.Load("recentpopularitydetail.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageVersionReport, DateTime.UtcNow)));
 
-                var controller = new TestableApiController
+                var controller = new TestableApiController(GetConfigurationService())
                 {
                     StatisticsService = new JsonStatisticsService(fakeReportService.Object),
                 };
 
-                TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
+                TestUtility.SetupUrlHelperForUrlGeneration(controller);
 
                 ActionResult actionResult = await controller.GetStatsDownloads(3);
 

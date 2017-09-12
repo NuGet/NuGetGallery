@@ -522,9 +522,9 @@ namespace NuGetGallery
 
                         // Notify user of push
                         MessageService.SendPackageAddedNotice(package,
-                            Url.Action("DisplayPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.NormalizedVersion }, protocol: Request.Url.Scheme),
-                            Url.Action("ReportMyPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.NormalizedVersion }, protocol: Request.Url.Scheme),
-                            Url.Action("Account", "Users", routeValues: null, protocol: Request.Url.Scheme));
+                            Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, Request.Url.Scheme),
+                            Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, Request.Url.Scheme),
+                            Url.AccountSettings(Request.Url.Scheme));
 
                         TelemetryService.TrackPackagePushEvent(package, user, User.Identity);
 
@@ -721,7 +721,7 @@ namespace NuGetGallery
 
                     item.Add("PackageId", row.PackageId);
                     item.Add("PackageVersion", row.PackageVersion);
-                    item.Add("Gallery", Url.PackageGallery(row.PackageId, row.PackageVersion));
+                    item.Add("Gallery", Url.Package(row.PackageId, row.PackageVersion));
                     item.Add("PackageTitle", row.PackageTitle ?? row.PackageId);
                     item.Add("PackageDescription", row.PackageDescription);
                     item.Add("PackageIconUrl", row.PackageIconUrl ?? Url.PackageDefaultIcon());

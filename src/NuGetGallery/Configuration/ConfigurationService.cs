@@ -122,7 +122,7 @@ namespace NuGetGallery.Configuration
             }
             return instance;
         }
-        
+
         public async Task<string> ReadSetting(string settingName)
         {
             string value;
@@ -151,7 +151,6 @@ namespace NuGetGallery.Configuration
         {
             return new HttpRequestWrapper(HttpContext.Current.Request);
         }
-
 
         private ISecretInjector InitSecretInjector()
         {
@@ -210,19 +209,17 @@ namespace NuGetGallery.Configuration
         {
             return WebConfigurationManager.ConnectionStrings[settingName];
         }
-      
+
         private string GetHttpSiteRoot()
         {
-            var request = GetCurrentRequest();
-            string siteRoot;
+            var siteRoot = Current.SiteRoot;
 
-            if (request.IsLocal)
+            if (siteRoot == null)
             {
+                // No SiteRoot configured in settings.
+                // Fallback to detected site root.
+                var request = GetCurrentRequest();
                 siteRoot = request.Url.GetLeftPart(UriPartial.Authority) + '/';
-            }
-            else
-            {
-                siteRoot = Current.SiteRoot;
             }
 
             if (!siteRoot.StartsWith("http://", StringComparison.OrdinalIgnoreCase)

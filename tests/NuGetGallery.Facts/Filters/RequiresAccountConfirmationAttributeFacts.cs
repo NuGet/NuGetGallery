@@ -2,17 +2,19 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Globalization;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
+using NuGetGallery.Framework;
 using Xunit;
 
 namespace NuGetGallery.Filters
 {
-    using System.Globalization;
 
     public class RequiresAccountConfirmationAttributeFacts
+        : TestContainer
     {
         [Fact]
         public void RequiresAccountConfirmationAttributeThrowsExceptionIfContextNull()
@@ -77,12 +79,14 @@ namespace NuGetGallery.Filters
             response.Setup(x => x.ApplyAppPathModifier("/account/ConfirmationRequired")).Returns<string>(x => x);
 
             var request = new Mock<HttpRequestBase>();
+            request.Setup(m => m.Url).Returns(new Uri(TestUtility.GallerySiteRootHttps));
+            request.Setup(m => m.RawUrl).Returns(TestUtility.GallerySiteRootHttps);
+            request.Setup(m => m.IsSecureConnection).Returns(true);
 
             var httpContext = new Mock<HttpContextBase>();
             httpContext.SetupGet(h => h.Request).Returns(request.Object);
             httpContext.SetupGet(x => x.Response).Returns(response.Object);
-            httpContext.SetupGet(x => x.Request.RawUrl).Returns("/returnUrl");
-
+            
             var routeCollection = new RouteCollection();
             Routes.RegisterRoutes(routeCollection);
 
@@ -104,7 +108,7 @@ namespace NuGetGallery.Filters
 
             // Assert
             Assert.IsType<RedirectResult>(result);
-            Assert.Equal("/account/ConfirmationRequired", ((RedirectResult)result).Url);
+            Assert.Equal(TestUtility.GallerySiteRootHttps + "account/ConfirmationRequired", ((RedirectResult)result).Url);
             Assert.Equal(string.Format(CultureInfo.CurrentCulture, "Before you can {0} you must first confirm your email address.", inOrderTo), controller.TempData["ConfirmationRequiredMessage"]);
             Assert.Equal("ConfirmationContext", cookieCollection[0].Name);
             Assert.NotEmpty(cookieCollection[0].Value);
