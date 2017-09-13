@@ -99,8 +99,9 @@ Invoke-BuildStep 'Clearing artifacts' { Clear-Artifacts } `
 Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
         $versionMetadata =
             "$PSScriptRoot\src\Validation.Helper\Properties\AssemblyInfo.g.cs",
-	    "$PSScriptRoot\src\CopyAzureContainer\Properties\AssemblyInfo.g.cs",
-	    "$PSScriptRoot\src\NuGetCDNRedirect\Properties\AssemblyInfo.g.cs"
+            "$PSScriptRoot\src\CopyAzureContainer\Properties\AssemblyInfo.g.cs",
+            "$PSScriptRoot\src\NuGetCDNRedirect\Properties\AssemblyInfo.g.cs",
+            "$PSScriptRoot\src\Validation.Orchestrator\Properties\AssemblyInfo.g.cs"
             
         $versionMetadata | ForEach-Object {
             Set-VersionInfo -Path $_ -Version $SimpleVersion -Branch $Branch -Commit $CommitSHA
@@ -143,8 +144,9 @@ Invoke-BuildStep 'Creating artifacts' {
             "src/Validation.Runner/Validation.Runner.csproj", `
             "src/NuGet.SupportRequests.Notifications/NuGet.SupportRequests.Notifications.csproj", `
             "src/Validation.Helper/Validation.Helper.csproj", `
-	    "src/CopyAzureContainer/CopyAzureContainer.csproj", `
-	    "src/NuGetCDNRedirect/NuGetCDNRedirect.csproj"
+            "src/CopyAzureContainer/CopyAzureContainer.csproj", `
+            "src/NuGetCDNRedirect/NuGetCDNRedirect.csproj", `
+            "src/Validation.Orchestrator/Validation.Orchestrator.csproj"
         
         Foreach ($Project in $Projects) {
             New-Package (Join-Path $PSScriptRoot "$Project") -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch -MSBuildVersion "$msBuildVersion"
