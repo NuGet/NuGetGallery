@@ -126,7 +126,7 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
 
                 var authenticateValues = handler.OwinContext.Response.Headers.GetCommaSeparatedValues("WWW-Authenticate");
                 Assert.Contains(
-                    "ApiKey realm=\"nuget.local\"",
+                    "ApiKey realm=\"localhost\"",
                     authenticateValues);
                 Assert.Contains(
                     "existing",

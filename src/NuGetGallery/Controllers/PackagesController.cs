@@ -55,6 +55,8 @@ namespace NuGetGallery
         private readonly IAuditingService _auditingService;
         private readonly ITelemetryService _telemetryService;
         private readonly ISecurityPolicyService _securityPolicyService;
+        private readonly IReservedNamespaceService _reservedNamespaceService;
+        private readonly IPackageUploadService _packageUploadService;
 
         public PackagesController(
             IPackageService packageService,
@@ -72,7 +74,9 @@ namespace NuGetGallery
             ISupportRequestService supportRequestService,
             IAuditingService auditingService,
             ITelemetryService telemetryService,
-            ISecurityPolicyService securityPolicyService)
+            ISecurityPolicyService securityPolicyService,
+            IReservedNamespaceService reservedNamespaceService,
+            IPackageUploadService packageUploadService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -90,6 +94,8 @@ namespace NuGetGallery
             _auditingService = auditingService;
             _telemetryService = telemetryService;
             _securityPolicyService = securityPolicyService;
+            _reservedNamespaceService = reservedNamespaceService;
+            _packageUploadService = packageUploadService;
         }
 
         [HttpGet]
@@ -315,7 +321,24 @@ namespace NuGetGallery
                             nuspec.GetMinClientVersion()) });
                 }
 
-                var packageRegistration = _packageService.FindPackageRegistrationById(nuspec.GetId());
+                var id = nuspec.GetId();
+                var packageRegistration = _packageService.FindPackageRegistrationById(id);
+                // For a new package id verify if the user is allowed to use it.
+                if (packageRegistration == null)
+                {
+                    var isPushAllowed = _reservedNamespaceService
+                        .IsPushAllowed(id, currentUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
+
+                    if (!isPushAllowed)
+                    {
+                        ModelState.AddModelError(
+                            string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict));
+
+                        return Json(409, new string[] { string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict) });
+                    }
+                }
+
+                // For existing package id verify if it is owned by the current user
                 if (packageRegistration != null && !packageRegistration.Owners.AnySafe(x => x.Key == currentUser.Key))
                 {
                     ModelState.AddModelError(
@@ -1320,7 +1343,13 @@ namespace NuGetGallery
                 // update relevant database tables
                 try
                 {
-                    package = await _packageService.CreatePackageAsync(nugetPackage, packageStreamMetadata, currentUser, commitChanges: false);
+                    package = await _packageUploadService.GeneratePackageAsync(
+                        packageMetadata.Id,
+                        nugetPackage,
+                        packageStreamMetadata,
+                        currentUser,
+                        commitChanges: false);
+
                     Debug.Assert(package.PackageRegistration != null);
                 }
                 catch (InvalidPackageException ex)

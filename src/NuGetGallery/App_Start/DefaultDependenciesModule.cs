@@ -198,6 +198,11 @@ namespace NuGetGallery
                 .As<IReservedNamespaceService>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<PackageUploadService>()
+                .AsSelf()
+                .As<IPackageUploadService>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<SecurePushSubscription>()
                 .SingleInstance();
 

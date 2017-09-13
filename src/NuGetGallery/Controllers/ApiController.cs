@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Globalization;
@@ -49,6 +50,8 @@ namespace NuGetGallery
         public AuthenticationService AuthenticationService { get; set; }
         public ICredentialBuilder CredentialBuilder { get; set; }
         protected ISecurityPolicyService SecurityPolicyService { get; set; }
+        public IReservedNamespaceService ReservedNamespaceService { get; set; }
+        public IPackageUploadService PackageUploadService { get; set; }
 
         protected ApiController()
         {
@@ -72,7 +75,9 @@ namespace NuGetGallery
             ITelemetryService telemetryService,
             AuthenticationService authenticationService,
             ICredentialBuilder credentialBuilder,
-            ISecurityPolicyService securityPolicies)
+            ISecurityPolicyService securityPolicies,
+            IReservedNamespaceService reservedNamespaceService,
+            IPackageUploadService packageUploadService)
         {
             EntitiesContext = entitiesContext;
             PackageService = packageService;
@@ -91,6 +96,8 @@ namespace NuGetGallery
             AuthenticationService = authenticationService;
             CredentialBuilder = credentialBuilder;
             SecurityPolicyService = securityPolicies;
+            ReservedNamespaceService = reservedNamespaceService;
+            PackageUploadService = packageUploadService;
             StatisticsService = null;
         }
 
@@ -112,10 +119,13 @@ namespace NuGetGallery
             ITelemetryService telemetryService,
             AuthenticationService authenticationService,
             ICredentialBuilder credentialBuilder,
-            ISecurityPolicyService securityPolicies)
+            ISecurityPolicyService securityPolicies,
+            IReservedNamespaceService reservedNamespaceService,
+            IPackageUploadService packageUploadService)
             : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService,
                   indexingService, searchService, autoCuratePackage, statusService, messageService, auditingService,
-                  configurationService, telemetryService, authenticationService, credentialBuilder, securityPolicies)
+                  configurationService, telemetryService, authenticationService, credentialBuilder, securityPolicies, 
+                  reservedNamespaceService, packageUploadService)
         {
             StatisticsService = statisticsService;
         }
@@ -394,16 +404,25 @@ namespace NuGetGallery
                         }
 
                         // Ensure that the user can push packages for this partialId.
-                        var packageRegistration = PackageService.FindPackageRegistrationById(nuspec.GetId());
+                        var id = nuspec.GetId();
+                        var packageRegistration = PackageService.FindPackageRegistrationById(id);
+                        IReadOnlyCollection<ReservedNamespace> userOwnedNamespaces = null;
                         if (packageRegistration == null)
                         {
                             // Check if API key allows pushing a new package id
                             if (!ApiKeyScopeAllows(
-                                subject: nuspec.GetId(),
+                                subject: id,
                                 requestedActions: NuGetScopes.PackagePush))
                             {
                                 // User cannot push a new package ID as the API key scope does not allow it
                                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Unauthorized, Strings.ApiKeyNotAuthorized);
+                            }
+
+                            // For a new package id verify that the user is allowed to push to the matching namespaces, if any.
+                            var isPushAllowed = ReservedNamespaceService.IsPushAllowed(id, user, out userOwnedNamespaces);
+                            if (!isPushAllowed)
+                            {
+                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict, Strings.UploadPackage_IdNamespaceConflict);
                             }
                         }
                         else
@@ -417,12 +436,12 @@ namespace NuGetGallery
                                         user.Username,
                                         AuditedAuthenticatedOperationAction.PackagePushAttemptByNonOwner,
                                         attemptedPackage: new AuditedPackageIdentifier(
-                                            nuspec.GetId(), nuspec.GetVersion().ToNormalizedStringSafe())));
+                                            id, nuspec.GetVersion().ToNormalizedStringSafe())));
 
                                 // User cannot push a package to an ID owned by another user.
                                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict,
                                     string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable,
-                                        nuspec.GetId()));
+                                        id));
                             }
 
                             // Check if API key allows pushing the current package id
@@ -448,7 +467,7 @@ namespace NuGetGallery
                                 return new HttpStatusCodeWithBodyResult(
                                     HttpStatusCode.Conflict,
                                     string.Format(CultureInfo.CurrentCulture, Strings.PackageExistsAndCannotBeModified,
-                                        nuspec.GetId(), nuspec.GetVersion().ToNormalizedStringSafe()));
+                                        id, nuspec.GetVersion().ToNormalizedStringSafe()));
                             }
                         }
 
@@ -459,7 +478,8 @@ namespace NuGetGallery
                             Size = packageStream.Length
                         };
 
-                        var package = await PackageService.CreatePackageAsync(
+                        var package = await PackageUploadService.GeneratePackageAsync(
+                            id,
                             packageToPush,
                             packageStreamMetadata,
                             user,

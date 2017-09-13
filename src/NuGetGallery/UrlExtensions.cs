@@ -12,7 +12,7 @@ namespace NuGetGallery
 {
     public static class UrlExtensions
     {
-        private static ConfigurationService _configuration;
+        private static IGalleryConfigurationService _configuration;
         private const string PackageExplorerDeepLink = @"https://npe.codeplex.com/releases/clickonce/NuGetPackageExplorer.application?url={0}&id={1}&version={2}";
 
         // Shorthand for current url
@@ -37,7 +37,7 @@ namespace NuGetGallery
             return url.RequestContext.HttpContext.Request.IsSecureConnection ? Uri.UriSchemeHttps : Uri.UriSchemeHttp;
         }
                 
-        internal static void SetConfigurationService(ConfigurationService configurationService)
+        internal static void SetConfigurationService(IGalleryConfigurationService configurationService)
         {
             _configuration = configurationService;
         }
@@ -778,7 +778,9 @@ namespace NuGetGallery
 
         internal static string EnsureTrailingSlash(string url)
         {
-            if (url != null && !url.EndsWith("/", StringComparison.OrdinalIgnoreCase))
+            if (url != null 
+                && !url.EndsWith("/", StringComparison.OrdinalIgnoreCase)
+                && !url.Contains("?"))
             {
                 return url + '/';
             }

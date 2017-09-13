@@ -15,11 +15,17 @@ using System.Web.Routing;
 using Moq;
 using NuGet;
 using NuGetGallery.Framework;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
     public static class TestUtility
     {
+        private static readonly string galleryHostName = "localhost";
+
+        public static readonly string GallerySiteRootHttp = $"http://{galleryHostName}/";
+        public static readonly string GallerySiteRootHttps = $"https://{galleryHostName}/";
+
         public static readonly string FakeUserName = "theUsername";
         public static readonly string FakeAdminName = "theAdmin";
 
@@ -30,7 +36,8 @@ namespace NuGetGallery
         // Alternatively, we could write our own service for generating URLs.
         public static Mock<HttpContextBase> SetupHttpContextMockForUrlGeneration(Mock<HttpContextBase> httpContext, Controller controller)
         {
-            httpContext.Setup(c => c.Request.Url).Returns(new Uri("https://example.org/"));
+            // We default all requests to HTTPS in our tests.
+            httpContext.Setup(c => c.Request.Url).Returns(new Uri(GallerySiteRootHttps));
             httpContext.Setup(c => c.Request.ApplicationPath).Returns("/");
             httpContext.Setup(c => c.Response.ApplyAppPathModifier(It.IsAny<string>())).Returns<string>(s => s);
             var requestContext = new RequestContext(httpContext.Object, new RouteData());
@@ -52,15 +59,14 @@ namespace NuGetGallery
 
         public static UrlHelper MockUrlHelper()
         {
-            var siteRoot = "http://unittest.nuget.org/";
-
+            // We default all requests to HTTPS in our tests.
             var mockHttpContext = new Mock<HttpContextBase>(MockBehavior.Loose);
             var mockHttpRequest = new Mock<HttpRequestBase>(MockBehavior.Strict);
             var mockHttpResponse = new Mock<HttpResponseBase>(MockBehavior.Strict);
             mockHttpContext.Setup(httpContext => httpContext.Request).Returns(mockHttpRequest.Object);
             mockHttpContext.Setup(httpContext => httpContext.Response).Returns(mockHttpResponse.Object);
-            mockHttpRequest.Setup(httpRequest => httpRequest.Url).Returns(new Uri(siteRoot));
-            mockHttpRequest.Setup(httpRequest => httpRequest.ApplicationPath).Returns(siteRoot);
+            mockHttpRequest.Setup(httpRequest => httpRequest.Url).Returns(new Uri(GallerySiteRootHttps));
+            mockHttpRequest.Setup(httpRequest => httpRequest.ApplicationPath).Returns(GallerySiteRootHttps);
             mockHttpRequest.Setup(httpRequest => httpRequest.ServerVariables).Returns(new NameValueCollection());
             mockHttpRequest.Setup(httpRequest => httpRequest.IsSecureConnection).Returns(false);
 
@@ -76,19 +82,16 @@ namespace NuGetGallery
             var routes = new RouteCollection();
             Routes.RegisterRoutes(routes);
 
-            var configurationService = new TestGalleryConfigurationService();
-            configurationService.Current.SiteRoot = siteRoot;
-
-            UrlExtensions.SetConfigurationService(configurationService);
-
             return new UrlHelper(requestContext, routes);
         }
 
-        public static void SetupUrlHelperForUrlGeneration(Controller controller, Uri address)
+        public static void SetupUrlHelperForUrlGeneration(Controller controller)
         {
+            // We default all requests to HTTPS in our tests.
             var mockHttpContext = new Mock<HttpContextBase>();
-            mockHttpContext.Setup(c => c.Request.Url).Returns(address);
+            mockHttpContext.Setup(c => c.Request.Url).Returns(new Uri(GallerySiteRootHttps));
             mockHttpContext.Setup(c => c.Request.ApplicationPath).Returns("/");
+            mockHttpContext.Setup(c => c.Request.IsSecureConnection).Returns(true);
             mockHttpContext.Setup(c => c.Response.ApplyAppPathModifier(It.IsAny<string>())).Returns<string>(s => s);
 
             var requestContext = new RequestContext(mockHttpContext.Object, new RouteData());
