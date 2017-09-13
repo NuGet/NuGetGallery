@@ -147,15 +147,24 @@ namespace NuGetGallery.Helpers
 
             using (var client = new HttpClient() { Timeout = UrlTimeout })
             {
-                using (var response = await client.GetAsync(readMeMdUrl))
+                using (var httpStream = await client.GetStreamAsync(readMeMdUrl))
                 {
-                    if (response.Content.Headers.ContentLength > MaxMdLengthBytes)
-                    {
-                        throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture,
-                            Strings.ReadMeMaxLengthExceeded, MaxMdLengthBytes));
-                    }
+                    int bytesRead;
+                    var offset = 0;
+                    var buffer = new byte[MaxMdLengthBytes + 1];
 
-                    return await response.Content.ReadAsStringAsync();
+                    while ((bytesRead = await httpStream.ReadAsync(buffer, offset, buffer.Length - offset)) > 0)
+                    {
+                        offset += bytesRead;
+
+                        if (offset == buffer.Length)
+                        {
+                            throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture,
+                                Strings.ReadMeMaxLengthExceeded, MaxMdLengthBytes));
+                        }
+                    }
+                    
+                    return Encoding.UTF8.GetString(buffer).Trim('\0');
                 }
             }
         }
