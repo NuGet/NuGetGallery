@@ -245,12 +245,6 @@ namespace NuGetGallery.Configuration
         public bool IsODataFilterEnabled { get; set; }
 
         /// <summary>
-        /// Indicates if custom branding values should be used.
-        /// </summary>
-        [DefaultValue(false)]
-        public bool UseCustomBranding { get; set; }
-
-        /// <summary>
         /// Gets/sets a string that is a link to an external about page
         /// </summary>
         public string ExternalAboutUrl { get; set; }
