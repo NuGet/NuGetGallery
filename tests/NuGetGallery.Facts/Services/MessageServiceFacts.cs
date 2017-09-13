@@ -9,7 +9,6 @@ using System.Net.Mail;
 using AnglicanGeek.MarkdownMailer;
 using Moq;
 using NuGetGallery.Authentication;
-using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Authentication;
@@ -24,6 +23,7 @@ namespace NuGetGallery
         public static readonly MailAddress TestGalleryNoReplyAddress = new MailAddress("noreply@example.com", "No Reply");
 
         public class TheReportAbuseMethod
+            : TestContainer
         {
             [Fact]
             public void WillSendEmailToGalleryOwner()
@@ -31,12 +31,14 @@ namespace NuGetGallery
                 // Arrange
                 var from = new MailAddress("legit@example.com", "too");
                 var package = new Package
-                    {
-                        PackageRegistration = new PackageRegistration { Id = "smangit" },
-                        Version = "1.42.0.1"
-                    };
-
-                var messageService = new TestableMessageService();
+                {
+                    PackageRegistration = new PackageRegistration { Id = "smangit" },
+                    Version = "1.42.0.1"
+                };
+                
+                var messageService = TestableMessageService.Create(
+                    GetService<AuthenticationService>(),
+                    GetConfigurationService());
 
                 // Act
                 messageService.ReportAbuse(
@@ -75,8 +77,10 @@ namespace NuGetGallery
                     PackageRegistration = new PackageRegistration { Id = "smangit" },
                     Version = "1.42.0.1",
                 };
-
-                var messageService = new TestableMessageService();
+                
+                var messageService = TestableMessageService.Create(
+                    GetService<AuthenticationService>(),
+                    GetConfigurationService());
 
                 var reportPackageRequest = new ReportPackageRequest
                 {
@@ -105,7 +109,8 @@ namespace NuGetGallery
             }
         }
 
-        public class TheReportMyPackageMethod : TestContainer
+        public class TheReportMyPackageMethod
+            : TestContainer
         {
             [Fact]
             public void WillSendEmailToGalleryOwner()
@@ -125,7 +130,10 @@ namespace NuGetGallery
                     },
                     Version = "1.42.0.1"
                 };
-                var messageService = new TestableMessageService();
+                
+                var messageService = TestableMessageService.Create(
+                    GetService<AuthenticationService>(),
+                    GetConfigurationService());
 
                 messageService.ReportMyPackage(
                     new ReportPackageRequest
@@ -161,7 +169,10 @@ namespace NuGetGallery
                     PackageRegistration = new PackageRegistration { Id = "smangit" },
                     Version = "1.42.0.1",
                 };
-                var messageService = new TestableMessageService();
+                
+                var messageService = TestableMessageService.Create(
+                    GetService<AuthenticationService>(),
+                    GetConfigurationService());
 
                 var reportPackageRequest = new ReportPackageRequest
                 {
@@ -191,6 +202,7 @@ namespace NuGetGallery
         }
 
         public class TheSendContactOwnersMessageMethod
+            : TestContainer
         {
             [Fact]
             public void WillCopySenderIfAsked()
@@ -202,7 +214,9 @@ namespace NuGetGallery
                         new User { EmailAddress = "yung@example.com", EmailAllowed = true },
                         new User { EmailAddress = "flynt@example.com", EmailAllowed = true }
                     };
-                var messageService = new TestableMessageService();
+                var messageService = TestableMessageService.Create(
+                    GetService<AuthenticationService>(),
+                    GetConfigurationService());
 
                 messageService.SendContactOwnersMessage(from, package, "Test message", "http://someurl/", true);
 
@@ -233,7 +247,10 @@ namespace NuGetGallery
                     }
                 };
 
-                var messageService = new TestableMessageService();
+                var messageService = TestableMessageService.Create(
+                    GetService<AuthenticationService>(),
+                    GetConfigurationService());
+
                 messageService.SendContactOwnersMessage(from, package, "Test message", "http://someurl/", false);
                 var message = messageService.MockMailSender.Sent.Last();
 
@@ -261,7 +278,10 @@ namespace NuGetGallery
                     }
                 };
 
-                var messageService = new TestableMessageService();
+                var messageService = TestableMessageService.Create(
+                    GetService<AuthenticationService>(),
+                    GetConfigurationService());
+
                 messageService.SendContactOwnersMessage(from, package, "Test message", "http://someurl/", false);
                 var message = messageService.MockMailSender.Sent.Last();
 
@@ -283,7 +303,9 @@ namespace NuGetGallery
                     }
                 };
 
-                var messageService = new TestableMessageService();
+                var messageService = TestableMessageService.Create(
+                    GetService<AuthenticationService>(),
+                    GetConfigurationService());
                 messageService.SendContactOwnersMessage(from, package, "Test message", "http://someurl/", false);
 
                 Assert.Empty(messageService.MockMailSender.Sent);
@@ -300,7 +322,9 @@ namespace NuGetGallery
                         new User { EmailAddress = "flynt@example.com", EmailAllowed = false }
                     };
 
-                var messageService = new TestableMessageService();
+                var messageService = TestableMessageService.Create(
+                    GetService<AuthenticationService>(),
+                    GetConfigurationService());
                 messageService.SendContactOwnersMessage(from, package, "Test message", "http://someurl/", false);
 
                 Assert.Empty(messageService.MockMailSender.Sent);
@@ -308,13 +332,16 @@ namespace NuGetGallery
         }
 
         public class TheSendNewAccountEmailMethod
+            : TestContainer
         {
             [Fact]
             public void WillSendEmailToNewUser()
             {
                 var to = new MailAddress("legit@example.com", "too");
 
-                var messageService = new TestableMessageService();
+                var messageService = TestableMessageService.Create(
+                    GetService<AuthenticationService>(),
+                    GetConfigurationService());
                 messageService.SendNewAccountEmail(to, "http://example.com/confirmation-token-url");
                 var message = messageService.MockMailSender.Sent.Last();
 
@@ -326,6 +353,7 @@ namespace NuGetGallery
         }
 
         public class TheSendPackageOwnerRequestMethod
+            : TestContainer
         {
             [Fact]
             public void SendsPackageOwnerRequestConfirmationUrl()
@@ -336,7 +364,10 @@ namespace NuGetGallery
                 const string packageUrl = "http://nuget.local/packages/CoolStuff";
                 const string confirmationUrl = "http://example.com/confirmation-token-url";
                 const string userMessage = "Hello World!";
-                var messageService = new TestableMessageService();
+
+                var messageService = TestableMessageService.Create(
+                    GetService<AuthenticationService>(),
+                    GetConfigurationService());
                 messageService.SendPackageOwnerRequest(from, to, package, packageUrl, confirmationUrl, userMessage, string.Empty);
                 var message = messageService.MockMailSender.Sent.Last();
 
@@ -359,7 +390,10 @@ namespace NuGetGallery
                 var package = new PackageRegistration { Id = "CoolStuff" };
                 const string packageUrl = "http://nuget.local/packages/CoolStuff";
                 const string confirmationUrl = "http://example.com/confirmation-token-url";
-                var messageService = new TestableMessageService();
+
+                var messageService = TestableMessageService.Create(
+                    GetService<AuthenticationService>(),
+                    GetConfigurationService());
                 messageService.SendPackageOwnerRequest(from, to, package, packageUrl, confirmationUrl, string.Empty, string.Empty);
                 var message = messageService.MockMailSender.Sent.Last();
 
@@ -375,7 +409,9 @@ namespace NuGetGallery
                 const string packageUrl = "http://nuget.local/packages/CoolStuff";
                 const string confirmationUrl = "http://example.com/confirmation-token-url";
 
-                var messageService = new TestableMessageService();
+                var messageService = TestableMessageService.Create(
+                    GetService<AuthenticationService>(),
+                    GetConfigurationService());
                 messageService.SendPackageOwnerRequest(from, to, package, packageUrl, confirmationUrl, string.Empty, string.Empty);
 
                 Assert.Empty(messageService.MockMailSender.Sent);
@@ -383,6 +419,7 @@ namespace NuGetGallery
         }
 
         public class TheSendPackageOwnerAddedNoticeMethod
+            : TestContainer
         {
             [Fact]
             public void SendsPackageOwnerAddedNotice()
@@ -391,9 +428,11 @@ namespace NuGetGallery
                 var toUser = new User { Username = "Existing", EmailAddress = "existing-owner@example.com", EmailAllowed = true };
                 var newUser = new User { Username = "Noob", EmailAddress = "new-owner@example.com" };
                 var package = new PackageRegistration { Id = "CoolStuff" };
+                var messageService = TestableMessageService.Create(
+                    GetService<AuthenticationService>(),
+                    GetConfigurationService());
 
                 // Act
-                var messageService = new TestableMessageService();
                 messageService.SendPackageOwnerAddedNotice(toUser, newUser, package, "packageUrl", "policyMessage");
 
                 // Assert
@@ -412,9 +451,11 @@ namespace NuGetGallery
                 var toUser = new User { Username = "Existing", EmailAddress = "existing-owner@example.com" };
                 var newUser = new User { Username = "Noob", EmailAddress = "new-owner@example.com", EmailAllowed = false };
                 var package = new PackageRegistration { Id = "CoolStuff" };
+                var messageService = TestableMessageService.Create(
+                    GetService<AuthenticationService>(),
+                    GetConfigurationService());
 
                 // Act
-                var messageService = new TestableMessageService();
                 messageService.SendPackageOwnerAddedNotice(toUser, newUser, package, "packageUrl", "policyMessage");
 
                 // Assert
@@ -423,6 +464,7 @@ namespace NuGetGallery
         }
 
         public class TheSendPackageOwnerRemovedNoticeMethod
+            : TestContainer
         {
             [Fact]
             public void SendsPackageOwnerRemovedNotice()
@@ -431,7 +473,9 @@ namespace NuGetGallery
                 var from = new User { Username = "Existing", EmailAddress = "existing-owner@example.com" };
                 var package = new PackageRegistration { Id = "CoolStuff" };
 
-                var messageService = new TestableMessageService();
+                var messageService = TestableMessageService.Create(
+                    GetService<AuthenticationService>(),
+                    GetConfigurationService());
                 messageService.SendPackageOwnerRemovedNotice(from, to, package);
                 var message = messageService.MockMailSender.Sent.Last();
 
@@ -449,7 +493,9 @@ namespace NuGetGallery
                 var from = new User { Username = "Existing", EmailAddress = "existing-owner@example.com" };
                 var package = new PackageRegistration { Id = "CoolStuff" };
 
-                var messageService = new TestableMessageService();
+                var messageService = TestableMessageService.Create(
+                    GetService<AuthenticationService>(),
+                    GetConfigurationService());
                 messageService.SendPackageOwnerRemovedNotice(from, to, package);
 
                 Assert.Empty(messageService.MockMailSender.Sent);
@@ -457,13 +503,16 @@ namespace NuGetGallery
         }
 
         public class TheSendResetPasswordInstructionsMethod
+            : TestContainer
         {
             [Fact]
             public void WillSendInstructions()
             {
                 var user = new User { EmailAddress = "legit@example.com", Username = "too" };
 
-                var messageService = new TestableMessageService();
+                var messageService = TestableMessageService.Create(
+                    GetService<AuthenticationService>(),
+                    GetConfigurationService());
                 messageService.SendPasswordResetInstructions(user, "http://example.com/pwd-reset-token-url", true);
                 var message = messageService.MockMailSender.Sent.Last();
 
@@ -476,21 +525,18 @@ namespace NuGetGallery
         }
 
         public class TheSendCredentialRemovedNoticeMethod
+            : TestContainer
         {
             [Fact]
             public void UsesProviderNounToDescribeCredentialIfPresent()
             {
                 var user = new User { EmailAddress = "legit@example.com", Username = "foo" };
                 var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "abc123", "Test User");
-                const string MicrosoftAccountCredentialName = "Microsoft Account";
-                var messageService = new TestableMessageService();
-                messageService.MockAuthService
-                    .Setup(a => a.DescribeCredential(cred))
-                    .Returns(new CredentialViewModel
-                    {
-                        AuthUI = new AuthenticatorUI("sign in", "register", MicrosoftAccountCredentialName)
-                    });
+                const string MicrosoftAccountCredentialName = "Microsoft account";
 
+                var messageService = TestableMessageService.Create(
+                    GetService<AuthenticationService>(),
+                    GetConfigurationService());
                 messageService.SendCredentialRemovedNotice(user, cred);
                 var message = messageService.MockMailSender.Sent.Last();
 
@@ -505,14 +551,10 @@ namespace NuGetGallery
             {
                 var user = new User { EmailAddress = "legit@example.com", Username = "foo" };
                 var cred = new CredentialBuilder().CreatePasswordCredential("bogus");
-                var messageService = new TestableMessageService();
-                messageService.MockAuthService
-                    .Setup(a => a.DescribeCredential(cred))
-                    .Returns(new CredentialViewModel()
-                    {
-                        TypeCaption = Strings.CredentialType_Password
-                    });
 
+                var messageService = TestableMessageService.Create(
+                    GetService<AuthenticationService>(),
+                    GetConfigurationService());
                 messageService.SendCredentialRemovedNotice(user, cred);
                 var message = messageService.MockMailSender.Sent.Last();
 
@@ -528,14 +570,10 @@ namespace NuGetGallery
                 var user = new User { EmailAddress = "legit@example.com", Username = "foo" };
                 var cred = new CredentialBuilder().CreateApiKey(TimeSpan.FromDays(1));
                 cred.Description = "new api key";
-                var messageService = new TestableMessageService();
-                messageService.MockAuthService
-                    .Setup(a => a.DescribeCredential(cred))
-                    .Returns(new CredentialViewModel
-                    {
-                        Description = cred.Description
-                    });
 
+                var messageService = TestableMessageService.Create(
+                    GetService<AuthenticationService>(),
+                    GetConfigurationService());
                 messageService.SendCredentialRemovedNotice(user, cred);
                 var message = messageService.MockMailSender.Sent.Last();
 
@@ -547,22 +585,18 @@ namespace NuGetGallery
         }
 
         public class TheSendCredentialAddedNoticeMethod
+            : TestContainer
         {
             [Fact]
             public void UsesProviderNounToDescribeCredentialIfPresent()
             {
                 var user = new User { EmailAddress = "legit@example.com", Username = "foo" };
                 var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "abc123", "Test User");
-                const string MicrosoftAccountCredentialName = "Microsoft Account";
+                const string MicrosoftAccountCredentialName = "Microsoft account";
 
-                var messageService = new TestableMessageService();
-                messageService.MockAuthService
-                    .Setup(a => a.DescribeCredential(cred))
-                    .Returns(new CredentialViewModel
-                    {
-                        AuthUI = new AuthenticatorUI("sign in", "register", MicrosoftAccountCredentialName)
-                    });
-
+                var messageService = TestableMessageService.Create(
+                    GetService<AuthenticationService>(),
+                    GetConfigurationService());
                 messageService.SendCredentialAddedNotice(user, cred);
                 var message = messageService.MockMailSender.Sent.Last();
 
@@ -577,14 +611,10 @@ namespace NuGetGallery
             {
                 var user = new User { EmailAddress = "legit@example.com", Username = "foo" };
                 var cred = new CredentialBuilder().CreatePasswordCredential("bogus");
-                var messageService = new TestableMessageService();
-                messageService.MockAuthService
-                    .Setup(a => a.DescribeCredential(cred))
-                    .Returns(new CredentialViewModel
-                    {
-                        TypeCaption = "Password"
-                    });
 
+                var messageService = TestableMessageService.Create(
+                    GetService<AuthenticationService>(),
+                    GetConfigurationService());
                 messageService.SendCredentialAddedNotice(user, cred);
                 var message = messageService.MockMailSender.Sent.Last();
 
@@ -600,14 +630,10 @@ namespace NuGetGallery
                 var user = new User { EmailAddress = "legit@example.com", Username = "foo" };
                 var cred = new CredentialBuilder().CreateApiKey(TimeSpan.FromDays(1));
                 cred.Description = "new api key";
-                var messageService = new TestableMessageService();
-                messageService.MockAuthService
-                    .Setup(a => a.DescribeCredential(cred))
-                    .Returns(new CredentialViewModel
-                    {
-                        Description = cred.Description
-                    });
 
+                var messageService = TestableMessageService.Create(
+                    GetService<AuthenticationService>(),
+                    GetConfigurationService());
                 messageService.SendCredentialAddedNotice(user, cred);
                 var message = messageService.MockMailSender.Sent.Last();
 
@@ -619,6 +645,7 @@ namespace NuGetGallery
         }
 
         public class TheSendPackageAddedNoticeMethod
+            : TestContainer
         {
             [Theory]
             [InlineData("1.2.3")]
@@ -648,7 +675,9 @@ namespace NuGetGallery
                 packageRegistration.Packages.Add(package);
 
                 // Act
-                var messageService = new TestableMessageService();
+                var messageService = TestableMessageService.Create(
+                    GetService<AuthenticationService>(),
+                    GetConfigurationService());
                 var packageUrl = $"https://localhost/packages/{packageRegistration.Id}/{nugetVersion.ToNormalizedString()}";
                 var supportUrl = $"https://localhost/packages/{packageRegistration.Id}/{nugetVersion.ToNormalizedString()}/ReportMyPackage";
                 var emailSettingsUrl = "https://localhost/account";
@@ -686,7 +715,9 @@ namespace NuGetGallery
                 packageRegistration.Packages.Add(package);
 
                 // Act
-                var messageService = new TestableMessageService();
+                var messageService = TestableMessageService.Create(
+                    GetService<AuthenticationService>(),
+                    GetConfigurationService());
                 messageService.SendPackageAddedNotice(package, "http://dummy1", "http://dummy2", "http://dummy3");
 
                 // Assert
@@ -717,7 +748,9 @@ namespace NuGetGallery
                 packageRegistration.Packages.Add(package);
 
                 // Act
-                var messageService = new TestableMessageService();
+                var messageService = TestableMessageService.Create(
+                    GetService<AuthenticationService>(),
+                    GetConfigurationService());
                 messageService.SendPackageAddedNotice(package, "http://dummy1", "http://dummy2", "http://dummy3");
 
                 // Assert
@@ -725,20 +758,29 @@ namespace NuGetGallery
             }
         }
 
-        public class TestableMessageService : MessageService
+        public class TestableMessageService 
+            : MessageService
         {
+            private TestableMessageService(
+                AuthenticationService authenticationService,
+                IGalleryConfigurationService configurationService)
+            {
+                configurationService.Current.GalleryOwner = TestGalleryOwner;
+                configurationService.Current.GalleryNoReplyAddress = TestGalleryNoReplyAddress;
+
+                Config = configurationService.Current;
+                MailSender = MockMailSender = new TestMailSender();
+                AuthService = authenticationService;
+            }
+
             public Mock<AuthenticationService> MockAuthService { get; protected set; }
-            public Mock<IAppConfiguration> MockConfig { get; protected set; }
             public TestMailSender MockMailSender { get; protected set; }
 
-            public TestableMessageService()
+            public static TestableMessageService Create(
+                AuthenticationService authenticationService,
+                IGalleryConfigurationService configurationService)
             {
-                AuthService = (MockAuthService = new Mock<AuthenticationService>()).Object;
-                Config = (MockConfig = new Mock<IAppConfiguration>()).Object;
-                MailSender = MockMailSender = new TestMailSender();
-
-                MockConfig.Setup(x => x.GalleryOwner).Returns(TestGalleryOwner);
-                MockConfig.Setup(x => x.GalleryNoReplyAddress).Returns(TestGalleryNoReplyAddress);
+                return new TestableMessageService(authenticationService, configurationService);
             }
         }
 

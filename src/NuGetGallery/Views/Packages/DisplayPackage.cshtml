@@ -23,6 +23,15 @@
             CommandPrefix = "> ",
             InstallPackageCommand = string.Format("dotnet add package {0} --version {1}", Model.Id, Model.Version)
         },
+
+        new ThirdPartyPackageManagerViewModel()
+        {
+            Id = "paket-cli",
+            Name = "Paket CLI",
+            CommandPrefix = "> ",
+            InstallPackageCommand = string.Format("paket add {0} --version {1}", Model.Id, Model.Version),
+            ContactUrl = "https://fsprojects.github.io/Paket/contact.html"
+        },
     };
 }
 @section SocialMeta {
@@ -92,8 +101,8 @@
         {
             @ViewHelpers.AlertWarning(
                 @<text>
-                    This client is not supported by the NuGet team.
-                    <a href="@thirdPartyPackageManager.ContactUrl">Contact its maintainers for support</a>.
+                    The NuGet Team does not provide support for this client.
+                    Please contact its <a href="@thirdPartyPackageManager.ContactUrl">maintainers</a> for support.
                 </text>)
         }
     </div>
@@ -209,12 +218,7 @@
 
             @if (Model.IsSemVer2)
             {
-                @ViewHelpers.AlertWarning(
-                    @<text>
-                        This package is only available for download with Visual Studio 2017 (version 15.3) and above or with NuGet client 4.3.0 and above.
-                        Reach out to support if you have more questions.
-                    </text>
-                )
+                @ViewHelpers.AlertIsSemVer2Package(Model.HasSemVer2Version, Model.HasSemVer2Dependency)
             }
 
             @if (!Model.Listed && !Model.Deleted)
@@ -477,13 +481,13 @@
                 }
                 <li>
                     <i class="ms-Icon ms-Icon--Mail" aria-hidden="true"></i>
-                    <a href="@Url.Action(actionName: "ContactOwners", controllerName: "Packages", routeValues: new { id = Model.Id })" title="Ask the package owners a question">Contact owners</a>
+                    <a href="@Url.ContactOwners(Model.Id)" title="Ask the package owners a question">Contact owners</a>
                 </li>
                 @if ((Model.IsOwner(User) || User.IsAdministrator()))
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--Help" aria-hidden="true"></i>
-                        <a href="@Url.Action(actionName: "ReportMyPackage", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version })" title="Contact the NuGet team for help with your package">
+                        <a href="@Url.ReportPackage(Model.Id, Model.Version)" title="Contact the NuGet team for help with your package">
                             Contact support
                         </a>
                     </li>
@@ -492,7 +496,7 @@
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--Flag" aria-hidden="true"></i>
-                        <a href="@Url.Action(actionName: "ReportAbuse", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version })" title="Report the package as abusive">
+                        <a href="@Url.ReportAbuse(Model.Id, Model.Version)" title="Report the package as abusive">
                             Report
                         </a>
                     </li>

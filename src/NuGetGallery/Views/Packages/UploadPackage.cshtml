@@ -92,12 +92,12 @@
             });
 
             AsyncFileUploadManager.init(
-                '@Url.Action(actionName: "UploadPackageProgress", controllerName: "Packages")',
+                '@Url.UploadPackageProgress()',
                 'uploadForm',
                 '@Scripts.Url("~/Scripts/jquery")',
-                '@Url.Action(actionName: "UploadPackage", controllerName: "Packages")',
-                '@Url.Action(actionName: "CancelUpload", controllerName: "Packages")',
-                '@Url.Action(actionName: "VerifyPackage", controllerName: "Packages")');
+                '@Url.UploadPackage()',
+                '@Url.CancelUpload()',
+                '@Url.VerifyPackage()');
         });
     </script>
 }

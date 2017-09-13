@@ -111,7 +111,7 @@ namespace NuGetGallery
             using (var strategy = new SuspendDbExecutionStrategy())
             using (var transaction = EntitiesContext.GetDatabase().BeginTransaction())
             {
-                var namespaceToModify = FindReservedNamespaceForPrefix(prefix) 
+                var namespaceToModify = FindReservedNamespaceForPrefix(prefix)
                     ?? throw new InvalidOperationException(string.Format(
                         CultureInfo.CurrentCulture, Strings.ReservedNamespace_NamespaceNotFound, prefix));
 
@@ -196,23 +196,57 @@ namespace NuGetGallery
             }
         }
 
-        public ReservedNamespace FindReservedNamespaceForPrefix(string prefix)
+        /// <summary>
+        /// This method fetches the reserved namespace matching the prefix and adds the 
+        /// package registration entry to the reserved namespace, the provided package registration
+        /// should be an entry in the database or an entity from memory to be committed.
+        /// </summary>
+        /// <param name="prefix">The prefix value of the reserved namespace to modify</param>
+        /// <param name="packageRegistration">The package registration entity entry to be added.</param>
+        /// <param name="commitChanges">Flag to commit the modifications to the database, if set to false
+        /// the caller of this method should take care of saving changes for entities context.</param>
+        /// <returns>Awaitable task</returns>
+        public async Task AddPackageRegistrationToNamespaceAsync(string prefix, PackageRegistration packageRegistration, bool commitChanges = true)
+        {
+            if (string.IsNullOrWhiteSpace(prefix))
+            {
+                throw new ArgumentException(Strings.ReservedNamespace_InvalidNamespace);
+            }
+
+            if (packageRegistration == null)
+            {
+                throw new ArgumentNullException(nameof(packageRegistration));
+            }
+
+            var namespaceToModify = FindReservedNamespaceForPrefix(prefix)
+                ?? throw new InvalidOperationException(string.Format(
+                    CultureInfo.CurrentCulture, Strings.ReservedNamespace_NamespaceNotFound, prefix));
+
+            namespaceToModify.PackageRegistrations.Add(packageRegistration);
+
+            if (commitChanges)
+            {
+                await ReservedNamespaceRepository.CommitChangesAsync();
+            }
+        }
+
+        public virtual ReservedNamespace FindReservedNamespaceForPrefix(string prefix)
         {
             return (from request in ReservedNamespaceRepository.GetAll()
-                    where request.Value.Equals(prefix, StringComparison.OrdinalIgnoreCase)
+                    where request.Value.Equals(prefix)
                     select request).FirstOrDefault();
         }
 
-        public IReadOnlyCollection<ReservedNamespace> FindAllReservedNamespacesForPrefix(string prefix, bool getExactMatches)
+        public virtual IReadOnlyCollection<ReservedNamespace> FindAllReservedNamespacesForPrefix(string prefix, bool getExactMatches)
         {
             Expression<Func<ReservedNamespace, bool>> prefixMatch;
             if (getExactMatches)
             {
-                prefixMatch = dbPrefix => dbPrefix.Value.Equals(prefix, StringComparison.OrdinalIgnoreCase);
+                prefixMatch = dbPrefix => dbPrefix.Value.Equals(prefix);
             }
             else
             {
-                prefixMatch = dbPrefix => dbPrefix.Value.StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
+                prefixMatch = dbPrefix => dbPrefix.Value.StartsWith(prefix);
             }
 
             return ReservedNamespaceRepository.GetAll()
@@ -228,10 +262,11 @@ namespace NuGetGallery
                     select dbPrefix).ToList();
         }
 
-        public IReadOnlyCollection<ReservedNamespace> GetReservedNamespacesForId(string id)
+        public virtual IReadOnlyCollection<ReservedNamespace> GetReservedNamespacesForId(string id)
         {
             return (from request in ReservedNamespaceRepository.GetAll()
-                    where id.StartsWith(request.Value)
+                    where (request.IsPrefix && id.StartsWith(request.Value))
+                        || (!request.IsPrefix && id.Equals(request.Value))
                     select request).ToList();
         }
 
@@ -258,6 +293,23 @@ namespace NuGetGallery
                     Strings.ReservedNamespace_InvalidCharactersInNamespace,
                     value));
             }
+        }
+
+        public bool IsPushAllowed(string id, User user, out IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces)
+        {
+            // Allow push to a new package ID only if
+            // 1. There is no namespace match for the given ID
+            // 2. Or one of the matching namespace is a shared namespace.
+            // 3. Or the current user is one of the owner of a matching namespace.
+            var matchingNamespaces = GetReservedNamespacesForId(id);
+            var noNamespaceMatches = matchingNamespaces.Count() == 0;
+            var idMatchesSharedNamespace = matchingNamespaces.Any(rn => rn.IsSharedNamespace);
+            userOwnedMatchingNamespaces = matchingNamespaces
+                .Where(rn => rn.Owners.AnySafe(o => o.Username == user.Username))
+                .ToList()
+                .AsReadOnly();
+
+            return noNamespaceMatches || idMatchesSharedNamespace || userOwnedMatchingNamespaces.Any();
         }
     }
 }

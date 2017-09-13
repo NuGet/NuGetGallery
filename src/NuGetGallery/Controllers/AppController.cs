@@ -54,7 +54,7 @@ namespace NuGetGallery
         /// <param name="statusCode">HTTP status code for response</param>
         /// <param name="obj">Object to Jsonify and return</param>
         /// <returns></returns>
-        protected internal JsonResult Json(int statusCode, object obj)
+        protected internal JsonResult Json(int statusCode, object obj, JsonRequestBehavior jsonRequestBehavior)
         {
             Response.StatusCode = statusCode;
             if (statusCode >= 400)
@@ -62,9 +62,13 @@ namespace NuGetGallery
                 Response.TrySkipIisCustomErrors = true;
             }
 
-            return Json(obj);
+            return Json(obj, jsonRequestBehavior);
         }
 
+        protected internal JsonResult Json(int statusCode, object obj)
+        {
+            return Json(statusCode, obj, JsonRequestBehavior.DenyGet);
+        }
 
         /// <summary>
         /// Called before the action method is invoked.
