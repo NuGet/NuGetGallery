@@ -67,7 +67,10 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
             "$PSScriptRoot\src\NuGet.Services.Storage\Properties\AssemblyInfo.g.cs",`
             "$PSScriptRoot\src\NuGet.Services.Cursor\Properties\AssemblyInfo.g.cs",`
             "$PSScriptRoot\src\NuGet.Services.Owin\Properties\AssemblyInfo.g.cs", `
-            "$PSScriptRoot\src\NuGet.Services.AzureManagement\Properties\AssemblyInfo.g.cs"
+            "$PSScriptRoot\src\NuGet.Services.AzureManagement\Properties\AssemblyInfo.g.cs", `
+            "$PSScriptRoot\src\NuGet.Services.Abstractions\Properties\AssemblyInfo.g.cs", `
+            "$PSScriptRoot\src\NuGet.Services.ServiceBus\Properties\AssemblyInfo.g.cs", `
+            "$PSScriptRoot\src\NuGet.Services.Validation\Properties\AssemblyInfo.g.cs"
             
         $versionMetadata | ForEach-Object {
             Set-VersionInfo -Path $_ -Version $SimpleVersion -Branch $Branch -Commit $CommitSHA
@@ -91,11 +94,14 @@ Invoke-BuildStep 'Creating artifacts' { `
             "src\NuGet.Services.KeyVault\NuGet.Services.KeyVault.csproj", `
             "src\NuGet.Services.Logging\NuGet.Services.Logging.csproj", `
             "src\NuGet.Services.Configuration\NuGet.Services.Configuration.csproj", `
-            "src\NuGet.Services.Build\NuGet.Services.Build.csproj",`
-            "src\NuGet.Services.Storage\NuGet.Services.Storage.csproj",`
-            "src\NuGet.Services.Cursor\NuGet.Services.Cursor.csproj",`
-            "src\NuGet.Services.Owin\NuGet.Services.Owin.csproj",`
-            "src\NuGet.Services.AzureManagement\NuGet.Services.AzureManagement.csproj"
+            "src\NuGet.Services.Build\NuGet.Services.Build.csproj", `
+            "src\NuGet.Services.Storage\NuGet.Services.Storage.csproj", `
+            "src\NuGet.Services.Cursor\NuGet.Services.Cursor.csproj", `
+            "src\NuGet.Services.Owin\NuGet.Services.Owin.csproj", `
+            "src\NuGet.Services.AzureManagement\NuGet.Services.AzureManagement.csproj", `
+            "src\NuGet.Services.Abstractions\NuGet.Services.Abstractions.csproj", `
+            "src\NuGet.Services.ServiceBus\NuGet.Services.ServiceBus.csproj", `
+            "src\NuGet.Services.Validation\NuGet.Services.Validation.csproj"
         
         $projects | ForEach-Object {
             New-Package (Join-Path $PSScriptRoot $_) -Configuration $Configuration -Symbols -IncludeReferencedProjects -MSBuildVersion "15"
