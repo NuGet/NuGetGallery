@@ -1138,6 +1138,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID..
+        /// </summary>
+        public static string UploadPackage_IdNamespaceConflict {
+            get {
+                return ResourceManager.GetString("UploadPackage_IdNamespaceConflict", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to There is a conflict with the ID and version of your package and another package. Please change your package&apos;s ID or version and try again..
         /// </summary>
         public static string UploadPackage_IdVersionConflict {

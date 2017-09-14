@@ -23,6 +23,15 @@
             CommandPrefix = "> ",
             InstallPackageCommand = string.Format("dotnet add package {0} --version {1}", Model.Id, Model.Version)
         },
+
+        new ThirdPartyPackageManagerViewModel()
+        {
+            Id = "paket-cli",
+            Name = "Paket CLI",
+            CommandPrefix = "> ",
+            InstallPackageCommand = string.Format("paket add {0} --version {1}", Model.Id, Model.Version),
+            ContactUrl = "https://fsprojects.github.io/Paket/contact.html"
+        },
     };
 }
 @section SocialMeta {

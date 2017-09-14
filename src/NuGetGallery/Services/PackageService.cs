@@ -113,7 +113,7 @@ namespace NuGetGallery
         /// <exception cref="InvalidPackageException">
         /// This exception will be thrown when a package metadata property violates a data validation constraint.
         /// </exception>
-        public async Task<Package> CreatePackageAsync(PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool commitChanges = true)
+        public async Task<Package> CreatePackageAsync(PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool isVerified, bool commitChanges = true)
         {
             PackageMetadata packageMetadata;
             PackageRegistration packageRegistration;
@@ -126,7 +126,7 @@ namespace NuGetGallery
 
                 ValidatePackageTitle(packageMetadata);
 
-                packageRegistration = CreateOrGetPackageRegistration(user, packageMetadata);
+                packageRegistration = CreateOrGetPackageRegistration(user, packageMetadata, isVerified);
             }
             catch (Exception exception) when (exception is EntityException || exception is PackagingException)
             {
@@ -574,7 +574,7 @@ namespace NuGetGallery
                             .Where(p => p.PackageRegistration.Id == id);
         }
 
-        private PackageRegistration CreateOrGetPackageRegistration(User currentUser, PackageMetadata packageMetadata)
+        private PackageRegistration CreateOrGetPackageRegistration(User currentUser, PackageMetadata packageMetadata, bool isVerified)
         {
             var packageRegistration = FindPackageRegistrationById(packageMetadata.Id);
 
@@ -592,7 +592,8 @@ namespace NuGetGallery
 
                 packageRegistration = new PackageRegistration
                 {
-                    Id = packageMetadata.Id
+                    Id = packageMetadata.Id,
+                    IsVerified = isVerified
                 };
 
                 packageRegistration.Owners.Add(currentUser);

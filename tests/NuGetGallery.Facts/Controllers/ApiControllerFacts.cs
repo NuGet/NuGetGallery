@@ -42,6 +42,8 @@ namespace NuGetGallery
         public Mock<ITelemetryService> MockTelemetryService { get; private set; }
         public Mock<AuthenticationService> MockAuthenticationService { get; private set; }
         public Mock<ISecurityPolicyService> MockSecurityPolicyService { get; private set; }
+        public Mock<IReservedNamespaceService> MockReservedNamespaceService { get; private set; }
+        public Mock<IPackageUploadService> MockPackageUploadService { get; private set; }
 
         private Stream PackageFromInputStream { get; set; }
 
@@ -60,6 +62,8 @@ namespace NuGetGallery
             AutoCuratePackage = (MockAutoCuratePackage = new Mock<IAutomaticallyCuratePackageCommand>()).Object;
             AuthenticationService = (MockAuthenticationService = new Mock<AuthenticationService>()).Object;
             SecurityPolicyService = (MockSecurityPolicyService = new Mock<ISecurityPolicyService>()).Object;
+            ReservedNamespaceService = (MockReservedNamespaceService = new Mock<IReservedNamespaceService>()).Object;
+            PackageUploadService = (MockPackageUploadService = new Mock<IPackageUploadService>()).Object;
 
             CredentialBuilder = new CredentialBuilder();
 
@@ -78,13 +82,13 @@ namespace NuGetGallery
             MockTelemetryService = new Mock<ITelemetryService>();
             TelemetryService = MockTelemetryService.Object;
 
-            MockPackageService.Setup(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>())).
-                Returns((PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool commitChanges) =>
+            MockPackageService.Setup(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>(), It.IsAny<bool>())).
+                Returns((PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool isVerified, bool commitChanges) =>
                 {
                     var packageMetadata = PackageMetadata.FromNuspecReader(nugetPackage.GetNuspecReader());
 
                     var package = new Package();
-                    package.PackageRegistration = new PackageRegistration { Id = packageMetadata.Id };
+                    package.PackageRegistration = new PackageRegistration { Id = packageMetadata.Id, IsVerified = isVerified };
                     package.Version = packageMetadata.Version.ToString();
                     package.SemVerLevelKey = SemVerLevelKey.ForPackage(packageMetadata.Version, packageMetadata.GetDependencyGroups().AsPackageDependencyEnumerable());
 
@@ -93,6 +97,16 @@ namespace NuGetGallery
 
             MockSecurityPolicyService.Setup(s => s.EvaluateAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>()))
                 .Returns(Task.FromResult(SecurityPolicyResult.SuccessResult));
+
+            IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace>();
+            MockReservedNamespaceService
+                .Setup(r => r.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
+                .Returns(true);
+
+            MockPackageUploadService.Setup(x => x.GeneratePackageAsync(It.IsAny<string>(), It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>()))
+                .Returns((string id, PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool commitChanges) => {
+                    return MockPackageService.Object.CreatePackageAsync(nugetPackage, packageStreamMetadata, user, isVerified: false, commitChanges: commitChanges);
+                });
 
             var requestMock = new Mock<HttpRequestBase>();
             requestMock.Setup(m => m.IsSecureConnection).Returns(true);
@@ -157,7 +171,7 @@ namespace NuGetGallery
                     .Returns(Task.CompletedTask).Verifiable();
                 controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
                     .Returns(packageRegistration);
-                controller.MockPackageService.Setup(p => p.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), false))
+                controller.MockPackageService.Setup(p => p.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>(), false))
                     .Returns(Task.FromResult(package));
 
                 var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
@@ -200,7 +214,7 @@ namespace NuGetGallery
                 controller.MockPackageService.Setup(
                         p =>
                             p.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(),
-                                It.IsAny<User>(), false))
+                                It.IsAny<User>(), It.IsAny<bool>(), false))
                     .Returns(Task.FromResult(package));
                 controller.MockEntitiesContext.Setup(e => e.SaveChangesAsync()).Throws<Exception>();
 
@@ -229,7 +243,7 @@ namespace NuGetGallery
 
                 var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(user);
-                controller.MockPackageService.Setup(p => p.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), false))
+                controller.MockPackageService.Setup(p => p.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>(), false))
                     .Returns(Task.FromResult(package));
 
                 var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
@@ -262,7 +276,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(user);
                 controller.MockMessageService.Setup(p => p.SendPackageAddedNotice(package, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                     .Verifiable();
-                controller.MockPackageService.Setup(p => p.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), false))
+                controller.MockPackageService.Setup(p => p.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>(), false))
                     .Returns(Task.FromResult(package));
 
                 var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
@@ -475,6 +489,44 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task WillReturnConflictIfAPackageWithTheIdMatchesNonOwnedNamespace()
+            {
+                // Arrange
+                var user1 = new User { Key = 1, Username = "random1" };
+                var user2 = new User { Key = 2, Username = "random2" };
+                var packageId = "Random.Extention.Package1";
+                var packageRegistration = new PackageRegistration();
+                packageRegistration.Id = packageId;
+                var package = new Package();
+                package.PackageRegistration = packageRegistration;
+                package.Version = "1.0.0";
+                packageRegistration.Packages.Add(package);
+
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.SetCurrentUser(user1);
+                controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
+                    .Returns(() => null);
+
+                var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, "1.0.0");
+                controller.SetupPackageFromInputStream(nuGetPackage);
+                var testNamespace = new ReservedNamespace("random.", isSharedNamespace: false, isPrefix: true);
+                testNamespace.Owners.Add(user2);
+                IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace> { testNamespace };
+                controller.MockReservedNamespaceService
+                    .Setup(r => r.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
+                    .Returns(false);
+
+                // Act
+                var result = await controller.CreatePackagePut();
+
+                // Assert
+                ResultAssert.IsStatusCode(
+                    result,
+                    HttpStatusCode.Conflict,
+                    String.Format(Strings.UploadPackage_IdNamespaceConflict));
+            }
+
+            [Fact]
             public async Task WillCreateAPackageFromTheNuGetPackage()
             {
                 var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
@@ -486,7 +538,78 @@ namespace NuGetGallery
 
                 await controller.CreatePackagePut();
 
-                controller.MockPackageService.Verify(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), false));
+                controller.MockPackageService.Verify(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>(), false));
+                controller.MockEntitiesContext.VerifyCommitted();
+            }
+
+            [Fact]
+            public async Task WillCreatePackageIfIdMatchesSharedNamespace()
+            {
+                // Arrange
+                var user1 = new User { Key = 1, Username = "random1" };
+                var user2 = new User { Key = 2, Username = "random2" };
+                var packageId = "Random.Extention.Package1";
+                var packageRegistration = new PackageRegistration();
+                packageRegistration.Id = packageId;
+                var package = new Package();
+                package.PackageRegistration = packageRegistration;
+                package.Version = "1.0.0";
+                packageRegistration.Packages.Add(package);
+
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.SetCurrentUser(user1);
+                controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
+                    .Returns(() => null);
+
+                var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, "1.0.0");
+                controller.SetupPackageFromInputStream(nuGetPackage);
+                var testNamespace = new ReservedNamespace("random.", isSharedNamespace: true, isPrefix: true);
+                testNamespace.Owners.Add(user2);
+                IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace> { testNamespace };
+                controller.MockReservedNamespaceService
+                    .Setup(r => r.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
+                    .Returns(true);
+
+                // Act
+                var result = await controller.CreatePackagePut();
+
+                // Assert
+                controller.MockPackageService.Verify(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>(), false));
+                controller.MockEntitiesContext.VerifyCommitted();
+            }
+
+            [Fact]
+            public async Task WillCreatePackageIfIdMatchesAnOwnedNamespace()
+            {
+                // Arrange
+                var user1 = new User { Key = 1, Username = "random1" };
+                var packageId = "Random.Extention.Package1";
+                var packageRegistration = new PackageRegistration();
+                packageRegistration.Id = packageId;
+                var package = new Package();
+                package.PackageRegistration = packageRegistration;
+                package.Version = "1.0.0";
+                packageRegistration.Packages.Add(package);
+
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.SetCurrentUser(user1);
+                controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
+                    .Returns(() => null);
+
+                var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, "1.0.0");
+                controller.SetupPackageFromInputStream(nuGetPackage);
+                var testNamespace = new ReservedNamespace("random.", isSharedNamespace: false, isPrefix: true);
+                testNamespace.Owners.Add(user1);
+                IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace> { testNamespace };
+                controller.MockReservedNamespaceService
+                    .Setup(r => r.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
+                    .Returns(true);
+
+                // Act
+                var result = await controller.CreatePackagePut();
+
+                // Assert
+                controller.MockPackageService.Verify(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>(), false));
                 controller.MockEntitiesContext.VerifyCommitted();
             }
 
@@ -549,7 +672,7 @@ namespace NuGetGallery
 
                 await controller.CreatePackagePut();
 
-                controller.MockPackageService.Verify(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), user, false));
+                controller.MockPackageService.Verify(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), user, It.IsAny<bool>(), false));
                 controller.MockEntitiesContext.VerifyCommitted();
             }
 
@@ -575,7 +698,7 @@ namespace NuGetGallery
                 controller.MockPackageService.Setup(
                     x =>
                         x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), user,
-                            It.IsAny<bool>())).Returns(Task.FromResult(package));
+                            It.IsAny<bool>(), It.IsAny<bool>())).Returns(Task.FromResult(package));
 
                 // Act
                 var result = await controller.CreatePackagePut();
@@ -584,7 +707,7 @@ namespace NuGetGallery
                 if (isPushAllowed)
                 {
                     controller.MockPackageService.Verify(
-                        x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), user, false));
+                        x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), user, It.IsAny<bool>(), false));
                     controller.MockEntitiesContext.VerifyCommitted();
                 }
                 else
@@ -594,6 +717,7 @@ namespace NuGetGallery
                             It.IsAny<PackageArchiveReader>(),
                             It.IsAny<PackageStreamMetadata>(),
                             It.IsAny<User>(),
+                            It.IsAny<bool>(),
                             It.IsAny<bool>()),
                         Times.Never);
 
@@ -634,7 +758,7 @@ namespace NuGetGallery
                 controller.MockPackageService.Setup(
                     x =>
                         x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), user,
-                            It.IsAny<bool>())).Returns(Task.FromResult(package));
+                            It.IsAny<bool>(), It.IsAny<bool>())).Returns(Task.FromResult(package));
 
                 // Act
                 var result = await controller.CreatePackagePut();
@@ -643,7 +767,7 @@ namespace NuGetGallery
                 if (isPushAllowed)
                 {
                     controller.MockPackageService.Verify(
-                        x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), user, false));
+                        x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), user, It.IsAny<bool>(), false));
                     controller.MockEntitiesContext.VerifyCommitted();
                 }
                 else
@@ -653,6 +777,7 @@ namespace NuGetGallery
                             It.IsAny<PackageArchiveReader>(),
                             It.IsAny<PackageStreamMetadata>(),
                             It.IsAny<User>(),
+                            It.IsAny<bool>(),
                             It.IsAny<bool>()),
                         Times.Never);
 
