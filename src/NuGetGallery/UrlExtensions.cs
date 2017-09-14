@@ -52,6 +52,9 @@ namespace NuGetGallery
 
         private static string GetConfiguredSiteHostName()
         {
+            // It doesn't matter which value we pass on here for the useHttps parameter.
+            // We're just interested in the host, which is the same for both, 
+            // as it all results from the same 'NuGetGallery.SiteRoot' URL value.
             var siteRoot = GetSiteRoot(useHttps: true);
             return new Uri(siteRoot).Host;
         }
@@ -744,13 +747,12 @@ namespace NuGetGallery
         {
             var protocol = GetProtocol(url);
             var hostName = GetConfiguredSiteHostName();
-            var siteRoot = $"{protocol}://{hostName}";
 
             var actionLink = url.Action(actionName, controllerName, routeValues, protocol, hostName);
 
             if (relativeUrl)
             {
-                return actionLink.Replace(siteRoot, string.Empty);
+                return actionLink.Replace($"{protocol}://{hostName}", string.Empty);
             }
 
             return actionLink;
@@ -764,13 +766,12 @@ namespace NuGetGallery
         {
             var protocol = GetProtocol(url);
             var hostName = GetConfiguredSiteHostName();
-            var siteRoot = $"{protocol}://{hostName}";
 
             var routeLink = url.RouteUrl(routeName, routeValues, protocol, hostName);
 
             if (relativeUrl)
             {
-                return routeLink.Replace(siteRoot, string.Empty);
+                return routeLink.Replace($"{protocol}://{hostName}", string.Empty);
             }
 
             return routeLink;
