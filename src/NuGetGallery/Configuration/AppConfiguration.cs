@@ -268,5 +268,10 @@ namespace NuGetGallery.Configuration
         /// Gets/sets a string that is brand string to display in the footer
         /// </summary>
         public string ExternalBrandingMessage { get; set; }
+        
+        /// <summary>
+        /// Get/Sets a string to a url that details trademarks. If unset, the link will not appear.
+        /// </summary>
+        public string TrademarksUrl { get; set; }
     }
 }
