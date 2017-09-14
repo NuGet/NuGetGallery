@@ -522,9 +522,9 @@ namespace NuGetGallery
 
                         // Notify user of push
                         MessageService.SendPackageAddedNotice(package,
-                            Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, Request.Url.Scheme),
-                            Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, Request.Url.Scheme),
-                            Url.AccountSettings(Request.Url.Scheme));
+                            Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                            Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                            Url.AccountSettings(relativeUrl: false));
 
                         TelemetryService.TrackPackagePushEvent(package, user, User.Identity);
 

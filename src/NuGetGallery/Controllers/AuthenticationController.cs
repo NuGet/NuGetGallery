@@ -259,7 +259,8 @@ namespace NuGetGallery
                         "Confirm",
                         "Users",
                         user.User.Username,
-                        user.User.EmailConfirmationToken));
+                        user.User.EmailConfirmationToken,
+                        relativeUrl: false));
             }
 
             // If we are an administrator and Gallery.EnforcedAuthProviderForAdmin is set
