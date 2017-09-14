@@ -44,24 +44,24 @@
                                 {
                                     if (!String.IsNullOrEmpty(this.Config.Current.ExternalBrandingUrl))
                                     {
-                                        @:<a href="@this.Config.Current.ExternalBrandingUrl">@this.Config.Current.ExternalBrandingMessage</a> - 
+                                        @:<a href="@this.Config.Current.ExternalBrandingUrl">@this.Config.Current.ExternalBrandingMessage</a> -
                                     }
                                     else
                                     {
-                                        @:@(this.Config.Current.ExternalBrandingMessage) - 
+                                        @:@(this.Config.Current.ExternalBrandingMessage) -
                                     }
                                 }
                                 @if (!String.IsNullOrEmpty(this.Config.Current.ExternalAboutUrl))
                                 {
-                                    @:<a href="@this.Config.Current.ExternalAboutUrl">About</a> - 
+                                    @:<a href="@this.Config.Current.ExternalAboutUrl">About</a> -
                                 }
                                 else
                                 {
-                                    @:<a href="@Url.About()">About</a> - 
+                                    @:<a href="@Url.About()">About</a> -
                                 }
                                 @if (!String.IsNullOrEmpty(this.Config.Current.ExternalTermsOfUseUrl))
                                 {
-                                    @:<a href="@this.Config.Current.ExternalTermsOfUseUrl">Terms of Use</a> - 
+                                    @:<a href="@this.Config.Current.ExternalTermsOfUseUrl">Terms of Use</a> -
                                 }
                                 else
                                 {
@@ -77,7 +77,7 @@
                                 }
                                 @if (!String.IsNullOrEmpty(this.Config.Current.TrademarksUrl))
                                 {
-                                    @: - <a href="@this.Config.Current.TrademarksUrl">Trademarks</a>
+                                    @:- <a href="@this.Config.Current.TrademarksUrl">Trademarks</a>
                                 }
                                 <br />
                             </p>
@@ -94,13 +94,13 @@
                         </div>
                         <div class="col-md-11 footer-release-info">
                             <p>
-                                &copy; @DateTime.UtcNow.Year .NET Foundation - 
-                                <a href="@Url.About()">About</a> - 
-                                <a href="@Url.Terms()">Terms of Use</a> - 
+                                &copy; @DateTime.UtcNow.Year .NET Foundation -
+                                <a href="@Url.About()">About</a> -
+                                <a href="@Url.Terms()">Terms of Use</a> -
                                 <a href="@Url.Privacy()">Privacy Policy</a>
                                 @if(!String.IsNullOrEmpty(this.Config.Current.TrademarksUrl))
                                 {
-                                    @: - <a href="@this.Config.Current.TrademarksUrl">Trademarks</a>
+                                    @:- <a href="@this.Config.Current.TrademarksUrl">Trademarks</a>
                                 }
                                 <br />
                             </p>
