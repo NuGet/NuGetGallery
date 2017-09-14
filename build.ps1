@@ -101,7 +101,9 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
             "$PSScriptRoot\src\Validation.Helper\Properties\AssemblyInfo.g.cs",
             "$PSScriptRoot\src\CopyAzureContainer\Properties\AssemblyInfo.g.cs",
             "$PSScriptRoot\src\NuGetCDNRedirect\Properties\AssemblyInfo.g.cs",
-            "$PSScriptRoot\src\Validation.Orchestrator\Properties\AssemblyInfo.g.cs"
+            "$PSScriptRoot\src\Validation.Orchestrator\Properties\AssemblyInfo.g.cs",
+ 	    "$PSScriptRoot\src\Stats.CollectAzureChinaCDNLogs\Properties\AssemblyInfo.g.cs"
+
             
         $versionMetadata | ForEach-Object {
             Set-VersionInfo -Path $_ -Version $SimpleVersion -Branch $Branch -Commit $CommitSHA
@@ -146,8 +148,9 @@ Invoke-BuildStep 'Creating artifacts' {
             "src/Validation.Helper/Validation.Helper.csproj", `
             "src/CopyAzureContainer/CopyAzureContainer.csproj", `
             "src/NuGetCDNRedirect/NuGetCDNRedirect.csproj", `
-            "src/Validation.Orchestrator/Validation.Orchestrator.csproj"
-        
+            "src/Validation.Orchestrator/Validation.Orchestrator.csproj", `
+	    "src/Stats.CollectAzureChinaCDNLogs/Stats.CollectAzureChinaCDNLogs.csproj"
+
         Foreach ($Project in $Projects) {
             New-Package (Join-Path $PSScriptRoot "$Project") -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch -MSBuildVersion "$msBuildVersion"
         }
