@@ -25,8 +25,8 @@ namespace NuGetGallery.FunctionalTests.WebUITests.BasicPages
             var pageRequest = new WebTestRequest(UrlHelper.BaseUrl);
             var homePageTextValidationRuleLogo = AssertAndValidationHelper.GetValidationRuleForFindText(@"<a href=""https://www.dotnetfoundation.org"">");
             var homePageTextValidationRuleCopyright = AssertAndValidationHelper.GetValidationRuleForFindText(@"&copy; " + DateTime.UtcNow.Year + " .NET Foundation");
-            var homePageTextValidationRuleTOU = AssertAndValidationHelper.GetValidationRuleForFindText(@"<a href=""/policies/Terms"">Terms of Use</a>");
-            var homePageTextValidationRulePrivacy = AssertAndValidationHelper.GetValidationRuleForFindText(@"<a href=""/policies/Privacy"">Privacy Policy</a>");
+            var homePageTextValidationRuleTOU = AssertAndValidationHelper.GetValidationRuleForFindText($@"<a href=""{UrlHelper.BaseUrl}/policies/Terms"">Terms of Use</a>");
+            var homePageTextValidationRulePrivacy = AssertAndValidationHelper.GetValidationRuleForFindText($@"<a href=""{UrlHelper.BaseUrl}/policies/Privacy"">Privacy Policy</a>");
 
             pageRequest.ValidateResponse += homePageTextValidationRuleLogo.Validate;
             pageRequest.ValidateResponse += homePageTextValidationRuleCopyright.Validate;
