@@ -122,6 +122,7 @@ namespace NuGetGallery
 
                 Assert.False(package.Listed);
                 Assert.True(package.Deleted);
+                Assert.Equal(PackageStatus.Deleted, package.PackageStatusKey);
             }
 
             [Fact]
@@ -156,6 +157,7 @@ namespace NuGetGallery
                 await service.SoftDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty);
 
                 Assert.True(package.Deleted);
+                Assert.Equal(PackageStatus.Deleted, package.PackageStatusKey);
                 packageRepository.Verify(x => x.CommitChangesAsync());
                 packageDeleteRepository.Verify(x => x.InsertOnCommit(It.IsAny<PackageDelete>()));
                 packageDeleteRepository.Verify(x => x.CommitChangesAsync());

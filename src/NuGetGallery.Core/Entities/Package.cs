@@ -209,6 +209,11 @@ namespace NuGetGallery
 
         public bool Deleted { get; set; }
 
+        /// <summary>
+        /// The package status key, referring to the <see cref="PackageStatus"/> enum.
+        /// </summary>
+        public PackageStatus PackageStatusKey { get; set; }
+
         public void ApplyEdit(PackageEdit edit, string hashAlgorithm, string hash, long packageFileSize)
         {
             // before we modify this package, record its state in history

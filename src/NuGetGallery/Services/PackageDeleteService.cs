@@ -85,6 +85,7 @@ namespace NuGetGallery
                 {
                     package.Listed = false;
                     package.Deleted = true;
+                    package.PackageStatusKey = PackageStatus.Deleted;
                     packageDelete.Packages.Add(package);
 
                     await _auditingService.SaveAuditRecordAsync(CreateAuditRecord(package, package.PackageRegistration, AuditedPackageAction.SoftDelete, reason));

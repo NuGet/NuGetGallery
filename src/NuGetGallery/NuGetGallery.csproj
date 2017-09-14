@@ -793,6 +793,10 @@
     <Compile Include="Migrations\201709072246362_AddPackageLicenseReport2Sproc.Designer.cs">
       <DependentUpon>201709072246362_AddPackageLicenseReport2Sproc.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201709111714021_AddPackageStatusKey.cs" />
+    <Compile Include="Migrations\201709111714021_AddPackageStatusKey.Designer.cs">
+      <DependentUpon>201709111714021_AddPackageStatusKey.cs</DependentUpon>
+    </Compile>
     <Compile Include="Security\RequireSecurePushForCoOwnersPolicy.cs" />
     <Compile Include="Security\SecurePushSubscription.cs" />
     <Compile Include="Security\IUserSecurityPolicySubscription.cs" />
@@ -1798,6 +1802,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201709072246362_AddPackageLicenseReport2Sproc.resx">
       <DependentUpon>201709072246362_AddPackageLicenseReport2Sproc.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201709111714021_AddPackageStatusKey.resx">
+      <DependentUpon>201709111714021_AddPackageStatusKey.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
