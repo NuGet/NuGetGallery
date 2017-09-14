@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Configuration;
+using NuGet.Services.KeyVault;
 
 namespace NuGet.Jobs
 {
@@ -31,62 +32,28 @@ namespace NuGet.Jobs
                 throw new ArgumentNullException(nameof(secretReaderFactory));
             }
 
-            var argsDictionary = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            Dictionary<string, string> argsDictionary = ReadCommandLineArguments(logger, commandLineArgs);
 
-            var allArgsList = commandLineArgs.ToList();
-            if (allArgsList.Count == 0)
+            return InjectSecrets(secretReaderFactory, argsDictionary);
+        }
+
+        /// <summary>
+        /// Parses the string[] of <c>args</c> passed into the job into a dictionary of string, string.
+        /// Expects the string[] to be set of pairs of argumentName and argumentValue, where, argumentName start with a hyphen
+        /// </summary>
+        /// <param name="logger">Logger to use for internal logging</param>
+        /// <param name="commandLineArgs">Arguments passed to the job via commandline or environment variable settings</param>
+        /// <param name="jobName">Jobname to be used to infer environment variable settings</param>
+        /// <param name="secretReaderFactory">Creates a secret reader.</param>
+        /// <returns>Returns a dictionary of arguments</returns>
+        public static IDictionary<string, string> GetJobArgsDictionary(ILogger logger, string[] commandLineArgs, string jobName, NuGet.Services.KeyVault.ISecretReaderFactory secretReaderFactory)
+        {
+            if (secretReaderFactory == null)
             {
-                logger.LogInformation("No command-line arguments provided.");
+                throw new ArgumentNullException(nameof(secretReaderFactory));
             }
-            else
-            {
-                logger.LogInformation("Total number of arguments : " + allArgsList.Count);
 
-                // Arguments are expected to be a set of pairs, where each pair is of the form '-<argName> <argValue>'
-                // Or, in singles as a switch '-<switch>'
-
-                for (int i = 0; i < allArgsList.Count; i++)
-                {
-                    if (!allArgsList[i].StartsWith("-"))
-                    {
-                        throw new ArgumentException("Argument Name does not start with a hyphen ('-')");
-                    }
-
-                    var argName = allArgsList[i].Substring(1);
-                    if (string.IsNullOrEmpty(argName))
-                    {
-                        throw new ArgumentException("Argument Name is null or empty");
-                    }
-
-                    var nextString = allArgsList.Count > i + 1 ? allArgsList[i + 1] : null;
-                    if (string.IsNullOrEmpty(nextString) || nextString.StartsWith("-"))
-                    {
-                        // If the key already exists, don't add. This means that first added value is preferred
-                        // Since command line args are added before args from environment variable, this is the desired behavior
-                        if (!argsDictionary.ContainsKey(argName))
-                        {
-                            // nextString startWith hyphen, the current one is a switch
-                            argsDictionary.Add(argName, bool.TrueString);
-                        }
-                    }
-                    else
-                    {
-                        var argValue = nextString;
-                        if (string.IsNullOrEmpty(argValue))
-                        {
-                            throw new ArgumentException("Argument Value is null or empty");
-                        }
-
-                        // If the key already exists, don't add. This means that first added value is preferred
-                        // Since command line args are added before args from environment variable, this is the desired behavior
-                        if (!argsDictionary.ContainsKey(argName))
-                        {
-                            argsDictionary.Add(argName, argValue);
-                        }
-                        i++; // skip next string since it was added as an argument value
-                    }
-                }
-            }
+            Dictionary<string, string> argsDictionary = ReadCommandLineArguments(logger, commandLineArgs);
 
             return InjectSecrets(secretReaderFactory, argsDictionary);
         }
@@ -180,16 +147,96 @@ namespace NuGet.Jobs
             return null;
         }
 
+        private static Dictionary<string, string> ReadCommandLineArguments(ILogger logger, string[] commandLineArgs)
+        {
+            var argsDictionary = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            var allArgsList = commandLineArgs.ToList();
+            if (allArgsList.Count == 0)
+            {
+                logger.LogInformation("No command-line arguments provided.");
+            }
+            else
+            {
+                logger.LogInformation("Total number of arguments : " + allArgsList.Count);
+
+                // Arguments are expected to be a set of pairs, where each pair is of the form '-<argName> <argValue>'
+                // Or, in singles as a switch '-<switch>'
+
+                for (int i = 0; i < allArgsList.Count; i++)
+                {
+                    if (!allArgsList[i].StartsWith("-"))
+                    {
+                        throw new ArgumentException("Argument Name does not start with a hyphen ('-')");
+                    }
+
+                    var argName = allArgsList[i].Substring(1);
+                    if (string.IsNullOrEmpty(argName))
+                    {
+                        throw new ArgumentException("Argument Name is null or empty");
+                    }
+
+                    var nextString = allArgsList.Count > i + 1 ? allArgsList[i + 1] : null;
+                    if (string.IsNullOrEmpty(nextString) || nextString.StartsWith("-"))
+                    {
+                        // If the key already exists, don't add. This means that first added value is preferred
+                        // Since command line args are added before args from environment variable, this is the desired behavior
+                        if (!argsDictionary.ContainsKey(argName))
+                        {
+                            // nextString startWith hyphen, the current one is a switch
+                            argsDictionary.Add(argName, bool.TrueString);
+                        }
+                    }
+                    else
+                    {
+                        var argValue = nextString;
+                        if (string.IsNullOrEmpty(argValue))
+                        {
+                            throw new ArgumentException("Argument Value is null or empty");
+                        }
+
+                        // If the key already exists, don't add. This means that first added value is preferred
+                        // Since command line args are added before args from environment variable, this is the desired behavior
+                        if (!argsDictionary.ContainsKey(argName))
+                        {
+                            argsDictionary.Add(argName, argValue);
+                        }
+                        i++; // skip next string since it was added as an argument value
+                    }
+                }
+            }
+
+            return argsDictionary;
+        }
+
         private static IDictionary<string, string> InjectSecrets(ISecretReaderFactory secretReaderFactory, Dictionary<string, string> argsDictionary)
         {
             var secretReader = secretReaderFactory.CreateSecretReader(argsDictionary);
-            var secretInjector = secretReaderFactory.CreateSecretInjector(secretReader);
-
             if (secretReader == null)
             {
                 throw new ApplicationException("Could not create a secret reader. Please check your configuration.");
             }
-           
+
+            var secretInjector = secretReaderFactory.CreateSecretInjector(secretReader);
+
+            return InjectSecrets(secretInjector, argsDictionary);
+        }
+
+        private static IDictionary<string, string> InjectSecrets(NuGet.Services.KeyVault.ISecretReaderFactory secretReaderFactory, Dictionary<string, string> argsDictionary)
+        {
+            var secretReader = secretReaderFactory.CreateSecretReader();
+            if (secretReader == null)
+            {
+                throw new ApplicationException("Could not create a secret reader. Please check your configuration.");
+            }
+
+            var secretInjector = secretReaderFactory.CreateSecretInjector(secretReader);
+
+            return InjectSecrets(secretInjector, argsDictionary);
+        }
+
+        private static IDictionary<string, string> InjectSecrets(ISecretInjector secretInjector, Dictionary<string, string> argsDictionary)
+        {
             return new SecretDictionary(secretInjector, argsDictionary);
         }
     }
