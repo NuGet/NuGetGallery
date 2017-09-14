@@ -243,5 +243,30 @@ namespace NuGetGallery.Configuration
         /// Gets/sets a bool that indicates if the OData requests will be filtered.
         /// </summary>
         public bool IsODataFilterEnabled { get; set; }
+
+        /// <summary>
+        /// Gets/sets a string that is a link to an external about page
+        /// </summary>
+        public string ExternalAboutUrl { get; set; }
+
+        /// <summary>
+        /// Gets/sets a string that is a link to an external privacy policy
+        /// </summary>
+        public string ExternalPrivacyPolicyUrl { get; set; }
+
+        /// <summary>
+        /// Gets/sets a string that is a link to an external terms of use document
+        /// </summary>
+        public string ExternalTermsOfUseUrl { get; set; }
+
+        /// <summary>
+        /// Gets/sets a string that is a link to the brand
+        /// </summary>
+        public string ExternalBrandingUrl { get; set; }
+
+        /// <summary>
+        /// Gets/sets a string that is brand string to display in the footer
+        /// </summary>
+        public string ExternalBrandingMessage { get; set; }
     }
 }
