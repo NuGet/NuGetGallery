@@ -21,7 +21,6 @@ using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using Xunit;
 using NuGetGallery.Configuration;
-using NuGetGallery.TestUtils;
 
 namespace NuGetGallery
 {
@@ -814,7 +813,7 @@ namespace NuGetGallery
                 controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
 
                 // Act
-                var result = await controller.Edit("Foo", "1.0", listed: false, urlFactory: p => @"~\Bar.cshtml");
+                var result = await controller.Edit("Foo", "1.0", listed: false, urlFactory: (pkg, relativeUrl) => @"~\Bar.cshtml");
 
                 // Assert
                 packageService.Verify();
@@ -853,7 +852,7 @@ namespace NuGetGallery
                 controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
 
                 // Act
-                var result = await controller.Edit("Foo", "1.0", listed: true, urlFactory: p => @"~\Bar.cshtml");
+                var result = await controller.Edit("Foo", "1.0", listed: true, urlFactory: (pkg, relativeUrl) => @"~\Bar.cshtml");
 
                 // Assert
                 packageService.Verify();
@@ -1980,7 +1979,7 @@ namespace NuGetGallery
                     Assert.NotNull(result);
                     Assert.NotNull(result.Data);
                     Assert.Equal(
-                        "{ location = " + TestUtility.GallerySiteRootHttps + "?id=theId }",
+                        "{ location = /?id=theId }",
                         result.Data.ToString());
                 }
             }
@@ -2224,7 +2223,7 @@ namespace NuGetGallery
                 controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
 
                 // Act
-                var result = await controller.SetLicenseReportVisibility("Foo", "1.0", visible: false, urlFactory: p => @"~\Bar.cshtml");
+                var result = await controller.SetLicenseReportVisibility("Foo", "1.0", visible: false, urlFactory: (pkg, relativeUrl) => @"~\Bar.cshtml");
 
                 // Assert
                 packageService.Verify();

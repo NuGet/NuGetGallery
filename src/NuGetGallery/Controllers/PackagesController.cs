@@ -860,7 +860,7 @@ namespace NuGetGallery
                 fromAddress,
                 package,
                 contactForm.Message,
-                Url.AccountSettings(),
+                Url.AccountSettings(relativeUrl: false),
                 contactForm.CopySender);
 
             string message = String.Format(CultureInfo.CurrentCulture, "Your message has been sent to the owners of {0}.", id);
@@ -1150,7 +1150,7 @@ namespace NuGetGallery
         /// <param name="subscribed">Owners subscribed to secure push.</param>
         private void SendAddPackageOwnerNotification(PackageRegistration package, User newOwner, List<User> propagators, List<User> subscribed)
         {
-            var packageUrl = Url.Package(package.Id, null, scheme: "http");
+            var packageUrl = Url.Package(package.Id, version: null, relativeUrl: false);
             Func<User, bool> notNewOwner = o => !o.Username.Equals(newOwner.Username, StringComparison.OrdinalIgnoreCase);
 
             // prepare policy messages if there were any secure push subscriptions.
@@ -1184,7 +1184,7 @@ namespace NuGetGallery
 
             // notify already subscribed about new owner, excluding any policy statement.
             var notSubscribed = package.Owners.Where(notNewOwner).Except(propagators).Except(subscribed).ToList();
-            notSubscribed.ForEach(owner => _messageService.SendPackageOwnerAddedNotice(owner, newOwner, package, packageUrl, ""));
+            notSubscribed.ForEach(owner => _messageService.SendPackageOwnerAddedNotice(owner, newOwner, package, packageUrl, string.Empty));
         }
 
         /// <summary>
@@ -1238,7 +1238,7 @@ namespace NuGetGallery
             }
         }
 
-        internal virtual async Task<ActionResult> Edit(string id, string version, bool? listed, Func<Package, string> urlFactory)
+        internal virtual async Task<ActionResult> Edit(string id, string version, bool? listed, Func<Package, bool, string> urlFactory)
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
             if (package == null)
@@ -1268,7 +1268,7 @@ namespace NuGetGallery
 
             // Update the index
             _indexingService.UpdatePackage(package);
-            return Redirect(urlFactory(package));
+            return Redirect(urlFactory(package, /*relativeUrl:*/ true));
         }
 
         [Authorize]
@@ -1409,9 +1409,9 @@ namespace NuGetGallery
 
                 // notify user
                 _messageService.SendPackageAddedNotice(package,
-                    Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, Request.Url.Scheme),
-                    Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, Request.Url.Scheme),
-                    Url.AccountSettings(Request.Url.Scheme));
+                    Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                    Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                    Url.AccountSettings(relativeUrl: false));
             }
 
             // delete the uploaded binary in the Uploads container
@@ -1424,11 +1424,11 @@ namespace NuGetGallery
 
             return Json(new
             {
-                location = Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, Request.Url.Scheme)
+                location = Url.Package(package.PackageRegistration.Id, package.NormalizedVersion)
             });
         }
 
-        private async Task<PackageArchiveReader> SafeCreatePackage(NuGetGallery.User currentUser, Stream uploadFile)
+        private async Task<PackageArchiveReader> SafeCreatePackage(User currentUser, Stream uploadFile)
         {
             Exception caught = null;
             PackageArchiveReader packageArchiveReader = null;
@@ -1487,7 +1487,7 @@ namespace NuGetGallery
             return await SetLicenseReportVisibility(id, version, visible, Url.Package);
         }
 
-        internal virtual async Task<ActionResult> SetLicenseReportVisibility(string id, string version, bool visible, Func<Package, string> urlFactory)
+        internal virtual async Task<ActionResult> SetLicenseReportVisibility(string id, string version, bool visible, Func<Package, bool, string> urlFactory)
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
             if (package == null)
@@ -1509,7 +1509,7 @@ namespace NuGetGallery
             // Update the index
             _indexingService.UpdatePackage(package);
 
-            return Redirect(urlFactory(package));
+            return Redirect(urlFactory(package, /*relativeUrl:*/ true));
         }
 
         // this methods exist to make unit testing easier
