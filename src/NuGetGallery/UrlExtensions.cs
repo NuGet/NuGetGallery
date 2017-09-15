@@ -770,6 +770,26 @@ namespace NuGetGallery
                 });
         }
 
+        public static string RemoveCredential(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetActionLink(url, "RemoveCredential", "Users", relativeUrl);
+        }
+
+        public static string RegenerateCredential(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetActionLink(url, "RegenerateCredential", "Users", relativeUrl);
+        }
+
+        public static string EditCredential(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetActionLink(url, "EditCredential", "Users", relativeUrl);
+        }
+
+        public static string GenerateApiKey(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetActionLink(url, "GenerateApiKey", "Users", relativeUrl);
+        }
+
         private static UriBuilder GetCanonicalUrl(UrlHelper url)
         {
             UriBuilder builder = new UriBuilder(url.RequestContext.HttpContext.Request.Url);

@@ -22,8 +22,8 @@ namespace NuGetGallery.Views
         }
 
         [Theory]
-        [InlineData("@Url.Action")]
-        [InlineData("@Url.Route")]
+        [InlineData("Url.Action")]
+        [InlineData("Url.Route")]
         public void ViewsDoNotUseDefaultUrlHelperRoutes(string unsupportedTerm)
         {
             // We should not use Url.Action or Url.Route in our views as the gallery
