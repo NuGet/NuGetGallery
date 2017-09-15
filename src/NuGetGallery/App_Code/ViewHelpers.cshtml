@@ -274,44 +274,28 @@
     var config = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
     string brand = config == null ? "" : config.Current.Brand;
 
-    <p id="releaseTag">
-        This is the @brand
-        @if (ver.Present)
-        {
-            @: version @ver.Version.
-            if(!String.IsNullOrEmpty(ver.ShortCommit)) {
-                <text>
-                    Deployed from
-                    @if(ver.CommitUri != null) {
-                        @: <a href="@ver.CommitUri.AbsoluteUri.Replace("git://github.com", "https://github.com")">@ver.ShortCommit</a>.
-                    } else {
-                        @: @ver.ShortCommit.
-                    }
-                </text>
-            }
+<!--
+@if (ver.Present)
+{
+    @:This is the @brand version @ver.Version.
+    if(!String.IsNullOrEmpty(ver.ShortCommit)) {
+        @:Deployed from @ver.ShortCommit Link: @(ver.CommitUri != null ? ver.CommitUri.AbsoluteUri.Replace("git://github.com", "https://github.com") : "")
+    }
 
-            if(!String.IsNullOrEmpty(ver.Branch)) {
-                <text>
-                    Built on
-                    @if(ver.BranchUri != null) {
-                        @:<a href="@ver.BranchUri.AbsoluteUri" title="View the branch.">@ver.Branch</a>.
-                    } else {
-                        @: @ver.Branch.
-                    }
-                </text>
-            }
+    if(!String.IsNullOrEmpty(ver.Branch)) {
+        @:Built on @ver.Branch Link: @(ver.BranchUri != null ? ver.BranchUri.AbsoluteUri : "")
+    }
 
-            if(ver.BuildDateUtc != DateTime.MinValue) {
-                @: Built on <span class="s-localtime" data-utc="@ver.BuildDateUtc.ToString("O")" title="@ver.BuildDateUtc.ToString("O")">@ver.BuildDateUtc.ToNuGetShortDateString()</span>.
-            }
-        } else {
-            @:.
-        }
-
-        @* A little quick-n-dirty code to display the current machine *@
-        @* In Azure, we want the Instance ID. The Machine Name is total garbage *@
-        You are on @HostMachine.Name.
-    </p>
+    if(ver.BuildDateUtc != DateTime.MinValue) {
+        @:Built on @ver.BuildDateUtc.ToString("O")
+    }
+} else {
+    @:This is the @brand
+}
+    You are on @HostMachine.Name.
+-->
+@* A little quick-n-dirty code to display the current machine *@
+@* In Azure, we want the Instance ID. The Machine Name is total garbage *@
 }
 
 @helper AnalyticsScript()
