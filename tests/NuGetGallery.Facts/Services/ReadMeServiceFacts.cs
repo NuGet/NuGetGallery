@@ -69,17 +69,6 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void WhenFileAndSourceFileEmpty_ReturnsFalse()
-            {
-                // Arrange.
-                var sourceFile = new Mock<HttpPostedFileBase>();
-                sourceFile.Setup(f => f.ContentLength).Returns(0);
-
-                // Act & Assert.
-                Assert.False(ReadMeService.HasReadMeSource(new ReadMeRequest() { SourceType = ReadMeService.TypeFile, SourceFile = sourceFile.Object }));
-            }
-
-            [Fact]
             public void WhenFileAndSourceFileNotEmpty_ReturnsTrue()
             {
                 // Arrange.
@@ -131,7 +120,7 @@ namespace NuGetGallery
                 var request = ReadMeServiceFacts.GetReadMeRequest(sourceType, "markdown");
 
                 // Act & Assert.
-                await Assert.ThrowsAsync<InvalidOperationException>(() => ReadMeService.GetReadMeMdAsync(request));
+                await Assert.ThrowsAsync<InvalidOperationException>(() => ReadMeService.GetReadMeMdAsync(request, Encoding.UTF8));
             }
 
             [Theory]
@@ -143,7 +132,7 @@ namespace NuGetGallery
                 var request = ReadMeServiceFacts.GetReadMeRequest(ReadMeService.TypeWritten, LargeMarkdown);
 
                 // Act & Assert.
-                await Assert.ThrowsAsync<InvalidOperationException>(() => ReadMeService.GetReadMeMdAsync(request));
+                await Assert.ThrowsAsync<InvalidOperationException>(() => ReadMeService.GetReadMeMdAsync(request, Encoding.UTF8));
             }
 
             [Theory]
@@ -155,7 +144,7 @@ namespace NuGetGallery
                 var request = ReadMeServiceFacts.GetReadMeRequest(sourceType, "markdown");
 
                 // Act & Assert.
-                Assert.Equal("markdown", await ReadMeService.GetReadMeMdAsync(request));
+                Assert.Equal("markdown", await ReadMeService.GetReadMeMdAsync(request, Encoding.UTF8));
             }
 
             [Theory]
@@ -168,7 +157,7 @@ namespace NuGetGallery
                 var request = ReadMeServiceFacts.GetReadMeRequest(ReadMeService.TypeFile, "markdown", fileName: $"README.{fileExt}");
 
                 // Act & Assert.
-                await Assert.ThrowsAsync<InvalidOperationException>(() => ReadMeService.GetReadMeMdAsync(request));
+                await Assert.ThrowsAsync<InvalidOperationException>(() => ReadMeService.GetReadMeMdAsync(request, Encoding.UTF8));
             }
 
             [Theory]
@@ -180,7 +169,7 @@ namespace NuGetGallery
                 var request = ReadMeServiceFacts.GetReadMeRequest(ReadMeService.TypeUrl, "markdown");
 
                 // Act & Assert.
-                await Assert.ThrowsAsync<ArgumentException>(() => ReadMeService.GetReadMeMdAsync(request));
+                await Assert.ThrowsAsync<ArgumentException>(() => ReadMeService.GetReadMeMdAsync(request, Encoding.UTF8));
             }
         }
 

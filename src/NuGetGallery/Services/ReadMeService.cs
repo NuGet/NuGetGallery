@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using CommonMark;
+using System.Text.RegularExpressions;
 
 namespace NuGetGallery
 {
@@ -53,8 +54,7 @@ namespace NuGetGallery
             else if (TypeFile.Equals(readMeType, StringComparison.InvariantCultureIgnoreCase))
             {
                 // File upload provided.
-                var readMeFile = readMeRequest.SourceFile;
-                return readMeFile != null && readMeFile.ContentLength > 0;
+                return readMeRequest.SourceFile != null;
             }
 
             return false;
@@ -65,9 +65,9 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="readMeRequest">Request object.</param>
         /// <returns>HTML from markdown conversion.</returns>
-        public async Task<string> GetReadMeHtmlAsync(ReadMeRequest readMeRequest)
+        public async Task<string> GetReadMeHtmlAsync(ReadMeRequest readMeRequest, Encoding encoding)
         {
-            var markdown = await GetReadMeMdAsync(readMeRequest);
+            var markdown = await GetReadMeMdAsync(readMeRequest, encoding);
             return GetReadMeHtml(markdown);
         }
 
@@ -113,14 +113,14 @@ namespace NuGetGallery
         /// <param name="package">Package entity associated with the ReadMe.</param>
         /// <param name="edit">Package edit entity.</param>
         /// <returns>True if a ReadMe is pending, false otherwise.</returns>
-        public async Task<bool> SavePendingReadMeMdIfChanged(Package package, EditPackageVersionRequest edit)
+        public async Task<bool> SavePendingReadMeMdIfChanged(Package package, EditPackageVersionRequest edit, Encoding encoding)
         {
             var activeReadMe = package.HasReadMe ?
                 NormalizeNewLines(await GetReadMeMdAsync(package)) :
                 null;
 
             var newReadMe = HasReadMeSource(edit?.ReadMe) ?
-                NormalizeNewLines(await GetReadMeMdAsync(edit.ReadMe)) :
+                NormalizeNewLines(await GetReadMeMdAsync(edit.ReadMe, encoding)) :
                 null;
 
             var hasReadMe = !string.IsNullOrWhiteSpace(newReadMe);
@@ -158,13 +158,17 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="readMeRequest">ReadMe request from Verify or Edit package page.</param>
         /// <returns>Markdown content.</returns>
-        internal static async Task<string> GetReadMeMdAsync(ReadMeRequest readMeRequest)
+        internal static async Task<string> GetReadMeMdAsync(ReadMeRequest readMeRequest, Encoding encoding)
         {
             var readMeType = readMeRequest?.SourceType;
+            if (encoding == null)
+            {
+                encoding = Encoding.UTF8;
+            }
 
             if (TypeWritten.Equals(readMeType, StringComparison.InvariantCultureIgnoreCase))
             {
-                if (Encoding.UTF8.GetByteCount(readMeRequest.SourceText) > MaxMdLengthBytes)
+                if (encoding.GetByteCount(readMeRequest.SourceText) > MaxMdLengthBytes)
                 {
                     throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture,
                         Strings.ReadMeMaxLengthExceeded, MaxMdLengthBytes));
@@ -173,11 +177,11 @@ namespace NuGetGallery
             }
             else if (TypeUrl.Equals(readMeType, StringComparison.InvariantCultureIgnoreCase))
             {
-                return await GetReadMeMdFromUrlAsync(readMeRequest.SourceUrl);
+                return await GetReadMeMdFromUrlAsync(readMeRequest.SourceUrl, encoding);
             }
             else if (TypeFile.Equals(readMeType, StringComparison.InvariantCultureIgnoreCase))
             {
-                return await GetReadMeMdFromPostedFileAsync(readMeRequest.SourceFile);
+                return await GetReadMeMdFromPostedFileAsync(readMeRequest.SourceFile, encoding);
             }
             else
             {
@@ -191,7 +195,7 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="readMeMdPostedFile">Posted readme.md file.</param>
         /// <returns>Markdown content.</returns>
-        private static async Task<string> GetReadMeMdFromPostedFileAsync(HttpPostedFileBase readMeMdPostedFile)
+        private static async Task<string> GetReadMeMdFromPostedFileAsync(HttpPostedFileBase readMeMdPostedFile, Encoding encoding)
         {
             if (!Path.GetExtension(readMeMdPostedFile.FileName).Equals(Constants.MarkdownFileExtension, StringComparison.InvariantCulture))
             {
@@ -199,18 +203,9 @@ namespace NuGetGallery
                     Strings.ReadMePostedFileExtensionInvalid, Constants.MarkdownFileExtension));
             }
 
-            if (readMeMdPostedFile.ContentLength > MaxMdLengthBytes)
-            {
-                throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture,
-                    Strings.ReadMeMaxLengthExceeded, MaxMdLengthBytes));
-            }
-
             using (var readMeMdStream = readMeMdPostedFile.InputStream)
             {
-                using (var reader = new StreamReader(readMeMdStream))
-                {
-                    return await reader.ReadToEndAsync();
-                }
+                return await ReadMaxAsync(readMeMdStream, MaxMdLengthBytes, encoding);
             }
         }
 
@@ -219,7 +214,7 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="readMeMdUrl">ReadMe.md URL, which must be a raw github file.</param>
         /// <returns>Markdown content.</returns>
-        private static async Task<string> GetReadMeMdFromUrlAsync(string readMeMdUrl)
+        private static async Task<string> GetReadMeMdFromUrlAsync(string readMeMdUrl, Encoding encoding)
         {
             if (!Uri.IsWellFormedUriString(readMeMdUrl, UriKind.Absolute) || new Uri(readMeMdUrl).Host != UrlHostRequirement)
             {
@@ -230,32 +225,41 @@ namespace NuGetGallery
             {
                 using (var httpStream = await client.GetStreamAsync(readMeMdUrl))
                 {
-                    int bytesRead;
-                    var offset = 0;
-                    var buffer = new byte[MaxMdLengthBytes + 1];
-
-                    while ((bytesRead = await httpStream.ReadAsync(buffer, offset, buffer.Length - offset)) > 0)
-                    {
-                        offset += bytesRead;
-
-                        if (offset == buffer.Length)
-                        {
-                            throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture,
-                                Strings.ReadMeMaxLengthExceeded, MaxMdLengthBytes));
-                        }
-                    }
-                    
-                    return Encoding.UTF8.GetString(buffer).Trim('\0');
+                    return await ReadMaxAsync(httpStream, MaxMdLengthBytes, encoding);
                 }
             }
         }
 
-        /// <summary>
-        ///  Normalize new lines, used for readme.md change detection.
-        /// </summary>
-        private string NormalizeNewLines(string content)
+        private static async Task<string> ReadMaxAsync(Stream stream, int maxSize, Encoding encoding)
         {
-            return content?.Replace("\r\n", "\n").Replace("\n", Environment.NewLine).Trim();
+            if (encoding == null)
+            {
+                encoding = Encoding.UTF8;
+            }
+
+            int bytesRead;
+            var offset = 0;
+            var buffer = new byte[maxSize + 1];
+
+            while ((bytesRead = await stream.ReadAsync(buffer, offset, buffer.Length - offset)) > 0)
+            {
+                offset += bytesRead;
+
+                if (offset == buffer.Length)
+                {
+                    throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture,
+                        Strings.ReadMeMaxLengthExceeded, maxSize));
+                }
+            }
+
+            return encoding.GetString(buffer).Trim('\0');
+        }
+
+        private static readonly Regex NewLineRegex = new Regex(@"\n|\r\n");
+        
+        private static string NormalizeNewLines(string content)
+        {
+            return NewLineRegex.Replace(content, Environment.NewLine);
         }
     }
 }

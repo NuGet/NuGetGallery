@@ -14,7 +14,14 @@ namespace NuGetGallery
 {
     public class PackageFileService : IPackageFileService
     {
+        /// <summary>
+        /// Active readme markdown file, formatted as 'active/{packageId}/{version}.md'
+        /// </summary>
         private const string ReadMeFilePathTemplateActive = "active/{0}/{1}{2}";
+
+        /// <summary>
+        /// Pending (PackageEdit) readme markdown file, formatted as 'pending/{packageId}/{version}.md'
+        /// </summary>
         private const string ReadMeFilePathTemplatePending = "pending/{0}/{1}{2}";
 
         private readonly IFileStorageService _fileStorageService;
