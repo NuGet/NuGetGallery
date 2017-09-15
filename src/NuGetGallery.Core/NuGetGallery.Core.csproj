@@ -178,6 +178,8 @@
     <Compile Include="Entities\PackageLicense.cs" />
     <Compile Include="Entities\PackageLicenseReport.cs" />
     <Compile Include="Entities\PackageOwnerRequest.cs" />
+    <Compile Include="Entities\PackageValidation.cs" />
+    <Compile Include="Entities\PackageValidationSet.cs" />
     <Compile Include="Entities\ReservedNamespace.cs" />
     <Compile Include="Entities\PackageRegistration.cs" />
     <Compile Include="Entities\PackageType.cs" />
@@ -187,6 +189,7 @@
     <Compile Include="Entities\SuspendDbExecutionStrategy.cs" />
     <Compile Include="Entities\UserSecurityPolicy.cs" />
     <Compile Include="Entities\User.cs" />
+    <Compile Include="ValidationStatus.cs" />
     <Compile Include="ICloudStorageStatusDependency.cs" />
     <Compile Include="Infrastructure\AzureEntityList.cs" />
     <Compile Include="Infrastructure\TableErrorLog.cs" />
