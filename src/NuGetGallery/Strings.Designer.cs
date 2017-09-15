@@ -909,7 +909,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ReadMe file must be less than &apos;{0}&apos; bytes..
+        ///   Looks up a localized string similar to ReadMe file must be less than {0} bytes..
         /// </summary>
         public static string ReadMeMaxLengthExceeded {
             get {
