@@ -19,12 +19,13 @@ namespace NuGetGallery
         /// <summary>
         /// The foreign key referencing a <see cref="NuGetGallery.PackageValidationSet"/>.
         /// </summary>
-        public int PackageValidationSetKey { get; set; }
+        public long PackageValidationSetKey { get; set; }
 
         /// <summary>
         /// The human-readable name of the validation that this record represents. When a validation set is first
         /// created, the type should be unique within the set. However, if individual validations are re-attempted
         /// there could be multiple validations within a set with the same type (but different <see cref="Key"/>).
+        /// This value has a maximum length of 255 characters.
         /// </summary>
         public string Type { get; set; }
 

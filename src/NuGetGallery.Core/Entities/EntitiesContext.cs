@@ -1,7 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure.Annotations;
 using System.Threading.Tasks;
 
 namespace NuGetGallery
@@ -44,6 +46,7 @@ namespace NuGetGallery
         public IDbSet<User> Users { get; set; }
         public IDbSet<UserSecurityPolicy> UserSecurityPolicies { get; set; }
         public IDbSet<ReservedNamespace> ReservedNamespaces { get; set; }
+        public IDbSet<PackageValidationSet> PackageValidationSets { get; set; }
 
         IDbSet<T> IEntitiesContext.Set<T>()
         {
@@ -88,7 +91,7 @@ namespace NuGetGallery
                 .HasKey(c => c.Key);
 
             modelBuilder.Entity<Scope>()
-                .HasRequired<Credential>(sc => sc.Credential)
+                .HasRequired(sc => sc.Credential)
                 .WithMany(cr => cr.Scopes)
                 .HasForeignKey(sc => sc.CredentialKey)
                 .WillCascadeOnDelete(true);
@@ -108,12 +111,12 @@ namespace NuGetGallery
                 .HasKey(u => u.Key);
 
             modelBuilder.Entity<User>()
-                .HasMany<EmailMessage>(u => u.Messages)
+                .HasMany(u => u.Messages)
                 .WithRequired(em => em.ToUser)
                 .HasForeignKey(em => em.ToUserKey);
 
             modelBuilder.Entity<User>()
-                .HasMany<Role>(u => u.Roles)
+                .HasMany(u => u.Roles)
                 .WithMany(r => r.Users)
                 .Map(c => c.ToTable("UserRoles")
                            .MapLeftKey("UserKey")
@@ -123,7 +126,7 @@ namespace NuGetGallery
                 .HasKey(u => u.Key);
 
             modelBuilder.Entity<UserSecurityPolicy>()
-                .HasRequired<User>(p => p.User)
+                .HasRequired(p => p.User)
                 .WithMany(cr => cr.SecurityPolicies)
                 .HasForeignKey(p => p.UserKey)
                 .WillCascadeOnDelete(true);
@@ -132,14 +135,14 @@ namespace NuGetGallery
                 .HasKey(p => p.Key);
 
             modelBuilder.Entity<ReservedNamespace>()
-                .HasMany<PackageRegistration>(rn => rn.PackageRegistrations)
+                .HasMany(rn => rn.PackageRegistrations)
                 .WithMany(pr => pr.ReservedNamespaces)
                 .Map(prrn => prrn.ToTable("ReservedNamespaceRegistrations")
                                 .MapLeftKey("ReservedNamespaceKey")
                                 .MapRightKey("PackageRegistrationKey"));
 
             modelBuilder.Entity<ReservedNamespace>()
-                .HasMany<User>(pr => pr.Owners)
+                .HasMany(pr => pr.Owners)
                 .WithMany(u => u.ReservedNamespaces)
                 .Map(c => c.ToTable("ReservedNamespaceOwners")
                            .MapLeftKey("ReservedNamespaceKey")
@@ -152,7 +155,7 @@ namespace NuGetGallery
                 .HasKey(em => em.Key);
 
             modelBuilder.Entity<EmailMessage>()
-                .HasOptional<User>(em => em.FromUser)
+                .HasOptional(em => em.FromUser)
                 .WithMany()
                 .HasForeignKey(em => em.FromUserKey);
 
@@ -160,12 +163,12 @@ namespace NuGetGallery
                 .HasKey(pr => pr.Key);
 
             modelBuilder.Entity<PackageRegistration>()
-                .HasMany<Package>(pr => pr.Packages)
+                .HasMany(pr => pr.Packages)
                 .WithRequired(p => p.PackageRegistration)
                 .HasForeignKey(p => p.PackageRegistrationKey);
 
             modelBuilder.Entity<PackageRegistration>()
-                .HasMany<User>(pr => pr.Owners)
+                .HasMany(pr => pr.Owners)
                 .WithMany()
                 .Map(c => c.ToTable("PackageRegistrationOwners")
                            .MapLeftKey("PackageRegistrationKey")
@@ -175,17 +178,17 @@ namespace NuGetGallery
                 .HasKey(p => p.Key);
 
             modelBuilder.Entity<Package>()
-                .HasMany<PackageAuthor>(p => p.Authors)
+                .HasMany(p => p.Authors)
                 .WithRequired(pa => pa.Package)
                 .HasForeignKey(pa => pa.PackageKey);
 
             modelBuilder.Entity<Package>()
-                .HasMany<PackageDependency>(p => p.Dependencies)
+                .HasMany(p => p.Dependencies)
                 .WithRequired(pd => pd.Package)
                 .HasForeignKey(pd => pd.PackageKey);
 
             modelBuilder.Entity<Package>()
-                .HasMany<PackageType>(p => p.PackageTypes)
+                .HasMany(p => p.PackageTypes)
                 .WithRequired(pt => pt.Package)
                 .HasForeignKey(pt => pt.PackageKey);
 
@@ -199,7 +202,7 @@ namespace NuGetGallery
                 .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<PackageEdit>()
-                .HasRequired<Package>(pm => pm.Package)
+                .HasRequired(pm => pm.Package)
                 .WithMany(p => p.PackageEdits)
                 .HasForeignKey(pm => pm.PackageKey)
                 .WillCascadeOnDelete(true); // Pending PackageEdits get deleted with their package, since hey, there's no way to apply them without the package anyway.
@@ -214,7 +217,7 @@ namespace NuGetGallery
                 .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<PackageHistory>()
-                .HasRequired<Package>(pm => pm.Package)
+                .HasRequired(pm => pm.Package)
                 .WithMany(p => p.PackageHistories)
                 .HasForeignKey(pm => pm.PackageKey)
                 .WillCascadeOnDelete(true); // PackageHistories get deleted with their package.
@@ -237,12 +240,12 @@ namespace NuGetGallery
                 .HasKey(cf => cf.Key);
 
             modelBuilder.Entity<CuratedFeed>()
-                .HasMany<CuratedPackage>(cf => cf.Packages)
+                .HasMany(cf => cf.Packages)
                 .WithRequired(cp => cp.CuratedFeed)
                 .HasForeignKey(cp => cp.CuratedFeedKey);
 
             modelBuilder.Entity<CuratedFeed>()
-                .HasMany<User>(cf => cf.Managers)
+                .HasMany(cf => cf.Managers)
                 .WithMany()
                 .Map(c => c.ToTable("CuratedFeedManagers")
                            .MapLeftKey("CuratedFeedKey")
@@ -258,6 +261,51 @@ namespace NuGetGallery
                 .HasKey(pd => pd.Key)
                 .HasMany(pd => pd.Packages)
                     .WithOptional();
+
+            modelBuilder.Entity<PackageValidationSet>()
+                .HasKey(pvs => pvs.Key);
+
+            modelBuilder.Entity<PackageValidationSet>()
+                .Property(pvs => pvs.ValidationTrackingId)
+                .IsRequired()
+                .HasColumnAnnotation(
+                    "Index",
+                    new IndexAnnotation(new[]
+                    {
+                        new IndexAttribute("IX_ValidationTrackingId")
+                        {
+                            IsUnique = true
+                        }
+                    }));
+
+            modelBuilder.Entity<PackageValidationSet>()
+                .Property(pvs => pvs.RowVersion)
+                .IsRowVersion();
+
+            modelBuilder.Entity<PackageValidationSet>()
+                .Property(pvs => pvs.Created)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<PackageValidationSet>()
+                .Property(pvs => pvs.Updated)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<PackageValidation>()
+                .HasKey(pv => pv.Key);
+
+            modelBuilder.Entity<PackageValidation>()
+                .Property(pv => pv.Key)
+                .HasDatabaseGeneratedOption(DatabaseGeneratedOption.Identity);
+
+            modelBuilder.Entity<PackageValidation>()
+                .Property(pv => pv.Type)
+                .HasMaxLength(255)
+                .HasColumnType("varchar")
+                .IsRequired();
+
+            modelBuilder.Entity<PackageValidation>()
+                .Property(pv => pv.ValidationStatusTimestamp)
+                .HasColumnType("datetime2");
         }
 #pragma warning restore 618
     }
