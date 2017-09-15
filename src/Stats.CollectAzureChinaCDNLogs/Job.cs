@@ -55,7 +55,7 @@ namespace Stats.CollectAzureChinaCDNLogs
             {
                 foreach(var ex in aggregateExceptions.InnerExceptions)
                 {
-                    Logger.LogError(ex, ex.Message);
+                    Logger.LogError(Stats.AzureCdnLogs.Common.LogEvents.JobRunFailed, ex, ex.Message);
                 }
             }
 

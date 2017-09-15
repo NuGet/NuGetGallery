@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -55,7 +56,7 @@ namespace Stats.CollectAzureChinaCDNLogs
             const string notAvailableInt = "0";
 
             string timestamp = segments[(int)ChinaLogHeaderFields.timestamp];
-            DateTime dt = DateTime.Parse(timestamp);
+            DateTime dt = DateTime.Parse(timestamp, CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AdjustToUniversal);
             string timeStamp2 = ToUnixTimeStamp(dt);
 
             //ignore 400 error codes
