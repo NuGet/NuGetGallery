@@ -792,7 +792,7 @@ namespace NuGetGallery
 
         private static UriBuilder GetCanonicalUrl(UrlHelper url)
         {
-            UriBuilder builder = new UriBuilder(url.RequestContext.HttpContext.Request.Url);
+            var builder = new UriBuilder(url.RequestContext.HttpContext.Request.Url);
             builder.Query = String.Empty;
             if (builder.Host.StartsWith("www.", StringComparison.OrdinalIgnoreCase))
             {
@@ -824,6 +824,15 @@ namespace NuGetGallery
             var protocol = GetProtocol(url);
             var hostName = GetConfiguredSiteHostName();
 
+
+            if (routeValues != null && routeValues.ContainsKey("ReturnUrl"))
+            {
+                routeValues["ReturnUrl"] = GetAbsoluteReturnUrl(
+                    routeValues["ReturnUrl"]?.ToString(),
+                    protocol,
+                    hostName);
+            }
+
             var actionLink = url.Action(actionName, controllerName, routeValues, protocol, hostName);
 
             if (relativeUrl)
@@ -851,6 +860,40 @@ namespace NuGetGallery
             }
 
             return routeLink;
+        }
+
+        internal static string GetAbsoluteReturnUrl(
+            string returnUrl,
+            string protocol,
+            string configuredSiteRootHostName)
+        {
+            // Ensure return URL is always pointing to the configured siteroot
+            // to avoid MVC routing to use the deployment host name instead of the configured one.
+            // This is important when deployed behind a proxy, such as APIM.
+            if (returnUrl != null 
+                && Uri.TryCreate(returnUrl, UriKind.RelativeOrAbsolute, out var returnUri))
+            {
+                if (!returnUri.IsAbsoluteUri)
+                {
+                    var baseUri = new Uri($"{protocol}://{configuredSiteRootHostName}");
+                    returnUri = new Uri(baseUri, returnUri);
+                }
+
+                var uriBuilder = new UriBuilder(returnUri);
+                uriBuilder.Host = configuredSiteRootHostName;
+                uriBuilder.Port = returnUri.IsDefaultPort ? -1 : returnUri.Port;
+
+                if (string.IsNullOrEmpty(uriBuilder.Query))
+                {
+                    return uriBuilder.ToString().TrimEnd('/');
+                }
+
+                return uriBuilder.ToString();
+            }
+
+            // This only happens when the returnUrl did not have a valid Uri format,
+            // so we can safely strip this value.
+            return string.Empty;
         }
     }
 }
