@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Mail;
-using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
@@ -21,7 +20,6 @@ using NuGetGallery.Framework;
 using NuGetGallery.Helpers;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
-using NuGetGallery.TestUtils;
 using Xunit;
 
 namespace NuGetGallery
@@ -122,7 +120,8 @@ namespace NuGetGallery
                 telemetryService.Object,
                 securityPolicyService.Object,
                 reservedNamespaceService.Object,
-                packageUploadService.Object);
+                packageUploadService.Object,
+                new ReadMeService(packageFileService.Object));
 
             controller.CallBase = true;
             controller.Object.SetOwinContextOverride(Fakes.CreateOwinContext());

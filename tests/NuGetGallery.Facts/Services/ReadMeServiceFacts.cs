@@ -9,16 +9,18 @@ using System.Web;
 using Moq;
 using Xunit;
 
-namespace NuGetGallery.Helpers
+namespace NuGetGallery
 {
-    public class ReadMeHelperFacts
+    public class ReadMeServiceFacts
     {
         public class TheHasReadMeSourceMethod
         {
+            internal ReadMeService ReadMeService = new ReadMeService(new Mock<IPackageFileService>().Object);
+
             [Fact]
             public void WhenRequestIsNull_ReturnsFalse()
             {
-                Assert.False(ReadMeHelper.HasReadMeSource(null));
+                Assert.False(ReadMeService.HasReadMeSource(null));
             }
 
             [Theory]
@@ -27,7 +29,7 @@ namespace NuGetGallery.Helpers
             [InlineData("InvalidType")]
             public void WhenTypeIsUnknown_ReturnsFalse(string sourceType)
             {
-                Assert.False(ReadMeHelper.HasReadMeSource(new ReadMeRequest() { SourceType = sourceType }));
+                Assert.False(ReadMeService.HasReadMeSource(new ReadMeRequest() { SourceType = sourceType }));
             }
 
             [Theory]
@@ -36,13 +38,13 @@ namespace NuGetGallery.Helpers
             [InlineData("   ")]
             public void WhenWrittenAndSourceTextMissing_ReturnsFalse(string sourceText)
             {
-                Assert.False(ReadMeHelper.HasReadMeSource(new ReadMeRequest() { SourceType = ReadMeHelper.TypeWritten, SourceText = sourceText }));
+                Assert.False(ReadMeService.HasReadMeSource(new ReadMeRequest() { SourceType = ReadMeService.TypeWritten, SourceText = sourceText }));
             }
 
             [Fact]
             public void WhenWrittenAndHasSourceText_ReturnsTrue()
             {
-                Assert.True(ReadMeHelper.HasReadMeSource(new ReadMeRequest() { SourceType = ReadMeHelper.TypeWritten, SourceText = "markdown" }));
+                Assert.True(ReadMeService.HasReadMeSource(new ReadMeRequest() { SourceType = ReadMeService.TypeWritten, SourceText = "markdown" }));
             }
 
             [Theory]
@@ -51,19 +53,19 @@ namespace NuGetGallery.Helpers
             [InlineData("   ")]
             public void WhenUrlAndSourceUrlMissing_ReturnsFalse(string sourceUrl)
             {
-                Assert.False(ReadMeHelper.HasReadMeSource(new ReadMeRequest() { SourceType = ReadMeHelper.TypeUrl, SourceUrl = sourceUrl }));
+                Assert.False(ReadMeService.HasReadMeSource(new ReadMeRequest() { SourceType = ReadMeService.TypeUrl, SourceUrl = sourceUrl }));
             }
 
             [Fact]
             public void WhenUrlAndHasSourceUrl_ReturnsTrue()
             {
-                Assert.True(ReadMeHelper.HasReadMeSource(new ReadMeRequest() { SourceType = ReadMeHelper.TypeUrl, SourceUrl = "sourceUrl" }));
+                Assert.True(ReadMeService.HasReadMeSource(new ReadMeRequest() { SourceType = ReadMeService.TypeUrl, SourceUrl = "sourceUrl" }));
             }
 
             [Fact]
             public void WhenFileAndSourceFileMissing_ReturnsFalse()
             {
-                Assert.False(ReadMeHelper.HasReadMeSource(new ReadMeRequest() { SourceType = ReadMeHelper.TypeFile }));
+                Assert.False(ReadMeService.HasReadMeSource(new ReadMeRequest() { SourceType = ReadMeService.TypeFile }));
             }
 
             [Fact]
@@ -74,7 +76,7 @@ namespace NuGetGallery.Helpers
                 sourceFile.Setup(f => f.ContentLength).Returns(0);
 
                 // Act & Assert.
-                Assert.False(ReadMeHelper.HasReadMeSource(new ReadMeRequest() { SourceType = ReadMeHelper.TypeFile, SourceFile = sourceFile.Object }));
+                Assert.False(ReadMeService.HasReadMeSource(new ReadMeRequest() { SourceType = ReadMeService.TypeFile, SourceFile = sourceFile.Object }));
             }
 
             [Fact]
@@ -85,7 +87,7 @@ namespace NuGetGallery.Helpers
                 sourceFile.Setup(f => f.ContentLength).Returns(10);
 
                 // Act & Assert.
-                Assert.True(ReadMeHelper.HasReadMeSource(new ReadMeRequest() { SourceType = ReadMeHelper.TypeFile, SourceFile = sourceFile.Object }));
+                Assert.True(ReadMeService.HasReadMeSource(new ReadMeRequest() { SourceType = ReadMeService.TypeFile, SourceFile = sourceFile.Object }));
             }
         }
         
@@ -97,7 +99,7 @@ namespace NuGetGallery.Helpers
             [InlineData("<a href=\"javascript:alert('test');\">", "<p>&lt;a href=&quot;javascript:alert('test');&quot;&gt;</p>")]
             public void EncodesHtmlInMarkdown(string originalMd, string expectedHtml)
             {
-                Assert.Equal(expectedHtml, StripNewLines(ReadMeHelper.GetReadMeHtml(originalMd)));
+                Assert.Equal(expectedHtml, StripNewLines(ReadMeService.GetReadMeHtml(originalMd)));
             }
 
             [Theory]
@@ -106,7 +108,7 @@ namespace NuGetGallery.Helpers
             [InlineData("[text](http://www.test.com)", "<p><a href=\"http://www.test.com\">text</a></p>")]
             public void ConvertsMarkdownToHtml(string originalMd, string expectedHtml)
             {
-                Assert.Equal(expectedHtml, StripNewLines(ReadMeHelper.GetReadMeHtml(originalMd)));
+                Assert.Equal(expectedHtml, StripNewLines(ReadMeService.GetReadMeHtml(originalMd)));
             }
 
             private static string StripNewLines(string text)
@@ -117,7 +119,7 @@ namespace NuGetGallery.Helpers
 
         public class TheGetReadMeMdAsyncMethod
         {
-            private readonly string LargeMarkdown = new string('x', ReadMeHelper.MaxMdLengthBytes + 1);
+            private readonly string LargeMarkdown = new string('x', ReadMeService.MaxMdLengthBytes + 1);
 
             [Theory]
             [InlineData("")]
@@ -126,34 +128,34 @@ namespace NuGetGallery.Helpers
             public async Task WhenInvalidSourceType_ThrowsInvalidOperationException(string sourceType)
             {
                 // Arrange.
-                var request = ReadMeHelperFacts.GetReadMeRequest(sourceType, "markdown");
+                var request = ReadMeServiceFacts.GetReadMeRequest(sourceType, "markdown");
 
                 // Act & Assert.
-                await Assert.ThrowsAsync<InvalidOperationException>(() => ReadMeHelper.GetReadMeMdAsync(request));
+                await Assert.ThrowsAsync<InvalidOperationException>(() => ReadMeService.GetReadMeMdAsync(request));
             }
 
             [Theory]
-            [InlineData(ReadMeHelper.TypeWritten)]
-            [InlineData(ReadMeHelper.TypeFile)]
+            [InlineData(ReadMeService.TypeWritten)]
+            [InlineData(ReadMeService.TypeFile)]
             public async Task WhenMaxLengthExceeded_ThrowsInvalidOperationException(string sourceType)
             {
                 // Arrange.
-                var request = ReadMeHelperFacts.GetReadMeRequest(ReadMeHelper.TypeWritten, LargeMarkdown);
+                var request = ReadMeServiceFacts.GetReadMeRequest(ReadMeService.TypeWritten, LargeMarkdown);
 
                 // Act & Assert.
-                await Assert.ThrowsAsync<InvalidOperationException>(() => ReadMeHelper.GetReadMeMdAsync(request));
+                await Assert.ThrowsAsync<InvalidOperationException>(() => ReadMeService.GetReadMeMdAsync(request));
             }
 
             [Theory]
-            [InlineData(ReadMeHelper.TypeWritten)]
-            [InlineData(ReadMeHelper.TypeFile)]
+            [InlineData(ReadMeService.TypeWritten)]
+            [InlineData(ReadMeService.TypeFile)]
             public async Task WhenValid_ReturnsSourceContent(string sourceType)
             {
                 // Arrange.
-                var request = ReadMeHelperFacts.GetReadMeRequest(sourceType, "markdown");
+                var request = ReadMeServiceFacts.GetReadMeRequest(sourceType, "markdown");
 
                 // Act & Assert.
-                Assert.Equal("markdown", await ReadMeHelper.GetReadMeMdAsync(request));
+                Assert.Equal("markdown", await ReadMeService.GetReadMeMdAsync(request));
             }
 
             [Theory]
@@ -163,10 +165,10 @@ namespace NuGetGallery.Helpers
             public async Task WhenFileAndExtensionInvalid_ThrowsInvalidOperationException(string fileExt)
             {
                 // Arrange.
-                var request = ReadMeHelperFacts.GetReadMeRequest(ReadMeHelper.TypeFile, "markdown", fileName: $"README.{fileExt}");
+                var request = ReadMeServiceFacts.GetReadMeRequest(ReadMeService.TypeFile, "markdown", fileName: $"README.{fileExt}");
 
                 // Act & Assert.
-                await Assert.ThrowsAsync<InvalidOperationException>(() => ReadMeHelper.GetReadMeMdAsync(request));
+                await Assert.ThrowsAsync<InvalidOperationException>(() => ReadMeService.GetReadMeMdAsync(request));
             }
 
             [Theory]
@@ -175,10 +177,10 @@ namespace NuGetGallery.Helpers
             public async Task WhenInvalidUrl_ThrowsInvalidOperationException(string url)
             {
                 // Arrange.
-                var request = ReadMeHelperFacts.GetReadMeRequest(ReadMeHelper.TypeUrl, "markdown");
+                var request = ReadMeServiceFacts.GetReadMeRequest(ReadMeService.TypeUrl, "markdown");
 
                 // Act & Assert.
-                await Assert.ThrowsAsync<ArgumentException>(() => ReadMeHelper.GetReadMeMdAsync(request));
+                await Assert.ThrowsAsync<ArgumentException>(() => ReadMeService.GetReadMeMdAsync(request));
             }
         }
 
@@ -188,7 +190,7 @@ namespace NuGetGallery.Helpers
 
             switch (sourceType)
             {
-                case ReadMeHelper.TypeFile:
+                case ReadMeService.TypeFile:
                     var fileMock = new Mock<HttpPostedFileBase>();
                     fileMock.Setup(f => f.FileName).Returns(fileName);
                     fileMock.Setup(f => f.ContentLength).Returns(markdown.Length);
@@ -196,11 +198,11 @@ namespace NuGetGallery.Helpers
                     request.SourceFile = fileMock.Object;
                     break;
 
-                case ReadMeHelper.TypeWritten:
+                case ReadMeService.TypeWritten:
                     request.SourceText = markdown;
                     break;
 
-                case ReadMeHelper.TypeUrl:
+                case ReadMeService.TypeUrl:
                     request.SourceUrl = url;
                     break;
             }
