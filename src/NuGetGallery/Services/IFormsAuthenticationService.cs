@@ -13,7 +13,5 @@ namespace NuGetGallery
             IEnumerable<string> roles);
 
         void SignOut();
-
-        bool ShouldForceSSL(HttpContextBase context);
     }
 }

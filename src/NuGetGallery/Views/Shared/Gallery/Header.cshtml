@@ -83,7 +83,7 @@
                             @DisplayNavigationItem("Admin", Url.Action("Index", "Home", new { area = "Admin" }))
                         }
                         @DisplayNavigationItem("Documentation", "https://docs.microsoft.com/en-us/nuget/")
-                        @DisplayNavigationItem("Downloads", Url.RouteUrl(RouteName.Downloads))
+                        @DisplayNavigationItem("Downloads", Url.Downloads())
                         @DisplayNavigationItem("Blog", "http://blog.nuget.org/")
                     </ul>
                     <ul class="nav navbar-nav navbar-right navbar-seperated" role="menu">
@@ -116,7 +116,7 @@
                                     @if (Request.IsAuthenticated && User.IsInRole(Constants.AdminRoleName))
                                     {
                                         <li class="divider"></li>
-                                        <li role="presentation"><a href="@Url.Action("Index", "Home", new { area = "Admin" })" role="menuitem">Admin</a></li>
+                                        <li role="presentation"><a href="@Url.Admin()" role="menuitem">Admin</a></li>
                                     }
                                     <li class="divider"></li>
                                     <li role="presentation"><a href="@Url.User(CurrentUser.Username)" role="menuitem">View Profile</a></li>

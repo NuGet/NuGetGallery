@@ -74,7 +74,7 @@
                         However, the package will still be available for download through <a href="https://docs.nuget.org/docs/reference/package-restore">NuGet Package Restore</a> so that existing projects referencing the package don't become broken.
                     </p>
                     <p>
-                        If you need the package permanently removed, click on the <a href="@Url.Action(actionName: "ReportAbuse", controllerName: "Packages", routeValues: new {id = Model.Id, version = Model.Version})" title="Contact Support">Contact Support</a> link and we'll take care
+                        If you need the package permanently removed, click on the <a href="@Url.ReportAbuse(Model.Id, Model.Version)" title="Contact Support">Contact Support</a> link and we'll take care
                         of it for you. <b>PLEASE ONLY DO THIS IF THERE IS AN URGENT PROBLEM WITH THE PACKAGE.</b>
                         (Passwords, malicious code, etc). Even if you remove it, it's prudent to immediately
                         reset any passwords/sensitive data you accidentally pushed instead of waiting for us to delete

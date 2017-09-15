@@ -155,7 +155,7 @@ namespace NuGetGallery
 
                 // We use a catch-all route for unit tests so we can see the parameters
                 // are passed correctly.
-                Assert.Equal("https://nuget.local/account/confirm/theUsername/confirmation", sentConfirmationUrl);
+                Assert.Equal(TestUtility.GallerySiteRootHttps + "account/confirm/theUsername/confirmation", sentConfirmationUrl);
                 Assert.Equal("to@example.com", sentToAddress.Address);
             }
         }
@@ -196,9 +196,8 @@ namespace NuGetGallery
             [Fact]
             public void ShowsDefaultThanksView()
             {
-                GetMock<IAppConfiguration>()
-                    .Setup(x => x.ConfirmEmailAddresses)
-                    .Returns(true);
+                var configurationService = GetConfigurationService();
+                configurationService.Current.ConfirmEmailAddresses = true;
                 var controller = GetController<UsersController>();
 
                 var result = controller.Thanks() as ViewResult;
@@ -210,9 +209,9 @@ namespace NuGetGallery
             [Fact]
             public void ShowsConfirmViewWithModelWhenConfirmingEmailAddressIsNotRequired()
             {
-                GetMock<IAppConfiguration>()
-                    .Setup(x => x.ConfirmEmailAddresses)
-                    .Returns(false);
+                var configurationService = GetConfigurationService();
+                configurationService.Current.ConfirmEmailAddresses = false;
+
                 var controller = GetController<UsersController>();
 
                 ResultAssert.IsView(controller.Thanks());
@@ -224,7 +223,7 @@ namespace NuGetGallery
             [Fact]
             public async Task SendsEmailWithPasswordResetUrl()
             {
-                const string resetUrl = "https://nuget.local/account/forgotpassword/somebody/confirmation";
+                string resetUrl = TestUtility.GallerySiteRootHttps + "account/forgotpassword/somebody/confirmation";
                 var user = new User("somebody")
                 {
                     EmailAddress = "some@example.com",
@@ -651,11 +650,11 @@ namespace NuGetGallery
                 // Arrange 
                 var user = new User("the-username");
 
+                var configurationService = GetConfigurationService();
+                configurationService.Current.ExpirationInDaysForApiKeyV1 = 365;
+
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
-
-                var config = GetMock<IAppConfiguration>();
-                config.SetupGet(x => x.ExpirationInDaysForApiKeyV1).Returns(365);
 
                 // Act
                 await controller.GenerateApiKey(
@@ -775,9 +774,8 @@ namespace NuGetGallery
             {
                 var user = new User { Username = "the-username" };
 
-                GetMock<IAppConfiguration>()
-                    .Setup(x => x.ExpirationInDaysForApiKeyV1)
-                    .Returns(365);
+                var configurationService = GetConfigurationService();
+                configurationService.Current.ExpirationInDaysForApiKeyV1 = 365;
 
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
@@ -1212,7 +1210,7 @@ namespace NuGetGallery
                 await controller.ChangePassword(new AccountViewModel());
 
                 // Assert
-                Assert.Equal("https://nuget.local/account/setpassword/test/t0k3n", actualConfirmUrl);
+                Assert.Equal(TestUtility.GallerySiteRootHttps + "account/setpassword/test/t0k3n", actualConfirmUrl);
                 GetMock<IMessageService>().VerifyAll();
             }
         }

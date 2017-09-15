@@ -40,11 +40,6 @@ namespace NuGetGallery.App_Start
 
                     return string.Empty;
                 }
-
-                protected override HttpRequestBase GetCurrentRequest()
-                {
-                    return StubRequest.Object;
-                }
             }
 
             [Fact]
@@ -70,15 +65,16 @@ namespace NuGetGallery.App_Start
             }
 
             [Fact]
-            public void WillUseTheActualRootWhenTheRequestIsLocal()
+            public void WillUseTheConfiguredSiteRootWhenTheRequestIsLocal()
             {
                 var configuration = new TestableConfigurationService();
+                configuration.StubConfiguredSiteRoot = "https://theSiteRoot/";
                 configuration.StubRequest.Setup(stub => stub.IsLocal).Returns(true);
                 configuration.StubRequest.Setup(stub => stub.Url).Returns(new Uri("http://theLocalSiteRoot/aPath"));
 
                 var siteRoot = configuration.GetSiteRoot(useHttps: true);
 
-                Assert.Equal("https://thelocalsiteroot/", siteRoot);
+                Assert.Equal("https://theSiteRoot/", siteRoot);
             }
 
             [Fact]
@@ -99,17 +95,6 @@ namespace NuGetGallery.App_Start
                 configuration.StubConfiguredSiteRoot = "ftp://theSiteRoot/";
 
                 Assert.Throws<InvalidOperationException>(() => configuration.GetSiteRoot(useHttps: false));
-            }
-
-            [Fact]
-            public void WillCacheTheSiteRootLookup()
-            {
-                var configuration = new TestableConfigurationService();
-                configuration.GetSiteRoot(useHttps: false);
-
-                configuration.GetSiteRoot(useHttps: true);
-
-                configuration.StubRequest.Verify(stub => stub.IsLocal, Times.Once());
             }
         }
 

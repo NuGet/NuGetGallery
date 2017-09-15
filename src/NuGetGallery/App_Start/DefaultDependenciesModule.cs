@@ -44,6 +44,8 @@ namespace NuGetGallery
 
             var configuration = new ConfigurationService(new SecretReaderFactory(diagnosticsService));
 
+            UrlExtensions.SetConfigurationService(configuration);
+
             builder.RegisterInstance(configuration)
                 .AsSelf()
                 .As<PoliteCaptcha.IConfigurationSource>();
@@ -194,6 +196,11 @@ namespace NuGetGallery
             builder.RegisterType<ReservedNamespaceService>()
                 .AsSelf()
                 .As<IReservedNamespaceService>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<PackageUploadService>()
+                .AsSelf()
+                .As<IPackageUploadService>()
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<SecurePushSubscription>()

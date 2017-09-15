@@ -45,6 +45,15 @@ namespace NuGetGallery
         Task DeleteOwnerFromReservedNamespaceAsync(string prefix, string username);
 
         /// <summary>
+        /// Add the specified package registration to the reserved namespace
+        /// </summary>
+        /// <param name="prefix">The reserved namespace to modify</param>
+        /// <param name="packageRegistration">The package registration to be added</param>
+        /// <param name="commitChanges">Commit changes to the database, defaults to true</param>
+        /// <returns>Awaitable Task</returns>
+        Task AddPackageRegistrationToNamespaceAsync(string prefix, PackageRegistration packageRegistration, bool commitChanges = true);
+
+        /// <summary>
         /// Retrieves the first reserved namespace which matches the given prefix.
         /// </summary>
         /// <param name="prefix">The prefix to lookup</param>
@@ -71,5 +80,15 @@ namespace NuGetGallery
         /// <param name="id">The package id to lookup</param>
         /// <returns>The list of reserved namespaces which are prefixes for the given id</returns>
         IReadOnlyCollection<ReservedNamespace> GetReservedNamespacesForId(string id);
+
+        /// <summary>
+        /// Verifies if the id is allowed to be pushed by the user or not and try to get 
+        /// user owned namespaces if any.
+        /// </summary>
+        /// <param name="id">The package id to lookup</param>
+        /// <param name="user">The user to verify for permission to push to new id</param>
+        /// <param name="userOwnedMatchingNamespaces">The out list of namespaces owned by the user</param>
+        /// <returns>True if the push is allowed for the specified user for the given id, false otherwise</returns>
+        bool IsPushAllowed(string id, User user, out IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces);
     }
 }

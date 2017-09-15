@@ -163,7 +163,7 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 var fakes = Get<Fakes>();
                 var controller = GetController<JsonApiController>();
-                GetMock<IAppConfiguration>().Setup(c => c.GalleryOwner).Returns(new MailAddress("support@example.com"));
+
                 GetMock<HttpContextBase>()
                     .Setup(c => c.User)
                     .Returns(Fakes.ToPrincipal(fakes.Owner));
@@ -186,7 +186,6 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 var fakes = Get<Fakes>();
                 var controller = GetController<JsonApiController>();
-                GetMock<IAppConfiguration>().Setup(c => c.GalleryOwner).Returns(new MailAddress("support@example.com"));
                 GetMock<HttpContextBase>()
                     .Setup(c => c.User)
                     .Returns(Fakes.ToPrincipal(fakes.Owner));
@@ -209,7 +208,6 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 var fakes = Get<Fakes>();
                 var controller = GetController<JsonApiController>();
-                GetMock<IAppConfiguration>().Setup(c => c.GalleryOwner).Returns(new MailAddress("support@example.com"));
                 GetMock<HttpContextBase>()
                     .Setup(c => c.User)
                     .Returns(Fakes.ToPrincipal(fakes.Owner));
@@ -232,7 +230,6 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 var fakes = Get<Fakes>();
                 var controller = GetController<JsonApiController>();
-                GetMock<IAppConfiguration>().Setup(c => c.GalleryOwner).Returns(new MailAddress("support@example.com"));
                 GetMock<HttpContextBase>()
                     .Setup(c => c.User)
                     .Returns(Fakes.ToPrincipal(fakes.Owner));
@@ -264,7 +261,6 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 var fakes = Get<Fakes>();
                 var controller = GetController<JsonApiController>();
-                GetMock<IAppConfiguration>().Setup(c => c.GalleryOwner).Returns(new MailAddress("support@example.com"));
                 GetMock<HttpContextBase>()
                     .Setup(c => c.User)
                     .Returns(Fakes.ToPrincipal(fakes.Owner));
@@ -429,8 +425,8 @@ namespace NuGetGallery.Controllers
                         fakes.Owner,
                         fakes.User,
                         fakes.Package,
-                        "http://nuget.local/packages/FakePackage/",
-                        "https://nuget.local/packages/FakePackage/owners/testUser/confirm/confirmation-code",
+                        TestUtility.GallerySiteRootHttps + "packages/FakePackage/",
+                        TestUtility.GallerySiteRootHttps + "packages/FakePackage/owners/testUser/confirm/confirmation-code",
                         "Hello World! Html Encoded &lt;3",
                         ""))
                     .Verifiable();
@@ -500,10 +496,11 @@ namespace NuGetGallery.Controllers
             {
                 // Arrange
                 var controller = GetController<JsonApiController>();
-                GetMock<IAppConfiguration>().Setup(c => c.GalleryOwner).Returns(new MailAddress("support@example.com"));
+                
                 GetMock<HttpContextBase>()
                     .Setup(c => c.User)
                     .Returns(Fakes.ToPrincipal(fakes.Owner));
+
                 userToSubscribe.SecurityPolicies = (new RequireSecurePushForCoOwnersPolicy().Policies).ToList();
 
                 var packageServiceMock = GetMock<IPackageService>();
@@ -518,8 +515,8 @@ namespace NuGetGallery.Controllers
                         fakes.Owner,
                         fakes.User,
                         fakes.Package,
-                        "http://nuget.local/packages/FakePackage/",
-                        "https://nuget.local/packages/FakePackage/owners/testUser/confirm/confirmation-code",
+                        TestUtility.GallerySiteRootHttps + "packages/FakePackage/",
+                        TestUtility.GallerySiteRootHttps + "packages/FakePackage/owners/testUser/confirm/confirmation-code",
                         string.Empty,
                         It.IsAny<string>()))
                     .Callback<User, User, PackageRegistration, string, string, string, string>(

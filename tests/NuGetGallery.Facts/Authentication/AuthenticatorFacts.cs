@@ -46,11 +46,12 @@ namespace NuGetGallery.Authentication
             public async Task LoadsConfigFromConfigurationService()
             {
                 // Arrange
+                var configurationService = GetConfigurationService();
                 var authConfig = new AuthenticatorConfiguration();
                 var auther = new ATestAuthenticator();
 
                 // Act
-                await auther.Startup(Get<IGalleryConfigurationService>(), Get<IAppBuilder>());
+                await auther.Startup(configurationService, Get<IAppBuilder>());
 
                 // Assert
                 Assert.Equal(authConfig.Enabled, auther.BaseConfig.Enabled);
@@ -65,11 +66,11 @@ namespace NuGetGallery.Authentication
 
                 var tempAuthConfig = new AuthenticatorConfiguration();
 
-                var mockConfiguration = (TestGalleryConfigurationService)Get<IGalleryConfigurationService>();
+                var mockConfiguration = GetConfigurationService();
                 mockConfiguration.Settings[$"{Authenticator.AuthPrefix}{auther.Name}.{nameof(tempAuthConfig.Enabled)}"] = "false";
 
                 // Act
-                await auther.Startup(Get<IGalleryConfigurationService>(), Get<IAppBuilder>());
+                await auther.Startup(mockConfiguration, Get<IAppBuilder>());
 
                 // Assert
                 Assert.Null(auther.AttachedTo);
@@ -83,8 +84,8 @@ namespace NuGetGallery.Authentication
 
                 var tempAuthConfig = new AuthenticatorConfiguration();
 
-                var mockConfiguration = (TestGalleryConfigurationService)Get<IGalleryConfigurationService>();
-                mockConfiguration.Settings[$"{Authenticator.AuthPrefix}{auther.Name}.{nameof(tempAuthConfig.Enabled)}"] = "true"; 
+                var mockConfiguration = GetConfigurationService();
+                mockConfiguration.Settings[$"{Authenticator.AuthPrefix}{auther.Name}.{nameof(tempAuthConfig.Enabled)}"] = "true";
 
                 // Act
                 await auther.Startup(mockConfiguration, Get<IAppBuilder>());
@@ -100,7 +101,7 @@ namespace NuGetGallery.Authentication
             public void IgnoresAbstractAndNonAuthenticatorTypes()
             {
                 // Act
-                var authers = Authenticator.GetAllAvailable(new [] {
+                var authers = Authenticator.GetAllAvailable(new[] {
                     typeof(ATestAuthenticator),
                     typeof(Authenticator),
                     typeof(TheGetAllAvailableMethod)
@@ -120,7 +121,8 @@ namespace NuGetGallery.Authentication
             }
         }
 
-        private class ATestAuthenticator : Authenticator {
+        private class ATestAuthenticator : Authenticator
+        {
             public IAppBuilder AttachedTo { get; private set; }
 
             protected override void AttachToOwinApp(IGalleryConfigurationService config, IAppBuilder app)

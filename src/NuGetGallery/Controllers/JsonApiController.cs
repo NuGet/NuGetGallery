@@ -121,7 +121,7 @@ namespace NuGetGallery
                     model.User.Username,
                     ownerRequest.ConfirmationCode,
                     new { id = model.Package.Id });
-                var packageUrl = Url.Package(model.Package.Id, null, scheme: "http");
+                var packageUrl = Url.Package(model.Package.Id, null, scheme: _appConfiguration.RequireSSL ? Uri.UriSchemeHttps : Uri.UriSchemeHttp);
                 var policyMessage = GetNoticeOfPoliciesRequiredMessage(model.Package, model.User, model.CurrentUser);
 
                 _messageService.SendPackageOwnerRequest(model.CurrentUser, model.User, model.Package, packageUrl,
