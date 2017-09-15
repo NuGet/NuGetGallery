@@ -41,7 +41,7 @@
     </div>
 </script>
 
-<script type="text/html" id="verify-metadata-template">
+<script type="text/html" id="edit-metadata-template">
     <div class="collapse in">
         <div data-bind="if: $data">
 
@@ -115,11 +115,6 @@
                 <div class="verify-package-field form-group editable">
                     <label for="projecturl-field" class="verify-package-field-heading">Project URL</label>
                     <input data-bind="value: Edit.ProjectUrl" type="text" class="form-control" name="Edit.ProjectUrl" id="projecturl-field" />
-                </div>
-
-                <div class="verify-package-field form-group editable">
-                    <div class="verify-package-field-heading">Repository URL</div>
-                    <input data-bind="value: Edit.RepositoryUrl" type="text" class="form-control" name="Edit.RepositoryUrl" id="repositoryurl-field" />
                 </div>
 
                 <div class="verify-package-field form-group editable">
@@ -198,14 +193,5 @@
             </em>
             </text>)
         <!-- /ko -->
-
-        <div class="verify-package-field form-group row">
-            <div class="col-xs-6">
-                <input type="button" class="btn btn-primary btn-block" value="Submit" id="verify-submit-button" />
-            </div>
-            <div class="col-xs-6">
-                <input type="button" class="btn btn-default btn-block" value="Cancel" id="verify-cancel-button" />
-            </div>
-        </div>
     </div>
 </script>

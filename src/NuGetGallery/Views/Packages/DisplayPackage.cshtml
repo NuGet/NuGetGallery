@@ -282,24 +282,23 @@
                     </h2>
                 </div>
                 <div id="readme-container" class="collapse in">
-                    <div id="readme-clamped" class="collapse in">
-                        @Html.Raw(Model.ReadMeHtml)
+                    <div id="readme-clamped" class="readme collapse in">
+                        @Html.Raw(Model.ReadMeHtmlClamped)
                     </div>
-                    <script type="text/javascript">
-                        readmeClamp.setAttribute("class", "collapse in");
-                    </script>
-                    <div id="readme-original" class="collapse">
+                    <div id="readme-full" class="readme collapse">
                         @Html.Raw(Model.ReadMeHtml)
                     </div>
 
-                    <button class="btn btn-link btn-expander" id="show-readme-original" aria-expanded="false"
-                            aria-controls="readme-original" type="button" data-toggle="collapse" data-target="#readme-original">
-                        <i class="ms-Icon ms-Icon--CalculatorAddition" aria-hidden="true"></i>
-                        <span>Show more</span>
-                    </button>
+                    @if (Model.ReadMeHtmlClamped.Length < Model.ReadMeHtml.Length)
+                    {
+                        <a href="#" role="button" data-toggle="collapse" class="icon-link" data-target=".readme"
+                            aria-expanded="false" aria-controls=".readme" id="show-readme-full">
+                            <i class="ms-Icon ms-Icon--CalculatorAddition" aria-hidden="true"></i>
+                            <span>Show more</span>
+                        </a>
+                    }
                 </div>
             }
-           
 
             @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
             {

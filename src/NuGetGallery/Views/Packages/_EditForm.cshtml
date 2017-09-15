@@ -1,4 +1,6 @@
 ﻿<form id="verify-metadata-form">
+    @Html.AntiForgeryToken()
+
     <div id="verify-collapser-container" class="hidden">
         <h2>
             <a href="#" role="button" data-toggle="collapse" data-target="#verify-package-form"

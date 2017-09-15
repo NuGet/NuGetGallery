@@ -31,7 +31,6 @@ namespace NuGetGallery
             Dependencies = new DependencySetsViewModel(packageMetadata.GetDependencyGroups().AsPackageDependencyEnumerable());
             DevelopmentDependency = packageMetadata.GetValueFromMetadata("developmentDependency");
             Edit = new EditPackageVersionRequest(packageMetadata);
-            ReadMe = new ReadMeRequest();
         }
 
         public string Id { get; set; }
@@ -56,6 +55,5 @@ namespace NuGetGallery
         public string DevelopmentDependency { get; set; }
         public DependencySetsViewModel Dependencies { get; set; }
         public IReadOnlyCollection<FrameworkSpecificGroup> FrameworkReferenceGroups { get; set; }
-        public ReadMeRequest ReadMe { get; set; }
     }
 }
