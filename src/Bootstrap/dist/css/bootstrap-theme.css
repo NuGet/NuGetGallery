@@ -646,6 +646,9 @@ img.package-icon {
   background-color: #002440;
   border: 0;
 }
+.page-package-details .install-tabs .tab-firstparty {
+  padding-bottom: 37px;
+}
 .page-package-details .install-tabs .tab-pane > div {
   display: table;
   height: 1px;
