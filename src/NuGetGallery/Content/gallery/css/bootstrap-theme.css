@@ -642,10 +642,9 @@ img.package-icon {
 .page-package-details .install-tabs .nav-tabs > li.active > a {
   font-weight: 600;
   color: #fff;
+  text-decoration: underline;
   background-color: #002440;
   border: 0;
-
-  text-decoratinolo: underline;
 }
 .page-package-details .install-tabs .tab-content {
   height: 79px;
