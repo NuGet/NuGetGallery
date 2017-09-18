@@ -57,20 +57,7 @@
                 </div>
             }
 
-            <div id="verify-collapser-container" class="hidden">
-                <h2>
-                    <a href="#" role="button" data-toggle="collapse" data-target="#edit-metadata-form-container"
-                       aria-expanded="true" aria-controls="edit-metadata-form-container" id="show-edit-metadata-form-container">
-                        <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
-                        <span>Verify</span>
-                    </a>
-                </h2>
-            </div>
-
-            <div id="verify-package-container">
-            </div>
-
-            @Html.Partial("_EditMetadata")
+            @Html.Partial("_EditForm")
         </div>
     </div>
 </section>
@@ -78,7 +65,8 @@
 @section BottomScripts
 {
     @* Right now this is the only page that uses this script. If we increase our usage of it, we should put it in our bundles *@
-    <script type="text/javascript" src="@Url.Content("~/Scripts/gallery/async-file-upload.js")"></script>
+    @Scripts.Render("~/Scripts/gallery/page-edit-readme.js")
+    @Scripts.Render("~/Scripts/gallery/async-file-upload.js")
     <script type="text/javascript">
         var InProgressPackage = @Html.Raw(Json.Encode(Model.InProgressUpload));
         window.nuget.configureExpanderHeading("upload-package-form");

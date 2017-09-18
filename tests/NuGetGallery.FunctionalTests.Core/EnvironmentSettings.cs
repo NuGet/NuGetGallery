@@ -96,7 +96,7 @@ namespace NuGetGallery.FunctionalTests
                     }
                     else
                     {
-                        // Check for the environment variable under all scopes. This is to make sure that the variables are acessed properly in teamcity where we cannot set process leve variables.
+                        // Check for the environment variable under all scopes. This is to make sure that the variables are acessed properly in teamcity where we cannot set process level variables.
                         if (!string.IsNullOrEmpty(
                             Environment.GetEnvironmentVariable("SearchServiceUrl", EnvironmentVariableTarget.User)))
                         {

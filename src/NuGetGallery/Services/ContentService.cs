@@ -23,11 +23,6 @@ namespace NuGetGallery
 
         private IDiagnosticsSource Trace { get; set; }
 
-        public static readonly string HtmlContentFileExtension = ".html";
-        public static readonly string MarkdownContentFileExtension = ".md";
-
-        public static readonly string JsonContentFileExtension = ".json";
-
         public IFileStorageService FileStorage { get; protected set; }
 
         protected ConcurrentDictionary<string, ContentItem> ContentCache { get { return _contentCache; } }
@@ -66,9 +61,9 @@ namespace NuGetGallery
             
             return GetContentItemCore(
                 name, new [] { 
-                    HtmlContentFileExtension,
-                    MarkdownContentFileExtension,
-                    JsonContentFileExtension }, 
+                    Constants.HtmlFileExtension,
+                    Constants.MarkdownFileExtension,
+                    Constants.JsonFileExtension }, 
                 expiresIn);
         }
 

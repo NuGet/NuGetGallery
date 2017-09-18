@@ -13,6 +13,20 @@ $(function () {
                 copyButton.popover('destroy');
             }, 1000);
         });
+    }    
+    
+    var readmeContainer = $("#readme-container");
+    if (readmeContainer[0])
+    {
+        window.nuget.configureExpanderHeading(
+            "readme-container");   
+
+        window.nuget.configureExpander(
+            "readme-full",
+            "CalculatorAddition",
+            "Show less",
+            "CalculatorSubtract",
+            "Show more");
     }
 
     window.nuget.configureExpanderHeading("dependency-groups");

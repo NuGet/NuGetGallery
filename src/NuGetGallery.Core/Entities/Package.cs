@@ -125,9 +125,25 @@ namespace NuGetGallery
         public string RepositoryUrl { get; set; }
 
         /// <summary>
-        /// Signifies whether or not ReadMe exists (optimization for pulling from blob storage)
+        /// Nullable flag stored in the database. Callers should use the HasReadMe property instead.
         /// </summary>
-        public bool? HasReadMe { get; set; }
+        [Column("HasReadMe")]
+        public bool? HasReadMeInternal { get; set; }
+
+        /// <summary>
+        /// Signifies whether or not the ReadMe exists. Falses stored as NULL in database to avoid updating existing rows.
+        /// </summary>
+        [NotMapped]
+        public bool HasReadMe {
+            get
+            {
+                return HasReadMeInternal ?? false;
+            }
+            set
+            {
+                HasReadMeInternal = value ? (bool?)true : null;
+            }
+        }
 
         public bool RequiresLicenseAcceptance { get; set; }
 
@@ -208,6 +224,11 @@ namespace NuGetGallery
         public virtual ICollection<PackageHistory> PackageHistories { get; set; }
 
         public bool Deleted { get; set; }
+
+        /// <summary>
+        /// The package status key, referring to the <see cref="PackageStatus"/> enum.
+        /// </summary>
+        public PackageStatus PackageStatusKey { get; set; }
 
         public void ApplyEdit(PackageEdit edit, string hashAlgorithm, string hash, long packageFileSize)
         {

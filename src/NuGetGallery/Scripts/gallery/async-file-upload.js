@@ -57,11 +57,11 @@ var AsyncFileUploadManager = new function () {
 
         $('#file-select-feedback').on('click', function () {
             $('#input-select-file').click();
-        })
+        });
 
         $('#input-select-file').on('change', function () {
             clearErrors();
-            var fileName = $('#input-select-file').val().split("\\").pop();
+            var fileName = window.nuget.getFileName($('#input-select-file').val());
 
             if (fileName.length > 0) {
                 $('#file-select-feedback').attr('value', fileName);
@@ -72,7 +72,7 @@ var AsyncFileUploadManager = new function () {
             } else {
                 resetFileSelectFeedback();
             }
-        })
+        });
 
         if (InProgressPackage != null) {
             bindData(InProgressPackage);
@@ -123,7 +123,7 @@ var AsyncFileUploadManager = new function () {
             url: _submitVerifyUrl,
             type: 'POST',
 
-            data: new FormData($('#edit-metadata-form')[0]),
+            data: new FormData($('#verify-metadata-form')[0]),
 
             cache: false,
             contentType: false,
@@ -167,10 +167,10 @@ var AsyncFileUploadManager = new function () {
 
         switch (resultCodeString) {
             case "timeout":
-                displayErrors(["The operation timed out. Please try again."])
+                displayErrors(["The operation timed out. Please try again."]);
                 break;
             case "abort":
-                displayErrors(["The operation was aborted. Please try again."])
+                displayErrors(["The operation was aborted. Please try again."]);
                 break;
             default:
                 displayErrors(model.responseJSON);
@@ -178,7 +178,7 @@ var AsyncFileUploadManager = new function () {
         }
 
         if (fullResponse.status >= 500) {
-            displayErrors(["There was a server error."])
+            displayErrors(["There was a server error."]);
         }
 
         endProgressBar();
@@ -198,7 +198,6 @@ var AsyncFileUploadManager = new function () {
         $(failureListContainer).attr("data-bind", "template: { name: 'validation-errors', data: data }");
         failureContainer.append(failureListContainer);
         ko.applyBindings({ data: errors }, failureListContainer);
-
         failureContainer.removeClass("hidden");
     }
 
@@ -209,7 +208,9 @@ var AsyncFileUploadManager = new function () {
 
     function bindData(model) {
         $("#verify-package-block").remove();
+        $("#submit-block").remove();
         $("#verify-collapser-container").addClass("hidden");
+        $("#submit-collapser-container").addClass("hidden");
         if (model == null) {
             return;
         }
@@ -221,6 +222,14 @@ var AsyncFileUploadManager = new function () {
         $(reportContainerElement).attr("data-bind", "template: { name: 'edit-metadata-template', data: data }");
         $("#verify-package-container").append(reportContainerElement);
         ko.applyBindings({ data: model }, reportContainerElement);
+
+        var submitContainerElement = document.createElement("div");
+        $(submitContainerElement).attr("id", "submit-block");
+        $(submitContainerElement).attr("class", "collapse in");
+        $(submitContainerElement).attr("aria-expanded", "true");
+        $(submitContainerElement).attr("data-bind", "template: { name: 'submit-package-template', data: data }");
+        $("#submit-package-container").append(submitContainerElement);
+        ko.applyBindings({ data: model }, submitContainerElement);
 
         $('#verify-cancel-button').on('click', function () {
             $('#verify-cancel-button').attr('disabled', 'disabled');
@@ -245,8 +254,12 @@ var AsyncFileUploadManager = new function () {
         });
 
         $("#verify-collapser-container").removeClass("hidden");
+        $("#submit-collapser-container").removeClass("hidden");
 
-        window.nuget.configureExpanderHeading("edit-metadata-form-container");
+        window.nuget.configureExpanderHeading("verify-package-form");
+        window.nuget.configureExpanderHeading("submit-package-form");
+
+        bindReadMeData(model);
     }
 
     function navigateToPage(verifyResponse) {
@@ -334,4 +347,4 @@ var AsyncFileUploadManager = new function () {
 
         document.body.appendChild(iframe);
     }
-}
+};
