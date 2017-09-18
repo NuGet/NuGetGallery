@@ -642,18 +642,19 @@ img.package-icon {
 .page-package-details .install-tabs .nav-tabs > li.active > a {
   font-weight: 600;
   color: #fff;
-  text-decoration: underline;
   background-color: #002440;
   border: 0;
+
+  text-decoratinolo: underline;
 }
-.page-package-details .install-tabs .tab-firstparty {
-  padding-bottom: 37px;
+.page-package-details .install-tabs .tab-content {
+  height: 79px;
 }
-.page-package-details .install-tabs .tab-pane > div {
+.page-package-details .install-tabs .tab-content .tab-pane > div {
   display: table;
   height: 1px;
 }
-.page-package-details .install-tabs .tab-pane .install-script {
+.page-package-details .install-tabs .tab-content .tab-pane .install-script {
   display: table-cell;
   width: 100%;
   max-width: 1px;
@@ -666,16 +667,16 @@ img.package-icon {
   border-style: solid;
   border-width: 1px 0 1px 1px;
 }
-.page-package-details .install-tabs .tab-pane .copy-button {
+.page-package-details .install-tabs .tab-content .tab-pane .copy-button {
   display: table-cell;
 }
-.page-package-details .install-tabs .tab-pane .copy-button button {
+.page-package-details .install-tabs .tab-content .tab-pane .copy-button button {
   height: 100%;
   min-height: 42px;
   line-height: 1.5;
   vertical-align: baseline;
 }
-.page-package-details .install-tabs .tab-pane .alert {
+.page-package-details .install-tabs .tab-content .tab-pane .alert {
   width: 100%;
   margin: 0;
 }

@@ -80,9 +80,8 @@
 @helper CommandPanel(PackageManagerViewModel packageManager, bool active)
 {
     var thirdPartyPackageManager = packageManager as ThirdPartyPackageManagerViewModel;
-    var isThirdPartyTab = thirdPartyPackageManager != null;
 
-    <div role="tabpanel" class="tab-pane @(active ? "active" : string.Empty) @(isThirdPartyTab ? string.Empty : "tab-firstparty")" id="@packageManager.Id">
+    <div role="tabpanel" class="tab-pane @(active ? "active" : string.Empty)" id="@packageManager.Id">
         <div>
             <div class="install-script" id="@packageManager.Id-text">
                 <span>
@@ -97,7 +96,7 @@
                 </button>
             </div>
         </div>
-        @if (isThirdPartyTab)
+        @if (thirdPartyPackageManager != null)
         {
             @ViewHelpers.AlertWarning(
                 @<text>
