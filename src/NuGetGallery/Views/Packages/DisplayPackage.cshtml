@@ -270,6 +270,36 @@
                 </div>
             </div>
 
+            @if (Model.ReadMeHtml != null)
+            {
+                <div id="readme-collapser-container">
+                    <h2>
+                        <a href="#" role="button" data-toggle="collapse" data-target="#readme-container"
+                           aria-expanded="true" aria-controls="readme-container" id="show-readme-container">
+                            <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+                            <span>Documentation</span>
+                        </a>
+                    </h2>
+                </div>
+                <div id="readme-container" class="collapse in">
+                    <div id="readme-clamped" class="readme collapse in">
+                        @Html.Raw(Model.ReadMeHtmlClamped)
+                    </div>
+                    <div id="readme-full" class="readme collapse">
+                        @Html.Raw(Model.ReadMeHtml)
+                    </div>
+
+                    @if (Model.ReadMeHtmlClamped.Length < Model.ReadMeHtml.Length)
+                    {
+                        <a href="#" role="button" data-toggle="collapse" class="icon-link" data-target=".readme"
+                            aria-expanded="false" aria-controls=".readme" id="show-readme-full">
+                            <i class="ms-Icon ms-Icon--CalculatorAddition" aria-hidden="true"></i>
+                            <span>Show more</span>
+                        </a>
+                    }
+                </div>
+            }
+
             @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
             {
                 <h2>Release Notes</h2>

@@ -42,10 +42,8 @@
 </script>
 
 <script type="text/html" id="edit-metadata-template">
-    <div class="collapse in" id="edit-metadata-form-container">
+    <div class="collapse in">
         <div data-bind="if: $data">
-            <form id="edit-metadata-form">
-                @Html.AntiForgeryToken()
 
                 <div class="verify-package-field form-group readonly">
                     <label for="Id" class="verify-package-field-heading">Package ID</label>
@@ -85,10 +83,10 @@
 
                 <div class="verify-package-field form-group readonly">
                     <div class="verify-package-field-heading">Dependencies</div>
-                    <!-- ko if: $data.Dependencies && $data.Dependencies.DependencySets.length > 0 -->
+                    <!-- ko if: $data.Dependencies && Object.keys($data.Dependencies.DependencySets).length > 0 -->
                     <div data-bind="template: {name: 'display-dependencysets', data: { DependencySets: Dependencies.DependencySets, OnlyHasAllFrameworks: Dependencies.OnlyHasAllFrameworks }}"></div>
                     <!-- /ko -->
-                    <!-- ko ifnot: $data.Dependencies && $data.Dependencies.DependencySets.length > 0  -->
+                    <!-- ko ifnot: $data.Dependencies && Object.keys($data.Dependencies.DependencySets).length > 0  -->
                     <p><i>(none specified)</i></p>
                     <!-- /ko -->
                 </div>
@@ -195,14 +193,5 @@
             </em>
             </text>)
         <!-- /ko -->
-
-        <div class="verify-package-field form-group row">
-            <div class="col-xs-6">
-                <input type="button" class="btn btn-primary btn-block" value="Submit" id="verify-submit-button" />
-            </div>
-            <div class="col-xs-6">
-                <input type="button" class="btn btn-default btn-block" value="Cancel" id="verify-cancel-button" />
-            </div>
-        </div>
     </div>
 </script>

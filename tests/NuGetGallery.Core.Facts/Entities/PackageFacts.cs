@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Xunit;
 
@@ -71,6 +72,59 @@ namespace NuGetGallery
 
                 Assert.Equal(1, p.PackageEdits.Count); // It has to be deleted from the ObjectContext anyway so no point trying to delete it as part of ApplyEdit.
             }
+        }
+
+        [Fact]
+        public void HasReadMe_InternalColumnMapped()
+        {
+            // Arrange & Act
+            var attributes = typeof(Package).GetProperty("HasReadMeInternal").GetCustomAttributes(typeof(ColumnAttribute), true) as ColumnAttribute[];
+
+            // Assert
+            Assert.Equal(1, attributes.Length);
+            Assert.Equal("HasReadMe", attributes[0].Name);
+        }
+
+        [Fact]
+        public void HasReadMe_WhenInternalIsNullReturnsFalse()
+        {
+            // Arrange & Act
+            var package = new Package { HasReadMeInternal = null };
+            
+            // Assert
+            Assert.False(package.HasReadMe);
+        }
+
+        [Fact]
+        public void HasReadMe_WhenInternalIsTrueReturnsTrue()
+        {
+            // Arrange & Act
+            var package = new Package { HasReadMeInternal = true };
+
+            // Assert
+            Assert.True(package.HasReadMe);
+        }
+
+        [Fact]
+        public void HasReadMe_WhenSetToFalseSavesInternalAsNull()
+        {
+            // Arrange & Act
+            var package = new Package { HasReadMeInternal = true };
+            package.HasReadMe = false;
+
+            // Assert
+            Assert.Null(package.HasReadMeInternal);
+        }
+
+        [Fact]
+        public void HasReadMe_WhenSetToTrueSavesInternalAsTrue()
+        {
+            // Arrange & Act
+            var package = new Package { HasReadMeInternal = null };
+            package.HasReadMe = true;
+
+            // Assert
+            Assert.True(package.HasReadMeInternal);
         }
     }
 }
