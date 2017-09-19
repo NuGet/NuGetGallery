@@ -19,59 +19,55 @@
         <div data-bind="visible: allPrefixResults().length > 0">
             @using (Html.BeginForm())
             {
-                <div>
-                    <div id="prefixResult" data-bind="foreach: allPrefixResults">
-                        <table>
-                            <tr>
-                                <td>
-                                    <div class="namespaceBody">
-                                        <div>
-                                            <span style="font-weight: bold">Namespace: </span>
-                                            <span data-bind="text: $data.prefix.Value" />
-                                        </div>
-                                        <div>
-                                            <label>
-                                                <input type="checkbox" data-bind="checked: $data.prefix.IsSharedNamespace" />IsSharedNamespace
-                                            </label>
-                                        </div>
-                                        <div>
-                                            <label>
-                                                <input type="checkbox" data-bind="checked: $data.prefix.IsPrefix" value="IsPrefix" />IsPrefix
-                                            </label>
-                                        </div>
-                                        <div>
-                                            <span style="font-weight: bold">Matching Pattern: </span>
-                                            <span data-bind="text: $parent.generatePattern($data.prefix.Value, $data.prefix.IsPrefix)" />
-                                        </div>
-                                        <!-- ko if: $data.isExisting -->
-                                        <input style="margin-top: 5px" type="submit" value="Deallocate Namespace" title="Delete this namespace"
-                                               data-bind="click: $parent.managePrefix.bind(this, $data.prefix, true)" />
-                                        <!-- /ko -->
-                                        <!-- ko ifnot: $data.isExisting -->
-                                        <input style="margin-top: 5px" type="submit" value="Reserve Namespace" title="Add this namespace"
-                                               data-bind="click: $parent.managePrefix.bind(this, $data.prefix, false)" />
-                                        <!-- /ko -->
+                <div id="prefixResult" data-bind="foreach: allPrefixResults">
+                    <table>
+                        <tr>
+                            <td class="namespaceDetails">
+                                <div>
+                                    <div>
+                                        <span style="font-weight: bold">Namespace: </span>
+                                        <span data-bind="text: $data.prefix.Value" />
                                     </div>
-                                </td>
-                                <td style="vertical-align: top">
+                                    <div>
+                                        <label>
+                                            <input type="checkbox" data-bind="checked: $data.prefix.IsSharedNamespace" />IsSharedNamespace
+                                        </label>
+                                    </div>
+                                    <div>
+                                        <label>
+                                            <input type="checkbox" data-bind="checked: $data.prefix.IsPrefix" value="IsPrefix" />IsPrefix
+                                        </label>
+                                    </div>
+                                    <div>
+                                        <span style="font-weight: bold">Matching Pattern: </span>
+                                        <span data-bind="text: $parent.generatePattern($data.prefix.Value, $data.prefix.IsPrefix)" />
+                                    </div>
                                     <!-- ko if: $data.isExisting -->
-                                    <div class="ownersList">
-                                        <div id="prefixOwners" data-bind="foreach: $data.owners">
-                                            <div style="margin: 5px">
-                                                <span data-bind="text: $data"></span>
-                                                <input style="float: right" type="button" value="Remove" title="Remove this owner" data-bind="click: $root.removeOwner.bind(this, $data, $parent.prefix)" />
-                                            </div>
-                                        </div>
-                                        <div style="margin: 5px">
-                                            <input type="text" placeholder="Search for a prefix" autocomplete="off" data-bind="value: $parent.newOwner, valueUpdate: 'afterkeydown'" />
-                                            <input type="button" value="Add" title="Add new owner for this prefix" data-bind="click: $parent.addOwner.bind(this, $data.prefix), enable: $parent.newOwner().length > 0" />
-                                        </div>
-                                    </div>
+                                    <input style="margin-top: 5px" type="submit" value="Deallocate Namespace" title="Delete this namespace"
+                                           data-bind="click: $parent.managePrefix.bind(this, $data.prefix, true)" />
                                     <!-- /ko -->
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
+                                    <!-- ko ifnot: $data.isExisting -->
+                                    <input style="margin-top: 5px" type="submit" value="Reserve Namespace" title="Add this namespace"
+                                           data-bind="click: $parent.managePrefix.bind(this, $data.prefix, false)" />
+                                    <!-- /ko -->
+                                </div>
+                            </td>
+                            <td class="ownersList" style="vertical-align: top">
+                                <!-- ko if: $data.isExisting -->
+                                <div id="prefixOwners" data-bind="foreach: $data.owners">
+                                    <div style="margin: 5px">
+                                        <span data-bind="text: $data"></span>
+                                        <input style="float: right" type="button" value="Remove" title="Remove this owner" data-bind="click: $root.removeOwner.bind(this, $data, $parent.prefix)" />
+                                    </div>
+                                </div>
+                                <div style="margin: 5px">
+                                    <input type="text" placeholder="Search for a prefix" autocomplete="off" data-bind="value: $parent.newOwner, valueUpdate: 'afterkeydown'" />
+                                    <input type="button" value="Add" title="Add new owner for this prefix" data-bind="click: $parent.addOwner.bind(this, $data.prefix), enable: $parent.newOwner().length > 0" />
+                                </div>
+                                <!-- /ko -->
+                            </td>
+                        </tr>
+                    </table>
                 </div>
             }
         </div>
