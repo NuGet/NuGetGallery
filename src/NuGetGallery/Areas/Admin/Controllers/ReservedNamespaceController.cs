@@ -12,16 +12,12 @@ namespace NuGetGallery.Areas.Admin.Controllers
 {
     public class ReservedNamespaceController : AdminControllerBase
     {
-        protected IEntitiesContext EntitiesContext { get; set; }
         public IReservedNamespaceService ReservedNamespaceService { get; private set; }
 
-        protected ReservedNamespaceController()
-        {
-        }
+        protected ReservedNamespaceController() { }
 
-        public ReservedNamespaceController(IEntitiesContext entitiesContext, IReservedNamespaceService reservedNamespaceService)
+        public ReservedNamespaceController(IReservedNamespaceService reservedNamespaceService)
         {
-            EntitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             ReservedNamespaceService = reservedNamespaceService ?? throw new ArgumentNullException(nameof(reservedNamespaceService));
         }
 
@@ -53,12 +49,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
             return Json(results, JsonRequestBehavior.AllowGet);
         }
 
-        public async Task<JsonResult> Update(List<string> namespaceJson)
-        {
-            await Task.Yield();
-            return null;
-        }
-
         [HttpPost]
         // Add validate anti forgery token
         public async Task<JsonResult> AddPrefix(ReservedNamespace prefix)
@@ -67,12 +57,11 @@ namespace NuGetGallery.Areas.Admin.Controllers
             {
                 await ReservedNamespaceService.AddReservedNamespaceAsync(prefix);
                 await ReservedNamespaceService.AddOwnerToReservedNamespaceAsync(prefix.Value, "shishirx34");
-                return Json(new { success = true });
+                return Json(new { success = true, message = "Prefix Added" });
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Issue in Add Prefix: " + ex.Message);
-                return Json(new { success = false });
+                return Json(new { success = false, message = ex.Message });
             }
         }
 
@@ -83,14 +72,43 @@ namespace NuGetGallery.Areas.Admin.Controllers
             try
             {
                 await ReservedNamespaceService.DeleteReservedNamespaceAsync(prefix.Value);
-                return Json(new { success = true });
+                return Json(new { success = true, message = "Prefix removed" });
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
-                return Json(new { success = false });
+                return Json(new { success = false, message = ex.Message });
             }
 
+        }
+
+        [HttpPost]
+        // Add validate anti forgery token
+        public async Task<JsonResult> AddOwner(ReservedNamespace prefix, string owner)
+        {
+            try
+            {
+                await ReservedNamespaceService.AddOwnerToReservedNamespaceAsync(prefix.Value, owner);
+                return Json(new { success = true, message = "Owner Added!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        // Add validate anti forgery token
+        public async Task<JsonResult> RemoveOwner(ReservedNamespace prefix, string owner)
+        {
+            try
+            {
+                await ReservedNamespaceService.DeleteOwnerFromReservedNamespaceAsync(prefix.Value, owner);
+                return Json(new { success = true, message = "Owner removed!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
 
         private static string[] GetPrefixesFromQuery(string query)

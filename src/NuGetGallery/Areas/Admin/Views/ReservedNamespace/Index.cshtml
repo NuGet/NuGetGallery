@@ -11,7 +11,7 @@
         <h2>Reserve Namespace</h2>
         <form>
             <div class="form-horizontal">
-                <input type="text" placeholder="Search for a prefix" autocomplete="off" autofocus data-bind="value: prefixSearchQuery" />
+                <input type="text" placeholder="Search for a prefix" autocomplete="on" autofocus data-bind="value: prefixSearchQuery" />
                 <input type="button" value="Search Prefix" title="Search Prefix" data-bind="click: prefixSearch" />
             </div>
         </form><br />
@@ -21,42 +21,56 @@
             {
                 <div>
                     <div id="prefixResult" data-bind="foreach: allPrefixResults">
-                        <div>
-                            <span style="font-weight: bold">Namespace: </span>
-                            <span data-bind="text: $data.prefix.Value" />
-                        </div>
-                        <div>
-                            <label>
-                                <input type="checkbox" data-bind="checked: $data.prefix.IsSharedNamespace" />IsSharedNamespace
-                            </label>
-                        </div>
-                        <div>
-                            <label>
-                                <input type="checkbox" data-bind="checked: $data.prefix.IsPrefix" value="IsPrefix"/>IsPrefix
-                            </label>
-                        </div>
-                        <div>
-                            <span style="font-weight: bold">Matching Pattern: </span>
-                            <span data-bind="text: $parent.generatePattern($data.prefix.Value, $data.prefix.IsPrefix)" />
-                        </div>
-                        <div>
-                            Owners:
-                            <div id="prefixOwners" data-bind="foreach: $data.owners">
-                                <div>
-                                    <span data-bind="text: $data" />
-                                    <input type="button" value="Remove" title="Remove this owner" 
-                                               data-bind="click:$parent.removeOwner.bind(this, $data, $parent.prefix)"/>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- ko if: $data.isExisting -->
-                            <input style="margin-top: 5px" type="submit" value="Deallocate Namespace" title="Delete this namespace" 
-                                   data-bind="click: $parent.managePrefix.bind(this, $data.prefix, true)" />
-                        <!-- /ko -->
-                        <!-- ko ifnot: $data.isExisting -->
-                            <input style="margin-top: 5px" type="submit" value="Reserve Namespace" title="Add this namespace"
-                                   data-bind="click: $parent.managePrefix.bind(this, $data.prefix, false)" />
-                        <!-- /ko -->
+                        <table>
+                            <tr>
+                                <td>
+                                    <div class="namespaceBody">
+                                        <div>
+                                            <span style="font-weight: bold">Namespace: </span>
+                                            <span data-bind="text: $data.prefix.Value" />
+                                        </div>
+                                        <div>
+                                            <label>
+                                                <input type="checkbox" data-bind="checked: $data.prefix.IsSharedNamespace" />IsSharedNamespace
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <label>
+                                                <input type="checkbox" data-bind="checked: $data.prefix.IsPrefix" value="IsPrefix" />IsPrefix
+                                            </label>
+                                        </div>
+                                        <div>
+                                            <span style="font-weight: bold">Matching Pattern: </span>
+                                            <span data-bind="text: $parent.generatePattern($data.prefix.Value, $data.prefix.IsPrefix)" />
+                                        </div>
+                                        <!-- ko if: $data.isExisting -->
+                                        <input style="margin-top: 5px" type="submit" value="Deallocate Namespace" title="Delete this namespace"
+                                               data-bind="click: $parent.managePrefix.bind(this, $data.prefix, true)" />
+                                        <!-- /ko -->
+                                        <!-- ko ifnot: $data.isExisting -->
+                                        <input style="margin-top: 5px" type="submit" value="Reserve Namespace" title="Add this namespace"
+                                               data-bind="click: $parent.managePrefix.bind(this, $data.prefix, false)" />
+                                        <!-- /ko -->
+                                    </div>
+                                </td>
+                                <td style="vertical-align: top">
+                                    <!-- ko if: $data.isExisting -->
+                                    <div class="ownersList">
+                                        <div id="prefixOwners" data-bind="foreach: $data.owners">
+                                            <div style="margin: 5px">
+                                                <span data-bind="text: $data"></span>
+                                                <input style="float: right" type="button" value="Remove" title="Remove this owner" data-bind="click: $root.removeOwner.bind(this, $data, $parent.prefix)" />
+                                            </div>
+                                        </div>
+                                        <div style="margin: 5px">
+                                            <input type="text" placeholder="Search for a prefix" autocomplete="off" data-bind="value: $parent.newOwner, valueUpdate: 'afterkeydown'" />
+                                            <input type="button" value="Add" title="Add new owner for this prefix" data-bind="click: $parent.addOwner.bind(this, $data.prefix), enable: $parent.newOwner().length > 0" />
+                                        </div>
+                                    </div>
+                                    <!-- /ko -->
+                                </td>
+                            </tr>
+                        </table>
                     </div>
                 </div>
             }
@@ -74,18 +88,27 @@
 
                 this.message = ko.observable('');
                 this.prefixSearchQuery = ko.observable('');
+                this.newOwner = ko.observable('');
+
+                this.refresh = function () {
+                    this.prefixSearch();
+                }
 
                 this.allPrefixResults = ko.observableArray([]);
                 this.prefixSearch = function () {
                     $self.message("");
+                    $self.newOwner("");
                     $.ajax({
                         url: '@Url.Action("SearchPrefix", "ReservedNamespace", new {area = "Admin"})?query=' + encodeURIComponent($self.prefixSearchQuery()),
                         cache: false,
                         dataType: 'json',
                         success: function (data) {
                             $self.allPrefixResults.removeAll();
-
-                            $self.allPrefixResults(data.Prefixes);
+                            if (!data.success && data.message != null) {
+                                $self.message(data.message);
+                            } else {
+                                $self.allPrefixResults(data.Prefixes);
+                            }
                         }
                     })
                     .error(function(jqXhr, textStatus, errorThrown) {
@@ -108,10 +131,50 @@
                         data: JSON.stringify(prefixToAdd),
                         contentType: 'application/json; charset=utf-8',
                         success: function (data) {
-                            console.log("Added prefix");
+                            if (data.success) {
+                                $self.refresh();
+                            }
+
+                            if (data.message != null) {
+                                $self.message(data.message);
+                            }
                         }
                     })
                     .error(function (jqXhr, textStatus, errorThrown) {
+                        alert("Error: " + errorThrown);
+                    });
+                };
+
+                this.addOwner = function (prefix) {
+                    var owner = $self.newOwner();
+                    console.log("Self: " + $self);
+                    console.log("Data: " + owner);
+                    var obj = {
+                        prefix: prefix,
+                        owner: owner,
+                    };
+
+                    $self.message("");
+                    $.ajax({
+                        url: '@Url.Action("AddOwner", "ReservedNamespace", new { area = "Admin" })',
+                        cache: false,
+                        dataType: 'json',
+                        type: 'POST',
+                        data: JSON.stringify(obj),
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (data) {
+                            if (data.success) {
+                                $self.newOwner("");
+                                $self.refresh();
+                            }
+
+                            if (data.message != null) {
+                                $self.message(data.message);
+                            }
+                        }
+                    })
+                    .error(function (jqXhr, textStatus, errorThrown) {
+                        $self.message(errorThrown);
                         alert("Error: " + errorThrown);
                     });
                 };
@@ -120,22 +183,28 @@
                     var obj = {
                         prefix: prefix,
                         owner: owner,
-                        action: "remove"
                     };
 
                     $self.message("");
                     $.ajax({
-                        url: '@Url.Action("Update", "ReservedNamespace", new { area = "Admin" })',
+                        url: '@Url.Action("RemoveOwner", "ReservedNamespace", new { area = "Admin" })',
                         cache: false,
                         dataType: 'json',
                         type: 'POST',
                         data: JSON.stringify(obj),
                         contentType: 'application/json; charset=utf-8',
                         success: function (data) {
-                            console.log("Owner updated!");
+                            if (data.success) {
+                                $self.refresh();
+                            }
+
+                            if (data.message != null) {
+                                $self.message(data.message);
+                            }
                         }
                     })
                     .error(function (jqXhr, textStatus, errorThrown) {
+                        $self.message(errorThrown);
                         alert("Error: " + errorThrown);
                     });
                 };
