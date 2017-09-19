@@ -98,6 +98,58 @@ namespace NuGet.Services.AzureManagement
             }
         }
 
+        public async Task<string> GetTrafficManagerPropertiesAsync(string subscription, string resourceGroup, string profileName, CancellationToken token)
+        {
+            if (string.IsNullOrEmpty(subscription))
+            {
+                throw new ArgumentException(nameof(subscription));
+            }
+
+            if (string.IsNullOrEmpty(resourceGroup))
+            {
+                throw new ArgumentException(nameof(resourceGroup));
+            }
+
+            if (string.IsNullOrEmpty(profileName))
+            {
+                throw new ArgumentException(nameof(profileName));
+            }
+
+            await RenewAccessToken();
+
+            const string RequestUrlFormat = @"https://management.azure.com/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Network/trafficmanagerprofiles/{2}?api-version=2017-05-01";
+
+            string requestUrl = string.Format(RequestUrlFormat, subscription, resourceGroup, profileName);
+
+            using (var client = new HttpClient())
+            {
+                var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
+                HttpResponseMessage response = await client.SendAsync(request, token);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    string result = await response.Content.ReadAsStringAsync();
+                    return result;
+                }
+                else
+                {
+                    string errorDetails = "Unknown";
+                    try
+                    {
+                        // Try to read the response.. might work..
+                        errorDetails = await response.Content.ReadAsStringAsync();
+                    }
+                    catch
+                    {
+                    }
+
+                    throw new AzureManagementException($"Failed to get cloud service properties." +
+                        $" Url: {requestUrl}, Return code: {response.StatusCode} {response.ReasonPhrase}, Error: {errorDetails}");
+                }
+            }
+        }
+
         private async Task RenewAccessToken()
         {
             if (string.IsNullOrEmpty(_accessToken) ||

@@ -26,7 +26,7 @@ namespace NuGet.Services.KeyVault
             
             VaultName = vaultName;
             ClientId = clientId;
-            Certificate = certificate ?? throw new ArgumentNullException(nameof(certificate));
+            Certificate = certificate/* ?? throw new ArgumentNullException(nameof(certificate))*/;
         }
     }
 }
