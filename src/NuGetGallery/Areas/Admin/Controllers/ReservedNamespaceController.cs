@@ -30,11 +30,15 @@ namespace NuGetGallery.Areas.Admin.Controllers
         public virtual JsonResult SearchPrefix(string query)
         {
             var prefixQueries = GetPrefixesFromQuery(query);
+
             var foundPrefixes = ReservedNamespaceService.FindReservedNamespacesForPrefixList(prefixQueries.ToList());
+
             var notFoundPrefixQueries = prefixQueries.Except(foundPrefixes.Select(p => p.Value));
-            var resultModel = foundPrefixes.Select(fp => new ReservedNamespaceViewModel(fp, isExisting: true));
-            var notFoundPrefixes = notFoundPrefixQueries.Select(q => new ReservedNamespace(q, isSharedNamespace: false, isPrefix: true));
-            resultModel = resultModel.Concat(notFoundPrefixes.Select(nfp => new ReservedNamespaceViewModel(nfp, isExisting: false)).ToList());
+            var notFoundPrefixes = notFoundPrefixQueries.Select(q => new ReservedNamespace(value: q, isSharedNamespace: false, isPrefix: true));
+
+            var resultModel = foundPrefixes.Select(fp => new ReservedNamespaceResultModel(fp, isExisting: true));
+            resultModel = resultModel.Concat(notFoundPrefixes.Select(nfp => new ReservedNamespaceResultModel(nfp, isExisting: false)).ToList());
+
             var results = new ReservedNamespaceSearchResult
             {
                 Prefixes = resultModel

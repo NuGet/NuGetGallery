@@ -13,6 +13,6 @@ namespace NuGetGallery.Areas.Admin.ViewModels
         /// <summary>
         /// Found prefixes matching the search query
         /// </summary>
-        public IEnumerable<ReservedNamespaceViewModel> Prefixes { get; set; }
+        public IEnumerable<ReservedNamespaceResultModel> Prefixes { get; set; }
     }
 }
