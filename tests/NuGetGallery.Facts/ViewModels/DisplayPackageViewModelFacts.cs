@@ -14,13 +14,14 @@ namespace NuGetGallery.ViewModels
         public void TheCtorSortsPackageVersionsProperly()
         {
             var package = new Package
+            {
+                Version = "1.0.0",
+                Dependencies = Enumerable.Empty<PackageDependency>().ToList(),
+                PackageRegistration = new PackageRegistration
                 {
-                    Dependencies = Enumerable.Empty<PackageDependency>().ToList(),
-                    PackageRegistration = new PackageRegistration
-                        {
-                            Owners = Enumerable.Empty<User>().ToList(),
-                        }
-                };
+                    Owners = Enumerable.Empty<User>().ToList(),
+                }
+            };
 
             package.PackageRegistration.Packages = new[]
                 {
@@ -82,7 +83,7 @@ namespace NuGetGallery.ViewModels
 
             // Act
             var viewModel = new DisplayPackageViewModel(package, packageHistory);
-            
+
             // Assert
             Assert.Equal(daysSinceFirstPackageCreated, viewModel.TotalDaysSinceCreated);
             Assert.Equal(totalDownloadCount / daysSinceFirstPackageCreated, viewModel.DownloadsPerDay);

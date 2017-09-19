@@ -882,6 +882,87 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The namespace &apos;{0}&apos; contains invalid characters. Examples of valid namespaces include &apos;MyNamespace&apos; and &apos;MyNamespace.&apos;..
+        /// </summary>
+        public static string ReservedNamespace_InvalidCharactersInNamespace {
+            get {
+                return ResourceManager.GetString("ReservedNamespace_InvalidCharactersInNamespace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid namespace specified.
+        /// </summary>
+        public static string ReservedNamespace_InvalidNamespace {
+            get {
+                return ResourceManager.GetString("ReservedNamespace_InvalidNamespace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid or null username specified..
+        /// </summary>
+        public static string ReservedNamespace_InvalidUsername {
+            get {
+                return ResourceManager.GetString("ReservedNamespace_InvalidUsername", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Namespace must not exceed {0} characters..
+        /// </summary>
+        public static string ReservedNamespace_NamespaceExceedsLength {
+            get {
+                return ResourceManager.GetString("ReservedNamespace_NamespaceExceedsLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The specified namespace is already reserved or is a more liberal namespace..
+        /// </summary>
+        public static string ReservedNamespace_NamespaceNotAvailable {
+            get {
+                return ResourceManager.GetString("ReservedNamespace_NamespaceNotAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Namespace &apos;{0}&apos; not found..
+        /// </summary>
+        public static string ReservedNamespace_NamespaceNotFound {
+            get {
+                return ResourceManager.GetString("ReservedNamespace_NamespaceNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The ID prefix of this package has been reserved for one of the owner of this package by NuGet.org..
+        /// </summary>
+        public static string ReservedNamespace_ReservedIndicatorTooltip {
+            get {
+                return ResourceManager.GetString("ReservedNamespace_ReservedIndicatorTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User &apos;{0}&apos; is not an owner of the specified namespace.
+        /// </summary>
+        public static string ReservedNamespace_UserNotAnOwner {
+            get {
+                return ResourceManager.GetString("ReservedNamespace_UserNotAnOwner", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User not found with username &apos;{0}&apos;.
+        /// </summary>
+        public static string ReservedNamespace_UserNotFound {
+            get {
+                return ResourceManager.GetString("ReservedNamespace_UserNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to All.
         /// </summary>
         public static string ScopeDescription_All {
@@ -1053,6 +1134,15 @@ namespace NuGetGallery {
         public static string UploadFileMustBeNuGetPackage {
             get {
                 return ResourceManager.GetString("UploadFileMustBeNuGetPackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID..
+        /// </summary>
+        public static string UploadPackage_IdNamespaceConflict {
+            get {
+                return ResourceManager.GetString("UploadPackage_IdNamespaceConflict", resourceCulture);
             }
         }
         

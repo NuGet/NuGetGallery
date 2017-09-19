@@ -643,6 +643,7 @@
     <Compile Include="App_Start\NuGetODataV1FeedConfig.cs" />
     <Compile Include="App_Start\NuGetODataConfig.cs" />
     <Compile Include="App_Start\RuntimeServiceProvider.cs" />
+    <Compile Include="App_Start\StorageDependent.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="App_Start\AutofacConfig.cs" />
     <Compile Include="Areas\Admin\Controllers\DeleteController.cs" />
@@ -784,6 +785,14 @@
     <Compile Include="Migrations\201706262349176_AddRepositoryURL_ReadMe.Designer.cs">
       <DependentUpon>201706262349176_AddRepositoryURL_ReadMe.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201708241907124_PrefixReservation.cs" />
+    <Compile Include="Migrations\201708241907124_PrefixReservation.Designer.cs">
+      <DependentUpon>201708241907124_PrefixReservation.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201709072246362_AddPackageLicenseReport2Sproc.cs" />
+    <Compile Include="Migrations\201709072246362_AddPackageLicenseReport2Sproc.Designer.cs">
+      <DependentUpon>201709072246362_AddPackageLicenseReport2Sproc.cs</DependentUpon>
+    </Compile>
     <Compile Include="Security\RequireSecurePushForCoOwnersPolicy.cs" />
     <Compile Include="Security\SecurePushSubscription.cs" />
     <Compile Include="Security\IUserSecurityPolicySubscription.cs" />
@@ -800,6 +809,10 @@
     <Compile Include="Security\UserSecurityPolicyEvaluationContext.cs" />
     <Compile Include="Security\SecurityPolicyResult.cs" />
     <Compile Include="Security\UserSecurityPolicySubscriptionContext.cs" />
+    <Compile Include="Services\PackageUploadService.cs" />
+    <Compile Include="Services\IReservedNamespaceService.cs" />
+    <Compile Include="Services\IPackageUploadService.cs" />
+    <Compile Include="Services\ReservedNamespaceService.cs" />
     <Compile Include="Telemetry\ClientInformationTelemetryEnricher.cs" />
     <Compile Include="Telemetry\QuietExceptionLogger.cs" />
     <Compile Include="Infrastructure\Authentication\CredentialBuilder.cs" />
@@ -1499,9 +1512,11 @@
     <Compile Include="ViewModels\OwnerRequestsListViewModel.cs" />
     <Compile Include="ViewModels\OwnerRequestsViewModel.cs" />
     <Compile Include="ViewModels\PackageHeadingModel.cs" />
+    <Compile Include="ViewModels\PackageManagerViewModel.cs" />
     <Compile Include="ViewModels\ReportMyPackageViewModel.cs" />
     <Compile Include="ViewModels\ScopeViewModel.cs" />
     <Compile Include="ViewModels\PackageListSearchViewModel.cs" />
+    <Compile Include="ViewModels\ThirdPartyPackageManagerViewModel.cs" />
     <Compile Include="WebApi\PlainTextResult.cs" />
     <Compile Include="WebApi\QueryResult.cs" />
     <Compile Include="WebApi\QueryResultDefaults.cs" />
@@ -1601,6 +1616,8 @@
     <Content Include="Content\themes\custom\images\ui-icons_888888_256x240.png" />
     <Content Include="Content\themes\custom\images\ui-icons_cd0a0a_256x240.png" />
     <Content Include="D3 LICENSE.txt" />
+    <EmbeddedResource Include="Infrastructure\AddPackageLicenseReport2.Up.sql" />
+    <EmbeddedResource Include="Infrastructure\AddPackageLicenseReport2.Down.sql" />
     <Content Include="NuGetGallery.dll.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <SubType>Designer</SubType>
@@ -1778,6 +1795,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201706262349176_AddRepositoryURL_ReadMe.resx">
       <DependentUpon>201706262349176_AddRepositoryURL_ReadMe.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201708241907124_PrefixReservation.resx">
+      <DependentUpon>201708241907124_PrefixReservation.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201709072246362_AddPackageLicenseReport2Sproc.resx">
+      <DependentUpon>201709072246362_AddPackageLicenseReport2Sproc.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

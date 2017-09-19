@@ -12,7 +12,6 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -350,7 +349,7 @@ namespace NuGetGallery
 
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
 
-            TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
+            TestUtility.SetupUrlHelperForUrlGeneration(controller);
 
             var model = (StatisticsPackagesViewModel)((ViewResult)await controller.PackageDownloadsByVersion(PackageId, new[] { Constants.StatisticsDimensions.Version })).Model;
 
@@ -422,7 +421,7 @@ namespace NuGetGallery
 
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
 
-            TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
+            TestUtility.SetupUrlHelperForUrlGeneration(controller);
 
             var actualReport = (StatisticsPackagesReport)((JsonResult)await controller.PackageDownloadsByVersionReport(PackageId, new[] { Constants.StatisticsDimensions.Version })).Data;
 
@@ -434,7 +433,7 @@ namespace NuGetGallery
             }
 
             Assert.Equal(603, sum);
-            Assert.Equal("603", actualReport.Total);
+            Assert.Equal(603, actualReport.Total);
             Assert.True(actualReport.LastUpdatedUtc.HasValue);
             Assert.Equal(updatedUtc, actualReport.LastUpdatedUtc.Value);
         }
@@ -504,7 +503,7 @@ namespace NuGetGallery
 
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
 
-            TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
+            TestUtility.SetupUrlHelperForUrlGeneration(controller);
 
             var invalidDimension = "this_dimension_does_not_exist";
             
@@ -518,7 +517,7 @@ namespace NuGetGallery
             }
 
             Assert.Equal(603, sum);
-            Assert.Equal("603", actualReport.Total);
+            Assert.Equal(603, actualReport.Total);
             Assert.True(actualReport.LastUpdatedUtc.HasValue);
             Assert.Equal(updatedUtc, actualReport.LastUpdatedUtc.Value);
             Assert.DoesNotContain(invalidDimension, actualReport.Columns);
@@ -534,7 +533,7 @@ namespace NuGetGallery
 
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
 
-            TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
+            TestUtility.SetupUrlHelperForUrlGeneration(controller);
             
             var model = (StatisticsPackagesViewModel)((ViewResult)await controller.PackageDownloadsDetail(PackageId, PackageVersion, new string[] { "ClientName" })).Model;
 
@@ -608,7 +607,7 @@ namespace NuGetGallery
 
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
 
-            TestUtility.SetupUrlHelperForUrlGeneration(controller, new Uri("http://nuget.org"));
+            TestUtility.SetupUrlHelperForUrlGeneration(controller);
             
             var actualReport = (StatisticsPackagesReport)((JsonResult)await controller.PackageDownloadsDetailReport(PackageId, PackageVersion, new string[] { "ClientName" })).Data;
 
@@ -620,7 +619,7 @@ namespace NuGetGallery
             }
 
             Assert.Equal(502, sum);
-            Assert.Equal("502", actualReport.Total);
+            Assert.Equal(502, actualReport.Total);
             Assert.True(actualReport.LastUpdatedUtc.HasValue);
             Assert.Equal(updatedUtc, actualReport.LastUpdatedUtc.Value);
         }

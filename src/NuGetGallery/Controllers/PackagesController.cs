@@ -56,6 +56,8 @@ namespace NuGetGallery
         private readonly IAuditingService _auditingService;
         private readonly ITelemetryService _telemetryService;
         private readonly ISecurityPolicyService _securityPolicyService;
+        private readonly IReservedNamespaceService _reservedNamespaceService;
+        private readonly IPackageUploadService _packageUploadService;
 
         public PackagesController(
             IPackageService packageService,
@@ -74,7 +76,9 @@ namespace NuGetGallery
             ISupportRequestService supportRequestService,
             IAuditingService auditingService,
             ITelemetryService telemetryService,
-            ISecurityPolicyService securityPolicyService)
+            ISecurityPolicyService securityPolicyService,
+            IReservedNamespaceService reservedNamespaceService,
+            IPackageUploadService packageUploadService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -93,6 +97,8 @@ namespace NuGetGallery
             _auditingService = auditingService;
             _telemetryService = telemetryService;
             _securityPolicyService = securityPolicyService;
+            _reservedNamespaceService = reservedNamespaceService;
+            _packageUploadService = packageUploadService;
         }
 
         [HttpGet]
@@ -105,7 +111,7 @@ namespace NuGetGallery
             AsyncFileUploadProgress progress = _cacheService.GetProgress(username);
             if (progress == null)
             {
-                return Json(404, null);
+                return Json(404, null, JsonRequestBehavior.AllowGet);
             }
 
             return Json(progress, JsonRequestBehavior.AllowGet);
@@ -229,13 +235,13 @@ namespace NuGetGallery
             if (uploadFile == null)
             {
                 ModelState.AddModelError(String.Empty, Strings.UploadFileIsRequired);
-                return Json(400, new string [] { Strings.UploadFileIsRequired });
+                return Json(400, new string[] { Strings.UploadFileIsRequired });
             }
 
             if (!Path.GetExtension(uploadFile.FileName).Equals(Constants.NuGetPackageFileExtension, StringComparison.OrdinalIgnoreCase))
             {
                 ModelState.AddModelError(String.Empty, Strings.UploadFileMustBeNuGetPackage);
-                return Json(400, new string [] { Strings.UploadFileMustBeNuGetPackage });
+                return Json(400, new string[] { Strings.UploadFileMustBeNuGetPackage });
             }
 
             using (var uploadStream = uploadFile.InputStream)
@@ -253,8 +259,8 @@ namespace NuGetGallery
                            CultureInfo.CurrentCulture,
                            Strings.PackageEntryFromTheFuture,
                            entryInTheFuture.Name));
-                        
-                        return Json(400, new string [] { string.Format(
+
+                        return Json(400, new string[] { string.Format(
                            CultureInfo.CurrentCulture,
                            Strings.PackageEntryFromTheFuture,
                            entryInTheFuture.Name) });
@@ -280,7 +286,7 @@ namespace NuGetGallery
 
                     ModelState.AddModelError(String.Empty, message);
 
-                    return Json(400, new string [] { message });
+                    return Json(400, new string[] { message });
                 }
                 finally
                 {
@@ -297,7 +303,7 @@ namespace NuGetGallery
                         errorStrings.Add(error.ErrorMessage);
                         ModelState.AddModelError(String.Empty, error.ErrorMessage);
                     }
-                    
+
                     return Json(400, errorStrings);
                 }
 
@@ -310,21 +316,38 @@ namespace NuGetGallery
                             CultureInfo.CurrentCulture,
                             Strings.UploadPackage_MinClientVersionOutOfRange,
                             nuspec.GetMinClientVersion()));
-                    
-                    return Json(400, new string [] {
+
+                    return Json(400, new string[] {
                         string.Format(
                             CultureInfo.CurrentCulture,
                             Strings.UploadPackage_MinClientVersionOutOfRange,
                             nuspec.GetMinClientVersion()) });
                 }
 
-                var packageRegistration = _packageService.FindPackageRegistrationById(nuspec.GetId());
+                var id = nuspec.GetId();
+                var packageRegistration = _packageService.FindPackageRegistrationById(id);
+                // For a new package id verify if the user is allowed to use it.
+                if (packageRegistration == null)
+                {
+                    var isPushAllowed = _reservedNamespaceService
+                        .IsPushAllowed(id, currentUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
+
+                    if (!isPushAllowed)
+                    {
+                        ModelState.AddModelError(
+                            string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict));
+
+                        return Json(409, new string[] { string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict) });
+                    }
+                }
+
+                // For existing package id verify if it is owned by the current user
                 if (packageRegistration != null && !packageRegistration.Owners.AnySafe(x => x.Key == currentUser.Key))
                 {
                     ModelState.AddModelError(
                         string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id));
-                    
-                    return Json(409, new string [] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id) });
+
+                    return Json(409, new string[] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id) });
                 }
 
                 var nuspecVersion = nuspec.GetVersion();
@@ -356,8 +379,8 @@ namespace NuGetGallery
                     ModelState.AddModelError(
                         string.Empty,
                         message);
-                    
-                    return Json(409, new string [] { message });
+
+                    return Json(409, new string[] { message });
                 }
 
                 await _uploadFileService.SaveUploadFileAsync(currentUser.Key, uploadStream);
@@ -369,13 +392,13 @@ namespace NuGetGallery
                 if (uploadedFile == null)
                 {
                     ModelState.AddModelError(String.Empty, Strings.UploadFileIsRequired);
-                    return Json(400, new string [] { Strings.UploadFileIsRequired });
+                    return Json(400, new string[] { Strings.UploadFileIsRequired });
                 }
 
                 var package = await SafeCreatePackage(currentUser, uploadedFile);
                 if (package == null)
                 {
-                    return Json(400, new string [] { Strings.UploadFileIsRequired });
+                    return Json(400, new string[] { Strings.UploadFileIsRequired });
                 }
 
                 try
@@ -386,8 +409,8 @@ namespace NuGetGallery
                 catch (Exception ex)
                 {
                     TempData["Message"] = ex.GetUserSafeMessage();
-                    
-                    return Json(400, new string [] { ex.GetUserSafeMessage() });
+
+                    return Json(400, new string[] { ex.GetUserSafeMessage() });
                 }
             }
 
@@ -460,7 +483,7 @@ namespace NuGetGallery
                         sortOrder: null,
                         context: SearchFilter.ODataSearchContext,
                         semVerLevel: SemVerLevelKey.SemVerLevel2);
-                    
+
                     searchFilter.IncludeAllVersions = true;
 
                     var results = await externalSearchService.RawSearch(searchFilter);
@@ -640,7 +663,7 @@ namespace NuGetGallery
                 }
             }
 
-            ViewData[Constants.ReturnUrlViewDataKey] = Url.Action("ReportMyPackage", new { id, version });
+            ViewData[Constants.ReturnUrlViewDataKey] = Url.ReportPackage(id, version);
             return View(model);
         }
 
@@ -840,11 +863,7 @@ namespace NuGetGallery
                 fromAddress,
                 package,
                 contactForm.Message,
-                Url.Action(
-                    actionName: "Account",
-                    controllerName: "Users",
-                    routeValues: null,
-                    protocol: Request.Url.Scheme),
+                Url.AccountSettings(),
                 contactForm.CopySender);
 
             string message = String.Format(CultureInfo.CurrentCulture, "Your message has been sent to the owners of {0}.", id);
@@ -1004,12 +1023,18 @@ namespace NuGetGallery
             var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
-                return Json(404, new string[] { string.Format(Strings.PackageWithIdAndVersionNotFound, id, version) });
+                return Json(
+                    404,
+                    new string[]
+                    {
+                        string.Format(Strings.PackageWithIdAndVersionNotFound, id, version)
+                    },
+                    JsonRequestBehavior.AllowGet);
             }
 
             if (!package.IsOwner(User))
             {
-                return Json(403, new string[] { Strings.Unauthorized });
+                return Json(403, new string[] { Strings.Unauthorized }, JsonRequestBehavior.AllowGet);
             }
 
             var packageRegistration = _packageService.FindPackageRegistrationById(id);
@@ -1319,15 +1344,15 @@ namespace NuGetGallery
                 if (uploadFile == null)
                 {
                     TempData["Message"] = Strings.VerifyPackage_UploadNotFound;
-                    
-                    return Json(400, new string [] { Strings.VerifyPackage_UploadNotFound });
+
+                    return Json(400, new string[] { Strings.VerifyPackage_UploadNotFound });
                 }
 
                 var nugetPackage = await SafeCreatePackage(currentUser, uploadFile);
                 if (nugetPackage == null)
                 {
                     // Send the user back
-                    return Json(400, new string [] { Strings.VerifyPackage_UnexpectedError });
+                    return Json(400, new string[] { Strings.VerifyPackage_UnexpectedError });
                 }
 
                 Debug.Assert(nugetPackage != null);
@@ -1344,8 +1369,8 @@ namespace NuGetGallery
                         && String.Equals(packageMetadata.Version.OriginalVersion, formData.OriginalVersion, StringComparison.OrdinalIgnoreCase)))
                     {
                         TempData["Message"] = Strings.VerifyPackage_PackageFileModified;
-                        
-                        return Json(400, new string [] { Strings.VerifyPackage_PackageFileModified });
+
+                        return Json(400, new string[] { Strings.VerifyPackage_PackageFileModified });
                     }
                 }
 
@@ -1376,14 +1401,20 @@ namespace NuGetGallery
                 // update relevant database tables
                 try
                 {
-                    package = await _packageService.CreatePackageAsync(nugetPackage, packageStreamMetadata, currentUser, commitChanges: false);
+                    package = await _packageUploadService.GeneratePackageAsync(
+                        packageMetadata.Id,
+                        nugetPackage,
+                        packageStreamMetadata,
+                        currentUser,
+                        commitChanges: false);
+
                     Debug.Assert(package.PackageRegistration != null);
                 }
                 catch (InvalidPackageException ex)
                 {
                     TempData["Message"] = ex.Message;
-                    
-                    return Json(400, new string [] { ex.GetUserSafeMessage() });
+
+                    return Json(400, new string[] { ex.GetUserSafeMessage() });
                 }
 
                 await _packageService.PublishPackageAsync(package, commitChanges: false);
@@ -1411,8 +1442,8 @@ namespace NuGetGallery
                 {
                     ex.Log();
                     TempData["Message"] = Strings.UploadPackage_IdVersionConflict;
-                    
-                    return Json(409, new string [] { Strings.UploadPackage_IdVersionConflict });
+
+                    return Json(409, new string[] { Strings.UploadPackage_IdVersionConflict });
                 }
 
                 try
@@ -1436,9 +1467,9 @@ namespace NuGetGallery
 
                 // notify user
                 _messageService.SendPackageAddedNotice(package,
-                    Url.Action("DisplayPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.NormalizedVersion }, protocol: Request.Url.Scheme),
-                    Url.Action("ReportMyPackage", "Packages", routeValues: new { id = package.PackageRegistration.Id, version = package.NormalizedVersion }, protocol: Request.Url.Scheme),
-                    Url.Action("Account", "Users", routeValues: null, protocol: Request.Url.Scheme));
+                    Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, Request.Url.Scheme),
+                    Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, Request.Url.Scheme),
+                    Url.AccountSettings(Request.Url.Scheme));
             }
 
             // delete the uploaded binary in the Uploads container
@@ -1451,11 +1482,7 @@ namespace NuGetGallery
 
             return Json(new
             {
-                location = Url.RouteUrl(RouteName.DisplayPackage, new
-                {
-                    id = package.PackageRegistration.Id,
-                    version = package.NormalizedVersion
-                })
+                location = Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, Request.Url.Scheme)
             });
         }
 

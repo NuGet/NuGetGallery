@@ -14,7 +14,6 @@ using Moq;
 using NuGetGallery.Auditing;
 using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Authentication.Providers.MicrosoftAccount;
-using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Authentication;
 using Xunit;
@@ -265,7 +264,7 @@ namespace NuGetGallery.Authentication
 
                 var referenceTime = DateTime.UtcNow;
                 _dateTimeProviderMock.SetupGet(x => x.UtcNow).Returns(referenceTime);
-                
+
                 Assert.False(cred.LastUsed.HasValue);
 
                 // Act
@@ -304,8 +303,8 @@ namespace NuGetGallery.Authentication
             public async Task GivenMatchingApiKeyCredentialThatWasLastUsedTooLongAgo_ItReturnsNullAndExpiresTheApiKeyAndWritesAuditRecord(string apiKeyType, bool shouldExpire)
             {
                 // Arrange
-                var config = GetMock<IAppConfiguration>();
-                config.SetupGet(m => m.ExpirationInDaysForApiKeyV1).Returns(10);
+                var configurationService = GetConfigurationService();
+                configurationService.Current.ExpirationInDaysForApiKeyV1 = 10;
 
                 var cred = _fakes.User.Credentials.Single(c => string.Equals(c.Type, apiKeyType, StringComparison.OrdinalIgnoreCase));
 
@@ -540,7 +539,8 @@ namespace NuGetGallery.Authentication
             }
         }
 
-        public class TheRegisterMethod : TestContainer
+        public class TheRegisterMethod 
+            : TestContainer
         {
             [Fact]
             public async Task GivenPlainTextPassword_ItSaltsHashesAndPassesThru()
@@ -625,10 +625,10 @@ namespace NuGetGallery.Authentication
             public async Task WillSaveTheNewUserAsConfirmedWhenConfigured()
             {
                 // Arrange
+                var configurationService = GetConfigurationService();
+                configurationService.Current.ConfirmEmailAddresses = false;
+
                 var auth = Get<AuthenticationService>();
-                GetMock<IAppConfiguration>()
-                    .Setup(x => x.ConfirmEmailAddresses)
-                    .Returns(false);
 
                 // Act
                 var authUser = await auth.Register(
@@ -646,10 +646,10 @@ namespace NuGetGallery.Authentication
             public async Task SetsAConfirmationToken()
             {
                 // Arrange
+                var configurationService = GetConfigurationService();
+                configurationService.Current.ConfirmEmailAddresses = true;
+
                 var auth = Get<AuthenticationService>();
-                GetMock<IAppConfiguration>()
-                    .Setup(c => c.ConfirmEmailAddresses)
-                    .Returns(true);
 
                 // Arrange
                 var authUser = await auth.Register(
@@ -1267,8 +1267,8 @@ namespace NuGetGallery.Authentication
                 // Arrange
                 const int expirationForApiKeyV1 = 365;
 
-                var mockConfig = GetMock<IAppConfiguration>();
-                mockConfig.SetupGet(x => x.ExpirationInDaysForApiKeyV1).Returns(expirationForApiKeyV1);
+                var configurationService = GetConfigurationService();
+                configurationService.Current.ExpirationInDaysForApiKeyV1 = expirationForApiKeyV1;
 
                 var cred = TestCredentialHelper.CreateV1ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1);
                 cred.LastUsed = hasBeenUsedInLastDays
@@ -1339,7 +1339,7 @@ namespace NuGetGallery.Authentication
                 // Arrange
                 var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "abc123", "Test User");
                 cred.Expires = hasExpired ? DateTime.UtcNow - TimeSpan.FromDays(1) : DateTime.UtcNow + TimeSpan.FromDays(1);
-                 
+
                 var msftAuther = new MicrosoftAccountAuthenticator();
                 var authService = Get<AuthenticationService>();
 
@@ -1427,7 +1427,7 @@ namespace NuGetGallery.Authentication
                 var newScopes =
                     Enumerable.Range(1, 2)
                         .Select(
-                            i => new Scope { AllowedAction = NuGetScopes.PackageUnlist, Key = i*10, Subject = "otherpackage" + i }).ToList();
+                            i => new Scope { AllowedAction = NuGetScopes.PackageUnlist, Key = i * 10, Subject = "otherpackage" + i }).ToList();
 
                 cred.Scopes = credscopes;
 

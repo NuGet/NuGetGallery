@@ -13,13 +13,12 @@ using NuGet.Packaging;
 using NuGetGallery.Framework;
 using NuGetGallery.Packaging;
 using Xunit;
+using NuGetGallery.TestUtils;
 
 namespace NuGetGallery
 {
     public class ReflowPackageServiceFacts
     {
-        private static readonly string _packageHashForTests = "NzMzMS1QNENLNEczSDQ1SA==";
-
         private static ReflowPackageService CreateService(
             Mock<IEntitiesContext> entitiesContext = null,
             Mock<PackageService> packageService = null,
@@ -54,7 +53,7 @@ namespace NuGetGallery
             public async Task ReturnsNullWhenPackageNotFound()
             {
                 // Arrange
-                var package = CreateTestPackage();
+                var package = PackageServiceUtility.CreateTestPackage();
 
                 var packageService = SetupPackageService(package);
                 var entitiesContext = SetupEntitiesContext();
@@ -76,7 +75,7 @@ namespace NuGetGallery
             public async Task RetrievesOriginalPackageBinary()
             {
                 // Arrange
-                var package = CreateTestPackage();
+                var package = PackageServiceUtility.CreateTestPackage();
 
                 var packageService = SetupPackageService(package);
                 var entitiesContext = SetupEntitiesContext();
@@ -98,7 +97,7 @@ namespace NuGetGallery
             public async Task RetrievesOriginalPackageMetadata()
             {
                 // Arrange
-                var package = CreateTestPackage();
+                var package = PackageServiceUtility.CreateTestPackage();
 
                 var packageService = SetupPackageService(package);
                 var entitiesContext = SetupEntitiesContext();
@@ -120,7 +119,7 @@ namespace NuGetGallery
             public async Task RemovesOriginalFrameworks_Authors_Dependencies()
             {
                 // Arrange
-                var package = CreateTestPackage();
+                var package = PackageServiceUtility.CreateTestPackage();
 
                 var packageService = SetupPackageService(package);
                 var entitiesContext = SetupEntitiesContext();
@@ -142,7 +141,7 @@ namespace NuGetGallery
             public async Task UpdatesPackageMetadata()
             {
                 // Arrange
-                var package = CreateTestPackage();
+                var package = PackageServiceUtility.CreateTestPackage();
 
                 var packageService = SetupPackageService(package);
                 var entitiesContext = SetupEntitiesContext();
@@ -196,7 +195,7 @@ namespace NuGetGallery
             public async Task UpdatesPackageLastEdited()
             {
                 // Arrange
-                var package = CreateTestPackage();
+                var package = PackageServiceUtility.CreateTestPackage();
                 var lastEdited = package.LastEdited;
 
                 var packageService = SetupPackageService(package);
@@ -221,7 +220,7 @@ namespace NuGetGallery
             public async Task DoesNotUpdatePackageListed(bool listed)
             {
                 // Arrange
-                var package = CreateTestPackage();
+                var package = PackageServiceUtility.CreateTestPackage();
                 package.Listed = listed;
 
                 var packageService = SetupPackageService(package);
@@ -244,7 +243,7 @@ namespace NuGetGallery
             public async Task CallsUpdateIsLatestAsync()
             {
                 // Arrange
-                var package = CreateTestPackage();
+                var package = PackageServiceUtility.CreateTestPackage();
 
                 var packageService = SetupPackageService(package);
                 var entitiesContext = SetupEntitiesContext();
@@ -261,42 +260,6 @@ namespace NuGetGallery
                 // Assert
                 packageService.Verify(s => s.UpdateIsLatestAsync(package.PackageRegistration, false), Times.Once);
             }
-        }
-
-        private static Package CreateTestPackage()
-        {
-            var packageRegistration = new PackageRegistration();
-            packageRegistration.Id = "test";
-
-            var framework = new PackageFramework();
-            var author = new PackageAuthor { Name = "maarten" };
-            var dependency = new PackageDependency { Id = "other", VersionSpec = "1.0.0" };
-
-            var package = new Package
-            {
-                Key = 123,
-                PackageRegistration = packageRegistration,
-                Version = "1.0.0",
-                Hash = _packageHashForTests,
-                SupportedFrameworks = new List<PackageFramework>
-                {
-                    framework
-                },
-                FlattenedAuthors = "maarten",
-                Authors = new List<PackageAuthor>
-                {
-                    author
-                },
-                Dependencies = new List<PackageDependency>
-                {
-                    dependency
-                },
-                User = new User("test")
-            };
-
-            packageRegistration.Packages.Add(package);
-
-            return package;
         }
 
         private static Mock<PackageService> SetupPackageService(Package package)

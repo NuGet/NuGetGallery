@@ -24,7 +24,7 @@ namespace NuGetGallery
                 Fakes = new Fakes();
 
                 StubCuratedFeed = new CuratedFeed
-                    { Key = 0, Name = "aName", Managers = new HashSet<User>(new[] { Fakes.User }) };
+                { Key = 0, Name = "aName", Managers = new HashSet<User>(new[] { Fakes.User }) };
                 StubCuratedFeedService = new Mock<ICuratedFeedService>();
 
                 SetOwinContextOverride(Fakes.CreateOwinContext());
@@ -189,14 +189,15 @@ namespace NuGetGallery
                     Id = "RedPill",
                     Key = 2,
                     DownloadCount = 0,
-                    Packages = new []
+                    Packages = new[]
                     {
                         new Package
                         {
+                            Version = "1.0.0",
                             Key = 89932,
                         }
                     },
-                    Owners = new []
+                    Owners = new[]
                     {
                         new User
                         {
@@ -208,7 +209,7 @@ namespace NuGetGallery
 
                 redPill.Packages.ElementAt(0).PackageRegistration = redPill;
 
-                var mockPackageRegistrations = new [] { redPill }.AsQueryable();
+                var mockPackageRegistrations = new[] { redPill }.AsQueryable();
                 var mockPackages = new[] { redPill.Packages.ElementAt(0) }.AsQueryable();
 
                 controller.StubCuratedFeedService

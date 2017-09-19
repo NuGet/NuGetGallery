@@ -48,6 +48,20 @@
         </div>
     </div>
 
+    @if (!Model.Items.Any())
+    {
+        <div class="row">
+            <div class="col-xs-12 clearfix">
+                <div class="panel panel-default" aria-expanded="true" >
+                    <div class="panel-body">
+                        NuGet package search works the same on nuget.org, from the NuGet CLI, and within the NuGet Package Manager extension in Visual Studio. <br />
+                        Check out our <strong><a href="https://docs.microsoft.com/nuget/consume-packages/finding-and-choosing-packages#search-syntax">Search Syntax</a></strong>.
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
     <div class="list-packages" role="list">
         @foreach (var package in Model.Items)
         {

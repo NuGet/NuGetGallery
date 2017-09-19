@@ -46,9 +46,10 @@ namespace NuGetGallery
         /// <param name="nugetPackage">The package to be created.</param>
         /// <param name="packageStreamMetadata">The package stream's metadata.</param>
         /// <param name="user">The owner of the package</param>
+        /// <param name="isVerified">Mark the package registration as verified or not</param>
         /// <param name="commitChanges">Specifies whether to commit the changes to database.</param>
         /// <returns>The created package entity.</returns>
-        Task<Package> CreatePackageAsync(PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool commitChanges = true);
+        Task<Package> CreatePackageAsync(PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool isVerified, bool commitChanges = true);
 
         Package EnrichPackageFromNuGetPackage(Package package, PackageArchiveReader packageArchive, PackageMetadata packageMetadata, PackageStreamMetadata packageStreamMetadata, User user);
 
@@ -86,5 +87,7 @@ namespace NuGetGallery
         void EnsureValid(PackageArchiveReader packageArchiveReader);
 
         Task IncrementDownloadCountAsync(string id, string version, bool commitChanges = true);
+
+        Task UpdatePackageVerifiedStatusAsync(IReadOnlyCollection<PackageRegistration> package, bool isVerified);
     }
 }
