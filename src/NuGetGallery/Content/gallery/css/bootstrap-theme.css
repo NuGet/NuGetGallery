@@ -254,8 +254,11 @@ img.package-icon {
   margin-left: 20px;
 }
 .break-word {
-  word-break: break-all;
+  word-break: normal;
   word-break: break-word;
+  word-wrap: break-word;
+
+  overflow-wrap: break-word;
 }
 #edit-metadata-form-container .loading:after {
   display: inline-block;
@@ -325,13 +328,16 @@ img.package-icon {
   padding-top: 15px;
   padding-bottom: 15px;
   font-size: 15px;
+  word-break: normal;
+  word-break: break-word;
+  word-wrap: break-word;
+
+  overflow-wrap: break-word;
 }
 .list-packages .package .package-header .package-title {
   font-size: 24px;
   font-weight: 300;
   line-height: .9;
-  word-break: break-all;
-  word-break: break-word;
 }
 .list-packages .package .package-header .reserved-indicator {
   width: 20px;
@@ -361,8 +367,6 @@ img.package-icon {
   margin-top: 8px;
   line-height: 20px;
   color: #000;
-  word-break: break-all;
-  word-break: break-word;
 }
 @media (min-width: 768px) {
   .list-packages .package .package-list {
@@ -386,8 +390,11 @@ img.package-icon {
   vertical-align: middle;
 }
 .user-package-list .manage-package-listing .package-id {
-  word-break: break-all;
+  word-break: normal;
   word-break: break-word;
+  word-wrap: break-word;
+
+  overflow-wrap: break-word;
 }
 @media (min-width: 768px) {
   .user-package-list .manage-package-listing .package-controls {
@@ -602,8 +609,11 @@ img.package-icon {
   width: 25px;
 }
 .page-package-details .package-details-main {
-  word-break: break-all;
+  word-break: normal;
   word-break: break-word;
+  word-wrap: break-word;
+
+  overflow-wrap: break-word;
 }
 .page-package-details .package-details-info .ms-Icon-ul li {
   margin-bottom: 15px;
@@ -796,8 +806,11 @@ img.package-icon {
   margin-bottom: 33px;
 }
 .page-list-packages .row-heading .cell-heading h1 {
-  word-break: break-all;
+  word-break: normal;
   word-break: break-word;
+  word-wrap: break-word;
+
+  overflow-wrap: break-word;
 }
 @media (min-width: 992px) {
   .page-list-packages .row-heading {
