@@ -800,6 +800,10 @@
     <Compile Include="Migrations\201709111714021_AddPackageStatusKey.Designer.cs">
       <DependentUpon>201709111714021_AddPackageStatusKey.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201709151848295_AddValidationSchema.cs" />
+    <Compile Include="Migrations\201709151848295_AddValidationSchema.Designer.cs">
+      <DependentUpon>201709151848295_AddValidationSchema.cs</DependentUpon>
+    </Compile>
     <Compile Include="RequestModels\ReadMeRequest.cs" />
     <Compile Include="Security\RequireSecurePushForCoOwnersPolicy.cs" />
     <Compile Include="Security\SecurePushSubscription.cs" />
@@ -1810,6 +1814,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201709111714021_AddPackageStatusKey.resx">
       <DependentUpon>201709111714021_AddPackageStatusKey.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201709151848295_AddValidationSchema.resx">
+      <DependentUpon>201709151848295_AddValidationSchema.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
