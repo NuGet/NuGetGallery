@@ -54,6 +54,7 @@ namespace NuGetGallery
                 Summary = request.Summary,
                 Tags = request.Tags,
                 Title = request.VersionTitle,
+                ReadMeState = request.ReadMeState,
 
                 // Other
                 Package = p,

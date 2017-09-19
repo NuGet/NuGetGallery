@@ -34,104 +34,96 @@ namespace NuGetGallery
 
         private static string GetProtocol(UrlHelper url)
         {
-            return url.RequestContext.HttpContext.Request.IsSecureConnection ? Uri.UriSchemeHttps : Uri.UriSchemeHttp;
+            if (_configuration.Current.RequireSSL || url.RequestContext.HttpContext.Request.IsSecureConnection)
+                return Uri.UriSchemeHttps;
+
+            return Uri.UriSchemeHttp;
         }
-                
+
         internal static void SetConfigurationService(IGalleryConfigurationService configurationService)
         {
             _configuration = configurationService;
         }
 
-        private static string GetConfiguredSiteHostName(UrlHelper url)
+        internal static string GetSiteRoot(bool useHttps)
         {
-            var siteRoot = _configuration.GetSiteRoot(useHttps: url.RequestContext.HttpContext.Request.IsSecureConnection);
+            return _configuration.GetSiteRoot(useHttps);
+        }
+
+        private static string GetConfiguredSiteHostName()
+        {
+            // It doesn't matter which value we pass on here for the useHttps parameter.
+            // We're just interested in the host, which is the same for both, 
+            // as it all results from the same 'NuGetGallery.SiteRoot' URL value.
+            var siteRoot = GetSiteRoot(useHttps: true);
             return new Uri(siteRoot).Host;
         }
 
-        public static string Home(this UrlHelper url)
+        public static string Home(this UrlHelper url, bool relativeUrl = true)
         {
-            return url.RouteUrl(
-                RouteName.Home,
-                routeValues: null,
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+            return GetRouteLink(url, RouteName.Home, relativeUrl);
         }
 
-        public static string Statistics(this UrlHelper url)
+        public static string Statistics(this UrlHelper url, bool relativeUrl = true)
         {
-            return url.RouteUrl(
-                RouteName.StatisticsHome,
-                routeValues: null,
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+            return GetRouteLink(url, RouteName.StatisticsHome, relativeUrl);
         }
 
-        public static string StatisticsAllPackageDownloads(this UrlHelper url)
+        public static string StatisticsAllPackageDownloads(this UrlHelper url, bool relativeUrl = true)
         {
-            return url.RouteUrl(
-                RouteName.StatisticsPackages,
-                routeValues: null,
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+            return GetRouteLink(url, RouteName.StatisticsPackages, relativeUrl);
         }
 
-        public static string StatisticsAllPackageVersionDownloads(this UrlHelper url)
+        public static string StatisticsAllPackageVersionDownloads(this UrlHelper url, bool relativeUrl = true)
         {
-            return url.RouteUrl(
-                RouteName.StatisticsPackageVersions,
-                routeValues: null,
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+            return GetRouteLink(url, RouteName.StatisticsPackageVersions, relativeUrl);
         }
 
-        public static string StatisticsPackageDownloadByVersion(this UrlHelper url, string id)
+        public static string StatisticsPackageDownloadByVersion(this UrlHelper url, string id, bool relativeUrl = true)
         {
-            string result = url.RouteUrl(
+            var result = GetRouteLink(
+                url,
                 RouteName.StatisticsPackageDownloadsByVersion,
+                relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
                     { "id", id }
-                },
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+                });
 
             return result + "?groupby=Version";
         }
 
-        public static string StatisticsPackageDownloadByVersionReport(this UrlHelper url)
+        public static string StatisticsPackageDownloadByVersionReport(this UrlHelper url, bool relativeUrl = true)
         {
-            return url.RouteUrl(
-                RouteName.StatisticsPackageDownloadsByVersionReport,
-                routeValues: null,
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+            return GetRouteLink(url, RouteName.StatisticsPackageDownloadsByVersionReport, relativeUrl);
         }
 
-        public static string StatisticsPackageDownloadsDetail(this UrlHelper url, string id, string version)
+        public static string StatisticsPackageDownloadsDetail(this UrlHelper url, string id, string version, bool relativeUrl = true)
         {
-            string result = url.RouteUrl(
-                RouteName.StatisticsPackageDownloadsDetail,
+            var result = GetRouteLink(
+                url, 
+                RouteName.StatisticsPackageDownloadsDetail, 
+                relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
                     { "id", id },
                     { "version", version }
-                },
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+                });
 
             return result + "?groupby=ClientName";
         }
 
-        public static string StatisticsPackageDownloadsDetailReport(this UrlHelper url)
+        public static string StatisticsPackageDownloadsDetailReport(this UrlHelper url, bool relativeUrl = true)
         {
-            return url.RouteUrl(
-                RouteName.StatisticsPackageDownloadsDetailReport,
-                routeValues: null,
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+            return GetRouteLink(url, RouteName.StatisticsPackageDownloadsDetailReport, relativeUrl);
         }
 
-        public static string PackageList(this UrlHelper url, int page, string q, bool includePrerelease)
+        public static string PackageList(
+            this UrlHelper url,
+            int page,
+            string q,
+            bool includePrerelease,
+            bool relativeUrl = true)
         {
             var routeValues = new RouteValueDictionary();
 
@@ -150,621 +142,578 @@ namespace NuGetGallery
                 routeValues["prerel"] = "false";
             }
 
-            return url.Action(
-                actionName: "ListPackages",
-                controllerName: "Packages",
-                routeValues: routeValues,
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+            return GetActionLink(
+                url,
+                "ListPackages",
+                "Packages",
+                relativeUrl,
+                routeValues);
         }
 
-        public static string CuratedPackage(this UrlHelper url, string curatedFeedName, string id, string scheme = null)
+        public static string CuratedPackage(
+            this UrlHelper url,
+            string curatedFeedName,
+            string id,
+            bool relativeUrl = true)
         {
-            return url.RouteUrl(
+            return GetRouteLink(
+                url,
                 RouteName.CuratedPackage,
+                relativeUrl,
                 new RouteValueDictionary
                 {
                     { "curatedFeedName", curatedFeedName },
                     { "curatedPackageId", id }
-                },
-                protocol: scheme ?? GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+                });
         }
 
-        public static string CuratedPackageList(this UrlHelper url, int page, string q, string curatedFeedName)
+        public static string CuratedPackageList(
+            this UrlHelper url,
+            int page,
+            string q,
+            string curatedFeedName,
+            bool relativeUrl = true)
         {
-            return url.Action(
-                actionName: "ListPackages",
-                controllerName: "CuratedFeeds",
+            return GetActionLink(
+                url,
+                "ListPackages",
+                "CuratedFeeds",
+                relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
                     { "q", q },
                     { "page", page },
                     { "curatedFeedName", curatedFeedName }
-                },
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
-
+                });
         }
 
-        public static string CuratedFeed(this UrlHelper url, string curatedFeedName)
+        public static string CuratedFeed(this UrlHelper url, string curatedFeedName, bool relativeUrl = true)
         {
-            return url.RouteUrl(
-                RouteName.CuratedFeed,
+            return GetRouteLink(
+                url, 
+                RouteName.CuratedFeed, 
+                relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
                     { "name", curatedFeedName }
-                },
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+                });
         }
 
-        public static string PackageList(this UrlHelper url)
+        public static string PackageList(this UrlHelper url, bool relativeUrl = true)
         {
-            return url.RouteUrl(
-                RouteName.ListPackages,
-                routeValues: null,
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+            return GetRouteLink(url, RouteName.ListPackages, relativeUrl);
         }
 
-        public static string UndoPendingEdits(this UrlHelper url, IPackageVersionModel package)
+        public static string UndoPendingEdits(
+            this UrlHelper url,
+            IPackageVersionModel package,
+            bool relativeUrl = true)
         {
-            return url.Action(
-                actionName: "UndoPendingEdits",
-                controllerName: "Packages",
+            return GetActionLink(
+                url,
+                "UndoPendingEdits",
+                "Packages",
+                relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
                     { "id", package.Id },
                     { "version", package.Version }
-                },
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+                });
         }
 
-        public static string Package(this UrlHelper url, string id)
+        public static string Package(this UrlHelper url, string id, bool relativeUrl = true)
         {
-            return url.Package(id, null, scheme: null);
+            return url.Package(id, version: null, relativeUrl: relativeUrl);
         }
 
-        public static string Package(this UrlHelper url, string id, string version, string scheme = null)
+        public static string Package(
+            this UrlHelper url,
+            string id,
+            string version,
+            bool relativeUrl = true)
         {
-            string result = url.RouteUrl(
+            string result = GetRouteLink(
+                url,
                 RouteName.DisplayPackage,
-                new RouteValueDictionary
+                relativeUrl,
+                routeValues: new RouteValueDictionary
                 {
                     { "id", id },
                     { "version", version }
-                },
-                protocol: scheme ?? GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+                });
 
             // Ensure trailing slashes for versionless package URLs, as a fix for package filenames that look like known file extensions
             return version == null ? EnsureTrailingSlash(result) : result;
         }
 
-        public static string Package(this UrlHelper url, Package package)
+        public static string Package(this UrlHelper url, Package package, bool relativeUrl = true)
         {
-            return url.Package(package.PackageRegistration.Id, package.NormalizedVersion);
+            return url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl);
         }
 
-        public static string Package(this UrlHelper url, IPackageVersionModel package)
+        public static string Package(this UrlHelper url, IPackageVersionModel package, bool relativeUrl = true)
         {
-            return url.Package(package.Id, package.Version);
+            return url.Package(package.Id, package.Version, relativeUrl);
         }
 
-        public static string Package(this UrlHelper url, PackageRegistration package)
+        public static string Package(this UrlHelper url, PackageRegistration package, bool relativeUrl = true)
         {
-            return url.Package(package.Id);
+            return url.Package(package.Id, relativeUrl);
         }
 
         public static string PackageDefaultIcon(this UrlHelper url)
         {
-            return url.Home().TrimEnd('/') + VirtualPathUtility.ToAbsolute("~/Content/Images/packageDefaultIcon-50x50.png", url.RequestContext.HttpContext.Request.ApplicationPath);
+            return url.Home(relativeUrl: false).TrimEnd('/')
+                + VirtualPathUtility.ToAbsolute("~/Content/Images/packageDefaultIcon-50x50.png", url.RequestContext.HttpContext.Request.ApplicationPath);
         }
 
-        public static string PackageDownload(this UrlHelper url, int feedVersion, string id, string version)
+        public static string PackageDownload(
+            this UrlHelper url,
+            int feedVersion,
+            string id,
+            string version,
+            bool relativeUrl = true)
         {
-            string result = url.RouteUrl(
+            string result = GetRouteLink(
+                url,
                 routeName: $"v{feedVersion}{RouteName.DownloadPackage}",
+                relativeUrl: false,
                 routeValues: new RouteValueDictionary
                 {
                     { "Id", id },
                     { "Version", version }
-                },
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+                });
 
             // Ensure trailing slashes for versionless package URLs, as a fix for package filenames that look like known file extensions
             return version == null ? EnsureTrailingSlash(result) : result;
         }
 
-        public static string ExplorerDeepLink(this UrlHelper url, int feedVersion, string id, string version)
+        public static string ExplorerDeepLink(
+            this UrlHelper url,
+            int feedVersion,
+            string id,
+            string version)
         {
-            string urlResult = url.RouteUrl(
+            var urlResult = GetRouteLink(
+                url,
                 routeName: $"v{feedVersion}{RouteName.DownloadPackage}",
+                relativeUrl: false,
                 routeValues: new RouteValueDictionary
                 {
                     { "Id", id }
-                },
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+                });
 
             urlResult = EnsureTrailingSlash(urlResult);
 
-            return String.Format(CultureInfo.InvariantCulture, PackageExplorerDeepLink, urlResult, id, version);
+            return string.Format(CultureInfo.InvariantCulture, PackageExplorerDeepLink, urlResult, id, version);
         }
 
-        public static string LogOn(this UrlHelper url)
+        public static string LogOn(this UrlHelper url, bool relativeUrl = true)
         {
-            return url.RouteUrl(
+            return GetRouteLink(
+                url,
                 RouteName.Authentication,
+                relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
-                    { "action", "LogOn" }
-                },
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+                    { "action", "LogOn" },
+                });
         }
 
-        public static string LogOn(this UrlHelper url, string returnUrl)
+        public static string LogOn(this UrlHelper url, string returnUrl, bool relativeUrl = true)
         {
-            return url.RouteUrl(
+            return GetRouteLink(
+                url,
                 RouteName.Authentication,
+                relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
                     { "action", "LogOn" },
                     { "returnUrl", returnUrl }
-                },
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+                });
         }
 
-        public static string SignUp(this UrlHelper url)
+        public static string SignUp(this UrlHelper url, bool relativeUrl = true)
         {
-            return url.RouteUrl(
+            return GetRouteLink(
+                url,
                 RouteName.Authentication,
+                relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
                     { "action", "SignUp" }
-                },
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+                });
         }
 
-        public static string SignUp(this UrlHelper url, string returnUrl)
+        public static string SignUp(this UrlHelper url, string returnUrl, bool relativeUrl = true)
         {
-            return url.RouteUrl(
+            return GetRouteLink(
+                url,
                 RouteName.Authentication,
+                relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
                     { "action", "SignUp" },
                     { "returnUrl", returnUrl }
-                },
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+                });
         }
 
-        public static string ConfirmationRequired(this UrlHelper url)
+        public static string ConfirmationRequired(this UrlHelper url, bool relativeUrl = true)
         {
-            return url.Action(
-                "ConfirmationRequired",
-                controllerName: "Users",
-                routeValues: null,
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+            return GetActionLink(url, "ConfirmationRequired", "Users", relativeUrl);
         }
 
-        public static string LogOff(this UrlHelper url)
+        public static string LogOff(this UrlHelper url, bool relativeUrl = true)
         {
             string returnUrl = url.Current();
             // If we're logging off from the Admin Area, don't set a return url
-            if (String.Equals(url.RequestContext.RouteData.DataTokens["area"].ToStringOrNull(), "Admin", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(url.RequestContext.RouteData.DataTokens["area"].ToStringOrNull(), "Admin", StringComparison.OrdinalIgnoreCase))
             {
-                returnUrl = String.Empty;
+                returnUrl = string.Empty;
             }
-            return url.Action(
+
+            return GetActionLink(
+                url,
                 "LogOff",
                 "Authentication",
+                relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
                     { "returnUrl", returnUrl },
                     { "area", string.Empty }
-                },
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+                });
         }
 
-        public static string Register(this UrlHelper url)
+        public static string Register(this UrlHelper url, bool relativeUrl = true)
         {
-            return url.Action(
-                actionName: "LogOn",
-                controllerName: "Authentication",
-                routeValues: null,
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+            return GetActionLink(url, "LogOn", "Authentication", relativeUrl);
         }
 
-        public static string Search(this UrlHelper url, string searchTerm)
+        public static string Search(this UrlHelper url, string searchTerm, bool relativeUrl = true)
         {
-            return url.RouteUrl(
-                RouteName.ListPackages,
+            return GetRouteLink(
+                url, 
+                RouteName.ListPackages, 
+                relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
                     { "q", searchTerm }
-                },
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+                });
         }
 
-        public static string UploadPackage(this UrlHelper url)
+        public static string UploadPackage(this UrlHelper url, bool relativeUrl = true)
         {
-            return url.RouteUrl(
-                RouteName.UploadPackage,
-                routeValues: null,
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+            return GetRouteLink(url, RouteName.UploadPackage, relativeUrl);
         }
 
-        public static string UploadPackageProgress(this UrlHelper url)
+        public static string UploadPackageProgress(this UrlHelper url, bool relativeUrl = true)
         {
-            return url.RouteUrl(
-                RouteName.UploadPackageProgress,
-                routeValues: null,
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+            return GetRouteLink(url, RouteName.UploadPackageProgress, relativeUrl);
         }
 
-        public static string User(this UrlHelper url, User user, int page = 1, string scheme = null)
+        public static string User(
+            this UrlHelper url,
+            User user,
+            int page = 1,
+            bool relativeUrl = true)
         {
-            var configuredSiteHostName = GetConfiguredSiteHostName(url);
-            if (page == 1)
+            var routeValues = new RouteValueDictionary
             {
-                return url.Action(
-                    actionName: "Profiles",
-                    controllerName: "Users",
-                    routeValues: new RouteValueDictionary
-                    {
-                        { "username", user.Username.TrimEnd() }
-                    },
-                    protocol: scheme ?? GetProtocol(url),
-                    hostName: configuredSiteHostName);
-            }
-            else
+                { "username", user.Username.TrimEnd() }
+            };
+
+            if (page != 1)
             {
-                return url.Action(
-                    actionName: "Profiles",
-                    controllerName: "Users",
-                    routeValues: new RouteValueDictionary
-                    {
-                        { "username", user.Username.TrimEnd() },
-                        { "page", page }
-                    },
-                    protocol: scheme ?? GetProtocol(url),
-                    hostName: configuredSiteHostName);
+                routeValues.Add("page", page);
             }
+
+            return GetActionLink(url, "Profiles", "Users", relativeUrl, routeValues);
         }
 
-        public static string User(this UrlHelper url, string username, string scheme = null)
+        public static string User(
+            this UrlHelper url,
+            string username,
+            string scheme = null,
+            bool relativeUrl = true)
         {
-            return url.Action(
-                actionName: "Profiles",
-                controllerName: "Users",
+            return GetActionLink(
+                url,
+                "Profiles",
+                "Users",
+                relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
                     { "username", username }
-                },
-                protocol: scheme ?? GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+                });
         }
 
-        public static string EditPackage(this UrlHelper url, string id, string version)
+        public static string EditPackage(
+            this UrlHelper url,
+            string id,
+            string version,
+            bool relativeUrl = true)
         {
-            if (String.IsNullOrEmpty(version))
+            if (string.IsNullOrEmpty(version))
             {
                 return EnsureTrailingSlash(
-                    url.RouteUrl(
+                    GetRouteLink(
+                        url,
                         RouteName.PackageAction,
+                        relativeUrl,
                         routeValues: new RouteValueDictionary
                         {
                             { "action", "Edit" },
                             { "id", id }
-                        },
-                        protocol: GetProtocol(url),
-                        hostName: GetConfiguredSiteHostName(url)));
+                        }));
             }
 
-            return url.RouteUrl(
+            return GetRouteLink(
+                url,
                 RouteName.PackageVersionAction,
+                relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
                     { "action", "Edit" },
                     { "id", id },
                     { "version", version }
-                },
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+                });
         }
 
-        public static string ReflowPackage(this UrlHelper url, IPackageVersionModel package)
+        public static string ReflowPackage(
+            this UrlHelper url,
+            IPackageVersionModel package,
+            bool relativeUrl = true)
         {
-            return url.Action(
-                actionName: "Reflow",
-                controllerName: "Packages",
+            return GetActionLink(
+                url,
+                "Reflow",
+                "Packages",
+                relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
                     { "id", package.Id },
                     { "version", package.Version }
-                },
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+                });
         }
 
-        public static string DeletePackage(this UrlHelper url, IPackageVersionModel package)
+        public static string DeletePackage(
+            this UrlHelper url,
+            IPackageVersionModel package,
+            bool relativeUrl = true)
         {
-            return url.Action(
-                actionName: "Delete",
-                controllerName: "Packages",
+            return GetActionLink(
+                url,
+                "Delete",
+                "Packages",
+                relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
                     { "id", package.Id },
                     { "version", package.Version }
-                },
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+                });
         }
 
-        public static string AccountSettings(this UrlHelper url, string scheme = null)
+        public static string AccountSettings(
+            this UrlHelper url,
+            bool relativeUrl = true)
         {
-            return url.Action(
-                actionName: "Account",
-                controllerName: "Users",
-                routeValues: null,
-                protocol: scheme ?? GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+            return GetActionLink(url, "Account", "Users", relativeUrl);
         }
 
-        public static string ReportPackage(this UrlHelper url, string id, string version, string scheme = null)
+        public static string ReportPackage(
+            this UrlHelper url,
+            string id,
+            string version,
+            bool relativeUrl = true)
         {
-            return url.Action(
-                actionName: "ReportMyPackage",
-                controllerName: "Packages",
+            return GetActionLink(
+                url,
+                "ReportMyPackage",
+                "Packages",
+                relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
                     { "id", id },
                     { "version", version }
-                },
-                protocol: scheme ?? GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+                });
         }
 
-        public static string ReportAbuse(this UrlHelper url, string id, string version, string scheme = null)
+        public static string ReportAbuse(
+            this UrlHelper url,
+            string id,
+            string version,
+            bool relativeUrl = true)
         {
-            return url.Action(
-                actionName: "ReportAbuse",
-                controllerName: "Packages",
+            return GetActionLink(
+                url,
+                "ReportAbuse",
+                "Packages",
+                relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
                     { "id", id },
                     { "version", version }
-                },
-                protocol: scheme ?? GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+                });
         }
 
-        public static string LinkExternalAccount(this UrlHelper url, string returnUrl)
+        public static string LinkExternalAccount(this UrlHelper url, string returnUrl, bool relativeUrl = true)
         {
-            return url.Action(
-                actionName: "LinkExternalAccount",
-                controllerName: "Authentication",
+            return GetActionLink(
+                url,
+                "LinkExternalAccount",
+                "Authentication",
+                relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
                     { "ReturnUrl", returnUrl }
-                },
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+                });
         }
 
-        public static string ManageMyApiKeys(this UrlHelper url)
+        public static string ManageMyApiKeys(this UrlHelper url, bool relativeUrl = true)
         {
-            return url.Action(
-                actionName: "ApiKeys",
-                controllerName: "Users",
-                routeValues: null,
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+            return GetActionLink(url, "ApiKeys", "Users", relativeUrl);
         }
 
-        public static string ManageMyPackages(this UrlHelper url)
+        public static string ManageMyPackages(this UrlHelper url, bool relativeUrl = true)
         {
-            return url.Action(
-                actionName: "Packages",
-                controllerName: "Users",
-                routeValues: null,
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+            return GetActionLink(url, "Packages", "Users", relativeUrl);
         }
 
-        public static string ManagePackageOwners(this UrlHelper url, IPackageVersionModel package)
+        public static string ManagePackageOwners(this UrlHelper url, IPackageVersionModel package, bool relativeUrl = true)
         {
-            return url.Action(
-                actionName: "ManagePackageOwners",
-                controllerName: "Packages",
+            return GetActionLink(
+                url,
+                "ManagePackageOwners",
+                "Packages",
+                relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
                     { "id", package.Id}
-                },
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+                });
         }
 
-        public static string GetAddPackageOwnerConfirmation(this UrlHelper url)
+        public static string GetAddPackageOwnerConfirmation(this UrlHelper url, bool relativeUrl = true)
         {
-            return url.Action(
-                "GetAddPackageOwnerConfirmation", 
-                "JsonApi",
-                routeValues: null,
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+            return GetActionLink(url, "GetAddPackageOwnerConfirmation", "JsonApi", relativeUrl);
         }
 
-        public static string GetPackageOwners(this UrlHelper url)
+        public static string GetPackageOwners(this UrlHelper url, bool relativeUrl = true)
         {
-            return url.Action(
-                "GetPackageOwners",                 
-                "JsonApi",
-                routeValues: null,
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+            return GetActionLink(url, "GetPackageOwners", "JsonApi", relativeUrl);
         }
 
-        public static string AddPackageOwner(this UrlHelper url)
+        public static string AddPackageOwner(this UrlHelper url, bool relativeUrl = true)
         {
-            return url.Action(
-                "AddPackageOwner", 
-                "JsonApi",
-                routeValues: null,
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+            return GetActionLink(url, "AddPackageOwner", "JsonApi", relativeUrl);
         }
 
-        public static string RemovePackageOwner(this UrlHelper url)
+        public static string RemovePackageOwner(this UrlHelper url, bool relativeUrl = true)
         {
-            return url.Action(
-                "RemovePackageOwner", 
-                "JsonApi",
-                routeValues: null,
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+            return GetActionLink(url, "RemovePackageOwner", "JsonApi", relativeUrl);
         }
 
-        public static string ConfirmationUrl(this UrlHelper url, string action, string controller, string username, string token)
+        public static string ConfirmationUrl(
+            this UrlHelper url,
+            string action,
+            string controller,
+            string username,
+            string token,
+            bool relativeUrl = true)
         {
-            return ConfirmationUrl(url, action, controller, username, token, null);
+            return ConfirmationUrl(url, action, controller, username, token, routeValues: null, relativeUrl: relativeUrl);
         }
 
-        public static string ConfirmationUrl(this UrlHelper url, string action, string controller, string username, string token, object routeValues)
+        public static string ConfirmationUrl(
+            this UrlHelper url,
+            string action,
+            string controller,
+            string username,
+            string token,
+            object routeValues,
+            bool relativeUrl = true)
         {
             var rvd = routeValues == null ? new RouteValueDictionary() : new RouteValueDictionary(routeValues);
             rvd["username"] = username;
             rvd["token"] = token;
-            return url.Action(
-                action,
-                controller,
-                rvd,
-                url.RequestContext.HttpContext.Request.Url.Scheme,
-                GetConfiguredSiteHostName(url));
+
+            return GetActionLink(url, action, controller, relativeUrl, rvd);
         }
 
-        public static string VerifyPackage(this UrlHelper url)
+        public static string VerifyPackage(this UrlHelper url, bool relativeUrl = true)
         {
-            return url.Action(
-                actionName: "VerifyPackage",
-                controllerName: "Packages",
-                routeValues: null,
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+            return GetActionLink(url, "VerifyPackage", "Packages", relativeUrl);
         }
 
-        public static string CancelUpload(this UrlHelper url)
+        public static string CancelUpload(this UrlHelper url, bool relativeUrl = true)
         {
-            return url.Action(
-                actionName: "CancelUpload",
-                controllerName: "Packages",
-                routeValues: null,
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+            return GetActionLink(url, "CancelUpload", "Packages", relativeUrl);
         }
 
-        public static string Downloads(this UrlHelper url)
+        public static string Downloads(this UrlHelper url, bool relativeUrl = true)
         {
-            return url.RouteUrl(
-                RouteName.Downloads,
-                routeValues: null,
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+            return GetRouteLink(url, RouteName.Downloads, relativeUrl);
         }
 
-        public static string Contact(this UrlHelper url)
+        public static string Contact(this UrlHelper url, bool relativeUrl = true)
         {
-            return url.Action(
-                actionName: "Contact",
-                controllerName: "Pages",
-                routeValues: null,
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+            return GetActionLink(url, "Contact", "Pages", relativeUrl);
         }
 
-        public static string ContactOwners(this UrlHelper url, string id)
+        public static string ContactOwners(this UrlHelper url, string id, bool relativeUrl = true)
         {
-            return url.Action(
-                actionName: "ContactOwners",
-                controllerName: "Packages",
+            return GetActionLink(
+                url,
+                "ContactOwners",
+                "Packages",
+                relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
                     { "id", id }
-                },
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+                });
         }
 
-        public static string Terms(this UrlHelper url)
+        public static string Terms(this UrlHelper url, bool relativeUrl = true)
         {
-            return url.Action(
-                actionName: "Terms",
-                controllerName: "Pages",
-                routeValues: null,
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+            return GetActionLink(url, "Terms", "Pages", relativeUrl);
         }
 
-        public static string Privacy(this UrlHelper url)
+        public static string Privacy(this UrlHelper url, bool relativeUrl = true)
         {
-            return url.Action(
-                actionName: "Privacy",
-                controllerName: "Pages",
-                routeValues: null,
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+            return GetActionLink(url, "Privacy", "Pages", relativeUrl);
         }
 
-        public static string About(this UrlHelper url)
+        public static string About(this UrlHelper url, bool relativeUrl = true)
         {
-            return url.Action(
-                actionName: "About",
-                controllerName: "Pages",
-                routeValues: null,
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+            return GetActionLink(url, "About", "Pages", relativeUrl);
         }
 
-        public static string Admin(this UrlHelper url)
+        public static string Admin(this UrlHelper url, bool relativeUrl = true)
         {
-            return url.Action(
+            return GetActionLink(
+                url,
                 "Index",
                 "Home",
+                relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
                     { "area", "Admin" }
-                },
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+                });
         }
 
-        public static string Authenticate(this UrlHelper url, string providerName, string returnUrl)
+        public static string Authenticate(this UrlHelper url, string providerName, string returnUrl, bool relativeUrl = true)
         {
-            return url.Action(
-                actionName: "Authenticate",
-                controllerName: "Authentication",
+            return GetActionLink(
+                url,
+                "Authenticate",
+                "Authentication",
+                relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
                     { "provider", providerName },
                     { "returnUrl", returnUrl }
-                },
-                protocol: GetProtocol(url),
-                hostName: GetConfiguredSiteHostName(url));
+                });
         }
-        
+
         private static UriBuilder GetCanonicalUrl(UrlHelper url)
         {
             UriBuilder builder = new UriBuilder(url.RequestContext.HttpContext.Request.Url);
@@ -778,7 +727,7 @@ namespace NuGetGallery
 
         internal static string EnsureTrailingSlash(string url)
         {
-            if (url != null 
+            if (url != null
                 && !url.EndsWith("/", StringComparison.OrdinalIgnoreCase)
                 && !url.Contains("?"))
             {
@@ -786,6 +735,46 @@ namespace NuGetGallery
             }
 
             return url;
+        }
+
+        private static string GetActionLink(
+            UrlHelper url,
+            string actionName,
+            string controllerName,
+            bool relativeUrl,
+            RouteValueDictionary routeValues = null
+            )
+        {
+            var protocol = GetProtocol(url);
+            var hostName = GetConfiguredSiteHostName();
+
+            var actionLink = url.Action(actionName, controllerName, routeValues, protocol, hostName);
+
+            if (relativeUrl)
+            {
+                return actionLink.Replace($"{protocol}://{hostName}", string.Empty);
+            }
+
+            return actionLink;
+        }
+
+        private static string GetRouteLink(
+            UrlHelper url,
+            string routeName,
+            bool relativeUrl,
+            RouteValueDictionary routeValues = null)
+        {
+            var protocol = GetProtocol(url);
+            var hostName = GetConfiguredSiteHostName();
+
+            var routeLink = url.RouteUrl(routeName, routeValues, protocol, hostName);
+
+            if (relativeUrl)
+            {
+                return routeLink.Replace($"{protocol}://{hostName}", string.Empty);
+            }
+
+            return routeLink;
         }
     }
 }

@@ -28,7 +28,7 @@ var EditViewManager = new function () {
             document.location = $(this).val();
         });
 
-        $('input[type="text"], input[type="checkbox"], textarea').on('change keydown', function () {
+        $('input[type="text"], input[type="checkbox"], input[type="url"], input[type="file"], textarea').on('change keydown', function () {
             $(this).addClass("edited");
             _changedState[$(this).attr('id')] = true;
             $('#verify-submit-button').removeAttr('disabled');
@@ -69,7 +69,7 @@ var EditViewManager = new function () {
                     url: _submitEditUrl,
                     type: 'POST',
 
-                    data: new FormData($('#edit-metadata-form')[0]),
+                    data: new FormData($('#verify-metadata-form')[0]),
 
                     cache: false,
                     contentType: false,
@@ -156,6 +156,14 @@ var EditViewManager = new function () {
         $("#verify-package-container").append(reportContainerElement);
         ko.applyBindings({ data: model }, reportContainerElement);
 
+        var submitContainerElement = document.createElement("div");
+        $(submitContainerElement).attr("id", "submit-block");
+        $(submitContainerElement).attr("class", "collapse in");
+        $(submitContainerElement).attr("aria-expanded", "true");
+        $(submitContainerElement).attr("data-bind", "template: { name: 'submit-package-template', data: data }");
+        $("#submit-package-container").append(submitContainerElement);
+        ko.applyBindings({ data: model }, submitContainerElement);
+
         $('#verify-cancel-button').on('click', function () {
             cancelEdit();
         });
@@ -171,9 +179,10 @@ var EditViewManager = new function () {
         $('#iconurl-field').on('change', function () {
             $('#icon-preview').attr('src', $('#iconurl-field').val());
         });
+        
+        window.nuget.configureExpanderHeading("verify-package-form");
+        window.nuget.configureExpanderHeading("submit-package-form");
 
-        $("#verify-collapser-container").removeClass("hidden");
-
-        window.nuget.configureExpanderHeading("edit-metadata-form-container");
+        bindReadMeData(model);
     }
 }

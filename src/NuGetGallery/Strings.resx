@@ -567,4 +567,22 @@ For more information, please contact '{2}'.</value>
   <data name="UploadPackage_IdNamespaceConflict" xml:space="preserve">
     <value>This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID.</value>
   </data>
+  <data name="PreviewReadMe_ConversionFailed" xml:space="preserve">
+    <value>Conversion of Markdown to HTML failed with '{0}'.</value>
+  </data>
+  <data name="PreviewReadMe_ReadMeMissing" xml:space="preserve">
+    <value>There is no ReadMe available to preview.</value>
+  </data>
+  <data name="ReadMeInvalidSourceType" xml:space="preserve">
+    <value>'{0}' is not a valid ReadMe source type.</value>
+  </data>
+  <data name="ReadMeMaxLengthExceeded" xml:space="preserve">
+    <value>ReadMe file must be less than {0} bytes.</value>
+  </data>
+  <data name="ReadMePostedFileExtensionInvalid" xml:space="preserve">
+    <value>ReadMe file must end with markdown extension '{0}'.</value>
+  </data>
+  <data name="ReadMeUrlHostInvalid" xml:space="preserve">
+    <value>ReadMe URL must be a raw markdown file hosted on GitHub.</value>
+  </data>
 </root>

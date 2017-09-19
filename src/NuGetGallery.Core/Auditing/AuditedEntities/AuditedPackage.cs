@@ -43,6 +43,7 @@ namespace NuGetGallery.Auditing.AuditedEntities
         public string MinClientVersion { get; private set; }
         public int? UserKey { get; private set; }
         public bool Deleted { get; private set; }
+        public bool HasReadMe { get; private set; }
 
         public static AuditedPackage CreateFrom(Package package)
         {
@@ -82,7 +83,8 @@ namespace NuGetGallery.Auditing.AuditedEntities
                 Key = package.Key,
                 MinClientVersion = package.MinClientVersion,
                 UserKey = package.UserKey,
-                Deleted = package.Deleted
+                Deleted = package.Deleted,
+                HasReadMe = package.HasReadMe
             };
         }
     }

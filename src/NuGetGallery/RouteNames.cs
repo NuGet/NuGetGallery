@@ -36,6 +36,7 @@ namespace NuGetGallery
         public const string PasswordSet = "PasswordSet";
         public const string NewSubmission = "NewSubmission";
         public const string VerifyPackage = "VerifyPackage";
+        public const string PreviewReadMe = "PreviewReadMe";
         public const string CreatePackageVerificationKey = "CreatePackageVerificationKey";
         public const string VerifyPackageKey = "VerifyPackageKey";
         public const string CancelUpload = "CancelUpload";
