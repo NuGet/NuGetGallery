@@ -44,14 +44,13 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpPost]
-//        [ValidateAntiForgeryToken]
+        [ValidateAntiForgeryToken]
         public async Task<JsonResult> AddPrefix(ReservedNamespace prefix)
         {
             try
             {
                 await ReservedNamespaceService.AddReservedNamespaceAsync(prefix);
-                await ReservedNamespaceService.AddOwnerToReservedNamespaceAsync(prefix.Value, "shishirx34");
-                return Json(new { success = true, message = "Prefix Added" });
+                return Json(new { success = true, message = $"Prefix '{prefix.Value} is reserved." });
             }
             catch (Exception ex)
             {
@@ -60,13 +59,13 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpPost]
-//        [ValidateAntiForgeryToken]
+        [ValidateAntiForgeryToken]
         public async Task<JsonResult> RemovePrefix(ReservedNamespace prefix)
         {
             try
             {
                 await ReservedNamespaceService.DeleteReservedNamespaceAsync(prefix.Value);
-                return Json(new { success = true, message = "Prefix removed" });
+                return Json(new { success = true, message = $"Prefix '{prefix.Value} is deleted." });
             }
             catch (Exception ex)
             {
@@ -82,7 +81,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             try
             {
                 await ReservedNamespaceService.AddOwnerToReservedNamespaceAsync(prefix.Value, owner);
-                return Json(new { success = true, message = "Owner Added!" });
+                return Json(new { success = true, message = $"User '{owner}' is now an owner of the prefix '{prefix.Value}'." });
             }
             catch (Exception ex)
             {
@@ -91,13 +90,13 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpPost]
-    //    [ValidateAntiForgeryToken]
+        [ValidateAntiForgeryToken]
         public async Task<JsonResult> RemoveOwner(ReservedNamespace prefix, string owner)
         {
             try
             {
                 await ReservedNamespaceService.DeleteOwnerFromReservedNamespaceAsync(prefix.Value, owner);
-                return Json(new { success = true, message = "Owner removed!" });
+                return Json(new { success = true, message = $"User '{owner}' removed from prefix {prefix.Value}." });
             }
             catch (Exception ex)
             {

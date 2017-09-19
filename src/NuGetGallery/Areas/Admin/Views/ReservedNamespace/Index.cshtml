@@ -124,8 +124,7 @@
                         cache: false,
                         dataType: 'json',
                         type: 'POST',
-                        data: window.nuget.addAjaxAntiForgeryToken(JSON.stringify(prefixToModify)),
-                        contentType: 'application/json; charset=utf-8',
+                        data: window.nuget.addAjaxAntiForgeryToken(prefixToModify),
                         success: function (data) {
                             if (data.success) {
                                 $self.refresh();
@@ -154,8 +153,7 @@
                         cache: false,
                         dataType: 'json',
                         type: 'POST',
-                        data: window.nuget.addAjaxAntiForgeryToken(JSON.stringify(obj)),
-                        contentType: 'application/json; charset=utf-8',
+                        data: window.nuget.addAjaxAntiForgeryToken(obj),
                         success: function (data) {
                             if (data.success) {
                                 $self.newOwner("");
@@ -185,8 +183,7 @@
                         cache: false,
                         dataType: 'json',
                         type: 'POST',
-                        data: window.nuget.addAjaxAntiForgeryToken(JSON.stringify(obj)),
-                        contentType: 'application/json; charset=utf-8',
+                        data: window.nuget.addAjaxAntiForgeryToken(obj),
                         success: function (data) {
                             if (data.success) {
                                 $self.refresh();
