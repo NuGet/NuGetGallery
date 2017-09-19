@@ -30,12 +30,12 @@
                                     </div>
                                     <div>
                                         <label>
-                                            <input type="checkbox" data-bind="checked: $data.prefix.IsSharedNamespace" />IsSharedNamespace
+                                            <input type="checkbox" data-bind="checked: $data.prefix.IsSharedNamespace, disable: $data.isExisting" />IsSharedNamespace
                                         </label>
                                     </div>
                                     <div>
                                         <label>
-                                            <input type="checkbox" data-bind="checked: $data.prefix.IsPrefix" value="IsPrefix" />IsPrefix
+                                            <input type="checkbox" data-bind="checked: $data.prefix.IsPrefix, disable: $data.isExisting" value="IsPrefix" />IsPrefix
                                         </label>
                                     </div>
                                     <div>
@@ -44,11 +44,11 @@
                                     </div>
                                     <!-- ko if: $data.isExisting -->
                                     <input style="margin-top: 5px" type="submit" value="Deallocate Namespace" title="Delete this namespace"
-                                           data-bind="click: $parent.managePrefix.bind(this, $data.prefix, true)" />
+                                           data-bind="click: $parent.managePrefix.bind(this, $data.prefix, false)" />
                                     <!-- /ko -->
                                     <!-- ko ifnot: $data.isExisting -->
                                     <input style="margin-top: 5px" type="submit" value="Reserve Namespace" title="Add this namespace"
-                                           data-bind="click: $parent.managePrefix.bind(this, $data.prefix, false)" />
+                                           data-bind="click: $parent.managePrefix.bind(this, $data.prefix, true)" />
                                     <!-- /ko -->
                                 </div>
                             </td>
@@ -61,7 +61,7 @@
                                     </div>
                                 </div>
                                 <div style="margin: 5px">
-                                    <input type="text" placeholder="Search for a prefix" autocomplete="off" data-bind="value: $parent.newOwner, valueUpdate: 'afterkeydown'" />
+                                    <input type="text" placeholder="Enter username" autocomplete="off" data-bind="value: $parent.newOwner, valueUpdate: 'afterkeydown'" />
                                     <input type="button" value="Add" title="Add new owner for this prefix" data-bind="click: $parent.addOwner.bind(this, $data.prefix), enable: $parent.newOwner().length > 0" />
                                 </div>
                                 <!-- /ko -->
@@ -77,6 +77,7 @@
 
 @section BottomScripts {
     <script src="@Url.Content("~/Scripts/knockout-2.2.1.js")"></script>
+    <script src="@Url.Content("~/Scripts/gallery/common.js")"></script>
     <script>
         $(document).ready(function () {
             var viewModel = function () {
@@ -112,19 +113,18 @@
                     });
                 };
 
-                this.managePrefix = function (data, remove) {
-                    console.log(data);
-                    var prefixToAdd = data;
-                    var url = remove
-                        ? '@Url.Action("RemovePrefix", "ReservedNamespace", new { area = "Admin" })'
-                        : '@Url.Action("AddPrefix", "ReservedNamespace", new { area = "Admin" })'
+                this.managePrefix = function (data, addPrefix) {
+                    var prefixToModify = data;
+                    var url = addPrefix
+                        ? '@Url.Action("AddPrefix", "ReservedNamespace", new { area = "Admin" })'
+                        : '@Url.Action("RemovePrefix", "ReservedNamespace", new { area = "Admin" })';
                     $self.message("");
                     $.ajax({
                         url: url,
                         cache: false,
                         dataType: 'json',
                         type: 'POST',
-                        data: JSON.stringify(prefixToAdd),
+                        data: window.nuget.addAjaxAntiForgeryToken(JSON.stringify(prefixToModify)),
                         contentType: 'application/json; charset=utf-8',
                         success: function (data) {
                             if (data.success) {
@@ -143,8 +143,6 @@
 
                 this.addOwner = function (prefix) {
                     var owner = $self.newOwner();
-                    console.log("Self: " + $self);
-                    console.log("Data: " + owner);
                     var obj = {
                         prefix: prefix,
                         owner: owner,
@@ -156,7 +154,7 @@
                         cache: false,
                         dataType: 'json',
                         type: 'POST',
-                        data: JSON.stringify(obj),
+                        data: window.nuget.addAjaxAntiForgeryToken(JSON.stringify(obj)),
                         contentType: 'application/json; charset=utf-8',
                         success: function (data) {
                             if (data.success) {
@@ -187,7 +185,7 @@
                         cache: false,
                         dataType: 'json',
                         type: 'POST',
-                        data: JSON.stringify(obj),
+                        data: window.nuget.addAjaxAntiForgeryToken(JSON.stringify(obj)),
                         contentType: 'application/json; charset=utf-8',
                         success: function (data) {
                             if (data.success) {

@@ -1,11 +1,10 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using NuGetGallery.Areas.Admin.ViewModels;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
 
 namespace NuGetGallery.Areas.Admin.Controllers
@@ -30,27 +29,22 @@ namespace NuGetGallery.Areas.Admin.Controllers
         [HttpGet]
         public virtual JsonResult SearchPrefix(string query)
         {
-            // TODO: validate query
             var prefixQueries = GetPrefixesFromQuery(query);
             var foundPrefixes = ReservedNamespaceService.FindReservedNamespacesForPrefixList(prefixQueries.ToList());
             var notFoundPrefixQueries = prefixQueries.Except(foundPrefixes.Select(p => p.Value));
             var resultModel = foundPrefixes.Select(fp => new ReservedNamespaceViewModel(fp, isExisting: true));
             var notFoundPrefixes = notFoundPrefixQueries.Select(q => new ReservedNamespace(q, isSharedNamespace: false, isPrefix: true));
             resultModel = resultModel.Concat(notFoundPrefixes.Select(nfp => new ReservedNamespaceViewModel(nfp, isExisting: false)).ToList());
-            var results = new
+            var results = new ReservedNamespaceSearchResult
             {
-                Prefixes = resultModel,
-                FoundPrefixes = foundPrefixes.Select(
-                    p => new ReservedNamespace(p.Value, p.IsSharedNamespace, p.IsPrefix)),
-                NotFoundPrefixes = notFoundPrefixes.Select(
-                    p => new ReservedNamespace(p.ToString(), isSharedNamespace: false, isPrefix: true))
+                Prefixes = resultModel
             };
 
             return Json(results, JsonRequestBehavior.AllowGet);
         }
 
         [HttpPost]
-        // Add validate anti forgery token
+//        [ValidateAntiForgeryToken]
         public async Task<JsonResult> AddPrefix(ReservedNamespace prefix)
         {
             try
@@ -66,7 +60,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        // TODO : Add validate anti forgery token
+//        [ValidateAntiForgeryToken]
         public async Task<JsonResult> RemovePrefix(ReservedNamespace prefix)
         {
             try
@@ -82,7 +76,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        // Add validate anti forgery token
+        [ValidateAntiForgeryToken]
         public async Task<JsonResult> AddOwner(ReservedNamespace prefix, string owner)
         {
             try
@@ -97,7 +91,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        // Add validate anti forgery token
+    //    [ValidateAntiForgeryToken]
         public async Task<JsonResult> RemoveOwner(ReservedNamespace prefix, string owner)
         {
             try

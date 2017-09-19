@@ -688,6 +688,7 @@
     <Compile Include="Areas\Admin\Services\SupportRequestService.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteSearchResult.cs" />
     <Compile Include="Areas\Admin\ViewModels\ReservedNamespaceViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\ReservedNamespaceSearchResult.cs" />
     <Compile Include="Areas\Admin\ViewModels\UserSecurityPolicySubscriptions.cs" />
     <Compile Include="Areas\Admin\ViewModels\UserSecurityPolicySearchResult.cs" />
     <Compile Include="Areas\Admin\ViewModels\SecurityPolicyViewModel.cs" />
