@@ -1769,7 +1769,6 @@
     <Content Include="App_Data\Files\Content\Terms-Of-Use.md" />
     <Content Include="Branding\Views\web.config" />
     <Compile Include="Views\NuGetViewBase.cs" />
-    <Content Include="Public\Blocked.html" />
     <Content Include="Scripts\gallery\d3.v3.js" />
     <Content Include="Areas\Admin\Views\SupportRequest\Index.cshtml" />
     <Content Include="Areas\Admin\Views\SupportRequest\Admins.cshtml" />
@@ -1954,7 +1953,6 @@
     <Content Include="Content\SyntaxHighlighter\shThemeRDark.css" />
     <Content Include="Content\themes\custom\jquery-ui-1.10.3.custom.css" />
     <Content Include="Content\themes\custom\jquery-ui-1.10.3.custom.min.css" />
-    <Content Include="Public\Error.html" />
     <Content Include="Public\favicon.ico" />
     <Content Include="Public\opensearch.xml" />
     <EmbeddedResource Include="Areas\Admin\Migrations\201602111647053_SupportRequestDbModel.resx">
