@@ -425,7 +425,7 @@ namespace NuGetGallery
             package.Owners.Add(newOwner);
             await _packageRepository.CommitChangesAsync();
 
-            var request = FindExistingPackageOwnerRequestByPending(package, newOwner);
+            var request = GetPendingOwnershipRequest(package, newOwner);
             if (request != null)
             {
                 _packageOwnerRequestRepository.DeleteOnCommit(request);
@@ -443,7 +443,7 @@ namespace NuGetGallery
                 throw new InvalidOperationException("You can't remove the only owner from a package.");
             }
 
-            var pendingOwner = FindExistingPackageOwnerRequestByPending(package, user);
+            var pendingOwner = GetPendingOwnershipRequest(package, user);
             if (pendingOwner != null)
             {
                 _packageOwnerRequestRepository.DeleteOnCommit(pendingOwner);
@@ -530,7 +530,7 @@ namespace NuGetGallery
 
         public async Task<PackageOwnerRequest> CreatePackageOwnerRequestAsync(PackageRegistration package, User currentOwner, User newOwner)
         {
-            var existingRequest = FindExistingPackageOwnerRequestByPending(package, newOwner);
+            var existingRequest = GetPendingOwnershipRequest(package, newOwner);
             if (existingRequest != null)
             {
                 return existingRequest;
@@ -567,7 +567,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(token));
             }
 
-            var request = FindExistingPackageOwnerRequestByPending(package, pendingOwner);
+            var request = GetPendingOwnershipRequest(package, pendingOwner);
             return (request != null && request.ConfirmationCode == token);
         }
 
@@ -922,7 +922,7 @@ namespace NuGetGallery
             return packages.First(pv => pv.Version.Equals(version.OriginalVersion, StringComparison.OrdinalIgnoreCase));
         }
 
-        private PackageOwnerRequest FindExistingPackageOwnerRequestByPending(PackageRegistration package, User pendingOwner)
+        private PackageOwnerRequest GetPendingOwnershipRequest(PackageRegistration package, User pendingOwner)
         {
             return (from request in _packageOwnerRequestRepository.GetAll()
                     where request.PackageRegistrationKey == package.Key && 
