@@ -74,19 +74,16 @@ namespace NuGetGallery
                     ?? throw new InvalidOperationException(string.Format(
                         CultureInfo.CurrentCulture, Strings.ReservedNamespace_NamespaceNotFound, existingNamespace));
 
-                // Delete verified flags on corresponding packages for this prefix if it is the only prefix matching the 
-                // package registration.
-                if (!namespaceToDelete.IsSharedNamespace)
-                {
-                    var packageRegistrationsToMarkUnverified = namespaceToDelete
-                        .PackageRegistrations
-                        .Where(pr => pr.ReservedNamespaces.Count() == 1)
-                        .ToList();
+                // Delete verified flags on corresponding packages for this prefix if 
+                // it is the only prefix matching the package registration.
+                var packageRegistrationsToMarkUnverified = namespaceToDelete
+                    .PackageRegistrations
+                    .Where(pr => pr.ReservedNamespaces.Count() == 1)
+                    .ToList();
 
-                    if (packageRegistrationsToMarkUnverified.Any())
-                    {
-                        await PackageService.UpdatePackageVerifiedStatusAsync(packageRegistrationsToMarkUnverified, isVerified: false);
-                    }
+                if (packageRegistrationsToMarkUnverified.Any())
+                {
+                    await PackageService.UpdatePackageVerifiedStatusAsync(packageRegistrationsToMarkUnverified, isVerified: false);
                 }
 
                 ReservedNamespaceRepository.DeleteOnCommit(namespaceToDelete);
@@ -119,6 +116,10 @@ namespace NuGetGallery
                     ?? throw new InvalidOperationException(string.Format(
                         CultureInfo.CurrentCulture, Strings.ReservedNamespace_UserNotFound, username));
 
+                if (namespaceToModify.Owners.Contains(userToAdd))
+                {
+                    throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, Strings.ReservedNamespace_UserAlreadyOwner, username));
+                }
                 // Mark all packages owned by this user that start with the given namespace as verified.
                 var allPackageRegistrationsForUser = PackageService.FindPackageRegistrationsByOwner(userToAdd);
                 var packageRegistrationsMatchingNamespace = allPackageRegistrationsForUser

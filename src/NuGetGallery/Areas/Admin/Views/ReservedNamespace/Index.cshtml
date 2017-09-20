@@ -22,8 +22,9 @@
                 <div id="prefixResult" data-bind="foreach: allPrefixResults">
                     <table>
                         <tr>
-                            <td class="namespaceDetails">
-                                <div>
+                            <td>
+                                <span style="font-weight: bold">Details:</span>
+                                <div style="margin-left: 20px">
                                     <div>
                                         <span style="font-weight: bold">Namespace: </span>
                                         <span data-bind="text: $data.prefix.Value" />
@@ -40,7 +41,7 @@
                                     </div>
                                     <div>
                                         <span style="font-weight: bold">Matching Pattern: </span>
-                                        <span data-bind="text: $parent.generatePattern($data.prefix.Value, $data.prefix.IsPrefix)" />
+                                        <span data-bind="text: $data.pattern" />
                                     </div>
                                     <!-- ko if: $data.isExisting -->
                                     <input style="margin-top: 5px" type="submit" value="Deallocate Namespace" title="Delete this namespace"
@@ -52,17 +53,20 @@
                                     <!-- /ko -->
                                 </div>
                             </td>
-                            <td class="ownersList" style="vertical-align: top">
+                            <td style="vertical-align: top">
                                 <!-- ko if: $data.isExisting -->
-                                <div id="prefixOwners" data-bind="foreach: $data.owners">
-                                    <div style="margin: 5px">
-                                        <span data-bind="text: $data"></span>
-                                        <input style="float: right" type="button" value="Remove" title="Remove this owner" data-bind="click: $root.removeOwner.bind(this, $data, $parent.prefix)" />
+                                <span style="font-weight: bold">Owners:</span>
+                                <div style="margin-left: 10px">
+                                    <div id="prefixOwners" data-bind="foreach: $data.owners">
+                                        <div style="margin: 5px">
+                                            <a href="#" target="_blank" data-bind="text: $data, attr: { href: $root.generateUserUrl($data) }"></a>
+                                            <input style="float: right" type="button" value="Remove" title="Remove this owner" data-bind="click: $root.removeOwner.bind(this, $data, $parent.prefix)" />
+                                        </div>
                                     </div>
-                                </div>
-                                <div style="margin: 5px">
-                                    <input type="text" placeholder="Enter username" autocomplete="off" data-bind="value: $parent.newOwner, valueUpdate: 'afterkeydown'" />
-                                    <input type="button" value="Add" title="Add new owner for this prefix" data-bind="click: $parent.addOwner.bind(this, $data.prefix), enable: $parent.newOwner().length > 0" />
+                                    <div style="margin: 5px">
+                                        <input type="text" placeholder="Enter username" autocomplete="off" data-bind="value: $parent.newOwner, valueUpdate: 'afterkeydown'" />
+                                        <input type="button" value="Add" title="Add new owner for this prefix" data-bind="click: $parent.addOwner.bind(this, $data.prefix), enable: $parent.newOwner().length > 0" />
+                                    </div>
                                 </div>
                                 <!-- /ko -->
                             </td>
@@ -104,6 +108,14 @@
                             if (!data.success && data.message != null) {
                                 $self.message(data.message);
                             } else {
+
+                                for (var i = 0; i < data.Prefixes.length; i++) {
+                                    var resultModel = data.Prefixes[i];
+                                    resultModel.pattern = ko.computed(function () {
+                                        return $self.generatePattern(resultModel.prefix.Value, resultModel.prefix.IsPrefix);
+                                    }, resultModel);
+                                }
+
                                 $self.allPrefixResults(data.Prefixes);
                             }
                         }
@@ -114,6 +126,10 @@
                 };
 
                 this.managePrefix = function (data, addPrefix) {
+                    if (!addPrefix && !confirm('Are you sure you want to delet this namespace?')) {
+                        e.preventDefault();
+                    }
+
                     var prefixToModify = data;
                     var url = addPrefix
                         ? '@Url.Action("AddPrefix", "ReservedNamespace", new { area = "Admin" })'
@@ -166,12 +182,15 @@
                         }
                     })
                     .error(function (jqXhr, textStatus, errorThrown) {
-                        $self.message(errorThrown);
                         alert("Error: " + errorThrown);
                     });
                 };
 
                 this.removeOwner = function (owner, prefix) {
+                    if (!confirm('Are you sure you want to remove this owner?')) {
+                        e.preventDefault();
+                    }
+
                     var obj = {
                         prefix: prefix,
                         owner: owner,
@@ -195,7 +214,6 @@
                         }
                     })
                     .error(function (jqXhr, textStatus, errorThrown) {
-                        $self.message(errorThrown);
                         alert("Error: " + errorThrown);
                     });
                 };
@@ -205,7 +223,7 @@
                 };
 
                 this.generateUserUrl = function (user) {
-                    return '/profiles/' + user.Username;
+                    return '/profiles/' + user;
                 };
 
                 this.generatePattern = function (value, isPrefix) {

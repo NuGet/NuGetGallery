@@ -246,6 +246,20 @@ namespace NuGetGallery.Services
             }
 
             [Fact]
+            public async Task AddingExistingOwnerToTheNamespaceThrowsException()
+            {
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
+                var prefix = "microsoft.";
+                var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value.Equals(prefix, StringComparison.OrdinalIgnoreCase));
+                var testUsers = ReservedNamespaceServiceTestData.GetTestUsers();
+                var owner = testUsers.First();
+                existingNamespace.Owners.Add(owner);
+                var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
+
+                await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.AddOwnerToReservedNamespaceAsync(existingNamespace.Value, owner.Username));
+            }
+
+            [Fact]
             public async Task AddAnOwnerToNamespaceSuccessfully()
             {
                 var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();

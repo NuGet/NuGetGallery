@@ -54,7 +54,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             try
             {
                 await ReservedNamespaceService.AddReservedNamespaceAsync(prefix);
-                return Json(new { success = true, message = $"Prefix '{prefix.Value} is reserved." });
+                return Json(new { success = true, message = string.Format(Strings.ReservedNamespace_PrefixAdded, prefix.Value) });
             }
             catch (Exception ex)
             {
@@ -69,7 +69,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             try
             {
                 await ReservedNamespaceService.DeleteReservedNamespaceAsync(prefix.Value);
-                return Json(new { success = true, message = $"Prefix '{prefix.Value} is deleted." });
+                return Json(new { success = true, message = string.Format(Strings.ReservedNamespace_PrefixRemoved, prefix.Value) });
             }
             catch (Exception ex)
             {
@@ -85,7 +85,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             try
             {
                 await ReservedNamespaceService.AddOwnerToReservedNamespaceAsync(prefix.Value, owner);
-                return Json(new { success = true, message = $"User '{owner}' is now an owner of the prefix '{prefix.Value}'." });
+                return Json(new { success = true, message = string.Format(Strings.ReservedNamespace_OwnerAdded, owner, prefix.Value) });
             }
             catch (Exception ex)
             {
@@ -100,7 +100,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             try
             {
                 await ReservedNamespaceService.DeleteOwnerFromReservedNamespaceAsync(prefix.Value, owner);
-                return Json(new { success = true, message = $"User '{owner}' removed from prefix {prefix.Value}." });
+                return Json(new { success = true, message = string.Format(Strings.ReservedNamespace_OwnerRemoved, owner, prefix.Value) });
             }
             catch (Exception ex)
             {
