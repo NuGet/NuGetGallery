@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net.Mail;
 using System.Threading.Tasks;
 using System.Web;
@@ -20,6 +21,7 @@ using NuGetGallery.Framework;
 using NuGetGallery.Helpers;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
+using NuGetGallery.TestUtils;
 using Xunit;
 
 namespace NuGetGallery
@@ -613,6 +615,7 @@ namespace NuGetGallery
             [MemberData("TheOwnershipRequestMethods_Data")]
             public async Task WithEmptyTokenReturnsHttpNotFound(InvokeOwnershipRequest invokeOwnershipRequest)
             {
+                // Arrange
                 var packageService = new Mock<IPackageService>();
                 packageService.Setup(p => p.FindPackageRegistrationById("foo")).Returns(new PackageRegistration());
                 var controller = CreateController(
@@ -620,8 +623,10 @@ namespace NuGetGallery
                     packageService: packageService);
                 controller.SetCurrentUser(new User { Username = "username" });
 
+                // Act
                 var result = await invokeOwnershipRequest(controller, "foo", "username", "");
 
+                // Assert
                 Assert.IsType<HttpNotFoundResult>(result);
             }
 
@@ -629,10 +634,14 @@ namespace NuGetGallery
             [MemberData("TheOwnershipRequestMethods_Data")]
             public async Task WithIdentityNotMatchingUserInRequestReturnsViewWithMessage(InvokeOwnershipRequest invokeOwnershipRequest)
             {
+                // Arrange
                 var controller = CreateController(GetConfigurationService());
                 controller.SetCurrentUser(new User("userA"));
-                var result = await controller.ConfirmPendingOwnershipRequest("foo", "userB", "token");
 
+                // Act
+                var result = await invokeOwnershipRequest(controller, "foo", "userB", "token");
+
+                // Assert
                 var model = ResultAssert.IsView<PackageOwnerConfirmationModel>(result, "ConfirmOwner");
                 Assert.Equal(ConfirmOwnershipResult.NotYourRequest, model.Result);
                 Assert.Equal("userB", model.Username);
@@ -647,7 +656,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(new User { Username = "username" });
 
                 // Act
-                var result = await controller.ConfirmPendingOwnershipRequest("foo", "username", "token");
+                var result = await invokeOwnershipRequest(controller, "foo", "username", "token");
 
                 // Assert
                 Assert.IsType<HttpNotFoundResult>(result);
@@ -672,23 +681,23 @@ namespace NuGetGallery
                 TestUtility.SetupHttpContextMockForUrlGeneration(mockHttpContext, controller);
 
                 // Act
-                var result = await controller.ConfirmPendingOwnershipRequest("foo", "username", "token");
+                var result = await invokeOwnershipRequest(controller, "foo", "username", "token");
 
                 // Assert
                 var model = ResultAssert.IsView<PackageOwnerConfirmationModel>(result, "ConfirmOwner");
                 Assert.Equal(ConfirmOwnershipResult.AlreadyOwner, model.Result);
             }
 
-            public delegate Task InvokePackageServiceForOwnershipRequest(IPackageService packageService, PackageRegistration package, User user);
+            public delegate Expression<Func<IPackageService, Task>> PackageServiceForOwnershipRequestExpression(PackageRegistration package, User user);
 
-            private static Task InvokePackagesServiceForConfirmOwnershipRequest(IPackageService packageService, PackageRegistration package, User user)
+            private static Expression<Func<IPackageService, Task>> PackagesServiceForConfirmOwnershipRequestExpression(PackageRegistration package, User user)
             {
-                return packageService.AddPackageOwnerAsync(package, user);
+                return packageService => packageService.AddPackageOwnerAsync(package, user);
             }
 
-            private static Task InvokePackagesServiceForRejectOwnershipRequest(IPackageService packageService, PackageRegistration package, User user)
+            private static Expression<Func<IPackageService, Task>> PackagesServiceForRejectOwnershipRequestExpression(PackageRegistration package, User user)
             {
-                return packageService.RemovePackageOwnerAsync(package, user);
+                return packageService => packageService.RemovePackageOwnerAsync(package, user);
             }
 
             public static IEnumerable<object[]> ReturnsSuccessIfTokenIsValid_Data
@@ -700,13 +709,15 @@ namespace NuGetGallery
                         yield return new object[]
                         {
                             new InvokeOwnershipRequest(ConfirmOwnershipRequest),
-                            new InvokePackageServiceForOwnershipRequest(InvokePackagesServiceForConfirmOwnershipRequest),
+                            new PackageServiceForOwnershipRequestExpression(PackagesServiceForConfirmOwnershipRequestExpression),
+                            ConfirmOwnershipResult.Success,
                             tokenValid
                         };
                         yield return new object[]
                         {
                             new InvokeOwnershipRequest(RejectOwnershipRequest),
-                            new InvokePackageServiceForOwnershipRequest(InvokePackagesServiceForRejectOwnershipRequest),
+                            new PackageServiceForOwnershipRequestExpression(PackagesServiceForRejectOwnershipRequestExpression),
+                            ConfirmOwnershipResult.Rejected,
                             tokenValid
                         };
                     }
@@ -715,7 +726,7 @@ namespace NuGetGallery
 
             [Theory]
             [MemberData("ReturnsSuccessIfTokenIsValid_Data")]
-            public async Task ReturnsSuccessIfTokenIsValid(InvokeOwnershipRequest invokeOwnershipRequest, InvokePackageServiceForOwnershipRequest invokePackageService, bool tokenValid)
+            public async Task ReturnsSuccessIfTokenIsValid(InvokeOwnershipRequest invokeOwnershipRequest, PackageServiceForOwnershipRequestExpression packageServiceExpression, ConfirmOwnershipResult successState, bool tokenValid)
             {
                 // Arrange
                 var package = new PackageRegistration { Id = "foo" };
@@ -734,14 +745,142 @@ namespace NuGetGallery
                 TestUtility.SetupHttpContextMockForUrlGeneration(mockHttpContext, controller);
 
                 // Act
-                var result = await controller.ConfirmPendingOwnershipRequest("foo", "username", "token");
+                var result = await invokeOwnershipRequest(controller, "foo", "username", "token");
 
                 // Assert
                 var model = ResultAssert.IsView<PackageOwnerConfirmationModel>(result, "ConfirmOwner");
-                var expectedResult = tokenValid ? ConfirmOwnershipResult.Success : ConfirmOwnershipResult.Failure;
+                var expectedResult = tokenValid ? successState : ConfirmOwnershipResult.Failure;
                 Assert.Equal(expectedResult, model.Result);
                 Assert.Equal("foo", model.PackageId);
-                packageService.Verify(p => p.AddPackageOwnerAsync(package, user), tokenValid ? Times.Once() : Times.Never());
+                packageService.Verify(packageServiceExpression(package, user), tokenValid ? Times.Once() : Times.Never());
+            }
+
+            public class TheCancelPendingOwnershipRequestMethod : TestContainer
+            {
+                [Fact]
+                public async Task WithIdentityNotMatchingUserInRequestReturnsViewWithMessage()
+                {
+                    // Arrange
+                    var controller = CreateController(GetConfigurationService());
+                    controller.SetCurrentUser(new User("userA"));
+
+                    // Act
+                    var result = await controller.CancelPendingOwnershipRequest("foo", "userB", "userC");
+
+                    // Assert
+                    var model = ResultAssert.IsView<PackageOwnerConfirmationModel>(result, "ConfirmOwner");
+                    Assert.Equal(ConfirmOwnershipResult.NotYourRequest, model.Result);
+                    Assert.Equal("userB", model.Username);
+                }
+
+                [Fact]
+                public async Task WithNonExistentPackageIdReturnsHttpNotFound()
+                {
+                    // Arrange
+                    var controller = CreateController(GetConfigurationService());
+                    controller.SetCurrentUser(new User { Username = "userA" });
+
+                    // Act
+                    var result = await controller.CancelPendingOwnershipRequest("foo", "userA", "userB");
+
+                    // Assert
+                    Assert.IsType<HttpNotFoundResult>(result);
+                }
+
+                [Fact]
+                public async Task WithNonExistentPendingUserReturnsHttpNotFound()
+                {
+                    // Arrange
+                    var package = new PackageRegistration { Id = "foo" };
+                    var user = new User { Username = "userA" };
+                    var packageService = new Mock<IPackageService>();
+                    packageService.Setup(p => p.FindPackageRegistrationById("foo")).Returns(package);
+                    var controller = CreateController(
+                        GetConfigurationService(),
+                        packageService: packageService);
+                    controller.SetCurrentUser(user);
+
+                    // Act
+                    var result = await controller.CancelPendingOwnershipRequest("foo", "userA", "userB");
+
+                    // Assert
+                    Assert.IsType<HttpNotFoundResult>(result);
+                }
+
+                [Fact]
+                public async Task WithNonExistentPackageOwnershipRequestReturnsHttpNotFound()
+                {
+                    // Arrange
+                    var packageId = "foo";
+                    var package = new PackageRegistration { Id = packageId };
+
+                    var packageService = new Mock<IPackageService>();
+                    packageService.Setup(p => p.FindPackageRegistrationById(packageId)).Returns(package);
+
+                    var userAName = "userA";
+                    var userA = new User { Username = userAName };
+
+                    var userBName = "userB";
+                    var userB = new User { Username = userBName };
+
+                    var userService = new Mock<IUserService>();
+                    userService.Setup(u => u.FindByUsername(userAName)).Returns(userA);
+                    userService.Setup(u => u.FindByUsername(userBName)).Returns(userB);
+
+                    var controller = CreateController(
+                        GetConfigurationService(),
+                        userService: userService,
+                        packageService: packageService);
+                    controller.SetCurrentUser(userA);
+
+                    // Act
+                    var result = await controller.CancelPendingOwnershipRequest(packageId, userAName, userBName);
+
+                    // Assert
+                    Assert.IsType<HttpNotFoundResult>(result);
+                }
+
+                [Fact]
+                public async Task ReturnsCancelledIfPackageOwnershipRequestExists()
+                {
+                    // Arrange
+                    var packageId = "foo";
+                    var package = new PackageRegistration { Id = packageId };
+
+                    var packageService = new Mock<IPackageService>();
+                    packageService.Setup(p => p.FindPackageRegistrationById(packageId)).Returns(package);
+
+                    var userAName = "userA";
+                    var userA = new User { Username = userAName };
+
+                    var userBName = "userB";
+                    var userB = new User { Username = userBName };
+
+                    var userService = new Mock<IUserService>();
+                    userService.Setup(u => u.FindByUsername(userAName)).Returns(userA);
+                    userService.Setup(u => u.FindByUsername(userBName)).Returns(userB);
+
+                    var request = new PackageOwnerRequest() { RequestingOwner = userA, NewOwner = userB };
+                    packageService.Setup(p => p.GetPackageOwnershipRequest(package, userA, userB)).Returns(request);
+
+                    packageService.Setup(p => p.RemovePackageOwnerAsync(package, userB)).Returns(Task.CompletedTask).Verifiable();
+
+                    var controller = CreateController(
+                        GetConfigurationService(),
+                        userService: userService,
+                        packageService: packageService);
+                    controller.SetCurrentUser(userA);
+
+                    // Act
+                    var result = await controller.CancelPendingOwnershipRequest(packageId, userAName, userBName);
+
+                    // Assert
+                    var model = ResultAssert.IsView<PackageOwnerConfirmationModel>(result, "ConfirmOwner");
+                    var expectedResult = ConfirmOwnershipResult.Cancelled;
+                    Assert.Equal(expectedResult, model.Result);
+                    Assert.Equal(packageId, model.PackageId);
+                    packageService.Verify();
+                }
             }
 
             public class TheConfirmOwnerMethod_SecurePushPropagation : TestContainer
