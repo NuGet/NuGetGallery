@@ -8,11 +8,11 @@ namespace NuGetGallery
 {
     public class OwnerRequestsListViewModel
     {
-        public IEnumerable<OwnerRequestsListItemViewModel> RequestItems { get; private set; }
+        public IEnumerable<OwnerRequestsListItemViewModel> RequestItems { get; }
 
-        public string Name { get; private set; }
+        public string Name { get; }
 
-        public User CurrentUser { get; private set; }
+        public User CurrentUser { get; }
         
         public OwnerRequestsListViewModel(IEnumerable<PackageOwnerRequest> requests, string name, User currentUser, IPackageService packageService)
         {
