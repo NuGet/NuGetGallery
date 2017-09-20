@@ -40,8 +40,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Entities\PackageValidation.cs" />
+    <Compile Include="Entities\PackageValidationSet.cs" />
+    <Compile Include="Entities\ValidationContext.cs" />
     <Compile Include="IPackageValidationEnqueuer.cs" />
     <Compile Include="IServiceBusMessageSerializer.cs" />
+    <Compile Include="Entities\EntitiesConfiguration.cs" />
+    <Compile Include="Migrations\201709202218143_AddValidationSchema.cs" />
+    <Compile Include="Migrations\201709202218143_AddValidationSchema.Designer.cs">
+      <DependentUpon>201709202218143_AddValidationSchema.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\ValidationMigrationsConfiguration.cs" />
     <Compile Include="PackageValidationEnqueuer.cs" />
     <Compile Include="PackageValidationMessageData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -49,6 +58,7 @@
     <Compile Include="ServiceBusMessageSerializer.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
@@ -60,6 +70,11 @@
       <Project>{9337000b-ea3b-40be-9a33-38bc28dfd0cb}</Project>
       <Name>NuGet.Services.ServiceBus</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Migrations\201709202218143_AddValidationSchema.resx">
+      <DependentUpon>201709202218143_AddValidationSchema.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\..\build\sign.targets" />
