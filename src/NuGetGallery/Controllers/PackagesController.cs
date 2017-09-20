@@ -1293,6 +1293,12 @@ namespace NuGetGallery
         {
             var currentUser = GetCurrentUser();
 
+            if (!ModelState.IsValid)
+            {
+                var errorMessages = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage));
+                return Json(400, errorMessages);
+            }
+
             Package package;
             using (Stream uploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
