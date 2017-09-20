@@ -1117,6 +1117,7 @@ namespace NuGetGallery
             });
         }
 
+        [HttpGet]
         [Authorize]
         [RequiresAccountConfirmation("accept ownership of a package")]
         public virtual Task<ActionResult> ConfirmPendingOwnershipRequest(string id, string username, string token)
@@ -1124,6 +1125,7 @@ namespace NuGetGallery
             return HandleOwnershipRequest(id, username, token, accept: true);
         }
 
+        [HttpGet]
         [Authorize]
         [RequiresAccountConfirmation("reject ownership of a package")]
         public virtual Task<ActionResult> RejectPendingOwnershipRequest(string id, string username, string token)
@@ -1133,12 +1135,12 @@ namespace NuGetGallery
 
         private async Task<ActionResult> HandleOwnershipRequest(string id, string username, string token, bool accept)
         {
-            if (String.IsNullOrEmpty(token))
+            if (string.IsNullOrEmpty(token))
             {
                 return HttpNotFound();
             }
 
-            if (!String.Equals(username, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(username, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
             {
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.NotYourRequest));
             }
@@ -1178,11 +1180,12 @@ namespace NuGetGallery
             }
         }
 
+        [HttpGet]
         [Authorize]
-        [RequiresAccountConfirmation("cancel ownership of a package")]
+        [RequiresAccountConfirmation("cancel pending ownership request")]
         public virtual async Task<ActionResult> CancelPendingOwnershipRequest(string id, string requestingUsername, string pendingUsername)
         {
-            if (!String.Equals(requestingUsername, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(requestingUsername, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
             {
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, requestingUsername, ConfirmOwnershipResult.NotYourRequest));
             }
