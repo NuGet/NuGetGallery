@@ -80,8 +80,8 @@
 </section>
 
 @section BottomScripts {
-    <script src="@Url.Content("~/Scripts/knockout-2.2.1.js")"></script>
-    <script src="@Url.Content("~/Scripts/gallery/common.js")"></script>
+    @Scripts.Render(@Url.Content("~/Scripts/knockout-2.2.1.js"))
+    @Scripts.Render(@Url.Content("~/Scripts/gallery/common.js"))
     <script>
         $(document).ready(function () {
             var viewModel = function () {
@@ -132,8 +132,8 @@
 
                     var prefixToModify = data;
                     var url = addPrefix
-                        ? '@Url.Action("AddPrefix", "ReservedNamespace", new { area = "Admin" })'
-                        : '@Url.Action("RemovePrefix", "ReservedNamespace", new { area = "Admin" })';
+                        ? '@Url.Action("AddNamespace", "ReservedNamespace", new { area = "Admin" })'
+                        : '@Url.Action("RemoveNamespace", "ReservedNamespace", new { area = "Admin" })';
                     $self.message("");
                     $.ajax({
                         url: url,

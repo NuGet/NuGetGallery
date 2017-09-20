@@ -1,23 +1,24 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using NuGetGallery.Areas.Admin.ViewModels;
 using System;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Web.Mvc;
+using System.Threading.Tasks;
+using NuGetGallery.Areas.Admin.ViewModels;
+using System.Collections.Generic;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
     public class ReservedNamespaceController : AdminControllerBase
     {
-        public IReservedNamespaceService ReservedNamespaceService { get; private set; }
+        private IReservedNamespaceService _reservedNamespaceService;
 
         protected ReservedNamespaceController() { }
 
         public ReservedNamespaceController(IReservedNamespaceService reservedNamespaceService)
         {
-            ReservedNamespaceService = reservedNamespaceService ?? throw new ArgumentNullException(nameof(reservedNamespaceService));
+            _reservedNamespaceService = reservedNamespaceService ?? throw new ArgumentNullException(nameof(reservedNamespaceService));
         }
 
         [HttpGet]
@@ -27,13 +28,13 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpGet]
-        public virtual JsonResult SearchPrefix(string query)
+        public JsonResult SearchPrefix(string query)
         {
             var prefixQueries = GetPrefixesFromQuery(query);
 
-            var foundPrefixes = ReservedNamespaceService.FindReservedNamespacesForPrefixList(prefixQueries.ToList());
+            var foundPrefixes = _reservedNamespaceService.FindReservedNamespacesForPrefixList(prefixQueries);
 
-            var notFoundPrefixQueries = prefixQueries.Except(foundPrefixes.Select(p => p.Value));
+            var notFoundPrefixQueries = prefixQueries.Except(foundPrefixes.Select(p => p.Value), StringComparer.OrdinalIgnoreCase);
             var notFoundPrefixes = notFoundPrefixQueries.Select(q => new ReservedNamespace(value: q, isSharedNamespace: false, isPrefix: true));
 
             var resultModel = foundPrefixes.Select(fp => new ReservedNamespaceResultModel(fp, isExisting: true));
@@ -49,14 +50,14 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<JsonResult> AddPrefix(ReservedNamespace prefix)
+        public async Task<JsonResult> AddNamespace(ReservedNamespace newNamespace)
         {
             try
             {
-                await ReservedNamespaceService.AddReservedNamespaceAsync(prefix);
-                return Json(new { success = true, message = string.Format(Strings.ReservedNamespace_PrefixAdded, prefix.Value) });
+                await _reservedNamespaceService.AddReservedNamespaceAsync(newNamespace);
+                return Json(new { success = true, message = string.Format(Strings.ReservedNamespace_PrefixAdded, newNamespace.Value) });
             }
-            catch (Exception ex)
+            catch (InvalidOperationException ex)
             {
                 return Json(new { success = false, message = ex.Message });
             }
@@ -64,14 +65,14 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<JsonResult> RemovePrefix(ReservedNamespace prefix)
+        public async Task<JsonResult> RemoveNamespace(ReservedNamespace existingNamespace)
         {
             try
             {
-                await ReservedNamespaceService.DeleteReservedNamespaceAsync(prefix.Value);
-                return Json(new { success = true, message = string.Format(Strings.ReservedNamespace_PrefixRemoved, prefix.Value) });
+                await _reservedNamespaceService.DeleteReservedNamespaceAsync(existingNamespace.Value);
+                return Json(new { success = true, message = string.Format(Strings.ReservedNamespace_PrefixRemoved, existingNamespace.Value) });
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is InvalidOperationException || ex is ArgumentException)
             {
                 return Json(new { success = false, message = ex.Message });
             }
@@ -84,10 +85,10 @@ namespace NuGetGallery.Areas.Admin.Controllers
         {
             try
             {
-                await ReservedNamespaceService.AddOwnerToReservedNamespaceAsync(prefix.Value, owner);
+                await _reservedNamespaceService.AddOwnerToReservedNamespaceAsync(prefix.Value, owner);
                 return Json(new { success = true, message = string.Format(Strings.ReservedNamespace_OwnerAdded, owner, prefix.Value) });
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is InvalidOperationException || ex is ArgumentException)
             {
                 return Json(new { success = false, message = ex.Message });
             }
@@ -99,20 +100,22 @@ namespace NuGetGallery.Areas.Admin.Controllers
         {
             try
             {
-                await ReservedNamespaceService.DeleteOwnerFromReservedNamespaceAsync(prefix.Value, owner);
+                await _reservedNamespaceService.DeleteOwnerFromReservedNamespaceAsync(prefix.Value, owner);
                 return Json(new { success = true, message = string.Format(Strings.ReservedNamespace_OwnerRemoved, owner, prefix.Value) });
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is InvalidOperationException || ex is ArgumentException)
             {
                 return Json(new { success = false, message = ex.Message });
             }
         }
 
-        private static string[] GetPrefixesFromQuery(string query)
+        private static List<string> GetPrefixesFromQuery(string query)
         {
-            return query.Split(',', '\r', '\n',';')
+            query = query ?? "";
+            return query.Split(',', '\r', '\n', ';')
                 .Select(prefix => prefix.Trim())
-                .Where(prefix => !string.IsNullOrEmpty(prefix)).ToArray();
+                .Where(prefix => !string.IsNullOrEmpty(prefix))
+                .ToList();
         }
     }
 }

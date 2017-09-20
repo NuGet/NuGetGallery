@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace NuGetGallery.Areas.Admin.ViewModels
 {
-    public class ReservedNamespaceViewModel
+    public sealed class ReservedNamespaceViewModel
     {
         /// <summary>
         /// Prefix search query.

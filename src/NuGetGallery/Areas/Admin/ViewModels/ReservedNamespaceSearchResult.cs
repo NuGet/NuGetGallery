@@ -8,7 +8,7 @@ namespace NuGetGallery.Areas.Admin.ViewModels
     /// <summary>
     /// Reserved namespace search results for the reserve namespace admin view.
     /// </summary>
-    public class ReservedNamespaceSearchResult
+    public sealed class ReservedNamespaceSearchResult
     {
         /// <summary>
         /// Found prefixes matching the search query

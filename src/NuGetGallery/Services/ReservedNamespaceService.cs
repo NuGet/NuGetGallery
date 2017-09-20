@@ -120,6 +120,7 @@ namespace NuGetGallery
                 {
                     throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, Strings.ReservedNamespace_UserAlreadyOwner, username));
                 }
+
                 // Mark all packages owned by this user that start with the given namespace as verified.
                 var allPackageRegistrationsForUser = PackageService.FindPackageRegistrationsByOwner(userToAdd);
                 var packageRegistrationsMatchingNamespace = allPackageRegistrationsForUser
@@ -255,7 +256,7 @@ namespace NuGetGallery
                 .ToList();
         }
 
-        public IReadOnlyCollection<ReservedNamespace> FindReservedNamespacesForPrefixList(IReadOnlyCollection<string> prefixList)
+        public virtual IReadOnlyCollection<ReservedNamespace> FindReservedNamespacesForPrefixList(IReadOnlyCollection<string> prefixList)
         {
             return (from dbPrefix in ReservedNamespaceRepository.GetAll()
                     join queryPrefix in prefixList

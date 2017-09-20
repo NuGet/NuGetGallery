@@ -999,7 +999,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The user &apos;{0}&apos; removed from owners list of prefix &apos;{1}&apos;..
+        ///   Looks up a localized string similar to The user &apos;{0}&apos; was removed from owners list of prefix &apos;{1}&apos;..
         /// </summary>
         public static string ReservedNamespace_OwnerRemoved {
             get {

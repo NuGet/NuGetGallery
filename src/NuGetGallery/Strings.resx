@@ -589,7 +589,7 @@ For more information, please contact '{2}'.</value>
     <value>The user '{0}' is now an owner of the prefix '{1}'.</value>
   </data>
   <data name="ReservedNamespace_OwnerRemoved" xml:space="preserve">
-    <value>The user '{0}' removed from owners list of prefix '{1}'.</value>
+    <value>The user '{0}' was removed from owners list of prefix '{1}'.</value>
   </data>
   <data name="ReservedNamespace_PrefixAdded" xml:space="preserve">
     <value>The prefix '{0}' has been reserved.</value>

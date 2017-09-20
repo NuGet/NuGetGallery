@@ -158,12 +158,15 @@ namespace NuGetGallery.Services
                 await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.DeleteReservedNamespaceAsync("Nonexistent.Namespace."));
             }
 
-            [Fact]
-            public async Task DeletingNamespaceClearsVerifiedFlagOnPackage()
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task DeletingNamespaceClearsVerifiedFlagOnPackage(bool isSharedNamespace)
             {
                 var namespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
                 var registrations = ReservedNamespaceServiceTestData.GetRegistrations();
                 var msPrefix = namespaces.First();
+                msPrefix.IsSharedNamespace = isSharedNamespace;
                 msPrefix.PackageRegistrations = registrations.Where(x => x.Id.StartsWith(msPrefix.Value)).ToList();
                 msPrefix.PackageRegistrations.ToList().ForEach(x => x.ReservedNamespaces.Add(msPrefix));
 
