@@ -260,7 +260,7 @@ namespace HandlePackageEdits
                     // Delete pending ReadMes
                     Logger.LogInformation("Deleting pending ReadMe for {EditId} {EditVersion} from {PendingReadMeMdUri}", edit.Id, edit.Version, readMeMDBlob.pendingBlob.Uri.AbsoluteUri);
                     await readMeMDBlob.pendingBlob.DeleteIfExistsAsync();
-                    Trace.TraceInformation($"Deleted pending ReadMe for {edit.Id} {edit.Version} from {readMeMDBlob.pendingBlob.Uri.AbsoluteUri}");
+                    Logger.LogInformation($"Deleted pending ReadMe for {edit.Id} {edit.Version} from {readMeMDBlob.pendingBlob.Uri.AbsoluteUri}");
                 }
 
                 Logger.LogInformation("Deleting snapshot blob {SnapshotUri} for {EditId} {EditVersion}.", sourceSnapshot.Uri.AbsoluteUri, edit.Id, edit.Version);
