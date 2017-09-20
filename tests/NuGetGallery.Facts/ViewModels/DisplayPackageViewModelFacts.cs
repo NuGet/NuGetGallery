@@ -151,5 +151,51 @@ namespace NuGetGallery.ViewModels
             // Assert
             Assert.Equal("1", label);
         }
+
+        [Theory]
+        [InlineData("1.0.0", "1.0.1-alpha", true)]
+        [InlineData("1.0.0", "1.0.1-alpha+metadata", true)]
+        [InlineData("1.0.0", "1.0.1-alpha.1", true)]
+        [InlineData("1.0.0", "1.0.1", false)]
+        [InlineData("1.0.0", "1.0.0-alpha", false)]
+        [InlineData("1.0.0", "1.0.0-alpha+metadata", false)]
+        [InlineData("1.0.0", "1.0.0-alpha.1", false)]
+        public void HasNewerPrereleaseReturnsTrueWhenNewerPrereleaseAvailable(
+            string currentVersion, 
+            string otherVersion, 
+            bool expectedNewerPrereleaseAvailable)
+        {
+            // Arrange
+            var dependencies = Enumerable.Empty<PackageDependency>().ToList();
+            var packageRegistration = new PackageRegistration
+            {
+                Owners = Enumerable.Empty<User>().ToList(),
+            };
+
+            var package = new Package
+            {
+                Dependencies = dependencies,
+                PackageRegistration = packageRegistration,
+                Version = currentVersion
+            };
+
+            var otherPackage = new Package
+            {
+                Dependencies = dependencies,
+                PackageRegistration = packageRegistration,
+                IsPrerelease = NuGetVersion.Parse(otherVersion).IsPrerelease,
+                Version = otherVersion
+            };
+
+            package.PackageRegistration.Packages = new[] { package, otherPackage };
+
+            var viewModel = new DisplayPackageViewModel(package, package.PackageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version)));
+
+            // Act
+            var hasNewerPrerelease = viewModel.HasNewerPrerelease;
+
+            // Assert
+            Assert.Equal(expectedNewerPrereleaseAvailable, hasNewerPrerelease);
+        }
     }
 }
