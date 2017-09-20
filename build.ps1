@@ -68,7 +68,7 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
             "$PSScriptRoot\src\NuGet.Services.Cursor\Properties\AssemblyInfo.g.cs",`
             "$PSScriptRoot\src\NuGet.Services.Owin\Properties\AssemblyInfo.g.cs", `
             "$PSScriptRoot\src\NuGet.Services.AzureManagement\Properties\AssemblyInfo.g.cs", `
-            "$PSScriptRoot\src\NuGet.Services.Abstractions\Properties\AssemblyInfo.g.cs", `
+            "$PSScriptRoot\src\NuGet.Services.Contracts\Properties\AssemblyInfo.g.cs", `
             "$PSScriptRoot\src\NuGet.Services.ServiceBus\Properties\AssemblyInfo.g.cs", `
             "$PSScriptRoot\src\NuGet.Services.Validation\Properties\AssemblyInfo.g.cs"
             
@@ -99,7 +99,7 @@ Invoke-BuildStep 'Creating artifacts' { `
             "src\NuGet.Services.Cursor\NuGet.Services.Cursor.csproj", `
             "src\NuGet.Services.Owin\NuGet.Services.Owin.csproj", `
             "src\NuGet.Services.AzureManagement\NuGet.Services.AzureManagement.csproj", `
-            "src\NuGet.Services.Abstractions\NuGet.Services.Abstractions.csproj", `
+            "src\NuGet.Services.Contracts\NuGet.Services.Contracts.csproj", `
             "src\NuGet.Services.ServiceBus\NuGet.Services.ServiceBus.csproj", `
             "src\NuGet.Services.Validation\NuGet.Services.Validation.csproj"
         
