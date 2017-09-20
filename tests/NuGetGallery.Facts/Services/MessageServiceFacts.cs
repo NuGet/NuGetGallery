@@ -363,12 +363,13 @@ namespace NuGetGallery
                 var package = new PackageRegistration { Id = "CoolStuff" };
                 const string packageUrl = "http://nuget.local/packages/CoolStuff";
                 const string confirmationUrl = "http://example.com/confirmation-token-url";
+                const string rejectionUrl = "http://example.com/rejection-token-url";
                 const string userMessage = "Hello World!";
 
                 var messageService = TestableMessageService.Create(
                     GetService<AuthenticationService>(),
                     GetConfigurationService());
-                messageService.SendPackageOwnerRequest(from, to, package, packageUrl, confirmationUrl, userMessage, string.Empty);
+                messageService.SendPackageOwnerRequest(from, to, package, packageUrl, confirmationUrl, rejectionUrl, userMessage, string.Empty);
                 var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal("new-owner@example.com", message.To[0].Address);
@@ -390,11 +391,12 @@ namespace NuGetGallery
                 var package = new PackageRegistration { Id = "CoolStuff" };
                 const string packageUrl = "http://nuget.local/packages/CoolStuff";
                 const string confirmationUrl = "http://example.com/confirmation-token-url";
+                const string rejectionUrl = "http://example.com/rejection-token-url";
 
                 var messageService = TestableMessageService.Create(
                     GetService<AuthenticationService>(),
                     GetConfigurationService());
-                messageService.SendPackageOwnerRequest(from, to, package, packageUrl, confirmationUrl, string.Empty, string.Empty);
+                messageService.SendPackageOwnerRequest(from, to, package, packageUrl, confirmationUrl, rejectionUrl, string.Empty, string.Empty);
                 var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.DoesNotContain("The user 'Existing' added the following message for you", message.Body);
@@ -408,11 +410,12 @@ namespace NuGetGallery
                 var package = new PackageRegistration { Id = "CoolStuff" };
                 const string packageUrl = "http://nuget.local/packages/CoolStuff";
                 const string confirmationUrl = "http://example.com/confirmation-token-url";
+                const string rejectionUrl = "http://example.com/rejection-token-url";
 
                 var messageService = TestableMessageService.Create(
                     GetService<AuthenticationService>(),
                     GetConfigurationService());
-                messageService.SendPackageOwnerRequest(from, to, package, packageUrl, confirmationUrl, string.Empty, string.Empty);
+                messageService.SendPackageOwnerRequest(from, to, package, packageUrl, confirmationUrl, rejectionUrl, string.Empty, string.Empty);
 
                 Assert.Empty(messageService.MockMailSender.Sent);
             }
