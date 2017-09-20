@@ -36,8 +36,7 @@ namespace HandlePackageEdits
 
         private const string ReadMeChanged = "changed";
         private const string ReadMeDeleted = "deleted";
-        private const string MarkdownExtension = "md";
-        private const string HtmlExtension = "html";
+        private const string MarkdownExtension = ".md";
 
         /// <summary>
         /// Gets or sets an Azure Storage Uri referring to a container to use as the source for package blobs
@@ -161,7 +160,6 @@ namespace HandlePackageEdits
         {
             string originalPath = null;
             string originalReadMeMDPath = null;
-            string originalReadMeHTMLPath = null;
 
             try
             {
@@ -230,8 +228,6 @@ namespace HandlePackageEdits
                 // ReadMe update
                 var readMeMDBlob = await UpdateReadMeAsync(edit, directory, originalReadMeMDPath, MarkdownExtension);
 
-                var readMeHTMLBlob = await UpdateReadMeAsync(edit, directory, originalReadMeHTMLPath, HtmlExtension);
-
                 try
                 {
                     Logger.LogInformation("Updating package record for {EditId} {EditVersion}", edit.Id, edit.Version);
@@ -255,7 +251,6 @@ namespace HandlePackageEdits
                         sourceSnapshot.Uri.AbsoluteUri, sourceBlob.Uri.AbsoluteUri);
 
                     await RollBackReadMeAsync(edit, directory, originalReadMeMDPath, readMeMDBlob.activeSnapshot, readMeMDBlob.activeBlob);
-                    await RollBackReadMeAsync(edit, directory, originalReadMeHTMLPath, readMeHTMLBlob.activeSnapshot, readMeHTMLBlob.activeBlob);
 
                     throw;
                 }
@@ -265,11 +260,7 @@ namespace HandlePackageEdits
                     // Delete pending ReadMes
                     Logger.LogInformation("Deleting pending ReadMe for {EditId} {EditVersion} from {PendingReadMeMdUri}", edit.Id, edit.Version, readMeMDBlob.pendingBlob.Uri.AbsoluteUri);
                     await readMeMDBlob.pendingBlob.DeleteIfExistsAsync();
-                    Logger.LogInformation("Deleted pending ReadMe for {EditId} {EditVersion} from {PendingReadMeMdUri}", edit.Id, edit.Version, readMeMDBlob.pendingBlob.Uri.AbsoluteUri);
-
-                    Logger.LogInformation("Deleting pending ReadMe for {EditId} {EditVersion} from {PendingReadMeHtmlUri}", edit.Id, edit.Version, readMeHTMLBlob.pendingBlob.Uri.AbsoluteUri);
-                    await readMeHTMLBlob.pendingBlob.DeleteIfExistsAsync();
-                    Logger.LogInformation("Deleted pending ReadMe for {EditId} {EditVersion} from {PendingReadMeHtmlUri}", edit.Id, edit.Version, readMeHTMLBlob.pendingBlob.Uri.AbsoluteUri);
+                    Trace.TraceInformation($"Deleted pending ReadMe for {edit.Id} {edit.Version} from {readMeMDBlob.pendingBlob.Uri.AbsoluteUri}");
                 }
 
                 Logger.LogInformation("Deleting snapshot blob {SnapshotUri} for {EditId} {EditVersion}.", sourceSnapshot.Uri.AbsoluteUri, edit.Id, edit.Version);
@@ -281,13 +272,6 @@ namespace HandlePackageEdits
                     Logger.LogInformation("Deleting snapshot ReadMe Md {ActiveReadMeMdUri} for {EditId} {EditVersion}.", readMeMDBlob.activeSnapshot.Uri.AbsoluteUri, edit.Id, edit.Version);
                     await readMeMDBlob.activeSnapshot.DeleteAsync();
                     Logger.LogInformation("Deleted snapshot ReadMe Md {ActiveReadMeMdUri} for {EditId} {EditVersion}.", readMeMDBlob.activeSnapshot.Uri.AbsoluteUri, edit.Id, edit.Version);
-                }
-
-                if (readMeHTMLBlob.activeSnapshot != null)
-                {
-                    Logger.LogInformation("Deleting snapshot ReadMe Html {ActiveReadMeHtmlUri} for {EditId} {EditVersion}.", readMeHTMLBlob.activeSnapshot.Uri.AbsoluteUri, edit.Id, edit.Version);
-                    await readMeHTMLBlob.activeSnapshot.DeleteAsync();
-                    Logger.LogInformation("Deleted snapshot ReadMe Html {ActiveReadMeHtmlUri} for {EditId} {EditVersion}.", readMeHTMLBlob.activeSnapshot.Uri.AbsoluteUri, edit.Id, edit.Version);
                 }
             }
             finally
@@ -518,6 +502,7 @@ namespace HandlePackageEdits
                 await currentBlob.activeBlob.DeleteIfExistsAsync();
                 Logger.LogInformation("Deleted ReadMe of {EditId} {EditVersion} from {ActiveReadMeUri}", edit.Id, edit.Version, currentBlob.activeBlob.Uri.AbsoluteUri);
             }
+            
             return currentBlob;
         }
 
