@@ -30,7 +30,7 @@ Function Run-Tests {
         "tests\Tests.Stats.ImportAzureCdnStatistics\bin\$Configuration\Tests.Stats.ImportAzureCdnStatistics.dll", `
         "tests\Validation.Helper.Tests\bin\$Configuration\Validation.Helper.Tests.dll",`
 	"tests\Tests.Stats.CollectAzureChinaCDNLogs\bin\$Configuration\Tests.Stats.CollectAzureChinaCDNLogs.dll", `
-        "tests\Tests.Validation.Orchestrator\bin\$Configuration\Tests.Validation.Orchestrator.dll"
+        "tests\NuGet.Services.Validation.Orchestrator.Tests\bin\$Configuration\NuGet.Services.Validation.Orchestrator.Tests.dll"
 
     
     $TestCount = 0

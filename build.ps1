@@ -101,7 +101,7 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
             "$PSScriptRoot\src\Validation.Helper\Properties\AssemblyInfo.g.cs",
             "$PSScriptRoot\src\CopyAzureContainer\Properties\AssemblyInfo.g.cs",
             "$PSScriptRoot\src\NuGetCDNRedirect\Properties\AssemblyInfo.g.cs",
-            "$PSScriptRoot\src\Validation.Orchestrator\Properties\AssemblyInfo.g.cs",
+            "$PSScriptRoot\src\NuGet.Services.Validation.Orchestrator\Properties\AssemblyInfo.g.cs",
  	    "$PSScriptRoot\src\Stats.CollectAzureChinaCDNLogs\Properties\AssemblyInfo.g.cs"
 
             
@@ -148,7 +148,7 @@ Invoke-BuildStep 'Creating artifacts' {
             "src/Validation.Helper/Validation.Helper.csproj", `
             "src/CopyAzureContainer/CopyAzureContainer.csproj", `
             "src/NuGetCDNRedirect/NuGetCDNRedirect.csproj", `
-            "src/Validation.Orchestrator/Validation.Orchestrator.csproj", `
+            "src/NuGet.Services.Validation.Orchestrator/NuGet.Services.Validation.Orchestrator.csproj", `
 	    "src/Stats.CollectAzureChinaCDNLogs/Stats.CollectAzureChinaCDNLogs.csproj"
 
         Foreach ($Project in $Projects) {
