@@ -7,7 +7,7 @@ cd bin
     
     title #{Jobs.validation.Title}
 
-    start /w Validation.Orchestrator.exe
+    start /w Validation.Orchestrator.exe -Configuration #{Jobs.validation.configuration}
 
     echo "Finished #{Jobs.validation.Title}"
 

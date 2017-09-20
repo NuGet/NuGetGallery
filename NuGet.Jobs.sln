@@ -1,9 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-
-VisualStudioVersion = 15.0.26911.0
-
+VisualStudioVersion = 15.0.26915.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Jobs.Common", "src\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj", "{4B4B1EFB-8F33-42E6-B79F-54E7F3293D31}"
 EndProject
@@ -93,9 +91,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stats.CollectAzureChinaCDNL
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Stats.CollectAzureChinaCDNLogs", "tests\Tests.Stats.CollectAzureChinaCDNLogs\Tests.Stats.CollectAzureChinaCDNLogs.csproj", "{0C887292-C5AB-4107-946C-A53B18A38D22}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.Orchestrator", "src\Validation.Orchestrator\Validation.Orchestrator.csproj", "{E6D094FB-9068-4578-B176-116F97E7506B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Validation.Orchestrator", "src\NuGet.Services.Validation.Orchestrator\NuGet.Services.Validation.Orchestrator.csproj", "{E6D094FB-9068-4578-B176-116F97E7506B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Validation.Orchestrator", "tests\Tests.Validation.Orchestrator\Tests.Validation.Orchestrator.csproj", "{A3B0B15D-22D9-4F1F-94C4-B24B28ECF632}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Validation.Orchestrator.Tests", "tests\NuGet.Services.Validation.Orchestrator.Tests\NuGet.Services.Validation.Orchestrator.Tests.csproj", "{A3B0B15D-22D9-4F1F-94C4-B24B28ECF632}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -274,7 +272,6 @@ Global
 		{FC0CEF12-D501-46D1-B1BF-D4134BD8D478} = {B9D03824-A9CA-43AC-86D6-8BB399B9A228}
 		{0C887292-C5AB-4107-946C-A53B18A38D22} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{A3B0B15D-22D9-4F1F-94C4-B24B28ECF632} = {6A776396-02B1-475D-A104-26940ADB04AB}
-
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {284A7AC3-FB43-4F1F-9C9C-2AF0E1F46C2B}
