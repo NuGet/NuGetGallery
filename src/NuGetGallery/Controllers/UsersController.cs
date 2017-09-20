@@ -160,8 +160,8 @@ namespace NuGetGallery
             
             var requests = _packageOwnerRequestRepository.GetAll();
             
-            var incoming = requests.Where(r => r.NewOwnerKey == user.Key);
-            var outgoing = requests.Where(r => r.RequestingOwnerKey == user.Key);
+            var incoming = requests.Where(r => r.NewOwnerKey == user.Key).ToArray();
+            var outgoing = requests.Where(r => r.RequestingOwnerKey == user.Key).ToArray();
 
             var ownerRequests = new OwnerRequestsViewModel(incoming, outgoing, user, _packageService);
 
