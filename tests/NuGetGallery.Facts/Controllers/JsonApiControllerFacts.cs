@@ -427,6 +427,7 @@ namespace NuGetGallery.Controllers
                         fakes.Package,
                         TestUtility.GallerySiteRootHttps + "packages/FakePackage/",
                         TestUtility.GallerySiteRootHttps + "packages/FakePackage/owners/testUser/confirm/confirmation-code",
+                        TestUtility.GallerySiteRootHttps + "packages/FakePackage/owners/testUser/reject/confirmation-code",
                         "Hello World! Html Encoded &lt;3",
                         ""))
                     .Verifiable();
@@ -517,10 +518,11 @@ namespace NuGetGallery.Controllers
                         fakes.Package,
                         TestUtility.GallerySiteRootHttps + "packages/FakePackage/",
                         TestUtility.GallerySiteRootHttps + "packages/FakePackage/owners/testUser/confirm/confirmation-code",
+                        TestUtility.GallerySiteRootHttps + "packages/FakePackage/owners/testUser/reject/confirmation-code",
                         string.Empty,
                         It.IsAny<string>()))
-                    .Callback<User, User, PackageRegistration, string, string, string, string>(
-                        (from, to, pkg, pkgUrl, cnfUrl, msg, policyMsg) => actualMessage = policyMsg);
+                    .Callback<User, User, PackageRegistration, string, string, string, string, string>(
+                        (from, to, pkg, pkgUrl, cnfUrl, rjUrl, msg, policyMsg) => actualMessage = policyMsg);
 
                 // Act
                 JsonResult result = await controller.AddPackageOwner(fakes.Package.Id, fakes.User.Username, string.Empty);

@@ -113,19 +113,29 @@ namespace NuGetGallery
             if (TryGetManagePackageOwnerModel(id, username, out model))
             {
                 var encodedMessage = HttpUtility.HtmlEncode(message);
+
                 var ownerRequest = await _packageService.CreatePackageOwnerRequestAsync(
                     model.Package, model.CurrentUser, model.User);
+
                 var confirmationUrl = Url.ConfirmationUrl(
-                    "ConfirmOwner",
+                    "ConfirmPendingOwnershipRequest",
                     "Packages",
                     model.User.Username,
                     ownerRequest.ConfirmationCode,
                     new { id = model.Package.Id });
+
+                var rejectionUrl = Url.ConfirmationUrl(
+                    "RejectPendingOwnershipRequest",
+                    "Packages",
+                    model.User.Username,
+                    ownerRequest.ConfirmationCode,
+                    new { id = model.Package.Id });
+
                 var packageUrl = Url.Package(model.Package.Id, null, scheme: _appConfiguration.RequireSSL ? Uri.UriSchemeHttps : Uri.UriSchemeHttp);
                 var policyMessage = GetNoticeOfPoliciesRequiredMessage(model.Package, model.User, model.CurrentUser);
 
                 _messageService.SendPackageOwnerRequest(model.CurrentUser, model.User, model.Package, packageUrl,
-                    confirmationUrl, encodedMessage, policyMessage);
+                    confirmationUrl, rejectionUrl, encodedMessage, policyMessage);
 
                 return Json(new
                 {

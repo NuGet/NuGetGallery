@@ -460,7 +460,11 @@ namespace NuGetGallery
 
         public PackageOwnerRequest GetPackageOwnershipRequest(PackageRegistration package, User requestingUser, User pendingUser)
         {
-            return GetPendingOwnershipRequest(package, requestingUser, pendingUser);
+            return (from request in _packageOwnerRequestRepository.GetAll()
+                    where request.PackageRegistrationKey == package.Key &&
+                        request.RequestingOwnerKey == requestingUser.Key &&
+                        request.NewOwnerKey == pendingUser.Key
+                    select request).FirstOrDefault();
         }
 
         public async Task MarkPackageListedAsync(Package package, bool commitChanges = true)
@@ -926,15 +930,6 @@ namespace NuGetGallery
         {
             return (from request in _packageOwnerRequestRepository.GetAll()
                     where request.PackageRegistrationKey == package.Key && 
-                        request.NewOwnerKey == pendingOwner.Key
-                    select request).FirstOrDefault();
-        }
-
-        private PackageOwnerRequest GetPendingOwnershipRequest(PackageRegistration package, User requestingOwner, User pendingOwner)
-        {
-            return (from request in _packageOwnerRequestRepository.GetAll()
-                    where request.PackageRegistrationKey == package.Key && 
-                        request.RequestingOwnerKey == requestingOwner.Key &&
                         request.NewOwnerKey == pendingOwner.Key
                     select request).FirstOrDefault();
         }
