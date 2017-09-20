@@ -55,17 +55,17 @@
                                         @{
                                             if (CurrentUser.Key == requestItem.Request.NewOwnerKey)
                                             {
-                                                <a href="@Url.ConfirmPendingOwnershipRequest(packageId, CurrentUser.Username, requestItem.Request.ConfirmationCode)" class="btn" title="Confirm Ownership" aria-label="Confirm Ownership of @packageId">
+                                                <a href="@Url.ConfirmPendingOwnershipRequest(packageId, CurrentUser.Username, requestItem.Request.ConfirmationCode, relativeUrl: false)" class="btn" title="Confirm Ownership" aria-label="Confirm Ownership of @packageId">
                                                     <i class="ms-Icon ms-Icon--Accept" aria-hidden="true"></i>
                                                 </a>
 
-                                                <a href="@Url.RejectPendingOwnershipRequest(packageId, CurrentUser.Username, requestItem.Request.ConfirmationCode)" class="btn" title="Reject Ownership" aria-label="Reject Ownership Request of @packageId">
+                                                <a href="@Url.RejectPendingOwnershipRequest(packageId, CurrentUser.Username, requestItem.Request.ConfirmationCode, relativeUrl: false)" class="btn" title="Reject Ownership" aria-label="Reject Ownership Request of @packageId">
                                                     <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
                                                 </a>
                                             }
                                             else
                                             {
-                                                <a href="@Url.CancelPendingOwnershipRequest(packageId, CurrentUser.Username, requestItem.Request.NewOwner.Username)" class="btn" title="Cancel Ownership" aria-label="Cancel Ownership Request of @requestItem.Request.NewOwner.Username to Own @packageId">
+                                                <a href="@Url.CancelPendingOwnershipRequest(packageId, CurrentUser.Username, requestItem.Request.NewOwner.Username, relativeUrl: false)" class="btn" title="Cancel Ownership" aria-label="Cancel Ownership Request of @requestItem.Request.NewOwner.Username to Own @packageId">
                                                     <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
                                                 </a>
                                             }

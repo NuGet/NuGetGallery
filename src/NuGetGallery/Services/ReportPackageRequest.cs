@@ -26,7 +26,6 @@ namespace NuGetGallery
         {
             // note, format blocks {xxx} are matched by ordinal-case-sensitive comparison
             var builder = new StringBuilder(subject);
-            var protocol = config.RequireSSL ? Uri.UriSchemeHttps: Uri.UriSchemeHttp;
 
             Substitute(builder, "{GalleryOwnerName}", config.GalleryOwner.DisplayName);
             Substitute(builder, "{Id}", Package.PackageRegistration.Id);
@@ -40,7 +39,7 @@ namespace NuGetGallery
                     RequestingUser.Username,
                     RequestingUser.EmailAddress,
                     Environment.NewLine,
-                    Url.User(RequestingUser, scheme: protocol)));
+                    Url.User(RequestingUser, relativeUrl: false)));
             }
             else
             {
@@ -49,8 +48,8 @@ namespace NuGetGallery
             Substitute(builder, "{Name}", FromAddress.DisplayName);
             Substitute(builder, "{Address}", FromAddress.Address);
             Substitute(builder, "{AlreadyContactedOwners}", AlreadyContactedOwners ? "Yes" : "No");
-            Substitute(builder, "{PackageUrl}", Url.Package(Package.PackageRegistration.Id, version: null, scheme: protocol));
-            Substitute(builder, "{VersionUrl}", Url.Package(Package.PackageRegistration.Id, Package.Version, protocol));
+            Substitute(builder, "{PackageUrl}", Url.Package(Package.PackageRegistration.Id, version: null, relativeUrl: false));
+            Substitute(builder, "{VersionUrl}", Url.Package(Package.PackageRegistration.Id, Package.Version, relativeUrl: false));
             Substitute(builder, "{Reason}", Reason);
             Substitute(builder, "{Signature}", Signature);
             Substitute(builder, "{Message}", Message);

@@ -52,7 +52,6 @@
     <Compile Include="AccountManagement\RegisterNewUserTest.cs" />
     <Compile Include="AssertAndValidationHelper.cs" />
     <Compile Include="BasicPages\HomePageValidationTest.cs" />
-    <Compile Include="BasicPages\NetFoundationBrandingValidationTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UploadAndDownload\UploadPackageFromUI.cs" />
   </ItemGroup>

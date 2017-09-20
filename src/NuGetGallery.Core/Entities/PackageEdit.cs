@@ -3,6 +3,7 @@
 
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace NuGetGallery
 {
@@ -34,6 +35,29 @@ namespace NuGetGallery
         public int TriedCount { get; set; }
         public string LastError { get; set; }
 
+        /// <summary>
+        /// README state string as stored in the database. Callers should use the ReadMeState property for enum support.
+        /// <see cref="PackageEditReadMeState.Changed">, <see cref="PackageEditReadMeState.Deleted">, or null for <see cref="PackageEditReadMeState.Unchanged">.
+        /// </summary>
+        [Column("ReadMeState")]
+        public string ReadMeStateInternal { get; set; }
+
+        /// <summary>
+        /// README state for a pending package edit. Callers should use this property instead of ReadMeStateInternal.
+        /// </summary>
+        [NotMapped]
+        public PackageEditReadMeState ReadMeState
+        {
+            get
+            {
+                return GetReadMeStateString();
+            }
+            set
+            {
+                SetReadMeStateString(value);
+            }
+        }
+
         //////////////// The rest are same as on Package ////////////
 
         [StringLength(256)]
@@ -45,10 +69,6 @@ namespace NuGetGallery
         public string LicenseUrl { get; set; }
         public string ProjectUrl { get; set; }
         public string RepositoryUrl { get; set; }
-        /// <summary>
-        /// changed, null (means unchanged), deleted
-        /// </summary>
-        public string ReadMeState { get; set; }
         public string ReleaseNotes { get; set; }
         public bool RequiresLicenseAcceptance { get; set; }
         public string Summary { get; set; }
@@ -58,5 +78,47 @@ namespace NuGetGallery
         {
             Package.ApplyEdit(this, hashAlgorithm, hash, packageFileSize);
         }
+
+        #region ReadMeState helpers
+
+        private const string ReadMeStateChanged = "changed";
+        private const string ReadMeStateDeleted = "deleted";
+
+        private PackageEditReadMeState GetReadMeStateString()
+        {
+            var state = ReadMeStateInternal ?? string.Empty;
+            
+            if (state.Equals(ReadMeStateChanged, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return PackageEditReadMeState.Changed;
+            }
+            else if (state.Equals(ReadMeStateDeleted, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return PackageEditReadMeState.Deleted;
+            }
+            else
+            {
+                return PackageEditReadMeState.Unchanged;
+            }
+        }
+
+        private void SetReadMeStateString(PackageEditReadMeState readMeState)
+        {
+            switch (readMeState)
+            {
+                case PackageEditReadMeState.Changed:
+                    ReadMeStateInternal = ReadMeStateChanged;
+                    break;
+                case PackageEditReadMeState.Deleted:
+                    ReadMeStateInternal = ReadMeStateDeleted;
+                    break;
+                case PackageEditReadMeState.Unchanged:
+                default:
+                    ReadMeStateInternal = null;
+                    break;
+            }
+        }
+        #endregion
+
     }
 }

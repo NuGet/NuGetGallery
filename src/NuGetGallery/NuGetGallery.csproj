@@ -128,6 +128,9 @@
       <HintPath>..\..\packages\Autofac.WebApi2.3.4.0\lib\net45\Autofac.Integration.WebApi.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="CommonMark, Version=0.1.0.0, Culture=neutral, PublicKeyToken=001ef8810438905d, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\CommonMark.NET.0.15.1\lib\net45\CommonMark.dll</HintPath>
+    </Reference>
     <Reference Include="DynamicData.EFCodeFirstProvider, Version=0.3.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\DynamicData.EFCodeFirstProvider.0.3.0.0\lib\net40\DynamicData.EFCodeFirstProvider.dll</HintPath>
@@ -793,6 +796,11 @@
     <Compile Include="Migrations\201709072246362_AddPackageLicenseReport2Sproc.Designer.cs">
       <DependentUpon>201709072246362_AddPackageLicenseReport2Sproc.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201709111714021_AddPackageStatusKey.cs" />
+    <Compile Include="Migrations\201709111714021_AddPackageStatusKey.Designer.cs">
+      <DependentUpon>201709111714021_AddPackageStatusKey.cs</DependentUpon>
+    </Compile>
+    <Compile Include="RequestModels\ReadMeRequest.cs" />
     <Compile Include="Security\RequireSecurePushForCoOwnersPolicy.cs" />
     <Compile Include="Security\SecurePushSubscription.cs" />
     <Compile Include="Security\IUserSecurityPolicySubscription.cs" />
@@ -809,10 +817,12 @@
     <Compile Include="Security\UserSecurityPolicyEvaluationContext.cs" />
     <Compile Include="Security\SecurityPolicyResult.cs" />
     <Compile Include="Security\UserSecurityPolicySubscriptionContext.cs" />
+    <Compile Include="Services\IReadMeService.cs" />
     <Compile Include="Services\PackageUploadService.cs" />
     <Compile Include="Services\IReservedNamespaceService.cs" />
     <Compile Include="Services\IPackageUploadService.cs" />
     <Compile Include="Services\ReservedNamespaceService.cs" />
+    <Compile Include="Services\ReadMeService.cs" />
     <Compile Include="Telemetry\ClientInformationTelemetryEnricher.cs" />
     <Compile Include="Telemetry\QuietExceptionLogger.cs" />
     <Compile Include="Infrastructure\Authentication\CredentialBuilder.cs" />
@@ -1762,7 +1772,6 @@
     <Content Include="App_Data\Files\Content\Terms-Of-Use.md" />
     <Content Include="Branding\Views\web.config" />
     <Compile Include="Views\NuGetViewBase.cs" />
-    <Content Include="Public\Blocked.html" />
     <Content Include="Scripts\gallery\d3.v3.js" />
     <Content Include="Areas\Admin\Views\SupportRequest\Index.cshtml" />
     <Content Include="Areas\Admin\Views\SupportRequest\Admins.cshtml" />
@@ -1801,6 +1810,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201709072246362_AddPackageLicenseReport2Sproc.resx">
       <DependentUpon>201709072246362_AddPackageLicenseReport2Sproc.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201709111714021_AddPackageStatusKey.resx">
+      <DependentUpon>201709111714021_AddPackageStatusKey.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
@@ -1857,6 +1869,9 @@
     <Content Include="Views\Shared\_PackageHeading.cshtml" />
     <Content Include="Views\Users\OwnerRequests.cshtml" />
     <Content Include="Views\Users\_OwnerRequestsList.cshtml" />
+    <Content Include="Views\Packages\_ImportReadMe.cshtml" />
+    <Content Include="Views\Packages\_SubmitPackage.cshtml" />
+    <Content Include="Views\Packages\_EditForm.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />
@@ -1943,7 +1958,6 @@
     <Content Include="Content\SyntaxHighlighter\shThemeRDark.css" />
     <Content Include="Content\themes\custom\jquery-ui-1.10.3.custom.css" />
     <Content Include="Content\themes\custom\jquery-ui-1.10.3.custom.min.css" />
-    <Content Include="Public\Error.html" />
     <Content Include="Public\favicon.ico" />
     <Content Include="Public\opensearch.xml" />
     <EmbeddedResource Include="Areas\Admin\Migrations\201602111647053_SupportRequestDbModel.resx">
