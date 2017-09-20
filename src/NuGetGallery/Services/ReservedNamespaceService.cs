@@ -56,6 +56,15 @@ namespace NuGetGallery
                 throw new InvalidOperationException(Strings.ReservedNamespace_NamespaceNotAvailable);
             }
 
+            // Mark the new namespace as shared if it matches any liberal namespace which is a shared
+            // namespace. For eg: A.B.* is a shared namespace, when reserving A.B.C.* namespace, 
+            // make it a shared namespace. This ensures that all namespaces under a shared 
+            // namespace are also shared to keep the data consistent.
+            if (!newNamespace.IsSharedNamespace && ShouldForceSharedNamespace(newNamespace.Value))
+            {
+                newNamespace.IsSharedNamespace = true;
+            }
+
             ReservedNamespaceRepository.InsertOnCommit(newNamespace);
             await ReservedNamespaceRepository.CommitChangesAsync();
         }
@@ -313,5 +322,12 @@ namespace NuGetGallery
 
             return noNamespaceMatches || idMatchesSharedNamespace || userOwnedMatchingNamespaces.Any();
         }
+
+        private bool ShouldForceSharedNamespace(string value)
+        {
+            var liberalMatchingNamespaces = GetReservedNamespacesForId(value);
+            return liberalMatchingNamespaces.Any(rn => rn.IsSharedNamespace);
+        }
+
     }
 }

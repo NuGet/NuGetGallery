@@ -38,6 +38,57 @@ namespace NuGetGallery.Services
             }
 
             [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task RestrictiveNamespaceUnderSharedNamespaceIsMarkedShared(bool isSharedNamespace)
+            {
+                var namespaces = new List<ReservedNamespace> {
+                    new ReservedNamespace("xunit.", isSharedNamespace: false, isPrefix: true),
+                    new ReservedNamespace("xunit.extentions.", isSharedNamespace: true, isPrefix: true),
+                };
+
+                var newNamespace = new ReservedNamespace("xunit.extentions.someuser.", isSharedNamespace, isPrefix: true);
+
+                var service = new TestableReservedNamespaceService(reservedNamespaces: namespaces);
+                await service.AddReservedNamespaceAsync(newNamespace);
+
+                // Commit should happen with shared namespace set to 'true'
+                service.MockReservedNamespaceRepository.Verify(
+                    x => x.InsertOnCommit(
+                        It.Is<ReservedNamespace>(
+                            rn => rn.Value == newNamespace.Value
+                                && rn.IsPrefix == newNamespace.IsPrefix
+                                && rn.IsSharedNamespace == true)));
+
+                service.MockReservedNamespaceRepository.Verify(x => x.CommitChangesAsync());
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task RestrictiveNamespaceUnderPrivateNamespacesIsMarkedAsAppropriate(bool isSharedNamespace)
+            {
+                var namespaces = new List<ReservedNamespace> {
+                    new ReservedNamespace("xunit.", isSharedNamespace: false, isPrefix: true),
+                    new ReservedNamespace("xunit.extentions.", isSharedNamespace: false, isPrefix: true),
+                };
+
+                var newNamespace = new ReservedNamespace("xunit.extentions.someuser.", isSharedNamespace, isPrefix: true);
+
+                var service = new TestableReservedNamespaceService(reservedNamespaces: namespaces);
+                await service.AddReservedNamespaceAsync(newNamespace);
+
+                service.MockReservedNamespaceRepository.Verify(
+                    x => x.InsertOnCommit(
+                        It.Is<ReservedNamespace>(
+                            rn => rn.Value == newNamespace.Value
+                                && rn.IsPrefix == newNamespace.IsPrefix
+                                && rn.IsSharedNamespace == isSharedNamespace)));
+
+                service.MockReservedNamespaceRepository.Verify(x => x.CommitChangesAsync());
+            }
+
+            [Theory]
             [InlineData(null)]
             [InlineData("")]
             [InlineData("    ")]
