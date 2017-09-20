@@ -7,9 +7,9 @@ namespace NuGetGallery
 {
     public class OwnerRequestsViewModel
     {
-        public OwnerRequestsListViewModel Incoming { get; private set; }
+        public OwnerRequestsListViewModel Incoming { get; }
 
-        public OwnerRequestsListViewModel Outgoing { get; private set; }
+        public OwnerRequestsListViewModel Outgoing { get; }
 
         public OwnerRequestsViewModel(IEnumerable<PackageOwnerRequest> incoming, IEnumerable<PackageOwnerRequest> outgoing, User currentUser, IPackageService packageService)
         {
