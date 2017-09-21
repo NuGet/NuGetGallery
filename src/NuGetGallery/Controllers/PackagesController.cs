@@ -44,6 +44,7 @@ namespace NuGetGallery
         private readonly IAppConfiguration _config;
         private readonly IMessageService _messageService;
         private readonly IPackageService _packageService;
+        private readonly IPackageOwnerRequestService _packageOwnerRequestService;
         private readonly IPackageFileService _packageFileService;
         private readonly ISearchService _searchService;
         private readonly IUploadFileService _uploadFileService;
@@ -63,6 +64,7 @@ namespace NuGetGallery
 
         public PackagesController(
             IPackageService packageService,
+            IPackageOwnerRequestService packageOwnerRequestService,
             IUploadFileService uploadFileService,
             IUserService userService,
             IMessageService messageService,
@@ -84,6 +86,7 @@ namespace NuGetGallery
             IReadMeService readMeService)
         {
             _packageService = packageService;
+            _packageOwnerRequestService = packageOwnerRequestService;
             _uploadFileService = uploadFileService;
             _userService = userService;
             _messageService = messageService;
@@ -1157,7 +1160,7 @@ namespace NuGetGallery
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.AlreadyOwner));
             }
 
-            if (!_packageService.IsValidPackageOwnerRequest(package, user, token))
+            if (!_packageOwnerRequestService.IsValidPackageOwnerRequest(package, user, token))
             {
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.Failure));
             }
@@ -1204,7 +1207,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            var request = _packageService.GetPackageOwnershipRequest(package, requestingUser, pendingUser);
+            var request = _packageOwnerRequestService.GetPackageOwnershipRequests(package, requestingUser, pendingUser).FirstOrDefault();
             if (request == null)
             {
                 return HttpNotFound();
