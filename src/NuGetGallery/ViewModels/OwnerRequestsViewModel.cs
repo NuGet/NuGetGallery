@@ -7,8 +7,14 @@ namespace NuGetGallery
 {
     public class OwnerRequestsViewModel
     {
+        /// <summary>
+        /// A model to show the requests for this user to become an owner of a package.
+        /// </summary>
         public OwnerRequestsListViewModel Incoming { get; }
 
+        /// <summary>
+        /// A model to show the requests this user has sent to other users to become owners.
+        /// </summary>
         public OwnerRequestsListViewModel Outgoing { get; }
 
         public OwnerRequestsViewModel(IEnumerable<PackageOwnerRequest> incoming, IEnumerable<PackageOwnerRequest> outgoing, User currentUser, IPackageService packageService)
