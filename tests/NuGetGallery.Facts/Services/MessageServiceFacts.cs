@@ -421,6 +421,112 @@ namespace NuGetGallery
             }
         }
 
+        public class TheSendPackageOwnerRequestRejectionNoticeMethod
+            : TestContainer
+        {
+            [Fact]
+            public void SendsNotice()
+            {
+                var requestingOwner = new User { Username = "Existing", EmailAddress = "existing-owner@example.com", EmailAllowed = true };
+                var newOwner = new User { Username = "Noob", EmailAddress = "new-owner@example.com" };
+                var package = new PackageRegistration { Id = "CoolStuff" };
+
+                var request = new PackageOwnerRequest
+                {
+                    PackageRegistration = package,
+                    RequestingOwner = requestingOwner,
+                    NewOwner = newOwner
+                };
+
+                var messageService = TestableMessageService.Create(
+                    GetService<AuthenticationService>(),
+                    GetConfigurationService());
+                messageService.SendPackageOwnerRequestRejectionNotice(request);
+                var message = messageService.MockMailSender.Sent.Last();
+
+                Assert.Equal(requestingOwner.EmailAddress, message.To[0].Address);
+                Assert.Equal(TestGalleryNoReplyAddress.Address, message.From.Address);
+                Assert.Equal(newOwner.EmailAddress, message.ReplyToList.Single().Address);
+                Assert.Equal("[Joe Shmoe] The user 'Noob' has rejected your request to be added as an owner of the package 'CoolStuff'.", message.Subject);
+                Assert.Contains("The user 'Noob' has rejected your request to be added as an owner of the package 'CoolStuff'.", message.Body);
+            }
+
+            [Fact]
+            public void DoesNotSendNoticeIfUserDoesNotAllowEmails()
+            {
+                var requestingOwner = new User { Username = "Existing", EmailAddress = "existing-owner@example.com" };
+                var newOwner = new User { Username = "Noob", EmailAddress = "new-owner@example.com" };
+                var package = new PackageRegistration { Id = "CoolStuff" };
+
+                var request = new PackageOwnerRequest
+                {
+                    PackageRegistration = package,
+                    RequestingOwner = requestingOwner,
+                    NewOwner = newOwner
+                };
+
+                var messageService = TestableMessageService.Create(
+                    GetService<AuthenticationService>(),
+                    GetConfigurationService());
+                messageService.SendPackageOwnerRequestRejectionNotice(request);
+
+                Assert.Empty(messageService.MockMailSender.Sent);
+            }
+        }
+
+        public class TheSendPackageOwnerRequestCancellationNoticeMethod
+            : TestContainer
+        {
+            [Fact]
+            public void SendsNotice()
+            {
+                var requestingOwner = new User { Username = "Existing", EmailAddress = "existing-owner@example.com" };
+                var newOwner = new User { Username = "Noob", EmailAddress = "new-owner@example.com", EmailAllowed = true };
+                var package = new PackageRegistration { Id = "CoolStuff" };
+
+                var request = new PackageOwnerRequest
+                {
+                    PackageRegistration = package,
+                    RequestingOwner = requestingOwner,
+                    NewOwner = newOwner
+                };
+
+                var messageService = TestableMessageService.Create(
+                    GetService<AuthenticationService>(),
+                    GetConfigurationService());
+                messageService.SendPackageOwnerRequestCancellationNotice(request);
+                var message = messageService.MockMailSender.Sent.Last();
+
+                Assert.Equal(newOwner.EmailAddress, message.To[0].Address);
+                Assert.Equal(TestGalleryNoReplyAddress.Address, message.From.Address);
+                Assert.Equal(requestingOwner.EmailAddress, message.ReplyToList.Single().Address);
+                Assert.Equal("[Joe Shmoe] The user 'Existing' has cancelled your request for them to be added as an owner of the package 'CoolStuff'.", message.Subject);
+                Assert.Contains("The user 'Existing' has cancelled your request for them to be added as an owner of the package 'CoolStuff'.", message.Body);
+            }
+
+            [Fact]
+            public void DoesNotSendNoticeIfUserDoesNotAllowEmails()
+            {
+                var requestingOwner = new User { Username = "Existing", EmailAddress = "existing-owner@example.com" };
+                var newOwner = new User { Username = "Noob", EmailAddress = "new-owner@example.com" };
+                var package = new PackageRegistration { Id = "CoolStuff" };
+
+                var request = new PackageOwnerRequest
+                {
+                    PackageRegistration = package,
+                    RequestingOwner = requestingOwner,
+                    NewOwner = newOwner
+                };
+
+                var messageService = TestableMessageService.Create(
+                    GetService<AuthenticationService>(),
+                    GetConfigurationService());
+                messageService.SendPackageOwnerRequestCancellationNotice(request);
+
+                Assert.Empty(messageService.MockMailSender.Sent);
+            }
+        }
+
         public class TheSendPackageOwnerAddedNoticeMethod
             : TestContainer
         {

@@ -23,8 +23,8 @@ namespace NuGetGallery
         /// <param name="package">Package associated with the request.</param>
         /// <param name="pendingOwner">Pending owner for the request.</param>
         /// <param name="token">Token generated for the owner request.</param>
-        /// <returns>True if valid, false otherwise.</returns>
-        bool IsValidPackageOwnerRequest(PackageRegistration package, User pendingOwner, string token);
+        /// <returns>The <see cref="PackageOwnerRequest"/> if one exists or null otherwise.</returns>
+        PackageOwnerRequest GetPackageOwnershipRequest(PackageRegistration package, User pendingOwner, string token);
 
         /// <summary>
         /// Creates a <see cref="PackageOwnerRequest"/> with the given parameters.

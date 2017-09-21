@@ -16,6 +16,8 @@ namespace NuGetGallery
         void SendPasswordResetInstructions(User user, string resetPasswordUrl, bool forgotPassword);
         void SendEmailChangeNoticeToPreviousEmailAddress(User user, string oldEmailAddress);
         void SendPackageOwnerRequest(User fromUser, User toUser, PackageRegistration package, string packageUrl, string confirmationUrl, string rejectionUrl, string message, string policyMessage);
+        void SendPackageOwnerRequestRejectionNotice(PackageOwnerRequest request);
+        void SendPackageOwnerRequestCancellationNotice(PackageOwnerRequest request);
         void SendPackageOwnerAddedNotice(User toUser, User newOwner, PackageRegistration package, string packageUrl, string policyMessage);
         void SendPackageOwnerRemovedNotice(User fromUser, User toUser, PackageRegistration package);
         void SendCredentialRemovedNotice(User user, Credential removed);

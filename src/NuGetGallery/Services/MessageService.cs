@@ -333,6 +333,58 @@ The {Config.GalleryOwner.DisplayName} Team";
             }
         }
 
+        public void SendPackageOwnerRequestRejectionNotice(PackageOwnerRequest request)
+        {
+            if (!request.RequestingOwner.EmailAllowed)
+            {
+                return;
+            }
+
+            var subject = string.Format(CultureInfo.CurrentCulture, $"[{Config.GalleryOwner.DisplayName}] The user '{request.NewOwner.Username}' has rejected your request to be added as an owner of the package '{request.PackageRegistration.Id}'.");
+
+            var body = string.Format(CultureInfo.CurrentCulture, $@"The user '{request.NewOwner.Username}' has rejected your request to be added as an owner of the package '{request.PackageRegistration.Id}'.
+
+Thanks,
+The {Config.GalleryOwner.DisplayName} Team");
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = Config.GalleryNoReplyAddress;
+                mailMessage.ReplyToList.Add(request.NewOwner.ToMailAddress());
+
+                mailMessage.To.Add(request.RequestingOwner.ToMailAddress());
+                SendMessage(mailMessage);
+            }
+        }
+
+        public void SendPackageOwnerRequestCancellationNotice(PackageOwnerRequest request)
+        {
+            if (!request.NewOwner.EmailAllowed)
+            {
+                return;
+            }
+
+            var subject = string.Format(CultureInfo.CurrentCulture, $"[{Config.GalleryOwner.DisplayName}] The user '{request.RequestingOwner.Username}' has cancelled your request for them to be added as an owner of the package '{request.PackageRegistration.Id}'.");
+
+            var body = string.Format(CultureInfo.CurrentCulture, $@"The user '{request.RequestingOwner.Username}' has cancelled your request for them to be added as an owner of the package '{request.PackageRegistration.Id}'.
+
+Thanks,
+The {Config.GalleryOwner.DisplayName} Team");
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = Config.GalleryNoReplyAddress;
+                mailMessage.ReplyToList.Add(request.RequestingOwner.ToMailAddress());
+
+                mailMessage.To.Add(request.NewOwner.ToMailAddress());
+                SendMessage(mailMessage);
+            }
+        }
+
         public void SendPackageOwnerAddedNotice(User toUser, User newOwner, PackageRegistration package, string packageUrl, string policyMessage)
         {
             if (!toUser.EmailAllowed)
