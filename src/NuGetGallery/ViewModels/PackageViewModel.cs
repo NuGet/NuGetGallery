@@ -15,6 +15,8 @@ namespace NuGetGallery
         private string _pendingTitle;
         private string _fullVersion;
 
+        internal readonly NuGetVersion NuGetVersion;
+
         public PackageViewModel(Package package)
         {
             _package = package;
@@ -26,7 +28,9 @@ namespace NuGetGallery
                 NuGetVersionFormatter.Normalize(package.Version) :
                 package.NormalizedVersion;
 
-            HasSemVer2Version = NuGetVersion.Parse(_fullVersion).IsSemVer2;
+            NuGetVersion = NuGetVersion.Parse(_fullVersion);
+
+            HasSemVer2Version = NuGetVersion.IsSemVer2;
             HasSemVer2Dependency = package.Dependencies.ToList()
                 .Where(pd => !string.IsNullOrEmpty(pd.VersionSpec))
                 .Select(pd => VersionRange.Parse(pd.VersionSpec))
