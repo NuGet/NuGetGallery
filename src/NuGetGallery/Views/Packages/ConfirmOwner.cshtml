@@ -9,22 +9,24 @@
 <section role="main" class="container main-container page-manage-owners">
     <div class="col-xs-12">
         <h1 class="text-center">
-            @if (Model.Result == ConfirmOwnershipResult.Success
-                || Model.Result == ConfirmOwnershipResult.AlreadyOwner)
+            @switch (Model.Result)
             {
-                @:Ownership Confirmed
-            }
-            else if (Model.Result == ConfirmOwnershipResult.Rejected)
-            {
-                @:Ownership Rejected
-            }
-            else if (Model.Result == ConfirmOwnershipResult.Cancelled)
-            {
-                @:Ownership Request Cancelled
-            }
-            else
-            {
-                @:Ownership Confirmation Failed
+                case ConfirmOwnershipResult.Success:
+                case ConfirmOwnershipResult.AlreadyOwner:
+                    @:Ownership Confirmed
+                    break;
+
+                case ConfirmOwnershipResult.Rejected:
+                    @:Ownership Rejected
+                    break;
+
+                case ConfirmOwnershipResult.Cancelled:
+                    @:Ownership Request Cancelled
+                    break;
+
+                default:
+                    @:Ownership Confirmation Failed
+                    break;
             }
         </h1>
     </div>
