@@ -16,13 +16,13 @@ namespace NuGetGallery.Services
             [Fact]
             public void ThrowsArgumentNullIfPackageIsNull()
             {
-                Assert.Throws<ArgumentNullException>(() => CreateService().IsValidPackageOwnerRequest(null, new User(), "token"));
+                Assert.Throws<ArgumentNullException>(() => CreateService().GetPackageOwnershipRequest(null, new User(), "token"));
             }
 
             [Fact]
             public void ThrowsArgumentNullIfPendingOwnerIsNull()
             {
-                Assert.Throws<ArgumentNullException>(() => CreateService().IsValidPackageOwnerRequest(new PackageRegistration(), null, "token"));
+                Assert.Throws<ArgumentNullException>(() => CreateService().GetPackageOwnershipRequest(new PackageRegistration(), null, "token"));
             }
 
             [Theory]
@@ -30,7 +30,7 @@ namespace NuGetGallery.Services
             [InlineData(null)]
             public void ThrowsArgumentNullIfTokenIsNullOrEmpty(string token)
             {
-                Assert.Throws<ArgumentNullException>(() => CreateService().IsValidPackageOwnerRequest(new PackageRegistration(), new User(), token));
+                Assert.Throws<ArgumentNullException>(() => CreateService().GetPackageOwnershipRequest(new PackageRegistration(), new User(), token));
             }
 
             [Theory]
@@ -67,10 +67,17 @@ namespace NuGetGallery.Services
                 var service = CreateService(packageOwnerRequestRepo: repository);
 
                 // Act
-                var isValid = service.IsValidPackageOwnerRequest(package, pendingOwner, token);
+                var request = service.GetPackageOwnershipRequest(package, pendingOwner, token);
 
                 // Assert
-                Assert.Equal(success, isValid);
+                if (success)
+                {
+                    Assert.NotNull(request);
+                }
+                else
+                {
+                    Assert.Null(request);
+                }
             }
         }
 

@@ -1160,7 +1160,8 @@ namespace NuGetGallery
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.AlreadyOwner));
             }
 
-            if (!_packageOwnerRequestService.IsValidPackageOwnerRequest(package, user, token))
+            var request = _packageOwnerRequestService.GetPackageOwnershipRequest(package, user, token);
+            if (request == null)
             {
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.Failure));
             }
@@ -1178,6 +1179,8 @@ namespace NuGetGallery
             else
             {
                 await _packageService.RemovePackageOwnerAsync(package, user);
+
+                _messageService.SendPackageOwnerRequestRejectionNotice(request);
 
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.Rejected));
             }
@@ -1214,6 +1217,8 @@ namespace NuGetGallery
             }
 
             await _packageOwnerRequestService.DeletePackageOwnershipRequest(request);
+
+            _messageService.SendPackageOwnerRequestCancellationNotice(request);
 
             return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, pendingUsername, ConfirmOwnershipResult.Cancelled));
         }

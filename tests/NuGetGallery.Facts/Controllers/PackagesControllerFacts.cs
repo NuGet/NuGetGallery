@@ -704,6 +704,23 @@ namespace NuGetGallery
                 return packageService => packageService.RemovePackageOwnerAsync(package, user);
             }
 
+            public delegate Expression<Action<IMessageService>> MessageServiceForOwnershipRequestExpression(PackageOwnerRequest request);
+
+            private static Expression<Action<IMessageService>> MessageServiceForConfirmOwnershipRequestExpression(PackageOwnerRequest request)
+            {
+                return messageService => messageService.SendPackageOwnerAddedNotice(
+                    request.RequestingOwner,
+                    request.NewOwner,
+                    request.PackageRegistration,
+                    It.IsAny<string>(), // The method that creates this URL correctly is not set up for these tests, so we cannot assert the expected value.
+                    string.Empty);
+            }
+
+            private static Expression<Action<IMessageService>> MessageServiceForRejectOwnershipRequestExpression(PackageOwnerRequest request)
+            {
+                return messageService => messageService.SendPackageOwnerRequestRejectionNotice(request);
+            }
+
             public static IEnumerable<object[]> ReturnsSuccessIfTokenIsValid_Data
             {
                 get
@@ -714,6 +731,7 @@ namespace NuGetGallery
                         {
                             new InvokeOwnershipRequest(ConfirmOwnershipRequest),
                             new PackageServiceForOwnershipRequestExpression(PackagesServiceForConfirmOwnershipRequestExpression),
+                            new MessageServiceForOwnershipRequestExpression(MessageServiceForConfirmOwnershipRequestExpression),
                             ConfirmOwnershipResult.Success,
                             tokenValid
                         };
@@ -721,6 +739,7 @@ namespace NuGetGallery
                         {
                             new InvokeOwnershipRequest(RejectOwnershipRequest),
                             new PackageServiceForOwnershipRequestExpression(PackagesServiceForRejectOwnershipRequestExpression),
+                            new MessageServiceForOwnershipRequestExpression(MessageServiceForRejectOwnershipRequestExpression),
                             ConfirmOwnershipResult.Rejected,
                             tokenValid
                         };
@@ -730,11 +749,12 @@ namespace NuGetGallery
 
             [Theory]
             [MemberData("ReturnsSuccessIfTokenIsValid_Data")]
-            public async Task ReturnsSuccessIfTokenIsValid(InvokeOwnershipRequest invokeOwnershipRequest, PackageServiceForOwnershipRequestExpression packageServiceExpression, ConfirmOwnershipResult successState, bool tokenValid)
+            public async Task ReturnsSuccessIfTokenIsValid(InvokeOwnershipRequest invokeOwnershipRequest, PackageServiceForOwnershipRequestExpression packageServiceExpression, MessageServiceForOwnershipRequestExpression messageServiceExpression, ConfirmOwnershipResult successState, bool tokenValid)
             {
                 // Arrange
-                var package = new PackageRegistration { Id = "foo" };
-                var user = new User { Username = "username" };
+                var owner = new User { Key = 1, Username = "owner" };
+                var package = new PackageRegistration { Id = "foo", Owners = new[] { owner } };
+                var user = new User { Key = 2, Username = "username" };
 
                 var mockHttpContext = new Mock<HttpContextBase>();
 
@@ -743,14 +763,24 @@ namespace NuGetGallery
                 packageService.Setup(p => p.AddPackageOwnerAsync(package, user)).Returns(Task.CompletedTask).Verifiable();
 
                 var packageOwnerRequestService = new Mock<IPackageOwnerRequestService>();
-                packageOwnerRequestService.Setup(p => p.IsValidPackageOwnerRequest(package, user, "token"))
-                    .Returns(tokenValid);
+                var request = new PackageOwnerRequest
+                {
+                    PackageRegistration = package,
+                    RequestingOwner = owner,
+                    NewOwner = user,
+                    ConfirmationCode = "token"
+                };
+                packageOwnerRequestService.Setup(p => p.GetPackageOwnershipRequest(package, user, "token"))
+                    .Returns(tokenValid ? request : null);
+
+                var messageService = new Mock<IMessageService>();
 
                 var controller = CreateController(
                     GetConfigurationService(),
                     httpContext: mockHttpContext,
                     packageService: packageService,
-                    packageOwnerRequestService: packageOwnerRequestService);
+                    packageOwnerRequestService: packageOwnerRequestService,
+                    messageService: messageService);
                 controller.SetCurrentUser(user);
                 TestUtility.SetupHttpContextMockForUrlGeneration(mockHttpContext, controller);
 
@@ -763,6 +793,7 @@ namespace NuGetGallery
                 Assert.Equal(expectedResult, model.Result);
                 Assert.Equal("foo", model.PackageId);
                 packageService.Verify(packageServiceExpression(package, user), tokenValid ? Times.Once() : Times.Never());
+                messageService.Verify(messageServiceExpression(request), tokenValid ? Times.Once() : Times.Never());
             }
 
             public class TheCancelPendingOwnershipRequestMethod : TestContainer
@@ -875,11 +906,14 @@ namespace NuGetGallery
                     packageOwnerRequestService.Setup(p => p.GetPackageOwnershipRequests(package, userA, userB)).Returns(new[] { request });
                     packageOwnerRequestService.Setup(p => p.DeletePackageOwnershipRequest(request)).Returns(Task.CompletedTask).Verifiable();
 
+                    var messageService = new Mock<IMessageService>();
+
                     var controller = CreateController(
                         GetConfigurationService(),
                         userService: userService,
                         packageService: packageService,
-                        packageOwnerRequestService: packageOwnerRequestService);
+                        packageOwnerRequestService: packageOwnerRequestService,
+                        messageService: messageService);
                     controller.SetCurrentUser(userA);
 
                     // Act
@@ -892,6 +926,7 @@ namespace NuGetGallery
                     Assert.Equal(packageId, model.PackageId);
                     packageService.Verify();
                     packageOwnerRequestService.Verify();
+                    messageService.Verify(m => m.SendPackageOwnerRequestCancellationNotice(request));
                 }
             }
 
@@ -951,7 +986,13 @@ namespace NuGetGallery
                     packageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>())).Returns(fakes.Package);
 
                     var packageOwnerRequestService = new Mock<IPackageOwnerRequestService>();
-                    packageOwnerRequestService.Setup(p => p.IsValidPackageOwnerRequest(fakes.Package, fakes.User, "token")).Returns(true);
+                    packageOwnerRequestService.Setup(p => p.GetPackageOwnershipRequest(fakes.Package, fakes.User, "token")).Returns(
+                        new PackageOwnerRequest
+                        {
+                            PackageRegistration = fakes.Package,
+                            NewOwner = fakes.User,
+                            ConfirmationCode = "token"
+                        });
 
                     var policyService = new Mock<ISecurityPolicyService>();
                     foreach (var user in usersSubscribed)

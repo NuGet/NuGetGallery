@@ -157,9 +157,18 @@ namespace NuGetGallery
             ManagePackageOwnerModel model;
             if (TryGetManagePackageOwnerModel(id, username, out model))
             {
+                var request = _packageOwnerRequestService.GetPackageOwnershipRequests(package: model.Package, newOwner: model.User).FirstOrDefault();
+
                 await _packageService.RemovePackageOwnerAsync(model.Package, model.User);
 
-                _messageService.SendPackageOwnerRemovedNotice(model.CurrentUser, model.User, model.Package);
+                if (request == null)
+                {
+                    _messageService.SendPackageOwnerRemovedNotice(model.CurrentUser, model.User, model.Package);
+                }
+                else
+                {
+                    _messageService.SendPackageOwnerRequestCancellationNotice(request);
+                }
 
                 return Json(new { success = true });
             }

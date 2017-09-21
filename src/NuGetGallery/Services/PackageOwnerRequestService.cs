@@ -17,7 +17,7 @@ namespace NuGetGallery
             _packageOwnerRequestRepository = packageOwnerRequestRepository ?? throw new ArgumentNullException(nameof(packageOwnerRequestRepository));
         }
 
-        public bool IsValidPackageOwnerRequest(PackageRegistration package, User newOwner, string token)
+        public PackageOwnerRequest GetPackageOwnershipRequest(PackageRegistration package, User newOwner, string token)
         {
             if (package == null)
             {
@@ -35,7 +35,12 @@ namespace NuGetGallery
             }
 
             var request = GetPackageOwnershipRequests(package: package, newOwner: newOwner).FirstOrDefault();
-            return request != null && request.ConfirmationCode == token;
+            if (request == null)
+            {
+                return null;
+            }
+
+            return request.ConfirmationCode == token ? request : null;
         }
 
         public IEnumerable<PackageOwnerRequest> GetPackageOwnershipRequests(PackageRegistration package = null, User requestingOwner = null, User newOwner = null)
