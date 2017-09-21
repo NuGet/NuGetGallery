@@ -650,6 +650,7 @@
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="App_Start\AutofacConfig.cs" />
     <Compile Include="Areas\Admin\Controllers\DeleteController.cs" />
+    <Compile Include="Areas\Admin\Controllers\ReservedNamespaceController.cs" />
     <Compile Include="Areas\Admin\Controllers\SecurityPolicyController.cs" />
     <Compile Include="Areas\Admin\Controllers\SupportRequestController.cs" />
     <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Url_Edit.ascx.cs">
@@ -686,6 +687,9 @@
     <Compile Include="Areas\Admin\Services\PagerDutyClient.cs" />
     <Compile Include="Areas\Admin\Services\SupportRequestService.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteSearchResult.cs" />
+    <Compile Include="Areas\Admin\ViewModels\ReservedNamespaceResultModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\ReservedNamespaceViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\ReservedNamespaceSearchResult.cs" />
     <Compile Include="Areas\Admin\ViewModels\UserSecurityPolicySubscriptions.cs" />
     <Compile Include="Areas\Admin\ViewModels\UserSecurityPolicySearchResult.cs" />
     <Compile Include="Areas\Admin\ViewModels\SecurityPolicyViewModel.cs" />
@@ -1817,6 +1821,7 @@
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2search.json" />
     <Content Include="Areas\Admin\Views\SecurityPolicy\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\ReservedNamespace\Index.cshtml" />
     <None Include="Scripts\jquery-1.11.0.intellisense.js" />
     <Content Include="Scripts\jquery-1.11.0.js" />
     <Content Include="Scripts\jquery-1.11.0.min.js" />
