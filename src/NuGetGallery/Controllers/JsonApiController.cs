@@ -117,20 +117,16 @@ namespace NuGetGallery
                 var ownerRequest = await _packageOwnerRequestService.AddPackageOwnershipRequest(
                     model.Package, model.CurrentUser, model.User);
 
-                var confirmationUrl = Url.ConfirmationUrl(
-                    "ConfirmPendingOwnershipRequest",
-                    "Packages",
+                var confirmationUrl = Url.ConfirmPendingOwnershipRequest(
+                    model.Package.Id,
                     model.User.Username,
                     ownerRequest.ConfirmationCode,
-                    new { id = model.Package.Id },
                     relativeUrl: false);
 
-                var rejectionUrl = Url.ConfirmationUrl(
-                    "RejectPendingOwnershipRequest",
-                    "Packages",
+                var rejectionUrl = Url.RejectPendingOwnershipRequest(
+                    model.Package.Id,
                     model.User.Username,
                     ownerRequest.ConfirmationCode,
-                    new { id = model.Package.Id },
                     relativeUrl: false);
 
                 var packageUrl = Url.Package(model.Package.Id, version: null, relativeUrl: false);

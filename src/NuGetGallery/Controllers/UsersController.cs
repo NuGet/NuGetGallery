@@ -61,8 +61,7 @@ namespace NuGetGallery
         public virtual ActionResult ConfirmationRequiredPost()
         {
             User user = GetCurrentUser();
-            var confirmationUrl = Url.ConfirmationUrl(
-                "Confirm", "Users", user.Username, user.EmailConfirmationToken, relativeUrl: false);
+            var confirmationUrl = Url.ConfirmEmail(user.Username, user.EmailConfirmationToken, relativeUrl: false);
 
             var alreadyConfirmed = user.UnconfirmedEmailAddress == null;
 
@@ -398,8 +397,7 @@ namespace NuGetGallery
 
             if (user.Confirmed)
             {
-                var confirmationUrl = Url.ConfirmationUrl(
-                    "Confirm", "Users", user.Username, user.EmailConfirmationToken, relativeUrl: false);
+                var confirmationUrl = Url.ConfirmEmail(user.Username, user.EmailConfirmationToken, relativeUrl: false);
                 _messageService.SendEmailChangeConfirmationNotice(new MailAddress(user.UnconfirmedEmailAddress, user.Username), confirmationUrl);
 
                 TempData["Message"] = Strings.EmailUpdated_ConfirmationRequired;
@@ -760,12 +758,10 @@ namespace NuGetGallery
 
         private ActionResult SendPasswordResetEmail(User user, bool forgotPassword)
         {
-            var resetPasswordUrl = Url.ConfirmationUrl(
-                "ResetPassword",
-                "Users",
+            var resetPasswordUrl = Url.ResetEmailOrPassword(
                 user.Username,
                 user.PasswordResetToken,
-                new { forgot = forgotPassword },
+                forgotPassword,
                 relativeUrl: false);
             _messageService.SendPasswordResetInstructions(user, resetPasswordUrl, forgotPassword);
 
