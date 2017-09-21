@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net.Mail;
 using System.Threading.Tasks;
 using System.Web;
@@ -12,6 +13,7 @@ using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
 using NuGet.Packaging;
+using NuGetGallery;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Auditing;
@@ -20,11 +22,8 @@ using NuGetGallery.Framework;
 using NuGetGallery.Helpers;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
-using Xunit;
-using NuGetGallery;
-using NuGetGallery.Configuration;
 using NuGetGallery.TestUtils;
-using System.Linq.Expressions;
+using Xunit;
 
 namespace NuGetGallery
 {
@@ -34,6 +33,7 @@ namespace NuGetGallery
         private static PackagesController CreateController(
             IGalleryConfigurationService configurationService,
             Mock<IPackageService> packageService = null,
+            Mock<IPackageOwnerRequestService> packageOwnerRequestService = null,
             Mock<IUploadFileService> uploadFileService = null,
             Mock<IUserService> userService = null,
             Mock<IMessageService> messageService = null,
@@ -56,6 +56,7 @@ namespace NuGetGallery
             Mock<IPackageUploadService> packageUploadService = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
+            packageOwnerRequestService = packageOwnerRequestService ?? new Mock<IPackageOwnerRequestService>();
             if (uploadFileService == null)
             {
                 uploadFileService = new Mock<IUploadFileService>();
@@ -110,6 +111,7 @@ namespace NuGetGallery
 
             var controller = new Mock<PackagesController>(
                 packageService.Object,
+                packageOwnerRequestService.Object,
                 uploadFileService.Object,
                 userService.Object,
                 messageService.Object,
@@ -733,16 +735,22 @@ namespace NuGetGallery
                 // Arrange
                 var package = new PackageRegistration { Id = "foo" };
                 var user = new User { Username = "username" };
+
                 var mockHttpContext = new Mock<HttpContextBase>();
+
                 var packageService = new Mock<IPackageService>();
                 packageService.Setup(p => p.FindPackageRegistrationById("foo")).Returns(package);
-                packageService.Setup(p => p.IsValidPackageOwnerRequest(package, user, "token"))
-                    .Returns(tokenValid);
                 packageService.Setup(p => p.AddPackageOwnerAsync(package, user)).Returns(Task.CompletedTask).Verifiable();
+
+                var packageOwnerRequestService = new Mock<IPackageOwnerRequestService>();
+                packageOwnerRequestService.Setup(p => p.IsValidPackageOwnerRequest(package, user, "token"))
+                    .Returns(tokenValid);
+
                 var controller = CreateController(
                     GetConfigurationService(),
                     httpContext: mockHttpContext,
-                    packageService: packageService);
+                    packageService: packageService,
+                    packageOwnerRequestService: packageOwnerRequestService);
                 controller.SetCurrentUser(user);
                 TestUtility.SetupHttpContextMockForUrlGeneration(mockHttpContext, controller);
 
@@ -863,14 +871,16 @@ namespace NuGetGallery
                     userService.Setup(u => u.FindByUsername(userBName)).Returns(userB);
 
                     var request = new PackageOwnerRequest() { RequestingOwner = userA, NewOwner = userB };
-                    packageService.Setup(p => p.GetPackageOwnershipRequest(package, userA, userB)).Returns(request);
+                    var packageOwnerRequestService = new Mock<IPackageOwnerRequestService>();
+                    packageOwnerRequestService.Setup(p => p.GetPackageOwnershipRequests(package, userA, userB)).Returns(new[] { request });
 
                     packageService.Setup(p => p.RemovePackageOwnerAsync(package, userB)).Returns(Task.CompletedTask).Verifiable();
 
                     var controller = CreateController(
                         GetConfigurationService(),
                         userService: userService,
-                        packageService: packageService);
+                        packageService: packageService,
+                        packageOwnerRequestService: packageOwnerRequestService);
                     controller.SetCurrentUser(userA);
 
                     // Act
@@ -939,7 +949,9 @@ namespace NuGetGallery
 
                     var packageService = new Mock<IPackageService>();
                     packageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>())).Returns(fakes.Package);
-                    packageService.Setup(p => p.IsValidPackageOwnerRequest(fakes.Package, fakes.User, "token")).Returns(true);
+
+                    var packageOwnerRequestService = new Mock<IPackageOwnerRequestService>();
+                    packageOwnerRequestService.Setup(p => p.IsValidPackageOwnerRequest(fakes.Package, fakes.User, "token")).Returns(true);
 
                     var policyService = new Mock<ISecurityPolicyService>();
                     foreach (var user in usersSubscribed)
@@ -962,6 +974,7 @@ namespace NuGetGallery
                         GetConfigurationService(),
                         httpContext: mockHttpContext,
                         packageService: packageService,
+                        packageOwnerRequestService: packageOwnerRequestService,
                         messageService: messageService,
                         securityPolicyService: policyService);
 
