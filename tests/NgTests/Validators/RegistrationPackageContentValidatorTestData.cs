@@ -36,20 +36,20 @@ namespace NgTests
             new Func<Tuple<PackageRegistrationIndexMetadata, PackageRegistrationIndexMetadata, bool>>[]
         {
             () => Tuple.Create(
-                new PackageRegistrationIndexMetadata() { PackageContent = "https://api.nuget.org/packages/newtonsoft.json.3.5.8.nupkg" },
+                new PackageRegistrationIndexMetadata() { PackageContent = "https://az320820.vo.msecnd.net/packages/newtonsoft.json.3.5.8.nupkg" },
                 new PackageRegistrationIndexMetadata() { PackageContent = "https://www.nuget.org/api/v2/package/newtonsoft.json/3.5.8" },
                 true),
 
             () => Tuple.Create(
-                new PackageRegistrationIndexMetadata() { PackageContent = "https://api.nuget.org/packages/newtonsoft.json.9.0.1.nupkg" },
+                new PackageRegistrationIndexMetadata() { PackageContent = "https://az320820.vo.msecnd.net/packages/newtonsoft.json.9.0.1.nupkg" },
                 new PackageRegistrationIndexMetadata() { PackageContent = "https://www.nuget.org/api/v2/package/newtonsoft.json/9.0.1" },
                 true)
         };
 
         public override IEnumerable<Func<PackageRegistrationLeafMetadata>> CreateLeafs => new Func<PackageRegistrationLeafMetadata>[]
         {
-            () => new PackageRegistrationLeafMetadata() { PackageContent = "https://api.nuget.org/packages/newtonsoft.json.3.5.8.nupkg" },
-            () => new PackageRegistrationLeafMetadata() { PackageContent = "https://api.nuget.org/packages/newtonsoft.json.4.0.1.nupkg" },
+            () => new PackageRegistrationLeafMetadata() { PackageContent = "https://az320820.vo.msecnd.net/packages/newtonsoft.json.3.5.8.nupkg" },
+            () => new PackageRegistrationLeafMetadata() { PackageContent = "https://az320820.vo.msecnd.net/packages/newtonsoft.json.4.0.1.nupkg" },
             () => new PackageRegistrationLeafMetadata() { PackageContent = "https://www.nuget.org/api/v2/package/newtonsoft.json/6.0.8" },
             () => new PackageRegistrationLeafMetadata() { PackageContent = "https://www.nuget.org/api/v2/package/newtonsoft.json/9.0.1" }
         };
@@ -63,12 +63,12 @@ namespace NgTests
             new Func<Tuple<PackageRegistrationLeafMetadata, PackageRegistrationLeafMetadata, bool>>[]
         {
             () => Tuple.Create(
-                new PackageRegistrationLeafMetadata() { PackageContent = "https://api.nuget.org/packages/newtonsoft.json.3.5.8.nupkg" },
+                new PackageRegistrationLeafMetadata() { PackageContent = "https://az320820.vo.msecnd.net/packages/newtonsoft.json.3.5.8.nupkg" },
                 new PackageRegistrationLeafMetadata() { PackageContent = "https://www.nuget.org/api/v2/package/Newtonsoft.Json/3.5.8" },
                 true),
 
             () => Tuple.Create(
-                new PackageRegistrationLeafMetadata() { PackageContent = "https://api.nuget.org/packages/newtonsoft.json.9.0.1.nupkg" },
+                new PackageRegistrationLeafMetadata() { PackageContent = "https://az320820.vo.msecnd.net/packages/newtonsoft.json.9.0.1.nupkg" },
                 new PackageRegistrationLeafMetadata() { PackageContent = "https://www.nuget.org/api/v2/package/newtonsoft.json/9.0.1" },
                 true)
         };
