@@ -157,8 +157,8 @@ namespace NuGetGallery
             var packages = _packageService.FindPackagesByOwner(user, includeUnlisted: true)
                 .Select(p => new ListPackageItemViewModel(p)).OrderBy(p => p.Id).ToList();
             
-            var incoming = _packageOwnerRequestService.GetPackageOwnershipRequests(requestingOwner: user);
-            var outgoing = _packageOwnerRequestService.GetPackageOwnershipRequests(newOwner: user);
+            var incoming = _packageOwnerRequestService.GetPackageOwnershipRequests(newOwner: user);
+            var outgoing = _packageOwnerRequestService.GetPackageOwnershipRequests(requestingOwner: user);
 
             var ownerRequests = new OwnerRequestsViewModel(incoming, outgoing, user, _packageService);
 

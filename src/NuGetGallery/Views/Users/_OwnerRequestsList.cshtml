@@ -38,39 +38,35 @@
                             var packageId = requestItem.Request.PackageRegistration.Id;
 
                             <tr class="manage-package-listing">
-                                <td class="col-sm-1 align-middle">
+                                <td class="align-middle hidden-xs">
                                     <img class="package-icon img-responsive" aria-hidden="true" alt=""
                                          src="@(PackageHelper.ShouldRenderUrl(requestItem.Package.IconUrl) ? requestItem.Package.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))"
                                          @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")) />
                                 </td>
-                                <td class="col-sm-3 align-middle"><a href="@Url.Package(packageId)">packageId</a></td>
-                                <td class="col-sm-3 align-middle">
+                                <td class="align-middle package-id"><a href="@Url.Package(packageId)">@Html.BreakWord(packageId)</a></td>
+                                <td class="align-middle">
                                     <a href="@Url.User(requestItem.Request.RequestingOwner)">@requestItem.Request.RequestingOwner.Username</a>
                                 </td>
-                                <td class="col-sm-3 align-middle">
+                                <td class="align-middle text-nowrap">
                                     <a href="@Url.User(requestItem.Request.NewOwner)">@requestItem.Request.NewOwner.Username</a>
                                 </td>
-                                <td class="col-sm-2 text-right align-middle">
-                                    <div class="btn-group">
-                                        @{
-                                            if (CurrentUser.Key == requestItem.Request.NewOwnerKey)
-                                            {
-                                                <a href="@Url.ConfirmPendingOwnershipRequest(packageId, CurrentUser.Username, requestItem.Request.ConfirmationCode)" class="btn" title="Confirm Ownership" aria-label="Confirm Ownership of @packageId">
-                                                    <i class="ms-Icon ms-Icon--Accept" aria-hidden="true"></i>
-                                                </a>
+                                <td class="text-right align-middle package-controls">
+                                    @if (CurrentUser.Key == requestItem.Request.NewOwnerKey)
+                                    {
+                                        <a href="@Url.ConfirmPendingOwnershipRequest(packageId, CurrentUser.Username, requestItem.Request.ConfirmationCode)" class="btn" title="Confirm Ownership" aria-label="Confirm Ownership of @packageId">
+                                            <i class="ms-Icon ms-Icon--Accept" aria-hidden="true"></i>
+                                        </a>
 
-                                                <a href="@Url.RejectPendingOwnershipRequest(packageId, CurrentUser.Username, requestItem.Request.ConfirmationCode)" class="btn" title="Reject Ownership" aria-label="Reject Ownership Request of @packageId">
-                                                    <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
-                                                </a>
-                                            }
-                                            else
-                                            {
-                                                <a href="@Url.CancelPendingOwnershipRequest(packageId, CurrentUser.Username, requestItem.Request.NewOwner.Username)" class="btn" title="Cancel Ownership" aria-label="Cancel Ownership Request of @requestItem.Request.NewOwner.Username to Own @packageId">
-                                                    <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
-                                                </a>
-                                            }
-                                        }
-                                    </div>
+                                        <a href="@Url.RejectPendingOwnershipRequest(packageId, CurrentUser.Username, requestItem.Request.ConfirmationCode)" class="btn" title="Reject Ownership" aria-label="Reject Ownership Request of @packageId">
+                                            <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a href="@Url.CancelPendingOwnershipRequest(packageId, CurrentUser.Username, requestItem.Request.NewOwner.Username)" class="btn" title="Cancel Ownership" aria-label="Cancel Ownership Request of @requestItem.Request.NewOwner.Username to Own @packageId">
+                                            <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
+                                        </a>
+                                    }
                                 </td>
                             </tr>
                         }
