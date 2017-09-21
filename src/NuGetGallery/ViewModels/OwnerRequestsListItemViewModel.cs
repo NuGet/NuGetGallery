@@ -17,7 +17,7 @@ namespace NuGetGallery
         public OwnerRequestsListItemViewModel(PackageOwnerRequest request, IPackageService packageService)
         {
             Request = request;
-            Package = packageService.FindPackageByIdAndVersion(request.PackageRegistration.Id, null, SemVerLevelKey.SemVer2, true);
+            Package = packageService.FindPackageByIdAndVersion(request.PackageRegistration.Id, version: null, semVerLevelKey: SemVerLevelKey.SemVer2, allowPrerelease: true);
         }
     }
 }

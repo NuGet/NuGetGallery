@@ -1213,7 +1213,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            await _packageService.RemovePackageOwnerAsync(package, pendingUser);
+            await _packageOwnerRequestService.DeletePackageOwnershipRequest(request);
 
             return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, pendingUsername, ConfirmOwnershipResult.Cancelled));
         }
