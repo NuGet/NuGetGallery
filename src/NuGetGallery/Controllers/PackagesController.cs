@@ -1166,6 +1166,8 @@ namespace NuGetGallery
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.Failure));
             }
 
+            var requestingUser = request.RequestingOwner;
+
             if (accept)
             {
                 var result = await HandleSecurePushPropagation(package, user);
@@ -1180,7 +1182,7 @@ namespace NuGetGallery
             {
                 await _packageService.RemovePackageOwnerAsync(package, user);
 
-                _messageService.SendPackageOwnerRequestRejectionNotice(request);
+                _messageService.SendPackageOwnerRequestRejectionNotice(requestingUser, user, package);
 
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.Rejected));
             }
@@ -1218,7 +1220,7 @@ namespace NuGetGallery
 
             await _packageOwnerRequestService.DeletePackageOwnershipRequest(request);
 
-            _messageService.SendPackageOwnerRequestCancellationNotice(request);
+            _messageService.SendPackageOwnerRequestCancellationNotice(requestingUser, pendingUser, package);
 
             return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, pendingUsername, ConfirmOwnershipResult.Cancelled));
         }

@@ -718,7 +718,7 @@ namespace NuGetGallery
 
             private static Expression<Action<IMessageService>> MessageServiceForRejectOwnershipRequestExpression(PackageOwnerRequest request)
             {
-                return messageService => messageService.SendPackageOwnerRequestRejectionNotice(request);
+                return messageService => messageService.SendPackageOwnerRequestRejectionNotice(request.RequestingOwner, request.NewOwner, request.PackageRegistration);
             }
 
             public static IEnumerable<object[]> ReturnsSuccessIfTokenIsValid_Data
@@ -926,7 +926,7 @@ namespace NuGetGallery
                     Assert.Equal(packageId, model.PackageId);
                     packageService.Verify();
                     packageOwnerRequestService.Verify();
-                    messageService.Verify(m => m.SendPackageOwnerRequestCancellationNotice(request));
+                    messageService.Verify(m => m.SendPackageOwnerRequestCancellationNotice(userA, userB, package));
                 }
             }
 
