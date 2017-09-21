@@ -873,8 +873,7 @@ namespace NuGetGallery
                     var request = new PackageOwnerRequest() { RequestingOwner = userA, NewOwner = userB };
                     var packageOwnerRequestService = new Mock<IPackageOwnerRequestService>();
                     packageOwnerRequestService.Setup(p => p.GetPackageOwnershipRequests(package, userA, userB)).Returns(new[] { request });
-
-                    packageService.Setup(p => p.RemovePackageOwnerAsync(package, userB)).Returns(Task.CompletedTask).Verifiable();
+                    packageOwnerRequestService.Setup(p => p.DeletePackageOwnershipRequest(request)).Returns(Task.CompletedTask).Verifiable();
 
                     var controller = CreateController(
                         GetConfigurationService(),
@@ -892,6 +891,7 @@ namespace NuGetGallery
                     Assert.Equal(expectedResult, model.Result);
                     Assert.Equal(packageId, model.PackageId);
                     packageService.Verify();
+                    packageOwnerRequestService.Verify();
                 }
             }
 
