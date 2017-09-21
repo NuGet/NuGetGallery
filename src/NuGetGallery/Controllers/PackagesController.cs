@@ -1291,6 +1291,12 @@ namespace NuGetGallery
         [ValidateInput(false)] // Security note: Disabling ASP.Net input validation which does things like disallow angle brackets in submissions. See http://go.microsoft.com/fwlink/?LinkID=212874
         public virtual async Task<JsonResult> VerifyPackage(VerifyPackageRequest formData)
         {
+            if (!ModelState.IsValid)
+            {
+                var errorMessages = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage));
+                return Json(400, errorMessages);
+            }
+
             var currentUser = GetCurrentUser();
 
             Package package;
