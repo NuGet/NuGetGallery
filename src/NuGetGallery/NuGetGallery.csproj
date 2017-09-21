@@ -650,7 +650,6 @@
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="App_Start\AutofacConfig.cs" />
     <Compile Include="Areas\Admin\Controllers\DeleteController.cs" />
-    <Compile Include="Areas\Admin\Controllers\ReservedNamespaceController.cs" />
     <Compile Include="Areas\Admin\Controllers\SecurityPolicyController.cs" />
     <Compile Include="Areas\Admin\Controllers\SupportRequestController.cs" />
     <Compile Include="Areas\Admin\DynamicData\FieldTemplates\Url_Edit.ascx.cs">
@@ -687,9 +686,6 @@
     <Compile Include="Areas\Admin\Services\PagerDutyClient.cs" />
     <Compile Include="Areas\Admin\Services\SupportRequestService.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteSearchResult.cs" />
-    <Compile Include="Areas\Admin\ViewModels\ReservedNamespaceResultModel.cs" />
-    <Compile Include="Areas\Admin\ViewModels\ReservedNamespaceViewModel.cs" />
-    <Compile Include="Areas\Admin\ViewModels\ReservedNamespaceSearchResult.cs" />
     <Compile Include="Areas\Admin\ViewModels\UserSecurityPolicySubscriptions.cs" />
     <Compile Include="Areas\Admin\ViewModels\UserSecurityPolicySearchResult.cs" />
     <Compile Include="Areas\Admin\ViewModels\SecurityPolicyViewModel.cs" />
@@ -804,6 +800,10 @@
     <Compile Include="Migrations\201709111714021_AddPackageStatusKey.Designer.cs">
       <DependentUpon>201709111714021_AddPackageStatusKey.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201709202249402_AddPackageOwnershipRequestsPage.cs" />
+    <Compile Include="Migrations\201709202249402_AddPackageOwnershipRequestsPage.Designer.cs">
+      <DependentUpon>201709202249402_AddPackageOwnershipRequestsPage.cs</DependentUpon>
+    </Compile>
     <Compile Include="RequestModels\ReadMeRequest.cs" />
     <Compile Include="Security\RequireSecurePushForCoOwnersPolicy.cs" />
     <Compile Include="Security\SecurePushSubscription.cs" />
@@ -821,7 +821,9 @@
     <Compile Include="Security\UserSecurityPolicyEvaluationContext.cs" />
     <Compile Include="Security\SecurityPolicyResult.cs" />
     <Compile Include="Security\UserSecurityPolicySubscriptionContext.cs" />
+    <Compile Include="Services\IPackageOwnerRequestService.cs" />
     <Compile Include="Services\IReadMeService.cs" />
+    <Compile Include="Services\PackageOwnerRequestService.cs" />
     <Compile Include="Services\PackageUploadService.cs" />
     <Compile Include="Services\IReservedNamespaceService.cs" />
     <Compile Include="Services\IPackageUploadService.cs" />
@@ -1522,6 +1524,9 @@
     <Compile Include="ViewModels\ManagePackagesListViewModel.cs" />
     <Compile Include="ViewModels\ApiKeyListViewModel.cs" />
     <Compile Include="ViewModels\ApiKeyViewModel.cs" />
+    <Compile Include="ViewModels\OwnerRequestsListItemViewModel.cs" />
+    <Compile Include="ViewModels\OwnerRequestsListViewModel.cs" />
+    <Compile Include="ViewModels\OwnerRequestsViewModel.cs" />
     <Compile Include="ViewModels\PackageHeadingModel.cs" />
     <Compile Include="ViewModels\PackageManagerViewModel.cs" />
     <Compile Include="ViewModels\ReportMyPackageViewModel.cs" />
@@ -1815,13 +1820,15 @@
     <EmbeddedResource Include="Migrations\201709111714021_AddPackageStatusKey.resx">
       <DependentUpon>201709111714021_AddPackageStatusKey.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201709202249402_AddPackageOwnershipRequestsPage.resx">
+      <DependentUpon>201709202249402_AddPackageOwnershipRequestsPage.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2getupdates.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2search.json" />
     <Content Include="Areas\Admin\Views\SecurityPolicy\Index.cshtml" />
-    <Content Include="Areas\Admin\Views\ReservedNamespace\Index.cshtml" />
     <None Include="Scripts\jquery-1.11.0.intellisense.js" />
     <Content Include="Scripts\jquery-1.11.0.js" />
     <Content Include="Scripts\jquery-1.11.0.min.js" />
@@ -1869,6 +1876,8 @@
     <Content Include="Views\Users\_UserPackagesList.cshtml" />
     <Content Include="Views\Users\_ConfirmationResendForm.cshtml" />
     <Content Include="Views\Shared\_PackageHeading.cshtml" />
+    <Content Include="Views\Users\OwnerRequests.cshtml" />
+    <Content Include="Views\Users\_OwnerRequestsList.cshtml" />
     <Content Include="Views\Packages\_ImportReadMe.cshtml" />
     <Content Include="Views\Packages\_SubmitPackage.cshtml" />
     <Content Include="Views\Packages\_EditForm.cshtml" />

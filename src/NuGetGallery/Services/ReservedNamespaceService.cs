@@ -56,15 +56,6 @@ namespace NuGetGallery
                 throw new InvalidOperationException(Strings.ReservedNamespace_NamespaceNotAvailable);
             }
 
-            // Mark the new namespace as shared if it matches any liberal namespace which is a shared
-            // namespace. For eg: A.B.* is a shared namespace, when reserving A.B.C.* namespace, 
-            // make it a shared namespace. This ensures that all namespaces under a shared 
-            // namespace are also shared to keep the data consistent.
-            if (!newNamespace.IsSharedNamespace && ShouldForceSharedNamespace(newNamespace.Value))
-            {
-                newNamespace.IsSharedNamespace = true;
-            }
-
             ReservedNamespaceRepository.InsertOnCommit(newNamespace);
             await ReservedNamespaceRepository.CommitChangesAsync();
         }
@@ -83,16 +74,19 @@ namespace NuGetGallery
                     ?? throw new InvalidOperationException(string.Format(
                         CultureInfo.CurrentCulture, Strings.ReservedNamespace_NamespaceNotFound, existingNamespace));
 
-                // Delete verified flags on corresponding packages for this prefix if 
-                // it is the only prefix matching the package registration.
-                var packageRegistrationsToMarkUnverified = namespaceToDelete
-                    .PackageRegistrations
-                    .Where(pr => pr.ReservedNamespaces.Count() == 1)
-                    .ToList();
-
-                if (packageRegistrationsToMarkUnverified.Any())
+                // Delete verified flags on corresponding packages for this prefix if it is the only prefix matching the 
+                // package registration.
+                if (!namespaceToDelete.IsSharedNamespace)
                 {
-                    await PackageService.UpdatePackageVerifiedStatusAsync(packageRegistrationsToMarkUnverified, isVerified: false);
+                    var packageRegistrationsToMarkUnverified = namespaceToDelete
+                        .PackageRegistrations
+                        .Where(pr => pr.ReservedNamespaces.Count() == 1)
+                        .ToList();
+
+                    if (packageRegistrationsToMarkUnverified.Any())
+                    {
+                        await PackageService.UpdatePackageVerifiedStatusAsync(packageRegistrationsToMarkUnverified, isVerified: false);
+                    }
                 }
 
                 ReservedNamespaceRepository.DeleteOnCommit(namespaceToDelete);
@@ -125,11 +119,6 @@ namespace NuGetGallery
                     ?? throw new InvalidOperationException(string.Format(
                         CultureInfo.CurrentCulture, Strings.ReservedNamespace_UserNotFound, username));
 
-                if (namespaceToModify.Owners.Contains(userToAdd))
-                {
-                    throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, Strings.ReservedNamespace_UserAlreadyOwner, username));
-                }
-
                 // Mark all packages owned by this user that start with the given namespace as verified.
                 var allPackageRegistrationsForUser = PackageService.FindPackageRegistrationsByOwner(userToAdd);
                 var packageRegistrationsMatchingNamespace = allPackageRegistrationsForUser
@@ -141,7 +130,7 @@ namespace NuGetGallery
                     packageRegistrationsMatchingNamespace
                         .ForEach(pr => namespaceToModify.PackageRegistrations.Add(pr));
 
-                    await PackageService.UpdatePackageVerifiedStatusAsync(packageRegistrationsMatchingNamespace.AsReadOnly(), isVerified: true);
+                    await PackageService.UpdatePackageVerifiedStatusAsync(packageRegistrationsMatchingNamespace, isVerified: true);
                 }
 
                 namespaceToModify.Owners.Add(userToAdd);
@@ -265,7 +254,7 @@ namespace NuGetGallery
                 .ToList();
         }
 
-        public virtual IReadOnlyCollection<ReservedNamespace> FindReservedNamespacesForPrefixList(IReadOnlyCollection<string> prefixList)
+        public IReadOnlyCollection<ReservedNamespace> FindReservedNamespacesForPrefixList(IReadOnlyCollection<string> prefixList)
         {
             return (from dbPrefix in ReservedNamespaceRepository.GetAll()
                     join queryPrefix in prefixList
@@ -322,12 +311,5 @@ namespace NuGetGallery
 
             return noNamespaceMatches || idMatchesSharedNamespace || userOwnedMatchingNamespaces.Any();
         }
-
-        private bool ShouldForceSharedNamespace(string value)
-        {
-            var liberalMatchingNamespaces = GetReservedNamespacesForId(value);
-            return liberalMatchingNamespaces.Any(rn => rn.IsSharedNamespace);
-        }
-
     }
 }

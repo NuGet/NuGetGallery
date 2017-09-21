@@ -611,32 +611,88 @@ namespace NuGetGallery
         {
             return GetActionLink(url, "RemovePackageOwner", "JsonApi", relativeUrl);
         }
-
-        public static string ConfirmationUrl(
-            this UrlHelper url,
-            string action,
-            string controller,
-            string username,
-            string token,
+        
+        public static string ConfirmPendingOwnershipRequest(
+            this UrlHelper url, 
+            string packageId, 
+            string username, 
+            string confirmationCode,
             bool relativeUrl = true)
         {
-            return ConfirmationUrl(url, action, controller, username, token, routeValues: null, relativeUrl: relativeUrl);
+            var rvd = new RouteValueDictionary
+            {
+                ["id"] = packageId,
+                ["username"] = username,
+                ["token"] = confirmationCode
+            };
+
+            return GetActionLink(url, "ConfirmPendingOwnershipRequest", "Packages", relativeUrl, rvd);
         }
 
-        public static string ConfirmationUrl(
-            this UrlHelper url,
-            string action,
-            string controller,
-            string username,
-            string token,
-            object routeValues,
+        public static string RejectPendingOwnershipRequest(
+            this UrlHelper url, 
+            string packageId, 
+            string username, 
+            string confirmationCode,
             bool relativeUrl = true)
         {
-            var rvd = routeValues == null ? new RouteValueDictionary() : new RouteValueDictionary(routeValues);
-            rvd["username"] = username;
-            rvd["token"] = token;
+            var rvd = new RouteValueDictionary
+            {
+                ["id"] = packageId,
+                ["username"] = username,
+                ["token"] = confirmationCode
+            };
 
-            return GetActionLink(url, action, controller, relativeUrl, rvd);
+            return GetActionLink(url, "RejectPendingOwnershipRequest", "Packages", relativeUrl, rvd);
+        }
+
+        public static string CancelPendingOwnershipRequest(
+            this UrlHelper url, 
+            string packageId, 
+            string requestingUsername, 
+            string pendingUsername,
+            bool relativeUrl = true)
+        {
+            var rvd = new RouteValueDictionary
+            {
+                ["id"] = packageId,
+                ["requestingUsername"] = requestingUsername,
+                ["pendingUsername"] = pendingUsername
+            };
+
+            return GetActionLink(url, "CancelPendingOwnershipRequest", "Packages", relativeUrl, rvd);
+        }
+
+        public static string ConfirmEmail(
+            this UrlHelper url,
+            string username,
+            string token,
+            bool relativeUrl = true)
+        {
+            var rvd = new RouteValueDictionary
+            {
+                ["username"] = username,
+                ["token"] = token
+            };
+
+            return GetActionLink(url, "Confirm", "Users", relativeUrl, rvd);
+        }
+
+        public static string ResetEmailOrPassword(
+            this UrlHelper url,
+            string username,
+            string token,
+            bool forgotEmail,
+            bool relativeUrl = true)
+        {
+            var rvd = new RouteValueDictionary
+            {
+                ["username"] = username,
+                ["token"] = token,
+                ["forgot"] = forgotEmail
+            };
+
+            return GetActionLink(url, "ResetPassword", "Users", relativeUrl, rvd);
         }
 
         public static string VerifyPackage(this UrlHelper url, bool relativeUrl = true)

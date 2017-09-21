@@ -990,56 +990,11 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The user &apos;{0}&apos; is now an owner of the prefix &apos;{1}&apos;..
-        /// </summary>
-        public static string ReservedNamespace_OwnerAdded {
-            get {
-                return ResourceManager.GetString("ReservedNamespace_OwnerAdded", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The user &apos;{0}&apos; was removed from owners list of prefix &apos;{1}&apos;..
-        /// </summary>
-        public static string ReservedNamespace_OwnerRemoved {
-            get {
-                return ResourceManager.GetString("ReservedNamespace_OwnerRemoved", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The prefix &apos;{0}&apos; has been reserved..
-        /// </summary>
-        public static string ReservedNamespace_PrefixAdded {
-            get {
-                return ResourceManager.GetString("ReservedNamespace_PrefixAdded", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The prefix &apos;{0}&apos; has been deleted..
-        /// </summary>
-        public static string ReservedNamespace_PrefixRemoved {
-            get {
-                return ResourceManager.GetString("ReservedNamespace_PrefixRemoved", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The ID prefix of this package has been reserved for one of the owners of this package by NuGet.org..
+        ///   Looks up a localized string similar to The ID prefix of this package has been reserved for one of the owner of this package by NuGet.org..
         /// </summary>
         public static string ReservedNamespace_ReservedIndicatorTooltip {
             get {
                 return ResourceManager.GetString("ReservedNamespace_ReservedIndicatorTooltip", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The user &apos;{0}&apos; is already an owner of the specified namespace..
-        /// </summary>
-        public static string ReservedNamespace_UserAlreadyOwner {
-            get {
-                return ResourceManager.GetString("ReservedNamespace_UserAlreadyOwner", resourceCulture);
             }
         }
         
