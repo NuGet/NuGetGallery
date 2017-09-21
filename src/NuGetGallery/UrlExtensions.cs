@@ -662,32 +662,37 @@ namespace NuGetGallery
 
             return GetActionLink(url, "CancelPendingOwnershipRequest", "Packages", relativeUrl, rvd);
         }
-        
-        public static string ConfirmationUrl(
+
+        public static string ConfirmEmail(
             this UrlHelper url,
-            string action,
-            string controller,
             string username,
             string token,
             bool relativeUrl = true)
         {
-            return ConfirmationUrl(url, action, controller, username, token, routeValues: null, relativeUrl: relativeUrl);
+            var rvd = new RouteValueDictionary
+            {
+                ["username"] = username,
+                ["token"] = token
+            };
+
+            return GetActionLink(url, "Confirm", "Users", relativeUrl, rvd);
         }
 
-        public static string ConfirmationUrl(
+        public static string ResetEmailOrPassword(
             this UrlHelper url,
-            string action,
-            string controller,
             string username,
             string token,
-            object routeValues,
+            bool forgotEmail,
             bool relativeUrl = true)
         {
-            var rvd = routeValues == null ? new RouteValueDictionary() : new RouteValueDictionary(routeValues);
-            rvd["username"] = username;
-            rvd["token"] = token;
+            var rvd = new RouteValueDictionary
+            {
+                ["username"] = username,
+                ["token"] = token,
+                ["forgot"] = forgotEmail
+            };
 
-            return GetActionLink(url, action, controller, relativeUrl, rvd);
+            return GetActionLink(url, "ResetPassword", "Users", relativeUrl, rvd);
         }
 
         public static string VerifyPackage(this UrlHelper url, bool relativeUrl = true)

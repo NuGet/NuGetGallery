@@ -255,12 +255,7 @@ namespace NuGetGallery
             {
                 _messageService.SendNewAccountEmail(
                     new MailAddress(user.User.UnconfirmedEmailAddress, user.User.Username),
-                    Url.ConfirmationUrl(
-                        "Confirm",
-                        "Users",
-                        user.User.Username,
-                        user.User.EmailConfirmationToken,
-                        relativeUrl: false));
+                    Url.ConfirmEmail(user.User.Username, user.User.EmailConfirmationToken, relativeUrl: false));
             }
 
             // If we are an administrator and Gallery.EnforcedAuthProviderForAdmin is set
