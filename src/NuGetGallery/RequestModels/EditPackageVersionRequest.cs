@@ -1,10 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Text;
 using NuGetGallery.Packaging;
 
 namespace NuGetGallery
@@ -40,6 +37,8 @@ namespace NuGetGallery
             Summary = packageMetadata.Summary;
             Tags = PackageHelper.ParseTags(packageMetadata.Tags);
             VersionTitle = packageMetadata.Title;
+
+            ReadMe = new ReadMeRequest();
         }
 
         public EditPackageVersionRequest(Package package, PackageEdit pendingMetadata)
@@ -69,6 +68,9 @@ namespace NuGetGallery
             Summary = metadata.Summary;
             Tags = metadata.Tags;
             VersionTitle = metadata.Title;
+            ReadMeState = metadata.ReadMeState;
+
+            ReadMe = new ReadMeRequest();
         }
 
         // We won't show this in the UI, and we won't actually honor edits to it at the moment, by our current policy.
@@ -124,6 +126,10 @@ namespace NuGetGallery
 
         [Display(Name = RequiresLicenseAcceptanceStr)]
         public bool RequiresLicenseAcceptance { get; set; }
+
+        public PackageEditReadMeState ReadMeState { get; set; }
+
+        public ReadMeRequest ReadMe { get; set; }
 
         /// <summary>
         /// Applied the edit to a package

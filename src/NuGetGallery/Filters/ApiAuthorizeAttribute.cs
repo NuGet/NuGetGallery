@@ -49,7 +49,7 @@ namespace NuGetGallery.Filters
                         // about to expire warning
                         filterContext.HttpContext.Response.Headers.Add(
                             Constants.WarningHeaderName,
-                            string.Format(CultureInfo.InvariantCulture, Strings.WarningApiKeyAboutToExpire, expirationPeriod.TotalDays, accountUrl));
+                            string.Format(CultureInfo.InvariantCulture, Strings.WarningApiKeyAboutToExpire, Math.Round(expirationPeriod.TotalDays, 0), accountUrl));
                     }
                 }
             }

@@ -42,7 +42,6 @@ namespace NuGetGallery
                 TestUtility.SetupHttpContextMockForUrlGeneration(httpContext, this);
 
                 this.SetCurrentUser(Fakes.User);
-
             }
 
             public CuratedFeed StubCuratedFeed { get; set; }
@@ -61,6 +60,7 @@ namespace NuGetGallery
         }
 
         public class TheGetCuratedFeedAction
+            : TestContainer
         {
             [Fact]
             public void WillReturn404IfTheCuratedFeedDoesNotExist()
@@ -178,6 +178,7 @@ namespace NuGetGallery
         }
 
         public class TheListPackagesAction
+            : TestContainer
         {
             [Fact]
             public async Task WillSearchForAPackage()

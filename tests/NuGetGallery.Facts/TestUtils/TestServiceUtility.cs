@@ -233,6 +233,13 @@ namespace NuGetGallery.TestUtils
                     select request).ToList();
         }
 
+        public override IReadOnlyCollection<ReservedNamespace> FindReservedNamespacesForPrefixList(IReadOnlyCollection<string> prefixList)
+        {
+            return (from dbPrefix in ReservedNamespaceRepository.GetAll()
+                    where (prefixList.Any(p => p.Equals(dbPrefix.Value, StringComparison.OrdinalIgnoreCase)))
+                    select dbPrefix).ToList();
+        }
+
         private Mock<IEntityRepository<ReservedNamespace>> SetupReservedNamespaceRepository()
         {
             var obj = new Mock<IEntityRepository<ReservedNamespace>>();

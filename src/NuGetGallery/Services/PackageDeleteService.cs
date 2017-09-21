@@ -7,6 +7,7 @@ using System.Data.Entity;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.WindowsAzure.Storage;
 using NuGet.Versioning;
 using NuGetGallery.Auditing;
 
@@ -85,6 +86,7 @@ namespace NuGetGallery
                 {
                     package.Listed = false;
                     package.Deleted = true;
+                    package.PackageStatusKey = PackageStatus.Deleted;
                     packageDelete.Packages.Add(package);
 
                     await _auditingService.SaveAuditRecordAsync(CreateAuditRecord(package, package.PackageRegistration, AuditedPackageAction.SoftDelete, reason));
@@ -203,11 +205,30 @@ namespace NuGetGallery
                         await _packageFileService.StorePackageFileInBackupLocationAsync(package, packageStream);
                     }
                 }
-                await _packageFileService.DeletePackageFileAsync(package.PackageRegistration.Id,
-                        string.IsNullOrEmpty(package.NormalizedVersion)
+                var id = package.PackageRegistration.Id;
+                var version = string.IsNullOrEmpty(package.NormalizedVersion)
                             ? NuGetVersion.Parse(package.Version).ToNormalizedString()
-                            : package.NormalizedVersion);
+                            : package.NormalizedVersion;
+
+                await _packageFileService.DeletePackageFileAsync(id, version);
+
+                // Delete any active or pending readme files for this package.
+                await TryDeleteReadMeMdFile(package, false);
+                await TryDeleteReadMeMdFile(package, true);
             }
+        }
+
+        /// <summary>
+        /// Delete package readme.md file, if it exists. Doing a force delete here
+        /// rather than checking the HasReadMe (active) flag or PackageEdits (pending).
+        /// </summary>
+        private async Task TryDeleteReadMeMdFile(Package package, bool isPending)
+        {
+            try
+            {
+                await _packageFileService.DeleteReadMeMdFileAsync(package, isPending: isPending);
+            }
+            catch (StorageException) { }
         }
 
         private void UpdateSearchIndex()

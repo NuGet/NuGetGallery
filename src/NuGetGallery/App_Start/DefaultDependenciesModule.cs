@@ -203,6 +203,11 @@ namespace NuGetGallery
                 .As<IPackageUploadService>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<ReadMeService>()
+                .AsSelf()
+                .As<IReadMeService>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<SecurePushSubscription>()
                 .SingleInstance();
 

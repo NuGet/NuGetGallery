@@ -731,7 +731,7 @@ namespace NuGetGallery.Controllers
                 var result = controller.ChallengeAuthentication("/theReturnUrl", "MicrosoftAccount");
 
                 // Assert
-                ResultAssert.IsChallengeResult(result, "MicrosoftAccount", TestUtility.GallerySiteRootHttps + "users/account/authenticate/return?ReturnUrl=%2FtheReturnUrl");
+                ResultAssert.IsChallengeResult(result, "MicrosoftAccount", "/users/account/authenticate/return?ReturnUrl=%2FtheReturnUrl");
             }
         }
 

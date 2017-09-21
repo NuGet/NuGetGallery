@@ -36,8 +36,8 @@ namespace NuGetGallery.Filters
                 controller.TempData["ConfirmationRequiredMessage"] = string.Format(
                     CultureInfo.CurrentCulture,
                     "Before you can {0} you must first confirm your email address.", _inOrderTo);
-                controller.HttpContext.SetConfirmationReturnUrl(controller.Url.Current());
-                filterContext.Result = new RedirectResult(controller.Url.ConfirmationRequired());
+                controller.HttpContext.SetConfirmationReturnUrl(controller.Url.RequestContext.HttpContext.Request.RawUrl);
+                filterContext.Result = new RedirectResult(controller.Url.ConfirmationRequired(relativeUrl: false));
             }
         }
     }

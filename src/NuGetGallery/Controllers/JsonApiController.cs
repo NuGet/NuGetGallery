@@ -77,7 +77,7 @@ namespace NuGetGallery
             var result = owners.Union(pending).Select(o => new
             {
                 name = o.Name,
-                profileUrl = Url.User(o.Name),
+                profileUrl = Url.User(o.Name, relativeUrl: false),
                 imageUrl = GravatarHelper.Url(o.EmailAddress, size: Constants.GravatarImageSize),
                 current = o.Current,
                 pending = o.Pending,
@@ -120,8 +120,9 @@ namespace NuGetGallery
                     "Packages",
                     model.User.Username,
                     ownerRequest.ConfirmationCode,
-                    new { id = model.Package.Id });
-                var packageUrl = Url.Package(model.Package.Id, null, scheme: _appConfiguration.RequireSSL ? Uri.UriSchemeHttps : Uri.UriSchemeHttp);
+                    new { id = model.Package.Id },
+                    relativeUrl: false);
+                var packageUrl = Url.Package(model.Package.Id, version: null, relativeUrl: false);
                 var policyMessage = GetNoticeOfPoliciesRequiredMessage(model.Package, model.User, model.CurrentUser);
 
                 _messageService.SendPackageOwnerRequest(model.CurrentUser, model.User, model.Package, packageUrl,
@@ -131,7 +132,7 @@ namespace NuGetGallery
                 {
                     success = true,
                     name = model.User.Username,
-                    profileUrl = Url.User(model.User.Username),
+                    profileUrl = Url.User(model.User.Username, relativeUrl: false),
                     imageUrl = GravatarHelper.Url(model.User.EmailAddress, size: Constants.GravatarImageSize),
                     pending = true
                 });
