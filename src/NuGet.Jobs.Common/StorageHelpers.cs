@@ -12,7 +12,7 @@ namespace NuGet.Jobs
         private const string _packageBlobNameFormat = "{0}.{1}.nupkg";
         private const string _packageBackupBlobNameFormat = _packageBackupsDirectory + "/{0}/{1}/{2}.nupkg";
 
-        private const string ReadMeBlobTemplate = "{0}/{1}/{2}.{3}";
+        private const string ReadMeBlobTemplate = "{0}/{1}/{2}{3}";
         private const string PendingReadMeFolder = "pending";
         private const string ActiveReadMeFolder = "active";
 
