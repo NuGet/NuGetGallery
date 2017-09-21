@@ -333,16 +333,16 @@ The {Config.GalleryOwner.DisplayName} Team";
             }
         }
 
-        public void SendPackageOwnerRequestRejectionNotice(PackageOwnerRequest request)
+        public void SendPackageOwnerRequestRejectionNotice(User requestingOwner, User newOwner, PackageRegistration package)
         {
-            if (!request.RequestingOwner.EmailAllowed)
+            if (!requestingOwner.EmailAllowed)
             {
                 return;
             }
 
-            var subject = string.Format(CultureInfo.CurrentCulture, $"[{Config.GalleryOwner.DisplayName}] The user '{request.NewOwner.Username}' has rejected your request to be added as an owner of the package '{request.PackageRegistration.Id}'.");
+            var subject = string.Format(CultureInfo.CurrentCulture, $"[{Config.GalleryOwner.DisplayName}] The user '{newOwner.Username}' has rejected your request to add them as an owner of the package '{package.Id}'.");
 
-            var body = string.Format(CultureInfo.CurrentCulture, $@"The user '{request.NewOwner.Username}' has rejected your request to be added as an owner of the package '{request.PackageRegistration.Id}'.
+            var body = string.Format(CultureInfo.CurrentCulture, $@"The user '{newOwner.Username}' has rejected your request to add them as an owner of the package '{package.Id}'.
 
 Thanks,
 The {Config.GalleryOwner.DisplayName} Team");
@@ -352,23 +352,23 @@ The {Config.GalleryOwner.DisplayName} Team");
                 mailMessage.Subject = subject;
                 mailMessage.Body = body;
                 mailMessage.From = Config.GalleryNoReplyAddress;
-                mailMessage.ReplyToList.Add(request.NewOwner.ToMailAddress());
+                mailMessage.ReplyToList.Add(newOwner.ToMailAddress());
 
-                mailMessage.To.Add(request.RequestingOwner.ToMailAddress());
+                mailMessage.To.Add(requestingOwner.ToMailAddress());
                 SendMessage(mailMessage);
             }
         }
 
-        public void SendPackageOwnerRequestCancellationNotice(PackageOwnerRequest request)
+        public void SendPackageOwnerRequestCancellationNotice(User requestingOwner, User newOwner, PackageRegistration package)
         {
-            if (!request.NewOwner.EmailAllowed)
+            if (!newOwner.EmailAllowed)
             {
                 return;
             }
 
-            var subject = string.Format(CultureInfo.CurrentCulture, $"[{Config.GalleryOwner.DisplayName}] The user '{request.RequestingOwner.Username}' has cancelled your request for them to be added as an owner of the package '{request.PackageRegistration.Id}'.");
+            var subject = string.Format(CultureInfo.CurrentCulture, $"[{Config.GalleryOwner.DisplayName}] The user '{requestingOwner.Username}' has cancelled their request for you to be added as an owner of the package '{package.Id}'.");
 
-            var body = string.Format(CultureInfo.CurrentCulture, $@"The user '{request.RequestingOwner.Username}' has cancelled your request for them to be added as an owner of the package '{request.PackageRegistration.Id}'.
+            var body = string.Format(CultureInfo.CurrentCulture, $@"The user '{requestingOwner.Username}' has cancelled their request for you to be added as an owner of the package '{package.Id}'.
 
 Thanks,
 The {Config.GalleryOwner.DisplayName} Team");
@@ -378,9 +378,9 @@ The {Config.GalleryOwner.DisplayName} Team");
                 mailMessage.Subject = subject;
                 mailMessage.Body = body;
                 mailMessage.From = Config.GalleryNoReplyAddress;
-                mailMessage.ReplyToList.Add(request.RequestingOwner.ToMailAddress());
+                mailMessage.ReplyToList.Add(requestingOwner.ToMailAddress());
 
-                mailMessage.To.Add(request.NewOwner.ToMailAddress());
+                mailMessage.To.Add(newOwner.ToMailAddress());
                 SendMessage(mailMessage);
             }
         }

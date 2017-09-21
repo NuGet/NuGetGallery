@@ -167,7 +167,7 @@ namespace NuGetGallery
                 }
                 else
                 {
-                    _messageService.SendPackageOwnerRequestCancellationNotice(request);
+                    _messageService.SendPackageOwnerRequestCancellationNotice(model.CurrentUser, model.User, model.Package);
                 }
 
                 return Json(new { success = true });
