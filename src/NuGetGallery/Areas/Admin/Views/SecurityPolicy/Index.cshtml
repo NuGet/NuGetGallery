@@ -68,7 +68,7 @@
 </section>
 
 @section BottomScripts {
-    <script src="@Url.Content("~/Scripts/knockout-2.2.1.js")"></script>
+    @Scripts.Render("~/Scripts/gallery/site.min.js")
     <script>
         $(document).ready(function () {
             var viewModel = function () {
