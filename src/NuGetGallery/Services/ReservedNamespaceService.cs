@@ -130,10 +130,21 @@ namespace NuGetGallery
                     throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, Strings.ReservedNamespace_UserAlreadyOwner, username));
                 }
 
+                Expression<Func<PackageRegistration, bool>> predicate;
+                if (namespaceToModify.IsPrefix)
+                {
+                    predicate = registration => registration.Id.StartsWith(namespaceToModify.Value);
+                }
+                else
+                {
+                    predicate = registration => registration.Id.Equals(namespaceToModify.Value);
+                }
+
                 // Mark all packages owned by this user that start with the given namespace as verified.
                 var allPackageRegistrationsForUser = PackageService.FindPackageRegistrationsByOwner(userToAdd);
                 var packageRegistrationsMatchingNamespace = allPackageRegistrationsForUser
-                    .Where(pr => pr.Id.StartsWith(namespaceToModify.Value, StringComparison.OrdinalIgnoreCase))
+                    .AsQueryable()
+                    .Where(predicate)
                     .ToList();
 
                 if (packageRegistrationsMatchingNamespace.Any())

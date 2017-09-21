@@ -383,7 +383,60 @@ namespace NuGetGallery.Services
                         Assert.True(pr.Id == pr1.Id || pr.Id == pr2.Id);
                     });
             }
+
+            [Fact]
+            public async Task AddingOwnerToAbsoluteNamespaceMarksOnlyAbsoluteRegistrationsVerified()
+            {
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
+                var existingNamespace = new ReservedNamespace("Microsoft", isSharedNamespace: false, isPrefix: false);
+                testNamespaces.Add(existingNamespace);
+                var testUsers = ReservedNamespaceServiceTestData.GetTestUsers();
+                var owner1 = testUsers.First(u => u.Username == "test1");
+                var registrations = ReservedNamespaceServiceTestData.GetRegistrations();
+                var pr1 = registrations.ToList().FirstOrDefault(pr => (pr.Id == "Microsoft.Package1"));
+                var pr2 = registrations.ToList().FirstOrDefault(pr => (pr.Id == "Microsoft.Package2"));
+                var pr3 = registrations.ToList().FirstOrDefault(pr => (pr.Id == "Microsoft.AspNet.Package2"));
+                var pr4 = new PackageRegistration { Id = "Microsoft", IsVerified = false };
+                registrations.Add(pr4);
+
+                pr1.Owners.Add(owner1);
+                pr2.Owners.Add(owner1);
+                pr3.Owners.Add(owner1);
+                pr4.Owners.Add(owner1);
+
+                var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers, packageRegistrations: registrations);
+
+                Assert.True(existingNamespace.PackageRegistrations.Count() == 0);
+
+                await service.AddOwnerToReservedNamespaceAsync(existingNamespace.Value, owner1.Username);
+
+                service
+                    .MockReservedNamespaceRepository
+                    .Verify(x => x.CommitChangesAsync());
+
+                service
+                    .MockPackageService
+                    .Verify(p => p.UpdatePackageVerifiedStatusAsync(
+                        It.IsAny<IReadOnlyCollection<PackageRegistration>>(), It.IsAny<bool>()),
+                        Times.Once);
+
+                Assert.True(existingNamespace.Owners.Contains(owner1));
+                // Only Microsoft.Package1 should match the namespace
+                Assert.True(existingNamespace.PackageRegistrations.Count() == 1);
+                existingNamespace
+                    .PackageRegistrations
+                    .ToList()
+                    .ForEach(pr =>
+                    {
+                        Assert.True(pr.IsVerified);
+                        Assert.True(pr.Id == pr4.Id);
+                    });
+                Assert.False(pr1.IsVerified);
+                Assert.False(pr3.IsVerified);
+                Assert.False(pr2.IsVerified);
+            }
         }
+
 
         public class TheAddPackageRegistrationToNamespaceAsyncMethod
         {
@@ -768,7 +821,8 @@ namespace NuGetGallery.Services
                 var prefixes = new List<string> { "microsoft.", "microsoft.aspnet." };
                 var testUsers = ReservedNamespaceServiceTestData.GetTestUsers();
                 var firstUser = testUsers.First();
-                prefixes.ForEach(p => {
+                prefixes.ForEach(p =>
+                {
                     var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value.Equals(p, StringComparison.OrdinalIgnoreCase));
                     existingNamespace.Owners.Add(firstUser);
                 });
