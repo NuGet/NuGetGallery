@@ -142,6 +142,9 @@ namespace NuGetGallery
 
                 // Mark all packages owned by this user that start with the given namespace as verified.
                 var allPackageRegistrationsForUser = PackageService.FindPackageRegistrationsByOwner(userToAdd);
+
+                // We need 'AsQueryable' here because FindPackageRegistrationsByOwner returns an IEnumerable
+                // and to evaluate the predicate server side, the casting is essential.
                 var packageRegistrationsMatchingNamespace = allPackageRegistrationsForUser
                     .AsQueryable()
                     .Where(predicate)
