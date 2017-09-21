@@ -139,8 +139,8 @@
     <Reference Include="NuGet.Services.KeyVault, Version=2.2.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Services.KeyVault.2.2.2\lib\net45\NuGet.Services.KeyVault.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Versioning, Version=4.3.0.3, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Versioning.4.3.0-preview3-4146\lib\net45\NuGet.Versioning.dll</HintPath>
+    <Reference Include="NuGet.Versioning, Version=4.3.0.5, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Versioning.4.3.0\lib\net45\NuGet.Versioning.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
