@@ -84,11 +84,16 @@ namespace NuGetGallery
 
                 foreach (var package in packages)
                 {
+                    /// We do not call <see cref="IPackageService.MarkPackageUnlistedAsync(Package, bool)"/> here
+                    /// because that writes an audit entry. Additionally, the latest bits are already updated by
+                    /// the package status change.
                     package.Listed = false;
-#pragma warning disable CS0612 // Type or member is obsolete
-                    package.Deleted = true;
-#pragma warning restore CS0612 // Type or member is obsolete
-                    package.PackageStatusKey = PackageStatus.Deleted;
+
+                    await _packageService.UpdatePackageStatusAsync(
+                        package,
+                        PackageStatus.Deleted,
+                        commitChanges: false);
+
                     packageDelete.Packages.Add(package);
 
                     await _auditingService.SaveAuditRecordAsync(CreateAuditRecord(package, package.PackageRegistration, AuditedPackageAction.SoftDelete, reason));
@@ -96,15 +101,11 @@ namespace NuGetGallery
 
                 _packageDeletesRepository.InsertOnCommit(packageDelete);
 
-                // Update latest versions
-                await UpdateIsLatestAsync(packageRegistrations);
-
                 // Commit changes
                 await _packageRepository.CommitChangesAsync();
                 await _packageDeletesRepository.CommitChangesAsync();
                 transaction.Commit();
             }
-
 
             // Force refresh the index
             UpdateSearchIndex();

@@ -107,7 +107,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillUpdateThePackage()
+            public async Task WillMarkThePackageAsUnlisted()
             {
                 var packageDeletesRepo = new Mock<IEntityRepository<PackageDelete>>();
                 var service = CreateService(packageDeletesRepository: packageDeletesRepo);
@@ -121,10 +121,6 @@ namespace NuGetGallery
                 await service.SoftDeletePackagesAsync(new[] { package }, user, reason, signature);
 
                 Assert.False(package.Listed);
-#pragma warning disable CS0612 // Type or member is obsolete
-                Assert.True(package.Deleted);
-#pragma warning restore CS0612 // Type or member is obsolete
-                Assert.Equal(PackageStatus.Deleted, package.PackageStatusKey);
             }
 
             [Fact]
@@ -157,18 +153,14 @@ namespace NuGetGallery
                 var user = new User("test");
 
                 await service.SoftDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty);
-
-#pragma warning disable CS0612 // Type or member is obsolete
-                Assert.True(package.Deleted);
-#pragma warning restore CS0612 // Type or member is obsolete
-                Assert.Equal(PackageStatus.Deleted, package.PackageStatusKey);
+                
                 packageRepository.Verify(x => x.CommitChangesAsync());
                 packageDeleteRepository.Verify(x => x.InsertOnCommit(It.IsAny<PackageDelete>()));
                 packageDeleteRepository.Verify(x => x.CommitChangesAsync());
             }
 
             [Fact]
-            public async Task WillUpdatePackageLatestVersions()
+            public async Task WillUpdatePackageStatusToDeleted()
             {
                 var packageService = new Mock<IPackageService>();
                 var service = CreateService(packageService: packageService);
@@ -179,7 +171,7 @@ namespace NuGetGallery
 
                 await service.SoftDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty);
 
-                packageService.Verify(x => x.UpdateIsLatestAsync(packageRegistration, false));
+                packageService.Verify(x => x.UpdatePackageStatusAsync(package, PackageStatus.Deleted, false));
             }
 
             [Fact]
