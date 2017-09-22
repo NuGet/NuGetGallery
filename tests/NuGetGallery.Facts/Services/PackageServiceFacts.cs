@@ -1605,7 +1605,13 @@ namespace NuGetGallery
             public async Task ThrowsWhenPackageDeleted()
             {
                 var packageRegistration = new PackageRegistration { Id = "theId" };
-                var package = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = false, Deleted = true };
+                var package = new Package
+                {
+                    Version = "1.0",
+                    PackageRegistration = packageRegistration,
+                    Listed = false,
+                    PackageStatusKey = PackageStatus.Deleted,
+                };
                 var packageRepository = new Mock<IEntityRepository<Package>>();
                 var service = CreateService(packageRepository: packageRepository);
 

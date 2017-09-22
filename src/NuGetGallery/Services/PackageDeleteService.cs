@@ -85,7 +85,9 @@ namespace NuGetGallery
                 foreach (var package in packages)
                 {
                     package.Listed = false;
+#pragma warning disable CS0612 // Type or member is obsolete
                     package.Deleted = true;
+#pragma warning restore CS0612 // Type or member is obsolete
                     package.PackageStatusKey = PackageStatus.Deleted;
                     packageDelete.Packages.Add(package);
 

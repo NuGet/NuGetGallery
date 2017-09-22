@@ -121,7 +121,9 @@ namespace NuGetGallery
                 await service.SoftDeletePackagesAsync(new[] { package }, user, reason, signature);
 
                 Assert.False(package.Listed);
+#pragma warning disable CS0612 // Type or member is obsolete
                 Assert.True(package.Deleted);
+#pragma warning restore CS0612 // Type or member is obsolete
                 Assert.Equal(PackageStatus.Deleted, package.PackageStatusKey);
             }
 
@@ -156,7 +158,9 @@ namespace NuGetGallery
 
                 await service.SoftDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty);
 
+#pragma warning disable CS0612 // Type or member is obsolete
                 Assert.True(package.Deleted);
+#pragma warning restore CS0612 // Type or member is obsolete
                 Assert.Equal(PackageStatus.Deleted, package.PackageStatusKey);
                 packageRepository.Verify(x => x.CommitChangesAsync());
                 packageDeleteRepository.Verify(x => x.InsertOnCommit(It.IsAny<PackageDelete>()));
