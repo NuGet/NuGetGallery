@@ -25,7 +25,7 @@ namespace NuGet.Services.Metadata.Catalog
                 NuGetVersion.Parse(item["nuget:version"].ToString()))
         {
         }
-        
+
         public CatalogIndexEntry(Uri uri, string type, string commitId, DateTime commitTs, string id, NuGetVersion version)
         {
             Uri = uri;
@@ -40,18 +40,19 @@ namespace NuGet.Services.Metadata.Catalog
         public CatalogIndexEntry()
         {
         }
-        
+
         [JsonProperty("@id")]
         public Uri Uri { get; private set; }
 
         [JsonProperty("@type")]
+        [JsonConverter(typeof(CatalogTypeConverter))]
         public IEnumerable<string> Types
         {
             get
             {
                 return new string[] { _type };
             }
-            private set
+            set
             {
                 _type = value.Single();
             }
