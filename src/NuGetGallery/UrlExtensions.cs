@@ -619,14 +619,14 @@ namespace NuGetGallery
             string confirmationCode,
             bool relativeUrl = true)
         {
-            var rvd = new RouteValueDictionary
+            var routeValues = new RouteValueDictionary
             {
                 ["id"] = packageId,
                 ["username"] = username,
                 ["token"] = confirmationCode
             };
 
-            return GetActionLink(url, "ConfirmPendingOwnershipRequest", "Packages", relativeUrl, rvd);
+            return GetActionLink(url, "ConfirmPendingOwnershipRequest", "Packages", relativeUrl, routeValues);
         }
 
         public static string RejectPendingOwnershipRequest(
@@ -636,14 +636,14 @@ namespace NuGetGallery
             string confirmationCode,
             bool relativeUrl = true)
         {
-            var rvd = new RouteValueDictionary
+            var routeValues = new RouteValueDictionary
             {
                 ["id"] = packageId,
                 ["username"] = username,
                 ["token"] = confirmationCode
             };
 
-            return GetActionLink(url, "RejectPendingOwnershipRequest", "Packages", relativeUrl, rvd);
+            return GetActionLink(url, "RejectPendingOwnershipRequest", "Packages", relativeUrl, routeValues);
         }
 
         public static string CancelPendingOwnershipRequest(
@@ -653,14 +653,14 @@ namespace NuGetGallery
             string pendingUsername,
             bool relativeUrl = true)
         {
-            var rvd = new RouteValueDictionary
+            var routeValues = new RouteValueDictionary
             {
                 ["id"] = packageId,
                 ["requestingUsername"] = requestingUsername,
                 ["pendingUsername"] = pendingUsername
             };
 
-            return GetActionLink(url, "CancelPendingOwnershipRequest", "Packages", relativeUrl, rvd);
+            return GetActionLink(url, "CancelPendingOwnershipRequest", "Packages", relativeUrl, routeValues);
         }
 
         public static string ConfirmEmail(
@@ -669,13 +669,13 @@ namespace NuGetGallery
             string token,
             bool relativeUrl = true)
         {
-            var rvd = new RouteValueDictionary
+            var routeValues = new RouteValueDictionary
             {
                 ["username"] = username,
                 ["token"] = token
             };
 
-            return GetActionLink(url, "Confirm", "Users", relativeUrl, rvd);
+            return GetActionLink(url, "Confirm", "Users", relativeUrl, routeValues);
         }
 
         public static string ResetEmailOrPassword(
@@ -685,14 +685,14 @@ namespace NuGetGallery
             bool forgotPassword,
             bool relativeUrl = true)
         {
-            var rvd = new RouteValueDictionary
+            var routeValues = new RouteValueDictionary
             {
                 ["username"] = username,
                 ["token"] = token,
                 ["forgot"] = forgotPassword
             };
 
-            return GetActionLink(url, "ResetPassword", "Users", relativeUrl, rvd);
+            return GetActionLink(url, "ResetPassword", "Users", relativeUrl, routeValues);
         }
 
         public static string VerifyPackage(this UrlHelper url, bool relativeUrl = true)

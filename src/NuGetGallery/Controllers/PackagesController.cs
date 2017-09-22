@@ -1166,8 +1166,6 @@ namespace NuGetGallery
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.Failure));
             }
 
-            var requestingUser = request.RequestingOwner;
-
             if (accept)
             {
                 var result = await HandleSecurePushPropagation(package, user);
@@ -1180,6 +1178,8 @@ namespace NuGetGallery
             }
             else
             {
+                var requestingUser = request.RequestingOwner;
+
                 await _packageService.RemovePackageOwnerAsync(package, user);
 
                 _messageService.SendPackageOwnerRequestRejectionNotice(requestingUser, user, package);
