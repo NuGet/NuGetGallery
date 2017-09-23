@@ -1149,6 +1149,18 @@ namespace NuGetGallery
 
             await _packageService.AddPackageOwnerAsync(package, user);
 
+            var userOwnedMatchingNamespacesForId = user.ReservedNamespaces.Where(rn => id.StartsWith(rn.Value, StringComparison.OrdinalIgnoreCase));
+            if (userOwnedMatchingNamespacesForId.Any())
+            {
+                if (!package.IsVerified)
+                {
+                    await _packageService.UpdatePackageVerifiedStatusAsync(new List<PackageRegistration> { package }, isVerified: true);
+                }
+
+                await Task.WhenAll(userOwnedMatchingNamespacesForId
+                    .Select(mn => _reservedNamespaceService.AddPackageRegistrationToNamespaceAsync(mn.Value, package, commitChanges: true)));
+            }
+
             SendAddPackageOwnerNotification(package, user, result.Item1, result.Item2);
 
             return View(new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.Success));

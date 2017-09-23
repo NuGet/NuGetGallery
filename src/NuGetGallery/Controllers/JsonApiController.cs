@@ -151,6 +151,22 @@ namespace NuGetGallery
             if (TryGetManagePackageOwnerModel(id, username, out model))
             {
                 await _packageService.RemovePackageOwnerAsync(model.Package, model.User);
+                
+                var userOwnedNamespaces = model.User.ReservedNamespaces;
+                var packageMatchingNamespaces = model.Package.ReservedNamespaces;
+                // Remove the verification mark if
+                // PR matches only the namespaces owned by this user
+                // and no other owner of the registration owns a matching namespace.
+                var namespacesOwnedByOtherOwners = model.Package
+                    .Owners
+                    .Where(o => o.Key != model.User.Key)
+                    .Select(o => o.ReservedNamespaces);
+
+                var userOwnedPackageMatchingNamespaces = userOwnedNamespaces.Intersect(packageMatchingNamespaces);
+                if (userOwnedPackageMatchingNamespaces.Any())
+                {
+                    //var otherUsersOwnedPackageMatchingNamespaces = namespacesOwnedByOtherOwners.Intersect(packageMatchingNamespaces);
+                }
 
                 _messageService.SendPackageOwnerRemovedNotice(model.CurrentUser, model.User, model.Package);
 
