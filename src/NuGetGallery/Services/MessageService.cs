@@ -285,7 +285,7 @@ The {0} Team";
             }
         }
 
-        public void SendPackageOwnerRequest(User fromUser, User toUser, PackageRegistration package, string packageUrl, string confirmationUrl, string message, string policyMessage)
+        public void SendPackageOwnerRequest(User fromUser, User toUser, PackageRegistration package, string packageUrl, string confirmationUrl, string rejectionUrl, string message, string policyMessage)
         {
             if (!toUser.EmailAllowed)
             {
@@ -300,13 +300,16 @@ The {0} Team";
             const string subject = "[{0}] The user '{1}' would like to add you as an owner of the package '{2}'.";
 
             string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{fromUser.Username}' wants to add you as an owner of the package '{package.Id}'.
-If you do not want to be listed as an owner of this package, simply delete this email.
 
 Package URL on NuGet.org: [{packageUrl}]({packageUrl})
 {policyMessage}
 To accept this request and become a listed owner of the package, click the following URL:
 
-[{confirmationUrl}]({confirmationUrl})");
+[{confirmationUrl}]({confirmationUrl})
+
+If you do not want to be listed as an owner of this package, click the following URL:
+
+[{rejectionUrl}]({rejectionUrl})");
 
             if (!string.IsNullOrWhiteSpace(message))
             {
@@ -326,6 +329,58 @@ The {Config.GalleryOwner.DisplayName} Team";
                 mailMessage.ReplyToList.Add(fromUser.ToMailAddress());
 
                 mailMessage.To.Add(toUser.ToMailAddress());
+                SendMessage(mailMessage);
+            }
+        }
+
+        public void SendPackageOwnerRequestRejectionNotice(User requestingOwner, User newOwner, PackageRegistration package)
+        {
+            if (!requestingOwner.EmailAllowed)
+            {
+                return;
+            }
+
+            var subject = string.Format(CultureInfo.CurrentCulture, $"[{Config.GalleryOwner.DisplayName}] The user '{newOwner.Username}' has rejected your request to add them as an owner of the package '{package.Id}'.");
+
+            var body = string.Format(CultureInfo.CurrentCulture, $@"The user '{newOwner.Username}' has rejected your request to add them as an owner of the package '{package.Id}'.
+
+Thanks,
+The {Config.GalleryOwner.DisplayName} Team");
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = Config.GalleryNoReplyAddress;
+                mailMessage.ReplyToList.Add(newOwner.ToMailAddress());
+
+                mailMessage.To.Add(requestingOwner.ToMailAddress());
+                SendMessage(mailMessage);
+            }
+        }
+
+        public void SendPackageOwnerRequestCancellationNotice(User requestingOwner, User newOwner, PackageRegistration package)
+        {
+            if (!newOwner.EmailAllowed)
+            {
+                return;
+            }
+
+            var subject = string.Format(CultureInfo.CurrentCulture, $"[{Config.GalleryOwner.DisplayName}] The user '{requestingOwner.Username}' has cancelled their request for you to be added as an owner of the package '{package.Id}'.");
+
+            var body = string.Format(CultureInfo.CurrentCulture, $@"The user '{requestingOwner.Username}' has cancelled their request for you to be added as an owner of the package '{package.Id}'.
+
+Thanks,
+The {Config.GalleryOwner.DisplayName} Team");
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = Config.GalleryNoReplyAddress;
+                mailMessage.ReplyToList.Add(requestingOwner.ToMailAddress());
+
+                mailMessage.To.Add(newOwner.ToMailAddress());
                 SendMessage(mailMessage);
             }
         }

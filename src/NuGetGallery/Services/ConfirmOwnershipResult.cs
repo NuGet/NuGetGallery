@@ -8,6 +8,8 @@ namespace NuGetGallery
         Success,
         Failure,
         NotYourRequest,
-        AlreadyOwner
+        AlreadyOwner,
+        Rejected,
+        Cancelled
     }
 }
