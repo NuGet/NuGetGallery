@@ -909,7 +909,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The documentation markdown file must be less than {0} bytes..
+        ///   Looks up a localized string similar to The markdown documentation file must be less than {0} bytes..
         /// </summary>
         public static string ReadMeMaxLengthExceeded {
             get {

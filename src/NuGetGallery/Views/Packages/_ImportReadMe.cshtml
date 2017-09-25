@@ -50,7 +50,7 @@
             <div class="tab-content">
                 @ReadMePanel(
                     @<div class="form-group editable">
-                        <textarea class="form-control" data-bind="value: Edit.ReadMe.SourceText" name="Edit.ReadMe.SourceText" id="ReadMeTextInput" rows="30" placeholder="Add markdown documentation here..."></textarea>
+                        <textarea class="form-control" data-bind="value: Edit.ReadMe.SourceText" name="Edit.ReadMe.SourceText" id="ReadMeTextInput" rows="30" placeholder="Add Markdown Documentation here..."></textarea>
                     </div>,
                     "readme-written", active: true)
 
@@ -63,9 +63,9 @@
 
                 @ReadMePanel(
                     @<div class="input-group">
-                        <input type="text" id="ReadMeFileText" class="form-control" value="Browse for a documentation markdown file..." aria-label="Upload your documentation markdown" readonly />
+                        <input type="text" id="ReadMeFileText" class="form-control" value="Browse for a Markdown Documentation file..." aria-label="Upload your Markdown Documentation file" readonly />
                         <label for="ReadMeFileInput" id="ReadMeFileLabel" class="input-group-btn">
-                            <span class="btn btn-primary form-control" aria-label="Browse for documentation markdown file" role="button">
+                            <span class="btn btn-primary form-control" aria-label="Browse for a Markdown Documentation file" role="button">
                                 Browse&hellip;<input type="file" accept=".md" data-bind="value: Edit.ReadMe.SourceFile" name="Edit.ReadMe.SourceFile" aria-labelledby="ReadMeFileLabel" id="ReadMeFileInput" style="display:none;" />
                             </span>
                         </label>
