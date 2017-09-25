@@ -61,7 +61,7 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
         }
 
         [Fact]
-        [Description("Package push succeeds if min client version policy met")]
+        [Description("Package push succeeds if min protocol version policy met")]
         [Priority(1)]
         [Category("P1Tests")]
         public async Task PackagePush_Returns200IfMinProtocolVersionPolicyMet()
