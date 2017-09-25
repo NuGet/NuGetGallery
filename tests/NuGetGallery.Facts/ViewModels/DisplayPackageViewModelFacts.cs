@@ -160,6 +160,7 @@ namespace NuGetGallery.ViewModels
         [InlineData("1.0.0", "1.0.0-alpha", false)]
         [InlineData("1.0.0", "1.0.0-alpha+metadata", false)]
         [InlineData("1.0.0", "1.0.0-alpha.1", false)]
+        [InlineData("1.0.0-alpha", "1.0.0-alpha.1", true)]
         public void HasNewerPrereleaseReturnsTrueWhenNewerPrereleaseAvailable(
             string currentVersion, 
             string otherVersion, 
@@ -176,6 +177,7 @@ namespace NuGetGallery.ViewModels
             {
                 Dependencies = dependencies,
                 PackageRegistration = packageRegistration,
+                IsPrerelease = NuGetVersion.Parse(currentVersion).IsPrerelease,
                 Version = currentVersion
             };
 
