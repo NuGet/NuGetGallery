@@ -50,22 +50,22 @@
             <div class="tab-content">
                 @ReadMePanel(
                     @<div class="form-group editable">
-                        <textarea class="form-control" data-bind="value: Edit.ReadMe.SourceText" name="Edit.ReadMe.SourceText" id="ReadMeTextInput" rows="30" placeholder="Write your own ReadMe here..."></textarea>
+                        <textarea class="form-control" data-bind="value: Edit.ReadMe.SourceText" name="Edit.ReadMe.SourceText" id="ReadMeTextInput" rows="30" placeholder="Add markdown documentation here..."></textarea>
                     </div>,
                     "readme-written", active: true)
 
                 @ReadMePanel(
                     @<div class="form-group editable">
-                        <input type="url" data-bind="value: Edit.ReadMe.SourceUrl" name="Edit.ReadMe.SourceUrl" class="form-control" id="ReadMeUrlInput" placeholder="https://raw.githubusercontent.com/" />
+                        <input type="url" data-bind="value: Edit.ReadMe.SourceUrl" name="Edit.ReadMe.SourceUrl" class="form-control" id="ReadMeUrlInput" placeholder="https://raw.githubusercontent.com/*.md" />
                         <label id="ReadMeURLLabel" class="input-group-btn"></label>
                     </div>,        
                    "readme-url", active: false)
 
                 @ReadMePanel(
                     @<div class="input-group">
-                        <input type="text" id="ReadMeFileText" class="form-control" value="Browse or Drop files to select a ReadMe.md file..." aria-label="Upload Your ReadMe.md" readonly />
+                        <input type="text" id="ReadMeFileText" class="form-control" value="Browse for a documentation markdown file..." aria-label="Upload your documentation markdown" readonly />
                         <label for="ReadMeFileInput" id="ReadMeFileLabel" class="input-group-btn">
-                            <span class="btn btn-primary form-control" aria-label="Browse for ReadMe.md file" role="button">
+                            <span class="btn btn-primary form-control" aria-label="Browse for documentation markdown file" role="button">
                                 Browse&hellip;<input type="file" accept=".md" data-bind="value: Edit.ReadMe.SourceFile" name="Edit.ReadMe.SourceFile" aria-labelledby="ReadMeFileLabel" id="ReadMeFileInput" style="display:none;" />
                             </span>
                         </label>
@@ -82,7 +82,7 @@
 
         <div class="text-center hidden" id="edit-markdown" style="padding-top:3em; padding-bottom:3em">
             <div class="row">
-                <input type="button" value="Edit ReadMe" id="edit-markdown-button" class="btn btn-primary col-xs-10 col-xs-offset-1 col-lg-2 col-lg-offset-5" />
+                <input type="button" value="Edit Documentation" id="edit-markdown-button" class="btn btn-primary col-xs-10 col-xs-offset-1 col-lg-2 col-lg-offset-5" />
             </div>
         </div>
 

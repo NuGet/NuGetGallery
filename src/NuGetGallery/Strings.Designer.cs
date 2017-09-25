@@ -891,7 +891,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to There is no ReadMe available to preview..
+        ///   Looks up a localized string similar to There is no markdown documentation available to preview..
         /// </summary>
         public static string PreviewReadMe_ReadMeMissing {
             get {
@@ -900,7 +900,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is not a valid ReadMe source type..
+        ///   Looks up a localized string similar to &apos;{0}&apos; is not a valid markdown documentation source type..
         /// </summary>
         public static string ReadMeInvalidSourceType {
             get {
@@ -909,7 +909,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ReadMe file must be less than {0} bytes..
+        ///   Looks up a localized string similar to The documentation markdown file must be less than {0} bytes..
         /// </summary>
         public static string ReadMeMaxLengthExceeded {
             get {
@@ -918,7 +918,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ReadMe file must end with markdown extension &apos;{0}&apos;..
+        ///   Looks up a localized string similar to The documentation file must end with a markdown extension &apos;{0}&apos;..
         /// </summary>
         public static string ReadMePostedFileExtensionInvalid {
             get {
@@ -927,7 +927,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ReadMe URL must be a raw markdown file hosted on GitHub..
+        ///   Looks up a localized string similar to The documentation URL must be a raw markdown file hosted on GitHub..
         /// </summary>
         public static string ReadMeUrlHostInvalid {
             get {
