@@ -61,6 +61,22 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
         }
 
         [Fact]
+        [Description("Package push succeeds if min client version policy met")]
+        [Priority(1)]
+        [Category("P1Tests")]
+        public async Task PackagePush_Returns200IfMinProtocolVersionPolicyMet()
+        {
+            // Arrange
+            var id = $"{nameof(PackagePush_Returns200IfMinProtocolVersionPolicyMet)}.{DateTime.UtcNow.Ticks}";
+
+            // Act
+            var response = await PushPackageAsync(EnvironmentSettings.TestSecurityPoliciesAccountApiKey, id, clientVersion: null, protocolVersion: "4.1.0");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        }
+
+        [Fact]
         [Description("VerifyPackageKey fails if package verify policy not met")]
         [Priority(1)]
         [Category("P1Tests")]
@@ -145,7 +161,7 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
             Assert.Equal(HttpStatusCode.Forbidden, await VerifyPackageKey(verificationKey, packageId, packageVersion));
         }
 
-        private async Task<HttpResponseMessage> PushPackageAsync(string apiKey, string packageId, string clientVersion = null)
+        private async Task<HttpResponseMessage> PushPackageAsync(string apiKey, string packageId, string clientVersion = null, string protocolVersion = null)
         {
             var packageCreationHelper = new PackageCreationHelper(TestOutputHelper);
             var packagePath = await packageCreationHelper.CreatePackage(packageId);
@@ -157,6 +173,10 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
                 if (clientVersion != null)
                 {
                     request.Headers.Add(Constants.NuGetHeaderClientVersion, clientVersion);
+                }
+                if (protocolVersion != null)
+                {
+                    request.Headers.Add(Constants.NuGetHeaderProtocolVersion, protocolVersion); 
                 }
                 request.Content = new StreamContent(new FileStream(packagePath, FileMode.Open));
 
