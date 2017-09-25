@@ -150,7 +150,7 @@ namespace NuGetGallery
             }
         }
 
-        public class TheIsCompliantWithSemVerLevelMethod
+        public class TheIsCompliantWithSemVerLevelPredicateMethod
         {
             [Theory]
             // Versions higher than SemVer v2.0.0
@@ -212,9 +212,27 @@ namespace NuGetGallery
             private static void AssertPackageIsComplianceWithSemVerLevel(int? packageSemVerLevelKey, string semVerLevel, bool shouldBeCompliant)
             {
                 var package = new Package { SemVerLevelKey = packageSemVerLevelKey };
-                var compiledFunction = SemVerLevelKey.IsPackageCompliantWithSemVerLevel(semVerLevel).Compile();
+                var compiledFunction = SemVerLevelKey.IsPackageCompliantWithSemVerLevelPredicate(semVerLevel).Compile();
 
                 Assert.Equal(shouldBeCompliant, compiledFunction(package));
+            }
+        }
+
+        public class TheIsUnknownPredicateMethod
+        {
+            [Theory]
+            [InlineData(null, true)]
+            [InlineData(1, false)]
+            [InlineData(2, false)]
+            [InlineData(3, false)]
+            public void IsUnknown(int? semVerLevelKey, bool expected)
+            {
+                var package = new Package { SemVerLevelKey = semVerLevelKey };
+                var compiledFunction = SemVerLevelKey.IsUnknownPredicate().Compile();
+
+                var actual = compiledFunction(package);
+
+                Assert.Equal(expected, actual);
             }
         }
     }

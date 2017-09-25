@@ -175,6 +175,11 @@ namespace NuGetGallery
                 .AsSelf()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<PackageOwnerRequestService>()
+                .AsSelf()
+                .As<IPackageOwnerRequestService>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<FormsAuthenticationService>()
                 .As<IFormsAuthenticationService>()
                 .InstancePerLifetimeScope();

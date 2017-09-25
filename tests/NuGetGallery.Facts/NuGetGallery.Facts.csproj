@@ -382,6 +382,7 @@
     <Compile Include="AppConfigIsCorrectlyApplied.cs" />
     <Compile Include="App_Start\StorageDependentFacts.cs" />
     <Compile Include="App_Start\RuntimeServiceProviderTests.cs" />
+    <Compile Include="Areas\Admin\Controllers\ReservedNamespaceControllerFacts.cs" />
     <Compile Include="Areas\Admin\Controllers\SecurityPolicyControllerFacts.cs" />
     <Compile Include="Authentication\AuthenticatorFacts.cs" />
     <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationHandlerFacts.cs" />
@@ -410,6 +411,7 @@
     <Compile Include="Controllers\UsersControllerFacts.cs" />
     <Compile Include="Framework\TestGalleryConfigurationService.cs" />
     <Compile Include="Helpers\HtmlExtensionsFacts.cs" />
+    <Compile Include="Services\PackageOwnerRequestServiceFacts.cs" />
     <Compile Include="Services\ReadMeServiceFacts.cs" />
     <Compile Include="Infrastructure\UserAuditRecordFacts.cs" />
     <Compile Include="OData\Filter\ODataFilterFacts.cs" />

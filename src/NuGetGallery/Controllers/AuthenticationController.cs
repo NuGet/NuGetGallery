@@ -255,9 +255,7 @@ namespace NuGetGallery
             {
                 _messageService.SendNewAccountEmail(
                     new MailAddress(user.User.UnconfirmedEmailAddress, user.User.Username),
-                    Url.ConfirmationUrl(
-                        "Confirm",
-                        "Users",
+                    Url.ConfirmEmail(
                         user.User.Username,
                         user.User.EmailConfirmationToken,
                         relativeUrl: false));

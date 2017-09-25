@@ -891,7 +891,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to There is no ReadMe available to preview..
+        ///   Looks up a localized string similar to There is no Markdown Documentation available to preview..
         /// </summary>
         public static string PreviewReadMe_ReadMeMissing {
             get {
@@ -900,7 +900,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is not a valid ReadMe source type..
+        ///   Looks up a localized string similar to &apos;{0}&apos; is not a valid Markdown Documentation source type..
         /// </summary>
         public static string ReadMeInvalidSourceType {
             get {
@@ -909,7 +909,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ReadMe file must be less than {0} bytes..
+        ///   Looks up a localized string similar to The Markdown Documentation file must be less than {0} bytes..
         /// </summary>
         public static string ReadMeMaxLengthExceeded {
             get {
@@ -918,7 +918,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ReadMe file must end with markdown extension &apos;{0}&apos;..
+        ///   Looks up a localized string similar to The Documentation file must end with a Markdown extension &apos;{0}&apos;..
         /// </summary>
         public static string ReadMePostedFileExtensionInvalid {
             get {
@@ -927,7 +927,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ReadMe URL must be a raw markdown file hosted on GitHub..
+        ///   Looks up a localized string similar to The Documentation URL must be a raw Markdown file hosted on GitHub..
         /// </summary>
         public static string ReadMeUrlHostInvalid {
             get {
@@ -990,11 +990,56 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The ID prefix of this package has been reserved for one of the owner of this package by NuGet.org..
+        ///   Looks up a localized string similar to The user &apos;{0}&apos; is now an owner of the prefix &apos;{1}&apos;..
+        /// </summary>
+        public static string ReservedNamespace_OwnerAdded {
+            get {
+                return ResourceManager.GetString("ReservedNamespace_OwnerAdded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The user &apos;{0}&apos; was removed from owners list of prefix &apos;{1}&apos;..
+        /// </summary>
+        public static string ReservedNamespace_OwnerRemoved {
+            get {
+                return ResourceManager.GetString("ReservedNamespace_OwnerRemoved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The prefix &apos;{0}&apos; has been reserved..
+        /// </summary>
+        public static string ReservedNamespace_PrefixAdded {
+            get {
+                return ResourceManager.GetString("ReservedNamespace_PrefixAdded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The prefix &apos;{0}&apos; has been deleted..
+        /// </summary>
+        public static string ReservedNamespace_PrefixRemoved {
+            get {
+                return ResourceManager.GetString("ReservedNamespace_PrefixRemoved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The ID prefix of this package has been reserved for one of the owners of this package by NuGet.org..
         /// </summary>
         public static string ReservedNamespace_ReservedIndicatorTooltip {
             get {
                 return ResourceManager.GetString("ReservedNamespace_ReservedIndicatorTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The user &apos;{0}&apos; is already an owner of the specified namespace..
+        /// </summary>
+        public static string ReservedNamespace_UserAlreadyOwner {
+            get {
+                return ResourceManager.GetString("ReservedNamespace_UserAlreadyOwner", resourceCulture);
             }
         }
         

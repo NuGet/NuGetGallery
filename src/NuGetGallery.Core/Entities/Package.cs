@@ -223,6 +223,7 @@ namespace NuGetGallery
         /// </summary>
         public virtual ICollection<PackageHistory> PackageHistories { get; set; }
 
+        [Obsolete]
         public bool Deleted { get; set; }
 
         /// <summary>

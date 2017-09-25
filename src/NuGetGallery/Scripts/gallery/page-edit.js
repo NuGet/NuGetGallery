@@ -144,44 +144,43 @@ var EditViewManager = new function () {
     function bindData(model) {
         $("#verify-package-block").remove();
         $("#verify-collapser-container").addClass("hidden");
-        if (model == null) {
-            return;
+
+        if (model != null) {
+            var reportContainerElement = document.createElement("div");
+            $(reportContainerElement).attr("id", "verify-package-block");
+            $(reportContainerElement).attr("class", "collapse in");
+            $(reportContainerElement).attr("aria-expanded", "true");
+            $(reportContainerElement).attr("data-bind", "template: { name: 'edit-metadata-template', data: data }");
+            $("#verify-package-container").append(reportContainerElement);
+            ko.applyBindings({ data: model }, reportContainerElement);
+
+            var submitContainerElement = document.createElement("div");
+            $(submitContainerElement).attr("id", "submit-block");
+            $(submitContainerElement).attr("class", "collapse in");
+            $(submitContainerElement).attr("aria-expanded", "true");
+            $(submitContainerElement).attr("data-bind", "template: { name: 'submit-package-template', data: data }");
+            $("#submit-package-container").append(submitContainerElement);
+            ko.applyBindings({ data: model }, submitContainerElement);
+
+            $('#verify-cancel-button').on('click', function () {
+                cancelEdit();
+            });
+
+            $('#verify-submit-button').on('click', function () {
+                $('#verify-cancel-button').attr('disabled', 'disabled');
+                $('#verify-submit-button').attr('disabled', 'disabled');
+                $('#verify-submit-button').attr('value', 'Submitting');
+                $('#verify-submit-button').addClass('.loading');
+                submitEditAsync(navigateToPage);
+            });
+
+            $('#iconurl-field').on('change', function () {
+                $('#icon-preview').attr('src', $('#iconurl-field').val());
+            });
+
+            window.nuget.configureExpanderHeading("verify-package-form");
+            window.nuget.configureExpanderHeading("submit-package-form");
         }
-
-        var reportContainerElement = document.createElement("div");
-        $(reportContainerElement).attr("id", "verify-package-block");
-        $(reportContainerElement).attr("class", "collapse in");
-        $(reportContainerElement).attr("aria-expanded", "true");
-        $(reportContainerElement).attr("data-bind", "template: { name: 'edit-metadata-template', data: data }");
-        $("#verify-package-container").append(reportContainerElement);
-        ko.applyBindings({ data: model }, reportContainerElement);
-
-        var submitContainerElement = document.createElement("div");
-        $(submitContainerElement).attr("id", "submit-block");
-        $(submitContainerElement).attr("class", "collapse in");
-        $(submitContainerElement).attr("aria-expanded", "true");
-        $(submitContainerElement).attr("data-bind", "template: { name: 'submit-package-template', data: data }");
-        $("#submit-package-container").append(submitContainerElement);
-        ko.applyBindings({ data: model }, submitContainerElement);
-
-        $('#verify-cancel-button').on('click', function () {
-            cancelEdit();
-        });
-
-        $('#verify-submit-button').on('click', function () {
-            $('#verify-cancel-button').attr('disabled', 'disabled');
-            $('#verify-submit-button').attr('disabled', 'disabled');
-            $('#verify-submit-button').attr('value', 'Submitting');
-            $('#verify-submit-button').addClass('.loading');
-            submitEditAsync(navigateToPage);
-        });
-
-        $('#iconurl-field').on('change', function () {
-            $('#icon-preview').attr('src', $('#iconurl-field').val());
-        });
-        
-        window.nuget.configureExpanderHeading("verify-package-form");
-        window.nuget.configureExpanderHeading("submit-package-form");
 
         bindReadMeData(model);
     }

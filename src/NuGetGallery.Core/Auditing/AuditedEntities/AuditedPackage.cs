@@ -44,6 +44,7 @@ namespace NuGetGallery.Auditing.AuditedEntities
         public int? UserKey { get; private set; }
         public bool Deleted { get; private set; }
         public bool HasReadMe { get; private set; }
+        public int PackageStatusKey { get; private set; }
 
         public static AuditedPackage CreateFrom(Package package)
         {
@@ -83,8 +84,11 @@ namespace NuGetGallery.Auditing.AuditedEntities
                 Key = package.Key,
                 MinClientVersion = package.MinClientVersion,
                 UserKey = package.UserKey,
+#pragma warning disable CS0612 // Type or member is obsolete
                 Deleted = package.Deleted,
-                HasReadMe = package.HasReadMe
+#pragma warning restore CS0612 // Type or member is obsolete
+                HasReadMe = package.HasReadMe,
+                PackageStatusKey = (int)package.PackageStatusKey,
             };
         }
     }

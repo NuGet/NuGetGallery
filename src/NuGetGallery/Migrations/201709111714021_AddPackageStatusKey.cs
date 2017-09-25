@@ -28,17 +28,17 @@ BEGIN
 END
 ");
 
-            Sql("IF NOT EXISTS(SELECT * FROM sys.indexes WHERE name = 'nci_wi_Packages_PackageStatusKeyListed' AND object_id = OBJECT_ID('Packages')) CREATE INDEX [nci_wi_Packages_PackageStatusKeyListed] ON [dbo].[Packages] ([PackageStatusKey] ASC, [Listed] ASC) INCLUDE ([Description], [FlattenedDependencies], [IsPrerelease], [PackageRegistrationKey], [Tags], [Version]) WITH (ONLINE = ON)");
+            Sql("IF NOT EXISTS(SELECT * FROM sys.indexes WHERE name = 'nci_wi_Packages_PackageStatusKeyListed' AND object_id = OBJECT_ID('Packages')) CREATE INDEX [nci_wi_Packages_PackageStatusKeyListed] ON [dbo].[Packages] ([PackageStatusKey] ASC, [Listed] ASC) INCLUDE ([Description], [FlattenedDependencies], [IsPrerelease], [PackageRegistrationKey], [Tags], [Version])");
 
-            Sql("IF NOT EXISTS(SELECT * FROM sys.indexes WHERE name = 'nci_wi_Packages_IsListedPackageStatusKey' AND object_id = OBJECT_ID('Packages')) CREATE INDEX [nci_wi_Packages_IsListedPackageStatusKey] ON [dbo].[Packages] ([IsLatest] ASC, [PackageStatusKey] ASC) INCLUDE ([PackageRegistrationKey], [Tags], [Title]) WITH (ONLINE = ON)");
+            Sql("IF NOT EXISTS(SELECT * FROM sys.indexes WHERE name = 'nci_wi_Packages_IsListedPackageStatusKey' AND object_id = OBJECT_ID('Packages')) CREATE INDEX [nci_wi_Packages_IsListedPackageStatusKey] ON [dbo].[Packages] ([IsLatest] ASC, [PackageStatusKey] ASC) INCLUDE ([PackageRegistrationKey], [Tags], [Title])");
 
-            Sql("IF NOT EXISTS(SELECT * FROM sys.indexes WHERE name = 'nci_wi_Packages_IsLatestStablePackageStatusKey' AND object_id = OBJECT_ID('Packages')) CREATE INDEX [nci_wi_Packages_IsLatestStablePackageStatusKey] ON [dbo].[Packages] ([IsLatestStable] ASC, [PackageStatusKey] ASC) INCLUDE ([Description], [FlattenedAuthors], [Listed], [PackageRegistrationKey], [Published], [Tags]) WITH (ONLINE = ON)");
+            Sql("IF NOT EXISTS(SELECT * FROM sys.indexes WHERE name = 'nci_wi_Packages_IsLatestStablePackageStatusKey' AND object_id = OBJECT_ID('Packages')) CREATE INDEX [nci_wi_Packages_IsLatestStablePackageStatusKey] ON [dbo].[Packages] ([IsLatestStable] ASC, [PackageStatusKey] ASC) INCLUDE ([Description], [FlattenedAuthors], [Listed], [PackageRegistrationKey], [Published], [Tags])");
 
-            Sql("IF NOT EXISTS(SELECT * FROM sys.indexes WHERE name = 'nci_wi_Packages_SemVerLevelKeyIsLatestPackageStatusKey' AND object_id = OBJECT_ID('Packages')) CREATE INDEX [nci_wi_Packages_SemVerLevelKeyIsLatestPackageStatusKey] ON [dbo].[Packages] ([SemVerLevelKey] ASC, [IsLatest] ASC, [PackageStatusKey] ASC) INCLUDE ([PackageRegistrationKey]) WITH (ONLINE = ON)");
+            Sql("IF NOT EXISTS(SELECT * FROM sys.indexes WHERE name = 'nci_wi_Packages_SemVerLevelKeyIsLatestPackageStatusKey' AND object_id = OBJECT_ID('Packages')) CREATE INDEX [nci_wi_Packages_SemVerLevelKeyIsLatestPackageStatusKey] ON [dbo].[Packages] ([SemVerLevelKey] ASC, [IsLatest] ASC, [PackageStatusKey] ASC) INCLUDE ([PackageRegistrationKey])");
 
-            Sql("IF NOT EXISTS(SELECT * FROM sys.indexes WHERE name = 'nci_wi_Packages_SemVerLevelKeyPackageStatusKey' AND object_id = OBJECT_ID('Packages')) CREATE INDEX [nci_wi_Packages_SemVerLevelKeyPackageStatusKey] ON [dbo].[Packages] ([SemVerLevelKey] ASC, [PackageStatusKey] ASC) INCLUDE ([IsLatest], [IsLatestSemVer2]) WITH (ONLINE = ON)");
+            Sql("IF NOT EXISTS(SELECT * FROM sys.indexes WHERE name = 'nci_wi_Packages_SemVerLevelKeyPackageStatusKey' AND object_id = OBJECT_ID('Packages')) CREATE INDEX [nci_wi_Packages_SemVerLevelKeyPackageStatusKey] ON [dbo].[Packages] ([SemVerLevelKey] ASC, [PackageStatusKey] ASC) INCLUDE ([IsLatest], [IsLatestSemVer2])");
 
-            Sql("IF NOT EXISTS(SELECT * FROM sys.indexes WHERE name = 'nci_wi_Packages_PackageStatusKeyIsPrereleasePackageStatusKey' AND object_id = OBJECT_ID('Packages')) CREATE INDEX [nci_wi_Packages_PackageStatusKeyIsPrereleasePackageStatusKey] ON [dbo].[Packages] ([SemVerLevelKey] ASC, [IsPrerelease] ASC, [PackageStatusKey] ASC) INCLUDE ([PackageRegistrationKey], [Description], [Tags]) WITH (ONLINE = ON)");
+            Sql("IF NOT EXISTS(SELECT * FROM sys.indexes WHERE name = 'nci_wi_Packages_PackageStatusKeyIsPrereleasePackageStatusKey' AND object_id = OBJECT_ID('Packages')) CREATE INDEX [nci_wi_Packages_PackageStatusKeyIsPrereleasePackageStatusKey] ON [dbo].[Packages] ([SemVerLevelKey] ASC, [IsPrerelease] ASC, [PackageStatusKey] ASC) INCLUDE ([PackageRegistrationKey], [Description], [Tags])");
         }
         
         public override void Down()

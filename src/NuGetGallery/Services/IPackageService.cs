@@ -8,7 +8,12 @@ using NuGetGallery.Packaging;
 
 namespace NuGetGallery
 {
-    public interface IPackageService
+    /// <summary>
+    /// Business logic related to <see cref="Package"/> and <see cref="PackageRegistration"/> instances. This logic is
+    /// only used by the NuGet gallery, as opposed to the <see cref="CorePackageService"/> which is intended for other
+    /// components.
+    /// </summary>
+    public interface IPackageService : ICorePackageService
     {
         PackageRegistration FindPackageRegistrationById(string id);
 
@@ -23,19 +28,10 @@ namespace NuGetGallery
         /// <returns></returns>
         Package FindPackageByIdAndVersion(string id, string version, int? semVerLevelKey = null, bool allowPrerelease = true);
 
-        /// <summary>
-        /// Gets the package with the given ID and version when exists; otherwise <c>null</c>.
-        /// </summary>
-        /// <param name="id">The package ID.</param>
-        /// <param name="version">The package version.</param>
-        Package FindPackageByIdAndVersionStrict(string id, string version);
-
         Package FindAbsoluteLatestPackageById(string id, int? semVerLevelKey);
         IEnumerable<Package> FindPackagesByOwner(User user, bool includeUnlisted);
         IEnumerable<PackageRegistration> FindPackageRegistrationsByOwner(User user);
         IEnumerable<Package> FindDependentPackages(Package package);
-
-        Task UpdateIsLatestAsync(PackageRegistration packageRegistration, bool commitChanges = true);
 
         /// <summary>
         /// Populate the related database tables to create the specified package for the specified user.
@@ -58,17 +54,6 @@ namespace NuGetGallery
 
         Task MarkPackageUnlistedAsync(Package package, bool commitChanges = true);
         Task MarkPackageListedAsync(Package package, bool commitChanges = true);
-
-        Task<PackageOwnerRequest> CreatePackageOwnerRequestAsync(PackageRegistration package, User currentOwner, User newOwner);
-        
-        /// <summary>
-        /// Checks if the pending owner has a request for this package which matches the specified token.
-        /// </summary>
-        /// <param name="package">Package associated with the request.</param>
-        /// <param name="pendingOwner">Pending owner for the request.</param>
-        /// <param name="token">Token generated for the owner request.</param>
-        /// <returns>True if valid, false otherwise.</returns>
-        bool IsValidPackageOwnerRequest(PackageRegistration package, User pendingOwner, string token);
 
         /// <summary>
         /// Performs database changes to add a new package owner while removing the corresponding package owner request.

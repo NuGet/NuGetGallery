@@ -12,18 +12,17 @@ using NuGet.Versioning;
 using NuGetGallery.Auditing;
 using NuGetGallery.Framework;
 using NuGetGallery.Packaging;
-using Xunit;
 using NuGetGallery.TestUtils;
+using Xunit;
 
 namespace NuGetGallery
 {
     public class PackageServiceFacts
     {
-
         private static IPackageService CreateService(
             Mock<IEntityRepository<PackageRegistration>> packageRegistrationRepository = null,
             Mock<IEntityRepository<Package>> packageRepository = null,
-            Mock<IEntityRepository<PackageOwnerRequest>> packageOwnerRequestRepo = null,
+            Mock<IPackageOwnerRequestService> packageOwnerRequestService = null,
             Mock<IIndexingService> indexingService = null,
             IPackageNamingConflictValidator packageNamingConflictValidator = null,
             IAuditingService auditingService = null,
@@ -31,7 +30,7 @@ namespace NuGetGallery
         {
             packageRegistrationRepository = packageRegistrationRepository ?? new Mock<IEntityRepository<PackageRegistration>>();
             packageRepository = packageRepository ?? new Mock<IEntityRepository<Package>>();
-            packageOwnerRequestRepo = packageOwnerRequestRepo ?? new Mock<IEntityRepository<PackageOwnerRequest>>();
+            packageOwnerRequestService = packageOwnerRequestService ?? new Mock<IPackageOwnerRequestService>();
             indexingService = indexingService ?? new Mock<IIndexingService>();
             auditingService = auditingService ?? new TestAuditingService();
 
@@ -45,7 +44,7 @@ namespace NuGetGallery
             var packageService = new Mock<PackageService>(
                 packageRegistrationRepository.Object,
                 packageRepository.Object,
-                packageOwnerRequestRepo.Object,
+                packageOwnerRequestService.Object,
                 indexingService.Object,
                 packageNamingConflictValidator,
                 auditingService);
@@ -84,21 +83,16 @@ namespace NuGetGallery
                 var packageOwnerRequest = new PackageOwnerRequest { PackageRegistrationKey = 2, NewOwnerKey = 100, ConfirmationCode = "secret-token" };
                 var package = new PackageRegistration { Key = 2, Id = "pkg42" };
                 var pendingOwner = new User { Key = 100, Username = "teamawesome" };
-                var repository = new Mock<IEntityRepository<PackageOwnerRequest>>();
-                repository.Setup(r => r.DeleteOnCommit(packageOwnerRequest)).Verifiable();
-                repository.Setup(r => r.CommitChangesAsync())
+                var packageOwnerRequestService = new Mock<IPackageOwnerRequestService>();
+                packageOwnerRequestService.Setup(p => p.DeletePackageOwnershipRequest(packageOwnerRequest))
                     .Returns(Task.CompletedTask).Verifiable();
-                repository.Setup(r => r.GetAll()).Returns(
-                    new[]
-                        {
-                            new PackageOwnerRequest { PackageRegistrationKey = 1, NewOwnerKey = 100, ConfirmationCode = "super-secret-token" },
-                            packageOwnerRequest
-                        }.AsQueryable());
-                var service = CreateService(packageOwnerRequestRepo: repository);
+                packageOwnerRequestService.Setup(p => p.GetPackageOwnershipRequests(package, null, pendingOwner))
+                    .Returns(new[] { packageOwnerRequest }).Verifiable();
+                var service = CreateService(packageOwnerRequestService: packageOwnerRequestService);
 
                 await service.AddPackageOwnerAsync(package, pendingOwner);
 
-                repository.VerifyAll();
+                packageOwnerRequestService.VerifyAll();
             }
 
             [Fact]
@@ -120,49 +114,6 @@ namespace NuGetGallery
                 Assert.True(auditingService.WroteRecord<PackageRegistrationAuditRecord>(ar =>
                     ar.Action == AuditedPackageRegistrationAction.AddOwner
                     && ar.Id == package.Id));
-            }
-        }
-
-        public class TheIsValidPackageOwnerRequestMethod
-        {
-            [Fact]
-            public void ThrowsArgumentNullIfPackageIsNull()
-            {
-                Assert.Throws<ArgumentNullException>(() => CreateService().IsValidPackageOwnerRequest(null, new User(), "token"));
-            }
-
-            [Fact]
-            public void ThrowsArgumentNullIfPendingOwnerIsNull()
-            {
-                Assert.Throws<ArgumentNullException>(() => CreateService().IsValidPackageOwnerRequest(new PackageRegistration(), null, "token"));
-            }
-
-            [Theory]
-            [InlineData("")]
-            [InlineData(null)]
-            public void ThrowsArgumentNullIfTokenIsNullOrEmpty(string token)
-            {
-                Assert.Throws<ArgumentNullException>(() => CreateService().IsValidPackageOwnerRequest(new PackageRegistration(), new User(), token));
-            }
-
-            [Theory]
-            [InlineData(1, 2, "token", true)]
-            [InlineData(2, 2, "token", false)]
-            [InlineData(1, 1, "token", false)]
-            [InlineData(1, 2, "token2", false)]
-            private void ReturnsSuccessIfPackageOwnerRequestMatches(int packageId, int userId, string token, bool success)
-            {
-                // Arrange
-                var repository = new Mock<IEntityRepository<PackageOwnerRequest>>();
-                repository.Setup(r => r.GetAll()).Returns(
-                    new[] { new PackageOwnerRequest { PackageRegistrationKey = 1, NewOwnerKey = 2, ConfirmationCode = "token" } }
-                    .AsQueryable());
-                var service = CreateService(packageOwnerRequestRepo: repository);
-                var package = new PackageRegistration { Key = packageId, Id = "pkg42" };
-                var pendingOwner = new User { Key = userId, Username = "teamawesome" };
-
-                // Act & Assert
-                Assert.Equal(success, service.IsValidPackageOwnerRequest(package, pendingOwner, token));
             }
         }
 
@@ -844,296 +795,6 @@ namespace NuGetGallery
             }
         }
 
-        public class TheCreatePackageOwnerRequestMethod
-        {
-            [Fact]
-            public async Task CreatesPackageOwnerRequest()
-            {
-                var packageOwnerRequestRepository = new Mock<IEntityRepository<PackageOwnerRequest>>();
-                var service = CreateService(packageOwnerRequestRepo: packageOwnerRequestRepository);
-                var package = new PackageRegistration { Key = 1 };
-                var owner = new User { Key = 100 };
-                var newOwner = new User { Key = 200 };
-
-                await service.CreatePackageOwnerRequestAsync(package, owner, newOwner);
-
-                packageOwnerRequestRepository.Verify(
-                    r => r.InsertOnCommit(
-                        It.Is<PackageOwnerRequest>(req => req.PackageRegistrationKey == 1 && req.RequestingOwnerKey == 100 && req.NewOwnerKey == 200))
-                    );
-            }
-
-            [Fact]
-            public async Task ReturnsExistingMatchingPackageOwnerRequest()
-            {
-                var packageOwnerRequestRepository = new Mock<IEntityRepository<PackageOwnerRequest>>();
-                packageOwnerRequestRepository.Setup(r => r.GetAll()).Returns(
-                    new[]
-                        {
-                            new PackageOwnerRequest
-                                {
-                                    PackageRegistrationKey = 1,
-                                    RequestingOwnerKey = 99,
-                                    NewOwnerKey = 200
-                                }
-                        }.AsQueryable());
-                var service = CreateService(packageOwnerRequestRepo: packageOwnerRequestRepository);
-                var package = new PackageRegistration { Key = 1 };
-                var owner = new User { Key = 100 };
-                var newOwner = new User { Key = 200 };
-
-                var request = await service.CreatePackageOwnerRequestAsync(package, owner, newOwner);
-
-                Assert.Equal(99, request.RequestingOwnerKey);
-            }
-        }
-
-        public class TheUpdateIsLatestMethod
-        {
-            [Fact]
-            public async Task DoNotCommitIfCommitChangesIsFalse()
-            {
-                // Arrange
-                var packageRegistration = new PackageRegistration();
-                var package = new Package { PackageRegistration = packageRegistration, Version = "1.0.0" };
-                packageRegistration.Packages.Add(package);
-                var packageRepository = new Mock<IEntityRepository<Package>>();
-
-                var service = CreateService(packageRepository: packageRepository);
-
-                // Act
-                await service.UpdateIsLatestAsync(packageRegistration, commitChanges: false);
-
-                // Assert
-                packageRepository.Verify(r => r.CommitChangesAsync(), Times.Never());
-            }
-
-            [Fact]
-            public async Task CommitIfCommitChangesIsTrue()
-            {
-                // Arrange
-                var packageRegistration = new PackageRegistration();
-                var package = new Package { PackageRegistration = packageRegistration, Version = "1.0.0" };
-                packageRegistration.Packages.Add(package);
-                var packageRepository = new Mock<IEntityRepository<Package>>();
-
-                var service = CreateService(packageRepository: packageRepository);
-
-                // Act
-                await service.UpdateIsLatestAsync(packageRegistration, true);
-
-                // Assert
-                packageRepository.Verify(r => r.CommitChangesAsync(), Times.Once());
-            }
-
-            [Fact]
-            public async Task ResetsCurrentLatestPackageVersionsBeforeUpdate()
-            {
-                // Arrange
-                var packageRegistration = new PackageRegistration();
-
-                var previousLatestStable = new Package { PackageRegistration = packageRegistration, Version = "1.0.0", IsLatestStable = true };
-                packageRegistration.Packages.Add(previousLatestStable);
-                var previousLatest = new Package { PackageRegistration = packageRegistration, Version = "1.0.0-alpha", IsLatest = true, IsPrerelease = true };
-                packageRegistration.Packages.Add(previousLatest);
-                var previousLatestStableSemVer2 = new Package { PackageRegistration = packageRegistration, Version = "1.0.1+metadata", IsLatestStableSemVer2 = true, SemVerLevelKey = SemVerLevelKey.SemVer2 };
-                packageRegistration.Packages.Add(previousLatestStableSemVer2);
-                var previousLatestSemVer2 = new Package { PackageRegistration = packageRegistration, Version = "1.0.1-alpha.1", IsLatestSemVer2 = true, IsPrerelease = true, SemVerLevelKey = SemVerLevelKey.SemVer2 };
-                packageRegistration.Packages.Add(previousLatestSemVer2);
-
-                // Simulates adding newer versions, to ensure the previous latest are no longer latest at end of test.
-                var newLatestStable = new Package { PackageRegistration = packageRegistration, Version = "1.0.1", IsLatestStable = true };
-                packageRegistration.Packages.Add(newLatestStable);
-                var newLatest = new Package { PackageRegistration = packageRegistration, Version = "1.0.2-alpha", IsLatest = true, IsPrerelease = true };
-                packageRegistration.Packages.Add(newLatest);
-                var newLatestStableSemVer2 = new Package { PackageRegistration = packageRegistration, Version = "1.0.2+metadata", IsLatestStableSemVer2 = true, SemVerLevelKey = SemVerLevelKey.SemVer2 };
-                packageRegistration.Packages.Add(newLatestStableSemVer2);
-                var newLatestSemVer2 = new Package { PackageRegistration = packageRegistration, Version = "1.0.3-alpha.1", IsLatestSemVer2 = true, IsPrerelease = true, SemVerLevelKey = SemVerLevelKey.SemVer2 };
-                packageRegistration.Packages.Add(newLatestSemVer2);
-
-                var packageRepository = new Mock<IEntityRepository<Package>>();
-
-                var service = CreateService(packageRepository: packageRepository);
-
-                // Act
-                await service.UpdateIsLatestAsync(packageRegistration, commitChanges: true);
-
-                // Assert
-                Assert.False(previousLatestStable.IsLatestStable);
-                Assert.False(previousLatest.IsLatest);
-                Assert.False(previousLatestSemVer2.IsLatestSemVer2);
-                Assert.False(previousLatestStableSemVer2.IsLatestStableSemVer2);
-                
-                Assert.True(newLatestStable.IsLatestStable);
-                Assert.True(newLatest.IsLatest);
-                Assert.True(newLatestSemVer2.IsLatestSemVer2);
-                Assert.True(newLatestStableSemVer2.IsLatestStableSemVer2);
-            }
-
-            [Fact]
-            public async Task UpdateIsLatestScenarioForPrereleaseAsAbsoluteLatest()
-            {
-                // Arrange
-                var packages = new HashSet<Package>();
-                var packageRegistration = new PackageRegistration { Packages = packages };
-                var package10A = new Package { PackageRegistration = packageRegistration, Version = "1.0.0-a", IsPrerelease = true };
-                packages.Add(package10A);
-                var package09 = new Package { PackageRegistration = packageRegistration, Version = "0.9.0" };
-                packages.Add(package09);
-                var packageRepository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-                packageRepository.Setup(r => r.CommitChangesAsync())
-                    .Returns(Task.CompletedTask).Verifiable();
-                var service = CreateService(packageRepository: packageRepository);
-
-                // Act
-                await service.UpdateIsLatestAsync(packageRegistration, true);
-
-                // Assert
-                Assert.True(package10A.IsLatest);
-                Assert.True(package10A.IsLatestSemVer2);
-                Assert.False(package10A.IsLatestStable);
-                Assert.False(package10A.IsLatestStableSemVer2);
-
-                Assert.False(package09.IsLatest);
-                Assert.False(package09.IsLatestSemVer2);
-                Assert.True(package09.IsLatestStable);
-                Assert.True(package09.IsLatestStableSemVer2);
-
-                packageRepository.Verify();
-            }
-
-            [Fact]
-            public async Task UpdateIsLatestScenarioForStableAsAbsoluteLatest()
-            {
-                // Arrange
-                var packages = new HashSet<Package>();
-                var packageRegistration = new PackageRegistration { Packages = packages };
-                var package100 = new Package { PackageRegistration = packageRegistration, Version = "1.0.0" };
-                packages.Add(package100);
-                var package10A = new Package { PackageRegistration = packageRegistration, Version = "1.0.0-a", IsPrerelease = true };
-                packages.Add(package10A);
-                var package09 = new Package { PackageRegistration = packageRegistration, Version = "0.9.0" };
-                packages.Add(package09);
-                var packageRepository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-                packageRepository.Setup(r => r.CommitChangesAsync())
-                    .Returns(Task.CompletedTask).Verifiable();
-                var service = CreateService(packageRepository: packageRepository);
-
-                // Act
-                await service.UpdateIsLatestAsync(packageRegistration, true);
-
-                // Assert
-                Assert.True(package100.IsLatest);
-                Assert.True(package100.IsLatestSemVer2);
-                Assert.True(package100.IsLatestStable);
-                Assert.True(package100.IsLatestStableSemVer2);
-
-                Assert.False(package10A.IsLatest);
-                Assert.False(package10A.IsLatestSemVer2);
-                Assert.False(package10A.IsLatestStable);
-                Assert.False(package10A.IsLatestStableSemVer2);
-
-                Assert.False(package09.IsLatest);
-                Assert.False(package09.IsLatestSemVer2);
-                Assert.False(package09.IsLatestStable);
-                Assert.False(package09.IsLatestStableSemVer2);
-
-                packageRepository.Verify();
-            }
-
-            [Fact]
-            public async Task UpdateIsLatestScenarioForSemVer2PrereleaseAsAbsoluteLatest()
-            {
-                // Arrange
-                var packages = new HashSet<Package>();
-                var packageRegistration = new PackageRegistration { Packages = packages };
-                var semVer2Package = new Package { PackageRegistration = packageRegistration, Version = "1.0.1-alpha.1", IsPrerelease = true, SemVerLevelKey = SemVerLevelKey.SemVer2 };
-                packages.Add(semVer2Package);
-                var package100 = new Package { PackageRegistration = packageRegistration, Version = "1.0.0" };
-                packages.Add(package100);
-                var package10A = new Package { PackageRegistration = packageRegistration, Version = "1.0.0-a", IsPrerelease = true };
-                packages.Add(package10A);
-                var package09 = new Package { PackageRegistration = packageRegistration, Version = "0.9.0" };
-                packages.Add(package09);
-                var packageRepository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-                packageRepository.Setup(r => r.CommitChangesAsync())
-                    .Returns(Task.CompletedTask).Verifiable();
-                var service = CreateService(packageRepository: packageRepository);
-
-                // Act
-                await service.UpdateIsLatestAsync(packageRegistration, true);
-
-                // Assert
-                Assert.True(semVer2Package.IsLatestSemVer2);
-                Assert.False(semVer2Package.IsLatestStableSemVer2);
-                Assert.False(semVer2Package.IsLatest);
-                Assert.False(semVer2Package.IsLatestStable);
-
-                Assert.True(package100.IsLatest);
-                Assert.False(package100.IsLatestSemVer2);
-                Assert.True(package100.IsLatestStable);
-                Assert.True(package100.IsLatestStableSemVer2);
-
-                Assert.False(package10A.IsLatest);
-                Assert.False(package10A.IsLatestSemVer2);
-                Assert.False(package10A.IsLatestStable);
-                Assert.False(package10A.IsLatestStableSemVer2);
-
-                Assert.False(package09.IsLatest);
-                Assert.False(package09.IsLatestSemVer2);
-                Assert.False(package09.IsLatestStable);
-                Assert.False(package09.IsLatestStableSemVer2);
-
-                packageRepository.Verify();
-            }
-
-            [Fact]
-            public async Task UpdateIsLatestScenarioForSemVer2StableAsAbsoluteLatest()
-            {
-                // Arrange
-                var packages = new HashSet<Package>();
-                var packageRegistration = new PackageRegistration { Packages = packages };
-                var semVer2Package = new Package { PackageRegistration = packageRegistration, Version = "1.0.1+metadata", SemVerLevelKey = SemVerLevelKey.SemVer2 };
-                packages.Add(semVer2Package);
-                var package100 = new Package { PackageRegistration = packageRegistration, Version = "1.0.0" };
-                packages.Add(package100);
-                var package10A = new Package { PackageRegistration = packageRegistration, Version = "1.0.0-a", IsPrerelease = true };
-                packages.Add(package10A);
-                var package09 = new Package { PackageRegistration = packageRegistration, Version = "0.9.0" };
-                packages.Add(package09);
-                var packageRepository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
-                packageRepository.Setup(r => r.CommitChangesAsync())
-                    .Returns(Task.CompletedTask).Verifiable();
-                var service = CreateService(packageRepository: packageRepository);
-
-                // Act
-                await service.UpdateIsLatestAsync(packageRegistration, true);
-
-                // Assert
-                Assert.True(semVer2Package.IsLatestSemVer2);
-                Assert.True(semVer2Package.IsLatestStableSemVer2);
-                Assert.False(semVer2Package.IsLatest);
-                Assert.False(semVer2Package.IsLatestStable);
-
-                Assert.True(package100.IsLatest);
-                Assert.False(package100.IsLatestSemVer2);
-                Assert.True(package100.IsLatestStable);
-                Assert.False(package100.IsLatestStableSemVer2);
-
-                Assert.False(package10A.IsLatest);
-                Assert.False(package10A.IsLatestSemVer2);
-                Assert.False(package10A.IsLatestStable);
-                Assert.False(package10A.IsLatestStableSemVer2);
-
-                Assert.False(package09.IsLatest);
-                Assert.False(package09.IsLatestSemVer2);
-                Assert.False(package09.IsLatestStable);
-                Assert.False(package09.IsLatestStableSemVer2);
-
-                packageRepository.Verify();
-            }
-        }
-
         public class TheFindPackageByIdAndVersionMethod
         {
             [Fact]
@@ -1605,7 +1266,13 @@ namespace NuGetGallery
             public async Task ThrowsWhenPackageDeleted()
             {
                 var packageRegistration = new PackageRegistration { Id = "theId" };
-                var package = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = false, Deleted = true };
+                var package = new Package
+                {
+                    Version = "1.0",
+                    PackageRegistration = packageRegistration,
+                    Listed = false,
+                    PackageStatusKey = PackageStatus.Deleted,
+                };
                 var packageRepository = new Mock<IEntityRepository<Package>>();
                 var service = CreateService(packageRepository: packageRepository);
 
@@ -2054,26 +1721,31 @@ namespace NuGetGallery
             [Fact]
             public async Task RemovesPendingPackageOwner()
             {
+                var pendingOwner = new User { Key = 200 };
+                var owner = new User() { Key = 99 };
+                var package = new PackageRegistration { Key = 1, Owners = new List<User> { owner } };
+
                 var packageOwnerRequest = new PackageOwnerRequest
                 {
-                    PackageRegistrationKey = 1,
-                    RequestingOwnerKey = 99,
-                    NewOwnerKey = 200
+                    PackageRegistration = package,
+                    PackageRegistrationKey = package.Key,
+
+                    RequestingOwner = owner,
+                    RequestingOwnerKey = owner.Key,
+
+                    NewOwner = pendingOwner,
+                    NewOwnerKey = pendingOwner.Key,
                 };
-                var packageOwnerRequestRepository = new Mock<IEntityRepository<PackageOwnerRequest>>();
-                packageOwnerRequestRepository.Setup(r => r.GetAll()).Returns(new[] { packageOwnerRequest }.AsQueryable());
-                packageOwnerRequestRepository.Setup(r => r.DeleteOnCommit(packageOwnerRequest)).Verifiable();
-                packageOwnerRequestRepository.Setup(r => r.CommitChangesAsync())
-                    .Returns(Task.CompletedTask).Verifiable();
-                var service = CreateService(packageOwnerRequestRepo: packageOwnerRequestRepository);
-                var pendingOwner = new User { Key = 200 };
-                var owner = new User();
-                var package = new PackageRegistration { Key = 1, Owners = new List<User> { owner } };
+
+                var packageOwnerRequestService = new Mock<IPackageOwnerRequestService>();
+                packageOwnerRequestService.Setup(p => p.GetPackageOwnershipRequests(package, null, pendingOwner)).Returns(new[] { packageOwnerRequest });
+                packageOwnerRequestService.Setup(p => p.DeletePackageOwnershipRequest(packageOwnerRequest)).Returns(Task.CompletedTask).Verifiable();
+                var service = CreateService(packageOwnerRequestService: packageOwnerRequestService);
 
                 await service.RemovePackageOwnerAsync(package, pendingOwner);
 
                 Assert.Contains(owner, package.Owners);
-                packageOwnerRequestRepository.VerifyAll();
+                packageOwnerRequestService.VerifyAll();
             }
 
             [Fact]

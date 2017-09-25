@@ -205,6 +205,8 @@
     <Compile Include="Properties\AssemblyInfo.*.cs" />
     <Compile Include="NuGetVersionExtensions.cs" />
     <Compile Include="SemVerLevelKey.cs" />
+    <Compile Include="Services\CorePackageService.cs" />
+    <Compile Include="Services\ICorePackageService.cs" />
     <Compile Include="StreamExtensions.cs" />
     <Compile Include="CoreStrings.Designer.cs">
       <AutoGen>True</AutoGen>

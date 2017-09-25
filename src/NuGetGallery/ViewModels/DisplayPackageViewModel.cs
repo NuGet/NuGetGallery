@@ -82,7 +82,11 @@ namespace NuGetGallery
         {
             get
             {
-                return PackageVersions.Any(pv => pv.LatestVersion && !pv.LatestStableVersion);
+                var latestPrereleaseVersion = PackageVersions
+                    .Where(pv => pv.Prerelease)
+                    .Max(pv => pv.NuGetVersion);
+
+                return latestPrereleaseVersion > NuGetVersion;
             }
         }
 
