@@ -74,7 +74,10 @@ namespace NuGetGallery
         public const string UrlValidationErrorMessage = "This doesn't appear to be a valid HTTP/HTTPS URL";
 
         internal const string ApiKeyHeaderName = "X-NuGet-ApiKey";
+        // X-NuGet-Client-Version header was deprecated and replaced with X-NuGet-Protocol-Version header
+        // It stays here for backwards compatibility
         internal const string ClientVersionHeaderName = "X-NuGet-Client-Version";
+        internal const string NuGetProtocolHeaderName = "X-NuGet-Protocol-Version";
         internal const string WarningHeaderName = "X-NuGet-Warning";
         internal const string UserAgentHeaderName = "User-Agent";
 

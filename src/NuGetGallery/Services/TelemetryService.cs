@@ -26,6 +26,7 @@ namespace NuGetGallery
         public const string AuthenticationMethod = "AuthenticationMethod";
         public const string AccountCreationDate = "AccountCreationDate";
         public const string ClientVersion = "ClientVersion";
+        public const string ProtocolVersion = "ProtocolVersion";
         public const string IsScoped = "IsScoped";
         public const string KeyCreationDate = "KeyCreationDate";
         public const string PackageId = "PackageId";
@@ -66,6 +67,7 @@ namespace NuGetGallery
 
             TrackEvent(PackagePushEvent, properties => {
                 properties.Add(ClientVersion, GetClientVersion());
+                properties.Add(ProtocolVersion, GetProtocolVersion());
                 properties.Add(PackageId, package.PackageRegistration.Id);
                 properties.Add(PackageVersion, package.Version);
                 properties.Add(AuthenticationMethod, identity.GetAuthenticationType());
@@ -89,6 +91,7 @@ namespace NuGetGallery
 
             TrackEvent(CreatePackageVerificationKeyEvent, properties => {
                 properties.Add(ClientVersion, GetClientVersion());
+                properties.Add(ProtocolVersion, GetProtocolVersion());
                 properties.Add(PackageId, packageId);
                 properties.Add(PackageVersion, packageVersion);
                 properties.Add(AccountCreationDate, GetAccountCreationDate(user));
@@ -122,6 +125,11 @@ namespace NuGetGallery
         private static string GetClientVersion()
         {
             return HttpContext.Current?.Request?.Headers[Constants.ClientVersionHeaderName];
+        }
+
+        private static string GetProtocolVersion()
+        {
+            return HttpContext.Current?.Request?.Headers[Constants.NuGetProtocolHeaderName];
         }
 
         private static string GetAccountCreationDate(User user)
