@@ -23,7 +23,7 @@ namespace NuGetGallery
         private static IPackageService CreateService(
             Mock<IEntityRepository<PackageRegistration>> packageRegistrationRepository = null,
             Mock<IEntityRepository<Package>> packageRepository = null,
-            Mock<IPackageOwnerRequestService> packageOwnerRequestService = null,
+            Mock<IEntityRepository<PackageOwnerRequest>> packageOwnerRequestRepo = null,
             Mock<IIndexingService> indexingService = null,
             IPackageNamingConflictValidator packageNamingConflictValidator = null,
             IAuditingService auditingService = null,
@@ -31,7 +31,7 @@ namespace NuGetGallery
         {
             packageRegistrationRepository = packageRegistrationRepository ?? new Mock<IEntityRepository<PackageRegistration>>();
             packageRepository = packageRepository ?? new Mock<IEntityRepository<Package>>();
-            packageOwnerRequestService = packageOwnerRequestService ?? new Mock<IPackageOwnerRequestService>();
+            packageOwnerRequestRepo = packageOwnerRequestRepo ?? new Mock<IEntityRepository<PackageOwnerRequest>>();
             indexingService = indexingService ?? new Mock<IIndexingService>();
             auditingService = auditingService ?? new TestAuditingService();
 
@@ -45,7 +45,7 @@ namespace NuGetGallery
             var packageService = new Mock<PackageService>(
                 packageRegistrationRepository.Object,
                 packageRepository.Object,
-                packageOwnerRequestService.Object,
+                packageOwnerRequestRepo.Object,
                 indexingService.Object,
                 packageNamingConflictValidator,
                 auditingService);
@@ -84,16 +84,21 @@ namespace NuGetGallery
                 var packageOwnerRequest = new PackageOwnerRequest { PackageRegistrationKey = 2, NewOwnerKey = 100, ConfirmationCode = "secret-token" };
                 var package = new PackageRegistration { Key = 2, Id = "pkg42" };
                 var pendingOwner = new User { Key = 100, Username = "teamawesome" };
-                var packageOwnerRequestService = new Mock<IPackageOwnerRequestService>();
-                packageOwnerRequestService.Setup(p => p.DeletePackageOwnershipRequest(packageOwnerRequest))
+                var repository = new Mock<IEntityRepository<PackageOwnerRequest>>();
+                repository.Setup(r => r.DeleteOnCommit(packageOwnerRequest)).Verifiable();
+                repository.Setup(r => r.CommitChangesAsync())
                     .Returns(Task.CompletedTask).Verifiable();
-                packageOwnerRequestService.Setup(p => p.GetPackageOwnershipRequests(package, null, pendingOwner))
-                    .Returns(new[] { packageOwnerRequest }).Verifiable();
-                var service = CreateService(packageOwnerRequestService: packageOwnerRequestService);
+                repository.Setup(r => r.GetAll()).Returns(
+                    new[]
+                        {
+                            new PackageOwnerRequest { PackageRegistrationKey = 1, NewOwnerKey = 100, ConfirmationCode = "super-secret-token" },
+                            packageOwnerRequest
+                        }.AsQueryable());
+                var service = CreateService(packageOwnerRequestRepo: repository);
 
                 await service.AddPackageOwnerAsync(package, pendingOwner);
 
-                packageOwnerRequestService.VerifyAll();
+                repository.VerifyAll();
             }
 
             [Fact]
@@ -115,6 +120,49 @@ namespace NuGetGallery
                 Assert.True(auditingService.WroteRecord<PackageRegistrationAuditRecord>(ar =>
                     ar.Action == AuditedPackageRegistrationAction.AddOwner
                     && ar.Id == package.Id));
+            }
+        }
+
+        public class TheIsValidPackageOwnerRequestMethod
+        {
+            [Fact]
+            public void ThrowsArgumentNullIfPackageIsNull()
+            {
+                Assert.Throws<ArgumentNullException>(() => CreateService().IsValidPackageOwnerRequest(null, new User(), "token"));
+            }
+
+            [Fact]
+            public void ThrowsArgumentNullIfPendingOwnerIsNull()
+            {
+                Assert.Throws<ArgumentNullException>(() => CreateService().IsValidPackageOwnerRequest(new PackageRegistration(), null, "token"));
+            }
+
+            [Theory]
+            [InlineData("")]
+            [InlineData(null)]
+            public void ThrowsArgumentNullIfTokenIsNullOrEmpty(string token)
+            {
+                Assert.Throws<ArgumentNullException>(() => CreateService().IsValidPackageOwnerRequest(new PackageRegistration(), new User(), token));
+            }
+
+            [Theory]
+            [InlineData(1, 2, "token", true)]
+            [InlineData(2, 2, "token", false)]
+            [InlineData(1, 1, "token", false)]
+            [InlineData(1, 2, "token2", false)]
+            private void ReturnsSuccessIfPackageOwnerRequestMatches(int packageId, int userId, string token, bool success)
+            {
+                // Arrange
+                var repository = new Mock<IEntityRepository<PackageOwnerRequest>>();
+                repository.Setup(r => r.GetAll()).Returns(
+                    new[] { new PackageOwnerRequest { PackageRegistrationKey = 1, NewOwnerKey = 2, ConfirmationCode = "token" } }
+                    .AsQueryable());
+                var service = CreateService(packageOwnerRequestRepo: repository);
+                var package = new PackageRegistration { Key = packageId, Id = "pkg42" };
+                var pendingOwner = new User { Key = userId, Username = "teamawesome" };
+
+                // Act & Assert
+                Assert.Equal(success, service.IsValidPackageOwnerRequest(package, pendingOwner, token));
             }
         }
 
@@ -793,6 +841,50 @@ namespace NuGetGallery
                 var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, isVerified: false);
 
                 Assert.Empty(package.SupportedFrameworks);
+            }
+        }
+
+        public class TheCreatePackageOwnerRequestMethod
+        {
+            [Fact]
+            public async Task CreatesPackageOwnerRequest()
+            {
+                var packageOwnerRequestRepository = new Mock<IEntityRepository<PackageOwnerRequest>>();
+                var service = CreateService(packageOwnerRequestRepo: packageOwnerRequestRepository);
+                var package = new PackageRegistration { Key = 1 };
+                var owner = new User { Key = 100 };
+                var newOwner = new User { Key = 200 };
+
+                await service.CreatePackageOwnerRequestAsync(package, owner, newOwner);
+
+                packageOwnerRequestRepository.Verify(
+                    r => r.InsertOnCommit(
+                        It.Is<PackageOwnerRequest>(req => req.PackageRegistrationKey == 1 && req.RequestingOwnerKey == 100 && req.NewOwnerKey == 200))
+                    );
+            }
+
+            [Fact]
+            public async Task ReturnsExistingMatchingPackageOwnerRequest()
+            {
+                var packageOwnerRequestRepository = new Mock<IEntityRepository<PackageOwnerRequest>>();
+                packageOwnerRequestRepository.Setup(r => r.GetAll()).Returns(
+                    new[]
+                        {
+                            new PackageOwnerRequest
+                                {
+                                    PackageRegistrationKey = 1,
+                                    RequestingOwnerKey = 99,
+                                    NewOwnerKey = 200
+                                }
+                        }.AsQueryable());
+                var service = CreateService(packageOwnerRequestRepo: packageOwnerRequestRepository);
+                var package = new PackageRegistration { Key = 1 };
+                var owner = new User { Key = 100 };
+                var newOwner = new User { Key = 200 };
+
+                var request = await service.CreatePackageOwnerRequestAsync(package, owner, newOwner);
+
+                Assert.Equal(99, request.RequestingOwnerKey);
             }
         }
 
@@ -1962,31 +2054,26 @@ namespace NuGetGallery
             [Fact]
             public async Task RemovesPendingPackageOwner()
             {
-                var pendingOwner = new User { Key = 200 };
-                var owner = new User() { Key = 99 };
-                var package = new PackageRegistration { Key = 1, Owners = new List<User> { owner } };
-
                 var packageOwnerRequest = new PackageOwnerRequest
                 {
-                    PackageRegistration = package,
-                    PackageRegistrationKey = package.Key,
-
-                    RequestingOwner = owner,
-                    RequestingOwnerKey = owner.Key,
-
-                    NewOwner = pendingOwner,
-                    NewOwnerKey = pendingOwner.Key,
+                    PackageRegistrationKey = 1,
+                    RequestingOwnerKey = 99,
+                    NewOwnerKey = 200
                 };
-
-                var packageOwnerRequestService = new Mock<IPackageOwnerRequestService>();
-                packageOwnerRequestService.Setup(p => p.GetPackageOwnershipRequests(package, null, pendingOwner)).Returns(new[] { packageOwnerRequest });
-                packageOwnerRequestService.Setup(p => p.DeletePackageOwnershipRequest(packageOwnerRequest)).Returns(Task.CompletedTask).Verifiable();
-                var service = CreateService(packageOwnerRequestService: packageOwnerRequestService);
+                var packageOwnerRequestRepository = new Mock<IEntityRepository<PackageOwnerRequest>>();
+                packageOwnerRequestRepository.Setup(r => r.GetAll()).Returns(new[] { packageOwnerRequest }.AsQueryable());
+                packageOwnerRequestRepository.Setup(r => r.DeleteOnCommit(packageOwnerRequest)).Verifiable();
+                packageOwnerRequestRepository.Setup(r => r.CommitChangesAsync())
+                    .Returns(Task.CompletedTask).Verifiable();
+                var service = CreateService(packageOwnerRequestRepo: packageOwnerRequestRepository);
+                var pendingOwner = new User { Key = 200 };
+                var owner = new User();
+                var package = new PackageRegistration { Key = 1, Owners = new List<User> { owner } };
 
                 await service.RemovePackageOwnerAsync(package, pendingOwner);
 
                 Assert.Contains(owner, package.Owners);
-                packageOwnerRequestService.VerifyAll();
+                packageOwnerRequestRepository.VerifyAll();
             }
 
             [Fact]

@@ -363,13 +363,12 @@ namespace NuGetGallery
                 var package = new PackageRegistration { Id = "CoolStuff" };
                 const string packageUrl = "http://nuget.local/packages/CoolStuff";
                 const string confirmationUrl = "http://example.com/confirmation-token-url";
-                const string rejectionUrl = "http://example.com/rejection-token-url";
                 const string userMessage = "Hello World!";
 
                 var messageService = TestableMessageService.Create(
                     GetService<AuthenticationService>(),
                     GetConfigurationService());
-                messageService.SendPackageOwnerRequest(from, to, package, packageUrl, confirmationUrl, rejectionUrl, userMessage, string.Empty);
+                messageService.SendPackageOwnerRequest(from, to, package, packageUrl, confirmationUrl, userMessage, string.Empty);
                 var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal("new-owner@example.com", message.To[0].Address);
@@ -391,12 +390,11 @@ namespace NuGetGallery
                 var package = new PackageRegistration { Id = "CoolStuff" };
                 const string packageUrl = "http://nuget.local/packages/CoolStuff";
                 const string confirmationUrl = "http://example.com/confirmation-token-url";
-                const string rejectionUrl = "http://example.com/rejection-token-url";
 
                 var messageService = TestableMessageService.Create(
                     GetService<AuthenticationService>(),
                     GetConfigurationService());
-                messageService.SendPackageOwnerRequest(from, to, package, packageUrl, confirmationUrl, rejectionUrl, string.Empty, string.Empty);
+                messageService.SendPackageOwnerRequest(from, to, package, packageUrl, confirmationUrl, string.Empty, string.Empty);
                 var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.DoesNotContain("The user 'Existing' added the following message for you", message.Body);
@@ -410,111 +408,11 @@ namespace NuGetGallery
                 var package = new PackageRegistration { Id = "CoolStuff" };
                 const string packageUrl = "http://nuget.local/packages/CoolStuff";
                 const string confirmationUrl = "http://example.com/confirmation-token-url";
-                const string rejectionUrl = "http://example.com/rejection-token-url";
 
                 var messageService = TestableMessageService.Create(
                     GetService<AuthenticationService>(),
                     GetConfigurationService());
-                messageService.SendPackageOwnerRequest(from, to, package, packageUrl, confirmationUrl, rejectionUrl, string.Empty, string.Empty);
-
-                Assert.Empty(messageService.MockMailSender.Sent);
-            }
-        }
-
-        public class TheSendPackageOwnerRequestRejectionNoticeMethod
-            : TestContainer
-        {
-            [Fact]
-            public void SendsNotice()
-            {
-                var requestingOwner = new User { Username = "Existing", EmailAddress = "existing-owner@example.com", EmailAllowed = true };
-                var newOwner = new User { Username = "Noob", EmailAddress = "new-owner@example.com" };
-                var package = new PackageRegistration { Id = "CoolStuff" };
-
-                var request = new PackageOwnerRequest
-                {
-                    PackageRegistration = package,
-                    RequestingOwner = requestingOwner,
-                    NewOwner = newOwner
-                };
-
-                var messageService = TestableMessageService.Create(
-                    GetService<AuthenticationService>(),
-                    GetConfigurationService());
-                messageService.SendPackageOwnerRequestRejectionNotice(requestingOwner, newOwner, package);
-                var message = messageService.MockMailSender.Sent.Last();
-
-                Assert.Equal(requestingOwner.EmailAddress, message.To[0].Address);
-                Assert.Equal(TestGalleryNoReplyAddress.Address, message.From.Address);
-                Assert.Equal(newOwner.EmailAddress, message.ReplyToList.Single().Address);
-                Assert.Equal("[Joe Shmoe] The user 'Noob' has rejected your request to add them as an owner of the package 'CoolStuff'.", message.Subject);
-                Assert.Contains("The user 'Noob' has rejected your request to add them as an owner of the package 'CoolStuff'.", message.Body);
-            }
-
-            [Fact]
-            public void DoesNotSendNoticeIfUserDoesNotAllowEmails()
-            {
-                var requestingOwner = new User { Username = "Existing", EmailAddress = "existing-owner@example.com" };
-                var newOwner = new User { Username = "Noob", EmailAddress = "new-owner@example.com" };
-                var package = new PackageRegistration { Id = "CoolStuff" };
-
-                var request = new PackageOwnerRequest
-                {
-                    PackageRegistration = package,
-                    RequestingOwner = requestingOwner,
-                    NewOwner = newOwner
-                };
-
-                var messageService = TestableMessageService.Create(
-                    GetService<AuthenticationService>(),
-                    GetConfigurationService());
-                messageService.SendPackageOwnerRequestRejectionNotice(requestingOwner, newOwner, package);
-
-                Assert.Empty(messageService.MockMailSender.Sent);
-            }
-        }
-
-        public class TheSendPackageOwnerRequestCancellationNoticeMethod
-            : TestContainer
-        {
-            [Fact]
-            public void SendsNotice()
-            {
-                var requestingOwner = new User { Username = "Existing", EmailAddress = "existing-owner@example.com" };
-                var newOwner = new User { Username = "Noob", EmailAddress = "new-owner@example.com", EmailAllowed = true };
-                var package = new PackageRegistration { Id = "CoolStuff" };
-
-                var messageService = TestableMessageService.Create(
-                    GetService<AuthenticationService>(),
-                    GetConfigurationService());
-                messageService.SendPackageOwnerRequestCancellationNotice(requestingOwner, newOwner, package);
-                var message = messageService.MockMailSender.Sent.Last();
-
-                Assert.Equal(newOwner.EmailAddress, message.To[0].Address);
-                Assert.Equal(TestGalleryNoReplyAddress.Address, message.From.Address);
-                Assert.Equal(requestingOwner.EmailAddress, message.ReplyToList.Single().Address);
-                Assert.Equal("[Joe Shmoe] The user 'Existing' has cancelled their request for you to be added as an owner of the package 'CoolStuff'.", message.Subject);
-                Assert.Contains("The user 'Existing' has cancelled their request for you to be added as an owner of the package 'CoolStuff'.", message.Body);
-            }
-
-            [Fact]
-            public void DoesNotSendNoticeIfUserDoesNotAllowEmails()
-            {
-                var requestingOwner = new User { Username = "Existing", EmailAddress = "existing-owner@example.com" };
-                var newOwner = new User { Username = "Noob", EmailAddress = "new-owner@example.com" };
-                var package = new PackageRegistration { Id = "CoolStuff" };
-
-                var request = new PackageOwnerRequest
-                {
-                    PackageRegistration = package,
-                    RequestingOwner = requestingOwner,
-                    NewOwner = newOwner
-                };
-
-                var messageService = TestableMessageService.Create(
-                    GetService<AuthenticationService>(),
-                    GetConfigurationService());
-                messageService.SendPackageOwnerRequestCancellationNotice(requestingOwner, newOwner, package);
+                messageService.SendPackageOwnerRequest(from, to, package, packageUrl, confirmationUrl, string.Empty, string.Empty);
 
                 Assert.Empty(messageService.MockMailSender.Sent);
             }

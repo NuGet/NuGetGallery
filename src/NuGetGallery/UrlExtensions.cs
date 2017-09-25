@@ -612,87 +612,31 @@ namespace NuGetGallery
             return GetActionLink(url, "RemovePackageOwner", "JsonApi", relativeUrl);
         }
 
-        public static string ConfirmPendingOwnershipRequest(
+        public static string ConfirmationUrl(
             this UrlHelper url,
-            string packageId,
-            string username,
-            string confirmationCode,
-            bool relativeUrl = true)
-        {
-            var routeValues = new RouteValueDictionary
-            {
-                ["id"] = packageId,
-                ["username"] = username,
-                ["token"] = confirmationCode
-            };
-
-            return GetActionLink(url, "ConfirmPendingOwnershipRequest", "Packages", relativeUrl, routeValues);
-        }
-
-        public static string RejectPendingOwnershipRequest(
-            this UrlHelper url,
-            string packageId,
-            string username,
-            string confirmationCode,
-            bool relativeUrl = true)
-        {
-            var routeValues = new RouteValueDictionary
-            {
-                ["id"] = packageId,
-                ["username"] = username,
-                ["token"] = confirmationCode
-            };
-
-            return GetActionLink(url, "RejectPendingOwnershipRequest", "Packages", relativeUrl, routeValues);
-        }
-
-        public static string CancelPendingOwnershipRequest(
-            this UrlHelper url,
-            string packageId,
-            string requestingUsername,
-            string pendingUsername,
-            bool relativeUrl = true)
-        {
-            var routeValues = new RouteValueDictionary
-            {
-                ["id"] = packageId,
-                ["requestingUsername"] = requestingUsername,
-                ["pendingUsername"] = pendingUsername
-            };
-
-            return GetActionLink(url, "CancelPendingOwnershipRequest", "Packages", relativeUrl, routeValues);
-        }
-
-        public static string ConfirmEmail(
-            this UrlHelper url,
+            string action,
+            string controller,
             string username,
             string token,
             bool relativeUrl = true)
         {
-            var routeValues = new RouteValueDictionary
-            {
-                ["username"] = username,
-                ["token"] = token
-            };
-
-            return GetActionLink(url, "Confirm", "Users", relativeUrl, routeValues);
+            return ConfirmationUrl(url, action, controller, username, token, routeValues: null, relativeUrl: relativeUrl);
         }
 
-        public static string ResetEmailOrPassword(
+        public static string ConfirmationUrl(
             this UrlHelper url,
+            string action,
+            string controller,
             string username,
             string token,
-            bool forgotPassword,
+            object routeValues,
             bool relativeUrl = true)
         {
-            var routeValues = new RouteValueDictionary
-            {
-                ["username"] = username,
-                ["token"] = token,
-                ["forgot"] = forgotPassword
-            };
+            var rvd = routeValues == null ? new RouteValueDictionary() : new RouteValueDictionary(routeValues);
+            rvd["username"] = username;
+            rvd["token"] = token;
 
-            return GetActionLink(url, "ResetPassword", "Users", relativeUrl, routeValues);
+            return GetActionLink(url, action, controller, relativeUrl, rvd);
         }
 
         public static string VerifyPackage(this UrlHelper url, bool relativeUrl = true)

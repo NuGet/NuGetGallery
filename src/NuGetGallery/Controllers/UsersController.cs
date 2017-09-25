@@ -21,7 +21,6 @@ namespace NuGetGallery
         private readonly IUserService _userService;
         private readonly IMessageService _messageService;
         private readonly IPackageService _packageService;
-        private readonly IPackageOwnerRequestService _packageOwnerRequestService;
         private readonly IAppConfiguration _config;
         private readonly AuthenticationService _authService;
         private readonly ICredentialBuilder _credentialBuilder;
@@ -30,7 +29,6 @@ namespace NuGetGallery
             ICuratedFeedService feedsQuery,
             IUserService userService,
             IPackageService packageService,
-            IPackageOwnerRequestService packageOwnerRequestService,
             IMessageService messageService,
             IAppConfiguration config,
             AuthenticationService authService,
@@ -39,7 +37,6 @@ namespace NuGetGallery
             _curatedFeedService = feedsQuery ?? throw new ArgumentNullException(nameof(feedsQuery));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
-            _packageOwnerRequestService = packageOwnerRequestService ?? throw new ArgumentNullException(nameof(packageOwnerRequestService));
             _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _authService = authService ?? throw new ArgumentNullException(nameof(authService));
@@ -61,7 +58,8 @@ namespace NuGetGallery
         public virtual ActionResult ConfirmationRequiredPost()
         {
             User user = GetCurrentUser();
-            var confirmationUrl = Url.ConfirmEmail(user.Username, user.EmailConfirmationToken, relativeUrl: false);
+            var confirmationUrl = Url.ConfirmationUrl(
+                "Confirm", "Users", user.Username, user.EmailConfirmationToken, relativeUrl: false);
 
             var alreadyConfirmed = user.UnconfirmedEmailAddress == null;
 
@@ -157,15 +155,9 @@ namespace NuGetGallery
             var packages = _packageService.FindPackagesByOwner(user, includeUnlisted: true)
                 .Select(p => new ListPackageItemViewModel(p)).OrderBy(p => p.Id).ToList();
 
-            var incoming = _packageOwnerRequestService.GetPackageOwnershipRequests(newOwner: user);
-            var outgoing = _packageOwnerRequestService.GetPackageOwnershipRequests(requestingOwner: user);
-
-            var ownerRequests = new OwnerRequestsViewModel(incoming, outgoing, user, _packageService);
-
             var model = new ManagePackagesViewModel
             {
-                Packages = packages,
-                OwnerRequests = ownerRequests
+                Packages = packages
             };
             return View(model);
         }
@@ -397,7 +389,8 @@ namespace NuGetGallery
 
             if (user.Confirmed)
             {
-                var confirmationUrl = Url.ConfirmEmail(user.Username, user.EmailConfirmationToken, relativeUrl: false);
+                var confirmationUrl = Url.ConfirmationUrl(
+                    "Confirm", "Users", user.Username, user.EmailConfirmationToken, relativeUrl: false);
                 _messageService.SendEmailChangeConfirmationNotice(new MailAddress(user.UnconfirmedEmailAddress, user.Username), confirmationUrl);
 
                 TempData["Message"] = Strings.EmailUpdated_ConfirmationRequired;
@@ -758,10 +751,12 @@ namespace NuGetGallery
 
         private ActionResult SendPasswordResetEmail(User user, bool forgotPassword)
         {
-            var resetPasswordUrl = Url.ResetEmailOrPassword(
+            var resetPasswordUrl = Url.ConfirmationUrl(
+                "ResetPassword",
+                "Users",
                 user.Username,
                 user.PasswordResetToken,
-                forgotPassword,
+                new { forgot = forgotPassword },
                 relativeUrl: false);
             _messageService.SendPasswordResetInstructions(user, resetPasswordUrl, forgotPassword);
 
