@@ -48,16 +48,7 @@ namespace NgTests
         {
             foreach (var pairFactory in pairFactories)
             {
-                // We want to insert both 
-                //    (registration a, registration b, pass/fail) and 
-                //    (registration b, registration a, pass/fail).
-                //
-                // This is because there could be an issue with one ordering but not the other.
-
-                var pair = pairFactory();
-                
-                yield return pair;
-                yield return Tuple.Create(pair.Item2, pair.Item1, pair.Item3);
+                yield return pairFactory();
             }
         }
 

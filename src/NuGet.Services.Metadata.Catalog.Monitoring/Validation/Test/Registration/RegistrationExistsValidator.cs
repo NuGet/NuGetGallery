@@ -30,6 +30,15 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
 
             if (v2Exists != v3Exists)
             {
+                // Currently, leaf nodes are not deleted after a package is deleted.
+                // This is a known bug. Do not fail validations because of it.
+                // See https://github.com/NuGet/NuGetGallery/issues/4475
+                if (v3Exists && !(v3 is PackageRegistrationIndexMetadata))
+                {
+                    Logger.LogInformation("{PackageId} {PackageVersion} doesn't exist in V2 but has a leaf node in V3!", data.Package.Id, data.Package.Version);
+                    return;
+                }
+
                 const string existsString = "exists";
                 const string doesNotExistString = "doesn't exist";
 

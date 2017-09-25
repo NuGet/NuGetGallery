@@ -111,15 +111,5 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
 
             return nonhijackableUri;
         }
-
-        /// <summary>
-        /// Makes a web request to <paramref name="uri"/> and returns <see cref="HttpRequestMessage.RequestUri"/> of the <see cref="HttpResponseMessage.RequestMessage"/>.
-        /// In other words, if <paramref name="uri"/> redirects to another address, this method returns the address that was redirected to.
-        /// </summary>
-        public static async Task<Uri> GetRedirectedRequestMessageUri(HttpClient client, Uri uri)
-        {
-            var response = await client.GetAsync(uri);
-            return response.RequestMessage.RequestUri;
-        }
     }
 }
