@@ -273,5 +273,10 @@ namespace NuGetGallery.Configuration
         /// Get/Sets a string to a url that details trademarks. If unset, the link will not appear.
         /// </summary>
         public string TrademarksUrl { get; set; }
+
+        /// <summary>
+        /// Gets/Sets a flag indicating if default security policies should be enforced.
+        /// </summary>
+        public bool EnforceDefaultSecurityPolicies { get; set; }
     }
 }
