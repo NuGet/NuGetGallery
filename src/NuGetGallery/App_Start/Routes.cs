@@ -147,7 +147,17 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.PackageOwnerConfirmation,
                 "packages/{id}/owners/{username}/confirm/{token}",
-                new { controller = "Packages", action = "ConfirmOwner" });
+                new { controller = "Packages", action = "ConfirmPendingOwnershipRequest" });
+
+            routes.MapRoute(
+                RouteName.PackageOwnerRejection,
+                "packages/{id}/owners/{username}/reject/{token}",
+                new { controller = "Packages", action = "RejectPendingOwnershipRequest" });
+
+            routes.MapRoute(
+                RouteName.PackageOwnerCancellation,
+                "packages/{id}/owners/{username}/cancel/{token}",
+                new { controller = "Packages", action = "CancelPendingOwnershipRequest" });
 
             // We need the following two routes (rather than just one) due to Routing's
             // Consecutive Optional Parameter bug. :(

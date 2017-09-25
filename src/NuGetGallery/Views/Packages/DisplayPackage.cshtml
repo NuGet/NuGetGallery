@@ -185,7 +185,7 @@
                 )
             }
 
-            @if (Model.LatestStableVersionSemVer2 && Model.HasNewerPrerelease)
+            @if (Model.HasNewerPrerelease)
             {
                 @ViewHelpers.AlertInfo(
                     @<text>

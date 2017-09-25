@@ -41,6 +41,7 @@ namespace NuGetGallery.Telemetry
 
             var headers = new NameValueCollection
             {
+                { Constants.NuGetProtocolHeaderName, "1.0.0" },
                 { Constants.ClientVersionHeaderName, "1.0.0" },
                 { Constants.UserAgentHeaderName, "NuGet Command Line/4.1.0 (Microsoft Windows NT 6.2.9200.0)" }
             };
@@ -53,7 +54,7 @@ namespace NuGetGallery.Telemetry
             // Assert
             if (telemetry is RequestTelemetry)
             {
-                Assert.Equal(3, telemetry.Context.Properties.Count);
+                Assert.Equal(4, telemetry.Context.Properties.Count);
             }
             else
             {
@@ -78,7 +79,27 @@ namespace NuGetGallery.Telemetry
             enricher.Initialize(telemetry);
 
             // Assert
-            Assert.Equal("5.0.0", telemetry.Properties[ClientInformationTelemetryEnricher.ClientVersionPropertyKey]);
+            Assert.Equal("5.0.0", telemetry.Properties[TelemetryService.ClientVersion]);
+        }
+
+        [Fact]
+        public void EnrichesTelemetryWithProtocolVersion()
+        {
+            // Arrange
+            var telemetry = new RequestTelemetry();
+
+            var headers = new NameValueCollection
+            {
+                { Constants.NuGetProtocolHeaderName, "5.0.0" }
+            };
+
+            var enricher = CreateTestEnricher(headers);
+
+            // Act
+            enricher.Initialize(telemetry);
+
+            // Assert
+            Assert.Equal("5.0.0", telemetry.Properties[TelemetryService.ProtocolVersion]);
         }
 
         [Theory]

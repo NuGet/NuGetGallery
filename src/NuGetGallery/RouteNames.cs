@@ -22,11 +22,12 @@ namespace NuGetGallery
         public const string Authentication = "SignIn";
         public const string UploadPackage = "UploadPackage";
         public const string UploadPackageProgress = "UploadPackageProgress";
-        public const string ManagePackageOwners = "ManagePackageOwners";
         public const string PackageVersionAction = "PackageVersionAction";
         public const string PackageFilePathAction = "PackageFilePathAction";
         public const string PackageFileContentsAction = "PackageFileContentsAction";
         public const string PackageOwnerConfirmation = "PackageOwnerConfirmation";
+        public const string PackageOwnerRejection = "PackageOwnerRejection";
+        public const string PackageOwnerCancellation = "PackageOwnerCancellation";
         public const string PackageAction = "PackageAction";
         public const string PushPackageApi = "PushPackageApi";
         public const string PublishPackageApi = "PublishPackageApi";
