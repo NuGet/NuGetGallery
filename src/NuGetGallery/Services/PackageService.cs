@@ -19,7 +19,6 @@ namespace NuGetGallery
     {
         private readonly IIndexingService _indexingService;
         private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
-        private readonly IEntityRepository<Package> _packageRepository;
         private readonly IPackageOwnerRequestService _packageOwnerRequestService;
         private readonly IPackageNamingConflictValidator _packageNamingConflictValidator;
         private readonly IAuditingService _auditingService;
@@ -63,7 +62,6 @@ namespace NuGetGallery
             }
 
             _packageRegistrationRepository = packageRegistrationRepository;
-            _packageRepository = packageRepository;
             _packageOwnerRequestService = packageOwnerRequestService;
             _indexingService = indexingService;
             _packageNamingConflictValidator = packageNamingConflictValidator;
