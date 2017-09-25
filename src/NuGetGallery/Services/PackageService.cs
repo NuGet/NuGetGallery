@@ -18,16 +18,16 @@ namespace NuGetGallery
     public class PackageService : IPackageService
     {
         private readonly IIndexingService _indexingService;
+        private readonly IEntityRepository<PackageOwnerRequest> _packageOwnerRequestRepository;
         private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
         private readonly IEntityRepository<Package> _packageRepository;
-        private readonly IPackageOwnerRequestService _packageOwnerRequestService;
         private readonly IPackageNamingConflictValidator _packageNamingConflictValidator;
         private readonly IAuditingService _auditingService;
 
         public PackageService(
             IEntityRepository<PackageRegistration> packageRegistrationRepository,
             IEntityRepository<Package> packageRepository,
-            IPackageOwnerRequestService packageOwnerRequestService,
+            IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository,
             IIndexingService indexingService,
             IPackageNamingConflictValidator packageNamingConflictValidator,
             IAuditingService auditingService)
@@ -42,9 +42,9 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(packageRepository));
             }
 
-            if (packageOwnerRequestService == null)
+            if (packageOwnerRequestRepository == null)
             {
-                throw new ArgumentNullException(nameof(packageOwnerRequestService));
+                throw new ArgumentNullException(nameof(packageOwnerRequestRepository));
             }
 
             if (indexingService == null)
@@ -64,7 +64,7 @@ namespace NuGetGallery
 
             _packageRegistrationRepository = packageRegistrationRepository;
             _packageRepository = packageRepository;
-            _packageOwnerRequestService = packageOwnerRequestService;
+            _packageOwnerRequestRepository = packageOwnerRequestRepository;
             _indexingService = indexingService;
             _packageNamingConflictValidator = packageNamingConflictValidator;
             _auditingService = auditingService;
@@ -425,10 +425,11 @@ namespace NuGetGallery
             package.Owners.Add(newOwner);
             await _packageRepository.CommitChangesAsync();
 
-            var request = _packageOwnerRequestService.GetPackageOwnershipRequests(package: package, newOwner: newOwner).FirstOrDefault();
+            var request = FindExistingPackageOwnerRequest(package, newOwner);
             if (request != null)
             {
-                await _packageOwnerRequestService.DeletePackageOwnershipRequest(request);
+                _packageOwnerRequestRepository.DeleteOnCommit(request);
+                await _packageOwnerRequestRepository.CommitChangesAsync();
             }
 
             await _auditingService.SaveAuditRecordAsync(
@@ -442,10 +443,11 @@ namespace NuGetGallery
                 throw new InvalidOperationException("You can't remove the only owner from a package.");
             }
 
-            var request = _packageOwnerRequestService.GetPackageOwnershipRequests(package: package, newOwner: user).FirstOrDefault();
-            if (request != null)
+            var pendingOwner = FindExistingPackageOwnerRequest(package, user);
+            if (pendingOwner != null)
             {
-                await _packageOwnerRequestService.DeletePackageOwnershipRequest(request);
+                _packageOwnerRequestRepository.DeleteOnCommit(pendingOwner);
+                await _packageOwnerRequestRepository.CommitChangesAsync();
                 return;
             }
 
@@ -519,6 +521,49 @@ namespace NuGetGallery
             {
                 await _packageRepository.CommitChangesAsync();
             }
+        }
+
+        public async Task<PackageOwnerRequest> CreatePackageOwnerRequestAsync(PackageRegistration package, User currentOwner, User newOwner)
+        {
+            var existingRequest = FindExistingPackageOwnerRequest(package, newOwner);
+            if (existingRequest != null)
+            {
+                return existingRequest;
+            }
+
+            var newRequest = new PackageOwnerRequest
+            {
+                PackageRegistrationKey = package.Key,
+                RequestingOwnerKey = currentOwner.Key,
+                NewOwnerKey = newOwner.Key,
+                ConfirmationCode = CryptographyService.GenerateToken(),
+                RequestDate = DateTime.UtcNow
+            };
+
+            _packageOwnerRequestRepository.InsertOnCommit(newRequest);
+            await _packageOwnerRequestRepository.CommitChangesAsync();
+            return newRequest;
+        }
+
+        public bool IsValidPackageOwnerRequest(PackageRegistration package, User pendingOwner, string token)
+        {
+            if (package == null)
+            {
+                throw new ArgumentNullException(nameof(package));
+            }
+
+            if (pendingOwner == null)
+            {
+                throw new ArgumentNullException(nameof(pendingOwner));
+            }
+
+            if (String.IsNullOrEmpty(token))
+            {
+                throw new ArgumentNullException(nameof(token));
+            }
+
+            var request = FindExistingPackageOwnerRequest(package, pendingOwner);
+            return (request != null && request.ConfirmationCode == token);
         }
 
         private IQueryable<Package> GetPackagesByIdQueryable(string id)
@@ -870,6 +915,13 @@ namespace NuGetGallery
             }
 
             return packages.First(pv => pv.Version.Equals(version.OriginalVersion, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private PackageOwnerRequest FindExistingPackageOwnerRequest(PackageRegistration package, User pendingOwner)
+        {
+            return (from request in _packageOwnerRequestRepository.GetAll()
+                    where request.PackageRegistrationKey == package.Key && request.NewOwnerKey == pendingOwner.Key
+                    select request).FirstOrDefault();
         }
 
         private void NotifyIndexingService()

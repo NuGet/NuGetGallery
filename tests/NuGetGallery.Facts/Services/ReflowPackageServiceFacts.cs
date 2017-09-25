@@ -266,7 +266,7 @@ namespace NuGetGallery
         {
             var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
             var packageRepository = new Mock<IEntityRepository<Package>>();
-            var packageOwnerRequestService = new Mock<IPackageOwnerRequestService>();
+            var packageOwnerRequestRepo = new Mock<IEntityRepository<PackageOwnerRequest>>();
             var indexingService = new Mock<IIndexingService>();
             var packageNamingConflictValidator = new PackageNamingConflictValidator(
                     packageRegistrationRepository.Object,
@@ -276,7 +276,7 @@ namespace NuGetGallery
             var packageService = new Mock<PackageService>(
                 packageRegistrationRepository.Object,
                 packageRepository.Object,
-                packageOwnerRequestService.Object,
+                packageOwnerRequestRepo.Object,
                 indexingService.Object,
                 packageNamingConflictValidator,
                 auditingService);

@@ -268,7 +268,7 @@ namespace NuGetGallery.TestUtils
                 .Verifiable();
 
             var packageRepository = new Mock<IEntityRepository<Package>>();
-            var packageOwnerRequestService = new Mock<IPackageOwnerRequestService>();
+            var packageOwnerRequestRepo = new Mock<IEntityRepository<PackageOwnerRequest>>();
             var indexingService = new Mock<IIndexingService>();
             var packageNamingConflictValidator = new PackageNamingConflictValidator(
                     packageRegistrationRepository.Object,
@@ -278,7 +278,7 @@ namespace NuGetGallery.TestUtils
             var packageService = new Mock<PackageService>(
                 packageRegistrationRepository.Object,
                 packageRepository.Object,
-                packageOwnerRequestService.Object,
+                packageOwnerRequestRepo.Object,
                 indexingService.Object,
                 packageNamingConflictValidator,
                 auditingService);

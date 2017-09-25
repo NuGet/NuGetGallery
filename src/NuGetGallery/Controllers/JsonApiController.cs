@@ -19,7 +19,7 @@ namespace NuGetGallery
         : AppController
     {
         private readonly IMessageService _messageService;
-        private readonly IPackageOwnerRequestService _packageOwnerRequestService;
+        private readonly IEntityRepository<PackageOwnerRequest> _packageOwnerRequestRepository;
         private readonly IPackageService _packageService;
         private readonly IUserService _userService;
         private readonly IAppConfiguration _appConfiguration;
@@ -28,14 +28,14 @@ namespace NuGetGallery
         public JsonApiController(
             IPackageService packageService,
             IUserService userService,
-            IPackageOwnerRequestService packageOwnerRequestService,
+            IEntityRepository<PackageOwnerRequest> packageOwnerRequestRepository,
             IMessageService messageService,
             IAppConfiguration appConfiguration,
             ISecurityPolicyService policyService)
         {
             _packageService = packageService;
             _userService = userService;
-            _packageOwnerRequestService = packageOwnerRequestService;
+            _packageOwnerRequestRepository = packageOwnerRequestRepository;
             _messageService = messageService;
             _appConfiguration = appConfiguration;
             _policyService = policyService;
@@ -64,15 +64,15 @@ namespace NuGetGallery
                                  Pending = false
                              };
 
-            var pending = 
-                _packageOwnerRequestService.GetPackageOwnershipRequests(package: package.PackageRegistration)
-                .Select(r => new
-                {
-                    Name = r.NewOwner.Username,
-                    EmailAddress = r.NewOwner.EmailAddress,
-                    Current = false,
-                    Pending = true
-                });
+            var pending = from u in _packageOwnerRequestRepository.GetAll()
+                          where u.PackageRegistrationKey == package.PackageRegistration.Key
+                          select new
+                              {
+                                  Name = u.NewOwner.Username,
+                                  EmailAddress = u.NewOwner.EmailAddress,
+                                  Current = false,
+                                  Pending = true
+                              };
 
             var result = owners.Union(pending).Select(o => new
             {
@@ -113,27 +113,20 @@ namespace NuGetGallery
             if (TryGetManagePackageOwnerModel(id, username, out model))
             {
                 var encodedMessage = HttpUtility.HtmlEncode(message);
-
-                var ownerRequest = await _packageOwnerRequestService.AddPackageOwnershipRequest(
+                var ownerRequest = await _packageService.CreatePackageOwnerRequestAsync(
                     model.Package, model.CurrentUser, model.User);
-
-                var confirmationUrl = Url.ConfirmPendingOwnershipRequest(
-                    model.Package.Id,
+                var confirmationUrl = Url.ConfirmationUrl(
+                    "ConfirmOwner",
+                    "Packages",
                     model.User.Username,
                     ownerRequest.ConfirmationCode,
+                    new { id = model.Package.Id },
                     relativeUrl: false);
-
-                var rejectionUrl = Url.RejectPendingOwnershipRequest(
-                    model.Package.Id,
-                    model.User.Username,
-                    ownerRequest.ConfirmationCode,
-                    relativeUrl: false);
-
                 var packageUrl = Url.Package(model.Package.Id, version: null, relativeUrl: false);
                 var policyMessage = GetNoticeOfPoliciesRequiredMessage(model.Package, model.User, model.CurrentUser);
 
                 _messageService.SendPackageOwnerRequest(model.CurrentUser, model.User, model.Package, packageUrl,
-                    confirmationUrl, rejectionUrl, encodedMessage, policyMessage);
+                    confirmationUrl, encodedMessage, policyMessage);
 
                 return Json(new
                 {
@@ -157,18 +150,9 @@ namespace NuGetGallery
             ManagePackageOwnerModel model;
             if (TryGetManagePackageOwnerModel(id, username, out model))
             {
-                var request = _packageOwnerRequestService.GetPackageOwnershipRequests(package: model.Package, newOwner: model.User).FirstOrDefault();
-
                 await _packageService.RemovePackageOwnerAsync(model.Package, model.User);
 
-                if (request == null)
-                {
-                    _messageService.SendPackageOwnerRemovedNotice(model.CurrentUser, model.User, model.Package);
-                }
-                else
-                {
-                    _messageService.SendPackageOwnerRequestCancellationNotice(model.CurrentUser, model.User, model.Package);
-                }
+                _messageService.SendPackageOwnerRemovedNotice(model.CurrentUser, model.User, model.Package);
 
                 return Json(new { success = true });
             }
@@ -257,7 +241,8 @@ namespace NuGetGallery
 
         private IEnumerable<string> GetPendingPropagatingOwners(PackageRegistration package)
         {
-            return _packageOwnerRequestService.GetPackageOwnershipRequests(package: package)
+            return _packageOwnerRequestRepository.GetAll()
+                .Where(po => po.PackageRegistrationKey == package.Key)
                 .Select(po => po.NewOwner)
                 .Where(RequireSecurePushForCoOwnersPolicy.IsSubscribed)
                 .Select(po => po.Username);

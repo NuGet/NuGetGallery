@@ -237,15 +237,12 @@ namespace NuGetGallery.Controllers
                 fakes.ShaUser.SecurityPolicies = (new RequireSecurePushForCoOwnersPolicy().Policies).ToList();
                 var pendingOwner = new PackageOwnerRequest()
                 {
-                    PackageRegistration = fakes.Package,
                     PackageRegistrationKey = fakes.Package.Key,
-                    NewOwner = fakes.ShaUser,
-                    NewOwnerKey = fakes.ShaUser.Key
+                    NewOwner = fakes.ShaUser
                 };
-
-                GetMock<IPackageOwnerRequestService>()
-                    .Setup(p => p.GetPackageOwnershipRequests(fakes.Package, null, null))
-                    .Returns((new [] { pendingOwner }));
+                GetMock<IEntityRepository<PackageOwnerRequest>>()
+                    .Setup(r => r.GetAll())
+                    .Returns((new [] { pendingOwner }).AsQueryable());
 
                 // Act
                 var result = controller.GetAddPackageOwnerConfirmation(fakes.Package.Id, fakes.User.Username);
@@ -275,10 +272,9 @@ namespace NuGetGallery.Controllers
                     PackageRegistrationKey = fakes.Package.Key,
                     NewOwner = fakes.ShaUser
                 };
-
-                GetMock<IPackageOwnerRequestService>()
-                    .Setup(p => p.GetPackageOwnershipRequests(fakes.Package, null, fakes.ShaUser))
-                    .Returns((new[] { pendingOwner }));
+                GetMock<IEntityRepository<PackageOwnerRequest>>()
+                    .Setup(r => r.GetAll())
+                    .Returns((new[] { pendingOwner }).AsQueryable());
 
                 // Act
                 var result = controller.GetAddPackageOwnerConfirmation(fakes.Package.Id, fakes.User.Username);
@@ -417,9 +413,9 @@ namespace NuGetGallery.Controllers
                     .Returns(Fakes.ToPrincipal(fakes.Owner))
                     .Verifiable();
 
-                var packageOwnerRequestServiceMock = GetMock<IPackageOwnerRequestService>();
-                packageOwnerRequestServiceMock
-                    .Setup(p => p.AddPackageOwnershipRequest(fakes.Package, fakes.Owner, fakes.User))
+                var packageServiceMock = GetMock<IPackageService>();
+                packageServiceMock
+                    .Setup(p => p.CreatePackageOwnerRequestAsync(fakes.Package, fakes.Owner, fakes.User))
                     .Returns(Task.FromResult(new PackageOwnerRequest { ConfirmationCode = "confirmation-code" }))
                     .Verifiable();
 
@@ -431,7 +427,6 @@ namespace NuGetGallery.Controllers
                         fakes.Package,
                         TestUtility.GallerySiteRootHttps + "packages/FakePackage/",
                         TestUtility.GallerySiteRootHttps + "packages/FakePackage/owners/testUser/confirm/confirmation-code",
-                        TestUtility.GallerySiteRootHttps + "packages/FakePackage/owners/testUser/reject/confirmation-code",
                         "Hello World! Html Encoded &lt;3",
                         ""))
                     .Verifiable();
@@ -444,7 +439,7 @@ namespace NuGetGallery.Controllers
                 Assert.True(data.pending);
 
                 httpContextMock.Verify();
-                packageOwnerRequestServiceMock.Verify();
+                packageServiceMock.Verify();
                 messageServiceMock.Verify();
             }
 
@@ -479,20 +474,15 @@ namespace NuGetGallery.Controllers
             {
                 // Arrange & Act
                 var fakes = Get<Fakes>();
-                
-                var packageOwnerRequestServiceMock = GetMock<IPackageOwnerRequestService>();
-                packageOwnerRequestServiceMock
-                    .Setup(p => p.GetPackageOwnershipRequests(fakes.Package, null, null))
-                    .Returns(
-                        new[]
-                        {
-                            new PackageOwnerRequest
-                            {
-                                PackageRegistration = fakes.Package,
-                                NewOwner = fakes.ShaUser
-                            }
-                        })
-                    .Verifiable();
+
+                var pendingOwner = new PackageOwnerRequest()
+                {
+                    PackageRegistrationKey = fakes.Package.Key,
+                    NewOwner = fakes.ShaUser
+                };
+                GetMock<IEntityRepository<PackageOwnerRequest>>()
+                    .Setup(r => r.GetAll())
+                    .Returns((new[] { pendingOwner }).AsQueryable());
 
                 var policyMessage = await GetSendPackageOwnerRequestPolicyMessage(fakes, fakes.ShaUser);
 
@@ -513,17 +503,10 @@ namespace NuGetGallery.Controllers
 
                 userToSubscribe.SecurityPolicies = (new RequireSecurePushForCoOwnersPolicy().Policies).ToList();
 
-                var packageOwnerRequestServiceMock = GetMock<IPackageOwnerRequestService>();
-                packageOwnerRequestServiceMock
-                    .Setup(p => p.AddPackageOwnershipRequest(fakes.Package, fakes.Owner, fakes.User))
-                    .Returns(Task.FromResult(
-                        new PackageOwnerRequest
-                        {
-                            PackageRegistration = fakes.Package,
-                            RequestingOwner = fakes.Owner,
-                            NewOwner = fakes.User,
-                            ConfirmationCode = "confirmation-code"
-                        }))
+                var packageServiceMock = GetMock<IPackageService>();
+                packageServiceMock
+                    .Setup(p => p.CreatePackageOwnerRequestAsync(fakes.Package, fakes.Owner, fakes.User))
+                    .Returns(Task.FromResult(new PackageOwnerRequest { ConfirmationCode = "confirmation-code" }))
                     .Verifiable();
 
                 string actualMessage = string.Empty;
@@ -534,11 +517,10 @@ namespace NuGetGallery.Controllers
                         fakes.Package,
                         TestUtility.GallerySiteRootHttps + "packages/FakePackage/",
                         TestUtility.GallerySiteRootHttps + "packages/FakePackage/owners/testUser/confirm/confirmation-code",
-                        TestUtility.GallerySiteRootHttps + "packages/FakePackage/owners/testUser/reject/confirmation-code",
                         string.Empty,
                         It.IsAny<string>()))
-                    .Callback<User, User, PackageRegistration, string, string, string, string, string>(
-                        (from, to, pkg, pkgUrl, cnfUrl, rjUrl, msg, policyMsg) => actualMessage = policyMsg);
+                    .Callback<User, User, PackageRegistration, string, string, string, string>(
+                        (from, to, pkg, pkgUrl, cnfUrl, msg, policyMsg) => actualMessage = policyMsg);
 
                 // Act
                 JsonResult result = await controller.AddPackageOwner(fakes.Package.Id, fakes.User.Username, string.Empty);

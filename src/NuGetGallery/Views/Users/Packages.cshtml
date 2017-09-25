@@ -18,20 +18,6 @@
         @Html.Partial("_UserPackagesList", new ManagePackagesListViewModel(listedPackages, "Published"))
         @Html.Partial("_UserPackagesList", new ManagePackagesListViewModel(unlistedPackages, "Unlisted"))
     }
-
-    @{
-        if (Model.OwnerRequests.Incoming.RequestItems.Any() || Model.OwnerRequests.Outgoing.RequestItems.Any())
-        {
-            <div class="row">
-                <div class="col-xs-12">
-                    <h1>Manage Ownership Requests</h1>
-                </div>
-            </div>
-
-            @Html.Partial("_OwnerRequestsList", Model.OwnerRequests.Incoming)
-            @Html.Partial("_OwnerRequestsList", Model.OwnerRequests.Outgoing)
-        }
-    }
 </section>
 
 @section BottomScripts {
