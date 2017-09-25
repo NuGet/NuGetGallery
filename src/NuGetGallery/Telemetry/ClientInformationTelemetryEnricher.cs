@@ -10,7 +10,6 @@ namespace NuGetGallery
 {
     public class ClientInformationTelemetryEnricher : ITelemetryInitializer
     {
-        public const string ClientVersionPropertyKey = "ClientVersion";
         public const string ClientInfoPropertyKey = "ClientInfo";
 
         public void Initialize(ITelemetry telemetry)
@@ -22,10 +21,15 @@ namespace NuGetGallery
                 var httpContext = GetHttpContext();
                 if (httpContext != null && httpContext.Request != null)
                 {
-                    // ClientVersion will be available for NuGet clients starting version 4.1.0
+                    // ClientVersion is available for NuGet clients starting version 4.1.0-~4.5.0 
+                    // Was deprecated and replaced by Protocol version
                     telemetry.Context.Properties.Add(
-                        ClientVersionPropertyKey,
+                        TelemetryService.ClientVersion,
                         httpContext.Request.Headers[Constants.ClientVersionHeaderName]);
+
+                    telemetry.Context.Properties.Add(
+                        TelemetryService.ProtocolVersion,
+                        httpContext.Request.Headers[Constants.NuGetProtocolHeaderName]);
 
                     // Best effort attempt to extract client information from the user-agent header.
                     // According to documentation here: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent 
@@ -36,7 +40,6 @@ namespace NuGetGallery
                     telemetry.Context.Properties.Add(ClientInfoPropertyKey, GetProductInformation(userAgent));
                 }
             }
-            
         }
 
         protected virtual HttpContextBase GetHttpContext()
