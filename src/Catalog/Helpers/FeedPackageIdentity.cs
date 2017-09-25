@@ -30,12 +30,12 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
 
         public bool Equals(FeedPackageIdentity other)
         {
-            return Id == other.Id && Version == other.Version;
+            return Id.ToLowerInvariant() == other.Id.ToLowerInvariant() && Version.ToLowerInvariant() == other.Version.ToLowerInvariant();
         }
 
         public override int GetHashCode()
         {
-            return Id.GetHashCode() ^ Version.GetHashCode();
+            return Tuple.Create(Id.ToLowerInvariant(), Version.ToLowerInvariant()).GetHashCode();
         }
     }
 }
