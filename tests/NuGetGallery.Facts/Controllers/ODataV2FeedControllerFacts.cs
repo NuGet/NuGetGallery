@@ -41,7 +41,7 @@ namespace NuGetGallery.Controllers
 
             // Assert
             AssertSemVer2PackagesIncludedInResult(resultSet);
-            Assert.Equal(AllPackages.Count(), resultSet.Count);
+            Assert.Equal(AvailablePackages.Count, resultSet.Count);
         }
 
         [Fact]
@@ -69,7 +69,7 @@ namespace NuGetGallery.Controllers
                 $"/api/v2/Packages/$count?semVerLevel={semVerLevel}");
 
             // Assert
-            Assert.Equal(AllPackages.Count(), count);
+            Assert.Equal(AvailablePackages.Count, count);
         }
 
         [Fact]
@@ -99,7 +99,7 @@ namespace NuGetGallery.Controllers
 
             // Assert
             AssertSemVer2PackagesIncludedInResult(resultSet);
-            Assert.Equal(AllPackages.Count(), resultSet.Count);
+            Assert.Equal(AvailablePackages.Count, resultSet.Count);
         }
 
         [Fact]
@@ -232,7 +232,7 @@ namespace NuGetGallery.Controllers
 
             // Assert
             AssertSemVer2PackagesIncludedInResult(resultSet);
-            Assert.Equal(AllPackages.Count(), resultSet.Count);
+            Assert.Equal(AvailablePackages.Count, resultSet.Count);
         }
 
         [Fact]
@@ -267,7 +267,7 @@ namespace NuGetGallery.Controllers
                 $"/api/v2/Search/$count?searchTerm='{TestPackageId}'&includePrerelease=true&semVerLevel={semVerLevel}");
 
             // Assert
-            Assert.Equal(AllPackages.Count(), searchCount);
+            Assert.Equal(AvailablePackages.Count, searchCount);
         }
 
         [Fact]
@@ -298,7 +298,7 @@ namespace NuGetGallery.Controllers
             // Arrange
             const string currentVersionString = "1.0.0";
             var currentVersion = NuGetVersion.Parse(currentVersionString);
-            var expected = AllPackages.Where(p => NuGetVersion.Parse(p.Version) > currentVersion);
+            var expected = AvailablePackages.Where(p => NuGetVersion.Parse(p.Version) > currentVersion);
 
             // Act
             var resultSet = await GetCollection<V2FeedPackage>(
@@ -356,7 +356,7 @@ namespace NuGetGallery.Controllers
             // Arrange
             const string currentVersionString = "1.0.0";
             var currentVersion = NuGetVersion.Parse(currentVersionString);
-            var expected = AllPackages.Where(p => NuGetVersion.Parse(p.Version) > currentVersion);
+            var expected = AvailablePackages.Where(p => NuGetVersion.Parse(p.Version) > currentVersion);
 
             // Act
             var searchCount = await GetInt<V2FeedPackage>(
