@@ -6,7 +6,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
+using NuGet.Versioning;
 using NuGetGallery.Auditing;
+using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery.Security
@@ -16,14 +18,19 @@ namespace NuGetGallery.Security
     /// </summary>
     public class SecurityPolicyService : ISecurityPolicyService
     {
+        private static Lazy<IEnumerable<DefaultSecurityPolicyHandler>> _defaultSecurityPolicies =
+        new Lazy<IEnumerable<DefaultSecurityPolicyHandler>>(CreateDefaultSecurityPolicies);
+
         private static Lazy<IEnumerable<UserSecurityPolicyHandler>> _userHandlers =
             new Lazy<IEnumerable<UserSecurityPolicyHandler>>(CreateUserHandlers);
-        
+
         protected IEntitiesContext EntitiesContext { get; set; }
 
         protected IAuditingService Auditing { get; set; }
 
         protected IDiagnosticsSource Diagnostics { get; set; }
+
+        protected IAppConfiguration Configuration { get; set; }
 
         protected SecurePushSubscription SecurePush { get; set; }
 
@@ -33,7 +40,7 @@ namespace NuGetGallery.Security
         {
         }
 
-        public SecurityPolicyService(IEntitiesContext entitiesContext, IAuditingService auditing, IDiagnosticsService diagnostics,
+        public SecurityPolicyService(IEntitiesContext entitiesContext, IAuditingService auditing, IDiagnosticsService diagnostics, IAppConfiguration configuration,
             SecurePushSubscription securePush = null, RequireSecurePushForCoOwnersPolicy securePushForCoOwners = null)
         {
             EntitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
@@ -47,6 +54,7 @@ namespace NuGetGallery.Security
             }
 
             Diagnostics = diagnostics.SafeGetSource(nameof(SecurityPolicyService));
+            Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
         /// <summary>
@@ -80,6 +88,26 @@ namespace NuGetGallery.Security
             if (httpContext == null)
             {
                 throw new ArgumentNullException(nameof(httpContext));
+            }
+
+            if (Configuration.EnforceDefaultSecurityPolicies)
+            {
+                var securityPolicyContext = new SecurityPolicyEvaluationContext(httpContext);
+
+                foreach (var defaultSecurityPolicyHandler in _defaultSecurityPolicies.Value)
+                {
+                    var result = defaultSecurityPolicyHandler.Evaluate(securityPolicyContext);
+
+                    // TODO: auditing
+
+                    if (!result.Success)
+                    {
+                        Diagnostics.Information(
+                            $"Security policy '{defaultSecurityPolicyHandler.Name}' failed for user '{user.Username}' with error '{result.ErrorMessage}'.");
+
+                        return result;
+                    }
+                }
             }
 
             var user = httpContext.GetCurrentUser();
@@ -291,6 +319,19 @@ namespace NuGetGallery.Security
         {
             yield return new RequireMinClientVersionForPushPolicy();
             yield return new RequirePackageVerifyScopePolicy();
+            yield return new RequireMinProtocolVersionForPushPolicy();
+        }
+
+        /// <summary>
+        /// Create the default security policies.
+        /// </summary>
+        private static IEnumerable<DefaultSecurityPolicyHandler> CreateDefaultSecurityPolicies()
+        {
+            yield return new DefaultSecurityPolicyHandler(
+                new RequireMinProtocolVersionForPushPolicy(),
+                new List<UserSecurityPolicy>() { RequireMinProtocolVersionForPushPolicy.CreatePolicy("Default", new NuGetVersion("4.1.0")) });
+
+            yield return new DefaultSecurityPolicyHandler(new RequirePackageVerifyScopePolicy(), new List<UserSecurityPolicy>());
         }
     }
 }

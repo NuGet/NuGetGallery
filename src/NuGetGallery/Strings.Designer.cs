@@ -1147,11 +1147,11 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Your account requires client version &apos;{0}&apos; or higher to be able to push packages. Please contact support@nuget.org to get more details..
+        ///   Looks up a localized string similar to Your account requires protocol version &apos;{0}&apos; or higher to be able to push packages. Please contact support@nuget.org to get more details..
         /// </summary>
-        public static string SecurityPolicy_RequireMinClientVersionForPush {
+        public static string SecurityPolicy_RequireMinProtocolVersionForPush {
             get {
-                return ResourceManager.GetString("SecurityPolicy_RequireMinClientVersionForPush", resourceCulture);
+                return ResourceManager.GetString("SecurityPolicy_RequireMinProtocolVersionForPush", resourceCulture);
             }
         }
         

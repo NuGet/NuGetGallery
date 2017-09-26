@@ -10,20 +10,17 @@ using Xunit;
 
 namespace NuGetGallery.Security
 {
-    /// <summary>
-    /// This code should be removed soon: https://github.com/NuGet/Engineering/issues/800
-    /// </summary>
-    public class RequireMinClientVersionForPushPolicyFacts
+    public class RequireMinProtocolVersionForPushPolicyFacts
     {
         [Theory]
         [InlineData("4.1.0")]
         [InlineData("3.0.0")]
         [InlineData("2.0.0,4.1.0")]
         [InlineData("4.1.0-beta1")]
-        public void Evaluate_ReturnsSuccessIfClientVersionEqualOrHigherThanRequired(string minClientVersions)
+        public void Evaluate_ReturnsSuccessIfClientVersionEqualOrHigherThanRequired(string minProtocolVersions)
         {
             // Arrange & Act
-            var result = Evaluate(minClientVersions, actualClientVersion: "4.1.0", actualProtocolVersion: string.Empty);
+            var result = Evaluate(minProtocolVersions, actualClientVersion: "4.1.0", actualProtocolVersion: string.Empty);
 
             // Assert
             Assert.True(result.Success);
@@ -35,10 +32,10 @@ namespace NuGetGallery.Security
         [InlineData("3.0.0")]
         [InlineData("2.0.0,4.1.0")]
         [InlineData("2.5.0")]
-        public void Evaluate_ReturnsFailureIfClientVersionLowerThanRequired(string minClientVersions)
+        public void Evaluate_ReturnsFailureIfClientVersionLowerThanRequired(string minProtocolVersions)
         {
             // Arrange & Act
-            var result = Evaluate(minClientVersions, actualClientVersion: "2.5.0-beta1", actualProtocolVersion: string.Empty);
+            var result = Evaluate(minProtocolVersions, actualClientVersion: "2.5.0-beta1", actualProtocolVersion: string.Empty);
 
             // Assert
             Assert.False(result.Success);
@@ -50,10 +47,10 @@ namespace NuGetGallery.Security
         [InlineData("3.0.0")]
         [InlineData("2.0.0,4.1.0")]
         [InlineData("4.1.0-beta1")]
-        public void Evaluate_ReturnsSuccessIfProtocolVersionEqualOrHigherThanRequired(string minClientVersions)
+        public void Evaluate_ReturnsSuccessIfProtocolVersionEqualOrHigherThanRequired(string minProtocolVersions)
         {
             // Arrange & Act
-            var result = Evaluate(minClientVersions, actualClientVersion: string.Empty, actualProtocolVersion: "4.1.0");
+            var result = Evaluate(minProtocolVersions, actualClientVersion: string.Empty, actualProtocolVersion: "4.1.0");
 
             // Assert
             Assert.True(result.Success);
@@ -65,10 +62,10 @@ namespace NuGetGallery.Security
         [InlineData("3.0.0")]
         [InlineData("2.0.0,4.1.0")]
         [InlineData("2.5.0")]
-        public void Evaluate_ReturnsFailureIfProtocolVersionLowerThanRequired(string minClientVersions)
+        public void Evaluate_ReturnsFailureIfProtocolVersionLowerThanRequired(string minProtocolVersions)
         {
             // Arrange & Act
-            var result = Evaluate(minClientVersions, actualClientVersion: string.Empty, actualProtocolVersion: "2.5.0-beta1");
+            var result = Evaluate(minProtocolVersions, actualClientVersion: string.Empty, actualProtocolVersion: "2.5.0-beta1");
 
             // Assert
             Assert.False(result.Success);
@@ -98,17 +95,17 @@ namespace NuGetGallery.Security
         }
 
         [Fact]
-        public void Evaluate_ReturnsFailureIfClientVersionHeaderIsMissing()
+        public void Evaluate_ReturnsFailureIfProtocolVersionHeaderIsMissing()
         {
             // Arrange & Act
-            var result = Evaluate(minClientVersions: "4.1.0", actualClientVersion: string.Empty, actualProtocolVersion: string.Empty);
+            var result = Evaluate(minProtocolVersions: "4.1.0", actualClientVersion: string.Empty, actualProtocolVersion: string.Empty);
 
             // Assert
             Assert.False(result.Success);
             Assert.NotNull(result.ErrorMessage);
         }
 
-        private SecurityPolicyResult Evaluate(string minClientVersions, string actualClientVersion, string actualProtocolVersion)
+        private SecurityPolicyResult Evaluate(string minProtocolVersions, string actualClientVersion, string actualProtocolVersion)
         {
             var headers = new NameValueCollection();
             if (!string.IsNullOrEmpty(actualClientVersion))
@@ -127,12 +124,12 @@ namespace NuGetGallery.Security
             var httpContext = new Mock<HttpContextBase>();
             httpContext.Setup(c => c.Request).Returns(httpRequest.Object);
 
-            var policies = minClientVersions.Split(',').Select(
-                v => RequireMinClientVersionForPushPolicy.CreatePolicy("Subscription", new NuGetVersion(v))
+            var policies = minProtocolVersions.Split(',').Select(
+                v => RequireMinProtocolVersionForPushPolicy.CreatePolicy("Subscription", new NuGetVersion(v))
             ).ToArray();
             var context = new UserSecurityPolicyEvaluationContext(httpContext.Object, policies);
 
-            return new RequireMinClientVersionForPushPolicy().Evaluate(context);
+            return new RequireMinProtocolVersionForPushPolicy().Evaluate(context);
         }
     }
 }
