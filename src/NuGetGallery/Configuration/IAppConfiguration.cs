@@ -24,11 +24,6 @@ namespace NuGetGallery.Configuration
         string WarningBanner { get; set; }
 
         /// <summary>
-        /// Gets the warning banner text
-        /// </summary>
-        string RedesignBanner { get; set; }
-
-        /// <summary>
         /// Gets a setting indicating if SSL is required for all operations once logged in.
         /// </summary>
         bool RequireSSL { get; set; }
