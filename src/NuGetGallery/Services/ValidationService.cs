@@ -28,5 +28,10 @@ namespace NuGetGallery
                 packageStatus,
                 commitChanges: false);
         }
+
+        public async Task RevalidateAsync(Package package)
+        {
+            await _initiator.StartValidationAsync(package);
+        }
     }
 }

@@ -53,7 +53,8 @@ namespace NuGetGallery
             Mock<ITelemetryService> telemetryService = null,
             Mock<ISecurityPolicyService> securityPolicyService = null,
             Mock<IReservedNamespaceService> reservedNamespaceService = null,
-            Mock<IPackageUploadService> packageUploadService = null)
+            Mock<IPackageUploadService> packageUploadService = null,
+            Mock<IValidationService> validationService = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
             packageOwnerRequestService = packageOwnerRequestService ?? new Mock<IPackageOwnerRequestService>();
@@ -109,6 +110,8 @@ namespace NuGetGallery
                     return packageService.Object.CreatePackageAsync(nugetPackage, packageStreamMetadata, user, isVerified: false);
                 });
 
+            validationService = validationService ?? new Mock<IValidationService>();
+
             var controller = new Mock<PackagesController>(
                 packageService.Object,
                 packageOwnerRequestService.Object,
@@ -130,7 +133,8 @@ namespace NuGetGallery
                 securityPolicyService.Object,
                 reservedNamespaceService.Object,
                 packageUploadService.Object,
-                new ReadMeService(packageFileService.Object));
+                new ReadMeService(packageFileService.Object),
+                validationService.Object);
 
             controller.CallBase = true;
             controller.Object.SetOwinContextOverride(Fakes.CreateOwinContext());
@@ -2831,6 +2835,91 @@ namespace NuGetGallery
                 indexingService.Verify(i => i.UpdatePackage(package));
                 Assert.IsType<RedirectResult>(result);
                 Assert.Equal(@"~\Bar.cshtml", ((RedirectResult)result).Url);
+            }
+        }
+
+        public class TheRevalidateMethod : TestContainer
+        {
+            private  Package _package;
+            private readonly Mock<IPackageService> _packageService;
+            private readonly Mock<IValidationService> _validationService;
+            private readonly TestGalleryConfigurationService _configurationService;
+            private readonly PackagesController _target;
+
+            public TheRevalidateMethod()
+            {
+                _package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = "NuGet.Versioning" },
+                    Version = "3.4.0",
+                };
+
+                _packageService = new Mock<IPackageService>();
+                _packageService
+                    .Setup(svc => svc.FindPackageByIdAndVersion(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<int?>(),
+                        It.IsAny<bool>()))
+                    .Returns(_package);
+
+                _validationService = new Mock<IValidationService>();
+
+                _configurationService = GetConfigurationService();
+
+                _target = CreateController(
+                    _configurationService,
+                    packageService: _packageService,
+                    validationService: _validationService);
+            }
+
+            [Fact]
+            public async Task RevalidateIsCalledWithTheExistingPackage()
+            {
+                // Arrange & Act
+                await _target.Revalidate(
+                    _package.PackageRegistration.Id,
+                    _package.Version);
+
+                // Assert
+                _validationService.Verify(
+                    x => x.RevalidateAsync(_package),
+                    Times.Once);
+            }
+
+            [Fact]
+            public async Task RedirectsAfterRevalidatingPackage()
+            {
+                // Arrange & Act
+                var result = await _target.Revalidate(
+                    _package.PackageRegistration.Id,
+                    _package.Version);
+
+                // Assert
+                var redirect = Assert.IsType<SafeRedirectResult>(result);
+                Assert.Equal($"/?id={_package.PackageRegistration.Id}&version={_package.Version}", redirect.Url);
+                Assert.Equal("/", redirect.SafeUrl);
+            }
+
+            [Fact]
+            public async Task ReturnsNotFoundForUnknownPackage()
+            {
+                // Arrange
+                _packageService
+                    .Setup(svc => svc.FindPackageByIdAndVersion(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<int?>(),
+                        It.IsAny<bool>()))
+                    .Returns<Package>(null);
+
+                // Act
+                var result = await _target.Revalidate(
+                    _package.PackageRegistration.Id,
+                    _package.Version);
+
+                // Assert
+                Assert.IsType<HttpNotFoundResult>(result);
             }
         }
     }

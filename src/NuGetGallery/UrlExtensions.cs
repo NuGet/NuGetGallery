@@ -486,7 +486,24 @@ namespace NuGetGallery
         {
             return GetActionLink(
                 url,
-                "Reflow",
+                nameof(PackagesController.Reflow),
+                "Packages",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "id", package.Id },
+                    { "version", package.Version }
+                });
+        }
+
+        public static string RevalidatePackage(
+            this UrlHelper url,
+            IPackageVersionModel package,
+            bool relativeUrl = true)
+        {
+            return GetActionLink(
+                url,
+                nameof(PackagesController.Revalidate),
                 "Packages",
                 relativeUrl,
                 routeValues: new RouteValueDictionary
