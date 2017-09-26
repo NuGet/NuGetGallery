@@ -63,6 +63,8 @@ namespace NuGetGallery.Configuration
         /// </summary>
         public bool AzureStorageReadAccessGeoRedundant { get; set; }
 
+        public bool AsynchronousPackageValidationEnabled { get; set; }
+
         /// <summary>
         /// Gets the URI to the search service
         /// </summary>

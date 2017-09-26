@@ -17,7 +17,6 @@ namespace NuGetGallery
 {
     public class PackageService : CorePackageService, IPackageService
     {
-        private readonly IIndexingService _indexingService;
         private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
         private readonly IPackageOwnerRequestService _packageOwnerRequestService;
         private readonly IPackageNamingConflictValidator _packageNamingConflictValidator;
@@ -27,45 +26,13 @@ namespace NuGetGallery
             IEntityRepository<PackageRegistration> packageRegistrationRepository,
             IEntityRepository<Package> packageRepository,
             IPackageOwnerRequestService packageOwnerRequestService,
-            IIndexingService indexingService,
             IPackageNamingConflictValidator packageNamingConflictValidator,
             IAuditingService auditingService) : base(packageRepository)
         {
-            if (packageRegistrationRepository == null)
-            {
-                throw new ArgumentNullException(nameof(packageRegistrationRepository));
-            }
-
-            if (packageRepository == null)
-            {
-                throw new ArgumentNullException(nameof(packageRepository));
-            }
-
-            if (packageOwnerRequestService == null)
-            {
-                throw new ArgumentNullException(nameof(packageOwnerRequestService));
-            }
-
-            if (indexingService == null)
-            {
-                throw new ArgumentNullException(nameof(indexingService));
-            }
-
-            if (packageNamingConflictValidator == null)
-            {
-                throw new ArgumentNullException(nameof(packageNamingConflictValidator));
-            }
-
-            if (auditingService == null)
-            {
-                throw new ArgumentNullException(nameof(auditingService));
-            }
-
-            _packageRegistrationRepository = packageRegistrationRepository;
-            _packageOwnerRequestService = packageOwnerRequestService;
-            _indexingService = indexingService;
-            _packageNamingConflictValidator = packageNamingConflictValidator;
-            _auditingService = auditingService;
+            _packageRegistrationRepository = packageRegistrationRepository ?? throw new ArgumentNullException(nameof(packageRegistrationRepository));
+            _packageOwnerRequestService = packageOwnerRequestService ?? throw new ArgumentNullException(nameof(packageOwnerRequestService));
+            _packageNamingConflictValidator = packageNamingConflictValidator ?? throw new ArgumentNullException(nameof(packageNamingConflictValidator));
+            _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
         }
 
         /// <summary>
@@ -111,7 +78,7 @@ namespace NuGetGallery
         /// <exception cref="InvalidPackageException">
         /// This exception will be thrown when a package metadata property violates a data validation constraint.
         /// </exception>
-        public async Task<Package> CreatePackageAsync(PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool isVerified, bool commitChanges = true)
+        public async Task<Package> CreatePackageAsync(PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool isVerified)
         {
             PackageMetadata packageMetadata;
             PackageRegistration packageRegistration;
@@ -135,12 +102,6 @@ namespace NuGetGallery
             var package = CreatePackageFromNuGetPackage(packageRegistration, nugetPackage, packageMetadata, packageStreamMetadata, user);
             packageRegistration.Packages.Add(package);
             await UpdateIsLatestAsync(packageRegistration, commitChanges: false);
-
-            if (commitChanges)
-            {
-                await _packageRegistrationRepository.CommitChangesAsync();
-                NotifyIndexingService();
-            }
 
             return package;
         }
@@ -737,11 +698,6 @@ namespace NuGetGallery
             {
                 throw new EntityException(Strings.TitleMatchesExistingRegistration, packageMetadata.Title);
             }
-        }
-        
-        private void NotifyIndexingService()
-        {
-            _indexingService.UpdateIndex();
         }
 
         public async Task SetLicenseReportVisibilityAsync(Package package, bool visible, bool commitChanges = true)

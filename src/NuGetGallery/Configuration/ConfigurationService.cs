@@ -21,22 +21,19 @@ namespace NuGetGallery.Configuration
     {
         protected const string SettingPrefix = "Gallery.";
         protected const string FeaturePrefix = "Feature.";
+        protected const string ServiceBusPrefix = "AzureServiceBus.";
         private bool _notInCloud;
         private readonly Lazy<string> _httpSiteRootThunk;
         private readonly Lazy<string> _httpsSiteRootThunk;
-        private ISecretReaderFactory _secretReaderFactory;
-        private Lazy<ISecretInjector> _secretInjector;
-        private Lazy<IAppConfiguration> _lazyAppConfiguration;
-        private Lazy<FeatureConfiguration> _lazyFeatureConfiguration;
+        private readonly ISecretReaderFactory _secretReaderFactory;
+        private readonly Lazy<ISecretInjector> _secretInjector;
+        private readonly Lazy<IAppConfiguration> _lazyAppConfiguration;
+        private readonly Lazy<FeatureConfiguration> _lazyFeatureConfiguration;
+        private readonly Lazy<IServiceBusConfiguration> _lazyServiceBusConfiguration;
 
         public ConfigurationService(ISecretReaderFactory secretReaderFactory)
         {
-            if (secretReaderFactory == null)
-            {
-                throw new ArgumentNullException(nameof(secretReaderFactory));
-            }
-
-            _secretReaderFactory = secretReaderFactory;
+            _secretReaderFactory = secretReaderFactory ?? throw new ArgumentNullException(nameof(secretReaderFactory));
             _secretInjector = new Lazy<ISecretInjector>(InitSecretInjector, isThreadSafe: false);
 
             _httpSiteRootThunk = new Lazy<string>(GetHttpSiteRoot);
@@ -44,6 +41,7 @@ namespace NuGetGallery.Configuration
 
             _lazyAppConfiguration = new Lazy<IAppConfiguration>(() => ResolveSettings().Result);
             _lazyFeatureConfiguration = new Lazy<FeatureConfiguration>(() => ResolveFeatures().Result);
+            _lazyServiceBusConfiguration  = new Lazy<IServiceBusConfiguration>(() => ResolveServiceBus().Result);
         }
 
         public static IEnumerable<PropertyDescriptor> GetConfigProperties<T>(T instance)
@@ -64,6 +62,8 @@ namespace NuGetGallery.Configuration
         public IAppConfiguration Current => _lazyAppConfiguration.Value;
 
         public FeatureConfiguration Features => _lazyFeatureConfiguration.Value;
+
+        public IServiceBusConfiguration ServiceBus => _lazyServiceBusConfiguration.Value;
 
         /// <summary>
         /// Gets the site root using the specified protocol
@@ -165,6 +165,11 @@ namespace NuGetGallery.Configuration
         private async Task<IAppConfiguration> ResolveSettings()
         {
             return await ResolveConfigObject(new AppConfiguration(), SettingPrefix);
+        }
+
+        private async Task<IServiceBusConfiguration> ResolveServiceBus()
+        {
+            return await ResolveConfigObject(new ServiceBusConfiguration(), ServiceBusPrefix);
         }
 
         protected virtual string GetCloudSetting(string settingName)

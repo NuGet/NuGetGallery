@@ -1420,8 +1420,7 @@ namespace NuGetGallery
                         packageMetadata.Id,
                         nugetPackage,
                         packageStreamMetadata,
-                        currentUser,
-                        commitChanges: false);
+                        currentUser);
 
                     Debug.Assert(package.PackageRegistration != null);
                 }

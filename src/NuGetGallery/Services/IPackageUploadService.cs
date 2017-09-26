@@ -9,6 +9,6 @@ namespace NuGetGallery
 {
     public interface IPackageUploadService
     {
-        Task<Package> GeneratePackageAsync(string id, PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool commitChanges = true);
+        Task<Package> GeneratePackageAsync(string id, PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user);
     }
 }

@@ -325,6 +325,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Enqueuing unavailable: the gallery is currently in read only mode, with limited service. Please try again later..
+        /// </summary>
+        public static string CannotEnqueueDueToReadOnly {
+            get {
+                return ResourceManager.GetString("CannotEnqueueDueToReadOnly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Oops! You can&apos;t remove the only credential that can be used to sign in to the website!.
         /// </summary>
         public static string CannotRemoveOnlyLoginCredential {
