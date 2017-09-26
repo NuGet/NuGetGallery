@@ -15,6 +15,7 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Authentication.Providers.MicrosoftAccount;
 using NuGetGallery.Infrastructure.Authentication;
 using Xunit;
+using System.Web;
 
 namespace NuGetGallery.Controllers
 {
@@ -724,14 +725,19 @@ namespace NuGetGallery.Controllers
             public void WillChallengeTheUserUsingTheGivenProviderAndReturnUrl()
             {
                 // Arrange
+                const string returnUrl = "/theReturnUrl";
                 EnableAllAuthenticators(Get<AuthenticationService>());
                 var controller = GetController<AuthenticationController>();
+                var absoluteReturnUrl = UrlExtensions.GetAbsoluteReturnUrl(
+                    returnUrl,
+                    "https",
+                    new Uri(GetConfigurationService().GetSiteRoot(useHttps: true)).Host);
 
                 // Act
-                var result = controller.ChallengeAuthentication("/theReturnUrl", "MicrosoftAccount");
+                var result = controller.ChallengeAuthentication(returnUrl, "MicrosoftAccount");
 
                 // Assert
-                ResultAssert.IsChallengeResult(result, "MicrosoftAccount", "/users/account/authenticate/return?ReturnUrl=%2FtheReturnUrl");
+                ResultAssert.IsChallengeResult(result, "MicrosoftAccount", "/users/account/authenticate/return?ReturnUrl=" + HttpUtility.UrlEncode(absoluteReturnUrl));
             }
         }
 
@@ -1024,7 +1030,7 @@ namespace NuGetGallery.Controllers
 
         public static void VerifyExternalLinkExpiredResult(AuthenticationController controller, ActionResult result)
         {
-            ResultAssert.IsRedirectToRoute(result, new { action = "LogOn" });
+            ResultAssert.IsRedirect(result, permanent: false, url: controller.Url.LogOn(relativeUrl: false));
             Assert.Equal(Strings.ExternalAccountLinkExpired, controller.TempData["Message"]);
         }
 
