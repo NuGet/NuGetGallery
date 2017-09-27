@@ -23,7 +23,6 @@ namespace NuGetGallery
             Mock<IEntityRepository<PackageRegistration>> packageRegistrationRepository = null,
             Mock<IEntityRepository<Package>> packageRepository = null,
             Mock<IPackageOwnerRequestService> packageOwnerRequestService = null,
-            Mock<IIndexingService> indexingService = null,
             IPackageNamingConflictValidator packageNamingConflictValidator = null,
             IAuditingService auditingService = null,
             Action<Mock<PackageService>> setup = null)
@@ -31,7 +30,6 @@ namespace NuGetGallery
             packageRegistrationRepository = packageRegistrationRepository ?? new Mock<IEntityRepository<PackageRegistration>>();
             packageRepository = packageRepository ?? new Mock<IEntityRepository<Package>>();
             packageOwnerRequestService = packageOwnerRequestService ?? new Mock<IPackageOwnerRequestService>();
-            indexingService = indexingService ?? new Mock<IIndexingService>();
             auditingService = auditingService ?? new TestAuditingService();
 
             if (packageNamingConflictValidator == null)
@@ -45,7 +43,6 @@ namespace NuGetGallery
                 packageRegistrationRepository.Object,
                 packageRepository.Object,
                 packageOwnerRequestService.Object,
-                indexingService.Object,
                 packageNamingConflictValidator,
                 auditingService);
 
@@ -134,7 +131,6 @@ namespace NuGetGallery
                 service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, isVerified: false);
 
                 packageRegistrationRepository.Verify(x => x.InsertOnCommit(It.Is<PackageRegistration>(pr => pr.Id == "theId")));
-                packageRegistrationRepository.Verify(x => x.CommitChangesAsync());
             }
 
             [Fact]
@@ -174,7 +170,7 @@ namespace NuGetGallery
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(id: idThatMatchesExistingTitle);
 
                 // Assert
-                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, isVerified: false, commitChanges: true));
+                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, isVerified: false));
 
                 Assert.Equal(String.Format(Strings.NewRegistrationIdMatchesExistingPackageTitle, idThatMatchesExistingTitle), ex.Message);
             }
@@ -252,8 +248,6 @@ namespace NuGetGallery
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>(MockBehavior.Strict);
                 packageRegistrationRepository.Setup(r => r.GetAll()).Returns(Enumerable.Empty<PackageRegistration>().AsQueryable());
                 packageRegistrationRepository.Setup(r => r.InsertOnCommit(It.IsAny<PackageRegistration>())).Returns(1).Verifiable();
-                packageRegistrationRepository.Setup(r => r.CommitChangesAsync())
-                    .Returns(Task.CompletedTask).Verifiable();
                 var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(version: "2.14.0-a");
@@ -268,7 +262,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task DoNotCommitChangesIfCommitChangesIsFalse()
+            public async Task DoNotCommitChanges()
             {
                 // Arrange
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>(MockBehavior.Strict);
@@ -280,74 +274,11 @@ namespace NuGetGallery
                 var currentUser = new User();
 
                 // Act
-                var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, isVerified: false, commitChanges: false);
+                var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, isVerified: false);
 
                 // Assert
                 packageRegistrationRepository.Verify();
-            }
-
-            [Fact]
-            public async Task DoNotUpdateIndexIfCommitChangesIsFalse()
-            {
-                // Arrange
-                var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>(MockBehavior.Strict);
-                packageRegistrationRepository.Setup(r => r.GetAll()).Returns(Enumerable.Empty<PackageRegistration>().AsQueryable());
-                packageRegistrationRepository.Setup(r => r.InsertOnCommit(It.IsAny<PackageRegistration>())).Returns(1).Verifiable();
-                var indexingService = new Mock<IIndexingService>(MockBehavior.Strict);
-                var service = CreateService(indexingService: indexingService, packageRegistrationRepository: packageRegistrationRepository, setup:
-                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
-
-                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(version: "2.14.0-a");
-                var currentUser = new User();
-
-                // Act
-                var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, isVerified: false, commitChanges: false);
-            }
-
-            [Fact]
-            public async Task UpdateIndexIfCommitChangesIsTrue()
-            {
-                // Arrange
-                var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>(MockBehavior.Strict);
-                packageRegistrationRepository.Setup(r => r.GetAll()).Returns(Enumerable.Empty<PackageRegistration>().AsQueryable());
-                packageRegistrationRepository.Setup(r => r.InsertOnCommit(It.IsAny<PackageRegistration>())).Returns(1).Verifiable();
-                packageRegistrationRepository.Setup(r => r.CommitChangesAsync())
-                    .Returns(Task.CompletedTask).Verifiable();
-                var indexingService = new Mock<IIndexingService>(MockBehavior.Strict);
-                indexingService.Setup(s => s.UpdateIndex()).Verifiable();
-                var service = CreateService(indexingService: indexingService, packageRegistrationRepository: packageRegistrationRepository, setup:
-                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
-                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(version: "2.14.0-a");
-                var currentUser = new User();
-
-                // Act
-                var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, isVerified: false, commitChanges: true);
-
-                // Assert
-                indexingService.Verify();
-            }
-
-            [Fact]
-            public async Task CommitChangesIfCommitChangesIsTrue()
-            {
-                // Arrange
-                var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>(MockBehavior.Strict);
-                packageRegistrationRepository.Setup(r => r.GetAll())
-                    .Returns(Enumerable.Empty<PackageRegistration>().AsQueryable());
-                packageRegistrationRepository.Setup(r => r.InsertOnCommit(It.IsAny<PackageRegistration>()))
-                    .Returns(1).Verifiable();
-                packageRegistrationRepository.Setup(r => r.CommitChangesAsync())
-                    .Returns(Task.CompletedTask).Verifiable();
-                var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
-                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
-                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(version: "2.14.0-a");
-                var currentUser = new User();
-
-                // Act
-                var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, isVerified: false, commitChanges: true);
-
-                // Assert
-                packageRegistrationRepository.Verify();
+                packageRegistrationRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
             }
 
             [Fact]
@@ -444,7 +375,6 @@ namespace NuGetGallery
                 var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, isVerified: false);
 
                 packageRegistrationRepository.Verify(x => x.InsertOnCommit(It.Is<PackageRegistration>(pr => pr.Packages.ElementAt(0) == package)));
-                packageRegistrationRepository.Verify(x => x.CommitChangesAsync());
             }
 
             [Fact]
@@ -464,7 +394,6 @@ namespace NuGetGallery
                 var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, isVerified: false);
 
                 Assert.Same(packageRegistration.Packages.ElementAt(0), package);
-                packageRegistrationRepository.Verify(x => x.CommitChangesAsync());
             }
 
             [Fact]
@@ -481,7 +410,7 @@ namespace NuGetGallery
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns(packageRegistration); });
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage();
 
-                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, isVerified: false, commitChanges: true));
+                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, isVerified: false));
 
                 Assert.Equal(String.Format(Strings.PackageIdNotAvailable, "theId"), ex.Message);
             }
@@ -509,7 +438,7 @@ namespace NuGetGallery
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(title: newPackageTitle);
 
                 // Assert
-                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, isVerified: false, commitChanges: true));
+                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, isVerified: false));
 
                 Assert.Equal(String.Format(Strings.TitleMatchesExistingRegistration, newPackageTitle), ex.Message);
             }

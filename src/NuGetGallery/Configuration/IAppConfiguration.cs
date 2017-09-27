@@ -24,11 +24,6 @@ namespace NuGetGallery.Configuration
         string WarningBanner { get; set; }
 
         /// <summary>
-        /// Gets the warning banner text
-        /// </summary>
-        string RedesignBanner { get; set; }
-
-        /// <summary>
         /// Gets a setting indicating if SSL is required for all operations once logged in.
         /// </summary>
         bool RequireSSL { get; set; }
@@ -84,6 +79,11 @@ namespace NuGetGallery.Configuration
         /// Gets a setting if Read Access Geo Redundant is enabled in azure storage
         /// </summary>
         bool AzureStorageReadAccessGeoRedundant { get; set; }
+
+        /// <summary>
+        /// Gets a boolean indicating whether asynchronous package validation is enabled.
+        /// </summary>
+        bool AsynchronousPackageValidationEnabled { get; set; }
 
         /// <summary>
         /// Gets the URI to the search service

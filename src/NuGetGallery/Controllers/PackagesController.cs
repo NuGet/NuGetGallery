@@ -61,6 +61,7 @@ namespace NuGetGallery
         private readonly IReservedNamespaceService _reservedNamespaceService;
         private readonly IPackageUploadService _packageUploadService;
         private readonly IReadMeService _readMeService;
+        private readonly IValidationService _validationService;
 
         public PackagesController(
             IPackageService packageService,
@@ -83,7 +84,8 @@ namespace NuGetGallery
             ISecurityPolicyService securityPolicyService,
             IReservedNamespaceService reservedNamespaceService,
             IPackageUploadService packageUploadService,
-            IReadMeService readMeService)
+            IReadMeService readMeService,
+            IValidationService validationService)
         {
             _packageService = packageService;
             _packageOwnerRequestService = packageOwnerRequestService;
@@ -106,6 +108,7 @@ namespace NuGetGallery
             _reservedNamespaceService = reservedNamespaceService;
             _packageUploadService = packageUploadService;
             _readMeService = readMeService;
+            _validationService = validationService;
         }
 
         [HttpGet]
@@ -957,6 +960,33 @@ namespace NuGetGallery
         }
 
         [Authorize(Roles = "Admins")]
+        [RequiresAccountConfirmation("revalidate a package")]
+        public virtual async Task<ActionResult> Revalidate(string id, string version)
+        {
+            var package = _packageService.FindPackageByIdAndVersion(id, version);
+
+            if (package == null)
+            {
+                return HttpNotFound();
+            }
+            
+            try
+            {
+                await _validationService.RevalidateAsync(package);
+
+                TempData["Message"] = "The package is being revalidated.";
+            }
+            catch (Exception ex)
+            {
+                QuietLog.LogHandledException(ex);
+
+                TempData["Message"] = $"An error occurred while revalidating the package. {ex.Message}";
+            }
+
+            return SafeRedirect(Url.Package(id, version));
+        }
+
+        [Authorize(Roles = "Admins")]
         [HttpPost]
         [RequiresAccountConfirmation("delete a package")]
         [ValidateAntiForgeryToken]
@@ -1420,8 +1450,7 @@ namespace NuGetGallery
                         packageMetadata.Id,
                         nugetPackage,
                         packageStreamMetadata,
-                        currentUser,
-                        commitChanges: false);
+                        currentUser);
 
                     Debug.Assert(package.PackageRegistration != null);
                 }

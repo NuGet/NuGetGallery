@@ -45,13 +45,13 @@ namespace NuGetGallery
         Task DeleteOwnerFromReservedNamespaceAsync(string prefix, string username);
 
         /// <summary>
-        /// Add the specified package registration to the reserved namespace
+        /// Add the specified package registration to the reserved namespace. It is the caller's reponsibility to
+        /// commit the changes to the database.
         /// </summary>
         /// <param name="prefix">The reserved namespace to modify</param>
         /// <param name="packageRegistration">The package registration to be added</param>
-        /// <param name="commitChanges">Commit changes to the database, defaults to true</param>
         /// <returns>Awaitable Task</returns>
-        Task AddPackageRegistrationToNamespaceAsync(string prefix, PackageRegistration packageRegistration, bool commitChanges = true);
+        void AddPackageRegistrationToNamespace(string prefix, PackageRegistration packageRegistration);
 
         /// <summary>
         /// Retrieves the first reserved namespace which matches the given prefix.

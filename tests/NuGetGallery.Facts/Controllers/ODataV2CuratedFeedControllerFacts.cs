@@ -30,6 +30,22 @@ namespace NuGetGallery.Controllers
             Assert.Equal(NonSemVer2Packages.Count, resultSet.Count);
         }
 
+        [Fact]
+        public async Task Get_FiltersOutUnavailablePackages()
+        {
+            // Arrange
+            var semVerLevel = "2.0.0";
+
+            // Act
+            var resultSet = await GetCollection<V2FeedPackage>(
+                (controller, options) => controller.Get(options, _curatedFeedName, semVerLevel),
+                $"/api/v2/curated-feed/{_curatedFeedName}/Packages?semVerLevel={semVerLevel}");
+
+            // Assert
+            AssertUnavailablePackagesFilteredFromResult(resultSet);
+            Assert.Equal(AvailablePackages.Count, resultSet.Count);
+        }
+
         [Theory]
         [InlineData("2.0.0")]
         [InlineData("2.0.1")]
@@ -44,7 +60,7 @@ namespace NuGetGallery.Controllers
 
             // Assert
             AssertSemVer2PackagesIncludedInResult(resultSet, includePrerelease: true);
-            Assert.Equal(AllPackages.Count(), resultSet.Count);
+            Assert.Equal(AvailablePackages.Count, resultSet.Count);
         }
 
         [Fact]
@@ -72,7 +88,7 @@ namespace NuGetGallery.Controllers
                 $"/api/v2/curated-feed/{_curatedFeedName}/Packages/$count?semVerLevel={semVerLevel}");
 
             // Assert
-            Assert.Equal(AllPackages.Count(), count);
+            Assert.Equal(AvailablePackages.Count, count);
         }
 
         [Fact]
@@ -102,7 +118,7 @@ namespace NuGetGallery.Controllers
 
             // Assert
             AssertSemVer2PackagesIncludedInResult(resultSet, includePrerelease: true);
-            Assert.Equal(AllPackages.Count(), resultSet.Count);
+            Assert.Equal(AvailablePackages.Count, resultSet.Count);
         }
 
         [Fact]
@@ -149,7 +165,7 @@ namespace NuGetGallery.Controllers
 
             // Assert
             AssertSemVer2PackagesIncludedInResult(resultSet, includePrerelease: false);
-            Assert.Equal(AllPackages.Where(p => !p.IsPrerelease).Count(), resultSet.Count);
+            Assert.Equal(AvailablePackages.Where(p => !p.IsPrerelease).Count(), resultSet.Count);
         }
 
         [Theory]
@@ -171,7 +187,7 @@ namespace NuGetGallery.Controllers
 
             // Assert
             AssertSemVer2PackagesIncludedInResult(resultSet, includePrerelease: true);
-            Assert.Equal(AllPackages.Count(), resultSet.Count);
+            Assert.Equal(AvailablePackages.Count, resultSet.Count);
         }
 
         [Fact]
@@ -258,7 +274,7 @@ namespace NuGetGallery.Controllers
                 $"/api/v2/curated-feed/{_curatedFeedName}/Search/$count?searchTerm='{TestPackageId}'&includePrerelease=true&semVerLevel={semVerLevel}");
 
             // Assert
-            Assert.Equal(AllPackages.Count(), searchCount);
+            Assert.Equal(AvailablePackages.Count, searchCount);
         }
 
         [Theory]
@@ -274,7 +290,7 @@ namespace NuGetGallery.Controllers
                 $"/api/v2/curated-feed/{_curatedFeedName}/Search/$count?searchTerm='{TestPackageId}'&semVerLevel={semVerLevel}");
 
             // Assert
-            Assert.Equal(AllPackages.Where(p => !p.IsPrerelease).Count(), searchCount);
+            Assert.Equal(AvailablePackages.Where(p => !p.IsPrerelease).Count(), searchCount);
         }
 
         protected override ODataV2CuratedFeedController CreateController(
@@ -310,6 +326,19 @@ namespace NuGetGallery.Controllers
             dbSet.As<IQueryable<T>>().Setup(m => m.GetEnumerator()).Returns(queryable.GetEnumerator());
 
             return dbSet.Object;
+        }
+
+        private void AssertUnavailablePackagesFilteredFromResult(IEnumerable<V2FeedPackage> resultSet)
+        {
+            foreach (var feedPackage in resultSet)
+            {
+                Assert.Empty(UnavailablePackages.Where(p => string.Equals(p.Version, feedPackage.Version)));
+
+                // Assert each of the items in the result set is a non-SemVer v2.0.0 package
+                Assert.Single(AvailablePackages.Where(p =>
+                    string.Equals(p.Version, feedPackage.Version) &&
+                    string.Equals(p.PackageRegistration.Id, feedPackage.Id)));
+            }
         }
 
         private void AssertSemVer2PackagesFilteredFromResult(IEnumerable<V2FeedPackage> resultSet)

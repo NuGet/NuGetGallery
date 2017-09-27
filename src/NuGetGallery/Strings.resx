@@ -562,7 +562,7 @@ For more information, please contact '{2}'.</value>
     <value>User not found with username '{0}'</value>
   </data>
   <data name="ReservedNamespace_ReservedIndicatorTooltip" xml:space="preserve">
-    <value>The ID prefix of this package has been reserved for one of the owners of this package by NuGet.org.</value>
+    <value>The ID prefix of this package has been reserved for one of the owner of this package by NuGet.org.</value>
   </data>
   <data name="UploadPackage_IdNamespaceConflict" xml:space="preserve">
     <value>This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID.</value>
@@ -599,5 +599,8 @@ For more information, please contact '{2}'.</value>
   </data>
   <data name="ReservedNamespace_UserAlreadyOwner" xml:space="preserve">
     <value>The user '{0}' is already an owner of the specified namespace.</value>
+  </data>
+  <data name="CannotEnqueueDueToReadOnly" xml:space="preserve">
+    <value>Enqueuing unavailable: the gallery is currently in read only mode, with limited service. Please try again later.</value>
   </data>
 </root>

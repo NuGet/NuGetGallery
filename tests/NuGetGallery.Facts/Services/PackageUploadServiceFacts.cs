@@ -3,17 +3,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
-using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Packaging;
-using NuGetGallery.Framework;
 using NuGetGallery.Packaging;
-using Xunit;
 using NuGetGallery.TestUtils;
+using Xunit;
 
 namespace NuGetGallery
 {
@@ -23,47 +19,77 @@ namespace NuGetGallery
 
         private static PackageUploadService CreateService(
             Mock<IPackageService> packageService = null,
-            Mock<IReservedNamespaceService> reservedNamespaceService = null)
+            Mock<IReservedNamespaceService> reservedNamespaceService = null,
+            Mock<IValidationService> validationService = null)
         {
-            {
             if (packageService == null)
+            {
                 packageService = new Mock<IPackageService>();
-                packageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
-                packageService.Setup(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>(), It.IsAny<bool>())).
-                    Returns((PackageArchiveReader packageArchiveReader, PackageStreamMetadata packageStreamMetadata, User user, bool isVerified, bool commitChanges) =>
-                    {
-                        var packageMetadata = PackageMetadata.FromNuspecReader(packageArchiveReader.GetNuspecReader());
-
-                        var newPackage = new Package();
-                        newPackage.PackageRegistration = new PackageRegistration { Id = packageMetadata.Id, IsVerified = isVerified };
-                        newPackage.Version = packageMetadata.Version.ToString();
-                        newPackage.SemVerLevelKey = SemVerLevelKey.ForPackage(packageMetadata.Version, packageMetadata.GetDependencyGroups().AsPackageDependencyEnumerable());
-
-                        return Task.FromResult(newPackage);
-                    });
             }
-            
+
+            packageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
+            packageService.Setup(x => x
+                .CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>()))
+                .Returns((PackageArchiveReader packageArchiveReader, PackageStreamMetadata packageStreamMetadata, User user, bool isVerified) =>
+                {
+                    var packageMetadata = PackageMetadata.FromNuspecReader(packageArchiveReader.GetNuspecReader());
+
+                    var newPackage = new Package();
+                    newPackage.PackageRegistration = new PackageRegistration { Id = packageMetadata.Id, IsVerified = isVerified };
+                    newPackage.Version = packageMetadata.Version.ToString();
+                    newPackage.SemVerLevelKey = SemVerLevelKey.ForPackage(packageMetadata.Version, packageMetadata.GetDependencyGroups().AsPackageDependencyEnumerable());
+
+                    return Task.FromResult(newPackage);
+                });
+
             if (reservedNamespaceService == null)
             {
                 reservedNamespaceService = new Mock<IReservedNamespaceService>();
+
                 IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces = new List<ReservedNamespace>();
-                reservedNamespaceService.Setup(s => s.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out userOwnedMatchingNamespaces))
+                reservedNamespaceService
+                    .Setup(s => s.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out userOwnedMatchingNamespaces))
                     .Returns(true);
+            }
+
+            if (validationService == null)
+            {
+                validationService = new Mock<IValidationService>();
             }
 
             var packageUploadService = new Mock<PackageUploadService>(
                 packageService.Object,
-                reservedNamespaceService.Object);
+                reservedNamespaceService.Object,
+                validationService.Object);
 
             return packageUploadService.Object;
         }
 
         public class TheGeneratePackageAsyncMethod
         {
-            [Theory]
-            [InlineData(true)]
-            [InlineData(false)]
-            public async Task WillCallCreatePackageAsyncCorrectly(bool commitChangesParameter)
+            [Fact]
+            public async Task WillStartAsynchronousValidation()
+            {
+                var validationService = new Mock<IValidationService>();
+
+                var id = "Microsoft.Aspnet.Mvc";
+                var packageUploadService = CreateService(validationService: validationService);
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(id: id);
+                var currentUser = new User();
+
+                var package = await packageUploadService.GeneratePackageAsync(
+                    id,
+                    nugetPackage.Object,
+                    new PackageStreamMetadata(),
+                    currentUser);
+
+                validationService.Verify(
+                    x => x.StartValidationAsync(package),
+                    Times.Once);
+            }
+
+            [Fact]
+            public async Task WillCallCreatePackageAsyncCorrectly()
             {
                 var packageService = new Mock<IPackageService>();
                 packageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
@@ -73,9 +99,9 @@ namespace NuGetGallery
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(id: id);
                 var currentUser = new User();
 
-                var package = await packageUploadService.GeneratePackageAsync(id, nugetPackage.Object, new PackageStreamMetadata(), currentUser, commitChanges: commitChangesParameter);
+                var package = await packageUploadService.GeneratePackageAsync(id, nugetPackage.Object, new PackageStreamMetadata(), currentUser);
 
-                packageService.Verify(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>(), commitChangesParameter), Times.Once);
+                packageService.Verify(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>()), Times.Once);
                 Assert.False(package.PackageRegistration.IsVerified);
             }
 
@@ -105,7 +131,7 @@ namespace NuGetGallery
                 var packageUploadService = CreateService(reservedNamespaceService: reservedNamespaceService);
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(id: id);
 
-                var package = await packageUploadService.GeneratePackageAsync(id, nugetPackage.Object, new PackageStreamMetadata(), firstUser, commitChanges: true);
+                var package = await packageUploadService.GeneratePackageAsync(id, nugetPackage.Object, new PackageStreamMetadata(), firstUser);
 
                 Assert.Equal(shouldMarkIdVerified, package.PackageRegistration.IsVerified);
             }
@@ -133,7 +159,7 @@ namespace NuGetGallery
                 var packageUploadService = CreateService(reservedNamespaceService: reservedNamespaceService);
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(id: id);
 
-                var package = await packageUploadService.GeneratePackageAsync(id, nugetPackage.Object, new PackageStreamMetadata(), lastUser, commitChanges: true);
+                var package = await packageUploadService.GeneratePackageAsync(id, nugetPackage.Object, new PackageStreamMetadata(), lastUser);
 
                 Assert.False(package.PackageRegistration.IsVerified);
             }
