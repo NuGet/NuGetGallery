@@ -6,7 +6,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
+using NuGet.Versioning;
 using NuGetGallery.Auditing;
+using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery.Security
@@ -18,14 +20,18 @@ namespace NuGetGallery.Security
     {
         private static Lazy<IEnumerable<UserSecurityPolicyHandler>> _userHandlers =
             new Lazy<IEnumerable<UserSecurityPolicyHandler>>(CreateUserHandlers);
-        
+
         protected IEntitiesContext EntitiesContext { get; set; }
 
         protected IAuditingService Auditing { get; set; }
 
         protected IDiagnosticsSource Diagnostics { get; set; }
 
+        protected IAppConfiguration Configuration { get; set; }
+
         protected SecurePushSubscription SecurePush { get; set; }
+
+        protected IUserSecurityPolicySubscription DefaultSubscription { get; set; }
 
         protected RequireSecurePushForCoOwnersPolicy SecurePushForCoOwners { get; set; }
 
@@ -33,7 +39,7 @@ namespace NuGetGallery.Security
         {
         }
 
-        public SecurityPolicyService(IEntitiesContext entitiesContext, IAuditingService auditing, IDiagnosticsService diagnostics,
+        public SecurityPolicyService(IEntitiesContext entitiesContext, IAuditingService auditing, IDiagnosticsService diagnostics, IAppConfiguration configuration,
             SecurePushSubscription securePush = null, RequireSecurePushForCoOwnersPolicy securePushForCoOwners = null)
         {
             EntitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
@@ -47,6 +53,8 @@ namespace NuGetGallery.Security
             }
 
             Diagnostics = diagnostics.SafeGetSource(nameof(SecurityPolicyService));
+            Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            DefaultSubscription = new DefaultSubscription();
         }
 
         /// <summary>
@@ -82,21 +90,47 @@ namespace NuGetGallery.Security
                 throw new ArgumentNullException(nameof(httpContext));
             }
 
-            var user = httpContext.GetCurrentUser();
-            foreach (var handler in UserHandlers.Where(h => h.Action == action))
+            // Evaluate default policies
+            if (Configuration.EnforceDefaultSecurityPolicies)
             {
-                var foundPolicies = user.SecurityPolicies.Where(p => p.Name.Equals(handler.Name, StringComparison.OrdinalIgnoreCase));
+                var defaultPolicies = DefaultSubscription.Policies;
+
+                var result = await EvaluateInternalAsync(defaultPolicies, httpContext, action, auditSuccess: false);
+                
+                if (!result.Success)
+                {
+                    return result;
+                }
+            }
+
+            // Evaluate user specific policies
+            var user = httpContext.GetCurrentUser();
+            return await EvaluateInternalAsync(user.SecurityPolicies, httpContext, action, auditSuccess: true);
+        }
+
+        private async Task<SecurityPolicyResult> EvaluateInternalAsync(IEnumerable<UserSecurityPolicy> policies, HttpContextBase httpContext, SecurityPolicyAction action, bool auditSuccess)
+        {
+            var relevantHandlers = UserHandlers.Where(h => h.Action == action).ToList();
+
+            foreach (var handler in relevantHandlers)
+            {
+                var foundPolicies = policies.Where(p => p.Name.Equals(handler.Name, StringComparison.OrdinalIgnoreCase)).ToList();
+
                 if (foundPolicies.Any())
                 {
+                    var user = httpContext.GetCurrentUser();
                     var result = handler.Evaluate(new UserSecurityPolicyEvaluationContext(httpContext, foundPolicies));
 
-                    await Auditing.SaveAuditRecordAsync(new UserSecurityPolicyAuditRecord(
+                    if (auditSuccess || !result.Success)
+                    {
+                        await Auditing.SaveAuditRecordAsync(new UserSecurityPolicyAuditRecord(
                         user.Username, GetAuditAction(action), foundPolicies, result.Success, result.ErrorMessage));
+                    }
 
                     if (!result.Success)
                     {
                         Diagnostics.Information(
-                            $"Security policy '{handler.Name}' failed for user '{user.Username}' with error '{result.ErrorMessage}'.");
+                        $"Security policy from subscription '{foundPolicies.First().Subscription}' - '{handler.Name}' failed for user '{user.Username}' with error '{result.ErrorMessage}'.");
 
                         return result;
                     }
@@ -291,6 +325,7 @@ namespace NuGetGallery.Security
         {
             yield return new RequireMinClientVersionForPushPolicy();
             yield return new RequirePackageVerifyScopePolicy();
+            yield return new RequireMinProtocolVersionForPushPolicy();
         }
-    }
+   }
 }

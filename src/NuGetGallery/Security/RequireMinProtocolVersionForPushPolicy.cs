@@ -11,57 +11,56 @@ using NuGet.Versioning;
 namespace NuGetGallery.Security
 {
     /// <summary>
-    /// This code should be removed soon: https://github.com/NuGet/Engineering/issues/800
-    /// User security policy that requires a minimum client version in order to push packages.
+    /// User security policy that requires a minimum protocol version in order to push packages.
     /// </summary>
-    public class RequireMinClientVersionForPushPolicy : UserSecurityPolicyHandler
+    public class RequireMinProtocolVersionForPushPolicy : UserSecurityPolicyHandler
     {
-        public const string PolicyName = nameof(RequireMinClientVersionForPushPolicy);
+        public const string PolicyName = nameof(RequireMinProtocolVersionForPushPolicy);
 
         public class State
         {
             [JsonProperty("v")]
             [JsonConverter(typeof(NuGetVersionConverter))]
-            public NuGetVersion MinClientVersion { get; set; }
+            public NuGetVersion MinProtocolVersion { get; set; }
         }
 
-        public RequireMinClientVersionForPushPolicy()
+        public RequireMinProtocolVersionForPushPolicy()
             : base(PolicyName, SecurityPolicyAction.PackagePush)
         {
         }
 
         /// <summary>
-        /// Create a user security policy that requires a minimum client version.
+        /// Create a user security policy that requires a minimum protocol version.
         /// </summary>
-        public static UserSecurityPolicy CreatePolicy(string subscription, NuGetVersion minClientVersion)
+        public static UserSecurityPolicy CreatePolicy(string subscription, NuGetVersion minProtocolVersion)
         {
-            var value = JsonConvert.SerializeObject(new State() {
-                MinClientVersion = minClientVersion
+            var value = JsonConvert.SerializeObject(new State()
+            {
+                MinProtocolVersion = minProtocolVersion
             });
 
             return new UserSecurityPolicy(PolicyName, subscription, value);
         }
 
         /// <summary>
-        /// In case of multiple, select the max of the minimum required client versions.
+        /// In case of multiple, select the max of the minimum required protocol versions.
         /// </summary>
-        private NuGetVersion GetMaxOfMinClientVersions(UserSecurityPolicyEvaluationContext context)
+        private NuGetVersion GetMaxOfMinProtocolVersions(UserSecurityPolicyEvaluationContext context)
         {
             var policyStates = context.Policies
                 .Where(p => !string.IsNullOrEmpty(p.Value))
                 .Select(p => JsonConvert.DeserializeObject<State>(p.Value));
-            return policyStates.Max(s => s.MinClientVersion);
+            return policyStates.Max(s => s.MinProtocolVersion);
         }
 
         /// <summary>
-        /// Get the current client version from the request.
+        /// Get the current client version from the request. This header is DEPRECATED, and here for backwards compatibility!
         /// </summary>
         private NuGetVersion GetClientVersion(UserSecurityPolicyEvaluationContext context)
         {
             var clientVersionString = context.HttpContext.Request?.Headers[Constants.ClientVersionHeaderName];
 
-            NuGetVersion clientVersion;
-            return NuGetVersion.TryParse(clientVersionString, out clientVersion) ? clientVersion : null;
+            return NuGetVersion.TryParse(clientVersionString, out NuGetVersion clientVersion) ? clientVersion : null;
         }
 
         /// <summary>
@@ -71,8 +70,7 @@ namespace NuGetGallery.Security
         {
             var protocolVersionString = context.HttpContext.Request?.Headers[Constants.NuGetProtocolHeaderName];
 
-            NuGetVersion protocolVersion;
-            return NuGetVersion.TryParse(protocolVersionString, out protocolVersion) ? protocolVersion : null;
+            return NuGetVersion.TryParse(protocolVersionString, out NuGetVersion protocolVersion) ? protocolVersion : null;
         }
 
         /// <summary>
@@ -85,21 +83,21 @@ namespace NuGetGallery.Security
                 throw new ArgumentNullException(nameof(context));
             }
 
-            var minClientVersion = GetMaxOfMinClientVersions(context);
+            var minProtocolVersion = GetMaxOfMinProtocolVersions(context);
 
             // Do we have X-NuGet-Protocol-Version header?
             var protocolVersion = GetProtocolVersion(context);
 
             if (protocolVersion == null)
             {
-                // Do we have X-NuGet-Client-Version header?
+                // Do we have X-NuGet-Client-Version header? This header is DEPRECATED, and here for backwards compatibility!
                 protocolVersion = GetClientVersion(context);
             }
-            
-            if (protocolVersion == null || protocolVersion < minClientVersion)
+
+            if (protocolVersion == null || protocolVersion < minProtocolVersion)
             {
                 return SecurityPolicyResult.CreateErrorResult(string.Format(CultureInfo.CurrentCulture,
-                    Strings.SecurityPolicy_RequireMinProtocolVersionForPush, minClientVersion));
+                    Strings.SecurityPolicy_RequireMinProtocolVersionForPush, minProtocolVersion));
             }
 
             return SecurityPolicyResult.SuccessResult;
