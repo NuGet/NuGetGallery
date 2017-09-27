@@ -90,13 +90,12 @@ namespace NuGetGallery.Security
                 throw new ArgumentNullException(nameof(httpContext));
             }
 
-            var relevantHandlers = UserHandlers.Where(h => h.Action == action).ToList();
-
+            // Evaluate default policies
             if (Configuration.EnforceDefaultSecurityPolicies)
             {
                 var defaultPolicies = DefaultSubscription.Policies;
 
-                var result = await EvaluateInternalAsync(relevantHandlers, defaultPolicies, httpContext, action, auditSuccess: false);
+                var result = await EvaluateInternalAsync(defaultPolicies, httpContext, action, auditSuccess: false);
                 
                 if (!result.Success)
                 {
@@ -104,20 +103,22 @@ namespace NuGetGallery.Security
                 }
             }
 
+            // Evaluate user specific policies
             var user = httpContext.GetCurrentUser();
-            return await EvaluateInternalAsync(relevantHandlers, user.SecurityPolicies, httpContext, action, auditSuccess: true);
+            return await EvaluateInternalAsync(user.SecurityPolicies, httpContext, action, auditSuccess: true);
         }
 
-        private async Task<SecurityPolicyResult> EvaluateInternalAsync(IEnumerable<UserSecurityPolicyHandler> handlers, IEnumerable<UserSecurityPolicy> policies, HttpContextBase httpContext, SecurityPolicyAction action, bool auditSuccess)
+        private async Task<SecurityPolicyResult> EvaluateInternalAsync(IEnumerable<UserSecurityPolicy> policies, HttpContextBase httpContext, SecurityPolicyAction action, bool auditSuccess)
         {
-            var user = httpContext.GetCurrentUser();
+            var relevantHandlers = UserHandlers.Where(h => h.Action == action).ToList();
 
-            foreach (var handler in handlers)
+            foreach (var handler in relevantHandlers)
             {
                 var foundPolicies = policies.Where(p => p.Name.Equals(handler.Name, StringComparison.OrdinalIgnoreCase));
 
                 if (foundPolicies.Any())
                 {
+                    var user = httpContext.GetCurrentUser();
                     var result = handler.Evaluate(new UserSecurityPolicyEvaluationContext(httpContext, foundPolicies));
 
                     if (auditSuccess || !result.Success)

@@ -90,7 +90,7 @@ namespace NuGetGallery.Security
 
             if (protocolVersion == null)
             {
-                // Do we have X-NuGet-Client-Version header?
+                // Do we have X-NuGet-Client-Version header? This header is DEPRECATED, and here for backwards compatibility!
                 protocolVersion = GetClientVersion(context);
             }
 

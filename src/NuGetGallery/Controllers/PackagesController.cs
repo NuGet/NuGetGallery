@@ -531,7 +531,7 @@ namespace NuGetGallery
                     return string.Format(CultureInfo.CurrentCulture,
                         Strings.DisplayPackage_SecurePushRequired,
                         string.Join(", ", propagators.Select(u => u.Username)),
-                        SecurePushSubscription.MinClientVersion,
+                        SecurePushSubscription.MinProtocolVersion,
                         _config.GalleryOwner.Address);
                 }
             }
@@ -1336,7 +1336,7 @@ namespace NuGetGallery
         private string GetSecurePushPolicyDescriptions()
         {
             return string.Format(CultureInfo.CurrentCulture, Strings.SecurePushPolicyDescriptions,
-                SecurePushSubscription.MinClientVersion, SecurePushSubscription.PushKeysExpirationInDays);
+                SecurePushSubscription.MinProtocolVersion, SecurePushSubscription.PushKeysExpirationInDays);
         }
 
         private async Task<bool> SubscribeToSecurePushAsync(User user)

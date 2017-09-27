@@ -10,7 +10,7 @@ namespace NuGetGallery.Security
 {
     public class DefaultSubscription : IUserSecurityPolicySubscription
     {
-        internal const string MinClientVersion = "4.1.0";
+        internal const string MinProtocolVersion = "4.1.0";
 
         /// <summary>
         /// Subscription name.
@@ -25,7 +25,7 @@ namespace NuGetGallery.Security
             get
             {
                 yield return new UserSecurityPolicy(RequirePackageVerifyScopePolicy.PolicyName, SubscriptionName);
-                yield return RequireMinClientVersionForPushPolicy.CreatePolicy(SubscriptionName, new NuGetVersion(MinClientVersion));
+                yield return RequireMinProtocolVersionForPushPolicy.CreatePolicy(SubscriptionName, new NuGetVersion(MinProtocolVersion));
             }
         }
 
