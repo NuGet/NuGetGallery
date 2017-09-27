@@ -211,6 +211,8 @@ namespace NuGetGallery
                     }
                     catch (Exception ex)
                     {
+                        ex.Log();
+
                         TempData["Message"] = ex.GetUserSafeMessage();
                         return View(model);
                     }
@@ -413,6 +415,8 @@ namespace NuGetGallery
                 }
                 catch (Exception ex)
                 {
+                    ex.Log();
+
                     TempData["Message"] = ex.GetUserSafeMessage();
 
                     return Json(400, new[] { ex.GetUserSafeMessage() });
@@ -1460,6 +1464,8 @@ namespace NuGetGallery
                 }
                 catch (InvalidPackageException ex)
                 {
+                    ex.Log();
+
                     TempData["Message"] = ex.Message;
 
                     return Json(400, new[] { ex.GetUserSafeMessage() });
