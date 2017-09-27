@@ -139,7 +139,6 @@ namespace NuGetGallery.Security
             return SecurityPolicyResult.SuccessResult;
         }
 
-
         private AuditedSecurityPolicyAction GetAuditAction(SecurityPolicyAction policyAction)
         {
             switch (policyAction)

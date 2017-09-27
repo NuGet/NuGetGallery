@@ -1138,7 +1138,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Your account requires a package verification key to push symbols. Please contact support@nuget.org to get more details..
+        ///   Looks up a localized string similar to A package verification key is required to push symbols. Please contact support@nuget.org to get more details..
         /// </summary>
         public static string SecurityPolicy_RequireApiKeyWithPackageVerifyScope {
             get {
@@ -1147,7 +1147,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Your account requires protocol version &apos;{0}&apos; or higher to be able to push packages. Please contact support@nuget.org to get more details..
+        ///   Looks up a localized string similar to A client supporting protocol version &apos;{0}&apos; or higher is required to be able to push packages. Please contact support@nuget.org to get more details..
         /// </summary>
         public static string SecurityPolicy_RequireMinProtocolVersionForPush {
             get {
