@@ -28,8 +28,6 @@ namespace NuGetGallery.Security
 
         protected override IEnumerable<UserSecurityPolicyHandler> UserHandlers { get; }
 
-        protected override IEnumerable<DefaultSecurityPolicy> DefaultSecurityPolicies { get; }
-
         public TestSecurityPolicyService(
             TestUserSecurityPolicyData mocks = null,
             IEnumerable<UserSecurityPolicyHandler> userHandlers = null,
@@ -43,7 +41,7 @@ namespace NuGetGallery.Security
 
             UserHandlers = userHandlers ?? Mocks.Handlers.Select(m => m.Object);
             UserSubscriptions = userSubscriptions ?? new [] { Mocks.Subscription.Object };
-            DefaultSecurityPolicies = Mocks.DefaultPolicies;
+            DefaultSubscription = Mocks.DefaultSubscription.Object;
         }
 
         protected TestSecurityPolicyService(

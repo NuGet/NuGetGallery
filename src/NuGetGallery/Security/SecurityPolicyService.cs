@@ -18,9 +18,6 @@ namespace NuGetGallery.Security
     /// </summary>
     public class SecurityPolicyService : ISecurityPolicyService
     {
-        private static Lazy<IEnumerable<DefaultSecurityPolicy>> _defaultSecurityPolicies =
-        new Lazy<IEnumerable<DefaultSecurityPolicy>>(CreateDefaultSecurityPolicies);
-
         private static Lazy<IEnumerable<UserSecurityPolicyHandler>> _userHandlers =
             new Lazy<IEnumerable<UserSecurityPolicyHandler>>(CreateUserHandlers);
 
@@ -33,6 +30,8 @@ namespace NuGetGallery.Security
         protected IAppConfiguration Configuration { get; set; }
 
         protected SecurePushSubscription SecurePush { get; set; }
+
+        protected IUserSecurityPolicySubscription DefaultSubscription { get; set; }
 
         protected RequireSecurePushForCoOwnersPolicy SecurePushForCoOwners { get; set; }
 
@@ -55,6 +54,7 @@ namespace NuGetGallery.Security
 
             Diagnostics = diagnostics.SafeGetSource(nameof(SecurityPolicyService));
             Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            DefaultSubscription = new DefaultSubscription();
         }
 
         /// <summary>
@@ -65,17 +65,6 @@ namespace NuGetGallery.Security
             get
             {
                 return _userHandlers.Value;
-            }
-        }
-
-        /// <summary>
-        /// The default security policies.
-        /// </summary>
-        protected virtual IEnumerable<DefaultSecurityPolicy> DefaultSecurityPolicies
-        {
-            get
-            {
-                return _defaultSecurityPolicies.Value;
             }
         }
 
@@ -101,44 +90,46 @@ namespace NuGetGallery.Security
                 throw new ArgumentNullException(nameof(httpContext));
             }
 
-            var user = httpContext.GetCurrentUser();
+            var relevantHandlers = UserHandlers.Where(h => h.Action == action).ToList();
 
             if (Configuration.EnforceDefaultSecurityPolicies)
             {
-                foreach (var defaultSecurityPolicy in DefaultSecurityPolicies)
+                var defaultPolicies = DefaultSubscription.Policies;
+
+                var result = await EvaluateInternalAsync(relevantHandlers, defaultPolicies, httpContext, action, auditSuccess: false);
+                
+                if (!result.Success)
                 {
-                    var context = new UserSecurityPolicyEvaluationContext(httpContext, defaultSecurityPolicy.Policies);
-
-                    var result = defaultSecurityPolicy.Handler.Evaluate(context);
-
-                    // Audit only failures, otherwise we will get too many audit events
-                    if (!result.Success)
-                    {
-                        await Auditing.SaveAuditRecordAsync(new UserSecurityPolicyAuditRecord(
-                        user.Username, GetAuditAction(action), defaultSecurityPolicy.Policies, result.Success, result.ErrorMessage));
-
-                        Diagnostics.Information(
-                            $"Default security policy '{defaultSecurityPolicy.Handler.Name}' failed for user '{user.Username}' with error '{result.ErrorMessage}'.");
-
-                        return result;
-                    }
+                    return result;
                 }
             }
 
-            foreach (var handler in UserHandlers.Where(h => h.Action == action))
+            var user = httpContext.GetCurrentUser();
+            return await EvaluateInternalAsync(relevantHandlers, user.SecurityPolicies, httpContext, action, auditSuccess: true);
+        }
+
+        private async Task<SecurityPolicyResult> EvaluateInternalAsync(IEnumerable<UserSecurityPolicyHandler> handlers, IEnumerable<UserSecurityPolicy> policies, HttpContextBase httpContext, SecurityPolicyAction action, bool auditSuccess)
+        {
+            var user = httpContext.GetCurrentUser();
+
+            foreach (var handler in handlers)
             {
-                var foundPolicies = user.SecurityPolicies.Where(p => p.Name.Equals(handler.Name, StringComparison.OrdinalIgnoreCase));
+                var foundPolicies = policies.Where(p => p.Name.Equals(handler.Name, StringComparison.OrdinalIgnoreCase));
+
                 if (foundPolicies.Any())
                 {
                     var result = handler.Evaluate(new UserSecurityPolicyEvaluationContext(httpContext, foundPolicies));
 
-                    await Auditing.SaveAuditRecordAsync(new UserSecurityPolicyAuditRecord(
+                    if (auditSuccess || !result.Success)
+                    {
+                        await Auditing.SaveAuditRecordAsync(new UserSecurityPolicyAuditRecord(
                         user.Username, GetAuditAction(action), foundPolicies, result.Success, result.ErrorMessage));
+                    }
 
                     if (!result.Success)
                     {
                         Diagnostics.Information(
-                            $"Security policy '{handler.Name}' failed for user '{user.Username}' with error '{result.ErrorMessage}'.");
+                        $"Security policy from subscription '{foundPolicies.First().Subscription}' - '{handler.Name}' failed for user '{user.Username}' with error '{result.ErrorMessage}'.");
 
                         return result;
                     }
@@ -147,6 +138,7 @@ namespace NuGetGallery.Security
 
             return SecurityPolicyResult.SuccessResult;
         }
+
 
         private AuditedSecurityPolicyAction GetAuditAction(SecurityPolicyAction policyAction)
         {
@@ -335,26 +327,5 @@ namespace NuGetGallery.Security
             yield return new RequirePackageVerifyScopePolicy();
             yield return new RequireMinProtocolVersionForPushPolicy();
         }
-
-        private static IEnumerable<DefaultSecurityPolicy> CreateDefaultSecurityPolicies()
-        {
-            yield return new DefaultSecurityPolicy(
-                new RequireMinProtocolVersionForPushPolicy(),
-                new List<UserSecurityPolicy>() { RequireMinProtocolVersionForPushPolicy.CreatePolicy("Default", new NuGetVersion("4.1.0")) });
-
-            yield return new DefaultSecurityPolicy(new RequirePackageVerifyScopePolicy(), new List<UserSecurityPolicy>() { new UserSecurityPolicy(RequirePackageVerifyScopePolicy.PolicyName, "Default") });
-        }
-
-        public class DefaultSecurityPolicy
-        {
-            public UserSecurityPolicyHandler Handler { get; }
-            public IReadOnlyList<UserSecurityPolicy> Policies { get; }
-
-            public DefaultSecurityPolicy(UserSecurityPolicyHandler handler, IReadOnlyList<UserSecurityPolicy> policies)
-            {
-                Handler = handler ?? throw new ArgumentNullException(nameof(handler));
-                Policies = policies ?? throw new ArgumentNullException(nameof(policies));
-            }
-        }
-    }
+   }
 }

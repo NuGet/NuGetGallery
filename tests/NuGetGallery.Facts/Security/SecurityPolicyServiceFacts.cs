@@ -82,8 +82,8 @@ namespace NuGetGallery.Security
             Assert.True(result.Success);
             Assert.Null(result.ErrorMessage);
 
-            service.Mocks.MockPolicy1.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Never);
-            service.Mocks.MockPolicy2.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Never);
+            service.Mocks.MockPolicyHandler1.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Never);
+            service.Mocks.MockPolicyHandler2.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Never);
         }
 
         [Fact]
@@ -102,8 +102,8 @@ namespace NuGetGallery.Security
             Assert.True(result.Success);
             Assert.Null(result.ErrorMessage);
 
-            service.Mocks.MockPolicy1.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
-            service.Mocks.MockPolicy2.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
+            service.Mocks.MockPolicyHandler1.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
+            service.Mocks.MockPolicyHandler2.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
         }
 
         [Fact]
@@ -144,10 +144,42 @@ namespace NuGetGallery.Security
         }
 
         [Fact]
+        public async Task EvaluateAsync_EvaluatesOnlyPoliciesRelevantToTheAction()
+        {
+            // Arrange
+            const string extraPolicyName = "ExtraPolicy";
+            var extraPolicyHandlerMock = new Mock<UserSecurityPolicyHandler>(extraPolicyName, SecurityPolicyAction.ManagePackageOwners);
+
+            var policyData = new TestUserSecurityPolicyData();
+            var policyHandlers = new List<UserSecurityPolicyHandler>(policyData.Handlers.Select(x => x.Object));
+            policyHandlers.Add(extraPolicyHandlerMock.Object);
+
+            var service = new TestSecurityPolicyService(policyData, policyHandlers);
+            var user = new User("testUser");
+            var subscription = service.Mocks.Subscription.Object;
+
+            var userSecurityPolicies = new List<UserSecurityPolicy>(subscription.Policies);
+            userSecurityPolicies.Add(new UserSecurityPolicy(extraPolicyName, "ExtraSubscription"));
+            user.SecurityPolicies = userSecurityPolicies;
+
+            // Act
+            var result = await service.EvaluateAsync(SecurityPolicyAction.PackagePush, CreateHttpContext(user));
+
+            // Assert
+            Assert.True(result.Success);
+            Assert.Null(result.ErrorMessage);
+
+            service.Mocks.MockPolicyHandler1.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
+            service.Mocks.MockPolicyHandler2.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
+            extraPolicyHandlerMock.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Never);
+        }
+
+        [Fact]
         public async Task EvaluateAsync_WhenEnforceDefaultSecurityPoliciesIsFalseDefaultPolicyNotEvaluated()
         {
             // Arrange
-            var service = new TestSecurityPolicyService();
+            var policyData = new TestUserSecurityPolicyData(policy1Result: true, policy2Result: true, defaultPolicy1Result: false, defaultPolicy2Result: false);
+            var service = new TestSecurityPolicyService(policyData);
             var user = new User("testUser");
             var subscription = service.Mocks.Subscription.Object;
             user.SecurityPolicies = subscription.Policies.ToList();
@@ -159,11 +191,8 @@ namespace NuGetGallery.Security
             Assert.True(result.Success);
             Assert.Null(result.ErrorMessage);
 
-            service.Mocks.MockPolicy1.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
-            service.Mocks.MockPolicy2.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
-
-            service.Mocks.MockDefaultPolicy1.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Never);
-            service.Mocks.MockDefaultPolicy2.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Never);
+            service.Mocks.MockPolicyHandler1.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
+            service.Mocks.MockPolicyHandler2.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
         }
 
         [Fact]
@@ -182,17 +211,16 @@ namespace NuGetGallery.Security
 
             // Assert
             Assert.Equal(false, result.Success);
-
-            // Both default policies evaluated
-            service.Mocks.MockDefaultPolicy1.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
-            service.Mocks.MockDefaultPolicy2.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
+            
+            // The error indicates which subscription failed
+            Assert.Contains(policyData.DefaultSubscription.Object.SubscriptionName, result.ErrorMessage);
 
             // Audit record is saved
             service.MockAuditingService.Verify(s => s.SaveAuditRecordAsync(It.IsAny<AuditRecord>()), Times.Once);
 
-            // User policies are not evaluated
-            service.Mocks.MockPolicy1.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Never);
-            service.Mocks.MockPolicy2.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Never);
+            // Policies are evaluated only once
+            service.Mocks.MockPolicyHandler1.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
+            service.Mocks.MockPolicyHandler2.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
         }
 
         [Theory]
@@ -214,13 +242,9 @@ namespace NuGetGallery.Security
             // Assert
             Assert.Equal(userPolicyMet, result.Success);
 
-            // Both default policies evaluated
-            service.Mocks.MockDefaultPolicy1.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
-            service.Mocks.MockDefaultPolicy2.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
-
-            // User policies are evaluated
-            service.Mocks.MockPolicy1.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
-            service.Mocks.MockPolicy2.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
+            // Default policies and user policies are evaluated
+            service.Mocks.MockPolicyHandler1.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Exactly(2));
+            service.Mocks.MockPolicyHandler2.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Exactly(2));
         }
 
         [Theory]
