@@ -10,24 +10,20 @@ namespace NuGetGallery.Security
 {
     public class DefaultSubscription : IUserSecurityPolicySubscription
     {
+        private Lazy<List<UserSecurityPolicy>> _policies = new Lazy<List<UserSecurityPolicy>>(InitializePoliciesList, isThreadSafe: true);
+
         internal const string MinProtocolVersion = "4.1.0";
+        internal const string Name = "Default";
 
         /// <summary>
         /// Subscription name.
         /// </summary>
-        public string SubscriptionName => "Default";
+        public string SubscriptionName => Name;
 
         /// <summary>
         /// Required policies for this subscription.
         /// </summary>
-        public IEnumerable<UserSecurityPolicy> Policies
-        {
-            get
-            {
-                yield return new UserSecurityPolicy(RequirePackageVerifyScopePolicy.PolicyName, SubscriptionName);
-                yield return RequireMinProtocolVersionForPushPolicy.CreatePolicy(SubscriptionName, new NuGetVersion(MinProtocolVersion));
-            }
-        }
+        public IEnumerable<UserSecurityPolicy> Policies => _policies.Value;
 
         public Task OnSubscribeAsync(UserSecurityPolicySubscriptionContext context)
         {
@@ -37,6 +33,15 @@ namespace NuGetGallery.Security
         public Task OnUnsubscribeAsync(UserSecurityPolicySubscriptionContext context)
         {
             throw new NotSupportedException();
+        }
+
+        private static List<UserSecurityPolicy> InitializePoliciesList()
+        {
+            return new List<UserSecurityPolicy>()
+            {
+                new UserSecurityPolicy(RequirePackageVerifyScopePolicy.PolicyName, Name),
+                RequireMinProtocolVersionForPushPolicy.CreatePolicy(Name, new NuGetVersion(MinProtocolVersion))
+            };
         }
     }
 }

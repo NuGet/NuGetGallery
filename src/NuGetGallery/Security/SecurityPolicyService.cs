@@ -114,7 +114,7 @@ namespace NuGetGallery.Security
 
             foreach (var handler in relevantHandlers)
             {
-                var foundPolicies = policies.Where(p => p.Name.Equals(handler.Name, StringComparison.OrdinalIgnoreCase));
+                var foundPolicies = policies.Where(p => p.Name.Equals(handler.Name, StringComparison.OrdinalIgnoreCase)).ToList();
 
                 if (foundPolicies.Any())
                 {
