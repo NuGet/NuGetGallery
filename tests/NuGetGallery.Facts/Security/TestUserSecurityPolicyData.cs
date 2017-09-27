@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Moq;
-using NuGetGallery.Filters;
 using Xunit;
 
 namespace NuGetGallery.Security
@@ -14,7 +13,7 @@ namespace NuGetGallery.Security
     {
         private const string MockSubscriptionName = "MockSubscription";
 
-        public TestUserSecurityPolicyData(bool policy1Result = true, bool policy2Result = true)
+        public TestUserSecurityPolicyData(bool policy1Result = true, bool policy2Result = true, bool defaultPolicy1Result = true, bool defaultPolicy2Result = true)
         {
             MockPolicy1 = MockHandler(nameof(MockPolicy1), policy1Result);
             MockPolicy2 = MockHandler(nameof(MockPolicy2), policy2Result);
@@ -26,6 +25,10 @@ namespace NuGetGallery.Security
             Subscription.Setup(s => s.OnUnsubscribeAsync(It.IsAny<UserSecurityPolicySubscriptionContext>()))
                 .Returns(Task.CompletedTask).Verifiable();
             Subscription.Setup(s => s.Policies).Returns(GetMockPolicies());
+
+            MockDefaultPolicy1 = MockHandler(nameof(MockDefaultPolicy1), defaultPolicy1Result);
+            MockDefaultPolicy2 = MockHandler(nameof(MockDefaultPolicy2), defaultPolicy2Result);
+
         }
 
         public Mock<IUserSecurityPolicySubscription> Subscription { get; }
@@ -33,6 +36,10 @@ namespace NuGetGallery.Security
         public Mock<UserSecurityPolicyHandler> MockPolicy1 { get; }
 
         public Mock<UserSecurityPolicyHandler> MockPolicy2 { get; }
+
+        public Mock<UserSecurityPolicyHandler> MockDefaultPolicy1 { get; }
+
+        public Mock<UserSecurityPolicyHandler> MockDefaultPolicy2 { get; }
 
         public IEnumerable<Mock<UserSecurityPolicyHandler>> Handlers
         {
@@ -42,6 +49,16 @@ namespace NuGetGallery.Security
                 yield return MockPolicy2;
             }
         }
+
+        public IEnumerable<SecurityPolicyService.DefaultSecurityPolicy> DefaultPolicies
+        {
+            get
+            {
+                yield return new SecurityPolicyService.DefaultSecurityPolicy(MockDefaultPolicy1.Object, new List<UserSecurityPolicy>() { new UserSecurityPolicy(nameof(MockDefaultPolicy1), "Default") });
+                yield return new SecurityPolicyService.DefaultSecurityPolicy(MockDefaultPolicy2.Object, new List<UserSecurityPolicy>() { new UserSecurityPolicy(nameof(MockDefaultPolicy2), "Default") });
+            }
+        }
+
 
         public void VerifySubscriptionPolicies(IEnumerable<UserSecurityPolicy> actualPolicies)
         {

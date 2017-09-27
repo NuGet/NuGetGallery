@@ -809,8 +809,6 @@
       <DependentUpon>201709202249402_AddPackageOwnershipRequestsPage.cs</DependentUpon>
     </Compile>
     <Compile Include="RequestModels\ReadMeRequest.cs" />
-    <Compile Include="Security\DefaultSecurityPolicyHandler.cs" />
-    <Compile Include="Security\PolicyEvaluationContext.cs" />
     <Compile Include="Security\RequireMinProtocolVersionForPushPolicy.cs" />
     <Compile Include="Security\RequireSecurePushForCoOwnersPolicy.cs" />
     <Compile Include="Security\SecurePushSubscription.cs" />

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Web;
 using Moq;
 using NuGetGallery.Auditing;
+using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Framework;
 using Xunit;
@@ -20,30 +21,32 @@ namespace NuGetGallery.Security
         private static IEntitiesContext _entities = new Mock<IEntitiesContext>().Object;
         private static IAuditingService _auditing = new Mock<IAuditingService>().Object;
         private static IDiagnosticsService _diagnostics = new Mock<IDiagnosticsService>().Object;
+        private static IAppConfiguration _configuration = new Mock<IAppConfiguration>().Object;
 
         public static IEnumerable<object[]> CtorThrowNullReference_Data
         {
             get
             {
-                yield return new object[] { null, _auditing, _diagnostics};
-                yield return new object[] { _entities, null, _diagnostics };
-                yield return new object[] { _entities, _auditing, null };
+                yield return new object[] { null, _auditing, _diagnostics, _configuration};
+                yield return new object[] { _entities, null, _diagnostics, _configuration };
+                yield return new object[] { _entities, _auditing, null, _configuration };
+                yield return new object[] { _entities, _auditing, _diagnostics, null };
             }
         }
         
         [Theory]
         [MemberData(nameof(CtorThrowNullReference_Data))]
         public void Constructor_ThrowsArgumentNullIfArgumentMissing(
-            IEntitiesContext entities, IAuditingService auditing, IDiagnosticsService diagnostics)
+            IEntitiesContext entities, IAuditingService auditing, IDiagnosticsService diagnostics, IAppConfiguration configuration)
         {
-            Assert.Throws<ArgumentNullException>(() => new SecurityPolicyService(entities, auditing, diagnostics));
+            Assert.Throws<ArgumentNullException>(() => new SecurityPolicyService(entities, auditing, diagnostics, configuration));
         }
 
         [Fact]
         public void UserHandlers_ReturnsRegisteredUserSecurityPolicyHandlers()
         {
             // Arrange.
-            var service = new SecurityPolicyService(_entities, _auditing, _diagnostics);
+            var service = new SecurityPolicyService(_entities, _auditing, _diagnostics, _configuration);
 
             // Act.
             var handlers = ((IEnumerable<UserSecurityPolicyHandler>)service.GetType()
@@ -52,9 +55,10 @@ namespace NuGetGallery.Security
 
             // Assert
             Assert.NotNull(handlers);
-            Assert.Equal(2, handlers.Count);
+            Assert.Equal(3, handlers.Count);
             Assert.Equal(typeof(RequireMinClientVersionForPushPolicy), handlers[0].GetType());
             Assert.Equal(typeof(RequirePackageVerifyScopePolicy), handlers[1].GetType());
+            Assert.Equal(typeof(RequireMinProtocolVersionForPushPolicy), handlers[2].GetType());
         }
 
         [Fact]
@@ -137,6 +141,86 @@ namespace NuGetGallery.Security
             // Assert
             Assert.Equal(success, result.Success);
             service.MockAuditingService.Verify(s => s.SaveAuditRecordAsync(It.IsAny<AuditRecord>()), Times.Exactly(times));
+        }
+
+        [Fact]
+        public async Task EvaluateAsync_WhenEnforceDefaultSecurityPoliciesIsFalseDefaultPolicyNotEvaluated()
+        {
+            // Arrange
+            var service = new TestSecurityPolicyService();
+            var user = new User("testUser");
+            var subscription = service.Mocks.Subscription.Object;
+            user.SecurityPolicies = subscription.Policies.ToList();
+
+            // Act
+            var result = await service.EvaluateAsync(SecurityPolicyAction.PackagePush, CreateHttpContext(user));
+
+            // Assert
+            Assert.True(result.Success);
+            Assert.Null(result.ErrorMessage);
+
+            service.Mocks.MockPolicy1.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
+            service.Mocks.MockPolicy2.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
+
+            service.Mocks.MockDefaultPolicy1.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Never);
+            service.Mocks.MockDefaultPolicy2.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task EvaluateAsync_WhenDefaultSecurityPolicyNotMetReturnFailure()
+        {
+            // Arrange
+            var policyData = new TestUserSecurityPolicyData(policy1Result: true, policy2Result: true, defaultPolicy1Result: true, defaultPolicy2Result: false);
+            var configuration = new AppConfiguration() { EnforceDefaultSecurityPolicies = true };
+            var service = new TestSecurityPolicyService(policyData, null, null, null, null, configuration);
+            var user = new User("testUser");
+            var subscription = service.Mocks.Subscription.Object;
+            user.SecurityPolicies = subscription.Policies.ToList();
+
+            // Act
+            var result = await service.EvaluateAsync(SecurityPolicyAction.PackagePush, CreateHttpContext(user));
+
+            // Assert
+            Assert.Equal(false, result.Success);
+
+            // Both default policies evaluated
+            service.Mocks.MockDefaultPolicy1.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
+            service.Mocks.MockDefaultPolicy2.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
+
+            // Audit record is saved
+            service.MockAuditingService.Verify(s => s.SaveAuditRecordAsync(It.IsAny<AuditRecord>()), Times.Once);
+
+            // User policies are not evaluated
+            service.Mocks.MockPolicy1.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Never);
+            service.Mocks.MockPolicy2.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Never);
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task EvaluateAsync_WhenDefaultSecurityPolicyIsMetUserPolicyIsEvaluated(bool userPolicyMet)
+        {
+            // Arrange
+            var policyData = new TestUserSecurityPolicyData(policy1Result: true, policy2Result: userPolicyMet, defaultPolicy1Result: true, defaultPolicy2Result: true);
+            var configuration = new AppConfiguration() { EnforceDefaultSecurityPolicies = true };
+            var service = new TestSecurityPolicyService(policyData, null, null, null, null, configuration);
+            var user = new User("testUser");
+            var subscription = service.Mocks.Subscription.Object;
+            user.SecurityPolicies = subscription.Policies.ToList();
+
+            // Act
+            var result = await service.EvaluateAsync(SecurityPolicyAction.PackagePush, CreateHttpContext(user));
+
+            // Assert
+            Assert.Equal(userPolicyMet, result.Success);
+
+            // Both default policies evaluated
+            service.Mocks.MockDefaultPolicy1.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
+            service.Mocks.MockDefaultPolicy2.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
+
+            // User policies are evaluated
+            service.Mocks.MockPolicy1.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
+            service.Mocks.MockPolicy2.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
         }
 
         [Theory]

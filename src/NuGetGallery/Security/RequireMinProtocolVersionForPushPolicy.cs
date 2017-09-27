@@ -60,8 +60,7 @@ namespace NuGetGallery.Security
         {
             var clientVersionString = context.HttpContext.Request?.Headers[Constants.ClientVersionHeaderName];
 
-            NuGetVersion clientVersion;
-            return NuGetVersion.TryParse(clientVersionString, out clientVersion) ? clientVersion : null;
+            return NuGetVersion.TryParse(clientVersionString, out NuGetVersion clientVersion) ? clientVersion : null;
         }
 
         /// <summary>
@@ -71,8 +70,7 @@ namespace NuGetGallery.Security
         {
             var protocolVersionString = context.HttpContext.Request?.Headers[Constants.NuGetProtocolHeaderName];
 
-            NuGetVersion protocolVersion;
-            return NuGetVersion.TryParse(protocolVersionString, out protocolVersion) ? protocolVersion : null;
+            return NuGetVersion.TryParse(protocolVersionString, out NuGetVersion protocolVersion) ? protocolVersion : null;
         }
 
         /// <summary>

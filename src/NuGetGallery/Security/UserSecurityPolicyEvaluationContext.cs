@@ -10,19 +10,21 @@ namespace NuGetGallery.Security
     /// <summary>
     /// Context providing user security policy handlers with resources necessary for policy evaluation.
     /// </summary>
-    public class UserSecurityPolicyEvaluationContext : SecurityPolicyEvaluationContext
+    public class UserSecurityPolicyEvaluationContext
     {
+        /// <summary>
+        /// Current http context.
+        /// </summary>
+        public HttpContextBase HttpContext { get; }
+
         /// <summary>
         /// Security policy entity.
         /// </summary>
         public IEnumerable<UserSecurityPolicy> Policies { get; }
 
-        public UserSecurityPolicyEvaluationContext(SecurityPolicyEvaluationContext context, IEnumerable<UserSecurityPolicy> policies) : this(context.HttpContext, policies)
+        public UserSecurityPolicyEvaluationContext(HttpContextBase httpContext, IEnumerable<UserSecurityPolicy> policies)
         {
-        }
-
-        public UserSecurityPolicyEvaluationContext(HttpContextBase httpContext, IEnumerable<UserSecurityPolicy> policies) : base(httpContext)
-        {
+            HttpContext = httpContext ?? throw new ArgumentNullException(nameof(httpContext));
             Policies = policies ?? throw new ArgumentNullException(nameof(policies));
         }
     }

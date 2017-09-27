@@ -7,8 +7,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 using NuGetGallery.Auditing;
+using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
-using System.Diagnostics;
 
 namespace NuGetGallery.Security
 {
@@ -18,6 +18,8 @@ namespace NuGetGallery.Security
 
         public Mock<IEntitiesContext> MockEntitiesContext { get; }
 
+        public IAppConfiguration AppConfiguration { get; }
+
         public Mock<IDbSet<UserSecurityPolicy>> MockUserSecurityPolicies { get; }
         
         public TestUserSecurityPolicyData Mocks { get; }
@@ -26,23 +28,28 @@ namespace NuGetGallery.Security
 
         protected override IEnumerable<UserSecurityPolicyHandler> UserHandlers { get; }
 
+        protected override IEnumerable<DefaultSecurityPolicy> DefaultSecurityPolicies { get; }
+
         public TestSecurityPolicyService(
             TestUserSecurityPolicyData mocks = null,
             IEnumerable<UserSecurityPolicyHandler> userHandlers = null,
             IEnumerable<IUserSecurityPolicySubscription> userSubscriptions = null,
             Mock<IEntitiesContext> mockEntities = null,
-            Mock<IAuditingService> mockAuditing = null)
-            : this(mockEntities, mockAuditing)
+            Mock<IAuditingService> mockAuditing = null,
+            IAppConfiguration configuration = null)
+            : this(mockEntities, mockAuditing, configuration)
         {
             Mocks = mocks ?? new TestUserSecurityPolicyData();
 
             UserHandlers = userHandlers ?? Mocks.Handlers.Select(m => m.Object);
             UserSubscriptions = userSubscriptions ?? new [] { Mocks.Subscription.Object };
+            DefaultSecurityPolicies = Mocks.DefaultPolicies;
         }
 
         protected TestSecurityPolicyService(
             Mock<IEntitiesContext> mockEntities,
-            Mock<IAuditingService> mockAuditing)
+            Mock<IAuditingService> mockAuditing,
+            IAppConfiguration configuration)
         {
             MockUserSecurityPolicies = new Mock<IDbSet<UserSecurityPolicy>>();
             MockUserSecurityPolicies.Setup(p => p.Remove(It.IsAny<UserSecurityPolicy>())).Verifiable();
@@ -62,6 +69,8 @@ namespace NuGetGallery.Security
                     .Returns(Task.CompletedTask).Verifiable();
             }
             Auditing = MockAuditingService.Object;
+
+            Configuration = configuration ?? new AppConfiguration();
 
             Diagnostics = new DiagnosticsService().GetSource(nameof(TestSecurityPolicyService));
         }
