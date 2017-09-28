@@ -54,8 +54,21 @@ namespace NuGet.Jobs.Validation.Common.Validators.Vcs
             string errorMessage;
             try
             {
+                string packageUrl;
+                if (message.Package.DownloadUrl != null)
+                {
+                    packageUrl = message.Package.DownloadUrl.ToString();
+                }
+                else
+                {
+                    packageUrl = BuildStorageUrl(message.Package.Id, message.PackageVersion);
+                }
+
                 var result = await _scanningService.CreateVirusScanJobAsync(
-                    BuildStorageUrl(message.Package.Id, message.PackageVersion), _callbackUrl, description, message.ValidationId);
+                    packageUrl,
+                    _callbackUrl,
+                    description,
+                    message.ValidationId);
 
                 if (string.IsNullOrEmpty(result.ErrorMessage))
                 {

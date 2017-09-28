@@ -170,6 +170,8 @@
     <Compile Include="Configuration\IConfigurationService.cs" />
     <Compile Include="INotificationService.cs" />
     <Compile Include="Configuration\ISecretReaderFactory.cs" />
+    <Compile Include="IPackageValidationAuditor.cs" />
+    <Compile Include="IPackageValidationService.cs" />
     <Compile Include="NotificationService.cs" />
     <Compile Include="NugetPackageExtensions.cs" />
     <Compile Include="NuGetPackageQueueExtensions.cs" />
