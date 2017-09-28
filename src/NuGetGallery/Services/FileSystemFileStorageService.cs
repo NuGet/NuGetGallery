@@ -173,6 +173,18 @@ namespace NuGetGallery
             return Task.FromResult(Directory.Exists(_configuration.FileStorageDirectory));
         }
 
+        public Task<Uri> GetFileReadUriAsync(string folderName, string fileName, DateTimeOffset? endOfAccess)
+        {
+            // technically, we would be able to generate the file:/// url here, but we don't need it right now
+            // and implementation would be a bit non-trivial: System.Uri handles the "%" character in paths 
+            // in a funny way: 
+            // new Uri(@"c:\%41foo%20bar%25.baz")
+            // produces the
+            // file:///c:/Afoo%20bar%2525.baz
+            // which is not particularly correct, so we'd need to work around that to have a correct implementation
+            throw new NotImplementedException();
+        }
+
         private static string BuildPath(string fileStorageDirectory, string folderName, string fileName)
         {
             // Resolve the file storage directory

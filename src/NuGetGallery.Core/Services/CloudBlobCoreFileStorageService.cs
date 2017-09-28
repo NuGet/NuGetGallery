@@ -228,6 +228,15 @@ namespace NuGetGallery
             return container;
         }
 
+        public async Task<Uri> GetFileReadUriAsync(string folderName, string fileName, DateTimeOffset? endOfAccess)
+        {
+            folderName = folderName ?? throw new ArgumentNullException(nameof(folderName));
+            fileName = fileName ?? throw new ArgumentNullException(nameof(fileName));
+            ICloudBlobContainer container = await GetContainer(folderName);
+            var blob = container.GetBlobReference(fileName);
+            return await blob.GetSharedReadUriAsync(endOfAccess);
+        }
+
         private struct StorageResult
         {
             private HttpStatusCode _statusCode;
