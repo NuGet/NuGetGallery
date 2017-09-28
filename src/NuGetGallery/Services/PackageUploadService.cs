@@ -66,9 +66,24 @@ namespace NuGetGallery
 
         public async Task<PackageCommitResult> CommitPackageAsync(Package package, Stream packageFile)
         {
+            if (package.PackageStatusKey != PackageStatus.Available
+                && package.PackageStatusKey != PackageStatus.Validating)
+            {
+                throw new ArgumentException(
+                    $"The package to commit must have either the {PackageStatus.Available} or {PackageStatus.Validating} package status.",
+                    nameof(package));
+            }
+
             try
             {
-                await _packageFileService.SavePackageFileAsync(package, packageFile);
+                if (package.PackageStatusKey == PackageStatus.Validating)
+                {
+                    await _packageFileService.SaveValidationPackageFileAsync(package, packageFile);
+                }
+                else
+                {
+                    await _packageFileService.SavePackageFileAsync(package, packageFile);
+                }
             }
             catch (InvalidOperationException ex)
             {
@@ -84,9 +99,18 @@ namespace NuGetGallery
             catch
             {
                 // If saving to the DB fails for any reason we need to delete the package we just saved.
-                await _packageFileService.DeletePackageFileAsync(
-                    package.PackageRegistration.Id,
-                    package.Version);
+                if (package.PackageStatusKey == PackageStatus.Validating)
+                {
+                    await _packageFileService.DeleteValidationPackageFileAsync(
+                        package.PackageRegistration.Id,
+                        package.Version);
+                }
+                else
+                {
+                    await _packageFileService.DeletePackageFileAsync(
+                        package.PackageRegistration.Id,
+                        package.Version);
+                }
 
                 throw;
             }

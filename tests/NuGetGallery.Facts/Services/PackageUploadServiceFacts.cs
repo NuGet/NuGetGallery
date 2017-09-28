@@ -173,9 +173,52 @@ namespace NuGetGallery
 
         public class TheCommitPackageMethod : FactsBase
         {
-            [Fact]
-            public async Task SavesPackageToStorageAndDatabase()
+            public static IEnumerable<object[]> SupportedPackageStatuses => new[]
             {
+                new object[] { PackageStatus.Available },
+                new object[] { PackageStatus.Validating },
+            };
+
+            public static IEnumerable<object[]> UnsupportedPackageStatuses => Enum
+                .GetValues(typeof(PackageStatus))
+                .Cast<PackageStatus>()
+                .Concat(new[] { (PackageStatus)(-1) })
+                .Where(s => !SupportedPackageStatuses.Any(o => s.Equals(o[0])))
+                .Select(s => new object[] { s });
+            
+            [Theory]
+            [MemberData(nameof(SupportedPackageStatuses))]
+            public async Task CommitsAfterSavingSupportedPackageStatuses(PackageStatus packageStatus)
+            {
+                _package.PackageStatusKey = packageStatus;
+
+                var result = await _target.CommitPackageAsync(_package, _packageFile);
+
+                _entitiesContext.Verify(
+                    x => x.SaveChangesAsync(),
+                    Times.Once);
+                Assert.Equal(PackageCommitResult.Success, result);
+            }
+
+            [Theory]
+            [MemberData(nameof(UnsupportedPackageStatuses))]
+            public async Task RejectsUnsupportedPackageStatuses(PackageStatus packageStatus)
+            {
+                _package.PackageStatusKey = packageStatus;
+
+                await Assert.ThrowsAsync<ArgumentException>(
+                    () => _target.CommitPackageAsync(_package, _packageFile));
+
+                _entitiesContext.Verify(
+                    x => x.SaveChangesAsync(),
+                    Times.Never);
+            }
+
+            [Fact]
+            public async Task SavesPackageToStorageAndDatabaseWhenAvailable()
+            {
+                _package.PackageStatusKey = PackageStatus.Available;
+
                 var result = await _target.CommitPackageAsync(_package, _packageFile);
 
                 _packageFileService.Verify(
@@ -183,6 +226,25 @@ namespace NuGetGallery
                     Times.Once);
                 _packageFileService.Verify(
                     x => x.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()),
+                    Times.Once);
+                _entitiesContext.Verify(
+                    x => x.SaveChangesAsync(),
+                    Times.Once);
+                Assert.Equal(PackageCommitResult.Success, result);
+            }
+
+            [Fact]
+            public async Task SavesPackageToStorageAndDatabaseWhenValidating()
+            {
+                _package.PackageStatusKey = PackageStatus.Validating;
+
+                var result = await _target.CommitPackageAsync(_package, _packageFile);
+
+                _packageFileService.Verify(
+                    x => x.SaveValidationPackageFileAsync(_package, _packageFile),
+                    Times.Once);
+                _packageFileService.Verify(
+                    x => x.SaveValidationPackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()),
                     Times.Once);
                 _entitiesContext.Verify(
                     x => x.SaveChangesAsync(),
@@ -223,8 +285,10 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task DeletesPackageIfDatabaseCommitFails()
+            public async Task DeletesPackageIfDatabaseCommitFailsWhenAvailable()
             {
+                _package.PackageStatusKey = PackageStatus.Available;
+
                 _entitiesContext
                     .Setup(x => x.SaveChangesAsync())
                     .Throws(_unexpectedException);
@@ -238,6 +302,28 @@ namespace NuGetGallery
                     Times.Once);
                 _packageFileService.Verify(
                     x => x.DeletePackageFileAsync(It.IsAny<string>(), It.IsAny<string>()),
+                    Times.Once);
+                Assert.Same(_unexpectedException, exception);
+            }
+
+            [Fact]
+            public async Task DeletesPackageIfDatabaseCommitFailsWhenValidating()
+            {
+                _package.PackageStatusKey = PackageStatus.Validating;
+
+                _entitiesContext
+                    .Setup(x => x.SaveChangesAsync())
+                    .Throws(_unexpectedException);
+
+                var exception = await Assert.ThrowsAsync(
+                    _unexpectedException.GetType(),
+                    () => _target.CommitPackageAsync(_package, _packageFile));
+
+                _packageFileService.Verify(
+                    x => x.DeleteValidationPackageFileAsync(Id, Version),
+                    Times.Once);
+                _packageFileService.Verify(
+                    x => x.DeleteValidationPackageFileAsync(It.IsAny<string>(), It.IsAny<string>()),
                     Times.Once);
                 Assert.Same(_unexpectedException, exception);
             }
