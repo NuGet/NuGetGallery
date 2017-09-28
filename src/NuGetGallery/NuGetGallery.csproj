@@ -699,7 +699,6 @@
     <Compile Include="Areas\Admin\Services\PagerDutyClient.cs" />
     <Compile Include="Areas\Admin\Services\SupportRequestService.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteSearchResult.cs" />
-    <Compile Include="Areas\Admin\ViewModels\UserViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ReservedNamespaceResultModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ReservedNamespaceViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ReservedNamespaceSearchResult.cs" />

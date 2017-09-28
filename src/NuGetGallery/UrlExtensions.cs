@@ -831,8 +831,8 @@ namespace NuGetGallery
             return url;
         }
 
-        public static string GetActionLink(
-            this UrlHelper url,
+        private static string GetActionLink(
+            UrlHelper url,
             string actionName,
             string controllerName,
             bool relativeUrl,
