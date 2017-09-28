@@ -26,5 +26,16 @@ namespace NuGetGallery
         Task UploadFromStreamAsync(Stream packageFile, bool overwrite);
 
         Task FetchAttributesAsync();
+
+        /// <summary>
+        /// Generates the URI that can be used to read the contents of the blob
+        /// using the produced URI only (without storage account credentials).
+        /// </summary>
+        /// <param name="endOfAccess">
+        /// Optional "end of access" timestamp. After the specified time, 
+        /// the returned URI becomes invalid.
+        /// </param>
+        /// <returns>Shared access URI.</returns>
+        Task<Uri> GetSharedReadUriAsync(DateTimeOffset? endOfAccess);
     }
 }

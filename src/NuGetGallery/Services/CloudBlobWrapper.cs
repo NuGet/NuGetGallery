@@ -124,6 +124,19 @@ namespace NuGetGallery
                 state: null);
         }
 
+        public Task<Uri> GetSharedReadUriAsync(DateTimeOffset? endOfAccess)
+        {
+            var accessPolicy = new SharedAccessBlobPolicy
+            {
+                SharedAccessExpiryTime = endOfAccess,
+                Permissions = SharedAccessBlobPermissions.Read
+            };
+
+            var token = this._blob.GetSharedAccessSignature(accessPolicy);
+
+            return Task.FromResult(new Uri(this._blob.Uri.AbsoluteUri + token));
+        }
+
         // The default retry policy treats a 304 as an error that requires a retry. We don't want that!
         private class DontRetryOnNotModifiedPolicy : IRetryPolicy
         {
