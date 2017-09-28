@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -7,7 +8,7 @@ using System.Web.Mvc;
 
 namespace NuGetGallery
 {
-    public interface IPackageFileService
+    public interface IPackageFileService : ICorePackageFileService
     {
         /// <summary>
         /// Creates an ActionResult that allows a third-party client to download the nupkg for the package.
@@ -25,19 +26,9 @@ namespace NuGetGallery
         Task DeletePackageFileAsync(string id, string version);
 
         /// <summary>
-        /// Saves the contents of the package represented by the stream into the file storage.
-        /// </summary>
-        Task SavePackageFileAsync(Package package, Stream packageFile);
-
-        /// <summary>
         /// Copies the contents of the package represented by the stream into the file storage backup location.
         /// </summary>
         Task StorePackageFileInBackupLocationAsync(Package package, Stream packageFile);
-
-        /// <summary>
-        /// Downloads the package from the file storage and reads it into a Stream asynchronously.
-        /// </summary>
-        Task<Stream> DownloadPackageFileAsync(Package packge);
 
         /// <summary>
         /// Deletes the package readme.md file from storage.

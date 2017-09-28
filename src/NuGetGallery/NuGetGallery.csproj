@@ -770,6 +770,8 @@
     <Compile Include="Helpers\GravatarHelper.cs" />
     <Compile Include="Helpers\RegexEx.cs" />
     <Compile Include="Services\AsynchronousPackageValidationInitiator.cs" />
+    <Compile Include="Services\CloudBlobFileStorageService.cs" />
+    <Compile Include="Services\IFileStorageService.cs" />
     <Compile Include="Services\ImmediatePackageValidator.cs" />
     <Compile Include="Services\IPackageValidationInitiator.cs" />
     <Compile Include="Infrastructure\HttpStatusCodeWithServerWarningResult.cs" />
@@ -1675,11 +1677,9 @@
     <Compile Include="Services\CuratedFeedService.cs" />
     <Compile Include="Services\DownloadCountObjectMaterializedInterceptor.cs" />
     <Compile Include="Services\ICuratedFeedService.cs" />
-    <Compile Include="Services\CloudFileReference.cs" />
     <Compile Include="Services\ContentService.cs" />
     <Compile Include="Services\IContentService.cs" />
     <Compile Include="Services\IDownloadCountService.cs" />
-    <Compile Include="Services\IFileReference.cs" />
     <Compile Include="Services\IPackageDeleteService.cs" />
     <Compile Include="Services\IRawSearchService.cs" />
     <Compile Include="Services\IStatusService.cs" />
@@ -1691,13 +1691,8 @@
     <Compile Include="Services\IStatisticsService.cs" />
     <Compile Include="Services\CloudBlobClientWrapper.cs" />
     <Compile Include="Services\CloudBlobContainerWrapper.cs" />
-    <Compile Include="Services\CloudBlobFileStorageService.cs" />
     <Compile Include="Services\CloudBlobWrapper.cs" />
     <Compile Include="Services\FileSystemFileStorageService.cs" />
-    <Compile Include="Services\ISimpleCloudBlob.cs" />
-    <Compile Include="Services\ICloudBlobClient.cs" />
-    <Compile Include="Services\ICloudBlobContainer.cs" />
-    <Compile Include="Services\IFileStorageService.cs" />
     <Compile Include="Services\IIndexingService.cs" />
     <Compile Include="Services\INuGetExeDownloaderService.cs" />
     <Compile Include="Services\IAggregateStatsService.cs" />
@@ -1721,7 +1716,6 @@
     <Compile Include="Services\StatisticsReportNotFoundException.cs" />
     <Compile Include="Services\StatisticsReportResult.cs" />
     <Compile Include="Services\StatusService.cs" />
-    <Compile Include="Services\TestableStorageClientException.cs" />
     <Compile Include="Services\UploadFileService.cs" />
     <Compile Include="Services\EditPackageService.cs" />
     <Compile Include="ViewModels\AggregateStats.cs" />

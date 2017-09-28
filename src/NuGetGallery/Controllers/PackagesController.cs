@@ -248,7 +248,7 @@ namespace NuGetGallery
                 return Json(400, new[] { Strings.UploadFileIsRequired });
             }
 
-            if (!Path.GetExtension(uploadFile.FileName).Equals(Constants.NuGetPackageFileExtension, StringComparison.OrdinalIgnoreCase))
+            if (!Path.GetExtension(uploadFile.FileName).Equals(CoreConstants.NuGetPackageFileExtension, StringComparison.OrdinalIgnoreCase))
             {
                 ModelState.AddModelError(String.Empty, Strings.UploadFileMustBeNuGetPackage);
                 return Json(400, new[] { Strings.UploadFileMustBeNuGetPackage });

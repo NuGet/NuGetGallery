@@ -223,6 +223,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The package is missing required data..
+        /// </summary>
+        public static string PackageIsMissingRequiredData {
+            get {
+                return ResourceManager.GetString("PackageIsMissingRequiredData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The version string is invalid..
         /// </summary>
         public static string PackageMetadata_SetPropertiesFromMetadata_VersionStringInvalid {

@@ -186,4 +186,7 @@
   <data name="CookieComplianceServiceAlreadyInitialized" xml:space="preserve">
     <value>The cookie compliance service is already initialized.</value>
   </data>
+  <data name="PackageIsMissingRequiredData" xml:space="preserve">
+    <value>The package is missing required data.</value>
+  </data>
 </root>

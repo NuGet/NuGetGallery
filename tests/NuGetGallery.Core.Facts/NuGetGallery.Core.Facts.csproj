@@ -145,7 +145,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Packaging\NupkgRewriterFacts.cs" />
     <Compile Include="SemVerLevelKeyFacts.cs" />
+    <Compile Include="Services\CloudBlobCoreFileStorageServiceFacts.cs" />
+    <Compile Include="Services\CorePackageFileServiceFacts.cs" />
     <Compile Include="Services\CorePackageServiceFacts.cs" />
+    <Compile Include="TestUtils\CoreMockExtensions.cs" />
     <Compile Include="Utilities\TestDirectory.cs" />
   </ItemGroup>
   <ItemGroup>
