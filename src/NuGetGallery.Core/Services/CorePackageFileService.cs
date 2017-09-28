@@ -82,6 +82,8 @@ namespace NuGetGallery
 
         public Task<Uri> GetValidationPackageReadUriAsync(Package package, DateTimeOffset? endOfAccess)
         {
+            package = package ?? throw new ArgumentNullException(nameof(package));
+
             var fileName = BuildFileName(
                 package,
                 CoreConstants.PackageFileSavePathTemplate,
