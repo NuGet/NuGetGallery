@@ -1508,30 +1508,21 @@ namespace NuGetGallery
 
                 await _autoCuratedPackageCmd.ExecuteAsync(package, nugetPackage, commitChanges: false);
 
-                // save package to blob storage
+                // Commit the package to storage and to the database.
                 uploadFile.Position = 0;
-                try
-                {
-                    await _packageFileService.SavePackageFileAsync(package, uploadFile.AsSeekableStream());
-                }
-                catch (InvalidOperationException ex)
-                {
-                    ex.Log();
-                    TempData["Message"] = Strings.UploadPackage_IdVersionConflict;
-                    
-                    return Json(409, new [] { Strings.UploadPackage_IdVersionConflict });
-                }
+                var commitResult = await _packageUploadService.CommitPackageAsync(
+                    package,
+                    uploadFile.AsSeekableStream());
 
-                try
+                switch (commitResult)
                 {
-                    // commit all changes to database as an atomic transaction
-                    await _entitiesContext.SaveChangesAsync();
-                }
-                catch
-                {
-                    // If saving to the DB fails for any reason we need to delete the package we just saved.
-                    await _packageFileService.DeletePackageFileAsync(packageMetadata.Id, packageMetadata.Version.ToNormalizedString());
-                    throw;
+                    case PackageCommitResult.Success:
+                        break;
+                    case PackageCommitResult.Conflict:
+                        TempData["Message"] = Strings.UploadPackage_IdVersionConflict;
+                        return Json(409, new[] { Strings.UploadPackage_IdVersionConflict });
+                    default:
+                        throw new NotImplementedException($"The package commit result {commitResult} is not supported.");
                 }
 
                 // tell Lucene to update index for the new package
