@@ -32,24 +32,47 @@ namespace NuGetGallery
 
         private class FolderNamesDataAttribute : DataAttribute
         {
-            public FolderNamesDataAttribute(bool includePermissions = false)
+            public FolderNamesDataAttribute(bool includePermissions = false, bool includeContentTypes = false)
             {
                 IncludePermissions = includePermissions;
+                IncludeContentTypes = includeContentTypes;
             }
 
-            private bool IncludePermissions { get; set; }
+            private bool IncludePermissions { get; }
+
+            private bool IncludeContentTypes { get; }
 
             public override IEnumerable<object[]> GetData(MethodInfo testMethod)
             {
                 var folderNames = new List<object[]>
-                    {
-                        new object[] { CoreConstants.PackagesFolderName, true },
-                        new object[] { CoreConstants.UploadsFolderName, false }
-                    };
-
-                if (!IncludePermissions)
                 {
-                    folderNames = folderNames.Select(fn => new[] { fn.ElementAt(0) }).ToList();
+                    new object[] { CoreConstants.ContentFolderName, false, null, },
+                    new object[] { CoreConstants.DownloadsFolderName, true, CoreConstants.OctetStreamContentType },
+                    new object[] { CoreConstants.PackageBackupsFolderName, true, CoreConstants.PackageContentType },
+                    new object[] { CoreConstants.PackageReadMesFolderName, false, CoreConstants.TextContentType },
+                    new object[] { CoreConstants.PackagesFolderName, true, CoreConstants.PackageContentType },
+                    new object[] { CoreConstants.UploadsFolderName, false, CoreConstants.PackageContentType },
+                    new object[] { CoreConstants.ValidationFolderName, false, CoreConstants.PackageContentType },
+                };
+
+                if (!IncludePermissions && !IncludeContentTypes)
+                {
+                    folderNames = folderNames
+                        .Select(fn => new[] { fn.ElementAt(0) })
+                        .ToList();
+                }
+                else if (IncludePermissions && !IncludeContentTypes)
+                {
+                    folderNames = folderNames
+                        .Select(fn => new[] { fn[0], fn[1] })
+                        .ToList();
+                }
+                else if (!IncludePermissions && IncludeContentTypes)
+                {
+                    folderNames = folderNames
+                        .Where(fn => fn[2] != null)
+                        .Select(fn => new[] { fn[0], fn[2] })
+                        .ToList();
                 }
 
                 return folderNames;
@@ -343,8 +366,8 @@ namespace NuGetGallery
         public class TheSaveFileMethod
         {
             [Theory]
-            [FolderNamesData]
-            public async Task WillGetTheBlobFromTheCorrectFolderContainer(string folderName)
+            [FolderNamesData(includeContentTypes: true)]
+            public async Task WillGetTheBlobFromTheCorrectFolderContainer(string folderName, string contentType)
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
@@ -376,7 +399,7 @@ namespace NuGetGallery
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
                 await service.SaveFileAsync(folderName, "theFileName", new MemoryStream());
-
+                
                 fakeBlobContainer.Verify(x => x.GetBlobReference("theFileName"));
             }
 
@@ -450,8 +473,8 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [FolderNamesData]
-            public async Task WillSetTheBlobContentType(string folderName)
+            [FolderNamesData(includeContentTypes: true)]
+            public async Task WillSetTheBlobContentType(string folderName, string contentType)
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeBlobContainer = new Mock<ICloudBlobContainer>();
@@ -483,7 +506,7 @@ namespace NuGetGallery
 
                 await service.SaveFileAsync(folderName, "theFileName", new MemoryStream());
 
-                Assert.Equal(CoreConstants.PackageContentType, fakeBlob.Object.Properties.ContentType);
+                Assert.Equal(contentType, fakeBlob.Object.Properties.ContentType);
                 fakeBlob.Verify(x => x.SetPropertiesAsync());
             }
         }

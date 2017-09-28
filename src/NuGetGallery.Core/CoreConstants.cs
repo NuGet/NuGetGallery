@@ -21,5 +21,6 @@ namespace NuGetGallery
         public const string PackageReadMesFolderName = "readmes";
         public const string PackagesFolderName = "packages";        
         public const string UploadsFolderName = "uploads";
+        public const string ValidationFolderName = "validation";
     }
 }

@@ -130,6 +130,7 @@ namespace NuGetGallery
                 case CoreConstants.ContentFolderName:
                 case CoreConstants.UploadsFolderName:
                 case CoreConstants.PackageReadMesFolderName:
+                case CoreConstants.ValidationFolderName:
                     creationTask = PrepareContainer(folderName, isPublic: false);
                     break;
 
@@ -199,6 +200,7 @@ namespace NuGetGallery
                 case CoreConstants.PackagesFolderName:
                 case CoreConstants.PackageBackupsFolderName:
                 case CoreConstants.UploadsFolderName:
+                case CoreConstants.ValidationFolderName:
                     return CoreConstants.PackageContentType;
 
                 case CoreConstants.DownloadsFolderName:

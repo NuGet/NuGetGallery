@@ -34,6 +34,52 @@ namespace NuGetGallery
             return _fileStorageService.GetFileAsync(CoreConstants.PackagesFolderName, fileName);
         }
 
+        public Task SaveValidationPackageFileAsync(Package package, Stream packageFile)
+        {
+            if (packageFile == null)
+            {
+                throw new ArgumentNullException(nameof(packageFile));
+            }
+
+            var fileName = BuildFileName(
+                package,
+                CoreConstants.PackageFileSavePathTemplate,
+                CoreConstants.NuGetPackageFileExtension);
+
+            return _fileStorageService.SaveFileAsync(
+                CoreConstants.ValidationFolderName,
+                fileName,
+                packageFile,
+                overwrite: false);
+        }
+
+        public Task<Stream> DownloadValidationPackageFileAsync(Package package)
+        {
+            var fileName = BuildFileName(
+                package,
+                CoreConstants.PackageFileSavePathTemplate,
+                CoreConstants.NuGetPackageFileExtension);
+
+            return _fileStorageService.GetFileAsync(CoreConstants.ValidationFolderName, fileName);
+        }
+
+        public Task DeleteValidationPackageFileAsync(string id, string version)
+        {
+            if (version == null)
+            {
+                throw new ArgumentNullException(nameof(version));
+            }
+
+            var normalizedVersion = NuGetVersionFormatter.Normalize(version);
+            var fileName = BuildFileName(
+                id,
+                normalizedVersion,
+                CoreConstants.PackageFileSavePathTemplate,
+                CoreConstants.NuGetPackageFileExtension);
+            
+            return _fileStorageService.DeleteFileAsync(CoreConstants.ValidationFolderName, fileName);
+        }
+
         protected static string BuildFileName(Package package, string format, string extension)
         {
             if (package == null)
