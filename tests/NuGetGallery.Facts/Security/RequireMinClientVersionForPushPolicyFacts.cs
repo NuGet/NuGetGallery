@@ -10,6 +10,9 @@ using Xunit;
 
 namespace NuGetGallery.Security
 {
+    /// <summary>
+    /// This code should be removed soon: https://github.com/NuGet/Engineering/issues/800
+    /// </summary>
     public class RequireMinClientVersionForPushPolicyFacts
     {
         [Theory]

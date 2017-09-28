@@ -268,7 +268,7 @@ namespace NuGetGallery
         private string GetSecurePushPolicyDescriptions()
         {
             return string.Format(CultureInfo.CurrentCulture, Strings.SecurePushPolicyDescriptionsHtml,
-                SecurePushSubscription.MinClientVersion, SecurePushSubscription.PushKeysExpirationInDays);
+                SecurePushSubscription.MinProtocolVersion, SecurePushSubscription.PushKeysExpirationInDays);
         }
 
         private bool TryGetManagePackageOwnerModel(string id, string username, out ManagePackageOwnerModel model)

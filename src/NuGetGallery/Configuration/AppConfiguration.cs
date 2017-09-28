@@ -16,9 +16,6 @@ namespace NuGetGallery.Configuration
         [DefaultValue("")]
         public string WarningBanner { get; set; }
 
-        [DefaultValue("")]
-        public string RedesignBanner { get; set; }
-
         /// <summary>
         /// Gets a setting indicating if SSL is required for all operations once logged in.
         /// </summary>
@@ -65,6 +62,8 @@ namespace NuGetGallery.Configuration
         /// Gets a setting if Read Access Geo Redundant is enabled in azure storage
         /// </summary>
         public bool AzureStorageReadAccessGeoRedundant { get; set; }
+
+        public bool AsynchronousPackageValidationEnabled { get; set; }
 
         /// <summary>
         /// Gets the URI to the search service
@@ -273,5 +272,10 @@ namespace NuGetGallery.Configuration
         /// Get/Sets a string to a url that details trademarks. If unset, the link will not appear.
         /// </summary>
         public string TrademarksUrl { get; set; }
+
+        /// <summary>
+        /// Gets/Sets a flag indicating if default security policies should be enforced.
+        /// </summary>
+        public bool EnforceDefaultSecurityPolicies { get; set; }
     }
 }

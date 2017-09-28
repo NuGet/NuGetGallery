@@ -18,7 +18,7 @@ namespace NuGetGallery.Security
     public class SecurePushSubscription : IUserSecurityPolicySubscription
     {
         public const string Name = "SecurePush";
-        internal const string MinClientVersion = "4.1.0";
+        internal const string MinProtocolVersion = "4.1.0";
         internal const int PushKeysExpirationInDays = 30;
 
         private IAuditingService _auditing;
@@ -43,7 +43,7 @@ namespace NuGetGallery.Security
             get
             {
                 yield return new UserSecurityPolicy(RequirePackageVerifyScopePolicy.PolicyName, SubscriptionName);
-                yield return RequireMinClientVersionForPushPolicy.CreatePolicy(SubscriptionName, new NuGetVersion(MinClientVersion));
+                yield return RequireMinProtocolVersionForPushPolicy.CreatePolicy(SubscriptionName, new NuGetVersion(MinProtocolVersion));
             }
         }
 

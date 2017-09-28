@@ -325,6 +325,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Enqueuing unavailable: the gallery is currently in read only mode, with limited service. Please try again later..
+        /// </summary>
+        public static string CannotEnqueueDueToReadOnly {
+            get {
+                return ResourceManager.GetString("CannotEnqueueDueToReadOnly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Oops! You can&apos;t remove the only credential that can be used to sign in to the website!.
         /// </summary>
         public static string CannotRemoveOnlyLoginCredential {
@@ -792,15 +801,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The package is missing required data..
-        /// </summary>
-        public static string PackageIsMissingRequiredData {
-            get {
-                return ResourceManager.GetString("PackageIsMissingRequiredData", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Package versions that differ only by metadata cannot be uploaded. A package with ID &apos;{0}&apos; and version &apos;{1}&apos; already exists and cannot be modified..
         /// </summary>
         public static string PackageVersionDiffersOnlyByMetadataAndCannotBeModified {
@@ -1138,7 +1138,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Your account requires a package verification key to push symbols. Please contact support@nuget.org to get more details..
+        ///   Looks up a localized string similar to A package verification key is required to push symbols. Please contact support@nuget.org to get more details..
         /// </summary>
         public static string SecurityPolicy_RequireApiKeyWithPackageVerifyScope {
             get {
@@ -1147,11 +1147,11 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Your account requires client version &apos;{0}&apos; or higher to be able to push packages. Please contact support@nuget.org to get more details..
+        ///   Looks up a localized string similar to A client version &apos;{0}&apos; or higher is required to be able to push packages. Please contact support@nuget.org to get more details..
         /// </summary>
-        public static string SecurityPolicy_RequireMinClientVersionForPush {
+        public static string SecurityPolicy_RequireMinProtocolVersionForPush {
             get {
-                return ResourceManager.GetString("SecurityPolicy_RequireMinClientVersionForPush", resourceCulture);
+                return ResourceManager.GetString("SecurityPolicy_RequireMinProtocolVersionForPush", resourceCulture);
             }
         }
         

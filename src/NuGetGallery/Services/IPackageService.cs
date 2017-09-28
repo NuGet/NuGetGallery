@@ -34,7 +34,8 @@ namespace NuGetGallery
         IEnumerable<Package> FindDependentPackages(Package package);
 
         /// <summary>
-        /// Populate the related database tables to create the specified package for the specified user.
+        /// Populate the related database tables to create the specified package for the specified user. It is the
+        /// caller's responsibility to commit changes to the entity context.
         /// </summary>
         /// <remarks>
         /// This method doesn't upload the package binary to the blob storage. The caller must do it after this call.
@@ -43,9 +44,8 @@ namespace NuGetGallery
         /// <param name="packageStreamMetadata">The package stream's metadata.</param>
         /// <param name="user">The owner of the package</param>
         /// <param name="isVerified">Mark the package registration as verified or not</param>
-        /// <param name="commitChanges">Specifies whether to commit the changes to database.</param>
         /// <returns>The created package entity.</returns>
-        Task<Package> CreatePackageAsync(PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool isVerified, bool commitChanges = true);
+        Task<Package> CreatePackageAsync(PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool isVerified);
 
         Package EnrichPackageFromNuGetPackage(Package package, PackageArchiveReader packageArchive, PackageMetadata packageMetadata, PackageStreamMetadata packageStreamMetadata, User user);
 

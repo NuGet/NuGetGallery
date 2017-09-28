@@ -45,12 +45,6 @@ namespace NuGetGallery
             return self.Returns(Task.FromResult((TRet)null));
         }
 
-        public static IReturnsResult<TMock> Completes<TMock>(this IReturns<TMock, Task> self)
-            where TMock : class
-        {
-            return self.Returns(Task.FromResult((object)null));
-        }
-
         public static IReturnsResult<TMock> CompletesWith<TMock, TRet>(this IReturns<TMock, Task<TRet>> self, TRet value)
             where TMock : class
         {

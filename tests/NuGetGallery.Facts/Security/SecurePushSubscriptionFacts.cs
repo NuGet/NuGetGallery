@@ -34,7 +34,7 @@ namespace NuGetGallery.Security
         {
             // Arrange.
             var subscription = CreateSecurityPolicyService().UserSubscriptions.Single();
-            var policy1 = subscription.Policies.FirstOrDefault(p => p.Name.Equals(RequireMinClientVersionForPushPolicy.PolicyName));
+            var policy1 = subscription.Policies.FirstOrDefault(p => p.Name.Equals(RequireMinProtocolVersionForPushPolicy.PolicyName));
             var policy2 = subscription.Policies.FirstOrDefault(p => p.Name.Equals(RequirePackageVerifyScopePolicy.PolicyName));
 
             // Act & Assert.

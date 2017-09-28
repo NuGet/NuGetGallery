@@ -482,8 +482,7 @@ namespace NuGetGallery
                             id,
                             packageToPush,
                             packageStreamMetadata,
-                            user,
-                            commitChanges: false);
+                            user);
 
                         await AutoCuratePackage.ExecuteAsync(package, packageToPush, commitChanges: false);
 

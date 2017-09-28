@@ -22,7 +22,7 @@ namespace NuGetGallery
 
         public Task<ActionResult> CreateNuGetExeDownloadActionResultAsync(Uri requestUrl)
         {
-            return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, Constants.DownloadsFolderName, "nuget.exe");
+            return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, CoreConstants.DownloadsFolderName, "nuget.exe");
         }
     }
 }

@@ -11,6 +11,7 @@ using NuGet.Versioning;
 namespace NuGetGallery.Security
 {
     /// <summary>
+    /// This code should be removed soon: https://github.com/NuGet/Engineering/issues/800
     /// User security policy that requires a minimum client version in order to push packages.
     /// </summary>
     public class RequireMinClientVersionForPushPolicy : UserSecurityPolicyHandler
@@ -98,7 +99,7 @@ namespace NuGetGallery.Security
             if (protocolVersion == null || protocolVersion < minClientVersion)
             {
                 return SecurityPolicyResult.CreateErrorResult(string.Format(CultureInfo.CurrentCulture,
-                    Strings.SecurityPolicy_RequireMinClientVersionForPush, minClientVersion));
+                    Strings.SecurityPolicy_RequireMinProtocolVersionForPush, minClientVersion));
             }
 
             return SecurityPolicyResult.SuccessResult;

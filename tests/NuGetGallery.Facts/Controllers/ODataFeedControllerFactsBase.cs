@@ -27,6 +27,8 @@ namespace NuGetGallery.Controllers
         private const string _siteRoot = "https://nuget.localtest.me";
         protected const string TestPackageId = "Some.Awesome.Package";
 
+        protected readonly IReadOnlyCollection<Package> AvailablePackages;
+        protected readonly IReadOnlyCollection<Package> UnavailablePackages;
         protected readonly IReadOnlyCollection<Package> NonSemVer2Packages;
         protected readonly IReadOnlyCollection<Package> SemVer2Packages;
         protected readonly IEntityRepository<Package> PackagesRepository;
@@ -36,8 +38,10 @@ namespace NuGetGallery.Controllers
         {
             // Arrange
             AllPackages = CreatePackagesQueryable();
-            NonSemVer2Packages = AllPackages.Where(p => p.SemVerLevelKey == SemVerLevelKey.Unknown).ToList();
-            SemVer2Packages = AllPackages.Where(p => p.SemVerLevelKey == SemVerLevelKey.SemVer2).ToList();
+            AvailablePackages = AllPackages.Where(p => p.PackageStatusKey == PackageStatus.Available).ToList();
+            UnavailablePackages = AllPackages.Where(p => p.PackageStatusKey != PackageStatus.Available).ToList();
+            NonSemVer2Packages = AvailablePackages.Where(p => p.SemVerLevelKey == SemVerLevelKey.Unknown).ToList();
+            SemVer2Packages = AvailablePackages.Where(p => p.SemVerLevelKey == SemVerLevelKey.SemVer2).ToList();
 
             var packagesRepositoryMock = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
             packagesRepositoryMock.Setup(m => m.GetAll()).Returns(AllPackages).Verifiable();
@@ -118,6 +122,30 @@ namespace NuGetGallery.Controllers
 
             var list = new List<Package>
             {
+                new Package
+                {
+                    PackageRegistration = packageRegistration,
+                    Version = "0.9.0.0",
+                    NormalizedVersion = "0.9.0",
+                    SemVerLevelKey = SemVerLevelKey.Unknown,
+                    PackageStatusKey = PackageStatus.Deleted,
+                },
+                new Package
+                {
+                    PackageRegistration = packageRegistration,
+                    Version = "0.8.0.0",
+                    NormalizedVersion = "0.8.0",
+                    SemVerLevelKey = SemVerLevelKey.Unknown,
+                    PackageStatusKey = PackageStatus.Validating,
+                },
+                new Package
+                {
+                    PackageRegistration = packageRegistration,
+                    Version = "0.7.0.0",
+                    NormalizedVersion = "0.7.0",
+                    SemVerLevelKey = SemVerLevelKey.Unknown,
+                    PackageStatusKey = PackageStatus.FailedValidation,
+                },
                 new Package
                 {
                     PackageRegistration = packageRegistration,
