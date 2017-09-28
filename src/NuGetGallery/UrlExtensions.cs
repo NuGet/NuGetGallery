@@ -583,7 +583,8 @@ namespace NuGetGallery
                 routeValues: new RouteValueDictionary
                 {
                     { "ReturnUrl", returnUrl }
-                });
+                },
+                interceptReturnUrl: false);
         }
 
         public static string ManageMyApiKeys(this UrlHelper url, bool relativeUrl = true)
@@ -835,14 +836,14 @@ namespace NuGetGallery
             string actionName,
             string controllerName,
             bool relativeUrl,
-            RouteValueDictionary routeValues = null
+            RouteValueDictionary routeValues = null,
+            bool interceptReturnUrl = true
             )
         {
             var protocol = GetProtocol(url);
             var hostName = GetConfiguredSiteHostName();
-
-
-            if (routeValues != null && routeValues.ContainsKey("ReturnUrl"))
+            
+            if (interceptReturnUrl && routeValues != null && routeValues.ContainsKey("ReturnUrl"))
             {
                 routeValues["ReturnUrl"] = GetAbsoluteReturnUrl(
                     routeValues["ReturnUrl"]?.ToString(),
