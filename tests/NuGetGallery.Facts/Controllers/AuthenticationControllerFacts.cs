@@ -728,16 +728,12 @@ namespace NuGetGallery.Controllers
                 const string returnUrl = "/theReturnUrl";
                 EnableAllAuthenticators(Get<AuthenticationService>());
                 var controller = GetController<AuthenticationController>();
-                var absoluteReturnUrl = UrlExtensions.GetAbsoluteReturnUrl(
-                    returnUrl,
-                    "https",
-                    new Uri(GetConfigurationService().GetSiteRoot(useHttps: true)).Host);
-
+                
                 // Act
                 var result = controller.ChallengeAuthentication(returnUrl, "MicrosoftAccount");
 
                 // Assert
-                ResultAssert.IsChallengeResult(result, "MicrosoftAccount", "/users/account/authenticate/return?ReturnUrl=" + HttpUtility.UrlEncode(absoluteReturnUrl));
+                ResultAssert.IsChallengeResult(result, "MicrosoftAccount", "/users/account/authenticate/return?ReturnUrl=" + HttpUtility.UrlEncode(returnUrl));
             }
         }
 
