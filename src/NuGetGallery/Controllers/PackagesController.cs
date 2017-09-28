@@ -1210,8 +1210,10 @@ namespace NuGetGallery
                     await _packageService.UpdatePackageVerifiedStatusAsync(new List<PackageRegistration> { package }, isVerified: true);
                 }
 
-                await Task.WhenAll(userOwnedMatchingNamespacesForId
-                    .Select(mn => _reservedNamespaceService.AddPackageRegistrationToNamespaceAsync(mn.Value, package, commitChanges: true)));
+                userOwnedMatchingNamespacesForId
+                    .ToList()
+                    .ForEach(mn => 
+                        _reservedNamespaceService.AddPackageRegistrationToNamespace(mn.Value, package));
             }
 
             SendAddPackageOwnerNotification(package, user, result.Item1, result.Item2);
