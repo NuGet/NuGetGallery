@@ -53,6 +53,7 @@
     <Compile Include="ValidateOnlyConfiguration.cs" />
     <Compile Include="ValidationConfiguration.cs" />
     <Compile Include="ValidationConfigurationItem.cs" />
+    <Compile Include="Vcs\VcsConfiguration.cs" />
     <Compile Include="Vcs\VcsValidator.cs" />
   </ItemGroup>
   <ItemGroup>
