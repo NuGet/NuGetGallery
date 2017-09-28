@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
+using System.Web.Routing;
 using NuGet.Versioning;
 using NuGetGallery.Areas.Admin.ViewModels;
 
@@ -49,16 +50,25 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
             var queryParts = query.Split(new[] { ',', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
-            var results = new List<DeleteSearchResult>();
+            var packages = new List<Package>();
+            var completedQueryParts = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var queryPart in queryParts)
             {
+                // Don't make the same query twice.
+                if (!completedQueryParts.Add(queryPart.Trim()))
+                {
+                    continue;
+                }
+
                 var splitQueryPart = queryPart.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
                 if (splitQueryPart.Length == 1)
                 {
                     var resultingRegistration = _packageService.FindPackageRegistrationById(splitQueryPart[0].Trim());
                     if (resultingRegistration != null)
                     {
-                        results.AddRange(resultingRegistration.Packages.Select(CreateDeleteSearchResult));
+                        packages.AddRange(resultingRegistration
+                            .Packages
+                            .OrderBy(p => NuGetVersion.Parse(p.NormalizedVersion)));
                     }
                 }
                 else if (splitQueryPart.Length == 2)
@@ -66,9 +76,22 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     var resultingPackage = _packageService.FindPackageByIdAndVersionStrict(splitQueryPart[0].Trim(), splitQueryPart[1].Trim());
                     if (resultingPackage != null)
                     {
-                        results.Add(CreateDeleteSearchResult(resultingPackage));
+                        packages.Add(resultingPackage);
                     }
                 }
+            }
+
+            // Filter out duplicate packages and create the view model.
+            var uniquePackagesKeys = new HashSet<int>();
+            var results = new List<DeleteSearchResult>();
+            foreach (var package in packages)
+            {
+                if (!uniquePackagesKeys.Add(package.Key))
+                {
+                    continue;
+                }
+
+                results.Add(CreateDeleteSearchResult(package));
             }
             
             return Json(results, JsonRequestBehavior.AllowGet);
@@ -83,8 +106,20 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     ? package.NormalizedVersion 
                     : NuGetVersion.Parse(package.Version).ToNormalizedString(),
                 DownloadCount = package.DownloadCount,
+                Created = package.Created.ToNuGetShortDateString(),
                 Listed = package.Listed,
-                Deleted = package.PackageStatusKey == PackageStatus.Deleted,
+                PackageStatus = package.PackageStatusKey.ToString(),
+                Owners = package
+                    .PackageRegistration
+                    .Owners
+                    .Select(u => u.Username)
+                    .OrderBy(u => u)
+                    .Select(username => new UserViewModel
+                    {
+                        Username = username,
+                        ProfileUrl = Url.User(username, area: string.Empty),
+                    })
+                    .ToList()
             };
         }
     }

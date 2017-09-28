@@ -434,17 +434,25 @@ namespace NuGetGallery
             this UrlHelper url,
             string username,
             string scheme = null,
+            string area = null,
             bool relativeUrl = true)
         {
+            var routeValues = new RouteValueDictionary
+            {
+                { "username", username },
+            };
+
+            if (area != null)
+            {
+                routeValues["area"] = area;
+            }
+
             return GetActionLink(
                 url,
                 "Profiles",
                 "Users",
                 relativeUrl,
-                routeValues: new RouteValueDictionary
-                {
-                    { "username", username }
-                });
+                routeValues);
         }
 
         public static string EditPackage(
