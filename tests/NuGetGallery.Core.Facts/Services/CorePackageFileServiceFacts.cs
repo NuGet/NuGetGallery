@@ -348,6 +348,31 @@ namespace NuGetGallery
             }
         }
 
+        public class TheGetValidationPackageReadUriAsyncMethod : FactsBase
+        {
+            [Fact]
+            public async Task WillThrowIfPackageIsNull()
+            {
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => _service.GetValidationPackageReadUriAsync(null, DateTimeOffset.UtcNow.AddHours(3)));
+
+                Assert.Equal("package", ex.ParamName);
+            }
+
+            [Fact]
+            public async Task WillUseTheFileStorageService()
+            {
+                DateTimeOffset endOfAccess = DateTimeOffset.UtcNow.AddHours(3);
+                await _service.GetValidationPackageReadUriAsync(_package, endOfAccess);
+
+                _fileStorageService.Verify(
+                    x => x.GetFileReadUriAsync(ValidationFolderName, ValidationFileName, endOfAccess),
+                    Times.Once);
+                _fileStorageService.Verify(
+                    x => x.GetFileReadUriAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTimeOffset>()),
+                    Times.Once);
+            }
+        }
+
         static string BuildFileName(
             string id,
             string version, string extension, string path)
