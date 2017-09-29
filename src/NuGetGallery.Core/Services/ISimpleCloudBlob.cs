@@ -36,6 +36,6 @@ namespace NuGetGallery
         /// the returned URI becomes invalid.
         /// </param>
         /// <returns>Shared access URI.</returns>
-        Task<Uri> GetSharedReadUriAsync(DateTimeOffset? endOfAccess);
+        Uri GetSharedReadUri(DateTimeOffset? endOfAccess);
     }
 }

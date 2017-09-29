@@ -234,7 +234,7 @@ namespace NuGetGallery
             fileName = fileName ?? throw new ArgumentNullException(nameof(fileName));
             ICloudBlobContainer container = await GetContainer(folderName);
             var blob = container.GetBlobReference(fileName);
-            return await blob.GetSharedReadUriAsync(endOfAccess);
+            return blob.GetSharedReadUri(endOfAccess);
         }
 
         private struct StorageResult
