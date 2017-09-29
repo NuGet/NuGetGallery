@@ -80,7 +80,7 @@ namespace NuGetGallery
             return _fileStorageService.DeleteFileAsync(CoreConstants.ValidationFolderName, fileName);
         }
 
-        public Task<Uri> GetValidationPackageReadUriAsync(Package package, DateTimeOffset? endOfAccess)
+        public Task<Uri> GetValidationPackageReadUriAsync(Package package, DateTimeOffset endOfAccess)
         {
             package = package ?? throw new ArgumentNullException(nameof(package));
 

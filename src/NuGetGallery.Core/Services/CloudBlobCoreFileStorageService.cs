@@ -232,6 +232,10 @@ namespace NuGetGallery
         {
             folderName = folderName ?? throw new ArgumentNullException(nameof(folderName));
             fileName = fileName ?? throw new ArgumentNullException(nameof(fileName));
+            if (endOfAccess.HasValue && endOfAccess < DateTimeOffset.UtcNow)
+            {
+                throw new ArgumentOutOfRangeException(nameof(endOfAccess), $"{nameof(endOfAccess)} is in the past");
+            }
             ICloudBlobContainer container = await GetContainer(folderName);
             var blob = container.GetBlobReference(fileName);
             return blob.GetSharedReadUri(endOfAccess);

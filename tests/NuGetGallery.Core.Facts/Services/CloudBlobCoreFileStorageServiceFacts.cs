@@ -510,5 +510,36 @@ namespace NuGetGallery
                 fakeBlob.Verify(x => x.SetPropertiesAsync());
             }
         }
+
+        public class TheGetFileReadUriAsyncMethod
+        {
+            [Fact]
+            public async Task WillThrowIfFolderIsNull()
+            {
+                var service = CreateService();
+
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.GetFileReadUriAsync(null, "theFileName", DateTimeOffset.UtcNow.AddHours(3)));
+                Assert.Equal("folderName", ex.ParamName);
+            }
+
+            [Fact]
+            public async Task WillThrowIfFilenameIsNull()
+            {
+                var service = CreateService();
+
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.GetFileReadUriAsync("theFolder", null, DateTimeOffset.UtcNow.AddHours(3)));
+                Assert.Equal("fileName", ex.ParamName);
+            }
+
+            [Fact]
+            public async Task WillThrowIfEndOfAccessIsInThePast()
+            {
+                var service = CreateService();
+
+                DateTimeOffset inThePast = DateTimeOffset.UtcNow.AddSeconds(-1);
+                var ex = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => service.GetFileReadUriAsync("theFolder", "theFileName", inThePast));
+                Assert.Equal("endOfAccess", ex.ParamName);
+            }
+        }
     }
 }

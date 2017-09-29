@@ -38,9 +38,9 @@ namespace NuGetGallery
         /// Generates the URI for the specified validating package, which can be used to download it.
         /// </summary>
         /// <param name="package">The package metadata.</param>
-        /// <param name="endOfAccess">The optional timestamp that limits the URI usage period.</param>
-        /// <returns>Time limited (if requested and implementation supports) URI for the validation package</returns>
-        Task<Uri> GetValidationPackageReadUriAsync(Package package, DateTimeOffset? endOfAccess);
+        /// <param name="endOfAccess">The timestamp that limits the URI usage period.</param>
+        /// <returns>Time limited (if implementation supports) URI for the validation package</returns>
+        Task<Uri> GetValidationPackageReadUriAsync(Package package, DateTimeOffset endOfAccess);
 
         /// <summary>
         /// Deletes the validating package from the file storage. If the file does not exist this method will not throw
