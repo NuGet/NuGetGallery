@@ -776,12 +776,11 @@ namespace NuGetGallery
 
         public static string Authenticate(this UrlHelper url, string providerName, string returnUrl, bool relativeUrl = true)
         {
-            return GetActionLink(
-                url,
-                "Authenticate",
-                "Authentication",
-                relativeUrl,
-                routeValues: new RouteValueDictionary
+            // DO NOT replace host name for authentication requests! (URL tampering is not permitted during auth)
+            return url.Action(
+                "Authenticate", 
+                "Authentication", 
+                new RouteValueDictionary
                 {
                     { "provider", providerName },
                     { "returnUrl", returnUrl }
