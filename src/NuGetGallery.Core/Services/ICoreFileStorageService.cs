@@ -29,7 +29,8 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="folderName">The folder containing the file.</param>
         /// <param name="fileName">The file within the <paramref name="folderName"/>.</param>
-        /// <param name="endOfAccess">Optional end of access timestamp.</param>
+        /// <param name="endOfAccess">End of access timestamp. Implementation should produce URIs that will become
+        /// invalid after that timestamp if it has support for it. If null then would be no time on URI availability.</param>
         /// <returns>Time limited URI (if requested and implementation supports it) for the specified file.</returns>
         Task<Uri> GetFileReadUriAsync(string folderName, string fileName, DateTimeOffset? endOfAccess);
 
