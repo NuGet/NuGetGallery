@@ -185,7 +185,7 @@
                 )
             }
 
-            @if (Model.LatestStableVersionSemVer2 && Model.HasNewerPrerelease)
+            @if (Model.HasNewerPrerelease)
             {
                 @ViewHelpers.AlertInfo(
                     @<text>
@@ -564,6 +564,14 @@
                     <li>
                         <i class="ms-Icon ms-Icon--Refresh" aria-hidden="true"></i>
                         <a href="@Url.ReflowPackage(Model)">Reflow package</a>
+                    </li>
+                }
+
+                @if (!Model.Deleted && User.IsAdministrator() && Config.Current.AsynchronousPackageValidationEnabled)
+                {
+                    <li>
+                        <i class="ms-Icon ms-Icon--Refresh" aria-hidden="true"></i>
+                        <a href="@Url.RevalidatePackage(Model)">Revalidate package</a>
                     </li>
                 }
             </ul>

@@ -126,7 +126,7 @@ namespace NuGetGallery.TestUtils.Infrastructure
                     NormalizedVersion = "1.0.0",
                     IsPrerelease = false,
                     Listed = false,
-                    Deleted = true, // plot twist: this package is a soft-deleted one
+                    PackageStatusKey = PackageStatus.Deleted, // plot twist: this package is a soft-deleted one
                     Authors = new [] { new PackageAuthor { Name = "Test "} },
                     FlattenedAuthors = "Test",
                     Description = "Baz",

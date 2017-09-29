@@ -320,9 +320,6 @@ The {1} Team</value>
   <data name="JobLogBlobNameInvalid" xml:space="preserve">
     <value>Job Log Blob name is invalid Bob! Expected [jobname].[yyyy-MM-dd].json or [jobname].json. Got: {0}</value>
   </data>
-  <data name="PackageIsMissingRequiredData" xml:space="preserve">
-    <value>The package is missing required data.</value>
-  </data>
   <data name="ErrorInSendingMail" xml:space="preserve">
     <value>Error in sending mail : {0}</value>
   </data>
@@ -432,10 +429,10 @@ The {1} Team</value>
     <value>A nuget package's {0} property is required.</value>
   </data>
   <data name="SecurityPolicy_RequireApiKeyWithPackageVerifyScope" xml:space="preserve">
-    <value>Your account requires a package verification key to push symbols. Please contact support@nuget.org to get more details.</value>
+    <value>A package verification key is required to push symbols. Please contact support@nuget.org to get more details.</value>
   </data>
-  <data name="SecurityPolicy_RequireMinClientVersionForPush" xml:space="preserve">
-    <value>Your account requires client version '{0}' or higher to be able to push packages. Please contact support@nuget.org to get more details.</value>
+  <data name="SecurityPolicy_RequireMinProtocolVersionForPush" xml:space="preserve">
+    <value>A client version '{0}' or higher is required to be able to push packages. Please contact support@nuget.org to get more details.</value>
   </data>
   <data name="PackageVersionDiffersOnlyByMetadataAndCannotBeModified" xml:space="preserve">
     <value>Package versions that differ only by metadata cannot be uploaded. A package with ID '{0}' and version '{1}' already exists and cannot be modified.</value>
@@ -571,19 +568,19 @@ For more information, please contact '{2}'.</value>
     <value>Conversion of Markdown to HTML failed with '{0}'.</value>
   </data>
   <data name="PreviewReadMe_ReadMeMissing" xml:space="preserve">
-    <value>There is no ReadMe available to preview.</value>
+    <value>There is no Markdown Documentation available to preview.</value>
   </data>
   <data name="ReadMeInvalidSourceType" xml:space="preserve">
-    <value>'{0}' is not a valid ReadMe source type.</value>
+    <value>'{0}' is not a valid Markdown Documentation source type.</value>
   </data>
   <data name="ReadMeMaxLengthExceeded" xml:space="preserve">
-    <value>ReadMe file must be less than {0} bytes.</value>
+    <value>The Markdown Documentation file must be less than {0} bytes.</value>
   </data>
   <data name="ReadMePostedFileExtensionInvalid" xml:space="preserve">
-    <value>ReadMe file must end with markdown extension '{0}'.</value>
+    <value>The Documentation file must end with a Markdown extension '{0}'.</value>
   </data>
   <data name="ReadMeUrlHostInvalid" xml:space="preserve">
-    <value>ReadMe URL must be a raw markdown file hosted on GitHub.</value>
+    <value>The Documentation URL must be a raw Markdown file hosted on GitHub.</value>
   </data>
   <data name="ReservedNamespace_OwnerAdded" xml:space="preserve">
     <value>The user '{0}' is now an owner of the prefix '{1}'.</value>
@@ -599,5 +596,8 @@ For more information, please contact '{2}'.</value>
   </data>
   <data name="ReservedNamespace_UserAlreadyOwner" xml:space="preserve">
     <value>The user '{0}' is already an owner of the specified namespace.</value>
+  </data>
+  <data name="CannotEnqueueDueToReadOnly" xml:space="preserve">
+    <value>Enqueuing unavailable: the gallery is currently in read only mode, with limited service. Please try again later.</value>
   </data>
 </root>

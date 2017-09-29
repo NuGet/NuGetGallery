@@ -17,6 +17,8 @@ using Autofac;
 using Autofac.Core;
 using Elmah;
 using Microsoft.WindowsAzure.ServiceRuntime;
+using NuGet.Services.ServiceBus;
+using NuGet.Services.Validation;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Auditing;
@@ -175,6 +177,11 @@ namespace NuGetGallery
                 .AsSelf()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<PackageOwnerRequestService>()
+                .AsSelf()
+                .As<IPackageOwnerRequestService>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<FormsAuthenticationService>()
                 .As<IFormsAuthenticationService>()
                 .InstancePerLifetimeScope();
@@ -201,6 +208,11 @@ namespace NuGetGallery
             builder.RegisterType<PackageUploadService>()
                 .AsSelf()
                 .As<IPackageUploadService>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<ValidationService>()
+                .AsSelf()
+                .As<IValidationService>()
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<ReadMeService>()
@@ -282,6 +294,8 @@ namespace NuGetGallery
                     break;
             }
 
+            RegisterAsynchronousValidation(builder, configuration);
+
             RegisterAuditingServices(builder, defaultAuditingService);
 
             RegisterCookieComplianceService(builder, configuration, diagnosticsService);
@@ -317,6 +331,38 @@ namespace NuGetGallery
             }
 
             ConfigureAutocomplete(builder, configuration);
+        }
+
+        private void RegisterAsynchronousValidation(ContainerBuilder builder, ConfigurationService configuration)
+        {
+            builder
+                .RegisterType<ServiceBusMessageSerializer>()
+                .As<IServiceBusMessageSerializer>();
+
+            builder
+                .RegisterType<PackageValidationEnqueuer>()
+                .As<IPackageValidationEnqueuer>();
+
+            if (configuration.Current.AsynchronousPackageValidationEnabled)
+            {
+                builder
+                    .RegisterType<AsynchronousPackageValidationInitiator>()
+                    .As<IPackageValidationInitiator>();
+
+                builder
+                    .Register(c => new TopicClientWrapper(
+                        configuration.ServiceBus.Validation_ConnectionString,
+                        configuration.ServiceBus.Validation_TopicName))
+                    .As<ITopicClient>()
+                    .SingleInstance()
+                    .OnRelease(x => x.Close());
+            }
+            else
+            {
+                builder
+                    .RegisterType<ImmediatePackageValidator>()
+                    .As<IPackageValidationInitiator>();
+            }
         }
 
         private static void ConfigureSearch(ContainerBuilder builder, IGalleryConfigurationService configuration)

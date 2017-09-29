@@ -194,11 +194,11 @@ namespace NuGetGallery
         {
             switch (folderName)
             {
-                case Constants.PackagesFolderName:
-                    return Constants.PackageContentType;
+                case CoreConstants.PackagesFolderName:
+                    return CoreConstants.PackageContentType;
 
-                case Constants.DownloadsFolderName:
-                    return Constants.OctetStreamContentType;
+                case CoreConstants.DownloadsFolderName:
+                    return CoreConstants.OctetStreamContentType;
 
                 default:
                     throw new InvalidOperationException(

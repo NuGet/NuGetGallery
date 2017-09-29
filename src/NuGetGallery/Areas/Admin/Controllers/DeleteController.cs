@@ -84,7 +84,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     : NuGetVersion.Parse(package.Version).ToNormalizedString(),
                 DownloadCount = package.DownloadCount,
                 Listed = package.Listed,
-                Deleted = package.Deleted
+                Deleted = package.PackageStatusKey == PackageStatus.Deleted,
             };
         }
     }

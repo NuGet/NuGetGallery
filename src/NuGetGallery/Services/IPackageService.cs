@@ -8,7 +8,12 @@ using NuGetGallery.Packaging;
 
 namespace NuGetGallery
 {
-    public interface IPackageService
+    /// <summary>
+    /// Business logic related to <see cref="Package"/> and <see cref="PackageRegistration"/> instances. This logic is
+    /// only used by the NuGet gallery, as opposed to the <see cref="CorePackageService"/> which is intended for other
+    /// components.
+    /// </summary>
+    public interface IPackageService : ICorePackageService
     {
         PackageRegistration FindPackageRegistrationById(string id);
 
@@ -23,22 +28,14 @@ namespace NuGetGallery
         /// <returns></returns>
         Package FindPackageByIdAndVersion(string id, string version, int? semVerLevelKey = null, bool allowPrerelease = true);
 
-        /// <summary>
-        /// Gets the package with the given ID and version when exists; otherwise <c>null</c>.
-        /// </summary>
-        /// <param name="id">The package ID.</param>
-        /// <param name="version">The package version.</param>
-        Package FindPackageByIdAndVersionStrict(string id, string version);
-
         Package FindAbsoluteLatestPackageById(string id, int? semVerLevelKey);
         IEnumerable<Package> FindPackagesByOwner(User user, bool includeUnlisted);
         IEnumerable<PackageRegistration> FindPackageRegistrationsByOwner(User user);
         IEnumerable<Package> FindDependentPackages(Package package);
 
-        Task UpdateIsLatestAsync(PackageRegistration packageRegistration, bool commitChanges = true);
-
         /// <summary>
-        /// Populate the related database tables to create the specified package for the specified user.
+        /// Populate the related database tables to create the specified package for the specified user. It is the
+        /// caller's responsibility to commit changes to the entity context.
         /// </summary>
         /// <remarks>
         /// This method doesn't upload the package binary to the blob storage. The caller must do it after this call.
@@ -47,9 +44,8 @@ namespace NuGetGallery
         /// <param name="packageStreamMetadata">The package stream's metadata.</param>
         /// <param name="user">The owner of the package</param>
         /// <param name="isVerified">Mark the package registration as verified or not</param>
-        /// <param name="commitChanges">Specifies whether to commit the changes to database.</param>
         /// <returns>The created package entity.</returns>
-        Task<Package> CreatePackageAsync(PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool isVerified, bool commitChanges = true);
+        Task<Package> CreatePackageAsync(PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool isVerified);
 
         Package EnrichPackageFromNuGetPackage(Package package, PackageArchiveReader packageArchive, PackageMetadata packageMetadata, PackageStreamMetadata packageStreamMetadata, User user);
 
@@ -58,17 +54,6 @@ namespace NuGetGallery
 
         Task MarkPackageUnlistedAsync(Package package, bool commitChanges = true);
         Task MarkPackageListedAsync(Package package, bool commitChanges = true);
-
-        Task<PackageOwnerRequest> CreatePackageOwnerRequestAsync(PackageRegistration package, User currentOwner, User newOwner);
-        
-        /// <summary>
-        /// Checks if the pending owner has a request for this package which matches the specified token.
-        /// </summary>
-        /// <param name="package">Package associated with the request.</param>
-        /// <param name="pendingOwner">Pending owner for the request.</param>
-        /// <param name="token">Token generated for the owner request.</param>
-        /// <returns>True if valid, false otherwise.</returns>
-        bool IsValidPackageOwnerRequest(PackageRegistration package, User pendingOwner, string token);
 
         /// <summary>
         /// Performs database changes to add a new package owner while removing the corresponding package owner request.

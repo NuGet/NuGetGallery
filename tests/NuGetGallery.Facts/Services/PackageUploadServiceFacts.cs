@@ -3,67 +3,99 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Packaging;
-using NuGetGallery.Framework;
 using NuGetGallery.Packaging;
-using Xunit;
 using NuGetGallery.TestUtils;
+using Xunit;
 
 namespace NuGetGallery
 {
     public class PackageUploadServiceFacts
     {
+        private const string Id = "NuGet.Versioning";
+        private const string Version = "3.4.0.0-ALPHA+1";
+
         public Mock<IPackageService> MockPackageService { get; private set; }
 
         private static PackageUploadService CreateService(
             Mock<IPackageService> packageService = null,
-            Mock<IReservedNamespaceService> reservedNamespaceService = null)
+            Mock<IReservedNamespaceService> reservedNamespaceService = null,
+            Mock<IValidationService> validationService = null)
         {
-            {
             if (packageService == null)
+            {
                 packageService = new Mock<IPackageService>();
-                packageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
-                packageService.Setup(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>(), It.IsAny<bool>())).
-                    Returns((PackageArchiveReader packageArchiveReader, PackageStreamMetadata packageStreamMetadata, User user, bool isVerified, bool commitChanges) =>
-                    {
-                        var packageMetadata = PackageMetadata.FromNuspecReader(packageArchiveReader.GetNuspecReader());
-
-                        var newPackage = new Package();
-                        newPackage.PackageRegistration = new PackageRegistration { Id = packageMetadata.Id, IsVerified = isVerified };
-                        newPackage.Version = packageMetadata.Version.ToString();
-                        newPackage.SemVerLevelKey = SemVerLevelKey.ForPackage(packageMetadata.Version, packageMetadata.GetDependencyGroups().AsPackageDependencyEnumerable());
-
-                        return Task.FromResult(newPackage);
-                    });
             }
-            
+
+            packageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
+            packageService.Setup(x => x
+                .CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>()))
+                .Returns((PackageArchiveReader packageArchiveReader, PackageStreamMetadata packageStreamMetadata, User user, bool isVerified) =>
+                {
+                    var packageMetadata = PackageMetadata.FromNuspecReader(packageArchiveReader.GetNuspecReader());
+
+                    var newPackage = new Package();
+                    newPackage.PackageRegistration = new PackageRegistration { Id = packageMetadata.Id, IsVerified = isVerified };
+                    newPackage.Version = packageMetadata.Version.ToString();
+                    newPackage.SemVerLevelKey = SemVerLevelKey.ForPackage(packageMetadata.Version, packageMetadata.GetDependencyGroups().AsPackageDependencyEnumerable());
+
+                    return Task.FromResult(newPackage);
+                });
+
             if (reservedNamespaceService == null)
             {
                 reservedNamespaceService = new Mock<IReservedNamespaceService>();
+
                 IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces = new List<ReservedNamespace>();
-                reservedNamespaceService.Setup(s => s.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out userOwnedMatchingNamespaces))
+                reservedNamespaceService
+                    .Setup(s => s.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out userOwnedMatchingNamespaces))
                     .Returns(true);
+            }
+
+            if (validationService == null)
+            {
+                validationService = new Mock<IValidationService>();
             }
 
             var packageUploadService = new Mock<PackageUploadService>(
                 packageService.Object,
-                reservedNamespaceService.Object);
+                new Mock<IPackageFileService>().Object,
+                new Mock<IEntitiesContext>().Object,
+                reservedNamespaceService.Object,
+                validationService.Object);
 
             return packageUploadService.Object;
         }
 
         public class TheGeneratePackageAsyncMethod
         {
-            [Theory]
-            [InlineData(true)]
-            [InlineData(false)]
-            public async Task WillCallCreatePackageAsyncCorrectly(bool commitChangesParameter)
+            [Fact]
+            public async Task WillStartAsynchronousValidation()
+            {
+                var validationService = new Mock<IValidationService>();
+
+                var id = "Microsoft.Aspnet.Mvc";
+                var packageUploadService = CreateService(validationService: validationService);
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(id: id);
+                var currentUser = new User();
+
+                var package = await packageUploadService.GeneratePackageAsync(
+                    id,
+                    nugetPackage.Object,
+                    new PackageStreamMetadata(),
+                    currentUser);
+
+                validationService.Verify(
+                    x => x.StartValidationAsync(package),
+                    Times.Once);
+            }
+
+            [Fact]
+            public async Task WillCallCreatePackageAsyncCorrectly()
             {
                 var packageService = new Mock<IPackageService>();
                 packageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
@@ -73,9 +105,9 @@ namespace NuGetGallery
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(id: id);
                 var currentUser = new User();
 
-                var package = await packageUploadService.GeneratePackageAsync(id, nugetPackage.Object, new PackageStreamMetadata(), currentUser, commitChanges: commitChangesParameter);
+                var package = await packageUploadService.GeneratePackageAsync(id, nugetPackage.Object, new PackageStreamMetadata(), currentUser);
 
-                packageService.Verify(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>(), commitChangesParameter), Times.Once);
+                packageService.Verify(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>()), Times.Once);
                 Assert.False(package.PackageRegistration.IsVerified);
             }
 
@@ -105,7 +137,7 @@ namespace NuGetGallery
                 var packageUploadService = CreateService(reservedNamespaceService: reservedNamespaceService);
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(id: id);
 
-                var package = await packageUploadService.GeneratePackageAsync(id, nugetPackage.Object, new PackageStreamMetadata(), firstUser, commitChanges: true);
+                var package = await packageUploadService.GeneratePackageAsync(id, nugetPackage.Object, new PackageStreamMetadata(), firstUser);
 
                 Assert.Equal(shouldMarkIdVerified, package.PackageRegistration.IsVerified);
             }
@@ -133,9 +165,209 @@ namespace NuGetGallery
                 var packageUploadService = CreateService(reservedNamespaceService: reservedNamespaceService);
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(id: id);
 
-                var package = await packageUploadService.GeneratePackageAsync(id, nugetPackage.Object, new PackageStreamMetadata(), lastUser, commitChanges: true);
+                var package = await packageUploadService.GeneratePackageAsync(id, nugetPackage.Object, new PackageStreamMetadata(), lastUser);
 
                 Assert.False(package.PackageRegistration.IsVerified);
+            }
+        }
+
+        public class TheCommitPackageMethod : FactsBase
+        {
+            public static IEnumerable<object[]> SupportedPackageStatuses => new[]
+            {
+                new object[] { PackageStatus.Available },
+                new object[] { PackageStatus.Validating },
+            };
+
+            public static IEnumerable<object[]> UnsupportedPackageStatuses => Enum
+                .GetValues(typeof(PackageStatus))
+                .Cast<PackageStatus>()
+                .Concat(new[] { (PackageStatus)(-1) })
+                .Where(s => !SupportedPackageStatuses.Any(o => s.Equals(o[0])))
+                .Select(s => new object[] { s });
+            
+            [Theory]
+            [MemberData(nameof(SupportedPackageStatuses))]
+            public async Task CommitsAfterSavingSupportedPackageStatuses(PackageStatus packageStatus)
+            {
+                _package.PackageStatusKey = packageStatus;
+
+                var result = await _target.CommitPackageAsync(_package, _packageFile);
+
+                _entitiesContext.Verify(
+                    x => x.SaveChangesAsync(),
+                    Times.Once);
+                Assert.Equal(PackageCommitResult.Success, result);
+            }
+
+            [Theory]
+            [MemberData(nameof(UnsupportedPackageStatuses))]
+            public async Task RejectsUnsupportedPackageStatuses(PackageStatus packageStatus)
+            {
+                _package.PackageStatusKey = packageStatus;
+
+                await Assert.ThrowsAsync<ArgumentException>(
+                    () => _target.CommitPackageAsync(_package, _packageFile));
+
+                _entitiesContext.Verify(
+                    x => x.SaveChangesAsync(),
+                    Times.Never);
+            }
+
+            [Fact]
+            public async Task SavesPackageToStorageAndDatabaseWhenAvailable()
+            {
+                _package.PackageStatusKey = PackageStatus.Available;
+
+                var result = await _target.CommitPackageAsync(_package, _packageFile);
+
+                _packageFileService.Verify(
+                    x => x.SavePackageFileAsync(_package, _packageFile),
+                    Times.Once);
+                _packageFileService.Verify(
+                    x => x.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()),
+                    Times.Once);
+                _entitiesContext.Verify(
+                    x => x.SaveChangesAsync(),
+                    Times.Once);
+                Assert.Equal(PackageCommitResult.Success, result);
+            }
+
+            [Fact]
+            public async Task SavesPackageToStorageAndDatabaseWhenValidating()
+            {
+                _package.PackageStatusKey = PackageStatus.Validating;
+
+                var result = await _target.CommitPackageAsync(_package, _packageFile);
+
+                _packageFileService.Verify(
+                    x => x.SaveValidationPackageFileAsync(_package, _packageFile),
+                    Times.Once);
+                _packageFileService.Verify(
+                    x => x.SaveValidationPackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()),
+                    Times.Once);
+                _entitiesContext.Verify(
+                    x => x.SaveChangesAsync(),
+                    Times.Once);
+                Assert.Equal(PackageCommitResult.Success, result);
+            }
+
+            [Fact]
+            public async Task DoesNotCommitToDatabaseWhenSavingTheFileFails()
+            {
+                _packageFileService
+                    .Setup(x => x.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()))
+                    .Throws(_unexpectedException);
+
+                var exception = await Assert.ThrowsAsync(
+                    _unexpectedException.GetType(),
+                    () => _target.CommitPackageAsync(_package, _packageFile));
+
+                _entitiesContext.Verify(
+                    x => x.SaveChangesAsync(),
+                    Times.Never);
+                Assert.Same(_unexpectedException, exception);
+            }
+
+            [Fact]
+            public async Task DoesNotCommitToDatabaseWhenTheFileConflicts()
+            {
+                _packageFileService
+                    .Setup(x => x.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()))
+                    .Throws(_conflictException);
+
+                var result = await _target.CommitPackageAsync(_package, _packageFile);
+
+                _entitiesContext.Verify(
+                    x => x.SaveChangesAsync(),
+                    Times.Never);
+                Assert.Equal(PackageCommitResult.Conflict, result);
+            }
+
+            [Fact]
+            public async Task DeletesPackageIfDatabaseCommitFailsWhenAvailable()
+            {
+                _package.PackageStatusKey = PackageStatus.Available;
+
+                _entitiesContext
+                    .Setup(x => x.SaveChangesAsync())
+                    .Throws(_unexpectedException);
+
+                var exception = await Assert.ThrowsAsync(
+                    _unexpectedException.GetType(),
+                    () => _target.CommitPackageAsync(_package, _packageFile));
+
+                _packageFileService.Verify(
+                    x => x.DeletePackageFileAsync(Id, Version),
+                    Times.Once);
+                _packageFileService.Verify(
+                    x => x.DeletePackageFileAsync(It.IsAny<string>(), It.IsAny<string>()),
+                    Times.Once);
+                Assert.Same(_unexpectedException, exception);
+            }
+
+            [Fact]
+            public async Task DeletesPackageIfDatabaseCommitFailsWhenValidating()
+            {
+                _package.PackageStatusKey = PackageStatus.Validating;
+
+                _entitiesContext
+                    .Setup(x => x.SaveChangesAsync())
+                    .Throws(_unexpectedException);
+
+                var exception = await Assert.ThrowsAsync(
+                    _unexpectedException.GetType(),
+                    () => _target.CommitPackageAsync(_package, _packageFile));
+
+                _packageFileService.Verify(
+                    x => x.DeleteValidationPackageFileAsync(Id, Version),
+                    Times.Once);
+                _packageFileService.Verify(
+                    x => x.DeleteValidationPackageFileAsync(It.IsAny<string>(), It.IsAny<string>()),
+                    Times.Once);
+                Assert.Same(_unexpectedException, exception);
+            }
+        }
+
+        public abstract class FactsBase
+        {
+            protected readonly Mock<IPackageService> _packageService;
+            protected readonly Mock<IPackageFileService> _packageFileService;
+            protected readonly Mock<IEntitiesContext> _entitiesContext;
+            protected readonly Mock<IReservedNamespaceService> _reservedNamespaceService;
+            protected readonly Mock<IValidationService> _validationService;
+            protected Package _package;
+            protected Stream _packageFile;
+            protected ArgumentException _unexpectedException;
+            protected InvalidOperationException _conflictException;
+            protected readonly PackageUploadService _target;
+
+            public FactsBase()
+            {
+                _packageService = new Mock<IPackageService>();
+                _packageFileService = new Mock<IPackageFileService>();
+                _entitiesContext = new Mock<IEntitiesContext>();
+                _reservedNamespaceService = new Mock<IReservedNamespaceService>();
+                _validationService = new Mock<IValidationService>();
+
+                _package = new Package
+                {
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = Id,
+                    },
+                    Version = Version,
+                };
+                _packageFile = Stream.Null;
+                _unexpectedException = new ArgumentException("Fail!");
+                _conflictException = new InvalidOperationException("Conflict!");
+
+                _target = new PackageUploadService(
+                    _packageService.Object,
+                    _packageFileService.Object,
+                    _entitiesContext.Object,
+                    _reservedNamespaceService.Object,
+                    _validationService.Object);
             }
         }
     }

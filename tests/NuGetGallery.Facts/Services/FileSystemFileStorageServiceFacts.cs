@@ -76,7 +76,7 @@ namespace NuGetGallery
                 var ex = await Assert.ThrowsAsync<ArgumentNullException>(
                     () => service.CreateDownloadFileActionResultAsync(
                         HttpRequestUrl,
-                        Constants.PackagesFolderName,
+                        CoreConstants.PackagesFolderName,
                         fileName));
 
                 Assert.Equal("fileName", ex.ParamName);
@@ -87,11 +87,11 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var result = await service.CreateDownloadFileActionResultAsync(HttpRequestUrl, Constants.PackagesFolderName, "theFileName") as FilePathResult;
+                var result = await service.CreateDownloadFileActionResultAsync(HttpRequestUrl, CoreConstants.PackagesFolderName, "theFileName") as FilePathResult;
 
                 Assert.NotNull(result);
                 Assert.Equal(
-                    Path.Combine(FakeConfiguredFileStorageDirectory, Constants.PackagesFolderName, "theFileName"),
+                    Path.Combine(FakeConfiguredFileStorageDirectory, CoreConstants.PackagesFolderName, "theFileName"),
                     result.FileName);
             }
 
@@ -102,7 +102,7 @@ namespace NuGetGallery
                 fakeFileSystemService.Setup(x => x.FileExists(It.IsAny<string>())).Returns(false);
                 var service = CreateService(fileSystemService: fakeFileSystemService);
 
-                var result = await service.CreateDownloadFileActionResultAsync(HttpRequestUrl, Constants.PackagesFolderName, "theFileName") as HttpNotFoundResult;
+                var result = await service.CreateDownloadFileActionResultAsync(HttpRequestUrl, CoreConstants.PackagesFolderName, "theFileName") as HttpNotFoundResult;
 
                 Assert.NotNull(result);
             }
@@ -112,10 +112,10 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var result = await service.CreateDownloadFileActionResultAsync(HttpRequestUrl, Constants.PackagesFolderName, "theFileName") as FilePathResult;
+                var result = await service.CreateDownloadFileActionResultAsync(HttpRequestUrl, CoreConstants.PackagesFolderName, "theFileName") as FilePathResult;
 
                 Assert.NotNull(result);
-                Assert.Equal(Constants.PackageContentType, result.ContentType);
+                Assert.Equal(CoreConstants.PackageContentType, result.ContentType);
             }
 
             [Fact]
@@ -123,7 +123,7 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var result = await service.CreateDownloadFileActionResultAsync(HttpRequestUrl, Constants.PackagesFolderName, "theFileName") as FilePathResult;
+                var result = await service.CreateDownloadFileActionResultAsync(HttpRequestUrl, CoreConstants.PackagesFolderName, "theFileName") as FilePathResult;
 
                 Assert.NotNull(result);
                 Assert.Equal(
@@ -158,7 +158,7 @@ namespace NuGetGallery
 
                 var ex = await Assert.ThrowsAsync<ArgumentNullException>(
                     () => service.DeleteFileAsync(
-                        Constants.PackagesFolderName,
+                        CoreConstants.PackagesFolderName,
                         fileName));
 
                 Assert.Equal("fileName", ex.ParamName);
@@ -171,11 +171,11 @@ namespace NuGetGallery
                 fakeFileSystemService.Setup(x => x.FileExists(It.IsAny<string>())).Returns(true);
                 var service = CreateService(fileSystemService: fakeFileSystemService);
 
-                service.DeleteFileAsync(Constants.PackagesFolderName, "theFileName");
+                service.DeleteFileAsync(CoreConstants.PackagesFolderName, "theFileName");
 
                 fakeFileSystemService.Verify(
                     x => x.DeleteFile(
-                        Path.Combine(FakeConfiguredFileStorageDirectory, Constants.PackagesFolderName, "theFileName")));
+                        Path.Combine(FakeConfiguredFileStorageDirectory, CoreConstants.PackagesFolderName, "theFileName")));
             }
 
             [Fact]
@@ -187,7 +187,7 @@ namespace NuGetGallery
                 fakeFileSystemService.Setup(x => x.DeleteFile(It.IsAny<string>())).Callback(() => deleteWasInvoked = true);
                 var service = CreateService(fileSystemService: fakeFileSystemService);
 
-                service.DeleteFileAsync(Constants.PackagesFolderName, "theFileName");
+                service.DeleteFileAsync(CoreConstants.PackagesFolderName, "theFileName");
 
                 Assert.False(deleteWasInvoked);
             }
@@ -219,7 +219,7 @@ namespace NuGetGallery
 
                 var ex = await Assert.ThrowsAsync<ArgumentNullException>(
                     () => service.GetFileAsync(
-                        Constants.PackagesFolderName,
+                        CoreConstants.PackagesFolderName,
                         fileName));
 
                 Assert.Equal("fileName", ex.ParamName);

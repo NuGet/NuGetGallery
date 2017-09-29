@@ -365,6 +365,9 @@
       <HintPath>..\..\packages\Microsoft.Owin.Security.OpenIdConnect.3.0.1\lib\net45\Microsoft.Owin.Security.OpenIdConnect.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Microsoft.ServiceBus, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\WindowsAzure.ServiceBus.4.1.3\lib\net45\Microsoft.ServiceBus.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Threading.Tasks, Version=1.0.12.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Microsoft.Bcl.Async.1.0.168\lib\net40\Microsoft.Threading.Tasks.dll</HintPath>
       <Private>True</Private>
@@ -442,6 +445,9 @@
     <Reference Include="NuGet.Protocol, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Protocol.4.3.0-preview1-2524\lib\net45\NuGet.Protocol.dll</HintPath>
     </Reference>
+    <Reference Include="NuGet.Services.Contracts, Version=2.3.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.Contracts.2.3.0-dev-14813\lib\net45\NuGet.Services.Contracts.dll</HintPath>
+    </Reference>
     <Reference Include="NuGet.Services.KeyVault, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Services.KeyVault.1.0.0.0\lib\net45\NuGet.Services.KeyVault.dll</HintPath>
       <Private>True</Private>
@@ -457,6 +463,12 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\NuGet.Services.Platform.Client.3.0.29-r-master\lib\portable-net45+wp80+win\NuGet.Services.Platform.Client.dll</HintPath>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="NuGet.Services.ServiceBus, Version=2.3.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.ServiceBus.2.3.0-dev-14813\lib\net45\NuGet.Services.ServiceBus.dll</HintPath>
+    </Reference>
+    <Reference Include="NuGet.Services.Validation, Version=2.3.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.Validation.2.3.0-dev-14813\lib\net45\NuGet.Services.Validation.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Versioning, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Versioning.4.3.0-preview1-2524\lib\net45\NuGet.Versioning.dll</HintPath>
@@ -707,10 +719,12 @@
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticator.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticatorConfiguration.cs" />
     <Compile Include="Configuration\IGalleryConfigurationService.cs" />
+    <Compile Include="Configuration\IServiceBusConfiguration.cs" />
     <Compile Include="Configuration\SecretReader\CachingSecretReader.cs" />
     <Compile Include="Configuration\SecretReader\EmptySecretReaderFactory.cs" />
     <Compile Include="Configuration\SecretReader\ISecretReaderFactory.cs" />
     <Compile Include="Configuration\SecretReader\SecretReaderFactory.cs" />
+    <Compile Include="Configuration\ServiceBusConfiguration.cs" />
     <Compile Include="Configuration\StringArrayConverter.cs" />
     <Compile Include="Controllers\NuGetContext.cs" />
     <Compile Include="Diagnostics\ElmahHandleErrorAttribute.cs" />
@@ -755,6 +769,11 @@
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Helpers\GravatarHelper.cs" />
     <Compile Include="Helpers\RegexEx.cs" />
+    <Compile Include="Services\AsynchronousPackageValidationInitiator.cs" />
+    <Compile Include="Services\CloudBlobFileStorageService.cs" />
+    <Compile Include="Services\IFileStorageService.cs" />
+    <Compile Include="Services\ImmediatePackageValidator.cs" />
+    <Compile Include="Services\IPackageValidationInitiator.cs" />
     <Compile Include="Infrastructure\HttpStatusCodeWithServerWarningResult.cs" />
     <Compile Include="Migrations\201704191802404_AddIndexPackageRegistrationKeySemVer.cs" />
     <Compile Include="Migrations\201704191802404_AddIndexPackageRegistrationKeySemVer.Designer.cs">
@@ -804,7 +823,13 @@
     <Compile Include="Migrations\201709111714021_AddPackageStatusKey.Designer.cs">
       <DependentUpon>201709111714021_AddPackageStatusKey.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201709202249402_AddPackageOwnershipRequestsPage.cs" />
+    <Compile Include="Migrations\201709202249402_AddPackageOwnershipRequestsPage.Designer.cs">
+      <DependentUpon>201709202249402_AddPackageOwnershipRequestsPage.cs</DependentUpon>
+    </Compile>
     <Compile Include="RequestModels\ReadMeRequest.cs" />
+    <Compile Include="Security\DefaultSubscription.cs" />
+    <Compile Include="Security\RequireMinProtocolVersionForPushPolicy.cs" />
     <Compile Include="Security\RequireSecurePushForCoOwnersPolicy.cs" />
     <Compile Include="Security\SecurePushSubscription.cs" />
     <Compile Include="Security\IUserSecurityPolicySubscription.cs" />
@@ -821,12 +846,16 @@
     <Compile Include="Security\UserSecurityPolicyEvaluationContext.cs" />
     <Compile Include="Security\SecurityPolicyResult.cs" />
     <Compile Include="Security\UserSecurityPolicySubscriptionContext.cs" />
+    <Compile Include="Services\IPackageOwnerRequestService.cs" />
     <Compile Include="Services\IReadMeService.cs" />
+    <Compile Include="Services\IValidationService.cs" />
+    <Compile Include="Services\PackageOwnerRequestService.cs" />
     <Compile Include="Services\PackageUploadService.cs" />
     <Compile Include="Services\IReservedNamespaceService.cs" />
     <Compile Include="Services\IPackageUploadService.cs" />
     <Compile Include="Services\ReservedNamespaceService.cs" />
     <Compile Include="Services\ReadMeService.cs" />
+    <Compile Include="Services\ValidationService.cs" />
     <Compile Include="Telemetry\ClientInformationTelemetryEnricher.cs" />
     <Compile Include="Telemetry\QuietExceptionLogger.cs" />
     <Compile Include="Infrastructure\Authentication\CredentialBuilder.cs" />
@@ -1522,6 +1551,9 @@
     <Compile Include="ViewModels\ManagePackagesListViewModel.cs" />
     <Compile Include="ViewModels\ApiKeyListViewModel.cs" />
     <Compile Include="ViewModels\ApiKeyViewModel.cs" />
+    <Compile Include="ViewModels\OwnerRequestsListItemViewModel.cs" />
+    <Compile Include="ViewModels\OwnerRequestsListViewModel.cs" />
+    <Compile Include="ViewModels\OwnerRequestsViewModel.cs" />
     <Compile Include="ViewModels\PackageHeadingModel.cs" />
     <Compile Include="ViewModels\PackageManagerViewModel.cs" />
     <Compile Include="ViewModels\ReportMyPackageViewModel.cs" />
@@ -1645,11 +1677,9 @@
     <Compile Include="Services\CuratedFeedService.cs" />
     <Compile Include="Services\DownloadCountObjectMaterializedInterceptor.cs" />
     <Compile Include="Services\ICuratedFeedService.cs" />
-    <Compile Include="Services\CloudFileReference.cs" />
     <Compile Include="Services\ContentService.cs" />
     <Compile Include="Services\IContentService.cs" />
     <Compile Include="Services\IDownloadCountService.cs" />
-    <Compile Include="Services\IFileReference.cs" />
     <Compile Include="Services\IPackageDeleteService.cs" />
     <Compile Include="Services\IRawSearchService.cs" />
     <Compile Include="Services\IStatusService.cs" />
@@ -1661,13 +1691,8 @@
     <Compile Include="Services\IStatisticsService.cs" />
     <Compile Include="Services\CloudBlobClientWrapper.cs" />
     <Compile Include="Services\CloudBlobContainerWrapper.cs" />
-    <Compile Include="Services\CloudBlobFileStorageService.cs" />
     <Compile Include="Services\CloudBlobWrapper.cs" />
     <Compile Include="Services\FileSystemFileStorageService.cs" />
-    <Compile Include="Services\ISimpleCloudBlob.cs" />
-    <Compile Include="Services\ICloudBlobClient.cs" />
-    <Compile Include="Services\ICloudBlobContainer.cs" />
-    <Compile Include="Services\IFileStorageService.cs" />
     <Compile Include="Services\IIndexingService.cs" />
     <Compile Include="Services\INuGetExeDownloaderService.cs" />
     <Compile Include="Services\IAggregateStatsService.cs" />
@@ -1691,7 +1716,6 @@
     <Compile Include="Services\StatisticsReportNotFoundException.cs" />
     <Compile Include="Services\StatisticsReportResult.cs" />
     <Compile Include="Services\StatusService.cs" />
-    <Compile Include="Services\TestableStorageClientException.cs" />
     <Compile Include="Services\UploadFileService.cs" />
     <Compile Include="Services\EditPackageService.cs" />
     <Compile Include="ViewModels\AggregateStats.cs" />
@@ -1815,6 +1839,9 @@
     <EmbeddedResource Include="Migrations\201709111714021_AddPackageStatusKey.resx">
       <DependentUpon>201709111714021_AddPackageStatusKey.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201709202249402_AddPackageOwnershipRequestsPage.resx">
+      <DependentUpon>201709202249402_AddPackageOwnershipRequestsPage.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2getupdates.json" />
@@ -1872,6 +1899,7 @@
     <Content Include="Views\Packages\_ImportReadMe.cshtml" />
     <Content Include="Views\Packages\_SubmitPackage.cshtml" />
     <Content Include="Views\Packages\_EditForm.cshtml" />
+    <Content Include="Views\Users\_OwnerRequestsList.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />
@@ -1974,7 +2002,6 @@
     <Content Include="Content\font\fontawesome-webfont.woff" />
     <Content Include="Content\font\FontAwesome.otf" />
     <None Include="Properties\PublishProfiles\nuget-staging-frontend.pubxml" />
-    <Content Include="packages.config" />
     <Content Include="packages.config">
       <SubType>Designer</SubType>
     </Content>

@@ -7,11 +7,11 @@ using System.Linq;
 using Newtonsoft.Json;
 using NuGet.Protocol;
 using NuGet.Versioning;
-using NuGetGallery.Filters;
 
 namespace NuGetGallery.Security
 {
     /// <summary>
+    /// This code should be removed soon: https://github.com/NuGet/Engineering/issues/800
     /// User security policy that requires a minimum client version in order to push packages.
     /// </summary>
     public class RequireMinClientVersionForPushPolicy : UserSecurityPolicyHandler
@@ -63,7 +63,18 @@ namespace NuGetGallery.Security
             NuGetVersion clientVersion;
             return NuGetVersion.TryParse(clientVersionString, out clientVersion) ? clientVersion : null;
         }
-        
+
+        /// <summary>
+        /// Get the current protocol version from the request.
+        /// </summary>
+        private NuGetVersion GetProtocolVersion(UserSecurityPolicyEvaluationContext context)
+        {
+            var protocolVersionString = context.HttpContext.Request?.Headers[Constants.NuGetProtocolHeaderName];
+
+            NuGetVersion protocolVersion;
+            return NuGetVersion.TryParse(protocolVersionString, out protocolVersion) ? protocolVersion : null;
+        }
+
         /// <summary>
         /// Evaluate if this security policy is met.
         /// </summary>
@@ -76,11 +87,19 @@ namespace NuGetGallery.Security
 
             var minClientVersion = GetMaxOfMinClientVersions(context);
 
-            var clientVersion = GetClientVersion(context);
-            if (clientVersion == null || clientVersion < minClientVersion)
+            // Do we have X-NuGet-Protocol-Version header?
+            var protocolVersion = GetProtocolVersion(context);
+
+            if (protocolVersion == null)
+            {
+                // Do we have X-NuGet-Client-Version header?
+                protocolVersion = GetClientVersion(context);
+            }
+            
+            if (protocolVersion == null || protocolVersion < minClientVersion)
             {
                 return SecurityPolicyResult.CreateErrorResult(string.Format(CultureInfo.CurrentCulture,
-                    Strings.SecurityPolicy_RequireMinClientVersionForPush, minClientVersion));
+                    Strings.SecurityPolicy_RequireMinProtocolVersionForPush, minClientVersion));
             }
 
             return SecurityPolicyResult.SuccessResult;

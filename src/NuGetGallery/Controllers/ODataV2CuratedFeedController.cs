@@ -56,8 +56,10 @@ namespace NuGetGallery.Controllers
 
             var semVerLevelKey = SemVerLevelKey.ForSemVerLevel(semVerLevel);
 
-            var queryable = _curatedFeedService.GetPackages(curatedFeedName)
-                .Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevel(semVerLevel))
+            var queryable = _curatedFeedService
+                .GetPackages(curatedFeedName)
+                .Where(p => p.PackageStatusKey == PackageStatus.Available)
+                .Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevelPredicate(semVerLevel))
                 .ToV2FeedPackageQuery(
                     _configurationService.GetSiteRoot(UseHttps()),
                     _configurationService.Features.FriendlyLicenses, 
@@ -124,8 +126,10 @@ namespace NuGetGallery.Controllers
                 return NotFound();
             }
 
-            var packages = _curatedFeedService.GetPackages(curatedFeedName)
-                .Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevel(semVerLevel))
+            var packages = _curatedFeedService
+                .GetPackages(curatedFeedName)
+                .Where(p => p.PackageStatusKey == PackageStatus.Available)
+                .Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevelPredicate(semVerLevel))
                 .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
 
             if (!string.IsNullOrEmpty(normalizedVersion))
@@ -239,7 +243,8 @@ namespace NuGetGallery.Controllers
             // Perform actual search
             var curatedFeed = _curatedFeedService.GetFeedByName(curatedFeedName, includePackages: false);
             var packages = _curatedFeedService.GetPackages(curatedFeedName)
-                .Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevel(semVerLevel))
+                .Where(p => p.PackageStatusKey == PackageStatus.Available)
+                .Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevelPredicate(semVerLevel))
                 .OrderBy(p => p.PackageRegistration.Id).ThenBy(p => p.Version);
 
             // todo: search hijack should take queryOptions instead of manually parsing query options

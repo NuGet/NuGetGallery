@@ -161,7 +161,7 @@ namespace NuGetGallery.OData
                 packages = packages.Where(p => !p.IsPrerelease);
             }
 
-            packages = packages.Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevel(semVerLevel));
+            packages = packages.Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevelPredicate(semVerLevel));
     
             return new SearchAdaptorResult(false, packages.Search(searchTerm));
         }

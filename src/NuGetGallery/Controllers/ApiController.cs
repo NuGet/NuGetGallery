@@ -482,36 +482,29 @@ namespace NuGetGallery
                             id,
                             packageToPush,
                             packageStreamMetadata,
-                            user,
-                            commitChanges: false);
+                            user);
 
                         await AutoCuratePackage.ExecuteAsync(package, packageToPush, commitChanges: false);
 
+                        PackageCommitResult commitResult;
                         using (Stream uploadStream = packageStream)
                         {
                             uploadStream.Position = 0;
-
-                            try
-                            {
-                                await PackageFileService.SavePackageFileAsync(package, uploadStream.AsSeekableStream());
-                            }
-                            catch (InvalidOperationException ex)
-                            {
-                                ex.Log();
-
-                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict, Strings.UploadPackage_IdVersionConflict);
-                            }
+                            commitResult = await PackageUploadService.CommitPackageAsync(
+                                package,
+                                uploadStream.AsSeekableStream());
                         }
-
-                        try
+                            
+                        switch (commitResult)
                         {
-                            await EntitiesContext.SaveChangesAsync();
-                        }
-                        catch
-                        {
-                            // If saving to the DB fails for any reason, we need to delete the package we just saved.
-                            await PackageFileService.DeletePackageFileAsync(nuspec.GetId(), nuspec.GetVersion().ToNormalizedString());
-                            throw;
+                            case PackageCommitResult.Success:
+                                break;
+                            case PackageCommitResult.Conflict:
+                                return new HttpStatusCodeWithBodyResult(
+                                    HttpStatusCode.Conflict,
+                                    Strings.UploadPackage_IdVersionConflict);
+                            default:
+                                throw new NotImplementedException($"The package commit result {commitResult} is not supported.");
                         }
 
                         IndexingService.UpdatePackage(package);

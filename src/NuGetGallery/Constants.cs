@@ -33,24 +33,13 @@ namespace NuGetGallery
 
         public const int MaxEmailSubjectLength = 255;
         internal static readonly NuGetVersion MaxSupportedMinClientVersion = new NuGetVersion("4.1.0.0");
-        public const string PackageContentType = "binary/octet-stream";
-        public const string OctetStreamContentType = "application/octet-stream";
-        public const string TextContentType = "text/plain";
         public const string PackageFileDownloadUriTemplate = "packages/{0}/{1}/download";
-        public const string PackageFileSavePathTemplate = "{0}.{1}{2}";
 
         public const string ReadMeFileSavePathTemplateActive = "active/{0}/{1}{2}";
         public const string ReadMeFileSavePathTemplatePending = "pending/{0}/{1}{2}";
 
         public const string PackageFileBackupSavePathTemplate = "{0}/{1}/{2}.{3}";
 
-        public const string PackagesFolderName = "packages";
-        public const string PackageBackupsFolderName = "package-backups";
-        public const string DownloadsFolderName = "downloads";
-        public const string ContentFolderName = "content";
-        public const string PackageReadMesFolderName = "readmes";
-
-        public const string NuGetPackageFileExtension = ".nupkg";
         public const string MarkdownFileExtension = ".md";
         public const string HtmlFileExtension = ".html";
         public const string JsonFileExtension = ".json";
@@ -64,7 +53,6 @@ namespace NuGetGallery
         public const string PBKDF2HashAlgorithmId = "PBKDF2";
 
         public const string UploadFileNameTemplate = "{0}{1}";
-        public const string UploadsFolderName = "uploads";
         public const string NuGetCommandLinePackageId = "NuGet.CommandLine";
 
         public static readonly string ReturnUrlViewDataKey = "ReturnUrl";
@@ -74,7 +62,10 @@ namespace NuGetGallery
         public const string UrlValidationErrorMessage = "This doesn't appear to be a valid HTTP/HTTPS URL";
 
         internal const string ApiKeyHeaderName = "X-NuGet-ApiKey";
+        // X-NuGet-Client-Version header was deprecated and replaced with X-NuGet-Protocol-Version header
+        // It stays here for backwards compatibility
         internal const string ClientVersionHeaderName = "X-NuGet-Client-Version";
+        internal const string NuGetProtocolHeaderName = "X-NuGet-Protocol-Version";
         internal const string WarningHeaderName = "X-NuGet-Warning";
         internal const string UserAgentHeaderName = "User-Agent";
 

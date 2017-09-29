@@ -53,10 +53,10 @@ namespace NuGetGallery.Controllers
         {
             // Setup the search
             var packages = _packagesRepository.GetAll()
-                                .Where(p => !p.Deleted)
-                                .Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevel(semVerLevel))
+                                .Where(p => p.PackageStatusKey == PackageStatus.Available)
+                                .Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevelPredicate(semVerLevel))
                                 .WithoutSortOnColumn(Version)
-                                .WithoutSortOnColumn(Id, ShouldIgnoreOrderById<V2FeedPackage>(options))
+                                .WithoutSortOnColumn(Id, ShouldIgnoreOrderById(options))
                                 .InterceptWith(new NormalizeVersionInterceptor());
 
             var semVerLevelKey = SemVerLevelKey.ForSemVerLevel(semVerLevel);
@@ -188,9 +188,9 @@ namespace NuGetGallery.Controllers
         {
             var packages = _packagesRepository.GetAll()
                 .Include(p => p.PackageRegistration)
-                .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase)
-                            && !p.Deleted)
-                .Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevel(semVerLevel));
+                .Where(p => p.PackageStatusKey == PackageStatus.Available
+                            && p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase))
+                .Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevelPredicate(semVerLevel));
 
             if (!string.IsNullOrEmpty(version))
             {
@@ -308,8 +308,8 @@ namespace NuGetGallery.Controllers
             var packages = _packagesRepository.GetAll()
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
-                .Where(p => p.Listed && !p.Deleted)
-                .Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevel(semVerLevel))
+                .Where(p => p.Listed && p.PackageStatusKey == PackageStatus.Available)
+                .Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevelPredicate(semVerLevel))
                 .OrderBy(p => p.PackageRegistration.Id).ThenBy(p => p.Version)
                 .AsNoTracking();
 
@@ -458,9 +458,9 @@ namespace NuGetGallery.Controllers
             var packages = _packagesRepository.GetAll()
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.SupportedFrameworks)
-                .Where(p =>
-                    p.Listed && (includePrerelease || !p.IsPrerelease) && !p.Deleted &&
-                    idValues.Contains(p.PackageRegistration.Id.ToLower()))
+                .Where(p => p.Listed && (includePrerelease || !p.IsPrerelease)
+                            && idValues.Contains(p.PackageRegistration.Id.ToLower())
+                            && p.PackageStatusKey == PackageStatus.Available)
                 .OrderBy(p => p.PackageRegistration.Id);
 
             var semVerLevelKey = SemVerLevelKey.ForSemVerLevel(semVerLevel);
@@ -506,7 +506,7 @@ namespace NuGetGallery.Controllers
             bool includeAllVersions,
             string semVerLevel)
         {
-            var isSemVerLevelCompliant = SemVerLevelKey.IsPackageCompliantWithSemVerLevel(semVerLevel).Compile();
+            var isSemVerLevelCompliant = SemVerLevelKey.IsPackageCompliantWithSemVerLevelPredicate(semVerLevel).Compile();
 
             var updates = from p in packages.AsEnumerable()
                           let version = NuGetVersion.Parse(p.Version)

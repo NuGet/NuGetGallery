@@ -193,7 +193,7 @@ namespace NuGetGallery
         [HttpGet]
         public virtual ActionResult RegisterLegacy(string returnUrl)
         {
-            return RedirectToAction("LogOn", new { returnUrl });
+            return Redirect(Url.LogOn(returnUrl, relativeUrl: false));
         }
         
         [HttpPost]
@@ -255,9 +255,7 @@ namespace NuGetGallery
             {
                 _messageService.SendNewAccountEmail(
                     new MailAddress(user.User.UnconfirmedEmailAddress, user.User.Username),
-                    Url.ConfirmationUrl(
-                        "Confirm",
-                        "Users",
+                    Url.ConfirmEmail(
                         user.User.Username,
                         user.User.EmailConfirmationToken,
                         relativeUrl: false));
@@ -427,7 +425,7 @@ namespace NuGetGallery
             // User got here without an external login cookie (or an expired one)
             // Send them to the logon action with a message
             TempData["Message"] = Strings.ExternalAccountLinkExpired;
-            return RedirectToAction("LogOn");
+            return Redirect(Url.LogOn(null, relativeUrl: false));
         }
 
         private ActionResult SignInOrExternalLinkView(LogOnViewModel model, bool linkingAccount)

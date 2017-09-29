@@ -40,7 +40,7 @@ namespace NuGetGallery
 
                 service.DeleteUploadFileAsync(1);
 
-                fakeFileStorageService.Verify(x => x.DeleteFileAsync(Constants.UploadsFolderName, It.IsAny<string>()));
+                fakeFileStorageService.Verify(x => x.DeleteFileAsync(CoreConstants.UploadsFolderName, It.IsAny<string>()));
             }
 
             [Fact]
@@ -48,7 +48,7 @@ namespace NuGetGallery
             {
                 var fakeFileStorageService = new Mock<IFileStorageService>();
                 var service = CreateService(fakeFileStorageService: fakeFileStorageService);
-                var expectedFileName = String.Format(Constants.UploadFileNameTemplate, 1, Constants.NuGetPackageFileExtension);
+                var expectedFileName = String.Format(Constants.UploadFileNameTemplate, 1, CoreConstants.NuGetPackageFileExtension);
 
                 service.DeleteUploadFileAsync(1);
 
@@ -76,7 +76,7 @@ namespace NuGetGallery
 
                 service.GetUploadFileAsync(1);
 
-                fakeFileStorageService.Verify(x => x.GetFileAsync(Constants.UploadsFolderName, It.IsAny<string>()));
+                fakeFileStorageService.Verify(x => x.GetFileAsync(CoreConstants.UploadsFolderName, It.IsAny<string>()));
             }
 
             [Fact]
@@ -84,7 +84,7 @@ namespace NuGetGallery
             {
                 var fakeFileStorageService = new Mock<IFileStorageService>();
                 var service = CreateService(fakeFileStorageService: fakeFileStorageService);
-                var expectedFileName = String.Format(Constants.UploadFileNameTemplate, 1, Constants.NuGetPackageFileExtension);
+                var expectedFileName = String.Format(Constants.UploadFileNameTemplate, 1, CoreConstants.NuGetPackageFileExtension);
 
                 service.GetUploadFileAsync(1);
 
@@ -94,10 +94,10 @@ namespace NuGetGallery
             [Fact]
             public async Task WillReturnTheUploadFileStream()
             {
-                var expectedFileName = String.Format(Constants.UploadFileNameTemplate, 1, Constants.NuGetPackageFileExtension);
+                var expectedFileName = String.Format(Constants.UploadFileNameTemplate, 1, CoreConstants.NuGetPackageFileExtension);
                 var fakeFileStorageService = new Mock<IFileStorageService>();
                 var fakeFileStream = new MemoryStream();
-                fakeFileStorageService.Setup(x => x.GetFileAsync(Constants.UploadsFolderName, expectedFileName))
+                fakeFileStorageService.Setup(x => x.GetFileAsync(CoreConstants.UploadsFolderName, expectedFileName))
                                       .Returns(Task.FromResult<Stream>(fakeFileStream));
                 var service = CreateService(fakeFileStorageService: fakeFileStorageService);
 
@@ -137,7 +137,7 @@ namespace NuGetGallery
 
                 service.SaveUploadFileAsync(1, new MemoryStream());
 
-                fakeFileStorageService.Verify(x => x.SaveFileAsync(Constants.UploadsFolderName, It.IsAny<string>(), It.IsAny<Stream>(), It.Is<bool>(b => b)));
+                fakeFileStorageService.Verify(x => x.SaveFileAsync(CoreConstants.UploadsFolderName, It.IsAny<string>(), It.IsAny<Stream>(), It.Is<bool>(b => b)));
             }
 
             [Fact]
@@ -145,7 +145,7 @@ namespace NuGetGallery
             {
                 var fakeFileStorageService = new Mock<IFileStorageService>();
                 var service = CreateService(fakeFileStorageService: fakeFileStorageService);
-                var expectedFileName = String.Format(Constants.UploadFileNameTemplate, 1, Constants.NuGetPackageFileExtension);
+                var expectedFileName = String.Format(Constants.UploadFileNameTemplate, 1, CoreConstants.NuGetPackageFileExtension);
 
                 service.SaveUploadFileAsync(1, new MemoryStream());
 

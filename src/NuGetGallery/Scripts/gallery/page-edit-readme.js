@@ -1,14 +1,19 @@
 ﻿'use strict';
 
 function bindReadMeData(model) {
+    $("#import-readme-block").remove();
+    $("#readme-collapser-container").addClass("hidden");
+
+    if (model == null)
+    {
+        return;
+    }
+
     model.SelectedTab = ko.observable('written');
     model.OnReadmeTabChange = function (_, e) {
         model.SelectedTab($(e.target).data('source-type'));
         return true;
     };
-
-    $("#import-readme-block").remove();
-    $("#readme-collapser-container").addClass("hidden");
 
     var readMeContainerElement = document.createElement("div");
     $(readMeContainerElement).attr("id", "import-readme-block");

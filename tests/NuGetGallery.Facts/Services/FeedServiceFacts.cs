@@ -264,7 +264,7 @@ namespace NuGetGallery
                                 Version = "1.0.0",
                                 IsPrerelease = false,
                                 Listed = true,
-                                Deleted = true
+                                PackageStatusKey = PackageStatus.Deleted,
                             },
                         new Package
                             {
@@ -272,7 +272,7 @@ namespace NuGetGallery
                                 Version = "1.1.0",
                                 IsPrerelease = false,
                                 Listed = true,
-                                Deleted = false
+                                PackageStatusKey = PackageStatus.Available,
                             },
                     }.AsQueryable());
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
@@ -363,7 +363,7 @@ namespace NuGetGallery
                                 Version = "1.0.0",
                                 IsPrerelease = false,
                                 Listed = false,
-                                Deleted = true
+                                PackageStatusKey = PackageStatus.Deleted,
                             },
                         new Package
                             {
@@ -371,7 +371,7 @@ namespace NuGetGallery
                                 Version = "1.0.1",
                                 IsPrerelease = false,
                                 Listed = true,
-                                Deleted = true
+                                PackageStatusKey = PackageStatus.Deleted,
                             },
                     }.AsQueryable());
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
@@ -847,7 +847,7 @@ namespace NuGetGallery
                                 Version = "1.0.0",
                                 IsPrerelease = false,
                                 Listed = false,
-                                Deleted = true
+                                PackageStatusKey = PackageStatus.Deleted,
                             },
                         new Package
                             {
@@ -855,7 +855,7 @@ namespace NuGetGallery
                                 Version = "1.0.1",
                                 IsPrerelease = false,
                                 Listed = true,
-                                Deleted = true
+                                PackageStatusKey = PackageStatus.Deleted,
                             },
                     }.AsQueryable());
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
@@ -1449,7 +1449,7 @@ namespace NuGetGallery
                         new[]
                     {
                         new Package { PackageRegistration = packageRegistrationA, Version = "1.0.0", IsPrerelease = false, Listed = true },
-                        new Package { PackageRegistration = packageRegistrationA, Version = "1.1.0", IsPrerelease = false, Deleted = true }
+                        new Package { PackageRegistration = packageRegistrationA, Version = "1.1.0", IsPrerelease = false, PackageStatusKey = PackageStatus.Deleted }
                     }.AsQueryable());
                     var configuration = new Mock<IGalleryConfigurationService>(MockBehavior.Strict);
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");

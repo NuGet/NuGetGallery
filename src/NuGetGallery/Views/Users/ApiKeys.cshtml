@@ -52,6 +52,10 @@
                 <p>
                     <strong>Always keep your API keys a secret!</strong> If one of your keys is accidentally revealed,
                     you can always generate a new one at any time. You can also remove existing API keys if necessary.
+                    <br />
+                    <p>
+                        <strong>Note:</strong> We recommend using NuGet.exe v4.1.0 or above to push packages.
+                    </p>
                 </p>
 
                 <div data-bind="template: 'error-container'"></div>
@@ -464,10 +468,10 @@
                          ApiKeys = Model.ApiKeys,
                          PackageIds = Model.PackageIds,
                          PackagePushScope = NuGetScopes.PackagePush,
-                         RemoveUrl = Url.Action("RemoveCredential", "Users"),
-                         RegenerateUrl = Url.Action("RegenerateCredential", "Users"),
-                         EditUrl = Url.Action("EditCredential", "Users"),
-                         GenerateUrl = Url.Action("GenerateApiKey", "Users"),
+                         RemoveUrl = Url.RemoveCredential(),
+                         RegenerateUrl = Url.RegenerateCredential(),
+                         EditUrl = Url.EditCredential(),
+                         GenerateUrl = Url.GenerateApiKey(),
                          ImageUrls = new {
                              ApiKey = Url.Absolute("~/Content/gallery/img/api-key.svg"),
                              ApiKeyFallback = Url.Absolute("~/Content/gallery/img/api-key-256x256.png"),
