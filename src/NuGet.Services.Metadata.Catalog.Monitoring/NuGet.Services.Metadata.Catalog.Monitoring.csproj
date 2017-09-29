@@ -158,7 +158,6 @@
     <Compile Include="Validation\Test\Registration\RegistrationVersionValidator.cs" />
     <Compile Include="Validation\Test\Registration\RegistrationListedValidator.cs" />
     <Compile Include="Validation\Test\Registration\RegistrationIdValidator.cs" />
-    <Compile Include="Validation\Test\Registration\RegistrationPackageContentValidator.cs" />
     <Compile Include="Validation\Test\Registration\RegistrationRequireLicenseAcceptanceValidator.cs" />
     <Compile Include="Validation\Test\Registration\RegistrationLeafValidator.cs" />
     <Compile Include="Validation\Test\ValidationContext.cs" />

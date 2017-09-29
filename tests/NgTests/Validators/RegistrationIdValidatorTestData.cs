@@ -35,6 +35,11 @@ namespace NgTests
             () => Tuple.Create(
                 new PackageRegistrationIndexMetadata() { Id = "testPackage1" },
                 new PackageRegistrationIndexMetadata() { Id = "testpackage1" },
+                true),
+
+            () => Tuple.Create(
+                new PackageRegistrationIndexMetadata() { Id = "testpackage1" },
+                new PackageRegistrationIndexMetadata() { Id = "testPackage1" },
                 true)
         };
     }

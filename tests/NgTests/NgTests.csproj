@@ -277,7 +277,6 @@
     <Compile Include="Validators\RegistrationExistsValidatorTestData.cs" />
     <Compile Include="Validators\RegistrationLeafValidatorTests.cs" />
     <Compile Include="Validators\RegistrationIdValidatorTestData.cs" />
-    <Compile Include="Validators\RegistrationPackageContentValidatorTestData.cs" />
     <Compile Include="Validators\RegistrationVersionValidatorTestData.cs" />
     <Compile Include="Validators\ValidatorTests.cs" />
     <Compile Include="Validators\ValidatorTestUtility.cs" />

@@ -23,17 +23,20 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         private const string OrderBy = "$orderby=";
         private const string NonhijackableOrderBy = "Version";
 
-        private const string GetSpecificPackageFormatRegExp = 
+        private const string GetSpecificPackageFormatRegExp =
             @"Packages\(Id='(?<Id>[^']*)',Version='(?<Version>[^']*)'\)";
 
         /// <summary>
         /// The format of a nonhijacked "Packages(Id='...',Version='...')" request.
+        /// </summary>
+        /// <remarks>
         /// Note that we are using "normalized version" here.
         /// This is because a hijacked request does a comparison on the normalized version, but the nonhijacked request does not.
-        /// </summary>
-        private static string GetSpecificPackageNonhijackable = 
-            $"Packages?{Filter}{NonhijackableFilter}{And}" + 
-            "Id eq '{0}'" + $"{And}" + "NormalizedVersion eq '{1}'";
+        /// Additionally, we must add the "semVerLevel=2.0.0" or else this will not work for SemVer2 packages.
+        /// </remarks>
+        private static string GetSpecificPackageNonhijackable =
+            $"Packages?{Filter}{NonhijackableFilter}{And}" +
+            "Id eq '{0}'" + $"{And}" + "NormalizedVersion eq '{1}'&semVerLevel=2.0.0";
 
         private static IEnumerable<string> HijackableEndpoints = new List<string>
         {
@@ -80,8 +83,8 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
                     nonhijackableUriString =
                         originalUriString.Substring(0, getSpecificPackageMatch.Index) +
                         string.Format(
-                            GetSpecificPackageNonhijackable, 
-                            getSpecificPackageMatch.Groups["Id"].Value, 
+                            GetSpecificPackageNonhijackable,
+                            getSpecificPackageMatch.Groups["Id"].Value,
                             NuGetVersion.Parse(getSpecificPackageMatch.Groups["Version"].Value).ToNormalizedString());
                 }
                 else
@@ -107,16 +110,6 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             }
 
             return nonhijackableUri;
-        }
-
-        /// <summary>
-        /// Makes a web request to <paramref name="uri"/> and returns <see cref="HttpRequestMessage.RequestUri"/> of the <see cref="HttpResponseMessage.RequestMessage"/>.
-        /// In other words, if <paramref name="uri"/> redirects to another address, this method returns the address that was redirected to.
-        /// </summary>
-        public static async Task<Uri> GetRedirectedRequestMessageUri(HttpClient client, Uri uri)
-        {
-            var response = await client.GetAsync(uri);
-            return response.RequestMessage.RequestUri;
         }
     }
 }

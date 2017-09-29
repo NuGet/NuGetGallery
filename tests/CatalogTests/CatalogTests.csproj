@@ -105,9 +105,17 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\NuGet.CatalogPackaging.1.0.0-alpha003\lib\net45\NuGet.CatalogPackaging.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Packaging, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\NuGet.CatalogPackaging.1.0.0-alpha003\lib\net45\NuGet.Packaging.dll</HintPath>
+    <Reference Include="NuGet.Common, Version=4.3.0.5, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Common.4.3.0\lib\net45\NuGet.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="NuGet.Frameworks, Version=4.3.0.5, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Frameworks.4.3.0\lib\net45\NuGet.Frameworks.dll</HintPath>
+    </Reference>
+    <Reference Include="NuGet.Packaging, Version=4.3.0.5, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Packaging.4.3.0\lib\net45\NuGet.Packaging.dll</HintPath>
+    </Reference>
+    <Reference Include="NuGet.Packaging.Core, Version=4.3.0.5, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Packaging.Core.4.3.0\lib\net45\NuGet.Packaging.Core.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Versioning, Version=4.3.0.5, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Versioning.4.3.0\lib\net45\NuGet.Versioning.dll</HintPath>
@@ -147,6 +155,7 @@
     <Compile Include="CatalogIndexReaderTests.cs" />
     <Compile Include="Helpers\CatalogPropertiesTests.cs" />
     <Compile Include="Helpers\FeedHelpersTests.cs" />
+    <Compile Include="Helpers\FeedPackageIdentityTests.cs" />
     <Compile Include="Helpers\NuGetVersionUtilityTests.cs" />
     <Compile Include="PackageCatalogItemTests.cs" />
     <Compile Include="ReadOnlyGraphTests.cs" />

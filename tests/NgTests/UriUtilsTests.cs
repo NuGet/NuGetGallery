@@ -67,7 +67,7 @@ namespace NgTests
         [InlineData("https://www.nuget.org/api/v2/FindPackagesById()?$filter=IsLatestVersion&$top=1&id='MySql.Data'&$orderby=Id", "https://www.nuget.org/api/v2/FindPackagesById()?$filter=IsLatestVersion&$top=1&id='MySql.Data'&$orderby=Version")]
         [InlineData("https://www.nuget.org/api/v2/FindPackagesById()?$filter=IsLatestVersion&$orderby=Id&$top=1&id='MySql.Data'", "https://www.nuget.org/api/v2/FindPackagesById()?$filter=IsLatestVersion&$orderby=Version&$top=1&id='MySql.Data'")]
         // Packages(Id='...',Version='...')
-        [InlineData("https://www.nuget.org/api/v2/Packages(Id='Microsoft.Owin.Security.Facebook',Version='3.0.1')", "https://www.nuget.org/api/v2/Packages?$filter=true and Id eq 'Microsoft.Owin.Security.Facebook' and NormalizedVersion eq '3.0.1'")]
+        [InlineData("https://www.nuget.org/api/v2/Packages(Id='Microsoft.Owin.Security.Facebook',Version='3.0.1')", "https://www.nuget.org/api/v2/Packages?$filter=true and Id eq 'Microsoft.Owin.Security.Facebook' and NormalizedVersion eq '3.0.1'&semVerLevel=2.0.0")]
         // Packages endpoint without orderby
         [InlineData("https://www.nuget.org/api/v2/Packages", "https://www.nuget.org/api/v2/Packages?$orderby=Version")]
         [InlineData("https://www.nuget.org/api/v2/Packages?$top=10", "https://www.nuget.org/api/v2/Packages?$top=10&$orderby=Version")]
@@ -78,12 +78,12 @@ namespace NgTests
         [InlineData("https://www.nuget.org/api/v2/FindPackagesById()", "https://www.nuget.org/api/v2/FindPackagesById()?$orderby=Version")]
         [InlineData("https://www.nuget.org/api/v2/FindPackagesById()?id='Microsoft.Rest.ClientRuntime'", "https://www.nuget.org/api/v2/FindPackagesById()?id='Microsoft.Rest.ClientRuntime'&$orderby=Version")]
         // Id and version contain names of other endpoints
-        [InlineData("https://www.nuget.org/api/v2/Packages(Id='FindPackagesById',Version='1.0.0')", "https://www.nuget.org/api/v2/Packages?$filter=true and Id eq 'FindPackagesById' and NormalizedVersion eq '1.0.0'")]
-        [InlineData("https://www.nuget.org/api/v2/Packages(Id='Search',Version='1.0.0')", "https://www.nuget.org/api/v2/Packages?$filter=true and Id eq 'Search' and NormalizedVersion eq '1.0.0'")]
-        [InlineData("https://www.nuget.org/api/v2/Packages(Id='Packages',Version='1.0.0')", "https://www.nuget.org/api/v2/Packages?$filter=true and Id eq 'Packages' and NormalizedVersion eq '1.0.0'")]
-        [InlineData("https://www.nuget.org/api/v2/Packages(Id='abcd',Version='1.0.0-FindPackagesById')", "https://www.nuget.org/api/v2/Packages?$filter=true and Id eq 'abcd' and NormalizedVersion eq '1.0.0-FindPackagesById'")]
-        [InlineData("https://www.nuget.org/api/v2/Packages(Id='abcd',Version='1.0.0-Search')", "https://www.nuget.org/api/v2/Packages?$filter=true and Id eq 'abcd' and NormalizedVersion eq '1.0.0-Search'")]
-        [InlineData("https://www.nuget.org/api/v2/Packages(Id='abcd',Version='1.0.0-Packages')", "https://www.nuget.org/api/v2/Packages?$filter=true and Id eq 'abcd' and NormalizedVersion eq '1.0.0-Packages'")]
+        [InlineData("https://www.nuget.org/api/v2/Packages(Id='FindPackagesById',Version='1.0.0')", "https://www.nuget.org/api/v2/Packages?$filter=true and Id eq 'FindPackagesById' and NormalizedVersion eq '1.0.0'&semVerLevel=2.0.0")]
+        [InlineData("https://www.nuget.org/api/v2/Packages(Id='Search',Version='1.0.0')", "https://www.nuget.org/api/v2/Packages?$filter=true and Id eq 'Search' and NormalizedVersion eq '1.0.0'&semVerLevel=2.0.0")]
+        [InlineData("https://www.nuget.org/api/v2/Packages(Id='Packages',Version='1.0.0')", "https://www.nuget.org/api/v2/Packages?$filter=true and Id eq 'Packages' and NormalizedVersion eq '1.0.0'&semVerLevel=2.0.0")]
+        [InlineData("https://www.nuget.org/api/v2/Packages(Id='abcd',Version='1.0.0-FindPackagesById')", "https://www.nuget.org/api/v2/Packages?$filter=true and Id eq 'abcd' and NormalizedVersion eq '1.0.0-FindPackagesById'&semVerLevel=2.0.0")]
+        [InlineData("https://www.nuget.org/api/v2/Packages(Id='abcd',Version='1.0.0-Search')", "https://www.nuget.org/api/v2/Packages?$filter=true and Id eq 'abcd' and NormalizedVersion eq '1.0.0-Search'&semVerLevel=2.0.0")]
+        [InlineData("https://www.nuget.org/api/v2/Packages(Id='abcd',Version='1.0.0-Packages')", "https://www.nuget.org/api/v2/Packages?$filter=true and Id eq 'abcd' and NormalizedVersion eq '1.0.0-Packages'&semVerLevel=2.0.0")]
         [InlineData("https://www.nuget.org/api/v2/FindPackagesById()?id='Search'", "https://www.nuget.org/api/v2/FindPackagesById()?id='Search'&$orderby=Version")]
         [InlineData("https://www.nuget.org/api/v2/FindPackagesById()?id='FindPackagesById'", "https://www.nuget.org/api/v2/FindPackagesById()?id='FindPackagesById'&$orderby=Version")]
         [InlineData("https://www.nuget.org/api/v2/FindPackagesById()?id='Packages'", "https://www.nuget.org/api/v2/FindPackagesById()?id='Packages'&$orderby=Version")]
@@ -122,20 +122,7 @@ namespace NgTests
             Assert.NotEqual(originalUri.ToString(), newUri.ToString());
             Assert.NotSame(originalUri, newUri);
 
-            Assert.Equal($"https://www.nuget.org/api/v2/Packages?$filter=true and Id eq '{id}' and NormalizedVersion eq '{normalizedVersion}'", newUri.ToString());
-        }
-
-        [Theory]
-        // The V2 downloadUrl for a package is redirected to the packages blob container.
-        [InlineData("https://www.nuget.org/api/v2/package/newtonsoft.json/3.5.8", "https://az320820.vo.msecnd.net/packages/newtonsoft.json.3.5.8.nupkg")]
-        [InlineData("https://www.nuget.org/api/v2/package/newtonsoft.json/4.0.1", "https://az320820.vo.msecnd.net/packages/newtonsoft.json.4.0.1.nupkg")]
-        [InlineData("https://www.nuget.org/api/v2/package/newtonsoft.json/6.0.8", "https://az320820.vo.msecnd.net/packages/newtonsoft.json.6.0.8.nupkg")]
-        [InlineData("https://www.nuget.org/api/v2/package/newtonsoft.json/9.0.1", "https://az320820.vo.msecnd.net/packages/newtonsoft.json.9.0.1.nupkg")]
-        public async Task GetRedirectedRequestMessageUri_ReturnsRedirectedUri(string inputUriString, string expectedRedirectedUriString)
-        {
-            var redirectedUri = await UriUtils.GetRedirectedRequestMessageUri(new HttpClient(), new Uri(inputUriString));
-
-            Assert.Equal(new Uri(expectedRedirectedUriString), redirectedUri);
+            Assert.Equal($"https://www.nuget.org/api/v2/Packages?$filter=true and Id eq '{id}' and NormalizedVersion eq '{normalizedVersion}'&semVerLevel=2.0.0", newUri.ToString());
         }
     }
 }

@@ -21,18 +21,52 @@ namespace NgTests
 
         public override IEnumerable<Func<PackageRegistrationIndexMetadata>> CreateIndexes => new Func<PackageRegistrationIndexMetadata>[]
         {
-            () => new PackageRegistrationIndexMetadata(),
             () => null
         };
 
         public override IEnumerable<Func<PackageRegistrationIndexMetadata>> CreateSkippedIndexes => new Func<PackageRegistrationIndexMetadata>[0];
 
+        public override IEnumerable<Func<Tuple<PackageRegistrationIndexMetadata, PackageRegistrationIndexMetadata, bool>>> CreateSpecialIndexes => new Func<Tuple<PackageRegistrationIndexMetadata, PackageRegistrationIndexMetadata, bool>>[]
+        {
+            () => Tuple.Create(
+                new PackageRegistrationIndexMetadata(),
+                new PackageRegistrationIndexMetadata(),
+                true),
+
+            () => Tuple.Create<PackageRegistrationIndexMetadata, PackageRegistrationIndexMetadata, bool>(
+                null,
+                new PackageRegistrationIndexMetadata(),
+                false),
+
+            () => Tuple.Create<PackageRegistrationIndexMetadata, PackageRegistrationIndexMetadata, bool>(
+                new PackageRegistrationIndexMetadata(),
+                null,
+                false)
+        };
+
         public override IEnumerable<Func<PackageRegistrationLeafMetadata>> CreateLeafs => new Func<PackageRegistrationLeafMetadata>[]
         {
-            () => new PackageRegistrationLeafMetadata(),
             () => null
         };
 
         public override IEnumerable<Func<PackageRegistrationLeafMetadata>> CreateSkippedLeafs => new Func<PackageRegistrationLeafMetadata>[0];
+
+        public override IEnumerable<Func<Tuple<PackageRegistrationLeafMetadata, PackageRegistrationLeafMetadata, bool>>> CreateSpecialLeafs => new Func<Tuple<PackageRegistrationLeafMetadata, PackageRegistrationLeafMetadata, bool>>[]
+        {
+            () => Tuple.Create(
+                new PackageRegistrationLeafMetadata(),
+                new PackageRegistrationLeafMetadata(),
+                true),
+
+            () => Tuple.Create<PackageRegistrationLeafMetadata, PackageRegistrationLeafMetadata, bool>(
+                null,
+                new PackageRegistrationLeafMetadata(),
+                true),
+
+            () => Tuple.Create<PackageRegistrationLeafMetadata, PackageRegistrationLeafMetadata, bool>(
+                new PackageRegistrationLeafMetadata(),
+                null,
+                false)
+        };
     }
 }
