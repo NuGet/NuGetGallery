@@ -24,7 +24,7 @@ namespace NuGetGallery
 
         public async Task<ActionResult> CreateDownloadFileActionResultAsync(Uri requestUrl, string folderName, string fileName)
         {
-            ICloudBlobContainer container = await GetContainer(folderName);
+            ICloudBlobContainer container = await GetContainerAsync(folderName);
             var blob = container.GetBlobReference(fileName);
 
             var redirectUri = GetRedirectUri(requestUrl, blob.Uri);
@@ -36,7 +36,7 @@ namespace NuGetGallery
             string folderName,
             string fileName)
         {
-            var container = await GetContainer(folderName);
+            var container = await GetContainerAsync(folderName);
             var blob = container.GetBlobReference(fileName);
 
             var redirectUri = GetRedirectUri(httpContext.Request.Url, blob.Uri);
@@ -93,7 +93,7 @@ namespace NuGetGallery
 
         public async Task<bool> IsAvailableAsync()
         {
-            var container = await GetContainer(CoreConstants.PackagesFolderName);
+            var container = await GetContainerAsync(CoreConstants.PackagesFolderName);
             return await container.ExistsAsync();
         }
     }
