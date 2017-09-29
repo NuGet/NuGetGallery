@@ -50,3 +50,12 @@
 *.fsproj text=auto merge=union 
 *.dbproj text=auto merge=union 
 *.sln -text merge=union
+
+# The following files are generated automatically during the build with Unix style
+# line endings. On Windows (with CRLF checkout) this causes git to think that files
+# were changed after the build. Forcing git to think they are binary will cause it 
+# not to do LF -> CRLF conversion on checkout on Windows and prevent showing those
+# files as changed after the build
+src/NuGetGallery/Content/gallery/css/bootstrap-theme.css binary
+src/NuGetGallery/Content/gallery/css/bootstrap.css       binary
+src/NuGetGallery/Scripts/gallery/bootstrap.js            binary
