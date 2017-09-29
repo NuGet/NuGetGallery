@@ -47,7 +47,7 @@ namespace NuGet.Services.Validation
         public IDbSet<ValidatorStatus> ValidatorStatuses { get; set; }
 
         public IDbSet<PackageSigningState> PackageSigningStates { get; set; }
-        public IDbSet<PackageSignature> PackagSignatures { get; set; }
+        public IDbSet<PackageSignature> PackageSignatures { get; set; }
         public IDbSet<Certificate> Certificates { get; set; }
         public IDbSet<CertificateValidation> CertificateValidations { get; set; }
 
