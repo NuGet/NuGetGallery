@@ -40,15 +40,27 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Entities\Certificate.cs" />
+    <Compile Include="Entities\CertificateStatus.cs" />
+    <Compile Include="Entities\CertificateValidation.cs" />
+    <Compile Include="Entities\PackageSigningState.cs" />
+    <Compile Include="Entities\PackageSignature.cs" />
+    <Compile Include="Entities\PackageSignatureStatus.cs" />
+    <Compile Include="Entities\PackageSigningStatus.cs" />
     <Compile Include="Entities\PackageValidation.cs" />
     <Compile Include="Entities\PackageValidationSet.cs" />
     <Compile Include="Entities\ValidationContext.cs" />
+    <Compile Include="Entities\ValidatorStatus.cs" />
     <Compile Include="IPackageValidationEnqueuer.cs" />
     <Compile Include="IServiceBusMessageSerializer.cs" />
     <Compile Include="Entities\EntitiesConfiguration.cs" />
     <Compile Include="Migrations\201709202218143_AddValidationSchema.cs" />
     <Compile Include="Migrations\201709202218143_AddValidationSchema.Designer.cs">
       <DependentUpon>201709202218143_AddValidationSchema.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201709212249261_AddPackageSigningSchema.cs" />
+    <Compile Include="Migrations\201709212249261_AddPackageSigningSchema.Designer.cs">
+      <DependentUpon>201709212249261_AddPackageSigningSchema.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\ValidationMigrationsConfiguration.cs" />
     <Compile Include="PackageValidationEnqueuer.cs" />
@@ -74,6 +86,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Migrations\201709202218143_AddValidationSchema.resx">
       <DependentUpon>201709202218143_AddValidationSchema.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201709212249261_AddPackageSigningSchema.resx">
+      <DependentUpon>201709212249261_AddPackageSigningSchema.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
