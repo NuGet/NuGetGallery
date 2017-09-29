@@ -110,6 +110,19 @@ namespace NuGetGallery
             await blob.SetPropertiesAsync();
         }
 
+        public async Task<Uri> GetFileReadUriAsync(string folderName, string fileName, DateTimeOffset? endOfAccess)
+        {
+            folderName = folderName ?? throw new ArgumentNullException(nameof(folderName));
+            fileName = fileName ?? throw new ArgumentNullException(nameof(fileName));
+            if (endOfAccess.HasValue && endOfAccess < DateTimeOffset.UtcNow)
+            {
+                throw new ArgumentOutOfRangeException(nameof(endOfAccess), $"{nameof(endOfAccess)} is in the past");
+            }
+            ICloudBlobContainer container = await GetContainer(folderName);
+            var blob = container.GetBlobReference(fileName);
+            return new Uri(blob.Uri, blob.GetSharedReadSignature(endOfAccess));
+        }
+
         protected async Task<ICloudBlobContainer> GetContainer(string folderName)
         {
             ICloudBlobContainer container;
@@ -226,19 +239,6 @@ namespace NuGetGallery
                 });
 
             return container;
-        }
-
-        public async Task<Uri> GetFileReadUriAsync(string folderName, string fileName, DateTimeOffset? endOfAccess)
-        {
-            folderName = folderName ?? throw new ArgumentNullException(nameof(folderName));
-            fileName = fileName ?? throw new ArgumentNullException(nameof(fileName));
-            if (endOfAccess.HasValue && endOfAccess < DateTimeOffset.UtcNow)
-            {
-                throw new ArgumentOutOfRangeException(nameof(endOfAccess), $"{nameof(endOfAccess)} is in the past");
-            }
-            ICloudBlobContainer container = await GetContainer(folderName);
-            var blob = container.GetBlobReference(fileName);
-            return blob.GetSharedReadUri(endOfAccess);
         }
 
         private struct StorageResult
