@@ -32,8 +32,9 @@ namespace NuGetGallery
         /// using the produced URI only (without storage account credentials).
         /// </summary>
         /// <param name="endOfAccess">
-        /// Optional "end of access" timestamp. After the specified time, 
-        /// the returned URI becomes invalid.
+        /// "End of access" timestamp. After the specified time, 
+        /// the returned URI becomes invalid if implementation supports it.
+        /// Null for no time limit.
         /// </param>
         /// <returns>Shared access URI.</returns>
         Uri GetSharedReadUri(DateTimeOffset? endOfAccess);
