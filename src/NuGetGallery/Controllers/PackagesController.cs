@@ -1074,7 +1074,7 @@ namespace NuGetGallery
             {
                 PackageId = package.PackageRegistration.Id,
                 PackageTitle = package.Title,
-                Version = package.Version,
+                Version = package.NormalizedVersion,
                 PackageVersions = packageRegistration.Packages
                     .OrderByDescending(p => new NuGetVersion(p.Version), Comparer<NuGetVersion>.Create((a, b) => a.CompareTo(b)))
                     .ToList()
