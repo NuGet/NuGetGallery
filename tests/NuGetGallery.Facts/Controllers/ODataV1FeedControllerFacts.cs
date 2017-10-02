@@ -52,6 +52,18 @@ namespace NuGetGallery.Controllers
         }
 
         [Fact]
+        public async Task FindPackagesByIdCount_FiltersSemVerV2PackageVersions()
+        {
+            // Act
+            var count = await GetInt<V1FeedPackage>(
+                async (controller, options) => await controller.FindPackagesByIdCount(options, TestPackageId),
+                $"/api/v1/FindPackagesById/$count?id='{TestPackageId}'");
+
+            // Assert
+            Assert.Equal(NonSemVer2Packages.Where(p => !p.IsPrerelease).Count(), count);
+        }
+
+        [Fact]
         public async Task Search_FiltersSemVerV2PackageVersions()
         {
             // Act
