@@ -117,7 +117,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     .Select(username => new UserViewModel
                     {
                         Username = username,
-                        ProfileUrl = Url.User(username, area: string.Empty),
+                        ProfileUrl = Url.User(username),
                     })
                     .ToList()
             };
