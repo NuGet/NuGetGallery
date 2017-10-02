@@ -15,6 +15,7 @@ namespace NuGetGallery
         public const string PackagePushEvent = "PackagePush";
         public const string CreatePackageVerificationKeyEvent = "CreatePackageVerificationKeyEvent";
         public const string VerifyPackageKeyEvent = "VerifyPackageKeyEvent";
+        public const string PackageReadMeChangeEvent = "PackageReadMeChanged";
 
         // ODataQueryFilter properties
         public const string CallContext = "CallContext";
@@ -36,6 +37,10 @@ namespace NuGetGallery
         public const string IsVerificationKeyUsed = "IsVerificationKeyUsed";
         public const string VerifyPackageKeyStatusCode = "VerifyPackageKeyStatusCode";
 
+        // Package ReadMe properties
+        public const string ReadMeSourceType = "ReadMeSourceType";
+        public const string ReadMeState = "ReadMeState";
+
         public void TrackODataQueryFilterEvent(string callContext, bool isEnabled, bool isAllowed, string queryPattern)
         {
             TrackEvent(ODataQueryFilterEvent, properties =>
@@ -45,6 +50,26 @@ namespace NuGetGallery
 
                 properties.Add(IsAllowed, $"{isAllowed}");
                 properties.Add(QueryPattern, queryPattern);
+            });
+        }
+
+        public void TrackPackageReadMeChangeEvent(Package package, string readMeSourceType, PackageEditReadMeState readMeState)
+        {
+            if (package == null)
+            {
+                throw new ArgumentNullException(nameof(package));
+            }
+
+            if (string.IsNullOrWhiteSpace(readMeSourceType))
+            {
+                throw new ArgumentNullException(nameof(readMeSourceType));
+            }
+            
+            TrackEvent(PackagePushEvent, properties => {
+                properties.Add(PackageId, package.PackageRegistration.Id);
+                properties.Add(PackageVersion, package.Version);
+                properties.Add(ReadMeSourceType, readMeSourceType);
+                properties.Add(ReadMeState, Enum.GetName(typeof(PackageEditReadMeState), readMeState));
             });
         }
 
