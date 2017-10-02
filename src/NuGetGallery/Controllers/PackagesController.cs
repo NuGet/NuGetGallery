@@ -18,7 +18,6 @@ using System.Web.Caching;
 using System.Web.Mvc;
 using NuGet.Packaging;
 using NuGet.Versioning;
-using NuGetGallery;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Auditing;
@@ -211,7 +210,7 @@ namespace NuGetGallery
                     }
                     catch (Exception ex)
                     {
-                        ex.Log();
+                        _telemetryService.TraceException(ex);
 
                         TempData["Message"] = ex.GetUserSafeMessage();
                         return View(model);
@@ -415,7 +414,7 @@ namespace NuGetGallery
                 }
                 catch (Exception ex)
                 {
-                    ex.Log();
+                    _telemetryService.TraceException(ex);
 
                     TempData["Message"] = ex.GetUserSafeMessage();
 
@@ -957,7 +956,7 @@ namespace NuGetGallery
                 TempData["Message"] =
                     $"An error occurred while reflowing the package. {ex.Message}";
 
-                QuietLog.LogHandledException(ex);
+                ex.Log();
             }
 
             return SafeRedirect(Url.Package(id, version));
@@ -982,7 +981,7 @@ namespace NuGetGallery
             }
             catch (Exception ex)
             {
-                QuietLog.LogHandledException(ex);
+                ex.Log();
 
                 TempData["Message"] = $"An error occurred while revalidating the package. {ex.Message}";
             }
@@ -1353,9 +1352,10 @@ namespace NuGetGallery
             {
                 return await _securityPolicyService.SubscribeAsync(user, SecurePushSubscription.Name);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                QuietLog.LogHandledException(e);
+                ex.Log();
+
                 throw;
             }
         }
@@ -1464,7 +1464,7 @@ namespace NuGetGallery
                 }
                 catch (InvalidPackageException ex)
                 {
-                    ex.Log();
+                    _telemetryService.TraceException(ex);
 
                     TempData["Message"] = ex.Message;
 
