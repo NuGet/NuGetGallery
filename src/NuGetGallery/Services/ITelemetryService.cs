@@ -11,6 +11,8 @@ namespace NuGetGallery
 
         void TrackPackagePushEvent(Package package, User user, IIdentity identity);
 
+        void TrackPackageReadMeChangeEvent(Package package, string readMeSourceType, PackageEditReadMeState readMeState);
+
         void TrackCreatePackageVerificationKeyEvent(string packageId, string packageVersion, User user, IIdentity identity);
 
         void TrackVerifyPackageKeyEvent(string packageId, string packageVersion, User user, IIdentity identity, int statusCode);

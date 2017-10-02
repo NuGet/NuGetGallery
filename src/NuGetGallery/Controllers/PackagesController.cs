@@ -1126,6 +1126,10 @@ namespace NuGetGallery
                 {
                     // Update pending readme.md file, if modified.
                     var hasReadMe = await _readMeService.SavePendingReadMeMdIfChanged(package, formData.Edit, Request.ContentEncoding);
+                    if (hasReadMe)
+                    {
+                        _telemetryService.TrackPackageReadMeChangeEvent(package, formData.Edit.ReadMe.SourceType, formData.Edit.ReadMeState);
+                    }
 
                     // Queue package edit in database for processing in background (HandlePackageEdits job).
                     var user = GetCurrentUser();
@@ -1464,7 +1468,11 @@ namespace NuGetGallery
                 var pendEdit = false;
                 if (formData.Edit != null)
                 {
-                    pendEdit = await _readMeService.SavePendingReadMeMdIfChanged(package, formData.Edit, Request.ContentEncoding);
+                    if (await _readMeService.SavePendingReadMeMdIfChanged(package, formData.Edit, Request.ContentEncoding))
+                    {
+                        pendEdit = true;
+                        _telemetryService.TrackPackageReadMeChangeEvent(package, formData.Edit.ReadMe.SourceType, formData.Edit.ReadMeState);
+                    }
                     
                     pendEdit = pendEdit || formData.Edit.RequiresLicenseAcceptance != packageMetadata.RequireLicenseAcceptance;
 
