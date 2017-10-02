@@ -5,6 +5,7 @@ using System.Web.Mvc;
 using Microsoft.Owin.Security.MicrosoftAccount;
 using NuGetGallery.Configuration;
 using Owin;
+using System;
 
 namespace NuGetGallery.Authentication.Providers.MicrosoftAccount
 {
@@ -15,6 +16,7 @@ namespace NuGetGallery.Authentication.Providers.MicrosoftAccount
         protected override void AttachToOwinApp(IGalleryConfigurationService config, IAppBuilder app)
         {
             var options = new MicrosoftAccountAuthenticationOptions();
+            options.GatewayHostName = new Uri(config.GetSiteRoot(useHttps: true)).Host;
             options.Scope.Add("wl.emails");
             options.Scope.Add("wl.signin");
             Config.ApplyToOwinSecurityOptions(options);
