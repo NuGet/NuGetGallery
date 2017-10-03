@@ -1690,9 +1690,6 @@
     <Compile Include="Services\HttpContextCacheService.cs" />
     <Compile Include="Services\ICacheService.cs" />
     <Compile Include="Services\IStatisticsService.cs" />
-    <Compile Include="Services\CloudBlobClientWrapper.cs" />
-    <Compile Include="Services\CloudBlobContainerWrapper.cs" />
-    <Compile Include="Services\CloudBlobWrapper.cs" />
     <Compile Include="Services\FileSystemFileStorageService.cs" />
     <Compile Include="Services\IIndexingService.cs" />
     <Compile Include="Services\INuGetExeDownloaderService.cs" />
