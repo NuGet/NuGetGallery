@@ -624,6 +624,42 @@ namespace NuGetGallery
             Assert.Equal(updatedUtc, actualReport.LastUpdatedUtc.Value);
         }
 
+        [Fact]
+        public async Task StatisticsDownloadByVersionAction_ReturnsHttpNotFoundIfPackageDoesntExist()
+        {
+            const string PackageId = "A";
+
+            var fakeStatisticsService = new Mock<IStatisticsService>();
+            fakeStatisticsService
+                .Setup(service => service.GetPackageDownloadsByVersion(PackageId))
+                .Throws<StatisticsReportNotFoundException>();
+
+            var controller = new StatisticsController(fakeStatisticsService.Object);
+            TestUtility.SetupUrlHelperForUrlGeneration(controller);
+
+            await controller.PackageDownloadsByVersionReport(PackageId, It.IsAny<string[]>());
+
+            Assert.Equal(404, controller.Response.StatusCode);
+        }
+
+        [Fact]
+        public async Task StatisticsDownloadByVersionAction_ReturnsHttpOkIfPackageExists()
+        {
+            const string PackageId = "A";
+
+            var fakeStatisticsService = new Mock<IStatisticsService>();
+            fakeStatisticsService
+                .Setup(service => service.GetPackageDownloadsByVersion(PackageId))
+                .Returns(Task.FromResult(new StatisticsPackagesReport()));
+
+            var controller = new StatisticsController(fakeStatisticsService.Object);
+            TestUtility.SetupUrlHelperForUrlGeneration(controller);
+
+            await controller.PackageDownloadsByVersionReport(PackageId, It.IsAny<string[]>());
+
+            Assert.Equal(200, controller.Response.StatusCode);
+        }
+
         public class TheTotalsAllAction
         {
             [Fact]
@@ -731,8 +767,6 @@ namespace NuGetGallery
                 return (T)actionExecutedContext.Result;
             }
         }
-
-
 
         public static StatisticsController CreateController(Mock<IAggregateStatsService> aggregateStatsService, Mock<HttpRequestBase> request = null)
         {
