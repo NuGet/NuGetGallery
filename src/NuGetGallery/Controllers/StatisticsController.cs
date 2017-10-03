@@ -178,7 +178,14 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);
             }
 
-            return Json(await GetPackageDownloadsByVersionReport(id, groupby), JsonRequestBehavior.AllowGet);
+            var packageStatisticsReport = await GetPackageDownloadsByVersionReport(id, groupby);
+
+            if (packageStatisticsReport == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+            }
+
+            return Json(packageStatisticsReport, JsonRequestBehavior.AllowGet);
         }
 
         //
