@@ -1476,6 +1476,10 @@ namespace NuGetGallery
                     packageFileService: packageFileService);
                 controller.SetCurrentUser(new User("user"));
 
+                var routeCollection = new RouteCollection();
+                Routes.RegisterRoutes(routeCollection);
+                controller.Url = new UrlHelper(controller.ControllerContext.RequestContext, routeCollection);
+
                 return controller;
             }
         }
