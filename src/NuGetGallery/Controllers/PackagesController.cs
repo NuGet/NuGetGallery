@@ -1080,6 +1080,13 @@ namespace NuGetGallery
                     .ToList()
             };
 
+            // Create version selection.
+            model.VersionSelectList = new SelectList(model.PackageVersions.Select(e => new
+            {
+                text = NuGetVersion.Parse(e.Version).ToFullString() + (e.IsLatestSemVer2 ? " (Latest)" : string.Empty),
+                url = UrlExtensions.EditPackage(Url, model.PackageId, e.NormalizedVersion)
+            }), "url", "text", UrlExtensions.EditPackage(Url, model.PackageId, model.Version));
+
             // Create edit model from the latest pending edit.
             var pendingMetadata = _editPackageService.GetPendingMetadata(package);
 

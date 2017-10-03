@@ -1,6 +1,4 @@
-﻿@using NuGet.Versioning
-
-@model EditPackageRequest
+﻿@model EditPackageRequest
 @{
     ViewBag.Title = "Editing: " + Model.PackageId + " " + Model.Version;
     ViewBag.Tab = "Packages";
@@ -38,12 +36,7 @@
                         <div class="row">
                             <label for="input-select-version" id="package-version-label" class="col-xs-12">
                                 <span>Select a package version</span>
-                                @Html.DropDownList("version-selection",
-                            new SelectList(Model.PackageVersions.Select(e => new
-                            {
-                                text = NuGetVersion.Parse(e.Version).ToFullString() + (e.IsLatestSemVer2 ? " (Latest)" : ""),
-                                url = Url.EditPackage(Model.PackageId, e.NormalizedVersion)
-                            }), "url", "text", Url.EditPackage(Model.PackageId, Model.Version)),
+                                @Html.DropDownList("version-selection", Model.VersionSelectList,
                            new
                            {
                                @class = "form-control selectpicker show-tick show-menu-arrow btn-block",
