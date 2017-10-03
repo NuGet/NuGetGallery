@@ -5,11 +5,14 @@ using System;
 using System.Collections.Generic;
 using System.Security.Principal;
 using System.Web;
+using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery
 {
     public class TelemetryService : ITelemetryService
     {
+        private IDiagnosticsSource _trace;
+
         // Event types
         public const string ODataQueryFilterEvent = "ODataQueryFilter";
         public const string PackagePushEvent = "PackagePush";
@@ -40,6 +43,31 @@ namespace NuGetGallery
         // Package ReadMe properties
         public const string ReadMeSourceType = "ReadMeSourceType";
         public const string ReadMeState = "ReadMeState";
+
+        public TelemetryService(IDiagnosticsService diagnosticsService)
+        {
+            if (diagnosticsService == null)
+            {
+                throw new ArgumentNullException(nameof(diagnosticsService));
+            }
+
+            _trace = diagnosticsService.GetSource("TelemetryService");
+        }
+
+        // Used by ODataQueryVerifier. Should consider refactoring to make this non-static.
+        internal TelemetryService() : this(new DiagnosticsService())
+        {
+        }
+
+        public void TraceException(Exception exception)
+        {
+            if (exception == null)
+            {
+                throw new ArgumentNullException(nameof(exception));
+            }
+
+            _trace.Warning(exception.ToString());
+        }
 
         public void TrackODataQueryFilterEvent(string callContext, bool isEnabled, bool isAllowed, string queryPattern)
         {

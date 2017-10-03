@@ -453,6 +453,7 @@
     <Compile Include="Services\ReservedNamespaceServiceFacts.cs" />
     <Compile Include="Services\ScopeEvaluatorFacts.cs" />
     <Compile Include="Services\SearchAdaptorFacts.cs" />
+    <Compile Include="Services\TelemetryServiceFacts.cs" />
     <Compile Include="Services\ValidationServiceFacts.cs" />
     <Compile Include="Telemetry\ClientInformationTelemetryEnricherTests.cs" />
     <Compile Include="TestUtils\Infrastructure\TestableV1Feed.cs" />
