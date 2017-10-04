@@ -37,5 +37,11 @@ namespace NuGet.Services.Validation
         /// The <see cref="Certificate"/> this validation is for.
         /// </summary>
         public Certificate Certificate { get; set; }
+
+        /// <summary>
+        /// Check whether the validation is complete or not.
+        /// </summary>
+        /// <returns>True if the validation for the certificate has finished.</returns>
+        public bool IsFinished() => Status.HasValue;
     }
 }

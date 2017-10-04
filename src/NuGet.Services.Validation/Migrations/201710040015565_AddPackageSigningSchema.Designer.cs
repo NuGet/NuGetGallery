@@ -13,7 +13,7 @@ namespace NuGet.Services.Validation
         
         string IMigrationMetadata.Id
         {
-            get { return "201709212249261_AddPackageSigningSchema"; }
+            get { return "201710040015565_AddPackageSigningSchema"; }
         }
         
         string IMigrationMetadata.Source

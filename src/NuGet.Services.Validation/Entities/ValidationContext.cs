@@ -4,6 +4,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure.Annotations;
+using System.Threading.Tasks;
 
 namespace NuGet.Services.Validation
 {
@@ -11,7 +12,7 @@ namespace NuGet.Services.Validation
     /// The Entity Framework database context for validation entities.
     /// </summary>
     [DbConfigurationType(typeof(EntitiesConfiguration))]
-    public class ValidationEntitiesContext : DbContext
+    public class ValidationEntitiesContext : DbContext, IValidationEntitiesContext
     {
         private const string SignatureSchema = "signature";
 
@@ -164,6 +165,10 @@ namespace NuGet.Services.Validation
                     {
                         new IndexAttribute(ValidatorStatusesPackageKeyIndex)
                     }));
+
+            modelBuilder.Entity<ValidatorStatus>()
+                .Property(s => s.ValidatorName)
+                .IsRequired();
 
             RegisterPackageSigningEntities(modelBuilder);
 

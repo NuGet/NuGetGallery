@@ -23,6 +23,11 @@ namespace NuGet.Services.Validation
         public int PackageKey { get; set; }
 
         /// <summary>
+        /// The name of the <see cref="IValidator"/>.
+        /// </summary>
+        public string ValidatorName { get; set; }
+
+        /// <summary>
         /// The current status for this validator.
         /// </summary>
         public ValidationStatus State { get; set; }
