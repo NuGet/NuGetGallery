@@ -84,6 +84,15 @@ namespace NuGetGallery.Controllers
             return await GetCore(options, id, version: null, return404NotFoundWhenNoResults: false);
         }
 
+        // /api/v1/FindPackagesById()/$count?id=
+        [HttpGet]
+        [CacheOutput(ServerTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds, Private = true, ClientTimeSpan = NuGetODataConfig.GetByIdAndVersionCacheTimeInSeconds)]
+        public async Task<IHttpActionResult> FindPackagesByIdCount(ODataQueryOptions<V1FeedPackage> options, [FromODataUri]string id)
+        {
+            var result = await FindPackagesById(options, id);
+            return result.FormattedAsCountResult<V1FeedPackage>();
+        }
+
         private async Task<IHttpActionResult> GetCore(ODataQueryOptions<V1FeedPackage> options, string id, string version, bool return404NotFoundWhenNoResults)
         {
             var packages = _packagesRepository.GetAll()

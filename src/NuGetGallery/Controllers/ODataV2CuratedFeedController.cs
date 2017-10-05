@@ -112,6 +112,19 @@ namespace NuGetGallery.Controllers
             return await GetCore(options, curatedFeedName, id, normalizedVersion: null, return404NotFoundWhenNoResults: false, semVerLevel: semVerLevel);
         }
 
+        // /api/v2/curated-feed/curatedFeedName/FindPackagesById()/$count?id=&semVerLevel=
+        [HttpGet]
+        [CacheOutput(NoCache = true)]
+        public async Task<IHttpActionResult> FindPackagesByIdCount(
+            ODataQueryOptions<V2FeedPackage> options,
+            string curatedFeedName,
+            [FromODataUri] string id,
+            [FromUri] string semVerLevel = null)
+        {
+            var result = await FindPackagesById(options, curatedFeedName, id, semVerLevel);
+            return result.FormattedAsCountResult<V2FeedPackage>();
+        }
+
         private async Task<IHttpActionResult> GetCore(
             ODataQueryOptions<V2FeedPackage> options,
             string curatedFeedName,

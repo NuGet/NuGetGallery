@@ -7,7 +7,7 @@ using System.Web.Http.OData.Query;
 
 namespace NuGetGallery.OData.QueryFilter
 {
-    public class ODataQueryVerifier
+    public static class ODataQueryVerifier
     {
         private static Lazy<ODataQueryFilter> _v2GetUpdates =
             new Lazy<ODataQueryFilter>(() => { return new ODataQueryFilter("apiv2getupdates.json"); }, isThreadSafe: true);

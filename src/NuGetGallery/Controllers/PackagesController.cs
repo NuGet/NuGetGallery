@@ -18,7 +18,6 @@ using System.Web.Caching;
 using System.Web.Mvc;
 using NuGet.Packaging;
 using NuGet.Versioning;
-using NuGetGallery;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Auditing;
@@ -211,6 +210,8 @@ namespace NuGetGallery
                     }
                     catch (Exception ex)
                     {
+                        _telemetryService.TraceException(ex);
+
                         TempData["Message"] = ex.GetUserSafeMessage();
                         return View(model);
                     }
@@ -413,6 +414,8 @@ namespace NuGetGallery
                 }
                 catch (Exception ex)
                 {
+                    _telemetryService.TraceException(ex);
+
                     TempData["Message"] = ex.GetUserSafeMessage();
 
                     return Json(400, new[] { ex.GetUserSafeMessage() });
@@ -953,7 +956,7 @@ namespace NuGetGallery
                 TempData["Message"] =
                     $"An error occurred while reflowing the package. {ex.Message}";
 
-                QuietLog.LogHandledException(ex);
+                ex.Log();
             }
 
             return SafeRedirect(Url.Package(id, version));
@@ -978,7 +981,7 @@ namespace NuGetGallery
             }
             catch (Exception ex)
             {
-                QuietLog.LogHandledException(ex);
+                ex.Log();
 
                 TempData["Message"] = $"An error occurred while revalidating the package. {ex.Message}";
             }
@@ -1126,6 +1129,10 @@ namespace NuGetGallery
                 {
                     // Update pending readme.md file, if modified.
                     var hasReadMe = await _readMeService.SavePendingReadMeMdIfChanged(package, formData.Edit, Request.ContentEncoding);
+                    if (hasReadMe)
+                    {
+                        _telemetryService.TrackPackageReadMeChangeEvent(package, formData.Edit.ReadMe.SourceType, formData.Edit.ReadMeState);
+                    }
 
                     // Queue package edit in database for processing in background (HandlePackageEdits job).
                     var user = GetCurrentUser();
@@ -1359,9 +1366,10 @@ namespace NuGetGallery
             {
                 return await _securityPolicyService.SubscribeAsync(user, SecurePushSubscription.Name);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                QuietLog.LogHandledException(e);
+                ex.Log();
+
                 throw;
             }
         }
@@ -1470,6 +1478,8 @@ namespace NuGetGallery
                 }
                 catch (InvalidPackageException ex)
                 {
+                    _telemetryService.TraceException(ex);
+
                     TempData["Message"] = ex.Message;
 
                     return Json(400, new[] { ex.GetUserSafeMessage() });
@@ -1478,8 +1488,12 @@ namespace NuGetGallery
                 var pendEdit = false;
                 if (formData.Edit != null)
                 {
-                    pendEdit = await _readMeService.SavePendingReadMeMdIfChanged(package, formData.Edit, Request.ContentEncoding);
-
+                    if (await _readMeService.SavePendingReadMeMdIfChanged(package, formData.Edit, Request.ContentEncoding))
+                    {
+                        pendEdit = true;
+                        _telemetryService.TrackPackageReadMeChangeEvent(package, formData.Edit.ReadMe.SourceType, formData.Edit.ReadMeState);
+                    }
+                    
                     pendEdit = pendEdit || formData.Edit.RequiresLicenseAcceptance != packageMetadata.RequireLicenseAcceptance;
 
                     pendEdit = pendEdit || IsDifferent(formData.Edit.IconUrl, packageMetadata.IconUrl.ToEncodedUrlStringOrNull());

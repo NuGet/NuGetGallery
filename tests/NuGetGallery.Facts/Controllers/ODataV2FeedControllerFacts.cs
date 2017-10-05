@@ -95,11 +95,39 @@ namespace NuGetGallery.Controllers
             // Act
             var resultSet = await GetCollection<V2FeedPackage>(
                 (controller, options) => controller.FindPackagesById(options, id: TestPackageId, semVerLevel: semVerLevel),
-                $"/api/v2/FindPackagesById?id='{TestPackageId}'?semVerLevel={semVerLevel}");
+                $"/api/v2/FindPackagesById?id='{TestPackageId}'&semVerLevel={semVerLevel}");
 
             // Assert
             AssertSemVer2PackagesIncludedInResult(resultSet);
             Assert.Equal(AvailablePackages.Count, resultSet.Count);
+        }
+
+        [Fact]
+        public async Task FindPackagesByIdCount_FiltersSemVerV2PackageVersionsByDefault()
+        {
+            // Act
+            var count = await GetInt<V2FeedPackage>(
+                (controller, options) => controller.FindPackagesByIdCount(options, id: TestPackageId),
+                $"/api/v2/FindPackagesById/$count?id='{TestPackageId}'");
+
+            // Assert
+            Assert.Equal(NonSemVer2Packages.Count, count);
+        }
+
+        [Theory]
+        [InlineData("2.0.0")]
+        [InlineData("2.0.1")]
+        [InlineData("3.0.0-alpha")]
+        [InlineData("3.0.0")]
+        public async Task FindPackagesByIdCount_IncludesSemVerV2PackageVersionsWhenSemVerLevel2OrHigher(string semVerLevel)
+        {
+            // Act
+            var count = await GetInt<V2FeedPackage>(
+                (controller, options) => controller.FindPackagesByIdCount(options, id: TestPackageId, semVerLevel: semVerLevel),
+                $"/api/v2/FindPackagesById/$count?id='{TestPackageId}'&semVerLevel={semVerLevel}");
+
+            // Assert
+            Assert.Equal(AvailablePackages.Count, count);
         }
 
         [Fact]

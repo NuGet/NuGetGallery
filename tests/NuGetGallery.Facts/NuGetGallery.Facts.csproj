@@ -223,17 +223,17 @@
       <HintPath>..\..\packages\NuGet.Protocol.4.3.0-preview1-2524\lib\net45\NuGet.Protocol.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Services.Contracts, Version=2.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.Contracts.2.3.0-dev-14813\lib\net45\NuGet.Services.Contracts.dll</HintPath>
+      <HintPath>..\..\packages\NuGet.Services.Contracts.2.3.0\lib\net45\NuGet.Services.Contracts.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Services.KeyVault, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Services.KeyVault.1.0.0.0\lib\net45\NuGet.Services.KeyVault.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="NuGet.Services.ServiceBus, Version=2.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.ServiceBus.2.3.0-dev-14813\lib\net45\NuGet.Services.ServiceBus.dll</HintPath>
+      <HintPath>..\..\packages\NuGet.Services.ServiceBus.2.3.0\lib\net45\NuGet.Services.ServiceBus.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Services.Validation, Version=2.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.Validation.2.3.0-dev-14813\lib\net45\NuGet.Services.Validation.dll</HintPath>
+      <HintPath>..\..\packages\NuGet.Services.Validation.2.3.0\lib\net45\NuGet.Services.Validation.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Versioning, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Versioning.4.3.0-preview1-2524\lib\net45\NuGet.Versioning.dll</HintPath>
@@ -394,6 +394,7 @@
     <Compile Include="AppConfigIsCorrectlyApplied.cs" />
     <Compile Include="App_Start\StorageDependentFacts.cs" />
     <Compile Include="App_Start\RuntimeServiceProviderTests.cs" />
+    <Compile Include="Areas\Admin\Controllers\DeleteControllerFacts.cs" />
     <Compile Include="Areas\Admin\Controllers\ReservedNamespaceControllerFacts.cs" />
     <Compile Include="Areas\Admin\Controllers\SecurityPolicyControllerFacts.cs" />
     <Compile Include="Authentication\AuthenticatorFacts.cs" />
@@ -452,6 +453,7 @@
     <Compile Include="Services\ReservedNamespaceServiceFacts.cs" />
     <Compile Include="Services\ScopeEvaluatorFacts.cs" />
     <Compile Include="Services\SearchAdaptorFacts.cs" />
+    <Compile Include="Services\TelemetryServiceFacts.cs" />
     <Compile Include="Services\ValidationServiceFacts.cs" />
     <Compile Include="Telemetry\ClientInformationTelemetryEnricherTests.cs" />
     <Compile Include="TestUtils\Infrastructure\TestableV1Feed.cs" />
