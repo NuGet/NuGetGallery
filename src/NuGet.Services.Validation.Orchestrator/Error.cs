@@ -12,5 +12,7 @@ namespace NuGet.Services.Validation.Orchestrator
         public static EventId VcsValidationAlreadyStarted = new EventId(3, "VCS validation already started");
         public static EventId VcsValidationFailureAuditFound = new EventId(4, "VCS validation failure audit found");
         public static EventId VcsValidationUnexpectedAuditFound = new EventId(5, "VCS validation unexpected audit found");
+
+        public static EventId PackageSigningValidationAlreadyStarted = new EventId(100, "Package Signing validation already started");
     }
 }

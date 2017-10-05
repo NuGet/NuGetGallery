@@ -46,13 +46,18 @@
   <ItemGroup>
     <Compile Include="ConfigurationValidator.cs" />
     <Compile Include="Error.cs" />
+    <Compile Include="IValidatorStateService.cs" />
     <Compile Include="Job.cs" />
+    <Compile Include="PackageSigning\IPackageSignatureVerifier.cs" />
+    <Compile Include="PackageSigning\PackageSignatureVerifier.cs" />
+    <Compile Include="PackageSigning\PackageSigningValidator.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.*.cs" />
     <Compile Include="ValidateOnlyConfiguration.cs" />
     <Compile Include="ValidationConfiguration.cs" />
     <Compile Include="ValidationConfigurationItem.cs" />
+    <Compile Include="ValidatorStateService.cs" />
     <Compile Include="Vcs\VcsConfiguration.cs" />
     <Compile Include="Vcs\VcsValidator.cs" />
   </ItemGroup>
