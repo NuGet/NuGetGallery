@@ -1221,6 +1221,8 @@ namespace NuGetGallery
                         .ToList()
                         .ForEach(mn =>
                             _reservedNamespaceService.AddPackageRegistrationToNamespace(mn.Value, package));
+
+                    await _entitiesContext.SaveChangesAsync();
                 }
 
                 SendAddPackageOwnerNotification(package, user, result.Item1, result.Item2);

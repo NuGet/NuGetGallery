@@ -160,9 +160,18 @@ namespace NuGetGallery
                 var request = _packageOwnerRequestService.GetPackageOwnershipRequests(package: model.Package, newOwner: model.User).FirstOrDefault();
 
                 await _packageService.RemovePackageOwnerAsync(model.Package, model.User);
+
                 // 1. Remove this package registration from the namespaces owned by this user, if he is the only owner in the set of matching namespaces and package ownerships
                 // 2. Remove the IsVerified flag from package registration, if all the matching namespaces where owned by this user alone(no other owner of package owns a matching namespace this PR matches to)
+                var allMatchingNamespaces = model.Package.ReservedNamespaces.ToList();
+                var allPackageOwners = model.Package.Owners;
+                var matchingNamespacesOwnedByUser = allMatchingNamespaces
+                    .Where(rn => rn.Owners.Any(o => o == model.User));
+                var namespacesToModify = matchingNamespacesOwnedByUser
+                    .Where(rn => rn.Owners.Intersect(allPackageOwners).Count() == 1);
 
+                // Modify the namespaces to remove this package registration from it.
+                // Also mark the package registration as not verified.
                 if (request == null)
                 {
                     _messageService.SendPackageOwnerRemovedNotice(model.CurrentUser, model.User, model.Package);
