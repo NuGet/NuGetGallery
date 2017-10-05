@@ -750,16 +750,31 @@ namespace NuGetGallery
 
         public static string Terms(this UrlHelper url, bool relativeUrl = true)
         {
+            if (!String.IsNullOrEmpty(_configuration.Current.ExternalTermsOfUseUrl))
+            {
+                return _configuration.Current.ExternalTermsOfUseUrl;
+            }
+
             return GetActionLink(url, "Terms", "Pages", relativeUrl);
         }
 
         public static string Privacy(this UrlHelper url, bool relativeUrl = true)
         {
+            if (!String.IsNullOrEmpty(_configuration.Current.ExternalPrivacyPolicyUrl))
+            {
+                return _configuration.Current.ExternalPrivacyPolicyUrl;
+            }
+
             return GetActionLink(url, "Privacy", "Pages", relativeUrl);
         }
 
         public static string About(this UrlHelper url, bool relativeUrl = true)
         {
+            if (!String.IsNullOrEmpty(_configuration.Current.ExternalAboutUrl))
+            {
+                return _configuration.Current.ExternalAboutUrl;
+            }
+
             return GetActionLink(url, "About", "Pages", relativeUrl);
         }
 
