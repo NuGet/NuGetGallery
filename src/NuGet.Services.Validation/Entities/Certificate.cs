@@ -58,6 +58,11 @@ namespace NuGet.Services.Validation
         public int ValidationFailures { get; set; }
 
         /// <summary>
+        /// Used for optimistic concurrency when updating certificates.
+        /// </summary>
+        public byte[] RowVersion { get; set; }
+
+        /// <summary>
         /// The package signatures that depend on this certificate. If this certificate ever gets revoked,
         /// each of these signatures that were signed after the invalidity period begins MUST be invalidated.
         /// </summary>

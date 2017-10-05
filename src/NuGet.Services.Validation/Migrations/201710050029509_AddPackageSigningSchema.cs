@@ -19,6 +19,7 @@ namespace NuGet.Services.Validation
                         LastVerificationTime = c.DateTime(precision: 7, storeType: "datetime2"),
                         RevocationTime = c.DateTime(precision: 7, storeType: "datetime2"),
                         ValidationFailures = c.Int(nullable: false),
+                        RowVersion = c.Binary(nullable: false, fixedLength: true, timestamp: true, storeType: "rowversion"),
                     })
                 .PrimaryKey(t => t.Key)
                 .Index(t => t.Thumbprint, unique: true, name: "IX_Certificates_Thumbprint");
@@ -72,6 +73,7 @@ namespace NuGet.Services.Validation
                         PackageKey = c.Int(nullable: false),
                         ValidatorName = c.String(nullable: false),
                         State = c.Int(nullable: false),
+                        RowVersion = c.Binary(nullable: false, fixedLength: true, timestamp: true, storeType: "rowversion"),
                     })
                 .PrimaryKey(t => t.ValidationId)
                 .Index(t => t.PackageKey, name: "IX_ValidatorStatuses_PackageKey");

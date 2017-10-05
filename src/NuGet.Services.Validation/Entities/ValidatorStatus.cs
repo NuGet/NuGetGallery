@@ -31,5 +31,10 @@ namespace NuGet.Services.Validation
         /// The current status for this validator.
         /// </summary>
         public ValidationStatus State { get; set; }
+
+        /// <summary>
+        /// Used for optimistic concurrency when updating the statuses.
+        /// </summary>
+        public byte[] RowVersion { get; set; }
     }
 }

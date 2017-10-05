@@ -170,6 +170,10 @@ namespace NuGet.Services.Validation
                 .Property(s => s.ValidatorName)
                 .IsRequired();
 
+            modelBuilder.Entity<ValidatorStatus>()
+                .Property(r => r.RowVersion)
+                .IsRowVersion();
+
             RegisterPackageSigningEntities(modelBuilder);
 
             base.OnModelCreating(modelBuilder);
@@ -293,6 +297,10 @@ namespace NuGet.Services.Validation
             modelBuilder.Entity<Certificate>()
                 .Property(c => c.RevocationTime)
                 .HasColumnType("datetime2");
+
+            modelBuilder.Entity<Certificate>()
+                .Property(c => c.RowVersion)
+                .IsRowVersion();
 
             modelBuilder.Entity<Certificate>()
                 .HasMany(c => c.Validations)
