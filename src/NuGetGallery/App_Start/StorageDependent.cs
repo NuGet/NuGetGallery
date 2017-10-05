@@ -58,7 +58,7 @@ namespace NuGetGallery
         public Type InterfaceType { get; }
 
         /// <summary>
-        /// Indicates if the implementation type should be declared as a singleton in DI container.
+        /// Indicates if the implementation type should be declared as a singleton in dependency injection container.
         /// </summary>
         public bool IsSingleInstance { get; }
 
