@@ -7,7 +7,7 @@ using System.Runtime.Serialization;
 namespace NuGet.Jobs.Validation.Common.Validators.Vcs
 {
     [Serializable]
-    internal class ValidationException : Exception
+    public class ValidationException : Exception
     {
         public ValidationException(string message) : base(message)
         {

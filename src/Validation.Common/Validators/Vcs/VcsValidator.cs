@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using NuGet.Services.VirusScanning.Vcs;
+using NuGet.Services.VirusScanning.Core;
 
 namespace NuGet.Jobs.Validation.Common.Validators.Vcs
 {
@@ -15,21 +15,18 @@ namespace NuGet.Jobs.Validation.Common.Validators.Vcs
         public const string ValidatorName = "validator-vcs";
 
         private readonly Uri _callbackUrl;
-        private readonly VcsVirusScanningService _scanningService;
-
+        private readonly IVirusScanningService _scanningService;
         private readonly ILogger<VcsValidator> _logger;
 
-        public VcsValidator(string serviceUrl, string callbackUrl, string contactAlias, string submitterAlias, string packageUrlTemplate, ILoggerFactory loggerFactory)
-            : base(packageUrlTemplate)
+        public VcsValidator(
+            Uri callbackUrl,
+            string packageUrlTemplate,
+            IVirusScanningService scanningService,
+            ILogger<VcsValidator> logger) : base(packageUrlTemplate)
         {
-            _logger = loggerFactory.CreateLogger<VcsValidator>();
-            _scanningService = new VcsVirusScanningService(
-                new Uri(serviceUrl),
-                "DIRECT",
-                contactAlias,
-                submitterAlias,
-                loggerFactory);
-            _callbackUrl = new Uri(callbackUrl);
+            _callbackUrl = callbackUrl;
+            _scanningService = scanningService;
+            _logger = logger;
         }
 
         public override string Name
@@ -68,13 +65,13 @@ namespace NuGet.Jobs.Validation.Common.Validators.Vcs
                     description,
                     message.ValidationId);
 
-                if (string.IsNullOrEmpty(result.ErrorMessage))
+                if (IsValidJobResult(result))
                 {
                     _logger.LogInformation("Submission completed for " +
                         $"{{{TraceConstant.ValidatorName}}} {{{TraceConstant.ValidationId}}}. " +
                         $"package {{{TraceConstant.PackageId}}} " +
                         $"{{{TraceConstant.PackageVersion}}} " +
-                        "Request id: {RequestId} - job id: {JobId} - region code: {RegionCode}", 
+                        "Request id: {RequestId} - job id: {JobId} - region code: {RegionCode}",
                         Name,
                         message.ValidationId,
                         message.PackageId,
@@ -90,7 +87,7 @@ namespace NuGet.Jobs.Validation.Common.Validators.Vcs
                 }
                 else
                 {
-                    errorMessage = result.ErrorMessage;
+                    errorMessage = result.ErrorMessage ?? "The request had no request ID, job ID, and region code.";
 
                     _logger.LogError($"Submission failed for {{{TraceConstant.ValidatorName}}} {{{TraceConstant.ValidationId}}} " +
                             $"package {{{TraceConstant.PackageId}}} " +
@@ -115,6 +112,19 @@ namespace NuGet.Jobs.Validation.Common.Validators.Vcs
                     ValidationEvent.VirusScanRequestFailed);
                 throw;
             }
+        }
+
+        private static bool IsValidJobResult(VirusScanJob result)
+        {
+            return string.IsNullOrEmpty(result.ErrorMessage)
+                   && !AreAllJobIdsEmpty(result);
+        }
+
+        private static bool AreAllJobIdsEmpty(VirusScanJob result)
+        {
+            return string.IsNullOrEmpty(result.RequestId)
+                   && string.IsNullOrEmpty(result.JobId)
+                   && string.IsNullOrEmpty(result.RegionCode);
         }
     }
 }
