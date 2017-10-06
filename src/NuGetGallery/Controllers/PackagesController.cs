@@ -18,7 +18,6 @@ using System.Web.Caching;
 using System.Web.Mvc;
 using NuGet.Packaging;
 using NuGet.Versioning;
-using NuGetGallery;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Auditing;
@@ -922,6 +921,16 @@ namespace NuGetGallery
             }
 
             var model = new DeletePackageViewModel(package, ReportMyPackageReasons);
+
+            model.VersionSelectList = new SelectList(
+                model.PackageVersions
+                .Where(p => p.Deleted == false)
+                .Select(p => new
+                {
+                    text = p.NuGetVersion.ToFullString() + (p.LatestVersionSemVer2 ? " (Latest)" : string.Empty),
+                    url = Url.DeletePackage(p)
+                }), "url", "text", Url.DeletePackage(model));
+
             return View(model);
         }
 

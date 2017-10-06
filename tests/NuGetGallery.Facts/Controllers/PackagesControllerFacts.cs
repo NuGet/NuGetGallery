@@ -14,7 +14,7 @@ using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
 using NuGet.Packaging;
-using NuGetGallery;
+using NuGet.Versioning;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Auditing;
@@ -23,9 +23,7 @@ using NuGetGallery.Framework;
 using NuGetGallery.Helpers;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
-using NuGetGallery.TestUtils;
 using Xunit;
-using NuGet.Versioning;
 
 namespace NuGetGallery
 {
