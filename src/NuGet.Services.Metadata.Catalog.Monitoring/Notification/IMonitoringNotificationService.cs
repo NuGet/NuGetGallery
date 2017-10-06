@@ -27,6 +27,6 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         /// <param name="packageVersion">Version of the package that could not be validated.</param>
         /// <param name="catalogEntriesJson">Catalog entries of the package that queued the validation.</param>
         /// <param name="e">Exception that was thrown while running validation on the package.</param>
-        Task OnPackageValidationFailedAsync(string packageId, string packageVersion, IList<JObject> catalogEntriesJson, Exception e, CancellationToken token);
+        Task OnPackageValidationFailedAsync(string packageId, string packageVersion, Exception e, CancellationToken token);
     }
 }

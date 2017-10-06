@@ -14,6 +14,11 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
     public interface IPackageMonitoringStatusService
     {
         /// <summary>
+        /// Returns a list of every package that has been monitored and its <see cref="PackageState"/>.
+        /// </summary>
+        Task<IEnumerable<PackageMonitoringStatusListItem>> ListAsync(CancellationToken token);
+
+        /// <summary>
         /// Returns the validation status of a package.
         /// If validation has not yet been run on the package, returns null.
         /// </summary>

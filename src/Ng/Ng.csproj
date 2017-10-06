@@ -323,7 +323,6 @@
     <Compile Include="Arguments.cs" />
     <Compile Include="Jobs\Catalog2DnxJob.cs" />
     <Compile Include="Jobs\Catalog2LuceneJob.cs" />
-    <Compile Include="Jobs\EndpointMonitoringJob.cs" />
     <Compile Include="Jobs\Catalog2RegistrationJob.cs" />
     <Compile Include="Jobs\CheckLuceneJob.cs" />
     <Compile Include="Jobs\ClearLuceneJob.cs" />
@@ -353,32 +352,13 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="Ng.nuspec" />
+    <None Include="Ng.nuspec">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="Scripts\Catalog2DnxV3China.cmd" />
-    <None Include="Scripts\Catalog2DnxV3Secondary.cmd" />
-    <None Include="Scripts\Catalog2LuceneV3-Reg2.cmd" />
-    <None Include="Scripts\Catalog2LuceneV3-Reg2-Secondary.cmd" />
-    <None Include="Scripts\Catalog2LuceneV3-Reg1-Secondary.cmd" />
-    <None Include="Scripts\Catalog2LuceneV3-Reg1.cmd" />
-    <None Include="Scripts\Catalog2DnxV3.cmd" />
-    <None Include="Scripts\Catalog2RegistrationV3-Reg3-China.cmd" />
-    <None Include="Scripts\Catalog2RegistrationV3-Reg3.cmd" />
-    <None Include="Scripts\Catalog2RegistrationV3-Reg3-Secondary.cmd" />
-    <None Include="Scripts\Catalog2RegistrationV3-Reg2.cmd" />
-    <None Include="Scripts\Catalog2RegistrationV3-Reg2-Secondary.cmd" />
-    <None Include="Scripts\Catalog2RegistrationV3-Reg1-Secondary.cmd" />
-    <None Include="Scripts\Catalog2RegistrationV3-Reg1.cmd" />
-    <None Include="Scripts\DB2Catalog.cmd" />
-    <None Include="Scripts\EndpointMonitoring.cmd" />
-    <None Include="Scripts\Feed2CatalogV3-Secondary.cmd" />
-    <None Include="Scripts\Feed2CatalogV3.cmd" />
-    <None Include="Scripts\Functions.ps1" />
-    <None Include="Scripts\PreDeploy.ps1" />
-    <None Include="Scripts\PostDeploy.ps1" />
-    <None Include="Scripts\nssm.exe" />
+    <None Include="Scripts\**" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Catalog\NuGet.Services.Metadata.Catalog.csproj">
