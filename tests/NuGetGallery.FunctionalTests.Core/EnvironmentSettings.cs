@@ -14,6 +14,12 @@ namespace NuGetGallery.FunctionalTests
     {
         private static string _baseurl;
         private static string _searchServiceBaseurl;
+        private static string _externalBrandingMessage;
+        private static string _externalBrandingUrl;
+        private static string _externalAboutUrl;
+        private static string _externalPrivacyPolicyUrl;
+        private static string _externalTermsOfUseUrl;
+        private static string _externalTrademarksUrl;
         private static string _testAccountName;
         private static string _testAccountPassword;
         private static string _testAccountApiKey;
@@ -123,6 +129,81 @@ namespace NuGetGallery.FunctionalTests
                 }
 
                 return _searchServiceBaseurl;
+            }
+        }
+        
+        /// <summary>
+        /// External branding settings
+        /// </summary>
+        public static string ExternalBrandingMessage
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_externalBrandingMessage))
+                {
+                    _externalBrandingMessage  = Environment.GetEnvironmentVariable("ExternalBrandingMessage");
+                }
+                return _externalBrandingMessage;
+            }
+        }
+
+        public static string ExternalBrandingUrl
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_externalBrandingUrl))
+                {
+                    _externalBrandingUrl = Environment.GetEnvironmentVariable("ExternalBrandingUrl");
+                }
+                return _externalBrandingUrl;
+            }
+        }
+
+        public static string ExternalAboutUrl
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_externalAboutUrl))
+                {
+                    _externalAboutUrl = Environment.GetEnvironmentVariable("ExternalAboutUrl");
+                }
+                return _externalAboutUrl;
+            }
+        }
+
+        public static string ExternalPrivacyPolicyUrl
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_externalPrivacyPolicyUrl))
+                {
+                    _externalPrivacyPolicyUrl = Environment.GetEnvironmentVariable("ExternalPrivacyPolicyUrl");
+                }
+                return _externalPrivacyPolicyUrl;
+            }
+        }
+
+        public static string ExternalTermsOfUseUrl
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_externalTermsOfUseUrl))
+                {
+                    _externalTermsOfUseUrl = Environment.GetEnvironmentVariable("ExternalTermsOfUseUrl");
+                }
+                return _externalTermsOfUseUrl;
+            }
+        }
+
+        public static string ExternalTrademarksUrl
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_externalTrademarksUrl))
+                {
+                    _externalTrademarksUrl = Environment.GetEnvironmentVariable("ExternalTrademarksUrl");
+                }
+                return _externalTrademarksUrl;
             }
         }
 
