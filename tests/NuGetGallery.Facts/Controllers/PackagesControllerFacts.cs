@@ -1292,7 +1292,7 @@ namespace NuGetGallery
 
             [Theory]
             [InlineData(true)]
-            [InlineData(true)]
+            [InlineData(false)]
             public async Task OnPostBackWithReadMe_SavesPending(bool hasReadMe)
             {
                 // Arrange

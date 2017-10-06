@@ -471,7 +471,7 @@ namespace NuGetGallery.Services
             }
 
             [Fact]
-            public void PackageRegistrationIsAddedWithCommitSuccessfully()
+            public void PackageRegistrationIsAddedSuccessfully()
             {
                 var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
                 var existingNamespace = testNamespaces.First();
@@ -501,6 +501,81 @@ namespace NuGetGallery.Services
             }
         }
 
+        public class TheRemovePackageRegistrationFromNamespaceMethod
+        {
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            [InlineData("  ")]
+            public void NullNamespaceThrowsException(string value)
+            {
+                var service = new TestableReservedNamespaceService();
+
+                Assert.Throws<ArgumentException>(() => service.RemovePackageRegistrationFromNamespace(value, new PackageRegistration()));
+            }
+
+            [Fact]
+            public void NullPackageRegistrationThrowsException()
+            {
+                var service = new TestableReservedNamespaceService();
+
+                Assert.Throws<ArgumentNullException>(() => service.RemovePackageRegistrationFromNamespace("Microsoft.", null));
+            }
+
+            [Fact]
+            public void NonExistentNamespaceThrowsException()
+            {
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
+                var testPackageRegistrations = ReservedNamespaceServiceTestData.GetRegistrations();
+                var existingReg = testPackageRegistrations.First();
+                var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, packageRegistrations: testPackageRegistrations);
+
+                Assert.Throws<InvalidOperationException>(() => service.RemovePackageRegistrationFromNamespace("Non.Existent.Namespace.", existingReg));
+            }
+
+            [Fact]
+            public void MissingPackageRegistrationThrowsException()
+            {
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
+                var existingNamespace = testNamespaces.First();
+                var testPackageRegistrations = ReservedNamespaceServiceTestData.GetRegistrations();
+                var existingReg = testPackageRegistrations.First();
+                var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, packageRegistrations: testPackageRegistrations);
+
+                Assert.Throws<InvalidOperationException>(() => service.RemovePackageRegistrationFromNamespace(existingNamespace.Value, existingReg));
+            }
+            [Fact]
+            public void PackageRegistrationIsRemovedFromNamespaceSuccessfully()
+            {
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
+                var existingNamespace = testNamespaces.First();
+                var testPackageRegistrations = ReservedNamespaceServiceTestData.GetRegistrations();
+                var existingReg = testPackageRegistrations.First();
+                existingNamespace.PackageRegistrations.Add(existingReg);
+                var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, packageRegistrations: testPackageRegistrations);
+
+                service.RemovePackageRegistrationFromNamespace(existingNamespace.Value, existingReg);
+
+                Assert.False(existingNamespace.PackageRegistrations.Contains(existingReg));
+            }
+
+            [Fact]
+            public void CommitChangesIsNotExecuted()
+            {
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
+                var existingNamespace = testNamespaces.First();
+                var testPackageRegistrations = ReservedNamespaceServiceTestData.GetRegistrations();
+                var existingReg = testPackageRegistrations.First();
+                existingNamespace.PackageRegistrations.Add(existingReg);
+                var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, packageRegistrations: testPackageRegistrations);
+
+                service.RemovePackageRegistrationFromNamespace(existingNamespace.Value, existingReg);
+
+                service
+                    .MockReservedNamespaceRepository
+                    .Verify(x => x.CommitChangesAsync(), Times.Never);
+            }
+        }
         public class TheDeleteOwnerFromReservedNamespaceAsyncMethod
         {
             [Theory]
