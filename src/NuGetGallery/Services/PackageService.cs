@@ -739,6 +739,8 @@ namespace NuGetGallery
             {
                 packageRegistrationsToUpdate
                     .ForEach(pru => pru.IsVerified = isVerified);
+
+                // Possibly remove this commit or make it under a transaction?
                 await _packageRegistrationRepository.CommitChangesAsync();
             }
         }

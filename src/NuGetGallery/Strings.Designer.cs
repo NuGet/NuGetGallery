@@ -1026,6 +1026,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The package registraton Id &apos;{0}&apos; is missing or not found in the reserved namespace &apos;{1}&apos;..
+        /// </summary>
+        public static string ReservedNamespace_RegistrationNotFound {
+            get {
+                return ResourceManager.GetString("ReservedNamespace_RegistrationNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The ID prefix of this package has been reserved for one of the owners of this package by NuGet.org..
         /// </summary>
         public static string ReservedNamespace_ReservedIndicatorTooltip {
