@@ -2,13 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
+using Newtonsoft.Json;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
 {
@@ -33,7 +33,9 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         {
             SaveCount++;
 
-            TraceMethod("SAVE", resourceUri);
+            TraceMethod(nameof(Save), resourceUri);
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
 
             try
             {
@@ -41,35 +43,45 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             }
             catch (Exception e)
             {
-                string message = String.Format("SAVE EXCEPTION: {0} {1}", resourceUri, e.Message);
-                Trace.WriteLine(message);
-                throw new Exception(message, e);
+                TraceException(nameof(Save), resourceUri, e);
+                throw;
             }
+
+            sw.Stop();
+            TraceExecutionTime(nameof(Save), resourceUri, sw.ElapsedMilliseconds);
         }
 
         public async Task<StorageContent> Load(Uri resourceUri, CancellationToken cancellationToken)
         {
             LoadCount++;
+            StorageContent storageContent = null;
 
-            TraceMethod("LOAD", resourceUri);
+            TraceMethod(nameof(Load), resourceUri);
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
 
             try
             {
-                return await OnLoad(resourceUri, cancellationToken);
+                storageContent = await OnLoad(resourceUri, cancellationToken);
             }
             catch (Exception e)
             {
-                string message = String.Format("LOAD EXCEPTION: {0} {1}", resourceUri, e.Message);
-                Trace.WriteLine(message);
-                throw new Exception(message, e);
+                TraceException(nameof(Load), resourceUri, e);
+                throw;
             }
+
+            sw.Stop();
+            TraceExecutionTime(nameof(Load), resourceUri, sw.ElapsedMilliseconds);
+            return storageContent;
         }
 
         public async Task Delete(Uri resourceUri, CancellationToken cancellationToken)
         {
             DeleteCount++;
 
-            TraceMethod("DELETE", resourceUri);
+            TraceMethod(nameof(Delete), resourceUri);
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
 
             try
             {
@@ -93,10 +105,12 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             }
             catch (Exception e)
             {
-                string message = String.Format("DELETE EXCEPTION: {0} {1}", resourceUri, e.Message);
-                Trace.WriteLine(message);
-                throw new Exception(message, e);
+                TraceException(nameof(Delete), resourceUri, e);
+                throw;
             }
+
+            sw.Stop();
+            TraceExecutionTime(nameof(Delete), resourceUri, sw.ElapsedMilliseconds);
         }
 
         public async Task<string> LoadString(Uri resourceUri, CancellationToken cancellationToken)
@@ -175,7 +189,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             return name;
         }
 
-        protected Uri GetUri(string name)
+        public virtual Uri GetUri(string name)
         {
             string address = BaseAddress.ToString();
             if (!address.EndsWith("/"))
@@ -191,8 +205,23 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         {
             if (Verbose)
             {
-                Trace.WriteLine(String.Format("{0} {1}", method, resourceUri));
+                //The Uri depends on the storage implementation.
+                Uri storageUri = GetUri(GetName(resourceUri));
+                Trace.WriteLine(String.Format("{0} {1}", method, storageUri));
             }
+        }
+
+        private string TraceException(string method, Uri resourceUri, Exception exception)
+        {
+            string message = $"{method} EXCEPTION: {GetUri(GetName(resourceUri))} {exception.ToString()}";
+            Trace.WriteLine(message);
+            return message;
+        }
+
+        private void TraceExecutionTime(string method, Uri resourceUri, long executionTimeInMilliseconds)
+        {
+            string message = JsonConvert.SerializeObject(new { MethodName = method, StreamUri = GetUri(GetName(resourceUri)), ExecutionTimeInMilliseconds = executionTimeInMilliseconds });
+            Trace.WriteLine(message);
         }
     }
 }
