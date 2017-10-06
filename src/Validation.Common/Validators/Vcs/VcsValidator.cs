@@ -24,7 +24,12 @@ namespace NuGet.Jobs.Validation.Common.Validators.Vcs
         {
             _logger = loggerFactory.CreateLogger<VcsValidator>();
             _packageUrlTemplate = packageUrlTemplate;
-            _scanningService = new VcsVirusScanningService(new Uri(serviceUrl), "DIRECT", contactAlias, submitterAlias);
+            _scanningService = new VcsVirusScanningService(
+                new Uri(serviceUrl),
+                "DIRECT",
+                contactAlias,
+                submitterAlias,
+                loggerFactory);
             _callbackUrl = new Uri(callbackUrl);
         }
 
