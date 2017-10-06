@@ -7,8 +7,8 @@
     <ProjectGuid>{6674B4B4-2D0E-4840-8CF0-2356ACDE8863}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NuGet.Services.Abstractions</RootNamespace>
-    <AssemblyName>NuGet.Services.Abstractions</AssemblyName>
+    <RootNamespace>NuGet.Services</RootNamespace>
+    <AssemblyName>NuGet.Services.Contracts</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -45,6 +45,9 @@
     <Compile Include="Properties\AssemblyInfo.*.cs" />
     <Compile Include="ServiceBus\ISubscriptionClient.cs" />
     <Compile Include="ServiceBus\ITopicClient.cs" />
+    <Compile Include="Validation\IValidationRequest.cs" />
+    <Compile Include="Validation\IValidator.cs" />
+    <Compile Include="Validation\ValidationStatus.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />

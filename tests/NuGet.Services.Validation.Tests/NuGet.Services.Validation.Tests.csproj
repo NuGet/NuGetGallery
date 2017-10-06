@@ -52,9 +52,9 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\NuGet.Services.Abstractions\NuGet.Services.Abstractions.csproj">
+    <ProjectReference Include="..\..\src\NuGet.Services.Contracts\NuGet.Services.Contracts.csproj">
       <Project>{6674b4b4-2d0e-4840-8cf0-2356acde8863}</Project>
-      <Name>NuGet.Services.Abstractions</Name>
+      <Name>NuGet.Services.Contracts</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\src\NuGet.Services.Validation\NuGet.Services.Validation.csproj">
       <Project>{c1e36a2c-1c1b-4521-b256-ad42505d9efb}</Project>

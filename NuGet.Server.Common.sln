@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26717.1
+VisualStudioVersion = 15.0.26730.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{8415FED7-1BED-4227-8B4F-BB7C24E041CD}"
 EndProject
@@ -42,11 +42,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.AzureManagem
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.ServiceBus", "src\NuGet.Services.ServiceBus\NuGet.Services.ServiceBus.csproj", "{9337000B-EA3B-40BE-9A33-38BC28DFD0CB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Abstractions", "src\NuGet.Services.Abstractions\NuGet.Services.Abstractions.csproj", "{6674B4B4-2D0E-4840-8CF0-2356ACDE8863}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Contracts", "src\NuGet.Services.Contracts\NuGet.Services.Contracts.csproj", "{6674B4B4-2D0E-4840-8CF0-2356ACDE8863}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Validation", "src\NuGet.Services.Validation\NuGet.Services.Validation.csproj", "{C1E36A2C-1C1B-4521-B256-AD42505D9EFB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Validation.Tests", "tests\NuGet.Services.Validation.Tests\NuGet.Services.Validation.Tests.csproj", "{E29F54DF-DFB8-4E27-940D-21ECCB9B6FC1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Contracts.Tests", "tests\NuGet.Services.Contracts.Tests\NuGet.Services.Contracts.Tests.csproj", "{79F72C83-E94D-4D04-B904-5A4DA161168E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -126,6 +128,10 @@ Global
 		{E29F54DF-DFB8-4E27-940D-21ECCB9B6FC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E29F54DF-DFB8-4E27-940D-21ECCB9B6FC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E29F54DF-DFB8-4E27-940D-21ECCB9B6FC1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{79F72C83-E94D-4D04-B904-5A4DA161168E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{79F72C83-E94D-4D04-B904-5A4DA161168E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{79F72C83-E94D-4D04-B904-5A4DA161168E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{79F72C83-E94D-4D04-B904-5A4DA161168E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -149,6 +155,7 @@ Global
 		{6674B4B4-2D0E-4840-8CF0-2356ACDE8863} = {8415FED7-1BED-4227-8B4F-BB7C24E041CD}
 		{C1E36A2C-1C1B-4521-B256-AD42505D9EFB} = {8415FED7-1BED-4227-8B4F-BB7C24E041CD}
 		{E29F54DF-DFB8-4E27-940D-21ECCB9B6FC1} = {7783A106-0F4C-4055-9AB4-413FB2C7B8F0}
+		{79F72C83-E94D-4D04-B904-5A4DA161168E} = {7783A106-0F4C-4055-9AB4-413FB2C7B8F0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AA413DB0-5475-4B5D-A3AF-6323DA8D538B}
