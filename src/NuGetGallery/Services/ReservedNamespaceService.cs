@@ -274,11 +274,6 @@ namespace NuGetGallery
                 ?? throw new InvalidOperationException(string.Format(
                     CultureInfo.CurrentCulture, Strings.ReservedNamespace_NamespaceNotFound, prefix));
 
-            if (!namespaceToModify.PackageRegistrations.Contains(packageRegistration))
-            {
-                throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, Strings.ReservedNamespace_RegistrationNotFound, packageRegistration.Id, prefix));
-            }
-
             namespaceToModify.PackageRegistrations.Remove(packageRegistration);
         }
 

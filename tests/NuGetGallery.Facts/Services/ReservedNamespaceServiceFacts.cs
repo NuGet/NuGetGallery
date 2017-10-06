@@ -534,17 +534,6 @@ namespace NuGetGallery.Services
             }
 
             [Fact]
-            public void MissingPackageRegistrationThrowsException()
-            {
-                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
-                var existingNamespace = testNamespaces.First();
-                var testPackageRegistrations = ReservedNamespaceServiceTestData.GetRegistrations();
-                var existingReg = testPackageRegistrations.First();
-                var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, packageRegistrations: testPackageRegistrations);
-
-                Assert.Throws<InvalidOperationException>(() => service.RemovePackageRegistrationFromNamespace(existingNamespace.Value, existingReg));
-            }
-            [Fact]
             public void PackageRegistrationIsRemovedFromNamespaceSuccessfully()
             {
                 var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
