@@ -19,7 +19,7 @@ namespace NuGet.Jobs.Validation.Common.Validators.Unzip
 
         private readonly ILogger<UnzipValidator> _logger;
 
-        public UnzipValidator(ILoggerFactory loggerFactory)
+        public UnzipValidator(string packageUrlTemplate, ILoggerFactory loggerFactory) : base(packageUrlTemplate)
         {
             _logger = loggerFactory.CreateLogger<UnzipValidator>();
         }
@@ -40,14 +40,16 @@ namespace NuGet.Jobs.Validation.Common.Validators.Unzip
             {
                 try
                 {
-                    using (var packageStream = await httpClient.GetStreamAsync(message.Package.DownloadUrl))
+                    var packageUrl = GetPackageUrl(message);
+
+                    using (var packageStream = await httpClient.GetStreamAsync(packageUrl))
                     {
                         using (var packageFileStream = File.Open(temporaryFile, FileMode.OpenOrCreate))
                         {
                             await packageStream.CopyToAsync(packageFileStream);
 
-                            _logger.LogInformation($"Downloaded package from {{{TraceConstant.Url}}}", message.Package.DownloadUrl);
-                            WriteAuditEntry(auditEntries, $"Downloaded package from {message.Package.DownloadUrl}",
+                            _logger.LogInformation($"Downloaded package from {{{TraceConstant.Url}}}", packageUrl);
+                            WriteAuditEntry(auditEntries, $"Downloaded package from {packageUrl}",
                                 ValidationEvent.PackageDownloaded);
 
                             packageFileStream.Position = 0;

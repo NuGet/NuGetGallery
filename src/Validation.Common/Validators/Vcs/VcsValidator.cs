@@ -14,16 +14,15 @@ namespace NuGet.Jobs.Validation.Common.Validators.Vcs
     {
         public const string ValidatorName = "validator-vcs";
 
-        private readonly string _packageUrlTemplate;
         private readonly Uri _callbackUrl;
         private readonly VcsVirusScanningService _scanningService;
 
         private readonly ILogger<VcsValidator> _logger;
 
         public VcsValidator(string serviceUrl, string callbackUrl, string contactAlias, string submitterAlias, string packageUrlTemplate, ILoggerFactory loggerFactory)
+            : base(packageUrlTemplate)
         {
             _logger = loggerFactory.CreateLogger<VcsValidator>();
-            _packageUrlTemplate = packageUrlTemplate;
             _scanningService = new VcsVirusScanningService(
                 new Uri(serviceUrl),
                 "DIRECT",
@@ -59,16 +58,10 @@ namespace NuGet.Jobs.Validation.Common.Validators.Vcs
             string errorMessage;
             try
             {
-                string packageUrl;
-                if (message.Package.DownloadUrl != null)
-                {
-                    packageUrl = message.Package.DownloadUrl.ToString();
-                }
-                else
-                {
-                    packageUrl = BuildStorageUrl(message.Package.Id, message.PackageVersion);
-                }
+                var packageUrl = GetPackageUrl(message);
 
+                // VCS requires a package URL that is either a direct URL to Azure Blob Storage or a UNC share file
+                // path. Azure Blob Storage URLs with SAS tokens in them are accepted.
                 var result = await _scanningService.CreateVirusScanJobAsync(
                     packageUrl,
                     _callbackUrl,
@@ -86,12 +79,12 @@ namespace NuGet.Jobs.Validation.Common.Validators.Vcs
                         message.ValidationId,
                         message.PackageId,
                         message.PackageVersion,
-                        result.RequestId, 
+                        result.RequestId,
                         result.JobId,
                         result.RegionCode);
                     WriteAuditEntry(auditEntries, $"Submission completed. Request id: {result.RequestId} " +
                         $"- job id: {result.JobId} " +
-                        $"- region code: {result.RegionCode}", 
+                        $"- region code: {result.RegionCode}",
                         ValidationEvent.VirusScanRequestSent);
                     return ValidationResult.Asynchronous;
                 }
@@ -122,17 +115,6 @@ namespace NuGet.Jobs.Validation.Common.Validators.Vcs
                     ValidationEvent.VirusScanRequestFailed);
                 throw;
             }
-        }
-
-        private string BuildStorageUrl(string packageId, string packageVersion)
-        {
-            // The VCS service needs a blob storage URL, which the NuGet API does not expose.
-            // Build one from a template here.
-            // Guarantee all URL transformations (such as URL encoding) are performed.
-            return new Uri(_packageUrlTemplate
-                .Replace("{id}", packageId)
-                .Replace("{version}", packageVersion)
-                .ToLowerInvariant()).AbsoluteUri;
         }
     }
 }

@@ -42,7 +42,9 @@ namespace NuGet.Jobs.Validation.Runner
             // Add validators
             if (_runValidationTasks.Contains(UnzipValidator.ValidatorName))
             {
-                _validators.Add(new UnzipValidator(LoggerFactory));
+                _validators.Add(new UnzipValidator(
+                    JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.PackageUrlTemplate),
+                    LoggerFactory));
             }
             if (_runValidationTasks.Contains(VcsValidator.ValidatorName))
             {
@@ -56,7 +58,7 @@ namespace NuGet.Jobs.Validation.Runner
                     JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.VcsValidatorCallbackUrl),
                     contactAlias,
                     submitterAlias,
-                    JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.VcsPackageUrlTemplate),
+                    JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.PackageUrlTemplate),
                     LoggerFactory));
             }
         }
@@ -282,6 +284,11 @@ namespace NuGet.Jobs.Validation.Runner
                 // Start the validation process for each package
                 foreach (var package in packages)
                 {
+                    // Don't read the package URL from OData. Instead, allow the validators to build the package URL
+                    // themselves. This is important because the URL in the OData feed is not pointing directly to
+                    // Azure Blob Storage, which is required by the VCS validator.
+                    package.DownloadUrl = null;
+
                     await packageValidationService.StartValidationProcessAsync(package, _requestValidationTasks);
                 }
 
