@@ -171,21 +171,21 @@ namespace NuGetGallery
         //
         // GET: /stats/reports/packages/{id}
 
-        public virtual async Task<ActionResult> PackageDownloadsByVersionReport(string id, string[] groupby)
+        public virtual async Task<JsonResult> PackageDownloadsByVersionReport(string id, string[] groupby)
         {
             if (_statisticsService == NullStatisticsService.Instance)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+                return Json(404, new[] {new object() }, JsonRequestBehavior.AllowGet);
             }
 
             var packageStatisticsReport = await GetPackageDownloadsByVersionReport(id, groupby);
 
             if (packageStatisticsReport == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+                return Json(404, new[] { Strings.PackageWithIdDoesNotExist }, JsonRequestBehavior.AllowGet);
             }
 
-            return Json(packageStatisticsReport, JsonRequestBehavior.AllowGet);
+            return Json(200, packageStatisticsReport, JsonRequestBehavior.AllowGet);
         }
 
         //
