@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using NuGetGallery.Services;
-using NuGetGallery.ViewModels;
 using System;
 using System.Linq;
 using System.Net;
@@ -10,6 +8,9 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using NuGetGallery.Areas.Admin;
+using NuGetGallery.Configuration;
+using NuGetGallery.Services;
+using NuGetGallery.ViewModels;
 
 namespace NuGetGallery
 {
@@ -17,15 +18,18 @@ namespace NuGetGallery
         : AppController
     {
         private readonly IContentService _contentService;
+        private readonly IGalleryConfigurationService _galleryConfigurationService;
         private readonly IMessageService _messageService;
         private readonly ISupportRequestService _supportRequestService;
 
         protected PagesController() { }
         public PagesController(IContentService contentService,
+            IGalleryConfigurationService galleryConfigurationService,
             IMessageService messageService,
             ISupportRequestService supportRequestService)
         {
             _contentService = contentService;
+            _galleryConfigurationService = galleryConfigurationService;
             _messageService = messageService;
             _supportRequestService = supportRequestService;
         }
@@ -46,6 +50,11 @@ namespace NuGetGallery
         [HttpGet]
         public virtual ActionResult About()
         {
+            if (!String.IsNullOrEmpty(_galleryConfigurationService.Current.ExternalAboutUrl))
+            {
+                return Redirect(_galleryConfigurationService.Current.ExternalAboutUrl);
+            }
+
             return View();
         }
 
@@ -110,6 +119,11 @@ namespace NuGetGallery
 
         public virtual async Task<ActionResult> Terms()
         {
+            if (!String.IsNullOrEmpty(_galleryConfigurationService.Current.ExternalTermsOfUseUrl))
+            {
+                return Redirect(_galleryConfigurationService.Current.ExternalTermsOfUseUrl);
+            }
+
             if (_contentService != null)
             {
                 ViewBag.Content = await _contentService.GetContentItemAsync(
@@ -121,6 +135,11 @@ namespace NuGetGallery
 
         public virtual async Task<ActionResult> Privacy()
         {
+            if (!String.IsNullOrEmpty(_galleryConfigurationService.Current.ExternalPrivacyPolicyUrl))
+            {
+                return Redirect(_galleryConfigurationService.Current.ExternalPrivacyPolicyUrl);
+            }
+
             if (_contentService != null)
             {
                 ViewBag.Content = await _contentService.GetContentItemAsync(
