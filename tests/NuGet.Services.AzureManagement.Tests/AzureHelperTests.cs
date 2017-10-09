@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -14,31 +15,54 @@ namespace NuGet.Services.AzureManagement.Tests
         public void ParseCloudServiceProperties()
         {
             // Arrange
-            var path = Path.Combine(Directory.GetCurrentDirectory(), "CloudServiceProperties.txt");
-            string content = File.ReadAllText(path);
+            var content = ReadFile("CloudServiceProperties.json");
 
             // Act
             var cloudService = AzureHelper.ParseCloudServiceProperties(content);
 
             // Assert
-            cloudService.Uri.AbsoluteUri.Equals("http://nuget-dev-0-v2v3search.cloudapp.net/");
-            cloudService.InstanceCount.Equals(3);
+            Assert.Equal("http://nuget-dev-0-v2v3search.cloudapp.net/", cloudService.Uri.AbsoluteUri);
+            Assert.Equal(3, cloudService.InstanceCount);
         }
 
         [Fact]
-        public async Task Test()
+        public void ParseTrafficManagerProperties()
         {
-            var config = new AzureConfig();
-            var a = new AzureManagementAPIWrapper(config);
+            // Arrange
+            var content = ReadFile("TrafficManagerProperties.json");
 
-            var s = await a.GetTrafficManagerPropertiesAsync("fa8b3229-dc0f-4633-a285-ad597076921d", "nuget-dev-0-v2gallery", "devnugettest", CancellationToken.None);
+            // Act
+            var trafficManager = AzureHelper.ParseTrafficManagerProperties(content);
+
+            // Assert
+            Assert.Equal("dev-nuget-tfm.trafficmanager.net", trafficManager.Domain);
+            Assert.Equal("/api/status", trafficManager.Path);
+
+            var endpoints = trafficManager.Endpoints;
+
+            var endpoint1 = endpoints.First();
+            AssertEndpoint(endpoint1, "Endpoint1", "nuget-test-trafficmanager.cloudapp.net", AzureHelper.TrafficManagerEndpointStatus.Online, AzureHelper.TrafficManagerEndpointProbeStatus.Enabled);
+
+            var endpoint2 = endpoints.Skip(1).First();
+            AssertEndpoint(endpoint2, "Endpoint2", "nuget-test-trafficmanager2.cloudapp.net", AzureHelper.TrafficManagerEndpointStatus.Online, AzureHelper.TrafficManagerEndpointProbeStatus.Enabled);
         }
-    }
 
-    public class AzureConfig : IAzureManagementAPIWrapperConfiguration
-    {
-        public string ClientId => "622f5d2f-0144-4f03-8b29-4432739d54f2";
+        private string ReadFile(string filename)
+        {
+            var path = Path.Combine(Directory.GetCurrentDirectory(), filename);
+            return File.ReadAllText(path);
+        }
 
-        public string ClientSecret => "";
+        private void AssertEndpoint(AzureHelper.TrafficManagerEndpointProperties endpoint,
+            string name,
+            string target,
+            AzureHelper.TrafficManagerEndpointStatus status,
+            AzureHelper.TrafficManagerEndpointProbeStatus probeStatus)
+        {
+            Assert.Equal(name, endpoint.Name);
+            Assert.Equal(target, endpoint.Target);
+            Assert.Equal(status, endpoint.Status);
+            Assert.Equal(probeStatus, endpoint.ProbeStatus);
+        }
     }
 }

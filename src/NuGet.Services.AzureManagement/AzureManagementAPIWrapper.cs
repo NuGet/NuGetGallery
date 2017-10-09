@@ -63,39 +63,11 @@ namespace NuGet.Services.AzureManagement
                 throw new ArgumentException(nameof(slot));
             }
 
-            await RenewAccessToken();
-
             const string RequestUrlFormat = @"https://management.azure.com/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.ClassicCompute/domainNames/{2}/slots/{3}?api-version=2016-11-01";
 
             string requestUrl = string.Format(RequestUrlFormat, subscription, resourceGroup, name, slot);
 
-            using (var client = new HttpClient())
-            {
-                var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
-                HttpResponseMessage response = await client.SendAsync(request, token);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    string result = await response.Content.ReadAsStringAsync();
-                    return result;
-                }
-                else
-                {
-                    string errorDetails = "Unknown";
-                    try
-                    {
-                        // Try to read the response.. might work..
-                        errorDetails = await response.Content.ReadAsStringAsync();
-                    }
-                    catch
-                    {
-                    }
-                    
-                    throw new AzureManagementException($"Failed to get cloud service properties." +
-                        $" Url: {requestUrl}, Return code: {response.StatusCode} {response.ReasonPhrase}, Error: {errorDetails}");
-                }
-            }
+            return await MakeAzureRequest(requestUrl, token);
         }
 
         public async Task<string> GetTrafficManagerPropertiesAsync(string subscription, string resourceGroup, string profileName, CancellationToken token)
@@ -115,11 +87,16 @@ namespace NuGet.Services.AzureManagement
                 throw new ArgumentException(nameof(profileName));
             }
 
-            await RenewAccessToken();
-
             const string RequestUrlFormat = @"https://management.azure.com/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Network/trafficmanagerprofiles/{2}?api-version=2017-05-01";
 
             string requestUrl = string.Format(RequestUrlFormat, subscription, resourceGroup, profileName);
+
+            return await MakeAzureRequest(requestUrl, token);
+        }
+
+        private async Task<string> MakeAzureRequest(string requestUrl, CancellationToken token)
+        {
+            await RenewAccessToken();
 
             using (var client = new HttpClient())
             {
@@ -144,7 +121,7 @@ namespace NuGet.Services.AzureManagement
                     {
                     }
 
-                    throw new AzureManagementException($"Failed to get cloud service properties." +
+                    throw new AzureManagementException($"Failed to make request to Azure." +
                         $" Url: {requestUrl}, Return code: {response.StatusCode} {response.ReasonPhrase}, Error: {errorDetails}");
                 }
             }
