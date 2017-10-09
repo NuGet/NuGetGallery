@@ -3,6 +3,7 @@
 
 using System.Threading.Tasks;
 using System.Web;
+using System.Web.Mvc;
 using Moq;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Framework;
@@ -82,6 +83,64 @@ namespace NuGetGallery
                         It.IsAny<string>(),
                         It.IsAny<User>(),
                         It.IsAny<Package>()));
+            }
+        }
+
+        public class LegalLinkActions : TestContainer
+        {
+            [Fact]
+            public void ExternalPrivacyPolicyUrlRedirects()
+            {
+                var customUrl = "http://privacyPolicy";
+                var configuration = GetConfigurationService();
+
+                var controller = GetController<PagesController>();
+                var result = controller.Privacy().Result;
+                Assert.IsType<ViewResult>(result);
+
+                configuration.Current.ExternalPrivacyPolicyUrl = customUrl;
+                controller = GetController<PagesController>();
+                result = controller.Privacy().Result;
+
+                Assert.IsType<RedirectResult>(result);
+                Assert.Equal(customUrl, ((RedirectResult)result).Url);
+            }
+
+            [Fact]
+            public void ExternalTermsOfUseUrlRedirects()
+            {
+                var customUrl = "http://TermsOfUse";
+                var configuration = GetConfigurationService();
+                
+                var controller = GetController<PagesController>();
+                var result = controller.Terms().Result;
+                Assert.IsType<ViewResult>(result);
+
+                configuration.Current.ExternalTermsOfUseUrl = customUrl;
+                controller = GetController<PagesController>();
+                result = controller.Terms().Result;
+
+                Assert.IsType<RedirectResult>(result);
+                Assert.Equal(customUrl, ((RedirectResult)result).Url);
+            }
+
+            [Fact]
+            public void ExternalAboutUrlRedirects()
+            {
+                var customUrl = "http://About";
+                var configuration = GetConfigurationService();
+                
+                var controller = GetController<PagesController>();
+                var result = controller.About();
+
+                Assert.IsType<ViewResult>(result);
+
+                configuration.Current.ExternalAboutUrl = customUrl;
+                controller = GetController<PagesController>();
+                result = controller.About();
+
+                Assert.IsType<RedirectResult>(result);
+                Assert.Equal(customUrl, ((RedirectResult)result).Url);
             }
         }
     }
