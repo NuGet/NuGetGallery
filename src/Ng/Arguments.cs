@@ -43,6 +43,7 @@ namespace Ng
         public const string StorageContainer = "storageContainer";
         public const string StorageKeyValue = "storageKeyValue";
         public const string StoragePath = "storagePath";
+        public const string StorageQueueName = "storageQueueName";
         public const string StorageType = "storageType";
         public const string Version = "version";
 
@@ -103,7 +104,7 @@ namespace Ng
         public const string StorageTypeAuditing = "storageTypeAuditing";
         #endregion
 
-        #region EndpointMonitoring
+        #region Monitoring
         /// <summary>
         /// The url of the service index.
         /// </summary>

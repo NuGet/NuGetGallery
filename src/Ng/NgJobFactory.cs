@@ -18,7 +18,10 @@ namespace Ng
             { "checklucene", typeof(CheckLuceneJob) },
             { "clearlucene", typeof(ClearLuceneJob) },
             { "db2lucene", typeof(Db2LuceneJob) },
-            { "lightning", typeof(LightningJob) }
+            { "lightning", typeof(LightningJob) },
+            { "catalog2monitoring", typeof(Catalog2MonitoringJob) },
+            { "monitoring2monitoring", typeof(Monitoring2MonitoringJob) },
+            { "monitoringprocessor", typeof(MonitoringProcessorJob) }
         };
 
         public static NgJob GetJob(string jobName, ILoggerFactory loggerFactory)

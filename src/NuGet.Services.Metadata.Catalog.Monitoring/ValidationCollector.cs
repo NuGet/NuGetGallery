@@ -46,7 +46,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
 
             _logger.LogInformation("Adding {MostRecentCatalogEntryUri} to queue.", catalogEntries.OrderByDescending(c => c.CommitTimeStamp).First().Uri);
 
-            await _queue.Add(
+            await _queue.AddAsync(
                 new PackageValidatorContext(feedPackage, catalogEntries),
                 cancellationToken);
         }

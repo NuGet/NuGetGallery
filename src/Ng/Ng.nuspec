@@ -29,6 +29,10 @@
     <file src="Scripts\Catalog2RegistrationV3-Reg3-China.cmd" />
 	
     <file src="Scripts\DB2Catalog.cmd" />
+
+    <file src="Scripts\Catalog2Monitoring.cmd" />
+    <file src="Scripts\Monitoring2Monitoring.cmd " />
+    <file src="Scripts\MonitoringProcessor.cmd " />
 	
     <file src="Scripts\Feed2CatalogV3.cmd" />
     <file src="Scripts\Feed2CatalogV3-Secondary.cmd" />
