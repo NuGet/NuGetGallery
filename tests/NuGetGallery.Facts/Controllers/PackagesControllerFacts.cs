@@ -14,7 +14,7 @@ using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
 using NuGet.Packaging;
-using NuGetGallery;
+using NuGet.Versioning;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Auditing;
@@ -23,7 +23,6 @@ using NuGetGallery.Framework;
 using NuGetGallery.Helpers;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
-using NuGetGallery.TestUtils;
 using Xunit;
 
 namespace NuGetGallery
@@ -502,7 +501,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var readMeMd = "# Hello World!";
-                
+
                 // Act
                 var result = await GetDisplayPackageResult(readMeMd, true);
 
@@ -1131,6 +1130,90 @@ namespace NuGetGallery
             }
         }
 
+        public class TheDeleteMethod
+            : TestContainer
+        {
+            [Fact]
+            public void DisplaysFullVersionStringAndUsesNormalizedVersionsInUrlsInSelectList()
+            {
+                // Arrange
+                var user = new User("Frodo") { Key = 1 };
+                var packageRegistration = new PackageRegistration { Id = "Foo" };
+                packageRegistration.Owners.Add(user);
+
+                var package = new Package
+                {
+                    Key = 2,
+                    PackageRegistration = packageRegistration,
+                    Version = "1.0.0+metadata",
+                    Listed = true,
+                    IsLatestSemVer2 = true,
+                    HasReadMe = false
+                };
+                var olderPackageVersion = new Package
+                {
+                    Key = 1,
+                    PackageRegistration = packageRegistration,
+                    Version = "1.0.0-alpha",
+                    IsLatest = true,
+                    IsLatestSemVer2 = true,
+                    Listed = true,
+                    HasReadMe = false
+                };
+
+                packageRegistration.Packages.Add(package);
+                packageRegistration.Packages.Add(olderPackageVersion);
+
+                var packageDelete = new PackageDelete
+                {
+                    DeletedBy = user,
+                    DeletedByKey = user.Key,
+                    Packages = new[] { package },
+                    Reason = "Other",
+                    Signature = "John Doe"
+                };
+
+                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+                packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0.0", SemVerLevelKey.Unknown, true))
+                    .Returns(package).Verifiable();
+                
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService);
+                controller.SetCurrentUser(user);
+
+                var routeCollection = new RouteCollection();
+                Routes.RegisterRoutes(routeCollection);
+                controller.Url = new UrlHelper(controller.ControllerContext.RequestContext, routeCollection);
+
+                // Act
+                var result = controller.Delete("Foo", "1.0.0");
+
+                // Assert
+                packageService.Verify();
+
+                Assert.IsType<ViewResult>(result);
+                var model = ((ViewResult)result).Model as DeletePackageViewModel;
+                Assert.NotNull(model);
+
+                // Verify version select list
+                Assert.Equal(packageRegistration.Packages.Count, model.VersionSelectList.Count());
+
+                foreach (var pkg in packageRegistration.Packages)
+                {
+                    var valueField = UrlExtensions.DeletePackage(controller.Url, model);
+                    var textField = model.NuGetVersion.ToFullString() + (pkg.IsLatestSemVer2 ? " (Latest)" : string.Empty);
+
+                    var selectListItem = model.VersionSelectList
+                        .SingleOrDefault(i => string.Equals(i.Text, textField) && string.Equals(i.Value, valueField));
+
+                    Assert.NotNull(selectListItem);
+                    Assert.Equal(valueField, selectListItem.Value);
+                    Assert.Equal(textField, selectListItem.Text);
+                }
+            }
+        }
+
         public class TheEditMethod
             : TestContainer
         {
@@ -1212,6 +1295,93 @@ namespace NuGetGallery
                 Assert.Equal(@"~\Bar.cshtml", ((RedirectResult)result).Url);
             }
 
+            [Fact]
+            public async Task UsesNormalizedVersionsInUrlsInSelectList()
+            {
+                // Arrange
+                var user = new User("Frodo") { Key = 1 };
+                var packageRegistration = new PackageRegistration { Id = "Foo" };
+                packageRegistration.Owners.Add(user);
+
+                var package = new Package
+                {
+                    Key = 2,
+                    PackageRegistration = packageRegistration,
+                    Version = "1.0.0+metadata",
+                    Listed = true,
+                    IsLatestSemVer2 = true,
+                    HasReadMe = false
+                };
+                var olderPackageVersion = new Package
+                {
+                    Key = 1,
+                    PackageRegistration = packageRegistration,
+                    Version = "1.0.0-alpha",
+                    IsLatest = true,
+                    IsLatestSemVer2 = true,
+                    Listed = true,
+                    HasReadMe = false
+                };
+
+                packageRegistration.Packages.Add(package);
+                packageRegistration.Packages.Add(olderPackageVersion);
+
+                var packageEdit = new PackageEdit
+                {
+                    PackageKey = package.Key,
+                    Package = package,
+                    User = user,
+                    UserKey = user.Key
+                };
+
+                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+                packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0.0", SemVerLevelKey.Unknown, true))
+                    .Returns(package).Verifiable();
+                packageService.Setup(svc => svc.FindPackageRegistrationById("Foo"))
+                    .Returns(package.PackageRegistration).Verifiable();
+
+                var editPackageService = new Mock<EditPackageService>(MockBehavior.Strict);
+                editPackageService.Setup(svc => svc.GetPendingMetadata(package))
+                    .Returns(packageEdit).Verifiable();
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    editPackageService: editPackageService);
+                controller.SetCurrentUser(user);
+
+                var routeCollection = new RouteCollection();
+                Routes.RegisterRoutes(routeCollection);
+                controller.Url = new UrlHelper(controller.ControllerContext.RequestContext, routeCollection);
+
+                // Act
+                var result = await controller.Edit("Foo", "1.0.0");
+
+                // Assert
+                packageService.Verify();
+                editPackageService.Verify();
+
+                Assert.IsType<ViewResult>(result);
+                var model = ((ViewResult)result).Model as EditPackageRequest;
+                Assert.NotNull(model);
+
+                // Verify version select list
+                Assert.Equal(packageRegistration.Packages.Count, model.VersionSelectList.Count());
+
+                foreach (var pkg in packageRegistration.Packages)
+                {
+                    var valueField = UrlExtensions.EditPackage(controller.Url, model.PackageId, pkg.NormalizedVersion);
+                    var textField = NuGetVersion.Parse(pkg.Version).ToFullString() + (pkg.IsLatestSemVer2 ? " (Latest)" : string.Empty);
+
+                    var selectListItem = model.VersionSelectList
+                        .SingleOrDefault(i => string.Equals(i.Text, textField) && string.Equals(i.Value, valueField));
+
+                    Assert.NotNull(selectListItem);
+                    Assert.Equal(valueField, selectListItem.Value);
+                    Assert.Equal(textField, selectListItem.Text);
+                }
+            }
+
             [Theory]
             [InlineData(PackageEditReadMeState.Changed)]
             [InlineData(PackageEditReadMeState.Deleted)]
@@ -1219,7 +1389,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var packageEdit = new PackageEdit { ReadMeState = readMeState };
-                
+
                 var packageFileService = new Mock<IPackageFileService>();
                 packageFileService.Setup(s => s.DownloadReadMeMdFileAsync(It.IsAny<Package>(), It.IsAny<bool>()))
                     .Returns(Task.FromResult("markdown"))
@@ -1387,6 +1557,10 @@ namespace NuGetGallery
                     editPackageService: editPackageService,
                     packageFileService: packageFileService);
                 controller.SetCurrentUser(new User("user"));
+
+                var routeCollection = new RouteCollection();
+                Routes.RegisterRoutes(routeCollection);
+                controller.Url = new UrlHelper(controller.ControllerContext.RequestContext, routeCollection);
 
                 return controller;
             }
@@ -2670,7 +2844,7 @@ namespace NuGetGallery
                     controller.SetCurrentUser(TestUtility.FakeUser);
 
                     // Act
-                    await controller.VerifyPackage(new VerifyPackageRequest { Listed = true, Edit = edit});
+                    await controller.VerifyPackage(new VerifyPackageRequest { Listed = true, Edit = edit });
 
                     // Assert 
                     fakeEditPackageService.Verify(x => x.StartEditPackageRequest(fakePackage, edit, TestUtility.FakeUser), Times.Once);
@@ -2736,7 +2910,7 @@ namespace NuGetGallery
                     packageFileService: fakePackageFileService);
 
                 controller.SetCurrentUser(TestUtility.FakeUser);
-                
+
                 // Act
                 await controller.VerifyPackage(new VerifyPackageRequest { Listed = true, Edit = edit });
 
@@ -2744,7 +2918,7 @@ namespace NuGetGallery
                 fakePackageFileService.Verify(x => x.SavePendingReadMeMdFileAsync(fakePackage, "markdown"), Times.Exactly(hasReadMe ? 1 : 0));
             }
         }
-        
+
         public class TheUploadProgressAction : TestContainer
         {
             private static readonly string FakeUploadName = "upload-" + TestUtility.FakeUserName;
@@ -2845,7 +3019,7 @@ namespace NuGetGallery
 
         public class TheRevalidateMethod : TestContainer
         {
-            private  Package _package;
+            private Package _package;
             private readonly Mock<IPackageService> _packageService;
             private readonly Mock<IValidationService> _validationService;
             private readonly TestGalleryConfigurationService _configurationService;

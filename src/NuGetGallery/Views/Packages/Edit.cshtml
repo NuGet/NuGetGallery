@@ -36,12 +36,7 @@
                         <div class="row">
                             <label for="input-select-version" id="package-version-label" class="col-xs-12">
                                 <span>Select a package version</span>
-                                @Html.DropDownList("version-selection",
-                            new SelectList(Model.PackageVersions.Select(e => new
-                            {
-                                text = e.NormalizedVersion + (e.IsLatestSemVer2 ? " (Latest)" : ""),
-                                url = Url.EditPackage(Model.PackageId, e.Version)
-                            }), "url", "text", Url.EditPackage(Model.PackageId, Model.Version)),
+                                @Html.DropDownList("version-selection", Model.VersionSelectList,
                            new
                            {
                                @class = "form-control selectpicker show-tick show-menu-arrow btn-block",

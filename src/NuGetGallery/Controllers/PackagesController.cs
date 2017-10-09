@@ -925,6 +925,16 @@ namespace NuGetGallery
             }
 
             var model = new DeletePackageViewModel(package, ReportMyPackageReasons);
+
+            model.VersionSelectList = new SelectList(
+                model.PackageVersions
+                .Where(p => p.Deleted == false)
+                .Select(p => new
+                {
+                    text = p.NuGetVersion.ToFullString() + (p.LatestVersionSemVer2 ? " (Latest)" : string.Empty),
+                    url = Url.DeletePackage(p)
+                }), "url", "text", Url.DeletePackage(model));
+
             return View(model);
         }
 
@@ -1077,11 +1087,18 @@ namespace NuGetGallery
             {
                 PackageId = package.PackageRegistration.Id,
                 PackageTitle = package.Title,
-                Version = package.Version,
+                Version = package.NormalizedVersion,
                 PackageVersions = packageRegistration.Packages
                     .OrderByDescending(p => new NuGetVersion(p.Version), Comparer<NuGetVersion>.Create((a, b) => a.CompareTo(b)))
                     .ToList()
             };
+
+            // Create version selection.
+            model.VersionSelectList = new SelectList(model.PackageVersions.Select(e => new
+            {
+                text = NuGetVersion.Parse(e.Version).ToFullString() + (e.IsLatestSemVer2 ? " (Latest)" : string.Empty),
+                url = UrlExtensions.EditPackage(Url, model.PackageId, e.NormalizedVersion)
+            }), "url", "text", UrlExtensions.EditPackage(Url, model.PackageId, model.Version));
 
             // Create edit model from the latest pending edit.
             var pendingMetadata = _editPackageService.GetPendingMetadata(package);
