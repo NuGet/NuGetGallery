@@ -44,22 +44,6 @@ namespace NuGetGallery
             return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, CoreConstants.PackagesFolderName, fileName);
         }
 
-        public Task DeletePackageFileAsync(string id, string version)
-        {
-            if (String.IsNullOrWhiteSpace(id))
-            {
-                throw new ArgumentNullException(nameof(id));
-            }
-
-            if (String.IsNullOrWhiteSpace(version))
-            {
-                throw new ArgumentNullException(nameof(version));
-            }
-
-            var fileName = BuildFileName(id, version, CoreConstants.PackageFileSavePathTemplate, CoreConstants.NuGetPackageFileExtension);
-            return _fileStorageService.DeleteFileAsync(CoreConstants.PackagesFolderName, fileName);
-        }
-
         public Task StorePackageFileInBackupLocationAsync(Package package, Stream packageFile)
         {
             if (package == null)
