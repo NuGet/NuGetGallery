@@ -10,6 +10,7 @@ namespace NuGet.Services.ServiceBus
     public interface IBrokeredMessage : IDisposable
     {
         IDictionary<string, object> Properties { get; }
+        DateTimeOffset ScheduledEnqueueTimeUtc { get; set; }
         Task CompleteAsync();
         string GetBody();
         IBrokeredMessage Clone();
