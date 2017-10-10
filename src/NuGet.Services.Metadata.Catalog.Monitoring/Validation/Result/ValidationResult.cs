@@ -27,6 +27,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         /// If the test <see cref="TestResult.Fail"/>ed, the exception that was thrown.
         /// </summary>
         [JsonProperty("exception")]
+        [JsonConverter(typeof(SafeExceptionConverter))]
         public Exception Exception { get; }
 
         public ValidationResult(IValidator validator, TestResult result)

@@ -155,6 +155,7 @@
     <Compile Include="Utility\NullableNuGetVersionConverter.cs" />
     <Compile Include="Utility\LogEvents.cs" />
     <Compile Include="Utility\ILoggerFactoryExtensions.cs" />
+    <Compile Include="Utility\SafeExceptionConverter.cs" />
     <Compile Include="ValidationCollector.cs" />
     <Compile Include="ValidationCollectorFactory.cs" />
     <Compile Include="Validation\Result\AggregateValidationResult.cs" />
