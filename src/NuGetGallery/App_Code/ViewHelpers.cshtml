@@ -88,6 +88,18 @@
     }
 }
 
+@helper AlertPackageEditRecommendation()
+{
+    @AlertWarning(
+    @<text>
+        <em>
+            To make edits to the package metadata, we recommend uploading a new version of the package created using the updated nuspec.
+            <a href="https://docs.microsoft.com/en-us/nuget/policies/nuget-faq#managing-packages-on-nugetorg" alt="Read more">Read more</a><br />
+        </em>
+    </text>
+        )
+}
+
 @helper ErrorPage(UrlHelper url, System.Web.Mvc.HtmlHelper html, string errorNumber, string errorName, Func<MvcHtmlString, HelperResult> errorTextMain, Func<MvcHtmlString, HelperResult> errorTextSub = null)
 {
     <section role="main" class="container main-container">
