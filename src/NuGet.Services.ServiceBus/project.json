@@ -1,5 +1,6 @@
 ﻿{
   "dependencies": {
+    "Newtonsoft.Json": "9.0.1",
     "WindowsAzure.ServiceBus": "4.1.3"
   },
   "frameworks": {
