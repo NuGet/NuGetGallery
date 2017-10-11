@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using NuGet.Jobs;
+using NuGetGallery;
 using NuGetGallery.Packaging;
 
 namespace HandlePackageEdits
@@ -23,11 +24,12 @@ namespace HandlePackageEdits
         private const string HashAlgorithmName = "SHA512";
         public static readonly long DefaultMaxAllowedManifestBytes = 10 /* Mb */ * 1024 /* Kb */ * 1024; /* b */
 
-        public static readonly string GetEditsBaseSql = @"
+        public static readonly string GetEditsBaseSql = $@"
             SELECT pr.Id, p.NormalizedVersion AS Version, p.Hash, p.HasReadMe, e.*
             FROM PackageEdits e
             INNER JOIN Packages p ON p.[Key] = e.PackageKey
-            INNER JOIN PackageRegistrations pr ON pr.[Key] = p.PackageRegistrationKey";
+            INNER JOIN PackageRegistrations pr ON pr.[Key] = p.PackageRegistrationKey
+            WHERE p.PackageStatusKey = {(int)PackageStatus.Available}";
 
         public const string DefaultSourceContainerName = "packages";
         public const string DefaultBackupContainerName = "package-backups";
@@ -117,7 +119,7 @@ namespace HandlePackageEdits
                 {
                     edits = (await connection.QueryAsync<PackageEdit>(
                         GetEditsBaseSql + @"
-                        WHERE [TriedCount] < @MaxTryCount",
+                        AND [TriedCount] < @MaxTryCount",
                         new
                         {
                             MaxTryCount = MaxTryCount.Value
