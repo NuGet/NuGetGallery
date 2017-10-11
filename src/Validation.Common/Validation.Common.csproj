@@ -194,7 +194,6 @@
     <Compile Include="TraceHelper.cs" />
     <Compile Include="ValidationEvent.cs" />
     <Compile Include="Validators\IValidator.cs" />
-    <Compile Include="Validators\Unzip\UnzipValidator.cs" />
     <Compile Include="Validators\ValidationResult.cs" />
     <Compile Include="Validators\ValidatorBase.cs" />
     <Compile Include="Validators\ValidationException.cs" />

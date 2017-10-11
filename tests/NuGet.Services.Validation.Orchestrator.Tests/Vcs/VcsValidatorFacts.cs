@@ -206,7 +206,9 @@ namespace NuGet.Services.Validation.Vcs
                             new PackageValidationAuditEntry
                             {
                                 ValidatorName = someOtherValidatorName,
+#pragma warning disable CS0612 // Type or member is obsolete
                                 EventId = ValidationEvent.UnzipSucceeeded,
+#pragma warning restore CS0612 // Type or member is obsolete
                             },
                             new PackageValidationAuditEntry
                             {

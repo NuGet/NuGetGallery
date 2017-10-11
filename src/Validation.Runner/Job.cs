@@ -11,7 +11,6 @@ using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs.Validation.Common;
 using NuGet.Jobs.Validation.Common.OData;
 using NuGet.Jobs.Validation.Common.Validators;
-using NuGet.Jobs.Validation.Common.Validators.Unzip;
 using NuGet.Jobs.Validation.Common.Validators.Vcs;
 using NuGet.Services.VirusScanning.Vcs;
 
@@ -41,12 +40,6 @@ namespace NuGet.Jobs.Validation.Runner
             _requestValidationTasks = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.RequestValidationTasks).Split(';');
 
             // Add validators
-            if (_runValidationTasks.Contains(UnzipValidator.ValidatorName))
-            {
-                _validators.Add(new UnzipValidator(
-                    JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.PackageUrlTemplate),
-                    LoggerFactory));
-            }
             if (_runValidationTasks.Contains(VcsValidator.ValidatorName))
             {
                 var serviceUrl = new Uri(JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.VcsValidatorServiceUrl));
