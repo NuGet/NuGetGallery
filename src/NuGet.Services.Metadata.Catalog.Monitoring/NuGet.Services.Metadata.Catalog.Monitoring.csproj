@@ -82,7 +82,7 @@
       <HintPath>..\..\packages\NuGet.Services.Logging.2.2.2\lib\net452\NuGet.Services.Logging.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Services.Storage, Version=2.3.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.Storage.2.3.1-dev-15374\lib\net452\NuGet.Services.Storage.dll</HintPath>
+      <HintPath>..\..\packages\NuGet.Services.Storage.2.3.1\lib\net452\NuGet.Services.Storage.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Versioning, Version=4.3.0.5, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Versioning.4.3.0\lib\net45\NuGet.Versioning.dll</HintPath>
