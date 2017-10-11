@@ -9,6 +9,7 @@ namespace NuGetGallery.FunctionalTests
         public const string NuGetHeaderApiKey = "X-NuGet-ApiKey";
         public const string NuGetHeaderClientVersion = "X-NuGet-Client-Version";
         public const string NuGetHeaderProtocolVersion = "X-NuGet-Protocol-Version";
+        public const string NuGetProtocolVersion = "4.1.0";
 
         // Form Fields
         public const string ConfirmPasswordFormField = "ConfirmPassword";
