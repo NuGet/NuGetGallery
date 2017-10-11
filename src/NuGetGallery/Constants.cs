@@ -32,6 +32,9 @@ namespace NuGetGallery
         public const double AllowedLoginAttempts = 10;
 
         public const int MaxEmailSubjectLength = 255;
+        public const int MaxUploadFileSizeInMB = 250;
+        public const int MaxUploadFileSizeInBytes = MaxUploadFileSizeInMB * 1024 * 1024;
+
         internal static readonly NuGetVersion MaxSupportedMinClientVersion = new NuGetVersion("4.1.0.0");
         public const string PackageFileDownloadUriTemplate = "packages/{0}/{1}/download";
 

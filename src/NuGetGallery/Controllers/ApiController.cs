@@ -349,6 +349,14 @@ namespace NuGetGallery
             {
                 try
                 {
+                    if (packageStream.Length > Constants.MaxUploadFileSizeInBytes)
+                    {
+                        return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
+                               CultureInfo.CurrentCulture, 
+                               Strings.UploadFileSizeExceedsMaxLimit, 
+                               Constants.MaxUploadFileSizeInMB));
+                    }
+
                     using (var archive = new ZipArchive(packageStream, ZipArchiveMode.Read, leaveOpen: true))
                     {
                         var reference = DateTime.UtcNow.AddDays(1); // allow "some" clock skew

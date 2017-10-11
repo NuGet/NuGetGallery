@@ -234,6 +234,10 @@ namespace NuGetGallery
         public virtual async Task<JsonResult> UploadPackage(HttpPostedFileBase uploadFile)
         {
             var currentUser = GetCurrentUser();
+            if (uploadFile.ContentLength > Constants.MaxUploadFileSizeInBytes)
+            {
+                return (Json(400, new[] { string.Format(Strings.UploadFileSizeExceedsMaxLimit, Constants.MaxUploadFileSizeInMB) }));
+            }
 
             using (var existingUploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {

@@ -1237,6 +1237,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The uploaded file is too big. Max allowed upload file size is {0} MB..
+        /// </summary>
+        public static string UploadFileSizeExceedsMaxLimit {
+            get {
+                return ResourceManager.GetString("UploadFileSizeExceedsMaxLimit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID..
         /// </summary>
         public static string UploadPackage_IdNamespaceConflict {
