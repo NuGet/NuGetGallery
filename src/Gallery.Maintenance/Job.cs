@@ -59,7 +59,7 @@ namespace Gallery.Maintenance
             var taskBaseType = typeof(MaintenanceTask);
 
             return taskBaseType.Assembly.GetTypes()
-                .Where(type => type.IsClass && taskBaseType.IsAssignableFrom(type))
+                .Where(type => type.IsClass && !type.IsAbstract && taskBaseType.IsAssignableFrom(type))
                 .Select(type => 
                     (MaintenanceTask) type.GetConstructor(
                         new Type[] { typeof(ILogger<>).MakeGenericType(type) })
