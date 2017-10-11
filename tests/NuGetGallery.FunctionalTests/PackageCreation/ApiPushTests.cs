@@ -97,6 +97,7 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
             {
                 request.Content = new StreamContent(new BarrierStream(package, barrier));
                 request.Headers.Add(Constants.NuGetHeaderApiKey, EnvironmentSettings.TestAccountApiKey);
+                request.Headers.Add(Constants.NuGetHeaderProtocolVersion, Constants.NuGetProtocolVersion);
 
                 using (var response = await client.SendAsync(request))
                 {
