@@ -1237,7 +1237,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The uploaded file is too big. Max allowed upload file size is {0} MB..
+        ///   Looks up a localized string similar to The uploaded file is too big. Maximum allowed size is {0}MB for the upload file..
         /// </summary>
         public static string UploadFileSizeExceedsMaxLimit {
             get {
