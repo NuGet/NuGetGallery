@@ -1905,6 +1905,27 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task WillReturn400WhenPackageExceedsUploadLimit()
+            {
+                using (var fakeFileStream = new MemoryStream())
+                {
+                    var fakeUploadFileService = new Mock<IUploadFileService>();
+                    fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(fakeFileStream));
+                    var controller = CreateController(
+                        GetConfigurationService(),
+                        uploadFileService: fakeUploadFileService);
+                    controller.SetCurrentUser(TestUtility.FakeUser);
+
+                    var postedFileBase = new Mock<HttpPostedFileBase>();
+                    postedFileBase.Setup(x => x.ContentLength).Returns(251 * 1024 * 1024 /*251MB*/);
+                    var result = await controller.UploadPackage(postedFileBase.Object) as JsonResult;
+
+                    Assert.NotNull(result);
+                    Assert.False(controller.ModelState.IsValid);
+                }
+            }
+
+            [Fact]
             public async Task WillShowViewWithErrorsIfPackageFileIsNull()
             {
                 var controller = CreateController(GetConfigurationService());
