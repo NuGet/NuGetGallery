@@ -274,6 +274,79 @@ namespace NuGetGallery
                 Assert.Equal("A test package!", model.Title);
             }
 
+            [Theory]
+            [InlineData(PackageStatus.Validating)]
+            [InlineData(PackageStatus.FailedValidation)]
+            public async Task GivenAValidatingPackageThatTheCurrentUserOwnsThenShowIt(PackageStatus packageStatus)
+            {
+                // Arrange & Act
+                var result = await GetActionResultForPackageStatusAsync(
+                    packageStatus,
+                    p => p.PackageRegistration.Owners.Add(TestUtility.FakeUser));
+
+                // Assert
+                Assert.IsType<ViewResult>(result);
+            }
+
+            [Theory]
+            [InlineData(PackageStatus.Validating)]
+            [InlineData(PackageStatus.FailedValidation)]
+            public async Task GivenAValidatingPackageThatTheCurrentUserDoesNotOwnThenHideIt(PackageStatus packageStatus)
+            {
+                // Arrange & Act
+                var result = await GetActionResultForPackageStatusAsync(
+                    packageStatus,
+                    p => p.PackageRegistration.Owners.Clear());
+
+                // Assert
+                ResultAssert.IsNotFound(result);
+            }
+
+            private async Task<ActionResult> GetActionResultForPackageStatusAsync(
+                PackageStatus packageStatus,
+                Action<Package> mutatePackage)
+            {
+                // Arrange
+                var packageService = new Mock<IPackageService>();
+                var httpContext = new Mock<HttpContextBase>();
+                var httpCachePolicy = new Mock<HttpCachePolicyBase>();
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    httpContext: httpContext);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+                httpContext.Setup(c => c.Response.Cache).Returns(httpCachePolicy.Object);
+
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = "NuGet.Versioning",
+                        Owners = new List<User>(),
+                    },
+                    Version = "3.4.0",
+                    NormalizedVersion = "3.4.0",
+                    PackageStatusKey = packageStatus,
+                };
+
+                mutatePackage(package);
+
+                packageService
+                    .Setup(p => p.FindPackageByIdAndVersion(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<int?>(),
+                        It.IsAny<bool>()))
+                    .Returns(package);
+
+                // Act
+                var result = await controller.DisplayPackage(
+                    package.PackageRegistration.Id,
+                    package.NormalizedVersion);
+
+                return result;
+            }
+
             [Fact]
             public async Task GivenAValidPackageThatTheCurrentUserOwnsItDisablesResponseCaching()
             {

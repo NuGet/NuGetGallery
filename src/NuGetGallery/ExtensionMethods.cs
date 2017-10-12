@@ -177,9 +177,9 @@ namespace NuGetGallery
             return items.Any(predicate);
         }
 
-        public static bool IsOwner(this Package package, IPrincipal user)
+        public static bool IsOwnerOrAdmin(this Package package, IPrincipal user)
         {
-            return package.PackageRegistration.IsOwner(user);
+            return package.PackageRegistration.IsOwnerOrAdmin(user);
         }
 
         public static bool IsOwner(this Package package, User user)
@@ -187,7 +187,7 @@ namespace NuGetGallery
             return package.PackageRegistration.IsOwner(user);
         }
 
-        public static bool IsOwner(this PackageRegistration package, IPrincipal user)
+        public static bool IsOwnerOrAdmin(this PackageRegistration package, IPrincipal user)
         {
             if (package == null)
             {

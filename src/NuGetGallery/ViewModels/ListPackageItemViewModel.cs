@@ -58,5 +58,10 @@ namespace NuGetGallery
             }
             return Owners.Any(u => u.Username == user.Identity.Name);
         }
+
+        public bool IsOwnerOrAdmin(IPrincipal user)
+        {
+            return IsOwner(user) || user.IsAdministrator();
+        }
     }
 }
