@@ -63,11 +63,40 @@ namespace NuGet.Services.AzureManagement
                 throw new ArgumentException(nameof(slot));
             }
 
-            await RenewAccessToken();
-
             const string RequestUrlFormat = @"https://management.azure.com/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.ClassicCompute/domainNames/{2}/slots/{3}?api-version=2016-11-01";
 
             string requestUrl = string.Format(RequestUrlFormat, subscription, resourceGroup, name, slot);
+
+            return await MakeAzureRequest(requestUrl, token);
+        }
+
+        public async Task<string> GetTrafficManagerPropertiesAsync(string subscription, string resourceGroup, string profileName, CancellationToken token)
+        {
+            if (string.IsNullOrEmpty(subscription))
+            {
+                throw new ArgumentException(nameof(subscription));
+            }
+
+            if (string.IsNullOrEmpty(resourceGroup))
+            {
+                throw new ArgumentException(nameof(resourceGroup));
+            }
+
+            if (string.IsNullOrEmpty(profileName))
+            {
+                throw new ArgumentException(nameof(profileName));
+            }
+
+            const string RequestUrlFormat = @"https://management.azure.com/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Network/trafficmanagerprofiles/{2}?api-version=2017-05-01";
+
+            string requestUrl = string.Format(RequestUrlFormat, subscription, resourceGroup, profileName);
+
+            return await MakeAzureRequest(requestUrl, token);
+        }
+
+        private async Task<string> MakeAzureRequest(string requestUrl, CancellationToken token)
+        {
+            await RenewAccessToken();
 
             using (var client = new HttpClient())
             {
@@ -91,8 +120,8 @@ namespace NuGet.Services.AzureManagement
                     catch
                     {
                     }
-                    
-                    throw new AzureManagementException($"Failed to get cloud service properties." +
+
+                    throw new AzureManagementException($"Failed to make request to Azure." +
                         $" Url: {requestUrl}, Return code: {response.StatusCode} {response.ReasonPhrase}, Error: {errorDetails}");
                 }
             }

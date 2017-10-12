@@ -24,6 +24,12 @@ namespace NuGet.Services.ServiceBus
 
         public IDictionary<string, object> Properties => BrokeredMessage.Properties;
 
+        public DateTimeOffset ScheduledEnqueueTimeUtc
+        {
+            get => new DateTimeOffset(BrokeredMessage.ScheduledEnqueueTimeUtc);
+            set => BrokeredMessage.ScheduledEnqueueTimeUtc = new DateTime(value.UtcTicks, DateTimeKind.Utc);
+        }
+
         public string GetBody()
         {
             return BrokeredMessage.GetBody<string>();

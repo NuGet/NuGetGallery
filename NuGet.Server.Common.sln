@@ -50,6 +50,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Validation.T
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Contracts.Tests", "tests\NuGet.Services.Contracts.Tests\NuGet.Services.Contracts.Tests.csproj", "{79F72C83-E94D-4D04-B904-5A4DA161168E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.ServiceBus.Tests", "tests\NuGet.Services.ServiceBus.Tests\NuGet.Services.ServiceBus.Tests.csproj", "{FF5CA51A-CD6A-463F-AE9A-5737FF0FCFA7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -132,6 +134,10 @@ Global
 		{79F72C83-E94D-4D04-B904-5A4DA161168E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{79F72C83-E94D-4D04-B904-5A4DA161168E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{79F72C83-E94D-4D04-B904-5A4DA161168E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FF5CA51A-CD6A-463F-AE9A-5737FF0FCFA7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FF5CA51A-CD6A-463F-AE9A-5737FF0FCFA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FF5CA51A-CD6A-463F-AE9A-5737FF0FCFA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FF5CA51A-CD6A-463F-AE9A-5737FF0FCFA7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
