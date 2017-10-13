@@ -417,9 +417,9 @@ namespace NuGetGallery.Controllers
                     .Returns(Fakes.ToPrincipal(fakes.Owner))
                     .Verifiable();
 
-                var packageOwnerRequestServiceMock = GetMock<IPackageOwnerRequestService>();
-                packageOwnerRequestServiceMock
-                    .Setup(p => p.AddPackageOwnershipRequest(fakes.Package, fakes.Owner, fakes.User))
+                var packageOwnershipManagementServiceMock = GetMock<IPackageOwnershipManagementService>();
+                packageOwnershipManagementServiceMock
+                    .Setup(p => p.AddPendingOwnershipRequestAsync(fakes.Package, fakes.Owner, fakes.User))
                     .Returns(Task.FromResult(new PackageOwnerRequest { ConfirmationCode = "confirmation-code" }))
                     .Verifiable();
 
@@ -444,7 +444,7 @@ namespace NuGetGallery.Controllers
                 Assert.True(data.pending);
 
                 httpContextMock.Verify();
-                packageOwnerRequestServiceMock.Verify();
+                packageOwnershipManagementServiceMock.Verify();
                 messageServiceMock.Verify();
             }
 
@@ -513,9 +513,9 @@ namespace NuGetGallery.Controllers
 
                 userToSubscribe.SecurityPolicies = (new RequireSecurePushForCoOwnersPolicy().Policies).ToList();
 
-                var packageOwnerRequestServiceMock = GetMock<IPackageOwnerRequestService>();
-                packageOwnerRequestServiceMock
-                    .Setup(p => p.AddPackageOwnershipRequest(fakes.Package, fakes.Owner, fakes.User))
+                var packageOwnershipManagementServiceMock = GetMock<IPackageOwnershipManagementService>();
+                packageOwnershipManagementServiceMock
+                    .Setup(p => p.AddPendingOwnershipRequestAsync(fakes.Package, fakes.Owner, fakes.User))
                     .Returns(Task.FromResult(
                         new PackageOwnerRequest
                         {

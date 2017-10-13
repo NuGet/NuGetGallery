@@ -55,7 +55,8 @@ namespace NuGetGallery
             Mock<ISecurityPolicyService> securityPolicyService = null,
             Mock<IReservedNamespaceService> reservedNamespaceService = null,
             Mock<IPackageUploadService> packageUploadService = null,
-            Mock<IValidationService> validationService = null)
+            Mock<IValidationService> validationService = null,
+            Mock<IPackageOwnershipManagementService> packageOwnershipManagementService = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
             packageOwnerRequestService = packageOwnerRequestService ?? new Mock<IPackageOwnerRequestService>();
@@ -107,6 +108,8 @@ namespace NuGetGallery
 
             validationService = validationService ?? new Mock<IValidationService>();
 
+            packageOwnershipManagementService = packageOwnershipManagementService ?? new Mock<IPackageOwnershipManagementService>();
+
             var controller = new Mock<PackagesController>(
                 packageService.Object,
                 packageOwnerRequestService.Object,
@@ -129,7 +132,8 @@ namespace NuGetGallery
                 reservedNamespaceService.Object,
                 packageUploadService.Object,
                 new ReadMeService(packageFileService.Object),
-                validationService.Object);
+                validationService.Object,
+                packageOwnershipManagementService.Object);
 
             controller.CallBase = true;
             controller.Object.SetOwinContextOverride(Fakes.CreateOwinContext());
@@ -691,16 +695,16 @@ namespace NuGetGallery
                 Assert.Equal(ConfirmOwnershipResult.AlreadyOwner, model.Result);
             }
 
-            public delegate Expression<Func<IPackageService, Task>> PackageServiceForOwnershipRequestExpression(PackageRegistration package, User user);
+            public delegate Expression<Func<IPackageOwnershipManagementService, Task>> PackageOwnershipManagementServiceRequestExpression(PackageRegistration package, User user);
 
-            private static Expression<Func<IPackageService, Task>> PackagesServiceForConfirmOwnershipRequestExpression(PackageRegistration package, User user)
+            private static Expression<Func<IPackageOwnershipManagementService, Task>> PackagesServiceForConfirmOwnershipRequestExpression(PackageRegistration package, User user)
             {
-                return packageService => packageService.AddPackageOwnerAsync(package, user);
+                return packageOwnershipManagementService => packageOwnershipManagementService.AddPackageOwnerAsync(package, user);
             }
 
-            private static Expression<Func<IPackageService, Task>> PackagesServiceForRejectOwnershipRequestExpression(PackageRegistration package, User user)
+            private static Expression<Func<IPackageOwnershipManagementService, Task>> PackagesServiceForRejectOwnershipRequestExpression(PackageRegistration package, User user)
             {
-                return packageService => packageService.RemovePackageOwnerAsync(package, user);
+                return packageOwnershipManagementService => packageOwnershipManagementService.RemovePendingOwnershipRequestAsync(package, user);
             }
 
             public delegate Expression<Action<IMessageService>> MessageServiceForOwnershipRequestExpression(PackageOwnerRequest request);
@@ -729,7 +733,7 @@ namespace NuGetGallery
                         yield return new object[]
                         {
                             new InvokeOwnershipRequest(ConfirmOwnershipRequest),
-                            new PackageServiceForOwnershipRequestExpression(PackagesServiceForConfirmOwnershipRequestExpression),
+                            new PackageOwnershipManagementServiceRequestExpression(PackagesServiceForConfirmOwnershipRequestExpression),
                             new MessageServiceForOwnershipRequestExpression(MessageServiceForConfirmOwnershipRequestExpression),
                             ConfirmOwnershipResult.Success,
                             tokenValid
@@ -737,7 +741,7 @@ namespace NuGetGallery
                         yield return new object[]
                         {
                             new InvokeOwnershipRequest(RejectOwnershipRequest),
-                            new PackageServiceForOwnershipRequestExpression(PackagesServiceForRejectOwnershipRequestExpression),
+                            new PackageOwnershipManagementServiceRequestExpression(PackagesServiceForRejectOwnershipRequestExpression),
                             new MessageServiceForOwnershipRequestExpression(MessageServiceForRejectOwnershipRequestExpression),
                             ConfirmOwnershipResult.Rejected,
                             tokenValid
@@ -748,7 +752,7 @@ namespace NuGetGallery
 
             [Theory]
             [MemberData("ReturnsSuccessIfTokenIsValid_Data")]
-            public async Task ReturnsSuccessIfTokenIsValid(InvokeOwnershipRequest invokeOwnershipRequest, PackageServiceForOwnershipRequestExpression packageServiceExpression, MessageServiceForOwnershipRequestExpression messageServiceExpression, ConfirmOwnershipResult successState, bool tokenValid)
+            public async Task ReturnsSuccessIfTokenIsValid(InvokeOwnershipRequest invokeOwnershipRequest, PackageOwnershipManagementServiceRequestExpression packageServiceExpression, MessageServiceForOwnershipRequestExpression messageServiceExpression, ConfirmOwnershipResult successState, bool tokenValid)
             {
                 // Arrange
                 var owner = new User { Key = 1, Username = "owner" };
@@ -759,7 +763,10 @@ namespace NuGetGallery
 
                 var packageService = new Mock<IPackageService>();
                 packageService.Setup(p => p.FindPackageRegistrationById("foo")).Returns(package);
-                packageService.Setup(p => p.AddPackageOwnerAsync(package, user)).Returns(Task.CompletedTask).Verifiable();
+
+                var packageOwnershipManagementService = new Mock<IPackageOwnershipManagementService>();
+                packageOwnershipManagementService.Setup(p => p.AddPackageOwnerAsync(package, user)).Returns(Task.CompletedTask).Verifiable();
+                packageOwnershipManagementService.Setup(p => p.RemovePendingOwnershipRequestAsync(package, user)).Returns(Task.CompletedTask).Verifiable();
 
                 var packageOwnerRequestService = new Mock<IPackageOwnerRequestService>();
                 var request = new PackageOwnerRequest
@@ -779,7 +786,9 @@ namespace NuGetGallery
                     httpContext: mockHttpContext,
                     packageService: packageService,
                     packageOwnerRequestService: packageOwnerRequestService,
-                    messageService: messageService);
+                    messageService: messageService,
+                    packageOwnershipManagementService: packageOwnershipManagementService);
+
                 controller.SetCurrentUser(user);
                 TestUtility.SetupHttpContextMockForUrlGeneration(mockHttpContext, controller);
 
@@ -791,7 +800,7 @@ namespace NuGetGallery
                 var expectedResult = tokenValid ? successState : ConfirmOwnershipResult.Failure;
                 Assert.Equal(expectedResult, model.Result);
                 Assert.Equal("foo", model.PackageId);
-                packageService.Verify(packageServiceExpression(package, user), tokenValid ? Times.Once() : Times.Never());
+                packageOwnershipManagementService.Verify(packageServiceExpression(package, user), tokenValid ? Times.Once() : Times.Never());
                 messageService.Verify(messageServiceExpression(request), tokenValid ? Times.Once() : Times.Never());
             }
 
