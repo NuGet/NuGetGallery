@@ -8,7 +8,6 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace NuGetGallery.Auditing
 {
@@ -18,68 +17,23 @@ namespace NuGetGallery.Auditing
         public string MachineIP { get; set; }
         public string UserName { get; set; }
         public string AuthenticationType { get; set; }
+        public string CredentialKey { get; set; }
         public DateTime TimestampUtc { get; set; }
 
         public AuditActor OnBehalfOf { get; set; }
 
-        public AuditActor(string machineName, string machineIP, string userName, string authenticationType, DateTime timeStampUtc)
-            : this(machineName, machineIP, userName, authenticationType, timeStampUtc, null) { }
+        public AuditActor(string machineName, string machineIP, string userName, string authenticationType, string credentialKey, DateTime timeStampUtc)
+            : this(machineName, machineIP, userName, authenticationType, credentialKey, timeStampUtc, null) { }
 
-        public AuditActor(string machineName, string machineIP, string userName, string authenticationType, DateTime timeStampUtc, AuditActor onBehalfOf)
+        public AuditActor(string machineName, string machineIP, string userName, string authenticationType, string credentialKey, DateTime timeStampUtc, AuditActor onBehalfOf)
         {
             MachineName = machineName;
             MachineIP = machineIP;
             UserName = userName;
             AuthenticationType = authenticationType;
+            CredentialKey = credentialKey;
             TimestampUtc = timeStampUtc;
             OnBehalfOf = onBehalfOf;
-        }
-
-        public static Task<AuditActor> GetAspNetOnBehalfOfAsync()
-        {
-            // Use HttpContext to build an actor representing the user performing the action
-            var context = HttpContext.Current;
-            if (context == null)
-            {
-                return Task.FromResult<AuditActor>(null);
-            }
-
-            return GetAspNetOnBehalfOfAsync(new HttpContextWrapper(context));
-        }
-
-        public static Task<AuditActor> GetAspNetOnBehalfOfAsync(HttpContextBase context)
-        {
-            // Try to identify the client IP using various server variables
-            var clientIpAddress = context.Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
-            if (string.IsNullOrEmpty(clientIpAddress)) // Try REMOTE_ADDR server variable
-            {
-                clientIpAddress = context.Request.ServerVariables["REMOTE_ADDR"];
-            }
-
-            if (string.IsNullOrEmpty(clientIpAddress)) // Try UserHostAddress property
-            {
-                clientIpAddress = context.Request.UserHostAddress;
-            }
-
-            if (!string.IsNullOrEmpty(clientIpAddress) && clientIpAddress.IndexOf(".", StringComparison.Ordinal) > 0)
-            {
-                clientIpAddress = clientIpAddress.Substring(0, clientIpAddress.LastIndexOf(".", StringComparison.Ordinal)) + ".0";
-            }
-
-            string user = null;
-            string authType = null;
-            if (context.User != null)
-            {
-                user = context.User.Identity.Name;
-                authType = context.User.Identity.AuthenticationType;
-            }
-
-            return Task.FromResult(new AuditActor(
-                null,
-                clientIpAddress,
-                user,
-                authType,
-                DateTime.UtcNow));
         }
 
         public static Task<AuditActor> GetCurrentMachineActorAsync()
@@ -97,6 +51,7 @@ namespace NuGetGallery.Auditing
                 ipAddress,
                 $@"{Environment.UserDomainName}\{Environment.UserName}",
                 "MachineUser",
+                string.Empty,
                 DateTime.UtcNow,
                 onBehalfOf);
         }

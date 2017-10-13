@@ -109,7 +109,8 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                                 authUser.User, 
                                 AuthenticationTypes.ApiKey, 
                                 new Claim(NuGetClaims.ApiKey, apiKey),
-                                new Claim(NuGetClaims.Scope, scopes)),
+                                new Claim(NuGetClaims.Scope, scopes),
+                                new Claim(NuGetClaims.CredentialKey, authUser.CredentialUsed.Key.ToString())),
                             new AuthenticationProperties());
                 }
                 else
