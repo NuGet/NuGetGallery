@@ -600,4 +600,7 @@ For more information, please contact '{2}'.</value>
   <data name="CannotEnqueueDueToReadOnly" xml:space="preserve">
     <value>Enqueuing unavailable: the gallery is currently in read only mode, with limited service. Please try again later.</value>
   </data>
+  <data name="UploadFileSizeExceedsMaxLimit" xml:space="preserve">
+    <value>The uploaded file is too big. Maximum allowed size is {0}MB for the upload file.</value>
+  </data>
 </root>

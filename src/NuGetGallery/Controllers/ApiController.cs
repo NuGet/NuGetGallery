@@ -124,7 +124,7 @@ namespace NuGetGallery
             IPackageUploadService packageUploadService)
             : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService,
                   indexingService, searchService, autoCuratePackage, statusService, messageService, auditingService,
-                  configurationService, telemetryService, authenticationService, credentialBuilder, securityPolicies, 
+                  configurationService, telemetryService, authenticationService, credentialBuilder, securityPolicies,
                   reservedNamespaceService, packageUploadService)
         {
             StatisticsService = statisticsService;
@@ -349,6 +349,14 @@ namespace NuGetGallery
             {
                 try
                 {
+                    if (packageStream.Length > Constants.MaxUploadFileSizeInBytes)
+                    {
+                        return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
+                            CultureInfo.CurrentCulture,
+                            Strings.UploadFileSizeExceedsMaxLimit,
+                            Constants.MaxUploadFileSizeInMB));
+                    }
+
                     using (var archive = new ZipArchive(packageStream, ZipArchiveMode.Read, leaveOpen: true))
                     {
                         var reference = DateTime.UtcNow.AddDays(1); // allow "some" clock skew
@@ -494,7 +502,7 @@ namespace NuGetGallery
                                 package,
                                 uploadStream.AsSeekableStream());
                         }
-                            
+
                         switch (commitResult)
                         {
                             case PackageCommitResult.Success:
