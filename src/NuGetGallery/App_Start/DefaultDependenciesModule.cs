@@ -472,7 +472,7 @@ namespace NuGetGallery
                 FileSystemFileStorageService.ResolvePath(configuration.Current.FileStorageDirectory),
                 FileSystemAuditingService.DefaultContainerName);
 
-            return new FileSystemAuditingService(auditingPath, AuditingHelper.GetAspNetOnBehalfOfAsync);
+            return new FileSystemAuditingService(auditingPath, AuditActor.GetAspNetOnBehalfOfAsync);
         }
 
         private static void ConfigureForAzureStorage(ContainerBuilder builder, IGalleryConfigurationService configuration)
@@ -567,7 +567,7 @@ namespace NuGetGallery
 
             var localIp = AuditActor.GetLocalIpAddressAsync().Result;
 
-            var service = new CloudAuditingService(instanceId, localIp, configuration.Current.AzureStorage_Auditing_ConnectionString, AuditingHelper.GetAspNetOnBehalfOfAsync);
+            var service = new CloudAuditingService(instanceId, localIp, configuration.Current.AzureStorage_Auditing_ConnectionString, AuditActor.GetAspNetOnBehalfOfAsync);
 
             builder.RegisterInstance(service)
                 .As<ICloudStorageStatusDependency>()

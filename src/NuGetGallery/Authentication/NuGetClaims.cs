@@ -10,8 +10,5 @@ namespace NuGetGallery.Authentication
         public const string ApiKey = "https://claims.nuget.org/apikey";
 
         public const string Scope = "https://claims.nuget.org/scope";
-
-        // Allows identifying the credential that was used by his DB key.
-        public const string CredentialKey = "https://claims.nuget.org/credentialkey";
     }
 }
