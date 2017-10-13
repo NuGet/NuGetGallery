@@ -143,6 +143,10 @@
         var showIcon = $('#show-' + prefix + ' i');
         var showText = $('#show-' + prefix + ' span');
         hidden.on('hide.bs.collapse', function (e) {
+            if (e.target !== e.currentTarget) {
+                return;
+            }
+
             showIcon.removeClass('ms-Icon--' + moreIcon);
             showIcon.addClass('ms-Icon--' + lessIcon);
             if (moreMessage !== null) {
@@ -151,6 +155,10 @@
             e.stopPropagation();
         });
         hidden.on('show.bs.collapse', function (e) {
+            if (e.target !== e.currentTarget) {
+                return;
+            }
+
             showIcon.removeClass('ms-Icon--' + lessIcon);
             showIcon.addClass('ms-Icon--' + moreIcon);
             if (lessMessage !== null) {
