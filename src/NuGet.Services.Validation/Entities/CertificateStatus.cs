@@ -14,13 +14,20 @@ namespace NuGet.Services.Validation
         Unknown = 0,
 
         /// <summary>
-        /// The <see cref="Certificate" /> has not been revoked.
+        /// The <see cref="Certificate" /> is valid and has not been revoked.
         /// </summary>
         Good = 1,
 
         /// <summary>
-        /// The <see cref="Certificate" /> has been revoked.
+        /// The <see cref="Certificate" /> has failed offline validations. This could be for a number of reasons including
+        /// an untrusted root or weak hashing algorithm. Anything signed by the certificate should be considered invalid.
         /// </summary>
-        Revoked = 2,
+        Invalid = 2,
+
+        /// <summary>
+        /// The <see cref="Certificate"/> has been revoked by the certificate authority. Anything signed by the certificate
+        /// after <see cref="Certificate.RevocationTime"/> should be considered invalid.
+        /// </summary>
+        Revoked = 3,
     }
 }

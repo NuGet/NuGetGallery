@@ -28,6 +28,7 @@ namespace NuGet.Services.Validation
 
         private const string PackageSignaturesTable = "PackageSignatures";
         private const string PackageSignaturesPackageKeyIndex = "IX_PackageSignatures_PackageKey";
+        private const string PackageSignaturesCertificateKeyIndex = "IX_PackageSignatures_CertificateKey";
         private const string PackageSignaturesStatusIndex = "IX_PackageSignatures_Status";
 
         private const string CertificatesTable = "Certificates";
@@ -236,6 +237,16 @@ namespace NuGet.Services.Validation
                     }));
 
             modelBuilder.Entity<PackageSignature>()
+                .Property(s => s.CertificateKey)
+                .IsRequired()
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(new[]
+                    {
+                        new IndexAttribute(PackageSignaturesCertificateKeyIndex)
+                    }));
+
+            modelBuilder.Entity<PackageSignature>()
                 .Property(s => s.Status)
                 .HasColumnAnnotation(
                     IndexAnnotation.AnnotationName,
@@ -254,14 +265,9 @@ namespace NuGet.Services.Validation
                 .HasDatabaseGeneratedOption(DatabaseGeneratedOption.Identity);
 
             modelBuilder.Entity<PackageSignature>()
-                .HasMany(s => s.Certificates)
+                .HasRequired(s => s.Certificate)
                 .WithMany(c => c.PackageSignatures)
-                .Map(m =>
-                {
-                    m.MapLeftKey("PackageSignatureKey");
-                    m.MapRightKey("CertificateKey");
-                    m.ToTable("PackageSignatureCertificates", SignatureSchema);
-                });
+                .HasForeignKey(s => s.CertificateKey);
 
             modelBuilder.Entity<Certificate>()
                 .ToTable(CertificatesTable, SignatureSchema)

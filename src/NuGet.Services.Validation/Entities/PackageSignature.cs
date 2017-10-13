@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 
 namespace NuGet.Services.Validation
 {
@@ -22,8 +21,13 @@ namespace NuGet.Services.Validation
         public int PackageKey { get; set; }
 
         /// <summary>
+        /// The key to the end <see cref="Certificate"/> used to create this package signature.
+        /// </summary>
+        public long CertificateKey { get; set; }
+
+        /// <summary>
         /// The time at which this signature was created. A signature is valid as long as it was signed
-        /// before its certificates were revoked and/or expired. This timestamp SHOULD come from a trusted
+        /// before its certificates were revoked and/or expired. This timestamp MUST come from a trusted
         /// timestamp authority.
         /// </summary>
         public DateTime SignedAt { get; set; }
@@ -48,8 +52,8 @@ namespace NuGet.Services.Validation
         public virtual PackageSigningState PackageSigningState { get; set; }
 
         /// <summary>
-        /// The <see cref="Certificate"/>s used to generate this signature.
+        /// The end <see cref="Certificate"/> used to create this package signature.
         /// </summary>
-        public virtual ICollection<Certificate> Certificates { get; set; }
+        public virtual Certificate Certificate { get; set; }
     }
 }
