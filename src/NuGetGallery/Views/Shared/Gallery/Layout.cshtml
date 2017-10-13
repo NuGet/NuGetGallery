@@ -7,7 +7,7 @@
     @RenderSection("SocialMeta", required: false)
     @RenderSection("Meta", required: false)
 
-    <title>
+    <title>     
         @(Config.Current.Brand)
         @(String.IsNullOrWhiteSpace(ViewBag.Title) ? "" : "| " + ViewBag.Title)
     </title>
@@ -33,7 +33,9 @@
 </head>
 <body>
     @Html.Partial("Gallery/Header")
+    <div id="skippedToContent">
     @RenderBody()
+    </div>
     @Html.Partial("Gallery/Footer")
     @Scripts.Render("~/Scripts/gallery/site.min.js")
     @RenderSection("BottomScripts", required: false)

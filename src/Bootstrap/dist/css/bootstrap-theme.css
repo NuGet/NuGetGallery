@@ -260,6 +260,17 @@ img.package-icon {
 
   overflow-wrap: break-word;
 }
+.showOnFocus {
+  display: block;
+  height: 0;
+  overflow: hidden;
+  line-height: 0;
+}
+.showOnFocus:focus {
+  height: 2em;
+  line-height: 2em;
+  color: #e3ebf1;
+}
 #edit-metadata-form-container .loading:after {
   display: inline-block;
   /* ascii code for the ellipsis character */
