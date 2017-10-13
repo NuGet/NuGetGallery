@@ -47,7 +47,6 @@ namespace NuGetGallery.Auditing
             Assert.Null(actor.UserName);
             Assert.Null(actor.AuthenticationType);
             Assert.Null(actor.OnBehalfOf);
-            Assert.Null(actor.CredentialKey);
         }
 
         [Fact]
@@ -65,7 +64,6 @@ namespace NuGetGallery.Auditing
             Assert.Equal(string.Empty, actor.MachineIP);
             Assert.Equal(string.Empty, actor.UserName);
             Assert.Equal(string.Empty, actor.AuthenticationType);
-            Assert.Equal(string.Empty, actor.CredentialKey);
         }
 
         [Fact]
@@ -84,7 +82,6 @@ namespace NuGetGallery.Auditing
             Assert.Equal(string.Empty, actor.MachineIP);
             Assert.Equal(string.Empty, actor.UserName);
             Assert.Equal(string.Empty, actor.AuthenticationType);
-            Assert.Equal(string.Empty, actor.CredentialKey);
         }
 
         [Fact]
