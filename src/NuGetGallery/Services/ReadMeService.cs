@@ -150,7 +150,9 @@ namespace NuGetGallery
         internal static string GetReadMeHtml(string readMeMd)
         {
             var encodedMarkdown = HttpUtility.HtmlEncode(readMeMd);
-            return CommonMarkConverter.Convert(encodedMarkdown);
+            var regex = new Regex("<a href=([\"\']).*?\\1");
+            var converted = CommonMarkConverter.Convert(encodedMarkdown);
+            return regex.Replace(converted, "$0" + " rel=\"nofollow\"");
         }
 
         /// <summary>
