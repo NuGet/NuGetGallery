@@ -61,6 +61,7 @@ namespace NuGetGallery
         private readonly IPackageUploadService _packageUploadService;
         private readonly IReadMeService _readMeService;
         private readonly IValidationService _validationService;
+        private readonly IPackageOwnershipManagementService _packageOwnershipManagementService;
 
         public PackagesController(
             IPackageService packageService,
@@ -84,7 +85,8 @@ namespace NuGetGallery
             IReservedNamespaceService reservedNamespaceService,
             IPackageUploadService packageUploadService,
             IReadMeService readMeService,
-            IValidationService validationService)
+            IValidationService validationService,
+            IPackageOwnershipManagementService packageOwnershipManagementService)
         {
             _packageService = packageService;
             _packageOwnerRequestService = packageOwnerRequestService;
@@ -108,6 +110,7 @@ namespace NuGetGallery
             _packageUploadService = packageUploadService;
             _readMeService = readMeService;
             _validationService = validationService;
+            _packageOwnershipManagementService = packageOwnershipManagementService;
         }
 
         [HttpGet]
@@ -1207,23 +1210,7 @@ namespace NuGetGallery
             {
                 var result = await HandleSecurePushPropagation(package, user);
 
-                await _packageService.AddPackageOwnerAsync(package, user);
-
-                var userOwnedMatchingNamespacesForId = user.ReservedNamespaces.Where(rn => id.StartsWith(rn.Value, StringComparison.OrdinalIgnoreCase));
-                if (userOwnedMatchingNamespacesForId.Any())
-                {
-                    if (!package.IsVerified)
-                    {
-                        await _packageService.UpdatePackageVerifiedStatusAsync(new List<PackageRegistration> { package }, isVerified: true);
-                    }
-
-                    userOwnedMatchingNamespacesForId
-                        .ToList()
-                        .ForEach(mn =>
-                            _reservedNamespaceService.AddPackageRegistrationToNamespace(mn.Value, package));
-
-                    await _entitiesContext.SaveChangesAsync();
-                }
+                await _packageOwnershipManagementService.AddPackageOwnerAsync(package, user);
 
                 SendAddPackageOwnerNotification(package, user, result.Item1, result.Item2);
 
@@ -1233,7 +1220,7 @@ namespace NuGetGallery
             {
                 var requestingUser = request.RequestingOwner;
 
-                await _packageService.RemovePackageOwnerAsync(package, user);
+                await _packageOwnershipManagementService.RemovePendingOwnershipRequestAsync(package, user);
 
                 _messageService.SendPackageOwnerRequestRejectionNotice(requestingUser, user, package);
 

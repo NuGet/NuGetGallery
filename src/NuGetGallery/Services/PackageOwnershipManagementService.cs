@@ -33,6 +33,16 @@ namespace NuGetGallery
 
         public async Task AddPackageOwnerAsync(PackageRegistration packageRegistration, User user)
         {
+            if (packageRegistration == null)
+            {
+                throw new ArgumentNullException(nameof(packageRegistration));
+            }
+
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
             using (var strategy = new SuspendDbExecutionStrategy())
             using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
             {
@@ -57,11 +67,7 @@ namespace NuGetGallery
 
                 await _packageService.AddPackageOwnerAsync(packageRegistration, user);
 
-                var request = _packageOwnerRequestService.GetPackageOwnershipRequests(package: packageRegistration, newOwner: user).FirstOrDefault();
-                if (request != null)
-                {
-                    await _packageOwnerRequestService.DeletePackageOwnershipRequest(request);
-                }
+                await RemovePendingOwnershipRequestAsync(packageRegistration, user);
 
                 transaction.Commit();
             }
@@ -70,15 +76,37 @@ namespace NuGetGallery
                 new PackageRegistrationAuditRecord(packageRegistration, AuditedPackageRegistrationAction.AddOwner, user.Username));
         }
 
+        public async Task<PackageOwnerRequest> AddPendingOwnershipRequestAsync(PackageRegistration packageRegistration, User requestingOwner, User newOwner)
+        {
+            if (packageRegistration == null)
+            {
+                throw new ArgumentNullException(nameof(packageRegistration));
+            }
+
+            if (requestingOwner == null)
+            {
+                throw new ArgumentNullException(nameof(requestingOwner));
+            }
+
+            if (newOwner == null)
+            {
+                throw new ArgumentNullException(nameof(newOwner));
+            }
+
+            return await _packageOwnerRequestService.AddPackageOwnershipRequest(packageRegistration, requestingOwner, newOwner);
+        }
+
+
         public async Task RemovePackageOwnerAsync(PackageRegistration packageRegistration, User user)
         {
-            // Called when removing an owner and when rejecting the request for ownership.
-            // If rejecting the ownership, simply remove the entry from ownership request and return
-            var request = _packageOwnerRequestService.GetPackageOwnershipRequests(package: packageRegistration, newOwner: user).FirstOrDefault();
-            if (request != null)
+            if (packageRegistration == null)
             {
-                await _packageOwnerRequestService.DeletePackageOwnershipRequest(request);
-                return;
+                throw new ArgumentNullException(nameof(packageRegistration));
+            }
+
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
             }
 
             using (var strategy = new SuspendDbExecutionStrategy())
@@ -122,5 +150,33 @@ namespace NuGetGallery
                 new PackageRegistrationAuditRecord(packageRegistration, AuditedPackageRegistrationAction.RemoveOwner, user.Username));
         }
 
+        public async Task RemovePendingOwnershipRequestAsync(PackageRegistration packageRegistration, User user)
+        {
+            if (packageRegistration == null)
+            {
+                throw new ArgumentNullException(nameof(packageRegistration));
+            }
+
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            var request = _packageOwnerRequestService.GetPackageOwnershipRequests(package: packageRegistration, newOwner: user).FirstOrDefault();
+            if (request != null)
+            {
+                await _packageOwnerRequestService.DeletePackageOwnershipRequest(request);
+            }
+        }
+
+        public async Task RemovePendingOwnershipRequestAsync(PackageOwnerRequest request)
+        {
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            await _packageOwnerRequestService.DeletePackageOwnershipRequest(request);
+        }
     }
 }

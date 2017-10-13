@@ -24,6 +24,7 @@ namespace NuGetGallery
         private readonly IUserService _userService;
         private readonly IAppConfiguration _appConfiguration;
         private readonly ISecurityPolicyService _policyService;
+        private readonly IPackageOwnershipManagementService _packageOwnershipManagementService;
 
         public JsonApiController(
             IPackageService packageService,
@@ -31,7 +32,8 @@ namespace NuGetGallery
             IPackageOwnerRequestService packageOwnerRequestService,
             IMessageService messageService,
             IAppConfiguration appConfiguration,
-            ISecurityPolicyService policyService)
+            ISecurityPolicyService policyService,
+            IPackageOwnershipManagementService packageOwnershipManagementService)
         {
             _packageService = packageService;
             _userService = userService;
@@ -39,6 +41,7 @@ namespace NuGetGallery
             _messageService = messageService;
             _appConfiguration = appConfiguration;
             _policyService = policyService;
+            _packageOwnershipManagementService = packageOwnershipManagementService;
         }
 
         [HttpGet]
@@ -114,7 +117,7 @@ namespace NuGetGallery
             {
                 var encodedMessage = HttpUtility.HtmlEncode(message);
 
-                var ownerRequest = await _packageOwnerRequestService.AddPackageOwnershipRequest(
+                var ownerRequest = await _packageOwnershipManagementService.AddPendingOwnershipRequestAsync(
                     model.Package, model.CurrentUser, model.User);
 
                 var confirmationUrl = Url.ConfirmPendingOwnershipRequest(
@@ -159,25 +162,14 @@ namespace NuGetGallery
             {
                 var request = _packageOwnerRequestService.GetPackageOwnershipRequests(package: model.Package, newOwner: model.User).FirstOrDefault();
 
-                await _packageService.RemovePackageOwnerAsync(model.Package, model.User);
-
-                // 1. Remove this package registration from the namespaces owned by this user, if he is the only owner in the set of matching namespaces and package ownerships
-                // 2. Remove the IsVerified flag from package registration, if all the matching namespaces where owned by this user alone(no other owner of package owns a matching namespace this PR matches to)
-                var allMatchingNamespaces = model.Package.ReservedNamespaces.ToList();
-                var allPackageOwners = model.Package.Owners;
-                var matchingNamespacesOwnedByUser = allMatchingNamespaces
-                    .Where(rn => rn.Owners.Any(o => o == model.User));
-                var namespacesToModify = matchingNamespacesOwnedByUser
-                    .Where(rn => rn.Owners.Intersect(allPackageOwners).Count() == 1);
-
-                // Modify the namespaces to remove this package registration from it.
-                // Also mark the package registration as not verified.
                 if (request == null)
                 {
+                    await _packageOwnershipManagementService.RemovePackageOwnerAsync(model.Package, model.User);
                     _messageService.SendPackageOwnerRemovedNotice(model.CurrentUser, model.User, model.Package);
                 }
                 else
                 {
+                    await _packageOwnershipManagementService.RemovePendingOwnershipRequestAsync(model.Package, model.User);
                     _messageService.SendPackageOwnerRequestCancellationNotice(model.CurrentUser, model.User, model.Package);
                 }
 

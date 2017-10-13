@@ -18,6 +18,14 @@ namespace NuGetGallery
         Task AddPackageOwnerAsync(PackageRegistration packageRegistration, User user);
 
         /// <summary>
+        /// Add the pending ownership request.
+        /// </summary>
+        /// <param name="packageRegistration">The package registration that has pending ownership request.</param>
+        /// <param name="requestingOwner">The user to requesting to add the pending owner.</param>
+        /// <param name="newOwner">The user to be added for from pending ownership.</param>
+        Task<PackageOwnerRequest> AddPendingOwnershipRequestAsync(PackageRegistration packageRegistration, User requestingOwner, User newOwner);
+
+        /// <summary>
         /// Remove the user as from the list of owners of the package. Also remove the package registration
         /// from the reserved namespaces owned by this user if the Id matches any of the reserved prefixes
         /// and the user is the only package owner that owns the namespace that matches the package registration.
@@ -25,5 +33,18 @@ namespace NuGetGallery
         /// <param name="packageRegistration">The package registration that is intended to get ownership.</param>
         /// <param name="user">The user to add as an owner to the package.</param>
         Task RemovePackageOwnerAsync(PackageRegistration packageRegistration, User user);
+
+        /// <summary>
+        /// Remove the pending ownership request.
+        /// </summary>
+        /// <param name="packageRegistration">The package registration that has pending ownership request.</param>
+        /// <param name="user">The user to be removed from pending ownership.</param>
+        Task RemovePendingOwnershipRequestAsync(PackageRegistration packageRegistration, User user);
+
+        /// <summary>
+        /// Remove the pending ownership request.
+        /// </summary>
+        /// <param name="request">The package owner request to be removed.</param>
+        Task RemovePendingOwnershipRequestAsync(PackageOwnerRequest request);
     }
 }
