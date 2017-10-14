@@ -27,7 +27,6 @@ namespace NuGetGallery.Auditing
                 machineIP: null,
                 userName: null,
                 authenticationType: null,
-                credentialKey: null,
                 timeStampUtc: DateTime.MinValue);
             var entry = new AuditEntry(record.Object, actor);
 

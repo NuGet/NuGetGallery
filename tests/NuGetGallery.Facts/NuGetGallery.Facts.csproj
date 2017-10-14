@@ -423,7 +423,6 @@
     <Compile Include="Controllers\StatisticsControllerFacts.cs" />
     <Compile Include="Controllers\UsersControllerFacts.cs" />
     <Compile Include="Framework\TestGalleryConfigurationService.cs" />
-    <Compile Include="Helpers\AuditingHelperFacts.cs" />
     <Compile Include="Helpers\HtmlExtensionsFacts.cs" />
     <Compile Include="Security\RequireMinProtocolVersionForPushPolicyFacts.cs" />
     <Compile Include="Services\PackageOwnerRequestServiceFacts.cs" />

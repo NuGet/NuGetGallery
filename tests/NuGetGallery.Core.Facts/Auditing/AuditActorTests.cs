@@ -3,11 +3,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Security.Principal;
 using System.Threading.Tasks;
+using System.Web;
+using Moq;
 using Xunit;
 
 namespace NuGetGallery.Auditing
@@ -22,7 +26,6 @@ namespace NuGetGallery.Auditing
                 machineIP: null,
                 userName: null,
                 authenticationType: null,
-                credentialKey: null,
                 timeStampUtc: DateTime.MinValue);
 
             Assert.Null(actor.MachineName);
@@ -38,7 +41,6 @@ namespace NuGetGallery.Auditing
                 machineIP: null,
                 userName: null,
                 authenticationType: null,
-                credentialKey: null,
                 timeStampUtc: DateTime.MinValue,
                 onBehalfOf: null);
 
@@ -47,44 +49,39 @@ namespace NuGetGallery.Auditing
             Assert.Null(actor.UserName);
             Assert.Null(actor.AuthenticationType);
             Assert.Null(actor.OnBehalfOf);
-            Assert.Null(actor.CredentialKey);
         }
 
         [Fact]
         public void Constructor_WithoutOnBehalfOf_AcceptsEmptyStringValues()
         {
             var actor = new AuditActor(
-                machineName: string.Empty,
-                machineIP: string.Empty,
-                userName: string.Empty,
-                authenticationType: string.Empty,
-                credentialKey: string.Empty,
+                machineName: "",
+                machineIP: "",
+                userName: "",
+                authenticationType: "",
                 timeStampUtc: DateTime.MinValue);
 
-            Assert.Equal(string.Empty, actor.MachineName);
-            Assert.Equal(string.Empty, actor.MachineIP);
-            Assert.Equal(string.Empty, actor.UserName);
-            Assert.Equal(string.Empty, actor.AuthenticationType);
-            Assert.Equal(string.Empty, actor.CredentialKey);
+            Assert.Equal("", actor.MachineName);
+            Assert.Equal("", actor.MachineIP);
+            Assert.Equal("", actor.UserName);
+            Assert.Equal("", actor.AuthenticationType);
         }
 
         [Fact]
         public void Constructor_WithOnBehalfOf_AcceptsEmptyStringValues()
         {
             var actor = new AuditActor(
-                machineName: string.Empty,
-                machineIP: string.Empty,
-                userName: string.Empty,
-                authenticationType: string.Empty,
-                credentialKey: string.Empty,
+                machineName: "",
+                machineIP: "",
+                userName: "",
+                authenticationType: "",
                 timeStampUtc: DateTime.MinValue,
                 onBehalfOf: null);
 
-            Assert.Equal(string.Empty, actor.MachineName);
-            Assert.Equal(string.Empty, actor.MachineIP);
-            Assert.Equal(string.Empty, actor.UserName);
-            Assert.Equal(string.Empty, actor.AuthenticationType);
-            Assert.Equal(string.Empty, actor.CredentialKey);
+            Assert.Equal("", actor.MachineName);
+            Assert.Equal("", actor.MachineIP);
+            Assert.Equal("", actor.UserName);
+            Assert.Equal("", actor.AuthenticationType);
         }
 
         [Fact]
@@ -95,14 +92,12 @@ namespace NuGetGallery.Auditing
                 machineIP: "b",
                 userName: "c",
                 authenticationType: "d",
-                credentialKey: "e",
                 timeStampUtc: DateTime.MinValue);
 
             Assert.Equal("a", actor.MachineName);
             Assert.Equal("b", actor.MachineIP);
             Assert.Equal("c", actor.UserName);
             Assert.Equal("d", actor.AuthenticationType);
-            Assert.Equal("e", actor.CredentialKey);
             Assert.Equal(DateTime.MinValue, actor.TimestampUtc);
         }
 
@@ -114,14 +109,12 @@ namespace NuGetGallery.Auditing
                 machineIP: null,
                 userName: null,
                 authenticationType: null,
-                credentialKey: null,
                 timeStampUtc: DateTime.MinValue);
             var actor = new AuditActor(
                 machineName: "a",
                 machineIP: "b",
                 userName: "c",
                 authenticationType: "d",
-                credentialKey: "e",
                 timeStampUtc: DateTime.MinValue,
                 onBehalfOf: onBehalfOfActor);
 
@@ -129,11 +122,172 @@ namespace NuGetGallery.Auditing
             Assert.Equal("b", actor.MachineIP);
             Assert.Equal("c", actor.UserName);
             Assert.Equal("d", actor.AuthenticationType);
-            Assert.Equal("e", actor.CredentialKey);
             Assert.Equal(DateTime.MinValue, actor.TimestampUtc);
             Assert.Same(onBehalfOfActor, actor.OnBehalfOf);
         }
-       
+
+        [Fact]
+        public async Task GetAspNetOnBehalfOfAsync_WithoutContext_ReturnsNullForNullHttpContext()
+        {
+            var actor = await AuditActor.GetAspNetOnBehalfOfAsync();
+
+            Assert.Null(actor);
+        }
+
+        [Fact]
+        public async Task GetAspNetOnBehalfOfAsync_WithContext_ReturnsActor_WithHttpXForwardedForHeader()
+        {
+            var request = new Mock<HttpRequestBase>();
+            var identity = new Mock<IIdentity>();
+            var user = new Mock<IPrincipal>();
+            var context = new Mock<HttpContextBase>();
+
+            request.SetupGet(x => x.ServerVariables)
+                .Returns(new NameValueCollection() { { "HTTP_X_FORWARDED_FOR", "a" } });
+            identity.Setup(x => x.Name)
+                .Returns("b");
+            identity.Setup(x => x.AuthenticationType)
+                .Returns("c");
+            user.Setup(x => x.Identity)
+                .Returns(identity.Object);
+            context.Setup(x => x.Request)
+                .Returns(request.Object);
+            context.Setup(x => x.User)
+                .Returns(user.Object);
+
+            var actor = await AuditActor.GetAspNetOnBehalfOfAsync(context.Object);
+
+            Assert.NotNull(actor);
+            Assert.Equal("c", actor.AuthenticationType);
+            Assert.Equal("a", actor.MachineIP);
+            Assert.Null(actor.MachineName);
+            Assert.Null(actor.OnBehalfOf);
+            Assert.InRange(actor.TimestampUtc, DateTime.UtcNow.AddMinutes(-1), DateTime.UtcNow.AddMinutes(1));
+            Assert.Equal("b", actor.UserName);
+        }
+
+        [Fact]
+        public async Task GetAspNetOnBehalfOfAsync_WithContext_ReturnsActor_WithRemoteAddrHeader()
+        {
+            var request = new Mock<HttpRequestBase>();
+            var identity = new Mock<IIdentity>();
+            var user = new Mock<IPrincipal>();
+            var context = new Mock<HttpContextBase>();
+
+            request.SetupGet(x => x.ServerVariables)
+                .Returns(new NameValueCollection() { { "REMOTE_ADDR", "a" } });
+            identity.Setup(x => x.Name)
+                .Returns("b");
+            identity.Setup(x => x.AuthenticationType)
+                .Returns("c");
+            user.Setup(x => x.Identity)
+                .Returns(identity.Object);
+            context.Setup(x => x.Request)
+                .Returns(request.Object);
+            context.Setup(x => x.User)
+                .Returns(user.Object);
+
+            var actor = await AuditActor.GetAspNetOnBehalfOfAsync(context.Object);
+
+            Assert.NotNull(actor);
+            Assert.Equal("c", actor.AuthenticationType);
+            Assert.Equal("a", actor.MachineIP);
+            Assert.Null(actor.MachineName);
+            Assert.Null(actor.OnBehalfOf);
+            Assert.InRange(actor.TimestampUtc, DateTime.UtcNow.AddMinutes(-1), DateTime.UtcNow.AddMinutes(1));
+            Assert.Equal("b", actor.UserName);
+        }
+
+        [Fact]
+        public async Task GetAspNetOnBehalfOfAsync_WithContext_ReturnsActor_WithUserHostAddress()
+        {
+            var request = new Mock<HttpRequestBase>();
+            var identity = new Mock<IIdentity>();
+            var user = new Mock<IPrincipal>();
+            var context = new Mock<HttpContextBase>();
+
+            request.SetupGet(x => x.ServerVariables)
+                .Returns(new NameValueCollection());
+            request.SetupGet(x => x.UserHostAddress)
+                .Returns("a");
+            identity.Setup(x => x.Name)
+                .Returns("b");
+            identity.Setup(x => x.AuthenticationType)
+                .Returns("c");
+            user.Setup(x => x.Identity)
+                .Returns(identity.Object);
+            context.Setup(x => x.Request)
+                .Returns(request.Object);
+            context.Setup(x => x.User)
+                .Returns(user.Object);
+
+            var actor = await AuditActor.GetAspNetOnBehalfOfAsync(context.Object);
+
+            Assert.NotNull(actor);
+            Assert.Equal("c", actor.AuthenticationType);
+            Assert.Equal("a", actor.MachineIP);
+            Assert.Null(actor.MachineName);
+            Assert.Null(actor.OnBehalfOf);
+            Assert.InRange(actor.TimestampUtc, DateTime.UtcNow.AddMinutes(-1), DateTime.UtcNow.AddMinutes(1));
+            Assert.Equal("b", actor.UserName);
+        }
+
+        [Fact]
+        public async Task GetAspNetOnBehalfOfAsync_WithContext_ObfuscatesLastIpAddressOctet()
+        {
+            var request = new Mock<HttpRequestBase>();
+            var identity = new Mock<IIdentity>();
+            var user = new Mock<IPrincipal>();
+            var context = new Mock<HttpContextBase>();
+
+            request.SetupGet(x => x.ServerVariables)
+                .Returns(new NameValueCollection() { { "HTTP_X_FORWARDED_FOR", "1.2.3.4" } });
+            identity.Setup(x => x.Name)
+                .Returns("b");
+            identity.Setup(x => x.AuthenticationType)
+                .Returns("c");
+            user.Setup(x => x.Identity)
+                .Returns(identity.Object);
+            context.Setup(x => x.Request)
+                .Returns(request.Object);
+            context.Setup(x => x.User)
+                .Returns(user.Object);
+
+            var actor = await AuditActor.GetAspNetOnBehalfOfAsync(context.Object);
+
+            Assert.NotNull(actor);
+            Assert.Equal("c", actor.AuthenticationType);
+            Assert.Equal("1.2.3.0", actor.MachineIP);
+            Assert.Null(actor.MachineName);
+            Assert.Null(actor.OnBehalfOf);
+            Assert.InRange(actor.TimestampUtc, DateTime.UtcNow.AddMinutes(-1), DateTime.UtcNow.AddMinutes(1));
+            Assert.Equal("b", actor.UserName);
+        }
+
+        [Fact]
+        public async Task GetAspNetOnBehalfOfAsync_WithContext_SupportsNullUser()
+        {
+            var request = new Mock<HttpRequestBase>();
+            var context = new Mock<HttpContextBase>();
+
+            request.SetupGet(x => x.ServerVariables)
+                .Returns(new NameValueCollection() { { "HTTP_X_FORWARDED_FOR", "1.2.3.4" } });
+            context.Setup(x => x.Request)
+                .Returns(request.Object);
+            context.Setup(x => x.User)
+                .Returns((IPrincipal)null);
+
+            var actor = await AuditActor.GetAspNetOnBehalfOfAsync(context.Object);
+
+            Assert.NotNull(actor);
+            Assert.Null(actor.AuthenticationType);
+            Assert.Equal("1.2.3.0", actor.MachineIP);
+            Assert.Null(actor.MachineName);
+            Assert.Null(actor.OnBehalfOf);
+            Assert.InRange(actor.TimestampUtc, DateTime.UtcNow.AddMinutes(-1), DateTime.UtcNow.AddMinutes(1));
+            Assert.Null(actor.UserName);
+        }
+
         [Fact]
         public async Task GetCurrentMachineActorAsync_WithoutOnBehalfOf()
         {

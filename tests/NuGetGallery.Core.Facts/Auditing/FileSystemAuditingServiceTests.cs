@@ -36,7 +36,7 @@ namespace NuGetGallery.Auditing
         {
             var service = new FileSystemAuditingService(
                 auditingPath: "a",
-                getOnBehalfOf: GetOnBehalfOf);
+                getOnBehalfOf: AuditActor.GetAspNetOnBehalfOfAsync);
 
             await Assert.ThrowsAsync<ArgumentNullException>(async () =>
                 await service.SaveAuditRecordAsync(record: null));
@@ -141,7 +141,6 @@ namespace NuGetGallery.Auditing
                 machineIP: "b",
                 userName: "c",
                 authenticationType: "d",
-                credentialKey: "e",
                 timeStampUtc: DateTime.MinValue);
 
             return Task.FromResult<AuditActor>(actor);
