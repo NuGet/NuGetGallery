@@ -330,3 +330,16 @@ img.package-icon {
   word-break: normal;
   word-break: break-word;
 }
+
+.showOnFocus {
+  display: block;
+  line-height:0;
+  height: 0;
+  overflow: hidden;
+}
+
+.showOnFocus:focus {
+  line-height:2em;
+  height: 2em;
+  color: @navbar-inverse-color;
+}
