@@ -752,7 +752,11 @@ namespace NuGetGallery
 
             [Theory]
             [MemberData("ReturnsSuccessIfTokenIsValid_Data")]
-            public async Task ReturnsSuccessIfTokenIsValid(InvokeOwnershipRequest invokeOwnershipRequest, PackageOwnershipManagementServiceRequestExpression packageServiceExpression, MessageServiceForOwnershipRequestExpression messageServiceExpression, ConfirmOwnershipResult successState, bool tokenValid)
+            public async Task ReturnsSuccessIfTokenIsValid(InvokeOwnershipRequest invokeOwnershipRequest, 
+                PackageOwnershipManagementServiceRequestExpression packageOwnershipManagementServiceExpression, 
+                MessageServiceForOwnershipRequestExpression messageServiceExpression, 
+                ConfirmOwnershipResult successState, 
+                bool tokenValid)
             {
                 // Arrange
                 var owner = new User { Key = 1, Username = "owner" };
@@ -800,7 +804,7 @@ namespace NuGetGallery
                 var expectedResult = tokenValid ? successState : ConfirmOwnershipResult.Failure;
                 Assert.Equal(expectedResult, model.Result);
                 Assert.Equal("foo", model.PackageId);
-                packageOwnershipManagementService.Verify(packageServiceExpression(package, user), tokenValid ? Times.Once() : Times.Never());
+                packageOwnershipManagementService.Verify(packageOwnershipManagementServiceExpression(package, user), tokenValid ? Times.Once() : Times.Never());
                 messageService.Verify(messageServiceExpression(request), tokenValid ? Times.Once() : Times.Never());
             }
 
