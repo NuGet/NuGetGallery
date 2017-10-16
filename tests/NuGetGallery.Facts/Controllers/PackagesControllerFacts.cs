@@ -507,8 +507,8 @@ namespace NuGetGallery
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
-                Assert.Equal("<h1>Hello World!</h1>", model.ReadMeHtml);
-                Assert.Equal("<h1>Hello World!</h1>", model.ReadMeHtmlClamped);
+                Assert.Equal("<h2>Hello World!</h2>", model.ReadMeHtml);
+                Assert.Equal("<h2>Hello World!</h2>", model.ReadMeHtmlClamped);
             }
 
             [Fact]

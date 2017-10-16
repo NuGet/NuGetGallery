@@ -7,10 +7,11 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 using CommonMark;
-using System.Text.RegularExpressions;
+using CommonMark.Syntax;
 
 namespace NuGetGallery
 {
@@ -141,6 +142,30 @@ namespace NuGetGallery
 
             return hasReadMe;
         }
+        
+        /// <summary>
+        /// HTML encode content except for markdown blockquotes.
+        /// </summary>
+        /// <param name="readMeMd">ReadMe.md content.</param>
+        /// <returns>Encoded ReadMe.md content.</returns>
+        private static string HtmlEncodeExceptBlockquotes(string readMeMd)
+        {
+            var encoded = HttpUtility.HtmlEncode(readMeMd);
+            var encodedLines = encoded.Replace("\r\n", "\n").Split('\n');
+
+            var blockQuotePattern = new Regex("^ {0,3}&gt;");
+            for (int i = 0; i < encodedLines.Length; i++)
+            {
+                var match = blockQuotePattern.Match(encodedLines[i]);
+                if (match.Success)
+                {
+                    // For now, only decode the blockquote marker and not any inline html.
+                    encodedLines[i] = "> " + encodedLines[i].Substring(match.Length);
+                }
+            }
+
+            return string.Join(Environment.NewLine, encodedLines);
+        }
 
         /// <summary>
         /// Get converted HTML for readme.md string content.
@@ -149,10 +174,65 @@ namespace NuGetGallery
         /// <returns>HTML content.</returns>
         internal static string GetReadMeHtml(string readMeMd)
         {
-            var encodedMarkdown = HttpUtility.HtmlEncode(readMeMd);
-            var regex = new Regex("<a href=([\"\']).*?\\1");
-            var converted = CommonMarkConverter.Convert(encodedMarkdown);
-            return regex.Replace(converted, "$0" + " rel=\"nofollow\"");
+            // HTML encode markdown to block inline html.
+            var encodedMarkdown = HtmlEncodeExceptBlockquotes(readMeMd);
+            
+            var settings = CommonMarkSettings.Default.Clone();
+            settings.RenderSoftLineBreaksAsLineBreaks = true;
+
+            // Parse executes CommonMarkConverter's ProcessStage1 and ProcessStage2.
+            var document = CommonMarkConverter.Parse(encodedMarkdown, settings);
+            foreach (var node in document.AsEnumerable())
+            {
+                if (node.IsOpening)
+                {
+                    var block = node.Block;
+                    if (block != null)
+                    {
+                        switch (block.Tag)
+                        {
+                            // Demote heading tags so they don't overpower expander headings.
+                            case BlockTag.AtxHeading:
+                            case BlockTag.SetextHeading:
+                                var level = (byte)Math.Min(block.Heading.Level + 1, 6);
+                                block.Heading = new HeadingData(level);
+                                break;
+
+                            // Decode preformatted blocks to prevent double encoding.
+                            // Skip BlockTag.BlockQuote, which are already decoded.
+                            case BlockTag.FencedCode:
+                            case BlockTag.IndentedCode:
+                                if (block.StringContent != null)
+                                {
+                                    var content = block.StringContent?.TakeFromStart(block.StringContent.Length);
+                                    var unencodedContent = HttpUtility.HtmlDecode(content);
+                                    block.StringContent.Replace(unencodedContent, 0, unencodedContent.Length);
+                                }
+                                break;
+                        }
+                    }
+
+                    var inline = node.Inline;
+                    if (inline != null)
+                    {
+                        // Block javascript in links.
+                        if ((inline.Tag == InlineTag.Link) &&
+                            (inline.TargetUrl.IndexOf("javascript", StringComparison.InvariantCultureIgnoreCase) >= 0))
+                        {
+                            inline.TargetUrl = "";
+                        }
+                    }
+                }
+            }
+
+            // CommonMark.Net does not support link attributes, so manually inject nofollow.
+            using (var htmlWriter = new StringWriter())
+            {
+                CommonMarkConverter.ProcessStage3(document, htmlWriter, settings);
+
+                var regex = new Regex("<a href=([\"\']).*?\\1");
+                return regex.Replace(htmlWriter.ToString(), "$0" + " rel=\"nofollow\"");
+            }
         }
 
         /// <summary>
