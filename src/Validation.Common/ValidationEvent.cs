@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+
 namespace NuGet.Jobs.Validation.Common
 {
     public enum ValidationEvent
@@ -26,8 +28,9 @@ namespace NuGet.Jobs.Validation.Common
         PackageClean,
 
         /// <summary>
-        /// Packages download was successful
+        /// Deprecated when the unzip validator was removed.
         /// </summary>
+        [Obsolete]
         PackageDownloaded,
 
         /// <summary>
@@ -61,8 +64,9 @@ namespace NuGet.Jobs.Validation.Common
         VirusScanRequestFailed,
 
         /// <summary>
-        /// Package was successfully unzipped
+        /// Deprecated when the unzip validator was removed.
         /// </summary>
+        [Obsolete]
         UnzipSucceeeded,
     }
 }

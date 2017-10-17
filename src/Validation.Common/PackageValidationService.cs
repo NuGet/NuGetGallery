@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -10,7 +9,7 @@ using Microsoft.WindowsAzure.Storage;
 
 namespace NuGet.Jobs.Validation.Common
 {
-    public class PackageValidationService
+    public class PackageValidationService : IPackageValidationService
     {
         private readonly PackageValidationTable _packageValidationTable;
         private readonly PackageValidationQueue _packageValidationQueue;
@@ -27,9 +26,16 @@ namespace NuGet.Jobs.Validation.Common
             _logger = loggerFactory.CreateLogger<PackageValidationService>();
         }
 
-        public async Task StartValidationProcessAsync(NuGetPackage package, string[] validators)
+        public Task StartValidationProcessAsync(NuGetPackage package, string[] validators)
         {
-            var validationId = Guid.NewGuid();
+            return StartValidationProcessAsync(
+                package,
+                validators,
+                Guid.NewGuid());
+        }
+
+        public async Task StartValidationProcessAsync(NuGetPackage package, string[] validators, Guid validationId)
+        {
             var packageId = package.Id;
             var packageVersion = package.GetVersion();
             var created = DateTimeOffset.UtcNow;

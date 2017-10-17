@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using NuGet.Services.VirusScanning.Vcs;
+using NuGet.Services.VirusScanning.Core;
 
 namespace NuGet.Jobs.Validation.Common.Validators.Vcs
 {
@@ -14,18 +14,19 @@ namespace NuGet.Jobs.Validation.Common.Validators.Vcs
     {
         public const string ValidatorName = "validator-vcs";
 
-        private readonly string _packageUrlTemplate;
         private readonly Uri _callbackUrl;
-        private readonly VcsVirusScanningService _scanningService;
-
+        private readonly IVirusScanningService _scanningService;
         private readonly ILogger<VcsValidator> _logger;
 
-        public VcsValidator(string serviceUrl, string callbackUrl, string contactAlias, string submitterAlias, string packageUrlTemplate, ILoggerFactory loggerFactory)
+        public VcsValidator(
+            Uri callbackUrl,
+            string packageUrlTemplate,
+            IVirusScanningService scanningService,
+            ILogger<VcsValidator> logger) : base(packageUrlTemplate)
         {
-            _logger = loggerFactory.CreateLogger<VcsValidator>();
-            _packageUrlTemplate = packageUrlTemplate;
-            _scanningService = new VcsVirusScanningService(new Uri(serviceUrl), "DIRECT", contactAlias, submitterAlias);
-            _callbackUrl = new Uri(callbackUrl);
+            _callbackUrl = callbackUrl;
+            _scanningService = scanningService;
+            _logger = logger;
         }
 
         public override string Name
@@ -54,32 +55,39 @@ namespace NuGet.Jobs.Validation.Common.Validators.Vcs
             string errorMessage;
             try
             {
-                var result = await _scanningService.CreateVirusScanJobAsync(
-                    BuildStorageUrl(message.Package.Id, message.PackageVersion), _callbackUrl, description, message.ValidationId);
+                var packageUrl = GetPackageUrl(message);
 
-                if (string.IsNullOrEmpty(result.ErrorMessage))
+                // VCS requires a package URL that is either a direct URL to Azure Blob Storage or a UNC share file
+                // path. Azure Blob Storage URLs with SAS tokens in them are accepted.
+                var result = await _scanningService.CreateVirusScanJobAsync(
+                    packageUrl,
+                    _callbackUrl,
+                    description,
+                    message.ValidationId);
+
+                if (IsValidJobResult(result))
                 {
                     _logger.LogInformation("Submission completed for " +
                         $"{{{TraceConstant.ValidatorName}}} {{{TraceConstant.ValidationId}}}. " +
                         $"package {{{TraceConstant.PackageId}}} " +
                         $"{{{TraceConstant.PackageVersion}}} " +
-                        "Request id: {RequestId} - job id: {JobId} - region code: {RegionCode}", 
+                        "Request id: {RequestId} - job id: {JobId} - region code: {RegionCode}",
                         Name,
                         message.ValidationId,
                         message.PackageId,
                         message.PackageVersion,
-                        result.RequestId, 
+                        result.RequestId,
                         result.JobId,
                         result.RegionCode);
                     WriteAuditEntry(auditEntries, $"Submission completed. Request id: {result.RequestId} " +
                         $"- job id: {result.JobId} " +
-                        $"- region code: {result.RegionCode}", 
+                        $"- region code: {result.RegionCode}",
                         ValidationEvent.VirusScanRequestSent);
                     return ValidationResult.Asynchronous;
                 }
                 else
                 {
-                    errorMessage = result.ErrorMessage;
+                    errorMessage = result.ErrorMessage ?? "The request had no request ID, job ID, and region code.";
 
                     _logger.LogError($"Submission failed for {{{TraceConstant.ValidatorName}}} {{{TraceConstant.ValidationId}}} " +
                             $"package {{{TraceConstant.PackageId}}} " +
@@ -106,15 +114,17 @@ namespace NuGet.Jobs.Validation.Common.Validators.Vcs
             }
         }
 
-        private string BuildStorageUrl(string packageId, string packageVersion)
+        private static bool IsValidJobResult(VirusScanJob result)
         {
-            // The VCS service needs a blob storage URL, which the NuGet API does not expose.
-            // Build one from a template here.
-            // Guarantee all URL transformations (such as URL encoding) are performed.
-            return new Uri(_packageUrlTemplate
-                .Replace("{id}", packageId)
-                .Replace("{version}", packageVersion)
-                .ToLowerInvariant()).AbsoluteUri;
+            return string.IsNullOrEmpty(result.ErrorMessage)
+                   && !AreAllJobIdsEmpty(result);
+        }
+
+        private static bool AreAllJobIdsEmpty(VirusScanJob result)
+        {
+            return string.IsNullOrEmpty(result.RequestId)
+                   && string.IsNullOrEmpty(result.JobId)
+                   && string.IsNullOrEmpty(result.RegionCode);
         }
     }
 }

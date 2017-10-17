@@ -14,7 +14,7 @@ using NuGet.Jobs.Validation.Common.Extensions;
 
 namespace NuGet.Jobs.Validation.Common
 {
-    public class PackageValidationAuditor
+    public class PackageValidationAuditor : IPackageValidationAuditor
     {
         private readonly CloudBlobContainer _auditsContainer;
         private readonly ILogger<PackageValidationAuditor> _logger;
@@ -45,8 +45,12 @@ namespace NuGet.Jobs.Validation.Common
             packageValidationAudit.Started = started;
             packageValidationAudit.Validators = validators;
 
-            await StoreAuditAsync(validationId, packageValidationAudit.PackageId, packageValidationAudit.PackageVersion,
-                _ => packageValidationAudit);
+            await StoreAuditAsync(
+                validationId,
+                packageValidationAudit.PackageId,
+                packageValidationAudit.PackageVersion,
+                _ => packageValidationAudit,
+                uploadAccessCondition: AccessCondition.GenerateIfNoneMatchCondition("*"));
 
             _logger.LogInformation("Finished writing Start PackageValidationAudit for " +
                     $"validation {{{TraceConstant.ValidationId}}} " +
@@ -128,7 +132,26 @@ namespace NuGet.Jobs.Validation.Common
                 packageVersion);
         }
 
-        public async Task StoreAuditAsync(Guid validationId, string packageId, string packageVersion, Func<PackageValidationAudit, PackageValidationAudit> updateAudit)
+        public Task StoreAuditAsync(
+            Guid validationId,
+            string packageId,
+            string packageVersion,
+            Func<PackageValidationAudit, PackageValidationAudit> updateAudit)
+        {
+            return StoreAuditAsync(
+                validationId,
+                packageId,
+                packageVersion,
+                updateAudit,
+                uploadAccessCondition: null);
+        }
+
+        public async Task StoreAuditAsync(
+            Guid validationId,
+            string packageId,
+            string packageVersion,
+            Func<PackageValidationAudit, PackageValidationAudit> updateAudit,
+            AccessCondition uploadAccessCondition)
         {
             _logger.LogInformation($"Started updating audit blob for validation {{{TraceConstant.ValidationId}}} " +
                 $"- package {{{TraceConstant.PackageId}}} " +
@@ -171,7 +194,12 @@ namespace NuGet.Jobs.Validation.Common
 
             _logger.LogInformation($"Saving updated audit blob for validation {{{TraceConstant.ValidationId}}}",
                 validationId);
-            await blob.UploadTextAsync(JsonConvert.SerializeObject(packageValidationAudit), Encoding.UTF8, accessCondition, null, null);
+            await blob.UploadTextAsync(
+                JsonConvert.SerializeObject(packageValidationAudit),
+                Encoding.UTF8,
+                uploadAccessCondition ?? accessCondition,
+                null,
+                null);
 
             blob.Properties.ContentType = "application/json";
             _logger.LogInformation($"Setting blob properties for validation {{{TraceConstant.ValidationId}}}",

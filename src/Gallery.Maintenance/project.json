@@ -1,6 +1,7 @@
 ﻿{
   "dependencies": {
-    "Microsoft.Extensions.Logging.Abstractions": "1.0.0"
+    "Microsoft.Extensions.Logging.Abstractions": "1.0.0",
+    "NuGet.Services.Logging": "2.2.3"
   },
   "frameworks": {
     "net452": {}

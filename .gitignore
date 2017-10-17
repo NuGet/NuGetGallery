@@ -206,3 +206,4 @@ Results.*.xml
 
 AssemblyInfo.*.cs
 /tests/Validation.Helper.Tests/Validation.Helper.Tests.nuget.props
+/tests/Validation.Common.Tests/Validation.Common.Tests.nuget.props
