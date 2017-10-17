@@ -28,8 +28,21 @@
       }
     }
 
+    .remove-owner-disabled a {
+      color: @gray;
+
+      .ms-Icon {
+        position: relative;
+        top: 3px;
+      }
+    }
+
     .remove-owner a:hover, .remove-owner a:active {
       color: darken(@brand-danger, 10%);
+    }
+
+    .remove-owner a:hover, .remove-owner a:active {
+      color: darken(@gray, 10%);
     }
   }
 }

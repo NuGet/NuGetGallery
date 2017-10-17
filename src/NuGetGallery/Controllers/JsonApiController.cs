@@ -58,24 +58,91 @@ namespace NuGetGallery
                 return new HttpUnauthorizedResult();
             }
 
-            var owners = from u in package.PackageRegistration.Owners
-                         select new
-                             {
-                                 Name = u.Username,
-                                 EmailAddress = u.EmailAddress,
-                                 Current = u.Username == HttpContext.User.Identity.Name,
-                                 Pending = false
-                             };
+            var currentOwner = package
+                .PackageRegistration
+                .Owners
+                .Where(o => o.Username == HttpContext.User.Identity.Name)
+                .FirstOrDefault();
 
-            var pending = 
-                _packageOwnerRequestService.GetPackageOwnershipRequests(package: package.PackageRegistration)
-                .Select(r => new
+            IEnumerable<User> removableOwnersList = null;
+            IEnumerable<User> nonRemovableOwnersList = null;
+            var packageRegistrationOwners = package.PackageRegistration.Owners;
+            var canRemoveSelf = false;
+            if (currentOwner != null)
+            {
+                var allMatchingNamespaceOwners = package
+                    .PackageRegistration
+                    .ReservedNamespaces
+                    .SelectMany(rn => rn.Owners)
+                    .Distinct();
+
+                var currentOwnerOwnsNamespace = allMatchingNamespaceOwners
+                    .Any(owner => owner.Username == currentOwner.Username);
+
+                var packageAndReservedNamespaceOwners = packageRegistrationOwners.Intersect(allMatchingNamespaceOwners);
+
+                if (currentOwnerOwnsNamespace && packageAndReservedNamespaceOwners.Count() > 1)
                 {
-                    Name = r.NewOwner.Username,
-                    EmailAddress = r.NewOwner.EmailAddress,
-                    Current = false,
-                    Pending = true
-                });
+                    canRemoveSelf = true;
+                }
+
+                if (!currentOwnerOwnsNamespace && packageRegistrationOwners.Count() > 1)
+                {
+                    canRemoveSelf = true;
+                }
+
+                if (!currentOwnerOwnsNamespace)
+                {
+                    nonRemovableOwnersList = packageRegistrationOwners
+                        .Where(packageOwner => allMatchingNamespaceOwners.Any(rno => rno == packageOwner));
+
+                    removableOwnersList = packageRegistrationOwners.Except(nonRemovableOwnersList);
+                }
+                else
+                {
+                    removableOwnersList = packageRegistrationOwners;
+                }
+            }
+            else
+            {
+                nonRemovableOwnersList = packageRegistrationOwners;
+            }
+
+            IEnumerable<PackageOwnersResultViewModel> owners = new List<PackageOwnersResultViewModel>();
+            if (removableOwnersList != null)
+            {
+                var removableResultViewModel = from u in removableOwnersList
+                                               select new PackageOwnersResultViewModel(
+                                                   u.Username,
+                                                   u.EmailAddress,
+                                                   isCurrentUser: u.Username == HttpContext.User.Identity.Name,
+                                                   isPending: false,
+                                                   canBeRemoved: u.Username == HttpContext.User.Identity.Name ? canRemoveSelf : true);
+
+                owners = owners.Union(removableResultViewModel);
+            }
+
+            if (nonRemovableOwnersList != null)
+            {
+                var nonRemovableResultViewModel = from u in nonRemovableOwnersList
+                                                  select new PackageOwnersResultViewModel(
+                                                      u.Username,
+                                                      u.EmailAddress,
+                                                      isCurrentUser: u.Username == HttpContext.User.Identity.Name,
+                                                      isPending: false,
+                                                      canBeRemoved: u.Username == HttpContext.User.Identity.Name ? canRemoveSelf : false);
+
+                owners = owners.Union(nonRemovableResultViewModel);
+            }
+
+            var pending =
+                _packageOwnerRequestService.GetPackageOwnershipRequests(package: package.PackageRegistration)
+                .Select(r => new PackageOwnersResultViewModel(
+                    r.NewOwner.Username,
+                    r.NewOwner.EmailAddress,
+                    isCurrentUser: false,
+                    isPending: true,
+                    canBeRemoved: true));
 
             var result = owners.Union(pending).Select(o => new
             {
@@ -84,6 +151,7 @@ namespace NuGetGallery
                 imageUrl = GravatarHelper.Url(o.EmailAddress, size: Constants.GravatarImageSize),
                 current = o.Current,
                 pending = o.Pending,
+                canBeRemoved = o.CanBeRemoved
             });
 
             return Json(result, JsonRequestBehavior.AllowGet);
@@ -95,7 +163,8 @@ namespace NuGetGallery
             ManagePackageOwnerModel model;
             if (TryGetManagePackageOwnerModel(id, username, out model))
             {
-                return Json(new {
+                return Json(new
+                {
                     success = true,
                     confirmation = string.Format(CultureInfo.CurrentCulture, Strings.AddOwnerConfirmation, username),
                     policyMessage = GetNoticeOfPoliciesRequiredConfirmation(model.Package, model.User, model.CurrentUser)
@@ -282,7 +351,7 @@ namespace NuGetGallery
             {
                 throw new ArgumentException(nameof(username));
             }
-            
+
             var package = _packageService.FindPackageRegistrationById(id);
             if (package == null)
             {

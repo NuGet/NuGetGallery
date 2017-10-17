@@ -870,9 +870,20 @@ img.package-icon {
   position: relative;
   top: 3px;
 }
+.page-manage-owners .current-owner .remove-owner-disabled a {
+  color: #555;
+}
+.page-manage-owners .current-owner .remove-owner-disabled a .ms-Icon {
+  position: relative;
+  top: 3px;
+}
 .page-manage-owners .current-owner .remove-owner a:hover,
 .page-manage-owners .current-owner .remove-owner a:active {
   color: #ac0017;
+}
+.page-manage-owners .current-owner .remove-owner a:hover,
+.page-manage-owners .current-owner .remove-owner a:active {
+  color: #3c3c3c;
 }
 .page-delete-package h1 {
   margin-bottom: 0;

@@ -175,16 +175,17 @@
         dataType: 'json',
         type: 'GET',
         success: function (data) {
-            viewModel.owners($.map(data, function (item) { return new Owner(item.name, item.profileUrl, item.imageUrl, item.pending, item.current); }));
+            viewModel.owners($.map(data, function (item) { return new Owner(item.name, item.profileUrl, item.imageUrl, item.pending, item.current, item.canBeRemoved); }));
         }
     })
     .error(failHandler);
 
-    function Owner(name, profileUrl, imageUrl, pending, current) {
+    function Owner(name, profileUrl, imageUrl, pending, current, canBeRemoved) {
         this.name = ko.observable(name);
         this.profileUrl = ko.observable(profileUrl);
         this.imageUrl = ko.observable(imageUrl);
         this.pending = ko.observable(pending);
         this.current = current;
+        this.canBeRemoved = ko.observable(canBeRemoved);
     }
 });
