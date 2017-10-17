@@ -143,6 +143,7 @@
     <Compile Include="Auditing\PackageAuditRecord.cs" />
     <Compile Include="Auditing\ScopeAuditRecord.cs" />
     <Compile Include="Auditing\UserAuditRecord.cs" />
+    <Compile Include="Authentication\AuthenticationExtensions.cs" />
     <Compile Include="Cookies\CookieComplianceServiceBase.cs" />
     <Compile Include="Cookies\CookieConsentMessage.cs" />
     <Compile Include="Cookies\ICookieComplianceService.cs" />
@@ -191,6 +192,7 @@
     <Compile Include="ICloudStorageStatusDependency.cs" />
     <Compile Include="Infrastructure\AzureEntityList.cs" />
     <Compile Include="Infrastructure\TableErrorLog.cs" />
+    <Compile Include="Authentication\NuGetClaims.cs" />
     <Compile Include="PackageReaderCoreExtensions.cs" />
     <Compile Include="PackageStatus.cs" />
     <Compile Include="Packaging\InvalidPackageException.cs" />

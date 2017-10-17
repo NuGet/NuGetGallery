@@ -464,19 +464,6 @@ namespace NuGetGallery
             return self.Claims.GetClaimOrDefault(claimType);
         }
 
-        public static string GetClaimOrDefault(this ClaimsIdentity self, string claimType)
-        {
-            return self.Claims.GetClaimOrDefault(claimType);
-        }
-
-        public static string GetClaimOrDefault(this IEnumerable<Claim> self, string claimType)
-        {
-            return self
-                .Where(c => string.Equals(c.Type, claimType, StringComparison.OrdinalIgnoreCase))
-                .Select(c => c.Value)
-                .FirstOrDefault();
-        }
-
         public static bool HasScopeThatAllowsActionForSubject(
             this IIdentity self, 
             string subject,
