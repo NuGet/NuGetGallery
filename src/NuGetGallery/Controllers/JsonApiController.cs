@@ -19,7 +19,6 @@ namespace NuGetGallery
         : AppController
     {
         private readonly IMessageService _messageService;
-        private readonly IPackageOwnerRequestService _packageOwnerRequestService;
         private readonly IPackageService _packageService;
         private readonly IUserService _userService;
         private readonly IAppConfiguration _appConfiguration;
@@ -29,7 +28,6 @@ namespace NuGetGallery
         public JsonApiController(
             IPackageService packageService,
             IUserService userService,
-            IPackageOwnerRequestService packageOwnerRequestService,
             IMessageService messageService,
             IAppConfiguration appConfiguration,
             ISecurityPolicyService policyService,
@@ -37,7 +35,6 @@ namespace NuGetGallery
         {
             _packageService = packageService;
             _userService = userService;
-            _packageOwnerRequestService = packageOwnerRequestService;
             _messageService = messageService;
             _appConfiguration = appConfiguration;
             _policyService = policyService;
@@ -59,93 +56,42 @@ namespace NuGetGallery
             }
 
             var currentUserName = HttpContext.User.Identity.Name;
-            var currentOwner = package
-                .PackageRegistration
-                .Owners
-                .Where(o => o.Username == currentUserName)
-                .FirstOrDefault();
-
-            IEnumerable<User> removableOwnersList = null;
-            IEnumerable<User> nonRemovableOwnersList = null;
             var packageRegistrationOwners = package.PackageRegistration.Owners;
-            var canRemoveSelf = false;
-            if (currentOwner != null)
-            {
-                var allMatchingNamespaceOwners = package
-                    .PackageRegistration
-                    .ReservedNamespaces
-                    .SelectMany(rn => rn.Owners)
-                    .Distinct();
+            var allMatchingNamespaceOwners = package
+                .PackageRegistration
+                .ReservedNamespaces
+                .SelectMany(rn => rn.Owners)
+                .Distinct();
 
-                var currentOwnerOwnsNamespace = allMatchingNamespaceOwners
-                    .Any(owner => owner.Username == currentOwner.Username);
+            var packageAndReservedNamespaceOwners = packageRegistrationOwners.Intersect(allMatchingNamespaceOwners);
+            var packageOwnersOnly = packageRegistrationOwners.Except(packageAndReservedNamespaceOwners);
 
-                var packageAndReservedNamespaceOwners = packageRegistrationOwners.Intersect(allMatchingNamespaceOwners);
+            var owners = from u in packageAndReservedNamespaceOwners
+                         select new PackageOwnersResultViewModel(
+                             u.Username,
+                             u.EmailAddress,
+                             isCurrentUser: u.Username == currentUserName,
+                             isPending: false,
+                             isNamespaceOwner: true);
 
-                // An owner can remove themselves if
-                // 1. There are more than one owners on the package 
-                // 2. And either the owner does not own any matching namespace
-                // 3. Or if the owner owns a namespace there are other owners who also own the namespace
-                canRemoveSelf = (!currentOwnerOwnsNamespace && packageRegistrationOwners.Count() > 1)
-                    || (currentOwnerOwnsNamespace && packageAndReservedNamespaceOwners.Count() > 1);
+            var packageOwnersOnlyResultViewModel = from u in packageOwnersOnly
+                                                   select new PackageOwnersResultViewModel(
+                                                       u.Username,
+                                                       u.EmailAddress,
+                                                       isCurrentUser: u.Username == currentUserName,
+                                                       isPending: false,
+                                                       isNamespaceOwner: false);
 
-                // Build a list of removable and non-removable users based on the ownership of the matching reserved namespace
-                if (!currentOwnerOwnsNamespace)
-                {
-                    // Current owner does not own the matching namespace, so it cannot remove any
-                    // package owner who owns the matching namespace.
-                    nonRemovableOwnersList = packageRegistrationOwners
-                        .Where(packageOwner => allMatchingNamespaceOwners.Any(rno => rno == packageOwner));
-
-                    // Remaining package owners can be removed by this owner.
-                    removableOwnersList = packageRegistrationOwners.Except(nonRemovableOwnersList);
-                }
-                else
-                {
-                    // The current owner owns the namespace and hence can remove any other package owners.
-                    removableOwnersList = packageRegistrationOwners;
-                }
-            }
-            else
-            {
-                nonRemovableOwnersList = packageRegistrationOwners;
-            }
-
-            IEnumerable<PackageOwnersResultViewModel> owners = new List<PackageOwnersResultViewModel>();
-            if (removableOwnersList != null)
-            {
-                var removableResultViewModel = from u in removableOwnersList
-                                               select new PackageOwnersResultViewModel(
-                                                   u.Username,
-                                                   u.EmailAddress,
-                                                   isCurrentUser: u.Username == currentUserName,
-                                                   isPending: false,
-                                                   canBeRemoved: u.Username == currentUserName ? canRemoveSelf : true);
-
-                owners = owners.Union(removableResultViewModel);
-            }
-
-            if (nonRemovableOwnersList != null)
-            {
-                var nonRemovableResultViewModel = from u in nonRemovableOwnersList
-                                                  select new PackageOwnersResultViewModel(
-                                                      u.Username,
-                                                      u.EmailAddress,
-                                                      isCurrentUser: u.Username == currentUserName,
-                                                      isPending: false,
-                                                      canBeRemoved: u.Username == currentUserName ? canRemoveSelf : false);
-
-                owners = owners.Union(nonRemovableResultViewModel);
-            }
+            owners = owners.Union(packageOwnersOnlyResultViewModel);
 
             var pending =
-                _packageOwnerRequestService.GetPackageOwnershipRequests(package: package.PackageRegistration)
+                _packageOwnershipManagementService.GetPackageOwnershipRequests(package: package.PackageRegistration)
                 .Select(r => new PackageOwnersResultViewModel(
                     r.NewOwner.Username,
                     r.NewOwner.EmailAddress,
                     isCurrentUser: false,
                     isPending: true,
-                    canBeRemoved: true));
+                    isNamespaceOwner: false));
 
             var result = owners.Union(pending).Select(o => new
             {
@@ -154,7 +100,7 @@ namespace NuGetGallery
                 imageUrl = GravatarHelper.Url(o.EmailAddress, size: Constants.GravatarImageSize),
                 current = o.Current,
                 pending = o.Pending,
-                canBeRemoved = o.CanBeRemoved
+                isNamespaceOwner = o.IsNamespaceOwner
             });
 
             return Json(result, JsonRequestBehavior.AllowGet);
@@ -189,7 +135,7 @@ namespace NuGetGallery
             {
                 var encodedMessage = HttpUtility.HtmlEncode(message);
 
-                var ownerRequest = await _packageOwnershipManagementService.AddPendingOwnershipRequestAsync(
+                var ownerRequest = await _packageOwnershipManagementService.AddPackageOwnershipRequestAsync(
                     model.Package, model.CurrentUser, model.User);
 
                 var confirmationUrl = Url.ConfirmPendingOwnershipRequest(
@@ -232,7 +178,7 @@ namespace NuGetGallery
             ManagePackageOwnerModel model;
             if (TryGetManagePackageOwnerModel(id, username, out model))
             {
-                var request = _packageOwnerRequestService.GetPackageOwnershipRequests(package: model.Package, newOwner: model.User).FirstOrDefault();
+                var request = _packageOwnershipManagementService.GetPackageOwnershipRequests(package: model.Package, newOwner: model.User).FirstOrDefault();
 
                 if (request == null)
                 {
@@ -241,7 +187,7 @@ namespace NuGetGallery
                 }
                 else
                 {
-                    await _packageOwnershipManagementService.RemovePendingOwnershipRequestAsync(model.Package, model.User);
+                    await _packageOwnershipManagementService.DeletePackageOwnershipRequestAsync(model.Package, model.User);
                     _messageService.SendPackageOwnerRequestCancellationNotice(model.CurrentUser, model.User, model.Package);
                 }
 
@@ -332,7 +278,7 @@ namespace NuGetGallery
 
         private IEnumerable<string> GetPendingPropagatingOwners(PackageRegistration package)
         {
-            return _packageOwnerRequestService.GetPackageOwnershipRequests(package: package)
+            return _packageOwnershipManagementService.GetPackageOwnershipRequests(package: package)
                 .Select(po => po.NewOwner)
                 .Where(RequireSecurePushForCoOwnersPolicy.IsSubscribed)
                 .Select(po => po.Username);

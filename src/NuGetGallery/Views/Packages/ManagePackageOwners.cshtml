@@ -50,22 +50,26 @@
                             <span data-bind="visible: pending">(pending approval)</span>
                         </span>
                     </div>
-                    <!-- ko if: canBeRemoved -->
+                    <!-- ko if: pending() 
+                        || $parent.hasMoreThanOneOwner() 
+                        && (!isNamespaceOwner() || ($parent.isCurrentNamespaceOwner() && $parent.hasMoreThanOneNamespaceOwners())) -->
                     <div class="col-md-3 remove-owner">
                         <a class="icon-link" 
                            href="#" 
                            title="Remove as owner of @Model.Id" 
-                           data-bind="visible: canBeRemoved, click: $root.removeOwner">
+                           data-bind="click: $root.removeOwner">
                             <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
                             <span>Remove</span>
                         </a>
                     </div>
                     <!-- /ko -->
-                    <!-- ko ifnot: canBeRemoved -->
+                    <!-- ko ifnot: pending() 
+                        || $parent.hasMoreThanOneOwner() 
+                        && (!isNamespaceOwner() || ($parent.isCurrentNamespaceOwner() && $parent.hasMoreThanOneNamespaceOwners())) -->
                     <div class="col-md-3 remove-owner-disabled">
                         <a class="icon-link"
                            href="#"
-                           title="Cannot remove the owner due to reserved namespace restrictions.">
+                           title="Cannot remove the only owner or reserved namespace restrictions apply.">
                             <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
                             <span>Remove</span>
                         </a>

@@ -62,12 +62,13 @@ namespace NuGetGallery
                         .ForEach(mn =>
                             _reservedNamespaceService.AddPackageRegistrationToNamespace(mn.Value, packageRegistration));
 
+                    // The 'AddPackageRegistrationToNamespace' does not commit its changes, so saving changes for consistency.
                     await _entitiesContext.SaveChangesAsync();
                 }
 
                 await _packageService.AddPackageOwnerAsync(packageRegistration, user);
 
-                await RemovePendingOwnershipRequestAsync(packageRegistration, user);
+                await DeletePackageOwnershipRequestAsync(packageRegistration, user);
 
                 transaction.Commit();
             }
@@ -76,7 +77,7 @@ namespace NuGetGallery
                 new PackageRegistrationAuditRecord(packageRegistration, AuditedPackageRegistrationAction.AddOwner, user.Username));
         }
 
-        public async Task<PackageOwnerRequest> AddPendingOwnershipRequestAsync(PackageRegistration packageRegistration, User requestingOwner, User newOwner)
+        public async Task<PackageOwnerRequest> AddPackageOwnershipRequestAsync(PackageRegistration packageRegistration, User requestingOwner, User newOwner)
         {
             if (packageRegistration == null)
             {
@@ -96,6 +97,15 @@ namespace NuGetGallery
             return await _packageOwnerRequestService.AddPackageOwnershipRequest(packageRegistration, requestingOwner, newOwner);
         }
 
+        public PackageOwnerRequest GetPackageOwnershipRequest(PackageRegistration package, User pendingOwner, string token)
+        {
+            return _packageOwnerRequestService.GetPackageOwnershipRequest(package, pendingOwner, token);
+        }
+
+        public IEnumerable<PackageOwnerRequest> GetPackageOwnershipRequests(PackageRegistration package = null, User requestingOwner = null, User newOwner = null)
+        {
+            return _packageOwnerRequestService.GetPackageOwnershipRequests(package, requestingOwner, newOwner);
+        }
 
         public async Task RemovePackageOwnerAsync(PackageRegistration packageRegistration, User user)
         {
@@ -150,7 +160,7 @@ namespace NuGetGallery
                 new PackageRegistrationAuditRecord(packageRegistration, AuditedPackageRegistrationAction.RemoveOwner, user.Username));
         }
 
-        public async Task RemovePendingOwnershipRequestAsync(PackageRegistration packageRegistration, User user)
+        public async Task DeletePackageOwnershipRequestAsync(PackageRegistration packageRegistration, User user)
         {
             if (packageRegistration == null)
             {
@@ -167,16 +177,6 @@ namespace NuGetGallery
             {
                 await _packageOwnerRequestService.DeletePackageOwnershipRequest(request);
             }
-        }
-
-        public async Task RemovePendingOwnershipRequestAsync(PackageOwnerRequest request)
-        {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            await _packageOwnerRequestService.DeletePackageOwnershipRequest(request);
         }
     }
 }

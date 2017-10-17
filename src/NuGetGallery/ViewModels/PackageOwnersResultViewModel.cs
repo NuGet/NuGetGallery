@@ -13,15 +13,15 @@ namespace NuGetGallery
 
         public bool Pending;
 
-        public bool CanBeRemoved;
+        public bool IsNamespaceOwner;
 
-        public PackageOwnersResultViewModel(string username, string emailAddress, bool isCurrentUser, bool isPending, bool canBeRemoved)
+        public PackageOwnersResultViewModel(string username, string emailAddress, bool isCurrentUser, bool isPending, bool isNamespaceOwner)
         {
             Name = username;
             EmailAddress = emailAddress;
             Current = isCurrentUser;
             Pending = isPending;
-            CanBeRemoved = canBeRemoved;
+            IsNamespaceOwner = isNamespaceOwner;
         }
     }
 }

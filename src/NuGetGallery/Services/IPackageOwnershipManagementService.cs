@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace NuGetGallery
@@ -23,7 +24,7 @@ namespace NuGetGallery
         /// <param name="packageRegistration">The package registration that has pending ownership request.</param>
         /// <param name="requestingOwner">The user to requesting to add the pending owner.</param>
         /// <param name="newOwner">The user to be added for from pending ownership.</param>
-        Task<PackageOwnerRequest> AddPendingOwnershipRequestAsync(PackageRegistration packageRegistration, User requestingOwner, User newOwner);
+        Task<PackageOwnerRequest> AddPackageOwnershipRequestAsync(PackageRegistration packageRegistration, User requestingOwner, User newOwner);
 
         /// <summary>
         /// Remove the user as from the list of owners of the package. Also remove the package registration
@@ -39,12 +40,25 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="packageRegistration">The package registration that has pending ownership request.</param>
         /// <param name="user">The user to be removed from pending ownership.</param>
-        Task RemovePendingOwnershipRequestAsync(PackageRegistration packageRegistration, User user);
+        Task DeletePackageOwnershipRequestAsync(PackageRegistration packageRegistration, User user);
 
         /// <summary>
-        /// Remove the pending ownership request.
+        /// Gets <see cref="PackageOwnerRequest"/>s that match the provided conditions.
         /// </summary>
-        /// <param name="request">The package owner request to be removed.</param>
-        Task RemovePendingOwnershipRequestAsync(PackageOwnerRequest request);
+        /// <param name="package">If nonnull, only returns <see cref="PackageOwnerRequest"/>s that are for this package.</param>
+        /// <param name="requestingOwner">If nonnull, only returns <see cref="PackageOwnerRequest"/>s that were requested by this owner.</param>
+        /// <param name="newOwner">If nonnull, only returns <see cref="PackageOwnerRequest"/>s that are for this user to become an owner.</param>
+        /// <returns>An <see cref="IEnumerable{PackageOwnerRequest}"/> containing all objects that matched the conditions.</returns>
+        IEnumerable<PackageOwnerRequest> GetPackageOwnershipRequests(PackageRegistration package = null, User requestingOwner = null, User newOwner = null);
+
+        /// <summary>
+        /// Checks if the pending owner has a request for this package which matches the specified token.
+        /// </summary>
+        /// <param name="package">Package associated with the request.</param>
+        /// <param name="pendingOwner">Pending owner for the request.</param>
+        /// <param name="token">Token generated for the owner request.</param>
+        /// <returns>The <see cref="PackageOwnerRequest"/> if one exists or null otherwise.</returns>
+        PackageOwnerRequest GetPackageOwnershipRequest(PackageRegistration package, User pendingOwner, string token);
+
     }
 }

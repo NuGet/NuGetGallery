@@ -43,7 +43,6 @@ namespace NuGetGallery
         private readonly IAppConfiguration _config;
         private readonly IMessageService _messageService;
         private readonly IPackageService _packageService;
-        private readonly IPackageOwnerRequestService _packageOwnerRequestService;
         private readonly IPackageFileService _packageFileService;
         private readonly ISearchService _searchService;
         private readonly IUploadFileService _uploadFileService;
@@ -65,7 +64,6 @@ namespace NuGetGallery
 
         public PackagesController(
             IPackageService packageService,
-            IPackageOwnerRequestService packageOwnerRequestService,
             IUploadFileService uploadFileService,
             IUserService userService,
             IMessageService messageService,
@@ -89,7 +87,6 @@ namespace NuGetGallery
             IPackageOwnershipManagementService packageOwnershipManagementService)
         {
             _packageService = packageService;
-            _packageOwnerRequestService = packageOwnerRequestService;
             _uploadFileService = uploadFileService;
             _userService = userService;
             _messageService = messageService;
@@ -1200,7 +1197,7 @@ namespace NuGetGallery
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.AlreadyOwner));
             }
 
-            var request = _packageOwnerRequestService.GetPackageOwnershipRequest(package, user, token);
+            var request = _packageOwnershipManagementService.GetPackageOwnershipRequest(package, user, token);
             if (request == null)
             {
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.Failure));
@@ -1220,7 +1217,7 @@ namespace NuGetGallery
             {
                 var requestingUser = request.RequestingOwner;
 
-                await _packageOwnershipManagementService.RemovePendingOwnershipRequestAsync(package, user);
+                await _packageOwnershipManagementService.DeletePackageOwnershipRequestAsync(package, user);
 
                 _messageService.SendPackageOwnerRequestRejectionNotice(requestingUser, user, package);
 
@@ -1252,13 +1249,13 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            var request = _packageOwnerRequestService.GetPackageOwnershipRequests(package, requestingUser, pendingUser).FirstOrDefault();
+            var request = _packageOwnershipManagementService.GetPackageOwnershipRequests(package, requestingUser, pendingUser).FirstOrDefault();
             if (request == null)
             {
                 return HttpNotFound();
             }
 
-            await _packageOwnerRequestService.DeletePackageOwnershipRequest(request);
+            await _packageOwnershipManagementService.DeletePackageOwnershipRequestAsync(package, pendingUser);
 
             _messageService.SendPackageOwnerRequestCancellationNotice(requestingUser, pendingUser, package);
 

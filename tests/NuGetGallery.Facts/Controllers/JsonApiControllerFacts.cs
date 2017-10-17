@@ -243,7 +243,7 @@ namespace NuGetGallery.Controllers
                     NewOwnerKey = fakes.ShaUser.Key
                 };
 
-                GetMock<IPackageOwnerRequestService>()
+                GetMock<IPackageOwnershipManagementService>()
                     .Setup(p => p.GetPackageOwnershipRequests(fakes.Package, null, null))
                     .Returns((new [] { pendingOwner }));
 
@@ -419,7 +419,7 @@ namespace NuGetGallery.Controllers
 
                 var packageOwnershipManagementServiceMock = GetMock<IPackageOwnershipManagementService>();
                 packageOwnershipManagementServiceMock
-                    .Setup(p => p.AddPendingOwnershipRequestAsync(fakes.Package, fakes.Owner, fakes.User))
+                    .Setup(p => p.AddPackageOwnershipRequestAsync(fakes.Package, fakes.Owner, fakes.User))
                     .Returns(Task.FromResult(new PackageOwnerRequest { ConfirmationCode = "confirmation-code" }))
                     .Verifiable();
 
@@ -480,8 +480,8 @@ namespace NuGetGallery.Controllers
                 // Arrange & Act
                 var fakes = Get<Fakes>();
                 
-                var packageOwnerRequestServiceMock = GetMock<IPackageOwnerRequestService>();
-                packageOwnerRequestServiceMock
+                var packageOwnershipManagementServiceMock = GetMock<IPackageOwnershipManagementService>();
+                packageOwnershipManagementServiceMock
                     .Setup(p => p.GetPackageOwnershipRequests(fakes.Package, null, null))
                     .Returns(
                         new[]
@@ -515,7 +515,7 @@ namespace NuGetGallery.Controllers
 
                 var packageOwnershipManagementServiceMock = GetMock<IPackageOwnershipManagementService>();
                 packageOwnershipManagementServiceMock
-                    .Setup(p => p.AddPendingOwnershipRequestAsync(fakes.Package, fakes.Owner, fakes.User))
+                    .Setup(p => p.AddPackageOwnershipRequestAsync(fakes.Package, fakes.Owner, fakes.User))
                     .Returns(Task.FromResult(
                         new PackageOwnerRequest
                         {
