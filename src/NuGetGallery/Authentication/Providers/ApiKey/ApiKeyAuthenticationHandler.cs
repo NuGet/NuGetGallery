@@ -28,24 +28,9 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
 
         public ApiKeyAuthenticationHandler(ILogger logger, AuthenticationService auth, ICredentialBuilder credentialBuilder)
         {
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-
-            if (auth == null)
-            {
-                throw new ArgumentNullException(nameof(auth));
-            }
-
-            if (credentialBuilder == null)
-            {
-                throw new ArgumentNullException(nameof(credentialBuilder));
-            }
-
-            Logger = logger;
-            Auth = auth;
-            CredentialBuilder = credentialBuilder;
+            Logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            Auth = auth ?? throw new ArgumentNullException(nameof(auth));
+            CredentialBuilder = credentialBuilder ?? throw new ArgumentNullException(nameof(credentialBuilder));
         }
 
         internal Task InitializeAsync(ApiKeyAuthenticationOptions options, IOwinContext context)
@@ -109,7 +94,8 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                                 authUser.User, 
                                 AuthenticationTypes.ApiKey, 
                                 new Claim(NuGetClaims.ApiKey, apiKey),
-                                new Claim(NuGetClaims.Scope, scopes)),
+                                new Claim(NuGetClaims.Scope, scopes),
+                                new Claim(NuGetClaims.CredentialKey, authUser.CredentialUsed.Key.ToString())),
                             new AuthenticationProperties());
                 }
                 else

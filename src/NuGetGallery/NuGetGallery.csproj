@@ -749,7 +749,6 @@
     <Compile Include="Authentication\AuthenticationService.cs" />
     <Compile Include="Authentication\AuthenticationTypes.cs" />
     <Compile Include="Authentication\AuthDependenciesModule.cs" />
-    <Compile Include="Authentication\NuGetClaims.cs" />
     <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticator.cs" />
     <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticatorConfiguration.cs" />
     <Compile Include="Authentication\Providers\Authenticator.cs" />
