@@ -1,12 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Web.Mvc;
-
-namespace NuGetGallery.Areas.Admin.Controllers
+namespace NuGetGallery.Areas.Admin.Models
 {
-    [Authorize(Roles="Admins")]
-    public class AdminControllerBase : AppController
+    public enum PackageDeletedStatus
     {
+        SoftDeleted,
+        NotDeleted,
+        Unknown,
     }
 }

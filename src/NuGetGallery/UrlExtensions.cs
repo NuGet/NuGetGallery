@@ -8,6 +8,7 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using NuGetGallery.Areas.Admin;
+using NuGetGallery.Areas.Admin.Controllers;
 
 namespace NuGetGallery
 {
@@ -500,7 +501,8 @@ namespace NuGetGallery
 
         public static string RevalidatePackage(
             this UrlHelper url,
-            IPackageVersionModel package,
+            string id,
+            string version,
             bool relativeUrl = true)
         {
             return GetActionLink(
@@ -510,9 +512,17 @@ namespace NuGetGallery
                 relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
-                    { "id", package.Id },
-                    { "version", package.Version }
+                    { "id", id },
+                    { "version", version }
                 });
+        }
+
+        public static string RevalidatePackage(
+            this UrlHelper url,
+            IPackageVersionModel package,
+            bool relativeUrl = true)
+        {
+            return url.RevalidatePackage(package.Id, package.Version, relativeUrl);
         }
 
         public static string DeletePackage(

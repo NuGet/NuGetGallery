@@ -21,6 +21,7 @@ using NuGet.Services.ServiceBus;
 using NuGet.Services.Validation;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Models;
+using NuGetGallery.Areas.Admin.Services;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
 using NuGetGallery.Configuration.SecretReader;
@@ -333,8 +334,29 @@ namespace NuGetGallery
             ConfigureAutocomplete(builder, configuration);
         }
 
+        private static void ConfigureValidationAdmin(ContainerBuilder builder, ConfigurationService configuration)
+        {
+            builder.Register(c => new ValidationEntitiesContext(configuration.Current.SqlConnectionStringValidation))
+                .AsSelf()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<ValidationEntityRepository<PackageValidationSet>>()
+                .As<IEntityRepository<PackageValidationSet>>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<ValidationEntityRepository<PackageValidation>>()
+                .As<IEntityRepository<PackageValidation>>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<ValidationAdminService>()
+                .AsSelf()
+                .InstancePerLifetimeScope();
+        }
+
         private void RegisterAsynchronousValidation(ContainerBuilder builder, ConfigurationService configuration)
         {
+            ConfigureValidationAdmin(builder, configuration);
+
             builder
                 .RegisterType<ServiceBusMessageSerializer>()
                 .As<IServiceBusMessageSerializer>();

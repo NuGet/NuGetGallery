@@ -3,16 +3,16 @@
 
 using System.Linq;
 using System.Threading.Tasks;
+using NuGet.Services.Validation;
 
-namespace NuGetGallery
+namespace NuGetGallery.Areas.Admin.Services
 {
-    public class EntityRepository<T>
-        : IEntityRepository<T>
+    public class ValidationEntityRepository<T> : IEntityRepository<T>
         where T : class, new()
     {
-        private readonly IEntitiesContext _entities;
+        private readonly ValidationEntitiesContext _entities;
 
-        public EntityRepository(IEntitiesContext entities)
+        public ValidationEntityRepository(ValidationEntitiesContext entities)
         {
             _entities = entities;
         }
