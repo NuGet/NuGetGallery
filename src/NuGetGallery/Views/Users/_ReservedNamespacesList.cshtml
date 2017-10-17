@@ -1,0 +1,46 @@
+﻿@model ReservedNamespaceViewModel
+@{
+    if (!Model.ReservedNamespaces.Any())
+    {
+        return;
+    }
+}
+
+<div class="row user-package-list">
+    <div class="col-md-12">
+        <h2>
+            <a href="#" role="button" data-toggle="collapse" data-target="#reservednamespaces"
+               aria-expanded="true" aria-controls="reservednamespaces" id="show-reservednamespaces">
+                <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+                <span>My Reserved Package Ids</span>
+            </a>
+        </h2>
+        <div class="panel-collapse collapse in" id="reservednamespaces" aria-expanded="true">
+            <div class="list-packages" role="list">
+                <table class="table">
+                    <thead>
+                        <tr class="manage-package-headings">
+                            <th class="hidden-xs"></th>
+                            <th>Package ID or Prefix</th>
+                            <th>Owners</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var reservedNamespace in @Model.ReservedNamespaces)
+                        {
+                            <tr class="manage-package-listing">
+                                <td><img class="reserved-indicator"
+                                        src="~/Content/gallery/img/reserved-indicator.svg"
+                                        @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-20x20.png"))
+                                        title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
+                                </td>
+                                <td>@reservedNamespace.Value</td>
+                                <td>@string.Join(",", reservedNamespace.owners.Select(o => o.Username))</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

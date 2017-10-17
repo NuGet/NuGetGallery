@@ -1553,6 +1553,8 @@
     <Compile Include="ViewModels\ApiKeyListViewModel.cs" />
     <Compile Include="ViewModels\ApiKeyViewModel.cs" />
     <Compile Include="ViewModels\OwnerRequestsListItemViewModel.cs" />
+    <Compile Include="ViewModels\ReservedNamespaceViewModel.cs" />
+    <Compile Include="ViewModels\ReservedNamespaceListItemViewModel.cs" />
     <Compile Include="ViewModels\OwnerRequestsListViewModel.cs" />
     <Compile Include="ViewModels\OwnerRequestsViewModel.cs" />
     <Compile Include="ViewModels\PackageHeadingModel.cs" />
@@ -1898,6 +1900,7 @@
     <Content Include="Views\Packages\_SubmitPackage.cshtml" />
     <Content Include="Views\Packages\_EditForm.cshtml" />
     <Content Include="Views\Users\_OwnerRequestsList.cshtml" />
+    <Content Include="Views\Users\_ReservedNamespacesList.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />

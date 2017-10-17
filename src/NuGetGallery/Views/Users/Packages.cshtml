@@ -32,6 +32,10 @@
             @Html.Partial("_OwnerRequestsList", Model.OwnerRequests.Outgoing)
         }
     }
+
+    @{ 
+        @Html.Partial("_ReservedNamespacesList", Model.ReservedNamespaces)
+    }
 </section>
 
 @section BottomScripts {

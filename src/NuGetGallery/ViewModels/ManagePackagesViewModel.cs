@@ -10,5 +10,7 @@ namespace NuGetGallery
         public IEnumerable<ListPackageItemViewModel> Packages { get; set; }
 
         public OwnerRequestsViewModel OwnerRequests { get; set; }
+
+        public ReservedNamespaceViewModel ReservedNamespaces { get; set; }
     }
 }
