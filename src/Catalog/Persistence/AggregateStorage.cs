@@ -88,5 +88,10 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         {
             return _primaryStorage.List(cancellationToken);
         }
+
+        public override Uri GetUri(string name)
+        {
+            return this._primaryStorage.GetUri(name);
+        }
     }
 }

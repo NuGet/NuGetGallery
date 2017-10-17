@@ -273,5 +273,15 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                                    operationContext:null,
                                    cancellationToken:cancellationToken);
         }
+
+        /// <summary>
+        /// Returns the uri of the blob based on the Azure cloud directory
+        /// </summary>
+        /// <param name="name">The blob name.</param>
+        /// <returns>The blob uri.</returns>
+        public override Uri GetUri(string name)
+        {
+            return new Uri(_directory.Uri, name);
+        }
     }
 }

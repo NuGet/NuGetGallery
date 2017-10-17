@@ -14,15 +14,15 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
     /// </summary>
     public class ValidatorFactory
     {
+        private readonly IDictionary<FeedType, SourceRepository> _feedToSource;
+        private readonly ILoggerFactory _loggerFactory;
+
         /// <param name="feedToSource">Used to map <see cref="FeedType"/> to the <see cref="SourceRepository"/> to use.</param>
         public ValidatorFactory(IDictionary<FeedType, SourceRepository> feedToSource, ILoggerFactory loggerFactory)
         {
             _feedToSource = feedToSource;
             _loggerFactory = loggerFactory;
         }
-
-        private readonly IDictionary<FeedType, SourceRepository> _feedToSource;
-        private readonly ILoggerFactory _loggerFactory;
 
         public IValidator Create(Type validatorType)
         {

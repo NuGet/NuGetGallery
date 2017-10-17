@@ -52,7 +52,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             return Task.FromResult(0);
         }
 
-        public Task OnPackageValidationFailedAsync(string packageId, string packageVersion, IList<JObject> catalogEntriesJson, Exception e, CancellationToken token)
+        public Task OnPackageValidationFailedAsync(string packageId, string packageVersion, Exception e, CancellationToken token)
         {
             _logger.LogError(LogEvents.ValidationFailedToRun, e, "Failed to test {PackageId} {PackageVersion}!", packageId, packageVersion);
 

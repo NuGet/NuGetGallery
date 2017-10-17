@@ -20,22 +20,23 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
     /// </summary>
     public class PackageValidator
     {
-        private readonly IEnumerable<IAggregateValidator> _endpointValidators;
+        public IEnumerable<IAggregateValidator> AggregateValidators { get; }
+
         private readonly ILogger<PackageValidator> _logger;
 
         private readonly StorageFactory _auditingStorageFactory;
 
         public PackageValidator(
-            IEnumerable<IAggregateValidator> endpointValidators,
+            IEnumerable<IAggregateValidator> aggregateValidators,
             StorageFactory auditingStorageFactory,
             ILogger<PackageValidator> logger)
         {
-            if (endpointValidators.Count() < 1)
+            if (aggregateValidators == null || !aggregateValidators.Any())
             {
-                throw new ArgumentException("Must supply at least one endpoint!", nameof(endpointValidators));
+                throw new ArgumentException("Must supply at least one endpoint!", nameof(aggregateValidators));
             }
 
-            _endpointValidators = endpointValidators.ToList();
+            AggregateValidators = aggregateValidators.ToList();
             _auditingStorageFactory = auditingStorageFactory ?? throw new ArgumentNullException(nameof(auditingStorageFactory));
             _logger = logger;
         }
@@ -44,18 +45,18 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         /// Runs <see cref="IValidator"/>s from the <see cref="IAggregateValidator"/>s against a package.
         /// </summary>
         /// <returns>A <see cref="PackageValidationResult"/> generated from the results of the <see cref="IValidator"/>s.</returns>
-        public async Task<PackageValidationResult> ValidateAsync(string packageId, string packageVersion, IList<JObject> catalogEntriesJson, CollectorHttpClient client, CancellationToken cancellationToken)
+        public async Task<PackageValidationResult> ValidateAsync(PackageValidatorContext context, CollectorHttpClient client, CancellationToken cancellationToken)
         {
-            var package = new PackageIdentity(packageId, NuGetVersion.Parse(packageVersion));
-            var catalogEntries = catalogEntriesJson.Select(c => new CatalogIndexEntry(c));
+            var package = new PackageIdentity(context.Package.Id, NuGetVersion.Parse(context.Package.Version));
+
             var deletionAuditEntries = await DeletionAuditEntry.GetAsync(
-                _auditingStorageFactory, 
-                cancellationToken, 
-                package, 
+                _auditingStorageFactory,
+                cancellationToken,
+                package,
                 logger: _logger);
 
-            var validationContext = new ValidationContext(package, catalogEntries, deletionAuditEntries, client, cancellationToken);
-            var results = await Task.WhenAll(_endpointValidators.Select(endpoint => endpoint.ValidateAsync(validationContext)));
+            var validationContext = new ValidationContext(package, context.CatalogEntries, deletionAuditEntries, client, cancellationToken);
+            var results = await Task.WhenAll(AggregateValidators.Select(endpoint => endpoint.ValidateAsync(validationContext)).ToList());
             return new PackageValidationResult(validationContext, results);
         }
     }

@@ -147,6 +147,7 @@
     <Compile Include="Helpers\FeedHelpers.cs" />
     <Compile Include="Helpers\FeedPackageDetails.cs" />
     <Compile Include="Helpers\FeedPackageIdentity.cs" />
+    <Compile Include="Helpers\ParallelAsync.cs" />
     <Compile Include="Helpers\UriUtils.cs" />
     <Compile Include="LogEvents.cs" />
     <Compile Include="Helpers\NuGetVersionUtility.cs" />

@@ -247,6 +247,9 @@
     <Reference Include="NuGet.Packaging.Core, Version=4.3.0.5, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Packaging.Core.4.3.0\lib\net45\NuGet.Packaging.Core.dll</HintPath>
     </Reference>
+    <Reference Include="NuGet.Protocol, Version=4.3.0.5, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Protocol.4.3.0\lib\net45\NuGet.Protocol.dll</HintPath>
+    </Reference>
     <Reference Include="NuGet.Services.Configuration, Version=2.2.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Services.Configuration.2.2.2\lib\net452\NuGet.Services.Configuration.dll</HintPath>
     </Reference>
@@ -255,6 +258,9 @@
     </Reference>
     <Reference Include="NuGet.Services.Logging, Version=2.2.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Services.Logging.2.2.2\lib\net452\NuGet.Services.Logging.dll</HintPath>
+    </Reference>
+    <Reference Include="NuGet.Services.Storage, Version=2.3.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.Storage.2.3.1-master-15426\lib\net452\NuGet.Services.Storage.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Versioning, Version=4.3.0.5, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Versioning.4.3.0\lib\net45\NuGet.Versioning.dll</HintPath>
@@ -323,7 +329,7 @@
     <Compile Include="Arguments.cs" />
     <Compile Include="Jobs\Catalog2DnxJob.cs" />
     <Compile Include="Jobs\Catalog2LuceneJob.cs" />
-    <Compile Include="Jobs\EndpointMonitoringJob.cs" />
+    <Compile Include="Jobs\Catalog2MonitoringJob.cs" />
     <Compile Include="Jobs\Catalog2RegistrationJob.cs" />
     <Compile Include="Jobs\CheckLuceneJob.cs" />
     <Compile Include="Jobs\ClearLuceneJob.cs" />
@@ -332,6 +338,8 @@
     <Compile Include="Jobs\Feed2CatalogJob.cs" />
     <Compile Include="Jobs\LightningJob.cs" />
     <Compile Include="Jobs\LoopingNgJob.cs" />
+    <Compile Include="Jobs\Monitoring2MonitoringJob.cs" />
+    <Compile Include="Jobs\MonitoringProcessorJob.cs" />
     <Compile Include="Jobs\NgJob.cs" />
     <Compile Include="Jobs\Package2CatalogJob.cs" />
     <Compile Include="Json\RegistrationBaseUrlRewritingJsonReader.cs" />
@@ -353,32 +361,13 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="Ng.nuspec" />
+    <None Include="Ng.nuspec">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="Scripts\Catalog2DnxV3China.cmd" />
-    <None Include="Scripts\Catalog2DnxV3Secondary.cmd" />
-    <None Include="Scripts\Catalog2LuceneV3-Reg2.cmd" />
-    <None Include="Scripts\Catalog2LuceneV3-Reg2-Secondary.cmd" />
-    <None Include="Scripts\Catalog2LuceneV3-Reg1-Secondary.cmd" />
-    <None Include="Scripts\Catalog2LuceneV3-Reg1.cmd" />
-    <None Include="Scripts\Catalog2DnxV3.cmd" />
-    <None Include="Scripts\Catalog2RegistrationV3-Reg3-China.cmd" />
-    <None Include="Scripts\Catalog2RegistrationV3-Reg3.cmd" />
-    <None Include="Scripts\Catalog2RegistrationV3-Reg3-Secondary.cmd" />
-    <None Include="Scripts\Catalog2RegistrationV3-Reg2.cmd" />
-    <None Include="Scripts\Catalog2RegistrationV3-Reg2-Secondary.cmd" />
-    <None Include="Scripts\Catalog2RegistrationV3-Reg1-Secondary.cmd" />
-    <None Include="Scripts\Catalog2RegistrationV3-Reg1.cmd" />
-    <None Include="Scripts\DB2Catalog.cmd" />
-    <None Include="Scripts\EndpointMonitoring.cmd" />
-    <None Include="Scripts\Feed2CatalogV3-Secondary.cmd" />
-    <None Include="Scripts\Feed2CatalogV3.cmd" />
-    <None Include="Scripts\Functions.ps1" />
-    <None Include="Scripts\PreDeploy.ps1" />
-    <None Include="Scripts\PostDeploy.ps1" />
-    <None Include="Scripts\nssm.exe" />
+    <None Include="Scripts\**" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Catalog\NuGet.Services.Metadata.Catalog.csproj">
