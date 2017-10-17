@@ -608,7 +608,7 @@ namespace NuGetGallery
                 relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
-                    { "id", package.Id}
+                    { "id", package.Id }
                 });
         }
 

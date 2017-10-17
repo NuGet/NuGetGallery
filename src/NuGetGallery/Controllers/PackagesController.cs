@@ -138,7 +138,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            if (!package.IsOwner(User))
+            if (!package.IsOwnerOrAdmin(User))
             {
                 return new HttpStatusCodeResult(403, "Forbidden");
             }
@@ -445,19 +445,26 @@ namespace NuGetGallery
             {
                 package = _packageService.FindPackageByIdAndVersion(id, version, SemVerLevelKey.SemVer2);
             }
-
-            if (package == null)
+            
+            // Validating packages should be hidden to everyone but the owners and admins.
+            if (package == null
+                || ((package.PackageStatusKey == PackageStatus.Validating
+                     || package.PackageStatusKey == PackageStatus.FailedValidation)
+                    && !package.IsOwnerOrAdmin(User)))
             {
                 return HttpNotFound();
             }
 
-            var packageHistory = package.PackageRegistration.Packages.ToList()
+            var packageHistory = package
+                .PackageRegistration
+                .Packages
+                .ToList()
                 .OrderByDescending(p => new NuGetVersion(p.Version));
 
             var model = new DisplayPackageViewModel(package, packageHistory);
 
             var isReadMePending = false;
-            if (package.IsOwner(User))
+            if (package.IsOwnerOrAdmin(User))
             {
                 // Tell logged-in package owners not to cache the package page,
                 // so they won't be confused about the state of pending edits.
@@ -526,7 +533,7 @@ namespace NuGetGallery
         private string GetDisplayPackagePolicyMessage(PackageRegistration package)
         {
             // display package policy message to package owners and admins.
-            if (User.IsInRole(Constants.AdminRoleName) || package.IsOwner(User))
+            if (package.IsOwnerOrAdmin(User))
             {
                 var propagators = package.Owners.Where(RequireSecurePushForCoOwnersPolicy.IsSubscribed);
                 if (propagators.Any())
@@ -691,8 +698,6 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("contact support about your package")]
         public virtual ActionResult ReportMyPackage(string id, string version)
         {
-            var user = GetCurrentUser();
-
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
 
             if (package == null)
@@ -701,7 +706,7 @@ namespace NuGetGallery
             }
 
             // If user hit this url by constructing it manually but is not the owner, redirect them to ReportAbuse
-            if (!(User.IsInRole(Constants.AdminRoleName) || package.IsOwner(user)))
+            if (!package.IsOwnerOrAdmin(User))
             {
                 return RedirectToAction("ReportAbuse", new { id, version });
             }
@@ -709,7 +714,7 @@ namespace NuGetGallery
             var model = new ReportMyPackageViewModel
             {
                 ReasonChoices = ReportMyPackageReasons,
-                ConfirmedUser = user.Confirmed,
+                ConfirmedUser = GetCurrentUser().Confirmed,
                 PackageId = id,
                 PackageVersion = package.Version,
                 CopySender = true
@@ -899,7 +904,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            if (!package.IsOwner(User))
+            if (!package.IsOwnerOrAdmin(User))
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
@@ -919,7 +924,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            if (!package.IsOwner(User))
+            if (!package.IsOwnerOrAdmin(User))
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
@@ -928,7 +933,7 @@ namespace NuGetGallery
 
             model.VersionSelectList = new SelectList(
                 model.PackageVersions
-                .Where(p => p.Deleted == false)
+                .Where(p => !p.Deleted)
                 .Select(p => new
                 {
                     text = p.NuGetVersion.ToFullString() + (p.LatestVersionSemVer2 ? " (Latest)" : string.Empty),
@@ -1075,7 +1080,7 @@ namespace NuGetGallery
                 return Json(404, new [] { string.Format(Strings.PackageWithIdAndVersionNotFound, id, version) });
             }
 
-            if (!package.IsOwner(User))
+            if (!package.IsOwnerOrAdmin(User))
             {
                 return Json(403, new [] { Strings.Unauthorized });
             }
@@ -1129,7 +1134,7 @@ namespace NuGetGallery
                 return Json(404, new [] { string.Format(Strings.PackageWithIdAndVersionNotFound, id, version) });
             }
 
-            if (!package.IsOwner(User))
+            if (!package.IsOwnerOrAdmin(User))
             {
                 return Json(403, new [] { Strings.Unauthorized });
             }
@@ -1384,7 +1389,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            if (!package.IsOwner(User))
+            if (!package.IsOwnerOrAdmin(User))
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
@@ -1657,7 +1662,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            if (!package.IsOwner(User))
+            if (!package.IsOwnerOrAdmin(User))
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
