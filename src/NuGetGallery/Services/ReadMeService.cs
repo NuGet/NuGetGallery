@@ -184,7 +184,7 @@ namespace NuGetGallery
                             case BlockTag.IndentedCode:
                                 if (block.StringContent != null)
                                 {
-                                    var content = block.StringContent?.TakeFromStart(block.StringContent.Length);
+                                    var content = block.StringContent.TakeFromStart(block.StringContent.Length);
                                     var unencodedContent = HttpUtility.HtmlDecode(content);
                                     block.StringContent.Replace(unencodedContent, 0, unencodedContent.Length);
                                 }
