@@ -206,7 +206,8 @@ namespace NuGetGallery
             BundleTable.Bundles.Add(homeScriptBundle);
 
             var displayPackageScriptBundle = new ScriptBundle("~/Scripts/gallery/page-display-package.min.js")
-                .Include("~/Scripts/gallery/page-display-package.js");
+                .Include("~/Scripts/gallery/page-display-package.js")
+                .Include("~/Scripts/gallery/clamp.js");
             BundleTable.Bundles.Add(displayPackageScriptBundle);
 
             var managePackagesScriptBundle = new ScriptBundle("~/Scripts/gallery/page-manage-packages.min.js")
