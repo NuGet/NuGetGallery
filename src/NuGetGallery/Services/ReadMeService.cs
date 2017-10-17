@@ -17,8 +17,8 @@ namespace NuGetGallery
 {
     internal class ReadMeService : IReadMeService
     {
-        private static readonly Regex BlockQuotePattern = new Regex("^ {0,3}&gt;", RegexOptions.Multiline);
-        private static readonly Regex LinkPattern = new Regex("<a href=([\"\']).*?\\1");
+        private static readonly Regex EncodedBlockQuotePattern = new Regex("^ {0,3}&gt;", RegexOptions.Multiline);
+        private static readonly Regex CommonMarkLinkPattern = new Regex("<a href=([\"\']).*?\\1");
 
         internal const string TypeUrl = "Url";
         internal const string TypeFile = "File";
@@ -155,7 +155,7 @@ namespace NuGetGallery
         internal static string GetReadMeHtml(string readMeMd)
         {
             // HTML encode markdown, except for block quotes, to block inline html.
-            var encodedMarkdown = BlockQuotePattern.Replace(HttpUtility.HtmlEncode(readMeMd), "> ");
+            var encodedMarkdown = EncodedBlockQuotePattern.Replace(HttpUtility.HtmlEncode(readMeMd), "> ");
 
             var settings = CommonMarkSettings.Default.Clone();
             settings.RenderSoftLineBreaksAsLineBreaks = true;
@@ -211,7 +211,7 @@ namespace NuGetGallery
             {
                 CommonMarkConverter.ProcessStage3(document, htmlWriter, settings);
                 
-                return LinkPattern.Replace(htmlWriter.ToString(), "$0" + " rel=\"nofollow\"");
+                return CommonMarkLinkPattern.Replace(htmlWriter.ToString(), "$0" + " rel=\"nofollow\"");
             }
         }
 
