@@ -17,6 +17,9 @@ namespace NuGetGallery
 {
     internal class ReadMeService : IReadMeService
     {
+        private static readonly Regex BlockQuotePattern = new Regex("^ {0,3}&gt;", RegexOptions.Multiline);
+        private static readonly Regex LinkPattern = new Regex("<a href=([\"\']).*?\\1");
+
         internal const string TypeUrl = "Url";
         internal const string TypeFile = "File";
         internal const string TypeWritten = "Written";
@@ -24,6 +27,7 @@ namespace NuGetGallery
         internal const int MaxMdLengthBytes = 8000;
         private const int ReadMeClampedLineCount = 10;
         private const string UrlHostRequirement = "raw.githubusercontent.com";
+
         private static readonly TimeSpan UrlTimeout = TimeSpan.FromSeconds(10);
 
         private IPackageFileService _packageFileService;
@@ -142,30 +146,6 @@ namespace NuGetGallery
 
             return hasReadMe;
         }
-        
-        /// <summary>
-        /// HTML encode content except for markdown blockquotes.
-        /// </summary>
-        /// <param name="readMeMd">ReadMe.md content.</param>
-        /// <returns>Encoded ReadMe.md content.</returns>
-        private static string HtmlEncodeExceptBlockquotes(string readMeMd)
-        {
-            var encoded = HttpUtility.HtmlEncode(readMeMd);
-            var encodedLines = encoded.Replace("\r\n", "\n").Split('\n');
-
-            var blockQuotePattern = new Regex("^ {0,3}&gt;");
-            for (int i = 0; i < encodedLines.Length; i++)
-            {
-                var match = blockQuotePattern.Match(encodedLines[i]);
-                if (match.Success)
-                {
-                    // For now, only decode the blockquote marker and not any inline html.
-                    encodedLines[i] = "> " + encodedLines[i].Substring(match.Length);
-                }
-            }
-
-            return string.Join(Environment.NewLine, encodedLines);
-        }
 
         /// <summary>
         /// Get converted HTML for readme.md string content.
@@ -174,9 +154,9 @@ namespace NuGetGallery
         /// <returns>HTML content.</returns>
         internal static string GetReadMeHtml(string readMeMd)
         {
-            // HTML encode markdown to block inline html.
-            var encodedMarkdown = HtmlEncodeExceptBlockquotes(readMeMd);
-            
+            // HTML encode markdown, except for block quotes, to block inline html.
+            var encodedMarkdown = BlockQuotePattern.Replace(HttpUtility.HtmlEncode(readMeMd), "> ");
+
             var settings = CommonMarkSettings.Default.Clone();
             settings.RenderSoftLineBreaksAsLineBreaks = true;
 
@@ -199,7 +179,7 @@ namespace NuGetGallery
                                 break;
 
                             // Decode preformatted blocks to prevent double encoding.
-                            // Skip BlockTag.BlockQuote, which are already decoded.
+                            // Skip BlockTag.BlockQuote, which are partially decoded upfront.
                             case BlockTag.FencedCode:
                             case BlockTag.IndentedCode:
                                 if (block.StringContent != null)
@@ -213,13 +193,14 @@ namespace NuGetGallery
                     }
 
                     var inline = node.Inline;
-                    if (inline != null)
+                    if (inline != null && inline.Tag == InlineTag.Link)
                     {
-                        // Block javascript in links.
-                        if ((inline.Tag == InlineTag.Link) &&
-                            (inline.TargetUrl.IndexOf("javascript", StringComparison.InvariantCultureIgnoreCase) >= 0))
+                        // Allow only http or https links in markdown.
+                        Uri targetUri;
+                        if (! (Uri.TryCreate(inline.TargetUrl, UriKind.Absolute, out targetUri)
+                            && (targetUri.Scheme == Uri.UriSchemeHttp || targetUri.Scheme == Uri.UriSchemeHttps) ))
                         {
-                            inline.TargetUrl = "";
+                            inline.TargetUrl = string.Empty;
                         }
                     }
                 }
@@ -229,9 +210,8 @@ namespace NuGetGallery
             using (var htmlWriter = new StringWriter())
             {
                 CommonMarkConverter.ProcessStage3(document, htmlWriter, settings);
-
-                var regex = new Regex("<a href=([\"\']).*?\\1");
-                return regex.Replace(htmlWriter.ToString(), "$0" + " rel=\"nofollow\"");
+                
+                return LinkPattern.Replace(htmlWriter.ToString(), "$0" + " rel=\"nofollow\"");
             }
         }
 
