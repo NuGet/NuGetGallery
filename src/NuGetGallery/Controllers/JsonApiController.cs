@@ -58,10 +58,11 @@ namespace NuGetGallery
                 return new HttpUnauthorizedResult();
             }
 
+            var currentUserName = HttpContext.User.Identity.Name;
             var currentOwner = package
                 .PackageRegistration
                 .Owners
-                .Where(o => o.Username == HttpContext.User.Identity.Name)
+                .Where(o => o.Username == currentUserName)
                 .FirstOrDefault();
 
             IEnumerable<User> removableOwnersList = null;
@@ -81,25 +82,27 @@ namespace NuGetGallery
 
                 var packageAndReservedNamespaceOwners = packageRegistrationOwners.Intersect(allMatchingNamespaceOwners);
 
-                if (currentOwnerOwnsNamespace && packageAndReservedNamespaceOwners.Count() > 1)
-                {
-                    canRemoveSelf = true;
-                }
+                // An owner can remove themselves if
+                // 1. There are more than one owners on the package 
+                // 2. And either the owner does not own any matching namespace
+                // 3. Or if the owner owns a namespace there are other owners who also own the namespace
+                canRemoveSelf = (!currentOwnerOwnsNamespace && packageRegistrationOwners.Count() > 1)
+                    || (currentOwnerOwnsNamespace && packageAndReservedNamespaceOwners.Count() > 1);
 
-                if (!currentOwnerOwnsNamespace && packageRegistrationOwners.Count() > 1)
-                {
-                    canRemoveSelf = true;
-                }
-
+                // Build a list of removable and non-removable users based on the ownership of the matching reserved namespace
                 if (!currentOwnerOwnsNamespace)
                 {
+                    // Current owner does not own the matching namespace, so it cannot remove any
+                    // package owner who owns the matching namespace.
                     nonRemovableOwnersList = packageRegistrationOwners
                         .Where(packageOwner => allMatchingNamespaceOwners.Any(rno => rno == packageOwner));
 
+                    // Remaining package owners can be removed by this owner.
                     removableOwnersList = packageRegistrationOwners.Except(nonRemovableOwnersList);
                 }
                 else
                 {
+                    // The current owner owns the namespace and hence can remove any other package owners.
                     removableOwnersList = packageRegistrationOwners;
                 }
             }
@@ -115,9 +118,9 @@ namespace NuGetGallery
                                                select new PackageOwnersResultViewModel(
                                                    u.Username,
                                                    u.EmailAddress,
-                                                   isCurrentUser: u.Username == HttpContext.User.Identity.Name,
+                                                   isCurrentUser: u.Username == currentUserName,
                                                    isPending: false,
-                                                   canBeRemoved: u.Username == HttpContext.User.Identity.Name ? canRemoveSelf : true);
+                                                   canBeRemoved: u.Username == currentUserName ? canRemoveSelf : true);
 
                 owners = owners.Union(removableResultViewModel);
             }
@@ -128,9 +131,9 @@ namespace NuGetGallery
                                                   select new PackageOwnersResultViewModel(
                                                       u.Username,
                                                       u.EmailAddress,
-                                                      isCurrentUser: u.Username == HttpContext.User.Identity.Name,
+                                                      isCurrentUser: u.Username == currentUserName,
                                                       isPending: false,
-                                                      canBeRemoved: u.Username == HttpContext.User.Identity.Name ? canRemoveSelf : false);
+                                                      canBeRemoved: u.Username == currentUserName ? canRemoveSelf : false);
 
                 owners = owners.Union(nonRemovableResultViewModel);
             }
