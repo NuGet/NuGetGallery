@@ -119,7 +119,7 @@ namespace NuGetGallery.Telemetry
             enricher.Initialize(telemetry);
 
             // Assert
-            Assert.NotEmpty(telemetry.Properties[TelemetryService.ProductInformation]);
+            Assert.NotEmpty(telemetry.Properties[TelemetryService.ClientInformation]);
         }
 
         private TestableClientInformationTelemetryEnricher CreateTestEnricher(NameValueCollection headers)

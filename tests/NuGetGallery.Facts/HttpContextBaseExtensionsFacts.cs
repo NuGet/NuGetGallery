@@ -37,7 +37,7 @@ namespace NuGetGallery
             httpContext.SetupGet(c => c.Request).Returns(httpRequest.Object);
 
             // Act
-            var result = httpContext.Object.GetProductInformation();
+            var result = httpContext.Object.GetClientInformation();
 
             // Assert
             Assert.Equal(expectedClientInfo, result);

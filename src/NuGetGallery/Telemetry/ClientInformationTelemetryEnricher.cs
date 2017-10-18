@@ -29,7 +29,7 @@ namespace NuGetGallery
                         TelemetryService.ProtocolVersion,
                         httpContext.Request.Headers[Constants.NuGetProtocolHeaderName]);
 
-                    telemetry.Context.Properties.Add(TelemetryService.ProductInformation, httpContext.GetProductInformation());
+                    telemetry.Context.Properties.Add(TelemetryService.ClientInformation, httpContext.GetClientInformation());
                 }
             }
         }

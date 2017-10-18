@@ -59,7 +59,7 @@ namespace NuGetGallery
         /// User-Agent: Mozilla/<version> (<system-information>) <platform> (<platform-details>) <extensions>
         /// Thus, extracting the part before the first '(', should give us product and version tokens in MOST cases.
         /// </summary>
-        public static string GetProductInformation(this HttpContextBase httpContext)
+        public static string GetClientInformation(this HttpContextBase httpContext)
         {
             string userAgent = httpContext.Request.Headers[Constants.UserAgentHeaderName];
             string result = string.Empty;
