@@ -46,9 +46,14 @@ namespace NuGetGallery
             using (var strategy = new SuspendDbExecutionStrategy())
             using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
             {
+                Func<ReservedNamespace, bool> predicate = 
+                    reservedNamespace => reservedNamespace.IsPrefix 
+                        ? packageRegistration.Id.StartsWith(reservedNamespace.Value, StringComparison.OrdinalIgnoreCase)
+                        : packageRegistration.Id.Equals(reservedNamespace.Value, StringComparison.OrdinalIgnoreCase);
+
                 var userOwnedMatchingNamespacesForId = user
                     .ReservedNamespaces
-                    .Where(rn => packageRegistration.Id.StartsWith(rn.Value, StringComparison.OrdinalIgnoreCase));
+                    .Where(predicate);
 
                 if (userOwnedMatchingNamespacesForId.Any())
                 {
@@ -124,7 +129,7 @@ namespace NuGetGallery
             {
                 // 1. Remove this package registration from the namespaces owned by this user, if he is the only package owner in the set of matching namespaces
                 // 2. Remove the IsVerified flag from package registration, if all the matching namespaces where owned by this user alone(no other owner of package owns a matching namespace for this PR)
-                var allMatchingNamespacesForRegistration = packageRegistration.ReservedNamespaces.ToList();
+                var allMatchingNamespacesForRegistration = packageRegistration.ReservedNamespaces;
                 if (allMatchingNamespacesForRegistration.Any())
                 {
                     var allPackageOwners = packageRegistration.Owners;

@@ -50,7 +50,6 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="prefix">The reserved namespace to modify</param>
         /// <param name="packageRegistration">The package registration to be added</param>
-        /// <returns>Awaitable Task</returns>
         void AddPackageRegistrationToNamespace(string prefix, PackageRegistration packageRegistration);
 
         /// <summary>
@@ -59,7 +58,6 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="prefix">The prefix value of the reserved namespace to modify</param>
         /// <param name="packageRegistration">The package registration entity to be removed.</param>
-        /// <returns>Awaitable task</returns>
         void RemovePackageRegistrationFromNamespace(string prefix, PackageRegistration packageRegistration);
 
         /// <summary>

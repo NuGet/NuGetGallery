@@ -70,45 +70,6 @@ namespace NuGetGallery
                 Assert.Contains(pendingOwner, package.Owners);
                 packageRepository.VerifyAll();
             }
-
-            //[Fact]
-            //public async Task RemovesRelatedPendingOwnerRequest()
-            //{
-            //    var packageOwnerRequest = new PackageOwnerRequest { PackageRegistrationKey = 2, NewOwnerKey = 100, ConfirmationCode = "secret-token" };
-            //    var package = new PackageRegistration { Key = 2, Id = "pkg42" };
-            //    var pendingOwner = new User { Key = 100, Username = "teamawesome" };
-            //    var packageOwnerRequestService = new Mock<IPackageOwnerRequestService>();
-            //    packageOwnerRequestService.Setup(p => p.DeletePackageOwnershipRequest(packageOwnerRequest))
-            //        .Returns(Task.CompletedTask).Verifiable();
-            //    packageOwnerRequestService.Setup(p => p.GetPackageOwnershipRequests(package, null, pendingOwner))
-            //        .Returns(new[] { packageOwnerRequest }).Verifiable();
-            //    var service = CreateService(packageOwnerRequestService: packageOwnerRequestService);
-
-            //    await service.AddPackageOwnerAsync(package, pendingOwner);
-
-            //    packageOwnerRequestService.VerifyAll();
-            //}
-
-            //[Fact]
-            //public async Task WritesAnAuditRecord()
-            //{
-            //    // Arrange
-            //    var package = new PackageRegistration { Key = 2, Id = "pkg42" };
-            //    var pendingOwner = new User { Key = 100, Username = "teamawesome" };
-            //    var packageRepository = new Mock<IEntityRepository<Package>>();
-            //    var auditingService = new TestAuditingService();
-            //    var service = CreateService(
-            //        packageRepository: packageRepository,
-            //        auditingService: auditingService);
-
-            //    // Act
-            //    await service.AddPackageOwnerAsync(package, pendingOwner);
-
-            //    // Assert
-            //    Assert.True(auditingService.WroteRecord<PackageRegistrationAuditRecord>(ar =>
-            //        ar.Action == AuditedPackageRegistrationAction.AddOwner
-            //        && ar.Id == package.Id));
-            //}
         }
 
         public class TheCreatePackageMethod
@@ -1643,57 +1604,6 @@ namespace NuGetGallery
                 await Assert.ThrowsAsync<InvalidOperationException>(
                     async () => await service.RemovePackageOwnerAsync(package, singleOwner));
             }
-
-            //[Fact]
-            //public async Task RemovesPendingPackageOwner()
-            //{
-            //    var pendingOwner = new User { Key = 200 };
-            //    var owner = new User() { Key = 99 };
-            //    var package = new PackageRegistration { Key = 1, Owners = new List<User> { owner } };
-
-            //    var packageOwnerRequest = new PackageOwnerRequest
-            //    {
-            //        PackageRegistration = package,
-            //        PackageRegistrationKey = package.Key,
-
-            //        RequestingOwner = owner,
-            //        RequestingOwnerKey = owner.Key,
-
-            //        NewOwner = pendingOwner,
-            //        NewOwnerKey = pendingOwner.Key,
-            //    };
-
-            //    var packageOwnerRequestService = new Mock<IPackageOwnerRequestService>();
-            //    packageOwnerRequestService.Setup(p => p.GetPackageOwnershipRequests(package, null, pendingOwner)).Returns(new[] { packageOwnerRequest });
-            //    packageOwnerRequestService.Setup(p => p.DeletePackageOwnershipRequest(packageOwnerRequest)).Returns(Task.CompletedTask).Verifiable();
-            //    var service = CreateService(packageOwnerRequestService: packageOwnerRequestService);
-
-            //    await service.RemovePackageOwnerAsync(package, pendingOwner);
-
-            //    Assert.Contains(owner, package.Owners);
-            //    packageOwnerRequestService.VerifyAll();
-            //}
-
-            //[Fact]
-            //public async Task WritesAnAuditRecord()
-            //{
-            //    // Arrange
-            //    var package = new PackageRegistration { Key = 2, Id = "pkg42" };
-            //    var ownerToRemove = new User { Key = 100, Username = "teamawesome" };
-            //    var packageRepository = new Mock<IEntityRepository<Package>>();
-            //    var auditingService = new TestAuditingService();
-            //    var service = CreateService(
-            //        packageRepository: packageRepository,
-            //        auditingService: auditingService);
-
-            //    // Act
-            //    await service.RemovePackageOwnerAsync(package, ownerToRemove);
-
-            //    // Assert
-            //    Assert.True(auditingService.WroteRecord<PackageRegistrationAuditRecord>(ar =>
-            //        ar.Action == AuditedPackageRegistrationAction.RemoveOwner
-            //        && ar.Id == package.Id));
-            //}
         }
 
         public class TheSetLicenseReportVisibilityMethod
