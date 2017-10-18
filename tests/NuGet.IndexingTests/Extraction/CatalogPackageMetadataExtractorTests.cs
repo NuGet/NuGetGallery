@@ -396,7 +396,8 @@ namespace NuGet.IndexingTests.Extraction
                             {
                                 dependencies = new object[]
                                 {
-                                    new { id = "Microsoft.Data.OData", range = "5.6.2" }
+                                    new { id = "Microsoft.Data.OData", range = "5.6.2" },
+                                    new { id = "", range = "" }
                                 }
                             }
                         },
