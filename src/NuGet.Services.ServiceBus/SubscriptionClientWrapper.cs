@@ -18,11 +18,37 @@ namespace NuGet.Services.ServiceBus
 
         public void OnMessageAsync(Func<IBrokeredMessage, Task> onMessageAsync)
         {
-            _client.OnMessageAsync(innerMessage =>
+            var callback = CreateOnMessageAsyncCallback(onMessageAsync);
+
+            _client.OnMessageAsync(callback);
+        }
+
+        public void OnMessageAsync(Func<IBrokeredMessage, Task> onMessageAsync, IOnMessageOptions options)
+        {
+            if (onMessageAsync == null) throw new ArgumentNullException(nameof(onMessageAsync));
+            if (options == null) throw new ArgumentNullException(nameof(options));
+
+            // For now, assume the only implementation is the wrapper type.
+            if (! (options is OnMessageOptionsWrapper optionsWrapper))
+            {
+                throw new ArgumentException(
+                    $"Options must be of type {nameof(OnMessageOptionsWrapper)}",
+                    nameof(options));
+            }
+
+            _client.OnMessageAsync(
+                CreateOnMessageAsyncCallback(onMessageAsync),
+                optionsWrapper.OnMessageOptions);
+        }
+
+        private Func<BrokeredMessage, Task> CreateOnMessageAsyncCallback(Func<IBrokeredMessage, Task> onMessageAsync)
+        {
+            return innerMessage =>
             {
                 var message = new BrokeredMessageWrapper(innerMessage);
+
                 return onMessageAsync(message);
-            });
+            };
         }
 
         public Task CloseAsync()

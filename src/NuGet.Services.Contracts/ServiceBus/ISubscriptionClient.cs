@@ -9,6 +9,9 @@ namespace NuGet.Services.ServiceBus
     public interface ISubscriptionClient
     {
         void OnMessageAsync(Func<IBrokeredMessage, Task> onMessageAsync);
+
+        void OnMessageAsync(Func<IBrokeredMessage, Task> onMessageAsync, IOnMessageOptions options);
+
         Task CloseAsync();
     }
 }

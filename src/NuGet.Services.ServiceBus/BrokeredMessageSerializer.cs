@@ -12,7 +12,7 @@ namespace NuGet.Services.ServiceBus
     /// type and schema version.
     /// </summary>
     /// <typeparam name="TMessage">A type decorated with a <see cref="SchemaAttribute"/>.</typeparam>
-    public class BrokeredMessageSerializer<TMessage>
+    public class BrokeredMessageSerializer<TMessage> : IBrokeredMessageSerializer<TMessage>
     {
         private const string SchemaNameKey = "SchemaName";
         private const string SchemaVersionKey = "SchemaVersion";
