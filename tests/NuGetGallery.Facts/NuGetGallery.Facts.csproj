@@ -424,6 +424,7 @@
     <Compile Include="Controllers\UsersControllerFacts.cs" />
     <Compile Include="Framework\TestGalleryConfigurationService.cs" />
     <Compile Include="Helpers\HtmlExtensionsFacts.cs" />
+    <Compile Include="HttpContextBaseExtensionsFacts.cs" />
     <Compile Include="Security\RequireMinProtocolVersionForPushPolicyFacts.cs" />
     <Compile Include="Services\PackageOwnerRequestServiceFacts.cs" />
     <Compile Include="Services\ReadMeServiceFacts.cs" />
