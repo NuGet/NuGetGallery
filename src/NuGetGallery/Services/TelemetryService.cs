@@ -31,6 +31,7 @@ namespace NuGetGallery
         public const string AccountCreationDate = "AccountCreationDate";
         public const string ClientVersion = "ClientVersion";
         public const string ProtocolVersion = "ProtocolVersion";
+        public const string ProductInformation = "ProductInformation";
         public const string IsScoped = "IsScoped";
         public const string KeyCreationDate = "KeyCreationDate";
         public const string PackageId = "PackageId";
@@ -121,6 +122,7 @@ namespace NuGetGallery
             TrackEvent(PackagePushEvent, properties => {
                 properties.Add(ClientVersion, GetClientVersion());
                 properties.Add(ProtocolVersion, GetProtocolVersion());
+                properties.Add(ProductInformation, GetProductInformation());
                 properties.Add(PackageId, package.PackageRegistration.Id);
                 properties.Add(PackageVersion, package.Version);
                 properties.Add(AuthenticationMethod, identity.GetAuthenticationType());
@@ -145,6 +147,7 @@ namespace NuGetGallery
             TrackEvent(CreatePackageVerificationKeyEvent, properties => {
                 properties.Add(ClientVersion, GetClientVersion());
                 properties.Add(ProtocolVersion, GetProtocolVersion());
+                properties.Add(ProductInformation, GetProductInformation());
                 properties.Add(PackageId, packageId);
                 properties.Add(PackageVersion, packageVersion);
                 properties.Add(AccountCreationDate, GetAccountCreationDate(user));
@@ -183,6 +186,17 @@ namespace NuGetGallery
         private static string GetProtocolVersion()
         {
             return HttpContext.Current?.Request?.Headers[Constants.NuGetProtocolHeaderName];
+        }
+
+        private static string GetProductInformation()
+        {
+            if (HttpContext.Current != null)
+            {
+                HttpContextBase contextBase = new HttpContextWrapper(HttpContext.Current);
+                return contextBase.GetProductInformation();
+            }
+
+            return null;
         }
 
         private static string GetAccountCreationDate(User user)

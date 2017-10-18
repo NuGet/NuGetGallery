@@ -102,26 +102,15 @@ namespace NuGetGallery.Telemetry
             Assert.Equal("5.0.0", telemetry.Properties[TelemetryService.ProtocolVersion]);
         }
 
-        [Theory]
-        [InlineData("NuGet Command Line/4.1.0 (Microsoft Windows NT 6.2.9200.0)", "NuGet Command Line/4.1.0")]
-        [InlineData("", "")]
-        [InlineData("     ", "")]
-        [InlineData(null, "")]
-        [InlineData("NuGet VS PowerShell Console/1.2.3 (Microsoft Windows NT 6.2.9200.0)", "NuGet VS PowerShell Console/1.2.3")]
-        [InlineData("Package-Installer/1.2.3 (Microsoft Windows NT 6.2.9200.0)", "Package-Installer/1.2.3")]
-        [InlineData("NuGet Command Line/1.2.3 (Microsoft Windows NT 6.2.9200.0)", "NuGet Command Line/1.2.3")]
-        [InlineData("Paket", "Paket")]
-        [InlineData("curl/7.21.0 (x86_64-pc-linux-gnu) libcurl/7.21.0 (OpenSSL/0.9.8o) zlib/1.2.3.4 libidn/1.18", "curl/7.21.0")]
-        [InlineData("Java/1.7.0_51", "Java/1.7.0_51")]
-        [InlineData("dotPeek/102.0.20150521.130901 (Microsoft Windows NT 6.3.9600.0; NuGet/2.8.60318.667; Wave/2.0.0; dotPeek/1.4.20150521.130901)", "dotPeek/102.0.20150521.130901")]
-        public void EnrichesTelemetryWithClientInfo(string userAgent, string expectedClientInfo)
+        [Fact]
+        public void EnrichesTelemetryWithClientInfo()
         {
             // Arrange
             var telemetry = new RequestTelemetry();
 
             var headers = new NameValueCollection
             {
-                { Constants.UserAgentHeaderName, userAgent }
+                { Constants.UserAgentHeaderName, "user agent" }
             };
 
             var enricher = CreateTestEnricher(headers);
@@ -130,7 +119,7 @@ namespace NuGetGallery.Telemetry
             enricher.Initialize(telemetry);
 
             // Assert
-            Assert.Equal(expectedClientInfo, telemetry.Properties[ClientInformationTelemetryEnricher.ClientInfoPropertyKey]);
+            Assert.NotEmpty(telemetry.Properties[TelemetryService.ProductInformation]);
         }
 
         private TestableClientInformationTelemetryEnricher CreateTestEnricher(NameValueCollection headers)
