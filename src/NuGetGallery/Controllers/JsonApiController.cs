@@ -66,21 +66,23 @@ namespace NuGetGallery
             var packageAndReservedNamespaceOwners = packageRegistrationOwners.Intersect(allMatchingNamespaceOwners);
             var packageOwnersOnly = packageRegistrationOwners.Except(packageAndReservedNamespaceOwners);
 
-            var owners = from u in packageAndReservedNamespaceOwners
-                         select new PackageOwnersResultViewModel(
-                             u.Username,
-                             u.EmailAddress,
-                             isCurrentUser: u.Username == currentUserName,
-                             isPending: false,
-                             isNamespaceOwner: true);
+            var owners =
+                packageAndReservedNamespaceOwners
+                .Select(u => new PackageOwnersResultViewModel(
+                    u.Username,
+                    u.EmailAddress,
+                    isCurrentUser: u.Username == currentUserName,
+                    isPending: false,
+                    isNamespaceOwner: true));
 
-            var packageOwnersOnlyResultViewModel = from u in packageOwnersOnly
-                                                   select new PackageOwnersResultViewModel(
-                                                       u.Username,
-                                                       u.EmailAddress,
-                                                       isCurrentUser: u.Username == currentUserName,
-                                                       isPending: false,
-                                                       isNamespaceOwner: false);
+            var packageOwnersOnlyResultViewModel =
+                packageOwnersOnly
+                .Select(u => new PackageOwnersResultViewModel(
+                    u.Username,
+                    u.EmailAddress,
+                    isCurrentUser: u.Username == currentUserName,
+                    isPending: false,
+                    isNamespaceOwner: false));
 
             owners = owners.Union(packageOwnersOnlyResultViewModel);
 
@@ -182,7 +184,7 @@ namespace NuGetGallery
 
                 if (request == null)
                 {
-                    await _packageOwnershipManagementService.RemovePackageOwnerAsync(model.Package, model.User);
+                    await _packageOwnershipManagementService.RemovePackageOwnerAsync(model.Package, model.CurrentUser, model.User);
                     _messageService.SendPackageOwnerRemovedNotice(model.CurrentUser, model.User, model.Package);
                 }
                 else

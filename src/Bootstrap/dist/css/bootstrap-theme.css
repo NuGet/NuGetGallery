@@ -881,9 +881,12 @@ img.package-icon {
 .page-manage-owners .current-owner .remove-owner a:active {
   color: #ac0017;
 }
-.page-manage-owners .current-owner .remove-owner a:hover,
-.page-manage-owners .current-owner .remove-owner a:active {
+.page-manage-owners .current-owner .remove-owner-disabled a:hover,
+.page-manage-owners .current-owner .remove-owner-disabled a:active {
   color: #3c3c3c;
+}
+.page-manage-owners .current-owner .remove-owner-disabled .icon-link:hover span {
+  text-decoration: none;
 }
 .page-delete-package h1 {
   margin-bottom: 0;

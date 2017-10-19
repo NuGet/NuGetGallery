@@ -182,7 +182,7 @@
         var currentOwnerOwnsNamespace = false;
         ko.utils.arrayForEach(this.owners(), function (owner) {
             if (owner.current === true) {
-                currentOwnerOwnsNamespace = owner.isNamespaceOwner;
+                currentOwnerOwnsNamespace = owner.isNamespaceOwner();
             }
         });
 

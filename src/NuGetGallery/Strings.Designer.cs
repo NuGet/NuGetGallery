@@ -936,6 +936,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The user &apos;{0}&apos; does not have permission to remove the owner &apos;{1}&apos;..
+        /// </summary>
+        public static string RemoveOwner_NotAllowed {
+            get {
+                return ResourceManager.GetString("RemoveOwner_NotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The namespace &apos;{0}&apos; contains invalid characters. Examples of valid namespaces include &apos;MyNamespace&apos; and &apos;MyNamespace.&apos;..
         /// </summary>
         public static string ReservedNamespace_InvalidCharactersInNamespace {

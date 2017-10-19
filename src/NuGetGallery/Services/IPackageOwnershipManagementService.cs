@@ -32,15 +32,16 @@ namespace NuGetGallery
         /// and the user is the only package owner that owns the namespace that matches the package registration.
         /// </summary>
         /// <param name="packageRegistration">The package registration that is intended to get ownership.</param>
-        /// <param name="user">The user to add as an owner to the package.</param>
-        Task RemovePackageOwnerAsync(PackageRegistration packageRegistration, User user);
+        /// <param name="requestingUser">The user requesting to remove an owner from the package.</param>
+        /// <param name="userToBeRemoved">The user to remove as an owner from the package.</param>
+        Task RemovePackageOwnerAsync(PackageRegistration packageRegistration, User requestingUser, User userToBeRemoved);
 
         /// <summary>
         /// Remove the pending ownership request.
         /// </summary>
         /// <param name="packageRegistration">The package registration that has pending ownership request.</param>
-        /// <param name="user">The user to be removed from pending ownership.</param>
-        Task DeletePackageOwnershipRequestAsync(PackageRegistration packageRegistration, User user);
+        /// <param name="newOwner">The user to be removed from pending ownership.</param>
+        Task DeletePackageOwnershipRequestAsync(PackageRegistration packageRegistration, User newOwner);
 
         /// <summary>
         /// Gets <see cref="PackageOwnerRequest"/>s that match the provided conditions.

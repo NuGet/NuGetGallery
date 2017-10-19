@@ -41,8 +41,12 @@
       color: darken(@brand-danger, 10%);
     }
 
-    .remove-owner a:hover, .remove-owner a:active {
+    .remove-owner-disabled a:hover, .remove-owner-disabled a:active {
       color: darken(@gray, 10%);
+    }
+
+    .remove-owner-disabled .icon-link:hover span {
+      text-decoration: none;
     }
   }
 }

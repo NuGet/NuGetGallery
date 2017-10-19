@@ -46,8 +46,8 @@ namespace NuGetGallery
             using (var strategy = new SuspendDbExecutionStrategy())
             using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
             {
-                Func<ReservedNamespace, bool> predicate = 
-                    reservedNamespace => reservedNamespace.IsPrefix 
+                Func<ReservedNamespace, bool> predicate =
+                    reservedNamespace => reservedNamespace.IsPrefix
                         ? packageRegistration.Id.StartsWith(reservedNamespace.Value, StringComparison.OrdinalIgnoreCase)
                         : packageRegistration.Id.Equals(reservedNamespace.Value, StringComparison.OrdinalIgnoreCase);
 
@@ -84,21 +84,6 @@ namespace NuGetGallery
 
         public async Task<PackageOwnerRequest> AddPackageOwnershipRequestAsync(PackageRegistration packageRegistration, User requestingOwner, User newOwner)
         {
-            if (packageRegistration == null)
-            {
-                throw new ArgumentNullException(nameof(packageRegistration));
-            }
-
-            if (requestingOwner == null)
-            {
-                throw new ArgumentNullException(nameof(requestingOwner));
-            }
-
-            if (newOwner == null)
-            {
-                throw new ArgumentNullException(nameof(newOwner));
-            }
-
             return await _packageOwnerRequestService.AddPackageOwnershipRequest(packageRegistration, requestingOwner, newOwner);
         }
 
@@ -112,76 +97,114 @@ namespace NuGetGallery
             return _packageOwnerRequestService.GetPackageOwnershipRequests(package, requestingOwner, newOwner);
         }
 
-        public async Task RemovePackageOwnerAsync(PackageRegistration packageRegistration, User user)
+        public async Task RemovePackageOwnerAsync(PackageRegistration packageRegistration, User requestingOwner, User ownerToBeRemoved)
         {
             if (packageRegistration == null)
             {
                 throw new ArgumentNullException(nameof(packageRegistration));
             }
 
-            if (user == null)
+            if (requestingOwner == null)
             {
-                throw new ArgumentNullException(nameof(user));
+                throw new ArgumentNullException(nameof(requestingOwner));
             }
 
-            using (var strategy = new SuspendDbExecutionStrategy())
-            using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
+            if (ownerToBeRemoved == null)
             {
-                // 1. Remove this package registration from the namespaces owned by this user, if he is the only package owner in the set of matching namespaces
-                // 2. Remove the IsVerified flag from package registration, if all the matching namespaces where owned by this user alone(no other owner of package owns a matching namespace for this PR)
-                var allMatchingNamespacesForRegistration = packageRegistration.ReservedNamespaces;
-                if (allMatchingNamespacesForRegistration.Any())
+                throw new ArgumentNullException(nameof(ownerToBeRemoved));
+            }
+
+            if (OwnerHasPermissionsToRemove(requestingOwner, ownerToBeRemoved, packageRegistration))
+            {
+                using (var strategy = new SuspendDbExecutionStrategy())
+                using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
                 {
-                    var allPackageOwners = packageRegistration.Owners;
-                    var matchingNamespacesOwnedByUser = allMatchingNamespacesForRegistration
-                        .Where(rn => rn.Owners.Any(o => o == user));
-                    var namespacesToModify = matchingNamespacesOwnedByUser
-                        .Where(rn => rn.Owners.Intersect(allPackageOwners).Count() == 1)
-                        .ToList();
-
-                    if (namespacesToModify.Any())
+                    // 1. Remove this package registration from the namespaces owned by this user if he is the only package owner in the set of matching namespaces
+                    // 2. Remove the IsVerified flag from package registration if all the matching namespaces are owned by this user alone (no other package owner owns a matching namespace for this PR)
+                    var allMatchingNamespacesForRegistration = packageRegistration.ReservedNamespaces;
+                    if (allMatchingNamespacesForRegistration.Any())
                     {
-                        // The package will lose its 'IsVerified' flag if the user is the only package owner who owns all the namespaces that match this registration
-                        var shouldModifyIsVerified = allMatchingNamespacesForRegistration.Count() == namespacesToModify.Count();
-                        if (shouldModifyIsVerified && packageRegistration.IsVerified)
+                        var allPackageOwners = packageRegistration.Owners;
+                        var matchingNamespacesOwnedByUser = allMatchingNamespacesForRegistration
+                            .Where(rn => rn.Owners.Any(o => o == ownerToBeRemoved));
+                        var namespacesToModify = matchingNamespacesOwnedByUser
+                            .Where(rn => rn.Owners.Intersect(allPackageOwners).Count() == 1)
+                            .ToList();
+
+                        if (namespacesToModify.Any())
                         {
-                            await _packageService.UpdatePackageVerifiedStatusAsync(new List<PackageRegistration> { packageRegistration }, isVerified: false);
+                            // The package will lose its 'IsVerified' flag if the user is the only package owner who owns all the namespaces that match this registration
+                            var shouldModifyIsVerified = allMatchingNamespacesForRegistration.Count() == namespacesToModify.Count();
+                            if (shouldModifyIsVerified && packageRegistration.IsVerified)
+                            {
+                                await _packageService.UpdatePackageVerifiedStatusAsync(new List<PackageRegistration> { packageRegistration }, isVerified: false);
+                            }
+
+                            namespacesToModify
+                                .ForEach(rn => _reservedNamespaceService.RemovePackageRegistrationFromNamespace(rn.Value, packageRegistration));
+
+                            await _entitiesContext.SaveChangesAsync();
                         }
-
-                        namespacesToModify
-                            .ForEach(rn => _reservedNamespaceService.RemovePackageRegistrationFromNamespace(rn.Value, packageRegistration));
-
-                        await _entitiesContext.SaveChangesAsync();
                     }
+
+                    // Remove the user from owners list of package registration
+                    await _packageService.RemovePackageOwnerAsync(packageRegistration, ownerToBeRemoved);
+
+                    transaction.Commit();
                 }
 
-                // Remove the user from owners list of package registration
-                await _packageService.RemovePackageOwnerAsync(packageRegistration, user);
-
-                transaction.Commit();
+                await _auditingService.SaveAuditRecordAsync(
+                    new PackageRegistrationAuditRecord(packageRegistration, AuditedPackageRegistrationAction.RemoveOwner, ownerToBeRemoved.Username));
             }
-
-            await _auditingService.SaveAuditRecordAsync(
-                new PackageRegistrationAuditRecord(packageRegistration, AuditedPackageRegistrationAction.RemoveOwner, user.Username));
+            else
+            {
+                throw new InvalidOperationException(string.Format(Strings.RemoveOwner_NotAllowed, requestingOwner.Username, ownerToBeRemoved.Username));
+            }
         }
 
-        public async Task DeletePackageOwnershipRequestAsync(PackageRegistration packageRegistration, User user)
+        public async Task DeletePackageOwnershipRequestAsync(PackageRegistration packageRegistration, User newOwner)
         {
             if (packageRegistration == null)
             {
                 throw new ArgumentNullException(nameof(packageRegistration));
             }
 
-            if (user == null)
+            if (newOwner == null)
             {
-                throw new ArgumentNullException(nameof(user));
+                throw new ArgumentNullException(nameof(newOwner));
             }
 
-            var request = _packageOwnerRequestService.GetPackageOwnershipRequests(package: packageRegistration, newOwner: user).FirstOrDefault();
+            var request = _packageOwnerRequestService.GetPackageOwnershipRequests(package: packageRegistration, newOwner: newOwner).FirstOrDefault();
             if (request != null)
             {
                 await _packageOwnerRequestService.DeletePackageOwnershipRequest(request);
             }
+        }
+
+        // The requesting owner can remove other owner only if 
+        // 1. Is an admin.
+        // 2. Owns a namespace.
+        // 3. Or the other user also does not own a namespace.
+        private static bool OwnerHasPermissionsToRemove(User requestingOwner, User ownerToBeRemoved, PackageRegistration packageRegistration)
+        {
+            if (requestingOwner.IsInRole(Constants.AdminRoleName))
+            {
+                return true;
+            }
+
+            var requestingOwnerOwnsNamespace = IsUserAnOwnerOfPackageNamespace(packageRegistration, requestingOwner);
+            if (requestingOwnerOwnsNamespace)
+            {
+                return true;
+            }
+
+            var ownerToBeRemovedOwnsNamespace = IsUserAnOwnerOfPackageNamespace(packageRegistration, ownerToBeRemoved);
+            return !ownerToBeRemovedOwnsNamespace;
+        }
+
+        private static bool IsUserAnOwnerOfPackageNamespace(PackageRegistration packageRegistration, User user)
+        {
+            return packageRegistration.ReservedNamespaces.Any(rn => rn.Owners.Any(owner => owner == user));
         }
     }
 }

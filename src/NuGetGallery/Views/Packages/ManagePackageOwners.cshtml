@@ -50,8 +50,7 @@
                             <span data-bind="visible: pending">(pending approval)</span>
                         </span>
                     </div>
-                    <!-- ko if: pending() 
-                        || $parent.hasMoreThanOneOwner() 
+                    <!-- ko if: (pending() || $parent.hasMoreThanOneOwner()) 
                         && (!isNamespaceOwner() || ($parent.isCurrentNamespaceOwner() && $parent.hasMoreThanOneNamespaceOwners())) -->
                     <div class="col-md-3 remove-owner">
                         <a class="icon-link" 
@@ -63,8 +62,7 @@
                         </a>
                     </div>
                     <!-- /ko -->
-                    <!-- ko ifnot: pending() 
-                        || $parent.hasMoreThanOneOwner() 
+                    <!-- ko ifnot: (pending() || $parent.hasMoreThanOneOwner())
                         && (!isNamespaceOwner() || ($parent.isCurrentNamespaceOwner() && $parent.hasMoreThanOneNamespaceOwners())) -->
                     <div class="col-md-3 remove-owner-disabled">
                         <a class="icon-link"
