@@ -28,7 +28,10 @@ namespace NuGet.Services.Validation
 
         private const string PackageSignaturesTable = "PackageSignatures";
         private const string PackageSignaturesPackageKeyIndex = "IX_PackageSignatures_PackageKey";
+        private const string PackageSignaturesCertificateKeyIndex = "IX_PackageSignatures_CertificateKey";
         private const string PackageSignaturesStatusIndex = "IX_PackageSignatures_Status";
+
+        private const string TrustedTimestampsTable = "TrustedTimestamps";
 
         private const string CertificatesTable = "Certificates";
         private const string CertificatesThumbprintIndex = "IX_Certificates_Thumbprint";
@@ -49,6 +52,7 @@ namespace NuGet.Services.Validation
 
         public IDbSet<PackageSigningState> PackageSigningStates { get; set; }
         public IDbSet<PackageSignature> PackageSignatures { get; set; }
+        public IDbSet<TrustedTimestamp> TrustedTimestamps { get; set; }
         public IDbSet<Certificate> Certificates { get; set; }
         public IDbSet<CertificateValidation> CertificateValidations { get; set; }
 
@@ -236,6 +240,16 @@ namespace NuGet.Services.Validation
                     }));
 
             modelBuilder.Entity<PackageSignature>()
+                .Property(s => s.CertificateKey)
+                .IsRequired()
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(new[]
+                    {
+                        new IndexAttribute(PackageSignaturesCertificateKeyIndex)
+                    }));
+
+            modelBuilder.Entity<PackageSignature>()
                 .Property(s => s.Status)
                 .HasColumnAnnotation(
                     IndexAnnotation.AnnotationName,
@@ -245,23 +259,31 @@ namespace NuGet.Services.Validation
                     }));
 
             modelBuilder.Entity<PackageSignature>()
-                .Property(s => s.SignedAt)
+                .Property(s => s.CreatedAt)
                 .HasColumnType("datetime2");
 
             modelBuilder.Entity<PackageSignature>()
-                .Property(s => s.CreatedAt)
-                .HasColumnType("datetime2")
-                .HasDatabaseGeneratedOption(DatabaseGeneratedOption.Identity);
+                .HasMany(s => s.TrustedTimestamps)
+                .WithRequired(t => t.PackageSignature)
+                .HasForeignKey(t => t.PackageSignatureKey);
 
             modelBuilder.Entity<PackageSignature>()
-                .HasMany(s => s.Certificates)
+                .HasRequired(s => s.Certificate)
                 .WithMany(c => c.PackageSignatures)
-                .Map(m =>
-                {
-                    m.MapLeftKey("PackageSignatureKey");
-                    m.MapRightKey("CertificateKey");
-                    m.ToTable("PackageSignatureCertificates", SignatureSchema);
-                });
+                .HasForeignKey(s => s.CertificateKey);
+
+            modelBuilder.Entity<TrustedTimestamp>()
+                .ToTable(TrustedTimestampsTable, SignatureSchema)
+                .HasKey(t => t.Key);
+
+            modelBuilder.Entity<TrustedTimestamp>()
+                .Property(t => t.Value)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<TrustedTimestamp>()
+                .HasRequired(s => s.Certificate)
+                .WithMany(c => c.TrustedTimestamps)
+                .HasForeignKey(s => s.CertificateKey);
 
             modelBuilder.Entity<Certificate>()
                 .ToTable(CertificatesTable, SignatureSchema)

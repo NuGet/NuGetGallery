@@ -69,6 +69,12 @@ namespace NuGet.Services.Validation
         public virtual ICollection<PackageSignature> PackageSignatures { get; set; }
 
         /// <summary>
+        /// The timestamps signed by Trusted Timestamp Authorities that depend on this certificate. If this
+        /// certificate is revoked, ALL trusted timestamps and their respective signatures MUST be invalidated.
+        /// </summary>
+        public virtual ICollection<TrustedTimestamp> TrustedTimestamps { get; set; }
+
+        /// <summary>
         /// A certificate should be periodically validated to ensure it has not be revoked. This is the list
         /// of all validations performed for this certificate.
         /// </summary>

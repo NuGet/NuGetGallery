@@ -12,6 +12,7 @@ namespace NuGet.Services.ServiceBus
         IDictionary<string, object> Properties { get; }
         DateTimeOffset ScheduledEnqueueTimeUtc { get; set; }
         Task CompleteAsync();
+        Task AbandonAsync();
         string GetBody();
         IBrokeredMessage Clone();
     }
