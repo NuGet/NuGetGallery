@@ -41,6 +41,13 @@ namespace NuGet.Indexing
                 foreach (var dependency in group.GetJArray("dependencies"))
                 {
                     var dependencyElement = new XElement("dependency");
+                    // Skip the bad dependency, this will result in dependency not be visible in search service.
+                    // Issue: https://github.com/NuGet/NuGetGallery/issues/4866
+                    if (string.IsNullOrWhiteSpace((string)dependency["id"]))
+                    {
+                        continue;
+                    }
+
                     dependencyElement.SetAttributeValue("id", (string)dependency["id"]);
                     dependencyElement.SetAttributeValue("version", (string)dependency["range"]);
                     groupElement.Add(dependencyElement);
