@@ -600,4 +600,10 @@ For more information, please contact '{2}'.</value>
   <data name="CannotEnqueueDueToReadOnly" xml:space="preserve">
     <value>Enqueuing unavailable: the gallery is currently in read only mode, with limited service. Please try again later.</value>
   </data>
+  <data name="ReservedNamespace_RegistrationNotFound" xml:space="preserve">
+    <value>The package registraton Id '{0}' is missing or not found in the reserved namespace '{1}'.</value>
+  </data>
+  <data name="RemoveOwner_NotAllowed" xml:space="preserve">
+    <value>The user '{0}' does not have permission to remove the owner '{1}'.</value>
+  </data>
 </root>

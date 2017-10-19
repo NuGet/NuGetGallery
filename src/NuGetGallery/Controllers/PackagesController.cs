@@ -43,7 +43,6 @@ namespace NuGetGallery
         private readonly IAppConfiguration _config;
         private readonly IMessageService _messageService;
         private readonly IPackageService _packageService;
-        private readonly IPackageOwnerRequestService _packageOwnerRequestService;
         private readonly IPackageFileService _packageFileService;
         private readonly ISearchService _searchService;
         private readonly IUploadFileService _uploadFileService;
@@ -61,10 +60,10 @@ namespace NuGetGallery
         private readonly IPackageUploadService _packageUploadService;
         private readonly IReadMeService _readMeService;
         private readonly IValidationService _validationService;
+        private readonly IPackageOwnershipManagementService _packageOwnershipManagementService;
 
         public PackagesController(
             IPackageService packageService,
-            IPackageOwnerRequestService packageOwnerRequestService,
             IUploadFileService uploadFileService,
             IUserService userService,
             IMessageService messageService,
@@ -84,10 +83,10 @@ namespace NuGetGallery
             IReservedNamespaceService reservedNamespaceService,
             IPackageUploadService packageUploadService,
             IReadMeService readMeService,
-            IValidationService validationService)
+            IValidationService validationService,
+            IPackageOwnershipManagementService packageOwnershipManagementService)
         {
             _packageService = packageService;
-            _packageOwnerRequestService = packageOwnerRequestService;
             _uploadFileService = uploadFileService;
             _userService = userService;
             _messageService = messageService;
@@ -108,6 +107,7 @@ namespace NuGetGallery
             _packageUploadService = packageUploadService;
             _readMeService = readMeService;
             _validationService = validationService;
+            _packageOwnershipManagementService = packageOwnershipManagementService;
         }
 
         [HttpGet]
@@ -987,7 +987,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            
+
             try
             {
                 await _validationService.RevalidateAsync(package);
@@ -1077,12 +1077,12 @@ namespace NuGetGallery
             var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
-                return Json(404, new [] { string.Format(Strings.PackageWithIdAndVersionNotFound, id, version) });
+                return Json(404, new[] { string.Format(Strings.PackageWithIdAndVersionNotFound, id, version) });
             }
 
             if (!package.IsOwnerOrAdmin(User))
             {
-                return Json(403, new [] { Strings.Unauthorized });
+                return Json(403, new[] { Strings.Unauthorized });
             }
 
             // Create model from the package.
@@ -1131,12 +1131,12 @@ namespace NuGetGallery
             var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
-                return Json(404, new [] { string.Format(Strings.PackageWithIdAndVersionNotFound, id, version) });
+                return Json(404, new[] { string.Format(Strings.PackageWithIdAndVersionNotFound, id, version) });
             }
 
             if (!package.IsOwnerOrAdmin(User))
             {
-                return Json(403, new [] { Strings.Unauthorized });
+                return Json(403, new[] { Strings.Unauthorized });
             }
 
             if (!ModelState.IsValid)
@@ -1144,7 +1144,7 @@ namespace NuGetGallery
                 var errorMessages = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage));
                 return Json(400, errorMessages);
             }
-            
+
             if (formData.Edit != null)
             {
                 try
@@ -1160,7 +1160,7 @@ namespace NuGetGallery
                     var user = GetCurrentUser();
                     _editPackageService.StartEditPackageRequest(package, formData.Edit, user);
                     await _entitiesContext.SaveChangesAsync();
-                    
+
                     // Add an auditing record for the package edit. HasReadMe flag is updated in DB by background job.
                     var packageWithEditsApplied = formData.Edit.ApplyTo(package);
                     packageWithEditsApplied.HasReadMe = hasReadMe;
@@ -1169,7 +1169,7 @@ namespace NuGetGallery
                 catch (EntityException ex)
                 {
                     ModelState.AddModelError("Edit.VersionTitle", ex.Message);
-                    return Json(400, new [] { ex.Message });
+                    return Json(400, new[] { ex.Message });
                 }
             }
 
@@ -1219,7 +1219,7 @@ namespace NuGetGallery
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.AlreadyOwner));
             }
 
-            var request = _packageOwnerRequestService.GetPackageOwnershipRequest(package, user, token);
+            var request = _packageOwnershipManagementService.GetPackageOwnershipRequest(package, user, token);
             if (request == null)
             {
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.Failure));
@@ -1229,7 +1229,7 @@ namespace NuGetGallery
             {
                 var result = await HandleSecurePushPropagation(package, user);
 
-                await _packageService.AddPackageOwnerAsync(package, user);
+                await _packageOwnershipManagementService.AddPackageOwnerAsync(package, user);
 
                 SendAddPackageOwnerNotification(package, user, result.Item1, result.Item2);
 
@@ -1239,7 +1239,7 @@ namespace NuGetGallery
             {
                 var requestingUser = request.RequestingOwner;
 
-                await _packageService.RemovePackageOwnerAsync(package, user);
+                await _packageOwnershipManagementService.DeletePackageOwnershipRequestAsync(package, user);
 
                 _messageService.SendPackageOwnerRequestRejectionNotice(requestingUser, user, package);
 
@@ -1271,13 +1271,13 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            var request = _packageOwnerRequestService.GetPackageOwnershipRequests(package, requestingUser, pendingUser).FirstOrDefault();
+            var request = _packageOwnershipManagementService.GetPackageOwnershipRequests(package, requestingUser, pendingUser).FirstOrDefault();
             if (request == null)
             {
                 return HttpNotFound();
             }
 
-            await _packageOwnerRequestService.DeletePackageOwnershipRequest(request);
+            await _packageOwnershipManagementService.DeletePackageOwnershipRequestAsync(package, pendingUser);
 
             _messageService.SendPackageOwnerRequestCancellationNotice(requestingUser, pendingUser, package);
 
@@ -1436,15 +1436,15 @@ namespace NuGetGallery
                 if (uploadFile == null)
                 {
                     TempData["Message"] = Strings.VerifyPackage_UploadNotFound;
-                    
-                    return Json(400, new [] { Strings.VerifyPackage_UploadNotFound });
+
+                    return Json(400, new[] { Strings.VerifyPackage_UploadNotFound });
                 }
 
                 var nugetPackage = await SafeCreatePackage(currentUser, uploadFile);
                 if (nugetPackage == null)
                 {
                     // Send the user back
-                    return Json(400, new [] { Strings.VerifyPackage_UnexpectedError });
+                    return Json(400, new[] { Strings.VerifyPackage_UnexpectedError });
                 }
 
                 Debug.Assert(nugetPackage != null);
@@ -1461,8 +1461,8 @@ namespace NuGetGallery
                         && String.Equals(packageMetadata.Version.OriginalVersion, formData.OriginalVersion, StringComparison.OrdinalIgnoreCase)))
                     {
                         TempData["Message"] = Strings.VerifyPackage_PackageFileModified;
-                        
-                        return Json(400, new [] { Strings.VerifyPackage_PackageFileModified });
+
+                        return Json(400, new[] { Strings.VerifyPackage_PackageFileModified });
                     }
                 }
 
@@ -1633,17 +1633,17 @@ namespace NuGetGallery
         {
             if (formData == null || !_readMeService.HasReadMeSource(formData))
             {
-                return Json(400, new [] { Strings.PreviewReadMe_ReadMeMissing });
+                return Json(400, new[] { Strings.PreviewReadMe_ReadMeMissing });
             }
 
             try
             {
                 var readMeHtml = await _readMeService.GetReadMeHtmlAsync(formData, Request.ContentEncoding);
-                return Json(new [] { readMeHtml });
+                return Json(new[] { readMeHtml });
             }
             catch (Exception ex)
             {
-                return Json(400, new [] { string.Format(CultureInfo.CurrentCulture, Strings.PreviewReadMe_ConversionFailed, ex.Message) });
+                return Json(400, new[] { string.Format(CultureInfo.CurrentCulture, Strings.PreviewReadMe_ConversionFailed, ex.Message) });
             }
         }
 

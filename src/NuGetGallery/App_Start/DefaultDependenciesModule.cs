@@ -211,6 +211,11 @@ namespace NuGetGallery
                 .As<IPackageUploadService>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<PackageOwnershipManagementService>()
+                .AsSelf()
+                .As<IPackageOwnershipManagementService>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<ValidationService>()
                 .AsSelf()
                 .As<IValidationService>()

@@ -249,6 +249,34 @@ namespace NuGetGallery
             namespaceToModify.PackageRegistrations.Add(packageRegistration);
         }
 
+        /// <summary>
+        /// This method fetches the reserved namespace matching the prefix and removes the 
+        /// package registration entry from the reserved namespace, the provided package registration
+        /// should be an entry in the database. It is the caller's responsibility to commit the 
+        /// changes to the entity context.
+        /// </summary>
+        /// <param name="prefix">The prefix value of the reserved namespace to modify</param>
+        /// <param name="packageRegistration">The package registration entity to be removed.</param>
+        /// <returns>Awaitable task</returns>
+        public void RemovePackageRegistrationFromNamespace(string prefix, PackageRegistration packageRegistration)
+        {
+            if (string.IsNullOrWhiteSpace(prefix))
+            {
+                throw new ArgumentException(Strings.ReservedNamespace_InvalidNamespace);
+            }
+
+            if (packageRegistration == null)
+            {
+                throw new ArgumentNullException(nameof(packageRegistration));
+            }
+
+            var namespaceToModify = FindReservedNamespaceForPrefix(prefix)
+                ?? throw new InvalidOperationException(string.Format(
+                    CultureInfo.CurrentCulture, Strings.ReservedNamespace_NamespaceNotFound, prefix));
+
+            namespaceToModify.PackageRegistrations.Remove(packageRegistration);
+        }
+
         public virtual ReservedNamespace FindReservedNamespaceForPrefix(string prefix)
         {
             return (from request in ReservedNamespaceRepository.GetAll()

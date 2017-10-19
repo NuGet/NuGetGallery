@@ -84,6 +84,33 @@ namespace NuGetGallery.Services
         public class TheAddPackageOwnershipRequestMethod
         {
             [Fact]
+            public async Task NullPackageRegistrationThrowsException()
+            {
+                var service = CreateService();
+                var user1 = new User { Key = 100, Username = "user1" };
+                var user2 = new User { Key = 101, Username = "user2" };
+                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.AddPackageOwnershipRequest(package: null, requestingOwner: user1, newOwner: user2));
+            }
+
+            [Fact]
+            public async Task NullRequestingUserThrowsException()
+            {
+                var service = CreateService();
+                var package = new PackageRegistration { Key = 2, Id = "pkg42" };
+                var user2 = new User { Key = 101, Username = "user2" };
+                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.AddPackageOwnershipRequest(package: package, requestingOwner: null, newOwner: user2));
+            }
+
+            [Fact]
+            public async Task NullNewOwnerThrowsException()
+            {
+                var service = CreateService();
+                var package = new PackageRegistration { Key = 2, Id = "pkg42" };
+                var user1 = new User { Key = 101, Username = "user1" };
+                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.AddPackageOwnershipRequest(package: package, requestingOwner: user1, newOwner: null));
+            }
+
+            [Fact]
             public async Task CreatesPackageOwnerRequest()
             {
                 var packageOwnerRequestRepository = new Mock<IEntityRepository<PackageOwnerRequest>>();

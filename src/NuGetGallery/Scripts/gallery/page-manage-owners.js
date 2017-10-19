@@ -33,6 +33,14 @@
             return true;
         },
 
+        isCurrentNamespaceOwner: function () {
+            return true;
+        },
+
+        hasMoreThanOneNamespaceOwners: function () {
+            return true;
+        },
+
         resetAddOwnerConfirmation: function () {
             viewModel.confirmation('');
             viewModel.policyMessage('');
@@ -166,6 +174,36 @@
         return approvedOwner >= 2;
     }, viewModel);
 
+    viewModel.isCurrentNamespaceOwner = ko.computed(function () {
+        if (this.owners().length < 2) {
+            return false;
+        }
+
+        var currentOwnerOwnsNamespace = false;
+        ko.utils.arrayForEach(this.owners(), function (owner) {
+            if (owner.current === true) {
+                currentOwnerOwnsNamespace = owner.isNamespaceOwner();
+            }
+        });
+
+        return currentOwnerOwnsNamespace;
+    }, viewModel);
+
+    viewModel.hasMoreThanOneNamespaceOwners = ko.computed(function () {
+        if (this.owners().length < 2) {
+            return false;
+        }
+
+        var namespaceOwnerCount = 0;
+        ko.utils.arrayForEach(this.owners(), function (owner) {
+            if (owner.isNamespaceOwner() === true) {
+                namespaceOwnerCount++;
+            }
+        });
+
+        return namespaceOwnerCount >= 2;
+    }, viewModel);
+
     ko.applyBindings(viewModel);
 
     // Load initial owners.
@@ -175,16 +213,17 @@
         dataType: 'json',
         type: 'GET',
         success: function (data) {
-            viewModel.owners($.map(data, function (item) { return new Owner(item.name, item.profileUrl, item.imageUrl, item.pending, item.current); }));
+            viewModel.owners($.map(data, function (item) { return new Owner(item.name, item.profileUrl, item.imageUrl, item.pending, item.current, item.isNamespaceOwner); }));
         }
     })
     .error(failHandler);
 
-    function Owner(name, profileUrl, imageUrl, pending, current) {
+    function Owner(name, profileUrl, imageUrl, pending, current, isNamespaceOwner) {
         this.name = ko.observable(name);
         this.profileUrl = ko.observable(profileUrl);
         this.imageUrl = ko.observable(imageUrl);
         this.pending = ko.observable(pending);
         this.current = current;
+        this.isNamespaceOwner = ko.observable(isNamespaceOwner);
     }
 });
