@@ -49,7 +49,7 @@
                             }
                             </td>
                             <td class="align-middle text-nowrap">@package.TotalDownloadCount.ToNuGetNumberString()</td>
-                            <td class="align-middle text-nowrap">@package.Version</td>
+                            <td class="align-middle text-nowrap">@package.FullVersion.Abbreviate(25)</td>
                             <td class="text-right align-middle package-controls">
                                 <a href="@Url.EditPackage(package.Id, package.Version)" class="btn" title="Edit Package" aria-label="Edit Package @package.Id  Version @package.Version">
                                     <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>

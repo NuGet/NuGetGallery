@@ -61,7 +61,7 @@ namespace NuGetGallery.Helpers
             encodedText = RegexEx.TryReplaceWithTimeout(
                 encodedText,
                 @"((http|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?)",
-                match => $"<a href=\"{match.Value}\">{match.Value}</a>",
+                match => $"<a href=\"{match.Value}\" rel=\"nofollow\">{match.Value}</a>",
                 RegexOptions.IgnoreCase);
 
             // Replace new lines with the <br /> tag.

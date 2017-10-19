@@ -21,11 +21,6 @@ namespace NuGetGallery
         Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, string unsafeId, string unsafeVersion);
 
         /// <summary>
-        /// Deletes the nupkg from the file storage.
-        /// </summary>
-        Task DeletePackageFileAsync(string id, string version);
-
-        /// <summary>
         /// Copies the contents of the package represented by the stream into the file storage backup location.
         /// </summary>
         Task StorePackageFileInBackupLocationAsync(Package package, Stream packageFile);

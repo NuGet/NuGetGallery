@@ -7,11 +7,14 @@ using System.Globalization;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
+using NuGetGallery.Areas.Admin;
+using NuGetGallery.Areas.Admin.Controllers;
 
 namespace NuGetGallery
 {
     public static class UrlExtensions
     {
+        private const string Area = "area";
         private static IGalleryConfigurationService _configuration;
         private const string PackageExplorerDeepLink = @"https://npe.codeplex.com/releases/clickonce/NuGetPackageExplorer.application?url={0}&id={1}&version={2}";
 
@@ -367,7 +370,7 @@ namespace NuGetGallery
         {
             string returnUrl = url.Current();
             // If we're logging off from the Admin Area, don't set a return url
-            if (string.Equals(url.RequestContext.RouteData.DataTokens["area"].ToStringOrNull(), "Admin", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(url.RequestContext.RouteData.DataTokens[Area].ToStringOrNull(), AdminAreaRegistration.Name, StringComparison.OrdinalIgnoreCase))
             {
                 returnUrl = string.Empty;
             }
@@ -379,8 +382,7 @@ namespace NuGetGallery
                 relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
-                    { "returnUrl", returnUrl },
-                    { "area", string.Empty }
+                    { "returnUrl", returnUrl }
                 });
         }
 
@@ -441,9 +443,10 @@ namespace NuGetGallery
                 "Profiles",
                 "Users",
                 relativeUrl,
-                routeValues: new RouteValueDictionary
+                routeValues:
+                new RouteValueDictionary
                 {
-                    { "username", username }
+                    { "username", username },
                 });
         }
 
@@ -498,7 +501,8 @@ namespace NuGetGallery
 
         public static string RevalidatePackage(
             this UrlHelper url,
-            IPackageVersionModel package,
+            string id,
+            string version,
             bool relativeUrl = true)
         {
             return GetActionLink(
@@ -508,9 +512,17 @@ namespace NuGetGallery
                 relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
-                    { "id", package.Id },
-                    { "version", package.Version }
+                    { "id", id },
+                    { "version", version }
                 });
+        }
+
+        public static string RevalidatePackage(
+            this UrlHelper url,
+            IPackageVersionModel package,
+            bool relativeUrl = true)
+        {
+            return url.RevalidatePackage(package.Id, package.Version, relativeUrl);
         }
 
         public static string DeletePackage(
@@ -606,7 +618,7 @@ namespace NuGetGallery
                 relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
-                    { "id", package.Id}
+                    { "id", package.Id }
                 });
         }
 
@@ -748,16 +760,31 @@ namespace NuGetGallery
 
         public static string Terms(this UrlHelper url, bool relativeUrl = true)
         {
+            if (!String.IsNullOrEmpty(_configuration.Current.ExternalTermsOfUseUrl))
+            {
+                return _configuration.Current.ExternalTermsOfUseUrl;
+            }
+
             return GetActionLink(url, "Terms", "Pages", relativeUrl);
         }
 
         public static string Privacy(this UrlHelper url, bool relativeUrl = true)
         {
+            if (!String.IsNullOrEmpty(_configuration.Current.ExternalPrivacyPolicyUrl))
+            {
+                return _configuration.Current.ExternalPrivacyPolicyUrl;
+            }
+
             return GetActionLink(url, "Privacy", "Pages", relativeUrl);
         }
 
         public static string About(this UrlHelper url, bool relativeUrl = true)
         {
+            if (!String.IsNullOrEmpty(_configuration.Current.ExternalAboutUrl))
+            {
+                return _configuration.Current.ExternalAboutUrl;
+            }
+
             return GetActionLink(url, "About", "Pages", relativeUrl);
         }
 
@@ -768,10 +795,7 @@ namespace NuGetGallery
                 "Index",
                 "Home",
                 relativeUrl,
-                routeValues: new RouteValueDictionary
-                {
-                    { "area", "Admin" }
-                });
+                area: AdminAreaRegistration.Name);
         }
 
         public static string Authenticate(this UrlHelper url, string providerName, string returnUrl, bool relativeUrl = true)
@@ -837,11 +861,18 @@ namespace NuGetGallery
             string controllerName,
             bool relativeUrl,
             RouteValueDictionary routeValues = null,
-            bool interceptReturnUrl = true
+            bool interceptReturnUrl = true,
+            string area = "" // Default to no area. Admin links should specify the "Admin" area explicitly.
             )
         {
             var protocol = GetProtocol(url);
             var hostName = GetConfiguredSiteHostName();
+
+            routeValues = routeValues ?? new RouteValueDictionary();
+            if (!routeValues.ContainsKey(Area))
+            {
+                routeValues[Area] = area;
+            }
             
             if (interceptReturnUrl && routeValues != null && routeValues.ContainsKey("ReturnUrl"))
             {

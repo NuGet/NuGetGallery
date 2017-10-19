@@ -4,13 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Web.Mvc;
-using Moq;
-using NuGetGallery.Security;
 using NuGetGallery.Areas.Admin.ViewModels;
-using Xunit;
 using NuGetGallery.TestUtils;
+using Xunit;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {

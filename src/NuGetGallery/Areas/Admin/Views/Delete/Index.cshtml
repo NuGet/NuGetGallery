@@ -17,14 +17,17 @@
 
         @using (Html.BeginForm("Delete", "Packages", new { area = "", id = Guid.NewGuid().ToString(), version = "99.99.99" }, FormMethod.Post, new {id = "delete-form"}))
         {
-            <table id="searchResults" class="sexy-table" style="display: none;" data-bind="visible: searchResults().length > 0">
+            <table id="searchResults" class="sexy-table" style="display: none" data-bind="visible: searchResults().length > 0">
                 <thead>
                 <tr>
                     <th><input type="checkbox" data-bind="click: toggleSelectAll, checked: selectAllState"/></th>
                     <th>Package</th>
                     <th>Version</th>
                     <th>Downloads</th>
+                    <th>Created</th>
                     <th>Listed?</th>
+                    <th>Status</th>
+                    <th>Owners</th>
                 </tr>
                 </thead>
                 <tbody data-bind="foreach: searchResults">
@@ -33,10 +36,18 @@
                         <td><a href="#" data-bind="text: PackageId, attr: { href: $parent.generatePackageUrl($data) }"></a></td>
                         <td><span data-bind="text: PackageVersionNormalized"></span></td>
                         <td><span data-bind="text: DownloadCount"></span></td>
+                        <td><span data-bind="text: Created"></span></td>
                         <td><span data-bind="text: Listed"></span></td>
+                        <td><span data-bind="text: PackageStatus"></span></td>
+                        <td data-bind="foreach: Owners">
+                            <a data-bind="text: Username, attr: { href: ProfileUrl }" />
+                        </td>
                     </tr>
                 </tbody>
             </table>
+            <div style="display: none" data-bind="visible: searchResults().length === 0 && doneSearching()">
+                <p>No packages found.</p>
+            </div>
 
             <div class="danger-zone" style="display: none;" data-bind="visible: arePackagesSelected">
                 <h2>Danger zone</h2>
@@ -104,8 +115,10 @@
                 var $self = this;
 
                 this.searchQuery = ko.observable('');
+                $self.doneSearching = ko.observable(false);
 
-                this.search = function() {
+                this.search = function () {
+                    $self.doneSearching = ko.observable(false);
                     $.ajax({
                             url: '@Url.Action("Search", "Delete", new {area = "Admin"})?query=' + encodeURIComponent($self.searchQuery()),
                             cache: false,
@@ -121,6 +134,9 @@
                         })
                         .error(function(jqXhr, textStatus, errorThrown) {
                             alert("Error: " + errorThrown);
+                        })
+                        .always(function () {
+                            $self.doneSearching(true);
                         });
                 };
 

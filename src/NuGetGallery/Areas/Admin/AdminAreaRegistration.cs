@@ -9,13 +9,9 @@ namespace NuGetGallery.Areas.Admin
 {
     public class AdminAreaRegistration : AreaRegistration
     {
-        public override string AreaName
-        {
-            get
-            {
-                return "Admin";
-            }
-        }
+        public const string Name = "Admin";
+
+        public override string AreaName => Name;
 
         public override void RegisterArea(AreaRegistrationContext context)
         {

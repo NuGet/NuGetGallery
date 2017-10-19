@@ -48,7 +48,7 @@ namespace NuGetGallery
             LatestStableVersionSemVer2 = package.IsLatestStableSemVer2;
             LastUpdated = package.Published;
             Listed = package.Listed;
-            Deleted = package.PackageStatusKey == PackageStatus.Deleted;
+            PackageStatus = package.PackageStatusKey;
             DownloadCount = package.DownloadCount;
             Prerelease = package.IsPrerelease;
             LicenseReportUrl = package.LicenseReportUrl;
@@ -76,7 +76,11 @@ namespace NuGetGallery
         public bool Prerelease { get; set; }
         public int DownloadCount { get; set; }
         public bool Listed { get; set; }
-        public bool Deleted { get; set; }
+        public bool FailedValidation => PackageStatus == PackageStatus.FailedValidation;
+        public bool Available => PackageStatus == PackageStatus.Available;
+        public bool Validating => PackageStatus == PackageStatus.Validating;
+        public bool Deleted => PackageStatus == PackageStatus.Deleted;
+        public PackageStatus PackageStatus { get; set; }
 
         public int TotalDownloadCount
         {

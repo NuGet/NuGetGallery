@@ -80,6 +80,36 @@ namespace NuGetGallery
             return _fileStorageService.DeleteFileAsync(CoreConstants.ValidationFolderName, fileName);
         }
 
+        public Task DeletePackageFileAsync(string id, string version)
+        {
+            if (String.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
+
+            if (String.IsNullOrWhiteSpace(version))
+            {
+                throw new ArgumentNullException(nameof(version));
+            }
+
+            var normalizedVersion = NuGetVersionFormatter.Normalize(version);
+
+            var fileName = BuildFileName(id, normalizedVersion, CoreConstants.PackageFileSavePathTemplate, CoreConstants.NuGetPackageFileExtension);
+            return _fileStorageService.DeleteFileAsync(CoreConstants.PackagesFolderName, fileName);
+        }
+
+        public Task<Uri> GetValidationPackageReadUriAsync(Package package, DateTimeOffset endOfAccess)
+        {
+            package = package ?? throw new ArgumentNullException(nameof(package));
+
+            var fileName = BuildFileName(
+                package,
+                CoreConstants.PackageFileSavePathTemplate,
+                CoreConstants.NuGetPackageFileExtension);
+
+            return _fileStorageService.GetFileReadUriAsync(CoreConstants.ValidationFolderName, fileName, endOfAccess);
+        }
+
         protected static string BuildFileName(Package package, string format, string extension)
         {
             if (package == null)

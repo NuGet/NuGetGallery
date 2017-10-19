@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -34,11 +35,26 @@ namespace NuGetGallery
         Task<Stream> DownloadValidationPackageFileAsync(Package package);
 
         /// <summary>
+        /// Generates the URI for the specified validating package, which can be used to download it.
+        /// </summary>
+        /// <param name="package">The package metadata.</param>
+        /// <param name="endOfAccess">The timestamp that limits the URI usage period.</param>
+        /// <returns>Time limited (if implementation supports) URI for the validation package</returns>
+        Task<Uri> GetValidationPackageReadUriAsync(Package package, DateTimeOffset endOfAccess);
+
+        /// <summary>
         /// Deletes the validating package from the file storage. If the file does not exist this method will not throw
         /// any exception.
         /// </summary>
         /// <param name="id">The package ID. This value is case-insensitive.</param>
         /// <param name="version">The package version. This value is case-insensitive and need not be normalized.</param>
         Task DeleteValidationPackageFileAsync(string id, string version);
+
+        /// <summary>
+        /// Deletes the nupkg from the publicly available package storage.
+        /// </summary>
+        /// <param name="id">The package ID. This value is case-insensitive.</param>
+        /// <param name="version">The package version. This value is case-insensitive and need not be normalized.</param>
+        Task DeletePackageFileAsync(string id, string version);
     }
 }

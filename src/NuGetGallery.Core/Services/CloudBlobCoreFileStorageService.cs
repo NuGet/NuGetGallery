@@ -25,14 +25,14 @@ namespace NuGetGallery
 
         public async Task DeleteFileAsync(string folderName, string fileName)
         {
-            ICloudBlobContainer container = await GetContainer(folderName);
+            ICloudBlobContainer container = await GetContainerAsync(folderName);
             var blob = container.GetBlobReference(fileName);
             await blob.DeleteIfExistsAsync();
         }
 
         public async Task<bool> FileExistsAsync(string folderName, string fileName)
         {
-            ICloudBlobContainer container = await GetContainer(folderName);
+            ICloudBlobContainer container = await GetContainerAsync(folderName);
             var blob = container.GetBlobReference(fileName);
             return await blob.ExistsAsync();
         }
@@ -64,7 +64,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(fileName));
             }
 
-            ICloudBlobContainer container = await GetContainer(folderName);
+            ICloudBlobContainer container = await GetContainerAsync(folderName);
             var blob = container.GetBlobReference(fileName);
             var result = await GetBlobContentAsync(folderName, fileName, ifNoneMatch);
             if (result.StatusCode == HttpStatusCode.NotModified)
@@ -88,7 +88,7 @@ namespace NuGetGallery
 
         public async Task SaveFileAsync(string folderName, string fileName, Stream packageFile, bool overwrite = true)
         {
-            ICloudBlobContainer container = await GetContainer(folderName);
+            ICloudBlobContainer container = await GetContainerAsync(folderName);
             var blob = container.GetBlobReference(fileName);
 
             try
@@ -110,7 +110,20 @@ namespace NuGetGallery
             await blob.SetPropertiesAsync();
         }
 
-        protected async Task<ICloudBlobContainer> GetContainer(string folderName)
+        public async Task<Uri> GetFileReadUriAsync(string folderName, string fileName, DateTimeOffset? endOfAccess)
+        {
+            folderName = folderName ?? throw new ArgumentNullException(nameof(folderName));
+            fileName = fileName ?? throw new ArgumentNullException(nameof(fileName));
+            if (endOfAccess.HasValue && endOfAccess < DateTimeOffset.UtcNow)
+            {
+                throw new ArgumentOutOfRangeException(nameof(endOfAccess), $"{nameof(endOfAccess)} is in the past");
+            }
+            ICloudBlobContainer container = await GetContainerAsync(folderName);
+            var blob = container.GetBlobReference(fileName);
+            return new Uri(blob.Uri, blob.GetSharedReadSignature(endOfAccess));
+        }
+
+        protected async Task<ICloudBlobContainer> GetContainerAsync(string folderName)
         {
             ICloudBlobContainer container;
             if (_containers.TryGetValue(folderName, out container))
@@ -146,7 +159,7 @@ namespace NuGetGallery
 
         private async Task<StorageResult> GetBlobContentAsync(string folderName, string fileName, string ifNoneMatch = null)
         {
-            ICloudBlobContainer container = await GetContainer(folderName);
+            ICloudBlobContainer container = await GetContainerAsync(folderName);
 
             var blob = container.GetBlobReference(fileName);
 

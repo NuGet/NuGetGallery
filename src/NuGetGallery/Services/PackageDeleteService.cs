@@ -201,6 +201,16 @@ namespace NuGetGallery
             // Backup the package binaries and remove from main storage
             foreach (var package in packages)
             {
+                // Backup the package from the "validating" container.
+                using (var packageStream = await _packageFileService.DownloadValidationPackageFileAsync(package))
+                {
+                    if (packageStream != null)
+                    {
+                        await _packageFileService.StorePackageFileInBackupLocationAsync(package, packageStream);
+                    }
+                }
+
+                // Backup the package from the "packages" container.
                 using (var packageStream = await _packageFileService.DownloadPackageFileAsync(package))
                 {
                     if (packageStream != null)
@@ -208,12 +218,14 @@ namespace NuGetGallery
                         await _packageFileService.StorePackageFileInBackupLocationAsync(package, packageStream);
                     }
                 }
+
                 var id = package.PackageRegistration.Id;
                 var version = string.IsNullOrEmpty(package.NormalizedVersion)
                             ? NuGetVersion.Parse(package.Version).ToNormalizedString()
                             : package.NormalizedVersion;
 
                 await _packageFileService.DeletePackageFileAsync(id, version);
+                await _packageFileService.DeleteValidationPackageFileAsync(id, version);
 
                 // Delete any active or pending readme files for this package.
                 await TryDeleteReadMeMdFile(package, false);

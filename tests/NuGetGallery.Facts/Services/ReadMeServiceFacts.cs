@@ -94,7 +94,7 @@ namespace NuGetGallery
             [Theory]
             [InlineData("# Heading", "<h1>Heading</h1>")]
             [InlineData("- List", "<ul><li>List</li></ul>")]
-            [InlineData("[text](http://www.test.com)", "<p><a href=\"http://www.test.com\">text</a></p>")]
+            [InlineData("[text](http://www.test.com)", "<p><a href=\"http://www.test.com\" rel=\"nofollow\">text</a></p>")]
             public void ConvertsMarkdownToHtml(string originalMd, string expectedHtml)
             {
                 Assert.Equal(expectedHtml, StripNewLines(ReadMeService.GetReadMeHtml(originalMd)));
