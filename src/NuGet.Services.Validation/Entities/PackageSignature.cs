@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 
 namespace NuGet.Services.Validation
 {
@@ -21,22 +22,15 @@ namespace NuGet.Services.Validation
         public int PackageKey { get; set; }
 
         /// <summary>
-        /// The key to the end <see cref="Certificate"/> used to create this package signature.
+        /// The key to the end <see cref="Validation.Certificate"/> used to create this package signature.
         /// </summary>
         public long CertificateKey { get; set; }
 
         /// <summary>
-        /// The time at which this signature was created. A signature is valid as long as it was signed
-        /// before its certificates were revoked and/or expired. This timestamp MUST come from a trusted
-        /// timestamp authority.
+        /// The time at which this record was created, used to detect signatures that are
+        /// stuck <see cref="PackageSignatureStatus.InGracePeriod"/>.
         /// </summary>
-        public DateTime SignedAt { get; set; }
-
-        /// <summary>
-        /// The time at which this record was inserted into the database. This is used to detect signatures
-        /// that have been stuck in a "InGracePeriod" state for too long.
-        /// </summary>
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         /// <summary>
         /// The status for this signature.
@@ -52,7 +46,12 @@ namespace NuGet.Services.Validation
         public virtual PackageSigningState PackageSigningState { get; set; }
 
         /// <summary>
-        /// The end <see cref="Certificate"/> used to create this package signature.
+        /// The <see cref="TrustedTimestamp"/>s that dates when this signature was created.
+        /// </summary>
+        public virtual ICollection<TrustedTimestamp> TrustedTimestamps { get; set; }
+
+        /// <summary>
+        /// The end <see cref="Validation.Certificate"/> used to create this package signature.
         /// </summary>
         public virtual Certificate Certificate { get; set; }
     }
