@@ -21,6 +21,7 @@
 
     var viewModel = {
         package: { id: packageId },
+        isUserAnAdmin: isUserAnAdmin,
         owners: ko.observableArray([]),
         newOwnerUsername: ko.observable(''),
         newOwnerMessage: ko.observable(''),
@@ -29,15 +30,7 @@
 
         message: ko.observable(''),
 
-        hasMoreThanOneOwner: function () {
-            return true;
-        },
-
-        isCurrentNamespaceOwner: function () {
-            return true;
-        },
-
-        hasMoreThanOneNamespaceOwners: function () {
+        IsAllowedToRemove: function (owner) {
             return true;
         },
 
@@ -158,51 +151,39 @@
         }
     };
 
-    viewModel.hasMoreThanOneOwner = ko.computed(function () {
+    viewModel.IsAllowedToRemove = function (owner) {
+        if (isUserAnAdmin.toLocaleLowerCase() === "True".toLocaleLowerCase()
+            || owner.pending()) {
+            return true;
+        };
+
         if (this.owners().length < 2) {
             return false;
         }
 
         var approvedOwner = 0;
+        var currentOwnerOwnsNamespace = false;
+        var namespaceOwnerCount = 0;
 
         ko.utils.arrayForEach(this.owners(), function (owner) {
             if (owner.pending() === false) {
                 approvedOwner++;
             }
-        });
 
-        return approvedOwner >= 2;
-    }, viewModel);
-
-    viewModel.isCurrentNamespaceOwner = ko.computed(function () {
-        if (this.owners().length < 2) {
-            return false;
-        }
-
-        var currentOwnerOwnsNamespace = false;
-        ko.utils.arrayForEach(this.owners(), function (owner) {
             if (owner.current === true) {
                 currentOwnerOwnsNamespace = owner.isNamespaceOwner();
             }
-        });
 
-        return currentOwnerOwnsNamespace;
-    }, viewModel);
-
-    viewModel.hasMoreThanOneNamespaceOwners = ko.computed(function () {
-        if (this.owners().length < 2) {
-            return false;
-        }
-
-        var namespaceOwnerCount = 0;
-        ko.utils.arrayForEach(this.owners(), function (owner) {
             if (owner.isNamespaceOwner() === true) {
                 namespaceOwnerCount++;
             }
         });
 
-        return namespaceOwnerCount >= 2;
-    }, viewModel);
+        return approvedOwner >= 2
+            && (!owner.isNamespaceOwner()
+                || (currentOwnerOwnsNamespace
+                    && namespaceOwnerCount >= 2));
+    };
 
     ko.applyBindings(viewModel);
 
