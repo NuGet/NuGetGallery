@@ -207,25 +207,27 @@
   <xsl:template match="nuget:dependency">
     <xsl:param name="path" />
     <xsl:param name="parent_fragment" />
-    <ng:dependency>
-      <ng:PackageDependency>
+    <xsl:if test="normalize-space(@id) != ''">
+      <ng:dependency>
+        <ng:PackageDependency>
 
-        <xsl:variable name="fragment" select="concat($parent_fragment, '/', @id)" />
+          <xsl:variable name="fragment" select="concat($parent_fragment, '/', @id)" />
 
-        <xsl:attribute name="rdf:about">
-          <xsl:value-of select="obj:LowerCase(concat($base, $path, $extension, $fragment))" />
-        </xsl:attribute>
+          <xsl:attribute name="rdf:about">
+            <xsl:value-of select="obj:LowerCase(concat($base, $path, $extension, $fragment))" />
+          </xsl:attribute>
         
-        <ng:id>
-          <xsl:value-of select="@id"/>        
-        </ng:id>
+          <ng:id>
+            <xsl:value-of select="@id"/>        
+          </ng:id>
 
-        <ng:range>
-          <xsl:value-of select="obj:NormalizeVersionRange(@version)" />
-        </ng:range>
+          <ng:range>
+            <xsl:value-of select="obj:NormalizeVersionRange(@version)" />
+          </ng:range>
 
-      </ng:PackageDependency>
-    </ng:dependency>
+        </ng:PackageDependency>
+      </ng:dependency>
+    </xsl:if>
   </xsl:template>
 
   <xsl:template match="nuget:reference">
