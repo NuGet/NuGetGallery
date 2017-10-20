@@ -99,7 +99,7 @@
       <Version>2.2.5</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation">
-      <Version>2.3.0</Version>
+      <Version>2.3.2-master-15927</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Versioning">
       <Version>4.3.0</Version>
