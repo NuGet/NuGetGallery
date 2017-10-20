@@ -7,8 +7,9 @@ using System.Data.Entity.Infrastructure;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
+using NuGet.Services.Validation;
 
-namespace NuGet.Services.Validation.Orchestrator
+namespace NuGet.Jobs.Validation.PackageSigning.Storage
 {
     public class ValidatorStateService : IValidatorStateService
     {

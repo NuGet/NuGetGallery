@@ -4,6 +4,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using NuGet.Jobs.Validation.PackageSigning.Storage;
 using NuGet.Services.Validation.Orchestrator;
 
 namespace NuGet.Services.Validation.PackageSigning

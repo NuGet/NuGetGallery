@@ -7,7 +7,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using Moq;
-using NuGet.Services.Validation.Orchestrator;
+using NuGet.Jobs.Validation.PackageSigning.Storage;
 using Xunit;
 
 namespace NuGet.Services.Validation

@@ -46,7 +46,6 @@
   <ItemGroup>
     <Compile Include="ConfigurationValidator.cs" />
     <Compile Include="Error.cs" />
-    <Compile Include="IValidatorStateService.cs" />
     <Compile Include="Job.cs" />
     <Compile Include="PackageSigning\IPackageSignatureVerifier.cs" />
     <Compile Include="PackageSigning\PackageSignatureVerifier.cs" />
@@ -57,7 +56,6 @@
     <Compile Include="ValidateOnlyConfiguration.cs" />
     <Compile Include="ValidationConfiguration.cs" />
     <Compile Include="ValidationConfigurationItem.cs" />
-    <Compile Include="ValidatorStateService.cs" />
     <Compile Include="Vcs\VcsConfiguration.cs" />
     <Compile Include="Vcs\VcsValidator.cs" />
   </ItemGroup>
@@ -125,6 +123,10 @@
     <ProjectReference Include="..\Validation.Common\Validation.Common.csproj">
       <Project>{2539ddf3-0cc5-4a03-b5f9-39b47744a7bd}</Project>
       <Name>Validation.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Validation.PackageSigning.Core\Validation.PackageSigning.Core.csproj">
+      <Project>{91C060DA-736F-4DA9-A57F-CB3AC0E6CB10}</Project>
+      <Name>Validation.PackageSigning.Core</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

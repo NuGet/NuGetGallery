@@ -73,6 +73,10 @@
       <Project>{2539DDF3-0CC5-4A03-B5F9-39B47744A7BD}</Project>
       <Name>Validation.Common</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\src\Validation.PackageSigning.Core\Validation.PackageSigning.Core.csproj">
+      <Project>{91C060DA-736F-4DA9-A57F-CB3AC0E6CB10}</Project>
+      <Name>Validation.PackageSigning.Core</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

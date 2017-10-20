@@ -4,7 +4,7 @@
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
-namespace NuGet.Jobs.Validation.PackageSigning
+namespace NuGet.Jobs.Validation.PackageSigning.Storage
 {
     /// <summary>
     /// The class used to <see cref="X509Certificate2"/> store and retrieve certificates.
