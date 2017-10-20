@@ -50,8 +50,7 @@
                             <span data-bind="visible: pending">(pending approval)</span>
                         </span>
                     </div>
-                    <!-- ko if: (pending() || $parent.hasMoreThanOneOwner()) 
-                        && (!isNamespaceOwner() || ($parent.isCurrentNamespaceOwner() && $parent.hasMoreThanOneNamespaceOwners())) -->
+                    <!-- ko if: $parent.IsAllowedToRemove($data) -->
                     <div class="col-md-3 remove-owner">
                         <a class="icon-link" 
                            href="#" 
@@ -62,8 +61,7 @@
                         </a>
                     </div>
                     <!-- /ko -->
-                    <!-- ko ifnot: (pending() || $parent.hasMoreThanOneOwner())
-                        && (!isNamespaceOwner() || ($parent.isCurrentNamespaceOwner() && $parent.hasMoreThanOneNamespaceOwners())) -->
+                    <!-- ko ifnot: $parent.IsAllowedToRemove($data) -->
                     <div class="col-md-3 remove-owner-disabled">
                         <a class="icon-link"
                            title="Cannot remove the only owner or reserved namespace restrictions apply.">
@@ -142,6 +140,7 @@
 @section bottomScripts {
     <script type="text/javascript">
         var packageId = "@Model.Id";
+        var isUserAnAdmin = "@Model.IsCurrentUserAnAdmin";
         var packageUrl = "@Url.Package(Model.Id)";
         var getPackageOwnersUrl = "@Url.GetPackageOwners()";
         var getAddPackageOwnerConfirmationUrl = "@Url.GetAddPackageOwnerConfirmation()";
