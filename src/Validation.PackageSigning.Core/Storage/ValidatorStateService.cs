@@ -16,16 +16,29 @@ namespace NuGet.Jobs.Validation.PackageSigning.Storage
         private const int UniqueConstraintViolationErrorCode = 2627;
 
         private IValidationEntitiesContext _validationContext;
+        private string _validatorName;
 
-        public ValidatorStateService(IValidationEntitiesContext validationContext)
+        public ValidatorStateService(
+            IValidationEntitiesContext validationContext,
+            Type validatorType)
         {
             _validationContext = validationContext ?? throw new ArgumentNullException(nameof(validationContext));
+
+            if (validatorType == null)
+            {
+                throw new ArgumentNullException(nameof(validatorType));
+            }
+
+            if (!typeof(IValidator).IsAssignableFrom(validatorType))
+            {
+                throw new ArgumentException($"The validator type {validatorType} must extend {nameof(IValidator)}", nameof(validatorType));
+            }
+
+            _validatorName = validatorType.Name;
         }
 
-        public async Task<ValidatorStatus> GetStatusAsync<T>(IValidationRequest request)
-            where T : IValidator
+        public async Task<ValidatorStatus> GetStatusAsync(IValidationRequest request)
         {
-            var validatorName = typeof(T).Name;
             var status = await _validationContext
                                     .ValidatorStatuses
                                     .Where(s => s.ValidationId == request.ValidationId)
@@ -37,7 +50,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.Storage
                 {
                     ValidationId = request.ValidationId,
                     PackageKey = request.PackageKey,
-                    ValidatorName = validatorName,
+                    ValidatorName = _validatorName,
                     State = ValidationStatus.NotStarted,
                 };
             }
@@ -47,38 +60,32 @@ namespace NuGet.Jobs.Validation.PackageSigning.Storage
                     $"Validation expected package key {status.PackageKey}, actual {request.PackageKey}",
                     nameof(request));
             }
-            else if (status.ValidatorName != validatorName)
+            else if (status.ValidatorName != _validatorName)
             {
                 throw new ArgumentException(
-                    $"Validation expected validator {status.ValidatorName}, actual {validatorName}",
+                    $"Validation expected validator {status.ValidatorName}, actual {_validatorName}",
                     nameof(request));
             }
 
             return status;
         }
 
-        public Task<bool> IsRevalidationRequestAsync<T>(IValidationRequest request)
-            where T : IValidator
+        public Task<bool> IsRevalidationRequestAsync(IValidationRequest request)
         {
-            var validatorName = typeof(T).Name;
-
             return _validationContext
                         .ValidatorStatuses
                         .Where(s => s.PackageKey == request.PackageKey)
-                        .Where(s => s.ValidatorName == validatorName)
+                        .Where(s => s.ValidatorName == _validatorName)
                         .Where(s => s.ValidationId != request.ValidationId)
                         .AnyAsync();
         }
 
-        public async Task<AddStatusResult> AddStatusAsync<T>(ValidatorStatus status)
-            where T : IValidator
+        public async Task<AddStatusResult> AddStatusAsync(ValidatorStatus status)
         {
-            var validatorName = typeof(T).Name;
-
-            if (status.ValidatorName != validatorName)
+            if (status.ValidatorName != _validatorName)
             {
                 throw new ArgumentException(
-                    $"Expected validator name '{validatorName}', actual: '{status.ValidatorName}'",
+                    $"Expected validator name '{_validatorName}', actual: '{status.ValidatorName}'",
                     nameof(status));
             }
 
@@ -96,14 +103,12 @@ namespace NuGet.Jobs.Validation.PackageSigning.Storage
             }
         }
 
-        public async Task<SaveStatusResult> SaveStatusAsync<T>(ValidatorStatus status) where T : IValidator
+        public async Task<SaveStatusResult> SaveStatusAsync(ValidatorStatus status)
         {
-            var validatorName = typeof(T).Name;
-
-            if (status.ValidatorName != validatorName)
+            if (status.ValidatorName != _validatorName)
             {
                 throw new ArgumentException(
-                    $"Expected validator name '{validatorName}', actual: '{status.ValidatorName}'",
+                    $"Expected validator name '{_validatorName}', actual: '{status.ValidatorName}'",
                     nameof(status));
             }
 

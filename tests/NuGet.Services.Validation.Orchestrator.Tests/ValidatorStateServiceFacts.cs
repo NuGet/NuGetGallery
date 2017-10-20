@@ -49,10 +49,10 @@ namespace NuGet.Services.Validation
                 // Arrange
                 _validationContext.Mock();
 
-                var stateService = new ValidatorStateService(_validationContext.Object);
+                var stateService = new ValidatorStateService(_validationContext.Object, typeof(AValidator));
 
                 // Act & Assert
-                var status = await stateService.GetStatusAsync<AValidator>(_validationRequest.Object);
+                var status = await stateService.GetStatusAsync(_validationRequest.Object);
 
                 Assert.Equal(ValidationId, status.ValidationId);
                 Assert.Equal(PackageKey, status.PackageKey);
@@ -76,10 +76,10 @@ namespace NuGet.Services.Validation
                         }
                     });
 
-                var stateService = new ValidatorStateService(_validationContext.Object);
+                var stateService = new ValidatorStateService(_validationContext.Object, typeof(AValidator));
 
                 // Act & Assert
-                var status = await stateService.GetStatusAsync<AValidator>(_validationRequest.Object);
+                var status = await stateService.GetStatusAsync(_validationRequest.Object);
 
                 Assert.Equal(ValidationId, status.ValidationId);
                 Assert.Equal(PackageKey, status.PackageKey);
@@ -113,10 +113,10 @@ namespace NuGet.Services.Validation
                         }
                     });
 
-                var stateService = new ValidatorStateService(_validationContext.Object);
+                var stateService = new ValidatorStateService(_validationContext.Object, typeof(AValidator));
 
                 // Act & Assert
-                var persistedStatus = await stateService.GetStatusAsync<AValidator>(_validationRequest.Object);
+                var persistedStatus = await stateService.GetStatusAsync(_validationRequest.Object);
 
                 Assert.Equal(ValidationId, persistedStatus.ValidationId);
                 Assert.Equal(PackageKey, persistedStatus.PackageKey);
@@ -128,7 +128,7 @@ namespace NuGet.Services.Validation
             public async Task GetStatusThrowsOnInvalidPackageKey()
             {
                 // Arrange
-                var stateService = new ValidatorStateService(_validationContext.Object);
+                var stateService = new ValidatorStateService(_validationContext.Object, typeof(AValidator));
 
                 _validationContext.Mock(validatorStatuses: new[]
                 {
@@ -142,14 +142,14 @@ namespace NuGet.Services.Validation
                 });
 
                 // Act & Assert
-                await Assert.ThrowsAsync<ArgumentException>(async () => await stateService.GetStatusAsync<AValidator>(_validationRequest.Object));
+                await Assert.ThrowsAsync<ArgumentException>(async () => await stateService.GetStatusAsync(_validationRequest.Object));
             }
 
             [Fact]
             public async Task GetStatusThrowsOnInvalidValidatorName()
             {
                 // Arrange
-                var stateService = new ValidatorStateService(_validationContext.Object);
+                var stateService = new ValidatorStateService(_validationContext.Object, typeof(AValidator));
 
                 _validationContext.Mock(validatorStatuses: new[]
                 {
@@ -163,7 +163,7 @@ namespace NuGet.Services.Validation
                 });
 
                 // Act & Assert
-                await Assert.ThrowsAsync<ArgumentException>(async () => await stateService.GetStatusAsync<AValidator>(_validationRequest.Object));
+                await Assert.ThrowsAsync<ArgumentException>(async () => await stateService.GetStatusAsync(_validationRequest.Object));
             }
 
             public static IEnumerable<object[]> PossibleValidationStatuses => possibleValidationStatuses.Select(s => new object[] { s });
@@ -177,10 +177,10 @@ namespace NuGet.Services.Validation
                 // Arrange
                 _validationContext.Mock();
 
-                var stateService = new ValidatorStateService(_validationContext.Object);
+                var stateService = new ValidatorStateService(_validationContext.Object, typeof(AValidator));
 
                 // Act & Assert
-                Assert.False(await stateService.IsRevalidationRequestAsync<AValidator>(_validationRequest.Object));
+                Assert.False(await stateService.IsRevalidationRequestAsync(_validationRequest.Object));
             }
 
             [Fact]
@@ -200,10 +200,10 @@ namespace NuGet.Services.Validation
                         }
                     });
 
-                var stateService = new ValidatorStateService(_validationContext.Object);
+                var stateService = new ValidatorStateService(_validationContext.Object, typeof(AValidator));
 
                 // Act & Assert
-                Assert.True(await stateService.IsRevalidationRequestAsync<AValidator>(_validationRequest.Object));
+                Assert.True(await stateService.IsRevalidationRequestAsync(_validationRequest.Object));
             }
 
             [Fact]
@@ -223,10 +223,10 @@ namespace NuGet.Services.Validation
                         }
                     });
 
-                var stateService = new ValidatorStateService(_validationContext.Object);
+                var stateService = new ValidatorStateService(_validationContext.Object, typeof(AValidator));
 
                 // Act & Assert
-                Assert.False(await stateService.IsRevalidationRequestAsync<AValidator>(_validationRequest.Object));
+                Assert.False(await stateService.IsRevalidationRequestAsync(_validationRequest.Object));
             }
 
             [Fact]
@@ -253,10 +253,10 @@ namespace NuGet.Services.Validation
                         }
                     });
 
-                var stateService = new ValidatorStateService(_validationContext.Object);
+                var stateService = new ValidatorStateService(_validationContext.Object, typeof(AValidator));
 
                 // Act & Assert
-                Assert.True(await stateService.IsRevalidationRequestAsync<AValidator>(_validationRequest.Object));
+                Assert.True(await stateService.IsRevalidationRequestAsync(_validationRequest.Object));
             }
 
             [Fact]
@@ -284,10 +284,10 @@ namespace NuGet.Services.Validation
                         }
                     });
 
-                var stateService = new ValidatorStateService(_validationContext.Object);
+                var stateService = new ValidatorStateService(_validationContext.Object, typeof(AValidator));
 
                 // Act & Assert
-                Assert.False(await stateService.IsRevalidationRequestAsync<AValidator>(_validationRequest.Object));
+                Assert.False(await stateService.IsRevalidationRequestAsync(_validationRequest.Object));
             }
 
             [Fact]
@@ -322,10 +322,10 @@ namespace NuGet.Services.Validation
                         }
                     });
 
-                var stateService = new ValidatorStateService(_validationContext.Object);
+                var stateService = new ValidatorStateService(_validationContext.Object, typeof(AValidator));
 
                 // Act & Assert
-                Assert.True(await stateService.IsRevalidationRequestAsync<AValidator>(_validationRequest.Object));
+                Assert.True(await stateService.IsRevalidationRequestAsync(_validationRequest.Object));
             }
         }
 
@@ -335,7 +335,7 @@ namespace NuGet.Services.Validation
             public async Task AddStatusAsyncThrowsIfValidatorNameIsWrong()
             {
                 // Arrange
-                var stateService = new ValidatorStateService(_validationContext.Object);
+                var stateService = new ValidatorStateService(_validationContext.Object, typeof(AValidator));
                 var validationStatus = new ValidatorStatus
                 {
                     ValidationId = ValidationId,
@@ -345,7 +345,7 @@ namespace NuGet.Services.Validation
                 };
 
                 // Act & Assert
-                await Assert.ThrowsAsync<ArgumentException>(() => stateService.AddStatusAsync<AValidator>(validationStatus));
+                await Assert.ThrowsAsync<ArgumentException>(() => stateService.AddStatusAsync(validationStatus));
             }
 
             [Theory]
@@ -355,12 +355,12 @@ namespace NuGet.Services.Validation
                 // Arrange
                 var validatorName = nameof(AValidator);
                 var validatorStatuses = new Mock<IDbSet<ValidatorStatus>>();
-                var stateService = new ValidatorStateService(_validationContext.Object);
+                var stateService = new ValidatorStateService(_validationContext.Object, typeof(AValidator));
 
                 _validationContext.Mock(validatorStatusesMock: validatorStatuses);
 
                 // Act & Assert
-                var result = await stateService.AddStatusAsync<AValidator>(new ValidatorStatus
+                var result = await stateService.AddStatusAsync(new ValidatorStatus
                 {
                     ValidationId = ValidationId,
                     PackageKey = PackageKey,
@@ -391,7 +391,7 @@ namespace NuGet.Services.Validation
             public async Task SaveStatusAsyncThrowsIfValidatorNameIsWrong()
             {
                 // Arrange
-                var stateService = new ValidatorStateService(_validationContext.Object);
+                var stateService = new ValidatorStateService(_validationContext.Object, typeof(AValidator));
                 var validatorStatus = new ValidatorStatus
                 {
                     ValidationId = ValidationId,
@@ -401,7 +401,7 @@ namespace NuGet.Services.Validation
                 };
 
                 // Act & Assert
-                await Assert.ThrowsAsync<ArgumentException>(() => stateService.AddStatusAsync<AValidator>(validatorStatus));
+                await Assert.ThrowsAsync<ArgumentException>(() => stateService.AddStatusAsync(validatorStatus));
             }
 
             [Theory]
@@ -409,7 +409,7 @@ namespace NuGet.Services.Validation
             public async Task SaveStatusAsyncMethodPersistsStatus(ValidationStatus status)
             {
                 // Arrange
-                var stateService = new ValidatorStateService(_validationContext.Object);
+                var stateService = new ValidatorStateService(_validationContext.Object, typeof(AValidator));
                 var validatorStatus = new ValidatorStatus
                 {
                     ValidationId = ValidationId,
@@ -421,7 +421,7 @@ namespace NuGet.Services.Validation
                 _validationContext.Mock();
 
                 // Act & Assert
-                await stateService.AddStatusAsync<AValidator>(validatorStatus);
+                await stateService.AddStatusAsync(validatorStatus);
 
                 _validationContext.Verify(c => c.SaveChangesAsync(), Times.Once);
             }

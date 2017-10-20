@@ -27,7 +27,7 @@ namespace NuGet.Services.Validation.PackageSigning
 
         public async Task<ValidationStatus> GetStatusAsync(IValidationRequest request)
         {
-            var validatorStatus = await _validatorStateService.GetStatusAsync<PackageSigningValidator>(request);
+            var validatorStatus = await _validatorStateService.GetStatusAsync(request);
 
             return validatorStatus.State;
         }
@@ -35,7 +35,7 @@ namespace NuGet.Services.Validation.PackageSigning
         public async Task<ValidationStatus> StartValidationAsync(IValidationRequest request)
         {
             // Check that this is the first validation for this specific request.
-            var validatorStatus = await _validatorStateService.GetStatusAsync<PackageSigningValidator>(request);
+            var validatorStatus = await _validatorStateService.GetStatusAsync(request);
 
             if (validatorStatus.State != ValidationStatus.NotStarted)
             {
@@ -53,7 +53,7 @@ namespace NuGet.Services.Validation.PackageSigning
             validatorStatus.State = ValidationStatus.Incomplete;
 
             await _packageSignatureVerifier.StartVerificationAsync(request);
-            var result = await _validatorStateService.AddStatusAsync<PackageSigningValidator>(validatorStatus);
+            var result = await _validatorStateService.AddStatusAsync(validatorStatus);
 
             if (result == AddStatusResult.StatusAlreadyExists)
             {
