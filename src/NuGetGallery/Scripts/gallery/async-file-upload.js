@@ -218,7 +218,6 @@ var AsyncFileUploadManager = new function () {
             $(reportContainerElement).attr("class", "collapse in");
             $(reportContainerElement).attr("aria-expanded", "true");
             $(reportContainerElement).attr("data-bind", "template: { name: 'edit-metadata-template', data: data }");
-            $("#verify-package-container").removeClass("hidden");
             $("#verify-package-container").append(reportContainerElement);
             ko.applyBindings({ data: model }, reportContainerElement);
 

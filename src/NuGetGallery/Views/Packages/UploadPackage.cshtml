@@ -56,7 +56,8 @@
                     @ViewHelpers.AlertWarning(@<text>You had an upload in progress. You can continue it here or cancel to restart.</text>)
                 </div>
             }
-
+            
+            @ViewHelpers.AlertPackageVerifyRecommendation()
             @Html.Partial("_EditForm")
         </div>
     </div>
