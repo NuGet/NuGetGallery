@@ -17,8 +17,9 @@ namespace NuGetGallery
 {
     internal class ReadMeService : IReadMeService
     {
-        private static readonly Regex EncodedBlockQuotePattern = new Regex("^ {0,3}&gt;", RegexOptions.Multiline);
-        private static readonly Regex CommonMarkLinkPattern = new Regex("<a href=([\"\']).*?\\1");
+        private static readonly TimeSpan RegexTimeout = TimeSpan.FromMinutes(1);
+        private static readonly Regex EncodedBlockQuotePattern = new Regex("^ {0,3}&gt;", RegexOptions.Multiline, RegexTimeout);
+        private static readonly Regex CommonMarkLinkPattern = new Regex("<a href=([\"\']).*?\\1", RegexOptions.None, RegexTimeout);
 
         internal const string TypeUrl = "Url";
         internal const string TypeFile = "File";
