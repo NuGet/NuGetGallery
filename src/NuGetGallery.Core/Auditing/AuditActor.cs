@@ -7,8 +7,10 @@ using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web;
+using NuGetGallery.Authentication;
 
 namespace NuGetGallery.Auditing
 {
@@ -18,14 +20,15 @@ namespace NuGetGallery.Auditing
         public string MachineIP { get; set; }
         public string UserName { get; set; }
         public string AuthenticationType { get; set; }
+        public string CredentialKey { get; set; }
         public DateTime TimestampUtc { get; set; }
 
         public AuditActor OnBehalfOf { get; set; }
 
-        public AuditActor(string machineName, string machineIP, string userName, string authenticationType, DateTime timeStampUtc)
-            : this(machineName, machineIP, userName, authenticationType, timeStampUtc, null) { }
+        public AuditActor(string machineName, string machineIP, string userName, string authenticationType, string credentialKey, DateTime timeStampUtc)
+            : this(machineName, machineIP, userName, authenticationType, credentialKey, timeStampUtc, null) { }
 
-        public AuditActor(string machineName, string machineIP, string userName, string authenticationType, DateTime timeStampUtc, AuditActor onBehalfOf)
+        public AuditActor(string machineName, string machineIP, string userName, string authenticationType, string credentialKey, DateTime timeStampUtc, AuditActor onBehalfOf)
         {
             MachineName = machineName;
             MachineIP = machineIP;
@@ -33,6 +36,7 @@ namespace NuGetGallery.Auditing
             AuthenticationType = authenticationType;
             TimestampUtc = timeStampUtc;
             OnBehalfOf = onBehalfOf;
+            CredentialKey = credentialKey;
         }
 
         public static Task<AuditActor> GetAspNetOnBehalfOfAsync()
@@ -68,10 +72,15 @@ namespace NuGetGallery.Auditing
 
             string user = null;
             string authType = null;
+            string credentialKey = null;
+
             if (context.User != null)
             {
                 user = context.User.Identity.Name;
                 authType = context.User.Identity.AuthenticationType;
+
+                var claimsIdentity = context.User.Identity as ClaimsIdentity;
+                credentialKey = claimsIdentity?.GetClaimOrDefault(NuGetClaims.CredentialKey);
             }
 
             return Task.FromResult(new AuditActor(
@@ -79,6 +88,7 @@ namespace NuGetGallery.Auditing
                 clientIpAddress,
                 user,
                 authType,
+                credentialKey,
                 DateTime.UtcNow));
         }
 
@@ -97,6 +107,7 @@ namespace NuGetGallery.Auditing
                 ipAddress,
                 $@"{Environment.UserDomainName}\{Environment.UserName}",
                 "MachineUser",
+                string.Empty,
                 DateTime.UtcNow,
                 onBehalfOf);
         }

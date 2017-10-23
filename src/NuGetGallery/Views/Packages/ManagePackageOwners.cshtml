@@ -50,12 +50,26 @@
                             <span data-bind="visible: pending">(pending approval)</span>
                         </span>
                     </div>
+                    <!-- ko if: $parent.IsAllowedToRemove($data) -->
                     <div class="col-md-3 remove-owner">
-                        <a class="icon-link" href="#" title="Remove as owner of @Model.Id" data-bind="visible: !current  || $parent.hasMoreThanOneOwner, click: $root.removeOwner">
+                        <a class="icon-link" 
+                           href="#" 
+                           title="Remove as owner of @Model.Id" 
+                           data-bind="click: $root.removeOwner">
                             <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
                             <span>Remove</span>
                         </a>
                     </div>
+                    <!-- /ko -->
+                    <!-- ko ifnot: $parent.IsAllowedToRemove($data) -->
+                    <div class="col-md-3 remove-owner-disabled">
+                        <a class="icon-link"
+                           title="Cannot remove the only owner or reserved namespace restrictions apply.">
+                            <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
+                            <span>Remove</span>
+                        </a>
+                    </div>
+                    <!-- /ko -->
                 </div>
             </div>
         </div>
@@ -126,6 +140,7 @@
 @section bottomScripts {
     <script type="text/javascript">
         var packageId = "@Model.Id";
+        var isUserAnAdmin = "@Model.IsCurrentUserAnAdmin";
         var packageUrl = "@Url.Package(Model.Id)";
         var getPackageOwnersUrl = "@Url.GetPackageOwners()";
         var getAddPackageOwnerConfirmationUrl = "@Url.GetAddPackageOwnerConfirmation()";

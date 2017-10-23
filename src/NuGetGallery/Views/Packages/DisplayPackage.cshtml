@@ -51,7 +51,7 @@
     <meta property="og:image" content="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png"))" />
 }
 @section Meta {
-    @if (!Model.Listed || Model.Deleted)
+    @if (!Model.Listed || !Model.Available)
     {
         <meta name="robots" content="noindex">
     }
@@ -176,6 +176,37 @@
                 )
             }
 
+            @if (Model.Validating)
+            {
+                @ViewHelpers.AlertWarning(
+                    @<text>
+                        <strong>This package has not been published yet.</strong> It will appear in search results and
+                        will be available for install/restore after both validation and indexing are complete. Package
+                        validation and indexing may take up to an hour. 
+                    </text>
+                )
+            }
+
+            @if (Model.FailedValidation)
+            {
+                @ViewHelpers.AlertDanger(
+                    @<text>
+                        <strong>Package publishing failed.</strong> This package could not be published since package
+                        validation failed. Please contact <a href="mailto:support@nuget.org">support@nuget.org</a>.
+                    </text>
+                )
+            }
+
+            @if (Model.Deleted)
+            {
+                @ViewHelpers.AlertDanger(
+                    @<text>
+                        <strong>This package has been deleted from the gallery.</strong> It is no longer available
+                        for install/restore.
+                    </text>
+                )
+            }
+
             @if (Model.Prerelease)
             {
                 @ViewHelpers.AlertInfo(
@@ -200,17 +231,7 @@
                 @ViewHelpers.AlertWarning(
                     @<text>
                         <strong>This package has not been indexed yet.</strong> It will appear in search results
-                        and will be available for install/restore after indexing is completed.
-                    </text>
-                )
-            }
-
-            @if (Model.Deleted)
-            {
-                @ViewHelpers.AlertDanger(
-                    @<text>
-                        <strong>This package has been deleted from the gallery.</strong> It is no longer available
-                        for install/restore.
+                        and will be available for install/restore after indexing is complete.
                     </text>
                 )
             }
@@ -220,9 +241,9 @@
                 @ViewHelpers.AlertIsSemVer2Package(Model.HasSemVer2Version, Model.HasSemVer2Dependency)
             }
 
-            @if (!Model.Listed && !Model.Deleted)
+            @if (!Model.Listed && Model.Available)
             {
-                if ((Model.IsOwner(User) || User.IsAdministrator()))
+                if ((Model.IsOwnerOrAdmin(User)))
                 {
                     @ViewHelpers.AlertWarning(
                         @<text>
@@ -248,26 +269,29 @@
                 <p>Requires NuGet @Model.MinClientVersion or higher.</p>
             }
 
-            <div class="install-tabs">
-                <ul class="nav nav-tabs" role="tablist">
-                    @{ var firstPackageManager = true; }
-                    @foreach (var packageManager in packageManagers)
-                    {
-                        @CommandTab(packageManager, active: firstPackageManager)
+            @if (Model.Available)
+            {
+                <div class="install-tabs">
+                    <ul class="nav nav-tabs" role="tablist">
+                        @{ var firstPackageManager = true; }
+                        @foreach (var packageManager in packageManagers)
+                        {
+                            @CommandTab(packageManager, active: firstPackageManager)
 
-                        firstPackageManager = false;
-                    }
-                </ul>
-                <div class="tab-content">
-                    @{ firstPackageManager = true; }
-                    @foreach (var packageManager in packageManagers)
-                    {
-                        @CommandPanel(packageManager, active: firstPackageManager)
+                            firstPackageManager = false;
+                        }
+                    </ul>
+                    <div class="tab-content">
+                        @{ firstPackageManager = true; }
+                        @foreach (var packageManager in packageManagers)
+                        {
+                            @CommandPanel(packageManager, active: firstPackageManager)
 
-                        firstPackageManager = false;
-                    }
+                            firstPackageManager = false;
+                        }
+                    </div>
                 </div>
-            </div>
+            }
 
             @if (Model.ReadMeHtml != null)
             {
@@ -308,7 +332,7 @@
 
             @if (Model.Dependencies.DependencySets == null)
             {
-                if ((Model.IsOwner(User) || User.IsAdministrator()))
+                if ((Model.IsOwnerOrAdmin(User)))
                 {
                     <h2>Dependencies</h2>
                     <p>
@@ -384,9 +408,13 @@
                             <th>Version</th>
                             <th>Downloads</th>
                             <th>Last updated</th>
-                            @if ((Model.IsOwner(User) || User.IsAdministrator()))
+                            @if (Model.IsOwnerOrAdmin(User))
                             {
                                 <th>Listed</th>
+                                if (Config.Current.AsynchronousPackageValidationEnabled)
+                                {
+                                    <th>Validation Status</th>
+                                }
                             }
                         </tr>
                     </thead>
@@ -400,7 +428,8 @@
                         }
                         @foreach (var packageVersion in Model.PackageVersions)
                         {
-                            if (!packageVersion.Deleted && (packageVersion.Listed || (Model.IsOwner(User) || User.IsAdministrator())))
+                            if ((packageVersion.Available && packageVersion.Listed)
+                                || (!packageVersion.Deleted && Model.IsOwnerOrAdmin(User)))
                             {
                                 rowCount++;
                                 @VersionListDivider(rowCount, versionsExpanded)
@@ -431,15 +460,32 @@
                                     <td>
                                         <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetShortDateString()</span>
                                     </td>
-                                    @if ((Model.IsOwner(User) || User.IsAdministrator()))
+                                    @if (packageVersion.IsOwnerOrAdmin(User))
                                     {
                                         <td>
                                             <a href="@Url.DeletePackage(packageVersion)">@(packageVersion.Listed ? "yes" : "no")</a>
                                         </td>
+                                        if (Config.Current.AsynchronousPackageValidationEnabled)
+                                        {
+                                            <td>
+                                                @switch (packageVersion.PackageStatus)
+                                                {
+                                                    case PackageStatus.Available:
+                                                        @:Valid
+                                                        break;
+                                                    case PackageStatus.Validating:
+                                                        @:Validating
+                                                        break;
+                                                    case PackageStatus.FailedValidation:
+                                                        @:Failed validation
+                                                        break;
+                                                }
+                                            </td>
+                                        }
                                     }
                                 </tr>
                             }
-                            else if (packageVersion.Deleted)
+                            else if (packageVersion.Deleted && packageVersion.IsOwnerOrAdmin(User))
                             {
                                 rowCount++;
                                 @VersionListDivider(rowCount, versionsExpanded)
@@ -454,6 +500,10 @@
                                         <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetShortDateString()</span>
                                     </td>
                                     <td></td>
+                                    @if (Config.Current.AsynchronousPackageValidationEnabled)
+                                    {
+                                        <td></td>
+                                    }
                                 </tr>
                             }
                         }
@@ -512,7 +562,7 @@
                     <i class="ms-Icon ms-Icon--Mail" aria-hidden="true"></i>
                     <a href="@Url.ContactOwners(Model.Id)" title="Ask the package owners a question">Contact owners</a>
                 </li>
-                @if ((Model.IsOwner(User) || User.IsAdministrator()))
+                @if (Model.IsOwnerOrAdmin(User))
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--Help" aria-hidden="true"></i>
@@ -521,7 +571,7 @@
                         </a>
                     </li>
                 }
-                else if (!Model.Deleted)
+                else if (Model.Available)
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--Flag" aria-hidden="true"></i>
@@ -531,7 +581,7 @@
                     </li>
                 }
 
-                @if (!Model.Deleted)
+                @if (Model.Available)
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--CloudDownload" aria-hidden="true"></i>
@@ -543,23 +593,29 @@
                     </li>
                 }
 
-                @if (!Model.Deleted && (Model.IsOwner(User) || User.IsAdministrator()))
+                @if ((Model.Available || Model.Validating) && Model.IsOwnerOrAdmin(User))
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
                         <a href="@Url.EditPackage(Model.Id, Model.Version)">Edit package</a>
                     </li>
+                }
+                @if (Model.IsOwnerOrAdmin(User))
+                {
                     <li>
                         <i class="ms-Icon ms-Icon--People" aria-hidden="true"></i>
                         <a href="@Url.ManagePackageOwners(Model)">Manage owners</a>
                     </li>
+                }
+                @if (!Model.Deleted && Model.IsOwnerOrAdmin(User))
+                {
                     <li>
                         <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
                         <a href="@Url.DeletePackage(Model)" class="delete">Delete package</a>
                     </li>
                 }
 
-                @if (!Model.Deleted && User.IsAdministrator())
+                @if (Model.Available && User.IsAdministrator())
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--Refresh" aria-hidden="true"></i>
@@ -638,22 +694,23 @@
                 </p>
             }
 
-            <h2>Share</h2>
-            @{
+            @if (Model.Available)
+            {
+                <h2>Share</h2>
                 var encodedText = Url.Encode(string.Format("Check out {0} on #NuGet.", Model.Id));
+                <p class="share-buttons">
+                    <a href="https://www.facebook.com/sharer/sharer.php?u=@absolutePackageUrl&t=@encodedText" target="_blank">
+                        <img width="24" height="24" alt="Share this package on Facebook"
+                             src="@Url.Absolute("~/Content/gallery/img/facebook.svg")"
+                             @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/facebook-24x24.png")) />
+                    </a>
+                    <a href="https://twitter.com/intent/tweet?url=@absolutePackageUrl&text=@encodedText" target="_blank">
+                        <img width="24" height="24" alt="Tweet this package"
+                             src="@Url.Absolute("~/Content/gallery/img/twitter.svg")"
+                             @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/twitter-24x24.png")) />
+                    </a>
+                </p>
             }
-            <p class="share-buttons">
-                <a href="https://www.facebook.com/sharer/sharer.php?u=@absolutePackageUrl&t=@encodedText" target="_blank">
-                    <img width="24" height="24" alt="Share this package on Facebook"
-                         src="@Url.Absolute("~/Content/gallery/img/facebook.svg")"
-                         @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/facebook-24x24.png")) />
-                </a>
-                <a href="https://twitter.com/intent/tweet?url=@absolutePackageUrl&text=@encodedText" target="_blank">
-                    <img width="24" height="24" alt="Tweet this package"
-                         src="@Url.Absolute("~/Content/gallery/img/twitter.svg")"
-                         @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/twitter-24x24.png")) />
-                </a>
-            </p>
         </aside>
     </div>
 </section>

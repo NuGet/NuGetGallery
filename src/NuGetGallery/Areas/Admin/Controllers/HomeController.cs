@@ -1,24 +1,32 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Web.Mvc;
+using NuGetGallery.Areas.Admin.ViewModels;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
     public partial class HomeController : AdminControllerBase
     {
         private readonly IContentService _content;
+        private readonly IGalleryConfigurationService _config;
 
-        public HomeController(IContentService content)
+        public HomeController(IContentService content, IGalleryConfigurationService config)
         {
-            _content = content;
+            _content = content ?? throw new ArgumentNullException(nameof(content));
+            _config = config ?? throw new ArgumentNullException(nameof(config));
         }
 
         [HttpGet]
         public virtual ActionResult Index()
         {
-            return View();
+            var viewModel = new HomeViewModel(
+                showValidation: _config.Current.AsynchronousPackageValidationEnabled);
+
+            return View(viewModel);
         }
 
         [HttpGet]

@@ -9,6 +9,11 @@ namespace NuGetGallery
     {
         public static bool IsAdministrator(this IPrincipal self)
         {
+            if (self == null || self.Identity == null)
+            {
+                return false;
+            }
+
             return self.Identity.IsAuthenticated && self.IsInRole(Constants.AdminRoleName);
         }
     }

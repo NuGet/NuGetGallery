@@ -22,14 +22,12 @@ namespace NuGetGallery
         private static IPackageService CreateService(
             Mock<IEntityRepository<PackageRegistration>> packageRegistrationRepository = null,
             Mock<IEntityRepository<Package>> packageRepository = null,
-            Mock<IPackageOwnerRequestService> packageOwnerRequestService = null,
             IPackageNamingConflictValidator packageNamingConflictValidator = null,
             IAuditingService auditingService = null,
             Action<Mock<PackageService>> setup = null)
         {
             packageRegistrationRepository = packageRegistrationRepository ?? new Mock<IEntityRepository<PackageRegistration>>();
             packageRepository = packageRepository ?? new Mock<IEntityRepository<Package>>();
-            packageOwnerRequestService = packageOwnerRequestService ?? new Mock<IPackageOwnerRequestService>();
             auditingService = auditingService ?? new TestAuditingService();
 
             if (packageNamingConflictValidator == null)
@@ -42,7 +40,6 @@ namespace NuGetGallery
             var packageService = new Mock<PackageService>(
                 packageRegistrationRepository.Object,
                 packageRepository.Object,
-                packageOwnerRequestService.Object,
                 packageNamingConflictValidator,
                 auditingService);
 
@@ -72,45 +69,6 @@ namespace NuGetGallery
 
                 Assert.Contains(pendingOwner, package.Owners);
                 packageRepository.VerifyAll();
-            }
-
-            [Fact]
-            public async Task RemovesRelatedPendingOwnerRequest()
-            {
-                var packageOwnerRequest = new PackageOwnerRequest { PackageRegistrationKey = 2, NewOwnerKey = 100, ConfirmationCode = "secret-token" };
-                var package = new PackageRegistration { Key = 2, Id = "pkg42" };
-                var pendingOwner = new User { Key = 100, Username = "teamawesome" };
-                var packageOwnerRequestService = new Mock<IPackageOwnerRequestService>();
-                packageOwnerRequestService.Setup(p => p.DeletePackageOwnershipRequest(packageOwnerRequest))
-                    .Returns(Task.CompletedTask).Verifiable();
-                packageOwnerRequestService.Setup(p => p.GetPackageOwnershipRequests(package, null, pendingOwner))
-                    .Returns(new[] { packageOwnerRequest }).Verifiable();
-                var service = CreateService(packageOwnerRequestService: packageOwnerRequestService);
-
-                await service.AddPackageOwnerAsync(package, pendingOwner);
-
-                packageOwnerRequestService.VerifyAll();
-            }
-
-            [Fact]
-            public async Task WritesAnAuditRecord()
-            {
-                // Arrange
-                var package = new PackageRegistration { Key = 2, Id = "pkg42" };
-                var pendingOwner = new User { Key = 100, Username = "teamawesome" };
-                var packageRepository = new Mock<IEntityRepository<Package>>();
-                var auditingService = new TestAuditingService();
-                var service = CreateService(
-                    packageRepository: packageRepository,
-                    auditingService: auditingService);
-
-                // Act
-                await service.AddPackageOwnerAsync(package, pendingOwner);
-
-                // Assert
-                Assert.True(auditingService.WroteRecord<PackageRegistrationAuditRecord>(ar =>
-                    ar.Action == AuditedPackageRegistrationAction.AddOwner
-                    && ar.Id == package.Id));
             }
         }
 
@@ -247,7 +205,7 @@ namespace NuGetGallery
                 // Arrange
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>(MockBehavior.Strict);
                 packageRegistrationRepository.Setup(r => r.GetAll()).Returns(Enumerable.Empty<PackageRegistration>().AsQueryable());
-                packageRegistrationRepository.Setup(r => r.InsertOnCommit(It.IsAny<PackageRegistration>())).Returns(1).Verifiable();
+                packageRegistrationRepository.Setup(r => r.InsertOnCommit(It.IsAny<PackageRegistration>())).Verifiable();
                 var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(version: "2.14.0-a");
@@ -267,7 +225,7 @@ namespace NuGetGallery
                 // Arrange
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>(MockBehavior.Strict);
                 packageRegistrationRepository.Setup(r => r.GetAll()).Returns(Enumerable.Empty<PackageRegistration>().AsQueryable());
-                packageRegistrationRepository.Setup(r => r.InsertOnCommit(It.IsAny<PackageRegistration>())).Returns(1).Verifiable();
+                packageRegistrationRepository.Setup(r => r.InsertOnCommit(It.IsAny<PackageRegistration>())).Verifiable();
                 var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(version: "2.14.0-a");
@@ -1645,57 +1603,6 @@ namespace NuGetGallery
 
                 await Assert.ThrowsAsync<InvalidOperationException>(
                     async () => await service.RemovePackageOwnerAsync(package, singleOwner));
-            }
-
-            [Fact]
-            public async Task RemovesPendingPackageOwner()
-            {
-                var pendingOwner = new User { Key = 200 };
-                var owner = new User() { Key = 99 };
-                var package = new PackageRegistration { Key = 1, Owners = new List<User> { owner } };
-
-                var packageOwnerRequest = new PackageOwnerRequest
-                {
-                    PackageRegistration = package,
-                    PackageRegistrationKey = package.Key,
-
-                    RequestingOwner = owner,
-                    RequestingOwnerKey = owner.Key,
-
-                    NewOwner = pendingOwner,
-                    NewOwnerKey = pendingOwner.Key,
-                };
-
-                var packageOwnerRequestService = new Mock<IPackageOwnerRequestService>();
-                packageOwnerRequestService.Setup(p => p.GetPackageOwnershipRequests(package, null, pendingOwner)).Returns(new[] { packageOwnerRequest });
-                packageOwnerRequestService.Setup(p => p.DeletePackageOwnershipRequest(packageOwnerRequest)).Returns(Task.CompletedTask).Verifiable();
-                var service = CreateService(packageOwnerRequestService: packageOwnerRequestService);
-
-                await service.RemovePackageOwnerAsync(package, pendingOwner);
-
-                Assert.Contains(owner, package.Owners);
-                packageOwnerRequestService.VerifyAll();
-            }
-
-            [Fact]
-            public async Task WritesAnAuditRecord()
-            {
-                // Arrange
-                var package = new PackageRegistration { Key = 2, Id = "pkg42" };
-                var ownerToRemove = new User { Key = 100, Username = "teamawesome" };
-                var packageRepository = new Mock<IEntityRepository<Package>>();
-                var auditingService = new TestAuditingService();
-                var service = CreateService(
-                    packageRepository: packageRepository,
-                    auditingService: auditingService);
-
-                // Act
-                await service.RemovePackageOwnerAsync(package, ownerToRemove);
-
-                // Assert
-                Assert.True(auditingService.WroteRecord<PackageRegistrationAuditRecord>(ar =>
-                    ar.Action == AuditedPackageRegistrationAction.RemoveOwner
-                    && ar.Id == package.Id));
             }
         }
 

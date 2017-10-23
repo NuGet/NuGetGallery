@@ -51,6 +51,37 @@ namespace NuGetGallery
             var confirmationContext = JsonConvert.DeserializeObject<ConfirmationContext>(json);
             return confirmationContext.ReturnUrl;
         }
+
+        /// <summary>
+        /// Best effort attempt to extract client information from the user-agent header.
+        /// According to documentation here: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent 
+        /// the common structure for user-agent header is:
+        /// User-Agent: Mozilla/<version> (<system-information>) <platform> (<platform-details>) <extensions>
+        /// Thus, extracting the part before the first '(', should give us product and version tokens in MOST cases.
+        /// </summary>
+        public static string GetClientInformation(this HttpContextBase httpContext)
+        {
+            string userAgent = httpContext.Request.Headers[Constants.UserAgentHeaderName];
+            string result = string.Empty;
+
+            if (!string.IsNullOrEmpty(userAgent))
+            {
+                int commentPartStartIndex = userAgent.IndexOf('(');
+
+                if (commentPartStartIndex != -1)
+                {
+                    result = userAgent.Substring(0, commentPartStartIndex);
+                }
+                else
+                {
+                    result = userAgent;
+                }
+
+                result = result.Trim();
+            }
+
+            return result;
+        }
     }
 
     public class ConfirmationContext

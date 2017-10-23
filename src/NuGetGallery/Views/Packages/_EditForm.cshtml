@@ -11,7 +11,8 @@
         </h2>
     </div>
 
-    <div id="verify-package-container">
+    <div id="verify-package-container" class="hidden">
+        @ViewHelpers.AlertPackageVerifyRecommendation()
     </div>
 
     @Html.Partial("_EditMetadata")
