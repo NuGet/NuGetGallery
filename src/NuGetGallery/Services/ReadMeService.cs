@@ -25,7 +25,6 @@ namespace NuGetGallery
         internal const string TypeWritten = "Written";
 
         internal const int MaxMdLengthBytes = 8000;
-        private const int ReadMeClampedLineCount = 10;
         private const string UrlHostRequirement = "raw.githubusercontent.com";
 
         private static readonly TimeSpan UrlTimeout = TimeSpan.FromSeconds(10);
@@ -80,20 +79,14 @@ namespace NuGetGallery
         /// Get the converted HTML from the stored ReadMe markdown.
         /// </summary>
         /// <param name="package">Package entity associated with the ReadMe.</param>
-        /// <param name="model">Display package view model to populate.</param>
         /// <param name="isPending">Whether to retrieve the pending ReadMe.</param>
         /// <returns>Pending or active ReadMe converted to HTML.</returns>
-        public async Task GetReadMeHtmlAsync(Package package, DisplayPackageViewModel model, bool isPending = false)
+        public async Task<string> GetReadMeHtmlAsync(Package package, bool isPending = false)
         {
             var readMeMd = await GetReadMeMdAsync(package, isPending);
-            if (!string.IsNullOrWhiteSpace(readMeMd))
-            {
-                var readMeMdClamped = string.Join(Environment.NewLine,
-                    readMeMd.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Take(ReadMeClampedLineCount));
-
-                model.ReadMeHtml = GetReadMeHtml(readMeMd).Trim();
-                model.ReadMeHtmlClamped = GetReadMeHtml(readMeMdClamped).Trim();
-            }
+            return string.IsNullOrEmpty(readMeMd) ?
+                string.Empty :
+                GetReadMeHtml(readMeMd);
         }
 
         /// <summary>
@@ -211,7 +204,7 @@ namespace NuGetGallery
             {
                 CommonMarkConverter.ProcessStage3(document, htmlWriter, settings);
                 
-                return CommonMarkLinkPattern.Replace(htmlWriter.ToString(), "$0" + " rel=\"nofollow\"");
+                return CommonMarkLinkPattern.Replace(htmlWriter.ToString(), "$0" + " rel=\"nofollow\"").Trim();
             }
         }
 

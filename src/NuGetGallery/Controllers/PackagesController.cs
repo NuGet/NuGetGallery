@@ -474,7 +474,7 @@ namespace NuGetGallery
                 }
             }
 
-            await _readMeService.GetReadMeHtmlAsync(package, model, isReadMePending);
+            model.ReadMeHtml = await _readMeService.GetReadMeHtmlAsync(package, isReadMePending);
 
             model.PolicyMessage = GetDisplayPackagePolicyMessage(package.PackageRegistration);
 
