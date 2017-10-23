@@ -493,7 +493,7 @@ namespace NuGetGallery
                 Assert.Equal("Foo", model.Id);
                 Assert.Equal("1.1.1", model.Version);
                 Assert.Equal("A test package!", model.Title);
-                Assert.Null(model.ReadMeHtml);
+                Assert.Equal("", model.ReadMeHtml);
             }
 
             [Fact]
@@ -508,7 +508,6 @@ namespace NuGetGallery
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal("<h2>Hello World!</h2>", model.ReadMeHtml);
-                Assert.Equal("<h2>Hello World!</h2>", model.ReadMeHtmlClamped);
             }
 
             [Fact]
@@ -524,33 +523,29 @@ namespace NuGetGallery
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
 
                 var htmlCount = model.ReadMeHtml.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Length;
-                var htmlClampedCount = model.ReadMeHtmlClamped.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Length;
                 Assert.Equal(20, htmlCount);
-                Assert.Equal(10, htmlClampedCount);
             }
 
             [Fact]
-            public async Task WhenHasReadMeAndFileNotFound_ReturnsNull()
+            public async Task WhenHasReadMeAndFileNotFound_ReturnsEmptyString()
             {
                 // Arrange & Act
                 var result = await GetDisplayPackageResult(null, true);
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
-                Assert.Null(model.ReadMeHtml);
-                Assert.Null(model.ReadMeHtmlClamped);
+                Assert.Equal("", model.ReadMeHtml);
             }
 
             [Fact]
-            public async Task WhenHasReadMeFalse_ReturnsNull()
+            public async Task WhenHasReadMeFalse_ReturnsEmptyString()
             {
                 // Arrange and Act
                 var result = await GetDisplayPackageResult(null, false);
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
-                Assert.Null(model.ReadMeHtml);
-                Assert.Null(model.ReadMeHtmlClamped);
+                Assert.Equal("", model.ReadMeHtml);
             }
 
             private async Task<ActionResult> GetDisplayPackageResult(string readMeHtml, bool hasReadMe)
