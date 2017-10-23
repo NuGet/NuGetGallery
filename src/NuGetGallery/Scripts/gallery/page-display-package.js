@@ -18,15 +18,27 @@ $(function () {
     var readmeContainer = $("#readme-container");
     if (readmeContainer[0])
     {
-        window.nuget.configureExpanderHeading(
-            "readme-container");   
+        window.nuget.configureExpanderHeading("readme-container");
 
         window.nuget.configureExpander(
-            "readme-full",
+            "readme-more",
             "CalculatorAddition",
             "Show less",
             "CalculatorSubtract",
             "Show more");
+
+        var showLess = $("#readme-less");
+        $clamp(showLess[0], { clamp: 10, useNativeClamp: false });
+
+        $("#show-readme-more").click(function () {
+            showLess.collapse("toggle");
+        });
+        showLess.on('hide.bs.collapse', function (e) {
+            e.stopPropagation();
+        });
+        showLess.on('show.bs.collapse', function (e) {
+            e.stopPropagation();
+        });
     }
 
     window.nuget.configureExpanderHeading("dependency-groups");
@@ -36,7 +48,7 @@ $(function () {
         "CalculatorAddition",
         "Show less",
         "CalculatorSubtract",
-        "Show more");    
+        "Show more"); 
 
     for (var i in packageManagers)
     {
