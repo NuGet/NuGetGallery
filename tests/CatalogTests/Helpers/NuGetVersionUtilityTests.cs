@@ -34,11 +34,28 @@ namespace CatalogTests.Helpers
         [InlineData("invalid", "invalid")]
         public void NormalizeVersionRange(string input, string expected)
         {
-            // Arrange & Act
-            var actual = NuGetVersionUtility.NormalizeVersionRange(input);
+            // Arrange
+            var defaultValue = input;
+
+            // Arrange
+            var actual = NuGetVersionUtility.NormalizeVersionRange(input, defaultValue);
 
             // Assert
             Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void NormalizeVersionRange_UsesDifferentDefault()
+        {
+            // Arrange
+            var input = "invalid";
+            var defaultValue = "(, )";
+
+            // Act
+            var actual = NuGetVersionUtility.NormalizeVersionRange(input, defaultValue);
+
+            // Assert
+            Assert.Equal(defaultValue, actual);
         }
 
         [Theory]

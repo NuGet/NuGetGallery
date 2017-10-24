@@ -12,6 +12,13 @@ namespace NuGet.Services.Metadata.Catalog
 {
     public class XsltHelper
     {
+        /// <summary>
+        /// Default to an empty string if the dependency version range is invalid or missing. This is meant to be a
+        /// predictable signal to the client that they need to handle this invalid version case. The official NuGet
+        /// client treats this as a dependency of any version.
+        /// </summary>
+        private static readonly string DefaultVersionRange = string.Empty;
+
         public XPathNavigator Split(string original)
         {
             char[] trimChar = { ',', ' ', '\t', '|', ';' };
@@ -52,7 +59,7 @@ namespace NuGet.Services.Metadata.Catalog
 
         public string NormalizeVersionRange(string original)
         {
-            return NuGetVersionUtility.NormalizeVersionRange(original);
+            return NuGetVersionUtility.NormalizeVersionRange(original, DefaultVersionRange);
         }
         
         public string IsPrerelease(string original)
