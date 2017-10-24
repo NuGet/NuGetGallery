@@ -15,6 +15,13 @@ namespace CatalogTests.Helpers
         [Theory]
         [InlineData("Newtonsoft.Json.9.0.2-beta1")]
         [InlineData("TestPackage.SemVer2.1.0.0-alpha.1")]
+        [InlineData("DependencyMissingId.0.1.0")] // One dependency missing an ID attribute
+        [InlineData("EmptyDependenciesElement.0.1.0")] // A <dependencies> element with no children
+        [InlineData("EmptyDependencyId.0.1.0")] // One dependency with an empty string ID
+        [InlineData("EmptyDependencyIdWithGroups.0.1.0")] // Using dependency groups, one dependency with an empty string ID
+        [InlineData("OneValidDependencyOneEmptyId.0.1.0")] // One valid dependency and one with empty string ID
+        [InlineData("OneValidDependencyOneEmptyIdWithGroups.0.1.0")] // Using dependency groups, one valid dependency and one with empty string ID
+        [InlineData("WhitespaceDependencyId.0.1.0")] // One dependency with an ID only containing whitespace
         public void CreateContent_ProducesExpectedJson(string packageName)
         {
             // Arrange
