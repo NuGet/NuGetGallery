@@ -12,16 +12,16 @@ namespace NuGet.Services.Validation.PackageSigning
     public class PackageSigningValidator : IValidator
     {
         private readonly IValidatorStateService _validatorStateService;
-        private readonly IPackageSignatureVerifier _packageSignatureVerifier;
+        private readonly IPackageSignatureVerificationEnqueuer _signatureVerificationEnqueuer;
         private readonly ILogger<PackageSigningValidator> _logger;
 
         public PackageSigningValidator(
             IValidatorStateService validatorStateService,
-            IPackageSignatureVerifier packageSignatureVerifier,
+            IPackageSignatureVerificationEnqueuer signatureVerificationEnqueuer,
             ILogger<PackageSigningValidator> logger)
         {
             _validatorStateService = validatorStateService ?? throw new ArgumentNullException(nameof(validatorStateService));
-            _packageSignatureVerifier = packageSignatureVerifier ?? throw new ArgumentNullException(nameof(packageSignatureVerifier));
+            _signatureVerificationEnqueuer = signatureVerificationEnqueuer ?? throw new ArgumentNullException(nameof(signatureVerificationEnqueuer));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -50,31 +50,9 @@ namespace NuGet.Services.Validation.PackageSigning
 
             // Kick off the verification process. Note that the jobs will not verify the package until the
             // state of this validator has been persisted to the database.
-            validatorStatus.State = ValidationStatus.Incomplete;
+            await _signatureVerificationEnqueuer.EnqueueVerificationAsync(request);
 
-            await _packageSignatureVerifier.StartVerificationAsync(request);
-            var result = await _validatorStateService.AddStatusAsync(validatorStatus);
-
-            if (result == AddStatusResult.StatusAlreadyExists)
-            {
-                // This is a possible concurrency issue that may happen when the Orchestrator calls StartValidationAsync
-                // multiple times for the same validation request. This scenario means that the "StartVerificationAsync"
-                // message has been duplicated.
-                _logger.LogError(
-                    Error.PackageSigningValidationAlreadyStarted,
-                    "Failed to add validation status for {ValidationId} ({PackageId} {PackageVersion}) as a record already exists!",
-                    request.ValidationId,
-                    request.PackageId,
-                    request.PackageVersion);
-
-                return await GetStatusAsync(request);
-            }
-            else if (result != AddStatusResult.Success)
-            {
-                throw new NotSupportedException($"Unknown {nameof(AddStatusResult)}: {result}");
-            }
-
-            return ValidationStatus.Incomplete;
+            return await _validatorStateService.TryAddValidatorStatusAsync(request, validatorStatus, ValidationStatus.Incomplete);
         }
     }
 }

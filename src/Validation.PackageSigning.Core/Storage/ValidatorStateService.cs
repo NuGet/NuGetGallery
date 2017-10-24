@@ -7,6 +7,7 @@ using System.Data.Entity.Infrastructure;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using NuGet.Services.Validation;
 
 namespace NuGet.Jobs.Validation.PackageSigning.Storage
@@ -15,14 +16,17 @@ namespace NuGet.Jobs.Validation.PackageSigning.Storage
     {
         private const int UniqueConstraintViolationErrorCode = 2627;
 
-        private IValidationEntitiesContext _validationContext;
-        private string _validatorName;
+        private readonly IValidationEntitiesContext _validationContext;
+        private readonly ILogger<ValidatorStateService> _logger;
+        private readonly string _validatorName;
 
         public ValidatorStateService(
             IValidationEntitiesContext validationContext,
-            Type validatorType)
+            Type validatorType,
+            ILogger<ValidatorStateService> logger)
         {
             _validationContext = validationContext ?? throw new ArgumentNullException(nameof(validationContext));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             if (validatorType == null)
             {
@@ -122,6 +126,60 @@ namespace NuGet.Jobs.Validation.PackageSigning.Storage
             {
                 return SaveStatusResult.StaleStatus;
             }
+        }
+
+        public async Task<ValidationStatus> TryAddValidatorStatusAsync(IValidationRequest request, ValidatorStatus status, ValidationStatus desiredState)
+        {
+            status.State = desiredState;
+
+            var result = await AddStatusAsync(status);
+
+            if (result == AddStatusResult.StatusAlreadyExists)
+            {
+                // The add operation fails if another instance of this service has already created the status.
+                // This may happen due to repeated operations kicked off by the Orchestrator. Return the result from
+                // the other add operation.
+                _logger.LogWarning(
+                    Error.ValidatorStateServiceFailedToAddStatus,
+                    "Failed to add validation status for {ValidationId} ({PackageId} {PackageVersion}) as a record already exists",
+                    request.PackageId,
+                    request.PackageVersion);
+
+                return (await GetStatusAsync(request)).State;
+            }
+            else if (result != AddStatusResult.Success)
+            {
+                throw new NotSupportedException($"Unknown {nameof(AddStatusResult)}: {result}");
+            }
+
+            return desiredState;
+        }
+
+        public async Task<ValidationStatus> TryUpdateValidationStatusAsync(IValidationRequest request, ValidatorStatus validatorStatus, ValidationStatus desiredState)
+        {
+            validatorStatus.State = desiredState;
+
+            var result = await SaveStatusAsync(validatorStatus);
+
+            if (result == SaveStatusResult.StaleStatus)
+            {
+                // The save operation fails if another instance of this service has already modified the status.
+                // This may happen due to repeated operations kicked off by the Orchestrator. Return the result
+                // from the other update.
+                _logger.LogWarning(
+                    Error.ValidatorStateServiceFailedToUpdateStatus,
+                    "Failed to save validation status for {ValidationId} ({PackageId} {PackageVersion}) as the current status is stale",
+                    request.PackageId,
+                    request.PackageVersion);
+
+                return (await GetStatusAsync(request)).State;
+            }
+            else if (result != SaveStatusResult.Success)
+            {
+                throw new NotSupportedException($"Unknown {nameof(SaveStatusResult)}: {result}");
+            }
+
+            return desiredState;
         }
 
         private static bool IsUniqueConstraintViolationException(DbUpdateException e)

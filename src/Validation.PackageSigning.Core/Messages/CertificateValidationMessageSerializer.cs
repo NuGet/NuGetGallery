@@ -23,16 +23,14 @@ namespace NuGet.Jobs.Validation.PackageSigning.Messages
             });
         }
 
-        public CertificateValidationMessage Deserialize(IBrokeredMessage message)
+        public CertificateValidationMessage Deserialize(IBrokeredMessage brokeredMessage)
         {
-            var deserializedMessage = _serializer.Deserialize(message);
+            var message = _serializer.Deserialize(brokeredMessage);
 
-            return new CertificateValidationMessage
-            {
-                CertificateKey = deserializedMessage.CertificateKey,
-                ValidationId = deserializedMessage.ValidationId,
-                RevalidateRevokedCertificate = deserializedMessage.RevalidateRevokedCertificate
-            };
+            return new CertificateValidationMessage(
+                message.CertificateKey,
+                message.ValidationId,
+                message.RevalidateRevokedCertificate);
         }
 
         [Schema(Name = CertificateValidationSchemaName, Version = 1)]

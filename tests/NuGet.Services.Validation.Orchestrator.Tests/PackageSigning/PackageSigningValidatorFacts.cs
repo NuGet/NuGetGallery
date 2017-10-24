@@ -83,7 +83,7 @@ namespace NuGet.Services.Validation.PackageSigning
                 await _target.StartValidationAsync(_validationRequest.Object);
 
                 _packageSignatureVerifier
-                    .Verify(x => x.StartVerificationAsync(It.IsAny<IValidationRequest>()), Times.Never);
+                    .Verify(x => x.EnqueueVerificationAsync(It.IsAny<IValidationRequest>()), Times.Never);
 
                 _validatorStateService
                     .Verify(x => x.AddStatusAsync(It.IsAny<ValidatorStatus>()), Times.Never);
@@ -108,7 +108,7 @@ namespace NuGet.Services.Validation.PackageSigning
                      });
 
                 _packageSignatureVerifier
-                    .Setup(x => x.StartVerificationAsync(It.IsAny<IValidationRequest>()))
+                    .Setup(x => x.EnqueueVerificationAsync(It.IsAny<IValidationRequest>()))
                     .Callback(() =>
                     {
                         verificationQueuedBeforeStatePersisted = !statePersisted;
@@ -116,28 +116,32 @@ namespace NuGet.Services.Validation.PackageSigning
                     .Returns(Task.FromResult(0));
 
                 _validatorStateService
-                    .Setup(x => x.AddStatusAsync(It.IsAny<ValidatorStatus>()))
+                    .Setup(x => x.TryAddValidatorStatusAsync(
+                                    It.IsAny<IValidationRequest>(),
+                                    It.IsAny<ValidatorStatus>(),
+                                    It.IsAny<ValidationStatus>()))
                     .Callback(() =>
                     {
                         statePersisted = true;
                     })
-                    .Returns(Task.FromResult(AddStatusResult.Success));
+                    .ReturnsAsync(ValidationStatus.Incomplete);
 
                 // Act
-                var actualStatus = await _target.StartValidationAsync(_validationRequest.Object);
+                await _target.StartValidationAsync(_validationRequest.Object);
 
                 // Assert
                 _packageSignatureVerifier
-                    .Verify(x => x.StartVerificationAsync(It.IsAny<IValidationRequest>()), Times.Once);
+                    .Verify(x => x.EnqueueVerificationAsync(It.IsAny<IValidationRequest>()), Times.Once);
 
                 _validatorStateService
                     .Verify(
-                        x => x.AddStatusAsync(
-                                It.Is<ValidatorStatus>(s => s.State == ValidationStatus.Incomplete)),
+                        x => x.TryAddValidatorStatusAsync(
+                                It.IsAny<IValidationRequest>(),
+                                It.IsAny<ValidatorStatus>(),
+                                It.Is<ValidationStatus>(s => s == ValidationStatus.Incomplete)),
                         Times.Once);
 
                 Assert.True(verificationQueuedBeforeStatePersisted);
-                Assert.Equal(ValidationStatus.Incomplete, actualStatus);
             }
 
             public static IEnumerable<object[]> StartedValidationStatuses => startedValidationStatuses.Select(s => new object[] { s });
@@ -146,7 +150,7 @@ namespace NuGet.Services.Validation.PackageSigning
         public abstract class FactsBase
         {
             protected readonly Mock<IValidatorStateService> _validatorStateService;
-            protected readonly Mock<IPackageSignatureVerifier> _packageSignatureVerifier;
+            protected readonly Mock<IPackageSignatureVerificationEnqueuer> _packageSignatureVerifier;
             protected readonly Mock<ILogger<PackageSigningValidator>> _logger;
             protected readonly Mock<IValidationRequest> _validationRequest;
             protected readonly PackageSigningValidator _target;
@@ -154,7 +158,7 @@ namespace NuGet.Services.Validation.PackageSigning
             public FactsBase()
             {
                 _validatorStateService = new Mock<IValidatorStateService>();
-                _packageSignatureVerifier = new Mock<IPackageSignatureVerifier>();
+                _packageSignatureVerifier = new Mock<IPackageSignatureVerificationEnqueuer>();
                 _logger = new Mock<ILogger<PackageSigningValidator>>();
 
                 _validationRequest = new Mock<IValidationRequest>();

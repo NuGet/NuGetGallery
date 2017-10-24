@@ -10,16 +10,23 @@ namespace NuGet.Jobs.Validation.PackageSigning.Messages
     /// </summary>
     public class CertificateValidationMessage
     {
+        public CertificateValidationMessage(long certificateKey, Guid validationId, bool revalidateRevokedCertificate = false)
+        {
+            CertificateKey = certificateKey;
+            ValidationId = validationId;
+            RevalidateRevokedCertificate = revalidateRevokedCertificate;
+        }
+
         /// <summary>
         /// The key to the certificate that should be validated.
         /// </summary>
-        public long CertificateKey { get; set; }
+        public long CertificateKey { get; }
 
         /// <summary>
         /// This validation's identifier. Certificate validations may share the same validation
         /// id (used to validate multiple certificates in one validation).
         /// </summary>
-        public Guid ValidationId { get; set; }
+        public Guid ValidationId { get; }
 
         /// <summary>
         /// Whether a revoked certificate should be revalidated. By default, Certificate Authorities
@@ -27,6 +34,6 @@ namespace NuGet.Jobs.Validation.PackageSigning.Messages
         /// certificates should only be revalidated in special cases such as a manual revalidation gesture
         /// by a NuGet Admin.
         /// </summary>
-        public bool RevalidateRevokedCertificate { get; set; }
+        public bool RevalidateRevokedCertificate { get; }
     }
 }

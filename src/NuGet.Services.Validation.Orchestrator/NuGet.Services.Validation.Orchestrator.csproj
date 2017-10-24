@@ -47,8 +47,11 @@
     <Compile Include="ConfigurationValidator.cs" />
     <Compile Include="Error.cs" />
     <Compile Include="Job.cs" />
-    <Compile Include="PackageSigning\IPackageSignatureVerifier.cs" />
-    <Compile Include="PackageSigning\PackageSignatureVerifier.cs" />
+    <Compile Include="PackageCertificates\CertificateVerificationEnqueuer.cs" />
+    <Compile Include="PackageCertificates\ICertificateVerificationEnqueuer.cs" />
+    <Compile Include="PackageCertificates\PackageCertificatesValidator.cs" />
+    <Compile Include="PackageSigning\IPackageSignatureVerificationEnqueuer.cs" />
+    <Compile Include="PackageSigning\PackageSignatureVerificationEnqueuer.cs" />
     <Compile Include="PackageSigning\PackageSigningValidator.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

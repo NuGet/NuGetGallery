@@ -37,7 +37,27 @@ namespace NuGet.Jobs.Validation.PackageSigning.Storage
         /// Persist the status of an already existing validation request.
         /// </summary>
         /// <param name="status">The updated status for the validation request.</param>
-        /// <returns>A task that completes when the status has been persisted.</returns>
+        /// <returns>The persisted state. This may not be the desired state if the save operation fails.</returns>
         Task<SaveStatusResult> SaveStatusAsync(ValidatorStatus status);
+
+        /// <summary>
+        /// Try to persist a new validation request's validator status. If the add operation fails, the result of
+        /// <see cref="GetStatusAsync(IValidationRequest)"/> will be returned instead.
+        /// </summary>
+        /// <param name="request">The request to validate a package whose state should be updated.</param>
+        /// <param name="validatorStatus">The validaiton request's validator status that should be added to the database.</param>
+        /// <param name="desiredState">The desired state for the validator's status.</param>
+        /// <returns>The persisted state. This may not be the desired state if the add operation fails.</returns>
+        Task<ValidationStatus> TryAddValidatorStatusAsync(IValidationRequest request, ValidatorStatus status, ValidationStatus desiredState);
+
+        /// <summary>
+        /// Try to persist the validator's status. If the update fails, the result of <see cref="GetStatusAsync(IValidationRequest)"/>
+        /// will be returned instead.
+        /// </summary>
+        /// <param name="request">The request to validate a package whose state should be updated.</param>
+        /// <param name="validatorStatus">The state of the validator's validation request that should be updated.</param>
+        /// <param name="desiredState">The desired state for the validator's status.</param>
+        /// <returns>The persisted state. This may not be the desired state if the update operation fails.</returns>
+        Task<ValidationStatus> TryUpdateValidationStatusAsync(IValidationRequest request, ValidatorStatus validatorStatus, ValidationStatus desiredState);
     }
 }

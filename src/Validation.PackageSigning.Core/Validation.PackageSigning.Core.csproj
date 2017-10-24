@@ -43,6 +43,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Error.cs" />
     <Compile Include="Storage\AddStatusResult.cs" />
     <Compile Include="Storage\ICertificateStore.cs" />
     <Compile Include="Storage\IValidatorStateService.cs" />
