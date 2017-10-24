@@ -50,7 +50,7 @@ namespace NuGetGallery
         [HttpGet]
         public virtual ActionResult About()
         {
-            if (!String.IsNullOrEmpty(_galleryConfigurationService.Current.ExternalAboutUrl))
+            if (!string.IsNullOrEmpty(_galleryConfigurationService.Current.ExternalAboutUrl))
             {
                 return Redirect(_galleryConfigurationService.Current.ExternalAboutUrl);
             }
@@ -119,7 +119,7 @@ namespace NuGetGallery
 
         public virtual async Task<ActionResult> Terms()
         {
-            if (!String.IsNullOrEmpty(_galleryConfigurationService.Current.ExternalTermsOfUseUrl))
+            if (!string.IsNullOrEmpty(_galleryConfigurationService.Current.ExternalTermsOfUseUrl))
             {
                 return Redirect(_galleryConfigurationService.Current.ExternalTermsOfUseUrl);
             }
@@ -135,7 +135,7 @@ namespace NuGetGallery
 
         public virtual async Task<ActionResult> Privacy()
         {
-            if (!String.IsNullOrEmpty(_galleryConfigurationService.Current.ExternalPrivacyPolicyUrl))
+            if (!string.IsNullOrEmpty(_galleryConfigurationService.Current.ExternalPrivacyPolicyUrl))
             {
                 return Redirect(_galleryConfigurationService.Current.ExternalPrivacyPolicyUrl);
             }
