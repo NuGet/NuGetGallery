@@ -179,6 +179,7 @@ namespace NuGetGallery
             if (existingPackageRegistration != null)
             {
                 var existingPackage = _packageRepository.GetAll()
+                    .Where(p => p.PackageRegistrationKey == existingPackageRegistration.Key)
                     .SingleOrDefault(p => p.NormalizedVersion == normalizedVersion);
 
                 if (existingPackage != null)

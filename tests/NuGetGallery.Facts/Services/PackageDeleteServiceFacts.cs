@@ -5,6 +5,7 @@ using System;
 using System.Data.Entity;
 using System.Data.SqlClient;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 using NuGetGallery.Auditing;
@@ -18,6 +19,7 @@ namespace NuGetGallery
 
         private static IPackageDeleteService CreateService(
             Mock<IEntityRepository<Package>> packageRepository = null,
+            Mock<IEntityRepository<PackageRegistration>> packageRegistrationRepository = null,
             Mock<IEntityRepository<PackageDelete>> packageDeletesRepository = null,
             Mock<IEntitiesContext> entitiesContext = null,
             Mock<IPackageService> packageService = null,
@@ -27,6 +29,7 @@ namespace NuGetGallery
             Action<Mock<TestPackageDeleteService>> setup = null)
         {
             packageRepository = packageRepository ?? new Mock<IEntityRepository<Package>>();
+            packageRegistrationRepository = packageRegistrationRepository ?? new Mock<IEntityRepository<PackageRegistration>>();
             packageDeletesRepository = packageDeletesRepository ?? new Mock<IEntityRepository<PackageDelete>>();
 
             var dbContext = new Mock<DbContext>();
@@ -41,6 +44,7 @@ namespace NuGetGallery
 
             var packageDeleteService = new Mock<TestPackageDeleteService>(
                 packageRepository.Object,
+                packageRegistrationRepository.Object,
                 packageDeletesRepository.Object,
                 entitiesContext.Object,
                 packageService.Object,
@@ -557,6 +561,64 @@ namespace NuGetGallery
                 Assert.Equal(package.PackageRegistration.Id, testService.LastAuditRecord.Id);
                 Assert.Equal(package.Version, testService.LastAuditRecord.Version);
                 auditingService.Verify(x => x.SaveAuditRecordAsync(testService.LastAuditRecord));
+            }
+        }
+
+        public class TheReflowHardDeletedPackagesAsyncMethod
+        {
+            [Fact]
+            public Task FailsIfPackageExists()
+            {
+                var id = "a";
+                var version = "1.0.0";
+                return RunTest(id, version, id, version, false);
+            }
+
+            [Fact]
+            public Task SucceedsIfRegistrationExistsButNotPackage()
+            {
+                var id = "a";
+                var version = "1.0.0";
+                var existingVersion = "2.0.0";
+                return RunTest(id, version, id, existingVersion, true);
+            }
+
+            [Fact]
+            public Task SucceedsIfRegistrationDoesNotExist()
+            {
+                var id = "a";
+                var version = "1.0.0";
+                var existingId = "b";
+                var existingVersion = "2.0.0";
+                return RunTest(id, version, existingId, existingVersion, true);
+            }
+
+            private async Task RunTest(string id, string version, string existingId, string existingVersion, bool succeeds)
+            {
+                var packageRegistrationKey = 1;
+                var packageRegistration = new PackageRegistration { Key = packageRegistrationKey, Id = existingId };
+                var package = new Package { PackageRegistrationKey = packageRegistrationKey, NormalizedVersion = existingVersion };
+
+                var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
+                packageRegistrationRepository.Setup(x => x.GetAll()).Returns(new PackageRegistration[] { packageRegistration }.AsQueryable());
+
+                var packageRepository = new Mock<IEntityRepository<Package>>();
+                packageRepository.Setup(x => x.GetAll()).Returns(new Package[] { package }.AsQueryable());
+
+                var auditingService = new Mock<IAuditingService>();
+
+                var service = CreateService(packageRepository: packageRepository, packageRegistrationRepository: packageRegistrationRepository, auditingService: auditingService);
+                
+                if (succeeds)
+                {
+                    await service.ReflowHardDeletedPackagesAsync(id, version, null);
+                }
+                else
+                {
+                    await Assert.ThrowsAsync<ArgumentException>(() => service.ReflowHardDeletedPackagesAsync(id, version, null));
+                }
+                
+                auditingService.Verify(x => x.SaveAuditRecordAsync(It.IsAny<AuditRecord>()), succeeds ? Times.Once() : Times.Never());
             }
         }
     }
