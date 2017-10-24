@@ -54,6 +54,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
             protected string _query;
             protected readonly List<Package> _packages;
             protected readonly Mock<IPackageService> _packageService;
+            protected readonly Mock<IPackageDeleteService> _packageDeleteService;
+            protected readonly Mock<ITelemetryService> _telemetryService;
             protected readonly Mock<HttpContextBase> _httpContextBase;
             protected readonly DeleteController _target;
 
@@ -98,7 +100,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     .Returns(() => new PackageRegistration { Packages = _packages });
                 _httpContextBase = new Mock<HttpContextBase>();
 
-                _target = new DeleteController(_packageService.Object);
+                _target = new DeleteController(_packageService.Object, _packageDeleteService.Object, _telemetryService.Object);
                 
                 TestUtility.SetupHttpContextMockForUrlGeneration(_httpContextBase, _target);
             }

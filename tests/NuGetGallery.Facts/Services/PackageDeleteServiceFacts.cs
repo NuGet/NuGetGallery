@@ -63,8 +63,8 @@ namespace NuGetGallery
         {
             public PackageAuditRecord LastAuditRecord { get; set; }
 
-            public TestPackageDeleteService(IEntityRepository<Package> packageRepository, IEntityRepository<PackageDelete> packageDeletesRepository, IEntitiesContext entitiesContext, IPackageService packageService, IIndexingService indexingService, IPackageFileService packageFileService, IAuditingService auditingService)
-                : base(packageRepository, packageDeletesRepository, entitiesContext, packageService, indexingService, packageFileService, auditingService)
+            public TestPackageDeleteService(IEntityRepository<Package> packageRepository, IEntityRepository<PackageRegistration> packageRegistrationRepository, IEntityRepository<PackageDelete> packageDeletesRepository, IEntitiesContext entitiesContext, IPackageService packageService, IIndexingService indexingService, IPackageFileService packageFileService, IAuditingService auditingService)
+                : base(packageRepository, packageRegistrationRepository, packageDeletesRepository, entitiesContext, packageService, indexingService, packageFileService, auditingService)
             {
             }
 

@@ -4,8 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web.Mvc;
-using System.Web.Routing;
 using NuGet.Versioning;
 using NuGetGallery.Areas.Admin.ViewModels;
 
@@ -14,12 +14,19 @@ namespace NuGetGallery.Areas.Admin.Controllers
     public partial class DeleteController : AdminControllerBase
     {
         private readonly IPackageService _packageService;
+        private readonly IPackageDeleteService _packageDeleteService;
+        private readonly ITelemetryService _telemetryService;
 
         protected DeleteController() { }
 
-        public DeleteController(IPackageService packageService)
+        public DeleteController(
+            IPackageService packageService,
+            IPackageDeleteService packageDeleteService,
+            ITelemetryService telemetryService)
         {
             _packageService = packageService;
+            _packageDeleteService = packageDeleteService;
+            _telemetryService = telemetryService;
         }
 
         [HttpGet]
@@ -121,6 +128,36 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     })
                     .ToList()
             };
+        }
+
+        [HttpGet]
+        public virtual ActionResult Reflow()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> Reflow(HardDeleteReflowViewModel model)
+        {
+            try
+            {
+                await _packageDeleteService.ReflowHardDeletedPackagesAsync(model.Id, model.Version, GetCurrentUser());
+
+                // Redirect out
+                TempData["Message"] =
+                    "We're reflowing the hard-deleted package right now. It may take a while for this change to propagate through our system.";
+
+                return Redirect("/");
+            }
+            catch (Exception e)
+            {
+                _telemetryService.TraceException(e);
+
+                TempData["Message"] = e.GetUserSafeMessage();
+
+                return Reflow();
+            }
         }
     }
 }

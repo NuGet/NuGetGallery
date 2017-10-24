@@ -30,6 +30,7 @@ namespace NuGetGallery
             END";
 
         private readonly IEntityRepository<Package> _packageRepository;
+        private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
         private readonly IEntityRepository<PackageDelete> _packageDeletesRepository;
         private readonly IEntitiesContext _entitiesContext;
         private readonly IPackageService _packageService;
@@ -39,6 +40,7 @@ namespace NuGetGallery
 
         public PackageDeleteService(
             IEntityRepository<Package> packageRepository,
+            IEntityRepository<PackageRegistration> packageRegistrationRepository,
             IEntityRepository<PackageDelete> packageDeletesRepository,
             IEntitiesContext entitiesContext,
             IPackageService packageService,
@@ -47,6 +49,7 @@ namespace NuGetGallery
             IAuditingService auditingService)
         {
             _packageRepository = packageRepository;
+            _packageRegistrationRepository = packageRegistrationRepository;
             _packageDeletesRepository = packageDeletesRepository;
             _entitiesContext = entitiesContext;
             _packageService = packageService;
@@ -163,6 +166,29 @@ namespace NuGetGallery
 
             // Force refresh the index
             UpdateSearchIndex();
+        }
+
+        public Task ReflowHardDeletedPackagesAsync(string id, string version, User deletedBy)
+        {
+            var normalizedId = id.ToLowerInvariant();
+            var normalizedVersion = NuGetVersion.Parse(version).ToNormalizedString();
+
+            var existingPackageRegistration = _packageRegistrationRepository.GetAll()
+                .SingleOrDefault(p => p.Id == normalizedId);
+            
+            if (existingPackageRegistration != null)
+            {
+                var existingPackage = _packageRepository.GetAll()
+                    .SingleOrDefault(p => p.NormalizedVersion == normalizedVersion);
+
+                if (existingPackage != null)
+                {
+                    throw new ArgumentException("The package exists! You can only reflow hard-deleted packages that do not exist.");
+                }
+            }
+
+            var auditRecord = new PackageAuditRecord(normalizedId, normalizedVersion, string.Empty, null, null, AuditedPackageAction.Delete, "reflow hard-deleted package");
+            return _auditingService.SaveAuditRecordAsync(auditRecord);
         }
 
         protected virtual async Task ExecuteSqlCommandAsync(Database database, string sql, params object[] parameters)

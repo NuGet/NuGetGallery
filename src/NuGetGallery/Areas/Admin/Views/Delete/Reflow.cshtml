@@ -1,0 +1,32 @@
+﻿
+@model HardDeleteReflowViewModel
+@{
+    ViewBag.Title = "Reflow deleted packages";
+}
+
+<section>
+    <article id="stage">
+        <h2>Reflow</h2>
+
+        <p>
+            Use this page to reflow a hard-deleted package that is no longer in the gallery.
+        </p>
+
+        @using (Html.BeginForm())
+        {
+            @Html.AntiForgeryToken()
+
+            <div class="form-field">
+                @Html.LabelFor(m => m.Id)
+                @Html.EditorFor(m => m.Id)
+            </div>
+            
+            <div class="form-field">
+                @Html.LabelFor(m => m.Version)
+                @Html.EditorFor(m => m.Version)
+            </div>
+
+            <input type="submit" value="Reflow this hard-deleted package" title="Reflow this hard-deleted package"/>
+        }
+    </article>
+</section>
