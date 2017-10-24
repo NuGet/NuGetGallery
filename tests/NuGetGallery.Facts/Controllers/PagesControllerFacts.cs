@@ -89,39 +89,53 @@ namespace NuGetGallery
         public class LegalLinkActions : TestContainer
         {
             [Fact]
-            public void ExternalPrivacyPolicyUrlRedirects()
+            public async Task ExternalPrivacyPolicyUrlRedirects()
             {
                 var customUrl = "http://privacyPolicy";
                 var configuration = GetConfigurationService();
+                configuration.Current.ExternalPrivacyPolicyUrl = customUrl;
 
                 var controller = GetController<PagesController>();
-                var result = controller.Privacy().Result;
-                Assert.IsType<ViewResult>(result);
-
-                configuration.Current.ExternalPrivacyPolicyUrl = customUrl;
-                controller = GetController<PagesController>();
-                result = controller.Privacy().Result;
+                var result = await controller.Privacy();
 
                 Assert.IsType<RedirectResult>(result);
                 Assert.Equal(customUrl, ((RedirectResult)result).Url);
             }
 
             [Fact]
-            public void ExternalTermsOfUseUrlRedirects()
+            public async Task NoExternalPrivacyPolicyUrlDoesNotRedirect()
+            {
+                var configuration = GetConfigurationService();
+
+                var controller = GetController<PagesController>();
+                var result = await controller.Privacy();
+
+                Assert.IsType<ViewResult>(result);
+            }
+
+            [Fact]
+            public async Task ExternalTermsOfUseUrlRedirects()
             {
                 var customUrl = "http://TermsOfUse";
                 var configuration = GetConfigurationService();
-                
-                var controller = GetController<PagesController>();
-                var result = controller.Terms().Result;
-                Assert.IsType<ViewResult>(result);
-
                 configuration.Current.ExternalTermsOfUseUrl = customUrl;
-                controller = GetController<PagesController>();
-                result = controller.Terms().Result;
+
+                var controller = GetController<PagesController>();
+                var result = await controller.Terms();
 
                 Assert.IsType<RedirectResult>(result);
                 Assert.Equal(customUrl, ((RedirectResult)result).Url);
+            }
+
+            [Fact]
+            public async Task NoExternalTermsOfUseUrlDoesNotRedirect()
+            {
+                var configuration = GetConfigurationService();
+
+                var controller = GetController<PagesController>();
+                var result = await controller.Terms();
+
+                Assert.IsType<ViewResult>(result);
             }
 
             [Fact]
@@ -129,18 +143,24 @@ namespace NuGetGallery
             {
                 var customUrl = "http://About";
                 var configuration = GetConfigurationService();
-                
+                configuration.Current.ExternalAboutUrl = customUrl;
+
+                var controller = GetController<PagesController>();
+                var result = controller.About();
+
+                Assert.IsType<RedirectResult>(result);
+                Assert.Equal(customUrl, ((RedirectResult)result).Url);
+            }
+
+            [Fact]
+            public void NoExternalAboutUrlDoesNotRedirect()
+            {
+                var configuration = GetConfigurationService();
+
                 var controller = GetController<PagesController>();
                 var result = controller.About();
 
                 Assert.IsType<ViewResult>(result);
-
-                configuration.Current.ExternalAboutUrl = customUrl;
-                controller = GetController<PagesController>();
-                result = controller.About();
-
-                Assert.IsType<RedirectResult>(result);
-                Assert.Equal(customUrl, ((RedirectResult)result).Url);
             }
         }
     }
