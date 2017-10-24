@@ -571,7 +571,7 @@ namespace NuGetGallery
             {
                 var id = "a";
                 var version = "1.0.0";
-                return RunTest(id, version, id, version, false);
+                return ReflowHardDeletedPackage(id, version, id, version, false);
             }
 
             [Fact]
@@ -580,7 +580,7 @@ namespace NuGetGallery
                 var id = "a";
                 var version = "1.0.0";
                 var existingVersion = "2.0.0";
-                return RunTest(id, version, id, existingVersion, true);
+                return ReflowHardDeletedPackage(id, version, id, existingVersion, true);
             }
 
             [Fact]
@@ -590,10 +590,10 @@ namespace NuGetGallery
                 var version = "1.0.0";
                 var existingId = "b";
                 var existingVersion = "2.0.0";
-                return RunTest(id, version, existingId, existingVersion, true);
+                return ReflowHardDeletedPackage(id, version, existingId, existingVersion, true);
             }
 
-            private async Task RunTest(string id, string version, string existingId, string existingVersion, bool succeeds)
+            private async Task ReflowHardDeletedPackage(string id, string version, string existingId, string existingVersion, bool succeeds)
             {
                 var packageRegistrationKey = 1;
                 var packageRegistration = new PackageRegistration { Key = packageRegistrationKey, Id = existingId };
