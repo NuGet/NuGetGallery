@@ -780,6 +780,7 @@
     <Compile Include="Services\CloudBlobFileStorageService.cs" />
     <Compile Include="Services\IFileStorageService.cs" />
     <Compile Include="Services\ImmediatePackageValidator.cs" />
+    <Compile Include="Services\ITelemetryClient.cs" />
     <Compile Include="Services\PackageOwnershipManagementService.cs" />
     <Compile Include="Services\IPackageOwnershipManagementService.cs" />
     <Compile Include="Services\IPackageValidationInitiator.cs" />
@@ -864,6 +865,7 @@
     <Compile Include="Services\IPackageUploadService.cs" />
     <Compile Include="Services\ReservedNamespaceService.cs" />
     <Compile Include="Services\ReadMeService.cs" />
+    <Compile Include="Services\TelemetryClientWrapper.cs" />
     <Compile Include="Services\ValidationService.cs" />
     <Compile Include="Telemetry\ClientInformationTelemetryEnricher.cs" />
     <Compile Include="Telemetry\QuietExceptionLogger.cs" />
@@ -981,7 +983,6 @@
     <Compile Include="Extensions\HttpRequestExtensions.cs" />
     <Compile Include="Helpers\HostMachine.cs" />
     <Compile Include="Telemetry\AppInsightsHealthIndicatorLogger.cs" />
-    <Compile Include="Telemetry\Telemetry.cs" />
     <Compile Include="Infrastructure\DependencyResolverServiceProviderAdapter.cs" />
     <Compile Include="Infrastructure\Lucene\CloudDownloadCountServiceRefreshJob.cs" />
     <Compile Include="Infrastructure\MessageQueue.cs" />
