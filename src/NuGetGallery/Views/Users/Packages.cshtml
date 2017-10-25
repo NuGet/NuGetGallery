@@ -20,6 +20,10 @@
     }
 
     @{
+        @Html.Partial("_ReservedNamespacesList", Model.ReservedNamespaces)
+    }
+
+    @{
         if (Model.OwnerRequests.Incoming.RequestItems.Any() || Model.OwnerRequests.Outgoing.RequestItems.Any())
         {
             <div class="row">
@@ -31,10 +35,6 @@
             @Html.Partial("_OwnerRequestsList", Model.OwnerRequests.Incoming)
             @Html.Partial("_OwnerRequestsList", Model.OwnerRequests.Outgoing)
         }
-    }
-
-    @{ 
-        @Html.Partial("_ReservedNamespacesList", Model.ReservedNamespaces)
     }
 </section>
 
