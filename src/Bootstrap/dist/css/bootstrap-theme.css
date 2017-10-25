@@ -397,6 +397,10 @@ img.package-icon {
   min-width: 20px;
   max-height: 2em;
 }
+.user-package-list .manage-package-listing .reserved-indicator-icon {
+  min-width: 20px;
+  max-height: 2em;
+}
 .user-package-list .manage-package-listing .align-middle {
   vertical-align: middle;
 }

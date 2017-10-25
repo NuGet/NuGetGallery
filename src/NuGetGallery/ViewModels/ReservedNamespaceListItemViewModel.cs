@@ -14,14 +14,14 @@ namespace NuGetGallery
 
         public bool IsPrefix { get; }
 
-        public IEnumerable<User> owners { get; }
+        public IEnumerable<User> Owners { get; }
 
         public ReservedNamespaceListItemViewModel(ReservedNamespace reservedNamespace)
         {
             Value = reservedNamespace.Value;
             IsPublic = reservedNamespace.IsSharedNamespace;
             IsPrefix = reservedNamespace.IsPrefix;
-            owners = reservedNamespace.Owners.Select(owner => owner);
+            Owners = reservedNamespace.Owners.Select(owner => owner);
         }
     }
 }

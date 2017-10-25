@@ -23,19 +23,34 @@
                             <th class="hidden-xs"></th>
                             <th>Package ID or Prefix</th>
                             <th>Owners</th>
+                            <th>Upload Restrictions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var reservedNamespace in @Model.ReservedNamespaces)
                         {
                             <tr class="manage-package-listing">
-                                <td><img class="reserved-indicator"
+                                <td class="align-middle hidden-xs">
+                                    <img class="reserved-indicator-icon img-responsive"
                                         src="~/Content/gallery/img/reserved-indicator.svg"
                                         @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-20x20.png"))
                                         title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
                                 </td>
-                                <td>@reservedNamespace.Value</td>
-                                <td>@string.Join(",", reservedNamespace.owners.Select(o => o.Username))</td>
+                                <td class="align-middle">@reservedNamespace.Value</td>
+                                <td class="align-middle">
+                                    @foreach (var owner in reservedNamespace.Owners)
+                                    {
+                                        <a href="@Url.User(owner.Username)">@owner.Username</a>
+                                    }
+                                </td>
+                                @if(reservedNamespace.IsPublic)
+                                {
+                                    <td class="align-middle">Any NuGet.org Account</td>
+                                }
+                                else
+                                {
+                                    <td class="align-middle">Prefix or ID Owners Only</td>
+                                }
                             </tr>
                         }
                     </tbody>
