@@ -7,7 +7,6 @@
     <p>
         Type a list of packages to delete in the form:
         <br />
-        <br />
         id version
         <br />
         id2 version2
@@ -15,11 +14,12 @@
         id3 version3
     </p>
 
-    <div class="form-field">
-        @Html.LabelFor(m => m.BulkList)
-        @Html.TextAreaFor(m => m.BulkList, 10, 50, null)
+    <div>
+        @Html.TextAreaFor(m => m.BulkList, 10, 50, new { style = "width: 100%;" })
         @Html.ValidationMessageFor(m => m.BulkList)
     </div>
+
+    <br />
 
     <input type="submit" value="Reflow these hard-deleted packages" title="Reflow these hard-deleted packages" />
 }

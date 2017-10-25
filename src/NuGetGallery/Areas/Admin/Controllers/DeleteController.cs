@@ -138,29 +138,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> Reflow(HardDeleteReflowRequest request)
-        {
-            try
-            {
-                await _packageDeleteService.ReflowHardDeletedPackageAsync(request.Id, request.Version);
-                
-                TempData["Message"] =
-                    "We're reflowing the hard-deleted package right now. It may take a while for this change to propagate through our system.";
-
-                return Redirect("/");
-            }
-            catch (Exception e)
-            {
-                _telemetryService.TraceException(e);
-
-                TempData["Message"] = e.GetUserSafeMessage();
-
-                return View("Reflow");
-            }
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
         public virtual ActionResult ReflowBulk(HardDeleteReflowBulkRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.BulkList))

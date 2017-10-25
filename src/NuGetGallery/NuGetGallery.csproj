@@ -1861,7 +1861,6 @@
     <Content Include="Areas\Admin\Views\ReservedNamespace\Index.cshtml" />
     <Content Include="Areas\Admin\Views\Validation\Index.cshtml" />
     <Content Include="Areas\Admin\Views\Delete\Reflow.cshtml" />
-    <Content Include="Areas\Admin\Views\Delete\_ReflowSingle.cshtml" />
     <Content Include="Areas\Admin\Views\Delete\_ReflowBulk.cshtml" />
     <Content Include="Areas\Admin\Views\Delete\_ReflowBulkConfirm.cshtml" />
     <None Include="Scripts\jquery-1.11.0.intellisense.js" />
