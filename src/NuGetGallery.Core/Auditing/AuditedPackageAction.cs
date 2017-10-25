@@ -11,7 +11,6 @@ namespace NuGetGallery.Auditing
         List,
         Unlist,
         Edit,
-        UndoEdit,
         Verify
     }
 }
