@@ -9,6 +9,17 @@ using System.ComponentModel.DataAnnotations;
 
 namespace NuGetGallery
 {
+    /// <summary>
+    /// NuGetGallery now supports both Users and Organizations which share common features such as:
+    /// - Namespace ownership
+    /// - Package ownership
+    /// - Security policies
+    /// - Name and email unique across both Users and Organizations
+    /// 
+    /// Organizations should not support UserRoles or Credentials, but this is not constrained by the
+    /// database. In the future, we could consider renaming the Users table to Accounts and adding a
+    /// Users table to constrain UserRoles and Credentials to only User accounts.
+    /// </summary>
     public class User : IEntity
     {
         public User() : this(null)
@@ -22,6 +33,38 @@ namespace NuGetGallery
             ReservedNamespaces = new HashSet<ReservedNamespace>();
             Roles = new List<Role>();
             Username = username;
+        }
+
+        /// <summary>
+        /// <see cref="Organization"/> represented by this account, if any.
+        /// </summary>
+        public Organization Organization { get; set; }
+        
+        /// <summary>
+        /// Whether this is an <see cref="Organization"/> account.
+        /// </summary>
+        public bool IsOrganization
+        {
+            get
+            {
+                return Organization != null;
+            }
+        }
+
+        /// <summary>
+        /// Organization memberships for a <see cref="User"/> account.
+        /// </summary>
+        public virtual ICollection<Membership> Memberships { get; set; }
+
+        /// <summary>
+        /// Organizations in which the <see cref="User"/> is a member.
+        /// </summary>
+        public IEnumerable<Organization> Organizations
+        {
+            get
+            {
+                return Memberships.Select(m => m.Organization);
+            }
         }
 
         [StringLength(256)]

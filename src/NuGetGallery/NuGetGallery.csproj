@@ -776,6 +776,10 @@
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Helpers\GravatarHelper.cs" />
     <Compile Include="Helpers\RegexEx.cs" />
+    <Compile Include="Migrations\201710250430326_AddOrganizations.cs" />
+    <Compile Include="Migrations\201710250430326_AddOrganizations.Designer.cs">
+      <DependentUpon>201710250430326_AddOrganizations.cs</DependentUpon>
+    </Compile>
     <Compile Include="Services\AsynchronousPackageValidationInitiator.cs" />
     <Compile Include="Services\CloudBlobFileStorageService.cs" />
     <Compile Include="Services\IFileStorageService.cs" />
@@ -1848,6 +1852,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201709202249402_AddPackageOwnershipRequestsPage.resx">
       <DependentUpon>201709202249402_AddPackageOwnershipRequestsPage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201710250430326_AddOrganizations.resx">
+      <DependentUpon>201710250430326_AddOrganizations.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

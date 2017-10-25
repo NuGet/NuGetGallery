@@ -98,6 +98,18 @@ namespace NuGetGallery
             }
         }
 
+        public IDbSet<Organization> Organizations
+        {
+            get
+            {
+                return Set<Organization>();
+            }
+            set
+            {
+                throw new NotSupportedException();
+            }
+        }
+
         public IDbSet<UserSecurityPolicy> UserSecurityPolicies
         {
             get

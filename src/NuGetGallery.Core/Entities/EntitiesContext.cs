@@ -41,9 +41,18 @@ namespace NuGetGallery
         public IDbSet<PackageRegistration> PackageRegistrations { get; set; }
         public IDbSet<Credential> Credentials { get; set; }
         public IDbSet<Scope> Scopes { get; set; }
-        public IDbSet<User> Users { get; set; }
         public IDbSet<UserSecurityPolicy> UserSecurityPolicies { get; set; }
         public IDbSet<ReservedNamespace> ReservedNamespaces { get; set; }
+
+        /// <summary>
+        /// User or organization accounts.
+        /// </summary>
+        public IDbSet<User> Users { get; set; }
+
+        /// <summary>
+        /// Organization accounts.
+        /// </summary>
+        public IDbSet<Organization> Organizations { get; set; }
 
         IDbSet<T> IEntitiesContext.Set<T>()
         {
@@ -118,6 +127,25 @@ namespace NuGetGallery
                 .Map(c => c.ToTable("UserRoles")
                            .MapLeftKey("UserKey")
                            .MapRightKey("RoleKey"));
+            
+            modelBuilder.Entity<Organization>()
+                .HasKey(o => o.Key)
+                .HasRequired<User>(o => o.Account)
+                .WithOptional(u => u.Organization)
+                .WillCascadeOnDelete(false); // Disabled to prevent multiple cascade paths.
+
+            modelBuilder.Entity<Membership>()
+                .HasKey(m => new { m.OrganizationKey, m.MemberKey })
+                .HasRequired<Organization>(m => m.Organization)
+                .WithMany(o => o.Memberships)
+                .HasForeignKey(m => m.OrganizationKey)
+                .WillCascadeOnDelete(true); // Memberships will be deleted with the Organization.
+            
+            modelBuilder.Entity<Membership>()
+                .HasRequired<User>(m => m.Member)
+                .WithMany(u => u.Memberships)
+                .HasForeignKey(m => m.MemberKey)
+                .WillCascadeOnDelete(true); // Memberships will be deleted with the User (Member).
 
             modelBuilder.Entity<Role>()
                 .HasKey(u => u.Key);
