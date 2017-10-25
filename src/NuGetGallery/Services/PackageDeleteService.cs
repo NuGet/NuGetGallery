@@ -22,6 +22,9 @@ namespace NuGetGallery
                 FROM Packages AS p
                 WHERE p.[PackageRegistrationKey] = @key)
             BEGIN
+                DELETE por FROM PackageOwnerRequests As por
+                WHERE por.[PackageRegistrationKey] = @key                
+
                 DELETE pro FROM PackageRegistrationOwners AS pro
                 WHERE pro.[PackageRegistrationKey] = @key
 
