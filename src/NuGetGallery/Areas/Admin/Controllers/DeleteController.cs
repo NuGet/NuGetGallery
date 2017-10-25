@@ -133,7 +133,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         [HttpGet]
         public virtual ActionResult Reflow()
         {
-            return View("Reflow");
+            return View(nameof(Reflow));
         }
 
         [HttpPost]
@@ -144,7 +144,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             {
                 TempData["Message"] = "Must specify a list of hard-deleted packages to reflow in bulk!";
 
-                return View("Reflow");
+                return View(nameof(Reflow));
             }
 
             var lines = request.BulkList.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
@@ -166,7 +166,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     requests.Add(new HardDeleteReflowRequest() { Id = parts[0], Version = parts[1] });
                 }
 
-                return View("Reflow", new HardDeleteReflowBulkRequestConfirmation() { Requests = requests });
+                return View(nameof(Reflow), new HardDeleteReflowBulkRequestConfirmation() { Requests = requests });
             }
             catch (Exception e)
             {
@@ -174,7 +174,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
                 TempData["Message"] = e.GetUserSafeMessage();
 
-                return View("Reflow");
+                return View(nameof(Reflow));
             }
         }
 
@@ -206,7 +206,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     "Successfully reflowed all packages.";
             }
 
-            return View("Reflow");
+            return View(nameof(Reflow));
         }
     }
 }
