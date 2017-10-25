@@ -144,38 +144,6 @@
                 <p>@Html.PreFormattedText(Model.Description)</p>
             }
 
-            @if (!string.IsNullOrEmpty(Model.PolicyMessage))
-            {
-                @ViewHelpers.AlertWarning(@<text>@Model.PolicyMessage</text>)
-            }
-
-            @if (Model.HasPendingMetadata)
-            {
-                using (Html.BeginForm(actionName: "UndoPendingEdits", controllerName: "Packages"))
-                {
-                    @Html.AntiForgeryToken()
-
-                    @ViewHelpers.AlertInfo(
-                        @<text>
-                            An edit is pending for this package version. You are seeing the <em>edited</em> package description now.
-                            These changes will be applied to the package file and become visible to everybody soon unless you
-                            <a href="#" role="button" id="undo-pending-edits">undo pending edits</a> first.
-                        </text>
-                    )
-                }
-            }
-
-            @if (Model.IsLastEditFailed)
-            {
-                @ViewHelpers.AlertDanger(
-                    @<text>
-                        Your last edit to this package was not successfully applied.
-                        You can <a href="@Url.EditPackage(Model.Id, Model.Version)">edit</a>
-                        the package and submit the edit again to retry the edit.
-                    </text>
-                )
-            }
-
             @if (Model.Validating)
             {
                 @ViewHelpers.AlertWarning(
