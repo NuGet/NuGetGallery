@@ -85,17 +85,20 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             
             if (!timestampV2.Last.HasValue)
             {
-                throw new ValidationException("Cannot get timestamp data for package from the V2 feed!");
+                throw new TimestampComparisonException(timestampV2, timestampCatalog, 
+                    "Cannot get timestamp data for package from the V2 feed!");
             }
 
             if (!timestampCatalog.Last.HasValue)
             {
-                throw new ValidationException("Cannot get timestamp data for package from the catalog!");
+                throw new TimestampComparisonException(timestampV2, timestampCatalog, 
+                    "Cannot get timestamp data for package from the catalog!");
             }
 
             if (timestampCatalog.Last > timestampV2.Last)
             {
-                throw new ValidationException("The timestamp in the catalog is newer than the timestamp in the feed! This should never happen because all data flows from the catalog into the feed!");
+                throw new TimestampComparisonException(timestampV2, timestampCatalog,
+                    "The timestamp in the catalog is newer than the timestamp in the feed! This should never happen because all data flows from the feed into the catalog!");
             }
 
             // If the timestamp metadata in the catalog is LESS than that of the feed, we must not be looking at the latest entry that corresponds with this package, so skip the test for now.
