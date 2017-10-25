@@ -18,6 +18,7 @@ namespace NuGetGallery.Auditing
                 "List",
                 "SoftDelete",
                 "Unlist",
+                "UndoEdit",
                 "Verify"
             };
 
