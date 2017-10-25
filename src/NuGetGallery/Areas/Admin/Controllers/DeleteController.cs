@@ -142,7 +142,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         {
             try
             {
-                await _packageDeleteService.ReflowHardDeletedPackagesAsync(model.Id, model.Version, GetCurrentUser());
+                await _packageDeleteService.ReflowHardDeletedPackageAsync(model.Id, model.Version);
 
                 // Redirect out
                 TempData["Message"] =

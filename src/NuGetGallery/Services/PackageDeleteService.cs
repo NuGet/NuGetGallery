@@ -168,7 +168,7 @@ namespace NuGetGallery
             UpdateSearchIndex();
         }
 
-        public Task ReflowHardDeletedPackagesAsync(string id, string version, User deletedBy)
+        public Task ReflowHardDeletedPackageAsync(string id, string version)
         {
             var normalizedId = id.ToLowerInvariant();
             var normalizedVersion = NuGetVersion.Parse(version).ToNormalizedString();
@@ -184,11 +184,18 @@ namespace NuGetGallery
 
                 if (existingPackage != null)
                 {
-                    throw new ArgumentException("The package exists! You can only reflow hard-deleted packages that do not exist.");
+                    throw new UserSafeException($"The package {id} {normalizedVersion} exists! You can only reflow hard-deleted packages that do not exist.");
                 }
             }
 
-            var auditRecord = new PackageAuditRecord(normalizedId, normalizedVersion, string.Empty, null, null, AuditedPackageAction.Delete, "reflow hard-deleted package");
+            var auditRecord = new PackageAuditRecord(
+                normalizedId, 
+                normalizedVersion, 
+                hash: string.Empty, 
+                packageRecord: null, 
+                registrationRecord: null, 
+                action: AuditedPackageAction.Delete, 
+                reason: "reflow hard-deleted package");
             return _auditingService.SaveAuditRecordAsync(auditRecord);
         }
 
