@@ -24,29 +24,6 @@ namespace NuGetGallery
             Assert.True(result == isInRole);
         }
 
-        [Fact]
-        public void IsOrganization_ReturnsTrueIfOrganizationIsNotNull()
-        {
-            // Arrange
-            var user = new User()
-            {
-                Organization = new Organization()
-            };
-
-            // Act & Assert
-            Assert.True(user.IsOrganization);
-        }
-
-        [Fact]
-        public void IsOrganization_ReturnsFalseIfOrganizationIsNull()
-        {
-            // Arrange
-            var user = new User();
-
-            // Act & Assert
-            Assert.False(user.IsOrganization);
-        }
-
         public void Organizations_ReturnsOrganizationsFromMemberships()
         {
             // Arrange

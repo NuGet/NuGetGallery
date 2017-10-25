@@ -39,17 +39,6 @@ namespace NuGetGallery
         /// <see cref="Organization"/> represented by this account, if any.
         /// </summary>
         public Organization Organization { get; set; }
-        
-        /// <summary>
-        /// Whether this is an <see cref="Organization"/> account.
-        /// </summary>
-        public bool IsOrganization
-        {
-            get
-            {
-                return Organization != null;
-            }
-        }
 
         /// <summary>
         /// Organization memberships for a <see cref="User"/> account.

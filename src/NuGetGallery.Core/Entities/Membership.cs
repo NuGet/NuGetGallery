@@ -41,20 +41,5 @@ namespace NuGetGallery
         /// - All collaborator capabilities
         /// </summary>
         public bool IsAdmin { get; set; }
-
-        /// <summary>
-        /// Whether the <see cref="Member"/> is a collaborator for the <see cref="Organization"/>.
-        /// 
-        /// Collaborators have the following capabilities:
-        /// - Pushing new package versions
-        /// - Unlisting packages
-        /// </summary>
-        public bool IsCollaborator
-        {
-            get
-            {
-                return !IsAdmin;
-            }
-        }
     }
 }
