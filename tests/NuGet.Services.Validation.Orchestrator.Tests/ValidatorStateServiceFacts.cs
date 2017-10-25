@@ -458,7 +458,6 @@ namespace NuGet.Services.Validation
             public async Task PersistsStatus()
             {
                 // Arrange
-                var validatorName = nameof(AValidator);
                 var existingStatus = ExistingStatus;
 
                 _validationContext.Mock(validatorStatuses: new[] { existingStatus });
@@ -466,7 +465,7 @@ namespace NuGet.Services.Validation
                 // Act & Assert
                 var result = await _target.TryUpdateValidationStatusAsync(
                                             _validationRequest.Object,
-                                            ExistingStatus,
+                                            existingStatus,
                                             ValidationStatus.Succeeded);
 
                 _validationContext.Verify(c => c.SaveChangesAsync(), Times.Once);
