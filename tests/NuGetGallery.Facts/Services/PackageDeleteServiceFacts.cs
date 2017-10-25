@@ -611,11 +611,11 @@ namespace NuGetGallery
                 
                 if (succeeds)
                 {
-                    await service.ReflowHardDeletedPackagesAsync(id, version, null);
+                    await service.ReflowHardDeletedPackageAsync(id, version);
                 }
                 else
                 {
-                    await Assert.ThrowsAsync<ArgumentException>(() => service.ReflowHardDeletedPackagesAsync(id, version, null));
+                    await Assert.ThrowsAsync<ArgumentException>(() => service.ReflowHardDeletedPackageAsync(id, version));
                 }
                 
                 auditingService.Verify(x => x.SaveAuditRecordAsync(It.IsAny<AuditRecord>()), succeeds ? Times.Once() : Times.Never());

@@ -170,17 +170,32 @@ namespace NuGetGallery
 
         public Task ReflowHardDeletedPackageAsync(string id, string version)
         {
+            if (string.IsNullOrEmpty(id))
+            {
+                throw new UserSafeException($"Must supply an ID for the hard-deleted package to reflow.");
+            }
+
+            if (string.IsNullOrEmpty(version))
+            {
+                throw new UserSafeException($"Must supply a version for the hard-deleted package to reflow.");
+            }
+
             var normalizedId = id.ToLowerInvariant();
-            var normalizedVersion = NuGetVersion.Parse(version).ToNormalizedString();
+            if (!NuGetVersion.TryParse(version, out var normalizedVersion))
+            {
+                throw new UserSafeException($"{version} is not a valid version string!");
+            }
+
+            var normalizedVersionString = normalizedVersion.ToNormalizedString();
 
             var existingPackageRegistration = _packageRegistrationRepository.GetAll()
                 .SingleOrDefault(p => p.Id == normalizedId);
-            
+
             if (existingPackageRegistration != null)
             {
                 var existingPackage = _packageRepository.GetAll()
                     .Where(p => p.PackageRegistrationKey == existingPackageRegistration.Key)
-                    .SingleOrDefault(p => p.NormalizedVersion == normalizedVersion);
+                    .SingleOrDefault(p => p.NormalizedVersion == normalizedVersionString);
 
                 if (existingPackage != null)
                 {
@@ -189,12 +204,12 @@ namespace NuGetGallery
             }
 
             var auditRecord = new PackageAuditRecord(
-                normalizedId, 
-                normalizedVersion, 
-                hash: string.Empty, 
-                packageRecord: null, 
-                registrationRecord: null, 
-                action: AuditedPackageAction.Delete, 
+                normalizedId,
+                normalizedVersionString,
+                hash: string.Empty,
+                packageRecord: null,
+                registrationRecord: null,
+                action: AuditedPackageAction.Delete,
                 reason: "reflow hard-deleted package");
             return _auditingService.SaveAuditRecordAsync(auditRecord);
         }

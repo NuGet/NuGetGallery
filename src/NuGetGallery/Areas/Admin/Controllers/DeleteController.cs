@@ -133,18 +133,17 @@ namespace NuGetGallery.Areas.Admin.Controllers
         [HttpGet]
         public virtual ActionResult Reflow()
         {
-            return View();
+            return View("Reflow");
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> Reflow(HardDeleteReflowViewModel model)
+        public virtual async Task<ActionResult> Reflow(HardDeleteReflowRequest request)
         {
             try
             {
-                await _packageDeleteService.ReflowHardDeletedPackageAsync(model.Id, model.Version);
-
-                // Redirect out
+                await _packageDeleteService.ReflowHardDeletedPackageAsync(request.Id, request.Version);
+                
                 TempData["Message"] =
                     "We're reflowing the hard-deleted package right now. It may take a while for this change to propagate through our system.";
 
@@ -156,8 +155,81 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
                 TempData["Message"] = e.GetUserSafeMessage();
 
-                return Reflow();
+                return View("Reflow");
             }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual ActionResult ReflowBulk(HardDeleteReflowBulkRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.BulkList))
+            {
+                TempData["Message"] = "Must specify a list of hard-deleted packages to reflow in bulk!";
+
+                return View("Reflow");
+            }
+
+            var lines = request.BulkList.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+            try
+            {
+                var requests = new List<HardDeleteReflowRequest>();
+
+                foreach (var line in lines)
+                {
+                    var parts = line.Split(new char[0], StringSplitOptions.RemoveEmptyEntries);
+
+                    if (parts.Length != 2)
+                    {
+                        throw new UserSafeException(
+                            $"Couldn't parse the list of hard-deleted packages to reflow in bulk: could not split \"{line}\" into ID and version!");
+                    }
+
+                    requests.Add(new HardDeleteReflowRequest() { Id = parts[0], Version = parts[1] });
+                }
+
+                return View("Reflow", new HardDeleteReflowBulkRequestConfirmation() { Requests = requests });
+            }
+            catch (Exception e)
+            {
+                _telemetryService.TraceException(e);
+
+                TempData["Message"] = e.GetUserSafeMessage();
+
+                return View("Reflow");
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> ReflowBulkConfirm(HardDeleteReflowBulkRequestConfirmation confirmation)
+        {
+            var failures = new List<string>();
+
+            foreach (var request in confirmation.Requests)
+            {
+                try
+                {
+                    await _packageDeleteService.ReflowHardDeletedPackageAsync(request.Id, request.Version);
+                }
+                catch (Exception e)
+                {
+                    failures.Add($"Failed to reflow hard-deleted package {request.Id} {request.Version}: {e.GetUserSafeMessage()}");
+                }
+            }
+
+            if (failures.Any())
+            {
+                TempData["Message"] = string.Join(" ", failures.ToArray());
+            }
+            else
+            {
+                TempData["Message"] =
+                    "Successfully reflowed all packages.";
+            }
+
+            return View("Reflow");
         }
     }
 }

@@ -1,0 +1,20 @@
+﻿@model HardDeleteReflowRequest
+
+@using (Html.BeginForm("Reflow", "Delete"))
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-field">
+        @Html.LabelFor(m => m.Id)
+        @Html.EditorFor(m => m.Id)
+        @Html.ValidationMessageFor(m => m.Id)
+    </div>
+
+    <div class="form-field">
+        @Html.LabelFor(m => m.Version)
+        @Html.EditorFor(m => m.Version)
+        @Html.ValidationMessageFor(m => m.Version)
+    </div>
+
+    <input type="submit" value="Reflow this hard-deleted package" title="Reflow this hard-deleted package" />
+}

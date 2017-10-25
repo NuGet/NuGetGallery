@@ -698,7 +698,9 @@
     <Compile Include="Areas\Admin\Models\ISupportRequestDbContext.cs" />
     <Compile Include="Areas\Admin\Models\SupportRequestDbContext.cs" />
     <Compile Include="Areas\Admin\Services\ValidationAdminService.cs" />
-    <Compile Include="Areas\Admin\ViewModels\HardDeleteReflowViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\HardDeleteReflowBulkRequestConfirmation.cs" />
+    <Compile Include="Areas\Admin\ViewModels\HardDeleteReflowBulkRequest.cs" />
+    <Compile Include="Areas\Admin\ViewModels\HardDeleteReflowRequest.cs" />
     <Compile Include="Areas\Admin\ViewModels\PackageValidationViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ValidationPageViewModel.cs" />
     <Compile Include="Areas\Admin\Services\ISupportRequestService.cs" />
@@ -1859,6 +1861,9 @@
     <Content Include="Areas\Admin\Views\ReservedNamespace\Index.cshtml" />
     <Content Include="Areas\Admin\Views\Validation\Index.cshtml" />
     <Content Include="Areas\Admin\Views\Delete\Reflow.cshtml" />
+    <Content Include="Areas\Admin\Views\Delete\_ReflowSingle.cshtml" />
+    <Content Include="Areas\Admin\Views\Delete\_ReflowBulk.cshtml" />
+    <Content Include="Areas\Admin\Views\Delete\_ReflowBulkConfirm.cshtml" />
     <None Include="Scripts\jquery-1.11.0.intellisense.js" />
     <Content Include="Scripts\jquery-1.11.0.js" />
     <Content Include="Scripts\jquery-1.11.0.min.js" />
