@@ -33,14 +33,16 @@
                                 <td class="align-middle hidden-xs">
                                     <img class="reserved-indicator-icon img-responsive"
                                         src="~/Content/gallery/img/reserved-indicator.svg"
-                                        @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-20x20.png"))
+                                        @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-256x256.png"))
                                         title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
                                 </td>
-                                <td class="align-middle">@reservedNamespace.Value</td>
+                                <td class="align-middle">
+                                    <a target="_blank" href="@Url.Search(reservedNamespace.Value)">@reservedNamespace.GetPattern()</a>
+                                </td>
                                 <td class="align-middle">
                                     @foreach (var owner in reservedNamespace.Owners)
                                     {
-                                        <a href="@Url.User(owner.Username)">@owner.Username</a>
+                                        <a target="_blank" href="@Url.User(owner.Username)">@owner.Username</a>
                                     }
                                 </td>
                                 @if(reservedNamespace.IsPublic)

@@ -23,5 +23,16 @@ namespace NuGetGallery
             IsPrefix = reservedNamespace.IsPrefix;
             Owners = reservedNamespace.Owners.Select(owner => owner);
         }
+
+        public string GetPattern()
+        {
+            var namespaceValue = Value;
+            if (IsPrefix)
+            {
+                namespaceValue += "*";
+            }
+
+            return namespaceValue;
+        }
     }
 }
