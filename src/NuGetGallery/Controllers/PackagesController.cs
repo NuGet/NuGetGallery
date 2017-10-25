@@ -424,9 +424,7 @@ namespace NuGetGallery
             }
 
             model.ReadMeHtml = await _readMeService.GetReadMeHtmlAsync(package, isReadMePending);
-
-            model.PolicyMessage = GetDisplayPackagePolicyMessage(package.PackageRegistration);
-
+            
             var externalSearchService = _searchService as ExternalSearchService;
             if (_searchService.ContainsAllVersions && externalSearchService != null)
             {
@@ -470,24 +468,6 @@ namespace NuGetGallery
 
             ViewBag.FacebookAppID = _config.FacebookAppId;
             return View(model);
-        }
-
-        private string GetDisplayPackagePolicyMessage(PackageRegistration package)
-        {
-            // display package policy message to package owners and admins.
-            if (package.IsOwnerOrAdmin(User))
-            {
-                var propagators = package.Owners.Where(RequireSecurePushForCoOwnersPolicy.IsSubscribed);
-                if (propagators.Any())
-                {
-                    return string.Format(CultureInfo.CurrentCulture,
-                        Strings.DisplayPackage_SecurePushRequired,
-                        string.Join(", ", propagators.Select(u => u.Username)),
-                        SecurePushSubscription.MinProtocolVersion,
-                        _config.GalleryOwner.Address);
-                }
-            }
-            return string.Empty;
         }
 
         public virtual async Task<ActionResult> ListPackages(PackageListSearchViewModel searchAndListModel)

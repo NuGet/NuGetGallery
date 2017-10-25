@@ -37,7 +37,6 @@ namespace NuGetGallery
         public string MinClientVersion { get; set; }
         public string ShortDescription { get; set; }
         public bool IsDescriptionTruncated { get; set; }
-        public string PolicyMessage { get; set; }
         public bool? IsVerified { get; set; }
 
         public bool UseVersion

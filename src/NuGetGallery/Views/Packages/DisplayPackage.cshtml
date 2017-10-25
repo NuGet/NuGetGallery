@@ -144,11 +144,6 @@
                 <p>@Html.PreFormattedText(Model.Description)</p>
             }
 
-            @if (!string.IsNullOrEmpty(Model.PolicyMessage))
-            {
-                @ViewHelpers.AlertWarning(@<text>@Model.PolicyMessage</text>)
-            }
-
             @if (Model.Validating)
             {
                 @ViewHelpers.AlertWarning(
