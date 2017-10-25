@@ -19,9 +19,7 @@
         @Html.Partial("_UserPackagesList", new ManagePackagesListViewModel(unlistedPackages, "Unlisted"))
     }
 
-    @{
-        @Html.Partial("_ReservedNamespacesList", Model.ReservedNamespaces)
-    }
+    @Html.Partial("_ReservedNamespacesList", Model.ReservedNamespaces)
 
     @{
         if (Model.OwnerRequests.Incoming.RequestItems.Any() || Model.OwnerRequests.Outgoing.RequestItems.Any())

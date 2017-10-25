@@ -1562,7 +1562,7 @@
     <Compile Include="ViewModels\ApiKeyListViewModel.cs" />
     <Compile Include="ViewModels\ApiKeyViewModel.cs" />
     <Compile Include="ViewModels\OwnerRequestsListItemViewModel.cs" />
-    <Compile Include="ViewModels\ReservedNamespaceViewModel.cs" />
+    <Compile Include="ViewModels\ReservedNamespaceListViewModel.cs" />
     <Compile Include="ViewModels\ReservedNamespaceListItemViewModel.cs" />
     <Compile Include="ViewModels\OwnerRequestsListViewModel.cs" />
     <Compile Include="ViewModels\OwnerRequestsViewModel.cs" />

@@ -1,19 +1,18 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace NuGetGallery
 {
-    public class ReservedNamespaceViewModel
+    public class ReservedNamespaceListViewModel
     {
         public IEnumerable<ReservedNamespaceListItemViewModel> ReservedNamespaces { get; }
 
-        public ReservedNamespaceViewModel(ICollection<ReservedNamespace> reservedNamespacesList)
+        public ReservedNamespaceListViewModel(ICollection<ReservedNamespace> reservedNamespacesList)
         {
             ReservedNamespaces = reservedNamespacesList
-                .ToList()
                 .Select(rn => new ReservedNamespaceListItemViewModel(rn));
         }
     }

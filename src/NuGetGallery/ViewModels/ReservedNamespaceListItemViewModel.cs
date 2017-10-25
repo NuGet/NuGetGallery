@@ -21,7 +21,7 @@ namespace NuGetGallery
             Value = reservedNamespace.Value;
             IsPublic = reservedNamespace.IsSharedNamespace;
             IsPrefix = reservedNamespace.IsPrefix;
-            Owners = reservedNamespace.Owners.Select(owner => owner);
+            Owners = reservedNamespace.Owners;
         }
 
         public string GetPattern()

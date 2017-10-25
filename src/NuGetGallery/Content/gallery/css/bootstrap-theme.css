@@ -212,6 +212,10 @@ img.package-icon {
   margin-right: auto;
   margin-left: auto;
 }
+img.reserved-indicator-icon {
+  margin-right: auto;
+  margin-left: auto;
+}
 .package-list {
   padding-left: 0;
   margin-top: 8px;
@@ -405,6 +409,13 @@ img.package-icon {
   vertical-align: middle;
 }
 .user-package-list .manage-package-listing .package-id {
+  word-break: normal;
+  word-break: break-word;
+  word-wrap: break-word;
+
+  overflow-wrap: break-word;
+}
+.user-package-list .manage-package-listing .reserved-id {
   word-break: normal;
   word-break: break-word;
   word-wrap: break-word;

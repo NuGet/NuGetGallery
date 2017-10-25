@@ -1,4 +1,4 @@
-﻿@model ReservedNamespaceViewModel
+﻿@model ReservedNamespaceListViewModel
 @{
     if (!Model.ReservedNamespaces.Any())
     {
@@ -12,7 +12,7 @@
             <a href="#" role="button" data-toggle="collapse" data-target="#reservednamespaces"
                aria-expanded="true" aria-controls="reservednamespaces" id="show-reservednamespaces">
                 <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
-                <span>My Reserved Package Ids</span>
+                <span>My Reserved Package IDs</span>
             </a>
         </h2>
         <div class="panel-collapse collapse in" id="reservednamespaces" aria-expanded="true">
@@ -32,11 +32,11 @@
                             <tr class="manage-package-listing">
                                 <td class="align-middle hidden-xs">
                                     <img class="reserved-indicator-icon img-responsive"
-                                        src="~/Content/gallery/img/reserved-indicator.svg"
-                                        @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-256x256.png"))
-                                        title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
+                                         src="~/Content/gallery/img/reserved-indicator.svg"
+                                         @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-256x256.png"))
+                                         title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
                                 </td>
-                                <td class="align-middle">
+                                <td class="align-middle reserved-id">
                                     <a target="_blank" href="@Url.Search(reservedNamespace.Value)">@reservedNamespace.GetPattern()</a>
                                 </td>
                                 <td class="align-middle">
@@ -45,7 +45,7 @@
                                         <a target="_blank" href="@Url.User(owner.Username)">@owner.Username</a>
                                     }
                                 </td>
-                                @if(reservedNamespace.IsPublic)
+                                @if (reservedNamespace.IsPublic)
                                 {
                                     <td class="align-middle">Any NuGet.org Account</td>
                                 }

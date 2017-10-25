@@ -11,6 +11,6 @@ namespace NuGetGallery
 
         public OwnerRequestsViewModel OwnerRequests { get; set; }
 
-        public ReservedNamespaceViewModel ReservedNamespaces { get; set; }
+        public ReservedNamespaceListViewModel ReservedNamespaces { get; set; }
     }
 }
