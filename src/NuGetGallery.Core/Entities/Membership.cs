@@ -35,10 +35,10 @@ namespace NuGetGallery
         /// <summary>
         /// Whether the <see cref="Member"/> is an administrator for the <see cref="Organization"/>.
         /// 
-        /// Administrators have the following capabilities:
+        /// Administrators have the following capabilities that collaborators don't:
         /// - Organization management (e.g., settings, membership)
+        /// - Package owner management
         /// - Pushing new package registrations
-        /// - All collaborator capabilities
         /// </summary>
         public bool IsAdmin { get; set; }
     }
