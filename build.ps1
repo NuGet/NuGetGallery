@@ -93,6 +93,7 @@ if (Test-Path env:NUGET_SNK_PATH)
 		}
 	
 	Remove-Item env:NUGET_SNK_PATH
+	Write-Host "##vso[task.setvariable variable=NUGET_SNK_PATH]null"
 }
 
 Invoke-BuildStep 'Building unsigned solution' { 
