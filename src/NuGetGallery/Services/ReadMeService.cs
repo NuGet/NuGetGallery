@@ -4,7 +4,6 @@
 using System;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -17,7 +16,9 @@ namespace NuGetGallery
 {
     internal class ReadMeService : IReadMeService
     {
-        private static readonly TimeSpan RegexTimeout = TimeSpan.FromMinutes(1);
+        private static readonly TimeSpan RegexTimeout = TimeSpan.FromSeconds(30);
+        private static readonly Regex YamlSeparatorPattern = new Regex("^---\\s*$", RegexOptions.Multiline, RegexTimeout);
+        private static readonly Regex YamlMetadataPattern = new Regex("(^[^:]+:[^:]*$)", RegexOptions.Multiline, RegexTimeout);
         private static readonly Regex EncodedBlockQuotePattern = new Regex("^ {0,3}&gt;", RegexOptions.Multiline, RegexTimeout);
         private static readonly Regex CommonMarkLinkPattern = new Regex("<a href=([\"\']).*?\\1", RegexOptions.None, RegexTimeout);
 
@@ -141,6 +142,23 @@ namespace NuGetGallery
             return hasReadMe;
         }
 
+        internal static string StripMarkdownFrontMatter(string readMeMd)
+        {
+            var readMeMdTrimmed = readMeMd.TrimStart();
+            var matches = YamlSeparatorPattern.Matches(readMeMdTrimmed);
+
+            if ((matches.Count > 1) && (matches[0].Index == 0))
+            {
+                var frontMatter = readMeMd.Substring(3, matches[1].Index - 3);
+                if (YamlMetadataPattern.IsMatch(frontMatter))
+                {
+                    return readMeMdTrimmed.Substring(matches[1].Index + 3).TrimStart();
+                }
+            }
+
+            return readMeMd;
+        }
+
         /// <summary>
         /// Get converted HTML for readme.md string content.
         /// </summary>
@@ -148,6 +166,9 @@ namespace NuGetGallery
         /// <returns>HTML content.</returns>
         internal static string GetReadMeHtml(string readMeMd)
         {
+            // Strip markdown front-matter (metadata)
+            readMeMd = StripMarkdownFrontMatter(readMeMd);
+
             // HTML encode markdown, except for block quotes, to block inline html.
             var encodedMarkdown = EncodedBlockQuotePattern.Replace(HttpUtility.HtmlEncode(readMeMd), "> ");
 
