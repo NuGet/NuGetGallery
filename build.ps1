@@ -92,9 +92,9 @@ if (Test-Path env:NUGET_SNK_PATH)
 			-ev +BuildErrors
 		}
 	
-	Remove-Item Env:\NUGET_SNK_PATH
+	Remove-Item env:NUGET_SNK_PATH
 }
-    
+
 Invoke-BuildStep 'Building unsigned solution' { 
         $SolutionPath = Join-Path $PSScriptRoot "NuGetGallery.sln"
         Build-Solution $Configuration $BuildNumber -MSBuildVersion "15" $SolutionPath -SkipRestore:$SkipRestore -MSBuildProperties "/p:MvcBuildViews=true" `
