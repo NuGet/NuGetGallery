@@ -412,6 +412,89 @@ namespace NuGetGallery
             }
         }
 
+        public class TheGetPackageUrlMethod : FactsBase
+        {
+            [Fact]
+            public async Task WillThrowIfPackageIsNull()
+            {
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => _service.GetPackageUrlAsync(null));
+                Assert.Equal(ex.ParamName, "package");
+            }
+
+            [Fact]
+            public async Task WillUseFileStorageService()
+            {
+                await _service.GetPackageUrlAsync(_package);
+
+                string filename = BuildFileName(_package.PackageRegistration.Id, _package.NormalizedVersion, CoreConstants.NuGetPackageFileExtension, CoreConstants.PackageFileSavePathTemplate);
+
+                _fileStorageService.Verify(
+                    x => x.GetFileReadUriAsync(PackagesFolderName, filename, null),
+                    Times.Once);
+                _fileStorageService.Verify(
+                    x => x.GetFileReadUriAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTimeOffset?>()),
+                    Times.Once);
+            }
+        }
+
+        public class TheDoesPackageFileExistMethod : FactsBase
+        {
+            [Fact]
+            public async Task WillThrowIfPackageIsNull()
+            {
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => _service.DoesPackageFileExistAsync(null));
+                Assert.Equal(ex.ParamName, "package");
+            }
+
+            [Fact]
+            public async Task WillUseFileStorageService()
+            {
+                string filename = BuildFileName(_package.PackageRegistration.Id, _package.NormalizedVersion, CoreConstants.NuGetPackageFileExtension, CoreConstants.PackageFileSavePathTemplate);
+
+                _fileStorageService
+                    .Setup(x => x.FileExistsAsync(PackagesFolderName, filename))
+                    .ReturnsAsync(true);
+
+                var result = await _service.DoesPackageFileExistAsync(_package);
+
+                Assert.True(result);
+                _fileStorageService.Verify(
+                    x => x.FileExistsAsync(PackagesFolderName, filename),
+                    Times.Once);
+                _fileStorageService.Verify(
+                    x => x.FileExistsAsync(It.IsAny<string>(), It.IsAny<string>()),
+                    Times.Once);
+            }
+        }
+
+        public class TheDoesValidationPackageFileExistMethod : FactsBase
+        {
+            [Fact]
+            public async Task WillThrowIfPackageIsNull()
+            {
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => _service.DoesValidationPackageFileExistAsync(null));
+                Assert.Equal(ex.ParamName, "package");
+            }
+
+            [Fact]
+            public async Task WillUseFileStorageService()
+            {
+                _fileStorageService
+                    .Setup(x => x.FileExistsAsync(ValidationFolderName, ValidationFileName))
+                    .ReturnsAsync(true);
+
+                var result = await _service.DoesValidationPackageFileExistAsync(_package);
+
+                Assert.True(result);
+                _fileStorageService.Verify(
+                    x => x.FileExistsAsync(ValidationFolderName, ValidationFileName),
+                    Times.Once);
+                _fileStorageService.Verify(
+                    x => x.FileExistsAsync(It.IsAny<string>(), It.IsAny<string>()),
+                    Times.Once);
+            }
+        }
+
         static string BuildFileName(
             string id,
             string version, string extension, string path)

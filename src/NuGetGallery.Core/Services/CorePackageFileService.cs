@@ -34,6 +34,18 @@ namespace NuGetGallery
             return _fileStorageService.GetFileAsync(CoreConstants.PackagesFolderName, fileName);
         }
 
+        public Task<Uri> GetPackageUrlAsync(Package package)
+        {
+            var fileName = BuildFileName(package, CoreConstants.PackageFileSavePathTemplate, CoreConstants.NuGetPackageFileExtension);
+            return _fileStorageService.GetFileReadUriAsync(CoreConstants.PackagesFolderName, fileName, endOfAccess: null);
+        }
+
+        public Task<bool> DoesPackageFileExistAsync(Package package)
+        {
+            var fileName = BuildFileName(package, CoreConstants.PackageFileSavePathTemplate, CoreConstants.NuGetPackageFileExtension);
+            return _fileStorageService.FileExistsAsync(CoreConstants.PackagesFolderName, fileName);
+        }
+
         public Task SaveValidationPackageFileAsync(Package package, Stream packageFile)
         {
             if (packageFile == null)
@@ -108,6 +120,12 @@ namespace NuGetGallery
                 CoreConstants.NuGetPackageFileExtension);
 
             return _fileStorageService.GetFileReadUriAsync(CoreConstants.ValidationFolderName, fileName, endOfAccess);
+        }
+
+        public Task<bool> DoesValidationPackageFileExistAsync(Package package)
+        {
+            var fileName = BuildFileName(package, CoreConstants.PackageFileSavePathTemplate, CoreConstants.NuGetPackageFileExtension);
+            return _fileStorageService.FileExistsAsync(CoreConstants.ValidationFolderName, fileName);
         }
 
         protected static string BuildFileName(Package package, string format, string extension)
