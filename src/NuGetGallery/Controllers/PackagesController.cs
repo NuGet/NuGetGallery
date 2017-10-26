@@ -127,6 +127,64 @@ namespace NuGetGallery
         }
 
         [Authorize]
+        [HttpPost]
+        [RequiresAccountConfirmation("undo pending edits")]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> UndoPendingEdits(string id, string version)
+        {
+            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            if (package == null)
+            {
+                return HttpNotFound();
+            }
+
+            if (!package.IsOwner(User, allowAdmin: true))
+            {
+                return new HttpStatusCodeResult(403, "Forbidden");
+            }
+
+            // To do as much successful cancellation as possible, Will not batch, but will instead try to cancel
+            // pending edits 1 at a time, starting with oldest first.
+            var pendingEdits = _entitiesContext.Set<PackageEdit>()
+                .Where(pe => pe.PackageKey == package.Key)
+                .OrderBy(pe => pe.Timestamp)
+                .ToList();
+
+            int numOK = 0;
+            int numConflicts = 0;
+            foreach (var result in pendingEdits)
+            {
+                try
+                {
+                    _entitiesContext.DeleteOnCommit(result);
+                    await _entitiesContext.SaveChangesAsync();
+                    numOK += 1;
+                }
+                catch (DataException)
+                {
+                    numConflicts += 1;
+                }
+            }
+
+            if (numConflicts > 0)
+            {
+                TempData["Message"] = "Your pending edit has already been completed and could not be canceled.";
+            }
+            else if (numOK > 0)
+            {
+                await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(package, AuditedPackageAction.UndoEdit));
+
+                TempData["Message"] = "Your pending edits for this package were successfully canceled.";
+            }
+            else
+            {
+                TempData["Message"] = "No pending edits were found for this package. The edits may have already been completed.";
+            }
+
+            return Redirect(Url.Package(id, version));
+        }
+
+        [Authorize]
         [RequiresAccountConfirmation("upload a package")]
         public async virtual Task<ActionResult> UploadPackage()
         {
@@ -392,7 +450,7 @@ namespace NuGetGallery
             if (package == null
                 || ((package.PackageStatusKey == PackageStatus.Validating
                      || package.PackageStatusKey == PackageStatus.FailedValidation)
-                    && !package.IsOwnerOrAdmin(User)))
+                    && !package.IsOwner(User, allowAdmin: true)))
             {
                 return HttpNotFound();
             }
@@ -406,7 +464,7 @@ namespace NuGetGallery
             var model = new DisplayPackageViewModel(package, packageHistory);
 
             var isReadMePending = false;
-            if (package.IsOwnerOrAdmin(User))
+            if (package.IsOwner(User, allowAdmin: true))
             {
                 // Tell logged-in package owners not to cache the package page,
                 // so they won't be confused about the state of pending edits.
@@ -469,7 +527,25 @@ namespace NuGetGallery
             ViewBag.FacebookAppID = _config.FacebookAppId;
             return View(model);
         }
-
+        
+        private string GetDisplayPackagePolicyMessage(PackageRegistration package)
+        {
+            // display package policy message to package owners and admins.
+            if (package.IsOwner(User, allowAdmin: true))
+            {
+                var propagators = package.Owners.Where(RequireSecurePushForCoOwnersPolicy.IsSubscribed);
+                if (propagators.Any())
+                {
+                    return string.Format(CultureInfo.CurrentCulture,
+                        Strings.DisplayPackage_SecurePushRequired,
+                        string.Join(", ", propagators.Select(u => u.Username)),
+                        SecurePushSubscription.MinProtocolVersion,
+                        _config.GalleryOwner.Address);
+                }
+            }
+            return string.Empty;
+        }
+        
         public virtual async Task<ActionResult> ListPackages(PackageListSearchViewModel searchAndListModel)
         {
             var page = searchAndListModel.Page;
@@ -628,7 +704,7 @@ namespace NuGetGallery
             }
 
             // If user hit this url by constructing it manually but is not the owner, redirect them to ReportAbuse
-            if (!package.IsOwnerOrAdmin(User))
+            if (!package.IsOwner(User, allowAdmin: true))
             {
                 return RedirectToAction("ReportAbuse", new { id, version });
             }
@@ -826,7 +902,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            if (!package.IsOwnerOrAdmin(User))
+            if (!package.IsOwner(User, allowAdmin: true))
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
@@ -846,7 +922,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            if (!package.IsOwnerOrAdmin(User))
+            if (!package.IsOwner(User, allowAdmin: true))
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
@@ -1002,7 +1078,7 @@ namespace NuGetGallery
                 return Json(404, new[] { string.Format(Strings.PackageWithIdAndVersionNotFound, id, version) });
             }
 
-            if (!package.IsOwnerOrAdmin(User))
+            if (!package.IsOwner(User, allowAdmin: true))
             {
                 return Json(403, new[] { Strings.Unauthorized });
             }
@@ -1056,7 +1132,7 @@ namespace NuGetGallery
                 return Json(404, new[] { string.Format(Strings.PackageWithIdAndVersionNotFound, id, version) });
             }
 
-            if (!package.IsOwnerOrAdmin(User))
+            if (!package.IsOwner(User, allowAdmin: true))
             {
                 return Json(403, new[] { Strings.Unauthorized });
             }
@@ -1311,7 +1387,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            if (!package.IsOwnerOrAdmin(User))
+            if (!package.IsOwner(User, allowAdmin: true))
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
@@ -1584,7 +1660,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            if (!package.IsOwnerOrAdmin(User))
+            if (!package.IsOwner(User, allowAdmin: true))
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
