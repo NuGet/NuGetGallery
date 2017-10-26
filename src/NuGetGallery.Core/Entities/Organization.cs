@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Linq;
 
 namespace NuGetGallery
 {
@@ -19,11 +18,6 @@ namespace NuGetGallery
         /// Organization primary key.
         /// </summary>
         public int Key { get; set; }
-
-        /// <summary>
-        /// Organization account (User) foreign key.
-        /// </summary>
-        public int AccountKey { get; set; }
 
         /// <summary>
         /// Organization account (User).
