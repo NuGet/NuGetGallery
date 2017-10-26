@@ -469,7 +469,7 @@ namespace NuGetGallery
             ViewBag.FacebookAppID = _config.FacebookAppId;
             return View(model);
         }
-        
+
         public virtual async Task<ActionResult> ListPackages(PackageListSearchViewModel searchAndListModel)
         {
             var page = searchAndListModel.Page;
