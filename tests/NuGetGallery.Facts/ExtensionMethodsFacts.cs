@@ -65,8 +65,8 @@ namespace NuGetGallery
                 var organizationCollaboratorAdminMembership = new Membership() { Organization = organization, Member = organizationCollaboratorAdmin, IsAdmin = false };
                 organization.Memberships.Add(organizationCollaboratorAdminMembership);
 
-                var packageRegistration = new PackageRegistration() { Owners = new[] { owner, organizationOwner } };
-                var package = new Package() { PackageRegistration = packageRegistration };
+                var packageRegistration = new PackageRegistration() { Owners = new[] { owner, organizationOwner }, Id = "testpackage" };
+                var package = new Package() { PackageRegistration = packageRegistration, Version = "1.0.0" };
 
                 // Assert
                 // Co-owner is owner
@@ -108,6 +108,9 @@ namespace NuGetGallery
                 var principal = GetPrincipal(user);
                 Assert.Equal(shouldSucceed, packageRegistration.IsOwner(principal, allowAdmin, allowCollaborator));
                 Assert.Equal(shouldSucceed, package.IsOwner(principal, allowAdmin, allowCollaborator));
+
+                var listPackageItemOwnersViewModel = new ListPackageItemViewModel(package);
+                Assert.Equal(shouldSucceed, listPackageItemOwnersViewModel.IsOwner(principal, allowAdmin, allowCollaborator));
             }
         }
 

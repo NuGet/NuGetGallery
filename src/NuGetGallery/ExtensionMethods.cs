@@ -206,8 +206,8 @@ namespace NuGetGallery
                     .Where(u => u.Organization != null)
                     .Any(u =>
                     {
-                        var members = allowCollaborator ? u.Organization.Members : u.Organization.Administrators;
-                        return members.Any(m => m.Username == user.Identity.Name);
+                        var members = allowCollaborator ? u.Organization.Memberships : u.Organization.Memberships.Where(m => m.IsAdmin);
+                        return members.Any(m => m.Member.Username == user.Identity.Name);
                     });
         }
 
@@ -230,8 +230,8 @@ namespace NuGetGallery
                     .Where(u => u.Organization != null)
                     .Any(u =>
                     {
-                        var members = allowCollaborator ? u.Organization.Members : u.Organization.Administrators;
-                        return members.Any(m => m.Key == user.Key);
+                        var members = allowCollaborator ? u.Organization.Memberships : u.Organization.Memberships.Where(m => m.IsAdmin);
+                        return members.Any(m => m.Member.Key == user.Key);
                     });
         }
 
