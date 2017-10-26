@@ -20,12 +20,12 @@ namespace NuGetGallery
         void TrackVerifyPackageKeyEvent(string packageId, string packageVersion, User user, IIdentity identity, int statusCode);
 
         /// <summary>
-        /// Create a trace for an exception (Application Insights->traces)
+        /// Create a trace for an exception. These are informational for support requests.
         /// </summary>
         void TraceException(Exception exception);
 
         /// <summary>
-        /// Create a log for an exception (Application Insights->exceptions)
+        /// Create a log for an exception. These are warnings for live site.
         /// </summary>
         void TrackException(Exception exception, Action<Dictionary<string, string>> addProperties);
     }

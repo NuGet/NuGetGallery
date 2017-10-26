@@ -12,7 +12,15 @@ namespace NuGetGallery
     /// </summary>
     public class TelemetryClientWrapper : ITelemetryClient
     {
-        internal static TelemetryClientWrapper Instance = new TelemetryClientWrapper();
+        private static Lazy<TelemetryClientWrapper> Singleton = new Lazy<TelemetryClientWrapper>(() => new TelemetryClientWrapper());
+
+        internal static TelemetryClientWrapper Instance
+        {
+            get
+            {
+                return Singleton.Value;
+            }
+        }
 
         private TelemetryClientWrapper()
         {

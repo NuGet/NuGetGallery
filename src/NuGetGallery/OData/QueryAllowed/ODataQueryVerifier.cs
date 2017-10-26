@@ -123,7 +123,6 @@ namespace NuGetGallery.OData.QueryFilter
             }
             catch (Exception ex)
             {
-                // Log and do not throw
                 _telemetryService.TrackException(ex, properties => {
                     properties.Add(TelemetryService.CallContext, $"{telemetryContext}:{nameof(AreODataOptionsAllowed)}");
                     properties.Add(TelemetryService.IsEnabled, $"{isFeatureEnabled}");

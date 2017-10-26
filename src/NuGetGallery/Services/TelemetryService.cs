@@ -21,7 +21,7 @@ namespace NuGetGallery
             public const string PackageReadMeChanged = "PackageReadMeChanged";
         }
 
-        private IDiagnosticsSource _trace;
+        private IDiagnosticsSource _diagnosticsSource;
         private ITelemetryClient _telemetryClient;
 
         // ODataQueryFilter properties
@@ -58,7 +58,7 @@ namespace NuGetGallery
 
             _telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
 
-            _trace = diagnosticsService.GetSource("TelemetryService");
+            _diagnosticsSource = diagnosticsService.GetSource("TelemetryService");
         }
 
         // Used by ODataQueryVerifier. Should consider refactoring to make this non-static.
@@ -73,7 +73,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(exception));
             }
 
-            _trace.Warning(exception.ToString());
+            _diagnosticsSource.Warning(exception.ToString());
         }
 
         public void TrackODataQueryFilterEvent(string callContext, bool isEnabled, bool isAllowed, string queryPattern)
