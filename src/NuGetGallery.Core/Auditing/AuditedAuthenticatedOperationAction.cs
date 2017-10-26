@@ -19,5 +19,10 @@ namespace NuGetGallery.Auditing
         /// Login failed, user exists but password is invalid
         /// </summary>
         FailedLoginInvalidPassword,
+
+        /// <summary>
+        /// Login failed, user is an organization and should not have credentials.
+        /// </summary>
+        FailedLoginUserIsOrganization
     }
 }
