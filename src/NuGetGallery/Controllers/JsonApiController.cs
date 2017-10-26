@@ -50,7 +50,7 @@ namespace NuGetGallery
                 return Json(new { message = Strings.AddOwner_PackageNotFound });
             }
 
-            if (!package.IsOwnerOrAdmin(HttpContext.User))
+            if (!package.IsOwner(HttpContext.User, allowAdmin: true))
             {
                 return new HttpUnauthorizedResult();
             }
@@ -309,7 +309,7 @@ namespace NuGetGallery
                 model = new ManagePackageOwnerModel(Strings.AddOwner_PackageNotFound);
                 return false;
             }
-            if (!package.IsOwnerOrAdmin(HttpContext.User))
+            if (!package.IsOwner(HttpContext.User, allowAdmin: true))
             {
                 model = new ManagePackageOwnerModel(Strings.AddOwner_NotPackageOwner);
                 return false;

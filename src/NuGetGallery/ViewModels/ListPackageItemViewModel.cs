@@ -49,18 +49,22 @@ namespace NuGetGallery
             }
         }
 
-        public bool IsOwner(IPrincipal user)
+        public bool IsOwner(IPrincipal user, bool allowAdmin = false, bool allowCollaborator = false)
         {
             if (user == null || user.Identity == null)
             {
                 return false;
             }
-            return Owners.Any(u => u.Username == user.Identity.Name);
-        }
-
-        public bool IsOwnerOrAdmin(IPrincipal user)
-        {
-            return IsOwner(user) || user.IsAdministrator();
+            return 
+                (allowAdmin && user.IsAdministrator()) || 
+                Owners.Any(u => u.Username == user.Identity.Name) ||
+                Owners
+                    .Where(u => u.Organization != null)
+                    .Any(u =>
+                    {
+                        var members = allowCollaborator ? u.Organization.Memberships : u.Organization.Memberships.Where(m => m.IsAdmin);
+                        return members.Any(m => m.Member.Username == user.Identity.Name);
+                    });
         }
     }
 }

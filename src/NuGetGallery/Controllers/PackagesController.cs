@@ -392,7 +392,7 @@ namespace NuGetGallery
             if (package == null
                 || ((package.PackageStatusKey == PackageStatus.Validating
                      || package.PackageStatusKey == PackageStatus.FailedValidation)
-                    && !package.IsOwnerOrAdmin(User)))
+                    && !package.IsOwner(User, allowAdmin: true)))
             {
                 return HttpNotFound();
             }
@@ -406,7 +406,7 @@ namespace NuGetGallery
             var model = new DisplayPackageViewModel(package, packageHistory);
 
             var isReadMePending = false;
-            if (package.IsOwnerOrAdmin(User))
+            if (package.IsOwner(User, allowAdmin: true))
             {
                 // Tell logged-in package owners not to cache the package page,
                 // so they won't be confused about the state of pending edits.
@@ -628,7 +628,7 @@ namespace NuGetGallery
             }
 
             // If user hit this url by constructing it manually but is not the owner, redirect them to ReportAbuse
-            if (!package.IsOwnerOrAdmin(User))
+            if (!package.IsOwner(User, allowAdmin: true))
             {
                 return RedirectToAction("ReportAbuse", new { id, version });
             }
@@ -826,7 +826,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            if (!package.IsOwnerOrAdmin(User))
+            if (!package.IsOwner(User, allowAdmin: true))
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
@@ -846,7 +846,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            if (!package.IsOwnerOrAdmin(User))
+            if (!package.IsOwner(User, allowAdmin: true))
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
@@ -1002,7 +1002,7 @@ namespace NuGetGallery
                 return Json(404, new[] { string.Format(Strings.PackageWithIdAndVersionNotFound, id, version) });
             }
 
-            if (!package.IsOwnerOrAdmin(User))
+            if (!package.IsOwner(User, allowAdmin: true))
             {
                 return Json(403, new[] { Strings.Unauthorized });
             }
@@ -1056,7 +1056,7 @@ namespace NuGetGallery
                 return Json(404, new[] { string.Format(Strings.PackageWithIdAndVersionNotFound, id, version) });
             }
 
-            if (!package.IsOwnerOrAdmin(User))
+            if (!package.IsOwner(User, allowAdmin: true))
             {
                 return Json(403, new[] { Strings.Unauthorized });
             }
@@ -1311,7 +1311,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            if (!package.IsOwnerOrAdmin(User))
+            if (!package.IsOwner(User, allowAdmin: true))
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
@@ -1584,7 +1584,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            if (!package.IsOwnerOrAdmin(User))
+            if (!package.IsOwner(User, allowAdmin: true))
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
