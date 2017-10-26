@@ -79,17 +79,33 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' {
     } `
     -ev +BuildErrors
 
-Invoke-BuildStep 'Building solution' { 
+if (Test-Path env:NUGET_SNK_PATH)
+{ 
+	Invoke-BuildStep 'Building signed solution' { 
+			$SolutionPath = Join-Path $PSScriptRoot "NuGetGallery.sln"
+			Build-Solution $Configuration $BuildNumber -MSBuildVersion "15" $SolutionPath -SkipRestore:$SkipRestore -MSBuildProperties "/p:MvcBuildViews=true" `
+		} `
+		-ev +BuildErrors
+
+	Invoke-BuildStep 'Creating signed artifacts' {
+			New-Package (Join-Path $PSScriptRoot "src\NuGetGallery.Core\NuGetGallery.Core.csproj") -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion -PackageId 'NuGetGallery.Core.Signed' `
+			-ev +BuildErrors
+		}
+	
+	Remove-Item Env:\NUGET_SNK_PATH
+}
+    
+Invoke-BuildStep 'Building unsigned solution' { 
         $SolutionPath = Join-Path $PSScriptRoot "NuGetGallery.sln"
         Build-Solution $Configuration $BuildNumber -MSBuildVersion "15" $SolutionPath -SkipRestore:$SkipRestore -MSBuildProperties "/p:MvcBuildViews=true" `
     } `
     -ev +BuildErrors
-    
-Invoke-BuildStep 'Creating artifacts' {
-        New-Package (Join-Path $PSScriptRoot "src\NuGetGallery.Core\NuGetGallery.Core.csproj") -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion `
+
+Invoke-BuildStep 'Creating unsigned artifacts' {
+        New-Package (Join-Path $PSScriptRoot "src\NuGetGallery.Core\NuGetGallery.Core.csproj") -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion -PackageId 'NuGetGallery.Core' `
         -ev +BuildErrors
     }
-
+	
 Trace-Log ('-' * 60)
 
 ## Calculating Build time
