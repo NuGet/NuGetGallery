@@ -34,41 +34,5 @@ namespace NuGetGallery
         /// Organization memberships.
         /// </summary>
         public virtual ICollection<Membership> Memberships { get; set; }
-
-        /// <summary>
-        /// Account (User) name.
-        /// </summary>
-        public string Name
-        {
-            get
-            {
-                return Account.Username;
-            }
-        }
-
-        /// <summary>
-        /// Organization administrators.
-        /// </summary>
-        public IEnumerable<User> Administrators
-        {
-            get
-            {
-                return Memberships
-                    .Where(m => m.IsAdmin)
-                    .Select(m => m.Member);
-            }
-        }
-
-        /// <summary>
-        /// Organziation administrators and collaborators.
-        /// </summary>
-        public IEnumerable<User> Members
-        {
-            get
-            {
-                return Memberships
-                    .Select(m => m.Member);
-            }
-        }
     }
 }

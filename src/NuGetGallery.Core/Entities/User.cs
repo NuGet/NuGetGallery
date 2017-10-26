@@ -45,17 +45,6 @@ namespace NuGetGallery
         /// </summary>
         public virtual ICollection<Membership> Memberships { get; set; }
 
-        /// <summary>
-        /// Organizations in which the <see cref="User"/> is a member.
-        /// </summary>
-        public IEnumerable<Organization> Organizations
-        {
-            get
-            {
-                return Memberships.Select(m => m.Organization);
-            }
-        }
-
         [StringLength(256)]
         public string EmailAddress { get; set; }
 
