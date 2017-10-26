@@ -7,6 +7,7 @@ param (
     [switch]$CleanCache,
     [string]$SimpleVersion = '1.0.0',
     [string]$SemanticVersion = '1.0.0-zlocal',
+	[string]$PackageSuffix,
     [string]$Branch,
     [string]$CommitSHA,
     [string]$BuildBranch = '37ff6e758c38b3f513af39f881399ce85f4ff20b'
@@ -79,33 +80,18 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' {
     } `
     -ev +BuildErrors
 
-if (Test-Path env:NUGET_SNK_PATH)
-{ 
-	Invoke-BuildStep 'Building signed solution' { 
-			$SolutionPath = Join-Path $PSScriptRoot "NuGetGallery.sln"
-			Build-Solution $Configuration $BuildNumber -MSBuildVersion "15" $SolutionPath -SkipRestore:$SkipRestore -MSBuildProperties "/p:MvcBuildViews=true" `
-		} `
+
+Invoke-BuildStep 'Building solution' { 
+		$SolutionPath = Join-Path $PSScriptRoot "NuGetGallery.sln"
+		Build-Solution $Configuration $BuildNumber -MSBuildVersion "15" $SolutionPath -SkipRestore:$SkipRestore -MSBuildProperties "/p:MvcBuildViews=true" `
+	} `
+	-ev +BuildErrors
+
+Invoke-BuildStep 'Creating artifacts' {
+		$packageId = 'NuGetGallery.Core'+$PackageSuffix 
+		New-Package (Join-Path $PSScriptRoot "src\NuGetGallery.Core\NuGetGallery.Core.csproj") -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion -PackageId $packageId `
 		-ev +BuildErrors
-
-	Invoke-BuildStep 'Creating signed artifacts' {
-			New-Package (Join-Path $PSScriptRoot "src\NuGetGallery.Core\NuGetGallery.Core.csproj") -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion -PackageId 'NuGetGallery.Core.Signed' `
-			-ev +BuildErrors
-		}
-	
-	Remove-Item env:NUGET_SNK_PATH
-	Write-Host "##vso[task.setvariable variable=NUGET_SNK_PATH]null"
-}
-
-Invoke-BuildStep 'Building unsigned solution' { 
-        $SolutionPath = Join-Path $PSScriptRoot "NuGetGallery.sln"
-        Build-Solution $Configuration $BuildNumber -MSBuildVersion "15" $SolutionPath -SkipRestore:$SkipRestore -MSBuildProperties "/p:MvcBuildViews=true" `
-    } `
-    -ev +BuildErrors
-
-Invoke-BuildStep 'Creating unsigned artifacts' {
-        New-Package (Join-Path $PSScriptRoot "src\NuGetGallery.Core\NuGetGallery.Core.csproj") -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion -PackageId 'NuGetGallery.Core' `
-        -ev +BuildErrors
-    }
+	}
 	
 Trace-Log ('-' * 60)
 
