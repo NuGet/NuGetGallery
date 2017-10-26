@@ -21,19 +21,46 @@ namespace NuGetGallery.Framework
         
         public Fakes()
         {
+            var credentialBuilder = new CredentialBuilder();
+
             User = new User("testUser")
             {
                 Key = 40,
                 EmailAddress = "confirmed0@example.com",
                 Credentials = new List<Credential>
                 {
-                    new CredentialBuilder().CreatePasswordCredential(Password),
+                    credentialBuilder.CreatePasswordCredential(Password),
                     TestCredentialHelper.CreateV1ApiKey(Guid.Parse("669e180e-335c-491a-ac26-e83c4bd31d65"),
                         ExpirationForApiKeyV1),
                     TestCredentialHelper.CreateV2ApiKey(Guid.Parse("779e180e-335c-491a-ac26-e83c4bd31d87"),
                         ExpirationForApiKeyV1),
                     TestCredentialHelper.CreateV2VerificationApiKey(Guid.Parse("b0c51551-823f-4701-8496-43980b4b3913")),
                     TestCredentialHelper.CreateExternalCredential("abc")
+                }
+            };
+
+            Organization = new User("testOrganization")
+            {
+                Key = 41,
+                EmailAddress = "confirmedOrganization@example.com",
+                Organization = new Organization()
+                {
+                    Key = 1
+                },
+                // invalid credentials for testing authentication constraints
+                Credentials = new List<Credential>
+                {
+                    credentialBuilder.CreatePasswordCredential(Password)
+                }
+            };
+
+            Organization.Organization.Memberships = new List<Membership>()
+            {
+                new Membership
+                {
+                    Organization = Organization.Organization,
+                    Member = User,
+                    IsAdmin = true
                 }
             };
 
@@ -89,6 +116,8 @@ namespace NuGetGallery.Framework
         }
 
         public User User { get; }
+
+        public User Organization { get; }
 
         public User ShaUser { get; }
 
