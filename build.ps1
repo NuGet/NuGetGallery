@@ -7,7 +7,7 @@ param (
     [switch]$CleanCache,
     [string]$SimpleVersion = '1.0.0',
     [string]$SemanticVersion = '1.0.0-zlocal',
-	[string]$PackageSuffix,
+    [string]$PackageSuffix,
     [string]$Branch,
     [string]$CommitSHA,
     [string]$BuildBranch = '37ff6e758c38b3f513af39f881399ce85f4ff20b'
@@ -80,15 +80,14 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' {
     } `
     -ev +BuildErrors
 
-
 Invoke-BuildStep 'Building solution' { 
-		$SolutionPath = Join-Path $PSScriptRoot "NuGetGallery.sln"
-		Build-Solution $Configuration $BuildNumber -MSBuildVersion "15" $SolutionPath -SkipRestore:$SkipRestore -MSBuildProperties "/p:MvcBuildViews=true" `
-	} `
-	-ev +BuildErrors
+        $SolutionPath = Join-Path $PSScriptRoot "NuGetGallery.sln"
+        Build-Solution $Configuration $BuildNumber -MSBuildVersion "15" $SolutionPath -SkipRestore:$SkipRestore -MSBuildProperties "/p:MvcBuildViews=true" `
+    } `
+    -ev +BuildErrors
 
 Invoke-BuildStep 'Creating artifacts' {
-		$packageId = 'NuGetGallery.Core'+$PackageSuffix 
+        $packageId = 'NuGetGallery.Core'+$PackageSuffix 
 		New-Package (Join-Path $PSScriptRoot "src\NuGetGallery.Core\NuGetGallery.Core.csproj") -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion -PackageId $packageId `
 		-ev +BuildErrors
 	}
