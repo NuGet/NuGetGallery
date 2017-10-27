@@ -177,64 +177,6 @@ namespace NuGetGallery
             return items.Any(predicate);
         }
 
-        public static bool IsOwner(this Package package, IPrincipal user, bool allowAdmin = false, bool allowCollaborator = false)
-        {
-            return package.PackageRegistration.IsOwner(user, allowAdmin, allowCollaborator);
-        }
-
-        public static bool IsOwner(this Package package, User user, bool allowAdmin = false, bool allowCollaborator = false)
-        {
-            return package.PackageRegistration.IsOwner(user, allowAdmin, allowCollaborator);
-        }
-
-        public static bool IsOwner(this PackageRegistration package, IPrincipal user, bool allowAdmin = false, bool allowCollaborator = false)
-        {
-            if (package == null)
-            {
-                throw new ArgumentNullException(nameof(package));
-            }
-
-            if (user == null)
-            {
-                return false;
-            }
-
-            return
-                (allowAdmin && user.IsAdministrator()) ||
-                package.Owners.Any(u => u.Username == user.Identity.Name) ||
-                package.Owners
-                    .Where(u => u.Organization != null)
-                    .Any(u =>
-                    {
-                        var members = allowCollaborator ? u.Organization.Memberships : u.Organization.Memberships.Where(m => m.IsAdmin);
-                        return members.Any(m => m.Member.Username == user.Identity.Name);
-                    });
-        }
-
-        public static bool IsOwner(this PackageRegistration package, User user, bool allowAdmin = false, bool allowCollaborator = false)
-        {
-            if (package == null)
-            {
-                throw new ArgumentNullException(nameof(package));
-            }
-
-            if (user == null)
-            {
-                return false;
-            }
-
-            return
-                (allowAdmin && user.IsInRole(Constants.AdminRoleName)) ||
-                package.Owners.Any(u => u.Key == user.Key) ||
-                package.Owners
-                    .Where(u => u.Organization != null)
-                    .Any(u =>
-                    {
-                        var members = allowCollaborator ? u.Organization.Memberships : u.Organization.Memberships.Where(m => m.IsAdmin);
-                        return members.Any(m => m.Member.Key == user.Key);
-                    });
-        }
-
         // apple polish!
         public static string CardinalityLabel(this int count, string singular, string plural)
         {

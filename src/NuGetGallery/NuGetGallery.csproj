@@ -866,6 +866,7 @@
     <Compile Include="Services\PackageUploadService.cs" />
     <Compile Include="Services\IReservedNamespaceService.cs" />
     <Compile Include="Services\IPackageUploadService.cs" />
+    <Compile Include="Services\PackagePermissionsService.cs" />
     <Compile Include="Services\ReservedNamespaceService.cs" />
     <Compile Include="Services\ReadMeService.cs" />
     <Compile Include="Services\ValidationService.cs" />
