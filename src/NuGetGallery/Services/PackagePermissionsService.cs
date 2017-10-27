@@ -8,27 +8,27 @@ using System.Security.Principal;
 
 namespace NuGetGallery
 {
+    public enum PermissionLevel
+    {
+        None,
+        Owner,
+        SiteAdmin,
+        OrganizationAdmin,
+        OrganizationCollaborator
+    }
+
+    public enum Permission
+    {
+        DisplayMyPackage,
+        Upload,
+        Edit,
+        Delete,
+        ManagePackageOwners,
+        ReportMyPackage,
+    }
+
     public static class PackagePermissionsService
     {
-        public enum PermissionLevel
-        {
-            None,
-            Owner,
-            SiteAdmin,
-            OrganizationAdmin,
-            OrganizationCollaborator
-        }
-
-        public enum Permission
-        {
-            DisplayMyPackage,
-            Upload,
-            Edit,
-            Delete,
-            ManagePackageOwners,
-            ReportMyPackage,
-        }
-
         public static bool HasPermission(Package package, IPrincipal principal, Permission permission)
         {
             return HasPermission(package.PackageRegistration, principal, permission);

@@ -49,7 +49,7 @@ namespace NuGetGallery
             }
         }
 
-        public bool HasPermission(IPrincipal principal, PackagePermissionsService.Permission permission)
+        public bool HasPermission(IPrincipal principal, Permission permission)
         {
             return PackagePermissionsService.HasPermission(Owners, principal, permission);
         }

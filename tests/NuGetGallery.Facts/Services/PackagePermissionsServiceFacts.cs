@@ -14,53 +14,53 @@ namespace NuGetGallery.Services
     {
         public class TheGetPermissionsMethod
         {
-            private IDictionary<PackagePermissionsService.PermissionLevel, IEnumerable<PackagePermissionsService.Permission>> _levelToPermission = 
-                new Dictionary<PackagePermissionsService.PermissionLevel, IEnumerable<PackagePermissionsService.Permission>>()
+            private IDictionary<PermissionLevel, IEnumerable<Permission>> _levelToPermission = 
+                new Dictionary<PermissionLevel, IEnumerable<Permission>>()
                 {
-                    { PackagePermissionsService.PermissionLevel.None, new PackagePermissionsService.Permission[0] },
+                    { PermissionLevel.None, new Permission[0] },
                     {
-                        PackagePermissionsService.PermissionLevel.OrganizationCollaborator,
+                        PermissionLevel.OrganizationCollaborator,
                         new []
                         {
-                            PackagePermissionsService.Permission.DisplayMyPackage,
-                            PackagePermissionsService.Permission.Upload,
-                            PackagePermissionsService.Permission.Edit,
-                            PackagePermissionsService.Permission.Delete
+                            Permission.DisplayMyPackage,
+                            Permission.Upload,
+                            Permission.Edit,
+                            Permission.Delete
                         }
                     },
                     {
-                        PackagePermissionsService.PermissionLevel.SiteAdmin,
+                        PermissionLevel.SiteAdmin,
                         new []
                         {
-                            PackagePermissionsService.Permission.DisplayMyPackage,
-                            PackagePermissionsService.Permission.Upload,
-                            PackagePermissionsService.Permission.Edit,
-                            PackagePermissionsService.Permission.Delete,
-                            PackagePermissionsService.Permission.ManagePackageOwners
+                            Permission.DisplayMyPackage,
+                            Permission.Upload,
+                            Permission.Edit,
+                            Permission.Delete,
+                            Permission.ManagePackageOwners
                         }
                     },
                     {
-                        PackagePermissionsService.PermissionLevel.OrganizationAdmin,
+                        PermissionLevel.OrganizationAdmin,
                         new []
                         {
-                            PackagePermissionsService.Permission.DisplayMyPackage,
-                            PackagePermissionsService.Permission.Upload,
-                            PackagePermissionsService.Permission.Edit,
-                            PackagePermissionsService.Permission.Delete,
-                            PackagePermissionsService.Permission.ManagePackageOwners,
-                            PackagePermissionsService.Permission.ReportMyPackage
+                            Permission.DisplayMyPackage,
+                            Permission.Upload,
+                            Permission.Edit,
+                            Permission.Delete,
+                            Permission.ManagePackageOwners,
+                            Permission.ReportMyPackage
                         }
                     },
                     {
-                        PackagePermissionsService.PermissionLevel.Owner,
+                        PermissionLevel.Owner,
                         new []
                         {
-                            PackagePermissionsService.Permission.DisplayMyPackage,
-                            PackagePermissionsService.Permission.Upload,
-                            PackagePermissionsService.Permission.Edit,
-                            PackagePermissionsService.Permission.Delete,
-                            PackagePermissionsService.Permission.ManagePackageOwners,
-                            PackagePermissionsService.Permission.ReportMyPackage
+                            Permission.DisplayMyPackage,
+                            Permission.Upload,
+                            Permission.Edit,
+                            Permission.Delete,
+                            Permission.ManagePackageOwners,
+                            Permission.ReportMyPackage
                         }
                     }
                 };
@@ -69,7 +69,7 @@ namespace NuGetGallery.Services
             {
                 get
                 {
-                    foreach (PackagePermissionsService.PermissionLevel permissionLevel in Enum.GetValues(typeof(PackagePermissionsService.PermissionLevel)))
+                    foreach (PermissionLevel permissionLevel in Enum.GetValues(typeof(PermissionLevel)))
                     {
                         yield return new object[]
                         {
@@ -81,7 +81,7 @@ namespace NuGetGallery.Services
 
             [Theory]
             [MemberData(nameof(GetPermissions_Data))]
-            public void ReturnsExpectedPermissions(PackagePermissionsService.PermissionLevel permissionLevel)
+            public void ReturnsExpectedPermissions(PermissionLevel permissionLevel)
             {
                 var actualPermissions = PackagePermissionsService.GetPermissions(permissionLevel);
                 var expectedPermissions = _levelToPermission[permissionLevel];
@@ -118,24 +118,23 @@ namespace NuGetGallery.Services
                 var owners = new[] { owner, organizationOwner };
 
                 // Assert
-                AssertPermissionLevel(PackagePermissionsService.PermissionLevel.Owner, owners, owner);
-                // Co-owner is owner
-                AssertPermissionLevel(PackagePermissionsService.PermissionLevel.Owner, owners, owner);
+                // Co-owner
+                AssertPermissionLevel(PermissionLevel.Owner, owners, owner);
 
-                // Admin is owner if allowAdmin
-                AssertPermissionLevel(PackagePermissionsService.PermissionLevel.SiteAdmin, owners, admin);
+                // Admin
+                AssertPermissionLevel(PermissionLevel.SiteAdmin, owners, admin);
 
-                // Organization is owner
-                AssertPermissionLevel(PackagePermissionsService.PermissionLevel.Owner, owners, organizationOwner);
+                // Organization
+                AssertPermissionLevel(PermissionLevel.Owner, owners, organizationOwner);
 
-                // Organization admin is owner
-                AssertPermissionLevel(PackagePermissionsService.PermissionLevel.OrganizationAdmin, owners, organizationAdmin);
+                // Organization admin
+                AssertPermissionLevel(PermissionLevel.OrganizationAdmin, owners, organizationAdmin);
 
-                // Organization collaborator is owner if allowCollaborator
-                AssertPermissionLevel(PackagePermissionsService.PermissionLevel.OrganizationCollaborator, owners, organizationCollaborator);
+                // Organization collaborator
+                AssertPermissionLevel(PermissionLevel.OrganizationCollaborator, owners, organizationCollaborator);
             }
 
-            private void AssertPermissionLevel(PackagePermissionsService.PermissionLevel expectedLevel, IEnumerable<User> owners, User user)
+            private void AssertPermissionLevel(PermissionLevel expectedLevel, IEnumerable<User> owners, User user)
             {
                 Assert.Equal(expectedLevel, PackagePermissionsService.GetPermissionLevel(owners, user));
                 
