@@ -74,7 +74,7 @@ namespace NuGetGallery
             get
             {
                 var latestPrereleaseVersion = PackageVersions
-                    .Where(pv => pv.Prerelease && pv.Available)
+                    .Where(pv => pv.Prerelease && pv.Available && pv.Listed)
                     .Max(pv => pv.NuGetVersion);
 
                 return latestPrereleaseVersion > NuGetVersion;

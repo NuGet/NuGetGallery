@@ -199,5 +199,44 @@ namespace NuGetGallery.ViewModels
             // Assert
             Assert.Equal(expectedNewerPrereleaseAvailable, hasNewerPrerelease);
         }
+        
+        [Fact]
+        public void HasNewerPrereleaseDoesNotConsiderUnlistedVersions()
+        {
+            // Arrange
+            var dependencies = Enumerable.Empty<PackageDependency>().ToList();
+            var packageRegistration = new PackageRegistration
+            {
+                Owners = Enumerable.Empty<User>().ToList(),
+            };
+
+            var package = new Package
+            {
+                Dependencies = dependencies,
+                PackageRegistration = packageRegistration,
+                IsPrerelease = true,
+                Version = "1.0.0-alpha.1"
+            };
+
+            // This is a newer prerelease version, however unlisted.
+            var otherPackage = new Package
+            {
+                Dependencies = dependencies,
+                PackageRegistration = packageRegistration,
+                IsPrerelease = true,
+                Version = "1.0.0-alpha.2",
+                Listed = false
+            };
+
+            package.PackageRegistration.Packages = new[] { package, otherPackage };
+
+            var viewModel = new DisplayPackageViewModel(package, package.PackageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version)));
+
+            // Act
+            var hasNewerPrerelease = viewModel.HasNewerPrerelease;
+
+            // Assert
+            Assert.False(hasNewerPrerelease);
+        }
     }
 }
