@@ -405,10 +405,10 @@ namespace NuGetGallery
 
                 _fileStorageService.Verify(
                     x => x.GetFileReadUriAsync(ValidationFolderName, ValidationFileName, endOfAccess),
-                    Times.Once);
+                    Times.Once());
                 _fileStorageService.Verify(
                     x => x.GetFileReadUriAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTimeOffset>()),
-                    Times.Once);
+                    Times.Once());
             }
         }
 
@@ -418,7 +418,7 @@ namespace NuGetGallery
             public async Task WillThrowIfPackageIsNull()
             {
                 var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => _service.GetPackageReadUriAsync(null));
-                Assert.Equal(ex.ParamName, "package");
+                Assert.Equal("package", ex.ParamName);
             }
 
             [Fact]
@@ -430,10 +430,10 @@ namespace NuGetGallery
 
                 _fileStorageService.Verify(
                     x => x.GetFileReadUriAsync(PackagesFolderName, filename, null),
-                    Times.Once);
+                    Times.Once());
                 _fileStorageService.Verify(
                     x => x.GetFileReadUriAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTimeOffset?>()),
-                    Times.Once);
+                    Times.Once());
             }
         }
 
@@ -443,7 +443,7 @@ namespace NuGetGallery
             public async Task WillThrowIfPackageIsNull()
             {
                 var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => _service.DoesPackageFileExistAsync(null));
-                Assert.Equal(ex.ParamName, "package");
+                Assert.Equal("package", ex.ParamName);
             }
 
             [Fact]
@@ -460,10 +460,10 @@ namespace NuGetGallery
                 Assert.True(result);
                 _fileStorageService.Verify(
                     x => x.FileExistsAsync(PackagesFolderName, filename),
-                    Times.Once);
+                    Times.Once());
                 _fileStorageService.Verify(
                     x => x.FileExistsAsync(It.IsAny<string>(), It.IsAny<string>()),
-                    Times.Once);
+                    Times.Once());
             }
         }
 
@@ -473,7 +473,7 @@ namespace NuGetGallery
             public async Task WillThrowIfPackageIsNull()
             {
                 var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => _service.DoesValidationPackageFileExistAsync(null));
-                Assert.Equal(ex.ParamName, "package");
+                Assert.Equal("package", ex.ParamName);
             }
 
             [Fact]
@@ -488,10 +488,10 @@ namespace NuGetGallery
                 Assert.True(result);
                 _fileStorageService.Verify(
                     x => x.FileExistsAsync(ValidationFolderName, ValidationFileName),
-                    Times.Once);
+                    Times.Once());
                 _fileStorageService.Verify(
                     x => x.FileExistsAsync(It.IsAny<string>(), It.IsAny<string>()),
-                    Times.Once);
+                    Times.Once());
             }
         }
 
