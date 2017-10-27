@@ -211,7 +211,7 @@
 
             @if (!Model.Listed && Model.Available)
             {
-                if (Model.HasPermission(User, PackagePermissionsService.Permission.DisplayMyPackage))
+                if (Model.HasPermission(User, Permission.DisplayMyPackage))
                 {
                     @ViewHelpers.AlertWarning(
                         @<text>
@@ -298,7 +298,7 @@
 
             @if (Model.Dependencies.DependencySets == null)
             {
-                if (Model.HasPermission(User, PackagePermissionsService.Permission.DisplayMyPackage))
+                if (Model.HasPermission(User, Permission.DisplayMyPackage))
                 {
                     <h2>Dependencies</h2>
                     <p>
@@ -374,7 +374,7 @@
                             <th>Version</th>
                             <th>Downloads</th>
                             <th>Last updated</th>
-                            @if (Model.HasPermission(User, PackagePermissionsService.Permission.DisplayMyPackage))
+                            @if (Model.HasPermission(User, Permission.DisplayMyPackage))
                             {
                                 <th>Listed</th>
                                 if (Config.Current.AsynchronousPackageValidationEnabled)
@@ -395,7 +395,7 @@
                         @foreach (var packageVersion in Model.PackageVersions)
                         {
                             if ((packageVersion.Available && packageVersion.Listed)
-                                || (!packageVersion.Deleted && Model.HasPermission(User, PackagePermissionsService.Permission.DisplayMyPackage)))
+                                || (!packageVersion.Deleted && Model.HasPermission(User, Permission.DisplayMyPackage)))
                             {
                                 rowCount++;
                                 @VersionListDivider(rowCount, versionsExpanded)
@@ -426,7 +426,7 @@
                                     <td>
                                         <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetShortDateString()</span>
                                     </td>
-                                    @if (packageVersion.HasPermission(User, PackagePermissionsService.Permission.DisplayMyPackage))
+                                    @if (packageVersion.HasPermission(User, Permission.DisplayMyPackage))
                                     {
                                         <td>
                                             <a href="@Url.DeletePackage(packageVersion)">@(packageVersion.Listed ? "yes" : "no")</a>
@@ -451,7 +451,7 @@
                                     }
                                 </tr>
                             }
-                            else if (packageVersion.Deleted && packageVersion.HasPermission(User, PackagePermissionsService.Permission.DisplayMyPackage))
+                            else if (packageVersion.Deleted && packageVersion.HasPermission(User, Permission.DisplayMyPackage))
                             {
                                 rowCount++;
                                 @VersionListDivider(rowCount, versionsExpanded)
@@ -528,7 +528,7 @@
                     <i class="ms-Icon ms-Icon--Mail" aria-hidden="true"></i>
                     <a href="@Url.ContactOwners(Model.Id)" title="Ask the package owners a question">Contact owners</a>
                 </li>
-                @if (Model.HasPermission(User, PackagePermissionsService.Permission.ReportMyPackage))
+                @if (Model.HasPermission(User, Permission.ReportMyPackage))
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--Help" aria-hidden="true"></i>
@@ -559,21 +559,21 @@
                     </li>
                 }
 
-                @if ((Model.Available || Model.Validating) && Model.HasPermission(User, PackagePermissionsService.Permission.Edit))
+                @if ((Model.Available || Model.Validating) && Model.HasPermission(User, Permission.Edit))
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
                         <a href="@Url.EditPackage(Model.Id, Model.Version)">Edit package</a>
                     </li>
                 }
-                @if (Model.HasPermission(User, PackagePermissionsService.Permission.ManagePackageOwners))
+                @if (Model.HasPermission(User, Permission.ManagePackageOwners))
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--People" aria-hidden="true"></i>
                         <a href="@Url.ManagePackageOwners(Model)">Manage owners</a>
                     </li>
                 }
-                @if (!Model.Deleted && Model.HasPermission(User, PackagePermissionsService.Permission.Delete))
+                @if (!Model.Deleted && Model.HasPermission(User, Permission.Delete))
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>

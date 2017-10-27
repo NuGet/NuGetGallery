@@ -392,7 +392,7 @@ namespace NuGetGallery
             if (package == null
                 || ((package.PackageStatusKey == PackageStatus.Validating
                      || package.PackageStatusKey == PackageStatus.FailedValidation)
-                    && !PackagePermissionsService.HasPermission(package, User, PackagePermissionsService.Permission.DisplayMyPackage)))
+                    && !PackagePermissionsService.HasPermission(package, User, Permission.DisplayMyPackage)))
             {
                 return HttpNotFound();
             }
@@ -406,7 +406,7 @@ namespace NuGetGallery
             var model = new DisplayPackageViewModel(package, packageHistory);
 
             var isReadMePending = false;
-            if (PackagePermissionsService.HasPermission(package, User, PackagePermissionsService.Permission.Edit))
+            if (PackagePermissionsService.HasPermission(package, User, Permission.Edit))
             {
                 // Tell logged-in package owners not to cache the package page,
                 // so they won't be confused about the state of pending edits.
@@ -593,7 +593,7 @@ namespace NuGetGallery
                 var user = GetCurrentUser();
 
                 // If user logged on in as owner a different tab, then clicked the link, we can redirect them to ReportMyPackage
-                if (PackagePermissionsService.HasPermission(package, user, PackagePermissionsService.Permission.ReportMyPackage))
+                if (PackagePermissionsService.HasPermission(package, user, Permission.ReportMyPackage))
                 {
                     return RedirectToAction("ReportMyPackage", new { id, version });
                 }
@@ -628,7 +628,7 @@ namespace NuGetGallery
             }
 
             // If user hit this url by constructing it manually but is not the owner, redirect them to ReportAbuse
-            if (!PackagePermissionsService.HasPermission(package, User, PackagePermissionsService.Permission.ReportMyPackage))
+            if (!PackagePermissionsService.HasPermission(package, User, Permission.ReportMyPackage))
             {
                 return RedirectToAction("ReportAbuse", new { id, version });
             }
@@ -826,7 +826,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            if (!PackagePermissionsService.HasPermission(package, User, PackagePermissionsService.Permission.ManagePackageOwners))
+            if (!PackagePermissionsService.HasPermission(package, User, Permission.ManagePackageOwners))
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
@@ -846,7 +846,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            if (!PackagePermissionsService.HasPermission(package, User, PackagePermissionsService.Permission.Delete))
+            if (!PackagePermissionsService.HasPermission(package, User, Permission.Delete))
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
@@ -1002,7 +1002,7 @@ namespace NuGetGallery
                 return Json(404, new[] { string.Format(Strings.PackageWithIdAndVersionNotFound, id, version) });
             }
 
-            if (!PackagePermissionsService.HasPermission(package, User, PackagePermissionsService.Permission.Edit))
+            if (!PackagePermissionsService.HasPermission(package, User, Permission.Edit))
             {
                 return Json(403, new[] { Strings.Unauthorized });
             }
@@ -1056,7 +1056,7 @@ namespace NuGetGallery
                 return Json(404, new[] { string.Format(Strings.PackageWithIdAndVersionNotFound, id, version) });
             }
 
-            if (!PackagePermissionsService.HasPermission(package, User, PackagePermissionsService.Permission.Edit))
+            if (!PackagePermissionsService.HasPermission(package, User, Permission.Edit))
             {
                 return Json(403, new[] { Strings.Unauthorized });
             }
@@ -1311,7 +1311,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            if (!PackagePermissionsService.HasPermission(package, User, PackagePermissionsService.Permission.Edit))
+            if (!PackagePermissionsService.HasPermission(package, User, Permission.Edit))
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
@@ -1584,7 +1584,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            if (!PackagePermissionsService.HasPermission(package, User, PackagePermissionsService.Permission.Edit))
+            if (!PackagePermissionsService.HasPermission(package, User, Permission.Edit))
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
