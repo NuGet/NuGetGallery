@@ -23,9 +23,9 @@ namespace NuGetGallery.Services
                         new []
                         {
                             Permission.DisplayMyPackage,
-                            Permission.Upload,
+                            Permission.UploadNewVersion,
                             Permission.Edit,
-                            Permission.Delete
+                            Permission.Delete,
                         }
                     },
                     {
@@ -33,10 +33,10 @@ namespace NuGetGallery.Services
                         new []
                         {
                             Permission.DisplayMyPackage,
-                            Permission.Upload,
+                            Permission.UploadNewVersion,
                             Permission.Edit,
                             Permission.Delete,
-                            Permission.ManagePackageOwners
+                            Permission.ManagePackageOwners,
                         }
                     },
                     {
@@ -44,11 +44,11 @@ namespace NuGetGallery.Services
                         new []
                         {
                             Permission.DisplayMyPackage,
-                            Permission.Upload,
+                            Permission.UploadNewVersion,
                             Permission.Edit,
                             Permission.Delete,
                             Permission.ManagePackageOwners,
-                            Permission.ReportMyPackage
+                            Permission.ReportMyPackage,
                         }
                     },
                     {
@@ -56,11 +56,11 @@ namespace NuGetGallery.Services
                         new []
                         {
                             Permission.DisplayMyPackage,
-                            Permission.Upload,
+                            Permission.UploadNewVersion,
                             Permission.Edit,
                             Permission.Delete,
                             Permission.ManagePackageOwners,
-                            Permission.ReportMyPackage
+                            Permission.ReportMyPackage,
                         }
                     }
                 };

@@ -20,7 +20,7 @@ namespace NuGetGallery
     public enum Permission
     {
         DisplayMyPackage,
-        Upload,
+        UploadNewVersion,
         Edit,
         Delete,
         ManagePackageOwners,
@@ -87,7 +87,7 @@ namespace NuGetGallery
                 case PermissionLevel.OrganizationCollaborator:
 
                     yield return Permission.DisplayMyPackage;
-                    yield return Permission.Upload;
+                    yield return Permission.UploadNewVersion;
                     yield return Permission.Edit;
                     yield return Permission.Delete;
 
