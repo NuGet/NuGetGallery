@@ -107,11 +107,11 @@ namespace NuGetGallery.Framework
             {
                 Id = "FakePackage",
                 Owners = new List<User> {Owner},
-                Packages = new List<Package>
-                {
-                    new Package {Version = "1.0"},
-                    new Package {Version = "2.0"}
-                }
+            };
+            Package.Packages = new List<Package>
+            {
+                new Package { Version = "1.0", PackageRegistration = Package },
+                new Package { Version = "2.0", PackageRegistration = Package }
             };
         }
 

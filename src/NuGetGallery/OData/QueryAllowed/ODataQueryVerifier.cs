@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Web.Http.OData.Query;
 
 namespace NuGetGallery.OData.QueryFilter
@@ -124,12 +123,10 @@ namespace NuGetGallery.OData.QueryFilter
             }
             catch (Exception ex)
             {
-                var telemetryProperties = new Dictionary<string, string>();
-                telemetryProperties.Add(TelemetryService.CallContext, $"{telemetryContext}:{nameof(AreODataOptionsAllowed)}");
-                telemetryProperties.Add(TelemetryService.IsEnabled, $"{isFeatureEnabled}");
-
-                // Log and do not throw
-                Telemetry.TrackException(ex, telemetryProperties);
+                _telemetryService.TrackException(ex, properties => {
+                    properties.Add(TelemetryService.CallContext, $"{telemetryContext}:{nameof(AreODataOptionsAllowed)}");
+                    properties.Add(TelemetryService.IsEnabled, $"{isFeatureEnabled}");
+                });
             }
 
             _telemetryService.TrackODataQueryFilterEvent(

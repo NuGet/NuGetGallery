@@ -78,9 +78,10 @@ namespace NuGetGallery
 
                     return processor;
                 });
-
+                
+                var telemetry = dependencyResolver.GetService<TelemetryClientWrapper>();
                 telemetryProcessorChainBuilder.Use(
-                    next => new ExceptionTelemetryProcessor(next, Telemetry.TelemetryClient));
+                    next => new ExceptionTelemetryProcessor(next, telemetry.UnderlyingClient));
 
                 // Note: sampling rate must be a factor 100/N where N is a whole number
                 // e.g.: 50 (= 100/2), 33.33 (= 100/3), 25 (= 100/4), ...
