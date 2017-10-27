@@ -10,7 +10,9 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
+using NuGetGallery.Filters;
 using NuGetGallery.Infrastructure.Authentication;
+using NuGetGallery.Areas.Admin.ViewModels;
 
 namespace NuGetGallery
 {
@@ -88,6 +90,44 @@ namespace NuGetGallery
         {
             return AccountView(new AccountViewModel());
         }
+
+        [HttpGet]
+        [Authorize(Roles = "Admins")]
+        public virtual ActionResult DeleteUserAccount(string accountName)
+        {
+            var user = _userService.FindByUsername(accountName);
+            if(user == null)
+            {
+                return HttpNotFound("User not found.");
+            }
+
+            var listPackageItems = _packageService
+                 .FindPackagesByOwner(user, true)
+                 .Select(p => new ListPackageItemViewModel(p))
+                 .ToList();
+            var model = new DeleteUserAccountViewModel
+            {
+                Packages = listPackageItems,
+                User = user,
+                AccountName = user.Username,
+                HasOrphanPackages = listPackageItems.Where(p => p.Owners.Count <= 1).Any()
+            };
+            return View("DeleteUserAccount", model);
+        }
+
+
+        [Authorize(Roles = "Admins")]
+        [HttpPost]
+        [RequiresAccountConfirmation("delete account")]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> DeleteUserAccount(DeleteUserAccountViewModel model)
+        {
+            //TODO 
+
+            await Task.Delay(2);
+            return DeleteUserAccount(model.AccountName);
+        }
+
 
         [HttpGet]
         [Authorize]
@@ -733,7 +773,7 @@ namespace NuGetGallery
             model.ChangeNotifications = model.ChangeNotifications ?? new ChangeNotificationsViewModel();
             model.ChangeNotifications.EmailAllowed = user.EmailAllowed;
             model.ChangeNotifications.NotifyPackagePushed = user.NotifyPackagePushed;
-
+           
             return View("Account", model);
         }
 
