@@ -8,67 +8,6 @@ using System.Security.Principal;
 
 namespace NuGetGallery
 {
-    public enum PermissionLevel
-    {
-        /// <summary>
-        /// The default rights to a package, held by all users on every package.
-        /// </summary>
-        Anonymous,
-
-        /// <summary>
-        /// The user is a direct owner of the package.
-        /// </summary>
-        Owner,
-
-        /// <summary>
-        /// The user is a site admin and has administrative permissions on all packages.
-        /// </summary>
-        SiteAdmin,
-
-        /// <summary>
-        /// The user is an administrator of an organization that is a direct owner of the package.
-        /// </summary>
-        OrganizationAdmin,
-
-        /// <summary>
-        /// The user is a collaborator of an organization that is a direct owner of the package.
-        /// </summary>
-        OrganizationCollaborator,
-    }
-
-    public enum PackageAction
-    {
-        /// <summary>
-        /// The ability to view hidden package versions or metadata.
-        /// </summary>
-        DisplayPrivatePackage,
-
-        /// <summary>
-        /// The ability to upload new versions of an existing package ID.
-        /// </summary>
-        UploadNewVersion,
-
-        /// <summary>
-        /// The ability to edit an existing package version.
-        /// </summary>
-        Edit,
-
-        /// <summary>
-        /// The ability to unlist or relist an existing package version.
-        /// </summary>
-        Unlist,
-
-        /// <summary>
-        /// The ability to add or remove owners of the package.
-        /// </summary>
-        ManagePackageOwners,
-
-        /// <summary>
-        /// The ability to report a package as its owner.
-        /// </summary>
-        ReportMyPackage,
-    }
-
     public static class PackagePermissionsService
     {
         private static readonly IDictionary<PermissionLevel, IEnumerable<PackageAction>> _allowedActions = 
