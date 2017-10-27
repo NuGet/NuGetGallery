@@ -3,12 +3,6 @@
 using System.Web.Mvc;
 using System.Web.Routing;
 using RouteMagic;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-
 
 namespace NuGetGallery
 {
@@ -31,36 +25,6 @@ namespace NuGetGallery
                 new { controller = "Pages", action = "EmptyHome" });
             }
             RegisterApiV2Routes(routes);
-        }
-
-        static string GetAttributes(MethodInfo mInfo, out bool add)
-        {
-            string result = "";
-            add = false;
-
-            foreach( var a in mInfo.GetCustomAttributesData())
-            {
-                if(result != "")
-                {
-                    result +=",";
-                }
-                result += a.AttributeType.Name;
-            }
-            if( result == "" )
-            {
-                result = "NoAttribute";
-            }
-            add = result.Contains("Http");
-            return result;
-        }
-
-        static string IsPrivate(MethodInfo mInfo)
-        {
-            if (mInfo.IsPrivate)
-            { return "Private"; }
-            else
-            { return "Public"; }
-
         }
 
         public static void RegisterUIRoutes(RouteCollection routes)

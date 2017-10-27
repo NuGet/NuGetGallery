@@ -6,4 +6,6 @@
 
     window.nuget.configureExpanderHeading("requests-Incoming");
     window.nuget.configureExpanderHeading("requests-Outgoing");
+
+    window.nuget.configureExpanderHeading("reservednamespaces");
 });

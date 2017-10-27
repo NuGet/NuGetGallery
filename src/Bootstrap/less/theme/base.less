@@ -272,6 +272,11 @@ img.package-icon {
   margin-right: auto;
 }
 
+img.reserved-indicator-icon {
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .package-list {
   margin-top: 8px;
   margin-bottom: 8px;
@@ -329,4 +334,17 @@ img.package-icon {
   word-wrap: break-word;
   word-break: normal;
   word-break: break-word;
+}
+
+.showOnFocus {
+  display: block;
+  line-height:0;
+  height: 0;
+  overflow: hidden;
+}
+
+.showOnFocus:focus {
+  line-height:2em;
+  height: 2em;
+  color: @navbar-inverse-color;
 }

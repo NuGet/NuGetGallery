@@ -201,11 +201,13 @@ namespace NuGetGallery
             var outgoing = _packageOwnerRequestService.GetPackageOwnershipRequests(requestingOwner: user);
 
             var ownerRequests = new OwnerRequestsViewModel(incoming, outgoing, user, _packageService);
+            var reservedPrefixes = new ReservedNamespaceListViewModel(user.ReservedNamespaces);
 
             var model = new ManagePackagesViewModel
             {
                 Packages = packages,
-                OwnerRequests = ownerRequests
+                OwnerRequests = ownerRequests,
+                ReservedNamespaces = reservedPrefixes
             };
             return View(model);
         }

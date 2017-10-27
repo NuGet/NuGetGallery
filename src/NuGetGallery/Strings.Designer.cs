@@ -756,6 +756,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Organization accounts cannot create credentials..
+        /// </summary>
+        public static string OrganizationsCannotCreateCredentials {
+            get {
+                return ResourceManager.GetString("OrganizationsCannotCreateCredentials", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Package created from API..
         /// </summary>
         public static string PackageCreatedFromApi {
@@ -936,6 +945,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The user &apos;{0}&apos; does not have permission to remove the owner &apos;{1}&apos;..
+        /// </summary>
+        public static string RemoveOwner_NotAllowed {
+            get {
+                return ResourceManager.GetString("RemoveOwner_NotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The namespace &apos;{0}&apos; contains invalid characters. Examples of valid namespaces include &apos;MyNamespace&apos; and &apos;MyNamespace.&apos;..
         /// </summary>
         public static string ReservedNamespace_InvalidCharactersInNamespace {
@@ -1022,6 +1040,15 @@ namespace NuGetGallery {
         public static string ReservedNamespace_PrefixRemoved {
             get {
                 return ResourceManager.GetString("ReservedNamespace_PrefixRemoved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package registraton Id &apos;{0}&apos; is missing or not found in the reserved namespace &apos;{1}&apos;..
+        /// </summary>
+        public static string ReservedNamespace_RegistrationNotFound {
+            get {
+                return ResourceManager.GetString("ReservedNamespace_RegistrationNotFound", resourceCulture);
             }
         }
         

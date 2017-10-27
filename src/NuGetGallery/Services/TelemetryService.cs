@@ -5,20 +5,24 @@ using System;
 using System.Collections.Generic;
 using System.Security.Principal;
 using System.Web;
+using Elmah;
 using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery
 {
     public class TelemetryService : ITelemetryService
     {
-        private IDiagnosticsSource _trace;
+        internal class Events
+        {
+            public const string ODataQueryFilter = "ODataQueryFilter";
+            public const string PackagePush = "PackagePush";
+            public const string CreatePackageVerificationKey = "CreatePackageVerificationKey";
+            public const string VerifyPackageKey = "VerifyPackageKey";
+            public const string PackageReadMeChanged = "PackageReadMeChanged";
+        }
 
-        // Event types
-        public const string ODataQueryFilterEvent = "ODataQueryFilter";
-        public const string PackagePushEvent = "PackagePush";
-        public const string CreatePackageVerificationKeyEvent = "CreatePackageVerificationKeyEvent";
-        public const string VerifyPackageKeyEvent = "VerifyPackageKeyEvent";
-        public const string PackageReadMeChangeEvent = "PackageReadMeChanged";
+        private IDiagnosticsSource _diagnosticsSource;
+        private ITelemetryClient _telemetryClient;
 
         // ODataQueryFilter properties
         public const string CallContext = "CallContext";
@@ -31,6 +35,7 @@ namespace NuGetGallery
         public const string AccountCreationDate = "AccountCreationDate";
         public const string ClientVersion = "ClientVersion";
         public const string ProtocolVersion = "ProtocolVersion";
+        public const string ClientInformation = "ClientInformation";
         public const string IsScoped = "IsScoped";
         public const string KeyCreationDate = "KeyCreationDate";
         public const string PackageId = "PackageId";
@@ -44,18 +49,20 @@ namespace NuGetGallery
         public const string ReadMeSourceType = "ReadMeSourceType";
         public const string ReadMeState = "ReadMeState";
 
-        public TelemetryService(IDiagnosticsService diagnosticsService)
+        public TelemetryService(IDiagnosticsService diagnosticsService, ITelemetryClient telemetryClient = null)
         {
             if (diagnosticsService == null)
             {
                 throw new ArgumentNullException(nameof(diagnosticsService));
             }
 
-            _trace = diagnosticsService.GetSource("TelemetryService");
+            _telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
+
+            _diagnosticsSource = diagnosticsService.GetSource("TelemetryService");
         }
 
         // Used by ODataQueryVerifier. Should consider refactoring to make this non-static.
-        internal TelemetryService() : this(new DiagnosticsService())
+        internal TelemetryService() : this(new DiagnosticsService(), TelemetryClientWrapper.Instance)
         {
         }
 
@@ -66,12 +73,12 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(exception));
             }
 
-            _trace.Warning(exception.ToString());
+            _diagnosticsSource.Warning(exception.ToString());
         }
 
         public void TrackODataQueryFilterEvent(string callContext, bool isEnabled, bool isAllowed, string queryPattern)
         {
-            TrackEvent(ODataQueryFilterEvent, properties =>
+            TrackEvent(Events.ODataQueryFilter, properties =>
             {
                 properties.Add(CallContext, callContext);
                 properties.Add(IsEnabled, $"{isEnabled}");
@@ -92,8 +99,8 @@ namespace NuGetGallery
             {
                 throw new ArgumentNullException(nameof(readMeSourceType));
             }
-            
-            TrackEvent(PackagePushEvent, properties => {
+
+            TrackEvent(Events.PackageReadMeChanged, properties => {
                 properties.Add(PackageId, package.PackageRegistration.Id);
                 properties.Add(PackageVersion, package.Version);
                 properties.Add(ReadMeSourceType, readMeSourceType);
@@ -118,9 +125,10 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(identity));
             }
 
-            TrackEvent(PackagePushEvent, properties => {
+            TrackEvent(Events.PackagePush, properties => {
                 properties.Add(ClientVersion, GetClientVersion());
                 properties.Add(ProtocolVersion, GetProtocolVersion());
+                properties.Add(ClientInformation, GetClientInformation());
                 properties.Add(PackageId, package.PackageRegistration.Id);
                 properties.Add(PackageVersion, package.Version);
                 properties.Add(AuthenticationMethod, identity.GetAuthenticationType());
@@ -142,9 +150,10 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(identity));
             }
 
-            TrackEvent(CreatePackageVerificationKeyEvent, properties => {
+            TrackEvent(Events.CreatePackageVerificationKey, properties => {
                 properties.Add(ClientVersion, GetClientVersion());
                 properties.Add(ProtocolVersion, GetProtocolVersion());
+                properties.Add(ClientInformation, GetClientInformation());
                 properties.Add(PackageId, packageId);
                 properties.Add(PackageVersion, packageVersion);
                 properties.Add(AccountCreationDate, GetAccountCreationDate(user));
@@ -165,7 +174,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(identity));
             }
 
-            TrackEvent(VerifyPackageKeyEvent, properties =>
+            TrackEvent(Events.VerifyPackageKey, properties =>
             {
                 properties.Add(PackageId, packageId);
                 properties.Add(PackageVersion, packageVersion);
@@ -185,6 +194,17 @@ namespace NuGetGallery
             return HttpContext.Current?.Request?.Headers[Constants.NuGetProtocolHeaderName];
         }
 
+        private static string GetClientInformation()
+        {
+            if (HttpContext.Current != null)
+            {
+                HttpContextBase contextBase = new HttpContextWrapper(HttpContext.Current);
+                return contextBase.GetClientInformation();
+            }
+
+            return null;
+        }
+
         private static string GetAccountCreationDate(User user)
         {
             return user.CreatedUtc?.ToString("O") ?? "N/A";
@@ -196,13 +216,22 @@ namespace NuGetGallery
             return apiKey?.Created.ToString("O") ?? "N/A";
         }
 
-        private static void TrackEvent(string eventName, Action<Dictionary<string, string>> addProperties)
+        protected virtual void TrackEvent(string eventName, Action<Dictionary<string, string>> addProperties)
         {
             var telemetryProperties = new Dictionary<string, string>();
 
             addProperties(telemetryProperties);
 
-            Telemetry.TrackEvent(eventName, telemetryProperties, metrics: null);
+            _telemetryClient.TrackEvent(eventName, telemetryProperties, metrics: null);
+        }
+
+        public void TrackException(Exception exception, Action<Dictionary<string, string>> addProperties)
+        {
+            var telemetryProperties = new Dictionary<string, string>();
+
+            addProperties(telemetryProperties);
+
+            _telemetryClient.TrackException(exception, telemetryProperties, metrics: null);
         }
     }
 }

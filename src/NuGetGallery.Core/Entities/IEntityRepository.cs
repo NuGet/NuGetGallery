@@ -7,12 +7,11 @@ using System.Threading.Tasks;
 namespace NuGetGallery
 {
     public interface IEntityRepository<T>
-        where T : class, IEntity, new()
+        where T : class, new()
     {
         Task CommitChangesAsync();
         void DeleteOnCommit(T entity);
-        T GetEntity(int key);
         IQueryable<T> GetAll();
-        int InsertOnCommit(T entity);
+        void InsertOnCommit(T entity);
     }
 }

@@ -8,6 +8,7 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using NuGetGallery.Areas.Admin;
+using NuGetGallery.Areas.Admin.Controllers;
 
 namespace NuGetGallery
 {
@@ -204,23 +205,6 @@ namespace NuGetGallery
         public static string PackageList(this UrlHelper url, bool relativeUrl = true)
         {
             return GetRouteLink(url, RouteName.ListPackages, relativeUrl);
-        }
-
-        public static string UndoPendingEdits(
-            this UrlHelper url,
-            IPackageVersionModel package,
-            bool relativeUrl = true)
-        {
-            return GetActionLink(
-                url,
-                "UndoPendingEdits",
-                "Packages",
-                relativeUrl,
-                routeValues: new RouteValueDictionary
-                {
-                    { "id", package.Id },
-                    { "version", package.Version }
-                });
         }
 
         public static string Package(this UrlHelper url, string id, bool relativeUrl = true)
@@ -500,7 +484,8 @@ namespace NuGetGallery
 
         public static string RevalidatePackage(
             this UrlHelper url,
-            IPackageVersionModel package,
+            string id,
+            string version,
             bool relativeUrl = true)
         {
             return GetActionLink(
@@ -510,9 +495,17 @@ namespace NuGetGallery
                 relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
-                    { "id", package.Id },
-                    { "version", package.Version }
+                    { "id", id },
+                    { "version", version }
                 });
+        }
+
+        public static string RevalidatePackage(
+            this UrlHelper url,
+            IPackageVersionModel package,
+            bool relativeUrl = true)
+        {
+            return url.RevalidatePackage(package.Id, package.Version, relativeUrl);
         }
 
         public static string DeletePackage(
@@ -623,7 +616,7 @@ namespace NuGetGallery
                 relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
-                    { "id", package.Id}
+                    { "id", package.Id }
                 });
         }
 
@@ -765,16 +758,31 @@ namespace NuGetGallery
 
         public static string Terms(this UrlHelper url, bool relativeUrl = true)
         {
+            if (!String.IsNullOrEmpty(_configuration.Current.ExternalTermsOfUseUrl))
+            {
+                return _configuration.Current.ExternalTermsOfUseUrl;
+            }
+
             return GetActionLink(url, "Terms", "Pages", relativeUrl);
         }
 
         public static string Privacy(this UrlHelper url, bool relativeUrl = true)
         {
+            if (!String.IsNullOrEmpty(_configuration.Current.ExternalPrivacyPolicyUrl))
+            {
+                return _configuration.Current.ExternalPrivacyPolicyUrl;
+            }
+
             return GetActionLink(url, "Privacy", "Pages", relativeUrl);
         }
 
         public static string About(this UrlHelper url, bool relativeUrl = true)
         {
+            if (!String.IsNullOrEmpty(_configuration.Current.ExternalAboutUrl))
+            {
+                return _configuration.Current.ExternalAboutUrl;
+            }
+
             return GetActionLink(url, "About", "Pages", relativeUrl);
         }
 

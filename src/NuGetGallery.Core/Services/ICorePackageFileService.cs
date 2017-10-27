@@ -49,5 +49,12 @@ namespace NuGetGallery
         /// <param name="id">The package ID. This value is case-insensitive.</param>
         /// <param name="version">The package version. This value is case-insensitive and need not be normalized.</param>
         Task DeleteValidationPackageFileAsync(string id, string version);
+
+        /// <summary>
+        /// Deletes the nupkg from the publicly available package storage.
+        /// </summary>
+        /// <param name="id">The package ID. This value is case-insensitive.</param>
+        /// <param name="version">The package version. This value is case-insensitive and need not be normalized.</param>
+        Task DeletePackageFileAsync(string id, string version);
     }
 }

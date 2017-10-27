@@ -8,7 +8,7 @@ namespace NuGetGallery
 {
     public class EntityRepository<T>
         : IEntityRepository<T>
-        where T : class, IEntity, new()
+        where T : class, new()
     {
         private readonly IEntitiesContext _entities;
 
@@ -27,21 +27,14 @@ namespace NuGetGallery
             _entities.Set<T>().Remove(entity);
         }
 
-        public T GetEntity(int key)
-        {
-            return _entities.Set<T>().Find(key);
-        }
-
         public IQueryable<T> GetAll()
         {
             return _entities.Set<T>();
         }
 
-        public int InsertOnCommit(T entity)
+        public void InsertOnCommit(T entity)
         {
             _entities.Set<T>().Add(entity);
-
-            return entity.Key;
         }
     }
 }

@@ -18,19 +18,16 @@ namespace NuGetGallery
     public class PackageService : CorePackageService, IPackageService
     {
         private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
-        private readonly IPackageOwnerRequestService _packageOwnerRequestService;
         private readonly IPackageNamingConflictValidator _packageNamingConflictValidator;
         private readonly IAuditingService _auditingService;
 
         public PackageService(
             IEntityRepository<PackageRegistration> packageRegistrationRepository,
             IEntityRepository<Package> packageRepository,
-            IPackageOwnerRequestService packageOwnerRequestService,
             IPackageNamingConflictValidator packageNamingConflictValidator,
             IAuditingService auditingService) : base(packageRepository)
         {
             _packageRegistrationRepository = packageRegistrationRepository ?? throw new ArgumentNullException(nameof(packageRegistrationRepository));
-            _packageOwnerRequestService = packageOwnerRequestService ?? throw new ArgumentNullException(nameof(packageOwnerRequestService));
             _packageNamingConflictValidator = packageNamingConflictValidator ?? throw new ArgumentNullException(nameof(packageNamingConflictValidator));
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
         }
@@ -361,15 +358,6 @@ namespace NuGetGallery
         {
             package.Owners.Add(newOwner);
             await _packageRepository.CommitChangesAsync();
-
-            var request = _packageOwnerRequestService.GetPackageOwnershipRequests(package: package, newOwner: newOwner).FirstOrDefault();
-            if (request != null)
-            {
-                await _packageOwnerRequestService.DeletePackageOwnershipRequest(request);
-            }
-
-            await _auditingService.SaveAuditRecordAsync(
-                new PackageRegistrationAuditRecord(package, AuditedPackageRegistrationAction.AddOwner, newOwner.Username));
         }
 
         public async Task RemovePackageOwnerAsync(PackageRegistration package, User user)
@@ -379,18 +367,8 @@ namespace NuGetGallery
                 throw new InvalidOperationException("You can't remove the only owner from a package.");
             }
 
-            var request = _packageOwnerRequestService.GetPackageOwnershipRequests(package: package, newOwner: user).FirstOrDefault();
-            if (request != null)
-            {
-                await _packageOwnerRequestService.DeletePackageOwnershipRequest(request);
-                return;
-            }
-
             package.Owners.Remove(user);
             await _packageRepository.CommitChangesAsync();
-
-            await _auditingService.SaveAuditRecordAsync(
-                new PackageRegistrationAuditRecord(package, AuditedPackageRegistrationAction.RemoveOwner, user.Username));
         }
 
         public async Task MarkPackageListedAsync(Package package, bool commitChanges = true)
@@ -739,6 +717,7 @@ namespace NuGetGallery
             {
                 packageRegistrationsToUpdate
                     .ForEach(pru => pru.IsVerified = isVerified);
+
                 await _packageRegistrationRepository.CommitChangesAsync();
             }
         }

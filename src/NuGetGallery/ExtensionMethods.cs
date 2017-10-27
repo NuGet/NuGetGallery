@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Net.Mail;
 using System.Security;
 using System.Security.Claims;
 using System.Security.Principal;
@@ -177,9 +176,9 @@ namespace NuGetGallery
             return items.Any(predicate);
         }
 
-        public static bool IsOwner(this Package package, IPrincipal user)
+        public static bool IsOwnerOrAdmin(this Package package, IPrincipal user)
         {
-            return package.PackageRegistration.IsOwner(user);
+            return package.PackageRegistration.IsOwnerOrAdmin(user);
         }
 
         public static bool IsOwner(this Package package, User user)
@@ -187,7 +186,7 @@ namespace NuGetGallery
             return package.PackageRegistration.IsOwner(user);
         }
 
-        public static bool IsOwner(this PackageRegistration package, IPrincipal user)
+        public static bool IsOwnerOrAdmin(this PackageRegistration package, IPrincipal user)
         {
             if (package == null)
             {
@@ -257,16 +256,6 @@ namespace NuGetGallery
                 Expression.Quote(lambda));
 
             return source.Provider.CreateQuery<T>(methodCallExpression);
-        }
-
-        public static MailAddress ToMailAddress(this User user)
-        {
-            if (!user.Confirmed)
-            {
-                return new MailAddress(user.UnconfirmedEmailAddress, user.Username);
-            }
-
-            return new MailAddress(user.EmailAddress, user.Username);
         }
 
         public static bool IsError<TModel, TProperty>(this HtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TProperty>> expression)
@@ -464,19 +453,6 @@ namespace NuGetGallery
             return self.Claims.GetClaimOrDefault(claimType);
         }
 
-        public static string GetClaimOrDefault(this ClaimsIdentity self, string claimType)
-        {
-            return self.Claims.GetClaimOrDefault(claimType);
-        }
-
-        public static string GetClaimOrDefault(this IEnumerable<Claim> self, string claimType)
-        {
-            return self
-                .Where(c => string.Equals(c.Type, claimType, StringComparison.OrdinalIgnoreCase))
-                .Select(c => c.Value)
-                .FirstOrDefault();
-        }
-
         public static bool HasScopeThatAllowsActionForSubject(
             this IIdentity self, 
             string subject,
@@ -563,17 +539,6 @@ namespace NuGetGallery
             }
 
             return user;
-        }
-
-        /// <summary>
-        /// Get the current API key credential, if available.
-        /// </summary>
-        public static Credential GetCurrentApiKeyCredential(this User user, IIdentity identity)
-        {
-            var claimsIdentity = identity as ClaimsIdentity;
-            var apiKey = claimsIdentity.GetClaimOrDefault(NuGetClaims.ApiKey);
-
-            return user.Credentials.FirstOrDefault(c => c.Value == apiKey);
         }
 
         private static User LoadUser(IOwinContext context)

@@ -21,6 +21,7 @@ using NuGet.Services.ServiceBus;
 using NuGet.Services.Validation;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Models;
+using NuGetGallery.Areas.Admin.Services;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
 using NuGetGallery.Configuration.SecretReader;
@@ -38,7 +39,12 @@ namespace NuGetGallery
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:CyclomaticComplexity", Justification = "This code is more maintainable in the same function.")]
         protected override void Load(ContainerBuilder builder)
         {
-            var diagnosticsService = new DiagnosticsService();
+            var telemetryClient = TelemetryClientWrapper.Instance;
+            builder.RegisterInstance(telemetryClient)
+                .As<ITelemetryClient>()
+                .SingleInstance();
+
+            var diagnosticsService = new DiagnosticsService(telemetryClient);
             builder.RegisterInstance(diagnosticsService)
                 .AsSelf()
                 .As<IDiagnosticsService>()
@@ -210,6 +216,11 @@ namespace NuGetGallery
                 .As<IPackageUploadService>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<PackageOwnershipManagementService>()
+                .AsSelf()
+                .As<IPackageOwnershipManagementService>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<ValidationService>()
                 .AsSelf()
                 .As<IValidationService>()
@@ -289,7 +300,7 @@ namespace NuGetGallery
                     defaultAuditingService = GetAuditingServiceForLocalFileSystem(configuration);
                     break;
                 case StorageType.AzureStorage:
-                    ConfigureForAzureStorage(builder, configuration);
+                    ConfigureForAzureStorage(builder, configuration, telemetryClient);
                     defaultAuditingService = GetAuditingServiceForAzureStorage(builder, configuration);
                     break;
             }
@@ -333,8 +344,29 @@ namespace NuGetGallery
             ConfigureAutocomplete(builder, configuration);
         }
 
+        private static void ConfigureValidationAdmin(ContainerBuilder builder, ConfigurationService configuration)
+        {
+            builder.Register(c => new ValidationEntitiesContext(configuration.Current.SqlConnectionStringValidation))
+                .AsSelf()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<ValidationEntityRepository<PackageValidationSet>>()
+                .As<IEntityRepository<PackageValidationSet>>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<ValidationEntityRepository<PackageValidation>>()
+                .As<IEntityRepository<PackageValidation>>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<ValidationAdminService>()
+                .AsSelf()
+                .InstancePerLifetimeScope();
+        }
+
         private void RegisterAsynchronousValidation(ContainerBuilder builder, ConfigurationService configuration)
         {
+            ConfigureValidationAdmin(builder, configuration);
+
             builder
                 .RegisterType<ServiceBusMessageSerializer>()
                 .As<IServiceBusMessageSerializer>();
@@ -431,10 +463,18 @@ namespace NuGetGallery
 
             foreach (var dependent in StorageDependent.GetAll(configuration.Current))
             {
-                builder.RegisterType(dependent.ImplementationType)
+                var registration = builder.RegisterType(dependent.ImplementationType)
                     .AsSelf()
-                    .As(dependent.InterfaceType)
-                    .InstancePerLifetimeScope();
+                    .As(dependent.InterfaceType);
+
+                if (dependent.IsSingleInstance)
+                {
+                    registration.SingleInstance();
+                }
+                else
+                {
+                    registration.InstancePerLifetimeScope();
+                }
             }
 
             builder.RegisterInstance(NullReportService.Instance)
@@ -467,7 +507,7 @@ namespace NuGetGallery
             return new FileSystemAuditingService(auditingPath, AuditActor.GetAspNetOnBehalfOfAsync);
         }
 
-        private static void ConfigureForAzureStorage(ContainerBuilder builder, IGalleryConfigurationService configuration)
+        private static void ConfigureForAzureStorage(ContainerBuilder builder, IGalleryConfigurationService configuration, ITelemetryClient telemetryClient)
         {
             /// The goal here is to initialize a <see cref="ICloudBlobClient"/> and <see cref="IFileStorageService"/>
             /// instance for each unique connection string. Each dependent of <see cref="IFileStorageService"/> (that
@@ -497,13 +537,21 @@ namespace NuGetGallery
                         .Keyed<IFileStorageService>(dependent.BindingKey);
                 }
 
-                builder.RegisterType(dependent.ImplementationType)
+                var registration = builder.RegisterType(dependent.ImplementationType)
                     .WithParameter(new ResolvedParameter(
                        (pi, ctx) => pi.ParameterType == typeof(IFileStorageService),
                        (pi, ctx) => ctx.ResolveKeyed<IFileStorageService>(dependent.BindingKey)))
                     .AsSelf()
-                    .As(dependent.InterfaceType)
-                    .InstancePerLifetimeScope();
+                    .As(dependent.InterfaceType);
+
+                if (dependent.IsSingleInstance)
+                {
+                    registration.SingleInstance();
+                }
+                else
+                {
+                    registration.InstancePerLifetimeScope();
+                }
             }
 
             // when running on Windows Azure, we use a back-end job to calculate stats totals and store in the blobs
@@ -520,7 +568,11 @@ namespace NuGetGallery
                 .SingleInstance();
 
             // when running on Windows Azure, download counts come from the downloads.v1.json blob
-            var downloadCountService = new CloudDownloadCountService(configuration.Current.AzureStorage_Statistics_ConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant);
+            var downloadCountService = new CloudDownloadCountService(
+                telemetryClient,
+                configuration.Current.AzureStorage_Statistics_ConnectionString,
+                configuration.Current.AzureStorageReadAccessGeoRedundant);
+
             builder.RegisterInstance(downloadCountService)
                 .AsSelf()
                 .As<IDownloadCountService>()
@@ -611,12 +663,12 @@ namespace NuGetGallery
             {
                 service = new NullCookieComplianceService();
             }
-            
+
             builder.RegisterInstance(service)
                 .AsSelf()
                 .As<ICookieComplianceService>()
                 .SingleInstance();
-            
+
             // Initialize the service on App_Start to avoid any performance degradation during initial requests.
             var siteName = configuration.GetSiteRoot(true);
             HostingEnvironment.QueueBackgroundWorkItem(async cancellationToken => await service.InitializeAsync(siteName, diagnostics, cancellationToken));

@@ -2,11 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.Owin;
 using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security;
 using Moq;
+using Newtonsoft.Json;
 using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Authentication;
 using Xunit;
@@ -191,12 +194,14 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
             }
 
             [Fact]
-            public async Task GivenMatchingApiKey_ItReturnsTicketWithUserNameAndRoles()
+            public async Task GivenMatchingApiKey_ItReturnsTicketWithClaims()
             {
                 // Arrange
                 var user = new User { Username = "theUser", EmailAddress = "confirmed@example.com" };
                 var handler = await TestableApiKeyAuthenticationHandler.CreateAsync(new ApiKeyAuthenticationOptions());
                 var apiKeyCredential = new CredentialBuilder().CreateApiKey(Fakes.ExpirationForApiKeyV1);
+                apiKeyCredential.Key = 99;
+                apiKeyCredential.Scopes = new List<Scope>() { new Scope("a", "b") };
 
                 handler.OwinContext.Request.Headers.Set(
                     Constants.ApiKeyHeaderName,
@@ -208,7 +213,10 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
 
                 // Assert
                 Assert.NotNull(ticket);
+                Assert.Equal(user.Username, ticket.Identity.GetClaimOrDefault(ClaimTypes.NameIdentifier));
                 Assert.Equal(apiKeyCredential.Value.ToLower(), ticket.Identity.GetClaimOrDefault(NuGetClaims.ApiKey));
+                Assert.Equal(apiKeyCredential.Key.ToString(), ticket.Identity.GetClaimOrDefault(NuGetClaims.CredentialKey));
+                Assert.Equal(JsonConvert.SerializeObject(apiKeyCredential.Scopes, Formatting.None), ticket.Identity.GetClaimOrDefault(NuGetClaims.Scope));
             }
 
             [Fact]

@@ -7,8 +7,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Security.Claims;
 using System.Web.Helpers;
-using System.Web.Http;
 using System.Web.Hosting;
+using System.Web.Http;
+using System.Web.Http.ExceptionHandling;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
@@ -22,9 +23,8 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Jobs;
-using WebBackgrounder;
 using WebActivatorEx;
-using System.Web.Http.ExceptionHandling;
+using WebBackgrounder;
 
 [assembly: PreApplicationStartMethod(typeof(AppActivator), "PreStart")]
 [assembly: PostApplicationStartMethod(typeof(AppActivator), "PostStart")]
@@ -207,7 +207,8 @@ namespace NuGetGallery
             BundleTable.Bundles.Add(homeScriptBundle);
 
             var displayPackageScriptBundle = new ScriptBundle("~/Scripts/gallery/page-display-package.min.js")
-                .Include("~/Scripts/gallery/page-display-package.js");
+                .Include("~/Scripts/gallery/page-display-package.js")
+                .Include("~/Scripts/gallery/clamp.js");
             BundleTable.Bundles.Add(displayPackageScriptBundle);
 
             var managePackagesScriptBundle = new ScriptBundle("~/Scripts/gallery/page-manage-packages.min.js")

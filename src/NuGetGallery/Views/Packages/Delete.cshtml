@@ -29,15 +29,7 @@
                 <div class="form-group">
                     <label for="input-select-version" id="package-version-label">Select Package Version</label>
 
-                    @Html.DropDownList("version-selection",
-                        new SelectList(
-                            Model.PackageVersions
-                                 .Where(p => p.Deleted == false)
-                                 .Select(p => new
-                                 {
-                                     text = p.Version + (p.LatestVersionSemVer2 ? " (latest)" : string.Empty),
-                                     url = Url.DeletePackage(p)
-                                 }), "url", "text", Url.DeletePackage(Model)),
+                    @Html.DropDownList("version-selection", Model.VersionSelectList,
                                  new
                                  {
                                      @class = "form-control",

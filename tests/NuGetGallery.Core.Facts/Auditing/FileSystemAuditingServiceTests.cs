@@ -141,9 +141,10 @@ namespace NuGetGallery.Auditing
                 machineIP: "b",
                 userName: "c",
                 authenticationType: "d",
+                credentialKey: "e",
                 timeStampUtc: DateTime.MinValue);
 
-            return Task.FromResult<AuditActor>(actor);
+            return Task.FromResult(actor);
         }
 
         private static bool IsValidMachineIpValue(string ipAddress)
