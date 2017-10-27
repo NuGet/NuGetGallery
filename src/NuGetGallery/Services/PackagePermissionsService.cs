@@ -17,7 +17,7 @@ namespace NuGetGallery
         OrganizationCollaborator
     }
 
-    public enum Action
+    public enum PackageAction
     {
         DisplayPrivatePackage,
         UploadNewVersion,
@@ -29,93 +29,93 @@ namespace NuGetGallery
 
     public static class PackagePermissionsService
     {
-        private static readonly IDictionary<PermissionLevel, IEnumerable<Action>> _allowedActions = 
-            new Dictionary<PermissionLevel, IEnumerable<Action>>
+        private static readonly IDictionary<PermissionLevel, IEnumerable<PackageAction>> _allowedActions = 
+            new Dictionary<PermissionLevel, IEnumerable<PackageAction>>
             {
                 {
                     PermissionLevel.Anonymous,
-                    new Action[0]
+                    new PackageAction[0]
                 },
                 {
                     PermissionLevel.OrganizationCollaborator,
                     new []
                     {
-                        Action.DisplayPrivatePackage,
-                        Action.UploadNewVersion,
-                        Action.Edit,
-                        Action.Delete,
+                        PackageAction.DisplayPrivatePackage,
+                        PackageAction.UploadNewVersion,
+                        PackageAction.Edit,
+                        PackageAction.Delete,
                     }
                 },
                 {
                     PermissionLevel.SiteAdmin,
                     new []
                     {
-                        Action.DisplayPrivatePackage,
-                        Action.UploadNewVersion,
-                        Action.Edit,
-                        Action.Delete,
-                        Action.ManagePackageOwners,
+                        PackageAction.DisplayPrivatePackage,
+                        PackageAction.UploadNewVersion,
+                        PackageAction.Edit,
+                        PackageAction.Delete,
+                        PackageAction.ManagePackageOwners,
                     }
                 },
                 {
                     PermissionLevel.OrganizationAdmin,
                     new []
                     {
-                        Action.DisplayPrivatePackage,
-                        Action.UploadNewVersion,
-                        Action.Edit,
-                        Action.Delete,
-                        Action.ManagePackageOwners,
-                        Action.ReportMyPackage,
+                        PackageAction.DisplayPrivatePackage,
+                        PackageAction.UploadNewVersion,
+                        PackageAction.Edit,
+                        PackageAction.Delete,
+                        PackageAction.ManagePackageOwners,
+                        PackageAction.ReportMyPackage,
                     }
                 },
                 {
                     PermissionLevel.Owner,
                     new []
                     {
-                        Action.DisplayPrivatePackage,
-                        Action.UploadNewVersion,
-                        Action.Edit,
-                        Action.Delete,
-                        Action.ManagePackageOwners,
-                        Action.ReportMyPackage,
+                        PackageAction.DisplayPrivatePackage,
+                        PackageAction.UploadNewVersion,
+                        PackageAction.Edit,
+                        PackageAction.Delete,
+                        PackageAction.ManagePackageOwners,
+                        PackageAction.ReportMyPackage,
                     }
                 }
             };
 
-        public static bool HasPermission(Package package, IPrincipal principal, Action action)
+        public static bool HasPermission(Package package, IPrincipal principal, PackageAction action)
         {
             return HasPermission(package.PackageRegistration, principal, action);
         }
 
-        public static bool HasPermission(PackageRegistration packageRegistration, IPrincipal principal, Action action)
+        public static bool HasPermission(PackageRegistration packageRegistration, IPrincipal principal, PackageAction action)
         {
             return HasPermission(packageRegistration.Owners, principal, action);
         }
 
-        public static bool HasPermission(IEnumerable<User> owners, IPrincipal principal, Action action)
+        public static bool HasPermission(IEnumerable<User> owners, IPrincipal principal, PackageAction action)
         {
             var permissionLevels = GetPermissionLevels(owners, principal);
             return HasPermission(permissionLevels, action);
         }
 
-        public static bool HasPermission(Package package, User user, Action action)
+        public static bool HasPermission(Package package, User user, PackageAction action)
         {
             return HasPermission(package.PackageRegistration, user, action);
         }
 
-        public static bool HasPermission(PackageRegistration packageRegistration, User user, Action action)
+        public static bool HasPermission(PackageRegistration packageRegistration, User user, PackageAction action)
         {
             return HasPermission(packageRegistration.Owners, user, action);
         }
 
-        public static bool HasPermission(IEnumerable<User> owners, User user, Action action)
+        public static bool HasPermission(IEnumerable<User> owners, User user, PackageAction action)
         {
             var permissionLevels = GetPermissionLevels(owners, user);
             return HasPermission(permissionLevels, action);
         }
 
-        private static bool HasPermission(IEnumerable<PermissionLevel> permissionLevels, Action action)
+        private static bool HasPermission(IEnumerable<PermissionLevel> permissionLevels, PackageAction action)
         {
             return permissionLevels.Any(permissionLevel => _allowedActions[permissionLevel].Contains(action));
         }
