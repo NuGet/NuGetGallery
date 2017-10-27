@@ -127,6 +127,17 @@ namespace NuGetGallery.Authentication
                     return new PasswordAuthenticationResult(PasswordAuthenticationResult.AuthenticationResult.BadCredentials);
                 }
 
+                if (user.IsOrganization())
+                {
+                    _trace.Information($"Cannot authenticate organization account'{userNameOrEmail}'.");
+
+                    await Auditing.SaveAuditRecordAsync(
+                        new FailedAuthenticatedOperationAuditRecord(
+                            userNameOrEmail, AuditedAuthenticatedOperationAction.FailedLoginUserIsOrganization));
+
+                    return new PasswordAuthenticationResult(PasswordAuthenticationResult.AuthenticationResult.BadCredentials);
+                }
+
                 int remainingMinutes;
 
                 if (IsAccountLocked(user, out remainingMinutes))
@@ -201,7 +212,21 @@ namespace NuGetGallery.Authentication
                     _trace.Information("No user matches credential of type: " + credential.Type);
 
                     await Auditing.SaveAuditRecordAsync(
-                        new FailedAuthenticatedOperationAuditRecord(null, AuditedAuthenticatedOperationAction.FailedLoginNoSuchUser, attemptedCredential: credential));
+                        new FailedAuthenticatedOperationAuditRecord(null,
+                            AuditedAuthenticatedOperationAction.FailedLoginNoSuchUser,
+                            attemptedCredential: credential));
+
+                    return null;
+                }
+
+                if (matched.User.IsOrganization())
+                {
+                    _trace.Information($"Cannot authenticate organization account '{matched.User.Username}'.");
+
+                    await Auditing.SaveAuditRecordAsync(
+                        new FailedAuthenticatedOperationAuditRecord(null,
+                            AuditedAuthenticatedOperationAction.FailedLoginUserIsOrganization,
+                            attemptedCredential: credential));
 
                     return null;
                 }
@@ -465,6 +490,11 @@ namespace NuGetGallery.Authentication
 
         public virtual async Task AddCredential(User user, Credential credential)
         {
+            if  (user.IsOrganization())
+            {
+                throw new InvalidOperationException(Strings.OrganizationsCannotCreateCredentials);
+            }
+
             await Auditing.SaveAuditRecordAsync(new UserAuditRecord(user, AuditedUserAction.AddCredential, credential));
             user.Credentials.Add(credential);
             await Entities.SaveChangesAsync();
@@ -616,6 +646,11 @@ namespace NuGetGallery.Authentication
 
         private async Task ReplaceCredentialInternal(User user, Credential credential)
         {
+            if (user.IsOrganization())
+            {
+                throw new InvalidOperationException(Strings.OrganizationsCannotCreateCredentials);
+            }
+
             // Find the credentials we're replacing, if any
             var toRemove = user.Credentials
                 .Where(cred =>
@@ -810,6 +845,8 @@ namespace NuGetGallery.Authentication
 
         private async Task MigrateCredentials(User user, List<Credential> creds, string password)
         {
+            // Authenticate already validated that user is not an Organization, so no need to replicate here.
+
             var toRemove = creds.Where(c =>
                 !string.Equals(
                     c.Type,

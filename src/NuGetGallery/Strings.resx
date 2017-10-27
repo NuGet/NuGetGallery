@@ -606,4 +606,7 @@ For more information, please contact '{2}'.</value>
   <data name="RemoveOwner_NotAllowed" xml:space="preserve">
     <value>The user '{0}' does not have permission to remove the owner '{1}'.</value>
   </data>
+  <data name="OrganizationsCannotCreateCredentials" xml:space="preserve">
+    <value>Organization accounts cannot create credentials.</value>
+  </data>
 </root>

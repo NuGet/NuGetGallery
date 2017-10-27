@@ -8,9 +8,18 @@ namespace NuGetGallery.Diagnostics
 {
     public class DiagnosticsService : IDiagnosticsService
     {
-        public DiagnosticsService()
+        private readonly ITelemetryClient _telemetryClient;
+
+        public DiagnosticsService(ITelemetryClient telemetryClient)
         {
+            _telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
+
             Trace.AutoFlush = true;
+        }
+
+        // Test constructor
+        internal DiagnosticsService() : this(TelemetryClientWrapper.Instance)
+        {
         }
 
         public IDiagnosticsSource GetSource(string name)
@@ -20,7 +29,7 @@ namespace NuGetGallery.Diagnostics
                 throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, Strings.ParameterCannotBeNullOrEmpty, "name"), nameof(name));
             }
 
-            return new TraceDiagnosticsSource(name);
+            return new TraceDiagnosticsSource(name, _telemetryClient);
         }
     }
 }

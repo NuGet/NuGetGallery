@@ -14,6 +14,7 @@ namespace NuGetGallery.Auditing
             {
                 "FailedLoginInvalidPassword",
                 "FailedLoginNoSuchUser",
+                "FailedLoginUserIsOrganization",
                 "PackagePushAttemptByNonOwner"
             };
 

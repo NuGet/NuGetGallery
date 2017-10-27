@@ -10,6 +10,8 @@ namespace NuGetGallery
 {
     internal static class QuietLog
     {
+        public static ITelemetryClient Telemetry = TelemetryClientWrapper.Instance;
+
         public static void LogHandledException(Exception e)
         {
             var aggregateExceptionId = Guid.NewGuid().ToString();
