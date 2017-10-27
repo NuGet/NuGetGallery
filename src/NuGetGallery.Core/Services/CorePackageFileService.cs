@@ -34,7 +34,7 @@ namespace NuGetGallery
             return _fileStorageService.GetFileAsync(CoreConstants.PackagesFolderName, fileName);
         }
 
-        public Task<Uri> GetPackageUrlAsync(Package package)
+        public Task<Uri> GetPackageReadUriAsync(Package package)
         {
             var fileName = BuildFileName(package, CoreConstants.PackageFileSavePathTemplate, CoreConstants.NuGetPackageFileExtension);
             return _fileStorageService.GetFileReadUriAsync(CoreConstants.PackagesFolderName, fileName, endOfAccess: null);

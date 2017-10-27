@@ -20,11 +20,15 @@ namespace NuGetGallery
         Task<Stream> DownloadPackageFileAsync(Package package);
 
         /// <summary>
-        /// Generates the URL for the specified package.
+        /// Generates the URL for the specified package in the public container for available packages.
         /// </summary>
         /// <param name="package">The package metadata.</param>
         /// <returns>Package download URL</returns>
-        Task<Uri> GetPackageUrlAsync(Package package);
+        /// <remarks>
+        /// The returned URL is only intended to be used by the internal tooling and not for the user:
+        /// it might not make any sense to external users as it can be, for example, a file:/// URL.
+        /// </remarks>
+        Task<Uri> GetPackageReadUriAsync(Package package);
 
         /// <summary>
         /// Checks whether package file exists in the public container for available packages

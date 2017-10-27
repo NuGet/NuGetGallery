@@ -412,19 +412,19 @@ namespace NuGetGallery
             }
         }
 
-        public class TheGetPackageUrlMethod : FactsBase
+        public class TheGetPackageReadUriMethod : FactsBase
         {
             [Fact]
             public async Task WillThrowIfPackageIsNull()
             {
-                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => _service.GetPackageUrlAsync(null));
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => _service.GetPackageReadUriAsync(null));
                 Assert.Equal(ex.ParamName, "package");
             }
 
             [Fact]
             public async Task WillUseFileStorageService()
             {
-                await _service.GetPackageUrlAsync(_package);
+                await _service.GetPackageReadUriAsync(_package);
 
                 string filename = BuildFileName(_package.PackageRegistration.Id, _package.NormalizedVersion, CoreConstants.NuGetPackageFileExtension, CoreConstants.PackageFileSavePathTemplate);
 
