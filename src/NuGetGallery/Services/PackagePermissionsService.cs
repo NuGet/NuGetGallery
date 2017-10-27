@@ -56,7 +56,7 @@ namespace NuGetGallery
         /// <summary>
         /// The ability to unlist or relist an existing package version.
         /// </summary>
-        Delete,
+        Unlist,
 
         /// <summary>
         /// The ability to add or remove owners of the package.
@@ -85,7 +85,7 @@ namespace NuGetGallery
                         PackageAction.DisplayPrivatePackage,
                         PackageAction.UploadNewVersion,
                         PackageAction.Edit,
-                        PackageAction.Delete,
+                        PackageAction.Unlist,
                     }
                 },
                 {
@@ -95,7 +95,7 @@ namespace NuGetGallery
                         PackageAction.DisplayPrivatePackage,
                         PackageAction.UploadNewVersion,
                         PackageAction.Edit,
-                        PackageAction.Delete,
+                        PackageAction.Unlist,
                         PackageAction.ManagePackageOwners,
                     }
                 },
@@ -106,7 +106,7 @@ namespace NuGetGallery
                         PackageAction.DisplayPrivatePackage,
                         PackageAction.UploadNewVersion,
                         PackageAction.Edit,
-                        PackageAction.Delete,
+                        PackageAction.Unlist,
                         PackageAction.ManagePackageOwners,
                         PackageAction.ReportMyPackage,
                     }
@@ -118,7 +118,7 @@ namespace NuGetGallery
                         PackageAction.DisplayPrivatePackage,
                         PackageAction.UploadNewVersion,
                         PackageAction.Edit,
-                        PackageAction.Delete,
+                        PackageAction.Unlist,
                         PackageAction.ManagePackageOwners,
                         PackageAction.ReportMyPackage,
                     }

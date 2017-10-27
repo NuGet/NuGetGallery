@@ -576,7 +576,7 @@ namespace NuGetGallery
             }
 
             var user = GetCurrentUser();
-            if (!PackagePermissionsService.HasPermission(package, user, PackageAction.Delete))
+            if (!PackagePermissionsService.HasPermission(package, user, PackageAction.Unlist))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
             }

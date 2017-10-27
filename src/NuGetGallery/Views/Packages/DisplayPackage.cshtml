@@ -573,7 +573,7 @@
                         <a href="@Url.ManagePackageOwners(Model)">Manage owners</a>
                     </li>
                 }
-                @if (!Model.Deleted && Model.HasPermission(User, PackageAction.Delete))
+                @if (!Model.Deleted && Model.HasPermission(User, PackageAction.Unlist))
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>

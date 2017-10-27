@@ -63,7 +63,7 @@
                                         <i class="ms-Icon ms-Icon--People" aria-hidden="true"></i>
                                     </a>
                                 }
-                                @if (package.HasPermission(User, PackageAction.Delete))
+                                @if (package.HasPermission(User, PackageAction.Unlist))
                                 {
                                     <a href="@Url.DeletePackage(package)" class="btn" title="Delete Package" aria-lable="Delete Package @package.Id  Version @package.Version">
                                         <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>

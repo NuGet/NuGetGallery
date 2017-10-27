@@ -846,7 +846,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            if (!PackagePermissionsService.HasPermission(package, User, PackageAction.Delete))
+            if (!PackagePermissionsService.HasPermission(package, User, PackageAction.Unlist))
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
