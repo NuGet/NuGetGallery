@@ -1,7 +1,9 @@
 ﻿{
   "dependencies": {
-    "Microsoft.Extensions.Configuration.FileExtensions": "1.0.0",
-    "Microsoft.Extensions.Configuration.Json": "1.0.0"
+    "Microsoft.Extensions.Configuration.Abstractions": "1.1.2",
+    "Microsoft.Extensions.Configuration.FileExtensions": "1.1.2",
+    "Microsoft.Extensions.Configuration.Json": "1.0.0",
+    "Microsoft.Extensions.Options": "1.1.2"
   },
   "frameworks": {
     "net452": {
