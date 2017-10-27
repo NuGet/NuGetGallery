@@ -10,16 +10,16 @@ namespace NuGetGallery
 {
     public enum PermissionLevel
     {
-        None,
+        Anonymous,
         Owner,
         SiteAdmin,
         OrganizationAdmin,
         OrganizationCollaborator
     }
 
-    public enum Permission
+    public enum Action
     {
-        DisplayMyPackage,
+        DisplayPrivatePackage,
         UploadNewVersion,
         Edit,
         Delete,
@@ -29,117 +29,159 @@ namespace NuGetGallery
 
     public static class PackagePermissionsService
     {
-        public static bool HasPermission(Package package, IPrincipal principal, Permission permission)
-        {
-            return HasPermission(package.PackageRegistration, principal, permission);
-        }
-
-        public static bool HasPermission(PackageRegistration packageRegistration, IPrincipal principal, Permission permission)
-        {
-            return HasPermission(packageRegistration.Owners, principal, permission);
-        }
-
-        public static bool HasPermission(IEnumerable<User> owners, IPrincipal principal, Permission permission)
-        {
-            var permissionLevel = GetPermissionLevel(owners, principal);
-            return HasPermission(permissionLevel, permission);
-        }
-
-        public static bool HasPermission(Package package, User user, Permission permission)
-        {
-            return HasPermission(package.PackageRegistration, user, permission);
-        }
-
-        public static bool HasPermission(PackageRegistration packageRegistration, User user, Permission permission)
-        {
-            return HasPermission(packageRegistration.Owners, user, permission);
-        }
-
-        public static bool HasPermission(IEnumerable<User> owners, User user, Permission permission)
-        {
-            var permissionLevel = GetPermissionLevel(owners, user);
-            return HasPermission(permissionLevel, permission);
-        }
-
-        private static bool HasPermission(PermissionLevel permissionLevel, Permission permission)
-        {
-            var permissions = GetPermissions(permissionLevel);
-            return permissions.Contains(permission);
-        }
-
-        internal static IEnumerable<Permission> GetPermissions(PermissionLevel permissionLevel)
-        {
-            switch (permissionLevel)
+        private static readonly IDictionary<PermissionLevel, IEnumerable<Action>> _allowedActions = 
+            new Dictionary<PermissionLevel, IEnumerable<Action>>
             {
-                case PermissionLevel.Owner:
-                case PermissionLevel.OrganizationAdmin:
+                {
+                    PermissionLevel.Anonymous,
+                    new Action[0]
+                },
+                {
+                    PermissionLevel.OrganizationCollaborator,
+                    new []
+                    {
+                        Action.DisplayPrivatePackage,
+                        Action.UploadNewVersion,
+                        Action.Edit,
+                        Action.Delete,
+                    }
+                },
+                {
+                    PermissionLevel.SiteAdmin,
+                    new []
+                    {
+                        Action.DisplayPrivatePackage,
+                        Action.UploadNewVersion,
+                        Action.Edit,
+                        Action.Delete,
+                        Action.ManagePackageOwners,
+                    }
+                },
+                {
+                    PermissionLevel.OrganizationAdmin,
+                    new []
+                    {
+                        Action.DisplayPrivatePackage,
+                        Action.UploadNewVersion,
+                        Action.Edit,
+                        Action.Delete,
+                        Action.ManagePackageOwners,
+                        Action.ReportMyPackage,
+                    }
+                },
+                {
+                    PermissionLevel.Owner,
+                    new []
+                    {
+                        Action.DisplayPrivatePackage,
+                        Action.UploadNewVersion,
+                        Action.Edit,
+                        Action.Delete,
+                        Action.ManagePackageOwners,
+                        Action.ReportMyPackage,
+                    }
+                }
+            };
 
-                    yield return Permission.ReportMyPackage;
-
-                    goto case PermissionLevel.SiteAdmin;
-
-                case PermissionLevel.SiteAdmin:
-
-                    yield return Permission.ManagePackageOwners;
-
-                    goto case PermissionLevel.OrganizationCollaborator;
-
-                case PermissionLevel.OrganizationCollaborator:
-
-                    yield return Permission.DisplayMyPackage;
-                    yield return Permission.UploadNewVersion;
-                    yield return Permission.Edit;
-                    yield return Permission.Delete;
-
-                    break;
-
-                case PermissionLevel.None:
-                default:
-                    yield break;
-            }
+        public static bool HasPermission(Package package, IPrincipal principal, Action action)
+        {
+            return HasPermission(package.PackageRegistration, principal, action);
         }
 
-        internal static PermissionLevel GetPermissionLevel(IEnumerable<User> owners, User user)
+        public static bool HasPermission(PackageRegistration packageRegistration, IPrincipal principal, Action action)
+        {
+            return HasPermission(packageRegistration.Owners, principal, action);
+        }
+
+        public static bool HasPermission(IEnumerable<User> owners, IPrincipal principal, Action action)
+        {
+            var permissionLevels = GetPermissionLevels(owners, principal);
+            return HasPermission(permissionLevels, action);
+        }
+
+        public static bool HasPermission(Package package, User user, Action action)
+        {
+            return HasPermission(package.PackageRegistration, user, action);
+        }
+
+        public static bool HasPermission(PackageRegistration packageRegistration, User user, Action action)
+        {
+            return HasPermission(packageRegistration.Owners, user, action);
+        }
+
+        public static bool HasPermission(IEnumerable<User> owners, User user, Action action)
+        {
+            var permissionLevels = GetPermissionLevels(owners, user);
+            return HasPermission(permissionLevels, action);
+        }
+
+        private static bool HasPermission(IEnumerable<PermissionLevel> permissionLevels, Action action)
+        {
+            return permissionLevels.Any(permissionLevel => _allowedActions[permissionLevel].Contains(action));
+        }
+
+        public static IEnumerable<PermissionLevel> GetPermissionLevels(Package package, User user)
+        {
+            return GetPermissionLevels(package, user);
+        }
+
+        public static IEnumerable<PermissionLevel> GetPermissionLevels(PackageRegistration packageRegistration, User user)
+        {
+            return GetPermissionLevels(packageRegistration.Owners, user);
+        }
+
+        public static IEnumerable<PermissionLevel> GetPermissionLevels(IEnumerable<User> owners, User user)
         {
             if (user == null)
             {
-                return PermissionLevel.None;
+                return new[] { PermissionLevel.Anonymous };
             }
 
-            return GetPermissionLevel(
+            return GetPermissionLevels(
                 owners, 
                 user.IsInRole(Constants.AdminRoleName), 
                 u => UserMatchesUser(u, user));
         }
 
-        internal static PermissionLevel GetPermissionLevel(IEnumerable<User> owners, IPrincipal principal)
+        public static IEnumerable<PermissionLevel> GetPermissionLevels(Package package, IPrincipal principal)
+        {
+            return GetPermissionLevels(package, principal);
+        }
+
+        public static IEnumerable<PermissionLevel> GetPermissionLevels(PackageRegistration packageRegistration, IPrincipal principal)
+        {
+            return GetPermissionLevels(packageRegistration.Owners, principal);
+        }
+
+        public static IEnumerable<PermissionLevel> GetPermissionLevels(IEnumerable<User> owners, IPrincipal principal)
         {
             if (principal == null)
             {
-                return PermissionLevel.None;
+                return new[] { PermissionLevel.Anonymous };
             }
 
-            return GetPermissionLevel(
+            return GetPermissionLevels(
                 owners, 
                 principal.IsAdministrator(), 
                 u => UserMatchesPrincipal(u, principal));
         }
 
-        private static PermissionLevel GetPermissionLevel(IEnumerable<User> owners, bool isUserAdmin, Func<User, bool> isUserMatch)
+        private static IEnumerable<PermissionLevel> GetPermissionLevels(IEnumerable<User> owners, bool isUserAdmin, Func<User, bool> isUserMatch)
         {
             if (owners == null)
             {
-                throw new ArgumentNullException(nameof(owners));
+                yield return PermissionLevel.Anonymous;
+                yield break;
             }
 
             if (isUserAdmin)
             {
-                return PermissionLevel.SiteAdmin;
+                yield return PermissionLevel.SiteAdmin;
             }
 
             if (owners.Any(isUserMatch))
             {
-                return PermissionLevel.Owner;
+                yield return PermissionLevel.Owner;
             }
 
             var matchingMembers = owners
@@ -149,15 +191,15 @@ namespace NuGetGallery
 
             if (matchingMembers.Any(m => m.IsAdmin))
             {
-                return PermissionLevel.OrganizationAdmin;
+                yield return PermissionLevel.OrganizationAdmin;
             }
 
             if (matchingMembers.Any())
             {
-                return PermissionLevel.OrganizationCollaborator;
+                yield return PermissionLevel.OrganizationCollaborator;
             }
 
-            return PermissionLevel.None;
+            yield return PermissionLevel.Anonymous;
         }
 
         private static bool UserMatchesPrincipal(User user, IPrincipal principal)

@@ -12,134 +12,102 @@ namespace NuGetGallery.Services
 {
     public class PackagePermissionsServiceFacts
     {
-        public class TheGetPermissionsMethod
+        public class TheGetPermissionLevelMethod
         {
-            private IDictionary<PermissionLevel, IEnumerable<Permission>> _levelToPermission = 
-                new Dictionary<PermissionLevel, IEnumerable<Permission>>()
-                {
-                    { PermissionLevel.None, new Permission[0] },
-                    {
-                        PermissionLevel.OrganizationCollaborator,
-                        new []
-                        {
-                            Permission.DisplayMyPackage,
-                            Permission.UploadNewVersion,
-                            Permission.Edit,
-                            Permission.Delete,
-                        }
-                    },
-                    {
-                        PermissionLevel.SiteAdmin,
-                        new []
-                        {
-                            Permission.DisplayMyPackage,
-                            Permission.UploadNewVersion,
-                            Permission.Edit,
-                            Permission.Delete,
-                            Permission.ManagePackageOwners,
-                        }
-                    },
-                    {
-                        PermissionLevel.OrganizationAdmin,
-                        new []
-                        {
-                            Permission.DisplayMyPackage,
-                            Permission.UploadNewVersion,
-                            Permission.Edit,
-                            Permission.Delete,
-                            Permission.ManagePackageOwners,
-                            Permission.ReportMyPackage,
-                        }
-                    },
-                    {
-                        PermissionLevel.Owner,
-                        new []
-                        {
-                            Permission.DisplayMyPackage,
-                            Permission.UploadNewVersion,
-                            Permission.Edit,
-                            Permission.Delete,
-                            Permission.ManagePackageOwners,
-                            Permission.ReportMyPackage,
-                        }
-                    }
-                };
+            private int _key = 0;
 
-            public static IEnumerable<object[]> GetPermissions_Data
+            [Flags]
+            public enum ReturnsExpectedPermissionLevels_State
+            {
+                IsOwner = 1,
+                IsSiteAdmin = 2,
+                IsOrganizationAdmin = 4,
+                IsOrganizationCollaborator = 8,
+            }
+
+            private static readonly IEnumerable<ReturnsExpectedPermissionLevels_State> _stateValues = 
+                Enum.GetValues(typeof(ReturnsExpectedPermissionLevels_State)).Cast<ReturnsExpectedPermissionLevels_State>();
+
+            public static IEnumerable<object[]> ReturnsExpectedPermissionLevels_Data
             {
                 get
                 {
-                    foreach (PermissionLevel permissionLevel in Enum.GetValues(typeof(PermissionLevel)))
+                    for (int i = 0; i < Enum.GetValues(typeof(ReturnsExpectedPermissionLevels_State)).Cast<int>().Max() * 2; i++)
                     {
                         yield return new object[]
                         {
-                            permissionLevel
+                            _stateValues.Where(s => Includes(i, s))
                         };
                     }
                 }
             }
 
-            [Theory]
-            [MemberData(nameof(GetPermissions_Data))]
-            public void ReturnsExpectedPermissions(PermissionLevel permissionLevel)
+            private static bool Includes(int i, ReturnsExpectedPermissionLevels_State state)
             {
-                var actualPermissions = PackagePermissionsService.GetPermissions(permissionLevel);
-                var expectedPermissions = _levelToPermission[permissionLevel];
-                
-                Assert.True(!expectedPermissions.Except(actualPermissions).Any());
-                Assert.True(!actualPermissions.Except(expectedPermissions).Any());
+                return (i & (int)state) == 0;
             }
-        }
 
-        public class TheGetPermissionLevelMethod
-        {
-            [Fact]
-            public void ReturnsExpectedPermissionLevel()
+            [Theory]
+            [MemberData(nameof(ReturnsExpectedPermissionLevels_Data))]
+            public void ReturnsExpectedPermissionLevels(IEnumerable<ReturnsExpectedPermissionLevels_State> states)
             {
                 // Arrange
-                var key = 0;
+                var expectedPermissionLevels = new List<PermissionLevel>() { PermissionLevel.Anonymous };
 
-                var owner = new User("testuser") { Key = key++ };
+                var owners = new List<User>();
 
-                var admin = new User("testadmin") { Key = key++ };
-                admin.Roles.Add(new Role { Name = Constants.AdminRoleName });
+                var user = new User("testuser") { Key = _key++ };
 
-                var organization = new Organization() { Memberships = new List<Membership>() };
-                var organizationOwner = new User("testorganization") { Key = key++, Organization = organization };
+                if (states.Contains(ReturnsExpectedPermissionLevels_State.IsOwner))
+                {
+                    owners.Add(user);
+                    expectedPermissionLevels.Add(PermissionLevel.Owner);
+                }
 
-                var organizationAdmin = new User("testorganizationadmin") { Key = key++ };
-                var organizationAdminMembership = new Membership() { Organization = organization, Member = organizationAdmin, IsAdmin = true };
-                organization.Memberships.Add(organizationAdminMembership);
+                if (states.Contains(ReturnsExpectedPermissionLevels_State.IsSiteAdmin))
+                {
+                    user.Roles.Add(new Role { Name = Constants.AdminRoleName });
+                    expectedPermissionLevels.Add(PermissionLevel.SiteAdmin);
+                }
 
-                var organizationCollaborator = new User("testorganizationcollaborator") { Key = key++ };
-                var organizationCollaboratorMembership = new Membership() { Organization = organization, Member = organizationCollaborator, IsAdmin = false };
-                organization.Memberships.Add(organizationCollaboratorMembership);
+                if (states.Contains(ReturnsExpectedPermissionLevels_State.IsOrganizationAdmin))
+                {
+                    CreateOrganizationOwnerAndAddUserAsMember(owners, user, true);
+                    expectedPermissionLevels.Add(PermissionLevel.OrganizationAdmin);
+                }
 
-                var owners = new[] { owner, organizationOwner };
+                if (states.Contains(ReturnsExpectedPermissionLevels_State.IsOrganizationCollaborator))
+                {
+                    CreateOrganizationOwnerAndAddUserAsMember(owners, user, false);
+                    expectedPermissionLevels.Add(PermissionLevel.OrganizationCollaborator);
+                }
 
                 // Assert
-                // Co-owner
-                AssertPermissionLevel(PermissionLevel.Owner, owners, owner);
-
-                // Admin
-                AssertPermissionLevel(PermissionLevel.SiteAdmin, owners, admin);
-
-                // Organization
-                AssertPermissionLevel(PermissionLevel.Owner, owners, organizationOwner);
-
-                // Organization admin
-                AssertPermissionLevel(PermissionLevel.OrganizationAdmin, owners, organizationAdmin);
-
-                // Organization collaborator
-                AssertPermissionLevel(PermissionLevel.OrganizationCollaborator, owners, organizationCollaborator);
+                AssertPermissionLevels(owners, user, expectedPermissionLevels);
             }
 
-            private void AssertPermissionLevel(PermissionLevel expectedLevel, IEnumerable<User> owners, User user)
+            private void CreateOrganizationOwnerAndAddUserAsMember(List<User> owners, User user, bool isAdmin)
             {
-                Assert.Equal(expectedLevel, PackagePermissionsService.GetPermissionLevel(owners, user));
+                var organization = new Organization() { Memberships = new List<Membership>() };
+                var organizationOwner = new User("testorganization") { Key = _key++, Organization = organization };
+                owners.Add(organizationOwner);
                 
+                var organizationMembership = new Membership() { Organization = organization, Member = user, IsAdmin = isAdmin };
+                organization.Memberships.Add(organizationMembership);
+            }
+
+            private void AssertPermissionLevels(IEnumerable<User> owners, User user, IEnumerable<PermissionLevel> expectedLevels)
+            {
+                AssertEqual(expectedLevels, PackagePermissionsService.GetPermissionLevels(owners, user));
+
                 var principal = GetPrincipal(user);
-                Assert.Equal(expectedLevel, PackagePermissionsService.GetPermissionLevel(owners, principal));
+                AssertEqual(expectedLevels, PackagePermissionsService.GetPermissionLevels(owners, principal));
+            }
+
+            private void AssertEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual)
+            {
+                Assert.True(!expected.Except(actual).Any());
+                Assert.True(!actual.Except(expected).Any());
             }
 
             private IPrincipal GetPrincipal(User u)
