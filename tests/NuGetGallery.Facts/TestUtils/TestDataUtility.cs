@@ -37,12 +37,14 @@ namespace NuGetGallery.TestUtils
 
         public static IList<User> GetTestUsers()
         {
+            var key = 0;
+
             var result = new List<User>();
-            result.Add(new User("test1"));
-            result.Add(new User("test2"));
-            result.Add(new User("test3"));
-            result.Add(new User("test4"));
-            result.Add(new User("test5"));
+            result.Add(new User("test1") { Key = key++ });
+            result.Add(new User("test2") { Key = key++ });
+            result.Add(new User("test3") { Key = key++ });
+            result.Add(new User("test4") { Key = key++ });
+            result.Add(new User("test5") { Key = key++ });
 
             return result;
         }

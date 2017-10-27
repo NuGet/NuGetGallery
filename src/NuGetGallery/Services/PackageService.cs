@@ -259,7 +259,7 @@ namespace NuGetGallery
             if (includeUnlisted)
             {
                 latestPackageVersions = _packageRegistrationRepository.GetAll()
-                    .Where(pr => pr.Owners.Where(owner => owner.Username == user.Username).Any())
+                    .Where(pr => pr.Owners.Any(owner => owner.Key == user.Key))
                     .Select(pr => pr.Packages.OrderByDescending(p => p.Version).FirstOrDefault())
                     .Where(p => p != null)
                     .Include(p => p.PackageRegistration)
@@ -305,7 +305,7 @@ namespace NuGetGallery
 
         public IEnumerable<PackageRegistration> FindPackageRegistrationsByOwner(User user)
         {
-            return _packageRegistrationRepository.GetAll().Where(p => p.Owners.Any(o => o.Username == user.Username));
+            return _packageRegistrationRepository.GetAll().Where(p => p.Owners.Any(o => o.Key == user.Key));
         }
 
         public IEnumerable<Package> FindDependentPackages(Package package)
@@ -440,7 +440,7 @@ namespace NuGetGallery
         {
             var packageRegistration = FindPackageRegistrationById(packageMetadata.Id);
 
-            if (packageRegistration != null && !packageRegistration.Owners.Contains(currentUser))
+            if (packageRegistration != null && !PackagePermissionsService.IsActionAllowed(packageRegistration, currentUser, PackageAction.UploadNewVersion))
             {
                 throw new EntityException(Strings.PackageIdNotAvailable, packageMetadata.Id);
             }

@@ -291,7 +291,7 @@ namespace NuGetGallery
             await AuditingService.SaveAuditRecordAsync(
                 new PackageAuditRecord(package, AuditedPackageAction.Verify));
 
-            if (!package.IsOwner(user))
+            if (!PackagePermissionsService.IsActionAllowed(package, user, PackageAction.UploadNewVersion))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
             }
@@ -428,7 +428,7 @@ namespace NuGetGallery
                         else
                         {
                             // Is the user allowed to push this Id?
-                            if (!packageRegistration.IsOwner(user))
+                            if (!PackagePermissionsService.IsActionAllowed(packageRegistration, user, PackageAction.UploadNewVersion))
                             {
                                 // Audit that a non-owner tried to push the package
                                 await AuditingService.SaveAuditRecordAsync(
@@ -576,7 +576,7 @@ namespace NuGetGallery
             }
 
             var user = GetCurrentUser();
-            if (!package.IsOwner(user))
+            if (!PackagePermissionsService.IsActionAllowed(package, user, PackageAction.Unlist))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
             }
@@ -608,7 +608,7 @@ namespace NuGetGallery
             }
 
             User user = GetCurrentUser();
-            if (!package.IsOwner(user))
+            if (!PackagePermissionsService.IsActionAllowed(package, user, PackageAction.UploadNewVersion))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "publish"));
             }
