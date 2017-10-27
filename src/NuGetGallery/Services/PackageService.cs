@@ -440,7 +440,7 @@ namespace NuGetGallery
         {
             var packageRegistration = FindPackageRegistrationById(packageMetadata.Id);
 
-            if (packageRegistration != null && !PackagePermissionsService.HasPermission(packageRegistration, currentUser, PackageAction.UploadNewVersion))
+            if (packageRegistration != null && !PackagePermissionsService.IsActionAllowed(packageRegistration, currentUser, PackageAction.UploadNewVersion))
             {
                 throw new EntityException(Strings.PackageIdNotAvailable, packageMetadata.Id);
             }

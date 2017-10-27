@@ -64,39 +64,39 @@ namespace NuGetGallery
                 }
             };
 
-        public static bool HasPermission(Package package, IPrincipal principal, PackageAction action)
+        public static bool IsActionAllowed(Package package, IPrincipal principal, PackageAction action)
         {
-            return HasPermission(package.PackageRegistration, principal, action);
+            return IsActionAllowed(package.PackageRegistration, principal, action);
         }
 
-        public static bool HasPermission(PackageRegistration packageRegistration, IPrincipal principal, PackageAction action)
+        public static bool IsActionAllowed(PackageRegistration packageRegistration, IPrincipal principal, PackageAction action)
         {
-            return HasPermission(packageRegistration.Owners, principal, action);
+            return IsActionAllowed(packageRegistration.Owners, principal, action);
         }
 
-        public static bool HasPermission(IEnumerable<User> owners, IPrincipal principal, PackageAction action)
+        public static bool IsActionAllowed(IEnumerable<User> owners, IPrincipal principal, PackageAction action)
         {
             var permissionLevels = GetPermissionLevels(owners, principal);
-            return HasPermission(permissionLevels, action);
+            return IsActionAllowed(permissionLevels, action);
         }
 
-        public static bool HasPermission(Package package, User user, PackageAction action)
+        public static bool IsActionAllowed(Package package, User user, PackageAction action)
         {
-            return HasPermission(package.PackageRegistration, user, action);
+            return IsActionAllowed(package.PackageRegistration, user, action);
         }
 
-        public static bool HasPermission(PackageRegistration packageRegistration, User user, PackageAction action)
+        public static bool IsActionAllowed(PackageRegistration packageRegistration, User user, PackageAction action)
         {
-            return HasPermission(packageRegistration.Owners, user, action);
+            return IsActionAllowed(packageRegistration.Owners, user, action);
         }
 
-        public static bool HasPermission(IEnumerable<User> owners, User user, PackageAction action)
+        public static bool IsActionAllowed(IEnumerable<User> owners, User user, PackageAction action)
         {
             var permissionLevels = GetPermissionLevels(owners, user);
-            return HasPermission(permissionLevels, action);
+            return IsActionAllowed(permissionLevels, action);
         }
 
-        private static bool HasPermission(IEnumerable<PermissionLevel> permissionLevels, PackageAction action)
+        private static bool IsActionAllowed(IEnumerable<PermissionLevel> permissionLevels, PackageAction action)
         {
             return permissionLevels.Any(permissionLevel => _allowedActions[permissionLevel].Contains(action));
         }
