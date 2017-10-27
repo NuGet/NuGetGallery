@@ -559,7 +559,7 @@
                     </li>
                 }
 
-                @if ((Model.Available || Model.Validating) && Model..HasPermission(User, PackagePermissionsService.Permission.Edit))
+                @if ((Model.Available || Model.Validating) && Model.HasPermission(User, PackagePermissionsService.Permission.Edit))
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
