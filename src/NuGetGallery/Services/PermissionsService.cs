@@ -8,7 +8,7 @@ using System.Security.Principal;
 
 namespace NuGetGallery
 {
-    public static class PackagePermissionsService
+    public static class PermissionsService
     {
         private static readonly IDictionary<PermissionLevel, IEnumerable<PackageAction>> _allowedActions = 
             new Dictionary<PermissionLevel, IEnumerable<PackageAction>>
@@ -111,6 +111,11 @@ namespace NuGetGallery
             return GetPermissionLevels(packageRegistration.Owners, user);
         }
 
+        public static IEnumerable<PermissionLevel> GetPermissionLevels(User owner, User user)
+        {
+            return GetPermissionLevels(new[] { owner }, user);
+        }
+
         public static IEnumerable<PermissionLevel> GetPermissionLevels(IEnumerable<User> owners, User user)
         {
             if (user == null)
@@ -132,6 +137,11 @@ namespace NuGetGallery
         public static IEnumerable<PermissionLevel> GetPermissionLevels(PackageRegistration packageRegistration, IPrincipal principal)
         {
             return GetPermissionLevels(packageRegistration.Owners, principal);
+        }
+
+        public static IEnumerable<PermissionLevel> GetPermissionLevels(User owner, IPrincipal principal)
+        {
+            return GetPermissionLevels(new[] { owner }, principal);
         }
 
         public static IEnumerable<PermissionLevel> GetPermissionLevels(IEnumerable<User> owners, IPrincipal principal)
