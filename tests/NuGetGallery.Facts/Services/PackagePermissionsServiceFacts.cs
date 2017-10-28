@@ -103,10 +103,10 @@ namespace NuGetGallery.Services
 
             private void AssertPermissionLevels(IEnumerable<User> owners, User user, IEnumerable<PermissionLevel> expectedLevels)
             {
-                AssertEqual(expectedLevels, PackagePermissionsService.GetPermissionLevels(owners, user));
+                AssertEqual(expectedLevels, PermissionsService.GetPermissionLevels(owners, user));
 
                 var principal = GetPrincipal(user);
-                AssertEqual(expectedLevels, PackagePermissionsService.GetPermissionLevels(owners, principal));
+                AssertEqual(expectedLevels, PermissionsService.GetPermissionLevels(owners, principal));
             }
 
             private void AssertEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual)
