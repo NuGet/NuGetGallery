@@ -1128,7 +1128,7 @@ namespace NuGetGallery
             }
             
             var user = _userService.FindByUsername(username);
-            if (PermissionsService.IsActionAllowed(user, GetCurrentUser(), UserPermissionRestrictedActions.AcceptOwnershipOnBehalfOf))
+            if (PermissionsService.IsActionAllowed(user, GetCurrentUser(), UserPermissionRestrictedActions.AcceptPackageOwnershipOnBehalfOf))
             {
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.NotYourRequest));
             }

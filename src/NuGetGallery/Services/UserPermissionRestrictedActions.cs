@@ -5,7 +5,7 @@ namespace NuGetGallery
 {
     public static class UserPermissionRestrictedActions
     {
-        public static IPermissionRestrictedAction AcceptOwnershipOnBehalfOf =
+        public static IPermissionRestrictedAction AcceptPackageOwnershipOnBehalfOf =
             new PermissionRestrictedActionIncludeLevel(new PermissionLevel[]
             {
                 PermissionLevel.Owner,
