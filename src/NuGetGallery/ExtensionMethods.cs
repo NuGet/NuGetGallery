@@ -176,42 +176,6 @@ namespace NuGetGallery
             return items.Any(predicate);
         }
 
-        public static bool IsOwnerOrAdmin(this Package package, IPrincipal user)
-        {
-            return package.PackageRegistration.IsOwnerOrAdmin(user);
-        }
-
-        public static bool IsOwner(this Package package, User user)
-        {
-            return package.PackageRegistration.IsOwner(user);
-        }
-
-        public static bool IsOwnerOrAdmin(this PackageRegistration package, IPrincipal user)
-        {
-            if (package == null)
-            {
-                throw new ArgumentNullException(nameof(package));
-            }
-            if (user == null || user.Identity == null)
-            {
-                return false;
-            }
-            return user.IsAdministrator() || package.Owners.Any(u => u.Username == user.Identity.Name);
-        }
-
-        public static bool IsOwner(this PackageRegistration package, User user)
-        {
-            if (package == null)
-            {
-                throw new ArgumentNullException(nameof(package));
-            }
-            if (user == null)
-            {
-                return false;
-            }
-            return package.Owners.Any(u => u.Key == user.Key);
-        }
-
         // apple polish!
         public static string CardinalityLabel(this int count, string singular, string plural)
         {

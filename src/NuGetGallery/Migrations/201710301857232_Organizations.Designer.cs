@@ -7,13 +7,13 @@ namespace NuGetGallery.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.1.3-40302")]
-    public sealed partial class AddOrganizations : IMigrationMetadata
+    public sealed partial class Organizations : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(AddOrganizations));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(Organizations));
         
         string IMigrationMetadata.Id
         {
-            get { return "201710250430326_AddOrganizations"; }
+            get { return "201710301857232_Organizations"; }
         }
         
         string IMigrationMetadata.Source

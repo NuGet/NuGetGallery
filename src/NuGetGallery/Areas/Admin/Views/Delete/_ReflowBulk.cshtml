@@ -1,0 +1,25 @@
+﻿@model HardDeleteReflowBulkRequest
+
+@using (Html.BeginForm("ReflowBulk", "Delete"))
+{
+    @Html.AntiForgeryToken()
+
+    <p>
+        Type a list of packages to delete in the form:
+        <br />
+        id version
+        <br />
+        id2 version2
+        <br />
+        id3 version3
+    </p>
+
+    <div>
+        @Html.TextAreaFor(m => m.BulkList, 10, 50, new { style = "width: 100%;" })
+        @Html.ValidationMessageFor(m => m.BulkList)
+    </div>
+
+    <br />
+
+    <input type="submit" value="Reflow these hard-deleted packages" title="Reflow these hard-deleted packages" />
+}

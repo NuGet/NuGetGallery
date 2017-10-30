@@ -3,7 +3,7 @@ namespace NuGetGallery.Migrations
     using System;
     using System.Data.Entity.Migrations;
     
-    public partial class AddOrganizations : DbMigration
+    public partial class Organizations : DbMigration
     {
         public override void Up()
         {
@@ -16,8 +16,8 @@ namespace NuGetGallery.Migrations
                         IsAdmin = c.Boolean(nullable: false),
                     })
                 .PrimaryKey(t => new { t.OrganizationKey, t.MemberKey })
+                .ForeignKey("dbo.Organizations", t => t.OrganizationKey)
                 .ForeignKey("dbo.Users", t => t.MemberKey, cascadeDelete: true)
-                .ForeignKey("dbo.Organizations", t => t.OrganizationKey, cascadeDelete: true)
                 .Index(t => t.OrganizationKey)
                 .Index(t => t.MemberKey);
             
@@ -26,19 +26,17 @@ namespace NuGetGallery.Migrations
                 c => new
                     {
                         Key = c.Int(nullable: false),
-                        AccountKey = c.Int(nullable: false),
                     })
                 .PrimaryKey(t => t.Key)
                 .ForeignKey("dbo.Users", t => t.Key)
                 .Index(t => t.Key);
-            
         }
         
         public override void Down()
         {
-            DropForeignKey("dbo.Memberships", "OrganizationKey", "dbo.Organizations");
             DropForeignKey("dbo.Organizations", "Key", "dbo.Users");
             DropForeignKey("dbo.Memberships", "MemberKey", "dbo.Users");
+            DropForeignKey("dbo.Memberships", "OrganizationKey", "dbo.Organizations");
             DropIndex("dbo.Organizations", new[] { "Key" });
             DropIndex("dbo.Memberships", new[] { "MemberKey" });
             DropIndex("dbo.Memberships", new[] { "OrganizationKey" });

@@ -10,16 +10,11 @@ using System.ComponentModel.DataAnnotations;
 namespace NuGetGallery
 {
     /// <summary>
-    /// NuGetGallery now supports both Users and Organizations which share common features such as:
-    /// - Namespace ownership
-    /// - Package ownership
-    /// - Security policies
-    /// - Name and email unique across both Users and Organizations
-    /// 
-    /// Organizations should not support UserRoles or Credentials, but this is not constrained by the
-    /// database. In the future, we could consider renaming the Users table to Accounts and adding a
-    /// Users table to constrain UserRoles and Credentials to only User accounts.
+    /// With the addition of organizations, the users table effectively becomes an account table. Organizations accounts
+    /// are child types created using TPT inheritance. User accounts are not child types, but this could be done in the
+    /// future if we want to add constraints for user accounts or user-only settings.
     /// </summary>
+    /// <see href="https://weblogs.asp.net/manavi/inheritance-mapping-strategies-with-entity-framework-code-first-ctp5-part-2-table-per-type-tpt" />
     public class User : IEntity
     {
         public User() : this(null)
@@ -36,14 +31,9 @@ namespace NuGetGallery
         }
 
         /// <summary>
-        /// <see cref="Organization"/> represented by this account, if any.
+        /// Organization memberships for a non-organization <see cref="User"/> account.
         /// </summary>
-        public Organization Organization { get; set; }
-
-        /// <summary>
-        /// Organization memberships for a <see cref="User"/> account.
-        /// </summary>
-        public virtual ICollection<Membership> Memberships { get; set; }
+        public virtual ICollection<Membership> Organizations { get; set; }
 
         [StringLength(256)]
         public string EmailAddress { get; set; }

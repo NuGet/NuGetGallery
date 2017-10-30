@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -45,7 +46,7 @@ namespace NuGetGallery
 
         public IEnumerable<PackageOwnerRequest> GetPackageOwnershipRequests(PackageRegistration package = null, User requestingOwner = null, User newOwner = null)
         {
-            var query = _packageOwnerRequestRepository.GetAll();
+            var query = _packageOwnerRequestRepository.GetAll().Include(e => e.PackageRegistration);
 
             if (package != null)
             {

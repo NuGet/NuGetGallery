@@ -49,11 +49,6 @@ namespace NuGetGallery
         /// </summary>
         public IDbSet<User> Users { get; set; }
 
-        /// <summary>
-        /// Organization accounts.
-        /// </summary>
-        public IDbSet<Organization> Organizations { get; set; }
-
         IDbSet<T> IEntitiesContext.Set<T>()
         {
             return base.Set<T>();
@@ -129,23 +124,22 @@ namespace NuGetGallery
                            .MapRightKey("RoleKey"));
 
             modelBuilder.Entity<Organization>()
-                .HasKey(o => o.Key)
-                .HasRequired<User>(o => o.Account)
-                .WithOptional(u => u.Organization)
-                .WillCascadeOnDelete(false); // Disabled to prevent multiple cascade paths.
+                .ToTable("Organizations");
 
             modelBuilder.Entity<Membership>()
-                .HasKey(m => new { m.OrganizationKey, m.MemberKey })
-                .HasRequired<Organization>(m => m.Organization)
-                .WithMany(o => o.Memberships)
-                .HasForeignKey(m => m.OrganizationKey)
-                .WillCascadeOnDelete(true); // Memberships will be deleted with the Organization.
-            
-            modelBuilder.Entity<Membership>()
-                .HasRequired<User>(m => m.Member)
-                .WithMany(u => u.Memberships)
+                .HasKey(m => new { m.OrganizationKey, m.MemberKey });
+
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.Organizations)
+                .WithRequired(m => m.Member)
                 .HasForeignKey(m => m.MemberKey)
-                .WillCascadeOnDelete(true); // Memberships will be deleted with the User (Member).
+                .WillCascadeOnDelete(true); // Membership will be deleted with the Member account.
+
+            modelBuilder.Entity<Organization>()
+                .HasMany(o => o.Members)
+                .WithRequired(m => m.Organization)
+                .HasForeignKey(m => m.OrganizationKey)
+                .WillCascadeOnDelete(true); // Memberships will be deleted with the Organization account.
 
             modelBuilder.Entity<Role>()
                 .HasKey(u => u.Key);

@@ -700,6 +700,9 @@
     <Compile Include="Areas\Admin\Models\SupportRequestDbContext.cs" />
     <Compile Include="Areas\Admin\Services\ValidationAdminService.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteAccountStatusViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\HardDeleteReflowBulkRequestConfirmation.cs" />
+    <Compile Include="Areas\Admin\ViewModels\HardDeleteReflowBulkRequest.cs" />
+    <Compile Include="Areas\Admin\ViewModels\HardDeleteReflowRequest.cs" />
     <Compile Include="Areas\Admin\ViewModels\PackageValidationViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ValidationPageViewModel.cs" />
     <Compile Include="Areas\Admin\Services\ISupportRequestService.cs" />
@@ -784,6 +787,9 @@
     <Compile Include="Migrations\201710250430326_AddOrganizations.cs" />
     <Compile Include="Migrations\201710250430326_AddOrganizations.Designer.cs">
       <DependentUpon>201710250430326_AddOrganizations.cs</DependentUpon>
+    <Compile Include="Migrations\201710301857232_Organizations.cs" />
+    <Compile Include="Migrations\201710301857232_Organizations.Designer.cs">
+      <DependentUpon>201710301857232_Organizations.cs</DependentUpon>
     </Compile>
     <Compile Include="Services\AsynchronousPackageValidationInitiator.cs" />
     <Compile Include="Services\CloudBlobFileStorageService.cs" />
@@ -791,10 +797,11 @@
     <Compile Include="Services\IDeleteAccountService.cs" />
     <Compile Include="Services\IFileStorageService.cs" />
     <Compile Include="Services\ImmediatePackageValidator.cs" />
-    <Compile Include="Services\ITelemetryClient.cs" />
+    <Compile Include="Services\PackageAction.cs" />
     <Compile Include="Services\PackageOwnershipManagementService.cs" />
     <Compile Include="Services\IPackageOwnershipManagementService.cs" />
     <Compile Include="Services\IPackageValidationInitiator.cs" />
+    <Compile Include="Services\ITelemetryClient.cs" />
     <Compile Include="Infrastructure\HttpStatusCodeWithServerWarningResult.cs" />
     <Compile Include="Migrations\201704191802404_AddIndexPackageRegistrationKeySemVer.cs" />
     <Compile Include="Migrations\201704191802404_AddIndexPackageRegistrationKeySemVer.Designer.cs">
@@ -874,6 +881,8 @@
     <Compile Include="Services\PackageUploadService.cs" />
     <Compile Include="Services\IReservedNamespaceService.cs" />
     <Compile Include="Services\IPackageUploadService.cs" />
+    <Compile Include="Services\PackagePermissionsService.cs" />
+    <Compile Include="Services\PermissionLevel.cs" />
     <Compile Include="Services\ReservedNamespaceService.cs" />
     <Compile Include="Services\ReadMeService.cs" />
     <Compile Include="Services\TelemetryClientWrapper.cs" />
@@ -1864,8 +1873,8 @@
     <EmbeddedResource Include="Migrations\201709202249402_AddPackageOwnershipRequestsPage.resx">
       <DependentUpon>201709202249402_AddPackageOwnershipRequestsPage.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201710250430326_AddOrganizations.resx">
-      <DependentUpon>201710250430326_AddOrganizations.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201710301857232_Organizations.resx">
+      <DependentUpon>201710301857232_Organizations.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
@@ -1877,6 +1886,9 @@
     <Content Include="Areas\Admin\Views\DeleteAccount\Index.cshtml" />
     <Content Include="Areas\Admin\Views\Validation\Index.cshtml" />
     <Content Include="Areas\Admin\Views\DeleteAccount\DeleteUserAccountStatus.cshtml" />
+    <Content Include="Areas\Admin\Views\Delete\Reflow.cshtml" />
+    <Content Include="Areas\Admin\Views\Delete\_ReflowBulk.cshtml" />
+    <Content Include="Areas\Admin\Views\Delete\_ReflowBulkConfirm.cshtml" />
     <None Include="Scripts\jquery-1.11.0.intellisense.js" />
     <Content Include="Scripts\jquery-1.11.0.js" />
     <Content Include="Scripts\jquery-1.11.0.min.js" />

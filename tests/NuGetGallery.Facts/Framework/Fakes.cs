@@ -39,14 +39,10 @@ namespace NuGetGallery.Framework
                 }
             };
 
-            Organization = new User("testOrganization")
+            Organization = new Organization("testOrganization")
             {
                 Key = 41,
                 EmailAddress = "confirmedOrganization@example.com",
-                Organization = new Organization()
-                {
-                    Key = 1
-                },
                 // invalid credentials for testing authentication constraints
                 Credentials = new List<Credential>
                 {
@@ -54,11 +50,11 @@ namespace NuGetGallery.Framework
                 }
             };
 
-            Organization.Organization.Memberships = new List<Membership>()
+            Organization.Members = new List<Membership>()
             {
                 new Membership
                 {
-                    Organization = Organization.Organization,
+                    Organization = Organization,
                     Member = User,
                     IsAdmin = true
                 }
@@ -117,7 +113,7 @@ namespace NuGetGallery.Framework
 
         public User User { get; }
 
-        public User Organization { get; }
+        public Organization Organization { get; }
 
         public User ShaUser { get; }
 

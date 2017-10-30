@@ -391,10 +391,15 @@ namespace NuGetGallery
                     .RegisterType<AsynchronousPackageValidationInitiator>()
                     .As<IPackageValidationInitiator>();
 
+                // we retrieve the values here (on main thread) because otherwise it would run in another thread
+                // and potentially cause a deadlock on async operation.
+                var validationConnectionString = configuration.ServiceBus.Validation_ConnectionString;
+                var validationTopicName = configuration.ServiceBus.Validation_TopicName;
+
                 builder
                     .Register(c => new TopicClientWrapper(
-                        configuration.ServiceBus.Validation_ConnectionString,
-                        configuration.ServiceBus.Validation_TopicName))
+                        validationConnectionString,
+                        validationTopicName))
                     .As<ITopicClient>()
                     .SingleInstance()
                     .OnRelease(x => x.Close());

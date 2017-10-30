@@ -1,0 +1,30 @@
+﻿@model HardDeleteReflowBulkRequestConfirmation
+
+@using (Html.BeginForm("ReflowBulkConfirm", "Delete"))
+{
+    @Html.AntiForgeryToken()
+
+    <p>
+        You are trying to reflow the following hard-deleted packages:
+    </p>
+
+    var requestIndex = 0;
+
+    <ul>
+        @foreach (var request in Model.Requests)
+        {
+            <li>
+                <b>@request.Id</b> <b>@request.Version</b>
+            </li>
+
+            @Html.Hidden("Requests[" + requestIndex + "].Id", request.Id)
+            @Html.Hidden("Requests[" + requestIndex + "].Version", request.Version)
+
+            requestIndex++;
+        }
+    </ul>
+
+    <br />
+
+    <input type="submit" value="Reflow these hard-deleted packages" title="Reflow these hard-deleted packages" />
+}

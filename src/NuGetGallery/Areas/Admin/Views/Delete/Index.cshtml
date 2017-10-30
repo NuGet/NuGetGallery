@@ -10,6 +10,10 @@
     <article id="stage">
         <h2>Delete packages</h2>
 
+        <p>
+            If you would like to reflow a hard-deleted package, go to <a href="@Url.Action(actionName: "Reflow", controllerName: "Delete")">this page</a> instead.
+        </p>
+
         <form>
             <textarea placeholder="Search for packages to delete (e.g. jQuery 1.8.0)" autocomplete="off" autofocus style="width: 100%;" rows="5" data-bind="value: searchQuery"></textarea><br/>
             <input type="button" value="Search" data-bind="click: search"/>
