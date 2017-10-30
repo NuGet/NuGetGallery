@@ -20,6 +20,11 @@ namespace NuGetGallery
         public int Key { get; set; }
 
         /// <summary>
+        /// Organization account (User) foriegn key.
+        /// </summary>
+        public int AccountKey { get; set; }
+
+        /// <summary>
         /// Organization account (User).
         /// </summary>
         public User Account { get; set; }
