@@ -77,12 +77,12 @@
                 }
             </div>
             
-            @if (Model.HasPermission(User, Permission.Edit) ||
-                Model.HasPermission(User, Permission.ManagePackageOwners) ||
-                Model.HasPermission(User, Permission.Delete))
+            @if (Model.HasPermission(User, PackageAction.Edit) ||
+                Model.HasPermission(User, PackageAction.ManagePackageOwners) ||
+                Model.HasPermission(User, PackageAction.Unlist))
             {
                 <ul class="package-list manage-package">
-                    @if (Model.HasPermission(User, Permission.Edit))
+                    @if (Model.HasPermission(User, PackageAction.Edit))
                     {
                         <li>
                             <a href="@Url.EditPackage(Model.Id, Model.Version)" class="icon-link">
@@ -91,7 +91,7 @@
                             </a>
                         </li>
                     }
-                    @if (Model.HasPermission(User, Permission.ManagePackageOwners))
+                    @if (Model.HasPermission(User, PackageAction.ManagePackageOwners))
                     {
                         <li>
                             <a href="@Url.ManagePackageOwners(Model)" class="icon-link">
@@ -100,7 +100,7 @@
                             </a>
                         </li>
                     }
-                    @if (Model.HasPermission(User, Permission.Delete))
+                    @if (Model.HasPermission(User, PackageAction.Unlist))
                     {
                         <li>
                             <a href="@Url.DeletePackage(Model)" class="icon-link">
