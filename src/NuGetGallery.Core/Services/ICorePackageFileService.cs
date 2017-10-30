@@ -20,6 +20,24 @@ namespace NuGetGallery
         Task<Stream> DownloadPackageFileAsync(Package package);
 
         /// <summary>
+        /// Generates the URL for the specified package in the public container for available packages.
+        /// </summary>
+        /// <param name="package">The package metadata.</param>
+        /// <returns>Package download URL</returns>
+        /// <remarks>
+        /// The returned URL is only intended to be used by the internal tooling and not for the user:
+        /// it might not make any sense to external users as it can be, for example, a file:/// URL.
+        /// </remarks>
+        Task<Uri> GetPackageReadUriAsync(Package package);
+
+        /// <summary>
+        /// Checks whether package file exists in the public container for available packages
+        /// </summary>
+        /// <param name="">The package metadata</param>
+        /// <returns>True if file exists, false otherwise</returns>
+        Task<bool> DoesPackageFileExistAsync(Package package);
+
+        /// <summary>
         /// Saves the contents of the package to the private container for packages that are being validated. If the
         /// file already exists, an exception will be thrown.
         /// </summary>
@@ -41,6 +59,13 @@ namespace NuGetGallery
         /// <param name="endOfAccess">The timestamp that limits the URI usage period.</param>
         /// <returns>Time limited (if implementation supports) URI for the validation package</returns>
         Task<Uri> GetValidationPackageReadUriAsync(Package package, DateTimeOffset endOfAccess);
+
+        /// <summary>
+        /// Checks whether package file exists in the private validation container
+        /// </summary>
+        /// <param name="">The package metadata</param>
+        /// <returns>True if file exists, false otherwise</returns>
+        Task<bool> DoesValidationPackageFileExistAsync(Package package);
 
         /// <summary>
         /// Deletes the validating package from the file storage. If the file does not exist this method will not throw
