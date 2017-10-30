@@ -88,12 +88,17 @@ namespace NuGetGallery.Services
 
             private void CreateOrganizationOwnerAndAddUserAsMember(List<User> owners, User user, bool isAdmin)
             {
-                var organization = new Organization() { Memberships = new List<Membership>() };
-                var organizationOwner = new User("testorganization") { Key = _key++, Organization = organization };
-                owners.Add(organizationOwner);
-                
-                var organizationMembership = new Membership() { Organization = organization, Member = user, IsAdmin = isAdmin };
-                organization.Memberships.Add(organizationMembership);
+                var organization = new Organization();
+                organization.Members = new[]
+                {
+                    new Membership()
+                    {
+                        Organization = organization,
+                        Member = user,
+                        IsAdmin = isAdmin
+                    }
+                };
+                owners.Add(organization);
             }
 
             private void AssertPermissionLevels(IEnumerable<User> owners, User user, IEnumerable<PermissionLevel> expectedLevels)

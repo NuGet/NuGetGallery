@@ -13,18 +13,9 @@ namespace NuGetGallery
         IDbSet<PackageRegistration> PackageRegistrations { get; set; }
         IDbSet<Credential> Credentials { get; set; }
         IDbSet<Scope> Scopes { get; set; }
+        IDbSet<User> Users { get; set; }
         IDbSet<UserSecurityPolicy> UserSecurityPolicies { get; set; }
         IDbSet<ReservedNamespace> ReservedNamespaces { get; set; }
-
-        /// <summary>
-        /// User or organization accounts.
-        /// </summary>
-        IDbSet<User> Users { get; set; }
-
-        /// <summary>
-        /// Organization accounts.
-        /// </summary>
-        IDbSet<Organization> Organizations { get; set; }
 
         Task<int> SaveChangesAsync();
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1716:IdentifiersShouldNotMatchKeywords", MessageId = "Set", Justification="This is to match the EF terminology.")]

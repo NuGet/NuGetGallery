@@ -6,27 +6,26 @@ using System.Collections.Generic;
 namespace NuGetGallery
 {
     /// <summary>
-    /// The organization associated with a <see cref="NuGetGallery.User" /> account.
+    /// Organization <see cref="NuGetGallery.User" /> account, based on TPT hierarchy.
     /// 
-    /// The Users table contains both User and Organization accounts. The Organizations table exists both
-    /// as a constraint for Membership as well as a place for possible Organization-only settings. If User
-    /// and Organization settings diverge, we can consider creating a separate UserSettings table as well.
+    /// With the addition of organizations, the users table effectively becomes an account table. Organizations accounts
+    /// are child types created using TPT inheritance. User accounts are not child types, but this could be done in the
+    /// future if we want to add constraints for user accounts or user-only settings.
     /// </summary>
-    public class Organization
+    /// <see href="https://weblogs.asp.net/manavi/inheritance-mapping-strategies-with-entity-framework-code-first-ctp5-part-2-table-per-type-tpt" />
+    public class Organization : User
     {
-        /// <summary>
-        /// Organization primary key.
-        /// </summary>
-        public int Key { get; set; }
+        public Organization() : base()
+        {
+        }
+
+        public Organization(string name) : base(name)
+        {
+        }
 
         /// <summary>
-        /// Organization account (User).
+        /// Organization Memberships to this organization.
         /// </summary>
-        public User Account { get; set; }
-
-        /// <summary>
-        /// Organization memberships.
-        /// </summary>
-        public virtual ICollection<Membership> Memberships { get; set; }
+        public virtual ICollection<Membership> Members { get; set; }
     }
 }
