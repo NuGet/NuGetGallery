@@ -11,5 +11,13 @@ namespace NuGetGallery
                 PermissionLevel.Owner,
                 PermissionLevel.OrganizationAdmin,
             });
+
+        public static IPermissionRestrictedAction UploadPackageOnBehalfOf =
+            new PermissionRestrictedActionIncludeLevel(new PermissionLevel[]
+            {
+                PermissionLevel.Owner,
+                PermissionLevel.OrganizationAdmin,
+                PermissionLevel.OrganizationCollaborator,
+            });
     }
 }

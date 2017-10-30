@@ -160,7 +160,35 @@ namespace NuGetGallery
 
                     model.IsUploadInProgress = true;
 
-                    var verifyRequest = new VerifyPackageRequest(packageMetadata);
+                    IEnumerable<User> possibleOwners;
+                    var existingPackageRegistration = _packageService.FindPackageRegistrationById(packageMetadata.Id);
+
+                    if (!PermissionsService.IsActionAllowed(existingPackageRegistration, currentUser, PackagePermissionRestrictedActions.UploadNewVersion))
+                    {
+                        // This user no longer has the rights to upload to this package. Cancel this upload.
+                        await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
+                        return View();
+                    }
+
+                    if (existingPackageRegistration != null)
+                    {
+                        possibleOwners = existingPackageRegistration.Owners.Where(u => PermissionsService.IsActionAllowed(u, currentUser, UserPermissionRestrictedActions.UploadPackageOnBehalfOf));
+                        if (!possibleOwners.Any())
+                        {
+                            // If the user has the right to upload to the package but they are not able to upload as any of the existing owners, allow the user to upload as themselves.
+                            possibleOwners = new User[] { currentUser };
+                        }
+                    }
+                    else
+                    {
+                        var organizationsWithRightToUpload = 
+                            currentUser.Memberships
+                                .Select(m => m.Organization.Account)
+                                .Where(u => PermissionsService.IsActionAllowed(u, currentUser, UserPermissionRestrictedActions.UploadPackageOnBehalfOf));
+                        possibleOwners = new User[] { currentUser }.Concat(organizationsWithRightToUpload);
+                    }
+
+                    var verifyRequest = new VerifyPackageRequest(packageMetadata, possibleOwners);
 
                     model.InProgressUpload = verifyRequest;
                 }
