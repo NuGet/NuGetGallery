@@ -168,6 +168,7 @@
     <Compile Include="Validation\Test\Endpoint\FlatContainerEndpoint.cs" />
     <Compile Include="Validation\Test\Exceptions\MetadataFieldInconsistencyException.cs" />
     <Compile Include="Validation\Test\Exceptions\MetadataInconsistencyException.cs" />
+    <Compile Include="Validation\Test\Exceptions\TimestampComparisonException.cs" />
     <Compile Include="Validation\Test\Exceptions\ValidationException.cs" />
     <Compile Include="Validation\Test\IAggregateValidator.cs" />
     <Compile Include="Validation\Test\IValidator.cs" />

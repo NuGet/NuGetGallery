@@ -22,6 +22,10 @@ namespace CatalogTests.Helpers
         [InlineData("OneValidDependencyOneEmptyId.0.1.0")] // One valid dependency and one with empty string ID
         [InlineData("OneValidDependencyOneEmptyIdWithGroups.0.1.0")] // Using dependency groups, one valid dependency and one with empty string ID
         [InlineData("WhitespaceDependencyId.0.1.0")] // One dependency with an ID only containing whitespace
+        [InlineData("EmptyDependencyVersionRange.0.1.0")] // A dependency with a version range that is an empty string
+        [InlineData("InvalidDependencyVersionRange.0.1.0")] //A dependency with a version range that is invalid
+        [InlineData("MissingDependencyVersionRange.0.1.0")] // A dependency with no version range attribute
+        [InlineData("WhitespaceDependencyVersionRange.0.1.0")] // A dependency with a version range that is whitespace
         public void CreateContent_ProducesExpectedJson(string packageName)
         {
             // Arrange

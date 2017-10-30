@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace NuGet.Services.Metadata.Catalog.Monitoring
 {
     /// <summary>
-    /// Base class for exceptions throw by <see cref="IValidator.Run(ValidationContext)"/>.
+    /// Base class for exceptions throw by <see cref="IValidator.ValidateAsync(ValidationContext)"/>.
     /// </summary>
     public class ValidationException : Exception
     {

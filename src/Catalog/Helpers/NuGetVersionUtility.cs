@@ -21,13 +21,13 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
 
             return parsedVersion.ToNormalizedString();
         }
-
-        public static string NormalizeVersionRange(string versionRange)
+        
+        public static string NormalizeVersionRange(string versionRange, string defaultValue)
         {
             VersionRange parsedVersionRange;
             if (!VersionRange.TryParse(versionRange, out parsedVersionRange))
             {
-                return versionRange;
+                return defaultValue;
             }
 
             return parsedVersionRange.ToNormalizedString();
