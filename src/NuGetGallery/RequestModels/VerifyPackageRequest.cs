@@ -12,7 +12,7 @@ namespace NuGetGallery
     {
         public VerifyPackageRequest() { }
 
-        public VerifyPackageRequest(PackageMetadata packageMetadata)
+        public VerifyPackageRequest(PackageMetadata packageMetadata, IEnumerable<User> possibleOwners)
         {
             var dependencyGroups = packageMetadata.GetDependencyGroups();
 
@@ -31,6 +31,9 @@ namespace NuGetGallery
             Dependencies = new DependencySetsViewModel(packageMetadata.GetDependencyGroups().AsPackageDependencyEnumerable());
             DevelopmentDependency = packageMetadata.GetValueFromMetadata("developmentDependency");
             Edit = new EditPackageVersionRequest(packageMetadata);
+
+            PossibleOwners = possibleOwners.Select(u => u.Username);
+            Owner = PossibleOwners.FirstOrDefault();
         }
 
         public string Id { get; set; }
@@ -55,5 +58,7 @@ namespace NuGetGallery
         public string DevelopmentDependency { get; set; }
         public DependencySetsViewModel Dependencies { get; set; }
         public IReadOnlyCollection<FrameworkSpecificGroup> FrameworkReferenceGroups { get; set; }
+        public string Owner { get; set; }
+        public IEnumerable<string> PossibleOwners { get; set; }
     }
 }
