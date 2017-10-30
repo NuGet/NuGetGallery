@@ -6,27 +6,27 @@ namespace NuGetGallery
     public enum PermissionLevel
     {
         /// <summary>
-        /// The default rights to a package, held by all users on every package.
+        /// The default rights, held by all users.
         /// </summary>
         Anonymous,
 
         /// <summary>
-        /// The user is a direct owner of the package.
+        /// The user is a direct owner.
         /// </summary>
         Owner,
 
         /// <summary>
-        /// The user is a site admin and has administrative permissions on all packages.
+        /// The user is a site admin and has administrative permissions.
         /// </summary>
         SiteAdmin,
 
         /// <summary>
-        /// The user is an administrator of an organization that is a direct owner of the package.
+        /// The user is an administrator of an organization that is a direct owner.
         /// </summary>
         OrganizationAdmin,
 
         /// <summary>
-        /// The user is a collaborator of an organization that is a direct owner of the package.
+        /// The user is a collaborator of an organization that is a direct owner.
         /// </summary>
         OrganizationCollaborator,
     }

@@ -10,113 +10,49 @@ namespace NuGetGallery
 {
     public static class PermissionsService
     {
-        private static readonly IDictionary<PermissionLevel, IEnumerable<PackageAction>> _allowedActions = 
-            new Dictionary<PermissionLevel, IEnumerable<PackageAction>>
-            {
-                {
-                    PermissionLevel.Anonymous,
-                    new PackageAction[0]
-                },
-                {
-                    PermissionLevel.OrganizationCollaborator,
-                    new []
-                    {
-                        PackageAction.DisplayPrivatePackage,
-                        PackageAction.UploadNewVersion,
-                        PackageAction.Edit,
-                        PackageAction.Unlist,
-                    }
-                },
-                {
-                    PermissionLevel.SiteAdmin,
-                    new []
-                    {
-                        PackageAction.DisplayPrivatePackage,
-                        PackageAction.UploadNewVersion,
-                        PackageAction.Edit,
-                        PackageAction.Unlist,
-                        PackageAction.ManagePackageOwners,
-                    }
-                },
-                {
-                    PermissionLevel.OrganizationAdmin,
-                    new []
-                    {
-                        PackageAction.DisplayPrivatePackage,
-                        PackageAction.UploadNewVersion,
-                        PackageAction.Edit,
-                        PackageAction.Unlist,
-                        PackageAction.ManagePackageOwners,
-                        PackageAction.ReportMyPackage,
-                    }
-                },
-                {
-                    PermissionLevel.Owner,
-                    new []
-                    {
-                        PackageAction.DisplayPrivatePackage,
-                        PackageAction.UploadNewVersion,
-                        PackageAction.Edit,
-                        PackageAction.Unlist,
-                        PackageAction.ManagePackageOwners,
-                        PackageAction.ReportMyPackage,
-                    }
-                }
-            };
-
-        public static bool IsActionAllowed(Package package, IPrincipal principal, PackageAction action)
+        public static bool IsActionAllowed(Package package, IPrincipal principal, IPermissionRestrictedAction action)
         {
             return IsActionAllowed(package.PackageRegistration, principal, action);
         }
 
-        public static bool IsActionAllowed(PackageRegistration packageRegistration, IPrincipal principal, PackageAction action)
+        public static bool IsActionAllowed(PackageRegistration packageRegistration, IPrincipal principal, IPermissionRestrictedAction action)
         {
             return IsActionAllowed(packageRegistration.Owners, principal, action);
         }
 
-        public static bool IsActionAllowed(IEnumerable<User> owners, IPrincipal principal, PackageAction action)
+        public static bool IsActionAllowed(IEnumerable<User> owners, IPrincipal principal, IPermissionRestrictedAction action)
         {
             var permissionLevels = GetPermissionLevels(owners, principal);
-            return IsActionAllowed(permissionLevels, action);
+            return action.IsAllowed(permissionLevels);
         }
 
-        public static bool IsActionAllowed(Package package, User user, PackageAction action)
+        public static bool IsActionAllowed(User owner, IPrincipal principal, IPermissionRestrictedAction action)
+        {
+            return IsActionAllowed(new User[] { owner }, principal, action);
+        }
+
+        public static bool IsActionAllowed(Package package, User user, IPermissionRestrictedAction action)
         {
             return IsActionAllowed(package.PackageRegistration, user, action);
         }
 
-        public static bool IsActionAllowed(PackageRegistration packageRegistration, User user, PackageAction action)
+        public static bool IsActionAllowed(PackageRegistration packageRegistration, User user, IPermissionRestrictedAction action)
         {
             return IsActionAllowed(packageRegistration.Owners, user, action);
         }
 
-        public static bool IsActionAllowed(IEnumerable<User> owners, User user, PackageAction action)
+        public static bool IsActionAllowed(IEnumerable<User> owners, User user, IPermissionRestrictedAction action)
         {
             var permissionLevels = GetPermissionLevels(owners, user);
-            return IsActionAllowed(permissionLevels, action);
+            return action.IsAllowed(permissionLevels);
         }
 
-        private static bool IsActionAllowed(IEnumerable<PermissionLevel> permissionLevels, PackageAction action)
+        public static bool IsActionAllowed(User owner, User user, IPermissionRestrictedAction action)
         {
-            return permissionLevels.Any(permissionLevel => _allowedActions[permissionLevel].Contains(action));
+            return IsActionAllowed(new User[] { owner }, user, action);
         }
 
-        public static IEnumerable<PermissionLevel> GetPermissionLevels(Package package, User user)
-        {
-            return GetPermissionLevels(package, user);
-        }
-
-        public static IEnumerable<PermissionLevel> GetPermissionLevels(PackageRegistration packageRegistration, User user)
-        {
-            return GetPermissionLevels(packageRegistration.Owners, user);
-        }
-
-        public static IEnumerable<PermissionLevel> GetPermissionLevels(User owner, User user)
-        {
-            return GetPermissionLevels(new[] { owner }, user);
-        }
-
-        public static IEnumerable<PermissionLevel> GetPermissionLevels(IEnumerable<User> owners, User user)
+        internal static IEnumerable<PermissionLevel> GetPermissionLevels(IEnumerable<User> owners, User user)
         {
             if (user == null)
             {
@@ -129,22 +65,7 @@ namespace NuGetGallery
                 u => UserMatchesUser(u, user));
         }
 
-        public static IEnumerable<PermissionLevel> GetPermissionLevels(Package package, IPrincipal principal)
-        {
-            return GetPermissionLevels(package, principal);
-        }
-
-        public static IEnumerable<PermissionLevel> GetPermissionLevels(PackageRegistration packageRegistration, IPrincipal principal)
-        {
-            return GetPermissionLevels(packageRegistration.Owners, principal);
-        }
-
-        public static IEnumerable<PermissionLevel> GetPermissionLevels(User owner, IPrincipal principal)
-        {
-            return GetPermissionLevels(new[] { owner }, principal);
-        }
-
-        public static IEnumerable<PermissionLevel> GetPermissionLevels(IEnumerable<User> owners, IPrincipal principal)
+        internal static IEnumerable<PermissionLevel> GetPermissionLevels(IEnumerable<User> owners, IPrincipal principal)
         {
             if (principal == null)
             {
@@ -178,7 +99,8 @@ namespace NuGetGallery
             var matchingMembers = owners
                 .Where(u => u.Organization != null)
                 .SelectMany(u => u.Organization.Memberships)
-                .Where(m => isUserMatch(m.Member));
+                .Where(m => isUserMatch(m.Member))
+                .ToArray();
 
             if (matchingMembers.Any(m => m.IsAdmin))
             {

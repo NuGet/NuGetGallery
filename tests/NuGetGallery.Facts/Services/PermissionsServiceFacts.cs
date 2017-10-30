@@ -10,7 +10,7 @@ using Xunit;
 
 namespace NuGetGallery.Services
 {
-    public class PackagePermissionsServiceFacts
+    public class PermissionsServiceFacts
     {
         public class TheGetPermissionLevelMethod
         {

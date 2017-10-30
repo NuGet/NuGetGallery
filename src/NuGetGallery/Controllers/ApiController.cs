@@ -291,7 +291,7 @@ namespace NuGetGallery
             await AuditingService.SaveAuditRecordAsync(
                 new PackageAuditRecord(package, AuditedPackageAction.Verify));
 
-            if (!PermissionsService.IsActionAllowed(package, user, PackageAction.UploadNewVersion))
+            if (!PermissionsService.IsActionAllowed(package, user, PackagePermissionRestrictedActions.UploadNewVersion))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
             }
@@ -428,7 +428,7 @@ namespace NuGetGallery
                         else
                         {
                             // Is the user allowed to push this Id?
-                            if (!PermissionsService.IsActionAllowed(packageRegistration, user, PackageAction.UploadNewVersion))
+                            if (!PermissionsService.IsActionAllowed(packageRegistration, user, PackagePermissionRestrictedActions.UploadNewVersion))
                             {
                                 // Audit that a non-owner tried to push the package
                                 await AuditingService.SaveAuditRecordAsync(
@@ -576,7 +576,7 @@ namespace NuGetGallery
             }
 
             var user = GetCurrentUser();
-            if (!PermissionsService.IsActionAllowed(package, user, PackageAction.Unlist))
+            if (!PermissionsService.IsActionAllowed(package, user, PackagePermissionRestrictedActions.Unlist))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
             }
@@ -608,7 +608,7 @@ namespace NuGetGallery
             }
 
             User user = GetCurrentUser();
-            if (!PermissionsService.IsActionAllowed(package, user, PackageAction.UploadNewVersion))
+            if (!PermissionsService.IsActionAllowed(package, user, PackagePermissionRestrictedActions.UploadNewVersion))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, String.Format(CultureInfo.CurrentCulture, Strings.ApiKeyNotAuthorized, "publish"));
             }
