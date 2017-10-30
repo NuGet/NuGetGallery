@@ -172,12 +172,12 @@ namespace NuGetGallery
         {
             if (string.IsNullOrEmpty(id))
             {
-                throw new UserSafeException($"Must supply an ID for the hard-deleted package to reflow.");
+                throw new UserSafeException("Must supply an ID for the hard-deleted package to reflow.");
             }
 
             if (string.IsNullOrEmpty(version))
             {
-                throw new UserSafeException($"Must supply a version for the hard-deleted package to reflow.");
+                throw new UserSafeException("Must supply a version for the hard-deleted package to reflow.");
             }
 
             var normalizedId = id.ToLowerInvariant();
