@@ -159,6 +159,7 @@
     <Compile Include="Entities\CuratedPackage.cs" />
     <Compile Include="Entities\Membership.cs" />
     <Compile Include="Entities\Organization.cs" />
+    <Compile Include="Entities\AccountDelete.cs" />
     <Compile Include="Entities\PackageDelete.cs" />
     <Compile Include="Entities\EmailMessage.cs" />
     <Compile Include="Entities\EntitiesConfiguration.cs" />

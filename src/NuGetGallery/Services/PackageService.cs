@@ -362,11 +362,7 @@ namespace NuGetGallery
 
         public async Task RemovePackageOwnerAsync(PackageRegistration package, User user)
         {
-            if (package.Owners.Count == 1 && user == package.Owners.Single())
-            {
-                throw new InvalidOperationException("You can't remove the only owner from a package.");
-            }
-
+            //it is allowed to remove the last owner of a package
             package.Owners.Remove(user);
             await _packageRepository.CommitChangesAsync();
         }

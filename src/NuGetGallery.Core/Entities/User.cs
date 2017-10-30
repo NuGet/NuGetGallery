@@ -61,6 +61,8 @@ namespace NuGetGallery
 
         public bool EmailAllowed { get; set; }
 
+        public bool IsDeleted { get; set; }
+
         public virtual ICollection<ReservedNamespace> ReservedNamespaces { get; set; }
 
         [DefaultValue(true)]
@@ -146,6 +148,19 @@ namespace NuGetGallery
         public bool IsInRole(string roleName)
         {
             return Roles.Any(r => String.Equals(r.Name, roleName, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public void SetAccountAsDeleted()
+        {
+            EmailAddress = null;
+            UnconfirmedEmailAddress = null;
+            EmailAllowed = false;
+            EmailConfirmationToken = null;
+            PasswordResetToken = null;
+            NotifyPackagePushed = false;
+            LastFailedLoginUtc = null;
+            FailedLoginCount = 0;
+            IsDeleted = true;
         }
     }
 }

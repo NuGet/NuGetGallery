@@ -1,0 +1,25 @@
+﻿@using NuGetGallery
+@model NuGetGallery.Areas.Admin.ViewModels.DeleteUserAccountStatusViewModel
+@{
+    ViewBag.Title = "Delete Account Status" + Model.AccountName;
+    ViewBag.MdPageColumns = Constants.ColumnsFormMd;
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
+}
+
+
+<section role="main" class="container main-container ">
+    <div class="form-group">
+        <div class="form-group">
+            <h1 class="text-center">@Model.AccountName Delete Account Operation Status</h1>
+            <div class="form-group">
+                <ul>
+                    @foreach(var status in Model.OperationStatus)
+                    {
+                        <li> @status </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+

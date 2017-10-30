@@ -8,11 +8,11 @@ using System.Net;
 using System.Net.Mail;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
 using NuGetGallery.Infrastructure.Authentication;
-using NuGetGallery.Areas.Admin.ViewModels;
 
 namespace NuGetGallery
 {
@@ -27,6 +27,7 @@ namespace NuGetGallery
         private readonly IAppConfiguration _config;
         private readonly AuthenticationService _authService;
         private readonly ICredentialBuilder _credentialBuilder;
+        private readonly IDeleteAccountService _deleteAccountService;
 
         public UsersController(
             ICuratedFeedService feedsQuery,
@@ -36,7 +37,8 @@ namespace NuGetGallery
             IMessageService messageService,
             IAppConfiguration config,
             AuthenticationService authService,
-            ICredentialBuilder credentialBuilder)
+            ICredentialBuilder credentialBuilder,
+            IDeleteAccountService deleteAccountService)
         {
             _curatedFeedService = feedsQuery ?? throw new ArgumentNullException(nameof(feedsQuery));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
@@ -46,6 +48,7 @@ namespace NuGetGallery
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _authService = authService ?? throw new ArgumentNullException(nameof(authService));
             _credentialBuilder = credentialBuilder ?? throw new ArgumentNullException(nameof(credentialBuilder));
+            _deleteAccountService = deleteAccountService ?? throw new ArgumentNullException(nameof(deleteAccountService));
         }
 
         [HttpGet]
@@ -122,10 +125,10 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> DeleteUserAccount(DeleteUserAccountViewModel model)
         {
-            //TODO 
-
-            await Task.Delay(2);
-            return DeleteUserAccount(model.AccountName);
+            var user = _userService.FindByUsername(model.AccountName);
+            var admin = GetCurrentUser();
+            var status = await _deleteAccountService.DeleteGalleryUserAccountAsync(user, admin, model.Signature, model.Unlist);
+            return  View("DeleteUserAccountStatus", new DeleteUserAccountStatusViewModel() {AccountName = model.AccountName , OperationStatus = status .Item2});
         }
 
 
@@ -375,7 +378,7 @@ namespace NuGetGallery
         public virtual ActionResult Profiles(string username, int page = 1)
         {
             var user = _userService.FindByUsername(username);
-            if (user == null)
+            if (user == null || user.IsDeleted)
             {
                 return HttpNotFound();
             }
