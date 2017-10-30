@@ -127,7 +127,7 @@ namespace NuGetGallery.Authentication
                     return new PasswordAuthenticationResult(PasswordAuthenticationResult.AuthenticationResult.BadCredentials);
                 }
 
-                if (user.IsOrganization())
+                if (user is Organization)
                 {
                     _trace.Information($"Cannot authenticate organization account'{userNameOrEmail}'.");
 
@@ -219,7 +219,7 @@ namespace NuGetGallery.Authentication
                     return null;
                 }
 
-                if (matched.User.IsOrganization())
+                if (matched.User is Organization)
                 {
                     _trace.Information($"Cannot authenticate organization account '{matched.User.Username}'.");
 
@@ -490,7 +490,7 @@ namespace NuGetGallery.Authentication
 
         public virtual async Task AddCredential(User user, Credential credential)
         {
-            if  (user.IsOrganization())
+            if  (user is Organization)
             {
                 throw new InvalidOperationException(Strings.OrganizationsCannotCreateCredentials);
             }
@@ -646,7 +646,7 @@ namespace NuGetGallery.Authentication
 
         private async Task ReplaceCredentialInternal(User user, Credential credential)
         {
-            if (user.IsOrganization())
+            if (user is Organization)
             {
                 throw new InvalidOperationException(Strings.OrganizationsCannotCreateCredentials);
             }

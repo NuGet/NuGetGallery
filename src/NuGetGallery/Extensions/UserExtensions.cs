@@ -37,15 +37,5 @@ namespace NuGetGallery
 
             return user.Credentials.FirstOrDefault(c => c.Value == apiKey);
         }
-
-        /// <summary>
-        /// Determines if the User (account) belongs to an organization.
-        /// </summary>
-        /// <param name="account">User (account) instance.</param>
-        /// <returns>True for organizations, false for users.</returns>
-        public static bool IsOrganization(this User account)
-        {
-            return account.Organization != null;
-        }
     }
 }

@@ -166,8 +166,9 @@ namespace NuGetGallery
             }
 
             var matchingMembers = owners
-                .Where(u => u.Organization != null)
-                .SelectMany(u => u.Organization.Memberships)
+                .Where(o => o is Organization)
+                .Cast<Organization>()
+                .SelectMany(o => o.Members)
                 .Where(m => isUserMatch(m.Member));
 
             if (matchingMembers.Any(m => m.IsAdmin))
