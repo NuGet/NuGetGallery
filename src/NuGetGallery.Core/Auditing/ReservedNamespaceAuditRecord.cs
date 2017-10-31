@@ -56,7 +56,7 @@ namespace NuGetGallery.Auditing
             return Value.ToLowerInvariant();
         }
 
-        private AuditedPackageRegistrationAction? GetPackageRegistrationAction(AuditedReservednamespaceAction action)
+        private static AuditedPackageRegistrationAction? GetPackageRegistrationAction(AuditedReservednamespaceAction action)
         {
             switch (action)
             {
