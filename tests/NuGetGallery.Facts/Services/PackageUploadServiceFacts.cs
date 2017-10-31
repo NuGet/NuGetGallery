@@ -33,8 +33,8 @@ namespace NuGetGallery
 
             packageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
             packageService.Setup(x => x
-                .CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>()))
-                .Returns((PackageArchiveReader packageArchiveReader, PackageStreamMetadata packageStreamMetadata, User user, bool isVerified) =>
+                .CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<User>(), It.IsAny<bool>()))
+                .Returns((PackageArchiveReader packageArchiveReader, PackageStreamMetadata packageStreamMetadata, User owner, User currentUser, bool isVerified) =>
                 {
                     var packageMetadata = PackageMetadata.FromNuspecReader(packageArchiveReader.GetNuspecReader());
 
@@ -87,6 +87,7 @@ namespace NuGetGallery
                     id,
                     nugetPackage.Object,
                     new PackageStreamMetadata(),
+                    currentUser,
                     currentUser);
 
                 validationService.Verify(
@@ -105,9 +106,9 @@ namespace NuGetGallery
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(id: id);
                 var currentUser = new User();
 
-                var package = await packageUploadService.GeneratePackageAsync(id, nugetPackage.Object, new PackageStreamMetadata(), currentUser);
+                var package = await packageUploadService.GeneratePackageAsync(id, nugetPackage.Object, new PackageStreamMetadata(), currentUser, currentUser);
 
-                packageService.Verify(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>()), Times.Once);
+                packageService.Verify(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<User>(), It.IsAny<bool>()), Times.Once);
                 Assert.False(package.PackageRegistration.IsVerified);
             }
 
@@ -137,7 +138,7 @@ namespace NuGetGallery
                 var packageUploadService = CreateService(reservedNamespaceService: reservedNamespaceService);
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(id: id);
 
-                var package = await packageUploadService.GeneratePackageAsync(id, nugetPackage.Object, new PackageStreamMetadata(), firstUser);
+                var package = await packageUploadService.GeneratePackageAsync(id, nugetPackage.Object, new PackageStreamMetadata(), firstUser, firstUser);
 
                 Assert.Equal(shouldMarkIdVerified, package.PackageRegistration.IsVerified);
             }
@@ -165,7 +166,7 @@ namespace NuGetGallery
                 var packageUploadService = CreateService(reservedNamespaceService: reservedNamespaceService);
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(id: id);
 
-                var package = await packageUploadService.GeneratePackageAsync(id, nugetPackage.Object, new PackageStreamMetadata(), lastUser);
+                var package = await packageUploadService.GeneratePackageAsync(id, nugetPackage.Object, new PackageStreamMetadata(), lastUser, lastUser);
 
                 Assert.False(package.PackageRegistration.IsVerified);
             }

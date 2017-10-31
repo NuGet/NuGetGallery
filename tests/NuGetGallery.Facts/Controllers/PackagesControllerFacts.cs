@@ -2010,9 +2010,14 @@ namespace NuGetGallery
                     var fakeUploadFileService = new Mock<IUploadFileService>();
                     fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key))
                         .Returns(Task.FromResult<Stream>(fakeFileStream));
+
+                    var fakeUserService = new Mock<IUserService>();
+                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username)).Returns(TestUtility.FakeUser);
+
                     var controller = CreateController(
                         GetConfigurationService(),
-                        uploadFileService: fakeUploadFileService);
+                        uploadFileService: fakeUploadFileService,
+                        userService: fakeUserService);
                     controller.SetCurrentUser(TestUtility.FakeUser);
 
                     var result = (await controller.UploadPackage() as ViewResult).Model as SubmitPackageRequest;
@@ -2439,6 +2444,7 @@ namespace NuGetGallery
                             It.IsAny<string>(),
                             It.IsAny<PackageArchiveReader>(),
                             It.IsAny<PackageStreamMetadata>(),
+                            It.IsAny<User>(),
                             It.IsAny<User>()))
                         .Returns(Task.FromResult(new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" }));
                     fakePackageUploadService
@@ -2482,6 +2488,7 @@ namespace NuGetGallery
                             It.IsAny<string>(),
                             It.IsAny<PackageArchiveReader>(),
                             It.IsAny<PackageStreamMetadata>(),
+                            It.IsAny<User>(),
                             It.IsAny<User>()))
                         .Returns(Task.FromResult(new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" }));
                     fakePackageUploadService
@@ -2520,6 +2527,7 @@ namespace NuGetGallery
                             It.IsAny<string>(),
                             It.IsAny<PackageArchiveReader>(),
                             It.IsAny<PackageStreamMetadata>(),
+                            It.IsAny<User>(),
                             It.IsAny<User>()))
                         .Returns(Task.FromResult(new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" }));
                     var fakeNuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.0");
@@ -2537,6 +2545,7 @@ namespace NuGetGallery
                         It.IsAny<string>(),
                         It.IsAny<PackageArchiveReader>(),
                         It.IsAny<PackageStreamMetadata>(),
+                        It.IsAny<User>(),
                         It.IsAny<User>()), Times.Once);
                 }
             }
@@ -2558,6 +2567,7 @@ namespace NuGetGallery
                             It.IsAny<string>(),
                             It.IsAny<PackageArchiveReader>(),
                             It.IsAny<PackageStreamMetadata>(),
+                            It.IsAny<User>(),
                             It.IsAny<User>()))
                         .Returns(Task.FromResult(fakePackage));
                     var fakeNuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.0");
@@ -2604,6 +2614,7 @@ namespace NuGetGallery
                             It.IsAny<string>(),
                             It.IsAny<PackageArchiveReader>(),
                             It.IsAny<PackageStreamMetadata>(),
+                            It.IsAny<User>(),
                             It.IsAny<User>()))
                         .Returns(Task.FromResult(fakePackage));
                     fakePackageService.Setup(x => x.PublishPackageAsync(fakePackage, false))
@@ -2644,6 +2655,7 @@ namespace NuGetGallery
                             It.IsAny<string>(),
                             It.IsAny<PackageArchiveReader>(),
                             It.IsAny<PackageStreamMetadata>(),
+                            It.IsAny<User>(),
                             It.IsAny<User>()))
                         .Returns(Task.FromResult(fakePackage));
                     var fakeNuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.0");
@@ -2677,6 +2689,7 @@ namespace NuGetGallery
                             It.IsAny<string>(),
                             It.IsAny<PackageArchiveReader>(),
                             It.IsAny<PackageStreamMetadata>(),
+                            It.IsAny<User>(),
                             It.IsAny<User>()))
                         .Returns(Task.FromResult(new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" }));
                     var fakeNuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.0");
@@ -2713,6 +2726,7 @@ namespace NuGetGallery
                             It.IsAny<string>(),
                             It.IsAny<PackageArchiveReader>(),
                             It.IsAny<PackageStreamMetadata>(),
+                            It.IsAny<User>(),
                             It.IsAny<User>()))
                         .Returns(Task.FromResult(new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" }));
                     var fakeNuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.0");
@@ -2745,6 +2759,7 @@ namespace NuGetGallery
                             It.IsAny<string>(),
                             It.IsAny<PackageArchiveReader>(),
                             It.IsAny<PackageStreamMetadata>(),
+                            It.IsAny<User>(),
                             It.IsAny<User>()))
                         .Returns(Task.FromResult(new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" }));
                     var fakeNuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.0");
@@ -2777,6 +2792,7 @@ namespace NuGetGallery
                             It.IsAny<string>(),
                             It.IsAny<PackageArchiveReader>(),
                             It.IsAny<PackageStreamMetadata>(),
+                            It.IsAny<User>(),
                             It.IsAny<User>()))
                         .Returns(Task.FromResult(new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" }));
                     var fakeNuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.0");
@@ -2808,6 +2824,7 @@ namespace NuGetGallery
                             It.IsAny<string>(),
                             It.IsAny<PackageArchiveReader>(),
                             It.IsAny<PackageStreamMetadata>(),
+                            It.IsAny<User>(),
                             It.IsAny<User>()))
                         .Returns(Task.FromResult(new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" }));
                     var fakeNuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.0");
@@ -2845,6 +2862,7 @@ namespace NuGetGallery
                             It.IsAny<string>(),
                             It.IsAny<PackageArchiveReader>(),
                             It.IsAny<PackageStreamMetadata>(),
+                            It.IsAny<User>(),
                             It.IsAny<User>()))
                         .Returns(Task.FromResult(fakePackage));
                     var fakeNuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.0");
@@ -2880,6 +2898,7 @@ namespace NuGetGallery
                             It.IsAny<string>(),
                             It.IsAny<PackageArchiveReader>(),
                             It.IsAny<PackageStreamMetadata>(),
+                            It.IsAny<User>(),
                             It.IsAny<User>()))
                         .Returns(Task.FromResult(fakePackage));
                     var fakeNuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.0");
@@ -2921,6 +2940,7 @@ namespace NuGetGallery
                             It.IsAny<string>(),
                             It.IsAny<PackageArchiveReader>(),
                             It.IsAny<PackageStreamMetadata>(),
+                            It.IsAny<User>(),
                             It.IsAny<User>()))
                         .Returns(Task.FromResult(fakePackage));
                     var fakeNuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.0");
@@ -2982,6 +3002,7 @@ namespace NuGetGallery
                             It.IsAny<string>(),
                             It.IsAny<PackageArchiveReader>(),
                             It.IsAny<PackageStreamMetadata>(),
+                            It.IsAny<User>(),
                             It.IsAny<User>()))
                         .Returns(Task.FromResult(fakePackage));
 
@@ -3050,6 +3071,7 @@ namespace NuGetGallery
                         It.IsAny<string>(),
                         It.IsAny<PackageArchiveReader>(),
                         It.IsAny<PackageStreamMetadata>(),
+                        It.IsAny<User>(),
                         It.IsAny<User>()))
                     .Returns(Task.FromResult(fakePackage));
 

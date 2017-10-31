@@ -160,7 +160,6 @@ namespace NuGetGallery
 
                     model.IsUploadInProgress = true;
 
-                    IEnumerable<User> possibleOwners;
                     var existingPackageRegistration = _packageService.FindPackageRegistrationById(packageMetadata.Id);
 
                     if (!PermissionsService.IsActionAllowed(existingPackageRegistration, currentUser, PackagePermissionRestrictedActions.UploadNewVersion))
@@ -170,25 +169,7 @@ namespace NuGetGallery
                         return View();
                     }
 
-                    if (existingPackageRegistration != null)
-                    {
-                        possibleOwners = existingPackageRegistration.Owners.Where(u => PermissionsService.IsActionAllowed(u, currentUser, UserPermissionRestrictedActions.UploadPackageOnBehalfOf));
-                        if (!possibleOwners.Any())
-                        {
-                            // If the user has the right to upload to the package but they are not able to upload as any of the existing owners, allow the user to upload as themselves.
-                            possibleOwners = new User[] { currentUser };
-                        }
-                    }
-                    else
-                    {
-                        var organizationsWithRightToUpload = 
-                            currentUser.Memberships
-                                .Select(m => m.Organization.Account)
-                                .Where(u => PermissionsService.IsActionAllowed(u, currentUser, UserPermissionRestrictedActions.UploadPackageOnBehalfOf));
-                        possibleOwners = new User[] { currentUser }.Concat(organizationsWithRightToUpload);
-                    }
-
-                    var verifyRequest = new VerifyPackageRequest(packageMetadata, possibleOwners);
+                    var verifyRequest = new VerifyPackageRequest(packageMetadata, GetPossibleOwnersForUpload(packageMetadata.Id));
 
                     model.InProgressUpload = verifyRequest;
                 }
@@ -392,7 +373,7 @@ namespace NuGetGallery
                 }
             }
 
-            var model = new VerifyPackageRequest(packageMetadata);
+            var model = new VerifyPackageRequest(packageMetadata, GetPossibleOwnersForUpload(packageMetadata.Id));
 
             return Json(model);
         }
@@ -1423,6 +1404,22 @@ namespace NuGetGallery
                     Size = uploadFile.Length,
                 };
 
+                var owner = _userService.FindByUsername(formData.Owner);
+
+                if (owner == null)
+                {
+                    var message = $"The user {formData.Owner} doesn't exist! You cannot upload a package as a user that doesn't exist.";
+                    TempData["Message"] = message;
+                    return Json(400, new[] { message });
+                }
+
+                if (!PermissionsService.IsActionAllowed(owner, currentUser, UserPermissionRestrictedActions.UploadPackageOnBehalfOf))
+                {
+                    var message = $"You do not have permission to upload packages as user {owner.Username}!";
+                    TempData["Message"] = message;
+                    return Json(400, new[] { message });
+                }
+
                 // update relevant database tables
                 try
                 {
@@ -1430,6 +1427,7 @@ namespace NuGetGallery
                         packageMetadata.Id,
                         nugetPackage,
                         packageStreamMetadata,
+                        owner,
                         currentUser);
 
                     Debug.Assert(package.PackageRegistration != null);
@@ -1642,6 +1640,33 @@ namespace NuGetGallery
                 stream.Dispose();
                 throw;
             }
+        }
+
+        internal IEnumerable<User> GetPossibleOwnersForUpload(string id)
+        {
+            IEnumerable<User> possibleOwners;
+            var existingPackageRegistration = _packageService.FindPackageRegistrationById(id);
+            var currentUser = GetCurrentUser();
+
+            if (existingPackageRegistration != null)
+            {
+                possibleOwners = existingPackageRegistration.Owners.Where(u => PermissionsService.IsActionAllowed(u, currentUser, UserPermissionRestrictedActions.UploadPackageOnBehalfOf));
+                if (!possibleOwners.Any())
+                {
+                    // If the user has the right to upload to the package but they are not able to upload as any of the existing owners, allow the user to upload as themselves.
+                    possibleOwners = new User[] { currentUser };
+                }
+            }
+            else
+            {
+                var organizationsWithRightToUpload =
+                    currentUser.Memberships
+                        .Select(m => m.Organization.Account)
+                        .Where(u => PermissionsService.IsActionAllowed(u, currentUser, UserPermissionRestrictedActions.UploadPackageOnBehalfOf));
+                possibleOwners = new User[] { currentUser }.Concat(organizationsWithRightToUpload);
+            }
+
+            return possibleOwners;
         }
 
         private static string GetSortExpression(string sortOrder)
