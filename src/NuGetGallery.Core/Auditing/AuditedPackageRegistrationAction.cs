@@ -6,6 +6,8 @@ namespace NuGetGallery.Auditing
     public enum AuditedPackageRegistrationAction
     {
         AddOwner,
-        RemoveOwner
+        RemoveOwner,
+        MarkVerified,
+        MarkUnverified
     }
 }

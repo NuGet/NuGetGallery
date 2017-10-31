@@ -4,27 +4,28 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using NuGetGallery.Auditing.AuditedEntities;
 
 namespace NuGetGallery.Auditing
 {
     public class ReservedNamespaceAuditRecord : AuditRecord<AuditedReservednamespaceAction>
     {
-        public string Value { get; }
-        public string IsPrefix { get; }
-        public string IsSharedNamespace { get; }
-        public PackageRegistrationAuditRecord[] AffectedPackageRegistrations { get; }
+        public string Value;
+
+        public AuditedReservedNamespace AffectedRecord;
+
+        public string AffectedOwner;
+
+        public PackageRegistrationAuditRecord[] AffectedRegistrations;
 
         public ReservedNamespaceAuditRecord(ReservedNamespace reservedNamespace, AuditedReservednamespaceAction action)
-            : this(reservedNamespace, action, Enumerable.Empty<PackageRegistration>())
-        {
-        }
+            : this(reservedNamespace, action, username: null, registrations: null)
+        { }
 
-        public ReservedNamespaceAuditRecord(ReservedNamespace reservedNamespace, AuditedReservednamespaceAction action, PackageRegistration affected)
-            : this(reservedNamespace, action, SingleEnumerable(affected))
-        {
-        }
-
-        public ReservedNamespaceAuditRecord(ReservedNamespace reservedNamespace, AuditedReservednamespaceAction action, IEnumerable<PackageRegistration> affected)
+        public ReservedNamespaceAuditRecord(ReservedNamespace reservedNamespace,
+            AuditedReservednamespaceAction action,
+            string username,
+            IEnumerable<PackageRegistration> registrations)
             : base(action)
         {
             if (reservedNamespace == null)
@@ -32,17 +33,40 @@ namespace NuGetGallery.Auditing
                 throw new ArgumentNullException(nameof(reservedNamespace));
             }
 
+            Value = reservedNamespace.Value;
+            AffectedRecord = new AuditedReservedNamespace(reservedNamespace);
             Action = action;
-        }
 
-        private static IEnumerable<PackageRegistration> SingleEnumerable(PackageRegistration affected)
-        {
-            yield return affected;
+            if (!string.IsNullOrWhiteSpace(username))
+            {
+                AffectedOwner = username;
+
+                var registrationAction = GetPackageRegistrationAction(action);
+                if (registrations != null && registrations.Any() && registrationAction.HasValue)
+                {
+                    AffectedRegistrations = registrations
+                        .Select(pr => new PackageRegistrationAuditRecord(pr, registrationAction.Value, username))
+                        .ToArray();
+                }
+            }
         }
 
         public override string GetPath()
         {
             return Value.ToLowerInvariant();
+        }
+
+        private AuditedPackageRegistrationAction? GetPackageRegistrationAction(AuditedReservednamespaceAction action)
+        {
+            switch (action)
+            {
+                case AuditedReservednamespaceAction.AddOwner:
+                    return AuditedPackageRegistrationAction.MarkVerified;
+                case AuditedReservednamespaceAction.RemoveOwner:
+                    return AuditedPackageRegistrationAction.MarkUnverified;
+                default:
+                    return null;
+            }
         }
     }
 }
