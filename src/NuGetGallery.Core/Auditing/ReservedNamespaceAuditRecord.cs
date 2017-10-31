@@ -12,7 +12,7 @@ namespace NuGetGallery.Auditing
     {
         public string Value;
 
-        public AuditedReservedNamespace AffectedRecord;
+        public AuditedReservedNamespace AffectedReservedNamespace;
 
         public string AffectedOwner;
 
@@ -34,7 +34,7 @@ namespace NuGetGallery.Auditing
             }
 
             Value = reservedNamespace.Value;
-            AffectedRecord = new AuditedReservedNamespace(reservedNamespace);
+            AffectedReservedNamespace = new AuditedReservedNamespace(reservedNamespace);
             Action = action;
 
             if (!string.IsNullOrWhiteSpace(username))
