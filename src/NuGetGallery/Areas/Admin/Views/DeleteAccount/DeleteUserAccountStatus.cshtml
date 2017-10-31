@@ -10,10 +10,11 @@
 <section role="main" class="container main-container ">
     <div class="form-group">
         <div class="form-group">
-            <h1 class="text-center">@Model.AccountName Delete Account Operation Status</h1>
+            <h1 class="text-center">Delete Account Status</h1>
+            <h2 class="text-center">@Model.AccountName</h2>
             <div class="form-group">
                 <ul>
-                    @foreach(var status in Model.OperationStatus)
+                    @foreach (var status in Model.OperationStatus)
                     {
                         <li> @status </li>
                     }

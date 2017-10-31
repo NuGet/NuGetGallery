@@ -17,6 +17,7 @@ namespace NuGetGallery
         private readonly IEntityRepository<AccountDelete> _accountDeleteRepository;
         private readonly IEntitiesContext _entitiesContext;
         private readonly IPackageService _packageService;
+        private readonly IPackageOwnershipManagementService _packageOwnershipManagementService;
         private readonly IReservedNamespaceService _reservedNamespaceService;
         private readonly IUserService _userService;
         private readonly ISecurityPolicyService _securityPolicyService;
@@ -29,6 +30,7 @@ namespace NuGetGallery
                                     IEntityRepository<User> userRepository,
                                     IEntitiesContext entitiesContext,
                                     IPackageService packageService,
+                                    IPackageOwnershipManagementService packageOwnershipManagementService,
                                     IReservedNamespaceService reservedNamespaceService,
                                     IUserService userService,
                                     ISecurityPolicyService securityPolicyService,
@@ -41,6 +43,7 @@ namespace NuGetGallery
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
+            _packageOwnershipManagementService = packageOwnershipManagementService ?? throw new ArgumentNullException(nameof(packageOwnershipManagementService));
             _reservedNamespaceService = reservedNamespaceService ?? throw new ArgumentNullException(nameof(reservedNamespaceService));
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
@@ -75,7 +78,7 @@ namespace NuGetGallery
             List<string> executionDetails = new List<string>();
             bool result = true;
 
-            result = (await RemoveOwnership(useToBeDeleted, unsignOrphanPackages, ownedPackages, executionDetails)) ?
+            result = (await RemoveOwnership(useToBeDeleted, admin, unsignOrphanPackages, ownedPackages, executionDetails)) ?
                             (await RemoveReservedNamespaces(useToBeDeleted, executionDetails) ?
                                 (await RemoveSecurityPolicies(useToBeDeleted, executionDetails) ?
                                     (await RemoveUserCredentials(useToBeDeleted, executionDetails) ?
@@ -136,9 +139,10 @@ namespace NuGetGallery
         {
             try
             {
-                foreach (var usp in user.SecurityPolicies)
+                var copyOfUserPolicies = user.SecurityPolicies.ToArray();
+                foreach (var usp in copyOfUserPolicies)
                 {
-                    await _securityPolicyService.UnsubscribeAsync(user, usp.Name);
+                    await _securityPolicyService.UnsubscribeAsync(user, usp.Subscription);
                 }
                 executionDetails.Add($"{nameof(RemoveSecurityPolicies)}: Succeeded");
                 return true;
@@ -154,7 +158,8 @@ namespace NuGetGallery
         {
             try
             {
-                foreach (var rn in user.ReservedNamespaces)
+                var copyOfUserNS = user.ReservedNamespaces.ToArray();
+                foreach (var rn in copyOfUserNS)
                 {
                     await _reservedNamespaceService.DeleteOwnerFromReservedNamespaceAsync(rn.Value, user.Username);
                 }
@@ -168,7 +173,7 @@ namespace NuGetGallery
             }
         }
 
-        private async Task<bool> RemoveOwnership(User user, bool unsignOrphanPackages, List<Package> packages, List<string> executionDetails)
+        private async Task<bool> RemoveOwnership(User user, User admin, bool unsignOrphanPackages, List<Package> packages, List<string> executionDetails)
         {
             try
             {
@@ -178,7 +183,7 @@ namespace NuGetGallery
                     {
                         await _packageService.MarkPackageUnlistedAsync(package, true);
                     }
-                    await _packageService.RemovePackageOwnerAsync(package.PackageRegistration, user);
+                    await _packageOwnershipManagementService.RemovePackageOwnerAsync(package.PackageRegistration, admin, user);
                 }
                 executionDetails.Add($"{nameof(RemoveOwnership)}: Succeeded");
                 return true;
@@ -196,12 +201,12 @@ namespace NuGetGallery
             {
                 user.SetAccountAsDeleted();
                 await _userRepository.CommitChangesAsync();
-                executionDetails.Add($"{nameof(InsertDeleteAccount)}: Succeeded");
+                executionDetails.Add($"{nameof(RemoveUserDataInUserTable)}: Succeeded");
                 return true;
             }
             catch (Exception e)
             {
-                executionDetails.Add($"{nameof(InsertDeleteAccount)}: {e.ToString()}");
+                executionDetails.Add($"{nameof(RemoveUserDataInUserTable)}: {e.ToString()}");
                 return false;
             }
         }

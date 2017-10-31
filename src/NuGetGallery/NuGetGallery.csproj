@@ -783,10 +783,11 @@
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Helpers\GravatarHelper.cs" />
     <Compile Include="Helpers\RegexEx.cs" />
+    <Compile Include="Migrations\201710302343008_AddAccountDelete.cs" />
+    <Compile Include="Migrations\201710302343008_AddAccountDelete.Designer.cs">
+      <DependentUpon>201710302343008_AddAccountDelete.cs</DependentUpon>
+    </Compile>
     <Compile Include="RequestModels\DeleteAccountRequest.cs" />
-    <Compile Include="Migrations\201710250430326_AddOrganizations.cs" />
-    <Compile Include="Migrations\201710250430326_AddOrganizations.Designer.cs">
-      <DependentUpon>201710250430326_AddOrganizations.cs</DependentUpon>
     <Compile Include="Migrations\201710301857232_Organizations.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.Designer.cs">
       <DependentUpon>201710301857232_Organizations.cs</DependentUpon>
@@ -1875,6 +1876,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201710301857232_Organizations.resx">
       <DependentUpon>201710301857232_Organizations.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201710302343008_AddAccountDelete.resx">
+      <DependentUpon>201710302343008_AddAccountDelete.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
