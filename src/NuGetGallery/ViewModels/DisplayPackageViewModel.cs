@@ -49,7 +49,6 @@ namespace NuGetGallery
         {
             if (pendingMetadata.TriedCount < 3)
             {
-                HasPendingMetadata = true;
                 Authors = pendingMetadata.Authors;
                 Copyright = pendingMetadata.Copyright;
                 Description = pendingMetadata.Description;
@@ -60,20 +59,12 @@ namespace NuGetGallery
                 Tags = pendingMetadata.Tags.ToStringSafe().Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries);
                 Title = pendingMetadata.Title;
             }
-            else
-            {
-                HasPendingMetadata = false;
-                IsLastEditFailed = true;
-            }
         }
 
         public DependencySetsViewModel Dependencies { get; set; }
         public IEnumerable<DisplayPackageViewModel> PackageVersions { get; set; }
         public string Copyright { get; set; }
         public string ReadMeHtml { get; set; }
-        public string ReadMeHtmlClamped { get; set; }
-        public bool HasPendingMetadata { get; private set; }
-        public bool IsLastEditFailed { get; private set; }
         public DateTime? LastEdited { get; set; }
         public int DownloadsPerDay { get; private set; }
         public int TotalDaysSinceCreated { get; private set; }
@@ -83,7 +74,7 @@ namespace NuGetGallery
             get
             {
                 var latestPrereleaseVersion = PackageVersions
-                    .Where(pv => pv.Prerelease && pv.Available)
+                    .Where(pv => pv.Prerelease && pv.Available && pv.Listed)
                     .Max(pv => pv.NuGetVersion);
 
                 return latestPrereleaseVersion > NuGetVersion;

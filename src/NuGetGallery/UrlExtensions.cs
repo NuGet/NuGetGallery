@@ -207,23 +207,6 @@ namespace NuGetGallery
             return GetRouteLink(url, RouteName.ListPackages, relativeUrl);
         }
 
-        public static string UndoPendingEdits(
-            this UrlHelper url,
-            IPackageVersionModel package,
-            bool relativeUrl = true)
-        {
-            return GetActionLink(
-                url,
-                "UndoPendingEdits",
-                "Packages",
-                relativeUrl,
-                routeValues: new RouteValueDictionary
-                {
-                    { "id", package.Id },
-                    { "version", package.Version }
-                });
-        }
-
         public static string Package(this UrlHelper url, string id, bool relativeUrl = true)
         {
             return url.Package(id, version: null, relativeUrl: relativeUrl);

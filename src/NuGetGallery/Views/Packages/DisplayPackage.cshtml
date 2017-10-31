@@ -144,38 +144,6 @@
                 <p>@Html.PreFormattedText(Model.Description)</p>
             }
 
-            @if (!string.IsNullOrEmpty(Model.PolicyMessage))
-            {
-                @ViewHelpers.AlertWarning(@<text>@Model.PolicyMessage</text>)
-            }
-
-            @if (Model.HasPendingMetadata)
-            {
-                using (Html.BeginForm(actionName: "UndoPendingEdits", controllerName: "Packages"))
-                {
-                    @Html.AntiForgeryToken()
-
-                    @ViewHelpers.AlertInfo(
-                        @<text>
-                            An edit is pending for this package version. You are seeing the <em>edited</em> package description now.
-                            These changes will be applied to the package file and become visible to everybody soon unless you
-                            <a href="#" role="button" id="undo-pending-edits">undo pending edits</a> first.
-                        </text>
-                    )
-                }
-            }
-
-            @if (Model.IsLastEditFailed)
-            {
-                @ViewHelpers.AlertDanger(
-                    @<text>
-                        Your last edit to this package was not successfully applied.
-                        You can <a href="@Url.EditPackage(Model.Id, Model.Version)">edit</a>
-                        the package and submit the edit again to retry the edit.
-                    </text>
-                )
-            }
-
             @if (Model.Validating)
             {
                 @ViewHelpers.AlertWarning(
@@ -243,7 +211,7 @@
 
             @if (!Model.Listed && Model.Available)
             {
-                if ((Model.IsOwnerOrAdmin(User)))
+                if (Model.HasPermission(User, PackageAction.DisplayPrivatePackage))
                 {
                     @ViewHelpers.AlertWarning(
                         @<text>
@@ -305,21 +273,19 @@
                     </h2>
                 </div>
                 <div id="readme-container" class="collapse in">
-                    <div id="readme-clamped" class="readme collapse in">
-                        @Html.Raw(Model.ReadMeHtmlClamped)
+                    <div id="readme-less" class="collapse in">
+                        @Html.Raw(Model.ReadMeHtml)
                     </div>
-                    <div id="readme-full" class="readme collapse">
+                    <div id="readme-more" class="collapse">
                         @Html.Raw(Model.ReadMeHtml)
                     </div>
 
-                    @if (Model.ReadMeHtmlClamped.Length < Model.ReadMeHtml.Length)
-                    {
-                        <a href="#" role="button" data-toggle="collapse" class="icon-link" data-target=".readme"
-                            aria-expanded="false" aria-controls=".readme" id="show-readme-full" data-track="show-package-documentation" >
-                            <i class="ms-Icon ms-Icon--CalculatorAddition" aria-hidden="true"></i>
-                            <span>Show more</span>
-                        </a>
-                    }
+                    <a href="#" role="button" data-toggle="collapse" class="icon-link" data-target="#readme-more"
+                       aria-expanded="false" aria-controls="#readme-more, #readme-less"
+                       id="show-readme-more" data-track="show-package-documentation">
+                        <i class="ms-Icon ms-Icon--CalculatorAddition" aria-hidden="true"></i>
+                        <span>Show more</span>
+                    </a>
                 </div>
             }
 
@@ -332,7 +298,7 @@
 
             @if (Model.Dependencies.DependencySets == null)
             {
-                if ((Model.IsOwnerOrAdmin(User)))
+                if (Model.HasPermission(User, PackageAction.DisplayPrivatePackage))
                 {
                     <h2>Dependencies</h2>
                     <p>
@@ -408,7 +374,7 @@
                             <th>Version</th>
                             <th>Downloads</th>
                             <th>Last updated</th>
-                            @if (Model.IsOwnerOrAdmin(User))
+                            @if (Model.HasPermission(User, PackageAction.DisplayPrivatePackage))
                             {
                                 <th>Listed</th>
                                 if (Config.Current.AsynchronousPackageValidationEnabled)
@@ -429,7 +395,7 @@
                         @foreach (var packageVersion in Model.PackageVersions)
                         {
                             if ((packageVersion.Available && packageVersion.Listed)
-                                || (!packageVersion.Deleted && Model.IsOwnerOrAdmin(User)))
+                                || (!packageVersion.Deleted && Model.HasPermission(User, PackageAction.DisplayPrivatePackage)))
                             {
                                 rowCount++;
                                 @VersionListDivider(rowCount, versionsExpanded)
@@ -460,7 +426,7 @@
                                     <td>
                                         <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetShortDateString()</span>
                                     </td>
-                                    @if (packageVersion.IsOwnerOrAdmin(User))
+                                    @if (packageVersion.HasPermission(User, PackageAction.DisplayPrivatePackage))
                                     {
                                         <td>
                                             <a href="@Url.DeletePackage(packageVersion)">@(packageVersion.Listed ? "yes" : "no")</a>
@@ -485,7 +451,7 @@
                                     }
                                 </tr>
                             }
-                            else if (packageVersion.Deleted && packageVersion.IsOwnerOrAdmin(User))
+                            else if (packageVersion.Deleted && packageVersion.HasPermission(User, PackageAction.DisplayPrivatePackage))
                             {
                                 rowCount++;
                                 @VersionListDivider(rowCount, versionsExpanded)
@@ -562,7 +528,7 @@
                     <i class="ms-Icon ms-Icon--Mail" aria-hidden="true"></i>
                     <a href="@Url.ContactOwners(Model.Id)" title="Ask the package owners a question">Contact owners</a>
                 </li>
-                @if (Model.IsOwnerOrAdmin(User))
+                @if (Model.HasPermission(User, PackageAction.ReportMyPackage))
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--Help" aria-hidden="true"></i>
@@ -593,21 +559,21 @@
                     </li>
                 }
 
-                @if ((Model.Available || Model.Validating) && Model.IsOwnerOrAdmin(User))
+                @if ((Model.Available || Model.Validating) && Model.HasPermission(User, PackageAction.Edit))
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
                         <a href="@Url.EditPackage(Model.Id, Model.Version)">Edit package</a>
                     </li>
                 }
-                @if (Model.IsOwnerOrAdmin(User))
+                @if (Model.HasPermission(User, PackageAction.ManagePackageOwners))
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--People" aria-hidden="true"></i>
                         <a href="@Url.ManagePackageOwners(Model)">Manage owners</a>
                     </li>
                 }
-                @if (!Model.Deleted && Model.IsOwnerOrAdmin(User))
+                @if (!Model.Deleted && Model.HasPermission(User, PackageAction.Unlist))
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>

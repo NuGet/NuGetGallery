@@ -20,6 +20,7 @@ namespace NuGetGallery
         private const string DownloadCountBlobName = "downloads.v1.json";
         private const string TelemetryOriginForRefreshMethod = "CloudDownloadCountService.Refresh";
 
+        private readonly ITelemetryClient _telemetryClient;
         private readonly string _connectionString;
         private readonly bool _readAccessGeoRedundant;
 
@@ -30,8 +31,10 @@ namespace NuGetGallery
         
         public DateTime LastRefresh { get; protected set; }
 
-        public CloudDownloadCountService(string connectionString, bool readAccessGeoRedundant)
+        public CloudDownloadCountService(ITelemetryClient telemetryClient, string connectionString, bool readAccessGeoRedundant)
         {
+            _telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
+
             _connectionString = connectionString;
             _readAccessGeoRedundant = readAccessGeoRedundant;
         }
@@ -181,7 +184,7 @@ namespace NuGetGallery
                             }
                             catch (JsonReaderException ex)
                             {
-                                Telemetry.TrackException(ex, new Dictionary<string, string>
+                                _telemetryClient.TrackException(ex, new Dictionary<string, string>
                                 {
                                     { "Origin", TelemetryOriginForRefreshMethod },
                                     { "AdditionalInfo", "Invalid entry found in downloads.v1.json." }
@@ -191,7 +194,7 @@ namespace NuGetGallery
                     }
                     catch (JsonReaderException ex)
                     {
-                        Telemetry.TrackException(ex, new Dictionary<string, string>
+                        _telemetryClient.TrackException(ex, new Dictionary<string, string>
                         {
                             { "Origin", TelemetryOriginForRefreshMethod },
                             { "AdditionalInfo", "Data present in downloads.v1.json is invalid. Couldn't get download data." }
@@ -201,7 +204,7 @@ namespace NuGetGallery
             }
             catch (Exception ex)
             {
-                Telemetry.TrackException(ex, new Dictionary<string, string>
+                _telemetryClient.TrackException(ex, new Dictionary<string, string>
                 {
                     { "Origin", TelemetryOriginForRefreshMethod },
                     { "AdditionalInfo", "Unknown exception." }

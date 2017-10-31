@@ -7,22 +7,27 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 using CommonMark;
-using System.Text.RegularExpressions;
+using CommonMark.Syntax;
 
 namespace NuGetGallery
 {
     internal class ReadMeService : IReadMeService
     {
+        private static readonly TimeSpan RegexTimeout = TimeSpan.FromMinutes(1);
+        private static readonly Regex EncodedBlockQuotePattern = new Regex("^ {0,3}&gt;", RegexOptions.Multiline, RegexTimeout);
+        private static readonly Regex CommonMarkLinkPattern = new Regex("<a href=([\"\']).*?\\1", RegexOptions.None, RegexTimeout);
+
         internal const string TypeUrl = "Url";
         internal const string TypeFile = "File";
         internal const string TypeWritten = "Written";
 
         internal const int MaxMdLengthBytes = 8000;
-        private const int ReadMeClampedLineCount = 10;
         private const string UrlHostRequirement = "raw.githubusercontent.com";
+
         private static readonly TimeSpan UrlTimeout = TimeSpan.FromSeconds(10);
 
         private IPackageFileService _packageFileService;
@@ -75,20 +80,14 @@ namespace NuGetGallery
         /// Get the converted HTML from the stored ReadMe markdown.
         /// </summary>
         /// <param name="package">Package entity associated with the ReadMe.</param>
-        /// <param name="model">Display package view model to populate.</param>
         /// <param name="isPending">Whether to retrieve the pending ReadMe.</param>
         /// <returns>Pending or active ReadMe converted to HTML.</returns>
-        public async Task GetReadMeHtmlAsync(Package package, DisplayPackageViewModel model, bool isPending = false)
+        public async Task<string> GetReadMeHtmlAsync(Package package, bool isPending = false)
         {
             var readMeMd = await GetReadMeMdAsync(package, isPending);
-            if (!string.IsNullOrWhiteSpace(readMeMd))
-            {
-                var readMeMdClamped = string.Join(Environment.NewLine,
-                    readMeMd.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Take(ReadMeClampedLineCount));
-
-                model.ReadMeHtml = GetReadMeHtml(readMeMd).Trim();
-                model.ReadMeHtmlClamped = GetReadMeHtml(readMeMdClamped).Trim();
-            }
+            return string.IsNullOrEmpty(readMeMd) ?
+                string.Empty :
+                GetReadMeHtml(readMeMd);
         }
 
         /// <summary>
@@ -149,10 +148,65 @@ namespace NuGetGallery
         /// <returns>HTML content.</returns>
         internal static string GetReadMeHtml(string readMeMd)
         {
-            var encodedMarkdown = HttpUtility.HtmlEncode(readMeMd);
-            var regex = new Regex("<a href=([\"\']).*?\\1");
-            var converted = CommonMarkConverter.Convert(encodedMarkdown);
-            return regex.Replace(converted, "$0" + " rel=\"nofollow\"");
+            // HTML encode markdown, except for block quotes, to block inline html.
+            var encodedMarkdown = EncodedBlockQuotePattern.Replace(HttpUtility.HtmlEncode(readMeMd), "> ");
+
+            var settings = CommonMarkSettings.Default.Clone();
+            settings.RenderSoftLineBreaksAsLineBreaks = true;
+
+            // Parse executes CommonMarkConverter's ProcessStage1 and ProcessStage2.
+            var document = CommonMarkConverter.Parse(encodedMarkdown, settings);
+            foreach (var node in document.AsEnumerable())
+            {
+                if (node.IsOpening)
+                {
+                    var block = node.Block;
+                    if (block != null)
+                    {
+                        switch (block.Tag)
+                        {
+                            // Demote heading tags so they don't overpower expander headings.
+                            case BlockTag.AtxHeading:
+                            case BlockTag.SetextHeading:
+                                var level = (byte)Math.Min(block.Heading.Level + 1, 6);
+                                block.Heading = new HeadingData(level);
+                                break;
+
+                            // Decode preformatted blocks to prevent double encoding.
+                            // Skip BlockTag.BlockQuote, which are partially decoded upfront.
+                            case BlockTag.FencedCode:
+                            case BlockTag.IndentedCode:
+                                if (block.StringContent != null)
+                                {
+                                    var content = block.StringContent.TakeFromStart(block.StringContent.Length);
+                                    var unencodedContent = HttpUtility.HtmlDecode(content);
+                                    block.StringContent.Replace(unencodedContent, 0, unencodedContent.Length);
+                                }
+                                break;
+                        }
+                    }
+
+                    var inline = node.Inline;
+                    if (inline != null && inline.Tag == InlineTag.Link)
+                    {
+                        // Allow only http or https links in markdown.
+                        Uri targetUri;
+                        if (! (Uri.TryCreate(inline.TargetUrl, UriKind.Absolute, out targetUri)
+                            && (targetUri.Scheme == Uri.UriSchemeHttp || targetUri.Scheme == Uri.UriSchemeHttps) ))
+                        {
+                            inline.TargetUrl = string.Empty;
+                        }
+                    }
+                }
+            }
+
+            // CommonMark.Net does not support link attributes, so manually inject nofollow.
+            using (var htmlWriter = new StringWriter())
+            {
+                CommonMarkConverter.ProcessStage3(document, htmlWriter, settings);
+                
+                return CommonMarkLinkPattern.Replace(htmlWriter.ToString(), "$0" + " rel=\"nofollow\"").Trim();
+            }
         }
 
         /// <summary>
