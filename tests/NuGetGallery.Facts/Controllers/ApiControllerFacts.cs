@@ -362,22 +362,28 @@ namespace NuGetGallery
             public async Task WillReturnConflictIfAPackageWithTheIdExistsBelongingToAnotherUser()
             {
                 // Arrange
-                var user = new User { EmailAddress = "confirmed@email.com" };
+                var key = 0;
+                var owner = new User { Key = key++, Username = "owner" };
+                var currentUser = new User { Key = key++, Username = "currentUser" };
                 var packageId = "theId";
-                var packageRegistration = new PackageRegistration();
-                packageRegistration.Id = packageId;
-                var package = new Package();
-                package.PackageRegistration = packageRegistration;
-                package.Version = "1.0.42";
+                var packageRegistration = new PackageRegistration()
+                {
+                    Id = packageId,
+                    Owners = new[] { owner }
+                };
+                var package = new Package()
+                {
+                    PackageRegistration = packageRegistration,
+                    Version = "1.0.42"
+                };
                 packageRegistration.Packages.Add(package);
 
                 var controller = new TestableApiController(GetConfigurationService());
-                controller.SetCurrentUser(user);
                 controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
                     .Returns(packageRegistration);
 
                 var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, "1.0.42");
-                controller.SetCurrentUser(new User());
+                controller.SetCurrentUser(currentUser);
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
                 // Act
@@ -506,6 +512,65 @@ namespace NuGetGallery
                         It.IsAny<User>(),
                         It.IsAny<User>()),
                     Times.Once);
+            }
+
+            [Fact]
+            public Task WillCreateAPackageIfUserOwnsExistingRegistration()
+            {
+                var key = 0;
+                var user = new User { EmailAddress = "confirmed@email.com", Key = key++, Username = "user" };
+                return AssertPackageIsCreatedIfUserOwnersExistingRegistration(user, user);
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public Task WillCreateAPackageIfUserIsMemberOfOrganizationThatOwnsExistingRegistration(bool isAdmin)
+            {
+                var key = 0;
+                var organizationUser = new User { Key = key++, Username = "org" };
+                var organization = new Organization { Key = key++, Account = organizationUser };
+                organizationUser.Organization = organization;
+
+                var user = new User { EmailAddress = "confirmed@email.com", Key = key++, Username = "user" };
+                user.Memberships = new[] { new Membership { IsAdmin = isAdmin, Member = user, Organization = organization } };
+                organization.Memberships = user.Memberships;
+
+                return AssertPackageIsCreatedIfUserOwnersExistingRegistration(organizationUser, user);
+            }
+
+            private async Task AssertPackageIsCreatedIfUserOwnersExistingRegistration(User owner, User currentUser)
+            {
+                // Arrange
+                var packageId = "theId";
+                var packageRegistration = new PackageRegistration { Id = packageId, Owners = new[] { owner } };
+                packageRegistration.Id = packageId;
+                var package = new Package
+                {
+                    PackageRegistration = packageRegistration,
+                    Version = "1.0.42"
+                };
+                packageRegistration.Packages.Add(package);
+
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.SetCurrentUser(currentUser);
+                controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
+                    .Returns(packageRegistration);
+
+                var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, "1.0.42");
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                // Act
+                var result = await controller.CreatePackagePut();
+
+                // Assert
+                controller.MockPackageUploadService.Verify(
+                    x => x.GeneratePackageAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<PackageArchiveReader>(),
+                        It.IsAny<PackageStreamMetadata>(),
+                        It.IsAny<User>(),
+                        It.IsAny<User>()));
             }
 
             [Fact]

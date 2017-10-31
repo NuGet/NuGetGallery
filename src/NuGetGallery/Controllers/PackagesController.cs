@@ -162,7 +162,7 @@ namespace NuGetGallery
 
                     var existingPackageRegistration = _packageService.FindPackageRegistrationById(packageMetadata.Id);
 
-                    if (!PermissionsService.IsActionAllowed(existingPackageRegistration, currentUser, PackagePermissionRestrictedActions.UploadNewVersion))
+                    if (existingPackageRegistration != null && !PermissionsService.IsActionAllowed(existingPackageRegistration, currentUser, PackagePermissionRestrictedActions.UploadNewVersion))
                     {
                         // This user no longer has the rights to upload to this package. Cancel this upload.
                         await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
@@ -1134,7 +1134,7 @@ namespace NuGetGallery
             }
             
             var user = _userService.FindByUsername(username);
-            if (PermissionsService.IsActionAllowed(user, GetCurrentUser(), UserPermissionRestrictedActions.AcceptPackageOwnershipOnBehalfOf))
+            if (!PermissionsService.IsActionAllowed(user, GetCurrentUser(), UserPermissionRestrictedActions.AcceptPackageOwnershipOnBehalfOf))
             {
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.NotYourRequest));
             }
@@ -1145,7 +1145,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            if (PermissionsService.IsActionAllowed(package, user, PackagePermissionRestrictedActions.AcceptOwnership))
+            if (!PermissionsService.IsActionAllowed(package, user, PackagePermissionRestrictedActions.AcceptOwnership))
             {
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.AlreadyOwner));
             }
@@ -1650,7 +1650,9 @@ namespace NuGetGallery
 
             if (existingPackageRegistration != null)
             {
-                possibleOwners = existingPackageRegistration.Owners.Where(u => PermissionsService.IsActionAllowed(u, currentUser, UserPermissionRestrictedActions.UploadPackageOnBehalfOf));
+                possibleOwners = existingPackageRegistration.Owners
+                    .Where(u => PermissionsService.IsActionAllowed(u, currentUser, UserPermissionRestrictedActions.UploadPackageOnBehalfOf))
+                    .ToArray();
                 if (!possibleOwners.Any())
                 {
                     // If the user has the right to upload to the package but they are not able to upload as any of the existing owners, allow the user to upload as themselves.
@@ -1659,10 +1661,20 @@ namespace NuGetGallery
             }
             else
             {
-                var organizationsWithRightToUpload =
-                    currentUser.Memberships
-                        .Select(m => m.Organization.Account)
-                        .Where(u => PermissionsService.IsActionAllowed(u, currentUser, UserPermissionRestrictedActions.UploadPackageOnBehalfOf));
+                IEnumerable<User> organizationsWithRightToUpload;
+                if (currentUser.Memberships != null)
+                {
+                    organizationsWithRightToUpload =
+                       currentUser.Memberships
+                           .Select(m => m.Organization.Account)
+                           .Where(u => PermissionsService.IsActionAllowed(u, currentUser, UserPermissionRestrictedActions.UploadPackageOnBehalfOf))
+                           .ToArray();
+                }
+                else
+                {
+                    organizationsWithRightToUpload = new User[0];
+                }
+
                 possibleOwners = new User[] { currentUser }.Concat(organizationsWithRightToUpload);
             }
 
