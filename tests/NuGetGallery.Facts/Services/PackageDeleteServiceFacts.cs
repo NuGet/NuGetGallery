@@ -615,7 +615,7 @@ namespace NuGetGallery
                 }
                 else
                 {
-                    await Assert.ThrowsAsync<ArgumentException>(() => service.ReflowHardDeletedPackageAsync(id, version));
+                    await Assert.ThrowsAsync<UserSafeException>(() => service.ReflowHardDeletedPackageAsync(id, version));
                 }
                 
                 auditingService.Verify(x => x.SaveAuditRecordAsync(It.IsAny<AuditRecord>()), succeeds ? Times.Once() : Times.Never());
