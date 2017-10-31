@@ -209,6 +209,7 @@ var AsyncFileUploadManager = new function () {
     function bindData(model) {
         $("#verify-package-block").remove();
         $("#submit-block").remove();
+        $("#verify-warning-container").addClass("hidden");
         $("#verify-collapser-container").addClass("hidden");
         $("#submit-collapser-container").addClass("hidden");
 
@@ -218,7 +219,6 @@ var AsyncFileUploadManager = new function () {
             $(reportContainerElement).attr("class", "collapse in");
             $(reportContainerElement).attr("aria-expanded", "true");
             $(reportContainerElement).attr("data-bind", "template: { name: 'edit-metadata-template', data: data }");
-            $("#verify-package-container").removeClass("hidden");
             $("#verify-package-container").append(reportContainerElement);
             ko.applyBindings({ data: model }, reportContainerElement);
 
@@ -252,6 +252,7 @@ var AsyncFileUploadManager = new function () {
                 $('#icon-preview').attr('src', $('#iconurl-field').val());
             });
 
+            $("#verify-warning-container").removeClass("hidden");
             $("#verify-collapser-container").removeClass("hidden");
             $("#submit-collapser-container").removeClass("hidden");
 

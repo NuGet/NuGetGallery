@@ -9,6 +9,12 @@ using System.ComponentModel.DataAnnotations;
 
 namespace NuGetGallery
 {
+    /// <summary>
+    /// With the addition of organizations, the users table effectively becomes an account table. Organizations accounts
+    /// are child types created using TPT inheritance. User accounts are not child types, but this could be done in the
+    /// future if we want to add constraints for user accounts or user-only settings.
+    /// </summary>
+    /// <see href="https://weblogs.asp.net/manavi/inheritance-mapping-strategies-with-entity-framework-code-first-ctp5-part-2-table-per-type-tpt" />
     public class User : IEntity
     {
         public User() : this(null)
@@ -23,6 +29,11 @@ namespace NuGetGallery
             Roles = new List<Role>();
             Username = username;
         }
+
+        /// <summary>
+        /// Organization memberships for a non-organization <see cref="User"/> account.
+        /// </summary>
+        public virtual ICollection<Membership> Organizations { get; set; }
 
         [StringLength(256)]
         public string EmailAddress { get; set; }

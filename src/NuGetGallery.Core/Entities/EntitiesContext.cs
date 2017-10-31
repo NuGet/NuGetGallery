@@ -41,9 +41,13 @@ namespace NuGetGallery
         public IDbSet<PackageRegistration> PackageRegistrations { get; set; }
         public IDbSet<Credential> Credentials { get; set; }
         public IDbSet<Scope> Scopes { get; set; }
-        public IDbSet<User> Users { get; set; }
         public IDbSet<UserSecurityPolicy> UserSecurityPolicies { get; set; }
         public IDbSet<ReservedNamespace> ReservedNamespaces { get; set; }
+
+        /// <summary>
+        /// User or organization accounts.
+        /// </summary>
+        public IDbSet<User> Users { get; set; }
 
         IDbSet<T> IEntitiesContext.Set<T>()
         {
@@ -118,6 +122,24 @@ namespace NuGetGallery
                 .Map(c => c.ToTable("UserRoles")
                            .MapLeftKey("UserKey")
                            .MapRightKey("RoleKey"));
+
+            modelBuilder.Entity<Organization>()
+                .ToTable("Organizations");
+
+            modelBuilder.Entity<Membership>()
+                .HasKey(m => new { m.OrganizationKey, m.MemberKey });
+
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.Organizations)
+                .WithRequired(m => m.Member)
+                .HasForeignKey(m => m.MemberKey)
+                .WillCascadeOnDelete(true); // Membership will be deleted with the Member account.
+
+            modelBuilder.Entity<Organization>()
+                .HasMany(o => o.Members)
+                .WithRequired(m => m.Organization)
+                .HasForeignKey(m => m.OrganizationKey)
+                .WillCascadeOnDelete(true); // Memberships will be deleted with the Organization account.
 
             modelBuilder.Entity<Role>()
                 .HasKey(u => u.Key);

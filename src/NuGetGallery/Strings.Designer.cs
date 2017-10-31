@@ -756,6 +756,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Organization accounts cannot create credentials..
+        /// </summary>
+        public static string OrganizationsCannotCreateCredentials {
+            get {
+                return ResourceManager.GetString("OrganizationsCannotCreateCredentials", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Package created from API..
         /// </summary>
         public static string PackageCreatedFromApi {

@@ -49,18 +49,9 @@ namespace NuGetGallery
             }
         }
 
-        public bool IsOwner(IPrincipal user)
+        public bool HasPermission(IPrincipal principal, PackageAction permission)
         {
-            if (user == null || user.Identity == null)
-            {
-                return false;
-            }
-            return Owners.Any(u => u.Username == user.Identity.Name);
-        }
-
-        public bool IsOwnerOrAdmin(IPrincipal user)
-        {
-            return IsOwner(user) || user.IsAdministrator();
+            return PackagePermissionsService.IsActionAllowed(Owners, principal, permission);
         }
     }
 }

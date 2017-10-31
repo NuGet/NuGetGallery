@@ -33,6 +33,7 @@ namespace NuGetGallery
             END";
 
         private readonly IEntityRepository<Package> _packageRepository;
+        private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
         private readonly IEntityRepository<PackageDelete> _packageDeletesRepository;
         private readonly IEntitiesContext _entitiesContext;
         private readonly IPackageService _packageService;
@@ -42,6 +43,7 @@ namespace NuGetGallery
 
         public PackageDeleteService(
             IEntityRepository<Package> packageRepository,
+            IEntityRepository<PackageRegistration> packageRegistrationRepository,
             IEntityRepository<PackageDelete> packageDeletesRepository,
             IEntitiesContext entitiesContext,
             IPackageService packageService,
@@ -50,6 +52,7 @@ namespace NuGetGallery
             IAuditingService auditingService)
         {
             _packageRepository = packageRepository;
+            _packageRegistrationRepository = packageRegistrationRepository;
             _packageDeletesRepository = packageDeletesRepository;
             _entitiesContext = entitiesContext;
             _packageService = packageService;
@@ -166,6 +169,52 @@ namespace NuGetGallery
 
             // Force refresh the index
             UpdateSearchIndex();
+        }
+
+        public Task ReflowHardDeletedPackageAsync(string id, string version)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                throw new UserSafeException("Must supply an ID for the hard-deleted package to reflow.");
+            }
+
+            if (string.IsNullOrEmpty(version))
+            {
+                throw new UserSafeException("Must supply a version for the hard-deleted package to reflow.");
+            }
+
+            var normalizedId = id.ToLowerInvariant();
+            if (!NuGetVersion.TryParse(version, out var normalizedVersion))
+            {
+                throw new UserSafeException($"{version} is not a valid version string!");
+            }
+
+            var normalizedVersionString = normalizedVersion.ToNormalizedString();
+
+            var existingPackageRegistration = _packageRegistrationRepository.GetAll()
+                .SingleOrDefault(p => p.Id == normalizedId);
+
+            if (existingPackageRegistration != null)
+            {
+                var existingPackage = _packageRepository.GetAll()
+                    .Where(p => p.PackageRegistrationKey == existingPackageRegistration.Key)
+                    .SingleOrDefault(p => p.NormalizedVersion == normalizedVersionString);
+
+                if (existingPackage != null)
+                {
+                    throw new UserSafeException($"The package {id} {normalizedVersion} exists! You can only reflow hard-deleted packages that do not exist.");
+                }
+            }
+
+            var auditRecord = new PackageAuditRecord(
+                normalizedId,
+                normalizedVersionString,
+                hash: string.Empty,
+                packageRecord: null,
+                registrationRecord: null,
+                action: AuditedPackageAction.Delete,
+                reason: "reflow hard-deleted package");
+            return _auditingService.SaveAuditRecordAsync(auditRecord);
         }
 
         protected virtual async Task ExecuteSqlCommandAsync(Database database, string sql, params object[] parameters)

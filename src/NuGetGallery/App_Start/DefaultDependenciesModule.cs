@@ -39,7 +39,12 @@ namespace NuGetGallery
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:CyclomaticComplexity", Justification = "This code is more maintainable in the same function.")]
         protected override void Load(ContainerBuilder builder)
         {
-            var diagnosticsService = new DiagnosticsService();
+            var telemetryClient = TelemetryClientWrapper.Instance;
+            builder.RegisterInstance(telemetryClient)
+                .As<ITelemetryClient>()
+                .SingleInstance();
+
+            var diagnosticsService = new DiagnosticsService(telemetryClient);
             builder.RegisterInstance(diagnosticsService)
                 .AsSelf()
                 .As<IDiagnosticsService>()
@@ -295,7 +300,7 @@ namespace NuGetGallery
                     defaultAuditingService = GetAuditingServiceForLocalFileSystem(configuration);
                     break;
                 case StorageType.AzureStorage:
-                    ConfigureForAzureStorage(builder, configuration);
+                    ConfigureForAzureStorage(builder, configuration, telemetryClient);
                     defaultAuditingService = GetAuditingServiceForAzureStorage(builder, configuration);
                     break;
             }
@@ -376,10 +381,15 @@ namespace NuGetGallery
                     .RegisterType<AsynchronousPackageValidationInitiator>()
                     .As<IPackageValidationInitiator>();
 
+                // we retrieve the values here (on main thread) because otherwise it would run in another thread
+                // and potentially cause a deadlock on async operation.
+                var validationConnectionString = configuration.ServiceBus.Validation_ConnectionString;
+                var validationTopicName = configuration.ServiceBus.Validation_TopicName;
+
                 builder
                     .Register(c => new TopicClientWrapper(
-                        configuration.ServiceBus.Validation_ConnectionString,
-                        configuration.ServiceBus.Validation_TopicName))
+                        validationConnectionString,
+                        validationTopicName))
                     .As<ITopicClient>()
                     .SingleInstance()
                     .OnRelease(x => x.Close());
@@ -502,7 +512,7 @@ namespace NuGetGallery
             return new FileSystemAuditingService(auditingPath, AuditActor.GetAspNetOnBehalfOfAsync);
         }
 
-        private static void ConfigureForAzureStorage(ContainerBuilder builder, IGalleryConfigurationService configuration)
+        private static void ConfigureForAzureStorage(ContainerBuilder builder, IGalleryConfigurationService configuration, ITelemetryClient telemetryClient)
         {
             /// The goal here is to initialize a <see cref="ICloudBlobClient"/> and <see cref="IFileStorageService"/>
             /// instance for each unique connection string. Each dependent of <see cref="IFileStorageService"/> (that
@@ -563,7 +573,11 @@ namespace NuGetGallery
                 .SingleInstance();
 
             // when running on Windows Azure, download counts come from the downloads.v1.json blob
-            var downloadCountService = new CloudDownloadCountService(configuration.Current.AzureStorage_Statistics_ConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant);
+            var downloadCountService = new CloudDownloadCountService(
+                telemetryClient,
+                configuration.Current.AzureStorage_Statistics_ConnectionString,
+                configuration.Current.AzureStorageReadAccessGeoRedundant);
+
             builder.RegisterInstance(downloadCountService)
                 .AsSelf()
                 .As<IDownloadCountService>()
