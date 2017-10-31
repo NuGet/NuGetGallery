@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Newtonsoft.Json;
 
@@ -16,6 +15,15 @@ namespace NuGetGallery
         [JsonIgnore]
         public int CredentialKey { get; set; }
 
+        /// <summary>
+        /// Package owner (user or organization) scoping.
+        /// </summary>
+        [JsonProperty("o")]
+        public string Owner { get; set; }
+
+        /// <summary>
+        /// Packages glob pattern.
+        /// </summary>
         [JsonProperty("s")]
         public string Subject { get; set; }
 
@@ -30,6 +38,14 @@ namespace NuGetGallery
         {
         }
 
+        public Scope(string owner, string subject, string allowedAction)
+        {
+            Owner = owner;
+            Subject = subject;
+            AllowedAction = allowedAction;
+        }
+
+        // Deprecated: Should be removed once ApiKeys.cshtml is updated to support owner scope.
         public Scope(string subject, string allowedAction)
         {
             Subject = subject;
