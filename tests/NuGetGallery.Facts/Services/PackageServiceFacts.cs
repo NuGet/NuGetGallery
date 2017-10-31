@@ -324,15 +324,19 @@ namespace NuGetGallery
             [Fact]
             private async Task WillSaveTheCreatedPackageWhenANewPackageRegistrationIsCreated()
             {
+                var key = 0;
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
                 var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
                         mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage();
-                var currentUser = new User();
+                var owner = new User { Key = key++, Username = "owner" };
+                var currentUser = new User { Key = key++, Username = "currentUser" };
 
-                var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, currentUser, isVerified: false);
+                var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), owner, currentUser, isVerified: false);
 
                 packageRegistrationRepository.Verify(x => x.InsertOnCommit(It.Is<PackageRegistration>(pr => pr.Packages.ElementAt(0) == package)));
+                Assert.True(package.PackageRegistration.Owners.SequenceEqual(new[] { owner }));
+                Assert.Equal(currentUser, package.User);
             }
 
             [Fact]

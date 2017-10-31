@@ -98,17 +98,19 @@ namespace NuGetGallery
             [Fact]
             public async Task WillCallCreatePackageAsyncCorrectly()
             {
+                var key = 0;
                 var packageService = new Mock<IPackageService>();
                 packageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
 
                 var id = "Microsoft.Aspnet.Mvc";
                 var packageUploadService = CreateService(packageService);
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(id: id);
-                var currentUser = new User();
+                var owner = new User { Key = key++, Username = "owner" };
+                var currentUser = new User { Key = key++, Username = "user" };
 
-                var package = await packageUploadService.GeneratePackageAsync(id, nugetPackage.Object, new PackageStreamMetadata(), currentUser, currentUser);
+                var package = await packageUploadService.GeneratePackageAsync(id, nugetPackage.Object, new PackageStreamMetadata(), owner, currentUser);
 
-                packageService.Verify(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<User>(), It.IsAny<bool>()), Times.Once);
+                packageService.Verify(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), owner, currentUser, false), Times.Once);
                 Assert.False(package.PackageRegistration.IsVerified);
             }
 
