@@ -57,6 +57,13 @@
                     <input data-bind="value: $data.Version" type="hidden" name="Version" class="form-control" />
                 </div>
 
+                <div class="verify-package-field form-group editable">
+                    <label for="Owner" class="verify-package-field-heading">Owner</label>
+                    <select aria-required="true" class="form-control" data-val="true" data-val-required="You must select an owner for your package!" name="Owner" data-bind="foreach: PossibleOwners">
+                        <option data-bind="value: $data"></option>
+                    </select>
+                </div>
+
                 <div class="verify-package-field form-group readonly">
                     <label for="MinClientVersionDisplay" class="verify-package-field-heading">Minimum NuGet Client Version</label>
                     <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.MinClientVersionDisplay }}"></div>
