@@ -8,7 +8,6 @@ using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
 using NuGetGallery.Security;
 
-
 namespace NuGetGallery
 {
     public class DeleteAccountService : IDeleteAccountService
@@ -55,15 +54,15 @@ namespace NuGetGallery
         /// Will clean-up the data related with an user account.
         /// The result will be:
         /// 1. The user will be removed as owner from his owned packages.
-        /// 2. Any of the packages that become orphaned as this result will be unlisted.
+        /// 2. Any of the packages that become orphaned as this result will be unlisted if the unlistOrphanPackages is set to true.
         /// 3. Any owned namespaces will be released.
         /// 4. The user credentials will be cleaned.
         /// 5. The user data will be cleaned.
         /// </summary>
         /// <param name="userName">The NuGet user name</param>
-        /// <param name="unsignOrphanPackages"></param>
+        /// <param name="unlistOrphanPackages">True if the orphan packages will be unlisted.</param>
         /// <returns>A list with information regarding the status of each clean-up operation.</returns>
-        public async Task<Tuple<bool, List<string>>> DeleteGalleryUserAccountAsync(User useToBeDeleted, User admin, string signature, bool unsignOrphanPackages)
+        public async Task<Tuple<bool, List<string>>> DeleteGalleryUserAccountAsync(User useToBeDeleted, User admin, string signature, bool unlistOrphanPackages)
         {
             if (useToBeDeleted == null)
             {
@@ -78,7 +77,7 @@ namespace NuGetGallery
             List<string> executionDetails = new List<string>();
             bool result = true;
 
-            result = (await RemoveOwnership(useToBeDeleted, admin, unsignOrphanPackages, ownedPackages, executionDetails)) ?
+            result = (await RemoveOwnership(useToBeDeleted, admin, unlistOrphanPackages, ownedPackages, executionDetails)) ?
                             (await RemoveReservedNamespaces(useToBeDeleted, executionDetails) ?
                                 (await RemoveSecurityPolicies(useToBeDeleted, executionDetails) ?
                                     (await RemoveUserCredentials(useToBeDeleted, executionDetails) ?

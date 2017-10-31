@@ -118,7 +118,6 @@ namespace NuGetGallery
             return View("DeleteUserAccount", model);
         }
 
-
         [Authorize(Roles = "Admins")]
         [HttpPost]
         [RequiresAccountConfirmation("delete account")]
@@ -130,7 +129,6 @@ namespace NuGetGallery
             var status = await _deleteAccountService.DeleteGalleryUserAccountAsync(user, admin, model.Signature, model.Unlist);
             return  View("DeleteUserAccountStatus", new DeleteUserAccountStatusViewModel() {AccountName = model.AccountName , OperationStatus = status .Item2});
         }
-
 
         [HttpGet]
         [Authorize]

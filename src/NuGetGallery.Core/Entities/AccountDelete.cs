@@ -9,10 +9,6 @@ namespace NuGetGallery
     public class AccountDelete
         : IEntity
     {
-        public AccountDelete()
-        {
-        }
-
         public int Key { get; set; }
 
         /// <summary>
