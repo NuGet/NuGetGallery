@@ -19,7 +19,8 @@ namespace NuGetGallery.Auditing
                 "SoftDelete",
                 "Unlist",
                 "UndoEdit",
-                "Verify"
+                "Verify",
+                "UploadFailedNamespaceConflict"
             };
 
             Verify(typeof(AuditedPackageAction), expectedNames);

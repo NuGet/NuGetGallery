@@ -30,6 +30,9 @@ namespace NuGetGallery.Auditing
             Reason = reason;
         }
 
+        public PackageAuditRecord(string id, string version, AuditedPackageAction action, string reason)
+            : this(id, version, "", null, null, action, reason) { }
+
         public PackageAuditRecord(
             Package package, AuditedPackageAction action, string reason)
             : this(package.PackageRegistration.Id, package.Version, package.Hash, 
