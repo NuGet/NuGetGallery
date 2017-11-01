@@ -5,6 +5,9 @@ namespace NuGetGallery
 {
     public static class UserPermissionRestrictedActions
     {
+        /// <summary>
+        /// If a user is requested to be an owner of a package, this user can accept the request on behalf of the other user.
+        /// </summary>
         public static IPermissionRestrictedAction AcceptPackageOwnershipOnBehalfOf =
             new PermissionRestrictedActionIncludeLevel(new PermissionLevel[]
             {
