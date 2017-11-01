@@ -46,7 +46,8 @@
                             <a data-bind="attr: {href: profileUrl, title: name}, text: name"></a>
                         </span>
                         <span style="font-style:italic">
-                            <span data-bind="visible: current">(that's you)</span>
+                            <span data-bind="visible: currentUser && !currentOrganization">(that's you)</span>
+                            <span data-bind="visible: currentOrganization">(your organization)</span>
                             <span data-bind="visible: pending">(pending approval)</span>
                         </span>
                     </div>

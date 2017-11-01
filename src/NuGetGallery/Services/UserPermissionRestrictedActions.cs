@@ -17,5 +17,15 @@ namespace NuGetGallery
                 PermissionLevel.Owner,
                 PermissionLevel.OrganizationAdmin,
             });
+
+        /// <summary>
+        /// The user can see private information about an organization user.
+        /// </summary>
+        public static IPermissionRestrictedAction DisplayPrivateOrganization =
+            new PermissionRestrictedActionIncludeLevel(new PermissionLevel[]
+            {
+                PermissionLevel.OrganizationAdmin,
+                PermissionLevel.OrganizationCollaborator,
+            });
     }
 }

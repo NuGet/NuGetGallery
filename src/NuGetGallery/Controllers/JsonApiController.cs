@@ -55,7 +55,7 @@ namespace NuGetGallery
                 return new HttpUnauthorizedResult();
             }
 
-            var currentUserName = HttpContext.User.Identity.Name;
+            var currentUser = GetCurrentUser();
             var packageRegistrationOwners = package.PackageRegistration.Owners;
             var allMatchingNamespaceOwners = package
                 .PackageRegistration
@@ -69,18 +69,18 @@ namespace NuGetGallery
             var owners =
                 packageAndReservedNamespaceOwners
                 .Select(u => new PackageOwnersResultViewModel(
-                    u.Username,
-                    u.EmailAddress,
-                    isCurrentUser: u.Username == currentUserName,
-                    isPending: false,
+                    u, 
+                    currentUser,
+                    Url,
+                    isPending: false, 
                     isNamespaceOwner: true));
 
             var packageOwnersOnlyResultViewModel =
                 packageOwnersOnly
                 .Select(u => new PackageOwnersResultViewModel(
-                    u.Username,
-                    u.EmailAddress,
-                    isCurrentUser: u.Username == currentUserName,
+                    u,
+                    currentUser,
+                    Url,
                     isPending: false,
                     isNamespaceOwner: false));
 
@@ -89,21 +89,13 @@ namespace NuGetGallery
             var pending =
                 _packageOwnershipManagementService.GetPackageOwnershipRequests(package: package.PackageRegistration)
                 .Select(r => new PackageOwnersResultViewModel(
-                    r.NewOwner.Username,
-                    r.NewOwner.EmailAddress,
-                    isCurrentUser: false,
+                    r.NewOwner,
+                    currentUser,
+                    Url,
                     isPending: true,
                     isNamespaceOwner: false));
 
-            var result = owners.Union(pending).Select(o => new
-            {
-                name = o.Name,
-                profileUrl = Url.User(o.Name, relativeUrl: false),
-                imageUrl = GravatarHelper.Url(o.EmailAddress, size: Constants.GravatarImageSize),
-                current = o.Current,
-                pending = o.Pending,
-                isNamespaceOwner = o.IsNamespaceOwner
-            });
+            var result = owners.Union(pending);
 
             return Json(result, JsonRequestBehavior.AllowGet);
         }
@@ -161,10 +153,12 @@ namespace NuGetGallery
                 return Json(new
                 {
                     success = true,
-                    name = model.User.Username,
-                    profileUrl = Url.User(model.User.Username, relativeUrl: false),
-                    imageUrl = GravatarHelper.Url(model.User.EmailAddress, size: Constants.GravatarImageSize),
-                    pending = true
+                    model = new PackageOwnersResultViewModel(
+                        model.User,
+                        model.CurrentUser,
+                        Url,
+                        isPending: true,
+                        isNamespaceOwner: false)
                 });
             }
             else
