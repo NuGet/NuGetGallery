@@ -609,4 +609,10 @@ For more information, please contact '{2}'.</value>
   <data name="OrganizationsCannotCreateCredentials" xml:space="preserve">
     <value>Organization accounts cannot create credentials.</value>
   </data>
+  <data name="VerifyPackage_UserInvalid" xml:space="preserve">
+    <value>You do not have permission to upload packages as user {0}!</value>
+  </data>
+  <data name="VerifyPackage_UserNonExistent" xml:space="preserve">
+    <value>The user {0} doesn't exist! You cannot upload a package as a user that doesn't exist.</value>
+  </data>
 </root>

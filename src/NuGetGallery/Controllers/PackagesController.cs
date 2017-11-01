@@ -165,7 +165,7 @@ namespace NuGetGallery
                     if (existingPackageRegistration != null && !PermissionsService.IsActionAllowed(existingPackageRegistration, currentUser, PackagePermissionRestrictedActions.UploadNewVersion))
                     {
                         // This user no longer has the rights to upload to this package. Cancel this upload.
-                        await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
+                        await CancelPendingUpload();
                         return View();
                     }
 
@@ -298,7 +298,7 @@ namespace NuGetGallery
                     }
                 }
 
-                // For existing package id verify if it is owned by the current user
+                // For existing package id verify that the current user has the rights to upload new versions
                 if (packageRegistration != null && !PermissionsService.IsActionAllowed(packageRegistration, currentUser, PackagePermissionRestrictedActions.UploadNewVersion))
                 {
                     ModelState.AddModelError(
@@ -1408,14 +1408,14 @@ namespace NuGetGallery
 
                 if (owner == null)
                 {
-                    var message = $"The user {formData.Owner} doesn't exist! You cannot upload a package as a user that doesn't exist.";
+                    var message = string.Format(CultureInfo.CurrentCulture, Strings.VerifyPackage_UserNonExistent, formData.Owner);
                     TempData["Message"] = message;
                     return Json(400, new[] { message });
                 }
 
                 if (!PermissionsService.IsActionAllowed(owner, currentUser, UserPermissionRestrictedActions.UploadPackageOnBehalfOf))
                 {
-                    var message = $"You do not have permission to upload packages as user {owner.Username}!";
+                    var message = string.Format(CultureInfo.CurrentCulture, Strings.VerifyPackage_UserInvalid, owner.Username);
                     TempData["Message"] = message;
                     return Json(400, new[] { message });
                 }
@@ -1568,8 +1568,7 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<JsonResult> CancelUpload()
         {
-            var currentUser = GetCurrentUser();
-            await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
+            await CancelPendingUpload();
 
             return Json(null);
         }
@@ -1626,6 +1625,12 @@ namespace NuGetGallery
             _indexingService.UpdatePackage(package);
 
             return Redirect(urlFactory(package, /*relativeUrl:*/ true));
+        }
+
+        private Task CancelPendingUpload()
+        {
+            var currentUser = GetCurrentUser();
+            return _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
         }
 
         // this methods exist to make unit testing easier

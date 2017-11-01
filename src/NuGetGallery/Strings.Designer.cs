@@ -19,7 +19,7 @@ namespace NuGetGallery {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Strings {
@@ -1404,6 +1404,24 @@ namespace NuGetGallery {
         public static string VerifyPackage_UploadNotFound {
             get {
                 return ResourceManager.GetString("VerifyPackage_UploadNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You do not have permission to upload packages as user {0}!.
+        /// </summary>
+        public static string VerifyPackage_UserInvalid {
+            get {
+                return ResourceManager.GetString("VerifyPackage_UserInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The user {0} doesn&apos;t exist! You cannot upload a package as a user that doesn&apos;t exist..
+        /// </summary>
+        public static string VerifyPackage_UserNonExistent {
+            get {
+                return ResourceManager.GetString("VerifyPackage_UserNonExistent", resourceCulture);
             }
         }
         
