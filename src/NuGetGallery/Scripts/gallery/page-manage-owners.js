@@ -98,7 +98,7 @@
                 data: window.nuget.addAjaxAntiForgeryToken(ownerInputModel),
                 success: function (data) {
                     if (data.success) {
-                        var newOwner = new Owner(data.name, data.profileUrl, data.imageUrl, /* pending */ true, data.current);
+                        var newOwner = new Owner(data.model);
                         viewModel.owners.push(newOwner);
 
                         // reset the Username textbox
@@ -118,8 +118,14 @@
         },
 
         removeOwner: function (item) {
-            if (item.current) {
+            if (item.currentUser) {
                 if (!confirm("Are you sure you want to remove yourself from the owners?")) {
+                    return;
+                }
+            }
+
+            if (item.currentOrganization) {
+                if (!confirm("Are you sure you want to remove your organization from the owners?")) {
                     return;
                 }
             }
@@ -134,7 +140,15 @@
                 }),
                 success: function (data) {
                     if (data.success) {
-                        if (item.current) {
+                        var numCurrent = 0;
+
+                        ko.utils.arrayForEach(viewModel.owners(), function (owner) {
+                            if (owner !== item && owner.currentUser) {
+                                numCurrent++;
+                            }
+                        });
+
+                        if (numCurrent < 1) {
                             window.location.href = packageUrl;
                         }
 
@@ -170,8 +184,8 @@
                 approvedOwner++;
             }
 
-            if (owner.current === true) {
-                currentOwnerOwnsNamespace = owner.isNamespaceOwner();
+            if (owner.currentUser) {
+                currentOwnerOwnsNamespace = currentOwnerOwnsNamespace || owner.isNamespaceOwner();
             }
 
             if (owner.isNamespaceOwner() === true) {
@@ -194,17 +208,18 @@
         dataType: 'json',
         type: 'GET',
         success: function (data) {
-            viewModel.owners($.map(data, function (item) { return new Owner(item.name, item.profileUrl, item.imageUrl, item.pending, item.current, item.isNamespaceOwner); }));
+            viewModel.owners($.map(data, function (item) { return new Owner(item); }));
         }
     })
     .error(failHandler);
 
-    function Owner(name, profileUrl, imageUrl, pending, current, isNamespaceOwner) {
-        this.name = ko.observable(name);
-        this.profileUrl = ko.observable(profileUrl);
-        this.imageUrl = ko.observable(imageUrl);
-        this.pending = ko.observable(pending);
-        this.current = current;
-        this.isNamespaceOwner = ko.observable(isNamespaceOwner);
+    function Owner(data) {
+        this.name = ko.observable(data.Name);
+        this.profileUrl = ko.observable(data.ProfileUrl);
+        this.imageUrl = ko.observable(data.ImageUrl);
+        this.pending = ko.observable(data.Pending);
+        this.currentUser = data.CurrentUser;
+        this.currentOrganization = data.CurrentOrganization;
+        this.isNamespaceOwner = ko.observable(data.IsNamespaceOwner);
     }
 });
