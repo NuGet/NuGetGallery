@@ -22,7 +22,7 @@ namespace NuGetGallery.Auditing
             var owner = new User("microsoft");
 
             var record = new ReservedNamespaceAuditRecord(prefix,
-                AuditedReservednamespaceAction.AddOwner,
+                AuditedReservedNamespaceAction.AddOwner,
                 owner.Username, 
                 registrations: registrationsList);
 
@@ -33,7 +33,7 @@ namespace NuGetGallery.Auditing
             Assert.Equal(prefix.Value, record.AffectedReservedNamespace.Value);
             Assert.Equal(prefix.IsSharedNamespace, record.AffectedReservedNamespace.IsSharedNamespace);
             Assert.Equal(prefix.IsPrefix, record.AffectedReservedNamespace.IsPrefix);
-            Assert.Equal(AuditedReservednamespaceAction.AddOwner, record.Action);
+            Assert.Equal(AuditedReservedNamespaceAction.AddOwner, record.Action);
             Assert.Equal(registrationsList.Count, record.AffectedRegistrations.Length);
             Assert.Equal(owner.Username, record.AffectedOwner);
         }
@@ -43,7 +43,7 @@ namespace NuGetGallery.Auditing
         {
             var record = new ReservedNamespaceAuditRecord(
                 new ReservedNamespace() { Value = "MicroSoft." },
-                AuditedReservednamespaceAction.Allocate);
+                AuditedReservedNamespaceAction.ReserveNamespace);
 
             var actualPath = record.GetPath();
 

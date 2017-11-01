@@ -173,7 +173,7 @@ namespace NuGetGallery.Services
                 await service.AddReservedNamespaceAsync(newNamespace);
 
                 Assert.True(service.AuditingService.WroteRecord<ReservedNamespaceAuditRecord>(ar =>
-                    ar.Action == AuditedReservednamespaceAction.Allocate
+                    ar.Action == AuditedReservedNamespaceAction.ReserveNamespace
                     && ar.Value == newNamespace.Value));
             }
         }
@@ -214,7 +214,7 @@ namespace NuGetGallery.Services
                 await service.DeleteReservedNamespaceAsync(existingNamespace.Value);
 
                 Assert.True(service.AuditingService.WroteRecord<ReservedNamespaceAuditRecord>(ar =>
-                    ar.Action == AuditedReservednamespaceAction.Deallocate
+                    ar.Action == AuditedReservedNamespaceAction.UnreserveNamespace
                     && ar.Value == existingNamespace.Value));
             }
 
@@ -380,7 +380,7 @@ namespace NuGetGallery.Services
                 await service.AddOwnerToReservedNamespaceAsync(prefix, owner.Username);
 
                 Assert.True(service.AuditingService.WroteRecord<ReservedNamespaceAuditRecord>(ar =>
-                    ar.Action == AuditedReservednamespaceAction.AddOwner
+                    ar.Action == AuditedReservedNamespaceAction.AddOwner
                     && ar.Value == existingNamespace.Value));
             }
 
@@ -714,7 +714,7 @@ namespace NuGetGallery.Services
                 await service.DeleteOwnerFromReservedNamespaceAsync(prefix, owner.Username);
 
                 Assert.True(service.AuditingService.WroteRecord<ReservedNamespaceAuditRecord>(ar =>
-                    ar.Action == AuditedReservednamespaceAction.RemoveOwner
+                    ar.Action == AuditedReservedNamespaceAction.RemoveOwner
                     && ar.Value == existingNamespace.Value));
             }
 

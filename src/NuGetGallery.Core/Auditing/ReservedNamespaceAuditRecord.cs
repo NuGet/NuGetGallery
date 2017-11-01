@@ -8,7 +8,7 @@ using NuGetGallery.Auditing.AuditedEntities;
 
 namespace NuGetGallery.Auditing
 {
-    public class ReservedNamespaceAuditRecord : AuditRecord<AuditedReservednamespaceAction>
+    public class ReservedNamespaceAuditRecord : AuditRecord<AuditedReservedNamespaceAction>
     {
         public string Value;
 
@@ -18,12 +18,12 @@ namespace NuGetGallery.Auditing
 
         public PackageRegistrationAuditRecord[] AffectedRegistrations;
 
-        public ReservedNamespaceAuditRecord(ReservedNamespace reservedNamespace, AuditedReservednamespaceAction action)
+        public ReservedNamespaceAuditRecord(ReservedNamespace reservedNamespace, AuditedReservedNamespaceAction action)
             : this(reservedNamespace, action, username: null, registrations: null)
         { }
 
         public ReservedNamespaceAuditRecord(ReservedNamespace reservedNamespace,
-            AuditedReservednamespaceAction action,
+            AuditedReservedNamespaceAction action,
             string username,
             IEnumerable<PackageRegistration> registrations)
             : base(action)
@@ -56,13 +56,13 @@ namespace NuGetGallery.Auditing
             return Value.ToLowerInvariant();
         }
 
-        private static AuditedPackageRegistrationAction? GetPackageRegistrationAction(AuditedReservednamespaceAction action)
+        private static AuditedPackageRegistrationAction? GetPackageRegistrationAction(AuditedReservedNamespaceAction action)
         {
             switch (action)
             {
-                case AuditedReservednamespaceAction.AddOwner:
+                case AuditedReservedNamespaceAction.AddOwner:
                     return AuditedPackageRegistrationAction.MarkVerified;
-                case AuditedReservednamespaceAction.RemoveOwner:
+                case AuditedReservedNamespaceAction.RemoveOwner:
                     return AuditedPackageRegistrationAction.MarkUnverified;
                 default:
                     return null;

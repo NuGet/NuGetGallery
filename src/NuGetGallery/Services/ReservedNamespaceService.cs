@@ -67,7 +67,7 @@ namespace NuGetGallery
             await ReservedNamespaceRepository.CommitChangesAsync();
 
             await AuditingService.SaveAuditRecordAsync(
-                new ReservedNamespaceAuditRecord(newNamespace, AuditedReservednamespaceAction.Allocate));
+                new ReservedNamespaceAuditRecord(newNamespace, AuditedReservedNamespaceAction.ReserveNamespace));
         }
 
         public async Task DeleteReservedNamespaceAsync(string existingNamespace)
@@ -102,7 +102,7 @@ namespace NuGetGallery
                 transaction.Commit();
 
                 await AuditingService.SaveAuditRecordAsync(
-                   new ReservedNamespaceAuditRecord(namespaceToDelete, AuditedReservednamespaceAction.Deallocate));
+                   new ReservedNamespaceAuditRecord(namespaceToDelete, AuditedReservedNamespaceAction.UnreserveNamespace));
             }
         }
 
@@ -168,7 +168,7 @@ namespace NuGetGallery
                 transaction.Commit();
 
                 await AuditingService.SaveAuditRecordAsync(
-                   new ReservedNamespaceAuditRecord(namespaceToModify, AuditedReservednamespaceAction.AddOwner, username, packageRegistrationsMatchingNamespace));
+                   new ReservedNamespaceAuditRecord(namespaceToModify, AuditedReservedNamespaceAction.AddOwner, username, packageRegistrationsMatchingNamespace));
             }
         }
 
@@ -227,7 +227,7 @@ namespace NuGetGallery
                 transaction.Commit();
 
                 await AuditingService.SaveAuditRecordAsync(
-                   new ReservedNamespaceAuditRecord(namespaceToModify, AuditedReservednamespaceAction.RemoveOwner, username, packageRegistrationsToMarkUnverified));
+                   new ReservedNamespaceAuditRecord(namespaceToModify, AuditedReservedNamespaceAction.RemoveOwner, username, packageRegistrationsToMarkUnverified));
             }
         }
 
