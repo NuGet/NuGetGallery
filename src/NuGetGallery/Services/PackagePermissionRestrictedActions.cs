@@ -3,6 +3,9 @@
 
 namespace NuGetGallery
 {
+    /// <summary>
+    /// <see cref="IPermissionRestrictedAction"/>s that operate on a <see cref="Package"/> or <see cref="PackageRegistration"/>.
+    /// </summary>
     public static class PackagePermissionRestrictedActions
     {
         /// <summary>
