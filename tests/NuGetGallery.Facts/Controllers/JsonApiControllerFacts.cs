@@ -438,10 +438,11 @@ namespace NuGetGallery.Controllers
 
                 JsonResult result = await controller.AddPackageOwner(fakes.Package.Id, fakes.User.Username, "Hello World! Html Encoded <3");
                 dynamic data = result.Data;
+                PackageOwnersResultViewModel model = data.model;
 
                 Assert.True(data.success);
-                Assert.Equal(fakes.User.Username, data.name);
-                Assert.True(data.pending);
+                Assert.Equal(fakes.User.Username, model.Name);
+                Assert.True(model.Pending);
 
                 httpContextMock.Verify();
                 packageOwnershipManagementServiceMock.Verify();
