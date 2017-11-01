@@ -41,6 +41,7 @@ namespace NuGetGallery
         {
             var telemetryClient = TelemetryClientWrapper.Instance;
             builder.RegisterInstance(telemetryClient)
+                .AsSelf()
                 .As<ITelemetryClient>()
                 .SingleInstance();
 
