@@ -423,8 +423,7 @@ namespace NuGetGallery
                             if (!isPushAllowed)
                             {
                                 var version = nuspec.GetVersion().ToNormalizedString();
-                                await AuditingService.SaveAuditRecordAsync(
-                                    new PackageAuditRecord(id, version, AuditedPackageAction.UploadFailedNamespaceConflict, PackageCreatedVia.Api));
+                                TelemetryService.TrackPackagePushNamespaceConflictEvent(id, version, user, User.Identity);
 
                                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict, Strings.UploadPackage_IdNamespaceConflict);
                             }

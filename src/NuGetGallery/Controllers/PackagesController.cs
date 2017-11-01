@@ -286,8 +286,7 @@ namespace NuGetGallery
                             string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict));
 
                         var version = nuspec.GetVersion().ToNormalizedString();
-                        await _auditingService.SaveAuditRecordAsync(
-                            new PackageAuditRecord(id, version, AuditedPackageAction.UploadFailedNamespaceConflict, PackageCreatedVia.Web));
+                        _telemetryService.TrackPackagePushNamespaceConflictEvent(id, version, currentUser, User.Identity);
 
                         return Json(409, new string[] { string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict) });
                     }
