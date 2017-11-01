@@ -1,7 +1,5 @@
 ﻿{
   "dependencies": {
-    "Microsoft.Extensions.DependencyInjection": "1.1.1",
-    "Microsoft.Extensions.Options.ConfigurationExtensions": "1.1.2",
     "Moq": "4.5.23",
     "xunit": "2.1.0",
     "xunit.runner.visualstudio": "2.1.0"
