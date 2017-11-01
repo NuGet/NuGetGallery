@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CachingSecretReader.cs" />
+    <Compile Include="CachingSecretReaderFactory.cs" />
     <Compile Include="CertificateUtility.cs" />
     <Compile Include="ISecretReaderFactory.cs" />
     <Compile Include="EmptySecretReader.cs" />
