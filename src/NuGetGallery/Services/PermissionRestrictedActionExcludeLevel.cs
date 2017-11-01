@@ -6,6 +6,9 @@ using System.Linq;
 
 namespace NuGetGallery
 {
+    /// <summary>
+    /// An action that is allowed if the user does not have any of the <see cref="PermissionLevel"/>s in a given set.
+    /// </summary>
     public class PermissionRestrictedActionExcludeLevel : IPermissionRestrictedAction
     {
         private HashSet<PermissionLevel> _excludedPermissionLevels;
