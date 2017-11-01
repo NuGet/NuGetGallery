@@ -735,8 +735,7 @@ namespace NuGetGallery
 
                 var currentUser = new User { Username = "username", Key = _key++ };
 
-                var organization = new Organization { Memberships = new[] { new Membership { Member = currentUser, IsAdmin = false } } };
-                var organizationUser = new User { Username = "organization", Organization = organization, Key = _key++ };
+                var organization = new Organization { Key = _key++, Username = "organization", Members = new[] { new Membership { Member = currentUser, IsAdmin = false } } };
 
                 var mockHttpContext = new Mock<HttpContextBase>();
 
@@ -744,7 +743,7 @@ namespace NuGetGallery
                 packageService.Setup(p => p.FindPackageRegistrationById(package.Id)).Returns(package);
 
                 var userService = new Mock<IUserService>();
-                userService.Setup(x => x.FindByUsername(organizationUser.Username)).Returns(organizationUser);
+                userService.Setup(x => x.FindByUsername(organization.Username)).Returns(organization);
 
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -755,12 +754,12 @@ namespace NuGetGallery
                 TestUtility.SetupHttpContextMockForUrlGeneration(mockHttpContext, controller);
 
                 // Act
-                var result = await invokeOwnershipRequest(controller, package.Id, organizationUser.Username, "token");
+                var result = await invokeOwnershipRequest(controller, package.Id, organization.Username, "token");
 
                 // Assert
                 var model = ResultAssert.IsView<PackageOwnerConfirmationModel>(result, "ConfirmOwner");
                 Assert.Equal(ConfirmOwnershipResult.NotYourRequest, model.Result);
-                Assert.Equal(organizationUser.Username, model.Username);
+                Assert.Equal(organization.Username, model.Username);
             }
 
             [Theory]
@@ -891,8 +890,7 @@ namespace NuGetGallery
                 User newOwner;
                 if (isOrganizationAdministrator)
                 {
-                    var organization = new Organization { Memberships = new[] { new Membership { Member = currentUser, IsAdmin = true } } };
-                    newOwner = new User { Key = _key++, Username = "organization", Organization = organization };
+                    newOwner = new Organization { Key = _key++, Username = "organization", Members = new[] { new Membership { Member = currentUser, IsAdmin = true } } };
                 }
                 else
                 {
