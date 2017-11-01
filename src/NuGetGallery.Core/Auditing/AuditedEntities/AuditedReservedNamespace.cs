@@ -5,15 +5,18 @@ namespace NuGetGallery.Auditing.AuditedEntities
 {
     public class AuditedReservedNamespace
     {
-        public string Value { get; }
-        public bool IsPrefix { get; }
-        public bool IsSharedNamespace { get; }
+        public string Value { get; private set; }
+        public bool IsPrefix { get; private set; }
+        public bool IsSharedNamespace { get; private set; }
 
-        public AuditedReservedNamespace(ReservedNamespace reservedNamespace)
+        public static AuditedReservedNamespace CreateFrom(ReservedNamespace reservedNamespace)
         {
-            Value = reservedNamespace.Value;
-            IsSharedNamespace = reservedNamespace.IsSharedNamespace;
-            IsPrefix = reservedNamespace.IsPrefix;
+            return new AuditedReservedNamespace
+            {
+                Value = reservedNamespace.Value,
+                IsSharedNamespace = reservedNamespace.IsSharedNamespace,
+                IsPrefix = reservedNamespace.IsPrefix,
+            };
         }
     }
 }

@@ -34,7 +34,7 @@ namespace NuGetGallery.Auditing
             }
 
             Value = reservedNamespace.Value;
-            AffectedReservedNamespace = new AuditedReservedNamespace(reservedNamespace);
+            AffectedReservedNamespace = AuditedReservedNamespace.CreateFrom(reservedNamespace);
             Action = action;
 
             if (!string.IsNullOrWhiteSpace(username))
