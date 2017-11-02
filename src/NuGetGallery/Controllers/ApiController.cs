@@ -422,6 +422,9 @@ namespace NuGetGallery
                             var isPushAllowed = ReservedNamespaceService.IsPushAllowed(id, user, out userOwnedNamespaces);
                             if (!isPushAllowed)
                             {
+                                var version = nuspec.GetVersion().ToNormalizedString();
+                                TelemetryService.TrackPackagePushNamespaceConflictEvent(id, version, user, User.Identity);
+
                                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict, Strings.UploadPackage_IdNamespaceConflict);
                             }
                         }

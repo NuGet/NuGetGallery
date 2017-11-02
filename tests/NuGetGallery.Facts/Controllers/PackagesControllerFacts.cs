@@ -2131,13 +2131,15 @@ namespace NuGetGallery
                 fakeReservedNamespaceService
                     .Setup(r => r.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
                     .Returns(false);
+                var fakeTelemetryService = new Mock<ITelemetryService>();
 
                 var controller = CreateController(
                     GetConfigurationService(),
                     uploadFileService: fakeUploadFileService,
                     packageService: fakePackageService,
                     fakeNuGetPackage: fakeFileStream,
-                    reservedNamespaceService: fakeReservedNamespaceService);
+                    reservedNamespaceService: fakeReservedNamespaceService,
+                    telemetryService: fakeTelemetryService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
@@ -2145,6 +2147,7 @@ namespace NuGetGallery
                 Assert.NotNull(result);
                 Assert.False(controller.ModelState.IsValid);
                 Assert.Equal(String.Format(Strings.UploadPackage_IdNamespaceConflict), controller.ModelState[String.Empty].Errors[0].ErrorMessage);
+                fakeTelemetryService.Verify(x => x.TrackPackagePushNamespaceConflictEvent(It.IsAny<string>(), It.IsAny<string>(), TestUtility.FakeUser, controller.OwinContext.Request.User.Identity), Times.Once);
             }
 
             [Fact]

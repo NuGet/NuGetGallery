@@ -17,6 +17,8 @@ namespace NuGetGallery
 
         void TrackCreatePackageVerificationKeyEvent(string packageId, string packageVersion, User user, IIdentity identity);
 
+        void TrackPackagePushNamespaceConflictEvent(string packageId, string packageVersion, User user, IIdentity identity);
+
         void TrackVerifyPackageKeyEvent(string packageId, string packageVersion, User user, IIdentity identity, int statusCode);
 
         /// <summary>

@@ -19,6 +19,7 @@ namespace NuGetGallery
             public const string CreatePackageVerificationKey = "CreatePackageVerificationKey";
             public const string VerifyPackageKey = "VerifyPackageKey";
             public const string PackageReadMeChanged = "PackageReadMeChanged";
+            public const string PackagePushNamespaceConflict = "PackagePushNamespaceConflict";
         }
 
         private IDiagnosticsSource _diagnosticsSource;
@@ -115,51 +116,17 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(package));
             }
 
-            if (user == null)
-            {
-                throw new ArgumentNullException(nameof(user));
-            }
+            TrackPackageForEvent(Events.PackagePush, package.PackageRegistration.Id, package.Version, user, identity);
+        }
 
-            if (identity == null)
-            {
-                throw new ArgumentNullException(nameof(identity));
-            }
-
-            TrackEvent(Events.PackagePush, properties => {
-                properties.Add(ClientVersion, GetClientVersion());
-                properties.Add(ProtocolVersion, GetProtocolVersion());
-                properties.Add(ClientInformation, GetClientInformation());
-                properties.Add(PackageId, package.PackageRegistration.Id);
-                properties.Add(PackageVersion, package.Version);
-                properties.Add(AuthenticationMethod, identity.GetAuthenticationType());
-                properties.Add(AccountCreationDate, GetAccountCreationDate(user));
-                properties.Add(KeyCreationDate, GetApiKeyCreationDate(user, identity));
-                properties.Add(IsScoped, identity.IsScopedAuthentication().ToString());
-            });
+        public void TrackPackagePushNamespaceConflictEvent(string packageId, string packageVersion, User user, IIdentity identity)
+        {
+            TrackPackageForEvent(Events.PackagePushNamespaceConflict, packageId, packageVersion, user, identity);
         }
 
         public void TrackCreatePackageVerificationKeyEvent(string packageId, string packageVersion, User user, IIdentity identity)
         {
-            if (user == null)
-            {
-                throw new ArgumentNullException(nameof(user));
-            }
-
-            if (identity == null)
-            {
-                throw new ArgumentNullException(nameof(identity));
-            }
-
-            TrackEvent(Events.CreatePackageVerificationKey, properties => {
-                properties.Add(ClientVersion, GetClientVersion());
-                properties.Add(ProtocolVersion, GetProtocolVersion());
-                properties.Add(ClientInformation, GetClientInformation());
-                properties.Add(PackageId, packageId);
-                properties.Add(PackageVersion, packageVersion);
-                properties.Add(AccountCreationDate, GetAccountCreationDate(user));
-                properties.Add(KeyCreationDate, GetApiKeyCreationDate(user, identity));
-                properties.Add(IsScoped, identity.IsScopedAuthentication().ToString());
-            });
+            TrackPackageForEvent(Events.CreatePackageVerificationKey, packageId, packageVersion, user, identity);
         }
 
         public void TrackVerifyPackageKeyEvent(string packageId, string packageVersion, User user, IIdentity identity, int statusCode)
@@ -214,6 +181,31 @@ namespace NuGetGallery
         {
             var apiKey = user.GetCurrentApiKeyCredential(identity);
             return apiKey?.Created.ToString("O") ?? "N/A";
+        }
+
+        private void TrackPackageForEvent(string eventValue, string packageId, string packageVersion, User user, IIdentity identity)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            if (identity == null)
+            {
+                throw new ArgumentNullException(nameof(identity));
+            }
+
+            TrackEvent(eventValue, properties => {
+                properties.Add(ClientVersion, GetClientVersion());
+                properties.Add(ProtocolVersion, GetProtocolVersion());
+                properties.Add(ClientInformation, GetClientInformation());
+                properties.Add(PackageId, packageId);
+                properties.Add(PackageVersion, packageVersion);
+                properties.Add(AccountCreationDate, GetAccountCreationDate(user));
+                properties.Add(AuthenticationMethod, identity.GetAuthenticationType());
+                properties.Add(KeyCreationDate, GetApiKeyCreationDate(user, identity));
+                properties.Add(IsScoped, identity.IsScopedAuthentication().ToString());
+            });
         }
 
         protected virtual void TrackEvent(string eventName, Action<Dictionary<string, string>> addProperties)

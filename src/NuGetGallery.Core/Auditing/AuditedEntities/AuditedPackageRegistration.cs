@@ -8,6 +8,7 @@ namespace NuGetGallery.Auditing.AuditedEntities
         public string Id { get; private set; }
         public int DownloadCount { get; private set; }
         public int Key { get; private set; }
+        public bool IsVerified { get; private set; }
 
         public static AuditedPackageRegistration CreateFrom(PackageRegistration packageRegistration)
         {
@@ -15,7 +16,8 @@ namespace NuGetGallery.Auditing.AuditedEntities
             {
                 Id = packageRegistration.Id,
                 DownloadCount = packageRegistration.DownloadCount,
-                Key = packageRegistration.Key
+                Key = packageRegistration.Key,
+                IsVerified = packageRegistration.IsVerified
             };
         }
     }

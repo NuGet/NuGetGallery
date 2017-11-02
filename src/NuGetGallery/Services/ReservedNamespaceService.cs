@@ -1,16 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using NuGet.Packaging;
-using NuGetGallery.Auditing;
 using System;
-using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Runtime.CompilerServices;
+using System.Globalization;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using NuGetGallery.Auditing;
 
 namespace NuGetGallery
 {
@@ -67,6 +65,9 @@ namespace NuGetGallery
 
             ReservedNamespaceRepository.InsertOnCommit(newNamespace);
             await ReservedNamespaceRepository.CommitChangesAsync();
+
+            await AuditingService.SaveAuditRecordAsync(
+                new ReservedNamespaceAuditRecord(newNamespace, AuditedReservedNamespaceAction.ReserveNamespace));
         }
 
         public async Task DeleteReservedNamespaceAsync(string existingNamespace)
@@ -99,6 +100,9 @@ namespace NuGetGallery
                 await ReservedNamespaceRepository.CommitChangesAsync();
 
                 transaction.Commit();
+
+                await AuditingService.SaveAuditRecordAsync(
+                   new ReservedNamespaceAuditRecord(namespaceToDelete, AuditedReservedNamespaceAction.UnreserveNamespace));
             }
         }
 
@@ -162,6 +166,9 @@ namespace NuGetGallery
                 await ReservedNamespaceRepository.CommitChangesAsync();
 
                 transaction.Commit();
+
+                await AuditingService.SaveAuditRecordAsync(
+                   new ReservedNamespaceAuditRecord(namespaceToModify, AuditedReservedNamespaceAction.AddOwner, username, packageRegistrationsMatchingNamespace));
             }
         }
 
@@ -218,6 +225,9 @@ namespace NuGetGallery
                 await ReservedNamespaceRepository.CommitChangesAsync();
 
                 transaction.Commit();
+
+                await AuditingService.SaveAuditRecordAsync(
+                   new ReservedNamespaceAuditRecord(namespaceToModify, AuditedReservedNamespaceAction.RemoveOwner, username, packageRegistrationsToMarkUnverified));
             }
         }
 

@@ -55,6 +55,10 @@ namespace NuGetGallery
                     yield return new object[] { "PackageReadMeChanged",
                         (TrackAction)(s => s.TrackPackageReadMeChangeEvent(package, "written", PackageEditReadMeState.Changed))
                     };
+
+                    yield return new object[] { "PackagePushNamespaceConflict",
+                        (TrackAction)(s => s.TrackPackagePushNamespaceConflictEvent(fakes.Package.Id, package.Version, fakes.User, identity))
+                    };
                 }
             }
 

@@ -482,6 +482,8 @@ namespace NuGetGallery
                     result,
                     HttpStatusCode.Conflict,
                     String.Format(Strings.UploadPackage_IdNamespaceConflict));
+
+                controller.MockTelemetryService.Verify(x => x.TrackPackagePushNamespaceConflictEvent(packageRegistration.Id, package.Version, user1, controller.OwinContext.Request.User.Identity), Times.Once);
             }
 
             [Fact]
