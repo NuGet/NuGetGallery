@@ -235,9 +235,9 @@ namespace NuGetGallery
             // symbols and the VerifyPackageKey callback returns the appropriate response. For this reason, we
             // always create a temp key scoped to the unverified package ID here and defer package and owner
             // validation until the VerifyPackageKey call.
+            var user = GetCurrentUser();
             var credential = CredentialBuilder.CreatePackageVerificationApiKey(id);
 
-            var user = GetCurrentUser();
             await AuthenticationService.AddCredential(user, credential);
 
             TelemetryService.TrackCreatePackageVerificationKeyEvent(id, version, user, User.Identity);
