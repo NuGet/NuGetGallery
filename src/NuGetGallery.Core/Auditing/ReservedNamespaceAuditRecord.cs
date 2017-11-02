@@ -41,11 +41,11 @@ namespace NuGetGallery.Auditing
             {
                 AffectedOwner = username;
 
-                var registrationAction = GetPackageRegistrationAction(action);
-                if (registrations != null && registrations.Any() && registrationAction.HasValue)
+                if (registrations != null && registrations.Any())
                 {
+                    var registrationAction = GetPackageRegistrationAction(action);
                     AffectedRegistrations = registrations
-                        .Select(pr => new PackageRegistrationAuditRecord(pr, registrationAction.Value, username))
+                        .Select(pr => new PackageRegistrationAuditRecord(pr, registrationAction, username))
                         .ToArray();
                 }
             }
@@ -56,7 +56,7 @@ namespace NuGetGallery.Auditing
             return Value.ToLowerInvariant();
         }
 
-        private static AuditedPackageRegistrationAction? GetPackageRegistrationAction(AuditedReservedNamespaceAction action)
+        private static AuditedPackageRegistrationAction GetPackageRegistrationAction(AuditedReservedNamespaceAction action)
         {
             switch (action)
             {
@@ -65,7 +65,7 @@ namespace NuGetGallery.Auditing
                 case AuditedReservedNamespaceAction.RemoveOwner:
                     return AuditedPackageRegistrationAction.MarkUnverified;
                 default:
-                    return null;
+                    throw new ArgumentException($"Invalid value specified for {nameof(action)}");
             }
         }
     }

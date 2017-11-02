@@ -116,27 +116,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(package));
             }
 
-            if (user == null)
-            {
-                throw new ArgumentNullException(nameof(user));
-            }
-
-            if (identity == null)
-            {
-                throw new ArgumentNullException(nameof(identity));
-            }
-
-            TrackEvent(Events.PackagePush, properties => {
-                properties.Add(ClientVersion, GetClientVersion());
-                properties.Add(ProtocolVersion, GetProtocolVersion());
-                properties.Add(ClientInformation, GetClientInformation());
-                properties.Add(PackageId, package.PackageRegistration.Id);
-                properties.Add(PackageVersion, package.Version);
-                properties.Add(AuthenticationMethod, identity.GetAuthenticationType());
-                properties.Add(AccountCreationDate, GetAccountCreationDate(user));
-                properties.Add(KeyCreationDate, GetApiKeyCreationDate(user, identity));
-                properties.Add(IsScoped, identity.IsScopedAuthentication().ToString());
-            });
+            TrackPackageForEvent(Events.PackagePush, package.PackageRegistration.Id, package.Version, user, identity);
         }
 
         public void TrackPackagePushNamespaceConflictEvent(string packageId, string packageVersion, User user, IIdentity identity)
@@ -222,6 +202,7 @@ namespace NuGetGallery
                 properties.Add(PackageId, packageId);
                 properties.Add(PackageVersion, packageVersion);
                 properties.Add(AccountCreationDate, GetAccountCreationDate(user));
+                properties.Add(AuthenticationMethod, identity.GetAuthenticationType());
                 properties.Add(KeyCreationDate, GetApiKeyCreationDate(user, identity));
                 properties.Add(IsScoped, identity.IsScopedAuthentication().ToString());
             });

@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Moq;
-using Xunit;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,6 +9,7 @@ using System.Collections.Generic;
 using NuGetGallery.Auditing;
 using NuGetGallery.Framework;
 using NuGetGallery.TestUtils;
+using Xunit;
 
 namespace NuGetGallery.Services
 {
