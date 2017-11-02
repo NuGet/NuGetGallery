@@ -357,7 +357,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillReturnConflictIfAPackageWithTheIdExistsBelongingToAnotherUser()
+            public async Task WillReturnUnauthorizedIfAPackageWithTheIdExistsBelongingToAnotherUser()
             {
                 // Arrange
                 var user = new User { EmailAddress = "confirmed@email.com" };
@@ -384,8 +384,8 @@ namespace NuGetGallery
                 // Assert
                 ResultAssert.IsStatusCode(
                     result,
-                    HttpStatusCode.Conflict,
-                    String.Format(Strings.PackageIdNotAvailable, packageId));
+                    HttpStatusCode.Unauthorized,
+                    String.Format(Strings.ApiKeyNotAuthorized, packageId));
             }
 
             [Fact]
@@ -841,7 +841,10 @@ namespace NuGetGallery
                 var owner = new User { Key = 1, Username = "owner" };
                 var package = new Package
                 {
-                    PackageRegistration = new PackageRegistration { Owners = new[] { owner } }
+                    PackageRegistration = new PackageRegistration {
+                        Id = "theId",
+                        Owners = new[] { owner }
+                    }
                 };
 
                 var controller = new TestableApiController(GetConfigurationService());

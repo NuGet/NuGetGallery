@@ -775,6 +775,8 @@
     <Compile Include="Controllers\AppController.cs" />
     <Compile Include="Controllers\ErrorsController.cs" />
     <Compile Include="Controllers\PagesController.cs" />
+    <Compile Include="Extensions\PrincipalExtensions.cs" />
+    <Compile Include="Extensions\ScopeExtensions.cs" />
     <Compile Include="Extensions\UserExtensions.cs" />
     <Compile Include="Filters\ApiScopeRequiredAttribute.cs" />
     <Compile Include="GlobalSuppressions.cs" />
@@ -1278,7 +1280,6 @@
     <Compile Include="Infrastructure\MandatoryAttribute.cs" />
     <Compile Include="Infrastructure\NotEqualAttribute.cs" />
     <Compile Include="Infrastructure\PackageIndexEntity.cs" />
-    <Compile Include="Infrastructure\PrincipalExtensions.cs" />
     <Compile Include="Infrastructure\ReadOnlyModeErrorFilter.cs" />
     <Compile Include="Infrastructure\SafeRedirectResult.cs" />
     <Compile Include="Infrastructure\StatisticsReport.cs" />
@@ -1566,7 +1567,6 @@
     <Compile Include="RequestModels\VerifyPackageRequest.cs" />
     <Compile Include="Infrastructure\Authentication\LegacyHasher.cs" />
     <Compile Include="Infrastructure\Authentication\V3Hasher.cs" />
-    <Compile Include="Authentication\ScopeEvaluator.cs" />
     <Compile Include="Services\AllowLocalHttpRedirectPolicy.cs" />
     <Compile Include="Services\ISourceDestinationRedirectPolicy.cs" />
     <Compile Include="Services\ITelemetryService.cs" />
@@ -2279,7 +2279,7 @@
           <AutoAssignPort>True</AutoAssignPort>
           <DevelopmentServerPort>80</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>https://localhost</IISUrl>
+          <IISUrl>https://localhost/</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>

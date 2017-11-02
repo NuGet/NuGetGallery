@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Security.Principal;
 using System.Web;
 using Elmah;
+using NuGetGallery.Authentication;
 using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery
@@ -140,13 +141,14 @@ namespace NuGetGallery
             {
                 throw new ArgumentNullException(nameof(identity));
             }
+            var hasVerifyScope = identity.HasScopeThatAllowsActions(NuGetScopes.PackageVerify).ToString();
 
             TrackEvent(Events.VerifyPackageKey, properties =>
             {
                 properties.Add(PackageId, packageId);
                 properties.Add(PackageVersion, packageVersion);
                 properties.Add(KeyCreationDate, GetApiKeyCreationDate(user, identity));
-                properties.Add(IsVerificationKeyUsed, identity.HasPackageVerifyScopeClaim().ToString());
+                properties.Add(IsVerificationKeyUsed, hasVerifyScope);
                 properties.Add(VerifyPackageKeyStatusCode, statusCode.ToString());
             });
         }
