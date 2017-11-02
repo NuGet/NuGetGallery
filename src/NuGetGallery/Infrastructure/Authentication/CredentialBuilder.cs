@@ -26,14 +26,14 @@ namespace NuGetGallery.Infrastructure.Authentication
                expiration: expiration);
         }
 
-        public Credential CreatePackageVerificationApiKey(string ownerScope, string id)
+        public Credential CreatePackageVerificationApiKey(string id)
         {
             var credential = new Credential(
                CredentialTypes.ApiKey.VerifyV1,
                CreateKeyString(),
                expiration: TimeSpan.FromDays(1));
 
-            credential.Scopes.Add(new Scope(owner: ownerScope, subject: id, allowedAction: NuGetScopes.PackageVerify));
+            credential.Scopes.Add(new Scope(subject: id, allowedAction: NuGetScopes.PackageVerify));
 
             return credential;
         }

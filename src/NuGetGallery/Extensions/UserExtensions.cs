@@ -37,19 +37,5 @@ namespace NuGetGallery
 
             return user.Credentials.FirstOrDefault(c => c.Value == apiKey);
         }
-
-        /// <summary>
-        /// Get the current API key package owner (user or organization) scope.
-        /// </summary>
-        /// <returns>Owner scope, or null for legacy API keys.</returns>
-        public static string GetCurrentApiKeyOwnerScope(this User user, IIdentity identity)
-        {
-            // All scopes for a given API key should target the same owner.
-            var credential = user.GetCurrentApiKeyCredential(identity);
-            return credential.Scopes
-                .Select(o => o.Owner)
-                .Distinct()
-                .SingleOrDefault();
-        }
     }
 }

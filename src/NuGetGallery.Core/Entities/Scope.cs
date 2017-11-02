@@ -19,7 +19,12 @@ namespace NuGetGallery
         /// Package owner (user or organization) scoping.
         /// </summary>
         [JsonProperty("o")]
-        public string Owner { get; set; }
+        public int? OwnerKey { get; set; }
+
+        /// <summary>
+        /// Package owner (user or organization) scoping.
+        /// </summary>
+        public User Owner { get; set; }
 
         /// <summary>
         /// Packages glob pattern.
@@ -38,7 +43,7 @@ namespace NuGetGallery
         {
         }
 
-        public Scope(string owner, string subject, string allowedAction)
+        public Scope(User owner, string subject, string allowedAction)
         {
             Owner = owner;
             Subject = subject;

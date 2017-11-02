@@ -236,8 +236,7 @@ namespace NuGetGallery
             // always create a temp key scoped to the unverified package ID here and defer package and owner
             // validation until the VerifyPackageKey call.
             var user = GetCurrentUser();
-            var ownerScope = user.GetCurrentApiKeyOwnerScope(User.Identity);
-            var credential = CredentialBuilder.CreatePackageVerificationApiKey(ownerScope, id);
+            var credential = CredentialBuilder.CreatePackageVerificationApiKey(id);
 
             await AuthenticationService.AddCredential(user, credential);
 

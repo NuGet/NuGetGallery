@@ -13,7 +13,7 @@ namespace NuGetGallery.Migrations
         
         string IMigrationMetadata.Id
         {
-            get { return "201710302309144_ApiKeyOwnerScope"; }
+            get { return "201711021733062_ApiKeyOwnerScope"; }
         }
         
         string IMigrationMetadata.Source
