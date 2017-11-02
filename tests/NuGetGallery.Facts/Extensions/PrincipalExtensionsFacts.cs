@@ -249,14 +249,14 @@ namespace NuGetGallery.Extensions
             }
 
             [Fact]
-            public void WhenHasNoScopes_ReturnsTrue(string scopeClaim)
+            public void WhenHasNoScopes_ReturnsFalse()
             {
                 var identity = AuthenticationService.CreateIdentity(
                     new User("user"),
                     AuthenticationTypes.ApiKey,
                     new Claim(NuGetClaims.ApiKey, string.Empty));
 
-                Assert.True(identity.HasExplicitScopeAction(NuGetScopes.PackagePush));
+                Assert.False(identity.HasExplicitScopeAction(NuGetScopes.PackagePush));
             }
 
             [Theory]
