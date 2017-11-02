@@ -1207,11 +1207,41 @@ namespace NuGetGallery
         public class TheCreatePackageVerificationKeyAsyncAction
             : PackageVerificationKeyContainer
         {
+            [Fact]
+            public async Task WhenApiKeyHasNoScope_TempKeyHasScopeWithNoOwner()
+            {
+                var tempScope = await InvokeAsync("");
+
+                Assert.Null(tempScope.OwnerKey);
+                Assert.Equal("foo", tempScope.Subject);
+                Assert.Equal(NuGetScopes.PackageVerify, tempScope.AllowedAction);
+            }
+
             [Theory]
-            [InlineData("")]
             [InlineData("[{\"a\":\"package:push\", \"s\":\"foo\"}]")]
             [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"foo\"}]")]
-            public async Task CreatePackageVerificationKeyAsync_ReturnsPackageVerificationKey(string scope)
+            public async Task WhenApiKeyHasNoOwnerScope_TempKeyHasScopeWithNoOwner(string scope)
+            {
+                var tempScope = await InvokeAsync(scope);
+
+                Assert.Null(tempScope.OwnerKey);
+                Assert.Equal("foo", tempScope.Subject);
+                Assert.Equal(NuGetScopes.PackageVerify, tempScope.AllowedAction);
+            }
+
+            [Theory]
+            [InlineData("[{\"o\": \"1234\", \"a\":\"package:push\", \"s\":\"foo\"}]")]
+            [InlineData("[{\"o\": \"1234\", \"a\":\"package:pushversion\", \"s\":\"foo\"}]")]
+            public async Task WhenApiKeyHasOwnerScope_TempKeyHasSameOwner(string scope)
+            {
+                var tempScope = await InvokeAsync(scope);
+
+                Assert.Equal(1234, tempScope.OwnerKey);
+                Assert.Equal("foo", tempScope.Subject);
+                Assert.Equal(NuGetScopes.PackageVerify, tempScope.AllowedAction);
+            }
+
+            private async Task<Scope> InvokeAsync(string scope)
             {
                 // Arrange
                 var controller = SetupController(CredentialTypes.ApiKey.V2, scope, package: null);
@@ -1219,7 +1249,7 @@ namespace NuGetGallery
                 // Act
                 var jsonResult = await controller.CreatePackageVerificationKeyAsync("foo", "1.0.0") as JsonResult;
 
-                // Assert
+                // Assert - the response
                 dynamic json = jsonResult?.Data;
                 Assert.NotNull(json);
 
@@ -1229,10 +1259,18 @@ namespace NuGetGallery
                 DateTime expires;
                 Assert.True(DateTime.TryParse(json.Expires, out expires));
 
+                // Assert - the invocations
                 controller.MockAuthenticationService.Verify(s => s.AddCredential(It.IsAny<User>(), It.IsAny<Credential>()), Times.Once);
 
                 controller.MockTelemetryService.Verify(x => x.TrackCreatePackageVerificationKeyEvent("foo", "1.0.0",
                     It.IsAny<User>(), controller.OwinContext.Request.User.Identity), Times.Once);
+                
+                // Assert - the temp key
+                var user = controller.GetCurrentUser();
+                var tempKey = user.Credentials.Last();
+
+                Assert.Equal(1, tempKey.Scopes.Count);
+                return tempKey.Scopes.First();
             }
         }
 

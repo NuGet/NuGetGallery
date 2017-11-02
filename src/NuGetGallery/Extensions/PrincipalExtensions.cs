@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
@@ -23,6 +24,16 @@ namespace NuGetGallery
         /// <returns>Value of the claim, or null if does not exist.</returns>
         public static string GetClaimOrDefault(this ClaimsPrincipal self, string claimType)
         {
+            if (self == null)
+            {
+                throw new ArgumentNullException(nameof(self));
+            }
+
+            if (string.IsNullOrWhiteSpace(claimType))
+            {
+                throw new ArgumentNullException(nameof(claimType));
+            }
+
             return self.Claims.GetClaimOrDefault(claimType);
         }
 
@@ -33,8 +44,12 @@ namespace NuGetGallery
         /// <returns>Authentication type.</returns>
         public static string GetAuthenticationType(this IIdentity self)
         {
-            var identity = self as ClaimsIdentity;
+            if (self == null)
+            {
+                throw new ArgumentNullException(nameof(self));
+            }
 
+            var identity = self as ClaimsIdentity;
             return identity?.GetClaimOrDefault(ClaimTypes.AuthenticationMethod);
         }
 
@@ -45,7 +60,7 @@ namespace NuGetGallery
         /// <returns>Scopes for current user, or null if none.</returns>
         public static List<Scope> GetScopesFromClaim(this IIdentity self)
         {
-            var claim = self.GetScopeClaim();
+            var claim = GetScopeClaim(self);
 
             return string.IsNullOrWhiteSpace(claim)?
                 null : JsonConvert.DeserializeObject<List<Scope>>(claim);
@@ -73,7 +88,7 @@ namespace NuGetGallery
         /// <returns>True if authenticated with scoped API key, false otherwise.</returns>
         public static bool IsScopedAuthentication(this IIdentity self)
         {
-            return !IsEmptyScopeClaim(self.GetScopeClaim());
+            return !IsEmptyScopeClaim(GetScopeClaim(self));
         }
 
         /// <summary>
@@ -85,7 +100,7 @@ namespace NuGetGallery
         public static bool HasExplicitScopeAction(this IIdentity self, params string[] requestedActions)
         {
             // Scoped API key with matching actions.
-            var scopes = self.GetScopesFromClaim();
+            var scopes = GetScopesFromClaim(self);
             return scopes != null && scopes.Any(s => s.AllowsActions(requestedActions));
         }
 
@@ -97,13 +112,22 @@ namespace NuGetGallery
         /// <returns>True if any actions are allowed, false if none are.</returns>
         public static bool HasScopeThatAllowsActions(this IIdentity self, params string[] requestedActions)
         {
+            if (self == null)
+            {
+                throw new ArgumentNullException(nameof(self));
+            }
+
             return !self.IsScopedAuthentication() || self.HasExplicitScopeAction(requestedActions);
         }
         
-        private static string GetScopeClaim(this IIdentity self)
+        private static string GetScopeClaim(IIdentity self)
         {
-            var identity = self as ClaimsIdentity;
+            if (self == null)
+            {
+                throw new ArgumentNullException(nameof(self));
+            }
 
+            var identity = self as ClaimsIdentity;
             return identity?.GetClaimOrDefault(NuGetClaims.Scope);
         }
         

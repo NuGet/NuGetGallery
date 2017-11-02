@@ -34,11 +34,21 @@ namespace NuGetGallery.Infrastructure.Authentication
                CreateKeyString(),
                expiration: TimeSpan.FromDays(1));
 
-            credential.Scopes = originalApiKey.Scopes
+            var ownerKeys = originalApiKey.Scopes
                 .Select(s => s.OwnerKey)
-                .Distinct()
-                .Select(key => new Scope(key, subject: id, allowedAction: NuGetScopes.PackageVerify))
-                .ToArray();
+                .Distinct().ToArray();
+
+            if (ownerKeys.Length == 0)
+            {
+                // Legacy API key with no owner scope.
+                credential.Scopes = new[] { new Scope(null, subject: id, allowedAction: NuGetScopes.PackageVerify) };
+            }
+            else
+            {
+                credential.Scopes = ownerKeys
+                    .Select(key => new Scope(key, subject: id, allowedAction: NuGetScopes.PackageVerify))
+                    .ToArray();
+            }
 
             return credential;
         }
