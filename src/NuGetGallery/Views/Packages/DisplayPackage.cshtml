@@ -6,7 +6,30 @@
 
     var absolutePackageUrl = Url.Absolute(Url.Package(Model.Id));
 
-    var packageManagers = new PackageManagerViewModel[]
+    var protobuildTerm = "add";
+    var protobuildPreferred = false;
+    var versionSuffix = "@" + Model.Version;
+    var isProtobuildEnhanced = false;
+    if (Model.Tags.Any(x => x.StartsWith("platforms=")))
+    {
+        // This is very likely to be a Protobuild-enhanced package, so recommend that developers
+        // use the Protobuild CLI to install it.
+        protobuildPreferred = true;
+        isProtobuildEnhanced = true;
+    }
+    if (Model.Tags.Any(x => x == "type=global-tool"))
+    {
+        // This is a global tool, so Protobuild CLI users should use --install instead.
+        protobuildTerm = "install";
+    }
+    if (Model.Version.Contains("-SHA"))
+    {
+        // This is a commit/platform specific package, which is not useful to be installed by
+        // default.
+        versionSuffix = string.Empty;
+    }
+
+    var packageManagers = new List<PackageManagerViewModel>
     {
         new PackageManagerViewModel()
         {
@@ -33,6 +56,24 @@
             ContactUrl = "https://fsprojects.github.io/Paket/contact.html"
         },
     };
+
+    var protobuildPackageManager = new ThirdPartyPackageManagerViewModel()
+    {
+        Id = "protobuild-cli",
+        Name = "Protobuild CLI",
+        CommandPrefix = "> ",
+        InstallPackageCommand = string.Format("Protobuild --{2} {0}{1}", Model.Id, versionSuffix, protobuildTerm),
+        ContactUrl = "https://protobuild.org/"
+    };
+
+    if (protobuildPreferred)
+    {
+        packageManagers.Insert(0, protobuildPackageManager);
+    }
+    else
+    {
+        packageManagers.Add(protobuildPackageManager);
+    }
 }
 @section SocialMeta {
     @if (!String.IsNullOrWhiteSpace(ViewBag.FacebookAppID))
@@ -175,13 +216,24 @@
                 )
             }
 
-            @if (Model.Prerelease)
+            @if (Model.Prerelease && !isProtobuildEnhanced)
             {
                 @ViewHelpers.AlertInfo(
                     @<text>
                         This is a prerelease version of @(Model.Id).
                     </text>
                 )
+            }
+
+            @if (isProtobuildEnhanced)
+            {
+                @ViewHelpers.Alert(
+                    @<text>
+                        This is a Protobuild-enhanced package. For the best experience using this package, 
+                        it's maintainers recommend you use <strong><a href="https://protobuild.org/" target="_blank">Protobuild</a></strong>
+                        to install it.
+                    </text>
+                , "success", "Globe")
             }
 
             @if (Model.HasNewerPrerelease)
