@@ -666,9 +666,9 @@ namespace NuGetGallery
         [ActionName("StatisticsDownloadsApi")]
         public virtual async Task<ActionResult> GetStatsDownloads(int? count)
         {
-            var result = await StatisticsService.LoadDownloadPackageVersions();
+            await StatisticsService.Refresh();
 
-            if (result.Loaded)
+            if (StatisticsService.DownloadPackageVersionsResult.Loaded)
             {
                 int i = 0;
 

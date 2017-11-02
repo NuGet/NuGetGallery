@@ -73,27 +73,29 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);
             }
 
-            var availablity = await Task.WhenAll(
-                _statisticsService.LoadDownloadPackages(),
-                _statisticsService.LoadDownloadPackageVersions(),
-                _statisticsService.LoadNuGetClientVersion(),
-                _statisticsService.LoadLast6Weeks());
+            await _statisticsService.Refresh();
 
             var model = new StatisticsPackagesViewModel
             {
-                IsDownloadPackageAvailable = availablity[0].Loaded,
+                IsDownloadPackageAvailable = _statisticsService.DownloadPackagesResult.Loaded,
                 DownloadPackagesSummary = _statisticsService.DownloadPackagesSummary,
-                IsDownloadPackageDetailAvailable = availablity[1].Loaded,
+
+                IsDownloadPackageVersionsAvailable = _statisticsService.DownloadPackageVersionsResult.Loaded,
                 DownloadPackageVersionsSummary = _statisticsService.DownloadPackageVersionsSummary,
-                IsNuGetClientVersionAvailable = availablity[2].Loaded,
+
+                IsDownloadCommunityPackageAvailable = _statisticsService.DownloadCommunityPackagesResult.Loaded,
+                DownloadCommunityPackagesSummary = _statisticsService.DownloadPackagesSummary,
+
+                IsDownloadCommunityPackageVersionsAvailable = _statisticsService.DownloadCommunityPackageVersionsResult.Loaded,
+                DownloadCommunityPackageVersionsSummary = _statisticsService.DownloadCommunityPackageVersionsSummary,
+
+                IsNuGetClientVersionAvailable = _statisticsService.NuGetClientVersionResult.Loaded,
                 NuGetClientVersion = _statisticsService.NuGetClientVersion,
-                IsLast6WeeksAvailable = availablity[3].Loaded,
+
+                IsLast6WeeksAvailable = _statisticsService.Last6WeeksResult.Loaded,
                 Last6Weeks = _statisticsService.Last6Weeks,
-                LastUpdatedUtc = availablity
-                    .Where(r => r.LastUpdatedUtc.HasValue)
-                    .OrderByDescending(r => r.LastUpdatedUtc.Value)
-                    .Select(r => r.LastUpdatedUtc)
-                    .FirstOrDefault()
+
+                LastUpdatedUtc = _statisticsService.LastUpdatedUtc,
             };
 
             model.Update();
@@ -113,13 +115,13 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);
             }
 
-            var result = await _statisticsService.LoadDownloadPackages();
+            await _statisticsService.Refresh();
 
             var model = new StatisticsPackagesViewModel
             {
-                IsDownloadPackageAvailable = result.Loaded,
+                IsDownloadPackageAvailable = _statisticsService.DownloadPackagesResult.Loaded,
                 DownloadPackagesAll = _statisticsService.DownloadPackagesAll,
-                LastUpdatedUtc = result.LastUpdatedUtc
+                LastUpdatedUtc = _statisticsService.DownloadPackagesResult.LastUpdatedUtc,
             };
 
             return View(model);
@@ -135,13 +137,13 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);
             }
 
-            var result = await _statisticsService.LoadDownloadPackageVersions();
+            await _statisticsService.Refresh();
 
             var model = new StatisticsPackagesViewModel
             {
-                IsDownloadPackageDetailAvailable = result.Loaded,
+                IsDownloadPackageVersionsAvailable = _statisticsService.DownloadPackageVersionsResult.Loaded,
                 DownloadPackageVersionsAll = _statisticsService.DownloadPackageVersionsAll,
-                LastUpdatedUtc = result.LastUpdatedUtc
+                LastUpdatedUtc = _statisticsService.DownloadPackagesResult.LastUpdatedUtc,
             };
 
             return View(model);

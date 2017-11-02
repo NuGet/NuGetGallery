@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -15,55 +16,31 @@ namespace NuGetGallery
 
         private NullStatisticsService() { }
 
-        public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackagesSummary
-        {
-            get { return Enumerable.Empty<StatisticsPackagesItemViewModel>(); }
-        }
+        public StatisticsReportResult DownloadPackagesResult => StatisticsReportResult.Failed;
+        public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackagesAll => Enumerable.Empty<StatisticsPackagesItemViewModel>();
+        public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackagesSummary => Enumerable.Empty<StatisticsPackagesItemViewModel>();
 
-        public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackageVersionsSummary
-        {
-            get { return Enumerable.Empty<StatisticsPackagesItemViewModel>(); }
-        }
+        public StatisticsReportResult DownloadPackageVersionsResult => StatisticsReportResult.Failed;
+        public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackageVersionsAll => Enumerable.Empty<StatisticsPackagesItemViewModel>();
+        public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackageVersionsSummary => Enumerable.Empty<StatisticsPackagesItemViewModel>();
 
-        public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackagesAll
-        {
-            get { return Enumerable.Empty<StatisticsPackagesItemViewModel>(); }
-        }
+        public StatisticsReportResult DownloadCommunityPackagesResult => StatisticsReportResult.Failed;
+        public IEnumerable<StatisticsPackagesItemViewModel> DownloadCommunityPackagesAll => Enumerable.Empty<StatisticsPackagesItemViewModel>();
+        public IEnumerable<StatisticsPackagesItemViewModel> DownloadCommunityPackagesSummary => Enumerable.Empty<StatisticsPackagesItemViewModel>();
 
-        public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackageVersionsAll
-        {
-            get { return Enumerable.Empty<StatisticsPackagesItemViewModel>(); }
-        }
+        public StatisticsReportResult DownloadCommunityPackageVersionsResult => StatisticsReportResult.Failed;
+        public IEnumerable<StatisticsPackagesItemViewModel> DownloadCommunityPackageVersionsAll => Enumerable.Empty<StatisticsPackagesItemViewModel>();
+        public IEnumerable<StatisticsPackagesItemViewModel> DownloadCommunityPackageVersionsSummary => Enumerable.Empty<StatisticsPackagesItemViewModel>();
 
-        public IEnumerable<StatisticsNuGetUsageItem> NuGetClientVersion
-        {
-            get { return Enumerable.Empty<StatisticsNuGetUsageItem>(); }
-        }
+        public StatisticsReportResult NuGetClientVersionResult => StatisticsReportResult.Failed;
+        public IEnumerable<StatisticsNuGetUsageItem> NuGetClientVersion => Enumerable.Empty<StatisticsNuGetUsageItem>();
 
-        public IEnumerable<StatisticsWeeklyUsageItem> Last6Weeks
-        {
-            get { return Enumerable.Empty<StatisticsWeeklyUsageItem>(); }
-        }
+        public StatisticsReportResult Last6WeeksResult => StatisticsReportResult.Failed;
+        public IEnumerable<StatisticsWeeklyUsageItem> Last6Weeks => Enumerable.Empty<StatisticsWeeklyUsageItem>();
 
-        public Task<StatisticsReportResult> LoadDownloadPackages()
-        {
-            return Task.FromResult(StatisticsReportResult.Failed);
-        }
+        public DateTime? LastUpdatedUtc => null;
 
-        public Task<StatisticsReportResult> LoadDownloadPackageVersions()
-        {
-            return Task.FromResult(StatisticsReportResult.Failed);
-        }
-
-        public Task<StatisticsReportResult> LoadNuGetClientVersion()
-        {
-            return Task.FromResult(StatisticsReportResult.Failed);
-        }
-
-        public Task<StatisticsReportResult> LoadLast6Weeks()
-        {
-            return Task.FromResult(StatisticsReportResult.Failed);
-        }
+        public Task Refresh() => Task.CompletedTask;
 
         public Task<StatisticsPackagesReport> GetPackageDownloadsByVersion(string packageId)
         {

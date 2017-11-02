@@ -118,7 +118,7 @@ namespace NuGetGallery
                 }
             }
 
-            if (model.IsDownloadPackageDetailAvailable)
+            if (model.IsDownloadPackageVersionsAvailable)
             {
                 foreach (var item in model.DownloadPackageVersionsSummary)
                 {
@@ -234,7 +234,7 @@ namespace NuGetGallery
                 }
             }
 
-            if (model.IsDownloadPackageDetailAvailable)
+            if (model.IsDownloadPackageVersionsAvailable)
             {
                 foreach (var item in model.DownloadPackageVersionsSummary)
                 {
