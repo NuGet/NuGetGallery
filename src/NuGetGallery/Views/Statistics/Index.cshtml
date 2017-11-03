@@ -24,7 +24,7 @@
         @if (Model.IsDownloadPackageAvailable && Model.IsDownloadCommunityPackageAvailable)
         {
             <div class="col-md-6 col-xs-12">
-                <h2 class="stats-title-text">Package Downloads</h2>
+                <h2 class="stats-title-text" data-bind="text: (showAllPackageDownloads() ? 'Package Downloads' : 'Community Package Downloads')"></h2>
 
                 <p>
                     Show all packages:
@@ -95,7 +95,7 @@
         @if (Model.IsDownloadPackageVersionsAvailable && Model.IsDownloadCommunityPackageVersionsAvailable)
         {
             <div class="col-md-6 col-xs-12">
-                <h2 class="stats-title-text">Version Downloads</h2>
+                <h2 class="stats-title-text" data-bind="text: (showAllPackageVersionDownloads() ? 'Version Downloads' : 'Community Package Version Downloads')">Version Downloads</h2>
 
                 <p>
                     Show all packages:
