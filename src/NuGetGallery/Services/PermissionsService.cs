@@ -10,90 +10,96 @@ namespace NuGetGallery
 {
     public static class PermissionsService
     {
-        public static bool IsActionAllowed(Package package, IPrincipal principal, IPermissionRestrictedAction action)
+        public static bool IsActionAllowed(Package package, IPrincipal principal, PermissionLevel actionPermissionLevel)
         {
-            return IsActionAllowed(package.PackageRegistration, principal, action);
+            return IsActionAllowed(package.PackageRegistration, principal, actionPermissionLevel);
         }
 
-        public static bool IsActionAllowed(PackageRegistration packageRegistration, IPrincipal principal, IPermissionRestrictedAction action)
+        public static bool IsActionAllowed(PackageRegistration packageRegistration, IPrincipal principal, PermissionLevel actionPermissionLevel)
         {
-            return IsActionAllowed(packageRegistration.Owners, principal, action);
+            return IsActionAllowed(packageRegistration.Owners, principal, actionPermissionLevel);
         }
 
-        public static bool IsActionAllowed(IEnumerable<User> owners, IPrincipal principal, IPermissionRestrictedAction action)
+        public static bool IsActionAllowed(IEnumerable<User> owners, IPrincipal principal, PermissionLevel actionPermissionLevel)
         {
-            var permissionLevels = GetPermissionLevels(owners, principal);
-            return action.IsAllowed(permissionLevels);
+            var userPermissionLevel = GetPermissionLevel(owners, principal);
+            return IsAllowed(userPermissionLevel, actionPermissionLevel);
         }
 
-        public static bool IsActionAllowed(User owner, IPrincipal principal, IPermissionRestrictedAction action)
+        public static bool IsActionAllowed(User owner, IPrincipal principal, PermissionLevel actionPermissionLevel)
         {
-            return IsActionAllowed(new User[] { owner }, principal, action);
+            return IsActionAllowed(new User[] { owner }, principal, actionPermissionLevel);
         }
 
-        public static bool IsActionAllowed(Package package, User user, IPermissionRestrictedAction action)
+        public static bool IsActionAllowed(Package package, User user, PermissionLevel actionPermissionLevel)
         {
-            return IsActionAllowed(package.PackageRegistration, user, action);
+            return IsActionAllowed(package.PackageRegistration, user, actionPermissionLevel);
         }
 
-        public static bool IsActionAllowed(PackageRegistration packageRegistration, User user, IPermissionRestrictedAction action)
+        public static bool IsActionAllowed(PackageRegistration packageRegistration, User user, PermissionLevel actionPermissionLevel)
         {
-            return IsActionAllowed(packageRegistration.Owners, user, action);
+            return IsActionAllowed(packageRegistration.Owners, user, actionPermissionLevel);
         }
 
-        public static bool IsActionAllowed(IEnumerable<User> owners, User user, IPermissionRestrictedAction action)
+        public static bool IsActionAllowed(IEnumerable<User> owners, User user, PermissionLevel actionPermissionLevel)
         {
-            var permissionLevels = GetPermissionLevels(owners, user);
-            return action.IsAllowed(permissionLevels);
+            var userPermissionLevel = GetPermissionLevel(owners, user);
+            return IsAllowed(userPermissionLevel, actionPermissionLevel);
         }
 
-        public static bool IsActionAllowed(User owner, User user, IPermissionRestrictedAction action)
+        public static bool IsActionAllowed(User owner, User user, PermissionLevel action)
         {
             return IsActionAllowed(new User[] { owner }, user, action);
         }
 
-        internal static IEnumerable<PermissionLevel> GetPermissionLevels(IEnumerable<User> owners, User user)
+        private static bool IsAllowed(PermissionLevel userPermissionLevel, PermissionLevel actionPermissionLevel)
+        {
+            return (userPermissionLevel & actionPermissionLevel) > 0;
+        }
+
+        internal static PermissionLevel GetPermissionLevel(IEnumerable<User> owners, User user)
         {
             if (user == null)
             {
-                return new[] { PermissionLevel.Anonymous };
+                return PermissionLevel.Anonymous;
             }
 
-            return GetPermissionLevels(
+            return GetPermissionLevel(
                 owners, 
                 user.IsInRole(Constants.AdminRoleName), 
                 u => UserMatchesUser(u, user));
         }
 
-        internal static IEnumerable<PermissionLevel> GetPermissionLevels(IEnumerable<User> owners, IPrincipal principal)
+        internal static PermissionLevel GetPermissionLevel(IEnumerable<User> owners, IPrincipal principal)
         {
             if (principal == null)
             {
-                return new[] { PermissionLevel.Anonymous };
+                return PermissionLevel.Anonymous;
             }
 
-            return GetPermissionLevels(
+            return GetPermissionLevel(
                 owners, 
                 principal.IsAdministrator(), 
                 u => UserMatchesPrincipal(u, principal));
         }
 
-        private static IEnumerable<PermissionLevel> GetPermissionLevels(IEnumerable<User> owners, bool isUserAdmin, Func<User, bool> isUserMatch)
+        private static PermissionLevel GetPermissionLevel(IEnumerable<User> owners, bool isUserAdmin, Func<User, bool> isUserMatch)
         {
+            var permissionLevel = PermissionLevel.Anonymous;
+
             if (owners == null)
             {
-                yield return PermissionLevel.Anonymous;
-                yield break;
+                return permissionLevel;
             }
 
             if (isUserAdmin)
             {
-                yield return PermissionLevel.SiteAdmin;
+                permissionLevel |= PermissionLevel.SiteAdmin;
             }
 
             if (owners.Any(isUserMatch))
             {
-                yield return PermissionLevel.Owner;
+                permissionLevel |= PermissionLevel.Owner;
             }
 
             var matchingMembers = owners
@@ -105,15 +111,15 @@ namespace NuGetGallery
 
             if (matchingMembers.Any(m => m.IsAdmin))
             {
-                yield return PermissionLevel.OrganizationAdmin;
+                permissionLevel |= PermissionLevel.OrganizationAdmin;
             }
 
             if (matchingMembers.Any())
             {
-                yield return PermissionLevel.OrganizationCollaborator;
+                permissionLevel |= PermissionLevel.OrganizationCollaborator;
             }
 
-            yield return PermissionLevel.Anonymous;
+            return permissionLevel;
         }
 
         private static bool UserMatchesPrincipal(User user, IPrincipal principal)

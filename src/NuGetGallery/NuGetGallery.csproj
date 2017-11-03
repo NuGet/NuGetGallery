@@ -794,10 +794,8 @@
     <Compile Include="Services\CloudBlobFileStorageService.cs" />
     <Compile Include="Services\IFileStorageService.cs" />
     <Compile Include="Services\ImmediatePackageValidator.cs" />
-    <Compile Include="Services\IPermissionRestrictedAction.cs" />
-    <Compile Include="Services\UserPermissionRestrictedActions.cs" />
-    <Compile Include="Services\PermissionRestrictedActionIncludeLevel.cs" />
-    <Compile Include="Services\PackagePermissionRestrictedActions.cs" />
+    <Compile Include="Services\UserActions.cs" />
+    <Compile Include="Services\PackageActions.cs" />
     <Compile Include="Services\PackageOwnershipManagementService.cs" />
     <Compile Include="Services\IPackageOwnershipManagementService.cs" />
     <Compile Include="Services\IPackageValidationInitiator.cs" />
@@ -881,7 +879,6 @@
     <Compile Include="Services\PackageUploadService.cs" />
     <Compile Include="Services\IReservedNamespaceService.cs" />
     <Compile Include="Services\IPackageUploadService.cs" />
-    <Compile Include="Services\PermissionRestrictedActionExcludeLevel.cs" />
     <Compile Include="Services\PermissionsService.cs" />
     <Compile Include="Services\PermissionLevel.cs" />
     <Compile Include="Services\ReservedNamespaceService.cs" />

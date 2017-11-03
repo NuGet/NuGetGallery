@@ -293,7 +293,7 @@ namespace NuGetGallery
             await AuditingService.SaveAuditRecordAsync(
                 new PackageAuditRecord(package, AuditedPackageAction.Verify));
 
-            if (!PermissionsService.IsActionAllowed(package, user, PackagePermissionRestrictedActions.UploadNewVersion))
+            if (!PermissionsService.IsActionAllowed(package, user, PackageActions.UploadNewVersion))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
             }

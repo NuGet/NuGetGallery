@@ -49,9 +49,9 @@ namespace NuGetGallery
             }
         }
 
-        public bool IsActionAllowed(IPrincipal principal, IPermissionRestrictedAction action)
+        public bool IsActionAllowed(IPrincipal principal, PermissionLevel actionPermissionLevel)
         {
-            return PermissionsService.IsActionAllowed(Owners, principal, action);
+            return PermissionsService.IsActionAllowed(Owners, principal, actionPermissionLevel);
         }
     }
 }
