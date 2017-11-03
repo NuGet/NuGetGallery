@@ -794,7 +794,7 @@
     <Compile Include="Services\CloudBlobFileStorageService.cs" />
     <Compile Include="Services\IFileStorageService.cs" />
     <Compile Include="Services\ImmediatePackageValidator.cs" />
-    <Compile Include="Services\UserActions.cs" />
+    <Compile Include="Services\AccountActions.cs" />
     <Compile Include="Services\PackageActions.cs" />
     <Compile Include="Services\PackageOwnershipManagementService.cs" />
     <Compile Include="Services\IPackageOwnershipManagementService.cs" />
