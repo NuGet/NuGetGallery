@@ -102,14 +102,14 @@ namespace NuGetGallery.Extensions
             }
         }
 
-        public class TheIsOwnerOrMemberOfOrganizationMethod
+        public class TheIsOwnerOrMemberOfOrganizationOwnerMethod
         {
             [Fact]
             public void WhenUserIsNull_ThrowsArgumentNullException()
             {
                 Assert.Throws<ArgumentNullException>(() =>
                 {
-                    UserExtensions.IsOwnerOrMemberOfOrganization(null, new PackageRegistration());
+                    UserExtensions.IsOwnerOrMemberOfOrganizationOwner(null, new PackageRegistration());
                 });
             }
 
@@ -118,7 +118,7 @@ namespace NuGetGallery.Extensions
             {
                 Assert.Throws<ArgumentNullException>(() =>
                 {
-                    new User().IsOwnerOrMemberOfOrganization(null);
+                    new User().IsOwnerOrMemberOfOrganizationOwner(null);
                 });
             }
 
@@ -131,7 +131,7 @@ namespace NuGetGallery.Extensions
                     Owners = new[] { user }
                 };
 
-                Assert.True(user.IsOwnerOrMemberOfOrganization(package));
+                Assert.True(user.IsOwnerOrMemberOfOrganizationOwner(package));
             }
 
             [Theory]
@@ -156,7 +156,7 @@ namespace NuGetGallery.Extensions
                     Owners = new[] { organization }
                 };
 
-                Assert.True(user.IsOwnerOrMemberOfOrganization(package));
+                Assert.True(user.IsOwnerOrMemberOfOrganizationOwner(package));
             }
 
             [Fact]
@@ -165,7 +165,7 @@ namespace NuGetGallery.Extensions
                 var user = new User();
                 var package = new PackageRegistration();
 
-                Assert.False(user.IsOwnerOrMemberOfOrganization(package));
+                Assert.False(user.IsOwnerOrMemberOfOrganizationOwner(package));
             }
         }
 

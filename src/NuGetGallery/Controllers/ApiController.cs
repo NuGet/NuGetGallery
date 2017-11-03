@@ -720,13 +720,13 @@ namespace NuGetGallery
                 {
                     // ApiKeyHandler has already verified that the current user matches the owner scope.
                     // Do not need to check organization role (IsAdmin) which is covered by the action scope.
-                    return true;
+                    return GetCurrentUser().IsOwnerOrMemberOfOrganizationOwner(package);
                 }
             }
 
             // Legacy V1 API key (no scopes), or Legacy V2 API key (no owner scope).
             // Must verify that the current user is the package owner or admin for an organization owner.
-            return GetCurrentUser().IsOwnerOrMemberOfOrganization(package);
+            return GetCurrentUser().IsOwnerOrMemberOfOrganizationOwner(package);
         }
 
         private bool HasAnyScopeThatAllowsPushNew(string packageId)

@@ -55,7 +55,7 @@ namespace NuGetGallery
         /// <param name="user">User to query.</param>
         /// <param name="package">Package to query.</param>
         /// <returns>True if direct or indirect package owner.</returns>
-        public static bool IsOwnerOrMemberOfOrganization(this User user, PackageRegistration package)
+        public static bool IsOwnerOrMemberOfOrganizationOwner(this User user, PackageRegistration package)
         {
             if (user == null)
             {
