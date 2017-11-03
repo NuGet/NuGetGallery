@@ -14,6 +14,8 @@ namespace NuGetGallery
     public partial class StatisticsController
         : AppController
     {
+        private const string AllPackageSet = "all";
+
         private readonly IStatisticsService _statisticsService = null;
         private readonly IAggregateStatsService _aggregateStatsService = null;
 
@@ -108,7 +110,7 @@ namespace NuGetGallery
         //
         // GET: /stats/packages
 
-        public virtual async Task<ActionResult> Packages()
+        public virtual async Task<ActionResult> Packages(string set = null)
         {
             if (_statisticsService == NullStatisticsService.Instance)
             {
@@ -117,12 +119,31 @@ namespace NuGetGallery
 
             await _statisticsService.Refresh();
 
-            var model = new StatisticsPackagesViewModel
+            StatisticsPackagesViewModel model;
+
+            if (AllPackageSet == set)
             {
-                IsDownloadPackageAvailable = _statisticsService.DownloadPackagesResult.Loaded,
-                DownloadPackagesAll = _statisticsService.DownloadPackagesAll,
-                LastUpdatedUtc = _statisticsService.DownloadPackagesResult.LastUpdatedUtc,
-            };
+                model = new StatisticsPackagesViewModel
+                {
+                    IsCommunityPackageSet = false,
+                    IsDownloadPackageAvailable = _statisticsService.DownloadPackagesResult.Loaded,
+                    DownloadPackagesAll = _statisticsService.DownloadPackagesAll,
+
+                    LastUpdatedUtc = _statisticsService.DownloadPackagesResult.LastUpdatedUtc,
+                };
+            }
+            else
+            {
+                model = new StatisticsPackagesViewModel
+                {
+                    IsCommunityPackageSet = true,
+                    IsDownloadPackageAvailable = _statisticsService.DownloadCommunityPackagesResult.Loaded,
+                    DownloadPackagesAll = _statisticsService.DownloadCommunityPackagesAll,
+
+                    LastUpdatedUtc = _statisticsService.DownloadCommunityPackagesResult.LastUpdatedUtc,
+                };
+            }
+
 
             return View(model);
         }
@@ -130,7 +151,7 @@ namespace NuGetGallery
         //
         // GET: /stats/packageversions
 
-        public virtual async Task<ActionResult> PackageVersions()
+        public virtual async Task<ActionResult> PackageVersions(string set = null)
         {
             if (_statisticsService == NullStatisticsService.Instance)
             {
@@ -139,12 +160,30 @@ namespace NuGetGallery
 
             await _statisticsService.Refresh();
 
-            var model = new StatisticsPackagesViewModel
+            StatisticsPackagesViewModel model;
+
+            if (AllPackageSet == set)
             {
-                IsDownloadPackageVersionsAvailable = _statisticsService.DownloadPackageVersionsResult.Loaded,
-                DownloadPackageVersionsAll = _statisticsService.DownloadPackageVersionsAll,
-                LastUpdatedUtc = _statisticsService.DownloadPackagesResult.LastUpdatedUtc,
-            };
+                model = new StatisticsPackagesViewModel
+                {
+                    IsCommunityPackageSet = false,
+                    IsDownloadPackageVersionsAvailable = _statisticsService.DownloadPackageVersionsResult.Loaded,
+                    DownloadPackageVersionsAll = _statisticsService.DownloadPackageVersionsAll,
+
+                    LastUpdatedUtc = _statisticsService.DownloadPackagesResult.LastUpdatedUtc,
+                };
+            }
+            else
+            {
+                model = new StatisticsPackagesViewModel
+                {
+                    IsCommunityPackageSet = true,
+                    IsDownloadPackageVersionsAvailable = _statisticsService.DownloadCommunityPackageVersionsResult.Loaded,
+                    DownloadPackageVersionsAll = _statisticsService.DownloadCommunityPackageVersionsAll,
+
+                    LastUpdatedUtc = _statisticsService.DownloadCommunityPackageVersionsResult.LastUpdatedUtc,
+                };
+            }
 
             return View(model);
         }

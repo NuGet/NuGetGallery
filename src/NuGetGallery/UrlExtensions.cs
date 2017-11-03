@@ -72,14 +72,28 @@ namespace NuGetGallery
             return GetRouteLink(url, RouteName.StatisticsHome, relativeUrl);
         }
 
-        public static string StatisticsAllPackageDownloads(this UrlHelper url, bool relativeUrl = true)
+        public static string StatisticsAllPackageDownloads(this UrlHelper url, bool communityPackages = true, bool relativeUrl = true)
         {
-            return GetRouteLink(url, RouteName.StatisticsPackages, relativeUrl);
+            return GetRouteLink(
+                url,
+                RouteName.StatisticsPackages,
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "set", communityPackages ? "community" : "all" }
+                });
         }
 
-        public static string StatisticsAllPackageVersionDownloads(this UrlHelper url, bool relativeUrl = true)
+        public static string StatisticsAllPackageVersionDownloads(this UrlHelper url, bool communityPackages = true, bool relativeUrl = true)
         {
-            return GetRouteLink(url, RouteName.StatisticsPackageVersions, relativeUrl);
+            return GetRouteLink(
+                url,
+                RouteName.StatisticsPackageVersions,
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "set", communityPackages ? "community" : "all" }
+                });
         }
 
         public static string StatisticsPackageDownloadByVersion(this UrlHelper url, string id, bool relativeUrl = true)

@@ -8,16 +8,33 @@
 <section role="main" class="container main-container page-statistics-most-downloaded">
     <div class="row">
         <div class="col-xs-12">
-            <h1>Most Downloaded Package Versions</h1>
-            <span class="page-subheading ms-fontSize-l">Top 500 Over the Last 6 Weeks</span>
+            @if (Model.IsCommunityPackageSet)
+            {
+                <h1>Most Downloaded Community Package Versions</h1>
+                <span class="page-subheading ms-fontSize-l">Top 500 Non-Microsoft Packages Over the Last 6 Weeks</span>
+            }
+            else
+            {
+                <h1>Most Downloaded Package Versions</h1>
+                <span class="page-subheading ms-fontSize-l">Top 500 Over the Last 6 Weeks</span>
+            }
         </div>
     </div>
     <div class="row">
         <div class="col-xs-12">
             <table class="table borderless">
-                <caption class="sr-only">
-                    The package versions with the most downloads.
-                </caption>
+                @if (Model.IsCommunityPackageSet)
+                {
+                     <caption class="sr-only">
+                        The non-Microsoft packages with the most downloads.
+                    </caption>
+                }
+                else
+                {
+                    <caption class="sr-only">
+                        The packages with the most downloads.
+                    </caption>
+                }
                 <thead>
                     <tr class="package-versions">
                         <th scope="col">&nbsp;<span class="sr-only">#</span></th>
