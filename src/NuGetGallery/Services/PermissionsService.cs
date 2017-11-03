@@ -99,6 +99,7 @@ namespace NuGetGallery
             var matchingMembers = owners
                 .Where(o => o is Organization)
                 .Cast<Organization>()
+                .Where(o => o.Members != null)
                 .SelectMany(o => o.Members)
                 .Where(m => isUserMatch(m.Member))
                 .ToArray();

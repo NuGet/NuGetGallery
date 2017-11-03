@@ -212,8 +212,9 @@ namespace NuGetGallery.Authentication
             {
                 // Arrange
                 var organization = _fakes.Organization;
-                var apiKey = Guid.Parse("1fdc96fe-0b41-4607-bc85-b6533b42d3f8");
-                organization.Credentials.Add(TestCredentialHelper.CreateV2ApiKey(apiKey, TimeSpan.FromDays(1)));
+                var apiKey = TestCredentialHelper.CreateV2ApiKey(Guid.NewGuid(), TimeSpan.FromDays(1));
+                apiKey.User = organization;
+                organization.Credentials.Add(apiKey);
 
                 // Act
                 var result = await _authenticationService.Authenticate(apiKey.ToString());

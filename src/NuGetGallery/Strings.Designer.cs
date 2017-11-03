@@ -61,6 +61,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The user &apos;{0}&apos; is already an owner or pending owner of the package!.
+        /// </summary>
+        public static string AddOwner_AlreadyOwner {
+            get {
+                return ResourceManager.GetString("AddOwner_AlreadyOwner", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Current user not found..
         /// </summary>
         public static string AddOwner_CurrentUserNotFound {
@@ -950,6 +959,15 @@ namespace NuGetGallery {
         public static string RemoveOwner_NotAllowed {
             get {
                 return ResourceManager.GetString("RemoveOwner_NotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The user &apos;{0}&apos; is not an owner or pending owner of the package!.
+        /// </summary>
+        public static string RemoveOwner_NotOwner {
+            get {
+                return ResourceManager.GetString("RemoveOwner_NotOwner", resourceCulture);
             }
         }
         

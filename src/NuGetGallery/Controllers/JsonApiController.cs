@@ -104,7 +104,7 @@ namespace NuGetGallery
         public virtual ActionResult GetAddPackageOwnerConfirmation(string id, string username)
         {
             ManagePackageOwnerModel model;
-            if (TryGetManagePackageOwnerModel(id, username, out model))
+            if (TryGetManagePackageOwnerModel(id, username, add: true, model: out model))
             {
                 return Json(new
                 {
@@ -125,7 +125,7 @@ namespace NuGetGallery
         public async Task<JsonResult> AddPackageOwner(string id, string username, string message)
         {
             ManagePackageOwnerModel model;
-            if (TryGetManagePackageOwnerModel(id, username, out model))
+            if (TryGetManagePackageOwnerModel(id, username, add: true, model: out model))
             {
                 var encodedMessage = HttpUtility.HtmlEncode(message);
 
@@ -172,7 +172,7 @@ namespace NuGetGallery
         public async Task<JsonResult> RemovePackageOwner(string id, string username)
         {
             ManagePackageOwnerModel model;
-            if (TryGetManagePackageOwnerModel(id, username, out model))
+            if (TryGetManagePackageOwnerModel(id, username, add: false, model: out model))
             {
                 var request = _packageOwnershipManagementService.GetPackageOwnershipRequests(package: model.Package, newOwner: model.User).FirstOrDefault();
 
@@ -286,7 +286,7 @@ namespace NuGetGallery
                 SecurePushSubscription.MinProtocolVersion, SecurePushSubscription.PushKeysExpirationInDays);
         }
 
-        private bool TryGetManagePackageOwnerModel(string id, string username, out ManagePackageOwnerModel model)
+        private bool TryGetManagePackageOwnerModel(string id, string username, bool add, out ManagePackageOwnerModel model)
         {
             if (string.IsNullOrEmpty(id))
             {
@@ -319,6 +319,20 @@ namespace NuGetGallery
             {
                 model = new ManagePackageOwnerModel(
                     string.Format(CultureInfo.CurrentCulture, Strings.AddOwner_OwnerNotConfirmed, username));
+                return false;
+            }
+            var isOwner = !PermissionsService.IsActionAllowed(package, user, PackagePermissionRestrictedActions.AcceptOwnership) ||
+                _packageOwnershipManagementService.GetPackageOwnershipRequests(package: package, newOwner: user).Any();
+            if (add && isOwner)
+            {
+                model = new ManagePackageOwnerModel(
+                    string.Format(CultureInfo.CurrentCulture, Strings.AddOwner_AlreadyOwner, username));
+                return false;
+            }
+            if (!add && !isOwner)
+            {
+                model = new ManagePackageOwnerModel(
+                    string.Format(CultureInfo.CurrentCulture, Strings.RemoveOwner_NotOwner, username));
                 return false;
             }
 
