@@ -41,12 +41,19 @@ namespace NuGetGallery.Infrastructure.Authentication
             if (ownerKeys.Length == 0)
             {
                 // Legacy API key with no owner scope.
-                credential.Scopes = new[] { new Scope(null, subject: id, allowedAction: NuGetScopes.PackageVerify) };
+                credential.Scopes = new[] { new Scope(
+                    ownerKey: null,
+                    subject: id,
+                    allowedAction: NuGetScopes.PackageVerify)
+                };
             }
             else
             {
                 credential.Scopes = ownerKeys
-                    .Select(key => new Scope(key, subject: id, allowedAction: NuGetScopes.PackageVerify))
+                    .Select(key => new Scope(
+                        ownerKey: key,
+                        subject: id,
+                        allowedAction: NuGetScopes.PackageVerify))
                     .ToArray();
             }
 

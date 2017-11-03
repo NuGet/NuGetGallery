@@ -15,8 +15,9 @@ namespace NuGetGallery
     /// <see href="https://weblogs.asp.net/manavi/inheritance-mapping-strategies-with-entity-framework-code-first-ctp5-part-2-table-per-type-tpt" />
     public class Organization : User
     {
-        public Organization() : this(null)
+        public Organization() : base()
         {
+            Members = new List<Membership>();
         }
 
         public Organization(string name) : base(name)

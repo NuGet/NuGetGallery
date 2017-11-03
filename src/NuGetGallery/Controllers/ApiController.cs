@@ -296,7 +296,7 @@ namespace NuGetGallery
             if (CredentialTypes.IsPackageVerificationApiKey(credential.Type))
             {
                 // Secure path: verify that verification key matches package scope.
-                if (!HasScopeThatAllows(package.PackageRegistration, NuGetScopes.PackageVerify))
+                if (!HasAnyScopeThatAllows(package.PackageRegistration, NuGetScopes.PackageVerify))
                 {
                     return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
                 }
@@ -304,7 +304,7 @@ namespace NuGetGallery
             else
             {
                 // Insecure path: verify that API key is legacy or matches package scope.
-                if (!HasScopeThatAllows(package.PackageRegistration, NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion))
+                if (!HasAnyScopeThatAllows(package.PackageRegistration, NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion))
                 {
                     return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
                 }
@@ -407,7 +407,7 @@ namespace NuGetGallery
                         if (packageRegistration == null)
                         {
                             // Check if API key allows pushing a new package id
-                            if (!HasScopeThatAllowsPushNew(id))
+                            if (!HasAnyScopeThatAllowsPushNew(id))
                             {
                                 // User cannot push a new package ID as the API key scope does not allow it
                                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Unauthorized, Strings.ApiKeyNotAuthorized);
@@ -426,7 +426,7 @@ namespace NuGetGallery
                         else
                         {
                             // Check if API key allows pushing the current package id
-                            if (!HasScopeThatAllows(packageRegistration, NuGetScopes.PackagePushVersion, NuGetScopes.PackagePush))
+                            if (!HasAnyScopeThatAllows(packageRegistration, NuGetScopes.PackagePushVersion, NuGetScopes.PackagePush))
                             {
                                 await AuditingService.SaveAuditRecordAsync(
                                     new FailedAuthenticatedOperationAuditRecord(
@@ -556,7 +556,7 @@ namespace NuGetGallery
 
             // Check if API key allows listing/unlisting the current package id
             var user = GetCurrentUser();
-            if (!HasScopeThatAllows(package.PackageRegistration, NuGetScopes.PackageUnlist))
+            if (!HasAnyScopeThatAllows(package.PackageRegistration, NuGetScopes.PackageUnlist))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
             }
@@ -581,7 +581,7 @@ namespace NuGetGallery
 
             // Check if API key allows listing/unlisting the current package id
             User user = GetCurrentUser();
-            if (!HasScopeThatAllows(package.PackageRegistration, NuGetScopes.PackageUnlist))
+            if (!HasAnyScopeThatAllows(package.PackageRegistration, NuGetScopes.PackageUnlist))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
             }
@@ -705,7 +705,7 @@ namespace NuGetGallery
             return new HttpStatusCodeResult(HttpStatusCode.NotFound);
         }
 
-        private bool HasScopeThatAllows(PackageRegistration package, params string[] requestedActions)
+        private bool HasAnyScopeThatAllows(PackageRegistration package, params string[] requestedActions)
         {
             var scopes = User.Identity.GetScopesFromClaim();
             if (scopes != null)
@@ -729,7 +729,7 @@ namespace NuGetGallery
             return GetCurrentUser().IsOwnerOrMemberOfOrganization(package);
         }
 
-        private bool HasScopeThatAllowsPushNew(string packageId)
+        private bool HasAnyScopeThatAllowsPushNew(string packageId)
         {
             //  Package owners not populated yet, so only verify the scope subject and action.
             var scopes = User.Identity.GetScopesFromClaim();

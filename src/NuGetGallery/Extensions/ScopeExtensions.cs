@@ -13,6 +13,8 @@ namespace NuGetGallery
     /// </summary>
     public static class ScopeExtensions
     {
+        private static readonly TimeSpan RegexTimeout = TimeSpan.FromMinutes(1);
+
         /// <summary>
         /// Determine if the scope allows any of the requested actions.
         /// </summary>
@@ -47,8 +49,11 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(subject));
             }
 
-            return new Regex("^" + Regex.Escape(scope.Subject).Replace(@"\*", ".*") + "$",
-                        RegexOptions.IgnoreCase | RegexOptions.Singleline).IsMatch(subject);
+            return new Regex(
+                    "^" + Regex.Escape(scope.Subject).Replace(@"\*", ".*") + "$",
+                    RegexOptions.IgnoreCase | RegexOptions.Singleline,
+                    RegexTimeout)
+                .IsMatch(subject);
         }
 
         /// <summary>
