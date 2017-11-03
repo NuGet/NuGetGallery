@@ -6,7 +6,7 @@ namespace NuGetGallery
     /// <summary>
     /// Actions that a <see cref="User"/> can perform on another <see cref="User"/>.
     /// </summary>
-    public static class UserActions
+    public static class AccountActions
     {
         /// <summary>
         /// If a user is requested to be an owner of a package, this user can accept the request on behalf of the other user.
