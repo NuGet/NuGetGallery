@@ -9,7 +9,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Security;
 using System.Security.Claims;
-using System.Security.Principal;
 using System.Text;
 using System.Web;
 using System.Web.Mvc;
@@ -18,7 +17,6 @@ using System.Web.WebPages;
 using Microsoft.Owin;
 using NuGet.Frameworks;
 using NuGet.Packaging;
-using NuGetGallery.Authentication;
 using NuGetGallery.Helpers;
 
 namespace NuGetGallery
@@ -410,61 +408,6 @@ namespace NuGetGallery
                 }
             }
             return sb.ToString();
-        }
-
-        public static string GetClaimOrDefault(this ClaimsPrincipal self, string claimType)
-        {
-            return self.Claims.GetClaimOrDefault(claimType);
-        }
-
-        public static bool HasScopeThatAllowsActionForSubject(
-            this IIdentity self, 
-            string subject,
-            string[] requestedActions)
-        {
-            var identity = self as ClaimsIdentity;
-
-            if (identity == null)
-            {
-                return false;
-            }
-
-            var scopeClaim = identity.GetClaimOrDefault(NuGetClaims.Scope);
-
-            return ScopeEvaluator.ScopeClaimsAllowsActionForSubject(scopeClaim, subject, requestedActions);
-        }
-
-        public static string GetAuthenticationType(this IIdentity self)
-        {
-            var identity = self as ClaimsIdentity;
-
-            return identity?.GetClaimOrDefault(ClaimTypes.AuthenticationMethod);
-        }
-
-        private static string GetScopeClaim(this IIdentity self)
-        {
-            var identity = self as ClaimsIdentity;
-
-            return identity?.GetClaimOrDefault(NuGetClaims.Scope);
-        }
-
-        public static bool IsScopedAuthentication(this IIdentity self)
-        {
-            var scopeClaim = self.GetScopeClaim();
-
-            return !ScopeEvaluator.IsEmptyScopeClaim(scopeClaim);
-        }
-        
-        /// <summary>
-        /// Determines if authentication is scoped and uses package verify claim.
-        /// </summary>
-        public static bool HasPackageVerifyScopeClaim(this IIdentity self)
-        {
-            var scopeClaim = self.GetScopeClaim();
-            
-            return !ScopeEvaluator.IsEmptyScopeClaim(scopeClaim) &&
-                ScopeEvaluator.ScopeClaimsAllowsActionForSubject(scopeClaim, subject: null,
-                requestedActions: new [] { NuGetScopes.PackageVerify });
         }
 
         // This is a method because the first call will perform a database call

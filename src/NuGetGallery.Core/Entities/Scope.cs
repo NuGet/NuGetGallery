@@ -43,9 +43,9 @@ namespace NuGetGallery
         {
         }
 
-        public Scope(User owner, string subject, string allowedAction)
+        public Scope(int? ownerKey, string subject, string allowedAction)
         {
-            Owner = owner;
+            OwnerKey = ownerKey;
             Subject = subject;
             AllowedAction = allowedAction;
         }
