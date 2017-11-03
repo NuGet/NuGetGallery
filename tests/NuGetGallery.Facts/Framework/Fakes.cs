@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Security.Claims;
 using System.Security.Principal;
 using Microsoft.Owin;
@@ -21,11 +22,15 @@ namespace NuGetGallery.Framework
         
         public Fakes()
         {
+            _users = Get<User>();
+            _packageRegistrations = Get<PackageRegistration>();
+
+            var key = 39;
             var credentialBuilder = new CredentialBuilder();
 
             User = new User("testUser")
             {
-                Key = 40,
+                Key = key++,
                 EmailAddress = "confirmed0@example.com",
                 Credentials = new List<Credential>
                 {
@@ -41,7 +46,7 @@ namespace NuGetGallery.Framework
 
             Organization = new Organization("testOrganization")
             {
-                Key = 41,
+                Key = key++,
                 EmailAddress = "confirmedOrganization@example.com",
                 // invalid credentials for testing authentication constraints
                 Credentials = new List<Credential>
@@ -49,19 +54,20 @@ namespace NuGetGallery.Framework
                     credentialBuilder.CreatePasswordCredential(Password)
                 }
             };
+            
+            CreateOrganizationUsers(ref key, credentialBuilder, "", out var organization, out var organizationAdmin, out var organizationCollaborator);
+            Organization = organization;
+            OrganizationAdmin = organizationAdmin;
+            OrganizationCollaborator = organizationCollaborator;
 
-            var membership = new Membership
-            {
-                Organization = Organization,
-                Member = User,
-                IsAdmin = true
-            };
-            User.Organizations.Add(membership);
-            Organization.Members.Add(membership);
+            CreateOrganizationUsers(ref key, credentialBuilder, "Owner", out var organizationOwner, out var organizationAdminOwner, out var organizationCollaboratorOwner);
+            OrganizationOwner = organizationOwner;
+            OrganizationAdminOwner = organizationAdminOwner;
+            OrganizationCollaboratorOwner = organizationCollaboratorOwner;
 
             Pbkdf2User = new User("testPbkdf2User")
             {
-                Key = 41,
+                Key = key++,
                 EmailAddress = "confirmed1@example.com",
                 Credentials = new List<Credential>
                 {
@@ -73,7 +79,7 @@ namespace NuGetGallery.Framework
 
             ShaUser = new User("testShaUser")
             {
-                Key = 42,
+                Key = key++,
                 EmailAddress = "confirmed2@example.com",
                 Credentials = new List<Credential>
                 {
@@ -85,7 +91,7 @@ namespace NuGetGallery.Framework
 
             Admin = new User("testAdmin")
             {
-                Key = 43,
+                Key = key++,
                 EmailAddress = "confirmed3@example.com",
                 Credentials = new List<Credential> { TestCredentialHelper.CreatePbkdf2Password(Password)},
                 Roles = new List<Role> {new Role {Name = Constants.AdminRoleName}}
@@ -93,7 +99,7 @@ namespace NuGetGallery.Framework
 
             Owner = new User("testPackageOwner")
             {
-                Key = 44,
+                Key = key++,
                 Credentials = new List<Credential> { TestCredentialHelper.CreatePbkdf2Password(Password)},
                 EmailAddress = "confirmed@example.com" //package owners need confirmed email addresses, obviously.
             };
@@ -101,7 +107,7 @@ namespace NuGetGallery.Framework
             Package = new PackageRegistration
             {
                 Id = "FakePackage",
-                Owners = new List<User> {Owner},
+                Owners = new List<User> {Owner, OrganizationOwner},
             };
             Package.Packages = new List<Package>
             {
@@ -113,6 +119,16 @@ namespace NuGetGallery.Framework
         public User User { get; }
 
         public Organization Organization { get; }
+
+        public User OrganizationAdmin { get; }
+
+        public User OrganizationCollaborator { get; }
+
+        public Organization OrganizationOwner { get; }
+
+        public User OrganizationAdminOwner { get; }
+
+        public User OrganizationCollaboratorOwner { get; }
 
         public User ShaUser { get; }
 
@@ -158,22 +174,28 @@ namespace NuGetGallery.Framework
 
         internal void ConfigureEntitiesContext(FakeEntitiesContext ctxt)
         {
-            // Add Users
+            // Add Users and Credentials
             var users = ctxt.Set<User>();
-            users.Add(User);
-            users.Add(Pbkdf2User);
-            users.Add(ShaUser);
-            users.Add(Admin);
-            users.Add(Owner);
-
-            // Add Credentials and link to users
             var creds = ctxt.Set<Credential>();
-            foreach (var user in users)
+            foreach (var user in Users)
             {
+                users.Add(user);
                 foreach (var cred in user.Credentials)
                 {
                     cred.User = user;
                     creds.Add(cred);
+                }
+            }
+
+            // Add Packages and Registrations
+            var packageRegistrations = ctxt.Set<PackageRegistration>();
+            var packages = ctxt.Set<Package>();
+            foreach (var packageRegistration in PackageRegistrations)
+            {
+                packageRegistrations.Add(packageRegistration);
+                foreach (var package in packageRegistration.Packages)
+                {
+                    packages.Add(package);
                 }
             }
         }
@@ -195,6 +217,77 @@ namespace NuGetGallery.Framework
             var middleware = new Mock<OwinMiddleware>(new object[] { null });
             middleware.Setup(m => m.Invoke(It.IsAny<OwinContext>())).Completes();
             return middleware;
+        }
+
+        private IEnumerable<Func<User>> _users;
+        public IEnumerable<User> Users => _users.Select(f => f());
+
+        private IEnumerable<Func<PackageRegistration>> _packageRegistrations;
+        public IEnumerable<PackageRegistration> PackageRegistrations => _packageRegistrations.Select(f => f());
+
+        private IEnumerable<Func<T>> Get<T>()
+        {
+            return typeof(Fakes)
+                .GetProperties()
+                .Where(p => typeof(T).IsAssignableFrom(p.PropertyType) && p.GetMethod != null)
+                .Select<PropertyInfo, Func<T>>(p => 
+                    () => (T)p.GetMethod.Invoke(this, new object[] { }));
+        }
+
+        private void CreateOrganizationUsers(ref int key, CredentialBuilder credentialBuilder, string suffix, out Organization organization, out User admin, out User collaborator)
+        {
+            organization = new Organization("testOrganization" + suffix)
+            {
+                Key = key++,
+                EmailAddress = $"confirmedOrganization{suffix}@example.com",
+                // invalid credentials for testing authentication constraints
+                Credentials = new List<Credential>
+                {
+                    credentialBuilder.CreatePasswordCredential(Password)
+                }
+            };
+
+            admin = new User("testOrganizationAdmin" + suffix)
+            {
+                Key = key++,
+                EmailAddress = $"confirmedOrganizationAdmin{suffix}@example.com",
+                Credentials = new List<Credential>
+                {
+                    credentialBuilder.CreatePasswordCredential(Password)
+                }
+            };
+
+            admin.Organizations = new[]
+            {
+                new Membership
+                {
+                    Organization = organization,
+                    Member = admin,
+                    IsAdmin = true
+                }
+            };
+
+            collaborator = new User("testOrganizationCollaborator" + suffix)
+            {
+                Key = key++,
+                EmailAddress = $"confirmedOrganizationCollaborator{suffix}@example.com",
+                Credentials = new List<Credential>
+                {
+                    credentialBuilder.CreatePasswordCredential(Password)
+                }
+            };
+
+            collaborator.Organizations = new[]
+            {
+                new Membership
+                {
+                    Organization = organization,
+                    Member = collaborator,
+                    IsAdmin = false
+                }
+            };
+
+            organization.Members = admin.Organizations.Concat(collaborator.Organizations).ToList();
         }
     }
 }
