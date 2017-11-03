@@ -70,17 +70,17 @@ namespace NuGetGallery
                 u => UserMatchesUser(u, currentUser));
         }
 
-        internal static PermissionLevel GetPermissionLevel(IEnumerable<User> owners, IPrincipal principal)
+        internal static PermissionLevel GetPermissionLevel(IEnumerable<User> owners, IPrincipal currentPrincipal)
         {
-            if (principal == null)
+            if (currentPrincipal == null)
             {
                 return PermissionLevel.Anonymous;
             }
 
             return GetPermissionLevel(
                 owners, 
-                principal.IsAdministrator(), 
-                u => UserMatchesPrincipal(u, principal));
+                currentPrincipal.IsAdministrator(), 
+                u => UserMatchesPrincipal(u, currentPrincipal));
         }
 
         private static PermissionLevel GetPermissionLevel(IEnumerable<User> owners, bool isUserAdmin, Func<User, bool> isUserMatch)
