@@ -10,46 +10,70 @@ namespace NuGetGallery
 {
     public static class PermissionsService
     {
+        /// <summary>
+        /// Is <paramref name="currentPrincipal"/> allowed to perform <paramref name="actionPermissionLevel"/> on <paramref name="package"/>?
+        /// </summary>
         public static bool IsActionAllowed(Package package, IPrincipal currentPrincipal, PermissionLevel actionPermissionLevel)
         {
             return IsActionAllowed(package.PackageRegistration, currentPrincipal, actionPermissionLevel);
         }
 
+        /// <summary>
+        /// Is <paramref name="currentPrincipal"/> allowed to perform <paramref name="actionPermissionLevel"/> on <paramref name="packageRegistration"/>?
+        /// </summary>
         public static bool IsActionAllowed(PackageRegistration packageRegistration, IPrincipal currentPrincipal, PermissionLevel actionPermissionLevel)
         {
             return IsActionAllowed(packageRegistration.Owners, currentPrincipal, actionPermissionLevel);
         }
 
-        public static bool IsActionAllowed(IEnumerable<User> owners, IPrincipal currentPrincipal, PermissionLevel actionPermissionLevel)
+        /// <summary>
+        /// Is <paramref name="currentPrincipal"/> allowed to perform <paramref name="actionPermissionLevel"/> on <paramref name="account"/>?
+        /// </summary>
+        public static bool IsActionAllowed(User account, IPrincipal currentPrincipal, PermissionLevel actionPermissionLevel)
         {
-            var userPermissionLevel = GetPermissionLevel(owners, currentPrincipal);
+            return IsActionAllowed(new User[] { account }, currentPrincipal, actionPermissionLevel);
+        }
+
+        /// <summary>
+        /// Is <paramref name="currentPrincipal"/> allowed to perform <paramref name="actionPermissionLevel"/> on the entity owned by <paramref name="entityOwners"/>?
+        /// </summary>
+        public static bool IsActionAllowed(IEnumerable<User> entityOwners, IPrincipal currentPrincipal, PermissionLevel actionPermissionLevel)
+        {
+            var userPermissionLevel = GetPermissionLevel(entityOwners, currentPrincipal);
             return IsAllowed(userPermissionLevel, actionPermissionLevel);
         }
 
-        public static bool IsActionAllowed(User owner, IPrincipal currentPrincipal, PermissionLevel actionPermissionLevel)
-        {
-            return IsActionAllowed(new User[] { owner }, currentPrincipal, actionPermissionLevel);
-        }
-
+        /// <summary>
+        /// Is <paramref name="currentUser"/> allowed to perform <paramref name="actionPermissionLevel"/> on <paramref name="package"/>?
+        /// </summary>
         public static bool IsActionAllowed(Package package, User currentUser, PermissionLevel actionPermissionLevel)
         {
             return IsActionAllowed(package.PackageRegistration, currentUser, actionPermissionLevel);
         }
 
+        /// <summary>
+        /// Is <paramref name="currentUser"/> allowed to perform <paramref name="actionPermissionLevel"/> on <paramref name="packageRegistration"/>?
+        /// </summary>
         public static bool IsActionAllowed(PackageRegistration packageRegistration, User currentUser, PermissionLevel actionPermissionLevel)
         {
             return IsActionAllowed(packageRegistration.Owners, currentUser, actionPermissionLevel);
         }
 
-        public static bool IsActionAllowed(IEnumerable<User> owners, User currentUser, PermissionLevel actionPermissionLevel)
+        /// <summary>
+        /// Is <paramref name="currentPrincipal"/> allowed to perform <paramref name="actionPermissionLevel"/> on <paramref name="account"/>?
+        /// </summary>
+        public static bool IsActionAllowed(User account, User currentUser, PermissionLevel action)
         {
-            var userPermissionLevel = GetPermissionLevel(owners, currentUser);
-            return IsAllowed(userPermissionLevel, actionPermissionLevel);
+            return IsActionAllowed(new User[] { account }, currentUser, action);
         }
 
-        public static bool IsActionAllowed(User owner, User currentUser, PermissionLevel action)
+        /// <summary>
+        /// Is <paramref name="currentPrincipal"/> allowed to perform <paramref name="actionPermissionLevel"/> on the entity owned by <paramref name="entityOwners"/>?
+        /// </summary>
+        public static bool IsActionAllowed(IEnumerable<User> entityOwners, User currentUser, PermissionLevel actionPermissionLevel)
         {
-            return IsActionAllowed(new User[] { owner }, currentUser, action);
+            var userPermissionLevel = GetPermissionLevel(entityOwners, currentUser);
+            return IsAllowed(userPermissionLevel, actionPermissionLevel);
         }
 
         private static bool IsAllowed(PermissionLevel userPermissionLevel, PermissionLevel actionPermissionLevel)
@@ -70,7 +94,7 @@ namespace NuGetGallery
                 u => UserMatchesUser(u, currentUser));
         }
 
-        internal static PermissionLevel GetPermissionLevel(IEnumerable<User> owners, IPrincipal currentPrincipal)
+        internal static PermissionLevel GetPermissionLevel(IEnumerable<User> entityOwners, IPrincipal currentPrincipal)
         {
             if (currentPrincipal == null)
             {
@@ -78,16 +102,16 @@ namespace NuGetGallery
             }
 
             return GetPermissionLevel(
-                owners, 
+                entityOwners, 
                 currentPrincipal.IsAdministrator(), 
                 u => UserMatchesPrincipal(u, currentPrincipal));
         }
 
-        private static PermissionLevel GetPermissionLevel(IEnumerable<User> owners, bool isUserAdmin, Func<User, bool> isUserMatch)
+        private static PermissionLevel GetPermissionLevel(IEnumerable<User> entityOwners, bool isUserAdmin, Func<User, bool> isUserMatch)
         {
             var permissionLevel = PermissionLevel.Anonymous;
 
-            if (owners == null)
+            if (entityOwners == null)
             {
                 return permissionLevel;
             }
@@ -97,12 +121,12 @@ namespace NuGetGallery
                 permissionLevel |= PermissionLevel.SiteAdmin;
             }
 
-            if (owners.Any(isUserMatch))
+            if (entityOwners.Any(isUserMatch))
             {
                 permissionLevel |= PermissionLevel.Owner;
             }
 
-            var matchingMembers = owners
+            var matchingMembers = entityOwners
                 .Where(o => o is Organization)
                 .Cast<Organization>()
                 .SelectMany(o => o.Members)
