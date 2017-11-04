@@ -139,18 +139,5 @@ namespace NuGetGallery
         {
             return Roles.Any(r => String.Equals(r.Name, roleName, StringComparison.OrdinalIgnoreCase));
         }
-
-        public void SetAccountAsDeleted()
-        {
-            EmailAddress = null;
-            UnconfirmedEmailAddress = null;
-            EmailAllowed = false;
-            EmailConfirmationToken = null;
-            PasswordResetToken = null;
-            NotifyPackagePushed = false;
-            LastFailedLoginUtc = null;
-            FailedLoginCount = 0;
-            IsDeleted = true;
-        }
     }
 }

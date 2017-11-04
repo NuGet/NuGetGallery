@@ -13,25 +13,25 @@ namespace NuGetGallery.Migrations
                     {
                         Key = c.Int(nullable: false, identity: true),
                         DeletedOn = c.DateTime(nullable: false),
+                        DeletedAccountKey = c.Int(nullable: false),
+                        DeletedByKey = c.Int(nullable: false),
                         Signature = c.String(nullable: false),
-                        DeletedAccount_Key = c.Int(nullable: false),
-                        DeletedBy_Key = c.Int(nullable: false),
                     })
                 .PrimaryKey(t => t.Key)
-                .ForeignKey("dbo.Users", t => t.DeletedAccount_Key, cascadeDelete: true)
-                .ForeignKey("dbo.Users", t => t.DeletedBy_Key)
-                .Index(t => t.DeletedAccount_Key)
-                .Index(t => t.DeletedBy_Key);
+                .ForeignKey("dbo.Users", t => t.DeletedAccountKey, cascadeDelete: true)
+                .ForeignKey("dbo.Users", t => t.DeletedByKey)
+                .Index(t => t.DeletedAccountKey)
+                .Index(t => t.DeletedByKey);
             
             AddColumn("dbo.Users", "IsDeleted", c => c.Boolean(nullable: false));
         }
         
         public override void Down()
         {
-            DropForeignKey("dbo.AccountDeletes", "DeletedBy_Key", "dbo.Users");
-            DropForeignKey("dbo.AccountDeletes", "DeletedAccount_Key", "dbo.Users");
-            DropIndex("dbo.AccountDeletes", new[] { "DeletedBy_Key" });
-            DropIndex("dbo.AccountDeletes", new[] { "DeletedAccount_Key" });
+            DropForeignKey("dbo.AccountDeletes", "DeletedByKey", "dbo.Users");
+            DropForeignKey("dbo.AccountDeletes", "DeletedAccountKey", "dbo.Users");
+            DropIndex("dbo.AccountDeletes", new[] { "DeletedByKey" });
+            DropIndex("dbo.AccountDeletes", new[] { "DeletedAccountKey" });
             DropColumn("dbo.Users", "IsDeleted");
             DropTable("dbo.AccountDeletes");
         }

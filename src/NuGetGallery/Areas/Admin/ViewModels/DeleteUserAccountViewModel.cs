@@ -10,7 +10,7 @@ namespace NuGetGallery.Areas.Admin.ViewModels
     {
         public DeleteUserAccountViewModel()
         {
-            Unlist = true;
+            ShouldUnlist = true;
         }
 
         public List<ListPackageItemViewModel> Packages { get; set; }
@@ -24,8 +24,8 @@ namespace NuGetGallery.Areas.Admin.ViewModels
         [Display(Name = "Signature")]
         public string Signature { get; set; }
 
-        [Display(Name = "Unlist the packages without an user.")]
-        public bool Unlist { get; set; }
+        [Display(Name = "Unlist the packages with no other owners.")]
+        public bool ShouldUnlist { get; set; }
 
         public bool HasOrphanPackages { get; set; }
     }

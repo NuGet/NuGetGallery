@@ -184,7 +184,7 @@ namespace NuGetGallery
 
                 if (request == null)
                 {
-                    await _packageOwnershipManagementService.RemovePackageOwnerAsync(model.Package, model.CurrentUser, model.User);
+                    await _packageOwnershipManagementService.RemovePackageOwnerAsync(model.Package, model.CurrentUser, model.User, commitAsTransaction:true);
                     _messageService.SendPackageOwnerRemovedNotice(model.CurrentUser, model.User, model.Package);
                 }
                 else

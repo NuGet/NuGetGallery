@@ -699,7 +699,7 @@
     <Compile Include="Areas\Admin\Models\ISupportRequestDbContext.cs" />
     <Compile Include="Areas\Admin\Models\SupportRequestDbContext.cs" />
     <Compile Include="Areas\Admin\Services\ValidationAdminService.cs" />
-    <Compile Include="Areas\Admin\ViewModels\DeleteAccountStatusViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\DeleteAccountStatus.cs" />
     <Compile Include="Areas\Admin\ViewModels\HardDeleteReflowBulkRequestConfirmation.cs" />
     <Compile Include="Areas\Admin\ViewModels\HardDeleteReflowBulkRequest.cs" />
     <Compile Include="Areas\Admin\ViewModels\HardDeleteReflowRequest.cs" />
@@ -783,9 +783,9 @@
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Helpers\GravatarHelper.cs" />
     <Compile Include="Helpers\RegexEx.cs" />
-    <Compile Include="Migrations\201710302343008_AddAccountDelete.cs" />
-    <Compile Include="Migrations\201710302343008_AddAccountDelete.Designer.cs">
-      <DependentUpon>201710302343008_AddAccountDelete.cs</DependentUpon>
+    <Compile Include="Migrations\201711012052381_AddAccountDelete.cs" />
+    <Compile Include="Migrations\201711012052381_AddAccountDelete.Designer.cs">
+      <DependentUpon>201711012052381_AddAccountDelete.cs</DependentUpon>
     </Compile>
     <Compile Include="RequestModels\DeleteAccountRequest.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.cs" />
@@ -1877,8 +1877,8 @@
     <EmbeddedResource Include="Migrations\201710301857232_Organizations.resx">
       <DependentUpon>201710301857232_Organizations.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201710302343008_AddAccountDelete.resx">
-      <DependentUpon>201710302343008_AddAccountDelete.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201711012052381_AddAccountDelete.resx">
+      <DependentUpon>201711012052381_AddAccountDelete.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

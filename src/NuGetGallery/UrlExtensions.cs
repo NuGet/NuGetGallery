@@ -538,7 +538,7 @@ namespace NuGetGallery
             bool relativeUrl = true)
         {
             return GetActionLink(url,
-                "DeleteUserAccount", 
+                nameof(UsersController.Delete), 
                 "Users",
                 relativeUrl,
                 routeValues: new RouteValueDictionary

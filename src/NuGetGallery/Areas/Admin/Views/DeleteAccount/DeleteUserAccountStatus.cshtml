@@ -1,5 +1,5 @@
 ﻿@using NuGetGallery
-@model NuGetGallery.Areas.Admin.ViewModels.DeleteUserAccountStatusViewModel
+@model NuGetGallery.Areas.Admin.ViewModels.DeleteUserAccountStatus
 @{
     ViewBag.Title = "Delete Account Status" + Model.AccountName;
     ViewBag.MdPageColumns = Constants.ColumnsFormMd;
@@ -8,17 +8,15 @@
 
 <section role="main" class="container main-container ">
     <div class="form-group">
-        <div class="form-group">
-            <h1 class="text-center">Delete Account Status</h1>
-            <h2 class="text-center">@Model.AccountName</h2>
-            <div class="form-group">
-                <ul>
-                    @foreach (var status in Model.OperationStatus)
-                    {
-                        <li> @status </li>
-                    }
-                </ul>
-            </div>
+        <div class="form-group text-center">
+            @if (Model.Success)
+            {
+                @ViewHelpers.AlertInfo(@<text>@Model.Description</text>)
+            }
+            else
+            {
+                @ViewHelpers.AlertDanger(@<text>@Model.Description</text>)
+            }
         </div>
     </div>
 </section>

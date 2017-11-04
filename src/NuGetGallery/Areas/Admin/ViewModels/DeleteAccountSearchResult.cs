@@ -7,6 +7,11 @@ namespace NuGetGallery.Areas.Admin.ViewModels
 {
     public class DeleteAccountSearchResult
     {
-        public string AccountName { get; set; }
+        public string AccountName { get; }
+
+        public DeleteAccountSearchResult(string accountName)
+        {
+            AccountName = accountName;
+        }
     }
 }

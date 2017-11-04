@@ -165,7 +165,7 @@ namespace NuGetGallery
             }
         }
 
-        public async Task DeleteOwnerFromReservedNamespaceAsync(string prefix, string username)
+        public async Task DeleteOwnerFromReservedNamespaceAsync(string prefix, string username, bool commitAsTransaction = true)
         {
             if (string.IsNullOrWhiteSpace(prefix))
             {
@@ -176,50 +176,61 @@ namespace NuGetGallery
             {
                 throw new ArgumentException(Strings.ReservedNamespace_InvalidUsername);
             }
-
-            using (var strategy = new SuspendDbExecutionStrategy())
-            using (var transaction = EntitiesContext.GetDatabase().BeginTransaction())
+            if (commitAsTransaction)
             {
-                var namespaceToModify = FindReservedNamespaceForPrefix(prefix)
+                using (var strategy = new SuspendDbExecutionStrategy())
+                using (var transaction = EntitiesContext.GetDatabase().BeginTransaction())
+                {
+                    await DeleteOwnerFromReservedNamespaceImplAsync(prefix, username);
+                    transaction.Commit();
+                }
+            }
+            else
+            {
+                await DeleteOwnerFromReservedNamespaceImplAsync(prefix, username);
+            }
+        }
+
+        private async Task DeleteOwnerFromReservedNamespaceImplAsync(string prefix, string username)
+        {
+            var namespaceToModify = FindReservedNamespaceForPrefix(prefix)
                     ?? throw new InvalidOperationException(string.Format(
                         CultureInfo.CurrentCulture, Strings.ReservedNamespace_NamespaceNotFound, prefix));
 
-                var userToRemove = UserService.FindByUsername(username)
-                    ?? throw new InvalidOperationException(string.Format(
-                        CultureInfo.CurrentCulture, Strings.ReservedNamespace_UserNotFound, username));
+            var userToRemove = UserService.FindByUsername(username)
+                ?? throw new InvalidOperationException(string.Format(
+                    CultureInfo.CurrentCulture, Strings.ReservedNamespace_UserNotFound, username));
 
-                if (!namespaceToModify.Owners.Contains(userToRemove))
-                {
-                    throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, Strings.ReservedNamespace_UserNotAnOwner, username));
-                }
+            if (!namespaceToModify.Owners.Contains(userToRemove))
+            {
+                throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, Strings.ReservedNamespace_UserNotAnOwner, username));
+            }
 
-                var packagesOwnedByUserMatchingPrefix = namespaceToModify
-                        .PackageRegistrations
-                        .Where(pr => pr
-                            .Owners
-                            .Any(pro => pro.Username == userToRemove.Username))
-                        .ToList();
-
-                // Remove verified mark for package registrations if the user to be removed is the only prefix owner
-                // for the given package registration.
-                var packageRegistrationsToMarkUnverified = packagesOwnedByUserMatchingPrefix
-                    .Where(pr => pr.Owners.Intersect(namespaceToModify.Owners).Count() == 1)
+            var packagesOwnedByUserMatchingPrefix = namespaceToModify
+                    .PackageRegistrations
+                    .Where(pr => pr
+                        .Owners
+                        .Any(pro => pro.Username == userToRemove.Username))
                     .ToList();
 
-                if (packageRegistrationsToMarkUnverified.Any())
-                {
-                    packageRegistrationsToMarkUnverified
-                        .ForEach(pr => namespaceToModify.PackageRegistrations.Remove(pr));
+            // Remove verified mark for package registrations if the user to be removed is the only prefix owner
+            // for the given package registration.
+            var packageRegistrationsToMarkUnverified = packagesOwnedByUserMatchingPrefix
+                .Where(pr => pr.Owners.Intersect(namespaceToModify.Owners).Count() == 1)
+                .ToList();
 
-                    await PackageService.UpdatePackageVerifiedStatusAsync(packageRegistrationsToMarkUnverified, isVerified: false);
-                }
+            if (packageRegistrationsToMarkUnverified.Any())
+            {
+                packageRegistrationsToMarkUnverified
+                    .ForEach(pr => namespaceToModify.PackageRegistrations.Remove(pr));
 
-                namespaceToModify.Owners.Remove(userToRemove);
-                await ReservedNamespaceRepository.CommitChangesAsync();
-
-                transaction.Commit();
+                await PackageService.UpdatePackageVerifiedStatusAsync(packageRegistrationsToMarkUnverified, isVerified: false);
             }
+
+            namespaceToModify.Owners.Remove(userToRemove);
+            await ReservedNamespaceRepository.CommitChangesAsync();
         }
+
 
         /// <summary>
         /// This method fetches the reserved namespace matching the prefix and adds the 

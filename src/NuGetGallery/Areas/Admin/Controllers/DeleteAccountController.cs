@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Web.Mvc;
 using NuGetGallery.Areas.Admin.ViewModels;
@@ -13,36 +14,30 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         public DeleteAccountController(IUserService userService)
         {
-            _userService = userService;
+            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
         }
 
         [HttpGet]
         public virtual ActionResult Index()
         {
-            var model = new DeleteAccountRequest
-            {
-            };
-            return View(model);
+            return View();
         }
 
         [HttpGet]
         public virtual ActionResult Search(string query)
         {
             var results = new List<DeleteAccountSearchResult>();
-            var result = new DeleteAccountSearchResult();
-            if (query != null)
+            if (!string.IsNullOrWhiteSpace(query))
             {
                 var user = _userService.FindByUsername(query);
-                if (user != null)
+                if (user !=  null && user.Username != null && !user.IsDeleted)
                 {
-                    result.AccountName = user.Username;
+                    var result = new DeleteAccountSearchResult(user.Username);
+                    results.Add(result);
                 }
             }
-            if(result.AccountName!=null)
-            {
-                results.Add(result);
-            }
-            return Json( results, JsonRequestBehavior.AllowGet);
+           
+            return Json(results, JsonRequestBehavior.AllowGet);
         }
     }
 }

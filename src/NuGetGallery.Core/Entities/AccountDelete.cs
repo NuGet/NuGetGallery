@@ -18,9 +18,19 @@ namespace NuGetGallery
         public DateTime DeletedOn { get; set; }
 
         /// <summary>
-        /// The User that had the account deleted.
+        /// The deleted account key.
+        /// </summary>
+        public int DeletedAccountKey { get; set; }
+
+        /// <summary>
+        /// The deleted account.
         /// </summary>
         public User DeletedAccount { get; set; }
+
+        /// <summary>
+        /// The User(admin) key that executed the delete action.
+        /// </summary>
+        public int DeletedByKey { get; set; }
 
         /// <summary>
         /// The User(admin) that executed the delete action.

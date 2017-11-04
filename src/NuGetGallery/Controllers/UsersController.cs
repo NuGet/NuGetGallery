@@ -96,16 +96,16 @@ namespace NuGetGallery
 
         [HttpGet]
         [Authorize(Roles = "Admins")]
-        public virtual ActionResult DeleteUserAccount(string accountName)
+        public virtual ActionResult Delete(string accountName)
         {
             var user = _userService.FindByUsername(accountName);
-            if(user == null)
+            if(user == null || user.IsDeleted)
             {
                 return HttpNotFound("User not found.");
             }
 
             var listPackageItems = _packageService
-                 .FindPackagesByOwner(user, true)
+                 .FindPackagesByOwner(user, includeUnlisted:true)
                  .Select(p => new ListPackageItemViewModel(p))
                  .ToList();
             var model = new DeleteUserAccountViewModel
@@ -113,21 +113,33 @@ namespace NuGetGallery
                 Packages = listPackageItems,
                 User = user,
                 AccountName = user.Username,
-                HasOrphanPackages = listPackageItems.Where(p => p.Owners.Count <= 1).Any()
+                HasOrphanPackages = listPackageItems.Any(p => p.Owners.Count <= 1)
             };
             return View("DeleteUserAccount", model);
         }
 
         [Authorize(Roles = "Admins")]
         [HttpPost]
-        [RequiresAccountConfirmation("delete account")]
+        [RequiresAccountConfirmation("Delete account")]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> DeleteUserAccount(DeleteUserAccountViewModel model)
+        public virtual async Task<ActionResult> Delete(DeleteUserAccountViewModel model)
         {
             var user = _userService.FindByUsername(model.AccountName);
-            var admin = GetCurrentUser();
-            var status = await _deleteAccountService.DeleteGalleryUserAccountAsync(user, admin, model.Signature, model.Unlist);
-            return  View("DeleteUserAccountStatus", new DeleteUserAccountStatusViewModel() {AccountName = model.AccountName , OperationStatus = status .Item2});
+            if (user == null || user.IsDeleted)
+            {
+                return View("DeleteUserAccountStatus", new DeleteUserAccountStatus()
+                {
+                    AccountName = model.AccountName,
+                    Description = $"Account {model.AccountName} not found.",
+                    Success = false
+                });
+            }
+            else
+            {
+                var admin = GetCurrentUser();
+                var status = await _deleteAccountService.DeleteGalleryUserAccountAsync(user, admin, model.Signature, model.ShouldUnlist, commitAsTransaction: true);
+                return View("DeleteUserAccountStatus", status);
+            }
         }
 
         [HttpGet]
