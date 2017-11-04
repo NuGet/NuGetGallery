@@ -5,36 +5,53 @@
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
+@helper ShowIfAllPackageSet()
+    {
+        if (Model.IsCommunityPackageSet)
+        {
+            @:style="display:none;" data-bind="visible: showAllPackageDownloads"
+        }
+        else
+        {
+            @:data-bind="visible: showAllPackageDownloads"
+        }
+}
+
+@helper ShowIfCommunityPackageSet()
+    {
+        if (Model.IsCommunityPackageSet)
+        {
+            @:data-bind="visible: !showAllPackageDownloads()"
+        }
+        else
+        {
+            @:style="display:none;" data-bind="visible: !showAllPackageDownloads()"
+        }
+}
+
 <section role="main" class="container main-container page-statistics-most-downloaded">
     <div class="row">
         <div class="col-xs-12">
-            @if (Model.IsCommunityPackageSet)
-            {
-                <h1>Most Downloaded Community Packages</h1>
-                <span class="page-subheading ms-fontSize-l">Top 100 Non-Microsoft Packages Over the Last 6 Weeks</span>
-            }
-            else
-            {
+            <div @ShowIfAllPackageSet()>
                 <h1>Most Downloaded Packages</h1>
                 <span class="page-subheading ms-fontSize-l">Top 100 Over the Last 6 Weeks</span>
-            }
+            </div>
+            <div @ShowIfCommunityPackageSet()>
+                <h1>Most Downloaded Community Packages</h1>
+                <span class="page-subheading ms-fontSize-l">Top 100 Non-Microsoft Packages Over the Last 6 Weeks</span>
+            </div>
         </div>
     </div>
     <div class="row">
         <div class="col-xs-12">
             <table class="table borderless">
-                @if (Model.IsCommunityPackageSet)
-                {
-                     <caption class="sr-only">
-                        The non-Microsoft packages with the most downloads.
-                    </caption>
-                }
-                else
-                {
-                    <caption class="sr-only">
-                        The packages with the most downloads.
-                    </caption>
-                }
+                <caption class="sr-only" data-bind="text: showAllPackageDownloads() ? 'The packages with the most downloads.' : 'The non-Microsoft packages with the most downloads.'">
+                </caption>
+
+                <p>
+                    Show all packages:
+                    <input type="checkbox" data-bind="checked: showAllPackageDownloads" />
+                </p>
 
                 <thead>
                     <tr class="packages">
@@ -44,10 +61,26 @@
                     </tr>
                 </thead>
 
-                <tbody>
+                <tbody @ShowIfAllPackageSet()>
                     @{
                         var index = 0;
                         foreach (var item in Model.DownloadPackagesAll)
+                        {
+                            index++;
+
+                            <tr>
+                                <td scope="row">@index</td>
+                                <td><a href="@Url.Package(item.PackageId)">@item.PackageId</a></td>
+                                <td><a href="@Url.StatisticsPackageDownloadByVersion(item.PackageId)">@Model.DisplayDownloads(item.Downloads)</a></td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+
+                <tbody @ShowIfCommunityPackageSet()>
+                    @{
+                        index = 0;
+                        foreach (var item in Model.DownloadCommunityPackagesAll)
                         {
                             index++;
 
@@ -69,3 +102,17 @@
     </div>
 </section>
 
+@section BottomScripts
+{
+    <script>
+        $(function () {
+            'use strict';
+
+            var viewModel = {
+                showAllPackageDownloads: ko.observable(@(Model.IsCommunityPackageSet ? "false" : "true")),
+            };
+
+            ko.applyBindings(viewModel);
+        });
+    </script>
+}

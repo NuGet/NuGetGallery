@@ -5,67 +5,116 @@
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
+@helper ShowIfAllPackageSet()
+{
+    if (Model.IsCommunityPackageSet)
+    {
+        @:style="display:none;" data-bind="visible: showAllPackageDownloads"
+    }
+    else
+    {
+        @:data-bind="visible: showAllPackageDownloads"
+    }
+}
+
+@helper ShowIfCommunityPackageSet()
+{
+    if (Model.IsCommunityPackageSet)
+    {
+        @:data-bind="visible: !showAllPackageDownloads()"
+    }
+    else
+    {
+        @:style="display:none;" data-bind="visible: !showAllPackageDownloads()"
+    }
+}
+
 <section role="main" class="container main-container page-statistics-most-downloaded">
     <div class="row">
         <div class="col-xs-12">
-            @if (Model.IsCommunityPackageSet)
-            {
-                <h1>Most Downloaded Community Package Versions</h1>
-                <span class="page-subheading ms-fontSize-l">Top 500 Non-Microsoft Packages Over the Last 6 Weeks</span>
-            }
-            else
-            {
+            <div @ShowIfAllPackageSet()>
                 <h1>Most Downloaded Package Versions</h1>
                 <span class="page-subheading ms-fontSize-l">Top 500 Over the Last 6 Weeks</span>
-            }
+            </div>
+            <div @ShowIfCommunityPackageSet()>
+                <h1>Most Downloaded Community Package Versions</h1>
+                <span class="page-subheading ms-fontSize-l">Top 500 Non-Microsoft Packages Over the Last 6 Weeks</span>
+            </div>
         </div>
-    </div>
-    <div class="row">
-        <div class="col-xs-12">
-            <table class="table borderless">
-                @if (Model.IsCommunityPackageSet)
-                {
-                     <caption class="sr-only">
-                        The non-Microsoft packages with the most downloads.
+        </div>
+        <div class="row">
+            <div class="col-xs-12">
+                <table class="table borderless">
+                    <caption class="sr-only" data-bind="text: showAllPackageDownloads() ? 'The packages with the most downloads.' : 'The non-Microsoft packages with the most downloads.'">
                     </caption>
-                }
-                else
-                {
-                    <caption class="sr-only">
-                        The packages with the most downloads.
-                    </caption>
-                }
-                <thead>
-                    <tr class="package-versions">
-                        <th scope="col">&nbsp;<span class="sr-only">#</span></th>
-                        <th scope="col">Package</th>
-                        <th scope="col">Version</th>
-                        <th scope="col">Downloads</th>
-                    </tr>
-                </thead>
 
-                <tbody>
-                    @{
-                        var index = 0;
-                        foreach (var item in Model.DownloadPackageVersionsAll)
-                        {
-                            index++;
+                    <p>
+                        Show all packages:
+                        <input type="checkbox" data-bind="checked: showAllPackageDownloads" />
+                    </p>
 
-                            <tr>
-                                <td scope="row">@index</td>
-                                <td><a href="@Url.Package(item.PackageId)">@item.PackageId</a></td>
-                                <td><a href="@Url.Package(item.PackageId, item.PackageVersion)">@item.PackageVersion</a></td>
-                                <td><a href="@Url.StatisticsPackageDownloadsDetail(item.PackageId, item.PackageVersion)">@Model.DisplayDownloads(item.Downloads)</a></td>
-                            </tr>
+                    <thead>
+                        <tr class="package-versions">
+                            <th scope="col">&nbsp;<span class="sr-only">#</span></th>
+                            <th scope="col">Package</th>
+                            <th scope="col">Version</th>
+                            <th scope="col">Downloads</th>
+                        </tr>
+                    </thead>
+
+                    <tbody @ShowIfAllPackageSet()>
+                        @{
+                            var index = 0;
+                            foreach (var item in Model.DownloadPackageVersionsAll)
+                            {
+                                index++;
+
+                                <tr>
+                                    <td scope="row">@index</td>
+                                    <td><a href="@Url.Package(item.PackageId)">@item.PackageId</a></td>
+                                    <td><a href="@Url.Package(item.PackageId, item.PackageVersion)">@item.PackageVersion</a></td>
+                                    <td><a href="@Url.StatisticsPackageDownloadsDetail(item.PackageId, item.PackageVersion)">@Model.DisplayDownloads(item.Downloads)</a></td>
+                                </tr>
+                            }
                         }
-                    }
-                </tbody>
-            </table>
+                    </tbody>
+                    <tbody @ShowIfCommunityPackageSet()>
+                        @{
+                            index = 0;
+                            foreach (var item in Model.DownloadCommunityPackageVersionsAll)
+                            {
+                                index++;
+
+                                <tr>
+                                    <td scope="row">@index</td>
+                                    <td><a href="@Url.Package(item.PackageId)">@item.PackageId</a></td>
+                                    <td><a href="@Url.Package(item.PackageId, item.PackageVersion)">@item.PackageVersion</a></td>
+                                    <td><a href="@Url.StatisticsPackageDownloadsDetail(item.PackageId, item.PackageVersion)">@Model.DisplayDownloads(item.Downloads)</a></td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
-    <div class="row">
-        <div class="col-xs-12">
-            @Html.Partial("_LastUpdated", Model)
+        <div class="row">
+            <div class="col-xs-12">
+                @Html.Partial("_LastUpdated", Model)
+            </div>
         </div>
-    </div>
 </section>
+
+@section BottomScripts
+{
+    <script>
+        $(function () {
+            'use strict';
+
+            var viewModel = {
+                showAllPackageDownloads: ko.observable(@(Model.IsCommunityPackageSet ? "false" : "true")),
+            };
+
+            ko.applyBindings(viewModel);
+        });
+    </script>
+}

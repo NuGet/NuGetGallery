@@ -16,20 +16,19 @@
 
 <section role="main" class="container main-container page-statistics-overview">
     <h1>Statistics</h1>
+
     <span class="page-subheading ms-fontSize-l">
         @Html.Partial("_LastUpdated", Model)
     </span>
-
+    <p>
+        Show all packages:
+        <input type="checkbox" data-bind="checked: showAllPackageDownloads" />
+    </p>
     <div class="row">
         @if (Model.IsDownloadPackageAvailable && Model.IsDownloadCommunityPackageAvailable)
         {
             <div class="col-md-6 col-xs-12">
                 <h2 class="stats-title-text" data-bind="text: (showAllPackageDownloads() ? 'Package Downloads' : 'Community Package Downloads')"></h2>
-
-                <p>
-                    Show all packages:
-                    <input type="checkbox" data-bind="checked: showAllPackageDownloads" />
-                </p>
 
                 <table class="table col-xs-12 borderless" style="display: none;" data-bind="visible: showAllPackageDownloads">
                     <thead>
@@ -95,14 +94,9 @@
         @if (Model.IsDownloadPackageVersionsAvailable && Model.IsDownloadCommunityPackageVersionsAvailable)
         {
             <div class="col-md-6 col-xs-12">
-                <h2 class="stats-title-text" data-bind="text: (showAllPackageVersionDownloads() ? 'Version Downloads' : 'Community Package Version Downloads')">Version Downloads</h2>
+                <h2 class="stats-title-text" data-bind="text: (showAllPackageDownloads() ? 'Version Downloads' : 'Community Package Version Downloads')">Version Downloads</h2>
 
-                <p>
-                    Show all packages:
-                    <input type="checkbox" data-bind="checked: showAllPackageVersionDownloads" />
-                </p>
-
-                <table class="table col-xs-12 borderless" style="display:none;" data-bind="visible: showAllPackageVersionDownloads">
+                <table class="table col-xs-12 borderless" style="display:none;" data-bind="visible: showAllPackageDownloads">
                     <thead>
                         <tr>
                             <th class="text-left">Name</th>
@@ -134,7 +128,7 @@
                     </tfoot>
                 </table>
 
-                <table class="table col-xs-12 borderless" data-bind="visible: !showAllPackageVersionDownloads()">
+                <table class="table col-xs-12 borderless" data-bind="visible: !showAllPackageDownloads()">
                     <thead>
                         <tr>
                             <th class="text-left">Name</th>
@@ -333,7 +327,6 @@
 
             var viewModel = {
                 showAllPackageDownloads: ko.observable(false),
-                showAllPackageVersionDownloads: ko.observable(false),
             };
 
             ko.applyBindings(viewModel);

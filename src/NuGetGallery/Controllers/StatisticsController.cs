@@ -119,31 +119,23 @@ namespace NuGetGallery
 
             await _statisticsService.Refresh();
 
-            StatisticsPackagesViewModel model;
+            var isAllPackageSet = (AllPackageSet == set);
+            var allPackagesUpdateTime = _statisticsService.DownloadPackagesResult.LastUpdatedUtc;
+            var communityPackagesUpdateTime = _statisticsService.DownloadCommunityPackagesResult.LastUpdatedUtc;
 
-            if (AllPackageSet == set)
+            var model = new StatisticsPackagesViewModel
             {
-                model = new StatisticsPackagesViewModel
-                {
-                    IsCommunityPackageSet = false,
-                    IsDownloadPackageAvailable = _statisticsService.DownloadPackagesResult.Loaded,
-                    DownloadPackagesAll = _statisticsService.DownloadPackagesAll,
+                IsCommunityPackageSet = !isAllPackageSet,
+                IsDownloadPackageAvailable = _statisticsService.DownloadPackagesResult.Loaded,
+                DownloadPackagesAll = _statisticsService.DownloadPackagesAll,
 
-                    LastUpdatedUtc = _statisticsService.DownloadPackagesResult.LastUpdatedUtc,
-                };
-            }
-            else
-            {
-                model = new StatisticsPackagesViewModel
-                {
-                    IsCommunityPackageSet = true,
-                    IsDownloadPackageAvailable = _statisticsService.DownloadCommunityPackagesResult.Loaded,
-                    DownloadPackagesAll = _statisticsService.DownloadCommunityPackagesAll,
+                IsDownloadCommunityPackageAvailable = _statisticsService.DownloadCommunityPackagesResult.Loaded,
+                DownloadCommunityPackagesAll = _statisticsService.DownloadCommunityPackagesAll,
 
-                    LastUpdatedUtc = _statisticsService.DownloadCommunityPackagesResult.LastUpdatedUtc,
-                };
-            }
-
+                LastUpdatedUtc = (allPackagesUpdateTime > communityPackagesUpdateTime)
+                                    ? communityPackagesUpdateTime
+                                    : allPackagesUpdateTime,
+            };
 
             return View(model);
         }
@@ -160,30 +152,23 @@ namespace NuGetGallery
 
             await _statisticsService.Refresh();
 
-            StatisticsPackagesViewModel model;
+            var isAllPackageSet = (AllPackageSet == set);
+            var allPackagesUpdateTime = _statisticsService.DownloadPackagesResult.LastUpdatedUtc;
+            var communityPackagesUpdateTime = _statisticsService.DownloadCommunityPackagesResult.LastUpdatedUtc;
 
-            if (AllPackageSet == set)
+            var model = new StatisticsPackagesViewModel
             {
-                model = new StatisticsPackagesViewModel
-                {
-                    IsCommunityPackageSet = false,
-                    IsDownloadPackageVersionsAvailable = _statisticsService.DownloadPackageVersionsResult.Loaded,
-                    DownloadPackageVersionsAll = _statisticsService.DownloadPackageVersionsAll,
+                IsCommunityPackageSet = !isAllPackageSet,
+                IsDownloadPackageVersionsAvailable = _statisticsService.DownloadPackageVersionsResult.Loaded,
+                DownloadPackageVersionsAll = _statisticsService.DownloadPackageVersionsAll,
 
-                    LastUpdatedUtc = _statisticsService.DownloadPackagesResult.LastUpdatedUtc,
-                };
-            }
-            else
-            {
-                model = new StatisticsPackagesViewModel
-                {
-                    IsCommunityPackageSet = true,
-                    IsDownloadPackageVersionsAvailable = _statisticsService.DownloadCommunityPackageVersionsResult.Loaded,
-                    DownloadPackageVersionsAll = _statisticsService.DownloadCommunityPackageVersionsAll,
+                IsDownloadCommunityPackageVersionsAvailable = _statisticsService.DownloadCommunityPackageVersionsResult.Loaded,
+                DownloadCommunityPackageVersionsAll = _statisticsService.DownloadCommunityPackageVersionsAll,
 
-                    LastUpdatedUtc = _statisticsService.DownloadCommunityPackageVersionsResult.LastUpdatedUtc,
-                };
-            }
+                LastUpdatedUtc = (allPackagesUpdateTime > communityPackagesUpdateTime)
+                                    ? communityPackagesUpdateTime
+                                    : allPackagesUpdateTime,
+            };
 
             return View(model);
         }
