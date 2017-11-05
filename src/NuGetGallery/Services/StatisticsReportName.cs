@@ -28,11 +28,6 @@ namespace NuGetGallery
         /// </summary>
         RecentCommunityPopularityDetail,
         /// <summary>
-        /// Breakout by version for a community package (drill down from RecentPopularity).
-        /// This excludes Microsoft and ASP.NET packages.
-        /// </summary>
-        RecentCommunityPopularityDetail_,
-        /// <summary>
         /// Downloads that have been done by the various NuGet client versions.
         /// </summary>
         NuGetClientVersion,

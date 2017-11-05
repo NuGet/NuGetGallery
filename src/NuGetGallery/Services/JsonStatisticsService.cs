@@ -175,8 +175,6 @@ namespace NuGetGallery
 
         private Task<StatisticsReportResult> LoadDownloadPackageVersions()
         {
-            var statisticsPackagesItemViewModels = (List<StatisticsPackagesItemViewModel>)DownloadPackageVersionsAll;
-
             return LoadDownloadPackageVersions(
                 StatisticsReportName.RecentPopularityDetail,
                 _downloadPackageVersionsAll,
