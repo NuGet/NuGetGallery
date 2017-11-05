@@ -153,8 +153,8 @@ namespace NuGetGallery
             await _statisticsService.Refresh();
 
             var isAllPackageSet = (AllPackageSet == set);
-            var allPackagesUpdateTime = _statisticsService.DownloadPackagesResult.LastUpdatedUtc;
-            var communityPackagesUpdateTime = _statisticsService.DownloadCommunityPackagesResult.LastUpdatedUtc;
+            var allPackagesUpdateTime = _statisticsService.DownloadPackageVersionsResult.LastUpdatedUtc;
+            var communityPackagesUpdateTime = _statisticsService.DownloadCommunityPackageVersionsResult.LastUpdatedUtc;
 
             var model = new StatisticsPackagesViewModel
             {

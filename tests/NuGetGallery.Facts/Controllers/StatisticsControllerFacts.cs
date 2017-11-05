@@ -320,9 +320,11 @@ namespace NuGetGallery
             var fakePackageVersionReport = report.ToString();
 
             var fakeReportService = new Mock<IReportService>();
-            var updatedUtc = new DateTime(2001, 01, 01, 10, 20, 30);
+            var updatedUtc1 = new DateTime(2002, 01, 01, 10, 20, 30);
+            var updatedUtc2 = new DateTime(2001, 01, 01, 10, 20, 30);
 
-            fakeReportService.Setup(x => x.Load("recentpopularitydetail.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageVersionReport, updatedUtc)));
+            fakeReportService.Setup(x => x.Load("recentpopularitydetail.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageVersionReport, updatedUtc1)));
+            fakeReportService.Setup(x => x.Load("recentcommunitypopularitydetail.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageVersionReport, updatedUtc2)));
 
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
 
@@ -337,7 +339,7 @@ namespace NuGetGallery
 
             Assert.Equal(106, sum);
             Assert.True(model.LastUpdatedUtc.HasValue);
-            Assert.Equal(updatedUtc, model.LastUpdatedUtc.Value);
+            Assert.Equal(updatedUtc2, model.LastUpdatedUtc.Value);
         }
 
         [Fact]
