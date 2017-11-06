@@ -293,23 +293,16 @@ namespace NuGetGallery
             await AuditingService.SaveAuditRecordAsync(
                 new PackageAuditRecord(package, AuditedPackageAction.Verify));
 
-            if (CredentialTypes.IsPackageVerificationApiKey(credential.Type))
+            var isPackageVerificationKey = CredentialTypes.IsPackageVerificationApiKey(credential.Type);
+
+            // User must have permission to push to the package
+            if (!PermissionsService.IsActionAllowed(package, GetCurrentUser(), PackageActions.UploadNewVersion) ||
+                // Secure path: verify that verification key matches package scope
+                (isPackageVerificationKey && !HasAnyScopeThatAllows(package.PackageRegistration, NuGetScopes.PackageVerify)) ||
+                // Insecure path: verify that API key is legacy or matches package scope
+                (!isPackageVerificationKey && !HasAnyScopeThatAllows(package.PackageRegistration, NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)))
             {
-                // Secure path: verify that verification key matches package scope and that the user has permissions to do the action.
-                if (!HasAnyScopeThatAllows(package.PackageRegistration, NuGetScopes.PackageVerify) || 
-                    !PermissionsService.IsActionAllowed(package, GetCurrentUser(), PackageActions.UploadNewVersion))
-                {
-                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
-                }
-            }
-            else
-            {
-                // Insecure path: verify that API key is legacy or matches package scope and that the user has permissions to do the action.
-                if (!HasAnyScopeThatAllows(package.PackageRegistration, NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion) || 
-                    !PermissionsService.IsActionAllowed(package, GetCurrentUser(), PackageActions.UploadNewVersion))
-                {
-                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
-                }
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
             }
 
             return null;
