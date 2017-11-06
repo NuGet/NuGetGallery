@@ -52,26 +52,9 @@
                 {
                     @ViewHelpers.AlertInfo(
                 @<text>
-                    Note - Permanently deleting packages is not supported, but you can control how they are listed.
+                    You can control how your packages are listed using the checkbox below. Permanent deletion is not supported. <a href="https://docs.microsoft.com/en-us/nuget/policies/deleting-packages">Read more</a>
                 </text>
                     )
-                    <h3>Why can't I delete my package?</h3>
-                    <p>
-                        We only permanently delete NuGet packages in exceptional situations, such as
-                        packages that contain passwords, malicious/harmful code, etc. For more information,
-                        please refer to our <a href="https://docs.microsoft.com/en-us/nuget/policies/deleting-packages">documentation</a>.
-                    </p>
-                    <p>
-                        Unlisting the package will prevent users from finding it by searching the gallery and it will prevent the package manager from discovering the package.
-                        However, the package will still be available for download through <a href="https://docs.nuget.org/docs/reference/package-restore">NuGet Package Restore</a> so that existing projects referencing the package don't become broken.
-                    </p>
-                    <p>
-                        If you need the package permanently removed, click on the <a href="@Url.ReportAbuse(Model.Id, Model.Version)" title="Contact Support">Contact Support</a> link and we'll take care
-                        of it for you. <b>PLEASE ONLY DO THIS IF THERE IS AN URGENT PROBLEM WITH THE PACKAGE.</b>
-                        (Passwords, malicious code, etc). Even if you remove it, it's prudent to immediately
-                        reset any passwords/sensitive data you accidentally pushed instead of waiting for us to delete
-                        the package.
-                    </p>
                 }
 
                 @using (Html.BeginForm("UpdateListed", "Packages"))
