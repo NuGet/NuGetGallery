@@ -104,6 +104,11 @@ namespace NuGetGallery
             return scopes != null && scopes.Any(s => s.AllowsActions(requestedActions));
         }
 
+        public static bool MatchesUser(this IPrincipal self, User user)
+        {
+            return self.Identity.Name == user.Username;
+        }
+
         /// <summary>
         /// Determine if the current user context allows any of the requested actions.
         /// </summary>

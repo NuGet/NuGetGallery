@@ -69,6 +69,16 @@ namespace NuGetGallery
 
             return package.Owners.Any(o => user.KeyIsSelfOrOrganization(o.Key));
         }
+
+        public static bool MatchesUser(this User self, User user)
+        {
+            return self.Key == user.Key;
+        }
+
+        public static bool IsAdministrator(this User self)
+        {
+            return self.IsInRole(Constants.AdminRoleName);
+        }
         
         /// <summary>
         /// Determine if the current user matches the owner scope of the current credential.
