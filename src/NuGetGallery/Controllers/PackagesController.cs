@@ -163,7 +163,7 @@ namespace NuGetGallery
                     IEnumerable<User> possibleOwners;
                     var existingPackageRegistration = _packageService.FindPackageRegistrationById(packageMetadata.Id);
 
-                    if (!PermissionsService.IsActionAllowed(existingPackageRegistration, currentUser, PackagePermissionRestrictedActions.UploadNewVersion))
+                    if (!PermissionsService.IsActionAllowed(existingPackageRegistration, currentUser, PackageActions.UploadNewVersion))
                     {
                         // This user no longer has the rights to upload to this package. Cancel this upload.
                         await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
@@ -172,7 +172,7 @@ namespace NuGetGallery
 
                     if (existingPackageRegistration != null)
                     {
-                        possibleOwners = existingPackageRegistration.Owners.Where(u => PermissionsService.IsActionAllowed(u, currentUser, UserPermissionRestrictedActions.UploadPackageOnBehalfOf));
+                        possibleOwners = existingPackageRegistration.Owners.Where(u => PermissionsService.IsActionAllowed(u, currentUser, AccountActions.UploadPackageOnBehalfOf));
                         if (!possibleOwners.Any())
                         {
                             // If the user has the right to upload to the package but they are not able to upload as any of the existing owners, allow the user to upload as themselves.
@@ -182,9 +182,9 @@ namespace NuGetGallery
                     else
                     {
                         var organizationsWithRightToUpload = 
-                            currentUser.Memberships
-                                .Select(m => m.Organization.Account)
-                                .Where(u => PermissionsService.IsActionAllowed(u, currentUser, UserPermissionRestrictedActions.UploadPackageOnBehalfOf));
+                            currentUser.Organizations
+                                .Select(m => m.Organization)
+                                .Where(u => PermissionsService.IsActionAllowed(u, currentUser, AccountActions.UploadPackageOnBehalfOf));
                         possibleOwners = new User[] { currentUser }.Concat(organizationsWithRightToUpload);
                     }
 

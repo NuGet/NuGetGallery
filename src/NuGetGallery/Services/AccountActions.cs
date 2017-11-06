@@ -14,5 +14,10 @@ namespace NuGetGallery
         public static PermissionLevel AcceptPackageOwnershipOnBehalfOf =
             PermissionLevel.Owner |
             PermissionLevel.OrganizationAdmin;
+
+        public static PermissionLevel UploadPackageOnBehalfOf =
+            PermissionLevel.Owner |
+            PermissionLevel.OrganizationAdmin |
+            PermissionLevel.OrganizationCollaborator;
     }
 }
