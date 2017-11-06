@@ -133,8 +133,8 @@ namespace NuGetGallery
                 DownloadCommunityPackagesAll = _statisticsService.DownloadCommunityPackagesAll,
 
                 LastUpdatedUtc = (allPackagesUpdateTime > communityPackagesUpdateTime)
-                                    ? communityPackagesUpdateTime
-                                    : allPackagesUpdateTime,
+                                    ? allPackagesUpdateTime
+                                    : communityPackagesUpdateTime,
             };
 
             return View(model);
@@ -166,8 +166,8 @@ namespace NuGetGallery
                 DownloadCommunityPackageVersionsAll = _statisticsService.DownloadCommunityPackageVersionsAll,
 
                 LastUpdatedUtc = (allPackagesUpdateTime > communityPackagesUpdateTime)
-                                    ? communityPackagesUpdateTime
-                                    : allPackagesUpdateTime,
+                                    ? allPackagesUpdateTime
+                                    : communityPackagesUpdateTime,
             };
 
             return View(model);
