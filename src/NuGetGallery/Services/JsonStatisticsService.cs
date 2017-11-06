@@ -15,27 +15,42 @@ namespace NuGetGallery
 {
     public class JsonStatisticsService : IStatisticsService
     {
-        public readonly TimeSpan RefreshInterval = TimeSpan.FromHours(1);
-        private const string _recentpopularityDetailBlobNameFormat = "recentpopularity/{0}{1}.json";
+        private const string RecentPopularityDetailBlobNameFormat = "recentpopularity/{0}{1}.json";
 
+        /// <summary>
+        /// How often statistics reports should be refreshed using the <see cref="_reportService"/>.
+        /// </summary>
+        private readonly TimeSpan _refreshInterval = TimeSpan.FromHours(1);
+
+        /// <summary>
+        /// The last time the reports were loaded, or null.
+        /// </summary>
         private DateTime? _lastRefresh = null;
-        private readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
+
+        /// <summary>
+        /// The service used to load reports in the form of JSON blobs.
+        /// </summary>
         private readonly IReportService _reportService;
 
-        private List<StatisticsPackagesItemViewModel> _downloadPackagesAll = new List<StatisticsPackagesItemViewModel>();
-        private List<StatisticsPackagesItemViewModel> _downloadPackagesSummary = new List<StatisticsPackagesItemViewModel>();
+        /// <summary>
+        /// The semaphore used to update the statistics service's reports.
+        /// </summary>
+        private readonly SemaphoreSlim _reportSemaphore = new SemaphoreSlim(initialCount: 1, maxCount: 1);
 
-        private List<StatisticsPackagesItemViewModel> _downloadPackageVersionsAll = new List<StatisticsPackagesItemViewModel>();
-        private List<StatisticsPackagesItemViewModel> _downloadPackageVersionsSummary = new List<StatisticsPackagesItemViewModel>();
+        private readonly List<StatisticsPackagesItemViewModel> _downloadPackagesAll = new List<StatisticsPackagesItemViewModel>();
+        private readonly List<StatisticsPackagesItemViewModel> _downloadPackagesSummary = new List<StatisticsPackagesItemViewModel>();
 
-        private List<StatisticsPackagesItemViewModel> _downloadCommunityPackagesAll = new List<StatisticsPackagesItemViewModel>();
-        private List<StatisticsPackagesItemViewModel> _downloadCommunityPackagesSummary = new List<StatisticsPackagesItemViewModel>();
+        private readonly List<StatisticsPackagesItemViewModel> _downloadPackageVersionsAll = new List<StatisticsPackagesItemViewModel>();
+        private readonly List<StatisticsPackagesItemViewModel> _downloadPackageVersionsSummary = new List<StatisticsPackagesItemViewModel>();
 
-        private List<StatisticsPackagesItemViewModel> _downloadCommunityPackageVersionsAll = new List<StatisticsPackagesItemViewModel>();
-        private List<StatisticsPackagesItemViewModel> _downloadCommunityPackageVersionsSummary = new List<StatisticsPackagesItemViewModel>();
+        private readonly List<StatisticsPackagesItemViewModel> _downloadCommunityPackagesAll = new List<StatisticsPackagesItemViewModel>();
+        private readonly List<StatisticsPackagesItemViewModel> _downloadCommunityPackagesSummary = new List<StatisticsPackagesItemViewModel>();
 
-        private List<StatisticsNuGetUsageItem> _nuGetClientVersion = new List<StatisticsNuGetUsageItem>();
-        private List<StatisticsWeeklyUsageItem> _last6Weeks = new List<StatisticsWeeklyUsageItem>();
+        private readonly List<StatisticsPackagesItemViewModel> _downloadCommunityPackageVersionsAll = new List<StatisticsPackagesItemViewModel>();
+        private readonly List<StatisticsPackagesItemViewModel> _downloadCommunityPackageVersionsSummary = new List<StatisticsPackagesItemViewModel>();
+
+        private readonly List<StatisticsNuGetUsageItem> _nuGetClientVersion = new List<StatisticsNuGetUsageItem>();
+        private readonly List<StatisticsWeeklyUsageItem> _last6Weeks = new List<StatisticsWeeklyUsageItem>();
 
         public JsonStatisticsService(IReportService reportService)
         {
@@ -64,8 +79,16 @@ namespace NuGetGallery
         public StatisticsReportResult Last6WeeksResult { get; private set; }
         public IEnumerable<StatisticsWeeklyUsageItem> Last6Weeks => _last6Weeks;
 
+        /// <summary>
+        /// The time that the reports were generated, or null if the reports have not been loaded.
+        /// </summary>
         public DateTime? LastUpdatedUtc { get; private set; } = null;
 
+        /// <summary>
+        /// Refresh or load the statistics service's reports. No-ops if <see cref="_lastRefresh"/>
+        /// is within <see cref="_refreshInterval"/>.
+        /// </summary>
+        /// <returns>A task that completes when the reports have finished.</returns>
         public async Task Refresh()
         {
             if (!ShouldRefresh())
@@ -73,7 +96,7 @@ namespace NuGetGallery
                 return;
             }
 
-            await _semaphoreSlim.WaitAsync();
+            await _reportSemaphore.WaitAsync();
 
             try
             {
@@ -107,11 +130,21 @@ namespace NuGetGallery
             }
             finally
             {
-                _semaphoreSlim.Release();
+                _reportSemaphore.Release();
             }
         }
 
-        private bool ShouldRefresh() => (!_lastRefresh.HasValue || (_lastRefresh - DateTime.UtcNow) >= RefreshInterval);
+        private bool ShouldRefresh()
+        {
+            // The reports should be refreshed if they have never been loaded, or, if
+            // the reports are stale and have reached the refresh interval.
+            if (!_lastRefresh.HasValue)
+            {
+                return true;
+            }
+
+            return (_lastRefresh - DateTime.UtcNow) >= _refreshInterval;
+        }
 
         private Task<StatisticsReportResult> LoadDownloadPackages()
         {
@@ -311,7 +344,7 @@ namespace NuGetGallery
                     return null;
                 }
 
-                var reportName = string.Format(CultureInfo.CurrentCulture, _recentpopularityDetailBlobNameFormat,
+                var reportName = string.Format(CultureInfo.CurrentCulture, RecentPopularityDetailBlobNameFormat,
                     StatisticsReportName.RecentPopularityDetail_, packageId).ToLowerInvariant();
                 var reportContent = await _reportService.Load(reportName);
 
@@ -367,7 +400,7 @@ namespace NuGetGallery
                     return null;
                 }
 
-                var reportName = string.Format(CultureInfo.CurrentCulture, _recentpopularityDetailBlobNameFormat,
+                var reportName = string.Format(CultureInfo.CurrentCulture, RecentPopularityDetailBlobNameFormat,
                     StatisticsReportName.RecentPopularityDetail_, packageId).ToLowerInvariant();
                 var reportContent = await _reportService.Load(reportName);
                 if (reportContent == null)
