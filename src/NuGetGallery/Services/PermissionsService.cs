@@ -90,8 +90,8 @@ namespace NuGetGallery
 
             return GetPermissionLevel(
                 owners, 
-                currentUser.IsInRole(Constants.AdminRoleName), 
-                u => UserMatchesUser(u, currentUser));
+                currentUser.IsAdministrator(), 
+                u => currentUser.MatchesUser(u));
         }
 
         internal static PermissionLevel GetPermissionLevel(IEnumerable<User> entityOwners, IPrincipal currentPrincipal)
@@ -104,7 +104,7 @@ namespace NuGetGallery
             return GetPermissionLevel(
                 entityOwners, 
                 currentPrincipal.IsAdministrator(), 
-                u => UserMatchesPrincipal(u, currentPrincipal));
+                u => currentPrincipal.MatchesUser(u));
         }
 
         private static PermissionLevel GetPermissionLevel(IEnumerable<User> entityOwners, bool isUserAdmin, Func<User, bool> isUserMatch)
@@ -144,16 +144,6 @@ namespace NuGetGallery
             }
 
             return permissionLevel;
-        }
-
-        private static bool UserMatchesPrincipal(User user, IPrincipal principal)
-        {
-            return user.Username == principal.Identity.Name;
-        }
-
-        private static bool UserMatchesUser(User first, User second)
-        {
-            return first.Key == second.Key;
         }
     }
 }

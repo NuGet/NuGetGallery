@@ -293,11 +293,6 @@ namespace NuGetGallery
             await AuditingService.SaveAuditRecordAsync(
                 new PackageAuditRecord(package, AuditedPackageAction.Verify));
 
-            if (!PermissionsService.IsActionAllowed(package, user, PackageActions.UploadNewVersion))
-            {
-                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
-            }
-
             if (CredentialTypes.IsPackageVerificationApiKey(credential.Type))
             {
                 // Secure path: verify that verification key matches package scope.
