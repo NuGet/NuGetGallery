@@ -295,16 +295,18 @@ namespace NuGetGallery
 
             if (CredentialTypes.IsPackageVerificationApiKey(credential.Type))
             {
-                // Secure path: verify that verification key matches package scope.
-                if (!HasAnyScopeThatAllows(package.PackageRegistration, NuGetScopes.PackageVerify))
+                // Secure path: verify that verification key matches package scope and that the user has permissions to do the action.
+                if (!HasAnyScopeThatAllows(package.PackageRegistration, NuGetScopes.PackageVerify) || 
+                    !PermissionsService.IsActionAllowed(package, GetCurrentUser(), PackageActions.UploadNewVersion))
                 {
                     return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
                 }
             }
             else
             {
-                // Insecure path: verify that API key is legacy or matches package scope.
-                if (!HasAnyScopeThatAllows(package.PackageRegistration, NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion))
+                // Insecure path: verify that API key is legacy or matches package scope and that the user has permissions to do the action.
+                if (!HasAnyScopeThatAllows(package.PackageRegistration, NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion) || 
+                    !PermissionsService.IsActionAllowed(package, GetCurrentUser(), PackageActions.UploadNewVersion))
                 {
                     return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
                 }
@@ -425,8 +427,9 @@ namespace NuGetGallery
                         }
                         else
                         {
-                            // Check if API key allows pushing the current package id
-                            if (!HasAnyScopeThatAllows(packageRegistration, NuGetScopes.PackagePushVersion, NuGetScopes.PackagePush))
+                            // Check if API key allows pushing the current package id and that the user has permissions to do the action.
+                            if (!HasAnyScopeThatAllows(packageRegistration, NuGetScopes.PackagePushVersion, NuGetScopes.PackagePush) ||
+                                !PermissionsService.IsActionAllowed(packageRegistration, GetCurrentUser(), PackageActions.UploadNewVersion))
                             {
                                 await AuditingService.SaveAuditRecordAsync(
                                     new FailedAuthenticatedOperationAuditRecord(
@@ -555,9 +558,10 @@ namespace NuGetGallery
                     HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
             }
 
-            // Check if API key allows listing/unlisting the current package id
+            // Check if API key allows listing/unlisting the current package id and that the user has permissions to do the action.
             var user = GetCurrentUser();
-            if (!HasAnyScopeThatAllows(package.PackageRegistration, NuGetScopes.PackageUnlist))
+            if (!HasAnyScopeThatAllows(package.PackageRegistration, NuGetScopes.PackageUnlist) || 
+                !PermissionsService.IsActionAllowed(package, GetCurrentUser(), PackageActions.Unlist))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
             }
@@ -580,9 +584,10 @@ namespace NuGetGallery
                     HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
             }
 
-            // Check if API key allows listing/unlisting the current package id
+            // Check if API key allows listing/unlisting the current package id and that the user has permissions to do the action.
             User user = GetCurrentUser();
-            if (!HasAnyScopeThatAllows(package.PackageRegistration, NuGetScopes.PackageUnlist))
+            if (!HasAnyScopeThatAllows(package.PackageRegistration, NuGetScopes.PackageUnlist) || 
+                !PermissionsService.IsActionAllowed(package, GetCurrentUser(), PackageActions.Unlist))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
             }
@@ -706,6 +711,13 @@ namespace NuGetGallery
             return new HttpStatusCodeResult(HttpStatusCode.NotFound);
         }
 
+        /// <summary>
+        /// Checks that the current user's identity (API key) has scopes that allow the action.
+        /// Does NOT check that the user has permissions to do the action.
+        /// </summary>
+        /// <param name="package">The package that the actions are requested for.</param>
+        /// <param name="requestedActions">The actions that the API key's scopes will be checked for.</param>
+        /// <returns>Whether or not the current user's identity (API key) has the requested scopes.</returns>
         private bool HasAnyScopeThatAllows(PackageRegistration package, params string[] requestedActions)
         {
             var scopes = User.Identity.GetScopesFromClaim();
@@ -720,14 +732,12 @@ namespace NuGetGallery
                 if (scopes.Any(s => s.HasOwnerScope()))
                 {
                     // ApiKeyHandler has already verified that the current user matches the owner scope.
-                    // Do not need to check organization role (IsAdmin) which is covered by the action scope.
-                    return GetCurrentUser().IsOwnerOrMemberOfOrganizationOwner(package);
+                    return true;
                 }
             }
 
             // Legacy V1 API key (no scopes), or Legacy V2 API key (no owner scope).
-            // Must verify that the current user is the package owner or admin for an organization owner.
-            return GetCurrentUser().IsOwnerOrMemberOfOrganizationOwner(package);
+            return true;
         }
 
         private bool HasAnyScopeThatAllowsPushNew(string packageId)
