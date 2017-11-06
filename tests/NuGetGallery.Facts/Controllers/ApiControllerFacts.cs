@@ -946,16 +946,36 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillUnlistThePackageIfApiKeyBelongsToAnOwner()
+            public Task WillUnlistThePackageIfApiKeyBelongsToAnOwner()
             {
-                var owner = new User { Key = 1 };
+                var user = new User { Key = 1 };
+                return AssertWillUnlistThePackage(user, user);
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public Task WillUnlistThePackageIfApiKeyBelongsToAnOwnerAndOwnerIsAMemberOfOrganization(bool isAdmin)
+            {
+                var key = 0;
+                var organization = new Organization { Key = key++, Username = "org" };
+
+                var user = new User { EmailAddress = "confirmed@email.com", Key = key++, Username = "user" };
+                user.Organizations = new[] { new Membership { IsAdmin = isAdmin, Member = user, Organization = organization } };
+                organization.Members = user.Organizations;
+
+                return AssertWillUnlistThePackage(organization, user);
+            }
+
+            private async Task AssertWillUnlistThePackage(User owner, User currentUser)
+            {
                 var package = new Package
                 {
                     PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner } }
                 };
                 var controller = new TestableApiController(GetConfigurationService());
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(package);
-                controller.SetCurrentUser(owner);
+                controller.SetCurrentUser(currentUser);
 
                 ResultAssert.IsEmpty(await controller.DeletePackage("theId", "1.0.42"));
 
@@ -1214,10 +1234,29 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillListThePackageIfUserIsAnOwner()
+            public Task WillListThePackageIfUserIsAnOwner()
             {
-                // Arrange
-                var owner = new User { Key = 1 };
+                var user = new User { Key = 1 };
+                return AssertWillListThePackage(user, user);
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public Task WillListThePackageIfUserIsAMemberOfOrganizationThatIsOwner(bool isAdmin)
+            {
+                var key = 0;
+                var organization = new Organization { Key = key++, Username = "org" };
+
+                var user = new User { EmailAddress = "confirmed@email.com", Key = key++, Username = "user" };
+                user.Organizations = new[] { new Membership { IsAdmin = isAdmin, Member = user, Organization = organization } };
+                organization.Members = user.Organizations;
+
+                return AssertWillListThePackage(organization, user);
+            }
+
+            private async Task AssertWillListThePackage(User owner, User currentUser)
+            {
                 var package = new Package
                 {
                     PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner } }
@@ -1225,7 +1264,7 @@ namespace NuGetGallery
 
                 var controller = new TestableApiController(GetConfigurationService());
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(package);
-                controller.SetCurrentUser(owner);
+                controller.SetCurrentUser(currentUser);
 
                 // Act
                 var result = await controller.PublishPackage("theId", "1.0.42");
@@ -1353,7 +1392,7 @@ namespace NuGetGallery
             : PackageVerificationKeyContainer
         {
             [Fact]
-            public async Task VerifyPackageKeyAsync_Returns400IfSecurityPolicyFails()
+            public async Task Returns400IfSecurityPolicyFails()
             {
                 // Arrange
                 var controller = SetupController(CredentialTypes.ApiKey.V2, "", package: null);
@@ -1371,7 +1410,7 @@ namespace NuGetGallery
             [InlineData("")]
             [InlineData("[{\"a\":\"package:push\", \"s\":\"foo\"}]")]
             [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"foo\"}]")]
-            public async Task VerifyPackageKeyAsync_Returns404IfPackageDoesNotExist_ApiKeyV2(string scope)
+            public async Task Returns404IfPackageDoesNotExist_ApiKeyV2(string scope)
             {
                 // Arrange
                 var controller = SetupController(CredentialTypes.ApiKey.V2, scope, package: null);
@@ -1393,7 +1432,7 @@ namespace NuGetGallery
 
             [Theory]
             [InlineData("[{\"a\":\"package:verify\", \"s\":\"foo\"}]")]
-            public async Task VerifyPackageKeyAsync_Returns404IfPackageDoesNotExist_ApiKeyVerifyV1(string scope)
+            public async Task Returns404IfPackageDoesNotExist_ApiKeyVerifyV1(string scope)
             {
                 // Arrange
                 var controller = SetupController(CredentialTypes.ApiKey.VerifyV1, scope, package: null);
@@ -1417,7 +1456,7 @@ namespace NuGetGallery
             [InlineData("")]
             [InlineData("[{\"a\":\"package:push\", \"s\":\"foo\"}]")]
             [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"foo\"}]")]
-            public async Task VerifyPackageKeyAsync_Returns403IfUserIsNotAnOwner_ApiKeyV2(string scope)
+            public async Task Returns403IfUserIsNotAnOwner_ApiKeyV2(string scope)
             {
                 // Arrange
                 var package = new Package
@@ -1444,7 +1483,7 @@ namespace NuGetGallery
 
             [Theory]
             [InlineData("[{\"a\":\"package:verify\", \"s\":\"foo\"}]")]
-            public async Task VerifyPackageKeyAsync_Returns403IfUserIsNotAnOwner_ApiKeyVerifyV1(string scope)
+            public async Task Returns403IfUserIsNotAnOwner_ApiKeyVerifyV1(string scope)
             {
                 // Arrange
                 var package = new Package
@@ -1476,7 +1515,7 @@ namespace NuGetGallery
             // subject mismatch
             [InlineData("[{\"a\":\"package:push\", \"s\":\"notfoo\"}]")]
             [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"notfoo\"}]")]
-            public async Task VerifyPackageKeyAsync_Returns403IfScopeDoesNotMatch_ApiKeyV2(string scope)
+            public async Task Returns403IfScopeDoesNotMatch_ApiKeyV2(string scope)
             {
                 // Arrange
                 var package = new Package
@@ -1508,7 +1547,7 @@ namespace NuGetGallery
             [InlineData("[{\"a\":\"package:unlist\", \"s\":\"foo\"}]")]
             // subject mismatch
             [InlineData("[{\"a\":\"package:verify\", \"s\":\"notfoo\"}]")]
-            public async Task VerifyPackageKeyAsync_Returns403IfScopeDoesNotMatch_ApiKeyVerifyV1(string scope)
+            public async Task Returns403IfScopeDoesNotMatch_ApiKeyVerifyV1(string scope)
             {
                 // Arrange
                 var package = new Package
@@ -1537,7 +1576,7 @@ namespace NuGetGallery
             [InlineData("")]
             [InlineData("[{\"a\":\"package:push\", \"s\":\"foo\"}]")]
             [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"foo\"}]")]
-            public async Task VerifyPackageKeyAsync_Returns200IfApiKeyWithPushCapability_ApiKeyV2(string scope)
+            public async Task Returns200IfApiKeyWithPushCapability_ApiKeyV2(string scope)
             {
                 // Arrange
                 var package = new Package
@@ -1561,7 +1600,7 @@ namespace NuGetGallery
 
             [Theory]
             [InlineData("[{\"a\":\"package:verify\", \"s\":\"foo\"}]")]
-            public async Task VerifyPackageKeyAsync_Returns200IfPackageVerifyKey_ApiKeyVerifyV1(string scope)
+            public async Task Returns200IfPackageVerifyKey_ApiKeyVerifyV1(string scope)
             {
                 // Arrange
                 var package = new Package
@@ -1584,7 +1623,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task VerifyPackageKeyAsync_WritesAuditRecord()
+            public async Task WritesAuditRecord()
             {
                 // Arrange
                 var package = new Package
