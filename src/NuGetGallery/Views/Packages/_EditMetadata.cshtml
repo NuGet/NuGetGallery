@@ -59,14 +59,14 @@
 
                 <div class="verify-package-field form-group editable">
                     <label for="Owner" class="verify-package-field-heading">Owner</label>
-                    <!-- ko if: $data.PossibleOwners.length > 1 -->
-                        <select aria-required="true" class="form-control" data-val="true" data-val-required="You must select an owner for your package!" name="Owner" data-bind="foreach: PossibleOwners">
+                    <!-- ko if: Edit.PossibleOwners.length > 1 -->
+                        <select aria-required="true" class="form-control" data-val="true" data-val-required="You must select an owner for your package!" name="Edit.Owner" data-bind="foreach: Edit.PossibleOwners">
                             <option data-bind="value: $data, text: $data"></option>
                         </select>
                     <!-- /ko -->
-                    <!-- ko if: $data.PossibleOwners.length == 1 -->
-                        <p data-bind="text: $data.Owner"></p>
-                        <input data-bind="value: $data.Owner" type="hidden" name="Owner" class="form-control" />
+                    <!-- ko if: Edit.PossibleOwners.length == 1 -->
+                        <p data-bind="text: Edit.Owner"></p>
+                        <input data-bind="value: Edit.Owner" type="hidden" name="Edit.Owner" class="form-control" />
                     <!-- /ko -->
                 </div>
 

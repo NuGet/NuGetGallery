@@ -1041,7 +1041,7 @@ namespace NuGetGallery
             // Create edit model from the latest pending edit.
             var pendingMetadata = _editPackageService.GetPendingMetadata(package);
 
-            model.Edit = new EditPackageVersionRequest(package, pendingMetadata);
+            model.Edit = new EditPackageVersionRequest(package, pendingMetadata, GetPossibleOwnersForUpload(package.PackageRegistration.Id));
 
             // Update edit model with the active or pending readme.md data.
             var isReadMePending = model.Edit.ReadMeState != PackageEditReadMeState.Unchanged;
@@ -1406,11 +1406,11 @@ namespace NuGetGallery
                     Size = uploadFile.Length,
                 };
 
-                var owner = _userService.FindByUsername(formData.Owner);
+                var owner = _userService.FindByUsername(formData.Edit.Owner);
 
                 if (owner == null)
                 {
-                    var message = string.Format(CultureInfo.CurrentCulture, Strings.VerifyPackage_UserNonExistent, formData.Owner);
+                    var message = string.Format(CultureInfo.CurrentCulture, Strings.VerifyPackage_UserNonExistent, formData.Edit.Owner);
                     TempData["Message"] = message;
                     return Json(400, new[] { message });
                 }

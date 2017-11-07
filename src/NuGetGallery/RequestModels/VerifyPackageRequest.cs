@@ -30,10 +30,7 @@ namespace NuGetGallery
             FrameworkReferenceGroups = packageMetadata.GetFrameworkReferenceGroups();
             Dependencies = new DependencySetsViewModel(packageMetadata.GetDependencyGroups().AsPackageDependencyEnumerable());
             DevelopmentDependency = packageMetadata.GetValueFromMetadata("developmentDependency");
-            Edit = new EditPackageVersionRequest(packageMetadata);
-
-            PossibleOwners = possibleOwners.Select(u => u.Username);
-            Owner = PossibleOwners.FirstOrDefault();
+            Edit = new EditPackageVersionRequest(packageMetadata, possibleOwners);
         }
 
         public string Id { get; set; }
@@ -58,7 +55,5 @@ namespace NuGetGallery
         public string DevelopmentDependency { get; set; }
         public DependencySetsViewModel Dependencies { get; set; }
         public IReadOnlyCollection<FrameworkSpecificGroup> FrameworkReferenceGroups { get; set; }
-        public string Owner { get; set; }
-        public IEnumerable<string> PossibleOwners { get; set; }
     }
 }

@@ -2504,7 +2504,7 @@ namespace NuGetGallery
                         userService: fakeUserService);
                     controller.SetCurrentUser(TestUtility.FakeUser);
 
-                    var result = await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Edit = null, Owner = TestUtility.FakeUser.Username });
+                    var result = await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Edit = new EditPackageVersionRequest() { Owner = TestUtility.FakeUser.Username } });
 
                     var jsonResult = Assert.IsType<JsonResult>(result);
                     Assert.Equal((int)HttpStatusCode.Conflict, controller.Response.StatusCode);
@@ -2537,7 +2537,7 @@ namespace NuGetGallery
                         fakeNuGetPackage: fakeNuGetPackage);
                     controller.SetCurrentUser(TestUtility.FakeUser);
 
-                    var result = await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Edit = null, Owner = "notarealowner" });
+                    var result = await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Edit = new EditPackageVersionRequest() { Owner = TestUtility.FakeUser.Username } });
 
                     Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
                 }
@@ -2574,7 +2574,7 @@ namespace NuGetGallery
                         userService: fakeUserService);
                     controller.SetCurrentUser(TestUtility.FakeUser);
 
-                    var result = await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Edit = null, Owner = owner.Username });
+                    var result = await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Edit = new EditPackageVersionRequest() { Owner = TestUtility.FakeUser.Username } });
 
                     Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
                 }
@@ -2621,7 +2621,7 @@ namespace NuGetGallery
                         userService: fakeUserService);
                     controller.SetCurrentUser(TestUtility.FakeUser);
 
-                    await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Edit = null, Owner = TestUtility.FakeUser.Username });
+                    await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Edit = new EditPackageVersionRequest() { Owner = TestUtility.FakeUser.Username } });
 
                     fakePackageUploadService.Verify(x => x.CommitPackageAsync(
                         It.IsAny<Package>(),
@@ -2691,7 +2691,7 @@ namespace NuGetGallery
                         packageService: fakePackageService);
                     controller.SetCurrentUser(currentUser);
 
-                    await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Edit = null, Owner = owner.Username });
+                    await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Edit = new EditPackageVersionRequest() { Owner = TestUtility.FakeUser.Username } });
 
                     fakePackageUploadService.Verify(x => x.GeneratePackageAsync(
                         It.IsAny<string>(),
@@ -2744,7 +2744,7 @@ namespace NuGetGallery
                     controller.SetCurrentUser(TestUtility.FakeUser);
 
                     // Act
-                    await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Edit = null, Owner = TestUtility.FakeUser.Username });
+                    await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Edit = new EditPackageVersionRequest() { Owner = TestUtility.FakeUser.Username } });
 
                     // Assert
                     fakeIndexingService.Verify();
@@ -2792,7 +2792,7 @@ namespace NuGetGallery
                     controller.SetCurrentUser(TestUtility.FakeUser);
 
                     // Act
-                    await controller.VerifyPackage(new VerifyPackageRequest() { Listed = false, Edit = null, Owner = TestUtility.FakeUser.Username });
+                    await controller.VerifyPackage(new VerifyPackageRequest() { Listed = false, Edit = new EditPackageVersionRequest() { Owner = TestUtility.FakeUser.Username } });
 
                     // There's no assert. If the method completes, it means the test passed because we set MockBehavior to Strict
                     // for the fakePackageService. We verified that it only calls methods passing commitSettings = false.
@@ -2832,7 +2832,7 @@ namespace NuGetGallery
                         userService: fakeUserService);
                     controller.SetCurrentUser(TestUtility.FakeUser);
 
-                    await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Edit = null, Owner = TestUtility.FakeUser.Username });
+                    await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Edit = new EditPackageVersionRequest() { Owner = TestUtility.FakeUser.Username } });
 
                     fakePackageService.Verify(x => x.PublishPackageAsync(fakePackage, false), Times.Once());
                 }
@@ -2870,7 +2870,7 @@ namespace NuGetGallery
                         userService: fakeUserService);
                     controller.SetCurrentUser(TestUtility.FakeUser);
 
-                    await controller.VerifyPackage(new VerifyPackageRequest() { Listed = false, Edit = null, Owner = TestUtility.FakeUser.Username });
+                    await controller.VerifyPackage(new VerifyPackageRequest() { Listed = false, Edit = new EditPackageVersionRequest() { Owner = TestUtility.FakeUser.Username } });
 
                     fakePackageService.Verify(
                         x => x.MarkPackageUnlistedAsync(It.Is<Package>(p => p.PackageRegistration.Id == "theId" && p.Version == "theVersion"), It.IsAny<bool>()));
@@ -2911,7 +2911,7 @@ namespace NuGetGallery
                         userService: fakeUserService);
                     controller.SetCurrentUser(TestUtility.FakeUser);
 
-                    await controller.VerifyPackage(new VerifyPackageRequest() { Listed = listed.GetValueOrDefault(true), Edit = null, Owner = TestUtility.FakeUser.Username });
+                    await controller.VerifyPackage(new VerifyPackageRequest() { Listed = listed.GetValueOrDefault(true), Edit = new EditPackageVersionRequest() { Owner = TestUtility.FakeUser.Username } });
 
                     fakePackageService.Verify(x => x.MarkPackageUnlistedAsync(It.IsAny<Package>(), It.IsAny<bool>()), Times.Never());
                 }
@@ -2947,7 +2947,7 @@ namespace NuGetGallery
                         userService: fakeUserService);
                     controller.SetCurrentUser(TestUtility.FakeUser);
 
-                    await controller.VerifyPackage(new VerifyPackageRequest() { Listed = false, Edit = null, Owner = TestUtility.FakeUser.Username });
+                    await controller.VerifyPackage(new VerifyPackageRequest() { Listed = false, Edit = new EditPackageVersionRequest() { Owner = TestUtility.FakeUser.Username } });
 
                     fakeUploadFileService.Verify();
                 }
@@ -2984,7 +2984,7 @@ namespace NuGetGallery
                         userService: fakeUserService);
                     controller.SetCurrentUser(TestUtility.FakeUser);
 
-                    await controller.VerifyPackage(new VerifyPackageRequest() { Listed = false, Edit = null, Owner = TestUtility.FakeUser.Username });
+                    await controller.VerifyPackage(new VerifyPackageRequest() { Listed = false, Edit = new EditPackageVersionRequest() { Owner = TestUtility.FakeUser.Username } });
 
                     Assert.Equal(String.Format(Strings.SuccessfullyUploadedPackage, "theId", "theVersion"), controller.TempData["Message"]);
                 }
@@ -3021,7 +3021,7 @@ namespace NuGetGallery
                     controller.SetCurrentUser(TestUtility.FakeUser);
 
                     var result = await controller.VerifyPackage(
-                        new VerifyPackageRequest() { Listed = false, Edit = null, Owner = TestUtility.FakeUser.Username }) as JsonResult;
+                        new VerifyPackageRequest() { Listed = false, Edit = new EditPackageVersionRequest() { Owner = TestUtility.FakeUser.Username } }) as JsonResult;
 
                     Assert.NotNull(result);
                     Assert.NotNull(result.Data);
@@ -3064,7 +3064,7 @@ namespace NuGetGallery
                         userService: fakeUserService);
                     controller.SetCurrentUser(TestUtility.FakeUser);
 
-                    await controller.VerifyPackage(new VerifyPackageRequest() { Listed = false, Edit = null, Owner = TestUtility.FakeUser.Username });
+                    await controller.VerifyPackage(new VerifyPackageRequest() { Listed = false, Edit = new EditPackageVersionRequest() { Owner = TestUtility.FakeUser.Username } });
 
                     fakeAutoCuratePackageCmd.Verify(fake => fake.ExecuteAsync(fakePackage, It.IsAny<PackageArchiveReader>(), false));
                 }
@@ -3106,7 +3106,7 @@ namespace NuGetGallery
                     controller.SetCurrentUser(TestUtility.FakeUser);
 
                     // Act
-                    await controller.VerifyPackage(new VerifyPackageRequest { Listed = true, Edit = null, Owner = TestUtility.FakeUser.Username });
+                    await controller.VerifyPackage(new VerifyPackageRequest { Listed = true, Edit = new EditPackageVersionRequest() { Owner = TestUtility.FakeUser.Username } });
 
                     // Assert
                     Assert.True(auditingService.WroteRecord<PackageAuditRecord>(ar =>
@@ -3152,7 +3152,7 @@ namespace NuGetGallery
                     controller.SetCurrentUser(TestUtility.FakeUser);
 
                     // Act
-                    await controller.VerifyPackage(new VerifyPackageRequest { Listed = true, Edit = null, Owner = TestUtility.FakeUser.Username });
+                    await controller.VerifyPackage(new VerifyPackageRequest { Listed = true, Edit = new EditPackageVersionRequest() { Owner = TestUtility.FakeUser.Username } });
 
                     // Assert
                     fakeTelemetryService.Verify(x => x.TrackPackagePushEvent(It.IsAny<Package>(), TestUtility.FakeUser, controller.OwinContext.Request.User.Identity), Times.Once);
@@ -3163,17 +3163,18 @@ namespace NuGetGallery
             {
                 get
                 {
-                    yield return new object[] { new EditPackageVersionRequest() { RequiresLicenseAcceptance = true } };
-                    yield return new object[] { new EditPackageVersionRequest() { IconUrl = "https://iconnew" } };
-                    yield return new object[] { new EditPackageVersionRequest() { ProjectUrl = "https://projectnew" } };
-                    yield return new object[] { new EditPackageVersionRequest() { Authors = "author1new authors2new" } };
-                    yield return new object[] { new EditPackageVersionRequest() { Copyright = "copyright" } };
-                    yield return new object[] { new EditPackageVersionRequest() { Description = "new desc" } };
-                    yield return new object[] { new EditPackageVersionRequest() { ReleaseNotes = "notes123" } };
-                    yield return new object[] { new EditPackageVersionRequest() { Summary = "summary new" } };
-                    yield return new object[] { new EditPackageVersionRequest() { Tags = "tag1new tag2new" } };
-                    yield return new object[] { new EditPackageVersionRequest() { VersionTitle = "title" } };
+                    yield return new object[] { new EditPackageVersionRequest() { Owner = TestUtility.FakeUser.Username, RequiresLicenseAcceptance = true } };
+                    yield return new object[] { new EditPackageVersionRequest() { Owner = TestUtility.FakeUser.Username, IconUrl = "https://iconnew" } };
+                    yield return new object[] { new EditPackageVersionRequest() { Owner = TestUtility.FakeUser.Username, ProjectUrl = "https://projectnew" } };
+                    yield return new object[] { new EditPackageVersionRequest() { Owner = TestUtility.FakeUser.Username, Authors = "author1new authors2new" } };
+                    yield return new object[] { new EditPackageVersionRequest() { Owner = TestUtility.FakeUser.Username, Copyright = "copyright" } };
+                    yield return new object[] { new EditPackageVersionRequest() { Owner = TestUtility.FakeUser.Username, Description = "new desc" } };
+                    yield return new object[] { new EditPackageVersionRequest() { Owner = TestUtility.FakeUser.Username, ReleaseNotes = "notes123" } };
+                    yield return new object[] { new EditPackageVersionRequest() { Owner = TestUtility.FakeUser.Username, Summary = "summary new" } };
+                    yield return new object[] { new EditPackageVersionRequest() { Owner = TestUtility.FakeUser.Username, Tags = "tag1new tag2new" } };
+                    yield return new object[] { new EditPackageVersionRequest() { Owner = TestUtility.FakeUser.Username, VersionTitle = "title" } };
                     yield return new object[] { new EditPackageVersionRequest() {
+                        Owner = TestUtility.FakeUser.Username,
                         ReadMe = new ReadMeRequest { SourceType = "Written", SourceText = "markdown" } }
                     };
                 }
@@ -3221,7 +3222,7 @@ namespace NuGetGallery
                     controller.SetCurrentUser(TestUtility.FakeUser);
 
                     // Act
-                    await controller.VerifyPackage(new VerifyPackageRequest { Listed = true, Edit = edit, Owner = TestUtility.FakeUser.Username });
+                    await controller.VerifyPackage(new VerifyPackageRequest { Listed = true, Edit = edit });
 
                     // Assert 
                     fakeEditPackageService.Verify(x => x.StartEditPackageRequest(fakePackage, edit, TestUtility.FakeUser), Times.Once);
@@ -3236,17 +3237,18 @@ namespace NuGetGallery
         {
             get
             {
-                yield return new object[] { new EditPackageVersionRequest() { RequiresLicenseAcceptance = true } };
-                yield return new object[] { new EditPackageVersionRequest() { IconUrl = "https://iconnew" } };
-                yield return new object[] { new EditPackageVersionRequest() { ProjectUrl = "https://projectnew" } };
-                yield return new object[] { new EditPackageVersionRequest() { Authors = "author1new authors2new" } };
-                yield return new object[] { new EditPackageVersionRequest() { Copyright = "copyright" } };
-                yield return new object[] { new EditPackageVersionRequest() { Description = "new desc" } };
-                yield return new object[] { new EditPackageVersionRequest() { ReleaseNotes = "notes123" } };
-                yield return new object[] { new EditPackageVersionRequest() { Summary = "summary new" } };
-                yield return new object[] { new EditPackageVersionRequest() { Tags = "tag1new tag2new" } };
-                yield return new object[] { new EditPackageVersionRequest() { VersionTitle = "title" } };
+                yield return new object[] { new EditPackageVersionRequest() { Owner = TestUtility.FakeUser.Username, RequiresLicenseAcceptance = true } };
+                yield return new object[] { new EditPackageVersionRequest() { Owner = TestUtility.FakeUser.Username, IconUrl = "https://iconnew" } };
+                yield return new object[] { new EditPackageVersionRequest() { Owner = TestUtility.FakeUser.Username, ProjectUrl = "https://projectnew" } };
+                yield return new object[] { new EditPackageVersionRequest() { Owner = TestUtility.FakeUser.Username, Authors = "author1new authors2new" } };
+                yield return new object[] { new EditPackageVersionRequest() { Owner = TestUtility.FakeUser.Username, Copyright = "copyright" } };
+                yield return new object[] { new EditPackageVersionRequest() { Owner = TestUtility.FakeUser.Username, Description = "new desc" } };
+                yield return new object[] { new EditPackageVersionRequest() { Owner = TestUtility.FakeUser.Username, ReleaseNotes = "notes123" } };
+                yield return new object[] { new EditPackageVersionRequest() { Owner = TestUtility.FakeUser.Username, Summary = "summary new" } };
+                yield return new object[] { new EditPackageVersionRequest() { Owner = TestUtility.FakeUser.Username, Tags = "tag1new tag2new" } };
+                yield return new object[] { new EditPackageVersionRequest() { Owner = TestUtility.FakeUser.Username, VersionTitle = "title" } };
                 yield return new object[] { new EditPackageVersionRequest() {
+                    Owner = TestUtility.FakeUser.Username,
                     ReadMe = new ReadMeRequest { SourceType = "Written", SourceText = "markdown"} }
                 };
             }
@@ -3294,7 +3296,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 // Act
-                await controller.VerifyPackage(new VerifyPackageRequest { Listed = true, Edit = edit, Owner = TestUtility.FakeUser.Username });
+                await controller.VerifyPackage(new VerifyPackageRequest { Listed = true, Edit = edit });
 
                 var hasReadMe = !string.IsNullOrEmpty(edit.ReadMe?.SourceType);
                 fakePackageFileService.Verify(x => x.SavePendingReadMeMdFileAsync(fakePackage, "markdown"), Times.Exactly(hasReadMe ? 1 : 0));

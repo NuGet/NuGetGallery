@@ -724,7 +724,7 @@ namespace NuGetGallery
                 
                 if (scopes.Any(s => s.HasOwnerScope()))
                 {
-                    // ApiKeyHandler has already verified that the current user matches the owner scope.
+                    // ApiKeyAuthenticationHandler has already verified that the current user matches the owner scope.
                     return true;
                 }
             }
