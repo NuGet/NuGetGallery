@@ -327,8 +327,9 @@ namespace NuGetGallery
             }
 
             var isOwner = 
-                package.Owners.Any(u => u.MatchesUser(user)) ||
+                package.Owners.Any(o => o.MatchesUser(user)) ||
                 _packageOwnershipManagementService.GetPackageOwnershipRequests(package: package, newOwner: user).Any();
+
             if (add && isOwner)
             {
                 model = new ManagePackageOwnerModel(

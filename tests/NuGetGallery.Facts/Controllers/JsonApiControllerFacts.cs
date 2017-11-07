@@ -29,7 +29,7 @@ namespace NuGetGallery.Controllers
                     {
                         foreach (var request in _requests)
                         {
-                            foreach (var missingId in new[] { "", null })
+                            foreach (var missingId in _missingData)
                             {
                                 yield return new object[]
                                 {
@@ -970,11 +970,53 @@ namespace NuGetGallery.Controllers
                 }
             }
 
+            public class TheGetPackageOwnersMethod : TestContainer
+            {
+                public static IEnumerable<object[]> AllCanManagePackageOwners_Data => ThePackageOwnerMethods.AllCanManagePackageOwners_Data;
+
+                public static IEnumerable<object[]> AllCannotManagePackageOwners_Data => ThePackageOwnerMethods.AllCannotManagePackageOwners_Data;
+                
+                public void ReturnsFailureIfPackageNotFound()
+                {
+                    // Arrange
+                    var controller = GetController<JsonApiController>();
+
+                    // Act
+                    var result = controller.GetPackageOwners("fakeId", "2.0.0");
+                    dynamic data = ((JsonResult)result).Data;
+
+                    // Assert
+                    Assert.False(data.success);
+                    Assert.Equal("Package not found.", data.message);
+                }
+
+                [Theory]
+                [MemberData(nameof(AllCannotManagePackageOwners_Data))]
+                public void ReturnsFailureIfUserIsNotPackageOwner(Func<Fakes, User> getCurrentUser)
+                {
+                    // Arrange
+                    var fakes = Get<Fakes>();
+                    var currentUser = getCurrentUser(fakes);
+                    var controller = GetController<JsonApiController>();
+                    GetMock<HttpContextBase>()
+                        .Setup(c => c.User)
+                        .Returns(Fakes.ToPrincipal(currentUser));
+
+                    // Act
+                    var result = controller.GetPackageOwners(fakes.Package.Id, fakes.Package.Packages.First().Version);
+
+                    // Assert
+                    Assert.IsType(typeof(HttpUnauthorizedResult), result);
+                }
+            }
+
             private static Func<Fakes, User> _getFakesUser = (Fakes fakes) => fakes.User;
             private static Func<Fakes, User> _getFakesOwner = (Fakes fakes) => fakes.Owner;
             private static Func<Fakes, User> _getFakesOrganizationOwner = (Fakes fakes) => fakes.OrganizationOwner;
             private static Func<Fakes, User> _getFakesOrganizationAdminOwner = (Fakes fakes) => fakes.OrganizationAdminOwner;
             private static Func<Fakes, User> _getFakesOrganizationCollaboratorOwner = (Fakes fakes) => fakes.OrganizationCollaboratorOwner;
+
+            public static IEnumerable<string> _missingData = new[] { null, string.Empty };
 
             private static IEnumerable<Func<Fakes, User>> _canManagePackageOwnersUsers = new Func<Fakes, User>[]
             {
@@ -1029,11 +1071,6 @@ namespace NuGetGallery.Controllers
                     }
                 }
             }
-        }
-
-        public class TheGetPackageOwnersMethod : TestContainer
-        {
-
         }
     }
 }
