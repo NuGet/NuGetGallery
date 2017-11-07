@@ -44,14 +44,13 @@
     </div>
     <div class="row">
         <div class="col-xs-12">
-            <table class="table borderless">
-                <caption class="sr-only" data-bind="text: showAllPackageDownloads() ? 'The packages with the most downloads.' : 'The non-Microsoft packages with the most downloads.'">
-                </caption>
+            <p>
+                Show all packages:
+                <input type="checkbox" data-bind="checked: showAllPackageDownloads" />
+            </p>
 
-                <p>
-                    Show all packages:
-                    <input type="checkbox" data-bind="checked: showAllPackageDownloads" />
-                </p>
+            <table @ShowIfAllPackageSet() class="table borderless">
+                <caption class="sr-only">The packages with the most downloads.</caption>
 
                 <thead>
                     <tr class="packages">
@@ -61,7 +60,7 @@
                     </tr>
                 </thead>
 
-                <tbody @ShowIfAllPackageSet()>
+                <tbody>
                     @{
                         var index = 0;
                         foreach (var item in Model.DownloadPackagesAll)
@@ -76,8 +75,20 @@
                         }
                     }
                 </tbody>
+            </table>
 
-                <tbody @ShowIfCommunityPackageSet()>
+            <table @ShowIfCommunityPackageSet() class="table borderless">
+                <caption class="sr-only">The non-Microsoft packages with the most downloads.</caption>
+
+                <thead>
+                    <tr class="packages">
+                        <th scope="col">&nbsp;<span class="sr-only">#</span></th>
+                        <th scope="col">Package</th>
+                        <th scope="col">Downloads</th>
+                    </tr>
+                </thead>
+
+                <tbody>
                     @{
                         index = 0;
                         foreach (var item in Model.DownloadCommunityPackagesAll)
@@ -92,6 +103,7 @@
                         }
                     }
                 </tbody>
+
             </table>
         </div>
     </div>
