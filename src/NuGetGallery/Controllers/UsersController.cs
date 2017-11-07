@@ -118,8 +118,8 @@ namespace NuGetGallery
             return View("DeleteUserAccount", model);
         }
 
-        [Authorize(Roles = "Admins")]
         [HttpDelete]
+        [Authorize(Roles = "Admins")]
         [RequiresAccountConfirmation("Delete account")]
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> Delete(DeleteUserAccountViewModel model)
