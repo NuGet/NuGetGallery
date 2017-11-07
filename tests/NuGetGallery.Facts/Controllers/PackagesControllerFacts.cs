@@ -2691,7 +2691,7 @@ namespace NuGetGallery
                         packageService: fakePackageService);
                     controller.SetCurrentUser(currentUser);
 
-                    await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Edit = new EditPackageVersionRequest() { Owner = TestUtility.FakeUser.Username } });
+                    await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Edit = new EditPackageVersionRequest() { Owner = owner.Username } });
 
                     fakePackageUploadService.Verify(x => x.GeneratePackageAsync(
                         It.IsAny<string>(),
