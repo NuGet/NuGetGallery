@@ -122,24 +122,16 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
         [Category("P1Tests")]
         public async Task VerifyPackageKey_Returns404ForMissingPackage()
         {
-            Assert.Equal(HttpStatusCode.NotFound, await VerifyPackageKey(EnvironmentSettings.TestAccountApiKey, "VerifyPackageKeyReturns404ForMissingPackage", "1.0.0"));
-        }
-
-        [Fact]
-        [Description("VerifyPackageKey succeeds for full API key without deletion.")]
-        [Priority(1)]
-        [Category("P1Tests")]
-        public async Task VerifyPackageKey_Returns200ForFullApiKey()
-        {
             // Arrange
-            var packageId = $"VerifyPackageKeyReturns200ForFullApiKey.{DateTimeOffset.UtcNow.Ticks}";
+            var packageId = $"VerifyPackageKey_Returns404ForMissingPackage.{DateTimeOffset.UtcNow.Ticks}";
             var packageVersion = "1.0.0";
 
             await _clientSdkHelper.UploadNewPackage(packageId, packageVersion);
 
+            var verificationKey = await CreateVerificationKey(EnvironmentSettings.TestAccountApiKey, packageId, packageVersion);
+
             // Act & Assert
-            Assert.Equal(HttpStatusCode.OK, await VerifyPackageKey(EnvironmentSettings.TestAccountApiKey, packageId));
-            Assert.Equal(HttpStatusCode.OK, await VerifyPackageKey(EnvironmentSettings.TestAccountApiKey, packageId, packageVersion));
+            Assert.Equal(HttpStatusCode.NotFound, await VerifyPackageKey(verificationKey, packageId + "_bad", packageVersion));
         }
 
         [Fact]
