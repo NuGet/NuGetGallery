@@ -362,7 +362,7 @@ namespace NuGetGallery
 
         public async Task RemovePackageOwnerAsync(PackageRegistration package, User user)
         {
-            //it is allowed to remove the last owner of a package
+            // To support the delete account scenario, the admin can delete the last owner of a package.
             package.Owners.Remove(user);
             await _packageRepository.CommitChangesAsync();
         }

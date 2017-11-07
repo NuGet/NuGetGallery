@@ -99,7 +99,7 @@ namespace NuGetGallery
         public virtual ActionResult Delete(string accountName)
         {
             var user = _userService.FindByUsername(accountName);
-            if(user == null || user.IsDeleted)
+            if(user == null || user.IsDeleted || (user is Organization))
             {
                 return HttpNotFound("User not found.");
             }
@@ -119,7 +119,7 @@ namespace NuGetGallery
         }
 
         [Authorize(Roles = "Admins")]
-        [HttpPost]
+        [HttpDelete]
         [RequiresAccountConfirmation("Delete account")]
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> Delete(DeleteUserAccountViewModel model)

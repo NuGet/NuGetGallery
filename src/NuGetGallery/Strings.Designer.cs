@@ -61,6 +61,33 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The account:{0} was already deleted. No action was performed..
+        /// </summary>
+        public static string AccountDelete_AccountAlreadyDeleted {
+            get {
+                return ResourceManager.GetString("AccountDelete_AccountAlreadyDeleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An exception was encoutered while trying to delete the account:{0}. {1}.
+        /// </summary>
+        public static string AccountDelete_Fail {
+            get {
+                return ResourceManager.GetString("AccountDelete_Fail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The account:{0} was deleted succesfully..
+        /// </summary>
+        public static string AccountDelete_Success {
+            get {
+                return ResourceManager.GetString("AccountDelete_Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Current user not found..
         /// </summary>
         public static string AddOwner_CurrentUserNotFound {

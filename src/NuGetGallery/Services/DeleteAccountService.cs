@@ -4,10 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
-using NuGetGallery.Security;
 using NuGetGallery.Areas.Admin.ViewModels;
+using NuGetGallery.Security;
 
 namespace NuGetGallery
 {
@@ -51,29 +50,29 @@ namespace NuGetGallery
         /// 4. The user credentials will be cleaned.
         /// 5. The user data will be cleaned.
         /// </summary>
-        /// <param name="useToBeDeleted">The user to be deleted.</param>
+        /// <param name="userToBeDeleted">The user to be deleted.</param>
         /// <param name="admin">The admin that will perform the delete action.</param>
         /// <param name="signature">The admin signature.</param>
         /// <param name="unlistOrphanPackages">If the orphaned packages will unlisted.</param>
         /// <param name="commitAsTransaction">If the data will be persisted as a transaction.</param>
         /// <returns></returns>
-        public async Task<DeleteUserAccountStatus> DeleteGalleryUserAccountAsync(User useToBeDeleted, User admin, string signature, bool unlistOrphanPackages, bool commitAsTransaction)
+        public async Task<DeleteUserAccountStatus> DeleteGalleryUserAccountAsync(User userToBeDeleted, User admin, string signature, bool unlistOrphanPackages, bool commitAsTransaction)
         {
-            if (useToBeDeleted == null)
+            if (userToBeDeleted == null)
             {
-                throw new ArgumentNullException(nameof(useToBeDeleted));
+                throw new ArgumentNullException(nameof(userToBeDeleted));
             }
             if (admin == null)
             {
                 throw new ArgumentNullException(nameof(admin));
             }
-            if(useToBeDeleted.IsDeleted)
+            if(userToBeDeleted.IsDeleted)
             {
                 return new DeleteUserAccountStatus()
                 {
                     Success = false,
-                    Description = $"The account:{useToBeDeleted.Username} was already deleted. No action was performed.",
-                    AccountName = useToBeDeleted.Username
+                    Description = string.Format(Strings.AccountDelete_AccountAlreadyDeleted, userToBeDeleted.Username),
+                    AccountName = userToBeDeleted.Username
                 };
             }
             try
@@ -83,19 +82,19 @@ namespace NuGetGallery
                     using (var strategy = new SuspendDbExecutionStrategy())
                     using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
                     {
-                        await DeleteGalleryUserAccountImplAsync(useToBeDeleted, admin, signature, unlistOrphanPackages);
+                        await DeleteGalleryUserAccountImplAsync(userToBeDeleted, admin, signature, unlistOrphanPackages);
                         transaction.Commit();
                     }
                 }
                 else
                 {
-                    await DeleteGalleryUserAccountImplAsync(useToBeDeleted, admin, signature, unlistOrphanPackages);
+                    await DeleteGalleryUserAccountImplAsync(userToBeDeleted, admin, signature, unlistOrphanPackages);
                 }
                 return new DeleteUserAccountStatus()
                 {
                     Success = true,
-                    Description = $"The account:{useToBeDeleted.Username} was deleted succesfully.",
-                    AccountName = useToBeDeleted.Username
+                    Description = string.Format(Strings.AccountDelete_Success, userToBeDeleted.Username),
+                    AccountName = userToBeDeleted.Username
                 };
             }
             catch(Exception e)
@@ -103,8 +102,8 @@ namespace NuGetGallery
                 return new DeleteUserAccountStatus()
                 {
                     Success = true,
-                    Description = $"An exception was encoutered while trying to delete the account:{useToBeDeleted.Username}. {e}",
-                    AccountName = useToBeDeleted.Username
+                    Description = string.Format(Strings.AccountDelete_Fail, userToBeDeleted.Username, e),
+                    AccountName = userToBeDeleted.Username
                 };
             }
         }
