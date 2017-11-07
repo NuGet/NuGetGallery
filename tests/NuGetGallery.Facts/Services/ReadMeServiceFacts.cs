@@ -82,6 +82,21 @@ namespace NuGetGallery
         
         public class TheGetReadMeHtmlMethod
         {
+            [Fact]
+            public void StripsFrontMatter()
+            {
+                // Arrange
+                var markdown = @"
+---
+Author: me
+Version: 1.0.0
+---
+# Other markdown";
+
+                // Act & Assert
+                Assert.Equal("# Other markdown", ReadMeService.StripMarkdownFrontMatter(markdown));
+            }
+
             [Theory]
             [InlineData("<script>alert('test')</script>", "<p>&lt;script&gt;alert('test')&lt;/script&gt;</p>")]
             [InlineData("<img src=\"javascript:alert('test');\">", "<p>&lt;img src=&quot;javascript:alert('test');&quot;&gt;</p>")]
