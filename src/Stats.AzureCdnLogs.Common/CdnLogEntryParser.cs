@@ -100,6 +100,24 @@ namespace Stats.AzureCdnLogs.Common
                 }
             }
 
+            // Try to exclude non-200 level HTTP status codes. If the format is unexpected, process the log entry as
+            // usual. We don't want status code format changes to disrupt statistics flowing, even if it means there a
+            // small margin of error caused by non-200 HTTP status codes.
+            if (entry.CacheStatusCode != null)
+            {
+                // Format: cache status + "/" + HTTP status code
+                // Example: "TCP_MISS/504"
+                var slashIndex = entry.CacheStatusCode.LastIndexOf('/');
+                uint httpStatusCode;
+                if (slashIndex >= 0
+                    && slashIndex + 1 < entry.CacheStatusCode.Length
+                    && uint.TryParse(entry.CacheStatusCode.Substring(slashIndex + 1), out httpStatusCode)
+                    && (httpStatusCode < 200 || httpStatusCode >= 300))
+                {
+                    return null;
+                }
+            }
+
             return entry;
         }
 

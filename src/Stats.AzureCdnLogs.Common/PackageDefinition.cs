@@ -25,7 +25,6 @@ namespace Stats.AzureCdnLogs.Common
 
             requestUrl = HttpUtility.UrlDecode(requestUrl);
 
-
             var urlSegments = requestUrl.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
             var fileName = urlSegments.Last();
 
@@ -70,12 +69,17 @@ namespace Stats.AzureCdnLogs.Common
                 }
 
                 var packageDefinition = new PackageDefinition();
-                packageDefinition.PackageId = string.Join(_dotSeparator, packageIdSegments);
-                packageDefinition.PackageVersion = string.Join(_dotSeparator, packageVersionSegments);
+                // Join and trim the package ID and package version. Package IDs and normalized versions never have
+                // spaces in them.
+                packageDefinition.PackageId = string.Join(_dotSeparator, packageIdSegments).Trim();
+                packageDefinition.PackageVersion = string.Join(_dotSeparator, packageVersionSegments).Trim();
 
                 return packageDefinition;
             }
-            else return null;
+            else
+            {
+                return null;
+            }
         }
     }
 }

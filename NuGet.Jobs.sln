@@ -95,6 +95,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Validation.O
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Validation.Orchestrator.Tests", "tests\NuGet.Services.Validation.Orchestrator.Tests\NuGet.Services.Validation.Orchestrator.Tests.csproj", "{A3B0B15D-22D9-4F1F-94C4-B24B28ECF632}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.Common.Tests", "tests\Validation.Common.Tests\Validation.Common.Tests.csproj", "{F9690B52-3C92-42A0-B41F-1A6040C2D2EE}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.PackageSigning.Core", "src\Validation.PackageSigning.Core\Validation.PackageSigning.Core.csproj", "{91C060DA-736F-4DA9-A57F-CB3AC0E6CB10}"
 EndProject
 Global
@@ -237,6 +239,10 @@ Global
 		{A3B0B15D-22D9-4F1F-94C4-B24B28ECF632}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A3B0B15D-22D9-4F1F-94C4-B24B28ECF632}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A3B0B15D-22D9-4F1F-94C4-B24B28ECF632}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F9690B52-3C92-42A0-B41F-1A6040C2D2EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F9690B52-3C92-42A0-B41F-1A6040C2D2EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F9690B52-3C92-42A0-B41F-1A6040C2D2EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F9690B52-3C92-42A0-B41F-1A6040C2D2EE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{91C060DA-736F-4DA9-A57F-CB3AC0E6CB10}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{91C060DA-736F-4DA9-A57F-CB3AC0E6CB10}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{91C060DA-736F-4DA9-A57F-CB3AC0E6CB10}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -278,6 +284,7 @@ Global
 		{FC0CEF12-D501-46D1-B1BF-D4134BD8D478} = {B9D03824-A9CA-43AC-86D6-8BB399B9A228}
 		{0C887292-C5AB-4107-946C-A53B18A38D22} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{A3B0B15D-22D9-4F1F-94C4-B24B28ECF632} = {6A776396-02B1-475D-A104-26940ADB04AB}
+		{F9690B52-3C92-42A0-B41F-1A6040C2D2EE} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{91C060DA-736F-4DA9-A57F-CB3AC0E6CB10} = {678D7B14-F8BC-4193-99AF-2EE8AA390A02}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution

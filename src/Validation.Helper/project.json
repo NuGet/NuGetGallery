@@ -1,5 +1,9 @@
 ﻿{
   "dependencies": {
+    "Microsoft.Data.OData": {
+      "version": "5.7.0",
+      "comment": "Not a direct dependency, workaround to have correct version of json.dll to be put in the output directory. Probably could be removed once all dependent projects are upgraded to use project.json"
+    },
     "Microsoft.Extensions.Logging.Abstractions": "1.0.0",
     "Newtonsoft.Json": {
       "version": "9.0.1",

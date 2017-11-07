@@ -11,8 +11,8 @@ using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs.Validation.Common;
 using NuGet.Jobs.Validation.Common.OData;
 using NuGet.Jobs.Validation.Common.Validators;
-using NuGet.Jobs.Validation.Common.Validators.Unzip;
 using NuGet.Jobs.Validation.Common.Validators.Vcs;
+using NuGet.Services.VirusScanning.Vcs;
 
 namespace NuGet.Jobs.Validation.Runner
 {
@@ -40,24 +40,29 @@ namespace NuGet.Jobs.Validation.Runner
             _requestValidationTasks = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.RequestValidationTasks).Split(';');
 
             // Add validators
-            if (_runValidationTasks.Contains(UnzipValidator.ValidatorName))
-            {
-                _validators.Add(new UnzipValidator(LoggerFactory));
-            }
             if (_runValidationTasks.Contains(VcsValidator.ValidatorName))
             {
-                // if contact alias set, use it, if not, use submitter alias.
-                string submitterAlias = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.VcsValidatorSubmitterAlias);
-                string contactAlias = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.VcsContactAlias)
-                    ?? submitterAlias;
+                var serviceUrl = new Uri(JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.VcsValidatorServiceUrl));
+                var consumerCode = "DIRECT";
+                var callbackUrl = new Uri(JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.VcsValidatorCallbackUrl));
+                var packageUrlTemplate = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.PackageUrlTemplate);
+                var submitterAlias = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.VcsValidatorSubmitterAlias);
 
-                _validators.Add(new VcsValidator(
-                    JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.VcsValidatorServiceUrl),
-                    JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.VcsValidatorCallbackUrl),
+                // if contact alias set, use it, if not, use submitter alias.
+                var contactAlias = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.VcsContactAlias) ?? submitterAlias;
+                
+                var scanningService = new VcsVirusScanningService(
+                    serviceUrl,
+                    consumerCode,
                     contactAlias,
                     submitterAlias,
-                    JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.VcsPackageUrlTemplate),
-                    LoggerFactory));
+                    LoggerFactory);
+
+                _validators.Add(new VcsValidator(
+                    callbackUrl,
+                    packageUrlTemplate,
+                    scanningService,
+                    LoggerFactory.CreateLogger<VcsValidator>()));
             }
         }
 
