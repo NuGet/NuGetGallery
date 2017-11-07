@@ -13,7 +13,7 @@ namespace NuGetGallery.Filters
     public sealed class ApiScopeRequiredAttribute 
         : AuthorizeAttribute
     {
-        public string[] ScopeActions { get; set; }
+        private string[] ScopeActions { get; set; }
         
         public ApiScopeRequiredAttribute(params string[] scopeActions)
         {
