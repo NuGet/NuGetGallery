@@ -79,17 +79,11 @@ namespace NuGetGallery
 
             var model = new StatisticsPackagesViewModel
             {
-                IsDownloadPackageAvailable = _statisticsService.DownloadPackagesResult.Loaded,
-                DownloadPackagesSummary = _statisticsService.DownloadPackagesSummary,
+                IsDownloadPackageAvailable = _statisticsService.DownloadCommunityPackagesResult.Loaded,
+                DownloadPackagesSummary = _statisticsService.DownloadCommunityPackagesSummary,
 
-                IsDownloadPackageVersionsAvailable = _statisticsService.DownloadPackageVersionsResult.Loaded,
-                DownloadPackageVersionsSummary = _statisticsService.DownloadPackageVersionsSummary,
-
-                IsDownloadCommunityPackageAvailable = _statisticsService.DownloadCommunityPackagesResult.Loaded,
-                DownloadCommunityPackagesSummary = _statisticsService.DownloadCommunityPackagesSummary,
-
-                IsDownloadCommunityPackageVersionsAvailable = _statisticsService.DownloadCommunityPackageVersionsResult.Loaded,
-                DownloadCommunityPackageVersionsSummary = _statisticsService.DownloadCommunityPackageVersionsSummary,
+                IsDownloadPackageVersionsAvailable = _statisticsService.DownloadCommunityPackageVersionsResult.Loaded,
+                DownloadPackageVersionsSummary = _statisticsService.DownloadCommunityPackageVersionsSummary,
 
                 IsNuGetClientVersionAvailable = _statisticsService.NuGetClientVersionResult.Loaded,
                 NuGetClientVersion = _statisticsService.NuGetClientVersion,
@@ -110,7 +104,7 @@ namespace NuGetGallery
         //
         // GET: /stats/packages
 
-        public virtual async Task<ActionResult> Packages(string set = null)
+        public virtual async Task<ActionResult> Packages()
         {
             if (_statisticsService == NullStatisticsService.Instance)
             {
@@ -119,13 +113,11 @@ namespace NuGetGallery
 
             await _statisticsService.Refresh();
 
-            var isAllPackageSet = (AllPackageSet == set);
             var allPackagesUpdateTime = _statisticsService.DownloadPackagesResult.LastUpdatedUtc;
             var communityPackagesUpdateTime = _statisticsService.DownloadCommunityPackagesResult.LastUpdatedUtc;
 
             var model = new StatisticsPackagesViewModel
             {
-                IsCommunityPackageSet = !isAllPackageSet,
                 IsDownloadPackageAvailable = _statisticsService.DownloadPackagesResult.Loaded,
                 DownloadPackagesAll = _statisticsService.DownloadPackagesAll,
 
@@ -143,7 +135,7 @@ namespace NuGetGallery
         //
         // GET: /stats/packageversions
 
-        public virtual async Task<ActionResult> PackageVersions(string set = null)
+        public virtual async Task<ActionResult> PackageVersions()
         {
             if (_statisticsService == NullStatisticsService.Instance)
             {
@@ -152,13 +144,11 @@ namespace NuGetGallery
 
             await _statisticsService.Refresh();
 
-            var isAllPackageSet = (AllPackageSet == set);
             var allPackagesUpdateTime = _statisticsService.DownloadPackageVersionsResult.LastUpdatedUtc;
             var communityPackagesUpdateTime = _statisticsService.DownloadCommunityPackageVersionsResult.LastUpdatedUtc;
 
             var model = new StatisticsPackagesViewModel
             {
-                IsCommunityPackageSet = !isAllPackageSet,
                 IsDownloadPackageVersionsAvailable = _statisticsService.DownloadPackageVersionsResult.Loaded,
                 DownloadPackageVersionsAll = _statisticsService.DownloadPackageVersionsAll,
 

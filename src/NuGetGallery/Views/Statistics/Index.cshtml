@@ -20,17 +20,14 @@
     <span class="page-subheading ms-fontSize-l">
         @Html.Partial("_LastUpdated", Model)
     </span>
-    <p>
-        Show all packages:
-        <input type="checkbox" data-bind="checked: showAllPackageDownloads" />
-    </p>
+
     <div class="row">
-        @if (Model.IsDownloadPackageAvailable && Model.IsDownloadCommunityPackageAvailable)
+        @if (Model.IsDownloadPackageAvailable)
         {
             <div class="col-md-6 col-xs-12">
-                <h2 class="stats-title-text" data-bind="text: (showAllPackageDownloads() ? 'Package Downloads' : 'Community Package Downloads')"></h2>
+                <h2 class="stats-title-text">Package Downloads</h2>
 
-                <table class="table col-xs-12 borderless" style="display: none;" data-bind="visible: showAllPackageDownloads">
+                <table class="table col-xs-12 borderless">
                     <thead>
                         <tr>
                             <th class="text-left">Name</th>
@@ -54,49 +51,19 @@
                     <tfoot>
                         <tr>
                             <td colspan="2">
-                                <a href="@Url.StatisticsAllPackageDownloads(communityPackages: false)">More...<span class="sr-only">View more package download statistics</span></a>
-                            </td>
-                        </tr>
-                    </tfoot>
-                </table>
-
-                <table class="table col-xs-12 borderless" data-bind="visible: !showAllPackageDownloads()">
-                    <thead>
-                        <tr>
-                            <th class="text-left">Name</th>
-                            <th class="text-right">Downloads</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @{
-                            index = 0;
-                            foreach (var item in Model.DownloadCommunityPackagesSummary)
-                            {
-                                index++;
-
-                                <tr>
-                                    <td class="text-left"><a href="@Url.Package(item.PackageId)" title="@item.PackageId">@item.PackageId</a></td>
-                                    <td class="text-right"><a href="@Url.StatisticsPackageDownloadByVersion(item.PackageId)">@Model.DisplayDownloads(item.Downloads)</a></td>
-                                </tr>
-                            }
-                        }
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <td colspan="2">
-                                <a href="@Url.StatisticsAllPackageDownloads(communityPackages: true)">More...<span class="sr-only">View more package download statistics</span></a>
+                                <a href="@Url.StatisticsAllPackageDownloads()">More...<span class="sr-only">View more package download statistics</span></a>
                             </td>
                         </tr>
                     </tfoot>
                 </table>
             </div>
         }
-        @if (Model.IsDownloadPackageVersionsAvailable && Model.IsDownloadCommunityPackageVersionsAvailable)
+        @if (Model.IsDownloadPackageVersionsAvailable)
         {
             <div class="col-md-6 col-xs-12">
-                <h2 class="stats-title-text" data-bind="text: (showAllPackageDownloads() ? 'Version Downloads' : 'Community Package Version Downloads')">Version Downloads</h2>
+                <h2 class="stats-title-text">Version Downloads</h2>
 
-                <table class="table col-xs-12 borderless" style="display:none;" data-bind="visible: showAllPackageDownloads">
+                <table class="table col-xs-12 borderless">
                     <thead>
                         <tr>
                             <th class="text-left">Name</th>
@@ -122,39 +89,7 @@
                     <tfoot>
                         <tr>
                             <td colspan="3">
-                                <a href="@Url.StatisticsAllPackageVersionDownloads(communityPackages: false)">More...<span class="sr-only">View more package version download statistics</span></a>
-                            </td>
-                        </tr>
-                    </tfoot>
-                </table>
-
-                <table class="table col-xs-12 borderless" data-bind="visible: !showAllPackageDownloads()">
-                    <thead>
-                        <tr>
-                            <th class="text-left">Name</th>
-                            <th class="text-center">Version</th>
-                            <th class="text-right">Downloads</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @{
-                            index = 0;
-                            foreach (var item in Model.DownloadCommunityPackageVersionsSummary)
-                            {
-                                index++;
-
-                                <tr>
-                                    <td class="text-left"><a href="@Url.Package(item.PackageId)" title="@item.PackageId">@item.PackageId</a></td>
-                                    <td class="text-center"><a href="@Url.Package(item.PackageId, item.PackageVersion)">@item.PackageVersion</a></td>
-                                    <td class="text-right"><a href="@Url.StatisticsPackageDownloadsDetail(item.PackageId, item.PackageVersion)">@Model.DisplayDownloads(item.Downloads)</a></td>
-                                </tr>
-                            }
-                        }
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <td colspan="3">
-                                <a href="@Url.StatisticsAllPackageVersionDownloads(communityPackages: true)">More...<span class="sr-only">View more package version download statistics</span></a>
+                                <a href="@Url.StatisticsAllPackageVersionDownloads()">More...<span class="sr-only">View more package version download statistics</span></a>
                             </td>
                         </tr>
                     </tfoot>
@@ -318,18 +253,3 @@
          }
     </div>
 </section>
-
-@section BottomScripts
-{
-    <script>
-        $(function () {
-            'use strict';
-
-            var viewModel = {
-                showAllPackageDownloads: ko.observable(false),
-            };
-
-            ko.applyBindings(viewModel);
-        });
-    </script>
-}

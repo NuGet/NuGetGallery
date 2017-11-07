@@ -26,8 +26,6 @@ namespace NuGetGallery
         {
         }
 
-        public bool IsCommunityPackageSet { get; set; }
-
         public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackagesSummary { get; set; }
 
         public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackageVersionsSummary { get; set; }
