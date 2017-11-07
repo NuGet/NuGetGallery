@@ -86,7 +86,7 @@ namespace NuGetGallery
                 DownloadPackageVersionsSummary = _statisticsService.DownloadPackageVersionsSummary,
 
                 IsDownloadCommunityPackageAvailable = _statisticsService.DownloadCommunityPackagesResult.Loaded,
-                DownloadCommunityPackagesSummary = _statisticsService.DownloadPackagesSummary,
+                DownloadCommunityPackagesSummary = _statisticsService.DownloadCommunityPackagesSummary,
 
                 IsDownloadCommunityPackageVersionsAvailable = _statisticsService.DownloadCommunityPackageVersionsResult.Loaded,
                 DownloadCommunityPackageVersionsSummary = _statisticsService.DownloadCommunityPackageVersionsSummary,

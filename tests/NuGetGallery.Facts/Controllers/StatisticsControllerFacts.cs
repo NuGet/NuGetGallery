@@ -339,7 +339,7 @@ namespace NuGetGallery
 
             Assert.Equal(106, sum);
             Assert.True(model.LastUpdatedUtc.HasValue);
-            Assert.Equal(updatedUtc2, model.LastUpdatedUtc.Value);
+            Assert.Equal(updatedUtc1, model.LastUpdatedUtc.Value);
         }
 
         [Fact]
