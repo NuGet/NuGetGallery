@@ -128,7 +128,7 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
 
             await _clientSdkHelper.UploadNewPackage(packageId, packageVersion);
 
-            var verificationKey = await CreateVerificationKey(EnvironmentSettings.TestAccountApiKey, packageId, packageVersion);
+            var verificationKey = await CreateVerificationKey(EnvironmentSettings.TestSecurityPoliciesAccountApiKey, packageId, packageVersion);
 
             // Act & Assert
             Assert.Equal(HttpStatusCode.NotFound, await VerifyPackageKey(verificationKey, packageId + "_bad", packageVersion));
