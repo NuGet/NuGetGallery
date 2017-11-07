@@ -1041,7 +1041,10 @@ namespace NuGetGallery
             // Create edit model from the latest pending edit.
             var pendingMetadata = _editPackageService.GetPendingMetadata(package);
 
-            model.Edit = new EditPackageVersionRequest(package, pendingMetadata, GetPossibleOwnersForUpload(package.PackageRegistration.Id));
+            // No point in allowing users to specify the owner who edited the package: just show the first.
+            var possibleOwners = GetPossibleOwnersForUpload(package.PackageRegistration.Id).Take(1);
+
+            model.Edit = new EditPackageVersionRequest(package, pendingMetadata, possibleOwners);
 
             // Update edit model with the active or pending readme.md data.
             var isReadMePending = model.Edit.ReadMeState != PackageEditReadMeState.Unchanged;
