@@ -224,21 +224,31 @@ namespace NuGetGallery
                 .Select(c => new ApiKeyViewModel(c))
                 .ToList();
 
-            // Get package IDs
-            var packageIds = _packageService
-                .FindPackageRegistrationsByOwner(user)
-                .Select(p => p.Id)
-                .OrderBy(i => i)
+            // Get package owners (user's self or organizations)
+            var owners = user.Organizations
+                .Select(o => CreateApiKeyOwnerViewModel(o.Organization, canPushNew: o.IsAdmin))
                 .ToList();
+            owners.Insert(0, CreateApiKeyOwnerViewModel(user, canPushNew: true));
 
             var model = new ApiKeyListViewModel
             {
                 ApiKeys = apiKeys,
                 ExpirationInDaysForApiKeyV1 = _config.ExpirationInDaysForApiKeyV1,
-                PackageIds = packageIds,
+                PackageOwners = owners,
             };
 
             return View("ApiKeys", model);
+        }
+
+        private ApiKeyOwnerViewModel CreateApiKeyOwnerViewModel(User user, bool canPushNew)
+        {
+            return new ApiKeyOwnerViewModel(
+                user.Username,
+                canPushNew,
+                packageIds: _packageService.FindPackageRegistrationsByOwner(user)
+                                .Select(p => p.Id)
+                                .OrderBy(i => i)
+                                .ToList());
         }
 
         [Authorize]
@@ -648,7 +658,7 @@ namespace NuGetGallery
                 Response.StatusCode = (int)HttpStatusCode.NotFound;
                 return Json(Strings.CredentialNotFound);
             }
-           
+
             var newCredential = await GenerateApiKeyInternal(
                 cred.Description,
                 BuildScopes(cred.Scopes),
@@ -677,12 +687,22 @@ namespace NuGetGallery
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<JsonResult> GenerateApiKey(string description, string[] scopes = null, string[] subjects = null, int? expirationInDays = null)
+        public virtual async Task<JsonResult> GenerateApiKey(string description, string owner, string[] scopes = null, string[] subjects = null, int? expirationInDays = null)
         {
             if (string.IsNullOrWhiteSpace(description))
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return Json(Strings.ApiKeyDescriptionRequired);
+            }
+
+            // Get the owner scope
+            User scopeOwner = string.IsNullOrEmpty(owner)
+                ? GetCurrentUser()
+                : _userService.FindByUsername(owner);
+            if (scopeOwner == null)
+            {
+                Response.StatusCode = (int)HttpStatusCode.NotFound;
+                return Json(Strings.UserNotFound);
             }
 
             // Set expiration
@@ -696,8 +716,8 @@ namespace NuGetGallery
                     expiration = TimeSpan.FromDays(Math.Min(expirationInDays.Value, _config.ExpirationInDaysForApiKeyV1));
                 }
             }
-
-            var newCredential = await GenerateApiKeyInternal(description, BuildScopes(scopes, subjects), expiration);
+            
+            var newCredential = await GenerateApiKeyInternal(description, BuildScopes(scopeOwner, scopes, subjects), expiration);
             var credentialViewModel = _authService.DescribeCredential(newCredential);
             credentialViewModel.Value = newCredential.Value;
 
@@ -728,8 +748,9 @@ namespace NuGetGallery
                 return Json(Strings.CredentialNotFound);
             }
 
+            var scopeOwner = cred.Scopes.Select(x => x.Owner).Distinct().SingleOrDefault();
             var scopes = cred.Scopes.Select(x => x.AllowedAction).Distinct().ToArray();
-            var newScopes = BuildScopes(scopes, subjects);
+            var newScopes = BuildScopes(scopeOwner, scopes, subjects);
 
             await _authService.EditCredentialScopes(user, cred, newScopes);
 
@@ -752,7 +773,7 @@ namespace NuGetGallery
             return newCredential;
         }
 
-        private static IList<Scope> BuildScopes(string[] scopes, string[] subjects)
+        private IList<Scope> BuildScopes(User scopeOwner, string[] scopes, string[] subjects)
         {
             var result = new List<Scope>();
 
@@ -768,12 +789,12 @@ namespace NuGetGallery
             {
                 foreach (var scope in scopes)
                 {
-                    result.AddRange(subjectsList.Select(subject => new Scope(subject, scope)));
+                    result.AddRange(subjectsList.Select(subject => new Scope(scopeOwner, subject, scope)));
                 }
             }
             else
             {
-                result.AddRange(subjectsList.Select(subject => new Scope(subject, NuGetScopes.All)));
+                result.AddRange(subjectsList.Select(subject => new Scope(scopeOwner, subject, NuGetScopes.All)));
             }
 
             return result;
@@ -781,9 +802,8 @@ namespace NuGetGallery
 
         private static IList<Scope> BuildScopes(IEnumerable<Scope> scopes)
         {
-            return scopes.Select(scope => new Scope {AllowedAction = scope.AllowedAction, Subject = scope.Subject}).ToList();
+            return scopes.Select(scope => new Scope(scope.Owner, scope.Subject, scope.AllowedAction)).ToList();
         }
-
 
         private async Task<JsonResult> RemoveApiKeyCredential(User user, Credential cred)
         {

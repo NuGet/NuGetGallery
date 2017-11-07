@@ -64,23 +64,17 @@
             });
         }
 
-        function ApiKeyViewModel(parent, packageIds, data) {
+        function ApiKeyViewModel(parent, packageOwners, data) {
             var self = this;
 
             data = data || {};
 
-            // Initialize each package ID as a view model. This view model is used to track manual checkbox checks
-            // and whether the glob pattern matches the ID.
-            var packageIdToViewModel = {};
-            var packageViewModels = [];
-            $.each(packageIds, function (i, packageId) {
-                packageIdToViewModel[packageId] = new PackageViewModel(packageId);
-                packageViewModels.push(packageIdToViewModel[packageId]);
-            });
-
+            this.PackageOwners = packageOwners;
+            this.packageViewModels = [];
+            
             // Generic API key properties.
             this._SetPackageSelection = function (packages) {
-                $.each(packageViewModels, function (i, m) {
+                $.each(self.packageViewModels, function (i, m) {
                     var index = $.inArray(m.Id(), packages);
                     m.Selected(index !== -1);
                 });
@@ -94,6 +88,7 @@
                 this.Expires(data.Expires || null);
                 this.HasExpired(data.HasExpired || false);
                 this.IsNonScopedV1ApiKey(data.IsNonScopedV1ApiKey || false);
+                this.Owner(data.Owner || null);
                 this.Scopes(data.Scopes || []);
                 this.Packages(data.Packages || []);
                 this.GlobPattern(data.GlobPattern || "");
@@ -106,6 +101,7 @@
             this.Expires = ko.observable();
             this.HasExpired = ko.observable();
             this.IsNonScopedV1ApiKey = ko.observable();
+            this.Owner = ko.observable();
             this.Scopes = ko.observableArray();
             this.Packages = ko.observableArray();
             this.GlobPattern = ko.observable();
@@ -113,6 +109,25 @@
 
             // Properties used for the form
             this.PendingDescription = ko.observable();
+
+            // Package owner selection
+            this.PackageOwner = ko.observable();
+            this.PackageOwnerName = ko.pureComputed(function () {
+                return self.PackageOwner() && self.PackageOwner().Owner;
+            }, this);
+
+            // Do not default to push new scope if disabled (organization collaborator)
+            this.PushNewEnabled = ko.pureComputed(function () {
+                return self.PackageOwner() && self.PackageOwner().CanPushNew;
+            }, this);
+            this.PushNewEnabled.subscribe(function (newValue) {
+                var defaultPushId = (newValue)
+                    ? self.PackagePushId()
+                    : self.PackagePushVersionId();
+                var defaultScope = $("#" + defaultPushId).val();
+                self.PushScope(defaultScope);
+            });
+
             this.ExpiresIn = ko.observable();
             this.PushEnabled = ko.observable(false);
             this.PushScope = ko.observable(initialData.PackagePushScope);
@@ -139,7 +154,7 @@
                     return id;
                 }, self);
             }
-
+            
             this.ShortPackageList = ko.pureComputed(function () {
                 return this.Packages().slice(0, 3);
             }, this);
@@ -158,6 +173,7 @@
             this.CancelEditId = ComputedId("cancel-edit");
             this.CopyId = ComputedId("copy");
             this.DescriptionId = ComputedId("description");
+            this.PackageOwnerId = ComputedId("package-owner");
             this.GlobPatternId = ComputedId("glob-pattern");
             this.ExpiresInId = ComputedId("expires-in");
             this.PackagePushId = ComputedId("package-push");
@@ -216,19 +232,39 @@
                     return item.Checked();
                 }).length;
             }, this);
+            this.TotalCount = ko.pureComputed(function () {
+                return this.PendingPackages().length;
+            }, this);
 
             // Apply the glob pattern to the package IDs
-            this.PendingGlobPattern.subscribe(function (newValue) {
+            this.ApplyPendingGlobPattern = function (newValue) {
                 var pattern = globToRegex(newValue || "");
                 $.each(self.PendingPackages(), function (i, p) {
                     var matched = pattern.test(p.Id());
                     p.Matched(matched);
                 });
+            };
+            this.PendingGlobPattern.subscribe(function (newValue) {
+                self.ApplyPendingGlobPattern(newValue);
             });
 
-            // Initialize the pending data.
-            this.PendingPackages(packageViewModels);
+            // Initialize pending packages data when owner selection changes.
+            this.PackageOwner.subscribe(function (newValue) {
+                // Initialize each package ID as a view model. This view model is used to track manual checkbox checks
+                // and whether the glob pattern matches the ID.
+                var packageIdToViewModel = {};
+                self.packageViewModels = [];
+                $.each(newValue.PackageIds, function (i, packageId) {
+                    packageIdToViewModel[packageId] = new PackageViewModel(packageId);
+                    self.packageViewModels.push(packageIdToViewModel[packageId]);
+                });
+                self.PendingPackages(self.packageViewModels);
+                self.ApplyPendingGlobPattern(self.PendingGlobPattern());
+            });
+
+            // Default owner to self to initialize the pending data.
             this.PendingGlobPattern(this.GlobPattern());
+            this.PackageOwner(this.PackageOwners[0]);
 
             // Apply validation to the scopes and subjects
             this.PendingScopes.subscribe(function (newValue) {
@@ -290,6 +326,7 @@
 
                 // Reset the field values.
                 self.PendingDescription(self.Description());
+                self.PackageOwner($("#" + self.PackageOwnerId() + " option:first-child").val());
                 self.ExpiresIn($("#" + self.ExpiresInId() + " option:last-child").val());
                 self.PushEnabled(false);
                 self.PushScope(initialData.PackagePushScope);
@@ -405,6 +442,7 @@
                 // Build the request.
                 var data = {
                     description: this.PendingDescription(),
+                    owner: this.PackageOwnerName(),
                     scopes: this.PendingScopes(),
                     subjects: this.PendingSubjects(),
                     expirationInDays: this.ExpiresIn()
@@ -424,7 +462,7 @@
                         self.JustCreated(true);
                         parent.ApiKeys.unshift(self);
 
-                        var newApiKey = new ApiKeyViewModel(parent, packageIds);
+                        var newApiKey = new ApiKeyViewModel(parent, packageOwners);
                         parent.NewApiKey(newApiKey);
                         newApiKey.CancelEdit();
 
@@ -481,9 +519,9 @@
             var self = this;
 
             var apiKeys = $.map(initialData.ApiKeys, function (data) {
-                return new ApiKeyViewModel(self, initialData.PackageIds, data);
+                return new ApiKeyViewModel(self, initialData.PackageOwners, data);
             });
-            var newApiKey = new ApiKeyViewModel(self, initialData.PackageIds);
+            var newApiKey = new ApiKeyViewModel(self, initialData.PackageOwners);
 
             this.ApiKeys = ko.observableArray(apiKeys);
             this.NewApiKey = ko.observable(newApiKey);

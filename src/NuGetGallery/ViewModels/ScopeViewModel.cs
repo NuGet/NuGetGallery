@@ -5,11 +5,13 @@ namespace NuGetGallery
 {
     public class ScopeViewModel
     {
+        public string Owner { get; set; }
         public string Subject { get; set; }
         public string AllowedAction { get; set; }
 
-        public ScopeViewModel(string subject, string allowedAction)
+        public ScopeViewModel(string owner, string subject, string allowedAction)
         {
+            Owner = owner ?? "*";
             Subject = subject;
             AllowedAction = allowedAction;
         }

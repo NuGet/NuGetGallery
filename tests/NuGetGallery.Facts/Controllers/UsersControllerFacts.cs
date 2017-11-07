@@ -633,6 +633,7 @@ namespace NuGetGallery
                 // Act
                 var result = await controller.GenerateApiKey(
                     description: description,
+                    owner: user.Username,
                     scopes: null,
                     expirationInDays: null);
 
@@ -657,10 +658,14 @@ namespace NuGetGallery
 
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername(user.Username))
+                    .Returns(user);
 
                 // Act
                 await controller.GenerateApiKey(
                     description: "my new api key",
+                    owner: user.Username,
                     scopes: new [] { NuGetScopes.PackageUnlist },
                     subjects: null,
                     expirationInDays: inputExpirationInDays);
@@ -744,6 +749,9 @@ namespace NuGetGallery
             {
                 // Arrange 
                 var user = new User("the-username");
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername(user.Username))
+                    .Returns(user);
 
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
@@ -751,6 +759,7 @@ namespace NuGetGallery
                 // Act
                 await controller.GenerateApiKey(
                     description: description,
+                    owner: user.Username,
                     scopes: scopes,
                     subjects: subjects,
                     expirationInDays: null);
@@ -781,9 +790,13 @@ namespace NuGetGallery
 
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername(user.Username))
+                    .Returns(user);
 
                 var result = await controller.GenerateApiKey(
                     description: "description",
+                    owner: user.Username,
                     scopes: new [] { NuGetScopes.PackageUnlist, NuGetScopes.PackagePush },
                     subjects: new [] { "a" },
                     expirationInDays: 90);
@@ -806,9 +819,13 @@ namespace NuGetGallery
 
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername(user.Username))
+                    .Returns(user);
 
                 var result = await controller.GenerateApiKey(
                     description: "description",
+                    owner: user.Username,
                     scopes: new[] { NuGetScopes.PackageUnlist, NuGetScopes.PackagePush },
                     subjects: new[] { "a" },
                     expirationInDays: 90);
