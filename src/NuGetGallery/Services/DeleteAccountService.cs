@@ -99,6 +99,7 @@ namespace NuGetGallery
             }
             catch(Exception e)
             {
+                QuietLog.LogHandledException(e);
                 return new DeleteUserAccountStatus()
                 {
                     Success = true,
