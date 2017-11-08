@@ -84,8 +84,6 @@
                         {
                             var returnUrl = ViewData.ContainsKey(Constants.ReturnUrlViewDataKey) ? (string)ViewData[Constants.ReturnUrlViewDataKey] : Request.RawUrl;
                             @DisplayNavigationItem("Sign in", Url.LogOn(returnUrl), title: "Sign in to an existing NuGet.org account")
-                            <li class="hidden-xs seperator" role="presentation"><span></span></li>
-                            @DisplayNavigationItem("Register", Url.SignUp(returnUrl), title: "Register for a new NuGet.org account")
                         }
                         else
                         {

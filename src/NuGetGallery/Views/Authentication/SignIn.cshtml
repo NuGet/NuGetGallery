@@ -36,10 +36,10 @@
             </div>
         </div>
     }
-    
+
     <div class="row">
-        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
-            @Html.Partial("_SignIn", Model)
-        </div>
+        <p class="text-center">
+            <a href="@Url.NuGetAccountSignIn()">Sign in using NuGet.org account</a>
+        </p>
     </div>
 </section>

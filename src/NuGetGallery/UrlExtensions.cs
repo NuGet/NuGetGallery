@@ -319,6 +319,18 @@ namespace NuGetGallery
                 });
         }
 
+        public static string NuGetAccountSignIn(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetRouteLink(
+                url,
+                RouteName.Authentication,
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "action", "SignInNuGetAccount" }
+                });
+        }
+
         public static string SignUp(this UrlHelper url, bool relativeUrl = true)
         {
             return GetRouteLink(

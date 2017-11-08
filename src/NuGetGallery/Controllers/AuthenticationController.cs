@@ -94,6 +94,24 @@ namespace NuGetGallery
             return RegisterView(new LogOnViewModel());
         }
 
+        /// <summary>
+        /// Sign In\Register view
+        /// </summary>
+        [HttpGet]
+        public virtual ActionResult SignInNuGetAccount(string returnUrl)
+        {
+            // I think it should be obvious why we don't want the current URL to be the return URL here ;)
+            ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
+
+            if (Request.IsAuthenticated)
+            {
+                TempData["Message"] = Strings.AlreadyLoggedIn;
+                return SafeRedirect(returnUrl);
+            }
+
+            return SignInNuGetAccount(new LogOnViewModel());
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> SignIn(LogOnViewModel model, string returnUrl, bool linkingAccount)
@@ -462,6 +480,11 @@ namespace NuGetGallery
             return AuthenticationView("Register", existingModel);
         }
 
+        private ActionResult SignInNuGetAccount(LogOnViewModel existingModel)
+        {
+            return AuthenticationView("SignInNuGetAccount", existingModel);
+        }
+        
         private ActionResult LinkExternalView(LogOnViewModel existingModel)
         {
             return AuthenticationView("LinkExternal", existingModel);

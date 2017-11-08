@@ -1937,6 +1937,7 @@
     <Content Include="Views\Packages\_EditForm.cshtml" />
     <Content Include="Views\Users\_OwnerRequestsList.cshtml" />
     <Content Include="Views\Users\_ReservedNamespacesList.cshtml" />
+    <Content Include="Views\Authentication\SignInNuGetAccount.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />
