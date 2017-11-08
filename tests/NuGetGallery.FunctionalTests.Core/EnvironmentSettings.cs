@@ -316,7 +316,8 @@ namespace NuGetGallery.FunctionalTests
                 if (_defaultSecurityPoliciesEnforced == null)
                 {
                     // Try to get the setting from EnvironmentVariable. If fail, fallback to false
-                    if (bool.TryParse(Environment.GetEnvironmentVariable("DefaultSecurityPoliciesEnforced"), out bool temp))
+                    bool temp;
+                    if (bool.TryParse(Environment.GetEnvironmentVariable("DefaultSecurityPoliciesEnforced"), out temp))
                     {
                         _defaultSecurityPoliciesEnforced = temp;
                     }
