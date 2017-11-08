@@ -26,9 +26,9 @@ namespace NuGetGallery.FunctionalTests
         private static string _testAccountApiKey_Unlist;
         private static string _testAccountApiKey_PushPackage;
         private static string _testAccountApiKey_PushVersion;
-        private static string _testSecurityPoliciesAccountApiKey;
         private static string _testEmailServerHost;
         private static List<string> _trustedHttpsCertificates;
+        private static bool? _defaultSecurityPoliciesEnforced = false;
 
         /// <summary>
         /// The environment against which the test has to be run. The value would be picked from env variable.
@@ -297,21 +297,6 @@ namespace NuGetGallery.FunctionalTests
             }
         }
 
-        /// <summary>
-        /// The full access API key for the security policies test account.
-        /// </summary>
-        public static string TestSecurityPoliciesAccountApiKey
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(_testSecurityPoliciesAccountApiKey))
-                {
-                    _testSecurityPoliciesAccountApiKey = Environment.GetEnvironmentVariable("TestSecurityPoliciesAccountApiKey");
-                }
-                return _testSecurityPoliciesAccountApiKey;
-            }
-        }
-
         public static string TestEmailServerHost
         {
             get
@@ -321,6 +306,27 @@ namespace NuGetGallery.FunctionalTests
                     _testEmailServerHost = Environment.GetEnvironmentVariable("TestEmailServerHost");
                 }
                 return _testEmailServerHost;
+            }
+        }
+
+        public static bool DefaultSecurityPoliciesEnforced
+        {
+            get
+            {
+                if (_defaultSecurityPoliciesEnforced == null)
+                {
+                    // Try to get the setting from EnvironmentVariable. If fail, fallback to false
+                    if (bool.TryParse(Environment.GetEnvironmentVariable("DefaultSecurityPoliciesEnforced"), out bool temp))
+                    {
+                        _defaultSecurityPoliciesEnforced = temp;
+                    }
+                    else
+                    {
+                        _defaultSecurityPoliciesEnforced = false;
+                    }
+                }
+
+                return _defaultSecurityPoliciesEnforced.Value;
             }
         }
 
