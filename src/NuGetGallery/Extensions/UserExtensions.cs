@@ -97,28 +97,47 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(user));
             }
 
-            if (credential== null)
+            if (credential == null)
             {
                 throw new ArgumentNullException(nameof(credential));
             }
 
-            // Legacy V1 API key with no owner scope.
-            if (!credential.Scopes.Any())
+            if (credential.Scopes == null || !credential.Scopes.Any())
             {
+                // Legacy V1 API key with no scopes.
                 return true;
             }
-            
-            return credential.Scopes
-                .Select(s => s.OwnerKey)
-                .Distinct()
-                .Any(ownerKey => !ownerKey.HasValue // Legacy V2 API key with no owner scope
-                    || user.KeyIsSelfOrOrganization(ownerKey)); // V2 API key with owner scope
+
+            return credential.Scopes.Any(s => MatchesOwnerScope(user, s));
+        }
+        
+        private static bool MatchesOwnerScope(this User user, Scope scope)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            if (scope == null)
+            {
+                // Null scope matches all users.
+                return true;
+            }
+
+            if (!scope.HasOwnerScope())
+            {
+                // Legacy V2 API key with no owner scope
+                return true;
+            }
+
+            return user.KeyIsSelfOrOrganization(scope.OwnerKey.Value);
         }
 
-        private static bool KeyIsSelfOrOrganization(this User user, int? accountKey)
+        private static bool KeyIsSelfOrOrganization(this User user, int accountKey)
         {
-            return user.Key == accountKey
-                || user.Organizations.Any(o => o.OrganizationKey == accountKey);
+            return 
+                user.Key == accountKey || 
+                user.Organizations.Any(o => o.OrganizationKey == accountKey);
         }
 
 	public static void SetAccountAsDeleted(this User user)

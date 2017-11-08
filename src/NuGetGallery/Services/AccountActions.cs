@@ -9,13 +9,72 @@ namespace NuGetGallery
     public static class AccountActions
     {
         /// <summary>
-        /// If a user is requested to be an owner of a package, this user can accept the request on behalf of the other user.
+        /// If an account is requested to be an owner of a package, the user can accept the request on behalf of the account.
         /// </summary>
         public static PermissionLevel AcceptPackageOwnershipOnBehalfOf =
             PermissionLevel.Owner |
             PermissionLevel.OrganizationAdmin;
 
-        public static PermissionLevel UploadPackageOnBehalfOf =
+        /// <summary>
+        /// The user can upload new package IDs on behalf of the account using the UI.
+        /// </summary>
+        public static PermissionLevel UploadNewIdOnBehalfOf =
+            PermissionLevel.Owner |
+            PermissionLevel.OrganizationAdmin;
+
+        /// <summary>
+        /// The user can upload new versions of an existing package on behalf of the account using the UI.
+        /// </summary>
+        public static PermissionLevel UploadNewVersionOnBehalfOf =
+            PermissionLevel.Owner |
+            PermissionLevel.OrganizationAdmin |
+            PermissionLevel.OrganizationCollaborator;
+
+        /// <summary>
+        /// The user can perform all API actions on behalf of the account.
+        /// </summary>
+        public static PermissionLevel ApiAllOnBehalfOf =
+            ApiPushOnBehalfOf &
+            ApiPushVersionOnBehalfOf &
+            ApiUnlistOnBehalfOf &
+            ApiVerifyOnBehalfOf;
+
+        /// <summary>
+        /// The user can perform at least one API action on behalf of the account.
+        /// </summary>
+        public static PermissionLevel ApiAnyOnBehalfOf =
+            ApiPushOnBehalfOf |
+            ApiPushVersionOnBehalfOf |
+            ApiUnlistOnBehalfOf |
+            ApiVerifyOnBehalfOf;
+
+        /// <summary>
+        /// The user can push new package IDs on behalf of the account.
+        /// </summary>
+        public static PermissionLevel ApiPushOnBehalfOf =
+            PermissionLevel.Owner |
+            PermissionLevel.OrganizationAdmin;
+
+        /// <summary>
+        /// The user can push new versions of an existing package using the API on behalf of the account.
+        /// </summary>
+        public static PermissionLevel ApiPushVersionOnBehalfOf = 
+            PermissionLevel.Owner |
+            PermissionLevel.OrganizationAdmin |
+            PermissionLevel.OrganizationCollaborator;
+
+        /// <summary>
+        /// The user can unlist and relist existing versions of a package using the API on behalf of the account.
+        /// </summary>
+        public static PermissionLevel ApiUnlistOnBehalfOf =
+            PermissionLevel.Owner |
+            PermissionLevel.OrganizationAdmin | 
+            PermissionLevel.OrganizationCollaborator;
+
+        /// <summary>
+        /// The user can create a verification key for a package using the API on behalf of the account.
+        /// </summary>
+        public static PermissionLevel ApiVerifyOnBehalfOf = 
             PermissionLevel.Owner |
             PermissionLevel.OrganizationAdmin |
             PermissionLevel.OrganizationCollaborator;

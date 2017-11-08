@@ -44,7 +44,7 @@ namespace NuGetGallery.Infrastructure.Authentication
                 credential.Scopes = new[] { new Scope(
                     ownerKey: null,
                     subject: id,
-                    allowedAction: NuGetScopes.PackageVerify)
+                    allowedAction: NuGetScopeActions.PackageVerify)
                 };
             }
             else
@@ -53,7 +53,7 @@ namespace NuGetGallery.Infrastructure.Authentication
                     .Select(key => new Scope(
                         ownerKey: key,
                         subject: id,
-                        allowedAction: NuGetScopes.PackageVerify))
+                        allowedAction: NuGetScopeActions.PackageVerify))
                     .ToArray();
             }
 

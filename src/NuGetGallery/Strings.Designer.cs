@@ -1345,6 +1345,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to User &apos;{0}&apos; does not have the rights to upload a new ID on behalf of user &apos;{1}&apos;!.
+        /// </summary>
+        public static string UploadPackage_NewIdOnBehalfOfUserNotAllowed {
+            get {
+                return ResourceManager.GetString("UploadPackage_NewIdOnBehalfOfUserNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User &apos;{0}&apos; does not have the rights to upload a new version of an existing package on behalf of user &apos;{1}&apos;!.
+        /// </summary>
+        public static string UploadPackage_NewVersionOnBehalfOfUserNotAllowed {
+            get {
+                return ResourceManager.GetString("UploadPackage_NewVersionOnBehalfOfUserNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot upload file because an upload is already in progress..
         /// </summary>
         public static string UploadPackage_UploadInProgress {
@@ -1404,6 +1422,15 @@ namespace NuGetGallery {
         public static string UserNotFound {
             get {
                 return ResourceManager.GetString("UserNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User &apos;{0}&apos; does not have the rights to upload new versions of package &apos;{1}&apos;!.
+        /// </summary>
+        public static string VerifyPackage_OwnerInvalid {
+            get {
+                return ResourceManager.GetString("VerifyPackage_OwnerInvalid", resourceCulture);
             }
         }
         

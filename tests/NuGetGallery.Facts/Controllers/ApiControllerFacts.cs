@@ -333,19 +333,22 @@ namespace NuGetGallery
             [Fact]
             public async Task WillReturnConflictIfAPackageWithTheIdAndSameNormalizedVersionAlreadyExists()
             {
-                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.042");
+                var id = "theId";
+                var version = "1.0.42";
+                var nuGetPackage = TestPackage.CreateTestPackageStream(id, version);
 
                 var user = new User() { EmailAddress = "confirmed@email.com" };
 
                 var packageRegistration = new PackageRegistration
                 {
-                    Packages = new List<Package> { new Package { Version = "01.00.42", NormalizedVersion = "1.0.42" } },
+                    Id = id,
+                    Packages = new List<Package> { new Package { Version = version, NormalizedVersion = version } },
                     Owners = new List<User> { user }
                 };
 
                 var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(new User());
-                controller.MockPackageService.Setup(x => x.FindPackageRegistrationById("theId")).Returns(packageRegistration);
+                controller.MockPackageService.Setup(x => x.FindPackageRegistrationById(id)).Returns(packageRegistration);
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
                 // Act
@@ -355,7 +358,7 @@ namespace NuGetGallery
                 ResultAssert.IsStatusCode(
                     result,
                     HttpStatusCode.Conflict,
-                    String.Format(Strings.PackageExistsAndCannotBeModified, "theId", "1.0.42"));
+                    String.Format(Strings.PackageExistsAndCannotBeModified, id, version));
             }
 
             [Fact]
@@ -521,7 +524,7 @@ namespace NuGetGallery
             {
                 var key = 0;
                 var user = new User { EmailAddress = "confirmed@email.com", Key = key++, Username = "user" };
-                return AssertPackageIsCreatedIfUserOwnersExistingRegistration(user, user);
+                return AssertPackageIsCreatedIfUserOwnsExistingRegistration(user, user);
             }
 
             [Theory]
@@ -536,10 +539,10 @@ namespace NuGetGallery
                 user.Organizations = new[] { new Membership { IsAdmin = isAdmin, Member = user, Organization = organization } };
                 organization.Members = user.Organizations;
 
-                return AssertPackageIsCreatedIfUserOwnersExistingRegistration(organization, user);
+                return AssertPackageIsCreatedIfUserOwnsExistingRegistration(organization, user);
             }
 
-            private async Task AssertPackageIsCreatedIfUserOwnersExistingRegistration(User owner, User currentUser)
+            private async Task AssertPackageIsCreatedIfUserOwnsExistingRegistration(User owner, User currentUser)
             {
                 // Arrange
                 var packageId = "theId";
@@ -553,9 +556,12 @@ namespace NuGetGallery
                 packageRegistration.Packages.Add(package);
 
                 var controller = new TestableApiController(GetConfigurationService());
-                controller.SetCurrentUser(currentUser);
+                var scope = new Scope { AllowedAction = NuGetScopeActions.PackagePushVersion, OwnerKey = owner.Key, Subject = packageId };
+                controller.SetCurrentUser(currentUser, new[] { scope });
                 controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
                     .Returns(packageRegistration);
+
+                controller.MockUserService.Setup(x => x.FindByKey(owner.Key)).Returns(owner);
 
                 var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, "1.0.42");
                 controller.SetupPackageFromInputStream(nuGetPackage);
@@ -571,6 +577,91 @@ namespace NuGetGallery
                         It.IsAny<PackageStreamMetadata>(),
                         It.IsAny<User>(),
                         It.IsAny<User>()));
+            }
+
+            [Fact]
+            public Task WillCreateAPackageIfNewRegistration()
+            {
+                var key = 0;
+                var user = new User { EmailAddress = "confirmed@email.com", Key = key++, Username = "user" };
+                return AssertPackageIsCreatedIfUserOwnsExistingRegistration(user, user);
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public Task WillCreateAPackageOnBehalfOfOrganizationIfNewRegistrationForAdminAndNotCollaborator(bool isAdmin)
+            {
+                var key = 0;
+                var organization = new Organization { Key = key++, Username = "org" };
+
+                var user = new User { EmailAddress = "confirmed@email.com", Key = key++, Username = "user" };
+                user.Organizations = new[] { new Membership { IsAdmin = isAdmin, Member = user, Organization = organization } };
+                organization.Members = user.Organizations;
+
+                if (isAdmin)
+                {
+                    return AssertPackageIsCreatedIfUserOwnsExistingRegistration(organization, user);
+                }
+                else
+                {
+                    return AssertPackageIsNotCreatedIfNewRegistration(organization, user);
+                }
+            }
+
+            private async Task AssertPackageIsCreatedIfNewRegistration(User owner, User currentUser)
+            {
+                // Arrange
+                var controller = SetupCreatePackagePutForNewRegistration(owner, currentUser);
+
+                // Act
+                var result = await controller.CreatePackagePut();
+
+                // Assert
+                controller.MockPackageUploadService.Verify(
+                    x => x.GeneratePackageAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<PackageArchiveReader>(),
+                        It.IsAny<PackageStreamMetadata>(),
+                        It.IsAny<User>(),
+                        It.IsAny<User>()));
+            }
+
+            private async Task AssertPackageIsNotCreatedIfNewRegistration(User owner, User currentUser)
+            {
+                // Arrange
+                var controller = SetupCreatePackagePutForNewRegistration(owner, currentUser);
+
+                // Act
+                var result = await controller.CreatePackagePut() as HttpStatusCodeResult;
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.Unauthorized, result.StatusCode);
+
+                controller.MockPackageUploadService.Verify(
+                    x => x.GeneratePackageAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<PackageArchiveReader>(),
+                        It.IsAny<PackageStreamMetadata>(),
+                        It.IsAny<User>(),
+                        It.IsAny<User>()),
+                    Times.Never);
+            }
+
+            private TestableApiController SetupCreatePackagePutForNewRegistration(User owner, User currentUser)
+            {
+                var packageId = "theId";
+
+                var controller = new TestableApiController(GetConfigurationService());
+                var scope = new Scope { AllowedAction = NuGetScopeActions.PackagePush, OwnerKey = owner.Key, Subject = packageId };
+                controller.SetCurrentUser(currentUser, new[] { scope });
+
+                controller.MockUserService.Setup(x => x.FindByKey(owner.Key)).Returns(owner);
+
+                var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, "1.0.42");
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                return controller;
             }
 
             [Fact]
@@ -888,17 +979,20 @@ namespace NuGetGallery
             [Fact]
             public async Task WillNotDeleteThePackageIfApiKeyDoesNotBelongToAnOwner()
             {
+                var id = "theId";
+                var version = "1.0.42";
+
                 var notOwner = new User { Key = 1 };
                 var package = new Package
                 {
-                    PackageRegistration = new PackageRegistration { Owners = new[] { new User() } }
+                    PackageRegistration = new PackageRegistration { Id = id, Owners = new[] { new User() } }
                 };
 
                 var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(notOwner);
-                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict("theId", "1.0.42")).Returns(package);
+                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(id, version)).Returns(package);
 
-                var result = await controller.DeletePackage("theId", "1.0.42");
+                var result = await controller.DeletePackage(id, version);
 
                 Assert.IsType<HttpStatusCodeWithBodyResult>(result);
                 var statusCodeResult = (HttpStatusCodeWithBodyResult)result;
@@ -948,7 +1042,7 @@ namespace NuGetGallery
             [Fact]
             public Task WillUnlistThePackageIfApiKeyBelongsToAnOwner()
             {
-                var user = new User { Key = 1 };
+                var user = new User { Key = 1, Username = "owner" };
                 return AssertWillUnlistThePackage(user, user);
             }
 
@@ -969,15 +1063,19 @@ namespace NuGetGallery
 
             private async Task AssertWillUnlistThePackage(User owner, User currentUser)
             {
+                var id = "theId";
                 var package = new Package
                 {
-                    PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner } }
+                    PackageRegistration = new PackageRegistration { Id = id, Owners = new[] { owner } }
                 };
                 var controller = new TestableApiController(GetConfigurationService());
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(package);
-                controller.SetCurrentUser(currentUser);
+                var scope = new Scope { AllowedAction = NuGetScopeActions.PackageUnlist, OwnerKey = owner.Key, Subject = id };
+                controller.SetCurrentUser(currentUser, new[] { scope });
 
-                ResultAssert.IsEmpty(await controller.DeletePackage("theId", "1.0.42"));
+                controller.MockUserService.Setup(x => x.FindByKey(owner.Key)).Returns(owner);
+
+                ResultAssert.IsEmpty(await controller.DeletePackage(id, "1.0.42"));
 
                 controller.MockPackageService.Verify(x => x.MarkPackageUnlistedAsync(package, true));
                 controller.MockIndexingService.Verify(i => i.UpdatePackage(package));
@@ -1212,17 +1310,19 @@ namespace NuGetGallery
             {
                 // Arrange
                 var owner = new User { Key = 1 };
+                var id = "theId";
+                var version = "1.0.42";
                 var package = new Package
                 {
-                    PackageRegistration = new PackageRegistration { Owners = new[] { new User() } }
+                    PackageRegistration = new PackageRegistration { Id = id, Owners = new[] { new User() } }
                 };
 
                 var controller = new TestableApiController(GetConfigurationService());
-                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict("theId", "1.0.42")).Returns(package);
+                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(id, version)).Returns(package);
                 controller.SetCurrentUser(owner);
 
                 // Act
-                var result = await controller.PublishPackage("theId", "1.0.42");
+                var result = await controller.PublishPackage(id, version);
 
                 // Assert
                 ResultAssert.IsStatusCode(
@@ -1236,7 +1336,7 @@ namespace NuGetGallery
             [Fact]
             public Task WillListThePackageIfUserIsAnOwner()
             {
-                var user = new User { Key = 1 };
+                var user = new User { Key = 1, Username = "owner" };
                 return AssertWillListThePackage(user, user);
             }
 
@@ -1257,17 +1357,21 @@ namespace NuGetGallery
 
             private async Task AssertWillListThePackage(User owner, User currentUser)
             {
+                var id = "theId";
                 var package = new Package
                 {
-                    PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner } }
+                    PackageRegistration = new PackageRegistration { Id = id, Owners = new[] { owner } }
                 };
 
                 var controller = new TestableApiController(GetConfigurationService());
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(package);
-                controller.SetCurrentUser(currentUser);
+                var scope = new Scope { AllowedAction = NuGetScopeActions.PackageUnlist, OwnerKey = owner.Key, Subject = id };
+                controller.SetCurrentUser(currentUser, new[] { scope });
+
+                controller.MockUserService.Setup(x => x.FindByKey(owner.Key)).Returns(owner);
 
                 // Act
-                var result = await controller.PublishPackage("theId", "1.0.42");
+                var result = await controller.PublishPackage(id, "1.0.42");
 
                 // Assert
                 ResultAssert.IsEmpty(result);
@@ -1328,7 +1432,7 @@ namespace NuGetGallery
 
                 Assert.Null(tempScope.OwnerKey);
                 Assert.Equal("foo", tempScope.Subject);
-                Assert.Equal(NuGetScopes.PackageVerify, tempScope.AllowedAction);
+                Assert.Equal(NuGetScopeActions.PackageVerify, tempScope.AllowedAction);
             }
 
             [Theory]
@@ -1340,7 +1444,7 @@ namespace NuGetGallery
 
                 Assert.Null(tempScope.OwnerKey);
                 Assert.Equal("foo", tempScope.Subject);
-                Assert.Equal(NuGetScopes.PackageVerify, tempScope.AllowedAction);
+                Assert.Equal(NuGetScopeActions.PackageVerify, tempScope.AllowedAction);
             }
 
             [Theory]
@@ -1352,7 +1456,7 @@ namespace NuGetGallery
 
                 Assert.Equal(1234, tempScope.OwnerKey);
                 Assert.Equal("foo", tempScope.Subject);
-                Assert.Equal(NuGetScopes.PackageVerify, tempScope.AllowedAction);
+                Assert.Equal(NuGetScopeActions.PackageVerify, tempScope.AllowedAction);
             }
 
             private async Task<Scope> InvokeAsync(string scope)

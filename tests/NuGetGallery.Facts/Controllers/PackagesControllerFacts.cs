@@ -2638,10 +2638,7 @@ namespace NuGetGallery
             [Fact]
             public Task WillCreateThePackageForSiteAdmin()
             {
-                var fakePackageService = new Mock<IPackageService>();
-                fakePackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns(new PackageRegistration { Id = "theId", Owners = new[] { new User { Key = 123123 } } });
-
-                return WillCreateThePackage(TestUtility.FakeAdminUser, TestUtility.FakeAdminUser, fakePackageService);
+                return WillCreateThePackage(TestUtility.FakeAdminUser, TestUtility.FakeAdminUser);
             }
 
             [Theory]
@@ -2658,14 +2655,22 @@ namespace NuGetGallery
                 organization.Members.Add(organizationMembership);
                 currentUser.Organizations = organization.Members;
 
-                return WillCreateThePackage(organization, currentUser);
+                return WillCreateThePackage(organization, currentUser, true);
             }
 
-            private async Task WillCreateThePackage(User owner, User currentUser, Mock<IPackageService> fakePackageService = null)
+            private async Task WillCreateThePackage(User owner, User currentUser, bool packageExists = false)
             {
                 var fakeUploadFileService = new Mock<IUploadFileService>();
                 using (var fakeFileStream = new MemoryStream())
                 {
+                    var fakePackageService = new Mock<IPackageService>();
+                    if (packageExists)
+                    {
+                        fakePackageService
+                            .Setup(x => x.FindPackageRegistrationById(It.IsAny<string>()))
+                            .Returns(new PackageRegistration { Id = "theId", Owners = new[] { owner } });
+                    }
+
                     fakeUploadFileService.Setup(x => x.GetUploadFileAsync(currentUser.Key)).Returns(Task.FromResult<Stream>(fakeFileStream));
                     fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(currentUser.Key)).Returns(Task.FromResult(0));
                     var fakePackageUploadService = new Mock<IPackageUploadService>();
@@ -2777,6 +2782,8 @@ namespace NuGetGallery
                         .Returns(Task.CompletedTask);
                     fakePackageService.Setup(x => x.MarkPackageUnlistedAsync(fakePackage, false))
                         .Returns(Task.CompletedTask);
+                    fakePackageService.Setup(x => x.FindPackageRegistrationById(fakePackage.PackageRegistration.Id))
+                        .Returns<PackageRegistration>(null);
                     var fakeNuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.0");
 
                     var fakeUserService = new Mock<IUserService>();

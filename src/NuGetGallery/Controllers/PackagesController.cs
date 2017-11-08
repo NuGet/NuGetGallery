@@ -1418,9 +1418,31 @@ namespace NuGetGallery
                     return Json(400, new[] { message });
                 }
 
-                if (!PermissionsService.IsActionAllowed(owner, currentUser, AccountActions.UploadPackageOnBehalfOf))
+                var existingPackageRegistration = _packageService.FindPackageRegistrationById(packageMetadata.Id);
+                if (existingPackageRegistration != null)
                 {
-                    var message = string.Format(CultureInfo.CurrentCulture, Strings.VerifyPackage_UserInvalid, owner.Username);
+                    if (!PermissionsService.IsActionAllowed(owner, currentUser, AccountActions.UploadNewVersionOnBehalfOf))
+                    {
+                        var message = string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_NewVersionOnBehalfOfUserNotAllowed,
+                            currentUser.Username, owner.Username);
+                        TempData["Message"] = message;
+                        return Json(400, new[] { message });
+                    }
+
+                    if (!PermissionsService.IsActionAllowed(existingPackageRegistration, owner, PackageActions.UploadNewVersion))
+                    {
+                        var message = string.Format(CultureInfo.CurrentCulture, Strings.VerifyPackage_OwnerInvalid,
+                            owner.Username, existingPackageRegistration.Id);
+                        TempData["Message"] = message;
+                        return Json(400, new[] { message });
+                    }
+                }
+                
+                if (existingPackageRegistration == null && 
+                    !PermissionsService.IsActionAllowed(owner, currentUser, AccountActions.UploadNewIdOnBehalfOf))
+                {
+                    var message = string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_NewIdOnBehalfOfUserNotAllowed, 
+                        currentUser.Username, owner.Username);
                     TempData["Message"] = message;
                     return Json(400, new[] { message });
                 }
@@ -1660,7 +1682,7 @@ namespace NuGetGallery
 
             if (existingPackageRegistration != null)
             {
-                possibleOwners = existingPackageRegistration.Owners.Where(u => PermissionsService.IsActionAllowed(u, currentUser, AccountActions.UploadPackageOnBehalfOf));
+                possibleOwners = existingPackageRegistration.Owners.Where(u => PermissionsService.IsActionAllowed(u, currentUser, AccountActions.UploadNewVersionOnBehalfOf));
                 if (!possibleOwners.Any())
                 {
                     // If the user has the right to upload to the package but they are not able to upload as any of the existing owners, allow the user to upload as themselves.
@@ -1673,7 +1695,7 @@ namespace NuGetGallery
                    currentUser.Organizations
                        .Select(m => m.Organization)
                        .Where(m => m != null)
-                       .Where(u => PermissionsService.IsActionAllowed(u, currentUser, AccountActions.UploadPackageOnBehalfOf))
+                       .Where(u => PermissionsService.IsActionAllowed(u, currentUser, AccountActions.UploadNewIdOnBehalfOf))
                        .ToArray();
                 possibleOwners = new User[] { currentUser }.Concat(organizationsWithRightToUpload);
             }

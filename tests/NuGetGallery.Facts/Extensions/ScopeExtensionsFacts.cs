@@ -16,7 +16,7 @@ namespace NuGetGallery.Extensions
             {
                 Assert.Throws<ArgumentNullException>(() =>
                 {
-                    ScopeExtensions.AllowsActions(null, NuGetScopes.PackagePush);
+                    ScopeExtensions.AllowsActions(null, NuGetScopeActions.PackagePush);
                 });
             }
 
@@ -64,7 +64,7 @@ namespace NuGetGallery.Extensions
             [InlineData("ALL")]
             public void WhenScopeActionIsAll_ReturnsTrue(string requestedAction)
             {
-                var scope = new Scope(1234, "subject", NuGetScopes.All);
+                var scope = new Scope(1234, "subject", NuGetScopeActions.All);
 
                 Assert.True(scope.AllowsActions(requestedAction));
             }

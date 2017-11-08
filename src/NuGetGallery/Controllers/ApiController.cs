@@ -227,7 +227,7 @@ namespace NuGetGallery
 
         [HttpPost]
         [ApiAuthorize]
-        [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
+        [ApiScopeActionRequired(NuGetScopeActions.PackagePush, NuGetScopeActions.PackagePushVersion)]
         [ActionName("CreatePackageVerificationKey")]
         public async virtual Task<ActionResult> CreatePackageVerificationKeyAsync(string id, string version)
         {
@@ -253,7 +253,7 @@ namespace NuGetGallery
 
         [HttpGet]
         [ApiAuthorize]
-        [ApiScopeRequired(NuGetScopes.PackageVerify, NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
+        [ApiScopeActionRequired(NuGetScopeActions.PackageVerify, NuGetScopeActions.PackagePush, NuGetScopeActions.PackagePushVersion)]
         [ActionName("VerifyPackageKey")]
         public async virtual Task<ActionResult> VerifyPackageKeyAsync(string id, string version)
         {
@@ -293,14 +293,11 @@ namespace NuGetGallery
             await AuditingService.SaveAuditRecordAsync(
                 new PackageAuditRecord(package, AuditedPackageAction.Verify));
 
-            var isPackageVerificationKey = CredentialTypes.IsPackageVerificationApiKey(credential.Type);
+            User owner;
 
-            // User must have permission to push to the package
-            if (!PermissionsService.IsActionAllowed(package, GetCurrentUser(), PackageActions.UploadNewVersion) ||
-                // Secure path: verify that verification key matches package scope
-                (isPackageVerificationKey && !HasAnyScopeThatAllows(package.PackageRegistration, NuGetScopes.PackageVerify)) ||
-                // Insecure path: verify that API key is legacy or matches package scope
-                (!isPackageVerificationKey && !HasAnyScopeThatAllows(package.PackageRegistration, NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)))
+            if (!(CredentialTypes.IsPackageVerificationApiKey(credential.Type) ? 
+                TryGetOwnerThatAllowsOnExisting(package.PackageRegistration, out owner, NuGetScopeActions.PackageVerify) : 
+                TryGetOwnerThatAllowsOnExisting(package.PackageRegistration, out owner, NuGetScopeActions.PackagePush, NuGetScopeActions.PackagePushVersion)))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
             }
@@ -310,7 +307,7 @@ namespace NuGetGallery
 
         [HttpPut]
         [ApiAuthorize]
-        [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
+        [ApiScopeActionRequired(NuGetScopeActions.PackagePush, NuGetScopeActions.PackagePushVersion)]
         [ActionName("PushPackageApi")]
         public virtual Task<ActionResult> CreatePackagePut()
         {
@@ -319,7 +316,7 @@ namespace NuGetGallery
 
         [HttpPost]
         [ApiAuthorize]
-        [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
+        [ApiScopeActionRequired(NuGetScopeActions.PackagePush, NuGetScopeActions.PackagePushVersion)]
         [ActionName("PushPackageApi")]
         public virtual Task<ActionResult> CreatePackagePost()
         {
@@ -335,7 +332,7 @@ namespace NuGetGallery
             }
 
             // Get the user
-            var user = GetCurrentUser();
+            var currentUser = GetCurrentUser();
 
             using (var packageStream = ReadPackageFromRequest())
             {
@@ -395,6 +392,8 @@ namespace NuGetGallery
                                 nuspec.GetMinClientVersion()));
                         }
 
+                        User owner;
+
                         // Ensure that the user can push packages for this partialId.
                         var id = nuspec.GetId();
                         var packageRegistration = PackageService.FindPackageRegistrationById(id);
@@ -402,18 +401,18 @@ namespace NuGetGallery
                         if (packageRegistration == null)
                         {
                             // Check if API key allows pushing a new package id
-                            if (!HasAnyScopeThatAllowsPushNew(id))
+                            if (!TryGetOwnerThatAllowsOnNew(id, out owner))
                             {
                                 // User cannot push a new package ID as the API key scope does not allow it
                                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Unauthorized, Strings.ApiKeyNotAuthorized);
                             }
 
                             // For a new package id verify that the user is allowed to push to the matching namespaces, if any.
-                            var isPushAllowed = ReservedNamespaceService.IsPushAllowed(id, user, out userOwnedNamespaces);
+                            var isPushAllowed = ReservedNamespaceService.IsPushAllowed(id, owner, out userOwnedNamespaces);
                             if (!isPushAllowed)
                             {
                                 var version = nuspec.GetVersion().ToNormalizedString();
-                                TelemetryService.TrackPackagePushNamespaceConflictEvent(id, version, user, User.Identity);
+                                TelemetryService.TrackPackagePushNamespaceConflictEvent(id, version, currentUser, User.Identity);
 
                                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict, Strings.UploadPackage_IdNamespaceConflict);
                             }
@@ -421,12 +420,11 @@ namespace NuGetGallery
                         else
                         {
                             // Check if API key allows pushing the current package id and that the user has permissions to do the action.
-                            if (!HasAnyScopeThatAllows(packageRegistration, NuGetScopes.PackagePushVersion, NuGetScopes.PackagePush) ||
-                                !PermissionsService.IsActionAllowed(packageRegistration, GetCurrentUser(), PackageActions.UploadNewVersion))
+                            if (!TryGetOwnerThatAllowsOnExisting(packageRegistration, out owner, NuGetScopeActions.PackagePushVersion, NuGetScopeActions.PackagePush))
                             {
                                 await AuditingService.SaveAuditRecordAsync(
                                     new FailedAuthenticatedOperationAuditRecord(
-                                        user.Username,
+                                        currentUser.Username,
                                         AuditedAuthenticatedOperationAction.PackagePushAttemptByNonOwner,
                                         attemptedPackage: new AuditedPackageIdentifier(
                                             id, nuspec.GetVersion().ToNormalizedStringSafe())));
@@ -464,8 +462,8 @@ namespace NuGetGallery
                             id,
                             packageToPush,
                             packageStreamMetadata,
-                            user,
-                            user);
+                            owner,
+                            currentUser);
 
                         await AutoCuratePackage.ExecuteAsync(package, packageToPush, commitChanges: false);
 
@@ -502,7 +500,7 @@ namespace NuGetGallery
                             Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
                             Url.AccountSettings(relativeUrl: false));
 
-                        TelemetryService.TrackPackagePushEvent(package, user, User.Identity);
+                        TelemetryService.TrackPackagePushEvent(package, currentUser, User.Identity);
 
                         if (package.SemVerLevelKey == SemVerLevelKey.SemVer2)
                         {
@@ -540,7 +538,7 @@ namespace NuGetGallery
 
         [HttpDelete]
         [ApiAuthorize]
-        [ApiScopeRequired(NuGetScopes.PackageUnlist)]
+        [ApiScopeActionRequired(NuGetScopeActions.PackageUnlist)]
         [ActionName("DeletePackageApi")]
         public virtual async Task<ActionResult> DeletePackage(string id, string version)
         {
@@ -552,9 +550,7 @@ namespace NuGetGallery
             }
 
             // Check if API key allows listing/unlisting the current package id and that the user has permissions to do the action.
-            var user = GetCurrentUser();
-            if (!HasAnyScopeThatAllows(package.PackageRegistration, NuGetScopes.PackageUnlist) || 
-                !PermissionsService.IsActionAllowed(package, GetCurrentUser(), PackageActions.Unlist))
+            if (!TryGetOwnerThatAllowsOnExisting(package.PackageRegistration, out var owner, NuGetScopeActions.PackageUnlist))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
             }
@@ -566,7 +562,7 @@ namespace NuGetGallery
 
         [HttpPost]
         [ApiAuthorize]
-        [ApiScopeRequired(NuGetScopes.PackageUnlist)]
+        [ApiScopeActionRequired(NuGetScopeActions.PackageUnlist)]
         [ActionName("PublishPackageApi")]
         public virtual async Task<ActionResult> PublishPackage(string id, string version)
         {
@@ -578,9 +574,7 @@ namespace NuGetGallery
             }
 
             // Check if API key allows listing/unlisting the current package id and that the user has permissions to do the action.
-            User user = GetCurrentUser();
-            if (!HasAnyScopeThatAllows(package.PackageRegistration, NuGetScopes.PackageUnlist) || 
-                !PermissionsService.IsActionAllowed(package, GetCurrentUser(), PackageActions.Unlist))
+            if (!TryGetOwnerThatAllowsOnExisting(package.PackageRegistration, out var owner, NuGetScopeActions.PackageUnlist))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
             }
@@ -704,47 +698,96 @@ namespace NuGetGallery
             return new HttpStatusCodeResult(HttpStatusCode.NotFound);
         }
 
-        /// <summary>
-        /// Checks that the current user's identity (API key) has scopes that allow the action.
-        /// Does NOT check that the user has permissions to do the action.
-        /// </summary>
-        /// <param name="package">The package that the actions are requested for.</param>
-        /// <param name="requestedActions">The actions that the API key's scopes will be checked for.</param>
-        /// <returns>Whether or not the current user's identity (API key) has the requested scopes.</returns>
-        private bool HasAnyScopeThatAllows(PackageRegistration package, params string[] requestedActions)
+        public bool TryGetOwnerThatAllowsOnExisting(Package package, out User owner, params string[] requestedActions)
         {
-            var scopes = User.Identity.GetScopesFromClaim();
-            if (scopes != null)
-            {
-                if (!scopes.Any(s => s.AllowsSubject(package.Id) && s.AllowsActions(requestedActions)))
-                {
-                    // Subject (package id) or action scopes do not match.
-                    return false;
-                }
-                
-                if (scopes.Any(s => s.HasOwnerScope()))
-                {
-                    // ApiKeyAuthenticationHandler has already verified that the current user matches the owner scope.
-                    return true;
-                }
-            }
-
-            // Legacy V1 API key (no scopes), or Legacy V2 API key (no owner scope).
-            return true;
+            return TryGetOwnerThatAllowsOnExisting(package.PackageRegistration, out owner, requestedActions);
         }
 
-        private bool HasAnyScopeThatAllowsPushNew(string packageId)
+        public bool TryGetOwnerThatAllowsOnExisting(PackageRegistration packageRegistration, out User owner, params string[] requestedActions)
         {
-            //  Package owners not populated yet, so only verify the scope subject and action.
-            var scopes = User.Identity.GetScopesFromClaim();
-            if (scopes != null)
+            return TryGetOwnerThatAllows(new ScopeSubject(packageRegistration), out owner, requestedActions);
+        }
+
+        public bool TryGetOwnerThatAllowsOnNew(string id, out User owner)
+        {
+            return TryGetOwnerThatAllows(new ScopeSubject(id), out owner, NuGetScopeActions.PackagePush);
+        }
+
+        private class ScopeSubject
+        {
+            private string _id;
+            private readonly PackageRegistration _packageRegistration;
+
+            public bool IsSubjectAllowedByScope(Scope scope)
             {
-                // Return true if scope allows action for subject (package).
-                return scopes.Any(s => s.AllowsActions(NuGetScopes.PackagePush) && s.AllowsSubject(packageId));
+                return scope.AllowsSubject(_id ?? _packageRegistration.Id);
             }
 
-            // Legacy V1 API key (no scopes).
-            return true;
+            public bool IsActionAllowedOnSubjectByOwner(User owner, params string[] requestedActions)
+            {
+                return NuGetScopeActions.IsActionAllowedOnSubjectByOwner(_packageRegistration, owner, requestedActions);
+            }
+
+            public ScopeSubject(string id)
+            {
+                if (string.IsNullOrEmpty(id))
+                {
+                    throw new ArgumentException("Package ID must be non-null!", nameof(id));
+                }
+
+                _id = id;
+            }
+
+            public ScopeSubject(PackageRegistration packageRegistration)
+            {
+                if (string.IsNullOrEmpty(packageRegistration.Id))
+                {
+                    throw new ArgumentException("Package registration must have non-null ID!", nameof(packageRegistration));
+                }
+
+                _packageRegistration = packageRegistration ?? throw new ArgumentNullException(nameof(packageRegistration));
+            }
+        }
+
+        private bool TryGetOwnerThatAllows(ScopeSubject scopeSubject, out User owner, params string[] requestedActions)
+        {
+            owner = null;
+
+            var currentUser = GetCurrentUser();
+            IEnumerable<Scope> scopes = User.Identity.GetScopesFromClaim();
+
+            if (scopes == null)
+            {
+                // Legacy V1 API key without scopes.
+                // Evaluate it as if it has an unlimited scope.
+                scopes = new[] { new Scope(null, NuGetPackagePattern.AllInclusivePattern, NuGetScopeActions.All) };
+            }
+
+            foreach (var scope in scopes)
+            {
+                if (!scopeSubject.IsSubjectAllowedByScope(scope) || !scope.AllowsActions(requestedActions))
+                {
+                    // Subject (package id) or action scopes do not match.
+                    continue;
+                }
+
+                // Get the owner from the scope.
+                // If the scope has no owner, use the current user.
+                var ownerInScope = scope.HasOwnerScope() ? UserService.FindByKey(scope.OwnerKey.Value) : currentUser;
+
+                if (!NuGetScopeActions.IsActionAllowedOnOwnerByCurrentUser(ownerInScope, currentUser, requestedActions) ||
+                    !scopeSubject.IsActionAllowedOnSubjectByOwner(ownerInScope, requestedActions))
+                {
+                    // User does not have permission to do the action on behalf of the owner in the scope or 
+                    // the owner in the scope does not have permission to do the action on the scope's subject.
+                    continue;
+                }
+
+                owner = ownerInScope;
+                return true;
+            }
+
+            return false;
         }
     }
 }
