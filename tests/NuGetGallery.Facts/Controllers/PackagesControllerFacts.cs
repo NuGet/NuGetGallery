@@ -3563,7 +3563,7 @@ namespace NuGetGallery
                     expectedPossibleOwners.Add(currentUser);
                 }
 
-                var packageRegistration = new PackageRegistration { Id = packageId, Owners = new User[0] };
+                var packageRegistration = new PackageRegistration { Id = packageId, Owners = owners };
 
                 var fakePackageService = new Mock<IPackageService>();
                 fakePackageService.Setup(x => x.FindPackageRegistrationById(packageId)).Returns(packageRegistration);
@@ -3572,7 +3572,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(currentUser);
 
                 var possibleOwners = controller.GetPossibleOwnersForUpload(packageId);
-                Assert.True(possibleOwners.SequenceEqual(new[] { currentUser }));
+                Assert.True(possibleOwners.SequenceEqual(expectedPossibleOwners));
             }
 
             private User CreateOrganizationOwnerAndAddUserAsMember(List<User> owners, User user, bool isAdmin, ref int key)
@@ -3582,7 +3582,7 @@ namespace NuGetGallery
 
                 var organizationMembership = new Membership() { Organization = organization, Member = user, IsAdmin = isAdmin };
                 organization.Members.Add(organizationMembership);
-                user.Organizations = organization.Members;
+                user.Organizations.Add(organizationMembership);
 
                 return organization;
             }

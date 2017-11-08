@@ -301,7 +301,7 @@ namespace NuGetGallery
                     }
                 }
 
-                // For existing package id verify that the current user has the rights to upload new versions
+                // For existing package ID verify that the current user has the rights to upload new versions
                 if (packageRegistration != null && !PermissionsService.IsActionAllowed(packageRegistration, currentUser, PackageActions.UploadNewVersion))
                 {
                     ModelState.AddModelError(
@@ -1409,6 +1409,7 @@ namespace NuGetGallery
                     Size = uploadFile.Length,
                 };
 
+                // Check that the owner specified in the form is valid
                 var owner = _userService.FindByUsername(formData.Edit.Owner);
 
                 if (owner == null)
@@ -1423,6 +1424,7 @@ namespace NuGetGallery
                 {
                     if (!PermissionsService.IsActionAllowed(owner, currentUser, AccountActions.UploadNewVersionOnBehalfOf))
                     {
+                        // The user is not allowed to upload a new version on behalf of the owner specified in the form
                         var message = string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_NewVersionOnBehalfOfUserNotAllowed,
                             currentUser.Username, owner.Username);
                         TempData["Message"] = message;
@@ -1431,6 +1433,7 @@ namespace NuGetGallery
 
                     if (!PermissionsService.IsActionAllowed(existingPackageRegistration, owner, PackageActions.UploadNewVersion))
                     {
+                        // The owner specified in the form is not allowed to upload a new version of the package
                         var message = string.Format(CultureInfo.CurrentCulture, Strings.VerifyPackage_OwnerInvalid,
                             owner.Username, existingPackageRegistration.Id);
                         TempData["Message"] = message;
@@ -1441,6 +1444,7 @@ namespace NuGetGallery
                 if (existingPackageRegistration == null && 
                     !PermissionsService.IsActionAllowed(owner, currentUser, AccountActions.UploadNewIdOnBehalfOf))
                 {
+                    // The user is not allowed to upload a new ID on behalf of the owner specified in the form
                     var message = string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_NewIdOnBehalfOfUserNotAllowed, 
                         currentUser.Username, owner.Username);
                     TempData["Message"] = message;
@@ -1654,6 +1658,9 @@ namespace NuGetGallery
             return Redirect(urlFactory(package, /*relativeUrl:*/ true));
         }
 
+        /// <summary>
+        /// Deletes the current user's pending upload, deleting their uploaded file
+        /// </summary>
         private Task CancelPendingUpload()
         {
             var currentUser = GetCurrentUser();
@@ -1674,6 +1681,11 @@ namespace NuGetGallery
             }
         }
 
+        /// <summary>
+        /// Determines the possible owners for a package that is being uploaded by the current user.
+        /// Assumes the current user has permissions to upload the package.
+        /// </summary>
+        /// <param name="id">The ID of the package being uploaded</param>
         internal IEnumerable<User> GetPossibleOwnersForUpload(string id)
         {
             IEnumerable<User> possibleOwners;
@@ -1685,7 +1697,7 @@ namespace NuGetGallery
                 possibleOwners = existingPackageRegistration.Owners.Where(u => PermissionsService.IsActionAllowed(u, currentUser, AccountActions.UploadNewVersionOnBehalfOf));
                 if (!possibleOwners.Any())
                 {
-                    // If the user has the right to upload to the package but they are not able to upload as any of the existing owners, allow the user to upload as themselves.
+                    // If the user has the right to upload to the package but they are not able to upload as any of the existing owners (e.g. site admin), allow the user to upload as themselves.
                     possibleOwners = new User[] { currentUser };
                 }
             }

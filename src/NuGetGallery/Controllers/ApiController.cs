@@ -139,7 +139,7 @@ namespace NuGetGallery
             // Ideally shouldn't be necessary?
             if (!PackageIdValidator.IsValidPackageId(id ?? string.Empty))
             {
-                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, "The format of the package id is invalid");
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, "The format of the package ID is invalid");
             }
 
             // if version is non-null, check if it's semantically correct and normalize it.
@@ -295,8 +295,10 @@ namespace NuGetGallery
 
             User owner;
 
-            if (!(CredentialTypes.IsPackageVerificationApiKey(credential.Type) ? 
-                TryGetOwnerThatAllowsOnExisting(package.PackageRegistration, out owner, NuGetScopeActions.PackageVerify) : 
+            if (!(CredentialTypes.IsPackageVerificationApiKey(credential.Type) ?
+                // Secure path: verify that verification key matches package scope.
+                TryGetOwnerThatAllowsOnExisting(package.PackageRegistration, out owner, NuGetScopeActions.PackageVerify) :
+                // Insecure path: verify that API key is legacy or matches package scope.
                 TryGetOwnerThatAllowsOnExisting(package.PackageRegistration, out owner, NuGetScopeActions.PackagePush, NuGetScopeActions.PackagePushVersion)))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
@@ -400,14 +402,14 @@ namespace NuGetGallery
                         IReadOnlyCollection<ReservedNamespace> userOwnedNamespaces = null;
                         if (packageRegistration == null)
                         {
-                            // Check if API key allows pushing a new package id
+                            // Check if API key allows pushing a new package ID
                             if (!TryGetOwnerThatAllowsOnNew(id, out owner))
                             {
                                 // User cannot push a new package ID as the API key scope does not allow it
                                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Unauthorized, Strings.ApiKeyNotAuthorized);
                             }
 
-                            // For a new package id verify that the user is allowed to push to the matching namespaces, if any.
+                            // For a new package ID verify that the user is allowed to push to the matching namespaces, if any.
                             var isPushAllowed = ReservedNamespaceService.IsPushAllowed(id, owner, out userOwnedNamespaces);
                             if (!isPushAllowed)
                             {
@@ -419,7 +421,7 @@ namespace NuGetGallery
                         }
                         else
                         {
-                            // Check if API key allows pushing the current package id and that the user has permissions to do the action.
+                            // Check if API key allows pushing the current package ID
                             if (!TryGetOwnerThatAllowsOnExisting(packageRegistration, out owner, NuGetScopeActions.PackagePushVersion, NuGetScopeActions.PackagePush))
                             {
                                 await AuditingService.SaveAuditRecordAsync(
@@ -549,7 +551,7 @@ namespace NuGetGallery
                     HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
             }
 
-            // Check if API key allows listing/unlisting the current package id and that the user has permissions to do the action.
+            // Check if API key allows listing/unlisting the current package ID
             if (!TryGetOwnerThatAllowsOnExisting(package.PackageRegistration, out var owner, NuGetScopeActions.PackageUnlist))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
@@ -573,7 +575,7 @@ namespace NuGetGallery
                     HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
             }
 
-            // Check if API key allows listing/unlisting the current package id and that the user has permissions to do the action.
+            // Check if API key allows listing/unlisting the current package ID
             if (!TryGetOwnerThatAllowsOnExisting(package.PackageRegistration, out var owner, NuGetScopeActions.PackageUnlist))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
@@ -767,7 +769,7 @@ namespace NuGetGallery
             {
                 if (!scopeSubject.IsSubjectAllowedByScope(scope) || !scope.AllowsActions(requestedActions))
                 {
-                    // Subject (package id) or action scopes do not match.
+                    // Subject (package ID) or action scopes do not match.
                     continue;
                 }
 

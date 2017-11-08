@@ -41,7 +41,7 @@ namespace NuGetGallery
             VersionTitle = packageMetadata.Title;
 
             PossibleOwners = possibleOwners.Select(u => u.Username);
-            Owner = PossibleOwners.FirstOrDefault();
+            Owner = PossibleOwners.First();
 
             ReadMe = new ReadMeRequest();
         }
