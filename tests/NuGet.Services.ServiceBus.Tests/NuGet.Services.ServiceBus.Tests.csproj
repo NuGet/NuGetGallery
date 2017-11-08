@@ -43,6 +43,7 @@
     <Compile Include="BrokeredMessageWrapperFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="BrokeredMessageSerializerFacts.cs" />
+    <Compile Include="ScopedMessageHandlerFacts.cs" />
     <Compile Include="SubscriptionProcessorFacts.cs" />
   </ItemGroup>
   <ItemGroup>

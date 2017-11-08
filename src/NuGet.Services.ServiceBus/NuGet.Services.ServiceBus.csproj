@@ -46,6 +46,7 @@
     <Compile Include="IMessageHandler.cs" />
     <Compile Include="ISubscriptionProcessor.cs" />
     <Compile Include="OnMessageOptionsWrapper.cs" />
+    <Compile Include="ScopedMessageHandler.cs" />
     <Compile Include="SubscriptionProcessor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.*.cs" />
