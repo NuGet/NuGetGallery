@@ -28,7 +28,7 @@ namespace NuGetGallery.FunctionalTests
         private static string _testAccountApiKey_PushVersion;
         private static string _testEmailServerHost;
         private static List<string> _trustedHttpsCertificates;
-        private static bool? _defaultSecurityPoliciesEnforced = false;
+        private static bool? _defaultSecurityPoliciesEnforced;
 
         /// <summary>
         /// The environment against which the test has to be run. The value would be picked from env variable.

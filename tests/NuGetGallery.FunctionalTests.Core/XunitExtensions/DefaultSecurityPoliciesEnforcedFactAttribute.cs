@@ -13,8 +13,8 @@ namespace NuGetGallery.FunctionalTests.XunitExtensions
             if (EnvironmentSettings.DefaultSecurityPoliciesEnforced != runIfEnforced)
             {
                 Skip = string.Format(
-                    "Default security policies are {0} configured on the server. Value is {1}",
-                    !EnvironmentSettings.DefaultSecurityPoliciesEnforced ? "not" : string.Empty, Environment.GetEnvironmentVariable("DefaultSecurityPoliciesEnforced"));
+                    "Default security policies are {0} configured on the server",
+                    !EnvironmentSettings.DefaultSecurityPoliciesEnforced ? "not" : string.Empty);
             }
         }
     }
