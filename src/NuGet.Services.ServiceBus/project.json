@@ -1,5 +1,6 @@
 ﻿{
   "dependencies": {
+    "Microsoft.Extensions.DependencyInjection.Abstractions": "1.1.1",
     "Microsoft.Extensions.Logging": "1.1.2",
     "Newtonsoft.Json": "9.0.1",
     "WindowsAzure.ServiceBus": "4.1.3"
