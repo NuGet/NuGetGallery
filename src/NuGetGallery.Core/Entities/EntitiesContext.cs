@@ -286,6 +286,16 @@ namespace NuGetGallery
                 .HasKey(pd => pd.Key)
                 .HasMany(pd => pd.Packages)
                     .WithOptional();
+
+            modelBuilder.Entity<AccountDelete>()
+           .HasKey(a => a.Key)
+           .HasRequired(a => a.DeletedAccount);
+
+            modelBuilder.Entity<AccountDelete>()
+            .HasRequired(a => a.DeletedBy)
+            .WithMany()
+            .WillCascadeOnDelete(false);
+
         }
 #pragma warning restore 618
     }

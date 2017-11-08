@@ -532,6 +532,21 @@ namespace NuGetGallery
             return GetActionLink(url, "Account", "Users", relativeUrl);
         }
 
+        public static string AdminDeleteAccount(
+            this UrlHelper url,
+            string accountName,
+            bool relativeUrl = true)
+        {
+            return GetActionLink(url,
+                nameof(UsersController.Delete), 
+                "Users",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "accountName", accountName }
+                });
+        }
+
         public static string ReportPackage(
             this UrlHelper url,
             string id,

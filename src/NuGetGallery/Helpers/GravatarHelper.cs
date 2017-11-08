@@ -12,7 +12,7 @@ namespace NuGetGallery.Helpers
 
         public static string Url(string email, int size)
         {
-            var url = Gravatar.GetUrl(email, size, "retro", GravatarRating.G);
+            var url = email == null ? null : Gravatar.GetUrl(email, size, "retro", GravatarRating.G);
 
             if (url != null && ShouldUseSecureGravatar())
             {
@@ -30,7 +30,7 @@ namespace NuGetGallery.Helpers
                 size = 512;
             }
 
-            var gravatarHtml = Gravatar.GetHtml(email, size, "retro", GravatarRating.G, attributes: attributes);
+            var gravatarHtml = email == null ? null : Gravatar.GetHtml(email, size, "retro", GravatarRating.G, attributes: attributes);
 
             if (gravatarHtml != null && ShouldUseSecureGravatar())
             {

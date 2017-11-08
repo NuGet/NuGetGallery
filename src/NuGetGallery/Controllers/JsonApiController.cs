@@ -184,7 +184,11 @@ namespace NuGetGallery
 
                 if (request == null)
                 {
-                    await _packageOwnershipManagementService.RemovePackageOwnerAsync(model.Package, model.CurrentUser, model.User);
+                    if (model.Package.Owners.Count == 1 && model.User == model.Package.Owners.Single())
+                    {
+                        throw new InvalidOperationException("You can't remove the only owner from a package.");
+                    }
+                    await _packageOwnershipManagementService.RemovePackageOwnerAsync(model.Package, model.CurrentUser, model.User, commitAsTransaction:true);
                     _messageService.SendPackageOwnerRemovedNotice(model.CurrentUser, model.User, model.Package);
                 }
                 else

@@ -52,6 +52,8 @@ namespace NuGetGallery
 
         public bool EmailAllowed { get; set; }
 
+        public bool IsDeleted { get; set; }
+
         public virtual ICollection<ReservedNamespace> ReservedNamespaces { get; set; }
 
         [DefaultValue(true)]
