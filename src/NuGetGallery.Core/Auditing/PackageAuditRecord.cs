@@ -18,7 +18,7 @@ namespace NuGetGallery.Auditing
 
         public PackageAuditRecord(
             string id, string version, string hash,
-            AuditedPackage packageRecord, AuditedPackageRegistration registrationRecord, 
+            AuditedPackage packageRecord, AuditedPackageRegistration registrationRecord,
             AuditedPackageAction action, string reason)
             : base(action)
         {
@@ -30,23 +30,42 @@ namespace NuGetGallery.Auditing
             Reason = reason;
         }
 
-        public PackageAuditRecord(
-            Package package, AuditedPackageAction action, string reason)
-            : this(package.PackageRegistration.Id, package.Version, package.Hash, 
-                  packageRecord: null, registrationRecord: null, action: action, reason: reason)
+        public PackageAuditRecord(string id, string version, AuditedPackageAction action, string reason)
+            : this(id,
+                  version,
+                  hash: "",
+                  packageRecord: null,
+                  registrationRecord: null,
+                  action: action,
+                  reason: reason)
+        { }
+
+        public PackageAuditRecord(Package package, AuditedPackageAction action, string reason)
+            : this(package.PackageRegistration.Id,
+                  package.Version,
+                  package.Hash,
+                  packageRecord: null,
+                  registrationRecord: null,
+                  action: action,
+                  reason: reason)
         {
             PackageRecord = AuditedPackage.CreateFrom(package);
             RegistrationRecord = AuditedPackageRegistration.CreateFrom(package.PackageRegistration);
         }
 
         public PackageAuditRecord(Package package, AuditedPackageAction action)
-            : this(package.PackageRegistration.Id, package.Version, package.Hash, 
-                  packageRecord: null, registrationRecord: null, action: action, reason: null)
+            : this(package.PackageRegistration.Id,
+                  package.Version,
+                  package.Hash,
+                  packageRecord: null,
+                  registrationRecord: null,
+                  action: action,
+                  reason: null)
         {
             PackageRecord = AuditedPackage.CreateFrom(package);
             RegistrationRecord = AuditedPackageRegistration.CreateFrom(package.PackageRegistration);
         }
-        
+
         public override string GetPath()
         {
             return $"{Id}/{NuGetVersionFormatter.Normalize(Version)}"

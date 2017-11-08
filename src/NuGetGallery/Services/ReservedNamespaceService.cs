@@ -1,16 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using NuGet.Packaging;
-using NuGetGallery.Auditing;
 using System;
-using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Runtime.CompilerServices;
+using System.Globalization;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using NuGetGallery.Auditing;
 
 namespace NuGetGallery
 {
@@ -67,6 +65,9 @@ namespace NuGetGallery
 
             ReservedNamespaceRepository.InsertOnCommit(newNamespace);
             await ReservedNamespaceRepository.CommitChangesAsync();
+
+            await AuditingService.SaveAuditRecordAsync(
+                new ReservedNamespaceAuditRecord(newNamespace, AuditedReservedNamespaceAction.ReserveNamespace));
         }
 
         public async Task DeleteReservedNamespaceAsync(string existingNamespace)
@@ -99,6 +100,9 @@ namespace NuGetGallery
                 await ReservedNamespaceRepository.CommitChangesAsync();
 
                 transaction.Commit();
+
+                await AuditingService.SaveAuditRecordAsync(
+                   new ReservedNamespaceAuditRecord(namespaceToDelete, AuditedReservedNamespaceAction.UnreserveNamespace));
             }
         }
 
@@ -162,6 +166,9 @@ namespace NuGetGallery
                 await ReservedNamespaceRepository.CommitChangesAsync();
 
                 transaction.Commit();
+
+                await AuditingService.SaveAuditRecordAsync(
+                   new ReservedNamespaceAuditRecord(namespaceToModify, AuditedReservedNamespaceAction.AddOwner, username, packageRegistrationsMatchingNamespace));
             }
         }
 
@@ -176,59 +183,63 @@ namespace NuGetGallery
             {
                 throw new ArgumentException(Strings.ReservedNamespace_InvalidUsername);
             }
+            var namespaceToModify = FindReservedNamespaceForPrefix(prefix)
+                   ?? throw new InvalidOperationException(string.Format(
+                       CultureInfo.CurrentCulture, Strings.ReservedNamespace_NamespaceNotFound, prefix));
+            List<PackageRegistration> packageRegistrationsToMarkUnverified;
             if (commitAsTransaction)
             {
                 using (var strategy = new SuspendDbExecutionStrategy())
                 using (var transaction = EntitiesContext.GetDatabase().BeginTransaction())
                 {
-                    await DeleteOwnerFromReservedNamespaceImplAsync(prefix, username);
+                    packageRegistrationsToMarkUnverified = await DeleteOwnerFromReservedNamespaceImplAsync(prefix, username, namespaceToModify);
                     transaction.Commit();
                 }
             }
             else
             {
-                await DeleteOwnerFromReservedNamespaceImplAsync(prefix, username);
+                packageRegistrationsToMarkUnverified = await DeleteOwnerFromReservedNamespaceImplAsync(prefix, username, namespaceToModify);
             }
+            await AuditingService.SaveAuditRecordAsync(
+                  new ReservedNamespaceAuditRecord(namespaceToModify, AuditedReservedNamespaceAction.RemoveOwner, username, packageRegistrationsToMarkUnverified));
         }
 
-        private async Task DeleteOwnerFromReservedNamespaceImplAsync(string prefix, string username)
+        private async Task<List<PackageRegistration>> DeleteOwnerFromReservedNamespaceImplAsync(string prefix, string username, ReservedNamespace namespaceToModify)
         {
-            var namespaceToModify = FindReservedNamespaceForPrefix(prefix)
+                var userToRemove = UserService.FindByUsername(username)
                     ?? throw new InvalidOperationException(string.Format(
-                        CultureInfo.CurrentCulture, Strings.ReservedNamespace_NamespaceNotFound, prefix));
+                        CultureInfo.CurrentCulture, Strings.ReservedNamespace_UserNotFound, username));
 
-            var userToRemove = UserService.FindByUsername(username)
-                ?? throw new InvalidOperationException(string.Format(
-                    CultureInfo.CurrentCulture, Strings.ReservedNamespace_UserNotFound, username));
+                if (!namespaceToModify.Owners.Contains(userToRemove))
+                {
+                    throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, Strings.ReservedNamespace_UserNotAnOwner, username));
+                }
 
-            if (!namespaceToModify.Owners.Contains(userToRemove))
-            {
-                throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, Strings.ReservedNamespace_UserNotAnOwner, username));
-            }
+                var packagesOwnedByUserMatchingPrefix = namespaceToModify
+                        .PackageRegistrations
+                        .Where(pr => pr
+                            .Owners
+                            .Any(pro => pro.Username == userToRemove.Username))
+                        .ToList();
 
-            var packagesOwnedByUserMatchingPrefix = namespaceToModify
-                    .PackageRegistrations
-                    .Where(pr => pr
-                        .Owners
-                        .Any(pro => pro.Username == userToRemove.Username))
+                // Remove verified mark for package registrations if the user to be removed is the only prefix owner
+                // for the given package registration.
+                var packageRegistrationsToMarkUnverified = packagesOwnedByUserMatchingPrefix
+                    .Where(pr => pr.Owners.Intersect(namespaceToModify.Owners).Count() == 1)
                     .ToList();
 
-            // Remove verified mark for package registrations if the user to be removed is the only prefix owner
-            // for the given package registration.
-            var packageRegistrationsToMarkUnverified = packagesOwnedByUserMatchingPrefix
-                .Where(pr => pr.Owners.Intersect(namespaceToModify.Owners).Count() == 1)
-                .ToList();
+                if (packageRegistrationsToMarkUnverified.Any())
+                {
+                    packageRegistrationsToMarkUnverified
+                        .ForEach(pr => namespaceToModify.PackageRegistrations.Remove(pr));
 
-            if (packageRegistrationsToMarkUnverified.Any())
-            {
-                packageRegistrationsToMarkUnverified
-                    .ForEach(pr => namespaceToModify.PackageRegistrations.Remove(pr));
+                    await PackageService.UpdatePackageVerifiedStatusAsync(packageRegistrationsToMarkUnverified, isVerified: false);
+                }
 
-                await PackageService.UpdatePackageVerifiedStatusAsync(packageRegistrationsToMarkUnverified, isVerified: false);
-            }
+                namespaceToModify.Owners.Remove(userToRemove);
+                await ReservedNamespaceRepository.CommitChangesAsync();
 
-            namespaceToModify.Owners.Remove(userToRemove);
-            await ReservedNamespaceRepository.CommitChangesAsync();
+                return packageRegistrationsToMarkUnverified;
         }
 
 

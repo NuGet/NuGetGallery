@@ -661,6 +661,8 @@ namespace NuGetGallery
 
         public class TheOwnershipRequestMethods : TestContainer
         {
+            private int _key = 0;
+
             public delegate Task<ActionResult> InvokeOwnershipRequest(PackagesController packagesController, string id, string username, string token);
 
             private static Task<ActionResult> ConfirmOwnershipRequest(PackagesController packagesController, string id, string username, string token)
@@ -703,19 +705,61 @@ namespace NuGetGallery
 
             [Theory]
             [MemberData("TheOwnershipRequestMethods_Data")]
-            public async Task WithIdentityNotMatchingUserInRequestReturnsViewWithMessage(InvokeOwnershipRequest invokeOwnershipRequest)
+            public async Task WithIdentityNotMatchingUserInRequestReturnsNotYourRequest(InvokeOwnershipRequest invokeOwnershipRequest)
             {
                 // Arrange
-                var controller = CreateController(GetConfigurationService());
-                controller.SetCurrentUser(new User("userA"));
+                var requestedUser = new User { Username = "userA", Key = _key++ };
+                var currentUser = new User { Username = "userB", Key = _key++ };
+
+                var userService = new Mock<IUserService>();
+                userService.Setup(x => x.FindByUsername(requestedUser.Username)).Returns(requestedUser);
+
+                var controller = CreateController(GetConfigurationService(), userService: userService);
+                controller.SetCurrentUser(currentUser);
 
                 // Act
-                var result = await invokeOwnershipRequest(controller, "foo", "userB", "token");
+                var result = await invokeOwnershipRequest(controller, "foo", requestedUser.Username, "token");
 
                 // Assert
                 var model = ResultAssert.IsView<PackageOwnerConfirmationModel>(result, "ConfirmOwner");
                 Assert.Equal(ConfirmOwnershipResult.NotYourRequest, model.Result);
-                Assert.Equal("userB", model.Username);
+                Assert.Equal(requestedUser.Username, model.Username);
+            }
+
+            [Theory]
+            [MemberData("TheOwnershipRequestMethods_Data")]
+            public async Task WithOrganizationCollaboratorReturnsNotYourRequest(InvokeOwnershipRequest invokeOwnershipRequest)
+            {
+                // Arrange
+                var package = new PackageRegistration { Id = "foo" };
+
+                var currentUser = new User { Username = "username", Key = _key++ };
+
+                var organization = new Organization { Key = _key++, Username = "organization", Members = new[] { new Membership { Member = currentUser, IsAdmin = false } } };
+
+                var mockHttpContext = new Mock<HttpContextBase>();
+
+                var packageService = new Mock<IPackageService>();
+                packageService.Setup(p => p.FindPackageRegistrationById(package.Id)).Returns(package);
+
+                var userService = new Mock<IUserService>();
+                userService.Setup(x => x.FindByUsername(organization.Username)).Returns(organization);
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    httpContext: mockHttpContext,
+                    packageService: packageService,
+                    userService: userService);
+                controller.SetCurrentUser(currentUser);
+                TestUtility.SetupHttpContextMockForUrlGeneration(mockHttpContext, controller);
+
+                // Act
+                var result = await invokeOwnershipRequest(controller, package.Id, organization.Username, "token");
+
+                // Assert
+                var model = ResultAssert.IsView<PackageOwnerConfirmationModel>(result, "ConfirmOwner");
+                Assert.Equal(ConfirmOwnershipResult.NotYourRequest, model.Result);
+                Assert.Equal(organization.Username, model.Username);
             }
 
             [Theory]
@@ -723,8 +767,13 @@ namespace NuGetGallery
             public async Task WithNonExistentPackageIdReturnsHttpNotFound(InvokeOwnershipRequest invokeOwnershipRequest)
             {
                 // Arrange
-                var controller = CreateController(GetConfigurationService());
-                controller.SetCurrentUser(new User { Username = "username" });
+                var currentUser = new User { Username = "username", Key = _key++ };
+
+                var userService = new Mock<IUserService>();
+                userService.Setup(x => x.FindByUsername(currentUser.Username)).Returns(currentUser);
+
+                var controller = CreateController(GetConfigurationService(), userService: userService);
+                controller.SetCurrentUser(currentUser);
 
                 // Act
                 var result = await invokeOwnershipRequest(controller, "foo", "username", "token");
@@ -743,16 +792,19 @@ namespace NuGetGallery
                 package.Owners.Add(user);
                 var mockHttpContext = new Mock<HttpContextBase>();
                 var packageService = new Mock<IPackageService>();
-                packageService.Setup(p => p.FindPackageRegistrationById("foo")).Returns(package);
+                packageService.Setup(p => p.FindPackageRegistrationById(package.Id)).Returns(package);
+                var userService = new Mock<IUserService>();
+                userService.Setup(x => x.FindByUsername(user.Username)).Returns(user);
                 var controller = CreateController(
                     GetConfigurationService(),
                     httpContext: mockHttpContext,
-                    packageService: packageService);
+                    packageService: packageService,
+                    userService: userService);
                 controller.SetCurrentUser(user);
                 TestUtility.SetupHttpContextMockForUrlGeneration(mockHttpContext, controller);
 
                 // Act
-                var result = await invokeOwnershipRequest(controller, "foo", "username", "token");
+                var result = await invokeOwnershipRequest(controller, package.Id, user.Username, "token");
 
                 // Assert
                 var model = ResultAssert.IsView<PackageOwnerConfirmationModel>(result, "ConfirmOwner");
@@ -794,79 +846,101 @@ namespace NuGetGallery
                 {
                     foreach (var tokenValid in new bool[] { true, false })
                     {
-                        yield return new object[]
+                        foreach (var isOrganizationAdministrator in new bool[] { true, false })
                         {
-                            new InvokeOwnershipRequest(ConfirmOwnershipRequest),
-                            new PackageOwnershipManagementServiceRequestExpression(PackagesServiceForConfirmOwnershipRequestExpression),
-                            new MessageServiceForOwnershipRequestExpression(MessageServiceForConfirmOwnershipRequestExpression),
-                            ConfirmOwnershipResult.Success,
-                            tokenValid
-                        };
-                        yield return new object[]
-                        {
-                            new InvokeOwnershipRequest(RejectOwnershipRequest),
-                            new PackageOwnershipManagementServiceRequestExpression(PackagesServiceForRejectOwnershipRequestExpression),
-                            new MessageServiceForOwnershipRequestExpression(MessageServiceForRejectOwnershipRequestExpression),
-                            ConfirmOwnershipResult.Rejected,
-                            tokenValid
-                        };
+                            yield return new object[]
+                            {
+                                new InvokeOwnershipRequest(ConfirmOwnershipRequest),
+                                new PackageOwnershipManagementServiceRequestExpression(PackagesServiceForConfirmOwnershipRequestExpression),
+                                new MessageServiceForOwnershipRequestExpression(MessageServiceForConfirmOwnershipRequestExpression),
+                                ConfirmOwnershipResult.Success,
+                                tokenValid,
+                                isOrganizationAdministrator
+                            };
+                            yield return new object[]
+                            {
+                                new InvokeOwnershipRequest(RejectOwnershipRequest),
+                                new PackageOwnershipManagementServiceRequestExpression(PackagesServiceForRejectOwnershipRequestExpression),
+                                new MessageServiceForOwnershipRequestExpression(MessageServiceForRejectOwnershipRequestExpression),
+                                ConfirmOwnershipResult.Rejected,
+                                tokenValid,
+                                isOrganizationAdministrator
+                            };
+                        }
                     }
                 }
             }
 
             [Theory]
             [MemberData("ReturnsSuccessIfTokenIsValid_Data")]
-            public async Task ReturnsSuccessIfTokenIsValid(InvokeOwnershipRequest invokeOwnershipRequest, 
+            public async Task ReturnsSuccessIfTokenIsValid(
+                InvokeOwnershipRequest invokeOwnershipRequest, 
                 PackageOwnershipManagementServiceRequestExpression packageOwnershipManagementServiceExpression, 
                 MessageServiceForOwnershipRequestExpression messageServiceExpression, 
                 ConfirmOwnershipResult successState, 
-                bool tokenValid)
+                bool tokenValid,
+                bool isOrganizationAdministrator)
             {
                 // Arrange
-                var owner = new User { Key = 1, Username = "owner" };
-                var package = new PackageRegistration { Id = "foo", Owners = new[] { owner } };
-                var user = new User { Key = 2, Username = "username" };
+                var token = "token";
+                var requestingOwner = new User { Key = _key++, Username = "owner" };
+                var package = new PackageRegistration { Id = "foo", Owners = new[] { requestingOwner } };
+                var currentUser = new User { Key = _key++, Username = "username" };
+
+                User newOwner;
+                if (isOrganizationAdministrator)
+                {
+                    newOwner = new Organization { Key = _key++, Username = "organization", Members = new[] { new Membership { Member = currentUser, IsAdmin = true } } };
+                }
+                else
+                {
+                    newOwner = currentUser;
+                }
 
                 var mockHttpContext = new Mock<HttpContextBase>();
 
                 var packageService = new Mock<IPackageService>();
-                packageService.Setup(p => p.FindPackageRegistrationById("foo")).Returns(package);
+                packageService.Setup(p => p.FindPackageRegistrationById(package.Id)).Returns(package);
 
                 var packageOwnershipManagementService = new Mock<IPackageOwnershipManagementService>();
-                packageOwnershipManagementService.Setup(p => p.AddPackageOwnerAsync(package, user)).Returns(Task.CompletedTask).Verifiable();
-                packageOwnershipManagementService.Setup(p => p.DeletePackageOwnershipRequestAsync(package, user)).Returns(Task.CompletedTask).Verifiable();
+                packageOwnershipManagementService.Setup(p => p.AddPackageOwnerAsync(package, newOwner)).Returns(Task.CompletedTask).Verifiable();
+                packageOwnershipManagementService.Setup(p => p.DeletePackageOwnershipRequestAsync(package, newOwner)).Returns(Task.CompletedTask).Verifiable();
 
                 var request = new PackageOwnerRequest
                 {
                     PackageRegistration = package,
-                    RequestingOwner = owner,
-                    NewOwner = user,
-                    ConfirmationCode = "token"
+                    RequestingOwner = requestingOwner,
+                    NewOwner = newOwner,
+                    ConfirmationCode = token
                 };
-                packageOwnershipManagementService.Setup(p => p.GetPackageOwnershipRequest(package, user, "token"))
+                packageOwnershipManagementService.Setup(p => p.GetPackageOwnershipRequest(package, newOwner, token))
                     .Returns(tokenValid ? request : null);
 
                 var messageService = new Mock<IMessageService>();
+
+                var userService = new Mock<IUserService>();
+                userService.Setup(x => x.FindByUsername(newOwner.Username)).Returns(newOwner);
 
                 var controller = CreateController(
                     GetConfigurationService(),
                     httpContext: mockHttpContext,
                     packageService: packageService,
                     messageService: messageService,
-                    packageOwnershipManagementService: packageOwnershipManagementService);
+                    packageOwnershipManagementService: packageOwnershipManagementService,
+                    userService: userService);
 
-                controller.SetCurrentUser(user);
+                controller.SetCurrentUser(currentUser);
                 TestUtility.SetupHttpContextMockForUrlGeneration(mockHttpContext, controller);
 
                 // Act
-                var result = await invokeOwnershipRequest(controller, "foo", "username", "token");
+                var result = await invokeOwnershipRequest(controller, package.Id, newOwner.Username, token);
 
                 // Assert
                 var model = ResultAssert.IsView<PackageOwnerConfirmationModel>(result, "ConfirmOwner");
                 var expectedResult = tokenValid ? successState : ConfirmOwnershipResult.Failure;
                 Assert.Equal(expectedResult, model.Result);
-                Assert.Equal("foo", model.PackageId);
-                packageOwnershipManagementService.Verify(packageOwnershipManagementServiceExpression(package, user), tokenValid ? Times.Once() : Times.Never());
+                Assert.Equal(package.Id, model.PackageId);
+                packageOwnershipManagementService.Verify(packageOwnershipManagementServiceExpression(package, newOwner), tokenValid ? Times.Once() : Times.Never());
                 messageService.Verify(messageServiceExpression(request), tokenValid ? Times.Once() : Times.Never());
             }
 
@@ -1076,6 +1150,9 @@ namespace NuGetGallery
                             .Verifiable();
                     }
 
+                    var userService = new Mock<IUserService>();
+                    userService.Setup(x => x.FindByUsername(fakes.User.Username)).Returns(fakes.User);
+
                     var policyMessages = new Dictionary<string, string>();
                     var messageService = new Mock<IMessageService>();
                     messageService.Setup(s => s.SendPackageOwnerAddedNotice(
@@ -1091,7 +1168,8 @@ namespace NuGetGallery
                         packageService: packageService,
                         packageOwnershipManagementService: packageOwnershipManagementService,
                         messageService: messageService,
-                        securityPolicyService: policyService);
+                        securityPolicyService: policyService,
+                        userService: userService);
 
                     controller.SetCurrentUser(fakes.User);
                     TestUtility.SetupHttpContextMockForUrlGeneration(mockHttpContext, controller);
@@ -1727,7 +1805,7 @@ namespace NuGetGallery
                 {
                     Email = "frodo@hobbiton.example.com",
                     Message = "Mordor took my finger.",
-                    Reason = ReportPackageReason.IsFraudulent,
+                    Reason = ReportPackageReason.ViolatesALicenseIOwn,
                     AlreadyContactedOwner = true,
                 };
 
@@ -1740,7 +1818,7 @@ namespace NuGetGallery
                         It.Is<ReportPackageRequest>(
                             r => r.FromAddress.Address == "frodo@hobbiton.example.com"
                                  && r.Package == package
-                                 && r.Reason == EnumHelper.GetDescription(ReportPackageReason.IsFraudulent)
+                                 && r.Reason == EnumHelper.GetDescription(ReportPackageReason.ViolatesALicenseIOwn)
                                  && r.Message == "Mordor took my finger."
                                  && r.AlreadyContactedOwners)));
             }
@@ -1769,7 +1847,7 @@ namespace NuGetGallery
                 var model = new ReportAbuseViewModel
                 {
                     Message = "Mordor took my finger",
-                    Reason = ReportPackageReason.IsFraudulent
+                    Reason = ReportPackageReason.ViolatesALicenseIOwn
                 };
 
                 TestUtility.SetupUrlHelper(controller, httpContext);
@@ -1782,7 +1860,7 @@ namespace NuGetGallery
                             r => r.Message == "Mordor took my finger"
                                  && r.FromAddress.Address == "frodo@hobbiton.example.com"
                                  && r.FromAddress.DisplayName == "Frodo"
-                                 && r.Reason == EnumHelper.GetDescription(ReportPackageReason.IsFraudulent))));
+                                 && r.Reason == EnumHelper.GetDescription(ReportPackageReason.ViolatesALicenseIOwn))));
             }
 
             [Fact]
@@ -1833,7 +1911,7 @@ namespace NuGetGallery
                 {
                     Email = "frodo@hobbiton.example.com",
                     Message = "I like the cut of your jib. It's <b>bold</b>.",
-                    Reason = ReportPackageReason.IsFraudulent,
+                    Reason = ReportPackageReason.ViolatesALicenseIOwn,
                     AlreadyContactedOwner = true,
                 };
 
@@ -1845,7 +1923,7 @@ namespace NuGetGallery
                         It.Is<ReportPackageRequest>(
                             r => r.FromAddress.Address == "frodo@hobbiton.example.com"
                                  && r.Package == package
-                                 && r.Reason == EnumHelper.GetDescription(ReportPackageReason.IsFraudulent)
+                                 && r.Reason == EnumHelper.GetDescription(ReportPackageReason.ViolatesALicenseIOwn)
                                  && r.Message == "I like the cut of your jib. It&#39;s &lt;b&gt;bold&lt;/b&gt;."
                                  && r.AlreadyContactedOwners)));
             }
@@ -1905,7 +1983,7 @@ namespace NuGetGallery
                 var model = new ReportMyPackageViewModel
                 {
                     Message = "I like the cut of your jib. It's <b>bold</b>.",
-                    Reason = ReportPackageReason.IsFraudulent
+                    Reason = ReportPackageReason.ViolatesALicenseIOwn
                 };
 
                 TestUtility.SetupUrlHelper(controller, httpContext);
@@ -1914,7 +1992,7 @@ namespace NuGetGallery
                 Assert.NotNull(reportRequest);
                 Assert.Equal(user.EmailAddress, reportRequest.FromAddress.Address);
                 Assert.Same(package, reportRequest.Package);
-                Assert.Equal(EnumHelper.GetDescription(ReportPackageReason.IsFraudulent), reportRequest.Reason);
+                Assert.Equal(EnumHelper.GetDescription(ReportPackageReason.ViolatesALicenseIOwn), reportRequest.Reason);
                 Assert.Equal("I like the cut of your jib. It&#39;s &lt;b&gt;bold&lt;/b&gt;.", reportRequest.Message);
             }
         }
@@ -2131,13 +2209,15 @@ namespace NuGetGallery
                 fakeReservedNamespaceService
                     .Setup(r => r.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
                     .Returns(false);
+                var fakeTelemetryService = new Mock<ITelemetryService>();
 
                 var controller = CreateController(
                     GetConfigurationService(),
                     uploadFileService: fakeUploadFileService,
                     packageService: fakePackageService,
                     fakeNuGetPackage: fakeFileStream,
-                    reservedNamespaceService: fakeReservedNamespaceService);
+                    reservedNamespaceService: fakeReservedNamespaceService,
+                    telemetryService: fakeTelemetryService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
@@ -2145,6 +2225,7 @@ namespace NuGetGallery
                 Assert.NotNull(result);
                 Assert.False(controller.ModelState.IsValid);
                 Assert.Equal(String.Format(Strings.UploadPackage_IdNamespaceConflict), controller.ModelState[String.Empty].Errors[0].ErrorMessage);
+                fakeTelemetryService.Verify(x => x.TrackPackagePushNamespaceConflictEvent(It.IsAny<string>(), It.IsAny<string>(), TestUtility.FakeUser, controller.OwinContext.Request.User.Identity), Times.Once);
             }
 
             [Fact]

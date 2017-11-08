@@ -26,6 +26,7 @@ namespace NuGetGallery
             Credentials = new List<Credential>();
             SecurityPolicies = new List<UserSecurityPolicy>();
             ReservedNamespaces = new HashSet<ReservedNamespace>();
+            Organizations = new List<Membership>();
             Roles = new List<Role>();
             Username = username;
         }

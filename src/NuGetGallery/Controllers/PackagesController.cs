@@ -285,12 +285,15 @@ namespace NuGetGallery
                         ModelState.AddModelError(
                             string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict));
 
+                        var version = nuspec.GetVersion().ToNormalizedString();
+                        _telemetryService.TrackPackagePushNamespaceConflictEvent(id, version, currentUser, User.Identity);
+
                         return Json(409, new string[] { string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict) });
                     }
                 }
 
                 // For existing package id verify if it is owned by the current user
-                if (packageRegistration != null && !PackagePermissionsService.IsActionAllowed(packageRegistration, currentUser, PackageAction.UploadNewVersion))
+                if (packageRegistration != null && !PermissionsService.IsActionAllowed(packageRegistration, currentUser, PackageActions.UploadNewVersion))
                 {
                     ModelState.AddModelError(
                         string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id));
@@ -392,7 +395,7 @@ namespace NuGetGallery
             if (package == null
                 || ((package.PackageStatusKey == PackageStatus.Validating
                      || package.PackageStatusKey == PackageStatus.FailedValidation)
-                    && !PackagePermissionsService.IsActionAllowed(package, User, PackageAction.DisplayPrivatePackage)))
+                    && !PermissionsService.IsActionAllowed(package, User, PackageActions.DisplayPrivatePackage)))
             {
                 return HttpNotFound();
             }
@@ -406,7 +409,7 @@ namespace NuGetGallery
             var model = new DisplayPackageViewModel(package, packageHistory);
 
             var isReadMePending = false;
-            if (PackagePermissionsService.IsActionAllowed(package, User, PackageAction.Edit))
+            if (PermissionsService.IsActionAllowed(package, User, PackageActions.Edit))
             {
                 // Tell logged-in package owners not to cache the package page,
                 // so they won't be confused about the state of pending edits.
@@ -563,7 +566,6 @@ namespace NuGetGallery
 
         // NOTE: Intentionally NOT requiring authentication
         private static readonly ReportPackageReason[] ReportOtherPackageReasons = new[] {
-            ReportPackageReason.IsFraudulent,
             ReportPackageReason.ViolatesALicenseIOwn,
             ReportPackageReason.ContainsMaliciousCode,
             ReportPackageReason.HasABugOrFailedToInstall,
@@ -593,7 +595,7 @@ namespace NuGetGallery
                 var user = GetCurrentUser();
 
                 // If user logged on in as owner a different tab, then clicked the link, we can redirect them to ReportMyPackage
-                if (PackagePermissionsService.IsActionAllowed(package, user, PackageAction.ReportMyPackage))
+                if (PermissionsService.IsActionAllowed(package, user, PackageActions.ReportMyPackage))
                 {
                     return RedirectToAction("ReportMyPackage", new { id, version });
                 }
@@ -628,7 +630,7 @@ namespace NuGetGallery
             }
 
             // If user hit this url by constructing it manually but is not the owner, redirect them to ReportAbuse
-            if (!PackagePermissionsService.IsActionAllowed(package, User, PackageAction.ReportMyPackage))
+            if (!PermissionsService.IsActionAllowed(package, User, PackageActions.ReportMyPackage))
             {
                 return RedirectToAction("ReportAbuse", new { id, version });
             }
@@ -826,7 +828,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            if (!PackagePermissionsService.IsActionAllowed(package, User, PackageAction.ManagePackageOwners))
+            if (!PermissionsService.IsActionAllowed(package, User, PackageActions.ManagePackageOwners))
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
@@ -846,7 +848,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            if (!PackagePermissionsService.IsActionAllowed(package, User, PackageAction.Unlist))
+            if (!PermissionsService.IsActionAllowed(package, User, PackageActions.Unlist))
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
@@ -1002,7 +1004,7 @@ namespace NuGetGallery
                 return Json(404, new[] { string.Format(Strings.PackageWithIdAndVersionNotFound, id, version) });
             }
 
-            if (!PackagePermissionsService.IsActionAllowed(package, User, PackageAction.Edit))
+            if (!PermissionsService.IsActionAllowed(package, User, PackageActions.Edit))
             {
                 return Json(403, new[] { Strings.Unauthorized });
             }
@@ -1056,7 +1058,7 @@ namespace NuGetGallery
                 return Json(404, new[] { string.Format(Strings.PackageWithIdAndVersionNotFound, id, version) });
             }
 
-            if (!PackagePermissionsService.IsActionAllowed(package, User, PackageAction.Edit))
+            if (!PermissionsService.IsActionAllowed(package, User, PackageActions.Edit))
             {
                 return Json(403, new[] { Strings.Unauthorized });
             }
@@ -1123,10 +1125,11 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-
-            if (!string.Equals(username, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
+            
+            var user = _userService.FindByUsername(username);
+            if (!PermissionsService.IsActionAllowed(user, GetCurrentUser(), AccountActions.AcceptPackageOwnershipOnBehalfOf))
             {
-                return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.NotYourRequest));
+                return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.NotYourRequest));
             }
 
             var package = _packageService.FindPackageRegistrationById(id);
@@ -1135,16 +1138,15 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            var user = GetCurrentUser();
-            if (PackagePermissionsService.GetPermissionLevels(package, user).Contains(PermissionLevel.Owner))
+            if (package.Owners.Any(o => o.Key == user.Key))
             {
-                return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.AlreadyOwner));
+                return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.AlreadyOwner));
             }
 
             var request = _packageOwnershipManagementService.GetPackageOwnershipRequest(package, user, token);
             if (request == null)
             {
-                return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.Failure));
+                return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.Failure));
             }
 
             if (accept)
@@ -1155,7 +1157,7 @@ namespace NuGetGallery
 
                 SendAddPackageOwnerNotification(package, user, result.Item1, result.Item2);
 
-                return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.Success));
+                return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.Success));
             }
             else
             {
@@ -1165,7 +1167,7 @@ namespace NuGetGallery
 
                 _messageService.SendPackageOwnerRequestRejectionNotice(requestingUser, user, package);
 
-                return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, username, ConfirmOwnershipResult.Rejected));
+                return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.Rejected));
             }
         }
 
@@ -1311,7 +1313,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            if (!PackagePermissionsService.IsActionAllowed(package, User, PackageAction.Edit))
+            if (!PermissionsService.IsActionAllowed(package, User, PackageActions.Edit))
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
@@ -1584,7 +1586,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            if (!PackagePermissionsService.IsActionAllowed(package, User, PackageAction.Edit))
+            if (!PermissionsService.IsActionAllowed(package, User, PackageActions.Edit))
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }

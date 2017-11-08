@@ -92,6 +92,12 @@ namespace NuGetGallery
                 .HasKey(c => c.Key);
 
             modelBuilder.Entity<Scope>()
+                .HasOptional(sc => sc.Owner)
+                .WithMany()
+                .HasForeignKey(sc => sc.OwnerKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<Scope>()
                 .HasRequired<Credential>(sc => sc.Credential)
                 .WithMany(cr => cr.Scopes)
                 .HasForeignKey(sc => sc.CredentialKey)

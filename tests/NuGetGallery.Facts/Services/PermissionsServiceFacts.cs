@@ -10,7 +10,7 @@ using Xunit;
 
 namespace NuGetGallery.Services
 {
-    public class PackagePermissionsServiceFacts
+    public class PermissionsServiceFacts
     {
         public class TheGetPermissionLevelMethod
         {
@@ -52,7 +52,7 @@ namespace NuGetGallery.Services
             public void ReturnsExpectedPermissionLevels(IEnumerable<ReturnsExpectedPermissionLevels_State> states)
             {
                 // Arrange
-                var expectedPermissionLevels = new List<PermissionLevel>() { PermissionLevel.Anonymous };
+                var expectedPermissionLevel = PermissionLevel.Anonymous;
 
                 var owners = new List<User>();
 
@@ -61,29 +61,29 @@ namespace NuGetGallery.Services
                 if (states.Contains(ReturnsExpectedPermissionLevels_State.IsOwner))
                 {
                     owners.Add(user);
-                    expectedPermissionLevels.Add(PermissionLevel.Owner);
+                    expectedPermissionLevel |= PermissionLevel.Owner;
                 }
 
                 if (states.Contains(ReturnsExpectedPermissionLevels_State.IsSiteAdmin))
                 {
                     user.Roles.Add(new Role { Name = Constants.AdminRoleName });
-                    expectedPermissionLevels.Add(PermissionLevel.SiteAdmin);
+                    expectedPermissionLevel |= PermissionLevel.SiteAdmin;
                 }
 
                 if (states.Contains(ReturnsExpectedPermissionLevels_State.IsOrganizationAdmin))
                 {
                     CreateOrganizationOwnerAndAddUserAsMember(owners, user, true);
-                    expectedPermissionLevels.Add(PermissionLevel.OrganizationAdmin);
+                    expectedPermissionLevel |= PermissionLevel.OrganizationAdmin;
                 }
 
                 if (states.Contains(ReturnsExpectedPermissionLevels_State.IsOrganizationCollaborator))
                 {
                     CreateOrganizationOwnerAndAddUserAsMember(owners, user, false);
-                    expectedPermissionLevels.Add(PermissionLevel.OrganizationCollaborator);
+                    expectedPermissionLevel |= PermissionLevel.OrganizationCollaborator;
                 }
 
                 // Assert
-                AssertPermissionLevels(owners, user, expectedPermissionLevels);
+                AssertPermissionLevels(owners, user, expectedPermissionLevel);
             }
 
             private void CreateOrganizationOwnerAndAddUserAsMember(List<User> owners, User user, bool isAdmin)
@@ -101,18 +101,12 @@ namespace NuGetGallery.Services
                 owners.Add(organization);
             }
 
-            private void AssertPermissionLevels(IEnumerable<User> owners, User user, IEnumerable<PermissionLevel> expectedLevels)
+            private void AssertPermissionLevels(IEnumerable<User> owners, User user, PermissionLevel expectedLevel)
             {
-                AssertEqual(expectedLevels, PackagePermissionsService.GetPermissionLevels(owners, user));
+                Assert.Equal(expectedLevel, PermissionsService.GetPermissionLevel(owners, user));
 
                 var principal = GetPrincipal(user);
-                AssertEqual(expectedLevels, PackagePermissionsService.GetPermissionLevels(owners, principal));
-            }
-
-            private void AssertEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual)
-            {
-                Assert.True(!expected.Except(actual).Any());
-                Assert.True(!actual.Except(expected).Any());
+                Assert.Equal(expectedLevel, PermissionsService.GetPermissionLevel(owners, principal));
             }
 
             private IPrincipal GetPrincipal(User u)
