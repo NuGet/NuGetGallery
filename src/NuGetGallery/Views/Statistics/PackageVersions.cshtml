@@ -23,15 +23,14 @@
             <span class="page-subheading ms-fontSize-l" data-bind="text: showAllPackageDownloads() ? 'Top 500 Packages Over the Last 6 Weeks' : 'Top 500 Community Packages Over the Last 6 Weeks'">
                 Top 500 Community Packages Over the Last 6 Weeks
             </span>
+            <label class="show-all-packages-toggle pull-right">
+                <input type="checkbox" data-bind="checked: showAllPackageDownloads" />
+                Show all packages
+            </label>
         </div>
         </div>
         <div class="row">
             <div class="col-xs-12">
-                <p>
-                    Show all packages:
-                    <input type="checkbox" data-bind="checked: showAllPackageDownloads" />
-                </p>
-
                 <table @ShowIfAllPackageSet() class="table borderless">
                     <caption class="sr-only">The packages with the most downloads.</caption>
 
