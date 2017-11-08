@@ -38,6 +38,11 @@ namespace NuGet.Services.Validation
         public PackageSignatureStatus Status { get; set; }
 
         /// <summary>
+        /// Used for optimistic concurrency when updating package signatures.
+        /// </summary>
+        public byte[] RowVersion { get; set; }
+
+        /// <summary>
         /// The <see cref="PackageSigningState"/> that owns this <see cref="PackageSignature"/>. If this signature
         /// has a Status of "Invalid", the overall <see cref="PackageSigningState"/> will also be "Invalid". Note that
         /// a <see cref="PackageSigningState"/> may have multiple <see cref="PacakgeSignature"/>s. Thus, the overall
