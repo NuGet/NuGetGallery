@@ -30,6 +30,8 @@ namespace Stats.CreateAzureCdnWarehouseReports
         {
             {ReportNames.NuGetClientVersion, "[dbo].[DownloadReportNuGetClientVersion]" },
             {ReportNames.Last6Weeks, "[dbo].[DownloadReportLast6Weeks]" },
+            {ReportNames.RecentCommunityPopularity, "[dbo].[DownloadReportRecentCommunityPopularity]" },
+            {ReportNames.RecentCommunityPopularityDetail, "[dbo].[DownloadReportRecentCommunityPopularityDetail]" },
             {ReportNames.RecentPopularity, "[dbo].[DownloadReportRecentPopularity]" },
             {ReportNames.RecentPopularityDetail, "[dbo].[DownloadReportRecentPopularityDetail]" },
         };
@@ -81,6 +83,8 @@ namespace Stats.CreateAzureCdnWarehouseReports
                     {
                         { new ReportBuilder(reportBuilderLogger, ReportNames.NuGetClientVersion), new ReportDataCollector(reportCollectorLogger, _storedProcedures[ReportNames.NuGetClientVersion], _statisticsDatabase) },
                         { new ReportBuilder(reportBuilderLogger, ReportNames.Last6Weeks), new ReportDataCollector(reportCollectorLogger, _storedProcedures[ReportNames.Last6Weeks], _statisticsDatabase) },
+                        { new ReportBuilder(reportBuilderLogger, ReportNames.RecentCommunityPopularity), new ReportDataCollector(reportCollectorLogger, _storedProcedures[ReportNames.RecentCommunityPopularity], _statisticsDatabase) },
+                        { new ReportBuilder(reportBuilderLogger, ReportNames.RecentCommunityPopularityDetail), new ReportDataCollector(reportCollectorLogger, _storedProcedures[ReportNames.RecentCommunityPopularityDetail], _statisticsDatabase) },
                         { new ReportBuilder(reportBuilderLogger, ReportNames.RecentPopularity), new ReportDataCollector(reportCollectorLogger, _storedProcedures[ReportNames.RecentPopularity], _statisticsDatabase) },
                         { new ReportBuilder(reportBuilderLogger, ReportNames.RecentPopularityDetail), new ReportDataCollector(reportCollectorLogger, _storedProcedures[ReportNames.RecentPopularityDetail], _statisticsDatabase) }
                     };
@@ -293,6 +297,8 @@ namespace Stats.CreateAzureCdnWarehouseReports
         {
             public const string NuGetClientVersion = "nugetclientversion";
             public const string Last6Weeks = "last6weeks";
+            public const string RecentCommunityPopularity = "recentcommunitypopularity";
+            public const string RecentCommunityPopularityDetail = "recentcommunitypopularitydetail";
             public const string RecentPopularity = "recentpopularity";
             public const string RecentPopularityDetail = "recentpopularitydetail";
             public const string RecentPopularityDetailByPackageId = "recentpopularitydetailbypackageid";

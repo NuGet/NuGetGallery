@@ -188,6 +188,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Configuration\JobArgumentNames.cs" />
+    <Compile Include="Configuration\ServiceBusConfiguration.cs" />
+    <Compile Include="Configuration\ValidationDbConfiguration.cs" />
     <Compile Include="Extensions\SqlConnectionStringBuilderExtensions.cs" />
     <Compile Include="Extensions\XElementExtensions.cs" />
     <Compile Include="SecretReader\ISecretReaderFactory.cs" />
