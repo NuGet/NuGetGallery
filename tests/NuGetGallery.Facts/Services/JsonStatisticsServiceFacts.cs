@@ -22,25 +22,25 @@ namespace NuGetGallery.Services
                 await _target.Refresh();
 
                 // Assert
-                Assert.True(_target.DownloadPackagesResult.Loaded);
-                Assert.True(_target.DownloadPackageVersionsResult.Loaded);
-                Assert.True(_target.DownloadCommunityPackagesResult.Loaded);
-                Assert.True(_target.DownloadCommunityPackageVersionsResult.Loaded);
+                Assert.True(_target.PackageDownloadsResult.IsLoaded);
+                Assert.True(_target.PackageVersionDownloadsResult.IsLoaded);
+                Assert.True(_target.CommunityPackageDownloadsResult.IsLoaded);
+                Assert.True(_target.CommunityPackageVersionDownloadsResult.IsLoaded);
 
-                Assert.NotNull(_target.DownloadPackagesResult.LastUpdatedUtc);
-                Assert.NotNull(_target.DownloadPackageVersionsResult.LastUpdatedUtc);
-                Assert.NotNull(_target.DownloadCommunityPackagesResult.LastUpdatedUtc);
-                Assert.NotNull(_target.DownloadCommunityPackageVersionsResult.LastUpdatedUtc);
+                Assert.NotNull(_target.PackageDownloadsResult.LastUpdatedUtc);
+                Assert.NotNull(_target.PackageVersionDownloadsResult.LastUpdatedUtc);
+                Assert.NotNull(_target.CommunityPackageDownloadsResult.LastUpdatedUtc);
+                Assert.NotNull(_target.CommunityPackageVersionDownloadsResult.LastUpdatedUtc);
 
-                Assert.Equal(LastUpdatedUtcDefault, _target.DownloadPackagesResult.LastUpdatedUtc);
-                Assert.Equal(LastUpdatedUtcDefault, _target.DownloadPackageVersionsResult.LastUpdatedUtc);
-                Assert.Equal(LastUpdatedUtcDefault, _target.DownloadCommunityPackagesResult.LastUpdatedUtc);
-                Assert.Equal(LastUpdatedUtcDefault, _target.DownloadCommunityPackageVersionsResult.LastUpdatedUtc);
+                Assert.Equal(LastUpdatedUtcDefault, _target.PackageDownloadsResult.LastUpdatedUtc);
+                Assert.Equal(LastUpdatedUtcDefault, _target.PackageVersionDownloadsResult.LastUpdatedUtc);
+                Assert.Equal(LastUpdatedUtcDefault, _target.CommunityPackageDownloadsResult.LastUpdatedUtc);
+                Assert.Equal(LastUpdatedUtcDefault, _target.CommunityPackageVersionDownloadsResult.LastUpdatedUtc);
 
-                Assert.Equal(2, _target.DownloadPackagesAll.Count());
-                Assert.Equal(3, _target.DownloadPackageVersionsAll.Count());
-                Assert.Equal(2, _target.DownloadCommunityPackagesAll.Count());
-                Assert.Equal(3, _target.DownloadCommunityPackageVersionsAll.Count());
+                Assert.Equal(2, _target.PackageDownloads.Count());
+                Assert.Equal(3, _target.PackageVersionDownloads.Count());
+                Assert.Equal(2, _target.CommunityPackageDownloads.Count());
+                Assert.Equal(3, _target.CommunityPackageVersionDownloads.Count());
 
                 VerifyReportsLoadedOnce();
             }
@@ -100,10 +100,10 @@ namespace NuGetGallery.Services
                 await _target.Refresh();
 
                 // Assert
-                Assert.False(_target.DownloadPackagesResult.Loaded);
-                Assert.False(_target.DownloadPackageVersionsResult.Loaded);
-                Assert.False(_target.DownloadCommunityPackagesResult.Loaded);
-                Assert.False(_target.DownloadCommunityPackageVersionsResult.Loaded);
+                Assert.False(_target.PackageDownloadsResult.IsLoaded);
+                Assert.False(_target.PackageVersionDownloadsResult.IsLoaded);
+                Assert.False(_target.CommunityPackageDownloadsResult.IsLoaded);
+                Assert.False(_target.CommunityPackageVersionDownloadsResult.IsLoaded);
 
                 VerifyReportsLoadedOnce();
             }

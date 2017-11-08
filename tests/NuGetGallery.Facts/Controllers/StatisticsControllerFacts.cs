@@ -101,6 +101,9 @@ namespace NuGetGallery
 
             fakeReportService.Setup(x => x.Load("recentpopularity.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageReport, DateTime.MinValue)));
             fakeReportService.Setup(x => x.Load("recentpopularitydetail.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageVersionReport, null)));
+            fakeReportService.Setup(x => x.Load("recentcommunitypopularity.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageReport, DateTime.MinValue)));
+            fakeReportService.Setup(x => x.Load("recentcommunitypopularitydetail.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageVersionReport, null)));
+
             fakeReportService.Setup(x => x.Load("nugetclientversion.json")).Returns(Task.FromResult(new StatisticsReport(fakeNuGetClientVersion, DateTime.MinValue)));
             fakeReportService.Setup(x => x.Load("last6weeks.json")).Returns(Task.FromResult(new StatisticsReport(fakeLast6Weeks, updatedUtc)));
 

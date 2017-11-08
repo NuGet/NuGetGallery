@@ -79,16 +79,16 @@ namespace NuGetGallery
 
             var model = new StatisticsPackagesViewModel
             {
-                IsDownloadPackageAvailable = _statisticsService.DownloadCommunityPackagesResult.Loaded,
-                DownloadPackagesSummary = _statisticsService.DownloadCommunityPackagesSummary,
+                IsDownloadPackageAvailable = _statisticsService.CommunityPackageDownloadsResult.IsLoaded,
+                DownloadPackagesSummary = _statisticsService.CommunityPackageDownloadsSummary,
 
-                IsDownloadPackageVersionsAvailable = _statisticsService.DownloadCommunityPackageVersionsResult.Loaded,
-                DownloadPackageVersionsSummary = _statisticsService.DownloadCommunityPackageVersionsSummary,
+                IsDownloadPackageVersionsAvailable = _statisticsService.CommunityPackageVersionDownloadsResult.IsLoaded,
+                DownloadPackageVersionsSummary = _statisticsService.CommunityPackageVersionDownloadsSummary,
 
-                IsNuGetClientVersionAvailable = _statisticsService.NuGetClientVersionResult.Loaded,
+                IsNuGetClientVersionAvailable = _statisticsService.NuGetClientVersionResult.IsLoaded,
                 NuGetClientVersion = _statisticsService.NuGetClientVersion,
 
-                IsLast6WeeksAvailable = _statisticsService.Last6WeeksResult.Loaded,
+                IsLast6WeeksAvailable = _statisticsService.Last6WeeksResult.IsLoaded,
                 Last6Weeks = _statisticsService.Last6Weeks,
 
                 LastUpdatedUtc = _statisticsService.LastUpdatedUtc,
@@ -113,16 +113,16 @@ namespace NuGetGallery
 
             await _statisticsService.Refresh();
 
-            var allPackagesUpdateTime = _statisticsService.DownloadPackagesResult.LastUpdatedUtc;
-            var communityPackagesUpdateTime = _statisticsService.DownloadCommunityPackagesResult.LastUpdatedUtc;
+            var allPackagesUpdateTime = _statisticsService.PackageDownloadsResult.LastUpdatedUtc;
+            var communityPackagesUpdateTime = _statisticsService.CommunityPackageDownloadsResult.LastUpdatedUtc;
 
             var model = new StatisticsPackagesViewModel
             {
-                IsDownloadPackageAvailable = _statisticsService.DownloadPackagesResult.Loaded,
-                DownloadPackagesAll = _statisticsService.DownloadPackagesAll,
+                IsDownloadPackageAvailable = _statisticsService.PackageDownloadsResult.IsLoaded,
+                DownloadPackagesAll = _statisticsService.PackageDownloads,
 
-                IsDownloadCommunityPackageAvailable = _statisticsService.DownloadCommunityPackagesResult.Loaded,
-                DownloadCommunityPackagesAll = _statisticsService.DownloadCommunityPackagesAll,
+                IsDownloadCommunityPackageAvailable = _statisticsService.CommunityPackageDownloadsResult.IsLoaded,
+                DownloadCommunityPackagesAll = _statisticsService.CommunityPackageDownloads,
 
                 LastUpdatedUtc = (allPackagesUpdateTime > communityPackagesUpdateTime)
                                     ? allPackagesUpdateTime
@@ -144,16 +144,16 @@ namespace NuGetGallery
 
             await _statisticsService.Refresh();
 
-            var allPackagesUpdateTime = _statisticsService.DownloadPackageVersionsResult.LastUpdatedUtc;
-            var communityPackagesUpdateTime = _statisticsService.DownloadCommunityPackageVersionsResult.LastUpdatedUtc;
+            var allPackagesUpdateTime = _statisticsService.PackageVersionDownloadsResult.LastUpdatedUtc;
+            var communityPackagesUpdateTime = _statisticsService.CommunityPackageVersionDownloadsResult.LastUpdatedUtc;
 
             var model = new StatisticsPackagesViewModel
             {
-                IsDownloadPackageVersionsAvailable = _statisticsService.DownloadPackageVersionsResult.Loaded,
-                DownloadPackageVersionsAll = _statisticsService.DownloadPackageVersionsAll,
+                IsDownloadPackageVersionsAvailable = _statisticsService.PackageVersionDownloadsResult.IsLoaded,
+                DownloadPackageVersionsAll = _statisticsService.PackageVersionDownloads,
 
-                IsDownloadCommunityPackageVersionsAvailable = _statisticsService.DownloadCommunityPackageVersionsResult.Loaded,
-                DownloadCommunityPackageVersionsAll = _statisticsService.DownloadCommunityPackageVersionsAll,
+                IsDownloadCommunityPackageVersionsAvailable = _statisticsService.CommunityPackageVersionDownloadsResult.IsLoaded,
+                DownloadCommunityPackageVersionsAll = _statisticsService.CommunityPackageVersionDownloads,
 
                 LastUpdatedUtc = (allPackagesUpdateTime > communityPackagesUpdateTime)
                                     ? allPackagesUpdateTime

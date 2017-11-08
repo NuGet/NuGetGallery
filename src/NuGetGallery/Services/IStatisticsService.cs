@@ -9,21 +9,21 @@ namespace NuGetGallery
 {
     public interface IStatisticsService
     {
-        StatisticsReportResult DownloadPackagesResult { get; }
-        IEnumerable<StatisticsPackagesItemViewModel> DownloadPackagesAll { get; }
-        IEnumerable<StatisticsPackagesItemViewModel> DownloadPackagesSummary { get; }
+        StatisticsReportResult PackageDownloadsResult { get; }
+        IEnumerable<StatisticsPackagesItemViewModel> PackageDownloads { get; }
+        IEnumerable<StatisticsPackagesItemViewModel> PackageDownloadsSummary { get; }
 
-        StatisticsReportResult DownloadPackageVersionsResult { get; }
-        IEnumerable<StatisticsPackagesItemViewModel> DownloadPackageVersionsAll { get; }
-        IEnumerable<StatisticsPackagesItemViewModel> DownloadPackageVersionsSummary { get; }
+        StatisticsReportResult PackageVersionDownloadsResult { get; }
+        IEnumerable<StatisticsPackagesItemViewModel> PackageVersionDownloads { get; }
+        IEnumerable<StatisticsPackagesItemViewModel> PackageVersionDownloadsSummary { get; }
 
-        StatisticsReportResult DownloadCommunityPackagesResult { get; }
-        IEnumerable<StatisticsPackagesItemViewModel> DownloadCommunityPackagesAll { get; }
-        IEnumerable<StatisticsPackagesItemViewModel> DownloadCommunityPackagesSummary { get; }
+        StatisticsReportResult CommunityPackageDownloadsResult { get; }
+        IEnumerable<StatisticsPackagesItemViewModel> CommunityPackageDownloads { get; }
+        IEnumerable<StatisticsPackagesItemViewModel> CommunityPackageDownloadsSummary { get; }
 
-        StatisticsReportResult DownloadCommunityPackageVersionsResult { get; }
-        IEnumerable<StatisticsPackagesItemViewModel> DownloadCommunityPackageVersionsAll { get; }
-        IEnumerable<StatisticsPackagesItemViewModel> DownloadCommunityPackageVersionsSummary { get; }
+        StatisticsReportResult CommunityPackageVersionDownloadsResult { get; }
+        IEnumerable<StatisticsPackagesItemViewModel> CommunityPackageVersionDownloads { get; }
+        IEnumerable<StatisticsPackagesItemViewModel> CommunityPackageVersionDownloadsSummary { get; }
 
         StatisticsReportResult NuGetClientVersionResult { get; }
         IEnumerable<StatisticsNuGetUsageItem> NuGetClientVersion { get; }

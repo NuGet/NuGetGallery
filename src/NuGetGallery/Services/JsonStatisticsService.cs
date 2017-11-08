@@ -37,17 +37,17 @@ namespace NuGetGallery
         /// </summary>
         private readonly SemaphoreSlim _reportSemaphore = new SemaphoreSlim(initialCount: 1, maxCount: 1);
 
-        private readonly List<StatisticsPackagesItemViewModel> _downloadPackagesAll = new List<StatisticsPackagesItemViewModel>();
-        private readonly List<StatisticsPackagesItemViewModel> _downloadPackagesSummary = new List<StatisticsPackagesItemViewModel>();
+        private readonly List<StatisticsPackagesItemViewModel> _packageDownloads = new List<StatisticsPackagesItemViewModel>();
+        private readonly List<StatisticsPackagesItemViewModel> _packageDownloadsSummary = new List<StatisticsPackagesItemViewModel>();
 
-        private readonly List<StatisticsPackagesItemViewModel> _downloadPackageVersionsAll = new List<StatisticsPackagesItemViewModel>();
-        private readonly List<StatisticsPackagesItemViewModel> _downloadPackageVersionsSummary = new List<StatisticsPackagesItemViewModel>();
+        private readonly List<StatisticsPackagesItemViewModel> _packageVersionDownloads = new List<StatisticsPackagesItemViewModel>();
+        private readonly List<StatisticsPackagesItemViewModel> _packageVersionDownloadsSummary = new List<StatisticsPackagesItemViewModel>();
 
-        private readonly List<StatisticsPackagesItemViewModel> _downloadCommunityPackagesAll = new List<StatisticsPackagesItemViewModel>();
-        private readonly List<StatisticsPackagesItemViewModel> _downloadCommunityPackagesSummary = new List<StatisticsPackagesItemViewModel>();
+        private readonly List<StatisticsPackagesItemViewModel> _communityPackageDownloads = new List<StatisticsPackagesItemViewModel>();
+        private readonly List<StatisticsPackagesItemViewModel> _communityPackageDownloadsSummary = new List<StatisticsPackagesItemViewModel>();
 
-        private readonly List<StatisticsPackagesItemViewModel> _downloadCommunityPackageVersionsAll = new List<StatisticsPackagesItemViewModel>();
-        private readonly List<StatisticsPackagesItemViewModel> _downloadCommunityPackageVersionsSummary = new List<StatisticsPackagesItemViewModel>();
+        private readonly List<StatisticsPackagesItemViewModel> _communityPackageVersionDownloads = new List<StatisticsPackagesItemViewModel>();
+        private readonly List<StatisticsPackagesItemViewModel> _communityPackageVersionDownloadsSummary = new List<StatisticsPackagesItemViewModel>();
 
         private readonly List<StatisticsNuGetUsageItem> _nuGetClientVersion = new List<StatisticsNuGetUsageItem>();
         private readonly List<StatisticsWeeklyUsageItem> _last6Weeks = new List<StatisticsWeeklyUsageItem>();
@@ -57,21 +57,21 @@ namespace NuGetGallery
             _reportService = reportService;
         }
 
-        public StatisticsReportResult DownloadPackagesResult { get; private set; }
-        public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackagesAll => _downloadPackagesAll;
-        public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackagesSummary => _downloadPackagesSummary;
+        public StatisticsReportResult PackageDownloadsResult { get; private set; }
+        public IEnumerable<StatisticsPackagesItemViewModel> PackageDownloads => _packageDownloads;
+        public IEnumerable<StatisticsPackagesItemViewModel> PackageDownloadsSummary => _packageDownloadsSummary;
 
-        public StatisticsReportResult DownloadPackageVersionsResult { get; private set; }
-        public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackageVersionsAll => _downloadPackageVersionsAll;
-        public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackageVersionsSummary => _downloadPackageVersionsSummary;
+        public StatisticsReportResult PackageVersionDownloadsResult { get; private set; }
+        public IEnumerable<StatisticsPackagesItemViewModel> PackageVersionDownloads => _packageVersionDownloads;
+        public IEnumerable<StatisticsPackagesItemViewModel> PackageVersionDownloadsSummary => _packageVersionDownloadsSummary;
 
-        public StatisticsReportResult DownloadCommunityPackagesResult { get; private set; }
-        public IEnumerable<StatisticsPackagesItemViewModel> DownloadCommunityPackagesAll => _downloadCommunityPackagesAll;
-        public IEnumerable<StatisticsPackagesItemViewModel> DownloadCommunityPackagesSummary => _downloadCommunityPackagesSummary;
+        public StatisticsReportResult CommunityPackageDownloadsResult { get; private set; }
+        public IEnumerable<StatisticsPackagesItemViewModel> CommunityPackageDownloads => _communityPackageDownloads;
+        public IEnumerable<StatisticsPackagesItemViewModel> CommunityPackageDownloadsSummary => _communityPackageDownloadsSummary;
 
-        public StatisticsReportResult DownloadCommunityPackageVersionsResult { get; private set; }
-        public IEnumerable<StatisticsPackagesItemViewModel> DownloadCommunityPackageVersionsAll => _downloadCommunityPackageVersionsAll;
-        public IEnumerable<StatisticsPackagesItemViewModel> DownloadCommunityPackageVersionsSummary => _downloadCommunityPackageVersionsSummary;
+        public StatisticsReportResult CommunityPackageVersionDownloadsResult { get; private set; }
+        public IEnumerable<StatisticsPackagesItemViewModel> CommunityPackageVersionDownloads => _communityPackageVersionDownloads;
+        public IEnumerable<StatisticsPackagesItemViewModel> CommunityPackageVersionDownloadsSummary => _communityPackageVersionDownloadsSummary;
 
         public StatisticsReportResult NuGetClientVersionResult { get; private set; }
         public IEnumerable<StatisticsNuGetUsageItem> NuGetClientVersion => _nuGetClientVersion;
@@ -113,10 +113,10 @@ namespace NuGetGallery
                     LoadNuGetClientVersion(),
                     LoadLast6Weeks());
 
-                DownloadPackagesResult = availablity[0];
-                DownloadPackageVersionsResult = availablity[1];
-                DownloadCommunityPackagesResult = availablity[2];
-                DownloadCommunityPackageVersionsResult = availablity[3];
+                PackageDownloadsResult = availablity[0];
+                PackageVersionDownloadsResult = availablity[1];
+                CommunityPackageDownloadsResult = availablity[2];
+                CommunityPackageVersionDownloadsResult = availablity[3];
                 NuGetClientVersionResult = availablity[4];
                 Last6WeeksResult = availablity[5];
 
@@ -150,16 +150,16 @@ namespace NuGetGallery
         {
             return LoadDownloadPackages(
                 StatisticsReportName.RecentPopularity,
-                _downloadPackagesAll,
-                _downloadPackagesSummary);
+                _packageDownloads,
+                _packageDownloadsSummary);
         }
 
         private Task<StatisticsReportResult> LoadDownloadCommunityPackages()
         {
             return LoadDownloadPackages(
                 StatisticsReportName.RecentCommunityPopularity,
-                _downloadCommunityPackagesAll,
-                _downloadCommunityPackagesSummary);
+                _communityPackageDownloads,
+                _communityPackageDownloadsSummary);
         }
 
         /// <summary>
@@ -210,16 +210,16 @@ namespace NuGetGallery
         {
             return LoadDownloadPackageVersions(
                 StatisticsReportName.RecentPopularityDetail,
-                _downloadPackageVersionsAll,
-                _downloadPackageVersionsSummary);
+                _packageVersionDownloads,
+                _packageVersionDownloadsSummary);
         }
 
         private Task<StatisticsReportResult> LoadDownloadCommunityPackageVersions()
         {
             return LoadDownloadPackageVersions(
                 StatisticsReportName.RecentCommunityPopularityDetail,
-                _downloadCommunityPackageVersionsAll,
-                _downloadCommunityPackageVersionsSummary);
+                _communityPackageVersionDownloads,
+                _communityPackageVersionDownloadsSummary);
         }
 
         /// <summary>

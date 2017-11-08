@@ -668,12 +668,12 @@ namespace NuGetGallery
         {
             await StatisticsService.Refresh();
 
-            if (StatisticsService.DownloadPackageVersionsResult.Loaded)
+            if (StatisticsService.PackageVersionDownloadsResult.IsLoaded)
             {
                 int i = 0;
 
                 JArray content = new JArray();
-                foreach (StatisticsPackagesItemViewModel row in StatisticsService.DownloadPackageVersionsAll)
+                foreach (StatisticsPackagesItemViewModel row in StatisticsService.PackageVersionDownloads)
                 {
                     JObject item = new JObject();
 

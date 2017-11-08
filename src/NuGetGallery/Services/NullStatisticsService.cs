@@ -16,21 +16,21 @@ namespace NuGetGallery
 
         private NullStatisticsService() { }
 
-        public StatisticsReportResult DownloadPackagesResult => StatisticsReportResult.Failed;
-        public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackagesAll => Enumerable.Empty<StatisticsPackagesItemViewModel>();
-        public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackagesSummary => Enumerable.Empty<StatisticsPackagesItemViewModel>();
+        public StatisticsReportResult PackageDownloadsResult => StatisticsReportResult.Failed;
+        public IEnumerable<StatisticsPackagesItemViewModel> PackageDownloads => Enumerable.Empty<StatisticsPackagesItemViewModel>();
+        public IEnumerable<StatisticsPackagesItemViewModel> PackageDownloadsSummary => Enumerable.Empty<StatisticsPackagesItemViewModel>();
 
-        public StatisticsReportResult DownloadPackageVersionsResult => StatisticsReportResult.Failed;
-        public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackageVersionsAll => Enumerable.Empty<StatisticsPackagesItemViewModel>();
-        public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackageVersionsSummary => Enumerable.Empty<StatisticsPackagesItemViewModel>();
+        public StatisticsReportResult PackageVersionDownloadsResult => StatisticsReportResult.Failed;
+        public IEnumerable<StatisticsPackagesItemViewModel> PackageVersionDownloads => Enumerable.Empty<StatisticsPackagesItemViewModel>();
+        public IEnumerable<StatisticsPackagesItemViewModel> PackageVersionDownloadsSummary => Enumerable.Empty<StatisticsPackagesItemViewModel>();
 
-        public StatisticsReportResult DownloadCommunityPackagesResult => StatisticsReportResult.Failed;
-        public IEnumerable<StatisticsPackagesItemViewModel> DownloadCommunityPackagesAll => Enumerable.Empty<StatisticsPackagesItemViewModel>();
-        public IEnumerable<StatisticsPackagesItemViewModel> DownloadCommunityPackagesSummary => Enumerable.Empty<StatisticsPackagesItemViewModel>();
+        public StatisticsReportResult CommunityPackageDownloadsResult => StatisticsReportResult.Failed;
+        public IEnumerable<StatisticsPackagesItemViewModel> CommunityPackageDownloads => Enumerable.Empty<StatisticsPackagesItemViewModel>();
+        public IEnumerable<StatisticsPackagesItemViewModel> CommunityPackageDownloadsSummary => Enumerable.Empty<StatisticsPackagesItemViewModel>();
 
-        public StatisticsReportResult DownloadCommunityPackageVersionsResult => StatisticsReportResult.Failed;
-        public IEnumerable<StatisticsPackagesItemViewModel> DownloadCommunityPackageVersionsAll => Enumerable.Empty<StatisticsPackagesItemViewModel>();
-        public IEnumerable<StatisticsPackagesItemViewModel> DownloadCommunityPackageVersionsSummary => Enumerable.Empty<StatisticsPackagesItemViewModel>();
+        public StatisticsReportResult CommunityPackageVersionDownloadsResult => StatisticsReportResult.Failed;
+        public IEnumerable<StatisticsPackagesItemViewModel> CommunityPackageVersionDownloads => Enumerable.Empty<StatisticsPackagesItemViewModel>();
+        public IEnumerable<StatisticsPackagesItemViewModel> CommunityPackageVersionDownloadsSummary => Enumerable.Empty<StatisticsPackagesItemViewModel>();
 
         public StatisticsReportResult NuGetClientVersionResult => StatisticsReportResult.Failed;
         public IEnumerable<StatisticsNuGetUsageItem> NuGetClientVersion => Enumerable.Empty<StatisticsNuGetUsageItem>();
