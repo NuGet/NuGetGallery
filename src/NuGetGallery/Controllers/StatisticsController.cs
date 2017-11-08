@@ -14,6 +14,8 @@ namespace NuGetGallery
     public partial class StatisticsController
         : AppController
     {
+        private const string AllPackageSet = "all";
+
         private readonly IStatisticsService _statisticsService = null;
         private readonly IAggregateStatsService _aggregateStatsService = null;
 
@@ -73,27 +75,23 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);
             }
 
-            var availablity = await Task.WhenAll(
-                _statisticsService.LoadDownloadPackages(),
-                _statisticsService.LoadDownloadPackageVersions(),
-                _statisticsService.LoadNuGetClientVersion(),
-                _statisticsService.LoadLast6Weeks());
+            await _statisticsService.Refresh();
 
             var model = new StatisticsPackagesViewModel
             {
-                IsDownloadPackageAvailable = availablity[0].Loaded,
-                DownloadPackagesSummary = _statisticsService.DownloadPackagesSummary,
-                IsDownloadPackageDetailAvailable = availablity[1].Loaded,
-                DownloadPackageVersionsSummary = _statisticsService.DownloadPackageVersionsSummary,
-                IsNuGetClientVersionAvailable = availablity[2].Loaded,
+                IsDownloadPackageAvailable = _statisticsService.CommunityPackageDownloadsResult.IsLoaded,
+                DownloadPackagesSummary = _statisticsService.CommunityPackageDownloadsSummary,
+
+                IsDownloadPackageVersionsAvailable = _statisticsService.CommunityPackageVersionDownloadsResult.IsLoaded,
+                DownloadPackageVersionsSummary = _statisticsService.CommunityPackageVersionDownloadsSummary,
+
+                IsNuGetClientVersionAvailable = _statisticsService.NuGetClientVersionResult.IsLoaded,
                 NuGetClientVersion = _statisticsService.NuGetClientVersion,
-                IsLast6WeeksAvailable = availablity[3].Loaded,
+
+                IsLast6WeeksAvailable = _statisticsService.Last6WeeksResult.IsLoaded,
                 Last6Weeks = _statisticsService.Last6Weeks,
-                LastUpdatedUtc = availablity
-                    .Where(r => r.LastUpdatedUtc.HasValue)
-                    .OrderByDescending(r => r.LastUpdatedUtc.Value)
-                    .Select(r => r.LastUpdatedUtc)
-                    .FirstOrDefault()
+
+                LastUpdatedUtc = _statisticsService.LastUpdatedUtc,
             };
 
             model.Update();
@@ -113,13 +111,22 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);
             }
 
-            var result = await _statisticsService.LoadDownloadPackages();
+            await _statisticsService.Refresh();
+
+            var allPackagesUpdateTime = _statisticsService.PackageDownloadsResult.LastUpdatedUtc;
+            var communityPackagesUpdateTime = _statisticsService.CommunityPackageDownloadsResult.LastUpdatedUtc;
 
             var model = new StatisticsPackagesViewModel
             {
-                IsDownloadPackageAvailable = result.Loaded,
-                DownloadPackagesAll = _statisticsService.DownloadPackagesAll,
-                LastUpdatedUtc = result.LastUpdatedUtc
+                IsDownloadPackageAvailable = _statisticsService.PackageDownloadsResult.IsLoaded,
+                DownloadPackagesAll = _statisticsService.PackageDownloads,
+
+                IsDownloadCommunityPackageAvailable = _statisticsService.CommunityPackageDownloadsResult.IsLoaded,
+                DownloadCommunityPackagesAll = _statisticsService.CommunityPackageDownloads,
+
+                LastUpdatedUtc = (allPackagesUpdateTime > communityPackagesUpdateTime)
+                                    ? allPackagesUpdateTime
+                                    : communityPackagesUpdateTime,
             };
 
             return View(model);
@@ -135,13 +142,22 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);
             }
 
-            var result = await _statisticsService.LoadDownloadPackageVersions();
+            await _statisticsService.Refresh();
+
+            var allPackagesUpdateTime = _statisticsService.PackageVersionDownloadsResult.LastUpdatedUtc;
+            var communityPackagesUpdateTime = _statisticsService.CommunityPackageVersionDownloadsResult.LastUpdatedUtc;
 
             var model = new StatisticsPackagesViewModel
             {
-                IsDownloadPackageDetailAvailable = result.Loaded,
-                DownloadPackageVersionsAll = _statisticsService.DownloadPackageVersionsAll,
-                LastUpdatedUtc = result.LastUpdatedUtc
+                IsDownloadPackageVersionsAvailable = _statisticsService.PackageVersionDownloadsResult.IsLoaded,
+                DownloadPackageVersionsAll = _statisticsService.PackageVersionDownloads,
+
+                IsDownloadCommunityPackageVersionsAvailable = _statisticsService.CommunityPackageVersionDownloadsResult.IsLoaded,
+                DownloadCommunityPackageVersionsAll = _statisticsService.CommunityPackageVersionDownloads,
+
+                LastUpdatedUtc = (allPackagesUpdateTime > communityPackagesUpdateTime)
+                                    ? allPackagesUpdateTime
+                                    : communityPackagesUpdateTime,
             };
 
             return View(model);

@@ -1593,7 +1593,7 @@ namespace NuGetGallery
             public async Task VerifyStatsDownloadsReturnsNotFoundWhenStatsNotAvailable()
             {
                 var controller = new TestableApiController(GetConfigurationService());
-                controller.MockStatisticsService.Setup(x => x.LoadDownloadPackageVersions()).Returns(Task.FromResult(StatisticsReportResult.Failed));
+                controller.MockStatisticsService.Setup(x => x.PackageVersionDownloadsResult).Returns(StatisticsReportResult.Failed);
 
                 TestUtility.SetupUrlHelperForUrlGeneration(controller);
 

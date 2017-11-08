@@ -74,12 +74,18 @@ namespace NuGetGallery
 
         public static string StatisticsAllPackageDownloads(this UrlHelper url, bool relativeUrl = true)
         {
-            return GetRouteLink(url, RouteName.StatisticsPackages, relativeUrl);
+            return GetRouteLink(
+                url,
+                RouteName.StatisticsPackages,
+                relativeUrl);
         }
 
         public static string StatisticsAllPackageVersionDownloads(this UrlHelper url, bool relativeUrl = true)
         {
-            return GetRouteLink(url, RouteName.StatisticsPackageVersions, relativeUrl);
+            return GetRouteLink(
+                url,
+                RouteName.StatisticsPackageVersions,
+                relativeUrl);
         }
 
         public static string StatisticsPackageDownloadByVersion(this UrlHelper url, string id, bool relativeUrl = true)
