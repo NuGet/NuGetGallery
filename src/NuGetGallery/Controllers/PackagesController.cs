@@ -566,7 +566,6 @@ namespace NuGetGallery
 
         // NOTE: Intentionally NOT requiring authentication
         private static readonly ReportPackageReason[] ReportOtherPackageReasons = new[] {
-            ReportPackageReason.IsFraudulent,
             ReportPackageReason.ViolatesALicenseIOwn,
             ReportPackageReason.ContainsMaliciousCode,
             ReportPackageReason.HasABugOrFailedToInstall,

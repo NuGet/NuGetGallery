@@ -1805,7 +1805,7 @@ namespace NuGetGallery
                 {
                     Email = "frodo@hobbiton.example.com",
                     Message = "Mordor took my finger.",
-                    Reason = ReportPackageReason.IsFraudulent,
+                    Reason = ReportPackageReason.ViolatesALicenseIOwn,
                     AlreadyContactedOwner = true,
                 };
 
@@ -1818,7 +1818,7 @@ namespace NuGetGallery
                         It.Is<ReportPackageRequest>(
                             r => r.FromAddress.Address == "frodo@hobbiton.example.com"
                                  && r.Package == package
-                                 && r.Reason == EnumHelper.GetDescription(ReportPackageReason.IsFraudulent)
+                                 && r.Reason == EnumHelper.GetDescription(ReportPackageReason.ViolatesALicenseIOwn)
                                  && r.Message == "Mordor took my finger."
                                  && r.AlreadyContactedOwners)));
             }
@@ -1847,7 +1847,7 @@ namespace NuGetGallery
                 var model = new ReportAbuseViewModel
                 {
                     Message = "Mordor took my finger",
-                    Reason = ReportPackageReason.IsFraudulent
+                    Reason = ReportPackageReason.ViolatesALicenseIOwn
                 };
 
                 TestUtility.SetupUrlHelper(controller, httpContext);
@@ -1860,7 +1860,7 @@ namespace NuGetGallery
                             r => r.Message == "Mordor took my finger"
                                  && r.FromAddress.Address == "frodo@hobbiton.example.com"
                                  && r.FromAddress.DisplayName == "Frodo"
-                                 && r.Reason == EnumHelper.GetDescription(ReportPackageReason.IsFraudulent))));
+                                 && r.Reason == EnumHelper.GetDescription(ReportPackageReason.ViolatesALicenseIOwn))));
             }
 
             [Fact]
@@ -1911,7 +1911,7 @@ namespace NuGetGallery
                 {
                     Email = "frodo@hobbiton.example.com",
                     Message = "I like the cut of your jib. It's <b>bold</b>.",
-                    Reason = ReportPackageReason.IsFraudulent,
+                    Reason = ReportPackageReason.ViolatesALicenseIOwn,
                     AlreadyContactedOwner = true,
                 };
 
@@ -1923,7 +1923,7 @@ namespace NuGetGallery
                         It.Is<ReportPackageRequest>(
                             r => r.FromAddress.Address == "frodo@hobbiton.example.com"
                                  && r.Package == package
-                                 && r.Reason == EnumHelper.GetDescription(ReportPackageReason.IsFraudulent)
+                                 && r.Reason == EnumHelper.GetDescription(ReportPackageReason.ViolatesALicenseIOwn)
                                  && r.Message == "I like the cut of your jib. It&#39;s &lt;b&gt;bold&lt;/b&gt;."
                                  && r.AlreadyContactedOwners)));
             }
@@ -1983,7 +1983,7 @@ namespace NuGetGallery
                 var model = new ReportMyPackageViewModel
                 {
                     Message = "I like the cut of your jib. It's <b>bold</b>.",
-                    Reason = ReportPackageReason.IsFraudulent
+                    Reason = ReportPackageReason.ViolatesALicenseIOwn
                 };
 
                 TestUtility.SetupUrlHelper(controller, httpContext);
@@ -1992,7 +1992,7 @@ namespace NuGetGallery
                 Assert.NotNull(reportRequest);
                 Assert.Equal(user.EmailAddress, reportRequest.FromAddress.Address);
                 Assert.Same(package, reportRequest.Package);
-                Assert.Equal(EnumHelper.GetDescription(ReportPackageReason.IsFraudulent), reportRequest.Reason);
+                Assert.Equal(EnumHelper.GetDescription(ReportPackageReason.ViolatesALicenseIOwn), reportRequest.Reason);
                 Assert.Equal("I like the cut of your jib. It&#39;s &lt;b&gt;bold&lt;/b&gt;.", reportRequest.Message);
             }
         }
