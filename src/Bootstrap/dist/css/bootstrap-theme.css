@@ -982,6 +982,7 @@ img.reserved-indicator-icon {
 }
 .page-sign-in .nuget-signin {
   margin: 20px;
+  font-size: 14px;
 }
 .page-sign-in .create-provider-account {
   font-size: 14px;

@@ -325,7 +325,7 @@ namespace NuGetGallery
                 });
         }
 
-        public static string NuGetAccountSignIn(this UrlHelper url, bool relativeUrl = true)
+        public static string LogOnNuGetAccount(this UrlHelper url, bool relativeUrl = true)
         {
             return GetRouteLink(
                 url,
@@ -333,7 +333,7 @@ namespace NuGetGallery
                 relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
-                    { "action", "SignInNuGetAccount" }
+                    { "action", "LogOnNuGetAccount" }
                 });
         }
 

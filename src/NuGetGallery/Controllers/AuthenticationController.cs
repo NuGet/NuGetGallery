@@ -69,8 +69,7 @@ namespace NuGetGallery
 
             if (Request.IsAuthenticated)
             {
-                TempData["Message"] = Strings.AlreadyLoggedIn;
-                return SafeRedirect(returnUrl);
+                return LoggedInRedirect(returnUrl);
             }
 
             return SignInView(new LogOnViewModel());
@@ -78,6 +77,22 @@ namespace NuGetGallery
 
         /// <summary>
         /// Sign In\Register view
+        /// <summary>
+        /// Sign In NuGet account view
+        /// </summary>
+        [HttpGet]
+        public virtual ActionResult LogOnNuGetAccount(string returnUrl)
+        {
+            ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
+
+            if (Request.IsAuthenticated)
+            {
+                return LoggedInRedirect(returnUrl);
+            }
+
+            return SignInNuGetAccountView(new LogOnViewModel());
+        }
+
         /// </summary>
         [HttpGet]
         public virtual ActionResult SignUp(string returnUrl)
@@ -87,29 +102,10 @@ namespace NuGetGallery
 
             if (Request.IsAuthenticated)
             {
-                TempData["Message"] = Strings.AlreadyLoggedIn;
-                return SafeRedirect(returnUrl);
+                return LoggedInRedirect(returnUrl);
             }
 
             return RegisterView(new LogOnViewModel());
-        }
-
-        /// <summary>
-        /// Sign In\Register view
-        /// </summary>
-        [HttpGet]
-        public virtual ActionResult SignInNuGetAccount(string returnUrl)
-        {
-            // I think it should be obvious why we don't want the current URL to be the return URL here ;)
-            ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
-
-            if (Request.IsAuthenticated)
-            {
-                TempData["Message"] = Strings.AlreadyLoggedIn;
-                return SafeRedirect(returnUrl);
-            }
-
-            return SignInNuGetAccount(new LogOnViewModel());
         }
 
         [HttpPost]
@@ -121,8 +117,7 @@ namespace NuGetGallery
 
             if (Request.IsAuthenticated)
             {
-                TempData["Message"] = Strings.AlreadyLoggedIn;
-                return SafeRedirect(returnUrl);
+                return LoggedInRedirect(returnUrl);
             }
 
             if (!ModelState.IsValid)
@@ -131,7 +126,6 @@ namespace NuGetGallery
             }
 
             var authenticationResult = await _authService.Authenticate(model.SignIn.UserNameOrEmail, model.SignIn.Password);
-
 
             if (authenticationResult.Result != PasswordAuthenticationResult.AuthenticationResult.Success)
             {
@@ -454,7 +448,7 @@ namespace NuGetGallery
             }
             else
             {
-                return SignInView(model);
+                return SignInNuGetAccountView(model);
             }
         }
 
@@ -470,6 +464,12 @@ namespace NuGetGallery
             }
         }
 
+        private ActionResult LoggedInRedirect(string returnUrl)
+        {
+            TempData["Message"] = Strings.AlreadyLoggedIn;
+            return SafeRedirect(returnUrl);
+        }
+
         private ActionResult SignInView(LogOnViewModel existingModel)
         {
             return AuthenticationView("SignIn", existingModel);
@@ -480,7 +480,7 @@ namespace NuGetGallery
             return AuthenticationView("Register", existingModel);
         }
 
-        private ActionResult SignInNuGetAccount(LogOnViewModel existingModel)
+        private ActionResult SignInNuGetAccountView(LogOnViewModel existingModel)
         {
             return AuthenticationView("SignInNuGetAccount", existingModel);
         }
