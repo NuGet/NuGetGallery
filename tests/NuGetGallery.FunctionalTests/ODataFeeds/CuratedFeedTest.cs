@@ -44,7 +44,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             }
 
             string packageUrl = @"<id>" + UrlHelper.DotnetCuratedFeedUrl + "Packages(Id='" + packageId;
-            Assert.True(responseText.ToLowerInvariant().Contains(packageUrl.ToLowerInvariant()));
+            Assert.Contains(packageUrl.ToLowerInvariant(), responseText.ToLowerInvariant());
         }
 
         [Fact]
