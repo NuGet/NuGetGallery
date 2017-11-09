@@ -636,7 +636,10 @@ namespace NuGetGallery
                 var result = await controller.CreatePackagePut() as HttpStatusCodeResult;
 
                 // Assert
-                Assert.Equal((int)HttpStatusCode.Forbidden, result.StatusCode);
+                ResultAssert.IsStatusCode(
+                    result,
+                    HttpStatusCode.Forbidden,
+                    Strings.ApiKeyNotAuthorized);
 
                 controller.MockPackageUploadService.Verify(
                     x => x.GeneratePackageAsync(
@@ -1817,9 +1820,9 @@ namespace NuGetGallery
 
                 ActionResult actionResult = await controller.GetStatsDownloads(null);
 
-                HttpStatusCodeResult httpStatusResult = (HttpStatusCodeResult)actionResult;
-
-                Assert.True(httpStatusResult.StatusCode == (int)HttpStatusCode.NotFound, "unexpected StatusCode");
+                ResultAssert.IsStatusCode(
+                    actionResult,
+                    HttpStatusCode.NotFound);
             }
 
             [Fact]
