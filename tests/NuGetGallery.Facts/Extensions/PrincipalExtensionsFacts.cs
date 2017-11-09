@@ -120,6 +120,7 @@ namespace NuGetGallery.Extensions
 
             [Theory]
             [InlineData("")]
+            [InlineData(" ")]
             [InlineData("[]")]
             public void WhenEmptyScopeClaim_ReturnsNull(string scopeClaim)
             {
