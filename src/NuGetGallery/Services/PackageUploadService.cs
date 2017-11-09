@@ -40,7 +40,7 @@ namespace NuGetGallery
             User owner,
             User currentUser)
         {
-            var isPushAllowed = _reservedNamespaceService.IsPushAllowed(id, owner, out IReadOnlyCollection<ReservedNamespace> userOwnedNamespaces);
+            var isPushAllowed = _reservedNamespaceService.IsPushAllowedByUser(id, owner, out IReadOnlyCollection<ReservedNamespace> userOwnedNamespaces);
             var shouldMarkIdVerified = isPushAllowed && userOwnedNamespaces != null && userOwnedNamespaces.Any();
 
             var package = await _packageService.CreatePackageAsync(

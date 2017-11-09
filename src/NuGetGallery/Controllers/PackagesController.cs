@@ -286,10 +286,7 @@ namespace NuGetGallery
                 // For a new package id verify if the user is allowed to use it.
                 if (packageRegistration == null)
                 {
-                    var isPushAllowed = _reservedNamespaceService
-                        .IsPushAllowed(id, currentUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
-
-                    if (!isPushAllowed)
+                    if (!_reservedNamespaceService.IsPushAllowed(id, currentUser, out var matchingNamespaces))
                     {
                         ModelState.AddModelError(
                             string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict));
@@ -1708,6 +1705,7 @@ namespace NuGetGallery
                        .Select(m => m.Organization)
                        .Where(m => m != null)
                        .Where(u => PermissionsService.IsActionAllowed(u, currentUser, AccountActions.UploadNewIdOnBehalfOf))
+                       .Where(u => _reservedNamespaceService.IsPushAllowed(id, u, out var matchingNamespaces))
                        .ToArray();
                 possibleOwners = new User[] { currentUser }.Concat(organizationsWithRightToUpload);
             }

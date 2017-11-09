@@ -294,14 +294,12 @@ namespace NuGetGallery
                 new PackageAuditRecord(package, AuditedPackageAction.Verify));
 
             User owner;
-
-            if (!(CredentialTypes.IsPackageVerificationApiKey(credential.Type) ?
-                // Secure path: verify that verification key matches package scope.
-                TryGetOwnerThatAllowsOnExisting(package.PackageRegistration, out owner, NuGetScopeActions.PackageVerify) :
-                // Insecure path: verify that API key is legacy or matches package scope.
-                TryGetOwnerThatAllowsOnExisting(package.PackageRegistration, out owner, NuGetScopeActions.PackagePush, NuGetScopeActions.PackagePushVersion)))
+            var apiScopeEvaluationResult = CredentialTypes.IsPackageVerificationApiKey(credential.Type) ?
+                EvaluateApiScopeOnExisting(package.PackageRegistration, out owner, NuGetScopeActions.PackageVerify) :
+                EvaluateApiScopeOnExisting(package.PackageRegistration, out owner, NuGetScopeActions.PackagePush, NuGetScopeActions.PackagePushVersion);
+            if (apiScopeEvaluationResult != ApiScopeEvaluationResult.Success)
             {
-                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
+                return GetHttpResultFromFailedApiScopeEvaluation(apiScopeEvaluationResult, id, version);
             }
 
             return null;
@@ -398,45 +396,37 @@ namespace NuGetGallery
 
                         // Ensure that the user can push packages for this partialId.
                         var id = nuspec.GetId();
+                        var version = nuspec.GetVersion();
                         var packageRegistration = PackageService.FindPackageRegistrationById(id);
-                        IReadOnlyCollection<ReservedNamespace> userOwnedNamespaces = null;
                         if (packageRegistration == null)
                         {
                             // Check if API key allows pushing a new package ID
-                            if (!TryGetOwnerThatAllowsOnNew(id, out owner))
+                            var apiScopeEvaluationResult = EvaluateApiScopeOnNew(id, out owner);
+                            if (apiScopeEvaluationResult != ApiScopeEvaluationResult.Success)
                             {
                                 // User cannot push a new package ID as the API key scope does not allow it
-                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Unauthorized, Strings.ApiKeyNotAuthorized);
-                            }
-
-                            // For a new package ID verify that the user is allowed to push to the matching namespaces, if any.
-                            var isPushAllowed = ReservedNamespaceService.IsPushAllowed(id, owner, out userOwnedNamespaces);
-                            if (!isPushAllowed)
-                            {
-                                var version = nuspec.GetVersion().ToNormalizedString();
-                                TelemetryService.TrackPackagePushNamespaceConflictEvent(id, version, currentUser, User.Identity);
-
-                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict, Strings.UploadPackage_IdNamespaceConflict);
+                                return GetHttpResultFromFailedApiScopeEvaluation(apiScopeEvaluationResult, id, version);
                             }
                         }
                         else
                         {
                             // Check if API key allows pushing the current package ID
-                            if (!TryGetOwnerThatAllowsOnExisting(packageRegistration, out owner, NuGetScopeActions.PackagePushVersion, NuGetScopeActions.PackagePush))
+                            var apiScopeEvaluationResult = EvaluateApiScopeOnExisting(packageRegistration, out owner, NuGetScopeActions.PackagePushVersion, NuGetScopeActions.PackagePush);
+                            if (apiScopeEvaluationResult != ApiScopeEvaluationResult.Success)
                             {
+                                // User cannot push a package as the API key scope does not allow it
                                 await AuditingService.SaveAuditRecordAsync(
                                     new FailedAuthenticatedOperationAuditRecord(
                                         currentUser.Username,
                                         AuditedAuthenticatedOperationAction.PackagePushAttemptByNonOwner,
                                         attemptedPackage: new AuditedPackageIdentifier(
-                                            id, nuspec.GetVersion().ToNormalizedStringSafe())));
+                                            id, version.ToNormalizedStringSafe())));
 
-                                // User cannot push a package as the API key scope does not allow it
-                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Unauthorized, Strings.ApiKeyNotAuthorized);
+                                return GetHttpResultFromFailedApiScopeEvaluation(apiScopeEvaluationResult, id, version);
                             }
 
                             // Check if a particular Id-Version combination already exists. We eventually need to remove this check.
-                            string normalizedVersion = nuspec.GetVersion().ToNormalizedString();
+                            string normalizedVersion = version.ToNormalizedString();
                             bool packageExists =
                                 packageRegistration.Packages.Any(
                                     p => string.Equals(
@@ -552,9 +542,10 @@ namespace NuGetGallery
             }
 
             // Check if API key allows listing/unlisting the current package ID
-            if (!TryGetOwnerThatAllowsOnExisting(package.PackageRegistration, out var owner, NuGetScopeActions.PackageUnlist))
+            var apiScopeEvaluationResult = EvaluateApiScopeOnExisting(package, out var owner, NuGetScopeActions.PackageUnlist);
+            if (apiScopeEvaluationResult != ApiScopeEvaluationResult.Success)
             {
-                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
+                return GetHttpResultFromFailedApiScopeEvaluation(apiScopeEvaluationResult, id, version);
             }
 
             await PackageService.MarkPackageUnlistedAsync(package);
@@ -576,9 +567,10 @@ namespace NuGetGallery
             }
 
             // Check if API key allows listing/unlisting the current package ID
-            if (!TryGetOwnerThatAllowsOnExisting(package.PackageRegistration, out var owner, NuGetScopeActions.PackageUnlist))
+            var apiScopeEvaluationResult = EvaluateApiScopeOnExisting(package.PackageRegistration, out var owner, NuGetScopeActions.PackageUnlist);
+            if (apiScopeEvaluationResult != ApiScopeEvaluationResult.Success)
             {
-                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
+                return GetHttpResultFromFailedApiScopeEvaluation(apiScopeEvaluationResult, id, version);
             }
 
             await PackageService.MarkPackageListedAsync(package);
@@ -700,37 +692,85 @@ namespace NuGetGallery
             return new HttpStatusCodeResult(HttpStatusCode.NotFound);
         }
 
-        public bool TryGetOwnerThatAllowsOnExisting(Package package, out User owner, params string[] requestedActions)
+        public enum ApiScopeEvaluationResult
         {
-            return TryGetOwnerThatAllowsOnExisting(package.PackageRegistration, out owner, requestedActions);
+            Success,
+            Forbidden,
+            ConflictReservedNamespace
         }
 
-        public bool TryGetOwnerThatAllowsOnExisting(PackageRegistration packageRegistration, out User owner, params string[] requestedActions)
+        public HttpStatusCodeWithBodyResult GetHttpResultFromFailedApiScopeEvaluation(ApiScopeEvaluationResult evaluationResult, string id, string version)
         {
-            return TryGetOwnerThatAllows(new ScopeSubject(packageRegistration), out owner, requestedActions);
+            return GetHttpResultFromFailedApiScopeEvaluation(evaluationResult, id, NuGetVersion.Parse(version));
         }
 
-        public bool TryGetOwnerThatAllowsOnNew(string id, out User owner)
+        public HttpStatusCodeWithBodyResult GetHttpResultFromFailedApiScopeEvaluation(ApiScopeEvaluationResult evaluationResult, string id, NuGetVersion version)
         {
-            return TryGetOwnerThatAllows(new ScopeSubject(id), out owner, NuGetScopeActions.PackagePush);
+            switch (evaluationResult)
+            {
+                case ApiScopeEvaluationResult.Success:
+                    throw new ArgumentException($"{nameof(ApiScopeEvaluationResult.Success)} is not a failed evaluation!", nameof(evaluationResult));
+
+                case ApiScopeEvaluationResult.Forbidden:
+                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
+
+                case ApiScopeEvaluationResult.ConflictReservedNamespace:
+                    TelemetryService.TrackPackagePushNamespaceConflictEvent(id, version.ToNormalizedString(), GetCurrentUser(), User.Identity);
+                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict, Strings.UploadPackage_IdNamespaceConflict);
+
+                default:
+                    throw new ArgumentException("Unsupported evaluation result!", nameof(evaluationResult));
+            }
+        }
+
+        public ApiScopeEvaluationResult EvaluateApiScopeOnExisting(Package package, out User owner, params string[] requestedActions)
+        {
+            return EvaluateApiScopeOnExisting(package.PackageRegistration, out owner, requestedActions);
+        }
+
+        public ApiScopeEvaluationResult EvaluateApiScopeOnExisting(PackageRegistration packageRegistration, out User owner, params string[] requestedActions)
+        {
+            return EvaluateApiScope(new ScopeSubject(packageRegistration), out owner, requestedActions);
+        }
+
+        public ApiScopeEvaluationResult EvaluateApiScopeOnNew(string id, out User owner)
+        {
+            return EvaluateApiScope(new ScopeSubject(id, ReservedNamespaceService), out owner, NuGetScopeActions.PackagePush);
         }
 
         private class ScopeSubject
         {
             private string _id;
+            private IReservedNamespaceService _reservedNamespaceService;
+
             private readonly PackageRegistration _packageRegistration;
 
-            public bool IsSubjectAllowedByScope(Scope scope)
+            public ApiScopeEvaluationResult IsSubjectAllowedByScope(Scope scope)
             {
-                return scope.AllowsSubject(_id ?? _packageRegistration.Id);
+                if (!scope.AllowsSubject(_id ?? _packageRegistration.Id))
+                {
+                    return ApiScopeEvaluationResult.Forbidden;
+                }
+
+                return ApiScopeEvaluationResult.Success;
             }
 
-            public bool IsActionAllowedOnSubjectByOwner(User owner, params string[] requestedActions)
+            public ApiScopeEvaluationResult IsActionAllowedOnSubjectByOwner(User owner, params string[] requestedActions)
             {
-                return NuGetScopeActions.IsActionAllowedOnSubjectByOwner(_packageRegistration, owner, requestedActions);
+                if (!NuGetScopeActions.IsActionAllowedOnSubjectByOwner(_packageRegistration, owner, requestedActions))
+                {
+                    return ApiScopeEvaluationResult.Forbidden;
+                }
+
+                if (_packageRegistration == null && !_reservedNamespaceService.IsPushAllowedByUser(_id, owner, out var userOwnedNamespaces))
+                {
+                    return ApiScopeEvaluationResult.ConflictReservedNamespace;
+                }
+
+                return ApiScopeEvaluationResult.Success;
             }
 
-            public ScopeSubject(string id)
+            public ScopeSubject(string id, IReservedNamespaceService reservedNamespaceService)
             {
                 if (string.IsNullOrEmpty(id))
                 {
@@ -738,6 +778,7 @@ namespace NuGetGallery
                 }
 
                 _id = id;
+                _reservedNamespaceService = reservedNamespaceService ?? throw new ArgumentNullException(nameof(reservedNamespaceService));
             }
 
             public ScopeSubject(PackageRegistration packageRegistration)
@@ -751,7 +792,7 @@ namespace NuGetGallery
             }
         }
 
-        private bool TryGetOwnerThatAllows(ScopeSubject scopeSubject, out User owner, params string[] requestedActions)
+        private ApiScopeEvaluationResult EvaluateApiScope(ScopeSubject scopeSubject, out User owner, params string[] requestedActions)
         {
             owner = null;
 
@@ -765,11 +806,22 @@ namespace NuGetGallery
                 scopes = new[] { new Scope(null, NuGetPackagePattern.AllInclusivePattern, NuGetScopeActions.All) };
             }
 
+            var failedApiScopeEvaluationResults = new List<ApiScopeEvaluationResult>();
+
             foreach (var scope in scopes)
             {
-                if (!scopeSubject.IsSubjectAllowedByScope(scope) || !scope.AllowsActions(requestedActions))
+                var isSubjectAllowedByScope = scopeSubject.IsSubjectAllowedByScope(scope);
+                if (isSubjectAllowedByScope != ApiScopeEvaluationResult.Success)
                 {
-                    // Subject (package ID) or action scopes do not match.
+                    // Subject (package ID) does not match.
+                    failedApiScopeEvaluationResults.Add(isSubjectAllowedByScope);
+                    continue;
+                }
+
+                if (!scope.AllowsActions(requestedActions))
+                {
+                    // Action scopes does not match.
+                    failedApiScopeEvaluationResults.Add(ApiScopeEvaluationResult.Forbidden);
                     continue;
                 }
 
@@ -777,19 +829,26 @@ namespace NuGetGallery
                 // If the scope has no owner, use the current user.
                 var ownerInScope = scope.HasOwnerScope() ? UserService.FindByKey(scope.OwnerKey.Value) : currentUser;
 
-                if (!NuGetScopeActions.IsActionAllowedOnOwnerByCurrentUser(ownerInScope, currentUser, requestedActions) ||
-                    !scopeSubject.IsActionAllowedOnSubjectByOwner(ownerInScope, requestedActions))
+                if (!NuGetScopeActions.IsActionAllowedOnOwnerByCurrentUser(ownerInScope, currentUser, requestedActions))
                 {
-                    // User does not have permission to do the action on behalf of the owner in the scope or 
-                    // the owner in the scope does not have permission to do the action on the scope's subject.
+                    // User does not have permission to do the action on behalf of the owner in the scope.
+                    failedApiScopeEvaluationResults.Add(ApiScopeEvaluationResult.Forbidden);
+                    continue;
+                }
+
+                var isActionAllowedOnSubject = scopeSubject.IsActionAllowedOnSubjectByOwner(ownerInScope, requestedActions);
+                if (isActionAllowedOnSubject != ApiScopeEvaluationResult.Success)
+                {
+                    // The owner in the scope does not have permission to do the action on the scope's subject.
+                    failedApiScopeEvaluationResults.Add(isActionAllowedOnSubject);
                     continue;
                 }
 
                 owner = ownerInScope;
-                return true;
+                return ApiScopeEvaluationResult.Success;
             }
 
-            return false;
+            return failedApiScopeEvaluationResults.Max();
         }
     }
 }

@@ -88,7 +88,7 @@ namespace NuGetGallery
 
             IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace>();
             MockReservedNamespaceService
-                .Setup(r => r.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
+                .Setup(r => r.IsPushAllowedByUser(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
                 .Returns(true);
 
             MockPackageUploadService.Setup(x => x.GeneratePackageAsync(It.IsAny<string>(), It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<User>()))
@@ -395,7 +395,7 @@ namespace NuGetGallery
                 // Assert
                 ResultAssert.IsStatusCode(
                     result,
-                    HttpStatusCode.Unauthorized,
+                    HttpStatusCode.Forbidden,
                     String.Format(Strings.ApiKeyNotAuthorized, packageId));
             }
 
@@ -482,7 +482,7 @@ namespace NuGetGallery
                 testNamespace.Owners.Add(user2);
                 IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace> { testNamespace };
                 controller.MockReservedNamespaceService
-                    .Setup(r => r.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
+                    .Setup(r => r.IsPushAllowedByUser(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
                     .Returns(false);
 
                 // Act
@@ -636,7 +636,7 @@ namespace NuGetGallery
                 var result = await controller.CreatePackagePut() as HttpStatusCodeResult;
 
                 // Assert
-                Assert.Equal((int)HttpStatusCode.Unauthorized, result.StatusCode);
+                Assert.Equal((int)HttpStatusCode.Forbidden, result.StatusCode);
 
                 controller.MockPackageUploadService.Verify(
                     x => x.GeneratePackageAsync(
@@ -689,7 +689,7 @@ namespace NuGetGallery
                 testNamespace.Owners.Add(user2);
                 IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace> { testNamespace };
                 controller.MockReservedNamespaceService
-                    .Setup(r => r.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
+                    .Setup(r => r.IsPushAllowedByUser(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
                     .Returns(true);
 
                 // Act
@@ -729,7 +729,7 @@ namespace NuGetGallery
                 testNamespace.Owners.Add(user1);
                 IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace> { testNamespace };
                 controller.MockReservedNamespaceService
-                    .Setup(r => r.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
+                    .Setup(r => r.IsPushAllowedByUser(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
                     .Returns(true);
 
                 // Act
@@ -868,7 +868,7 @@ namespace NuGetGallery
 
                     ResultAssert.IsStatusCode(
                         result,
-                        HttpStatusCode.Unauthorized,
+                        HttpStatusCode.Forbidden,
                         Strings.ApiKeyNotAuthorized);
                 }
             }
@@ -936,7 +936,7 @@ namespace NuGetGallery
 
                     ResultAssert.IsStatusCode(
                         result,
-                        HttpStatusCode.Unauthorized,
+                        HttpStatusCode.Forbidden,
                         Strings.ApiKeyNotAuthorized);
                 }
             }

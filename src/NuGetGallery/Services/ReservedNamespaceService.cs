@@ -364,17 +364,27 @@ namespace NuGetGallery
             }
         }
 
+        public bool IsPushAllowedByUser(string id, User user, out IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces)
+        {
+            return IsPushAllowedInternal(id, user, rn => rn.Owners.AnySafe(o => o.MatchesUser(user)), out userOwnedMatchingNamespaces);
+        }
+
         public bool IsPushAllowed(string id, User user, out IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces)
+        {
+            return IsPushAllowedInternal(id, user, rn => PermissionsService.IsActionAllowed(rn.Owners, user, AccountActions.UploadNewIdOnBehalfOf), out userOwnedMatchingNamespaces);
+        }
+
+        private bool IsPushAllowedInternal(string id, User user, Func<ReservedNamespace, bool> canPushOnBehalfOf, out IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces)
         {
             // Allow push to a new package ID only if
             // 1. There is no namespace match for the given ID
             // 2. Or one of the matching namespace is a shared namespace.
             // 3. Or the current user is one of the owner of a matching namespace.
             var matchingNamespaces = GetReservedNamespacesForId(id);
-            var noNamespaceMatches = matchingNamespaces.Count() == 0;
+            var noNamespaceMatches = !matchingNamespaces.Any();
             var idMatchesSharedNamespace = matchingNamespaces.Any(rn => rn.IsSharedNamespace);
             userOwnedMatchingNamespaces = matchingNamespaces
-                .Where(rn => rn.Owners.AnySafe(o => o.Username == user.Username))
+                .Where(canPushOnBehalfOf)
                 .ToList()
                 .AsReadOnly();
 

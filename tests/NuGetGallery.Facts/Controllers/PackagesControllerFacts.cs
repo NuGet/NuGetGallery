@@ -96,7 +96,9 @@ namespace NuGetGallery
             if (reservedNamespaceService == null)
             {
                 reservedNamespaceService = new Mock<IReservedNamespaceService>();
-                IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces = new List<ReservedNamespace>();
+                IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces;
+                reservedNamespaceService.Setup(s => s.IsPushAllowedByUser(It.IsAny<string>(), It.IsAny<User>(), out userOwnedMatchingNamespaces))
+                    .Returns(true);
                 reservedNamespaceService.Setup(s => s.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out userOwnedMatchingNamespaces))
                     .Returns(true);
             }
@@ -2247,7 +2249,7 @@ namespace NuGetGallery
                 testNamespace.Owners.Add(user1);
                 IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace> { testNamespace };
                 fakeReservedNamespaceService
-                    .Setup(r => r.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
+                    .Setup(r => r.IsPushAllowedByUser(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
                     .Returns(false);
                 var fakeTelemetryService = new Mock<ITelemetryService>();
 
@@ -2291,6 +2293,9 @@ namespace NuGetGallery
                 testNamespace.Owners.Add(user1);
                 IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace> { testNamespace };
                 fakeReservedNamespaceService
+                    .Setup(r => r.IsPushAllowedByUser(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
+                    .Returns(true);
+                fakeReservedNamespaceService
                     .Setup(r => r.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
                     .Returns(true);
 
@@ -2331,6 +2336,9 @@ namespace NuGetGallery
                 testNamespace.Owners.Add(TestUtility.FakeUser);
 
                 IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace> { testNamespace };
+                fakeReservedNamespaceService
+                    .Setup(r => r.IsPushAllowedByUser(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
+                    .Returns(true);
                 fakeReservedNamespaceService
                     .Setup(r => r.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
                     .Returns(true);

@@ -52,7 +52,7 @@ namespace NuGetGallery
 
                 IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces = new List<ReservedNamespace>();
                 reservedNamespaceService
-                    .Setup(s => s.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out userOwnedMatchingNamespaces))
+                    .Setup(s => s.IsPushAllowedByUser(It.IsAny<string>(), It.IsAny<User>(), out userOwnedMatchingNamespaces))
                     .Returns(true);
             }
 
@@ -134,7 +134,7 @@ namespace NuGetGallery
 
                 var reservedNamespaceService = new Mock<IReservedNamespaceService>();
                 IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces = matchingNamepsaces;
-                reservedNamespaceService.Setup(s => s.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out userOwnedMatchingNamespaces))
+                reservedNamespaceService.Setup(s => s.IsPushAllowedByUser(It.IsAny<string>(), It.IsAny<User>(), out userOwnedMatchingNamespaces))
                     .Returns(shouldMarkIdVerified);
 
                 var packageUploadService = CreateService(reservedNamespaceService: reservedNamespaceService);
@@ -162,7 +162,7 @@ namespace NuGetGallery
 
                 var reservedNamespaceService = new Mock<IReservedNamespaceService>();
                 IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces = new List<ReservedNamespace>();
-                reservedNamespaceService.Setup(s => s.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out userOwnedMatchingNamespaces))
+                reservedNamespaceService.Setup(s => s.IsPushAllowedByUser(It.IsAny<string>(), It.IsAny<User>(), out userOwnedMatchingNamespaces))
                     .Returns(true);
 
                 var packageUploadService = CreateService(reservedNamespaceService: reservedNamespaceService);
