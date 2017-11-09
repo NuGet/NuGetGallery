@@ -33,6 +33,8 @@ namespace NuGetGallery.Views
             get { return _cookieConsentMessage.Value; }
         }
 
+        public bool ShowAuthInHeader => false;
+
         protected NuGetViewBase()
         {
             _nugetContext = new Lazy<NuGetContext>(GetNuGetContextThunk(this));
@@ -77,6 +79,8 @@ namespace NuGetGallery.Views
         {
             get { return _cookieConsentMessage.Value; }
         }
+
+        public bool ShowAuthInHeader => false;
 
         protected NuGetViewBase()
         {
