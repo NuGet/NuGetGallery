@@ -965,11 +965,18 @@ img.reserved-indicator-icon {
   margin-top: 80px;
 }
 .page-sign-in .provider-button {
+  font-size: 16px;
   line-height: 2em;
 }
 .page-sign-in .provider-button img {
   margin-right: 5px;
   margin-bottom: 1px;
+}
+.page-sign-in .nuget-signin {
+  margin: 20px;
+}
+.page-sign-in .create-provider-account {
+  font-size: 14px;
 }
 .page-sign-in .or-row {
   margin: 20px;
