@@ -33,7 +33,7 @@ namespace NuGetGallery.Views
             get { return _cookieConsentMessage.Value; }
         }
 
-        public bool ShowAuthInHeader => false;
+        public bool ShowAuthInHeader => true;
 
         protected NuGetViewBase()
         {
@@ -80,7 +80,7 @@ namespace NuGetGallery.Views
             get { return _cookieConsentMessage.Value; }
         }
 
-        public bool ShowAuthInHeader => false;
+        public bool ShowAuthInHeader => true;
 
         protected NuGetViewBase()
         {
