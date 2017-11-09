@@ -619,6 +619,14 @@ img.reserved-indicator-icon {
   max-width: 100%;
   height: auto;
 }
+.page-delete-account .green-check {
+  font-size: 25px;
+  color: green;
+}
+.page-delete-account .red-check {
+  font-size: 25px;
+  color: red;
+}
 .page-package-details .no-border {
   border: 0;
 }
@@ -980,6 +988,9 @@ img.reserved-indicator-icon {
 }
 .page-sign-in .or-row {
   margin: 20px;
+}
+.page-statistics-most-downloaded .show-all-packages-toggle {
+  font-weight: bold;
 }
 .page-statistics-most-downloaded .table {
   margin-top: 40px;

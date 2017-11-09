@@ -666,14 +666,14 @@ namespace NuGetGallery
         [ActionName("StatisticsDownloadsApi")]
         public virtual async Task<ActionResult> GetStatsDownloads(int? count)
         {
-            var result = await StatisticsService.LoadDownloadPackageVersions();
+            await StatisticsService.Refresh();
 
-            if (result.Loaded)
+            if (StatisticsService.PackageVersionDownloadsResult.IsLoaded)
             {
                 int i = 0;
 
                 JArray content = new JArray();
-                foreach (StatisticsPackagesItemViewModel row in StatisticsService.DownloadPackageVersionsAll)
+                foreach (StatisticsPackagesItemViewModel row in StatisticsService.PackageVersionDownloads)
                 {
                     JObject item = new JObject();
 

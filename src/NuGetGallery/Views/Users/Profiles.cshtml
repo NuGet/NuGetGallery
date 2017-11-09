@@ -9,7 +9,6 @@
     <section role="main" class="row">
         <aside class="col-md-3 col-md-push-9 profile-details">
             @ViewHelpers.GravatarImage(Model.EmailAddress ?? Model.UnconfirmedEmailAddress, Model.Username, 332, responsive: true)
-
             <div class="statistics">
                 <div class="statistic">
                     <div class="value">@Model.AllPackages.Count.ToNuGetNumberString()</div>
@@ -19,6 +18,17 @@
                     <div class="value">@Model.TotalPackageDownloadCount.ToNuGetNumberString()</div>
                     <div class="description">Total @(Model.TotalPackageDownloadCount == 1 ? "download" : "downloads") of packages</div>
                 </div>
+                @if (User.IsAdministrator())
+                {
+                    <div class="statistic">
+                        <div class="value">
+                            <a class="action-menu-link" href="@Url.AdminDeleteAccount(@Model.Username)">
+                                <i class="icon-trash"></i>
+                                <span class="action-menu-text">Delete User</span>
+                            </a>
+                        </div>
+                    </div>
+                }
             </div>
         </aside>
         <article class="col-md-9 col-md-pull-3">

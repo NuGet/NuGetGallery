@@ -172,7 +172,7 @@ namespace NuGetGallery
             }
         }
 
-        public async Task DeleteOwnerFromReservedNamespaceAsync(string prefix, string username)
+        public async Task DeleteOwnerFromReservedNamespaceAsync(string prefix, string username, bool commitAsTransaction = true)
         {
             if (string.IsNullOrWhiteSpace(prefix))
             {
@@ -183,14 +183,29 @@ namespace NuGetGallery
             {
                 throw new ArgumentException(Strings.ReservedNamespace_InvalidUsername);
             }
-
-            using (var strategy = new SuspendDbExecutionStrategy())
-            using (var transaction = EntitiesContext.GetDatabase().BeginTransaction())
+            var namespaceToModify = FindReservedNamespaceForPrefix(prefix)
+                   ?? throw new InvalidOperationException(string.Format(
+                       CultureInfo.CurrentCulture, Strings.ReservedNamespace_NamespaceNotFound, prefix));
+            List<PackageRegistration> packageRegistrationsToMarkUnverified;
+            if (commitAsTransaction)
             {
-                var namespaceToModify = FindReservedNamespaceForPrefix(prefix)
-                    ?? throw new InvalidOperationException(string.Format(
-                        CultureInfo.CurrentCulture, Strings.ReservedNamespace_NamespaceNotFound, prefix));
+                using (var strategy = new SuspendDbExecutionStrategy())
+                using (var transaction = EntitiesContext.GetDatabase().BeginTransaction())
+                {
+                    packageRegistrationsToMarkUnverified = await DeleteOwnerFromReservedNamespaceImplAsync(prefix, username, namespaceToModify);
+                    transaction.Commit();
+                }
+            }
+            else
+            {
+                packageRegistrationsToMarkUnverified = await DeleteOwnerFromReservedNamespaceImplAsync(prefix, username, namespaceToModify);
+            }
+            await AuditingService.SaveAuditRecordAsync(
+                  new ReservedNamespaceAuditRecord(namespaceToModify, AuditedReservedNamespaceAction.RemoveOwner, username, packageRegistrationsToMarkUnverified));
+        }
 
+        private async Task<List<PackageRegistration>> DeleteOwnerFromReservedNamespaceImplAsync(string prefix, string username, ReservedNamespace namespaceToModify)
+        {
                 var userToRemove = UserService.FindByUsername(username)
                     ?? throw new InvalidOperationException(string.Format(
                         CultureInfo.CurrentCulture, Strings.ReservedNamespace_UserNotFound, username));
@@ -224,12 +239,9 @@ namespace NuGetGallery
                 namespaceToModify.Owners.Remove(userToRemove);
                 await ReservedNamespaceRepository.CommitChangesAsync();
 
-                transaction.Commit();
-
-                await AuditingService.SaveAuditRecordAsync(
-                   new ReservedNamespaceAuditRecord(namespaceToModify, AuditedReservedNamespaceAction.RemoveOwner, username, packageRegistrationsToMarkUnverified));
-            }
+                return packageRegistrationsToMarkUnverified;
         }
+
 
         /// <summary>
         /// This method fetches the reserved namespace matching the prefix and adds the 

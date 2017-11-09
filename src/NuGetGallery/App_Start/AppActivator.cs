@@ -101,6 +101,7 @@ namespace NuGetGallery
                 "~/Views/{1}/{0}.cshtml",
                 "~/Branding/Views/Shared/{0}.cshtml",
                 "~/Views/Shared/{0}.cshtml",
+                "~/Areas/Admin/Views/DeleteAccount/{0}.cshtml",
             };
 
             return ret;

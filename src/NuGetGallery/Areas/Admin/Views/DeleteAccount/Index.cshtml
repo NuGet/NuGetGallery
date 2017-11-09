@@ -1,0 +1,67 @@
+﻿@model NuGetGallery.DeleteAccountRequest
+
+@{
+    ViewBag.Title = "Delete account";
+}
+
+<section>
+    <article id="stage">
+        <h2>Delete Account</h2>
+        <form>
+            <textarea placeholder="Search for account to delete. Only one account at a time." autocomplete="off" autofocus style="width: 100%;" rows="5" data-bind="value: searchQuery"></textarea><br />
+            <input type="button" value="Search" data-bind="click: search" />
+        </form>
+        <div style="display: none" data-bind="visible: searchResults().length === 0 && doneSearching()">
+            <p>No account found.</p>
+        </div>
+        <form id="searchResults" data-bind="visible: searchResults().length > 0">
+            <p>The following accounts were found:</p>
+            <ul id="searchResultsTable" class="sexy-table" style="display: none" data-bind="visible: searchResults().length > 0">
+                <li data-bind="foreach: searchResults">
+                    <a href="#" data-bind="text: AccountName, attr: { href: $parent.generateProfileUrl($data) }"></a>
+                </li>
+            </ul>
+        </form>
+    </article>
+</section>
+
+@section BottomScripts {
+    <script src="@Url.Content("~/Scripts/knockout-2.2.1.js")"></script>
+    <script>
+        $(document).ready(function() {
+            var viewModel = function () {
+                var $self = this;
+
+                this.searchQuery = ko.observable('');
+                $self.doneSearching = ko.observable(false);
+
+                this.search = function () {
+                    $self.doneSearching = ko.observable(false);
+                    $.ajax({
+                        url: '@Url.Action("Search", "DeleteAccount", new {area = "Admin"})?query=' + encodeURIComponent($self.searchQuery()),
+                            cache: false,
+                            dataType: 'json',
+                            success: function(data) {
+                                for (var i = 0; i < data.length; i++) {
+                                    data[i].Selected = ko.observable(false);
+                                }
+                                $self.searchResults(data);
+                            }
+                        })
+                        .error(function(jqXhr, textStatus, errorThrown) {
+                            alert("Error: " + errorThrown);
+                        })
+                        .always(function () {
+                            $self.doneSearching(true);
+                        });
+                };
+                this.generateProfileUrl = function (u) {
+                    return '/profiles/' + u.AccountName;
+                };
+                this.searchResults = ko.observableArray([]);
+            };
+
+            ko.applyBindings(new viewModel(), $('#stage').get(0));
+        });
+    </script>
+}
