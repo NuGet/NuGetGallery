@@ -280,6 +280,11 @@ namespace NuGetGallery
                 new { controller = "Users", action = "Delete" });
 
             routes.MapRoute(
+                RouteName.UserDeleteAccount,
+               "account/delete",
+                new { controller = "Users", action = "DeleteRequest" });
+
+            routes.MapRoute(
                 RouteName.Account,
                 "account/{action}",
                 new { controller = "Users", action = "Account" });

@@ -59,20 +59,31 @@
             }
             else
             {
-                @ViewHelpers.AlertWarning(
-                    @<text>
-                        Sorry, the owners of this package do not allow contacting them through this form.
+                if ((bool)ViewData["HasOwners"])
+                {
+                    @ViewHelpers.AlertWarning(
+                        @<text>
+                            Sorry, the owners of this package do not allow contacting them through this form.
 
-                        @if (string.IsNullOrEmpty(Model.ProjectUrl))
-                        {
-                            @:You can try contacting the package owners of "@Model.PackageId" through its <a href="@Model.ProjectUrl">Project Site</a>
-                        }
-                        else
-                        {
-                            @:You'll have to find some other way to contact them.
-                        }
-                    </text>
-                );
+                            @if (string.IsNullOrEmpty(Model.ProjectUrl))
+                            {
+                                @:You can try contacting the package owners of "@Model.PackageId" through its <a href="@Model.ProjectUrl">Project Site</a>
+                            }
+                            else
+                            {
+                                @:You'll have to find some other way to contact them.
+                            }
+                        </text>
+                         );
+                }
+                else
+                {
+                    @ViewHelpers.AlertWarning(
+                        @<text>
+                            Sorry, this package has no owners and is not being actively maintained. You can try to find a contact for "@Model.PackageId" through its <a href="@Model.ProjectUrl">Project Site</a>
+                        </text>
+                         );
+                }
             }
             </div>
     </div>

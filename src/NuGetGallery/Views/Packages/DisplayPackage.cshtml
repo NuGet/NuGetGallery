@@ -626,17 +626,24 @@
 
             <h2>Owners</h2>
             <ul class="list-unstyled owner-list">
-                @foreach (var owner in Model.Owners)
+                @if (Model.Owners.Count() == 0)
                 {
-                    <li>
-                        @if (!String.IsNullOrEmpty(owner.EmailAddress))
-                        {
-                            <a href="@Url.User(owner)" title="@owner.Username">@ViewHelpers.GravatarImage(owner.EmailAddress, owner.Username, Constants.GravatarElementSize)</a>
-                        }
-                        <a href="@Url.User(owner)" title="@owner.Username">
-                            @owner.Username
-                        </a>
-                    </li>
+                        @ViewHelpers.AlertWarning(@<text>@Strings.PackageHasNoOwnersMessage</text>)
+                }
+                else
+                {
+                    foreach (var owner in Model.Owners)
+                    {
+                        <li>
+                            @if (!String.IsNullOrEmpty(owner.EmailAddress))
+                            {
+                                <a href="@Url.User(owner)" title="@owner.Username">@ViewHelpers.GravatarImage(owner.EmailAddress, owner.Username, Constants.GravatarElementSize)</a>
+                            }
+                            <a href="@Url.User(owner)" title="@owner.Username">
+                                @owner.Username
+                            </a>
+                        </li>
+                    }
                 }
             </ul>
 

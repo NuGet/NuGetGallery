@@ -775,6 +775,7 @@ namespace NuGetGallery
                 CopySender = true,
             };
 
+            ViewData["HasOwners"] = package.PackageRegistration.Owners.Count > 0;
             return View(model);
         }
 

@@ -197,10 +197,11 @@ namespace NuGetGallery.Areas.Admin
             }
         }
 
-        public async Task AddNewSupportRequestAsync(string subject, string message, string requestorEmailAddress, string reason,
+        public async Task<bool> AddNewSupportRequestAsync(string subject, string message, string requestorEmailAddress, string reason,
             User user, Package package = null)
         {
             var loggedInUser = user?.Username ?? "Anonymous";
+            bool result = true;
 
             try
             {
@@ -236,6 +237,7 @@ namespace NuGetGallery.Areas.Admin
             catch (SqlException sqlException)
             {
                 QuietLog.LogHandledException(sqlException);
+                result = false;
 
                 var packageInfo = "N/A";
                 if (package != null)
@@ -249,8 +251,10 @@ namespace NuGetGallery.Areas.Admin
             }
             catch (Exception e) //In case getting data from PagerDuty has failed
             {
+                result = false;
                 QuietLog.LogHandledException(e);
             }
+            return result;
         }
 
         private async Task AddIssueAsync(Issue issue)

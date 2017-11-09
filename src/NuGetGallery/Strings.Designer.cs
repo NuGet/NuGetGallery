@@ -70,6 +70,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The request failed to be submitted. Please try again or contact nuget support..
+        /// </summary>
+        public static string AccountDelete_CreateSupportRequestFails {
+            get {
+                return ResourceManager.GetString("AccountDelete_CreateSupportRequestFails", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An exception was encoutered while trying to delete the account:{0}. {1}.
         /// </summary>
         public static string AccountDelete_Fail {
@@ -84,6 +93,15 @@ namespace NuGetGallery {
         public static string AccountDelete_Success {
             get {
                 return ResourceManager.GetString("AccountDelete_Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DeleteAccountRequest.
+        /// </summary>
+        public static string AccountDelete_SupportRequestTitle {
+            get {
+                return ResourceManager.GetString("AccountDelete_SupportRequestTitle", resourceCulture);
             }
         }
         
@@ -815,6 +833,15 @@ namespace NuGetGallery {
         public static string PackageExistsAndCannotBeModified {
             get {
                 return ResourceManager.GetString("PackageExistsAndCannotBeModified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This package has no owners and is not being actively maintained..
+        /// </summary>
+        public static string PackageHasNoOwnersMessage {
+            get {
+                return ResourceManager.GetString("PackageHasNoOwnersMessage", resourceCulture);
             }
         }
         

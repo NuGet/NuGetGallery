@@ -24,5 +24,6 @@ namespace NuGetGallery
         void SendCredentialAddedNotice(User user, Credential added);
         void SendContactSupportEmail(ContactSupportRequest request);
         void SendPackageAddedNotice(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl);
+        void SendAccountDeleteNotice(MailAddress mailAddress, string userName);
     }
 }
