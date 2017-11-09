@@ -313,7 +313,7 @@ namespace NuGetGallery.FunctionalTests
         {
             get
             {
-                if (_defaultSecurityPoliciesEnforced == null)
+                if (!_defaultSecurityPoliciesEnforced.HasValue)
                 {
                     // Try to get the setting from EnvironmentVariable. If fail, fallback to false
                     bool temp;
