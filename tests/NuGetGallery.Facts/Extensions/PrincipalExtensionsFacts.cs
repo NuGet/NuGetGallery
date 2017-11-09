@@ -117,6 +117,20 @@ namespace NuGetGallery.Extensions
 
                 Assert.Equal(null, identity.GetScopesFromClaim());
             }
+
+            [Theory]
+            [InlineData("")]
+            [InlineData("[]")]
+            public void WhenEmptyScopeClaim_ReturnsNull(string scopeClaim)
+            {
+                var identity = AuthenticationService.CreateIdentity(
+                    new User("user"),
+                    AuthenticationTypes.ApiKey,
+                    new Claim(NuGetClaims.ApiKey, string.Empty),
+                    new Claim(NuGetClaims.Scope, scopeClaim));
+
+                Assert.Equal(null, identity.GetScopesFromClaim());
+            }
         }
 
         public class TheIsAdministratorMethod
