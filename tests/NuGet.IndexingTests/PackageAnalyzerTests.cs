@@ -78,10 +78,20 @@ namespace NuGet.IndexingTests
                 yield return new object[]
                 {
                     "Version",
-                    "01.002.0003",
+                    "01.002.0003-ALPHA",
                     new[]
                     {
-                        new TokenAttributes("1.2.3", 0, 11)
+                        new TokenAttributes("1.2.3-ALPHA", 0, 17)
+                    }
+                };
+
+                yield return new object[]
+                {
+                    "CaseInsensitiveVersion",
+                    "01.002.0003-ALPHA",
+                    new[]
+                    {
+                        new TokenAttributes("1.2.3-alpha", 0, 17)
                     }
                 };
 

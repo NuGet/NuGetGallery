@@ -172,9 +172,10 @@ namespace NuGet.IndexingTests
                 new KeyValuePair<string, string>(LuceneConstants.IdAutocompletePropertyName, "DotNetZip"),
                 new KeyValuePair<string, string>(LuceneConstants.TokenizedIdPropertyName, "DotNetZip"),
                 new KeyValuePair<string, string>(LuceneConstants.ShingledIdPropertyName, "DotNetZip"),
-                new KeyValuePair<string, string>(LuceneConstants.VerbatimVersionPropertyName, "1.00.000"),
-                new KeyValuePair<string, string>(LuceneConstants.NormalizedVersionPropertyName, "1.0.0"),
-                new KeyValuePair<string, string>(LuceneConstants.FullVersionPropertyName, "1.0.0"),
+                new KeyValuePair<string, string>(LuceneConstants.VerbatimVersionPropertyName, "1.00.000-ALPHA+GIT"),
+                new KeyValuePair<string, string>(LuceneConstants.NormalizedVersionPropertyName, "1.0.0-ALPHA"),
+                new KeyValuePair<string, string>(LuceneConstants.CaseInsensitiveNormalizedVersionPropertyName, "1.0.0-ALPHA"),
+                new KeyValuePair<string, string>(LuceneConstants.FullVersionPropertyName, "1.0.0-ALPHA+GIT"),
                 new KeyValuePair<string, string>(LuceneConstants.TitlePropertyName, "The Famous DotNetZip"),
                 new KeyValuePair<string, string>(LuceneConstants.DescriptionPropertyName, "The description."),
                 new KeyValuePair<string, string>(LuceneConstants.SummaryPropertyName, "The summary."),
@@ -244,7 +245,7 @@ namespace NuGet.IndexingTests
             {
                 // required
                 { MetadataConstants.IdPropertyName, "DotNetZip" },
-                { MetadataConstants.NormalizedVersionPropertyName, "1.0.0" },
+                { MetadataConstants.VerbatimVersionPropertyName, "1.00.000-ALPHA+GIT" },
                 { MetadataConstants.ListedPropertyName, "true" },
                 { MetadataConstants.PublishedPropertyName, new DateTime(2002, 2, 2, 0, 0, 0, DateTimeKind.Utc).ToString("O") },
 
@@ -255,7 +256,6 @@ namespace NuGet.IndexingTests
 
                 // not required
                 { MetadataConstants.SemVerLevelKeyPropertyName, "" },
-                { MetadataConstants.VerbatimVersionPropertyName, "1.00.000" },
                 { MetadataConstants.TitlePropertyName, "The Famous DotNetZip" },
                 { MetadataConstants.DescriptionPropertyName, "The description." },
                 { MetadataConstants.SummaryPropertyName, "The summary." },

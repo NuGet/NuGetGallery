@@ -1,9 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using Lucene.Net.Analysis;
-using Lucene.Net.Analysis.Standard;
+
 using System;
 using System.Collections.Generic;
+using Lucene.Net.Analysis;
+using Lucene.Net.Analysis.Standard;
+using LuceneConstants = NuGet.Indexing.MetadataConstants.LuceneMetadata;
 
 namespace NuGet.Indexing
 {
@@ -15,17 +17,17 @@ namespace NuGet.Indexing
         {
             _fieldAnalyzers = new Dictionary<string, Analyzer>(StringComparer.OrdinalIgnoreCase)
             {
-                { "Id", new IdentifierKeywordAnalyzer() },
-                { "IdAutocomplete", new IdentifierAutocompleteAnalyzer() },
-                { "TokenizedId", new IdentifierAnalyzer() },
-                { "ShingledId", new ShingledIdentifierAnalyzer() },
-                { "Version", new VersionAnalyzer() },
-                { "Title", new DescriptionAnalyzer() },
-                { "Description", new DescriptionAnalyzer() },
-                { "Summary", new DescriptionAnalyzer() },
-                { "Authors", new DescriptionAnalyzer() },
-                { "Owner", new OwnerAnalyzer() },
-                { "Tags", new TagsAnalyzer() }
+                { LuceneConstants.IdPropertyName, new IdentifierKeywordAnalyzer() },
+                { LuceneConstants.IdAutocompletePropertyName, new IdentifierAutocompleteAnalyzer() },
+                { LuceneConstants.TokenizedIdPropertyName, new IdentifierAnalyzer() },
+                { LuceneConstants.ShingledIdPropertyName, new ShingledIdentifierAnalyzer() },
+                { LuceneConstants.NormalizedVersionPropertyName, new VersionAnalyzer(caseSensitive: true) },
+                { LuceneConstants.CaseInsensitiveNormalizedVersionPropertyName, new VersionAnalyzer(caseSensitive: false) },
+                { LuceneConstants.TitlePropertyName, new DescriptionAnalyzer() },
+                { LuceneConstants.DescriptionPropertyName, new DescriptionAnalyzer() },
+                { LuceneConstants.SummaryPropertyName, new DescriptionAnalyzer() },
+                { LuceneConstants.AuthorsPropertyName, new DescriptionAnalyzer() },
+                { LuceneConstants.TagsPropertyName, new TagsAnalyzer() }
             };
         }
 
