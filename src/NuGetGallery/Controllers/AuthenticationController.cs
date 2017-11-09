@@ -146,7 +146,7 @@ namespace NuGetGallery
                     modelErrorMessage = string.Format(CultureInfo.CurrentCulture, Strings.UserAccountLocked, timeRemaining);
                 }
 
-                ModelState.AddModelError("SignIn", modelErrorMessage);
+                ModelState.AddModelError("SignInNuGetAccount", modelErrorMessage);
 
                 return SignInOrExternalLinkView(model, linkingAccount);
             }
