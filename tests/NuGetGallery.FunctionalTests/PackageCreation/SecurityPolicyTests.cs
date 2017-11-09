@@ -8,6 +8,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using NuGetGallery.FunctionalTests.XunitExtensions;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -23,10 +24,10 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
             _clientSdkHelper = new ClientSdkHelper(TestOutputHelper);
         }
         
-        [Theory]
-        [InlineData("")]
-        [InlineData("3.5.0")]
-        [InlineData("4.1.0-beta")]
+        [DefaultSecurityPoliciesEnforcedTheory]
+        [DefaultSecurityPoliciesEnforcedData("")]
+        [DefaultSecurityPoliciesEnforcedData("3.5.0")]
+        [DefaultSecurityPoliciesEnforcedData("4.1.0-beta")]
         [Description("Package push fails if min client version policy not met")]
         [Priority(1)]
         [Category("P1Tests")]
@@ -36,15 +37,15 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
             var id = $"{nameof(PackagePush_Returns400IfMinClientVersionPolicyNotMet)}.{DateTime.UtcNow.Ticks}";
 
             // Act
-            var response = await PushPackageAsync(EnvironmentSettings.TestSecurityPoliciesAccountApiKey, id, clientVersion);
+            var response = await PushPackageAsync(EnvironmentSettings.TestAccountApiKey, id, clientVersion);
 
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
-        [Theory]
-        [InlineData("4.1.0")]
-        [InlineData("4.3.0-beta")]
+        [DefaultSecurityPoliciesEnforcedTheory]
+        [DefaultSecurityPoliciesEnforcedData("4.1.0")]
+        [DefaultSecurityPoliciesEnforcedData("4.3.0-beta")]
         [Description("Package push succeeds if min client version policy met")]
         [Priority(1)]
         [Category("P1Tests")]
@@ -54,13 +55,13 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
             var id = $"{nameof(PackagePush_Returns200IfMinClientVersionPolicyMet)}.{DateTime.UtcNow.Ticks}";
 
             // Act
-            var response = await PushPackageAsync(EnvironmentSettings.TestSecurityPoliciesAccountApiKey, id, clientVersion);
+            var response = await PushPackageAsync(EnvironmentSettings.TestAccountApiKey, id, clientVersion);
 
             // Assert
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         }
 
-        [Fact]
+        [DefaultSecurityPoliciesEnforcedFact]
         [Description("Package push succeeds if min protocol version policy met")]
         [Priority(1)]
         [Category("P1Tests")]
@@ -70,13 +71,13 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
             var id = $"{nameof(PackagePush_Returns200IfMinProtocolVersionPolicyMet)}.{DateTime.UtcNow.Ticks}";
 
             // Act
-            var response = await PushPackageAsync(EnvironmentSettings.TestSecurityPoliciesAccountApiKey, id, clientVersion: null, protocolVersion: "4.1.0");
+            var response = await PushPackageAsync(EnvironmentSettings.TestAccountApiKey, id, clientVersion: null, protocolVersion: "4.1.0");
 
             // Assert
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         }
 
-        [Fact]
+        [DefaultSecurityPoliciesEnforcedFact]
         [Description("VerifyPackageKey fails if package verify policy not met")]
         [Priority(1)]
         [Category("P1Tests")]
@@ -85,17 +86,17 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
             // Arrange
             var id = $"VerifyKeyReturns400IfScopeNotMet.{DateTime.UtcNow.Ticks}";
 
-            var pushResponse = await PushPackageAsync(EnvironmentSettings.TestSecurityPoliciesAccountApiKey, id, "4.1.0");
+            var pushResponse = await PushPackageAsync(EnvironmentSettings.TestAccountApiKey, id, "4.1.0");
             Assert.Equal(HttpStatusCode.Created, pushResponse.StatusCode);
 
             // Act
-            var verifyResponse = await VerifyPackageKey(EnvironmentSettings.TestSecurityPoliciesAccountApiKey, id);
+            var verifyResponse = await VerifyPackageKey(EnvironmentSettings.TestAccountApiKey, id);
 
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, verifyResponse);
         }
 
-        [Fact]
+        [DefaultSecurityPoliciesEnforcedFact]
         [Description("VerifyPackageKey succeeds if package verify policy met")]
         [Priority(1)]
         [Category("P1Tests")]
@@ -104,10 +105,10 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
             // Arrange
             var id = $"{nameof(VerifyPackageKey_Returns200IfPackageVerifyScopePolicyMet)}.{DateTime.UtcNow.Ticks}";
 
-            var pushResponse = await PushPackageAsync(EnvironmentSettings.TestSecurityPoliciesAccountApiKey, id, "4.1.0");
+            var pushResponse = await PushPackageAsync(EnvironmentSettings.TestAccountApiKey, id, "4.1.0");
             Assert.Equal(HttpStatusCode.Created, pushResponse.StatusCode);
 
-            var verifyKey = await CreateVerificationKey(EnvironmentSettings.TestSecurityPoliciesAccountApiKey, id);
+            var verifyKey = await CreateVerificationKey(EnvironmentSettings.TestAccountApiKey, id);
 
             // Act
             var verifyResponse = await VerifyPackageKey(verifyKey, id);
@@ -116,7 +117,7 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
             Assert.Equal(HttpStatusCode.OK, verifyResponse);
         }
 
-        [Fact]
+        [DefaultSecurityPoliciesEnforcedFact]
         [Description("VerifyPackageKey fails if package isn't found.")]
         [Priority(1)]
         [Category("P1Tests")]
@@ -125,7 +126,7 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
             Assert.Equal(HttpStatusCode.NotFound, await VerifyPackageKey(EnvironmentSettings.TestAccountApiKey, "VerifyPackageKeyReturns404ForMissingPackage", "1.0.0"));
         }
 
-        [Fact]
+        [DefaultSecurityPoliciesEnforcedFact(runIfEnforced: false)]
         [Description("VerifyPackageKey succeeds for full API key without deletion.")]
         [Priority(1)]
         [Category("P1Tests")]
@@ -169,7 +170,7 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
             using (var httpClient = new HttpClient())
             using (var request = new HttpRequestMessage(HttpMethod.Put, UrlHelper.V2FeedPushSourceUrl))
             {
-                request.Headers.Add(Constants.NuGetHeaderApiKey, EnvironmentSettings.TestSecurityPoliciesAccountApiKey);
+                request.Headers.Add(Constants.NuGetHeaderApiKey, EnvironmentSettings.TestAccountApiKey);
                 if (clientVersion != null)
                 {
                     request.Headers.Add(Constants.NuGetHeaderClientVersion, clientVersion);

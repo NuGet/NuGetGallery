@@ -1601,8 +1601,9 @@ namespace NuGetGallery
                 var singleOwner = new User { Key = 1, Username = "Owner" };
                 var package = new PackageRegistration { Owners = new List<User> { singleOwner } };
 
-                await Assert.ThrowsAsync<InvalidOperationException>(
-                    async () => await service.RemovePackageOwnerAsync(package, singleOwner));
+                await service.RemovePackageOwnerAsync(package, singleOwner);
+
+                Assert.DoesNotContain(singleOwner, package.Owners);
             }
         }
 

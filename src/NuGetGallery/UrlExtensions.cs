@@ -74,12 +74,18 @@ namespace NuGetGallery
 
         public static string StatisticsAllPackageDownloads(this UrlHelper url, bool relativeUrl = true)
         {
-            return GetRouteLink(url, RouteName.StatisticsPackages, relativeUrl);
+            return GetRouteLink(
+                url,
+                RouteName.StatisticsPackages,
+                relativeUrl);
         }
 
         public static string StatisticsAllPackageVersionDownloads(this UrlHelper url, bool relativeUrl = true)
         {
-            return GetRouteLink(url, RouteName.StatisticsPackageVersions, relativeUrl);
+            return GetRouteLink(
+                url,
+                RouteName.StatisticsPackageVersions,
+                relativeUrl);
         }
 
         public static string StatisticsPackageDownloadByVersion(this UrlHelper url, string id, bool relativeUrl = true)
@@ -530,6 +536,21 @@ namespace NuGetGallery
             bool relativeUrl = true)
         {
             return GetActionLink(url, "Account", "Users", relativeUrl);
+        }
+
+        public static string AdminDeleteAccount(
+            this UrlHelper url,
+            string accountName,
+            bool relativeUrl = true)
+        {
+            return GetActionLink(url,
+                nameof(UsersController.Delete), 
+                "Users",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "accountName", accountName }
+                });
         }
 
         public static string ReportPackage(

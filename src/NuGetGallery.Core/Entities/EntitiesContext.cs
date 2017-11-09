@@ -92,6 +92,12 @@ namespace NuGetGallery
                 .HasKey(c => c.Key);
 
             modelBuilder.Entity<Scope>()
+                .HasOptional(sc => sc.Owner)
+                .WithMany()
+                .HasForeignKey(sc => sc.OwnerKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<Scope>()
                 .HasRequired<Credential>(sc => sc.Credential)
                 .WithMany(cr => cr.Scopes)
                 .HasForeignKey(sc => sc.CredentialKey)
@@ -280,6 +286,16 @@ namespace NuGetGallery
                 .HasKey(pd => pd.Key)
                 .HasMany(pd => pd.Packages)
                     .WithOptional();
+
+            modelBuilder.Entity<AccountDelete>()
+           .HasKey(a => a.Key)
+           .HasRequired(a => a.DeletedAccount);
+
+            modelBuilder.Entity<AccountDelete>()
+            .HasRequired(a => a.DeletedBy)
+            .WithMany()
+            .WillCascadeOnDelete(false);
+
         }
 #pragma warning restore 618
     }

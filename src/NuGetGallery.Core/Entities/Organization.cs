@@ -17,10 +17,12 @@ namespace NuGetGallery
     {
         public Organization() : base()
         {
+            Members = new List<Membership>();
         }
 
         public Organization(string name) : base(name)
         {
+            Members = new List<Membership>();
         }
 
         /// <summary>

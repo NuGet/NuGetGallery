@@ -220,7 +220,7 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
             }
 
             [Fact]
-            public async Task GivenMatchingApiKey_ItSetsUserInOwinEnvironment()
+            public async Task GivenMatchingApiKeyWithNoOwnerScope_ItSetsUserInOwinEnvironment()
             {
                 // Arrange
                 var user = new User { Username = "theUser", EmailAddress = "confirmed@example.com" };
@@ -239,6 +239,86 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                 var authUser = Assert.IsType<AuthenticatedUser>(
                     handler.OwinContext.Environment[Constants.CurrentUserOwinEnvironmentKey]);
                 Assert.Same(user, authUser.User);
+            }
+
+            [Fact]
+            public async Task GivenMatchingApiKeyWithOwnerScopeOfSelf_ItSetsUserInOwinEnvironment()
+            {
+                // Arrange
+                var user = new User { Key = 1234, Username = "theUser", EmailAddress = "confirmed@example.com" };
+                TestableApiKeyAuthenticationHandler handler = await TestableApiKeyAuthenticationHandler.CreateAsync(new ApiKeyAuthenticationOptions());
+                var apiKeyCredential = new CredentialBuilder().CreateApiKey(Fakes.ExpirationForApiKeyV1);
+                apiKeyCredential.Scopes.Add(new Scope(1234, "thePackage", "theAction"));
+
+                handler.OwinContext.Request.Headers.Set(
+                    Constants.ApiKeyHeaderName,
+                    apiKeyCredential.Value.ToLowerInvariant());
+                handler.MockAuth.SetupAuth(apiKeyCredential, user);
+
+                // Act
+                await handler.InvokeAuthenticateCoreAsync();
+
+                // Assert
+                var authUser = Assert.IsType<AuthenticatedUser>(
+                    handler.OwinContext.Environment[Constants.CurrentUserOwinEnvironmentKey]);
+                Assert.Same(user, authUser.User);
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task GivenMatchingApiKeyWithOwnerScopeOfOrganization_ItSetsUserInOwinEnvironment(bool isAdmin)
+            {
+                // Arrange
+                var organization = new Organization() { Key = 2345 };
+                var user = new User { Key = 1234, Username = "theUser", EmailAddress = "confirmed@example.com" };
+                user.Organizations.Add(new Membership
+                {
+                    OrganizationKey = 2345,
+                    Organization = organization,
+                    IsAdmin = isAdmin
+                });
+
+                TestableApiKeyAuthenticationHandler handler = await TestableApiKeyAuthenticationHandler.CreateAsync(new ApiKeyAuthenticationOptions());
+                var apiKeyCredential = new CredentialBuilder().CreateApiKey(Fakes.ExpirationForApiKeyV1);
+                apiKeyCredential.Scopes.Add(new Scope(2345, "thePackage", "theAction"));
+
+                handler.OwinContext.Request.Headers.Set(
+                    Constants.ApiKeyHeaderName,
+                    apiKeyCredential.Value.ToLowerInvariant());
+                handler.MockAuth.SetupAuth(apiKeyCredential, user);
+
+                // Act
+                await handler.InvokeAuthenticateCoreAsync();
+
+                // Assert
+                var authUser = Assert.IsType<AuthenticatedUser>(
+                    handler.OwinContext.Environment[Constants.CurrentUserOwinEnvironmentKey]);
+                Assert.Same(user, authUser.User);
+            }
+
+            [Fact]
+            public async Task GivenApiKeyWithOwnerScopeThatDoesNotMatch_WritesUnauthorizedResponse()
+            {
+                // Arrange
+                var user = new User { Key = 1234, Username = "theUser", EmailAddress = "confirmed@example.com" };
+                TestableApiKeyAuthenticationHandler handler = await TestableApiKeyAuthenticationHandler.CreateAsync(new ApiKeyAuthenticationOptions());
+                var apiKeyCredential = new CredentialBuilder().CreateApiKey(Fakes.ExpirationForApiKeyV1);
+                apiKeyCredential.Scopes.Add(new Scope(2345, "thePackage", "theAction"));
+
+                handler.OwinContext.Request.Headers.Set(
+                    Constants.ApiKeyHeaderName,
+                    apiKeyCredential.Value.ToLowerInvariant());
+                handler.MockAuth.SetupAuth(apiKeyCredential, user);
+                
+                // Act
+                var body = await handler.OwinContext.Response.CaptureBodyAsString(async () =>
+                    await handler.InvokeAuthenticateCoreAsync());
+
+                // Assert
+                Assert.Equal(Strings.ApiKeyNotAuthorized, handler.OwinContext.Response.ReasonPhrase);
+                Assert.Equal(Strings.ApiKeyNotAuthorized, body);
+                Assert.Equal(403, handler.OwinContext.Response.StatusCode);
             }
         }
 

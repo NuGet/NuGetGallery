@@ -81,21 +81,30 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                 var authUser = await Auth.Authenticate(apiKey);
                 if (authUser != null)
                 {
+                    var credential = authUser.CredentialUsed;
+                    var user = authUser.User;
+
+                    // Ensure that the user matches the owner scope
+                    if (!user.MatchesOwnerScope(credential))
+                    {
+                        WriteStatus(Strings.ApiKeyNotAuthorized, 403);
+                    }
+
                     // Set the current user
                     Context.Set(Constants.CurrentUserOwinEnvironmentKey, authUser);
 
                     // Fetch scopes and store them in a claim
                     var scopes = JsonConvert.SerializeObject(
-                        authUser.CredentialUsed.Scopes, Formatting.None);
+                        credential.Scopes, Formatting.None);
 
                     // Create authentication ticket
                     return new AuthenticationTicket(
                             AuthenticationService.CreateIdentity(
-                                authUser.User, 
+                                user, 
                                 AuthenticationTypes.ApiKey, 
                                 new Claim(NuGetClaims.ApiKey, apiKey),
                                 new Claim(NuGetClaims.Scope, scopes),
-                                new Claim(NuGetClaims.CredentialKey, authUser.CredentialUsed.Key.ToString())),
+                                new Claim(NuGetClaims.CredentialKey, credential.Key.ToString())),
                             new AuthenticationProperties());
                 }
                 else
