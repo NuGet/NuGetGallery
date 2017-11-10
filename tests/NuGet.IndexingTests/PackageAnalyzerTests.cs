@@ -87,7 +87,7 @@ namespace NuGet.IndexingTests
 
                 yield return new object[]
                 {
-                    "CaseInsensitiveVersion",
+                    "CaseInsensitiveNormalizedVersion",
                     "01.002.0003-ALPHA",
                     new[]
                     {
@@ -99,16 +99,6 @@ namespace NuGet.IndexingTests
                 yield return GetDescriptionTestCase("Description");
                 yield return GetDescriptionTestCase("Summary");
                 yield return GetDescriptionTestCase("Authors");
-                
-                yield return new object[]
-                {
-                    "Owner",
-                    "Microsoft",
-                    new[]
-                    {
-                        new TokenAttributes("microsoft", 0, 9)
-                    }
-                };
 
                 yield return new object[]
                 {
