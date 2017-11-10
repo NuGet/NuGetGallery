@@ -56,7 +56,7 @@ namespace NuGetGallery
 
             // For now, don't require asynchronous validation before the package is available for consumption.
             // Related: https://github.com/NuGet/NuGetGallery/issues/4744
-            return PackageStatus.Available;
+            return PackageStatus.Validating;
         }
     }
 }
