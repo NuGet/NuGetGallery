@@ -57,9 +57,9 @@ namespace NuGetGallery.Authentication
                     return PackageActions.ApiUnlist;
                 case PackageVerify:
                     return PackageActions.ApiVerify;
+                default:
+                    return PermissionLevel.Anonymous;
             }
-
-            return 0;
         }
 
         public static bool IsActionAllowedOnOwnerByCurrentUser(User owner, User currentUser, params string[] requestedActions)
@@ -83,9 +83,9 @@ namespace NuGetGallery.Authentication
                     return AccountActions.ApiUnlistOnBehalfOf;
                 case PackageVerify:
                     return AccountActions.ApiVerifyOnBehalfOf;
+                default:
+                    return PermissionLevel.Anonymous;
             }
-
-            return 0;
         }
     }
 }

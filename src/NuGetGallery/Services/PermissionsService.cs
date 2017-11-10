@@ -104,7 +104,7 @@ namespace NuGetGallery
 
         private static bool HasPermission(IEnumerable<User> entityOwners, bool isUserAdmin, Func<User, bool> isUserMatch, PermissionLevel actionPermissionLevel)
         {
-            if (entityOwners == null && 
+            if ((entityOwners == null || !entityOwners.Any()) && 
                 PermissionLevelsMatch(PermissionLevel.Anonymous, actionPermissionLevel))
             {
                 return true;

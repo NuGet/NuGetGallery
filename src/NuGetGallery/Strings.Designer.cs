@@ -1345,7 +1345,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to User &apos;{0}&apos; does not have the rights to upload a new ID on behalf of user &apos;{1}&apos;!.
+        ///   Looks up a localized string similar to User &apos;{0}&apos; does not have the rights to upload a package with a new ID on behalf of user &apos;{1}&apos;!.
         /// </summary>
         public static string UploadPackage_NewIdOnBehalfOfUserNotAllowed {
             get {
@@ -1462,7 +1462,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You do not have permission to upload packages as user {0}!.
+        ///   Looks up a localized string similar to You do not have permission to upload packages as user &apos;{0}&apos;!.
         /// </summary>
         public static string VerifyPackage_UserInvalid {
             get {
@@ -1471,7 +1471,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The user {0} doesn&apos;t exist! You cannot upload a package as a user that doesn&apos;t exist..
+        ///   Looks up a localized string similar to The user &apos;{0}&apos; doesn&apos;t exist! You cannot upload a package as a user that doesn&apos;t exist..
         /// </summary>
         public static string VerifyPackage_UserNonExistent {
             get {

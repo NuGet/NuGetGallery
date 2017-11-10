@@ -692,19 +692,19 @@ namespace NuGetGallery
             return new HttpStatusCodeResult(HttpStatusCode.NotFound);
         }
 
-        public enum ApiScopeEvaluationResult
+        private enum ApiScopeEvaluationResult
         {
             Success,
             Forbidden,
             ConflictReservedNamespace
         }
 
-        public HttpStatusCodeWithBodyResult GetHttpResultFromFailedApiScopeEvaluation(ApiScopeEvaluationResult evaluationResult, string id, string version)
+        private HttpStatusCodeWithBodyResult GetHttpResultFromFailedApiScopeEvaluation(ApiScopeEvaluationResult evaluationResult, string id, string version)
         {
             return GetHttpResultFromFailedApiScopeEvaluation(evaluationResult, id, NuGetVersion.Parse(version));
         }
 
-        public HttpStatusCodeWithBodyResult GetHttpResultFromFailedApiScopeEvaluation(ApiScopeEvaluationResult evaluationResult, string id, NuGetVersion version)
+        private HttpStatusCodeWithBodyResult GetHttpResultFromFailedApiScopeEvaluation(ApiScopeEvaluationResult evaluationResult, string id, NuGetVersion version)
         {
             switch (evaluationResult)
             {
@@ -723,17 +723,17 @@ namespace NuGetGallery
             }
         }
 
-        public ApiScopeEvaluationResult EvaluateApiScopeOnExisting(Package package, out User owner, params string[] requestedActions)
+        private ApiScopeEvaluationResult EvaluateApiScopeOnExisting(Package package, out User owner, params string[] requestedActions)
         {
             return EvaluateApiScopeOnExisting(package.PackageRegistration, out owner, requestedActions);
         }
 
-        public ApiScopeEvaluationResult EvaluateApiScopeOnExisting(PackageRegistration packageRegistration, out User owner, params string[] requestedActions)
+        private ApiScopeEvaluationResult EvaluateApiScopeOnExisting(PackageRegistration packageRegistration, out User owner, params string[] requestedActions)
         {
             return EvaluateApiScope(new ScopeSubject(packageRegistration), out owner, requestedActions);
         }
 
-        public ApiScopeEvaluationResult EvaluateApiScopeOnNew(string id, out User owner)
+        private ApiScopeEvaluationResult EvaluateApiScopeOnNew(string id, out User owner)
         {
             return EvaluateApiScope(new ScopeSubject(id, ReservedNamespaceService), out owner, NuGetScopeActions.PackagePush);
         }
@@ -799,7 +799,7 @@ namespace NuGetGallery
             var currentUser = GetCurrentUser();
             IEnumerable<Scope> scopes = User.Identity.GetScopesFromClaim();
 
-            if (scopes == null)
+            if (scopes == null || !scopes.Any())
             {
                 // Legacy V1 API key without scopes.
                 // Evaluate it as if it has an unlimited scope.

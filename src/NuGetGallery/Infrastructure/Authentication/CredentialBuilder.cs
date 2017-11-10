@@ -35,10 +35,11 @@ namespace NuGetGallery.Infrastructure.Authentication
                expiration: TimeSpan.FromDays(1));
 
             var ownerKeys = originalApiKey.Scopes
-                .Select(s => s.OwnerKey)
+                .Where(s => s != null && s.HasOwnerScope())
+                .Select(s => s.OwnerKey.Value)
                 .Distinct().ToArray();
 
-            if (ownerKeys.Length == 0)
+            if (!ownerKeys.Any())
             {
                 // Legacy API key with no owner scope.
                 credential.Scopes = new[] { new Scope(
