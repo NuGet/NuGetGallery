@@ -21,6 +21,8 @@ namespace NuGetGallery
 
         void TrackVerifyPackageKeyEvent(string packageId, string packageVersion, User user, IIdentity identity, int statusCode);
 
+        void TrackNewUserRegistrationEvent(User user, Credential identity);
+
         /// <summary>
         /// Create a trace for an exception. These are informational for support requests.
         /// </summary>
