@@ -9,6 +9,7 @@ using System.Net.Mail;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Moq;
+using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
@@ -1742,6 +1743,90 @@ namespace NuGetGallery
                                                  x.Subject == expectedScope.Subject);
                     Assert.NotNull(actualScope);
                 }
+            }
+        }
+
+        public class TheDeleteAccountAction : TestContainer
+        {
+            [Fact]
+            public void DeleteNotExistentAccount()
+            {
+                // Arrange
+                var controller = GetController<UsersController>();
+
+                // Act
+                var result = controller.Delete(accountName: "NotFoundUser");
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.NotFound, (int)((HttpNotFoundResult)result).StatusCode);
+            }
+
+            [Fact]
+            public void DeleteDeletedAccount()
+            {
+                // Arrange
+                string userName = "DeletedUser";
+                var controller = GetController<UsersController>();
+                
+                User testUser = new User()
+                {
+                    Username = userName,
+                    IsDeleted = true,
+                };
+               
+                GetMock<IUserService>()
+                    .Setup(stub => stub.FindByUsername(userName))
+                    .Returns(testUser);
+
+                // act
+                var result = controller.Delete(accountName: userName);
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.NotFound, (int)((HttpNotFoundResult)result).StatusCode);
+            }
+
+            [Fact]
+            public void DeleteHappyAccount()
+            {
+                // Arrange
+                string userName = "DeletedUser";
+                var controller = GetController<UsersController>();
+
+                User testUser = new User()
+                {
+                    Username = userName,
+                    IsDeleted = false,
+                };
+                PackageRegistration packageRegistration = new PackageRegistration();
+                packageRegistration.Owners.Add(testUser);
+                
+                Package userPackage = new Package()
+                {
+                    Description = "TestPackage",
+                    Key = 1,
+                    Version = "1.0.0",
+                    PackageRegistration = packageRegistration
+                };
+                packageRegistration.Packages.Add(userPackage);
+
+                List<Package> userPackages = new List<Package>() { userPackage };
+
+                GetMock<IUserService>()
+                    .Setup(stub => stub.FindByUsername(userName))
+                    .Returns(testUser);
+                GetMock<IPackageService>()
+                    .Setup(stub => stub.FindPackagesByOwner(testUser, It.IsAny<bool>()))
+                    .Returns(userPackages);
+                GetMock<IPackageService>()
+                    .Setup(stub => stub.FindPackagesByOwner(testUser, It.IsAny<bool>()))
+                    .Returns(userPackages);
+
+                // act
+                var model = ResultAssert.IsView<DeleteUserAccountViewModel>(controller.Delete(accountName: userName), viewName: "DeleteUserAccount");
+               
+                // Assert
+                Assert.Equal(userName, model.AccountName);
+                Assert.Equal<int>(1, model.Packages.Count());
             }
         }
     }

@@ -41,6 +41,7 @@ namespace NuGetGallery
         {
             var telemetryClient = TelemetryClientWrapper.Instance;
             builder.RegisterInstance(telemetryClient)
+                .AsSelf()
                 .As<ITelemetryClient>()
                 .SingleInstance();
 
@@ -134,6 +135,11 @@ namespace NuGetGallery
                 .As<IEntityRepository<PackageDelete>>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<EntityRepository<AccountDelete>>()
+               .AsSelf()
+               .As<IEntityRepository<AccountDelete>>()
+               .InstancePerLifetimeScope();
+
             builder.RegisterType<EntityRepository<Credential>>()
                 .AsSelf()
                 .As<IEntityRepository<Credential>>()
@@ -177,6 +183,11 @@ namespace NuGetGallery
             builder.RegisterType<PackageDeleteService>()
                 .AsSelf()
                 .As<IPackageDeleteService>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<DeleteAccountService>()
+                .AsSelf()
+                .As<IDeleteAccountService>()
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<EditPackageService>()

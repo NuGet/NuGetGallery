@@ -72,7 +72,7 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
                     {
                         TestOutputHelper.WriteLine($"Package download: HTTP {(int)response.StatusCode}");
 
-                        Assert.Equal(response.StatusCode, HttpStatusCode.OK);
+                        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
                         var expectedBytes = File.ReadAllBytes(packagePath);
                         var actualPackageBytes = await response.Content.ReadAsByteArrayAsync();
 

@@ -34,7 +34,8 @@ namespace NuGetGallery
         /// <param name="packageRegistration">The package registration that is intended to get ownership.</param>
         /// <param name="requestingUser">The user requesting to remove an owner from the package.</param>
         /// <param name="userToBeRemoved">The user to remove as an owner from the package.</param>
-        Task RemovePackageOwnerAsync(PackageRegistration packageRegistration, User requestingUser, User userToBeRemoved);
+        /// <param name="commitAsTransaction">If the data is commited under a transaction.</param>
+        Task RemovePackageOwnerAsync(PackageRegistration packageRegistration, User requestingUser, User userToBeRemoved, bool commitAsTransaction);
 
         /// <summary>
         /// Remove the pending ownership request.

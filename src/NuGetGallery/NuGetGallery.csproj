@@ -445,8 +445,8 @@
     <Reference Include="NuGet.Protocol, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Protocol.4.3.0-preview1-2524\lib\net45\NuGet.Protocol.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Services.Contracts, Version=2.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.Contracts.2.3.0\lib\net45\NuGet.Services.Contracts.dll</HintPath>
+    <Reference Include="NuGet.Services.Contracts, Version=2.4.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.Contracts.2.4.0\lib\net45\NuGet.Services.Contracts.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Services.KeyVault, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Services.KeyVault.1.0.0.0\lib\net45\NuGet.Services.KeyVault.dll</HintPath>
@@ -464,11 +464,11 @@
       <HintPath>..\..\packages\NuGet.Services.Platform.Client.3.0.29-r-master\lib\portable-net45+wp80+win\NuGet.Services.Platform.Client.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="NuGet.Services.ServiceBus, Version=2.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.ServiceBus.2.3.0\lib\net45\NuGet.Services.ServiceBus.dll</HintPath>
+    <Reference Include="NuGet.Services.ServiceBus, Version=2.4.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.ServiceBus.2.4.0\lib\net45\NuGet.Services.ServiceBus.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Services.Validation, Version=2.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.Validation.2.3.0\lib\net45\NuGet.Services.Validation.dll</HintPath>
+    <Reference Include="NuGet.Services.Validation, Version=2.4.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.Validation.2.4.0\lib\net45\NuGet.Services.Validation.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Versioning, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Versioning.4.3.0-preview1-2524\lib\net45\NuGet.Versioning.dll</HintPath>
@@ -661,6 +661,7 @@
     <Compile Include="App_Start\StorageDependent.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="App_Start\AutofacConfig.cs" />
+    <Compile Include="Areas\Admin\Controllers\DeleteAccountController.cs" />
     <Compile Include="Areas\Admin\Controllers\DeleteController.cs" />
     <Compile Include="Areas\Admin\Controllers\ReservedNamespaceController.cs" />
     <Compile Include="Areas\Admin\Controllers\SecurityPolicyController.cs" />
@@ -698,6 +699,7 @@
     <Compile Include="Areas\Admin\Models\ISupportRequestDbContext.cs" />
     <Compile Include="Areas\Admin\Models\SupportRequestDbContext.cs" />
     <Compile Include="Areas\Admin\Services\ValidationAdminService.cs" />
+    <Compile Include="Areas\Admin\ViewModels\DeleteAccountStatus.cs" />
     <Compile Include="Areas\Admin\ViewModels\HardDeleteReflowBulkRequestConfirmation.cs" />
     <Compile Include="Areas\Admin\ViewModels\HardDeleteReflowBulkRequest.cs" />
     <Compile Include="Areas\Admin\ViewModels\HardDeleteReflowRequest.cs" />
@@ -706,6 +708,7 @@
     <Compile Include="Areas\Admin\Services\ISupportRequestService.cs" />
     <Compile Include="Areas\Admin\Services\PagerDutyClient.cs" />
     <Compile Include="Areas\Admin\Services\SupportRequestService.cs" />
+    <Compile Include="Areas\Admin\ViewModels\DeleteAccountSearchResult.cs" />
     <Compile Include="Areas\Admin\Services\ValidationEntityRepository.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteSearchResult.cs" />
     <Compile Include="Areas\Admin\ViewModels\HomeViewModel.cs" />
@@ -775,20 +778,34 @@
     <Compile Include="Controllers\AppController.cs" />
     <Compile Include="Controllers\ErrorsController.cs" />
     <Compile Include="Controllers\PagesController.cs" />
+    <Compile Include="Extensions\PrincipalExtensions.cs" />
+    <Compile Include="Extensions\ScopeExtensions.cs" />
     <Compile Include="Extensions\UserExtensions.cs" />
     <Compile Include="Filters\ApiScopeRequiredAttribute.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Helpers\GravatarHelper.cs" />
     <Compile Include="Helpers\RegexEx.cs" />
+    <Compile Include="Migrations\201711082145351_AddAccountDelete.cs" />
+    <Compile Include="Migrations\201711082145351_AddAccountDelete.Designer.cs">
+      <DependentUpon>201711082145351_AddAccountDelete.cs</DependentUpon>
+    </Compile>
+    <Compile Include="RequestModels\DeleteAccountRequest.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.Designer.cs">
       <DependentUpon>201710301857232_Organizations.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201711021733062_ApiKeyOwnerScope.cs" />
+    <Compile Include="Migrations\201711021733062_ApiKeyOwnerScope.Designer.cs">
+      <DependentUpon>201711021733062_ApiKeyOwnerScope.cs</DependentUpon>
+    </Compile>
     <Compile Include="Services\AsynchronousPackageValidationInitiator.cs" />
     <Compile Include="Services\CloudBlobFileStorageService.cs" />
+    <Compile Include="Services\DeleteAccountService.cs" />
+    <Compile Include="Services\IDeleteAccountService.cs" />
     <Compile Include="Services\IFileStorageService.cs" />
     <Compile Include="Services\ImmediatePackageValidator.cs" />
-    <Compile Include="Services\PackageAction.cs" />
+    <Compile Include="Services\AccountActions.cs" />
+    <Compile Include="Services\PackageActions.cs" />
     <Compile Include="Services\PackageOwnershipManagementService.cs" />
     <Compile Include="Services\IPackageOwnershipManagementService.cs" />
     <Compile Include="Services\IPackageValidationInitiator.cs" />
@@ -872,7 +889,7 @@
     <Compile Include="Services\PackageUploadService.cs" />
     <Compile Include="Services\IReservedNamespaceService.cs" />
     <Compile Include="Services\IPackageUploadService.cs" />
-    <Compile Include="Services\PackagePermissionsService.cs" />
+    <Compile Include="Services\PermissionsService.cs" />
     <Compile Include="Services\PermissionLevel.cs" />
     <Compile Include="Services\ReservedNamespaceService.cs" />
     <Compile Include="Services\ReadMeService.cs" />
@@ -1274,7 +1291,6 @@
     <Compile Include="Infrastructure\MandatoryAttribute.cs" />
     <Compile Include="Infrastructure\NotEqualAttribute.cs" />
     <Compile Include="Infrastructure\PackageIndexEntity.cs" />
-    <Compile Include="Infrastructure\PrincipalExtensions.cs" />
     <Compile Include="Infrastructure\ReadOnlyModeErrorFilter.cs" />
     <Compile Include="Infrastructure\SafeRedirectResult.cs" />
     <Compile Include="Infrastructure\StatisticsReport.cs" />
@@ -1562,13 +1578,13 @@
     <Compile Include="RequestModels\VerifyPackageRequest.cs" />
     <Compile Include="Infrastructure\Authentication\LegacyHasher.cs" />
     <Compile Include="Infrastructure\Authentication\V3Hasher.cs" />
-    <Compile Include="Authentication\ScopeEvaluator.cs" />
     <Compile Include="Services\AllowLocalHttpRedirectPolicy.cs" />
     <Compile Include="Services\ISourceDestinationRedirectPolicy.cs" />
     <Compile Include="Services\ITelemetryService.cs" />
     <Compile Include="Services\NoLessSecureDestinationRedirectPolicy.cs" />
     <Compile Include="Services\ReflowPackageService.cs" />
     <Compile Include="Services\TelemetryService.cs" />
+    <Compile Include="Areas\Admin\ViewModels\DeleteUserAccountViewModel.cs" />
     <Compile Include="ViewModels\PackageOwnersResultViewModel.cs" />
     <Compile Include="ViewModels\ManagePackagesListViewModel.cs" />
     <Compile Include="ViewModels\ApiKeyListViewModel.cs" />
@@ -1866,6 +1882,12 @@
     <EmbeddedResource Include="Migrations\201710301857232_Organizations.resx">
       <DependentUpon>201710301857232_Organizations.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201711021733062_ApiKeyOwnerScope.resx">
+      <DependentUpon>201711021733062_ApiKeyOwnerScope.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201711082145351_AddAccountDelete.resx">
+      <DependentUpon>201711082145351_AddAccountDelete.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2getupdates.json" />
@@ -1873,7 +1895,9 @@
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2search.json" />
     <Content Include="Areas\Admin\Views\SecurityPolicy\Index.cshtml" />
     <Content Include="Areas\Admin\Views\ReservedNamespace\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\DeleteAccount\Index.cshtml" />
     <Content Include="Areas\Admin\Views\Validation\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\DeleteAccount\DeleteUserAccountStatus.cshtml" />
     <Content Include="Areas\Admin\Views\Delete\Reflow.cshtml" />
     <Content Include="Areas\Admin\Views\Delete\_ReflowBulk.cshtml" />
     <Content Include="Areas\Admin\Views\Delete\_ReflowBulkConfirm.cshtml" />
@@ -1928,6 +1952,8 @@
     <Content Include="Views\Packages\_SubmitPackage.cshtml" />
     <Content Include="Views\Packages\_EditForm.cshtml" />
     <Content Include="Views\Users\_OwnerRequestsList.cshtml" />
+    <Content Include="Areas\Admin\Views\DeleteAccount\DeleteUserAccount.cshtml" />
+    <Content Include="Views\Users\_UserPackagesListForDeletedAccount.cshtml" />
     <Content Include="Views\Users\_ReservedNamespacesList.cshtml" />
   </ItemGroup>
   <ItemGroup>

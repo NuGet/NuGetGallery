@@ -50,7 +50,7 @@ namespace NuGetGallery
                 return Json(new { message = Strings.AddOwner_PackageNotFound });
             }
 
-            if (!PackagePermissionsService.IsActionAllowed(package, HttpContext.User, PackageAction.ManagePackageOwners))
+            if (!PermissionsService.IsActionAllowed(package, HttpContext.User, PackageActions.ManagePackageOwners))
             {
                 return new HttpUnauthorizedResult();
             }
@@ -184,7 +184,11 @@ namespace NuGetGallery
 
                 if (request == null)
                 {
-                    await _packageOwnershipManagementService.RemovePackageOwnerAsync(model.Package, model.CurrentUser, model.User);
+                    if (model.Package.Owners.Count == 1 && model.User == model.Package.Owners.Single())
+                    {
+                        throw new InvalidOperationException("You can't remove the only owner from a package.");
+                    }
+                    await _packageOwnershipManagementService.RemovePackageOwnerAsync(model.Package, model.CurrentUser, model.User, commitAsTransaction:true);
                     _messageService.SendPackageOwnerRemovedNotice(model.CurrentUser, model.User, model.Package);
                 }
                 else
@@ -309,7 +313,7 @@ namespace NuGetGallery
                 model = new ManagePackageOwnerModel(Strings.AddOwner_PackageNotFound);
                 return false;
             }
-            if (!PackagePermissionsService.IsActionAllowed(package, HttpContext.User, PackageAction.ManagePackageOwners))
+            if (!PermissionsService.IsActionAllowed(package, HttpContext.User, PackageActions.ManagePackageOwners))
             {
                 model = new ManagePackageOwnerModel(Strings.AddOwner_NotPackageOwner);
                 return false;

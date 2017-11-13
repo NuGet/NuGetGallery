@@ -122,13 +122,16 @@
     <Compile Include="Auditing\AuditedEntities\AuditedPackage.cs" />
     <Compile Include="Auditing\AuditedEntities\AuditedPackageIdentifier.cs" />
     <Compile Include="Auditing\AuditedAuthenticatedOperationAction.cs" />
+    <Compile Include="Auditing\AuditedEntities\AuditedReservedNamespace.cs" />
     <Compile Include="Auditing\AuditedEntities\AuditedUserSecurityPolicy.cs" />
     <Compile Include="Auditing\AuditedSecurityPolicyAction.cs" />
+    <Compile Include="Auditing\AuditedReservedNamespaceAction.cs" />
     <Compile Include="Auditing\AuditEntry.cs" />
     <Compile Include="Auditing\AuditActor.cs" />
     <Compile Include="Auditing\AuditingService.cs" />
     <Compile Include="Auditing\AuditRecord.cs" />
     <Compile Include="Auditing\FailedAuthenticatedOperationAuditRecord.cs" />
+    <Compile Include="Auditing\ReservedNamespaceAuditRecord.cs" />
     <Compile Include="Auditing\UserSecurityPolicyAuditRecord.cs" />
     <Compile Include="Auditing\FileSystemAuditingService.cs" />
     <Compile Include="Auditing\CloudAuditingService.cs" />
@@ -159,6 +162,7 @@
     <Compile Include="Entities\CuratedPackage.cs" />
     <Compile Include="Entities\Membership.cs" />
     <Compile Include="Entities\Organization.cs" />
+    <Compile Include="Entities\AccountDelete.cs" />
     <Compile Include="Entities\PackageDelete.cs" />
     <Compile Include="Entities\EmailMessage.cs" />
     <Compile Include="Entities\EntitiesConfiguration.cs" />
