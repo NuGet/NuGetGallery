@@ -649,19 +649,23 @@ The {3} Team";
 
         public void SendAccountDeleteNotice(MailAddress mailAddress, string account)
         {
-            string body = @"We received a request to delete your account {0}. If you did not initiate this request please contact the {1} team.
-When your account will be deleted, we will:revoke your API key(s), 
-remove you as the owner for any package you own, dissociate all previously existing ID prefix reservation with this account. If you were the only account tied to a particular ID prefix reservation the prefix will be available to anyone.
-We will not delete the NuGet packages associated with the account.
+            string body = @"We received a request to delete your account {0}. If you did not initiate this request please contact the {1} team imediatelly.
+{2}When your account will be deleted, we will:
+{2} - revoke your API key(s) 
+{2} - remove you as the owner for any package you own 
+{2} - remove your ownership from any ID prefix reservations and delete any ID prefix reservations that you were the only owner of 
+{2}
+{2}We will not delete the NuGet packages associated with the account.
 
 Thanks,
-The {1} Team";
+{2}The {1} Team";
 
             body = String.Format(
                 CultureInfo.CurrentCulture,
                 body,
                 account,
-                Config.GalleryOwner.DisplayName);
+                Config.GalleryOwner.DisplayName,
+                Environment.NewLine);
 
             using (var mailMessage = new MailMessage())
             {

@@ -108,16 +108,14 @@ namespace NuGetGallery
             {
                 return HttpNotFound("User not found.");
             }
-            bool pendingRequest = _supportRequestService.GetIssues(assignedTo: null, reason: null, issueStatusId: null, galleryUsername: user.Username)
-                                    .Any(issue => string.Equals(issue.IssueTitle, Strings.AccountDelete_SupportRequestTitle, StringComparison.CurrentCultureIgnoreCase) && 
-                                         issue.IssueStatus.Key != 3 && 
-                                         issue.OwnerEmail == user.EmailAddress);
-            ViewData["HasPendingRequest"] = pendingRequest;
 
             var listPackageItems = _packageService
                  .FindPackagesByOwner(user, includeUnlisted: true)
                  .Select(p => new ListPackageItemViewModel(p))
                  .ToList();
+
+            bool pendingRequest = _supportRequestService.GetOpenIssues((issue)=> string.Equals(issue.CreatedBy, user.Username) && 
+                                                                                 string.Equals(issue.IssueTitle, Strings.AccountDelete_SupportRequestTitle)).Any();
 
             var model = new DeleteAccountViewModel()
             {
@@ -125,6 +123,7 @@ namespace NuGetGallery
                 User = user,
                 AccountName = user.Username,
                 HasOrphanPackages = listPackageItems.Any(p => p.Owners.Count <= 1),
+                HasPendingRequests = pendingRequest
             };
             
             return View("DeleteAccount", model);
@@ -133,9 +132,15 @@ namespace NuGetGallery
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> SendAccountDeleteNotificationAsync()
+        public virtual async Task<ActionResult> RequestAccountDeletionAsync()
         {
             var user = GetCurrentUser();
+
+            if (user == null || user.IsDeleted)
+            {
+                return HttpNotFound("User not found.");
+            }
+
             bool createSupportRequestStatus = await _supportRequestService.AddNewSupportRequestAsync(Strings.AccountDelete_SupportRequestTitle,
                                                     Strings.AccountDelete_SupportRequestTitle,
                                                     user.EmailAddress,

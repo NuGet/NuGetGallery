@@ -20,24 +20,24 @@
             }
             else
             {
-                if ((bool)ViewData["HasPendingRequest"])
+                if (Model.HasPendingRequests)
                 {
                     @ViewHelpers.AlertWarning(@<text>
                         <b class="keywords">Request submitted.</b> <br />
-                        It may take up to 5 business days to process Account deletion requests.<a href="https://github.com/NuGet/Home/wiki/NuGet-Account-Deletion-Workflow">Read more.</a><br />
+                        It may take up to 5 business days to process Account deletion requests. <a href="https://go.microsoft.com/fwlink/?linkid=862770">Read more.</a><br />
                     </text>)
                 }
                 else
                 {
                     @ViewHelpers.AlertWarning(@<text><strong class="keywords">Important</strong> <br />
-                        Once your account is deleted you cannot undo it.<a href="https://github.com/NuGet/Home/wiki/NuGet-Account-Deletion-Workflow">Read more.</a><br />
+                        Once your account is deleted you cannot undo it. <a href="https://go.microsoft.com/fwlink/?linkid=862770">Read more.</a><br />
                     </text>)
                     <p>
                         When you account is deleted we will<br />
                         <ul>
                             <li>Revoke your api key(s).</li>
                             <li>Remove you as the owner for any packages you own.</li>
-                            <li>Dissociate all previously existing ID prefix reservation with this account. If you were the only account tied to a particular ID prefix reservation, that prefix will be available to anyone.</li>
+                            <li>Remove your ownership from any ID prefix reservations and delete any ID prefix reservations that you were the only owner of.</li>
                             <li>Not delete the NuGet packages associated with the account.</li>
                         </ul>
                     </p>
@@ -46,7 +46,7 @@
                             @ViewHelpers.AlertDanger(@<text>One or more packages do not have co-owners.</text>)
                     }
                     <p>
-                        Before submitting the request, it is recommended that you transfer ownership of any package where you are the sole owner, using the <i>manage owners</i> <i class="ms-Icon ms-Icon--People" aria-hidden="true"></i> button for that package below. Read more about <a href="https://blog.nuget.org/20130205/managing-package-owners.html">Manage package owners.</a>
+                        Before submitting the request, it is recommended that you transfer ownership of any package where you are the sole owner, using the <i>manage owners</i> <i class="ms-Icon ms-Icon--People" aria-hidden="true"></i> button for that package below. Read more about <a href="https://go.microsoft.com/fwlink/?linkid=862794">Manage package owners.</a>
                         This will enable us to expedite processing your request.<br />
                         If you choose to proceed without fixing this issue, someone from the NuGet team may reach out and work with you to find a resolution.
                     </p>
@@ -57,7 +57,7 @@
                     </div>
                     <div class="form-group danger-zone">
                         <text>
-                            @using (Html.BeginForm("SendAccountDeleteNotificationAsync", "Users", FormMethod.Post, new { id = "delete-form" }))
+                            @using (Html.BeginForm("RequestAccountDeletionAsync", "Users", FormMethod.Post, new { id = "delete-form" }))
                             {
                                 @Html.AntiForgeryToken()
                                 <p>

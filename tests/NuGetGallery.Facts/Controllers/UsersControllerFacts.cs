@@ -1829,18 +1829,21 @@ namespace NuGetGallery
                 Assert.Equal(userName, model.AccountName);
                 Assert.Equal<int>(1, model.Packages.Count());
             }
+        }
 
+        public class TheDeleteAccountRequestAction : TestContainer
+        {
             [Theory]
             [InlineData(false)]
             [InlineData(true)]
-            public void DeleteAccountRequestView (bool withPendingIssues)
+            public void DeleteAccountRequestView(bool withPendingIssues)
             {
                 // Arrange
                 string userName = "DeletedUser";
                 string emailAddress = $"{userName}@coldmail.com";
 
                 var controller = GetController<UsersController>();
-               
+
                 User testUser = new User()
                 {
                     Username = userName,
@@ -1862,12 +1865,14 @@ namespace NuGetGallery
 
                 List<Package> userPackages = new List<Package>() { userPackage };
                 List<Issue> issues = new List<Issue>();
-                if(withPendingIssues)
+                if ( withPendingIssues )
                 {
-                    issues.Add(new Issue() {
+                    issues.Add(new Issue()
+                    {
                         IssueTitle = Strings.AccountDelete_SupportRequestTitle,
                         OwnerEmail = emailAddress,
-                        IssueStatus = new IssueStatus() { Key = 1, Name = "OneIssue" } });
+                        IssueStatus = new IssueStatus() { Key = 1, Name = "OneIssue" }
+                    });
                 }
 
                 GetMock<IUserService>()
@@ -1877,7 +1882,7 @@ namespace NuGetGallery
                     .Setup(stub => stub.FindPackagesByOwner(testUser, It.IsAny<bool>()))
                     .Returns(userPackages);
                 GetMock<ISupportRequestService>()
-                   .Setup(stub => stub.GetIssues(null, null, null,userName))
+                   .Setup(stub => stub.GetOpenIssues(It.IsAny<Func<Issue,bool>>()))
                    .Returns(issues);
 
                 // act
@@ -1888,13 +1893,16 @@ namespace NuGetGallery
                 Assert.Equal(userName, model.AccountName);
                 Assert.Equal<int>(1, model.Packages.Count());
                 Assert.Equal<bool>(true, model.HasOrphanPackages);
-                Assert.Equal<bool>(withPendingIssues, (bool)result.ViewData["HasPendingRequest"]);
+                Assert.Equal<bool>(withPendingIssues, model.HasPendingRequests);
             }
+        }
 
+        public class TheRequestAccountDeletionAction : TestContainer
+        {
             [Theory]
             [InlineData(false)]
             [InlineData(true)]
-            public async Task SendDeleteAccountRequest(bool successOnSentRequest)
+            public async Task RequestDeleteAccountAsync(bool successOnSentRequest)
             {
                 // Arrange
                 string userName = "DeletedUser";
@@ -1909,7 +1917,7 @@ namespace NuGetGallery
                 };
                 controller.SetCurrentUser(testUser);
 
-                List<Package> userPackages = new List<Package>() ;
+                List<Package> userPackages = new List<Package>();
                 List<Issue> issues = new List<Issue>();
 
                 GetMock<IUserService>()
@@ -1926,7 +1934,7 @@ namespace NuGetGallery
                   .Returns(Task<bool>.FromResult(successOnSentRequest));
 
                 // act
-                var result = await controller.SendAccountDeleteNotificationAsync() as RedirectToRouteResult;
+                var result = await controller.RequestAccountDeletionAsync() as RedirectToRouteResult;
 
                 // Assert
                 Assert.NotNull(result);

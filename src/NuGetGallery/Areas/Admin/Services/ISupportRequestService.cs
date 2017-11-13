@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NuGetGallery.Areas.Admin.Models;
@@ -46,5 +47,6 @@ namespace NuGetGallery.Areas.Admin
         Task ToggleAdminAccessAsync(int adminId, bool enabled);
         Task UpdateAdminAsync(int adminId, string galleryUsername, string pagerDutyUsername);
         Task AddAdminAsync(string galleryUsername, string pagerDutyUsername);
+        IReadOnlyCollection<Issue> GetOpenIssues(Func<Issue, bool> filter);
     }
 }

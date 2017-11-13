@@ -14,5 +14,7 @@ namespace NuGetGallery
         public string AccountName { get; set; }
 
         public bool HasOrphanPackages { get; set; }
+
+        public bool HasPendingRequests { get; set; }
     }
 }
