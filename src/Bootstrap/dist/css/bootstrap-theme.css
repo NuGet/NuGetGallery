@@ -212,6 +212,10 @@ img.package-icon {
   margin-right: auto;
   margin-left: auto;
 }
+img.reserved-indicator-icon {
+  margin-right: auto;
+  margin-left: auto;
+}
 .package-list {
   padding-left: 0;
   margin-top: 8px;
@@ -259,6 +263,17 @@ img.package-icon {
   word-wrap: break-word;
 
   overflow-wrap: break-word;
+}
+.showOnFocus {
+  display: block;
+  height: 0;
+  overflow: hidden;
+  line-height: 0;
+}
+.showOnFocus:focus {
+  height: 2em;
+  line-height: 2em;
+  color: #e3ebf1;
 }
 #edit-metadata-form-container .loading:after {
   display: inline-block;
@@ -386,10 +401,21 @@ img.package-icon {
   min-width: 20px;
   max-height: 2em;
 }
+.user-package-list .manage-package-listing .reserved-indicator-icon {
+  min-width: 20px;
+  max-height: 2em;
+}
 .user-package-list .manage-package-listing .align-middle {
   vertical-align: middle;
 }
 .user-package-list .manage-package-listing .package-id {
+  word-break: normal;
+  word-break: break-word;
+  word-wrap: break-word;
+
+  overflow-wrap: break-word;
+}
+.user-package-list .manage-package-listing .reserved-id {
   word-break: normal;
   word-break: break-word;
   word-wrap: break-word;
@@ -592,6 +618,14 @@ img.package-icon {
   display: block;
   max-width: 100%;
   height: auto;
+}
+.page-delete-account .green-check {
+  font-size: 25px;
+  color: green;
+}
+.page-delete-account .red-check {
+  font-size: 25px;
+  color: red;
 }
 .page-package-details .no-border {
   border: 0;
@@ -870,9 +904,23 @@ img.package-icon {
   position: relative;
   top: 3px;
 }
+.page-manage-owners .current-owner .remove-owner-disabled a {
+  color: #555;
+}
+.page-manage-owners .current-owner .remove-owner-disabled a .ms-Icon {
+  position: relative;
+  top: 3px;
+}
 .page-manage-owners .current-owner .remove-owner a:hover,
 .page-manage-owners .current-owner .remove-owner a:active {
   color: #ac0017;
+}
+.page-manage-owners .current-owner .remove-owner-disabled a:hover,
+.page-manage-owners .current-owner .remove-owner-disabled a:active {
+  color: #3c3c3c;
+}
+.page-manage-owners .current-owner .remove-owner-disabled .icon-link:hover span {
+  text-decoration: none;
 }
 .page-delete-package h1 {
   margin-bottom: 0;
@@ -933,6 +981,9 @@ img.package-icon {
 }
 .page-sign-in .or-row {
   margin: 20px;
+}
+.page-statistics-most-downloaded .show-all-packages-toggle {
+  font-weight: bold;
 }
 .page-statistics-most-downloaded .table {
   margin-top: 40px;

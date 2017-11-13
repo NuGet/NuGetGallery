@@ -14,15 +14,21 @@ namespace NuGetGallery.FunctionalTests
     {
         private static string _baseurl;
         private static string _searchServiceBaseurl;
+        private static string _externalBrandingMessage;
+        private static string _externalBrandingUrl;
+        private static string _externalAboutUrl;
+        private static string _externalPrivacyPolicyUrl;
+        private static string _externalTermsOfUseUrl;
+        private static string _externalTrademarksUrl;
         private static string _testAccountName;
         private static string _testAccountPassword;
         private static string _testAccountApiKey;
         private static string _testAccountApiKey_Unlist;
         private static string _testAccountApiKey_PushPackage;
         private static string _testAccountApiKey_PushVersion;
-        private static string _testSecurityPoliciesAccountApiKey;
         private static string _testEmailServerHost;
         private static List<string> _trustedHttpsCertificates;
+        private static bool? _defaultSecurityPoliciesEnforced;
 
         /// <summary>
         /// The environment against which the test has to be run. The value would be picked from env variable.
@@ -125,6 +131,81 @@ namespace NuGetGallery.FunctionalTests
                 return _searchServiceBaseurl;
             }
         }
+        
+        /// <summary>
+        /// External branding settings
+        /// </summary>
+        public static string ExternalBrandingMessage
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_externalBrandingMessage))
+                {
+                    _externalBrandingMessage  = Environment.GetEnvironmentVariable("ExternalBrandingMessage");
+                }
+                return _externalBrandingMessage;
+            }
+        }
+
+        public static string ExternalBrandingUrl
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_externalBrandingUrl))
+                {
+                    _externalBrandingUrl = Environment.GetEnvironmentVariable("ExternalBrandingUrl");
+                }
+                return _externalBrandingUrl;
+            }
+        }
+
+        public static string ExternalAboutUrl
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_externalAboutUrl))
+                {
+                    _externalAboutUrl = Environment.GetEnvironmentVariable("ExternalAboutUrl");
+                }
+                return _externalAboutUrl;
+            }
+        }
+
+        public static string ExternalPrivacyPolicyUrl
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_externalPrivacyPolicyUrl))
+                {
+                    _externalPrivacyPolicyUrl = Environment.GetEnvironmentVariable("ExternalPrivacyPolicyUrl");
+                }
+                return _externalPrivacyPolicyUrl;
+            }
+        }
+
+        public static string ExternalTermsOfUseUrl
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_externalTermsOfUseUrl))
+                {
+                    _externalTermsOfUseUrl = Environment.GetEnvironmentVariable("ExternalTermsOfUseUrl");
+                }
+                return _externalTermsOfUseUrl;
+            }
+        }
+
+        public static string ExternalTrademarksUrl
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_externalTrademarksUrl))
+                {
+                    _externalTrademarksUrl = Environment.GetEnvironmentVariable("ExternalTrademarksUrl");
+                }
+                return _externalTrademarksUrl;
+            }
+        }
 
         /// <summary>
         /// The test nuget account name to be used for functional tests.
@@ -216,21 +297,6 @@ namespace NuGetGallery.FunctionalTests
             }
         }
 
-        /// <summary>
-        /// The full access API key for the security policies test account.
-        /// </summary>
-        public static string TestSecurityPoliciesAccountApiKey
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(_testSecurityPoliciesAccountApiKey))
-                {
-                    _testSecurityPoliciesAccountApiKey = Environment.GetEnvironmentVariable("TestSecurityPoliciesAccountApiKey");
-                }
-                return _testSecurityPoliciesAccountApiKey;
-            }
-        }
-
         public static string TestEmailServerHost
         {
             get
@@ -240,6 +306,28 @@ namespace NuGetGallery.FunctionalTests
                     _testEmailServerHost = Environment.GetEnvironmentVariable("TestEmailServerHost");
                 }
                 return _testEmailServerHost;
+            }
+        }
+
+        public static bool DefaultSecurityPoliciesEnforced
+        {
+            get
+            {
+                if (!_defaultSecurityPoliciesEnforced.HasValue)
+                {
+                    // Try to get the setting from EnvironmentVariable. If fail, fallback to false
+                    bool temp;
+                    if (bool.TryParse(Environment.GetEnvironmentVariable("DefaultSecurityPoliciesEnforced"), out temp))
+                    {
+                        _defaultSecurityPoliciesEnforced = temp;
+                    }
+                    else
+                    {
+                        _defaultSecurityPoliciesEnforced = false;
+                    }
+                }
+
+                return _defaultSecurityPoliciesEnforced.Value;
             }
         }
 

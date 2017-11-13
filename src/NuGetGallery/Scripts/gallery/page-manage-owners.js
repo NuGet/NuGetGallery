@@ -21,6 +21,7 @@
 
     var viewModel = {
         package: { id: packageId },
+        isUserAnAdmin: isUserAnAdmin,
         owners: ko.observableArray([]),
         newOwnerUsername: ko.observable(''),
         newOwnerMessage: ko.observable(''),
@@ -29,7 +30,7 @@
 
         message: ko.observable(''),
 
-        hasMoreThanOneOwner: function () {
+        IsAllowedToRemove: function (owner) {
             return true;
         },
 
@@ -150,21 +151,39 @@
         }
     };
 
-    viewModel.hasMoreThanOneOwner = ko.computed(function () {
+    viewModel.IsAllowedToRemove = function (owner) {
+        if (isUserAnAdmin.toLocaleLowerCase() === "True".toLocaleLowerCase()
+            || owner.pending()) {
+            return true;
+        };
+
         if (this.owners().length < 2) {
             return false;
         }
 
         var approvedOwner = 0;
+        var currentOwnerOwnsNamespace = false;
+        var namespaceOwnerCount = 0;
 
         ko.utils.arrayForEach(this.owners(), function (owner) {
             if (owner.pending() === false) {
                 approvedOwner++;
             }
+
+            if (owner.current === true) {
+                currentOwnerOwnsNamespace = owner.isNamespaceOwner();
+            }
+
+            if (owner.isNamespaceOwner() === true) {
+                namespaceOwnerCount++;
+            }
         });
 
-        return approvedOwner >= 2;
-    }, viewModel);
+        return approvedOwner >= 2
+            && (!owner.isNamespaceOwner()
+                || (currentOwnerOwnsNamespace
+                    && namespaceOwnerCount >= 2));
+    };
 
     ko.applyBindings(viewModel);
 
@@ -175,16 +194,17 @@
         dataType: 'json',
         type: 'GET',
         success: function (data) {
-            viewModel.owners($.map(data, function (item) { return new Owner(item.name, item.profileUrl, item.imageUrl, item.pending, item.current); }));
+            viewModel.owners($.map(data, function (item) { return new Owner(item.name, item.profileUrl, item.imageUrl, item.pending, item.current, item.isNamespaceOwner); }));
         }
     })
     .error(failHandler);
 
-    function Owner(name, profileUrl, imageUrl, pending, current) {
+    function Owner(name, profileUrl, imageUrl, pending, current, isNamespaceOwner) {
         this.name = ko.observable(name);
         this.profileUrl = ko.observable(profileUrl);
         this.imageUrl = ko.observable(imageUrl);
         this.pending = ko.observable(pending);
         this.current = current;
+        this.isNamespaceOwner = ko.observable(isNamespaceOwner);
     }
 });

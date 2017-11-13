@@ -2,11 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Moq;
-using NuGetGallery.TestUtils;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using NuGetGallery.Auditing;
+using NuGetGallery.Framework;
+using NuGetGallery.TestUtils;
 using Xunit;
 
 namespace NuGetGallery.Services
@@ -161,6 +163,19 @@ namespace NuGetGallery.Services
 
                 service.MockReservedNamespaceRepository.Verify(x => x.CommitChangesAsync());
             }
+
+            [Fact]
+            public async Task WritesAnAuditRecord()
+            {
+                var newNamespace = new ReservedNamespace("Microsoft.", isSharedNamespace: false, isPrefix: true);
+                
+                var service = new TestableReservedNamespaceService();
+                await service.AddReservedNamespaceAsync(newNamespace);
+
+                Assert.True(service.AuditingService.WroteRecord<ReservedNamespaceAuditRecord>(ar =>
+                    ar.Action == AuditedReservedNamespaceAction.ReserveNamespace
+                    && ar.Value == newNamespace.Value));
+            }
         }
 
         public class TheDeleteReservedNamespaceAsyncMethod
@@ -187,6 +202,20 @@ namespace NuGetGallery.Services
                 service
                     .MockPackageService
                     .Verify(p => p.UpdatePackageVerifiedStatusAsync(It.IsAny<IReadOnlyCollection<PackageRegistration>>(), It.IsAny<bool>()), Times.Never);
+            }
+
+            [Fact]
+            public async Task WritesAnAuditRecord()
+            {
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
+                var existingNamespace = testNamespaces.First();
+                var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces);
+
+                await service.DeleteReservedNamespaceAsync(existingNamespace.Value);
+
+                Assert.True(service.AuditingService.WroteRecord<ReservedNamespaceAuditRecord>(ar =>
+                    ar.Action == AuditedReservedNamespaceAction.UnreserveNamespace
+                    && ar.Value == existingNamespace.Value));
             }
 
             [Theory]
@@ -339,6 +368,23 @@ namespace NuGetGallery.Services
             }
 
             [Fact]
+            public async Task WritesAnAuditRecord()
+            {
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
+                var prefix = "microsoft.";
+                var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value.Equals(prefix, StringComparison.OrdinalIgnoreCase));
+                var testUsers = ReservedNamespaceServiceTestData.GetTestUsers();
+                var owner = testUsers.First();
+                var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
+
+                await service.AddOwnerToReservedNamespaceAsync(prefix, owner.Username);
+
+                Assert.True(service.AuditingService.WroteRecord<ReservedNamespaceAuditRecord>(ar =>
+                    ar.Action == AuditedReservedNamespaceAction.AddOwner
+                    && ar.Value == existingNamespace.Value));
+            }
+
+            [Fact]
             public async Task AddingOwnerToNamespaceMarksRegistrationsVerified()
             {
                 var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
@@ -471,7 +517,7 @@ namespace NuGetGallery.Services
             }
 
             [Fact]
-            public void PackageRegistrationIsAddedWithCommitSuccessfully()
+            public void PackageRegistrationIsAddedSuccessfully()
             {
                 var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
                 var existingNamespace = testNamespaces.First();
@@ -501,6 +547,70 @@ namespace NuGetGallery.Services
             }
         }
 
+        public class TheRemovePackageRegistrationFromNamespaceMethod
+        {
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            [InlineData("  ")]
+            public void NullNamespaceThrowsException(string value)
+            {
+                var service = new TestableReservedNamespaceService();
+
+                Assert.Throws<ArgumentException>(() => service.RemovePackageRegistrationFromNamespace(value, new PackageRegistration()));
+            }
+
+            [Fact]
+            public void NullPackageRegistrationThrowsException()
+            {
+                var service = new TestableReservedNamespaceService();
+
+                Assert.Throws<ArgumentNullException>(() => service.RemovePackageRegistrationFromNamespace("Microsoft.", null));
+            }
+
+            [Fact]
+            public void NonExistentNamespaceThrowsException()
+            {
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
+                var testPackageRegistrations = ReservedNamespaceServiceTestData.GetRegistrations();
+                var existingReg = testPackageRegistrations.First();
+                var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, packageRegistrations: testPackageRegistrations);
+
+                Assert.Throws<InvalidOperationException>(() => service.RemovePackageRegistrationFromNamespace("Non.Existent.Namespace.", existingReg));
+            }
+
+            [Fact]
+            public void PackageRegistrationIsRemovedFromNamespaceSuccessfully()
+            {
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
+                var existingNamespace = testNamespaces.First();
+                var testPackageRegistrations = ReservedNamespaceServiceTestData.GetRegistrations();
+                var existingReg = testPackageRegistrations.First();
+                existingNamespace.PackageRegistrations.Add(existingReg);
+                var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, packageRegistrations: testPackageRegistrations);
+
+                service.RemovePackageRegistrationFromNamespace(existingNamespace.Value, existingReg);
+
+                Assert.False(existingNamespace.PackageRegistrations.Contains(existingReg));
+            }
+
+            [Fact]
+            public void CommitChangesIsNotExecuted()
+            {
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
+                var existingNamespace = testNamespaces.First();
+                var testPackageRegistrations = ReservedNamespaceServiceTestData.GetRegistrations();
+                var existingReg = testPackageRegistrations.First();
+                existingNamespace.PackageRegistrations.Add(existingReg);
+                var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, packageRegistrations: testPackageRegistrations);
+
+                service.RemovePackageRegistrationFromNamespace(existingNamespace.Value, existingReg);
+
+                service
+                    .MockReservedNamespaceRepository
+                    .Verify(x => x.CommitChangesAsync(), Times.Never);
+            }
+        }
         public class TheDeleteOwnerFromReservedNamespaceAsyncMethod
         {
             [Theory]
@@ -588,6 +698,24 @@ namespace NuGetGallery.Services
                         Times.Never);
 
                 Assert.False(existingNamespace.Owners.Contains(owner));
+            }
+
+            [Fact]
+            public async Task WritesAnAuditRecord()
+            {
+                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
+                var prefix = "microsoft.";
+                var existingNamespace = testNamespaces.FirstOrDefault(rn => rn.Value.Equals(prefix, StringComparison.OrdinalIgnoreCase));
+                var testUsers = ReservedNamespaceServiceTestData.GetTestUsers();
+                var owner = testUsers.First();
+                existingNamespace.Owners.Add(owner);
+                var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
+
+                await service.DeleteOwnerFromReservedNamespaceAsync(prefix, owner.Username);
+
+                Assert.True(service.AuditingService.WroteRecord<ReservedNamespaceAuditRecord>(ar =>
+                    ar.Action == AuditedReservedNamespaceAction.RemoveOwner
+                    && ar.Value == existingNamespace.Value));
             }
 
             [Fact]

@@ -1,0 +1,146 @@
+﻿@using NuGetGallery
+@using NuGetGallery.Areas.Admin.Models
+@using NuGet.Services.Validation
+@model ValidationPageViewModel
+@{
+    ViewBag.Title = "Package Validation";
+}
+
+@helper ShowTimestamp(DateTimeOffset? timestamp)
+{
+    if (timestamp.HasValue)
+    {
+        <span title="@(timestamp.Value.UtcDateTime.ToString("O"))Z">@timestamp.Value.UtcDateTime.ToString("G")</span>
+    }
+}
+
+<section>
+    <h2>Package Validations</h2>
+
+    <form method="get" action="@Url.Action(actionName: "Search")">
+        <p>
+            <textarea name="q" placeholder="Search for package validations..." autocomplete="off" autofocus style="width: 100%" rows="5">@Model.Query</textarea>
+        </p>
+        <p>
+            <input type="submit" value="Search" />
+        </p>
+    </form>
+
+    @if (Model.HasQuery && !Model.HasResults)
+    {
+        <p>No results found.</p>
+    }
+    else if(!Model.HasQuery)
+    {
+        <p>You can search by:</p>
+        <ul>
+            <li>Package ID: <code>NuGet.Versioning</code></li>
+            <li>Package ID and version: <code>NuGet.Versioning 4.3.0</code></li>
+            <li>Validation set tracking ID: <code>e6db6737-bd77-44cd-af8b-74826e054d36</code></li>
+            <li>Validation ID: <code>218d075b-99b6-4151-ba12-121872ffe7fe</code></li>
+        </ul>
+    }
+
+    @foreach (var package in Model.Packages)
+    {
+        <div>
+            <h3>
+                <a href="@Url.Action("Search", new { q = package.Id } )">@package.Id</a>
+                <a href="@Url.Action("Search", new { q = package.Id + " " + package.NormalizedVersion } )">@package.NormalizedVersion</a>
+            </h3>
+            <p>
+                @switch (package.DeletedStatus)
+                {
+                    case PackageDeletedStatus.Unknown:
+                        <i>This package was hard deleted.</i><br />
+                        break;
+                    case PackageDeletedStatus.SoftDeleted:
+                        <i>This package was soft deleted.</i><br />
+                        break;
+                }
+
+                <b>Package Key:</b> @package.PackageKey<br />
+                @if (package.DeletedStatus == PackageDeletedStatus.NotDeleted)
+                {
+                    <a href="@Url.RevalidatePackage(package.Id, package.NormalizedVersion)">Revalidate</a><br />
+                }
+                
+                @if (package.DeletedStatus != PackageDeletedStatus.Unknown)
+                {
+                    <a href="@Url.Package(package.Id, package.NormalizedVersion)">Package Details</a>
+                }
+            </p>
+
+            @foreach (var set in package.ValidationSets)
+            {
+                <h4>Validation Set @set.Key</h4>
+                <div style="margin-left: 20px">
+                    <p>
+                        <b>Tracking ID:</b> <a href="@Url.Action("Search", new { q = set.ValidationTrackingId } )">@set.ValidationTrackingId</a><br />
+                        <b>Created:</b> @ShowTimestamp(set.Created)<br />
+                        @if (set.Created != set.Updated)
+                        {
+                            <b>Updated:</b> @ShowTimestamp(set.Updated)
+                        }
+                    </p>
+
+                    @if (!set.PackageValidations.Any())
+                    {
+                        <p>This validation set's validation records have not been created yet.</p>
+                    }
+                    else
+                    {
+                        <table class="sexy-table" style="width: 100%">
+                            <thead>
+                                <tr>
+                                    <th>Key</th>
+                                    <th>Type</th>
+                                    <th>Started</th>
+                                    <th>Status</th>
+                                    <th>Status Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var validation in set.PackageValidations)
+                                {
+                                    <tr>
+                                        <td>@validation.Key</td>
+                                        <td>@validation.Type</td>
+                                        <td>@ShowTimestamp(validation.Started)</td>
+                                        <td>
+                                            @switch (validation.ValidationStatus)
+                                            {
+                                                case ValidationStatus.Failed:
+                                                    @:Failed
+                                                    break;
+                                                case ValidationStatus.Incomplete:
+                                                    @:Incomplete
+                                                    break;
+                                                case ValidationStatus.NotStarted:
+                                                    @:Not started
+                                                    break;
+                                                case ValidationStatus.Succeeded:
+                                                    @:Succeeded
+                                                    break;
+                                                default:
+                                                    @(validation.ValidationStatus)
+                                                    break;
+                                            }
+                                        </td>
+                                        <td>@ShowTimestamp(validation.ValidationStatusTimestamp)</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+                
+            }
+        </div>
+    }
+
+</section>
+
+@section BottomScripts {
+    @Scripts.Render("~/Scripts/gallery/site.min.js")
+}

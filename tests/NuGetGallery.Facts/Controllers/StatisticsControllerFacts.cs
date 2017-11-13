@@ -101,6 +101,9 @@ namespace NuGetGallery
 
             fakeReportService.Setup(x => x.Load("recentpopularity.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageReport, DateTime.MinValue)));
             fakeReportService.Setup(x => x.Load("recentpopularitydetail.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageVersionReport, null)));
+            fakeReportService.Setup(x => x.Load("recentcommunitypopularity.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageReport, DateTime.MinValue)));
+            fakeReportService.Setup(x => x.Load("recentcommunitypopularitydetail.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageVersionReport, null)));
+
             fakeReportService.Setup(x => x.Load("nugetclientversion.json")).Returns(Task.FromResult(new StatisticsReport(fakeNuGetClientVersion, DateTime.MinValue)));
             fakeReportService.Setup(x => x.Load("last6weeks.json")).Returns(Task.FromResult(new StatisticsReport(fakeLast6Weeks, updatedUtc)));
 
@@ -118,7 +121,7 @@ namespace NuGetGallery
                 }
             }
 
-            if (model.IsDownloadPackageDetailAvailable)
+            if (model.IsDownloadPackageVersionsAvailable)
             {
                 foreach (var item in model.DownloadPackageVersionsSummary)
                 {
@@ -234,7 +237,7 @@ namespace NuGetGallery
                 }
             }
 
-            if (model.IsDownloadPackageDetailAvailable)
+            if (model.IsDownloadPackageVersionsAvailable)
             {
                 foreach (var item in model.DownloadPackageVersionsSummary)
                 {
@@ -320,9 +323,11 @@ namespace NuGetGallery
             var fakePackageVersionReport = report.ToString();
 
             var fakeReportService = new Mock<IReportService>();
-            var updatedUtc = new DateTime(2001, 01, 01, 10, 20, 30);
+            var updatedUtc1 = new DateTime(2002, 01, 01, 10, 20, 30);
+            var updatedUtc2 = new DateTime(2001, 01, 01, 10, 20, 30);
 
-            fakeReportService.Setup(x => x.Load("recentpopularitydetail.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageVersionReport, updatedUtc)));
+            fakeReportService.Setup(x => x.Load("recentpopularitydetail.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageVersionReport, updatedUtc1)));
+            fakeReportService.Setup(x => x.Load("recentcommunitypopularitydetail.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageVersionReport, updatedUtc2)));
 
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
 
@@ -337,7 +342,7 @@ namespace NuGetGallery
 
             Assert.Equal(106, sum);
             Assert.True(model.LastUpdatedUtc.HasValue);
-            Assert.Equal(updatedUtc, model.LastUpdatedUtc.Value);
+            Assert.Equal(updatedUtc1, model.LastUpdatedUtc.Value);
         }
 
         [Fact]
@@ -624,6 +629,42 @@ namespace NuGetGallery
             Assert.Equal(updatedUtc, actualReport.LastUpdatedUtc.Value);
         }
 
+        [Fact]
+        public async Task StatisticsDownloadByVersionAction_ReturnsHttpNotFoundIfPackageDoesntExist()
+        {
+            const string PackageId = "A";
+
+            var fakeStatisticsService = new Mock<IStatisticsService>();
+            fakeStatisticsService
+                .Setup(service => service.GetPackageDownloadsByVersion(PackageId))
+                .Throws<StatisticsReportNotFoundException>();
+
+            var controller = new StatisticsController(fakeStatisticsService.Object);
+            TestUtility.SetupUrlHelperForUrlGeneration(controller);
+
+            await controller.PackageDownloadsByVersionReport(PackageId, It.IsAny<string[]>());
+
+            Assert.Equal(404, controller.Response.StatusCode);
+        }
+
+        [Fact]
+        public async Task StatisticsDownloadByVersionAction_ReturnsHttpOkIfPackageExists()
+        {
+            const string PackageId = "A";
+
+            var fakeStatisticsService = new Mock<IStatisticsService>();
+            fakeStatisticsService
+                .Setup(service => service.GetPackageDownloadsByVersion(PackageId))
+                .Returns(Task.FromResult(new StatisticsPackagesReport()));
+
+            var controller = new StatisticsController(fakeStatisticsService.Object);
+            TestUtility.SetupUrlHelperForUrlGeneration(controller);
+
+            await controller.PackageDownloadsByVersionReport(PackageId, It.IsAny<string[]>());
+
+            Assert.Equal(200, controller.Response.StatusCode);
+        }
+
         public class TheTotalsAllAction
         {
             [Fact]
@@ -731,8 +772,6 @@ namespace NuGetGallery
                 return (T)actionExecutedContext.Result;
             }
         }
-
-
 
         public static StatisticsController CreateController(Mock<IAggregateStatsService> aggregateStatsService, Mock<HttpRequestBase> request = null)
         {

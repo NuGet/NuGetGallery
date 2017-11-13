@@ -18,11 +18,14 @@ namespace NuGetGallery.Diagnostics
     {
         private const string ObjectName = "TraceDiagnosticsSource";
         private TraceSource _source;
+        private ITelemetryClient _telemetryClient;
 
         public string Name { get; private set; }
 
-        public TraceDiagnosticsSource(string name)
+        public TraceDiagnosticsSource(string name, ITelemetryClient telemetryClient)
         {
+            _telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
+
             Name = name;
             _source = new TraceSource(name, SourceLevels.All);
 
@@ -43,7 +46,7 @@ namespace NuGetGallery.Diagnostics
                 throw new ArgumentNullException(nameof(exception));
             }
 
-            Telemetry.TrackException(exception);
+            _telemetryClient.TrackException(exception);
         }
 
         /// <summary>

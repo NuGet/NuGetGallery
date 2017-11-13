@@ -18,19 +18,16 @@ namespace NuGetGallery
     public class PackageService : CorePackageService, IPackageService
     {
         private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
-        private readonly IPackageOwnerRequestService _packageOwnerRequestService;
         private readonly IPackageNamingConflictValidator _packageNamingConflictValidator;
         private readonly IAuditingService _auditingService;
 
         public PackageService(
             IEntityRepository<PackageRegistration> packageRegistrationRepository,
             IEntityRepository<Package> packageRepository,
-            IPackageOwnerRequestService packageOwnerRequestService,
             IPackageNamingConflictValidator packageNamingConflictValidator,
             IAuditingService auditingService) : base(packageRepository)
         {
             _packageRegistrationRepository = packageRegistrationRepository ?? throw new ArgumentNullException(nameof(packageRegistrationRepository));
-            _packageOwnerRequestService = packageOwnerRequestService ?? throw new ArgumentNullException(nameof(packageOwnerRequestService));
             _packageNamingConflictValidator = packageNamingConflictValidator ?? throw new ArgumentNullException(nameof(packageNamingConflictValidator));
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
         }
@@ -262,7 +259,7 @@ namespace NuGetGallery
             if (includeUnlisted)
             {
                 latestPackageVersions = _packageRegistrationRepository.GetAll()
-                    .Where(pr => pr.Owners.Where(owner => owner.Username == user.Username).Any())
+                    .Where(pr => pr.Owners.Any(owner => owner.Key == user.Key))
                     .Select(pr => pr.Packages.OrderByDescending(p => p.Version).FirstOrDefault())
                     .Where(p => p != null)
                     .Include(p => p.PackageRegistration)
@@ -308,7 +305,7 @@ namespace NuGetGallery
 
         public IEnumerable<PackageRegistration> FindPackageRegistrationsByOwner(User user)
         {
-            return _packageRegistrationRepository.GetAll().Where(p => p.Owners.Any(o => o.Username == user.Username));
+            return _packageRegistrationRepository.GetAll().Where(p => p.Owners.Any(o => o.Key == user.Key));
         }
 
         public IEnumerable<Package> FindDependentPackages(Package package)
@@ -361,36 +358,13 @@ namespace NuGetGallery
         {
             package.Owners.Add(newOwner);
             await _packageRepository.CommitChangesAsync();
-
-            var request = _packageOwnerRequestService.GetPackageOwnershipRequests(package: package, newOwner: newOwner).FirstOrDefault();
-            if (request != null)
-            {
-                await _packageOwnerRequestService.DeletePackageOwnershipRequest(request);
-            }
-
-            await _auditingService.SaveAuditRecordAsync(
-                new PackageRegistrationAuditRecord(package, AuditedPackageRegistrationAction.AddOwner, newOwner.Username));
         }
 
         public async Task RemovePackageOwnerAsync(PackageRegistration package, User user)
         {
-            if (package.Owners.Count == 1 && user == package.Owners.Single())
-            {
-                throw new InvalidOperationException("You can't remove the only owner from a package.");
-            }
-
-            var request = _packageOwnerRequestService.GetPackageOwnershipRequests(package: package, newOwner: user).FirstOrDefault();
-            if (request != null)
-            {
-                await _packageOwnerRequestService.DeletePackageOwnershipRequest(request);
-                return;
-            }
-
+            // To support the delete account scenario, the admin can delete the last owner of a package.
             package.Owners.Remove(user);
             await _packageRepository.CommitChangesAsync();
-
-            await _auditingService.SaveAuditRecordAsync(
-                new PackageRegistrationAuditRecord(package, AuditedPackageRegistrationAction.RemoveOwner, user.Username));
         }
 
         public async Task MarkPackageListedAsync(Package package, bool commitChanges = true)
@@ -462,7 +436,7 @@ namespace NuGetGallery
         {
             var packageRegistration = FindPackageRegistrationById(packageMetadata.Id);
 
-            if (packageRegistration != null && !packageRegistration.Owners.Contains(currentUser))
+            if (packageRegistration != null && !PermissionsService.IsActionAllowed(packageRegistration, currentUser, PackageActions.UploadNewVersion))
             {
                 throw new EntityException(Strings.PackageIdNotAvailable, packageMetadata.Id);
             }
@@ -739,6 +713,7 @@ namespace NuGetGallery
             {
                 packageRegistrationsToUpdate
                     .ForEach(pru => pru.IsVerified = isVerified);
+
                 await _packageRegistrationRepository.CommitChangesAsync();
             }
         }

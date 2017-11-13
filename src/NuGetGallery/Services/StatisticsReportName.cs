@@ -18,6 +18,16 @@ namespace NuGetGallery
         /// </summary>
         RecentPopularityDetail_,
         /// <summary>
+        /// Most frequently downloaded community package registration in last 6 weeks.
+        /// This excludes Microsoft and ASP.NET packages.
+        /// </summary>
+        RecentCommunityPopularity,
+        /// <summary>
+        /// Most frequently downloaded community package, specific to actual version.
+        /// This excludes Microsoft and ASP.NET packages.
+        /// </summary>
+        RecentCommunityPopularityDetail,
+        /// <summary>
         /// Downloads that have been done by the various NuGet client versions.
         /// </summary>
         NuGetClientVersion,

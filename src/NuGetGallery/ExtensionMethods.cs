@@ -7,10 +7,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Net.Mail;
 using System.Security;
 using System.Security.Claims;
-using System.Security.Principal;
 using System.Text;
 using System.Web;
 using System.Web.Mvc;
@@ -19,7 +17,6 @@ using System.Web.WebPages;
 using Microsoft.Owin;
 using NuGet.Frameworks;
 using NuGet.Packaging;
-using NuGetGallery.Authentication;
 using NuGetGallery.Helpers;
 
 namespace NuGetGallery
@@ -177,42 +174,6 @@ namespace NuGetGallery
             return items.Any(predicate);
         }
 
-        public static bool IsOwner(this Package package, IPrincipal user)
-        {
-            return package.PackageRegistration.IsOwner(user);
-        }
-
-        public static bool IsOwner(this Package package, User user)
-        {
-            return package.PackageRegistration.IsOwner(user);
-        }
-
-        public static bool IsOwner(this PackageRegistration package, IPrincipal user)
-        {
-            if (package == null)
-            {
-                throw new ArgumentNullException(nameof(package));
-            }
-            if (user == null || user.Identity == null)
-            {
-                return false;
-            }
-            return user.IsAdministrator() || package.Owners.Any(u => u.Username == user.Identity.Name);
-        }
-
-        public static bool IsOwner(this PackageRegistration package, User user)
-        {
-            if (package == null)
-            {
-                throw new ArgumentNullException(nameof(package));
-            }
-            if (user == null)
-            {
-                return false;
-            }
-            return package.Owners.Any(u => u.Key == user.Key);
-        }
-
         // apple polish!
         public static string CardinalityLabel(this int count, string singular, string plural)
         {
@@ -257,16 +218,6 @@ namespace NuGetGallery
                 Expression.Quote(lambda));
 
             return source.Provider.CreateQuery<T>(methodCallExpression);
-        }
-
-        public static MailAddress ToMailAddress(this User user)
-        {
-            if (!user.Confirmed)
-            {
-                return new MailAddress(user.UnconfirmedEmailAddress, user.Username);
-            }
-
-            return new MailAddress(user.EmailAddress, user.Username);
         }
 
         public static bool IsError<TModel, TProperty>(this HtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TProperty>> expression)
@@ -459,74 +410,6 @@ namespace NuGetGallery
             return sb.ToString();
         }
 
-        public static string GetClaimOrDefault(this ClaimsPrincipal self, string claimType)
-        {
-            return self.Claims.GetClaimOrDefault(claimType);
-        }
-
-        public static string GetClaimOrDefault(this ClaimsIdentity self, string claimType)
-        {
-            return self.Claims.GetClaimOrDefault(claimType);
-        }
-
-        public static string GetClaimOrDefault(this IEnumerable<Claim> self, string claimType)
-        {
-            return self
-                .Where(c => string.Equals(c.Type, claimType, StringComparison.OrdinalIgnoreCase))
-                .Select(c => c.Value)
-                .FirstOrDefault();
-        }
-
-        public static bool HasScopeThatAllowsActionForSubject(
-            this IIdentity self, 
-            string subject,
-            string[] requestedActions)
-        {
-            var identity = self as ClaimsIdentity;
-
-            if (identity == null)
-            {
-                return false;
-            }
-
-            var scopeClaim = identity.GetClaimOrDefault(NuGetClaims.Scope);
-
-            return ScopeEvaluator.ScopeClaimsAllowsActionForSubject(scopeClaim, subject, requestedActions);
-        }
-
-        public static string GetAuthenticationType(this IIdentity self)
-        {
-            var identity = self as ClaimsIdentity;
-
-            return identity?.GetClaimOrDefault(ClaimTypes.AuthenticationMethod);
-        }
-
-        private static string GetScopeClaim(this IIdentity self)
-        {
-            var identity = self as ClaimsIdentity;
-
-            return identity?.GetClaimOrDefault(NuGetClaims.Scope);
-        }
-
-        public static bool IsScopedAuthentication(this IIdentity self)
-        {
-            var scopeClaim = self.GetScopeClaim();
-
-            return !ScopeEvaluator.IsEmptyScopeClaim(scopeClaim);
-        }
-        
-        /// <summary>
-        /// Determines if authentication is scoped and uses package verify claim.
-        /// </summary>
-        public static bool HasPackageVerifyScopeClaim(this IIdentity self)
-        {
-            var scopeClaim = self.GetScopeClaim();
-            
-            return !ScopeEvaluator.IsEmptyScopeClaim(scopeClaim) &&
-                ScopeEvaluator.ScopeClaimsAllowsActionForSubject(scopeClaim, subject: null,
-                requestedActions: new [] { NuGetScopes.PackageVerify });
-        }
-
         // This is a method because the first call will perform a database call
         /// <summary>
         /// Get the current user, from the database, or if someone in this request has already
@@ -563,17 +446,6 @@ namespace NuGetGallery
             }
 
             return user;
-        }
-
-        /// <summary>
-        /// Get the current API key credential, if available.
-        /// </summary>
-        public static Credential GetCurrentApiKeyCredential(this User user, IIdentity identity)
-        {
-            var claimsIdentity = identity as ClaimsIdentity;
-            var apiKey = claimsIdentity.GetClaimOrDefault(NuGetClaims.ApiKey);
-
-            return user.Credentials.FirstOrDefault(c => c.Value == apiKey);
         }
 
         private static User LoadUser(IOwinContext context)

@@ -22,6 +22,9 @@ namespace NuGetGallery
                 FROM Packages AS p
                 WHERE p.[PackageRegistrationKey] = @key)
             BEGIN
+                DELETE por FROM PackageOwnerRequests As por
+                WHERE por.[PackageRegistrationKey] = @key                
+
                 DELETE pro FROM PackageRegistrationOwners AS pro
                 WHERE pro.[PackageRegistrationKey] = @key
 
@@ -30,6 +33,7 @@ namespace NuGetGallery
             END";
 
         private readonly IEntityRepository<Package> _packageRepository;
+        private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
         private readonly IEntityRepository<PackageDelete> _packageDeletesRepository;
         private readonly IEntitiesContext _entitiesContext;
         private readonly IPackageService _packageService;
@@ -39,6 +43,7 @@ namespace NuGetGallery
 
         public PackageDeleteService(
             IEntityRepository<Package> packageRepository,
+            IEntityRepository<PackageRegistration> packageRegistrationRepository,
             IEntityRepository<PackageDelete> packageDeletesRepository,
             IEntitiesContext entitiesContext,
             IPackageService packageService,
@@ -47,6 +52,7 @@ namespace NuGetGallery
             IAuditingService auditingService)
         {
             _packageRepository = packageRepository;
+            _packageRegistrationRepository = packageRegistrationRepository;
             _packageDeletesRepository = packageDeletesRepository;
             _entitiesContext = entitiesContext;
             _packageService = packageService;
@@ -165,6 +171,52 @@ namespace NuGetGallery
             UpdateSearchIndex();
         }
 
+        public Task ReflowHardDeletedPackageAsync(string id, string version)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                throw new UserSafeException("Must supply an ID for the hard-deleted package to reflow.");
+            }
+
+            if (string.IsNullOrEmpty(version))
+            {
+                throw new UserSafeException("Must supply a version for the hard-deleted package to reflow.");
+            }
+
+            var normalizedId = id.ToLowerInvariant();
+            if (!NuGetVersion.TryParse(version, out var normalizedVersion))
+            {
+                throw new UserSafeException($"{version} is not a valid version string!");
+            }
+
+            var normalizedVersionString = normalizedVersion.ToNormalizedString();
+
+            var existingPackageRegistration = _packageRegistrationRepository.GetAll()
+                .SingleOrDefault(p => p.Id == normalizedId);
+
+            if (existingPackageRegistration != null)
+            {
+                var existingPackage = _packageRepository.GetAll()
+                    .Where(p => p.PackageRegistrationKey == existingPackageRegistration.Key)
+                    .SingleOrDefault(p => p.NormalizedVersion == normalizedVersionString);
+
+                if (existingPackage != null)
+                {
+                    throw new UserSafeException($"The package {id} {normalizedVersion} exists! You can only reflow hard-deleted packages that do not exist.");
+                }
+            }
+
+            var auditRecord = new PackageAuditRecord(
+                normalizedId,
+                normalizedVersionString,
+                hash: string.Empty,
+                packageRecord: null,
+                registrationRecord: null,
+                action: AuditedPackageAction.Delete,
+                reason: "reflow hard-deleted package");
+            return _auditingService.SaveAuditRecordAsync(auditRecord);
+        }
+
         protected virtual async Task ExecuteSqlCommandAsync(Database database, string sql, params object[] parameters)
         {
             await database.ExecuteSqlCommandAsync(sql, parameters);
@@ -201,6 +253,16 @@ namespace NuGetGallery
             // Backup the package binaries and remove from main storage
             foreach (var package in packages)
             {
+                // Backup the package from the "validating" container.
+                using (var packageStream = await _packageFileService.DownloadValidationPackageFileAsync(package))
+                {
+                    if (packageStream != null)
+                    {
+                        await _packageFileService.StorePackageFileInBackupLocationAsync(package, packageStream);
+                    }
+                }
+
+                // Backup the package from the "packages" container.
                 using (var packageStream = await _packageFileService.DownloadPackageFileAsync(package))
                 {
                     if (packageStream != null)
@@ -208,12 +270,14 @@ namespace NuGetGallery
                         await _packageFileService.StorePackageFileInBackupLocationAsync(package, packageStream);
                     }
                 }
+
                 var id = package.PackageRegistration.Id;
                 var version = string.IsNullOrEmpty(package.NormalizedVersion)
                             ? NuGetVersion.Parse(package.Version).ToNormalizedString()
                             : package.NormalizedVersion;
 
                 await _packageFileService.DeletePackageFileAsync(id, version);
+                await _packageFileService.DeleteValidationPackageFileAsync(id, version);
 
                 // Delete any active or pending readme files for this package.
                 await TryDeleteReadMeMdFile(package, false);

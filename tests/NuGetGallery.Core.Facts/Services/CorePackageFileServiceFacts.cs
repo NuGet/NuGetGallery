@@ -13,6 +13,7 @@ namespace NuGetGallery
     public class CorePackageFileServiceFacts
     {
         private const string ValidationFolderName = "validation";
+        private const string PackagesFolderName = "packages";
         private const string Id = "NuGet.Versioning";
         private const string Version = "4.3.0.0-BETA+1";
         private const string NormalizedVersion = "4.3.0-BETA";
@@ -310,7 +311,7 @@ namespace NuGetGallery
             }
         }
 
-        public class TheDeletePackageFileMethod : FactsBase
+        public class TheDeleteValidationPackageFileMethod : FactsBase
         {
             [Fact]
             public async Task WillThrowIfIdIsNull()
@@ -345,6 +346,152 @@ namespace NuGetGallery
                 _fileStorageService.Verify(
                     x => x.DeleteFileAsync(It.IsAny<string>(), It.IsAny<string>()),
                     Times.Once);
+            }
+        }
+
+        public class TheDeletePackageFileMethod : FactsBase
+        {
+            [Fact]
+            public async Task WillThrowIfIdIsNull()
+            {
+                string id = null;
+
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(
+                    () => _service.DeletePackageFileAsync(id, Version));
+
+                Assert.Equal("id", ex.ParamName);
+            }
+
+            [Fact]
+            public async Task WillThrowIfVersionIsNull()
+            {
+                string version = null;
+
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(
+                    () => _service.DeletePackageFileAsync(Id, version));
+
+                Assert.Equal("version", ex.ParamName);
+            }
+
+            [Fact]
+            public async Task WillDeleteTheFileViaTheFileStorageService()
+            {
+                await _service.DeletePackageFileAsync(Id, Version);
+
+                _fileStorageService.Verify(
+                    x => x.DeleteFileAsync(PackagesFolderName, ValidationFileName),
+                    Times.Once);
+                _fileStorageService.Verify(
+                    x => x.DeleteFileAsync(It.IsAny<string>(), It.IsAny<string>()),
+                    Times.Once);
+            }
+        }
+
+        public class TheGetValidationPackageReadUriAsyncMethod : FactsBase
+        {
+            [Fact]
+            public async Task WillThrowIfPackageIsNull()
+            {
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => _service.GetValidationPackageReadUriAsync(null, DateTimeOffset.UtcNow.AddHours(3)));
+
+                Assert.Equal("package", ex.ParamName);
+            }
+
+            [Fact]
+            public async Task WillUseTheFileStorageService()
+            {
+                DateTimeOffset endOfAccess = DateTimeOffset.UtcNow.AddHours(3);
+                await _service.GetValidationPackageReadUriAsync(_package, endOfAccess);
+
+                _fileStorageService.Verify(
+                    x => x.GetFileReadUriAsync(ValidationFolderName, ValidationFileName, endOfAccess),
+                    Times.Once());
+                _fileStorageService.Verify(
+                    x => x.GetFileReadUriAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTimeOffset>()),
+                    Times.Once());
+            }
+        }
+
+        public class TheGetPackageReadUriMethod : FactsBase
+        {
+            [Fact]
+            public async Task WillThrowIfPackageIsNull()
+            {
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => _service.GetPackageReadUriAsync(null));
+                Assert.Equal("package", ex.ParamName);
+            }
+
+            [Fact]
+            public async Task WillUseFileStorageService()
+            {
+                await _service.GetPackageReadUriAsync(_package);
+
+                string filename = BuildFileName(_package.PackageRegistration.Id, _package.NormalizedVersion, CoreConstants.NuGetPackageFileExtension, CoreConstants.PackageFileSavePathTemplate);
+
+                _fileStorageService.Verify(
+                    x => x.GetFileReadUriAsync(PackagesFolderName, filename, null),
+                    Times.Once());
+                _fileStorageService.Verify(
+                    x => x.GetFileReadUriAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTimeOffset?>()),
+                    Times.Once());
+            }
+        }
+
+        public class TheDoesPackageFileExistMethod : FactsBase
+        {
+            [Fact]
+            public async Task WillThrowIfPackageIsNull()
+            {
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => _service.DoesPackageFileExistAsync(null));
+                Assert.Equal("package", ex.ParamName);
+            }
+
+            [Fact]
+            public async Task WillUseFileStorageService()
+            {
+                string filename = BuildFileName(_package.PackageRegistration.Id, _package.NormalizedVersion, CoreConstants.NuGetPackageFileExtension, CoreConstants.PackageFileSavePathTemplate);
+
+                _fileStorageService
+                    .Setup(x => x.FileExistsAsync(PackagesFolderName, filename))
+                    .ReturnsAsync(true);
+
+                var result = await _service.DoesPackageFileExistAsync(_package);
+
+                Assert.True(result);
+                _fileStorageService.Verify(
+                    x => x.FileExistsAsync(PackagesFolderName, filename),
+                    Times.Once());
+                _fileStorageService.Verify(
+                    x => x.FileExistsAsync(It.IsAny<string>(), It.IsAny<string>()),
+                    Times.Once());
+            }
+        }
+
+        public class TheDoesValidationPackageFileExistMethod : FactsBase
+        {
+            [Fact]
+            public async Task WillThrowIfPackageIsNull()
+            {
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => _service.DoesValidationPackageFileExistAsync(null));
+                Assert.Equal("package", ex.ParamName);
+            }
+
+            [Fact]
+            public async Task WillUseFileStorageService()
+            {
+                _fileStorageService
+                    .Setup(x => x.FileExistsAsync(ValidationFolderName, ValidationFileName))
+                    .ReturnsAsync(true);
+
+                var result = await _service.DoesValidationPackageFileExistAsync(_package);
+
+                Assert.True(result);
+                _fileStorageService.Verify(
+                    x => x.FileExistsAsync(ValidationFolderName, ValidationFileName),
+                    Times.Once());
+                _fileStorageService.Verify(
+                    x => x.FileExistsAsync(It.IsAny<string>(), It.IsAny<string>()),
+                    Times.Once());
             }
         }
 

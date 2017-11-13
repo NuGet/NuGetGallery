@@ -5,16 +5,26 @@ using System;
 using System.Collections.Generic;
 using System.Security.Principal;
 using System.Web;
+using Elmah;
+using NuGetGallery.Authentication;
+using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery
 {
     public class TelemetryService : ITelemetryService
     {
-        // Event types
-        public const string ODataQueryFilterEvent = "ODataQueryFilter";
-        public const string PackagePushEvent = "PackagePush";
-        public const string CreatePackageVerificationKeyEvent = "CreatePackageVerificationKeyEvent";
-        public const string VerifyPackageKeyEvent = "VerifyPackageKeyEvent";
+        internal class Events
+        {
+            public const string ODataQueryFilter = "ODataQueryFilter";
+            public const string PackagePush = "PackagePush";
+            public const string CreatePackageVerificationKey = "CreatePackageVerificationKey";
+            public const string VerifyPackageKey = "VerifyPackageKey";
+            public const string PackageReadMeChanged = "PackageReadMeChanged";
+            public const string PackagePushNamespaceConflict = "PackagePushNamespaceConflict";
+        }
+
+        private IDiagnosticsSource _diagnosticsSource;
+        private ITelemetryClient _telemetryClient;
 
         // ODataQueryFilter properties
         public const string CallContext = "CallContext";
@@ -27,6 +37,7 @@ namespace NuGetGallery
         public const string AccountCreationDate = "AccountCreationDate";
         public const string ClientVersion = "ClientVersion";
         public const string ProtocolVersion = "ProtocolVersion";
+        public const string ClientInformation = "ClientInformation";
         public const string IsScoped = "IsScoped";
         public const string KeyCreationDate = "KeyCreationDate";
         public const string PackageId = "PackageId";
@@ -36,15 +47,66 @@ namespace NuGetGallery
         public const string IsVerificationKeyUsed = "IsVerificationKeyUsed";
         public const string VerifyPackageKeyStatusCode = "VerifyPackageKeyStatusCode";
 
+        // Package ReadMe properties
+        public const string ReadMeSourceType = "ReadMeSourceType";
+        public const string ReadMeState = "ReadMeState";
+
+        public TelemetryService(IDiagnosticsService diagnosticsService, ITelemetryClient telemetryClient = null)
+        {
+            if (diagnosticsService == null)
+            {
+                throw new ArgumentNullException(nameof(diagnosticsService));
+            }
+
+            _telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
+
+            _diagnosticsSource = diagnosticsService.GetSource("TelemetryService");
+        }
+
+        // Used by ODataQueryVerifier. Should consider refactoring to make this non-static.
+        internal TelemetryService() : this(new DiagnosticsService(), TelemetryClientWrapper.Instance)
+        {
+        }
+
+        public void TraceException(Exception exception)
+        {
+            if (exception == null)
+            {
+                throw new ArgumentNullException(nameof(exception));
+            }
+
+            _diagnosticsSource.Warning(exception.ToString());
+        }
+
         public void TrackODataQueryFilterEvent(string callContext, bool isEnabled, bool isAllowed, string queryPattern)
         {
-            TrackEvent(ODataQueryFilterEvent, properties =>
+            TrackEvent(Events.ODataQueryFilter, properties =>
             {
                 properties.Add(CallContext, callContext);
                 properties.Add(IsEnabled, $"{isEnabled}");
 
                 properties.Add(IsAllowed, $"{isAllowed}");
                 properties.Add(QueryPattern, queryPattern);
+            });
+        }
+
+        public void TrackPackageReadMeChangeEvent(Package package, string readMeSourceType, PackageEditReadMeState readMeState)
+        {
+            if (package == null)
+            {
+                throw new ArgumentNullException(nameof(package));
+            }
+
+            if (string.IsNullOrWhiteSpace(readMeSourceType))
+            {
+                throw new ArgumentNullException(nameof(readMeSourceType));
+            }
+
+            TrackEvent(Events.PackageReadMeChanged, properties => {
+                properties.Add(PackageId, package.PackageRegistration.Id);
+                properties.Add(PackageVersion, package.Version);
+                properties.Add(ReadMeSourceType, readMeSourceType);
+                properties.Add(ReadMeState, Enum.GetName(typeof(PackageEditReadMeState), readMeState));
             });
         }
 
@@ -55,49 +117,17 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(package));
             }
 
-            if (user == null)
-            {
-                throw new ArgumentNullException(nameof(user));
-            }
+            TrackPackageForEvent(Events.PackagePush, package.PackageRegistration.Id, package.Version, user, identity);
+        }
 
-            if (identity == null)
-            {
-                throw new ArgumentNullException(nameof(identity));
-            }
-
-            TrackEvent(PackagePushEvent, properties => {
-                properties.Add(ClientVersion, GetClientVersion());
-                properties.Add(ProtocolVersion, GetProtocolVersion());
-                properties.Add(PackageId, package.PackageRegistration.Id);
-                properties.Add(PackageVersion, package.Version);
-                properties.Add(AuthenticationMethod, identity.GetAuthenticationType());
-                properties.Add(AccountCreationDate, GetAccountCreationDate(user));
-                properties.Add(KeyCreationDate, GetApiKeyCreationDate(user, identity));
-                properties.Add(IsScoped, identity.IsScopedAuthentication().ToString());
-            });
+        public void TrackPackagePushNamespaceConflictEvent(string packageId, string packageVersion, User user, IIdentity identity)
+        {
+            TrackPackageForEvent(Events.PackagePushNamespaceConflict, packageId, packageVersion, user, identity);
         }
 
         public void TrackCreatePackageVerificationKeyEvent(string packageId, string packageVersion, User user, IIdentity identity)
         {
-            if (user == null)
-            {
-                throw new ArgumentNullException(nameof(user));
-            }
-
-            if (identity == null)
-            {
-                throw new ArgumentNullException(nameof(identity));
-            }
-
-            TrackEvent(CreatePackageVerificationKeyEvent, properties => {
-                properties.Add(ClientVersion, GetClientVersion());
-                properties.Add(ProtocolVersion, GetProtocolVersion());
-                properties.Add(PackageId, packageId);
-                properties.Add(PackageVersion, packageVersion);
-                properties.Add(AccountCreationDate, GetAccountCreationDate(user));
-                properties.Add(KeyCreationDate, GetApiKeyCreationDate(user, identity));
-                properties.Add(IsScoped, identity.IsScopedAuthentication().ToString());
-            });
+            TrackPackageForEvent(Events.CreatePackageVerificationKey, packageId, packageVersion, user, identity);
         }
 
         public void TrackVerifyPackageKeyEvent(string packageId, string packageVersion, User user, IIdentity identity, int statusCode)
@@ -111,13 +141,14 @@ namespace NuGetGallery
             {
                 throw new ArgumentNullException(nameof(identity));
             }
+            var hasVerifyScope = identity.HasScopeThatAllowsActions(NuGetScopes.PackageVerify).ToString();
 
-            TrackEvent(VerifyPackageKeyEvent, properties =>
+            TrackEvent(Events.VerifyPackageKey, properties =>
             {
                 properties.Add(PackageId, packageId);
                 properties.Add(PackageVersion, packageVersion);
                 properties.Add(KeyCreationDate, GetApiKeyCreationDate(user, identity));
-                properties.Add(IsVerificationKeyUsed, identity.HasPackageVerifyScopeClaim().ToString());
+                properties.Add(IsVerificationKeyUsed, hasVerifyScope);
                 properties.Add(VerifyPackageKeyStatusCode, statusCode.ToString());
             });
         }
@@ -132,6 +163,17 @@ namespace NuGetGallery
             return HttpContext.Current?.Request?.Headers[Constants.NuGetProtocolHeaderName];
         }
 
+        private static string GetClientInformation()
+        {
+            if (HttpContext.Current != null)
+            {
+                HttpContextBase contextBase = new HttpContextWrapper(HttpContext.Current);
+                return contextBase.GetClientInformation();
+            }
+
+            return null;
+        }
+
         private static string GetAccountCreationDate(User user)
         {
             return user.CreatedUtc?.ToString("O") ?? "N/A";
@@ -143,13 +185,47 @@ namespace NuGetGallery
             return apiKey?.Created.ToString("O") ?? "N/A";
         }
 
-        private static void TrackEvent(string eventName, Action<Dictionary<string, string>> addProperties)
+        private void TrackPackageForEvent(string eventValue, string packageId, string packageVersion, User user, IIdentity identity)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            if (identity == null)
+            {
+                throw new ArgumentNullException(nameof(identity));
+            }
+
+            TrackEvent(eventValue, properties => {
+                properties.Add(ClientVersion, GetClientVersion());
+                properties.Add(ProtocolVersion, GetProtocolVersion());
+                properties.Add(ClientInformation, GetClientInformation());
+                properties.Add(PackageId, packageId);
+                properties.Add(PackageVersion, packageVersion);
+                properties.Add(AccountCreationDate, GetAccountCreationDate(user));
+                properties.Add(AuthenticationMethod, identity.GetAuthenticationType());
+                properties.Add(KeyCreationDate, GetApiKeyCreationDate(user, identity));
+                properties.Add(IsScoped, identity.IsScopedAuthentication().ToString());
+            });
+        }
+
+        protected virtual void TrackEvent(string eventName, Action<Dictionary<string, string>> addProperties)
         {
             var telemetryProperties = new Dictionary<string, string>();
 
             addProperties(telemetryProperties);
 
-            Telemetry.TrackEvent(eventName, telemetryProperties, metrics: null);
+            _telemetryClient.TrackEvent(eventName, telemetryProperties, metrics: null);
+        }
+
+        public void TrackException(Exception exception, Action<Dictionary<string, string>> addProperties)
+        {
+            var telemetryProperties = new Dictionary<string, string>();
+
+            addProperties(telemetryProperties);
+
+            _telemetryClient.TrackException(exception, telemetryProperties, metrics: null);
         }
     }
 }

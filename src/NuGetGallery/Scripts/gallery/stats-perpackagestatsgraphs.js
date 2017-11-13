@@ -261,11 +261,22 @@ var GetChartData = function (rawData, filter) {
 }
 
 var GetShortNumberString = function (number) {
+    if (number == 0) {
+        return "0";
+    }
+
     var abbreviation = ["", "k", "M", "B", "T", "q", "Q", "s", "S", "o", "n"];
     var numDiv = 0;
     while (number >= 1000) {
-        number = Math.floor(number / 1000);
+        number = number / 1000.0;
         numDiv++;
+    }
+
+    rounded = Math.floor(number);
+    if (rounded >= 100) {
+        number = number.toPrecision(3);
+    } else {
+        number = number.toPrecision(2);
     }
 
     if (numDiv >= abbreviation.Length) {

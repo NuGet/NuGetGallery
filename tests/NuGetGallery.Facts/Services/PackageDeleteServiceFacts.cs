@@ -5,6 +5,7 @@ using System;
 using System.Data.Entity;
 using System.Data.SqlClient;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 using NuGetGallery.Auditing;
@@ -18,6 +19,7 @@ namespace NuGetGallery
 
         private static IPackageDeleteService CreateService(
             Mock<IEntityRepository<Package>> packageRepository = null,
+            Mock<IEntityRepository<PackageRegistration>> packageRegistrationRepository = null,
             Mock<IEntityRepository<PackageDelete>> packageDeletesRepository = null,
             Mock<IEntitiesContext> entitiesContext = null,
             Mock<IPackageService> packageService = null,
@@ -27,6 +29,7 @@ namespace NuGetGallery
             Action<Mock<TestPackageDeleteService>> setup = null)
         {
             packageRepository = packageRepository ?? new Mock<IEntityRepository<Package>>();
+            packageRegistrationRepository = packageRegistrationRepository ?? new Mock<IEntityRepository<PackageRegistration>>();
             packageDeletesRepository = packageDeletesRepository ?? new Mock<IEntityRepository<PackageDelete>>();
 
             var dbContext = new Mock<DbContext>();
@@ -41,6 +44,7 @@ namespace NuGetGallery
 
             var packageDeleteService = new Mock<TestPackageDeleteService>(
                 packageRepository.Object,
+                packageRegistrationRepository.Object,
                 packageDeletesRepository.Object,
                 entitiesContext.Object,
                 packageService.Object,
@@ -63,8 +67,8 @@ namespace NuGetGallery
         {
             public PackageAuditRecord LastAuditRecord { get; set; }
 
-            public TestPackageDeleteService(IEntityRepository<Package> packageRepository, IEntityRepository<PackageDelete> packageDeletesRepository, IEntitiesContext entitiesContext, IPackageService packageService, IIndexingService indexingService, IPackageFileService packageFileService, IAuditingService auditingService)
-                : base(packageRepository, packageDeletesRepository, entitiesContext, packageService, indexingService, packageFileService, auditingService)
+            public TestPackageDeleteService(IEntityRepository<Package> packageRepository, IEntityRepository<PackageRegistration> packageRegistrationRepository, IEntityRepository<PackageDelete> packageDeletesRepository, IEntitiesContext entitiesContext, IPackageService packageService, IIndexingService indexingService, IPackageFileService packageFileService, IAuditingService auditingService)
+                : base(packageRepository, packageRegistrationRepository, packageDeletesRepository, entitiesContext, packageService, indexingService, packageFileService, auditingService)
             {
             }
 
@@ -190,14 +194,11 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillBackupAndDeleteThePackageFile()
+            public async Task WillBackupAndDeleteJustThePublicPackageFile()
             {
                 var packageFileService = new Mock<IPackageFileService>();
                 packageFileService.Setup(x => x.DownloadPackageFileAsync(It.IsAny<Package>()))
-                    .ReturnsAsync(new MemoryStream());
-                packageFileService.Setup(x => x.DeleteReadMeMdFileAsync(It.IsAny<Package>(), It.IsAny<bool>()))
-                    .Returns(Task.CompletedTask)
-                    .Verifiable();
+                    .ReturnsAsync(Stream.Null);
 
                 var service = CreateService(packageFileService: packageFileService);
                 var packageRegistration = new PackageRegistration();
@@ -207,9 +208,81 @@ namespace NuGetGallery
 
                 await service.SoftDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty);
 
-                packageFileService.Verify(x => x.StorePackageFileInBackupLocationAsync(package, It.IsAny<Stream>()));
-                packageFileService.Verify(x => x.DeletePackageFileAsync(package.PackageRegistration.Id, package.Version));
+                packageFileService.Verify(
+                    x => x.StorePackageFileInBackupLocationAsync(package, It.IsAny<Stream>()),
+                    Times.Once);
+                packageFileService.Verify(
+                    x => x.DeletePackageFileAsync(package.PackageRegistration.Id, package.Version),
+                    Times.Once);
+            }
 
+            [Fact]
+            public async Task WillBackupAndDeleteJustTheValidationPackageFile()
+            {
+                var packageFileService = new Mock<IPackageFileService>();
+                packageFileService.Setup(x => x.DownloadValidationPackageFileAsync(It.IsAny<Package>()))
+                    .ReturnsAsync(Stream.Null);
+
+                var service = CreateService(packageFileService: packageFileService);
+                var packageRegistration = new PackageRegistration();
+                var package = new Package { PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
+                packageRegistration.Packages.Add(package);
+                var user = new User("test");
+
+                await service.SoftDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty);
+
+                packageFileService.Verify(
+                    x => x.StorePackageFileInBackupLocationAsync(package, It.IsAny<Stream>()),
+                    Times.Once);
+                packageFileService.Verify(
+                    x => x.DeletePackageFileAsync(package.PackageRegistration.Id, package.Version),
+                    Times.Once);
+                packageFileService.Verify(
+                    x => x.DeleteValidationPackageFileAsync(package.PackageRegistration.Id, package.Version),
+                    Times.Once);
+            }
+
+            [Fact]
+            public async Task WillBackupAndDeleteBothThePublicAndValidationPackageFile()
+            {
+                var packageFileService = new Mock<IPackageFileService>();
+                packageFileService.Setup(x => x.DownloadPackageFileAsync(It.IsAny<Package>()))
+                    .ReturnsAsync(Stream.Null);
+                packageFileService.Setup(x => x.DownloadValidationPackageFileAsync(It.IsAny<Package>()))
+                    .ReturnsAsync(Stream.Null);
+
+                var service = CreateService(packageFileService: packageFileService);
+                var packageRegistration = new PackageRegistration();
+                var package = new Package { PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
+                packageRegistration.Packages.Add(package);
+                var user = new User("test");
+
+                await service.SoftDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty);
+
+                packageFileService.Verify(
+                    x => x.StorePackageFileInBackupLocationAsync(package, It.IsAny<Stream>()),
+                    Times.Exactly(2));
+                packageFileService.Verify(
+                    x => x.DeletePackageFileAsync(package.PackageRegistration.Id, package.Version),
+                    Times.Once);
+                packageFileService.Verify(
+                    x => x.DeleteValidationPackageFileAsync(package.PackageRegistration.Id, package.Version),
+                    Times.Once);
+            }
+
+            [Fact]
+            public async Task WillDeleteReadMeFiles()
+            {
+                var packageFileService = new Mock<IPackageFileService>();
+
+                var service = CreateService(packageFileService: packageFileService);
+                var packageRegistration = new PackageRegistration();
+                var package = new Package { PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
+                packageRegistration.Packages.Add(package);
+                var user = new User("test");
+
+                await service.SoftDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty);
+                
                 packageFileService.Verify(x => x.DeleteReadMeMdFileAsync(package, true), Times.Once);
                 packageFileService.Verify(x => x.DeleteReadMeMdFileAsync(package, false), Times.Once);
             }
@@ -374,11 +447,11 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillBackupAndDeleteThePackageFile()
+            public async Task WillBackupAndDeleteJustThePublicPackageFile()
             {
                 var packageFileService = new Mock<IPackageFileService>();
                 packageFileService.Setup(x => x.DownloadPackageFileAsync(It.IsAny<Package>()))
-                    .ReturnsAsync(new MemoryStream());
+                    .ReturnsAsync(Stream.Null);
 
                 var service = CreateService(packageFileService: packageFileService);
                 var packageRegistration = new PackageRegistration();
@@ -388,8 +461,86 @@ namespace NuGetGallery
 
                 await service.HardDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty, false);
 
-                packageFileService.Verify(x => x.StorePackageFileInBackupLocationAsync(package, It.IsAny<Stream>()));
-                packageFileService.Verify(x => x.DeletePackageFileAsync(package.PackageRegistration.Id, package.Version));
+                packageFileService.Verify(
+                    x => x.StorePackageFileInBackupLocationAsync(package, It.IsAny<Stream>()),
+                    Times.Once);
+                packageFileService.Verify(
+                    x => x.DeletePackageFileAsync(package.PackageRegistration.Id, package.Version),
+                    Times.Once);
+                packageFileService.Verify(
+                    x => x.DeleteValidationPackageFileAsync(package.PackageRegistration.Id, package.Version),
+                    Times.Once);
+            }
+
+            [Fact]
+            public async Task WillBackupAndDeleteJustTheValidationPackageFile()
+            {
+                var packageFileService = new Mock<IPackageFileService>();
+                packageFileService.Setup(x => x.DownloadValidationPackageFileAsync(It.IsAny<Package>()))
+                    .ReturnsAsync(Stream.Null);
+
+                var service = CreateService(packageFileService: packageFileService);
+                var packageRegistration = new PackageRegistration();
+                var package = new Package { Key = 123, PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
+                packageRegistration.Packages.Add(package);
+                var user = new User("test");
+
+                await service.HardDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty, false);
+
+                packageFileService.Verify(
+                    x => x.StorePackageFileInBackupLocationAsync(package, It.IsAny<Stream>()),
+                    Times.Once);
+                packageFileService.Verify(
+                    x => x.DeletePackageFileAsync(package.PackageRegistration.Id, package.Version),
+                    Times.Once);
+                packageFileService.Verify(
+                    x => x.DeleteValidationPackageFileAsync(package.PackageRegistration.Id, package.Version),
+                    Times.Once);
+            }
+
+            [Fact]
+            public async Task WillBackupAndDeleteBothThePublicAndValidationPackageFile()
+            {
+                var packageFileService = new Mock<IPackageFileService>();
+                packageFileService.Setup(x => x.DownloadPackageFileAsync(It.IsAny<Package>()))
+                    .ReturnsAsync(Stream.Null);
+                packageFileService.Setup(x => x.DownloadValidationPackageFileAsync(It.IsAny<Package>()))
+                    .ReturnsAsync(Stream.Null);
+
+                var service = CreateService(packageFileService: packageFileService);
+                var packageRegistration = new PackageRegistration();
+                var package = new Package { Key = 123, PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
+                packageRegistration.Packages.Add(package);
+                var user = new User("test");
+
+                await service.HardDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty, false);
+
+                packageFileService.Verify(
+                    x => x.StorePackageFileInBackupLocationAsync(package, It.IsAny<Stream>()),
+                    Times.Exactly(2));
+                packageFileService.Verify(
+                    x => x.DeletePackageFileAsync(package.PackageRegistration.Id, package.Version),
+                    Times.Once);
+                packageFileService.Verify(
+                    x => x.DeleteValidationPackageFileAsync(package.PackageRegistration.Id, package.Version),
+                    Times.Once);
+            }
+
+            [Fact]
+            public async Task WillDeleteReadMeFiles()
+            {
+                var packageFileService = new Mock<IPackageFileService>();
+
+                var service = CreateService(packageFileService: packageFileService);
+                var packageRegistration = new PackageRegistration();
+                var package = new Package { Key = 123, PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
+                packageRegistration.Packages.Add(package);
+                var user = new User("test");
+
+                await service.HardDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty, false);
+
+                packageFileService.Verify(x => x.DeleteReadMeMdFileAsync(package, true), Times.Once);
+                packageFileService.Verify(x => x.DeleteReadMeMdFileAsync(package, false), Times.Once);
             }
 
             [Fact]
@@ -410,6 +561,64 @@ namespace NuGetGallery
                 Assert.Equal(package.PackageRegistration.Id, testService.LastAuditRecord.Id);
                 Assert.Equal(package.Version, testService.LastAuditRecord.Version);
                 auditingService.Verify(x => x.SaveAuditRecordAsync(testService.LastAuditRecord));
+            }
+        }
+
+        public class TheReflowHardDeletedPackagesAsyncMethod
+        {
+            [Fact]
+            public Task FailsIfPackageExists()
+            {
+                var id = "a";
+                var version = "1.0.0";
+                return ReflowHardDeletedPackage(id, version, id, version, false);
+            }
+
+            [Fact]
+            public Task SucceedsIfRegistrationExistsButNotPackage()
+            {
+                var id = "a";
+                var version = "1.0.0";
+                var existingVersion = "2.0.0";
+                return ReflowHardDeletedPackage(id, version, id, existingVersion, true);
+            }
+
+            [Fact]
+            public Task SucceedsIfRegistrationDoesNotExist()
+            {
+                var id = "a";
+                var version = "1.0.0";
+                var existingId = "b";
+                var existingVersion = "2.0.0";
+                return ReflowHardDeletedPackage(id, version, existingId, existingVersion, true);
+            }
+
+            private async Task ReflowHardDeletedPackage(string id, string version, string existingId, string existingVersion, bool succeeds)
+            {
+                var packageRegistrationKey = 1;
+                var packageRegistration = new PackageRegistration { Key = packageRegistrationKey, Id = existingId };
+                var package = new Package { PackageRegistrationKey = packageRegistrationKey, NormalizedVersion = existingVersion };
+
+                var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
+                packageRegistrationRepository.Setup(x => x.GetAll()).Returns(new PackageRegistration[] { packageRegistration }.AsQueryable());
+
+                var packageRepository = new Mock<IEntityRepository<Package>>();
+                packageRepository.Setup(x => x.GetAll()).Returns(new Package[] { package }.AsQueryable());
+
+                var auditingService = new Mock<IAuditingService>();
+
+                var service = CreateService(packageRepository: packageRepository, packageRegistrationRepository: packageRegistrationRepository, auditingService: auditingService);
+                
+                if (succeeds)
+                {
+                    await service.ReflowHardDeletedPackageAsync(id, version);
+                }
+                else
+                {
+                    await Assert.ThrowsAsync<UserSafeException>(() => service.ReflowHardDeletedPackageAsync(id, version));
+                }
+                
+                auditingService.Verify(x => x.SaveAuditRecordAsync(It.IsAny<AuditRecord>()), succeeds ? Times.Once() : Times.Never());
             }
         }
     }

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -45,7 +46,7 @@ namespace NuGetGallery
 
         public IEnumerable<PackageOwnerRequest> GetPackageOwnershipRequests(PackageRegistration package = null, User requestingOwner = null, User newOwner = null)
         {
-            var query = _packageOwnerRequestRepository.GetAll();
+            var query = _packageOwnerRequestRepository.GetAll().Include(e => e.PackageRegistration);
 
             if (package != null)
             {
@@ -67,6 +68,21 @@ namespace NuGetGallery
 
         public async Task<PackageOwnerRequest> AddPackageOwnershipRequest(PackageRegistration package, User requestingOwner, User newOwner)
         {
+            if (package == null)
+            {
+                throw new ArgumentNullException(nameof(package));
+            }
+
+            if (requestingOwner == null)
+            {
+                throw new ArgumentNullException(nameof(requestingOwner));
+            }
+
+            if (newOwner == null)
+            {
+                throw new ArgumentNullException(nameof(newOwner));
+            }
+
             var existingRequest = GetPackageOwnershipRequests(package: package, newOwner: newOwner).FirstOrDefault();
             if (existingRequest != null)
             {

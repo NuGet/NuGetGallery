@@ -156,6 +156,11 @@ namespace NuGetGallery.Configuration
         string SqlConnectionStringSupportRequest { get; set; }
 
         /// <summary>
+        /// Gets the SQL Connection string used to connect to the database for validations
+        /// </summary>
+        string SqlConnectionStringValidation { get; set; }
+
+        /// <summary>
         /// Gets the host name of the Azure CDN being used
         /// </summary>
         string AzureCdnHost { get; set; }

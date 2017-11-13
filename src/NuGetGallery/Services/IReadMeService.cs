@@ -26,10 +26,9 @@ namespace NuGetGallery
         /// Get the converted HTML from the stored ReadMe markdown.
         /// </summary>
         /// <param name="package">Package entity associated with the ReadMe.</param>
-        /// <param name="model">Display package view model to populate.</param>
         /// <param name="isPending">Whether to retrieve the pending ReadMe.</param>
         /// <returns>Pending or active ReadMe converted to HTML.</returns>
-        Task GetReadMeHtmlAsync(Package package, DisplayPackageViewModel model, bool isPending = false);
+        Task<string> GetReadMeHtmlAsync(Package package, bool isPending = false);
 
         /// <summary>
         /// Get package ReadMe markdown from storage.

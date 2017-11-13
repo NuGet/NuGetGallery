@@ -8,8 +8,10 @@ using System.Net;
 using System.Net.Mail;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
+using NuGetGallery.Filters;
 using NuGetGallery.Infrastructure.Authentication;
 
 namespace NuGetGallery
@@ -25,6 +27,7 @@ namespace NuGetGallery
         private readonly IAppConfiguration _config;
         private readonly AuthenticationService _authService;
         private readonly ICredentialBuilder _credentialBuilder;
+        private readonly IDeleteAccountService _deleteAccountService;
 
         public UsersController(
             ICuratedFeedService feedsQuery,
@@ -34,7 +37,8 @@ namespace NuGetGallery
             IMessageService messageService,
             IAppConfiguration config,
             AuthenticationService authService,
-            ICredentialBuilder credentialBuilder)
+            ICredentialBuilder credentialBuilder,
+            IDeleteAccountService deleteAccountService)
         {
             _curatedFeedService = feedsQuery ?? throw new ArgumentNullException(nameof(feedsQuery));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
@@ -44,6 +48,7 @@ namespace NuGetGallery
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _authService = authService ?? throw new ArgumentNullException(nameof(authService));
             _credentialBuilder = credentialBuilder ?? throw new ArgumentNullException(nameof(credentialBuilder));
+            _deleteAccountService = deleteAccountService ?? throw new ArgumentNullException(nameof(deleteAccountService));
         }
 
         [HttpGet]
@@ -87,6 +92,54 @@ namespace NuGetGallery
         public virtual ActionResult Account()
         {
             return AccountView(new AccountViewModel());
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admins")]
+        public virtual ActionResult Delete(string accountName)
+        {
+            var user = _userService.FindByUsername(accountName);
+            if(user == null || user.IsDeleted || (user is Organization))
+            {
+                return HttpNotFound("User not found.");
+            }
+
+            var listPackageItems = _packageService
+                 .FindPackagesByOwner(user, includeUnlisted:true)
+                 .Select(p => new ListPackageItemViewModel(p))
+                 .ToList();
+            var model = new DeleteUserAccountViewModel
+            {
+                Packages = listPackageItems,
+                User = user,
+                AccountName = user.Username,
+                HasOrphanPackages = listPackageItems.Any(p => p.Owners.Count <= 1)
+            };
+            return View("DeleteUserAccount", model);
+        }
+
+        [HttpDelete]
+        [Authorize(Roles = "Admins")]
+        [RequiresAccountConfirmation("Delete account")]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> Delete(DeleteUserAccountViewModel model)
+        {
+            var user = _userService.FindByUsername(model.AccountName);
+            if (user == null || user.IsDeleted)
+            {
+                return View("DeleteUserAccountStatus", new DeleteUserAccountStatus()
+                {
+                    AccountName = model.AccountName,
+                    Description = $"Account {model.AccountName} not found.",
+                    Success = false
+                });
+            }
+            else
+            {
+                var admin = GetCurrentUser();
+                var status = await _deleteAccountService.DeleteGalleryUserAccountAsync(user, admin, model.Signature, model.ShouldUnlist, commitAsTransaction: true);
+                return View("DeleteUserAccountStatus", status);
+            }
         }
 
         [HttpGet]
@@ -161,11 +214,13 @@ namespace NuGetGallery
             var outgoing = _packageOwnerRequestService.GetPackageOwnershipRequests(requestingOwner: user);
 
             var ownerRequests = new OwnerRequestsViewModel(incoming, outgoing, user, _packageService);
+            var reservedPrefixes = new ReservedNamespaceListViewModel(user.ReservedNamespaces);
 
             var model = new ManagePackagesViewModel
             {
                 Packages = packages,
-                OwnerRequests = ownerRequests
+                OwnerRequests = ownerRequests,
+                ReservedNamespaces = reservedPrefixes
             };
             return View(model);
         }
@@ -333,7 +388,7 @@ namespace NuGetGallery
         public virtual ActionResult Profiles(string username, int page = 1)
         {
             var user = _userService.FindByUsername(username);
-            if (user == null)
+            if (user == null || user.IsDeleted)
             {
                 return HttpNotFound();
             }
@@ -733,7 +788,7 @@ namespace NuGetGallery
             model.ChangeNotifications = model.ChangeNotifications ?? new ChangeNotificationsViewModel();
             model.ChangeNotifications.EmailAllowed = user.EmailAllowed;
             model.ChangeNotifications.NotifyPackagePushed = user.NotifyPackagePushed;
-
+           
             return View("Account", model);
         }
 

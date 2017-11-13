@@ -5,19 +5,35 @@
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
+@helper ShowIfAllPackageSet()
+{
+    @:style="display:none;" data-bind="visible: showAllPackageDownloads"
+}
+
+@helper ShowIfCommunityPackageSet()
+{
+    @:data-bind="visible: !showAllPackageDownloads()"
+}
+
 <section role="main" class="container main-container page-statistics-most-downloaded">
     <div class="row">
         <div class="col-xs-12">
             <h1>Most Downloaded Packages</h1>
-            <span class="page-subheading ms-fontSize-l">Top 100 Over the Last 6 Weeks</span>
+
+            <span class="page-subheading ms-fontSize-l" data-bind="text: showAllPackageDownloads() ? 'Top 100 Packages Over the Last 6 Weeks' : 'Top 100 Community Packages Over the Last 6 Weeks'">
+                Top 100 Community Packages Over the Last 6 Weeks
+            </span>
+            <label class="show-all-packages-toggle pull-right">
+                <input type="checkbox" data-bind="checked: showAllPackageDownloads" />
+                Show all packages
+            </label>
         </div>
     </div>
     <div class="row">
         <div class="col-xs-12">
-            <table class="table borderless">
-                <caption class="sr-only">
-                    The packages with the most downloads.
-                </caption>
+            <table @ShowIfAllPackageSet() class="table borderless">
+                <caption class="sr-only">The packages with the most downloads.</caption>
+
                 <thead>
                     <tr class="packages">
                         <th scope="col">&nbsp;<span class="sr-only">#</span></th>
@@ -42,6 +58,35 @@
                     }
                 </tbody>
             </table>
+
+            <table @ShowIfCommunityPackageSet() class="table borderless">
+                <caption class="sr-only">The community packages with the most downloads.</caption>
+
+                <thead>
+                    <tr class="packages">
+                        <th scope="col">&nbsp;<span class="sr-only">#</span></th>
+                        <th scope="col">Package</th>
+                        <th scope="col">Downloads</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @{
+                        index = 0;
+                        foreach (var item in Model.DownloadCommunityPackagesAll)
+                        {
+                            index++;
+
+                            <tr>
+                                <td scope="row">@index</td>
+                                <td><a href="@Url.Package(item.PackageId)">@item.PackageId</a></td>
+                                <td><a href="@Url.StatisticsPackageDownloadByVersion(item.PackageId)">@Model.DisplayDownloads(item.Downloads)</a></td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+
+            </table>
         </div>
     </div>
     <div class="row">
@@ -51,3 +96,17 @@
     </div>
 </section>
 
+@section BottomScripts
+{
+    <script>
+        $(function () {
+            'use strict';
+
+            var viewModel = {
+                showAllPackageDownloads: ko.observable(false),
+            };
+
+            ko.applyBindings(viewModel);
+        });
+    </script>
+}

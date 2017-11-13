@@ -114,11 +114,39 @@ namespace NuGetGallery.Controllers
             // Act
             var resultSet = await GetCollection<V2FeedPackage>(
                 async (controller, options) => await controller.FindPackagesById(options, _curatedFeedName, id: TestPackageId, semVerLevel: semVerLevel),
-                $"/api/v2/curated-feed/{_curatedFeedName}/FindPackagesById?id='{TestPackageId}'?semVerLevel={semVerLevel}");
+                $"/api/v2/curated-feed/{_curatedFeedName}/FindPackagesById?id='{TestPackageId}'&semVerLevel={semVerLevel}");
 
             // Assert
             AssertSemVer2PackagesIncludedInResult(resultSet, includePrerelease: true);
             Assert.Equal(AvailablePackages.Count, resultSet.Count);
+        }
+
+        [Fact]
+        public async Task FindPackagesByIdCount_FiltersSemVerV2PackageVersions()
+        {
+            // Act
+            var count = await GetInt<V2FeedPackage>(
+                async (controller, options) => await controller.FindPackagesByIdCount(options, _curatedFeedName, TestPackageId),
+                $"/api/v2/curated-feed/{_curatedFeedName}/FindPackagesById/$count?id='{TestPackageId}'");
+
+            // Assert
+            Assert.Equal(NonSemVer2Packages.Count, count);
+        }
+
+        [Theory]
+        [InlineData("2.0.0")]
+        [InlineData("2.0.1")]
+        [InlineData("3.0.0-alpha")]
+        [InlineData("3.0.0")]
+        public async Task FindPackagesByIdCount_IncludesSemVerV2PackageVersionsWhenSemVerLevel2OrHigher(string semVerLevel)
+        {
+            // Act
+            var count = await GetInt<V2FeedPackage>(
+                async (controller, options) => await controller.FindPackagesByIdCount(options, _curatedFeedName, id: TestPackageId, semVerLevel: semVerLevel),
+                $"/api/v2/curated-feed/{_curatedFeedName}/FindPackagesById/$count?id='{TestPackageId}'&semVerLevel={semVerLevel}");
+
+            // Assert
+            Assert.Equal(AvailablePackages.Count, count);
         }
 
         [Fact]
@@ -183,7 +211,7 @@ namespace NuGetGallery.Controllers
                     searchTerm: TestPackageId,
                     includePrerelease: true,
                     semVerLevel: semVerLevel),
-                $"/api/v2/curated-feed/{_curatedFeedName}/Search?searchTerm='{TestPackageId}'?semVerLevel={semVerLevel}&includePrerelease=true");
+                $"/api/v2/curated-feed/{_curatedFeedName}/Search?searchTerm='{TestPackageId}'&semVerLevel={semVerLevel}&includePrerelease=true");
 
             // Assert
             AssertSemVer2PackagesIncludedInResult(resultSet, includePrerelease: true);

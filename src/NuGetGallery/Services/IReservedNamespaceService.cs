@@ -41,8 +41,9 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="prefix">The reserved namespace to modify</param>
         /// <param name="username">The user to remove the ownership for the namespace</param>
+        /// <param name="commitAsTransaction">True if the changes will be commited as a single transaction.</param>
         /// <returns>Awaitable Task</returns>
-        Task DeleteOwnerFromReservedNamespaceAsync(string prefix, string username);
+        Task DeleteOwnerFromReservedNamespaceAsync(string prefix, string username, bool commitAsTransaction);
 
         /// <summary>
         /// Add the specified package registration to the reserved namespace. It is the caller's reponsibility to
@@ -50,8 +51,15 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="prefix">The reserved namespace to modify</param>
         /// <param name="packageRegistration">The package registration to be added</param>
-        /// <returns>Awaitable Task</returns>
         void AddPackageRegistrationToNamespace(string prefix, PackageRegistration packageRegistration);
+
+        /// <summary>
+        /// Remove the specified package registration from the reserved namespace. It is the caller's reponsibility to
+        /// commit the changes to the database.
+        /// </summary>
+        /// <param name="prefix">The prefix value of the reserved namespace to modify</param>
+        /// <param name="packageRegistration">The package registration entity to be removed.</param>
+        void RemovePackageRegistrationFromNamespace(string prefix, PackageRegistration packageRegistration);
 
         /// <summary>
         /// Retrieves the first reserved namespace which matches the given prefix.

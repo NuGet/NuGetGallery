@@ -34,6 +34,18 @@ namespace NuGetGallery
             return _fileStorageService.GetFileAsync(CoreConstants.PackagesFolderName, fileName);
         }
 
+        public Task<Uri> GetPackageReadUriAsync(Package package)
+        {
+            var fileName = BuildFileName(package, CoreConstants.PackageFileSavePathTemplate, CoreConstants.NuGetPackageFileExtension);
+            return _fileStorageService.GetFileReadUriAsync(CoreConstants.PackagesFolderName, fileName, endOfAccess: null);
+        }
+
+        public Task<bool> DoesPackageFileExistAsync(Package package)
+        {
+            var fileName = BuildFileName(package, CoreConstants.PackageFileSavePathTemplate, CoreConstants.NuGetPackageFileExtension);
+            return _fileStorageService.FileExistsAsync(CoreConstants.PackagesFolderName, fileName);
+        }
+
         public Task SaveValidationPackageFileAsync(Package package, Stream packageFile)
         {
             if (packageFile == null)
@@ -78,6 +90,42 @@ namespace NuGetGallery
                 CoreConstants.NuGetPackageFileExtension);
             
             return _fileStorageService.DeleteFileAsync(CoreConstants.ValidationFolderName, fileName);
+        }
+
+        public Task DeletePackageFileAsync(string id, string version)
+        {
+            if (String.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
+
+            if (String.IsNullOrWhiteSpace(version))
+            {
+                throw new ArgumentNullException(nameof(version));
+            }
+
+            var normalizedVersion = NuGetVersionFormatter.Normalize(version);
+
+            var fileName = BuildFileName(id, normalizedVersion, CoreConstants.PackageFileSavePathTemplate, CoreConstants.NuGetPackageFileExtension);
+            return _fileStorageService.DeleteFileAsync(CoreConstants.PackagesFolderName, fileName);
+        }
+
+        public Task<Uri> GetValidationPackageReadUriAsync(Package package, DateTimeOffset endOfAccess)
+        {
+            package = package ?? throw new ArgumentNullException(nameof(package));
+
+            var fileName = BuildFileName(
+                package,
+                CoreConstants.PackageFileSavePathTemplate,
+                CoreConstants.NuGetPackageFileExtension);
+
+            return _fileStorageService.GetFileReadUriAsync(CoreConstants.ValidationFolderName, fileName, endOfAccess);
+        }
+
+        public Task<bool> DoesValidationPackageFileExistAsync(Package package)
+        {
+            var fileName = BuildFileName(package, CoreConstants.PackageFileSavePathTemplate, CoreConstants.NuGetPackageFileExtension);
+            return _fileStorageService.FileExistsAsync(CoreConstants.ValidationFolderName, fileName);
         }
 
         protected static string BuildFileName(Package package, string format, string extension)

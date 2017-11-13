@@ -10,8 +10,6 @@ namespace NuGetGallery
 {
     public class ClientInformationTelemetryEnricher : ITelemetryInitializer
     {
-        public const string ClientInfoPropertyKey = "ClientInfo";
-
         public void Initialize(ITelemetry telemetry)
         {
             var request = telemetry as RequestTelemetry;
@@ -31,13 +29,7 @@ namespace NuGetGallery
                         TelemetryService.ProtocolVersion,
                         httpContext.Request.Headers[Constants.NuGetProtocolHeaderName]);
 
-                    // Best effort attempt to extract client information from the user-agent header.
-                    // According to documentation here: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent 
-                    // the common structure for user-agent header is:
-                    // User-Agent: Mozilla/<version> (<system-information>) <platform> (<platform-details>) <extensions>
-                    // Thus, extracting the part before the first '(', should give us product and version tokens in MOST cases.
-                    string userAgent = httpContext.Request.Headers[Constants.UserAgentHeaderName];
-                    telemetry.Context.Properties.Add(ClientInfoPropertyKey, GetProductInformation(userAgent));
+                    telemetry.Context.Properties.Add(TelemetryService.ClientInformation, httpContext.GetClientInformation());
                 }
             }
         }
@@ -45,29 +37,6 @@ namespace NuGetGallery
         protected virtual HttpContextBase GetHttpContext()
         {
             return new HttpContextWrapper(HttpContext.Current);
-        }
-
-        private string GetProductInformation(string userAgent)
-        {
-            string result = string.Empty;
-
-            if (!string.IsNullOrEmpty(userAgent))
-            {
-                int commentPartStartIndex = userAgent.IndexOf('(');
-
-                if (commentPartStartIndex != -1)
-                {
-                    result = userAgent.Substring(0, commentPartStartIndex);
-                }
-                else
-                {
-                    result = userAgent;
-                }
-
-                result = result.Trim();
-            }
-
-            return result;
         }
     }
 }

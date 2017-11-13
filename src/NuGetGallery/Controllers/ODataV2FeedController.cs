@@ -179,6 +179,17 @@ namespace NuGetGallery.Controllers
                 return404NotFoundWhenNoResults: false);
         }
 
+        // /api/v2/FindPackagesById()/$count?semVerLevel=
+        [HttpGet]
+        [CacheOutput(NoCache = true)]
+        public async Task<IHttpActionResult> FindPackagesByIdCount(
+            ODataQueryOptions<V2FeedPackage> options,
+            [FromODataUri]string id,
+            [FromUri]string semVerLevel = null)
+        {
+            return (await FindPackagesById(options, id, semVerLevel)).FormattedAsCountResult<V2FeedPackage>();
+        }
+
         private async Task<IHttpActionResult> GetCore(
             ODataQueryOptions<V2FeedPackage> options, 
             string id, 

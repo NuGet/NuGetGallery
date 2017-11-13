@@ -68,6 +68,16 @@ namespace NuGetGallery.Authentication
             }
 
             [Fact]
+            public async Task GivenAnOrganization_ItReturnsFailure()
+            {
+                // Act
+                var result = await _authenticationService.Authenticate(_fakes.Organization.Username, Fakes.Password);
+
+                // Assert
+                Assert.Equal(PasswordAuthenticationResult.AuthenticationResult.BadCredentials, result.Result);
+            }
+
+            [Fact]
             public async Task WritesAuditRecordWhenGivenUserNameDoesNotMatchPassword()
             {
                 // Act
@@ -192,6 +202,21 @@ namespace NuGetGallery.Authentication
                 // Act
                 var result = await _authenticationService.Authenticate(
                     TestCredentialHelper.CreateV1ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1));
+
+                // Assert
+                Assert.Null(result);
+            }
+
+            [Fact]
+            public async Task GivenAnOrganizationApiKeyCredential_ItReturnsNull()
+            {
+                // Arrange
+                var organization = _fakes.Organization;
+                var apiKey = Guid.Parse("1fdc96fe-0b41-4607-bc85-b6533b42d3f8");
+                organization.Credentials.Add(TestCredentialHelper.CreateV2ApiKey(apiKey, TimeSpan.FromDays(1)));
+
+                // Act
+                var result = await _authenticationService.Authenticate(apiKey.ToString());
 
                 // Assert
                 Assert.Null(result);
@@ -721,6 +746,19 @@ namespace NuGetGallery.Authentication
             }
 
             [Fact]
+            public async Task GivenAnOrganization_ThrowsInvalidOperationException()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var authService = Get<AuthenticationService>();
+
+                // Act & Assert
+                await Assert.ThrowsAsync<InvalidOperationException>(async () => {
+                    await authService.ReplaceCredential("testOrganization", fakes.Organization.Credentials.First());
+                });
+            }
+
+            [Fact]
             public async Task AddsNewCredentialIfNoneWithSameTypeForUser()
             {
                 // Arrange
@@ -1212,6 +1250,20 @@ namespace NuGetGallery.Authentication
                 // Assert
                 Assert.Contains(cred, user.Credentials);
                 authService.Entities.VerifyCommitChanges();
+            }
+
+            [Fact]
+            public async Task GivenAnOrganization_ThrowsInvalidOperationException()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var credential = new CredentialBuilder().CreatePasswordCredential("password");
+                var authService = Get<AuthenticationService>();
+
+                // Act & Assert
+                await Assert.ThrowsAsync<InvalidOperationException>(async () => {
+                    await authService.AddCredential(fakes.Organization, credential);
+                });
             }
 
             [Fact]

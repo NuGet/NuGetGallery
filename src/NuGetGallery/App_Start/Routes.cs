@@ -275,6 +275,11 @@ namespace NuGetGallery
                 new { controller = "Users", action = "ChangeEmailSubscription" });
 
             routes.MapRoute(
+                RouteName.AdminDeleteAccount,
+               "account/delete/{accountName}",
+                new { controller = "Users", action = "Delete" });
+
+            routes.MapRoute(
                 RouteName.Account,
                 "account/{action}",
                 new { controller = "Users", action = "Account" });

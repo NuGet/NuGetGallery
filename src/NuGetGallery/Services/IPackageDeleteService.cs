@@ -10,5 +10,6 @@ namespace NuGetGallery
     {
         Task SoftDeletePackagesAsync(IEnumerable<Package> packages, User deletedBy, string reason, string signature);
         Task HardDeletePackagesAsync(IEnumerable<Package> packages, User deletedBy, string reason, string signature, bool deleteEmptyPackageRegistration);
+        Task ReflowHardDeletedPackageAsync(string id, string version);
     }
 }
