@@ -29,10 +29,16 @@ namespace NuGetGallery
         public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackagesSummary { get; set; }
 
         public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackageVersionsSummary { get; set; }
+        public IEnumerable<StatisticsPackagesItemViewModel> DownloadCommunityPackagesSummary { get; set; }
+        public IEnumerable<StatisticsPackagesItemViewModel> DownloadCommunityPackageVersionsSummary { get; set; }
 
         public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackagesAll { get; set; }
 
         public IEnumerable<StatisticsPackagesItemViewModel> DownloadPackageVersionsAll { get; set; }
+
+        public IEnumerable<StatisticsPackagesItemViewModel> DownloadCommunityPackagesAll { get; set; }
+
+        public IEnumerable<StatisticsPackagesItemViewModel> DownloadCommunityPackageVersionsAll { get; set; }
 
         public IEnumerable<StatisticsNuGetUsageItem> NuGetClientVersion { get; set; }
 
@@ -40,7 +46,11 @@ namespace NuGetGallery
 
         public bool IsDownloadPackageAvailable { get; set; }
 
-        public bool IsDownloadPackageDetailAvailable { get; set; }
+        public bool IsDownloadPackageVersionsAvailable { get; set; }
+        
+        public bool IsDownloadCommunityPackageAvailable { get; set; }
+
+        public bool IsDownloadCommunityPackageVersionsAvailable { get; set; }
 
         public bool IsNuGetClientVersionAvailable { get; set; }
 

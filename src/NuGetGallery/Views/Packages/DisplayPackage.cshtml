@@ -131,7 +131,7 @@
                     }
                 </h1>
 
-                @if (!StringComparer.OrdinalIgnoreCase.Equals(Model.Id, Model.Title))
+                @if (!Model.Deleted && !StringComparer.OrdinalIgnoreCase.Equals(Model.Id, Model.Title))
                 {
                     <div class="ms-fontSize-xl">
                         @Html.BreakWord(Model.Title)
@@ -139,7 +139,7 @@
                 }
             </div>
 
-            @if (!String.IsNullOrWhiteSpace(Model.Description))
+            @if (!Model.Deleted && !String.IsNullOrWhiteSpace(Model.Description))
             {
                 <p>@Html.PreFormattedText(Model.Description)</p>
             }
@@ -232,7 +232,7 @@
                 }
             }
 
-            @if (!String.IsNullOrEmpty(Model.MinClientVersion))
+            @if (!Model.Deleted && !String.IsNullOrEmpty(Model.MinClientVersion))
             {
                 <p>Requires NuGet @Model.MinClientVersion or higher.</p>
             }
@@ -261,102 +261,105 @@
                 </div>
             }
 
-            @if (Model.ReadMeHtml != null)
+            @if (!Model.Deleted)
             {
-                <div id="readme-collapser-container">
-                    <h2>
-                        <a href="#" role="button" data-toggle="collapse" data-target="#readme-container"
-                           aria-expanded="true" aria-controls="readme-container" id="show-readme-container">
-                            <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
-                            <span>Documentation</span>
+                if (Model.ReadMeHtml != null)
+                {
+                    <div id="readme-collapser-container">
+                        <h2>
+                            <a href="#" role="button" data-toggle="collapse" data-target="#readme-container"
+                               aria-expanded="true" aria-controls="readme-container" id="show-readme-container">
+                                <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+                                <span>Documentation</span>
+                            </a>
+                        </h2>
+                    </div>
+                    <div id="readme-container" class="collapse in">
+                        <div id="readme-less" class="collapse in">
+                            @Html.Raw(Model.ReadMeHtml)
+                        </div>
+                        <div id="readme-more" class="collapse">
+                            @Html.Raw(Model.ReadMeHtml)
+                        </div>
+
+                        <a href="#" role="button" data-toggle="collapse" class="icon-link" data-target="#readme-more"
+                           aria-expanded="false" aria-controls="#readme-more, #readme-less"
+                           id="show-readme-more" data-track="show-package-documentation">
+                            <i class="ms-Icon ms-Icon--CalculatorAddition" aria-hidden="true"></i>
+                            <span>Show more</span>
                         </a>
-                    </h2>
-                </div>
-                <div id="readme-container" class="collapse in">
-                    <div id="readme-less" class="collapse in">
-                        @Html.Raw(Model.ReadMeHtml)
                     </div>
-                    <div id="readme-more" class="collapse">
-                        @Html.Raw(Model.ReadMeHtml)
-                    </div>
-
-                    <a href="#" role="button" data-toggle="collapse" class="icon-link" data-target="#readme-more"
-                       aria-expanded="false" aria-controls="#readme-more, #readme-less"
-                       id="show-readme-more" data-track="show-package-documentation">
-                        <i class="ms-Icon ms-Icon--CalculatorAddition" aria-hidden="true"></i>
-                        <span>Show more</span>
-                    </a>
-                </div>
-            }
-
-            @if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
-            {
-                <h2>Release Notes</h2>
-
-                <p>@Html.PreFormattedText(Model.ReleaseNotes)</p>
-            }
-
-            @if (Model.Dependencies.DependencySets == null)
-            {
-                if (Model.IsActionAllowed(User, PackageActions.DisplayPrivatePackage))
-                {
-                    <h2>Dependencies</h2>
-                    <p>
-                        An error occurred processing dependencies.
-                        Your package can still be downloaded and installed, but dependencies cannot be shown.
-                        Please @Html.ActionLink("Contact Support", actionName: "ReportMyPackage", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version }, htmlAttributes: null) if you have any questions.
-                    </p>
-                    <p>
-                        <strong>Note: This message is only visible to you and any other package owners.</strong>
-                    </p>
                 }
-            }
-            else
-            {
-                <h2>
-                    <a href="#" role="button" data-toggle="collapse" data-target="#dependency-groups"
-                       aria-expanded="@(Model.Dependencies.DependencySets.Any() ? "false" : "true")" aria-controls="dependency-groups"
-                       id="show-dependency-groups">
-                        <i class="ms-Icon ms-Icon--@(Model.Dependencies.DependencySets.Any() ? "ChevronRight" : "ChevronDown")"
-                           aria-hidden="true"></i>
-                        <span>Dependencies</span>
-                    </a>
-                </h2>
 
-                if (Model.Dependencies.DependencySets.Any())
+                if (!String.IsNullOrWhiteSpace(Model.ReleaseNotes))
                 {
-                    <ul class="list-unstyled panel-collapse collapse dependency-groups" id="dependency-groups">
-                        @foreach (var dependencySet in Model.Dependencies.DependencySets)
-                        {
-                            var dependencySetTitle = dependencySet.Key;
-                            <li>
-                                @if (!Model.Dependencies.OnlyHasAllFrameworks)
-                                {
-                                    <h4><span>@dependencySetTitle</span></h4>
-                                }
-                                <ul class="list-unstyled dependency-group">
-                                    @foreach (var dependency in dependencySet.Value)
-                                    {
-                                        <li>
-                                            @if (dependency == null)
-                                            {
-                                                @:No dependencies.
-                                            }
-                                            else
-                                            {
-                                                <a href="@Url.Package(dependency.Id)">@dependency.Id</a>
-                                                <span>@dependency.VersionSpec</span>
-                                            }
-                                        </li>
-                                    }
-                                </ul>
-                            </li>
-                        }
-                    </ul>
+                    <h2>Release Notes</h2>
+
+                    <p>@Html.PreFormattedText(Model.ReleaseNotes)</p>
+                }
+
+                if (Model.Dependencies.DependencySets == null)
+                {
+                    if (Model.IsActionAllowed(User, PackageActions.DisplayPrivatePackage))
+                    {
+                        <h2>Dependencies</h2>
+                        <p>
+                            An error occurred processing dependencies.
+                            Your package can still be downloaded and installed, but dependencies cannot be shown.
+                            Please @Html.ActionLink("Contact Support", actionName: "ReportMyPackage", controllerName: "Packages", routeValues: new { id = Model.Id, version = Model.Version }, htmlAttributes: null) if you have any questions.
+                        </p>
+                        <p>
+                            <strong>Note: This message is only visible to you and any other package owners.</strong>
+                        </p>
+                    }
                 }
                 else
                 {
-                    <p class="collapse in" id="dependency-groups">This package has no dependencies.</p>
+                    <h2>
+                        <a href="#" role="button" data-toggle="collapse" data-target="#dependency-groups"
+                           aria-expanded="@(Model.Dependencies.DependencySets.Any() ? "false" : "true")" aria-controls="dependency-groups"
+                           id="show-dependency-groups">
+                            <i class="ms-Icon ms-Icon--@(Model.Dependencies.DependencySets.Any() ? "ChevronRight" : "ChevronDown")"
+                               aria-hidden="true"></i>
+                            <span>Dependencies</span>
+                        </a>
+                    </h2>
+
+                    if (Model.Dependencies.DependencySets.Any())
+                    {
+                        <ul class="list-unstyled panel-collapse collapse dependency-groups" id="dependency-groups">
+                            @foreach (var dependencySet in Model.Dependencies.DependencySets)
+                            {
+                                var dependencySetTitle = dependencySet.Key;
+                                <li>
+                                    @if (!Model.Dependencies.OnlyHasAllFrameworks)
+                                    {
+                                        <h4><span>@dependencySetTitle</span></h4>
+                                    }
+                                    <ul class="list-unstyled dependency-group">
+                                        @foreach (var dependency in dependencySet.Value)
+                                        {
+                                            <li>
+                                                @if (dependency == null)
+                                                {
+                                                    @:No dependencies.
+                                                }
+                                                else
+                                                {
+                                                    <a href="@Url.Package(dependency.Id)">@dependency.Id</a>
+                                                    <span>@dependency.VersionSpec</span>
+                                                }
+                                            </li>
+                                        }
+                                    </ul>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="collapse in" id="dependency-groups">This package has no dependencies.</p>
+                    }
                 }
             }
 
@@ -492,7 +495,7 @@
                     <i class="ms-Icon ms-Icon--History" aria-hidden="true"></i>
                     last updated <span data-datetime="@Model.LastUpdated.ToString("O")">@Model.LastUpdated.ToNuGetShortDateString()</span>
                 </li>
-                @if (PackageHelper.ShouldRenderUrl(Model.ProjectUrl))
+                @if (!Model.Deleted && PackageHelper.ShouldRenderUrl(Model.ProjectUrl))
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--Globe" aria-hidden="true"></i>
@@ -508,7 +511,7 @@
                         </a>
                     </li>
                 }
-                @if (PackageHelper.ShouldRenderUrl(Model.LicenseUrl))
+                @if (!Model.Deleted && PackageHelper.ShouldRenderUrl(Model.LicenseUrl))
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--Certificate" aria-hidden="true"></i>
@@ -647,24 +650,30 @@
                 }
             </ul>
 
-            <h2>Authors</h2>
-            <p>@Model.Authors</p>
-
-            @if (!String.IsNullOrEmpty(Model.Copyright))
+            @if (!Model.Deleted)
             {
-                <h2>Copyright</h2>
-                <p>@Model.Copyright</p>
-            }
+                if (!String.IsNullOrEmpty(Model.Authors))
+                {
+                    <h2>Authors</h2>
+                    <p>@Model.Authors</p>
+                }
 
-            @if (Model.Tags.AnySafe())
-            {
-                <h2>Tags</h2>
-                <p>
-                    @foreach (var tag in Model.Tags)
-                    {
-                        <a href="@Url.Search("Tags:\"" + tag + "\"")" title="Search for @tag" class="tag">@tag</a>
-                    }
-                </p>
+                if (!String.IsNullOrEmpty(Model.Copyright))
+                {
+                    <h2>Copyright</h2>
+                    <p>@Model.Copyright</p>
+                }
+
+                if (Model.Tags.AnySafe())
+                {
+                    <h2>Tags</h2>
+                    <p>
+                        @foreach (var tag in Model.Tags)
+                        {
+                            <a href="@Url.Search("Tags:\"" + tag + "\"")" title="Search for @tag" class="tag">@tag</a>
+                        }
+                    </p>
+                }
             }
 
             @if (Model.Available)

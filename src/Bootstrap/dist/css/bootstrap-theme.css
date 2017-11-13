@@ -982,6 +982,9 @@ img.reserved-indicator-icon {
 .page-sign-in .or-row {
   margin: 20px;
 }
+.page-statistics-most-downloaded .show-all-packages-toggle {
+  font-weight: bold;
+}
 .page-statistics-most-downloaded .table {
   margin-top: 40px;
   table-layout: fixed;

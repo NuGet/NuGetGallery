@@ -16,6 +16,7 @@
 
 <section role="main" class="container main-container page-statistics-overview">
     <h1>Statistics</h1>
+
     <span class="page-subheading ms-fontSize-l">
         @Html.Partial("_LastUpdated", Model)
     </span>
@@ -25,6 +26,7 @@
         {
             <div class="col-md-6 col-xs-12">
                 <h2 class="stats-title-text">Package Downloads</h2>
+
                 <table class="table col-xs-12 borderless">
                     <thead>
                         <tr>
@@ -56,10 +58,11 @@
                 </table>
             </div>
         }
-        @if (Model.IsDownloadPackageDetailAvailable)
-            {
+        @if (Model.IsDownloadPackageVersionsAvailable)
+        {
             <div class="col-md-6 col-xs-12">
                 <h2 class="stats-title-text">Version Downloads</h2>
+
                 <table class="table col-xs-12 borderless">
                     <thead>
                         <tr>

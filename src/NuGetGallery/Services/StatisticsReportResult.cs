@@ -12,15 +12,15 @@ namespace NuGetGallery
     {
         [SuppressMessage("Microsoft.Security", "CA2104:DoNotDeclareReadOnlyMutableReferenceTypes", Justification = "This object is immutable")]
         public static readonly StatisticsReportResult Failed = new StatisticsReportResult(
-            loaded: false, 
+            isLoaded: false,
             lastUpdatedUtc: null);
 
-        public bool Loaded { get; private set; }
+        public bool IsLoaded { get; private set; }
         public DateTime? LastUpdatedUtc { get; private set; }
 
-        private StatisticsReportResult(bool loaded, DateTime? lastUpdatedUtc)
+        private StatisticsReportResult(bool isLoaded, DateTime? lastUpdatedUtc)
         {
-            Loaded = loaded;
+            IsLoaded = isLoaded;
             LastUpdatedUtc = lastUpdatedUtc;
         }
 
@@ -31,7 +31,7 @@ namespace NuGetGallery
 
         public static StatisticsReportResult Success(DateTime? lastUpdatedUtc)
         {
-            return new StatisticsReportResult(loaded: true, lastUpdatedUtc: lastUpdatedUtc);
+            return new StatisticsReportResult(isLoaded: true, lastUpdatedUtc: lastUpdatedUtc);
         }
     }
 }

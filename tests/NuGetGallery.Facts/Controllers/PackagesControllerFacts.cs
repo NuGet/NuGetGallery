@@ -1807,6 +1807,7 @@ namespace NuGetGallery
                     Message = "Mordor took my finger.",
                     Reason = ReportPackageReason.ViolatesALicenseIOwn,
                     AlreadyContactedOwner = true,
+                    Signature = "Frodo"
                 };
 
                 TestUtility.SetupUrlHelper(controller, httpContext);
@@ -1847,7 +1848,8 @@ namespace NuGetGallery
                 var model = new ReportAbuseViewModel
                 {
                     Message = "Mordor took my finger",
-                    Reason = ReportPackageReason.ViolatesALicenseIOwn
+                    Reason = ReportPackageReason.ViolatesALicenseIOwn,
+                    Signature = "Frodo"
                 };
 
                 TestUtility.SetupUrlHelper(controller, httpContext);
@@ -1913,6 +1915,7 @@ namespace NuGetGallery
                     Message = "I like the cut of your jib. It's <b>bold</b>.",
                     Reason = ReportPackageReason.ViolatesALicenseIOwn,
                     AlreadyContactedOwner = true,
+                    Signature = "Frodo"
                 };
 
                 TestUtility.SetupUrlHelper(controller, httpContext);
