@@ -18,6 +18,8 @@ namespace NuGetGallery
 
         User FindByUsername(string username);
 
+        User FindByKey(int key);
+
         Task<bool> ConfirmEmailAddress(User user, string token);
 
         Task ChangeEmailAddress(User user, string newEmailAddress);
