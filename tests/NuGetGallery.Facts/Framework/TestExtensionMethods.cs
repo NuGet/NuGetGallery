@@ -2,18 +2,26 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Owin;
 using Moq;
+using Newtonsoft.Json;
 using NuGetGallery.Authentication;
 
 namespace NuGetGallery
 {
     public static class TestExtensionMethods
     {
+        public static void SetOwinContextCurrentUser(this AppController self, User user, IEnumerable<Scope> scopes = null)
+        {
+            var scopesString = JsonConvert.SerializeObject(scopes, Formatting.None);
+            self.SetOwinContextCurrentUser(user, scopesString);
+        }
+
         /// <summary>
         /// Should only be used in the rare cases where you are testing an action that
         /// does NOT use AppController.GetCurrentUser()! In those cases, use
@@ -46,9 +54,20 @@ namespace NuGetGallery
             self.OwinContext.Request.User = principal;
         }
 
+        public static void SetCurrentUser(this AppController self, User user, IEnumerable<Scope> scopes)
+        {
+            self.SetOwinContextCurrentUser(user, scopes);
+            self.SetCurrentUserOwinEnvironmentKey(user);
+        }
+
         public static void SetCurrentUser(this AppController self, User user, string scopes = null)
         {
-            SetOwinContextCurrentUser(self, user, scopes);
+            self.SetOwinContextCurrentUser(user, scopes);
+            self.SetCurrentUserOwinEnvironmentKey(user);
+        }
+
+        private static void SetCurrentUserOwinEnvironmentKey(this AppController self, User user)
+        {
             self.OwinContext.Environment[Constants.CurrentUserOwinEnvironmentKey] = user;
         }
 

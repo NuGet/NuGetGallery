@@ -19,7 +19,7 @@ namespace NuGetGallery {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Strings {
@@ -1345,6 +1345,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to User &apos;{0}&apos; does not have the rights to upload a package with a new ID on behalf of user &apos;{1}&apos;!.
+        /// </summary>
+        public static string UploadPackage_NewIdOnBehalfOfUserNotAllowed {
+            get {
+                return ResourceManager.GetString("UploadPackage_NewIdOnBehalfOfUserNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User &apos;{0}&apos; does not have the rights to upload a new version of an existing package on behalf of user &apos;{1}&apos;!.
+        /// </summary>
+        public static string UploadPackage_NewVersionOnBehalfOfUserNotAllowed {
+            get {
+                return ResourceManager.GetString("UploadPackage_NewVersionOnBehalfOfUserNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot upload file because an upload is already in progress..
         /// </summary>
         public static string UploadPackage_UploadInProgress {
@@ -1408,6 +1426,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to User &apos;{0}&apos; does not have the rights to upload new versions of package &apos;{1}&apos;!.
+        /// </summary>
+        public static string VerifyPackage_OwnerInvalid {
+            get {
+                return ResourceManager.GetString("VerifyPackage_OwnerInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Your attempt to verify the package submission failed, because the package file appears to have changed. Please try again..
         /// </summary>
         public static string VerifyPackage_PackageFileModified {
@@ -1431,6 +1458,24 @@ namespace NuGetGallery {
         public static string VerifyPackage_UploadNotFound {
             get {
                 return ResourceManager.GetString("VerifyPackage_UploadNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You do not have permission to upload packages as user &apos;{0}&apos;!.
+        /// </summary>
+        public static string VerifyPackage_UserInvalid {
+            get {
+                return ResourceManager.GetString("VerifyPackage_UserInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The user &apos;{0}&apos; doesn&apos;t exist! You cannot upload a package as a user that doesn&apos;t exist..
+        /// </summary>
+        public static string VerifyPackage_UserNonExistent {
+            get {
+                return ResourceManager.GetString("VerifyPackage_UserNonExistent", resourceCulture);
             }
         }
         

@@ -12,7 +12,7 @@ namespace NuGetGallery
     {
         public VerifyPackageRequest() { }
 
-        public VerifyPackageRequest(PackageMetadata packageMetadata)
+        public VerifyPackageRequest(PackageMetadata packageMetadata, IEnumerable<User> possibleOwners)
         {
             var dependencyGroups = packageMetadata.GetDependencyGroups();
 
@@ -30,7 +30,7 @@ namespace NuGetGallery
             FrameworkReferenceGroups = packageMetadata.GetFrameworkReferenceGroups();
             Dependencies = new DependencySetsViewModel(packageMetadata.GetDependencyGroups().AsPackageDependencyEnumerable());
             DevelopmentDependency = packageMetadata.GetValueFromMetadata("developmentDependency");
-            Edit = new EditPackageVersionRequest(packageMetadata);
+            Edit = new EditPackageVersionRequest(packageMetadata, possibleOwners);
         }
 
         public string Id { get; set; }

@@ -160,7 +160,17 @@ namespace NuGetGallery
 
                     model.IsUploadInProgress = true;
 
-                    var verifyRequest = new VerifyPackageRequest(packageMetadata);
+                    var existingPackageRegistration = _packageService.FindPackageRegistrationById(packageMetadata.Id);
+
+                    if (!_reservedNamespaceService.IsPushAllowedOnBehalfOfOwner(packageMetadata.Id, currentUser, out var userOwnerMatchingNamespaces) || 
+                        (existingPackageRegistration != null && !PermissionsService.IsActionAllowed(existingPackageRegistration, currentUser, PackageActions.UploadNewVersion)))
+                    {
+                        // This user no longer has the rights to upload to this package. Cancel this upload.
+                        await CancelPendingUpload();
+                        return View();
+                    }
+                    
+                    var verifyRequest = new VerifyPackageRequest(packageMetadata, GetPossibleOwnersForUpload(packageMetadata.Id));
 
                     model.InProgressUpload = verifyRequest;
                 }
@@ -277,10 +287,7 @@ namespace NuGetGallery
                 // For a new package id verify if the user is allowed to use it.
                 if (packageRegistration == null)
                 {
-                    var isPushAllowed = _reservedNamespaceService
-                        .IsPushAllowed(id, currentUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
-
-                    if (!isPushAllowed)
+                    if (!_reservedNamespaceService.IsPushAllowedOnBehalfOfOwner(id, currentUser, out var matchingNamespaces))
                     {
                         ModelState.AddModelError(
                             string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict));
@@ -292,7 +299,7 @@ namespace NuGetGallery
                     }
                 }
 
-                // For existing package id verify if it is owned by the current user
+                // For existing package ID verify that the current user has the rights to upload new versions
                 if (packageRegistration != null && !PermissionsService.IsActionAllowed(packageRegistration, currentUser, PackageActions.UploadNewVersion))
                 {
                     ModelState.AddModelError(
@@ -367,7 +374,7 @@ namespace NuGetGallery
                 }
             }
 
-            var model = new VerifyPackageRequest(packageMetadata);
+            var model = new VerifyPackageRequest(packageMetadata, GetPossibleOwnersForUpload(packageMetadata.Id));
 
             return Json(model);
         }
@@ -1032,7 +1039,10 @@ namespace NuGetGallery
             // Create edit model from the latest pending edit.
             var pendingMetadata = _editPackageService.GetPendingMetadata(package);
 
-            model.Edit = new EditPackageVersionRequest(package, pendingMetadata);
+            // No point in allowing users to specify the owner who edited the package: just show the first.
+            var possibleOwners = GetPossibleOwnersForUpload(package.PackageRegistration.Id).Take(1);
+
+            model.Edit = new EditPackageVersionRequest(package, pendingMetadata, possibleOwners);
 
             // Update edit model with the active or pending readme.md data.
             var isReadMePending = model.Edit.ReadMeState != PackageEditReadMeState.Unchanged;
@@ -1127,7 +1137,7 @@ namespace NuGetGallery
             }
             
             var user = _userService.FindByUsername(username);
-            if (!PermissionsService.IsActionAllowed(user, GetCurrentUser(), AccountActions.AcceptPackageOwnershipOnBehalfOf))
+            if (!PermissionsService.IsActionAllowed(user, GetCurrentUser(), AccountActions.ManagePackageOwnersOnBehalfOf))
             {
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.NotYourRequest));
             }
@@ -1138,7 +1148,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            if (package.Owners.Any(o => o.Key == user.Key))
+            if (package.Owners.Any(o => o.MatchesUser(user)))
             {
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.AlreadyOwner));
             }
@@ -1397,6 +1407,49 @@ namespace NuGetGallery
                     Size = uploadFile.Length,
                 };
 
+                // Check that the owner specified in the form is valid
+                var owner = _userService.FindByUsername(formData.Edit.Owner);
+
+                if (owner == null)
+                {
+                    var message = string.Format(CultureInfo.CurrentCulture, Strings.VerifyPackage_UserNonExistent, formData.Edit.Owner);
+                    TempData["Message"] = message;
+                    return Json(400, new[] { message });
+                }
+
+                var existingPackageRegistration = _packageService.FindPackageRegistrationById(packageMetadata.Id);
+                if (existingPackageRegistration != null)
+                {
+                    if (!PermissionsService.IsActionAllowed(owner, currentUser, AccountActions.UploadNewVersionOnBehalfOf))
+                    {
+                        // The user is not allowed to upload a new version on behalf of the owner specified in the form
+                        var message = string.Format(CultureInfo.CurrentCulture, 
+                            Strings.UploadPackage_NewVersionOnBehalfOfUserNotAllowed,
+                            currentUser.Username, owner.Username);
+                        TempData["Message"] = message;
+                        return Json(400, new[] { message });
+                    }
+
+                    if (!PermissionsService.IsActionAllowed(existingPackageRegistration, owner, PackageActions.UploadNewVersion))
+                    {
+                        // The owner specified in the form is not allowed to upload a new version of the package
+                        var message = string.Format(CultureInfo.CurrentCulture, 
+                            Strings.VerifyPackage_OwnerInvalid,
+                            owner.Username, existingPackageRegistration.Id);
+                        TempData["Message"] = message;
+                        return Json(400, new[] { message });
+                    }
+                }
+                else if (!PermissionsService.IsActionAllowed(owner, currentUser, AccountActions.UploadNewIdOnBehalfOf))
+                {
+                    // The user is not allowed to upload a new ID on behalf of the owner specified in the form
+                    var message = string.Format(CultureInfo.CurrentCulture, 
+                        Strings.UploadPackage_NewIdOnBehalfOfUserNotAllowed,
+                        currentUser.Username, owner.Username);
+                    TempData["Message"] = message;
+                    return Json(400, new[] { message });
+                }
+
                 // update relevant database tables
                 try
                 {
@@ -1404,6 +1457,7 @@ namespace NuGetGallery
                         packageMetadata.Id,
                         nugetPackage,
                         packageStreamMetadata,
+                        owner,
                         currentUser);
 
                     Debug.Assert(package.PackageRegistration != null);
@@ -1544,8 +1598,7 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<JsonResult> CancelUpload()
         {
-            var currentUser = GetCurrentUser();
-            await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
+            await CancelPendingUpload();
 
             return Json(null);
         }
@@ -1604,6 +1657,15 @@ namespace NuGetGallery
             return Redirect(urlFactory(package, /*relativeUrl:*/ true));
         }
 
+        /// <summary>
+        /// Deletes the current user's pending upload, deleting their uploaded file
+        /// </summary>
+        private Task CancelPendingUpload()
+        {
+            var currentUser = GetCurrentUser();
+            return _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
+        }
+
         // this methods exist to make unit testing easier
         protected internal virtual PackageArchiveReader CreatePackage(Stream stream)
         {
@@ -1616,6 +1678,44 @@ namespace NuGetGallery
                 stream.Dispose();
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Determines the possible owners for a package that is being uploaded by the current user.
+        /// Assumes the current user has permissions to upload the package.
+        /// </summary>
+        /// <param name="id">The ID of the package being uploaded</param>
+        internal IEnumerable<User> GetPossibleOwnersForUpload(string id)
+        {
+            IEnumerable<User> possibleOwners;
+            var existingPackageRegistration = _packageService.FindPackageRegistrationById(id);
+            var currentUser = GetCurrentUser();
+
+            if (existingPackageRegistration != null)
+            {
+                possibleOwners = existingPackageRegistration.Owners
+                    .Where(u => PermissionsService.IsActionAllowed(u, currentUser, AccountActions.UploadNewVersionOnBehalfOf));
+                if (!possibleOwners.Any())
+                {
+                    // If the user has the right to upload to the package but they are not able to upload as any of the existing owners (e.g. site admin), allow the user to upload as themselves.
+                    possibleOwners = new User[] { currentUser };
+                }
+            }
+            else
+            {
+                var organizations =
+                   currentUser.Organizations
+                       .Select(m => m.Organization);
+
+                possibleOwners = 
+                    new[] { currentUser }
+                        .Concat(organizations)
+                       .Where(u => PermissionsService.IsActionAllowed(u, currentUser, AccountActions.UploadNewIdOnBehalfOf))
+                       .Where(u => _reservedNamespaceService.IsPushAllowed(id, u, out var matchingNamespaces))
+                       .ToArray();
+            }
+
+            return possibleOwners;
         }
 
         private static string GetSortExpression(string sortOrder)

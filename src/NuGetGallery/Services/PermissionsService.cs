@@ -39,8 +39,7 @@ namespace NuGetGallery
         /// </summary>
         public static bool IsActionAllowed(IEnumerable<User> entityOwners, IPrincipal currentPrincipal, PermissionLevel actionPermissionLevel)
         {
-            var userPermissionLevel = GetPermissionLevel(entityOwners, currentPrincipal);
-            return IsAllowed(userPermissionLevel, actionPermissionLevel);
+            return HasPermission(entityOwners, currentPrincipal, actionPermissionLevel);
         }
 
         /// <summary>
@@ -60,6 +59,14 @@ namespace NuGetGallery
         }
 
         /// <summary>
+        /// Is <paramref name="currentUser"/> allowed to perform <paramref name="actionPermissionLevel"/> on <paramref name="reservedNamespace"/>?
+        /// </summary>
+        public static bool IsActionAllowed(ReservedNamespace reservedNamespace, User currentUser, PermissionLevel actionPermissionLevel)
+        {
+            return IsActionAllowed(reservedNamespace.Owners, currentUser, actionPermissionLevel);
+        }
+
+        /// <summary>
         /// Is <paramref name="currentPrincipal"/> allowed to perform <paramref name="actionPermissionLevel"/> on <paramref name="account"/>?
         /// </summary>
         public static bool IsActionAllowed(User account, User currentUser, PermissionLevel action)
@@ -72,58 +79,55 @@ namespace NuGetGallery
         /// </summary>
         public static bool IsActionAllowed(IEnumerable<User> entityOwners, User currentUser, PermissionLevel actionPermissionLevel)
         {
-            var userPermissionLevel = GetPermissionLevel(entityOwners, currentUser);
-            return IsAllowed(userPermissionLevel, actionPermissionLevel);
+            return HasPermission(entityOwners, currentUser, actionPermissionLevel);
         }
 
-        private static bool IsAllowed(PermissionLevel userPermissionLevel, PermissionLevel actionPermissionLevel)
-        {
-            return (userPermissionLevel & actionPermissionLevel) > 0;
-        }
-
-        internal static PermissionLevel GetPermissionLevel(IEnumerable<User> owners, User currentUser)
+        private static bool HasPermission(IEnumerable<User> owners, User currentUser, PermissionLevel actionPermissionLevel)
         {
             if (currentUser == null)
             {
-                return PermissionLevel.Anonymous;
+                return PermissionLevelsMatch(PermissionLevel.Anonymous, actionPermissionLevel);
             }
 
-            return GetPermissionLevel(
+            return HasPermission(
                 owners, 
                 currentUser.IsAdministrator(), 
-                u => currentUser.MatchesUser(u));
+                u => currentUser.MatchesUser(u),
+                actionPermissionLevel);
         }
 
-        internal static PermissionLevel GetPermissionLevel(IEnumerable<User> entityOwners, IPrincipal currentPrincipal)
+        private static bool HasPermission(IEnumerable<User> entityOwners, IPrincipal currentPrincipal, PermissionLevel actionPermissionLevel)
         {
             if (currentPrincipal == null)
             {
-                return PermissionLevel.Anonymous;
+                return PermissionLevelsMatch(PermissionLevel.Anonymous, actionPermissionLevel);
             }
 
-            return GetPermissionLevel(
+            return HasPermission(
                 entityOwners, 
                 currentPrincipal.IsAdministrator(), 
-                u => currentPrincipal.MatchesUser(u));
+                u => currentPrincipal.MatchesUser(u),
+                actionPermissionLevel);
         }
 
-        private static PermissionLevel GetPermissionLevel(IEnumerable<User> entityOwners, bool isUserAdmin, Func<User, bool> isUserMatch)
+        private static bool HasPermission(IEnumerable<User> entityOwners, bool isUserAdmin, Func<User, bool> isUserMatch, PermissionLevel actionPermissionLevel)
         {
-            var permissionLevel = PermissionLevel.Anonymous;
-
-            if (entityOwners == null)
+            if ((entityOwners == null || !entityOwners.Any()) && 
+                PermissionLevelsMatch(PermissionLevel.Anonymous, actionPermissionLevel))
             {
-                return permissionLevel;
+                return true;
             }
 
-            if (isUserAdmin)
+            if (isUserAdmin && 
+                PermissionLevelsMatch(PermissionLevel.SiteAdmin, actionPermissionLevel))
             {
-                permissionLevel |= PermissionLevel.SiteAdmin;
+                return true;
             }
 
-            if (entityOwners.Any(isUserMatch))
+            if (entityOwners.Any(isUserMatch) &&
+                PermissionLevelsMatch(PermissionLevel.Owner, actionPermissionLevel))
             {
-                permissionLevel |= PermissionLevel.Owner;
+                return true;
             }
 
             var matchingMembers = entityOwners
@@ -133,17 +137,24 @@ namespace NuGetGallery
                 .Where(m => isUserMatch(m.Member))
                 .ToArray();
 
-            if (matchingMembers.Any(m => m.IsAdmin))
+            if (matchingMembers.Any(m => m.IsAdmin) &&
+                PermissionLevelsMatch(PermissionLevel.OrganizationAdmin, actionPermissionLevel))
             {
-                permissionLevel |= PermissionLevel.OrganizationAdmin;
+                return true;
             }
 
-            if (matchingMembers.Any())
+            if (matchingMembers.Any() &&
+                PermissionLevelsMatch(PermissionLevel.OrganizationCollaborator, actionPermissionLevel))
             {
-                permissionLevel |= PermissionLevel.OrganizationCollaborator;
+                return true;
             }
 
-            return permissionLevel;
+            return PermissionLevelsMatch(PermissionLevel.Anonymous, actionPermissionLevel);
+        }
+
+        private static bool PermissionLevelsMatch(PermissionLevel first, PermissionLevel second)
+        {
+            return (first & second) > 0;
         }
     }
 }

@@ -79,7 +79,7 @@ namespace NuGetGallery
         {
             return self.IsInRole(Constants.AdminRoleName);
         }
-        
+
         /// <summary>
         /// Determine if the current user matches the owner scope of the current credential.
         /// There is a match if the owner scope is self or an organization to which the user
@@ -97,7 +97,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(user));
             }
 
-            if (credential== null)
+            if (credential == null)
             {
                 throw new ArgumentNullException(nameof(credential));
             }
@@ -107,7 +107,7 @@ namespace NuGetGallery
             {
                 return true;
             }
-            
+
             return credential.Scopes
                 .Select(s => s.OwnerKey)
                 .Distinct()
@@ -121,7 +121,7 @@ namespace NuGetGallery
                 || user.Organizations.Any(o => o.OrganizationKey == accountKey);
         }
 
-	public static void SetAccountAsDeleted(this User user)
+        public static void SetAccountAsDeleted(this User user)
         {
             user.EmailAddress = null;
             user.UnconfirmedEmailAddress = null;
@@ -132,6 +132,6 @@ namespace NuGetGallery
             user.LastFailedLoginUtc = null;
             user.FailedLoginCount = 0;
             user.IsDeleted = true;
-	}
+        }
     }
 }
