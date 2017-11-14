@@ -1354,7 +1354,7 @@ namespace NuGetGallery.Authentication
                 // Arrange
                 var cred = new CredentialBuilder().CreateApiKey(Fakes.ExpirationForApiKeyV1);
                 cred.Description = "description";
-                cred.Scopes = new[] { new Scope("123", NuGetScopeActions.PackagePushVersion), new Scope("123", NuGetScopeActions.PackageUnlist) };
+                cred.Scopes = new[] { new Scope("123", NuGetScopes.PackagePushVersion), new Scope("123", NuGetScopes.PackageUnlist) };
                 cred.Expires = hasExpired ? DateTime.UtcNow - TimeSpan.FromDays(1) : DateTime.UtcNow + TimeSpan.FromDays(1);
                 cred.ExpirationTicks = TimeSpan.TicksPerDay;
 
@@ -1376,9 +1376,9 @@ namespace NuGetGallery.Authentication
                 Assert.Equal(hasExpired, description.HasExpired);
 
                 Assert.True(description.Scopes.Count == 2);
-                Assert.Equal(NuGetScopeActions.Describe(NuGetScopeActions.PackagePushVersion), description.Scopes[0].AllowedAction);
+                Assert.Equal(NuGetScopes.Describe(NuGetScopes.PackagePushVersion), description.Scopes[0].AllowedAction);
                 Assert.Equal("123", description.Scopes[0].Subject);
-                Assert.Equal(NuGetScopeActions.Describe(NuGetScopeActions.PackageUnlist), description.Scopes[1].AllowedAction);
+                Assert.Equal(NuGetScopes.Describe(NuGetScopes.PackageUnlist), description.Scopes[1].AllowedAction);
                 Assert.Equal("123", description.Scopes[1].Subject);
                 Assert.Equal(cred.ExpirationTicks.Value, description.ExpirationDuration.Value.Ticks);
             }
@@ -1474,12 +1474,12 @@ namespace NuGetGallery.Authentication
                 var credscopes =
                     Enumerable.Range(0, 5)
                         .Select(
-                            i => new Scope { AllowedAction = NuGetScopeActions.PackagePush, Key = i, Subject = "package" + i }).ToList();
+                            i => new Scope { AllowedAction = NuGetScopes.PackagePush, Key = i, Subject = "package" + i }).ToList();
 
                 var newScopes =
                     Enumerable.Range(1, 2)
                         .Select(
-                            i => new Scope { AllowedAction = NuGetScopeActions.PackageUnlist, Key = i * 10, Subject = "otherpackage" + i }).ToList();
+                            i => new Scope { AllowedAction = NuGetScopes.PackageUnlist, Key = i * 10, Subject = "otherpackage" + i }).ToList();
 
                 cred.Scopes = credscopes;
 
@@ -1489,7 +1489,7 @@ namespace NuGetGallery.Authentication
                 }
 
                 // Add an unrelated scope to make sure it's not removed
-                entities.Scopes.Add(new Scope { AllowedAction = NuGetScopeActions.PackagePush, Key = 999, Subject = "package999" });
+                entities.Scopes.Add(new Scope { AllowedAction = NuGetScopes.PackagePush, Key = 999, Subject = "package999" });
 
                 // Act
                 await authService.EditCredentialScopes(user, cred, newScopes);

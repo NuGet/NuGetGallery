@@ -141,7 +141,7 @@ namespace NuGetGallery
             {
                 throw new ArgumentNullException(nameof(identity));
             }
-            var hasVerifyScope = identity.HasScopeThatAllowsActions(NuGetScopeActions.PackageVerify).ToString();
+            var hasVerifyScope = identity.HasScopeThatAllowsActions(NuGetScopes.PackageVerify).ToString();
 
             TrackEvent(Events.VerifyPackageKey, properties =>
             {

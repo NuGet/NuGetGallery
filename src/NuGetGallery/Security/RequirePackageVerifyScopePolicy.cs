@@ -26,7 +26,7 @@ namespace NuGetGallery.Security
             }
 
             var identity = context.HttpContext.User.Identity;
-            if (identity.HasExplicitScopeAction(NuGetScopeActions.PackageVerify))
+            if (identity.HasExplicitScopeAction(NuGetScopes.PackageVerify))
             {
                 return SecurityPolicyResult.SuccessResult;
             }

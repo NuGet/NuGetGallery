@@ -364,17 +364,24 @@ namespace NuGetGallery
             }
         }
 
-        public bool IsPushAllowedByUser(string id, User user, out IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces)
-        {
-            return IsPushAllowedInternal(id, user, rn => rn.Owners.AnySafe(o => o.MatchesUser(user)), out userOwnedMatchingNamespaces);
-        }
-
         public bool IsPushAllowed(string id, User user, out IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces)
         {
-            return IsPushAllowedInternal(id, user, rn => PermissionsService.IsActionAllowed(rn.Owners, user, AccountActions.UploadNewIdOnBehalfOf), out userOwnedMatchingNamespaces);
+            return IsPushAllowedInternal(
+                id, 
+                user, 
+                rn => PermissionsService.IsActionAllowed(rn, user, ReservedNamespaceActions.PushToReservedNamespace), 
+                out userOwnedMatchingNamespaces);
         }
 
-        private bool IsPushAllowedInternal(string id, User user, Func<ReservedNamespace, bool> canPushOnBehalfOf, out IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces)
+        public bool IsPushAllowedOnBehalfOfOwner(string id, User user, out IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces)
+        {
+            return IsPushAllowedInternal(id, 
+                user,
+                rn => rn.Owners.Any(o => PermissionsService.IsActionAllowed(o, user, AccountActions.PushToReservedNamespaceOnBehalfOf)), 
+                out userOwnedMatchingNamespaces);
+        }
+
+        private bool IsPushAllowedInternal(string id, User user, Func<ReservedNamespace, bool> canPush, out IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces)
         {
             // Allow push to a new package ID only if
             // 1. There is no namespace match for the given ID
@@ -384,7 +391,7 @@ namespace NuGetGallery
             var noNamespaceMatches = !matchingNamespaces.Any();
             var idMatchesSharedNamespace = matchingNamespaces.Any(rn => rn.IsSharedNamespace);
             userOwnedMatchingNamespaces = matchingNamespaces
-                .Where(canPushOnBehalfOf)
+                .Where(canPush)
                 .ToList()
                 .AsReadOnly();
 

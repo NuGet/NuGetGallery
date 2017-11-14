@@ -660,7 +660,7 @@ namespace NuGetGallery
                 // Act
                 await controller.GenerateApiKey(
                     description: "my new api key",
-                    scopes: new [] { NuGetScopeActions.PackageUnlist },
+                    scopes: new [] { NuGetScopes.PackageUnlist },
                     subjects: null,
                     expirationInDays: inputExpirationInDays);
                 
@@ -681,35 +681,35 @@ namespace NuGetGallery
                         new object[]
                         {
                             "permissions to several scopes, several packages",
-                            new[] {NuGetScopeActions.PackageUnlist, NuGetScopeActions.PackagePush},
+                            new[] {NuGetScopes.PackageUnlist, NuGetScopes.PackagePush},
                             new[] {"abc", "def"},
                             new []
                             {
-                                new Scope("abc", NuGetScopeActions.PackageUnlist),
-                                new Scope("abc", NuGetScopeActions.PackagePush),
-                                new Scope("def", NuGetScopeActions.PackageUnlist),
-                                new Scope("def", NuGetScopeActions.PackagePush)
+                                new Scope("abc", NuGetScopes.PackageUnlist),
+                                new Scope("abc", NuGetScopes.PackagePush),
+                                new Scope("def", NuGetScopes.PackageUnlist),
+                                new Scope("def", NuGetScopes.PackagePush)
                             }
                         },
                         new object[]
                         {
                             "permissions to several scopes, all packages",
-                            new [] { NuGetScopeActions.PackageUnlist, NuGetScopeActions.PackagePush },
+                            new [] { NuGetScopes.PackageUnlist, NuGetScopes.PackagePush },
                             null,
                             new []
                             {
-                                new Scope("*", NuGetScopeActions.PackageUnlist),
-                                new Scope("*", NuGetScopeActions.PackagePush)
+                                new Scope("*", NuGetScopes.PackageUnlist),
+                                new Scope("*", NuGetScopes.PackagePush)
                             }
                         },
                         new object[]
                         {
                             "permissions to single scope, all packages",
-                            new [] { NuGetScopeActions.PackageUnlist },
+                            new [] { NuGetScopes.PackageUnlist },
                             null,
                             new []
                             {
-                                new Scope("*", NuGetScopeActions.PackageUnlist)
+                                new Scope("*", NuGetScopes.PackageUnlist)
                             }
                         },
                         new object[]
@@ -719,18 +719,18 @@ namespace NuGetGallery
                             null,
                             new []
                             {
-                                new Scope("*", NuGetScopeActions.All)
+                                new Scope("*", NuGetScopes.All)
                             } 
                         },
                         new object[]
                         {
                             "empty subjects are ignored",
-                            new [] { NuGetScopeActions.PackageUnlist },
+                            new [] { NuGetScopes.PackageUnlist },
                             new[] {"abc", "def", string.Empty, null, "   "},
                             new []
                             {
-                                new Scope("abc", NuGetScopeActions.PackageUnlist),
-                                new Scope("def", NuGetScopeActions.PackageUnlist)
+                                new Scope("abc", NuGetScopes.PackageUnlist),
+                                new Scope("def", NuGetScopes.PackageUnlist)
                             }
                         }
                     };
@@ -783,7 +783,7 @@ namespace NuGetGallery
 
                 var result = await controller.GenerateApiKey(
                     description: "description",
-                    scopes: new [] { NuGetScopeActions.PackageUnlist, NuGetScopeActions.PackagePush },
+                    scopes: new [] { NuGetScopes.PackageUnlist, NuGetScopes.PackagePush },
                     subjects: new [] { "a" },
                     expirationInDays: 90);
 
@@ -808,7 +808,7 @@ namespace NuGetGallery
 
                 var result = await controller.GenerateApiKey(
                     description: "description",
-                    scopes: new[] { NuGetScopeActions.PackageUnlist, NuGetScopeActions.PackagePush },
+                    scopes: new[] { NuGetScopes.PackageUnlist, NuGetScopes.PackagePush },
                     subjects: new[] { "a" },
                     expirationInDays: 90);
 
@@ -1480,10 +1480,10 @@ namespace NuGetGallery
                             "permissions to several scopes, several packages",
                             new []
                             {
-                                new Scope("abc", NuGetScopeActions.PackageUnlist),
-                                new Scope("abc", NuGetScopeActions.PackagePush),
-                                new Scope("def", NuGetScopeActions.PackageUnlist),
-                                new Scope("def", NuGetScopeActions.PackagePush)
+                                new Scope("abc", NuGetScopes.PackageUnlist),
+                                new Scope("abc", NuGetScopes.PackagePush),
+                                new Scope("def", NuGetScopes.PackageUnlist),
+                                new Scope("def", NuGetScopes.PackagePush)
                             }
                         },
                         new object[]
@@ -1491,7 +1491,7 @@ namespace NuGetGallery
                             "permissions to everything",
                             new []
                             {
-                                new Scope(null, NuGetScopeActions.All)
+                                new Scope(null, NuGetScopes.All)
                             }
                         }
                     };
@@ -1628,46 +1628,46 @@ namespace NuGetGallery
                         {
                             new [] // Removal of subjects
                             {
-                                new Scope("abc", NuGetScopeActions.PackageUnlist),
-                                new Scope("abc", NuGetScopeActions.PackagePush),
-                                new Scope("def", NuGetScopeActions.PackageUnlist),
-                                new Scope("def", NuGetScopeActions.PackagePush)
+                                new Scope("abc", NuGetScopes.PackageUnlist),
+                                new Scope("abc", NuGetScopes.PackagePush),
+                                new Scope("def", NuGetScopes.PackageUnlist),
+                                new Scope("def", NuGetScopes.PackagePush)
                             },
                             new [] { "def" },
                             new []
                             {
-                                new Scope("def", NuGetScopeActions.PackageUnlist),
-                                new Scope("def", NuGetScopeActions.PackagePush)
+                                new Scope("def", NuGetScopes.PackageUnlist),
+                                new Scope("def", NuGetScopes.PackagePush)
                             },
                         },
                         new object[]
                         {
                             new [] // Addition of subjects
                             {
-                                new Scope("abc", NuGetScopeActions.PackageUnlist),
-                                new Scope("abc", NuGetScopeActions.PackagePush),
+                                new Scope("abc", NuGetScopes.PackageUnlist),
+                                new Scope("abc", NuGetScopes.PackagePush),
                             },
                             new [] { "abc", "def" },
                             new []
                             {
-                               new Scope("abc", NuGetScopeActions.PackageUnlist),
-                                new Scope("abc", NuGetScopeActions.PackagePush),
-                                new Scope("def", NuGetScopeActions.PackageUnlist),
-                                new Scope("def", NuGetScopeActions.PackagePush)
+                               new Scope("abc", NuGetScopes.PackageUnlist),
+                                new Scope("abc", NuGetScopes.PackagePush),
+                                new Scope("def", NuGetScopes.PackageUnlist),
+                                new Scope("def", NuGetScopes.PackagePush)
                             }
                         },
                         new object[]
                         {
                             new [] // No subjects
                             {
-                                new Scope("abc", NuGetScopeActions.PackageUnlist),
-                                new Scope("abc", NuGetScopeActions.PackagePush)
+                                new Scope("abc", NuGetScopes.PackageUnlist),
+                                new Scope("abc", NuGetScopes.PackagePush)
                             },
                             new string[] {},
                             new []
                             {
-                               new Scope("*", NuGetScopeActions.PackageUnlist),
-                               new Scope("*", NuGetScopeActions.PackagePush)
+                               new Scope("*", NuGetScopes.PackageUnlist),
+                               new Scope("*", NuGetScopes.PackagePush)
                             }
                         },
                     };
@@ -1725,7 +1725,7 @@ namespace NuGetGallery
 
                 foreach (var expectedScope in expectedScopes)
                 {
-                    var expectedAction = NuGetScopeActions.Describe(expectedScope.AllowedAction);
+                    var expectedAction = NuGetScopes.Describe(expectedScope.AllowedAction);
                     var actualScope = viewModel.Scopes.First(x => x == expectedAction);
                     Assert.NotNull(actualScope);
                 }

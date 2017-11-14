@@ -97,9 +97,9 @@ namespace NuGetGallery
             {
                 reservedNamespaceService = new Mock<IReservedNamespaceService>();
                 IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces;
-                reservedNamespaceService.Setup(s => s.IsPushAllowedByUser(It.IsAny<string>(), It.IsAny<User>(), out userOwnedMatchingNamespaces))
-                    .Returns(true);
                 reservedNamespaceService.Setup(s => s.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out userOwnedMatchingNamespaces))
+                    .Returns(true);
+                reservedNamespaceService.Setup(s => s.IsPushAllowedOnBehalfOfOwner(It.IsAny<string>(), It.IsAny<User>(), out userOwnedMatchingNamespaces))
                     .Returns(true);
             }
 
@@ -2064,6 +2064,40 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task WillShowTheViewAndCancelUploadIfPackageNowMatchesReservedNamespace()
+            {
+                using (var fakeFileStream = new MemoryStream())
+                {
+                    var fakeUploadFileService = new Mock<IUploadFileService>();
+                    fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key))
+                        .Returns(Task.FromResult<Stream>(fakeFileStream));
+
+                    var fakeUserService = new Mock<IUserService>();
+                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username)).Returns(TestUtility.FakeUser);
+
+                    var fakeReservedNamespaceService = new Mock<IReservedNamespaceService>();
+                    IReadOnlyCollection<ReservedNamespace> matchingReservedNamespaces;
+                    fakeReservedNamespaceService
+                        .Setup(x => x.IsPushAllowedOnBehalfOfOwner(It.IsAny<string>(), It.IsAny<User>(), out matchingReservedNamespaces))
+                        .Returns(false);
+
+                    var controller = CreateController(
+                        GetConfigurationService(),
+                        reservedNamespaceService: fakeReservedNamespaceService,
+                        uploadFileService: fakeUploadFileService,
+                        userService: fakeUserService);
+                    controller.SetCurrentUser(TestUtility.FakeUser);
+
+                    var result = await controller.UploadPackage() as ViewResult;
+
+                    Assert.NotNull(result);
+                    Assert.Null(result.Model);
+
+                    fakeUploadFileService.Verify(x => x.DeleteUploadFileAsync(42));
+                }
+            }
+
+            [Fact]
             public async Task WillShowTheViewWhenThereIsNoUploadInProgress()
             {
                 var fakeUploadFileService = new Mock<IUploadFileService>();
@@ -2244,13 +2278,11 @@ namespace NuGetGallery
                 fakePackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns(() => null);
 
                 var fakeReservedNamespaceService = new Mock<IReservedNamespaceService>();
-                var testNamespace = new ReservedNamespace("random.", isSharedNamespace: false, isPrefix: true);
-                var user1 = new User { Key = 1, Username = "random1" };
-                testNamespace.Owners.Add(user1);
-                IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace> { testNamespace };
+                IReadOnlyCollection<ReservedNamespace> matchingNamespaces;
                 fakeReservedNamespaceService
-                    .Setup(r => r.IsPushAllowedByUser(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
+                    .Setup(r => r.IsPushAllowedOnBehalfOfOwner(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
                     .Returns(false);
+
                 var fakeTelemetryService = new Mock<ITelemetryService>();
 
                 var controller = CreateController(
@@ -2288,15 +2320,12 @@ namespace NuGetGallery
                 fakePackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns(() => null);
 
                 var fakeReservedNamespaceService = new Mock<IReservedNamespaceService>();
-                var testNamespace = new ReservedNamespace("random.", isSharedNamespace: true, isPrefix: true);
-                var user1 = new User { Key = 1, Username = "random1" };
-                testNamespace.Owners.Add(user1);
-                IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace> { testNamespace };
-                fakeReservedNamespaceService
-                    .Setup(r => r.IsPushAllowedByUser(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
-                    .Returns(true);
+                IReadOnlyCollection<ReservedNamespace> matchingNamespaces;
                 fakeReservedNamespaceService
                     .Setup(r => r.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
+                    .Returns(true);
+                fakeReservedNamespaceService
+                    .Setup(r => r.IsPushAllowedOnBehalfOfOwner(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
                     .Returns(true);
 
                 var controller = CreateController(
@@ -2337,10 +2366,10 @@ namespace NuGetGallery
 
                 IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace> { testNamespace };
                 fakeReservedNamespaceService
-                    .Setup(r => r.IsPushAllowedByUser(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
+                    .Setup(r => r.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
                     .Returns(true);
                 fakeReservedNamespaceService
-                    .Setup(r => r.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
+                    .Setup(r => r.IsPushAllowedOnBehalfOfOwner(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
                     .Returns(true);
 
                 var controller = CreateController(
@@ -3503,8 +3532,13 @@ namespace NuGetGallery
 
         public class TheGetPossibleOwnersForPackageMethod : TestContainer
         {
+            private static bool Includes(int i, int state)
+            {
+                return (i & state) == 0;
+            }
+
             [Flags]
-            public enum ReturnsExpectedPossibleOwners_State
+            public enum ReturnsExpectedPossibleOwnersForExisting_State
             {
                 IsOwner = 1,
                 IsSiteAdmin = 2,
@@ -3512,58 +3546,57 @@ namespace NuGetGallery
                 IsOrganizationCollaborator = 8
             }
 
-            private static readonly IEnumerable<ReturnsExpectedPossibleOwners_State> _stateValues =
-                Enum.GetValues(typeof(ReturnsExpectedPossibleOwners_State)).Cast<ReturnsExpectedPossibleOwners_State>();
+            private static readonly IEnumerable<ReturnsExpectedPossibleOwnersForExisting_State> _existingStateValues =
+                Enum.GetValues(typeof(ReturnsExpectedPossibleOwnersForExisting_State)).Cast<ReturnsExpectedPossibleOwnersForExisting_State>();
 
-            public static IEnumerable<object[]> ReturnsExpectedPossibleOwners_Data
+            public static IEnumerable<object[]> ReturnsExpectedPossibleOwnersForExisting_Data
             {
                 get
                 {
-                    for (int i = 0; i < Enum.GetValues(typeof(ReturnsExpectedPossibleOwners_State)).Cast<int>().Max() * 2; i++)
+                    for (int i = 0; i < Enum.GetValues(typeof(ReturnsExpectedPossibleOwnersForExisting_State)).Cast<int>().Max() * 2; i++)
                     {
                         yield return new object[]
                         {
-                            _stateValues.Where(s => Includes(i, s))
+                            _existingStateValues.Where(s => Includes(i, (int)s))
                         };
                     }
                 }
             }
 
-            private static bool Includes(int i, ReturnsExpectedPossibleOwners_State state)
-            {
-                return (i & (int)state) == 0;
-            }
-
             [Theory]
-            [MemberData(nameof(ReturnsExpectedPossibleOwners_Data))]
-            public void ReturnsExpectedPossibleOwners(IEnumerable<ReturnsExpectedPossibleOwners_State> states)
+            [MemberData(nameof(ReturnsExpectedPossibleOwnersForExisting_Data))]
+            public void ReturnsExpectedPossibleOwnersForExisting(IEnumerable<ReturnsExpectedPossibleOwnersForExisting_State> states)
             {
                 var expectedPossibleOwners = new List<User>();
 
                 var key = 1000;
                 var packageId = "id";
 
-                var currentUser = states.Contains(ReturnsExpectedPossibleOwners_State.IsSiteAdmin) ? TestUtility.FakeAdminUser : TestUtility.FakeUser;
+                var currentUser = states.Contains(ReturnsExpectedPossibleOwnersForExisting_State.IsSiteAdmin) ? TestUtility.FakeAdminUser : TestUtility.FakeUser;
 
                 var owners = new List<User>();
 
                 var otherOwner = new User { Key = key++, Username = "otherOwner" };
                 owners.Add(otherOwner);
 
-                if (states.Contains(ReturnsExpectedPossibleOwners_State.IsOwner))
+                if (states.Contains(ReturnsExpectedPossibleOwnersForExisting_State.IsOwner))
                 {
                     owners.Add(currentUser);
                     expectedPossibleOwners.Add(currentUser);
                 }
 
-                if (states.Contains(ReturnsExpectedPossibleOwners_State.IsOrganizationAdmin))
+                if (states.Contains(ReturnsExpectedPossibleOwnersForExisting_State.IsOrganizationAdmin))
                 {
-                    expectedPossibleOwners.Add(CreateOrganizationOwnerAndAddUserAsMember(owners, currentUser, true, ref key));
+                    var organization = CreateOrganizationOwnerAndAddUserAsMember(currentUser, true, ref key);
+                    owners.Add(organization);
+                    expectedPossibleOwners.Add(organization);
                 }
 
-                if (states.Contains(ReturnsExpectedPossibleOwners_State.IsOrganizationCollaborator))
+                if (states.Contains(ReturnsExpectedPossibleOwnersForExisting_State.IsOrganizationCollaborator))
                 {
-                    expectedPossibleOwners.Add(CreateOrganizationOwnerAndAddUserAsMember(owners, currentUser, true, ref key));
+                    var organization = CreateOrganizationOwnerAndAddUserAsMember(currentUser, false, ref key);
+                    owners.Add(organization);
+                    expectedPossibleOwners.Add(organization);
                 }
 
                 if (!expectedPossibleOwners.Any())
@@ -3583,10 +3616,101 @@ namespace NuGetGallery
                 Assert.True(possibleOwners.SequenceEqual(expectedPossibleOwners));
             }
 
-            private User CreateOrganizationOwnerAndAddUserAsMember(List<User> owners, User user, bool isAdmin, ref int key)
+            [Flags]
+            public enum ReturnsExpectedPossibleOwnersForNew_State
+            {
+                IsSiteAdmin = 1,
+                IsReservedNamespaceOwner = 2,
+                IsOrganizationAdmin = 4,
+                IsOrganizationAdminReservedNamespaceOwner = 8,
+                IsOrganizationCollaborator = 16,
+                IsOrganizationCollaboratorReservedNamespaceOwner = 32
+            }
+
+            private static readonly IEnumerable<ReturnsExpectedPossibleOwnersForNew_State> _newStateValues =
+                Enum.GetValues(typeof(ReturnsExpectedPossibleOwnersForNew_State)).Cast<ReturnsExpectedPossibleOwnersForNew_State>();
+
+            public static IEnumerable<object[]> ReturnsExpectedPossibleOwnersForNew_Data
+            {
+                get
+                {
+                    for (int i = 0; i < Enum.GetValues(typeof(ReturnsExpectedPossibleOwnersForNew_State)).Cast<int>().Max() * 2; i++)
+                    {
+                        yield return new object[]
+                        {
+                            _newStateValues.Where(s => Includes(i, (int)s))
+                        };
+                    }
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(ReturnsExpectedPossibleOwnersForNew_Data))]
+            public void ReturnsExpectedPossibleOwnersForNew(IEnumerable<ReturnsExpectedPossibleOwnersForNew_State> states)
+            {
+                var expectedPossibleOwners = new List<User>();
+                var namespaceOwners = new List<User>();
+
+                var key = 1000;
+                var packageId = "id";
+
+                var currentUser = new User { Key = key++, Username = "currentUser" };
+
+                var fakeReservedNamespaceService = new Mock<IReservedNamespaceService>();
+
+                if (states.Contains(ReturnsExpectedPossibleOwnersForNew_State.IsSiteAdmin) || states.Contains(ReturnsExpectedPossibleOwnersForNew_State.IsReservedNamespaceOwner))
+                {
+                    expectedPossibleOwners.Add(currentUser);
+
+                    if (states.Contains(ReturnsExpectedPossibleOwnersForNew_State.IsReservedNamespaceOwner))
+                    {
+                        namespaceOwners.Add(currentUser);
+                    }
+
+                    if (states.Contains(ReturnsExpectedPossibleOwnersForNew_State.IsSiteAdmin))
+                    {
+                        currentUser.Roles = new[] { new Role { Name = Constants.AdminRoleName } };
+                    }
+                }
+
+                if (states.Contains(ReturnsExpectedPossibleOwnersForNew_State.IsOrganizationAdmin))
+                {
+                    CreateOrganizationOwnerAndAddUserAsMember(currentUser, true, ref key);
+                }
+
+                if (states.Contains(ReturnsExpectedPossibleOwnersForNew_State.IsOrganizationAdminReservedNamespaceOwner))
+                {
+                    var organization = CreateOrganizationOwnerAndAddUserAsMember(currentUser, true, ref key);
+                    namespaceOwners.Add(organization);
+                    expectedPossibleOwners.Add(organization);
+                }
+
+                if (states.Contains(ReturnsExpectedPossibleOwnersForNew_State.IsOrganizationCollaborator))
+                {
+                    CreateOrganizationOwnerAndAddUserAsMember(currentUser, false, ref key);
+                }
+
+                if (states.Contains(ReturnsExpectedPossibleOwnersForNew_State.IsOrganizationCollaboratorReservedNamespaceOwner))
+                {
+                    var organization = CreateOrganizationOwnerAndAddUserAsMember(currentUser, false, ref key);
+                    namespaceOwners.Add(organization);
+                }
+
+                IReadOnlyCollection<ReservedNamespace> matchingNamespaces;
+                fakeReservedNamespaceService
+                    .Setup(x => x.IsPushAllowed(packageId, It.Is<User>(u => namespaceOwners.Any(o => o.MatchesUser(u))), out matchingNamespaces))
+                    .Returns(true);
+
+                var controller = CreateController(GetConfigurationService(), reservedNamespaceService: fakeReservedNamespaceService);
+                controller.SetCurrentUser(currentUser);
+
+                var possibleOwners = controller.GetPossibleOwnersForUpload(packageId);
+                Assert.True(possibleOwners.SequenceEqual(expectedPossibleOwners.Distinct()));
+            }
+
+            private User CreateOrganizationOwnerAndAddUserAsMember(User user, bool isAdmin, ref int key)
             {
                 var organization = new Organization("testorganization") { Key = key++ };
-                owners.Add(organization);
 
                 var organizationMembership = new Membership() { Organization = organization, Member = user, IsAdmin = isAdmin };
                 organization.Members.Add(organizationMembership);

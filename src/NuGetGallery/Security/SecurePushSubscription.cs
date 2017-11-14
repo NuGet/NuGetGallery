@@ -70,8 +70,8 @@ namespace NuGetGallery.Security
                 (
                     c.Scopes.Count == 0 ||
                     c.Scopes.Any(s =>
-                        s.AllowedAction.Equals(NuGetScopeActions.PackagePush, StringComparison.OrdinalIgnoreCase) ||
-                        s.AllowedAction.Equals(NuGetScopeActions.PackagePushVersion, StringComparison.OrdinalIgnoreCase)
+                        s.AllowedAction.Equals(NuGetScopes.PackagePush, StringComparison.OrdinalIgnoreCase) ||
+                        s.AllowedAction.Equals(NuGetScopes.PackagePushVersion, StringComparison.OrdinalIgnoreCase)
                         ))
                 );
 

@@ -35,17 +35,16 @@ namespace NuGetGallery.Infrastructure.Authentication
                expiration: TimeSpan.FromDays(1));
 
             var ownerKeys = originalApiKey.Scopes
-                .Where(s => s != null && s.HasOwnerScope())
-                .Select(s => s.OwnerKey.Value)
+                .Select(s => s.OwnerKey)
                 .Distinct().ToArray();
 
-            if (!ownerKeys.Any())
+            if (ownerKeys.Length == 0)
             {
                 // Legacy API key with no owner scope.
                 credential.Scopes = new[] { new Scope(
                     ownerKey: null,
                     subject: id,
-                    allowedAction: NuGetScopeActions.PackageVerify)
+                    allowedAction: NuGetScopes.PackageVerify)
                 };
             }
             else
@@ -54,7 +53,7 @@ namespace NuGetGallery.Infrastructure.Authentication
                     .Select(key => new Scope(
                         ownerKey: key,
                         subject: id,
-                        allowedAction: NuGetScopeActions.PackageVerify))
+                        allowedAction: NuGetScopes.PackageVerify))
                     .ToArray();
             }
 

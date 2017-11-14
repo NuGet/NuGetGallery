@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace NuGetGallery.Authentication
 {
-    public static class NuGetScopeActions
+    public static class NuGetScopes
     {
         public const string All = "all";
         public const string PackagePushVersion = "package:pushversion";
@@ -49,14 +49,14 @@ namespace NuGetGallery.Authentication
             switch (scope.ToLowerInvariant())
             {
                 case All:
-                    return PackageActions.ApiAll;
+                    return ApiActions.ApiAll;
                 case PackagePush:
                 case PackagePushVersion:
-                    return PackageActions.ApiPush;
+                    return ApiActions.ApiPush;
                 case PackageUnlist:
-                    return PackageActions.ApiUnlist;
+                    return ApiActions.ApiUnlist;
                 case PackageVerify:
-                    return PackageActions.ApiVerify;
+                    return ApiActions.ApiVerify;
                 default:
                     return PermissionLevel.Anonymous;
             }
@@ -74,15 +74,15 @@ namespace NuGetGallery.Authentication
             switch (scope.ToLowerInvariant())
             {
                 case All:
-                    return AccountActions.ApiAllOnBehalfOf;
+                    return ApiActions.ApiAllOnBehalfOf;
                 case PackagePush:
-                    return AccountActions.ApiPushOnBehalfOf;
+                    return ApiActions.ApiPushOnBehalfOf;
                 case PackagePushVersion:
-                    return AccountActions.ApiPushVersionOnBehalfOf;
+                    return ApiActions.ApiPushVersionOnBehalfOf;
                 case PackageUnlist:
-                    return AccountActions.ApiUnlistOnBehalfOf;
+                    return ApiActions.ApiUnlistOnBehalfOf;
                 case PackageVerify:
-                    return AccountActions.ApiVerifyOnBehalfOf;
+                    return ApiActions.ApiVerifyOnBehalfOf;
                 default:
                     return PermissionLevel.Anonymous;
             }

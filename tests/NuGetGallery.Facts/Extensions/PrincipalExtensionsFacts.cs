@@ -208,7 +208,7 @@ namespace NuGetGallery.Extensions
                     new Claim(NuGetClaims.ApiKey, string.Empty),
                     new Claim(NuGetClaims.Scope, scopeClaim));
 
-                Assert.False(identity.HasExplicitScopeAction(NuGetScopeActions.PackageVerify));
+                Assert.False(identity.HasExplicitScopeAction(NuGetScopes.PackageVerify));
             }
 
             [Theory]
@@ -222,7 +222,7 @@ namespace NuGetGallery.Extensions
                     new Claim(NuGetClaims.ApiKey, string.Empty),
                     new Claim(NuGetClaims.Scope, scopeClaim));
 
-                Assert.True(identity.HasExplicitScopeAction(NuGetScopeActions.PackageVerify));
+                Assert.True(identity.HasExplicitScopeAction(NuGetScopes.PackageVerify));
             }
 
             [Fact]
@@ -233,7 +233,7 @@ namespace NuGetGallery.Extensions
                     AuthenticationTypes.ApiKey,
                     new Claim(NuGetClaims.ApiKey, string.Empty));
 
-                Assert.False(identity.HasExplicitScopeAction(NuGetScopeActions.PackageVerify));
+                Assert.False(identity.HasExplicitScopeAction(NuGetScopes.PackageVerify));
             }
         }
 
@@ -256,7 +256,7 @@ namespace NuGetGallery.Extensions
                     AuthenticationTypes.ApiKey,
                     new Claim(NuGetClaims.ApiKey, string.Empty));
 
-                Assert.False(identity.HasExplicitScopeAction(NuGetScopeActions.PackagePush));
+                Assert.False(identity.HasExplicitScopeAction(NuGetScopes.PackagePush));
             }
 
             [Theory]
@@ -270,7 +270,7 @@ namespace NuGetGallery.Extensions
                     new Claim(NuGetClaims.ApiKey, string.Empty),
                     new Claim(NuGetClaims.Scope, scopeClaim));
 
-                Assert.True(identity.HasExplicitScopeAction(NuGetScopeActions.PackagePush));
+                Assert.True(identity.HasExplicitScopeAction(NuGetScopes.PackagePush));
             }
 
             [Theory]
@@ -284,7 +284,7 @@ namespace NuGetGallery.Extensions
                     new Claim(NuGetClaims.ApiKey, string.Empty),
                     new Claim(NuGetClaims.Scope, scopeClaim));
 
-                Assert.False(identity.HasExplicitScopeAction(NuGetScopeActions.PackagePush));
+                Assert.False(identity.HasExplicitScopeAction(NuGetScopes.PackagePush));
             }
         }
     }

@@ -162,9 +162,8 @@ namespace NuGetGallery
 
                     var existingPackageRegistration = _packageService.FindPackageRegistrationById(packageMetadata.Id);
 
-                    if (existingPackageRegistration != null && 
-                        (!_reservedNamespaceService.IsPushAllowed(packageMetadata.Id, currentUser, out var userOwnerMatchingNamespaces) || 
-                        !PermissionsService.IsActionAllowed(existingPackageRegistration, currentUser, PackageActions.UploadNewVersion)))
+                    if (!_reservedNamespaceService.IsPushAllowedOnBehalfOfOwner(packageMetadata.Id, currentUser, out var userOwnerMatchingNamespaces) || 
+                        (existingPackageRegistration != null && !PermissionsService.IsActionAllowed(existingPackageRegistration, currentUser, PackageActions.UploadNewVersion)))
                     {
                         // This user no longer has the rights to upload to this package. Cancel this upload.
                         await CancelPendingUpload();
@@ -288,7 +287,7 @@ namespace NuGetGallery
                 // For a new package id verify if the user is allowed to use it.
                 if (packageRegistration == null)
                 {
-                    if (!_reservedNamespaceService.IsPushAllowed(id, currentUser, out var matchingNamespaces))
+                    if (!_reservedNamespaceService.IsPushAllowedOnBehalfOfOwner(id, currentUser, out var matchingNamespaces))
                     {
                         ModelState.AddModelError(
                             string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict));
@@ -1138,7 +1137,7 @@ namespace NuGetGallery
             }
             
             var user = _userService.FindByUsername(username);
-            if (!PermissionsService.IsActionAllowed(user, GetCurrentUser(), AccountActions.AcceptPackageOwnershipOnBehalfOf))
+            if (!PermissionsService.IsActionAllowed(user, GetCurrentUser(), AccountActions.ManagePackageOwnersOnBehalfOf))
             {
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.NotYourRequest));
             }
@@ -1704,13 +1703,16 @@ namespace NuGetGallery
             }
             else
             {
-                var organizationsWithRightToUpload =
+                var organizations =
                    currentUser.Organizations
-                       .Select(m => m.Organization)
+                       .Select(m => m.Organization);
+
+                possibleOwners = 
+                    new[] { currentUser }
+                        .Concat(organizations)
                        .Where(u => PermissionsService.IsActionAllowed(u, currentUser, AccountActions.UploadNewIdOnBehalfOf))
                        .Where(u => _reservedNamespaceService.IsPushAllowed(id, u, out var matchingNamespaces))
                        .ToArray();
-                possibleOwners = new User[] { currentUser }.Concat(organizationsWithRightToUpload);
             }
 
             return possibleOwners;

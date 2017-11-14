@@ -707,7 +707,7 @@ namespace NuGetGallery
             }
             else
             {
-                result.AddRange(subjectsList.Select(subject => new Scope(subject, NuGetScopeActions.All)));
+                result.AddRange(subjectsList.Select(subject => new Scope(subject, NuGetScopes.All)));
             }
 
             return result;

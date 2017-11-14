@@ -14,7 +14,6 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet.Packaging;
 using NuGetGallery.Auditing;
@@ -89,7 +88,7 @@ namespace NuGetGallery
 
             IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace>();
             MockReservedNamespaceService
-                .Setup(r => r.IsPushAllowedByUser(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
+                .Setup(r => r.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
                 .Returns(true);
 
             MockPackageUploadService.Setup(x => x.GeneratePackageAsync(It.IsAny<string>(), It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<User>()))
@@ -481,46 +480,6 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillReturnConflictIfAPackageWithTheIdMatchesNonOwnedNamespace()
-            {
-                // Arrange
-                var user1 = new User { Key = 1, Username = "random1" };
-                var user2 = new User { Key = 2, Username = "random2" };
-                var packageId = "Random.Extention.Package1";
-                var packageRegistration = new PackageRegistration();
-                packageRegistration.Id = packageId;
-                var package = new Package();
-                package.PackageRegistration = packageRegistration;
-                package.Version = "1.0.0";
-                packageRegistration.Packages.Add(package);
-
-                var controller = new TestableApiController(GetConfigurationService());
-                controller.SetCurrentUser(user1);
-                controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
-                    .Returns(() => null);
-
-                var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, "1.0.0");
-                controller.SetupPackageFromInputStream(nuGetPackage);
-                var testNamespace = new ReservedNamespace("random.", isSharedNamespace: false, isPrefix: true);
-                testNamespace.Owners.Add(user2);
-                IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace> { testNamespace };
-                controller.MockReservedNamespaceService
-                    .Setup(r => r.IsPushAllowedByUser(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
-                    .Returns(false);
-
-                // Act
-                var result = await controller.CreatePackagePut();
-
-                // Assert
-                ResultAssert.IsStatusCode(
-                    result,
-                    HttpStatusCode.Conflict,
-                    String.Format(Strings.UploadPackage_IdNamespaceConflict));
-
-                controller.MockTelemetryService.Verify(x => x.TrackPackagePushNamespaceConflictEvent(packageRegistration.Id, package.Version, user1, controller.OwinContext.Request.User.Identity), Times.Once);
-            }
-
-            [Fact]
             public async Task WillCreateAPackageFromTheNuGetPackage()
             {
                 var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
@@ -579,7 +538,7 @@ namespace NuGetGallery
                 packageRegistration.Packages.Add(package);
 
                 var controller = new TestableApiController(GetConfigurationService());
-                var scope = new Scope { AllowedAction = NuGetScopeActions.PackagePushVersion, OwnerKey = owner.Key, Subject = packageId };
+                var scope = new Scope { AllowedAction = NuGetScopes.PackagePushVersion, OwnerKey = owner.Key, Subject = packageId };
                 controller.SetCurrentUser(currentUser, new[] { scope });
                 controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
                     .Returns(packageRegistration);
@@ -679,7 +638,7 @@ namespace NuGetGallery
                 var packageId = "theId";
 
                 var controller = new TestableApiController(GetConfigurationService());
-                var scope = new Scope { AllowedAction = NuGetScopeActions.PackagePush, OwnerKey = owner.Key, Subject = packageId };
+                var scope = new Scope { AllowedAction = NuGetScopes.PackagePush, OwnerKey = owner.Key, Subject = packageId };
                 controller.SetCurrentUser(currentUser, new[] { scope });
 
                 controller.MockUserService.Setup(x => x.FindByKey(owner.Key)).Returns(owner);
@@ -691,85 +650,91 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillCreatePackageIfIdMatchesSharedNamespace()
+            public Task WillReturnConflictIfAPackageWithTheIdMatchesNonOwnedNamespace()
             {
-                // Arrange
-                var user1 = new User { Key = 1, Username = "random1" };
-                var user2 = new User { Key = 2, Username = "random2" };
-                var packageId = "Random.Extention.Package1";
-                var packageRegistration = new PackageRegistration();
-                packageRegistration.Id = packageId;
-                var package = new Package();
-                package.PackageRegistration = packageRegistration;
-                package.Version = "1.0.0";
-                packageRegistration.Packages.Add(package);
+                var key = 0;
+                var owner = new User { Key = key++, Username = "owner" };
+                var reservedNamespaceOwner = new User { Key = key++, Username = "reservedNamespaceOwner" };
 
-                var controller = new TestableApiController(GetConfigurationService());
-                controller.SetCurrentUser(user1);
-                controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
-                    .Returns(() => null);
-
-                var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, "1.0.0");
-                controller.SetupPackageFromInputStream(nuGetPackage);
-                var testNamespace = new ReservedNamespace("random.", isSharedNamespace: true, isPrefix: true);
-                testNamespace.Owners.Add(user2);
-                IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace> { testNamespace };
-                controller.MockReservedNamespaceService
-                    .Setup(r => r.IsPushAllowedByUser(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
-                    .Returns(true);
-
-                // Act
-                var result = await controller.CreatePackagePut();
-
-                // Assert
-                controller.MockPackageUploadService.Verify(
-                    x => x.GeneratePackageAsync(
-                        It.IsAny<string>(),
-                        It.IsAny<PackageArchiveReader>(),
-                        It.IsAny<PackageStreamMetadata>(),
-                        It.IsAny<User>(),
-                        It.IsAny<User>()));
+                return VerifyCreatePackageIfNamespaceConflict(owner, owner, reservedNamespaceOwner);
             }
 
             [Fact]
-            public async Task WillCreatePackageIfIdMatchesAnOwnedNamespace()
+            public Task WillCreatePackageIfIdMatchesAnOwnedNamespace()
+            {
+                var key = 0;
+                var owner = new User { Key = key++, Username = "owner" };
+
+                return VerifyCreatePackageIfNamespaceConflict(owner, owner, owner);
+            }
+
+            [Fact]
+            public Task WillCreatePackageIfIdMatchesAnOwnedNamespaceAsOrganization()
+            {
+                var key = 0;
+                var organization = new Organization { Key = key++, Username = "org" };
+
+                var user = new User { EmailAddress = "confirmed@email.com", Key = key++, Username = "user" };
+                user.Organizations = new[] { new Membership { IsAdmin = true, Member = user, Organization = organization } };
+                organization.Members = user.Organizations;
+
+                return VerifyCreatePackageIfNamespaceConflict(user, organization, organization);
+            }
+
+            private async Task VerifyCreatePackageIfNamespaceConflict(User currentUser, User ownerInScope, User reservedNamespaceOwner)
             {
                 // Arrange
-                var user1 = new User { Key = 1, Username = "random1" };
-                var packageId = "Random.Extention.Package1";
-                var packageRegistration = new PackageRegistration();
-                packageRegistration.Id = packageId;
-                var package = new Package();
-                package.PackageRegistration = packageRegistration;
-                package.Version = "1.0.0";
-                packageRegistration.Packages.Add(package);
-
                 var controller = new TestableApiController(GetConfigurationService());
-                controller.SetCurrentUser(user1);
-                controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
+
+                var scope = new Scope
+                {
+                    OwnerKey = ownerInScope.Key,
+                    Subject = NuGetPackagePattern.AllInclusivePattern,
+                    AllowedAction = NuGetScopes.PackagePush
+                };
+                controller.SetCurrentUser(currentUser, new[] { scope });
+
+                controller.MockUserService
+                    .Setup(x => x.FindByKey(ownerInScope.Key))
+                    .Returns(ownerInScope);
+
+                var packageId = "Random.Extention.Package1";
+                var packageVersion = "1.0.0";
+                controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(packageId))
                     .Returns(() => null);
 
-                var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, "1.0.0");
+                var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, packageVersion);
                 controller.SetupPackageFromInputStream(nuGetPackage);
-                var testNamespace = new ReservedNamespace("random.", isSharedNamespace: false, isPrefix: true);
-                testNamespace.Owners.Add(user1);
-                IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace> { testNamespace };
+
+                IReadOnlyCollection<ReservedNamespace> matchingReservedNamespaces;
                 controller.MockReservedNamespaceService
-                    .Setup(r => r.IsPushAllowedByUser(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
-                    .Returns(true);
+                    .Setup(r => r.IsPushAllowed(packageId, It.IsAny<User>(), out matchingReservedNamespaces))
+                    .Returns<string, User, IReadOnlyCollection<ReservedNamespace>>((id, user, matching) => user.MatchesUser(reservedNamespaceOwner));
 
                 // Act
                 var result = await controller.CreatePackagePut();
 
                 // Assert
-                controller.MockPackageUploadService.Verify(
-                    x => x.GeneratePackageAsync(
-                        It.IsAny<string>(),
-                        It.IsAny<PackageArchiveReader>(),
-                        It.IsAny<PackageStreamMetadata>(),
-                        It.IsAny<User>(),
-                        It.IsAny<User>()),
-                    Times.Once);
+                if (ownerInScope.MatchesUser(reservedNamespaceOwner))
+                {
+                    controller.MockPackageUploadService.Verify(
+                        x => x.GeneratePackageAsync(
+                            It.IsAny<string>(),
+                            It.IsAny<PackageArchiveReader>(),
+                            It.IsAny<PackageStreamMetadata>(),
+                            It.IsAny<User>(),
+                            It.IsAny<User>()),
+                        Times.Once);
+                }
+                else
+                {
+                    ResultAssert.IsStatusCode(
+                        result,
+                        HttpStatusCode.Conflict,
+                        String.Format(Strings.UploadPackage_IdNamespaceConflict));
+
+                    controller.MockTelemetryService.Verify(x => x.TrackPackagePushNamespaceConflictEvent(packageId, packageVersion, currentUser, controller.OwinContext.Request.User.Identity), Times.Once);
+                }
             }
 
             [Fact]
@@ -840,10 +805,10 @@ namespace NuGetGallery
             }
 
             public static IEnumerable<string> WillVerifyScopesForNewPackageId_AllowedActions_Valid =
-                new[] { NuGetScopeActions.PackagePush };
+                new[] { NuGetScopes.PackagePush };
 
             public static IEnumerable<string> WillVerifyScopesForNewPackageId_AllowedActions_Invalid =
-                new[] { NuGetScopeActions.PackagePushVersion, NuGetScopeActions.PackageUnlist, NuGetScopeActions.PackageVerify };
+                new[] { NuGetScopes.PackagePushVersion, NuGetScopes.PackageUnlist, NuGetScopes.PackageVerify };
 
             public static IEnumerable<object[]> WillVerifyScopesForNewPackageId_Data => VerifyApiKeyScopes_Data(
                 WillVerifyScopesForNewPackageId_AllowedActions_Valid,
@@ -862,10 +827,10 @@ namespace NuGetGallery
             }
 
             public static IEnumerable<string> WillVerifyScopesForExistingPackageId_AllowedActions_Valid =
-                new[] { NuGetScopeActions.PackagePush, NuGetScopeActions.PackagePushVersion };
+                new[] { NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion };
 
             public static IEnumerable<string> WillVerifyScopesForExistingPackageId_AllowedActions_Invalid =
-                new[] { NuGetScopeActions.PackageUnlist, NuGetScopeActions.PackageVerify };
+                new[] { NuGetScopes.PackageUnlist, NuGetScopes.PackageVerify };
 
             public static IEnumerable<object[]> WillVerifyScopesForExistingPackageId_Data => VerifyApiKeyScopes_Data(
                 WillVerifyScopesForExistingPackageId_AllowedActions_Valid,
@@ -1025,9 +990,9 @@ namespace NuGetGallery
             }
 
             private static IEnumerable<string> WillVerifyApiKeyScopeBeforeDelete_AllowedActions_Valid = 
-                new[] { NuGetScopeActions.PackageUnlist };
+                new[] { NuGetScopes.PackageUnlist };
             private static IEnumerable<string> WillVerifyApiKeyScopeBeforeDelete_AllowedActions_Invalid = 
-                new[] { NuGetScopeActions.PackagePush, NuGetScopeActions.PackagePushVersion, NuGetScopeActions.PackageVerify };
+                new[] { NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion, NuGetScopes.PackageVerify };
 
             public static IEnumerable<object[]> WillVerifyApiKeyScopeBeforeDelete_Data => VerifyApiKeyScopes_Data(
                 WillVerifyApiKeyScopeBeforeDelete_AllowedActions_Valid,
@@ -1114,7 +1079,7 @@ namespace NuGetGallery
                 };
                 var controller = new TestableApiController(GetConfigurationService());
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(package);
-                var scope = new Scope { AllowedAction = NuGetScopeActions.PackageUnlist, OwnerKey = owner.Key, Subject = id };
+                var scope = new Scope { AllowedAction = NuGetScopes.PackageUnlist, OwnerKey = owner.Key, Subject = id };
                 controller.SetCurrentUser(currentUser, new[] { scope });
 
                 controller.MockUserService.Setup(x => x.FindByKey(owner.Key)).Returns(owner);
@@ -1409,7 +1374,7 @@ namespace NuGetGallery
 
                 var controller = new TestableApiController(GetConfigurationService());
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(package);
-                var scope = new Scope { AllowedAction = NuGetScopeActions.PackageUnlist, OwnerKey = owner.Key, Subject = id };
+                var scope = new Scope { AllowedAction = NuGetScopes.PackageUnlist, OwnerKey = owner.Key, Subject = id };
                 controller.SetCurrentUser(currentUser, new[] { scope });
 
                 controller.MockUserService.Setup(x => x.FindByKey(owner.Key)).Returns(owner);
@@ -1424,9 +1389,9 @@ namespace NuGetGallery
             }
 
             private static IEnumerable<string> WillVerifyApiKeyScopeBeforeListing_AllowedActions_Valid =
-                new[] { NuGetScopeActions.PackageUnlist };
+                new[] { NuGetScopes.PackageUnlist };
             private static IEnumerable<string> WillVerifyApiKeyScopeBeforeListing_AllowedActions_Invalid =
-                new[] { NuGetScopeActions.PackagePush, NuGetScopeActions.PackagePushVersion, NuGetScopeActions.PackageVerify };
+                new[] { NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion, NuGetScopes.PackageVerify };
 
             public static IEnumerable<object[]> WillVerifyApiKeyScopeBeforeListing_Data => VerifyApiKeyScopes_Data(
                 WillVerifyApiKeyScopeBeforeListing_AllowedActions_Valid,
@@ -1547,14 +1512,14 @@ namespace NuGetGallery
 
                 Assert.Null(tempScope.OwnerKey);
                 Assert.Equal(PackageId, tempScope.Subject);
-                Assert.Equal(NuGetScopeActions.PackageVerify, tempScope.AllowedAction);
+                Assert.Equal(NuGetScopes.PackageVerify, tempScope.AllowedAction);
             }
 
             public static IEnumerable<object[]> TempKeyHasScopeWithNoOwner_Data
             {
                 get
                 {
-                    foreach (var allowedAction in new[] { NuGetScopeActions.PackagePush, NuGetScopeActions.PackagePushVersion })
+                    foreach (var allowedAction in new[] { NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion })
                     {
                         yield return new object[]
                         {
@@ -1572,7 +1537,7 @@ namespace NuGetGallery
 
                 Assert.Null(tempScope.OwnerKey);
                 Assert.Equal(PackageId, tempScope.Subject);
-                Assert.Equal(NuGetScopeActions.PackageVerify, tempScope.AllowedAction);
+                Assert.Equal(NuGetScopes.PackageVerify, tempScope.AllowedAction);
             }
 
             [Theory]
@@ -1583,7 +1548,7 @@ namespace NuGetGallery
 
                 Assert.Equal(1234, tempScope.OwnerKey);
                 Assert.Equal(PackageId, tempScope.Subject);
-                Assert.Equal(NuGetScopeActions.PackageVerify, tempScope.AllowedAction);
+                Assert.Equal(NuGetScopes.PackageVerify, tempScope.AllowedAction);
             }
 
             private async Task<Scope> InvokeAsync(Scope scope)
@@ -1624,8 +1589,8 @@ namespace NuGetGallery
         {
             private static IEnumerable<string> AllCredentialTypes = new[] { CredentialTypes.ApiKey.V1, CredentialTypes.ApiKey.V2, CredentialTypes.ApiKey.VerifyV1 };
 
-            private static IEnumerable<string> MatchingActionScopes = new[] { NuGetScopeActions.PackagePush, NuGetScopeActions.PackagePushVersion, NuGetScopeActions.PackageVerify };
-            private static IEnumerable<string> NotMatchingActionScopes = new[] { NuGetScopeActions.PackageUnlist };
+            private static IEnumerable<string> MatchingActionScopes = new[] { NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion, NuGetScopes.PackageVerify };
+            private static IEnumerable<string> NotMatchingActionScopes = new[] { NuGetScopes.PackageUnlist };
 
             public static IEnumerable<object[]> EnumeratePossibleScopes(IEnumerable<string> credentialTypes, IEnumerable<string> allowedActions, bool subjectMatches = true, bool includeNull = true)
             {
@@ -1764,7 +1729,7 @@ namespace NuGetGallery
 
             public static IEnumerable<object[]> Returns200_VerifyV1_Data => EnumeratePossibleScopes(
                 new[] { CredentialTypes.ApiKey.VerifyV1 }, 
-                new[] { NuGetScopeActions.PackageVerify }, 
+                new[] { NuGetScopes.PackageVerify }, 
                 includeNull: false);
 
             [Theory]
@@ -1776,7 +1741,7 @@ namespace NuGetGallery
 
             public static IEnumerable<object[]> Returns200_NotVerify_Data => EnumeratePossibleScopes(
                 AllCredentialTypes.Except(new[] { CredentialTypes.ApiKey.VerifyV1 }), 
-                MatchingActionScopes.Except(new[] { NuGetScopeActions.PackageVerify }));
+                MatchingActionScopes.Except(new[] { NuGetScopes.PackageVerify }));
 
             [Theory]
             [MemberData(nameof(Returns200_NotVerify_Data))]

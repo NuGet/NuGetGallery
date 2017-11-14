@@ -81,7 +81,7 @@ namespace NuGetGallery
             return string.IsNullOrEmpty(requestedAction)
                 || string.IsNullOrEmpty(scope.AllowedAction)
                 || string.Equals(scope.AllowedAction, requestedAction, StringComparison.OrdinalIgnoreCase)
-                || string.Equals(scope.AllowedAction, NuGetScopeActions.All, StringComparison.OrdinalIgnoreCase);
+                || string.Equals(scope.AllowedAction, NuGetScopes.All, StringComparison.OrdinalIgnoreCase);
         }
     }
 }

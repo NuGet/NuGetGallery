@@ -59,6 +59,14 @@ namespace NuGetGallery
         }
 
         /// <summary>
+        /// Is <paramref name="currentUser"/> allowed to perform <paramref name="actionPermissionLevel"/> on <paramref name="reservedNamespace"/>?
+        /// </summary>
+        public static bool IsActionAllowed(ReservedNamespace reservedNamespace, User currentUser, PermissionLevel actionPermissionLevel)
+        {
+            return IsActionAllowed(reservedNamespace.Owners, currentUser, actionPermissionLevel);
+        }
+
+        /// <summary>
         /// Is <paramref name="currentPrincipal"/> allowed to perform <paramref name="actionPermissionLevel"/> on <paramref name="account"/>?
         /// </summary>
         public static bool IsActionAllowed(User account, User currentUser, PermissionLevel action)

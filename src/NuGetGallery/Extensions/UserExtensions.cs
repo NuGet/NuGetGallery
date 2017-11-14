@@ -79,7 +79,7 @@ namespace NuGetGallery
         {
             return self.IsInRole(Constants.AdminRoleName);
         }
-        
+
         /// <summary>
         /// Determine if the current user matches the owner scope of the current credential.
         /// There is a match if the owner scope is self or an organization to which the user
@@ -102,45 +102,26 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(credential));
             }
 
-            if (credential.Scopes == null || !credential.Scopes.Any())
+            // Legacy V1 API key with no owner scope.
+            if (!credential.Scopes.Any())
             {
-                // Legacy V1 API key with no scopes.
                 return true;
             }
 
-            return credential.Scopes.Any(s => MatchesOwnerScope(user, s));
+            return credential.Scopes
+                .Select(s => s.OwnerKey)
+                .Distinct()
+                .Any(ownerKey => !ownerKey.HasValue // Legacy V2 API key with no owner scope
+                    || user.KeyIsSelfOrOrganization(ownerKey)); // V2 API key with owner scope
         }
-        
-        private static bool MatchesOwnerScope(this User user, Scope scope)
+
+        private static bool KeyIsSelfOrOrganization(this User user, int? accountKey)
         {
-            if (user == null)
-            {
-                throw new ArgumentNullException(nameof(user));
-            }
-
-            if (scope == null)
-            {
-                // Null scope matches all users.
-                return true;
-            }
-
-            if (!scope.HasOwnerScope())
-            {
-                // Legacy V2 API key with no owner scope
-                return true;
-            }
-
-            return user.KeyIsSelfOrOrganization(scope.OwnerKey.Value);
+            return user.Key == accountKey
+                || user.Organizations.Any(o => o.OrganizationKey == accountKey);
         }
 
-        private static bool KeyIsSelfOrOrganization(this User user, int accountKey)
-        {
-            return 
-                user.Key == accountKey || 
-                user.Organizations.Any(o => o.OrganizationKey == accountKey);
-        }
-
-	public static void SetAccountAsDeleted(this User user)
+        public static void SetAccountAsDeleted(this User user)
         {
             user.EmailAddress = null;
             user.UnconfirmedEmailAddress = null;
@@ -151,6 +132,6 @@ namespace NuGetGallery
             user.LastFailedLoginUtc = null;
             user.FailedLoginCount = 0;
             user.IsDeleted = true;
-	}
+	    }
     }
 }
