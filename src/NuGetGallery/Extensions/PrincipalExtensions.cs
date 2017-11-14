@@ -62,7 +62,7 @@ namespace NuGetGallery
         {
             var claim = GetScopeClaim(self);
 
-            return string.IsNullOrWhiteSpace(claim)?
+            return IsEmptyScopeClaim(claim)?
                 null : JsonConvert.DeserializeObject<List<Scope>>(claim);
         }
 
