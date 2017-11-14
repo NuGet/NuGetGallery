@@ -501,18 +501,22 @@ namespace NuGetGallery
                     Times.Once);
             }
 
-            [Fact]
-            public Task WillCreateAPackageIfUserOwnsExistingRegistration()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public Task WillCreateAPackageIfUserOwnsExistingRegistration(bool matchesReservedNamespaceThatIsNotOwned)
             {
                 var key = 0;
                 var user = new User { EmailAddress = "confirmed@email.com", Key = key++, Username = "user" };
-                return AssertPackageIsCreatedIfUserOwnsExistingRegistration(user, user);
+                return AssertPackageIsCreatedIfUserOwnsExistingRegistration(user, user, matchesReservedNamespaceThatIsNotOwned);
             }
 
             [Theory]
-            [InlineData(true)]
-            [InlineData(false)]
-            public Task WillCreateAPackageIfUserIsMemberOfOrganizationThatOwnsExistingRegistration(bool isAdmin)
+            [InlineData(false, false)]
+            [InlineData(false, true)]
+            [InlineData(true, false)]
+            [InlineData(true, true)]
+            public Task WillCreateAPackageIfUserIsMemberOfOrganizationThatOwnsExistingRegistration(bool isAdmin, bool matchesReservedNamespaceThatIsNotOwned)
             {
                 var key = 0;
                 var organization = new Organization { Key = key++, Username = "org" };
@@ -521,10 +525,10 @@ namespace NuGetGallery
                 user.Organizations = new[] { new Membership { IsAdmin = isAdmin, Member = user, Organization = organization } };
                 organization.Members = user.Organizations;
 
-                return AssertPackageIsCreatedIfUserOwnsExistingRegistration(organization, user);
+                return AssertPackageIsCreatedIfUserOwnsExistingRegistration(organization, user, matchesReservedNamespaceThatIsNotOwned);
             }
 
-            private async Task AssertPackageIsCreatedIfUserOwnsExistingRegistration(User owner, User currentUser)
+            private async Task AssertPackageIsCreatedIfUserOwnsExistingRegistration(User owner, User currentUser, bool matchesReservedNamespaceThatIsNotOwned)
             {
                 // Arrange
                 var packageId = "theId";
@@ -542,6 +546,11 @@ namespace NuGetGallery
                 controller.SetCurrentUser(currentUser, new[] { scope });
                 controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
                     .Returns(packageRegistration);
+
+                IReadOnlyCollection<ReservedNamespace> matchingReservedNamespaces;
+                controller.MockReservedNamespaceService
+                    .Setup(r => r.IsPushAllowed(packageId, It.IsAny<User>(), out matchingReservedNamespaces))
+                    .Returns(!matchesReservedNamespaceThatIsNotOwned);
 
                 controller.MockUserService.Setup(x => x.FindByKey(owner.Key)).Returns(owner);
 
@@ -566,7 +575,7 @@ namespace NuGetGallery
             {
                 var key = 0;
                 var user = new User { EmailAddress = "confirmed@email.com", Key = key++, Username = "user" };
-                return AssertPackageIsCreatedIfUserOwnsExistingRegistration(user, user);
+                return AssertPackageIsCreatedIfNewRegistration(user, user);
             }
 
             [Theory]
@@ -583,7 +592,7 @@ namespace NuGetGallery
 
                 if (isAdmin)
                 {
-                    return AssertPackageIsCreatedIfUserOwnsExistingRegistration(organization, user);
+                    return AssertPackageIsCreatedIfNewRegistration(organization, user);
                 }
                 else
                 {
