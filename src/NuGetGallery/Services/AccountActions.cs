@@ -9,10 +9,34 @@ namespace NuGetGallery
     public static class AccountActions
     {
         /// <summary>
-        /// If a user is requested to be an owner of a package, this user can accept the request on behalf of the other user.
+        /// The user can manage ownership of the package on behalf of the account.
+        /// The user can accept, reject, and cancel package ownership requests on behalf of the account.
         /// </summary>
-        public static PermissionLevel AcceptPackageOwnershipOnBehalfOf =
+        public static PermissionLevel ManagePackageOwnersOnBehalfOf =
             PermissionLevel.Owner |
             PermissionLevel.OrganizationAdmin;
+
+        /// <summary>
+        /// The user can upload new package IDs on behalf of the account using the UI.
+        /// </summary>
+        public static PermissionLevel UploadNewIdOnBehalfOf =
+            PermissionLevel.Owner |
+            PermissionLevel.OrganizationAdmin;
+
+        /// <summary>
+        /// The user can upload new versions of an existing package on behalf of the account using the UI.
+        /// </summary>
+        public static PermissionLevel UploadNewVersionOnBehalfOf =
+            PermissionLevel.Owner |
+            PermissionLevel.OrganizationAdmin |
+            PermissionLevel.OrganizationCollaborator;
+
+        /// <summary>
+        /// The user can push to reserved namespaces on behalf of another owner.
+        /// </summary>
+        public static PermissionLevel PushToReservedNamespaceOnBehalfOf =
+            PermissionLevel.Owner |
+            PermissionLevel.OrganizationAdmin |
+            PermissionLevel.SiteAdmin;
     }
 }

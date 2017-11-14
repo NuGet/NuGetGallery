@@ -891,6 +891,7 @@
     <Compile Include="Services\IPackageUploadService.cs" />
     <Compile Include="Services\PermissionsService.cs" />
     <Compile Include="Services\PermissionLevel.cs" />
+    <Compile Include="Services\ReservedNamespaceActions.cs" />
     <Compile Include="Services\ReservedNamespaceService.cs" />
     <Compile Include="Services\ReadMeService.cs" />
     <Compile Include="Services\TelemetryClientWrapper.cs" />
