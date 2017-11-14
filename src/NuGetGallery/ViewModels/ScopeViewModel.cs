@@ -11,7 +11,7 @@ namespace NuGetGallery
 
         public ScopeViewModel(string owner, string subject, string allowedAction)
         {
-            Owner = owner ?? "*";
+            Owner = owner;
             Subject = subject;
             AllowedAction = allowedAction;
         }

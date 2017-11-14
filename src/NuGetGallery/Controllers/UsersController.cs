@@ -226,8 +226,11 @@ namespace NuGetGallery
 
             // Get package owners (user's self or organizations)
             var owners = user.Organizations
-                .Select(o => CreateApiKeyOwnerViewModel(o.Organization, canPushNew: o.IsAdmin))
-                .ToList();
+                .Select(o => CreateApiKeyOwnerViewModel(
+                    o.Organization,
+                    // todo: move logic for canPushNew to PermissionsService
+                    canPushNew: o.IsAdmin)
+                    ).ToList();
             owners.Insert(0, CreateApiKeyOwnerViewModel(user, canPushNew: true));
 
             var model = new ApiKeyListViewModel
@@ -658,7 +661,7 @@ namespace NuGetGallery
                 Response.StatusCode = (int)HttpStatusCode.NotFound;
                 return Json(Strings.CredentialNotFound);
             }
-
+           
             var newCredential = await GenerateApiKeyInternal(
                 cred.Description,
                 BuildScopes(cred.Scopes),
@@ -694,14 +697,25 @@ namespace NuGetGallery
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return Json(Strings.ApiKeyDescriptionRequired);
             }
+            if (string.IsNullOrWhiteSpace(owner))
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.ApiKeyOwnerRequired);
+            }
 
             // Get the owner scope
-            User scopeOwner = string.IsNullOrEmpty(owner)
-                ? GetCurrentUser()
-                : _userService.FindByUsername(owner);
+            User scopeOwner = _userService.FindByUsername(owner);
             if (scopeOwner == null)
             {
-                Response.StatusCode = (int)HttpStatusCode.NotFound;
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.UserNotFound);
+            }
+
+            // todo: move validation logic to PermissionsService
+            var resolvedScopes = BuildScopes(scopeOwner, scopes, subjects);
+            if (!VerifyScopes(scopeOwner, resolvedScopes))
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return Json(Strings.UserNotFound);
             }
 
@@ -716,8 +730,9 @@ namespace NuGetGallery
                     expiration = TimeSpan.FromDays(Math.Min(expirationInDays.Value, _config.ExpirationInDaysForApiKeyV1));
                 }
             }
-            
-            var newCredential = await GenerateApiKeyInternal(description, BuildScopes(scopeOwner, scopes, subjects), expiration);
+
+            var newCredential = await GenerateApiKeyInternal(description, resolvedScopes, expiration);
+
             var credentialViewModel = _authService.DescribeCredential(newCredential);
             credentialViewModel.Value = newCredential.Value;
 
@@ -748,7 +763,7 @@ namespace NuGetGallery
                 return Json(Strings.CredentialNotFound);
             }
 
-            var scopeOwner = cred.Scopes.Select(x => x.Owner).Distinct().SingleOrDefault();
+            var scopeOwner = cred.Scopes.GetOwnerScope();
             var scopes = cred.Scopes.Select(x => x.AllowedAction).Distinct().ToArray();
             var newScopes = BuildScopes(scopeOwner, scopes, subjects);
 
@@ -771,6 +786,31 @@ namespace NuGetGallery
             await _authService.AddCredential(user, newCredential);
 
             return newCredential;
+        }
+
+        // todo: integrate verification logic into PermissionsService.
+        private bool VerifyScopes(User scopeOwner, IEnumerable<Scope> scopes)
+        {
+            var currentUser = GetCurrentUser();
+
+            // scoped to the user
+            if (currentUser.MatchesUser(scopeOwner))
+            {
+                return true;
+            }
+            // scoped to the user's organization
+            else
+            {
+                var organization = currentUser.Organizations
+                    .Where(o => o.Organization.MatchesUser(scopeOwner))
+                    .FirstOrDefault();
+                if (organization != null)
+                {
+                    return organization.IsAdmin || !scopes.Any(s => s.AllowsActions(NuGetScopes.PackagePush));
+                }
+            }
+
+            return false;
         }
 
         private IList<Scope> BuildScopes(User scopeOwner, string[] scopes, string[] subjects)

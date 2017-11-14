@@ -306,6 +306,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Can&apos;t generate an API key without a package owner..
+        /// </summary>
+        public static string ApiKeyOwnerRequired {
+            get {
+                return ResourceManager.GetString("ApiKeyOwnerRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An API key must be provided in the &apos;X-NuGet-ApiKey&apos; header to use this service.
         /// </summary>
         public static string ApiKeyRequired {

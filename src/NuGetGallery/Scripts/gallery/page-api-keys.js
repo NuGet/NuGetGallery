@@ -121,11 +121,14 @@
                 return self.PackageOwner() && self.PackageOwner().CanPushNew;
             }, this);
             this.PushNewEnabled.subscribe(function (newValue) {
-                var defaultPushId = (newValue)
+                var defaultPushId = newValue
                     ? self.PackagePushId()
                     : self.PackagePushVersionId();
+                // If Create is expanded, update push scope when owner changes
                 var defaultScope = $("#" + defaultPushId).val();
-                self.PushScope(defaultScope);
+                if (defaultScope) {
+                    self.PushScope(defaultScope);
+                }
             });
 
             this.ExpiresIn = ko.observable();
@@ -154,7 +157,7 @@
                     return id;
                 }, self);
             }
-            
+
             this.ShortPackageList = ko.pureComputed(function () {
                 return this.Packages().slice(0, 3);
             }, this);
