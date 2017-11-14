@@ -60,7 +60,7 @@ namespace NuGetGallery
         /// <returns>Scopes for current user, or null if none.</returns>
         public static List<Scope> GetScopesFromClaim(this IIdentity self)
         {
-            var claim = self.GetScopeClaim();
+            var claim = GetScopeClaim(self);
 
             return string.IsNullOrWhiteSpace(claim)?
                 null : JsonConvert.DeserializeObject<List<Scope>>(claim);
@@ -88,7 +88,7 @@ namespace NuGetGallery
         /// <returns>True if authenticated with scoped API key, false otherwise.</returns>
         public static bool IsScopedAuthentication(this IIdentity self)
         {
-            return !IsEmptyScopeClaim(self.GetScopeClaim());
+            return !IsEmptyScopeClaim(GetScopeClaim(self));
         }
 
         /// <summary>
@@ -125,7 +125,7 @@ namespace NuGetGallery
             return !self.IsScopedAuthentication() || self.HasExplicitScopeAction(requestedActions);
         }
         
-        private static string GetScopeClaim(this IIdentity self)
+        private static string GetScopeClaim(IIdentity self)
         {
             if (self == null)
             {

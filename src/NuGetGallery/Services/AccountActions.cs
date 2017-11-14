@@ -41,15 +41,6 @@ namespace NuGetGallery
             ApiVerifyOnBehalfOf;
 
         /// <summary>
-        /// The user can perform at least one API action on behalf of the account.
-        /// </summary>
-        public static PermissionLevel ApiAnyOnBehalfOf =
-            ApiPushOnBehalfOf |
-            ApiPushVersionOnBehalfOf |
-            ApiUnlistOnBehalfOf |
-            ApiVerifyOnBehalfOf;
-
-        /// <summary>
         /// The user can push new package IDs on behalf of the account.
         /// </summary>
         public static PermissionLevel ApiPushOnBehalfOf =
