@@ -194,7 +194,7 @@
                 )
             }
 
-            @if (Model.Listed && Model.IsIndexed.HasValue && !Model.IsIndexed.Value)
+            @if (Model.Listed && Model.IsIndexed.HasValue && !Model.IsIndexed.Value && !Model.Validating)
             {
                 @ViewHelpers.AlertWarning(
                     @<text>
