@@ -132,7 +132,7 @@ namespace NuGetGallery
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> RequestAccountDeletionAsync()
+        public virtual async Task<ActionResult> RequestAccountDeletion()
         {
             var user = GetCurrentUser();
 
