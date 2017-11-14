@@ -90,8 +90,8 @@ namespace NuGetGallery
                 .Setup(s => s.GetReservedNamespacesForId(It.IsAny<string>()))
                     .Returns(new ReservedNamespace[0]);
 
-            MockPackageUploadService.Setup(x => x.GeneratePackageAsync(It.IsAny<string>(), It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>()))
-                .Returns((string id, PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user) => {
+            MockPackageUploadService.Setup(x => x.GeneratePackageAsync(It.IsAny<string>(), It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<User>()))
+                .Returns((string id, PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User owner, User currentUser) => {
                     var packageMetadata = PackageMetadata.FromNuspecReader(nugetPackage.GetNuspecReader());
 
                     var package = new Package();
@@ -166,6 +166,7 @@ namespace NuGetGallery
                         It.IsAny<string>(),
                         It.IsAny<PackageArchiveReader>(),
                         It.IsAny<PackageStreamMetadata>(),
+                        It.IsAny<User>(),
                         It.IsAny<User>()))
                     .Returns(Task.FromResult(package));
 
@@ -204,6 +205,7 @@ namespace NuGetGallery
                         It.IsAny<string>(),
                         It.IsAny<PackageArchiveReader>(),
                         It.IsAny<PackageStreamMetadata>(),
+                        It.IsAny<User>(),
                         It.IsAny<User>()))
                     .Returns(Task.FromResult(package));
 
@@ -502,6 +504,7 @@ namespace NuGetGallery
                         It.IsAny<string>(),
                         It.IsAny<PackageArchiveReader>(),
                         It.IsAny<PackageStreamMetadata>(),
+                        It.IsAny<User>(),
                         It.IsAny<User>()),
                     Times.Once);
             }
@@ -543,6 +546,7 @@ namespace NuGetGallery
                         It.IsAny<string>(),
                         It.IsAny<PackageArchiveReader>(),
                         It.IsAny<PackageStreamMetadata>(),
+                        It.IsAny<User>(),
                         It.IsAny<User>()));
             }
 
@@ -582,6 +586,7 @@ namespace NuGetGallery
                         It.IsAny<string>(),
                         It.IsAny<PackageArchiveReader>(),
                         It.IsAny<PackageStreamMetadata>(),
+                        It.IsAny<User>(),
                         It.IsAny<User>()),
                     Times.Once);
             }
@@ -648,6 +653,7 @@ namespace NuGetGallery
                         It.IsAny<string>(),
                         It.IsAny<PackageArchiveReader>(),
                         It.IsAny<PackageStreamMetadata>(),
+                        user,
                         user),
                     Times.Once);
             }
@@ -676,6 +682,7 @@ namespace NuGetGallery
                         It.IsAny<string>(),
                         It.IsAny<PackageArchiveReader>(),
                         It.IsAny<PackageStreamMetadata>(),
+                        user,
                         user))
                     .ReturnsAsync(package);
 
@@ -690,6 +697,7 @@ namespace NuGetGallery
                             It.IsAny<string>(),
                             It.IsAny<PackageArchiveReader>(),
                             It.IsAny<PackageStreamMetadata>(),
+                            user,
                             user));
                 }
                 else
@@ -699,6 +707,7 @@ namespace NuGetGallery
                             It.IsAny<string>(),
                             It.IsAny<PackageArchiveReader>(),
                             It.IsAny<PackageStreamMetadata>(),
+                            It.IsAny<User>(),
                             It.IsAny<User>()),
                         Times.Never);
 
@@ -741,6 +750,7 @@ namespace NuGetGallery
                         It.IsAny<string>(),
                         It.IsAny<PackageArchiveReader>(),
                         It.IsAny<PackageStreamMetadata>(),
+                        user,
                         user))
                     .ReturnsAsync(package);
 
@@ -755,6 +765,7 @@ namespace NuGetGallery
                             It.IsAny<string>(),
                             It.IsAny<PackageArchiveReader>(),
                             It.IsAny<PackageStreamMetadata>(),
+                            user,
                             user));
                 }
                 else
@@ -764,6 +775,7 @@ namespace NuGetGallery
                             It.IsAny<string>(),
                             It.IsAny<PackageArchiveReader>(),
                             It.IsAny<PackageStreamMetadata>(),
+                            It.IsAny<User>(),
                             It.IsAny<User>()),
                         Times.Never);
 

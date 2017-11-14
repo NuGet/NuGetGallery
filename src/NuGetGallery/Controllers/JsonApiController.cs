@@ -49,7 +49,7 @@ namespace NuGetGallery
             {
                 return Json(new { message = Strings.AddOwner_PackageNotFound });
             }
-
+            
             var currentUser = GetCurrentUser();
             if (!ActionsRequiringPermissions.ManagePackageOwnership.TryGetAccountsIsAllowedOnBehalfOf(currentUser, package, out var accountsAllowedOnBehalfOf))
             {

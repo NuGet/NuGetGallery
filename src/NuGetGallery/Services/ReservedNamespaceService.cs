@@ -363,7 +363,7 @@ namespace NuGetGallery
                     value));
             }
         }
-
+        
         private bool ShouldForceSharedNamespace(string value)
         {
             var liberalMatchingNamespaces = GetReservedNamespacesForId(value);
