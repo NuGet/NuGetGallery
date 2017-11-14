@@ -132,6 +132,6 @@ namespace NuGetGallery
             user.LastFailedLoginUtc = null;
             user.FailedLoginCount = 0;
             user.IsDeleted = true;
-	    }
+        }
     }
 }
