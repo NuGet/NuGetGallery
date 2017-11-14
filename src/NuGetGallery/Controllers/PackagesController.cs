@@ -162,7 +162,7 @@ namespace NuGetGallery
 
                     var existingPackageRegistration = _packageService.FindPackageRegistrationById(packageMetadata.Id);
 
-                    if (!_reservedNamespaceService.IsPushAllowedOnBehalfOfOwner(packageMetadata.Id, currentUser, out var userOwnerMatchingNamespaces) ||
+                    if (existingPackageRegistration == null && !_reservedNamespaceService.IsPushAllowedOnBehalfOfOwner(packageMetadata.Id, currentUser, out var userOwnerMatchingNamespaces) ||
                         (existingPackageRegistration != null && !PermissionsService.IsActionAllowed(existingPackageRegistration, currentUser, PackageActions.UploadNewVersion)))
                     {
                         // This user no longer has the rights to upload to this package. Cancel this upload.
