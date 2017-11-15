@@ -86,6 +86,14 @@ namespace NuGetGallery.Configuration
         bool AsynchronousPackageValidationEnabled { get; set; }
 
         /// <summary>
+        /// Only makes sense if <see cref="AsynchronousPackageValidationEnabled"/> is set to true.
+        /// Indicates whether async package validation will be run in blocking mode.
+        /// Running in blocking mode means that the package will not be available for download
+        /// until it successfully passed all validations.
+        /// </summary>
+        bool BlockingAsynchronousPackageValidationEnabled { get; set; }
+
+        /// <summary>
         /// Gets the URI to the search service
         /// </summary>
         Uri ServiceDiscoveryUri { get; set; }

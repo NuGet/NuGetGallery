@@ -65,6 +65,8 @@ namespace NuGetGallery.Configuration
 
         public bool AsynchronousPackageValidationEnabled { get; set; }
 
+        public bool BlockingAsynchronousPackageValidationEnabled { get; set; }
+
         /// <summary>
         /// Gets the URI to the search service
         /// </summary>
