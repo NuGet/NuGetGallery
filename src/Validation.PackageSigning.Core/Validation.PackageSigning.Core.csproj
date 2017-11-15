@@ -37,9 +37,11 @@
     <Reference Include="System.Data" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="NuGet.Services.ServiceBus" Version="2.3.2-master-15927" />
+    <PackageReference Include="NuGet.Services.ServiceBus">
+      <Version>2.4.1-dev-17394</Version>
+    </PackageReference>
     <PackageReference Include="NuGet.Services.Validation">
-      <Version>2.3.2-master-15927</Version>
+      <Version>2.4.1-dev-17394</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
