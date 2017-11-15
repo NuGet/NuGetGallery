@@ -203,7 +203,7 @@ namespace NuGetGallery
         [HttpGet]
         public virtual ActionResult RegisterLegacy(string returnUrl)
         {
-            return Redirect(Url.LogOn(returnUrl, relativeUrl: false));
+            return Redirect(Url.LogOnNuGetAccount(returnUrl, relativeUrl: false));
         }
         
         [HttpPost]
