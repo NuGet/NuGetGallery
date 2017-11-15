@@ -8,11 +8,19 @@
       }
     ],
     "ValidationStorageConnectionString": "",
-    "ValidationMessageRecheckPeriod":  "00:01:00"
+    "ValidationMessageRecheckPeriod": "00:01:00"
   },
   "Vcs": {
     "ContainerName": "validation",
-    "DataStorageAccount": "UseDevelopmentStorage=true"
+    "DataStorageAccount": "UseDevelopmentStorage=true",
+    "PackageCriteria": {
+      "ExcludeOwners": [
+        "NugetTestAccount"
+      ],
+      "IncludeIdPatterns": [
+        "E2E.SemVer1Stable.*"
+      ]
+    }
   },
   "RunnerConfiguration": {
     "ProcessRecycleInterval": "1:00:00:00",

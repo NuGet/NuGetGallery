@@ -135,7 +135,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 new NuGetGallery.EntitiesContext(
                     serviceProvider.GetRequiredService<IOptionsSnapshot<GalleryDbConfiguration>>().Value.ConnectionString,
                     readOnly: false));
-            services.AddScoped<ValidationEntitiesContext>(serviceProvider =>
+            services.AddScoped(serviceProvider =>
                 new ValidationEntitiesContext(
                     serviceProvider.GetRequiredService<IOptionsSnapshot<ValidationDbConfiguration>>().Value.ConnectionString));
             services.AddScoped<IValidationStorageService, ValidationStorageService>();
@@ -157,6 +157,7 @@ namespace NuGet.Services.Validation.Orchestrator
             services.AddTransient<IMessageHandler<PackageValidationMessageData>, ValidationMessageHandler>();
             services.AddTransient<IServiceBusMessageSerializer, ServiceBusMessageSerializer>();
             services.AddTransient<IBrokeredMessageSerializer<PackageValidationMessageData>, PackageValidationMessageDataSerializationAdapter>();
+            services.AddTransient<IPackageCriteriaEvaluator, PackageCriteriaEvaluator>();
             services.AddTransient<VcsValidator>();
         }
 

@@ -50,6 +50,7 @@
     <Compile Include="ValidationProviderFacts.cs" />
     <Compile Include="ValidationSetProcessorFacts.cs" />
     <Compile Include="ValidationSetProviderFacts.cs" />
+    <Compile Include="Vcs\PackageCriteriaEvaluatorFacts.cs" />
     <Compile Include="Vcs\VcsValidatorFacts.cs" />
   </ItemGroup>
   <ItemGroup>
