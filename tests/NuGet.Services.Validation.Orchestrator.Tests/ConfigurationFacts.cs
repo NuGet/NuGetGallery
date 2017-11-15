@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using Microsoft.Extensions.Options;
-using NuGet.Services.Validation.Orchestrator;
+using Moq;
 using Xunit;
 
 namespace NuGet.Services.Validation.Orchestrator.Tests
@@ -411,7 +411,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
         private static void Validate(ValidationConfiguration configuration)
         {
-            var validator = new ConfigurationValidator(Options.Create(configuration));
+            var optionsAccessor = new Mock<IOptionsSnapshot<ValidationConfiguration>>();
+            optionsAccessor.SetupGet(cfg => cfg.Value).Returns(configuration);
+            var validator = new ConfigurationValidator(optionsAccessor.Object);
             validator.Validate();
         }
     }

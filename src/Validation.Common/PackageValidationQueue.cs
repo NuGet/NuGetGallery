@@ -84,14 +84,6 @@ namespace NuGet.Jobs.Validation.Common
                 deserializedMessage.PopReceipt = message.PopReceipt;
                 deserializedMessage.DequeueCount = message.DequeueCount;
 
-                if (deserializedMessage.Package?.DownloadUrl != null)
-                {
-                    // Don't read the package URL from OData. Instead, allow the validators to build the package URL
-                    // themselves. This is important because the URL in the OData feed is not pointing directly to
-                    // Azure Blob Storage, which is required by the VCS validator.
-                    deserializedMessage.Package.DownloadUrl = null;
-                }
-
                 results.Add(deserializedMessage);
             }
 
