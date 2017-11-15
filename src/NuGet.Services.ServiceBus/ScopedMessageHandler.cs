@@ -12,7 +12,7 @@ namespace NuGet.Services.ServiceBus
     /// Each message will be handled within its own dependency injection scope.
     /// </summary>
     /// <typeparam name="TMessage">The type of messages this handler handles.</typeparam>
-    public class ScopedMessageHandler<TMessage>
+    public class ScopedMessageHandler<TMessage> : IMessageHandler<TMessage>
     {
         /// <summary>
         /// The factory used to create independent dependency injection scopes for each message.
