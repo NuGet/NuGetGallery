@@ -76,8 +76,6 @@ namespace NuGetGallery
         }
 
         /// <summary>
-        /// Sign In\Register view
-        /// <summary>
         /// Sign In NuGet account view
         /// </summary>
         [HttpGet]

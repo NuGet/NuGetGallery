@@ -159,7 +159,6 @@ namespace NuGetGallery
 
         public void TrackNewUserRegistrationEvent(User user, Credential credential)
         {
-
             if (user == null)
             {
                 throw new ArgumentNullException(nameof(user));
@@ -173,7 +172,6 @@ namespace NuGetGallery
             TrackEvent(Events.NewUserRegistration, properties => {
                 properties.Add(ClientVersion, GetClientVersion());
                 properties.Add(ProtocolVersion, GetProtocolVersion());
-                properties.Add(ClientInformation, GetClientInformation());
                 properties.Add(AccountCreationDate, GetAccountCreationDate(user));
                 properties.Add(RegistrationMethod, GetRegistrationMethod(credential));
             });
