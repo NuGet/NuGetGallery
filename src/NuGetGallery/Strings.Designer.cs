@@ -70,7 +70,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The request failed to be submitted. Please try again or contact nuget support..
+        ///   Looks up a localized string similar to The request failed to be submitted. Please try again or contact support..
         /// </summary>
         public static string AccountDelete_CreateSupportRequestFails {
             get {
@@ -833,15 +833,6 @@ namespace NuGetGallery {
         public static string PackageExistsAndCannotBeModified {
             get {
                 return ResourceManager.GetString("PackageExistsAndCannotBeModified", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to This package has no owners and is not being actively maintained..
-        /// </summary>
-        public static string PackageHasNoOwnersMessage {
-            get {
-                return ResourceManager.GetString("PackageHasNoOwnersMessage", resourceCulture);
             }
         }
         

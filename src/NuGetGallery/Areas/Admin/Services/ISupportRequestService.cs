@@ -47,6 +47,5 @@ namespace NuGetGallery.Areas.Admin
         Task ToggleAdminAccessAsync(int adminId, bool enabled);
         Task UpdateAdminAsync(int adminId, string galleryUsername, string pagerDutyUsername);
         Task AddAdminAsync(string galleryUsername, string pagerDutyUsername);
-        IReadOnlyCollection<Issue> GetOpenIssues(Func<Issue, bool> filter);
     }
 }

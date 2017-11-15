@@ -619,12 +619,9 @@ For more information, please contact '{2}'.</value>
     <value>The account:{0} was deleted succesfully.</value>
   </data>
   <data name="AccountDelete_CreateSupportRequestFails" xml:space="preserve">
-    <value>The request failed to be submitted. Please try again or contact nuget support.</value>
+    <value>The request failed to be submitted. Please try again or contact support.</value>
   </data>
   <data name="AccountDelete_SupportRequestTitle" xml:space="preserve">
     <value>DeleteAccountRequest</value>
-  </data>
-  <data name="PackageHasNoOwnersMessage" xml:space="preserve">
-    <value>This package has no owners and is not being actively maintained.</value>
   </data>
 </root>

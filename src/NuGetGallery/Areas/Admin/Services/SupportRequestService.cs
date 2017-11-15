@@ -58,11 +58,6 @@ namespace NuGetGallery.Areas.Admin
             return queryable.ToList();
         }
 
-        public IReadOnlyCollection<Issue> GetOpenIssues( Func<Issue,bool> filter )
-        {
-            return GetIssues().Where(i => (i.IssueStatus.Key != IssueStatusKeys.Resolved) && filter(i)).ToList();
-        }
-
         public int GetIssueCount(int? assignedToId, string reason, int? issueStatusId)
         {
             return GetFilteredIssuesQueryable(assignedToId, reason, issueStatusId).Count();

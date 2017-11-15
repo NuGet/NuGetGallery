@@ -1768,12 +1768,10 @@ namespace NuGetGallery
                 // Arrange
                 string userName = "DeletedUser";
                 var controller = GetController<UsersController>();
-                
-                User testUser = new User()
-                {
-                    Username = userName,
-                    IsDeleted = true,
-                };
+           
+                var fakes = Get<Fakes>();
+                var testUser = fakes.CreateUser(userName);
+                testUser.IsDeleted = true;
                
                 GetMock<IUserService>()
                     .Setup(stub => stub.FindByUsername(userName))
@@ -1792,12 +1790,10 @@ namespace NuGetGallery
                 // Arrange
                 string userName = "DeletedUser";
                 var controller = GetController<UsersController>();
+                var fakes = Get<Fakes>();
+                var testUser = fakes.CreateUser(userName);
+                testUser.IsDeleted = false;
 
-                User testUser = new User()
-                {
-                    Username = userName,
-                    IsDeleted = false,
-                };
                 PackageRegistration packageRegistration = new PackageRegistration();
                 packageRegistration.Owners.Add(testUser);
                 
@@ -1843,13 +1839,11 @@ namespace NuGetGallery
                 string emailAddress = $"{userName}@coldmail.com";
 
                 var controller = GetController<UsersController>();
+                var fakes = Get<Fakes>();
+                var testUser = fakes.CreateUser(userName);
+                testUser.EmailAddress = emailAddress;
+                testUser.IsDeleted = false;
 
-                User testUser = new User()
-                {
-                    Username = userName,
-                    IsDeleted = false,
-                    EmailAddress = emailAddress
-                };
                 controller.SetCurrentUser(testUser);
                 PackageRegistration packageRegistration = new PackageRegistration();
                 packageRegistration.Owners.Add(testUser);
@@ -1871,7 +1865,8 @@ namespace NuGetGallery
                     {
                         IssueTitle = Strings.AccountDelete_SupportRequestTitle,
                         OwnerEmail = emailAddress,
-                        IssueStatus = new IssueStatus() { Key = 1, Name = "OneIssue" }
+                        CreatedBy = userName,
+                        IssueStatus = new IssueStatus() { Key = IssueStatusKeys.New, Name = "OneIssue" }
                     });
                 }
 
@@ -1882,7 +1877,7 @@ namespace NuGetGallery
                     .Setup(stub => stub.FindPackagesByOwner(testUser, It.IsAny<bool>()))
                     .Returns(userPackages);
                 GetMock<ISupportRequestService>()
-                   .Setup(stub => stub.GetOpenIssues(It.IsAny<Func<Issue,bool>>()))
+                   .Setup(stub => stub.GetIssues(null, null, null, null))
                    .Returns(issues);
 
                 // act
@@ -1910,11 +1905,9 @@ namespace NuGetGallery
 
                 var controller = GetController<UsersController>();
 
-                User testUser = new User()
-                {
-                    Username = userName,
-                    EmailAddress = emailAddress
-                };
+                var fakes = Get<Fakes>();
+                var testUser = fakes.CreateUser(userName);
+                testUser.EmailAddress = emailAddress;
                 controller.SetCurrentUser(testUser);
 
                 List<Package> userPackages = new List<Package>();
@@ -1934,7 +1927,7 @@ namespace NuGetGallery
                   .Returns(Task<bool>.FromResult(successOnSentRequest));
 
                 // act
-                var result = await controller.RequestAccountDeletionAsync() as RedirectToRouteResult;
+                var result = await controller.RequestAccountDeletion() as RedirectToRouteResult;
 
                 // Assert
                 Assert.NotNull(result);

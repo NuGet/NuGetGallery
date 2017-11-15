@@ -9,6 +9,7 @@ using System.Net.Mail;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGetGallery.Areas.Admin;
+using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
@@ -114,8 +115,9 @@ namespace NuGetGallery
                  .Select(p => new ListPackageItemViewModel(p))
                  .ToList();
 
-            bool pendingRequest = _supportRequestService.GetOpenIssues((issue)=> string.Equals(issue.CreatedBy, user.Username) && 
-                                                                                 string.Equals(issue.IssueTitle, Strings.AccountDelete_SupportRequestTitle)).Any();
+            bool hasPendingRequest = _supportRequestService.GetIssues().Where((issue)=> string.Equals(issue.CreatedBy, user.Username) && 
+                                                                                 string.Equals(issue.IssueTitle, Strings.AccountDelete_SupportRequestTitle) &&
+                                                                                 issue.Key != IssueStatusKeys.Resolved).Any();
 
             var model = new DeleteAccountViewModel()
             {
@@ -123,7 +125,7 @@ namespace NuGetGallery
                 User = user,
                 AccountName = user.Username,
                 HasOrphanPackages = listPackageItems.Any(p => p.Owners.Count <= 1),
-                HasPendingRequests = pendingRequest
+                HasPendingRequests = hasPendingRequest
             };
             
             return View("DeleteAccount", model);
@@ -141,12 +143,12 @@ namespace NuGetGallery
                 return HttpNotFound("User not found.");
             }
 
-            bool createSupportRequestStatus = await _supportRequestService.AddNewSupportRequestAsync(Strings.AccountDelete_SupportRequestTitle,
+            bool isSupportRequestCreated = await _supportRequestService.AddNewSupportRequestAsync(Strings.AccountDelete_SupportRequestTitle,
                                                     Strings.AccountDelete_SupportRequestTitle,
                                                     user.EmailAddress,
                                                     "The user requested to have the account deleted.",
                                                     user);
-            if (!createSupportRequestStatus)
+            if (!isSupportRequestCreated)
             {
                 TempData["RequestFailedMessage"] = Strings.AccountDelete_CreateSupportRequestFails;
                 return RedirectToAction("DeleteRequest");
