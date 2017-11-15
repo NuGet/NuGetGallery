@@ -306,7 +306,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Can&apos;t generate an API key without a package owner..
+        ///   Looks up a localized string similar to You must specify a package owner to generate an API key..
         /// </summary>
         public static string ApiKeyOwnerRequired {
             get {
@@ -320,6 +320,15 @@ namespace NuGetGallery {
         public static string ApiKeyRequired {
             get {
                 return ResourceManager.GetString("ApiKeyRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The current user does not have permission to create an ApiKey with the specified owner or scopes..
+        /// </summary>
+        public static string ApiKeyScopesNotAllowed {
+            get {
+                return ResourceManager.GetString("ApiKeyScopesNotAllowed", resourceCulture);
             }
         }
         

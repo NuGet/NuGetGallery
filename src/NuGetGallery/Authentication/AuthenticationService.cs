@@ -473,9 +473,6 @@ namespace NuGetGallery.Authentication
                 string providerName = credential.Type.Split('.')[1];
                 Authenticators.TryGetValue(providerName, out auther);
             }
-            
-            var scopeOwner = credential.Scopes.GetOwnerScope()
-                ?? credential.User;
 
             var credentialViewModel = new CredentialViewModel
             {
@@ -491,7 +488,7 @@ namespace NuGetGallery.Authentication
                 Description = credential.Description, 
                 Value = kind == CredentialKind.Token && credential.Description == null ? credential.Value : null,
                 Scopes = credential.Scopes.Select(s => new ScopeViewModel(
-                        scopeOwner.Username,
+                        s.Owner?.Username ?? credential.User.Username,
                         s.Subject,
                         NuGetScopes.Describe(s.AllowedAction)))
                     .ToList(),

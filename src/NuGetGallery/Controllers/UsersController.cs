@@ -716,7 +716,7 @@ namespace NuGetGallery
             if (!VerifyScopes(scopeOwner, resolvedScopes))
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(Strings.UserNotFound);
+                return Json(Strings.ApiKeyScopesNotAllowed);
             }
 
             // Set expiration
