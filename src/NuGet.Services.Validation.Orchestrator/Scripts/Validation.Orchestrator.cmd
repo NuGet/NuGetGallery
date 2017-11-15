@@ -7,7 +7,7 @@ cd bin
     
     title #{Jobs.validation.Title}
 
-    start /w Validation.Orchestrator.exe -Configuration #{Jobs.validation.configuration}
+    start /w NuGet.Services.Validation.Orchestrator.exe -Configuration #{Jobs.validation.configuration} -InstrumentationKey #{Jobs.validation.ApplicationInsightsInstrumentationKey}
 
     echo "Finished #{Jobs.validation.Title}"
 

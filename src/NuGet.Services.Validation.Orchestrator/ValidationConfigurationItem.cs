@@ -28,7 +28,7 @@ namespace NuGet.Services.Validation.Orchestrator
 
         public ValidationConfigurationItem()
         {
-            this.RequiredValidations = new List<string>();
+            RequiredValidations = new List<string>();
         }
     }
 }
