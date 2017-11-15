@@ -58,6 +58,7 @@ namespace NuGetGallery
             {
                 return PackageStatus.Validating;
             }
+
             return PackageStatus.Available;
         }
     }
