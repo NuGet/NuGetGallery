@@ -28,6 +28,7 @@ namespace NuGetGallery.Authentication
         private readonly ICredentialBuilder _credentialBuilder;
         private readonly ICredentialValidator _credentialValidator;
         private readonly IDateTimeProvider _dateTimeProvider;
+        private readonly ITelemetryService _telemetryService;
 
         /// <summary>
         /// This ctor is used for test only.
@@ -42,58 +43,19 @@ namespace NuGetGallery.Authentication
         public AuthenticationService(
             IEntitiesContext entities, IAppConfiguration config, IDiagnosticsService diagnostics,
             IAuditingService auditing, IEnumerable<Authenticator> providers, ICredentialBuilder credentialBuilder,
-            ICredentialValidator credentialValidator, IDateTimeProvider dateTimeProvider)
+            ICredentialValidator credentialValidator, IDateTimeProvider dateTimeProvider, ITelemetryService telemetryService)
         {
-            if (entities == null)
-            {
-                throw new ArgumentNullException(nameof(entities));
-            }
-
-            if (config == null)
-            {
-                throw new ArgumentNullException(nameof(config));
-            }
-
-            if (diagnostics == null)
-            {
-                throw new ArgumentNullException(nameof(diagnostics));
-            }
-
-            if (auditing == null)
-            {
-                throw new ArgumentNullException(nameof(auditing));
-            }
-
-            if (providers == null)
-            {
-                throw new ArgumentNullException(nameof(providers));
-            }
-
-            if (credentialBuilder == null)
-            {
-                throw new ArgumentNullException(nameof(credentialBuilder));
-            }
-
-            if (credentialValidator == null)
-            {
-                throw new ArgumentNullException(nameof(credentialValidator));
-            }
-
-            if (dateTimeProvider == null)
-            {
-                throw new ArgumentNullException(nameof(dateTimeProvider));
-            }
-
             InitCredentialFormatters();
 
-            Entities = entities;
-            _config = config;
-            Auditing = auditing;
-            _trace = diagnostics.SafeGetSource("AuthenticationService");
-            Authenticators = providers.ToDictionary(p => p.Name, StringComparer.OrdinalIgnoreCase);
-            _credentialBuilder = credentialBuilder;
-            _credentialValidator = credentialValidator;
-            _dateTimeProvider = dateTimeProvider;
+            Entities = entities ?? throw new ArgumentNullException(nameof(entities));
+            _config = config ?? throw new ArgumentNullException(nameof(config));
+            _trace = diagnostics?.SafeGetSource("AuthenticationService") ?? throw new ArgumentNullException(nameof(diagnostics));
+            Auditing = auditing ?? throw new ArgumentNullException(nameof(auditing)); ;
+            Authenticators = providers?.ToDictionary(p => p.Name, StringComparer.OrdinalIgnoreCase) ?? throw new ArgumentNullException(nameof(providers));
+            _credentialBuilder = credentialBuilder ?? throw new ArgumentNullException(nameof(credentialBuilder));
+            _credentialValidator = credentialValidator ?? throw new ArgumentNullException(nameof(credentialValidator));
+            _dateTimeProvider = dateTimeProvider ?? throw new ArgumentNullException(nameof(dateTimeProvider));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
         }
 
         public IEntitiesContext Entities { get; private set; }
@@ -325,6 +287,7 @@ namespace NuGetGallery.Authentication
             Entities.Users.Add(newUser);
             await Entities.SaveChangesAsync();
 
+            _telemetryService.TrackNewUserRegistrationEvent(newUser, credential);
             return new AuthenticatedUser(newUser, credential);
         }
 

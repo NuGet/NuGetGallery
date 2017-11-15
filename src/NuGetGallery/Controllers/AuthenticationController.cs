@@ -69,15 +69,28 @@ namespace NuGetGallery
 
             if (Request.IsAuthenticated)
             {
-                TempData["Message"] = Strings.AlreadyLoggedIn;
-                return SafeRedirect(returnUrl);
+                return LoggedInRedirect(returnUrl);
             }
 
             return SignInView(new LogOnViewModel());
         }
 
         /// <summary>
-        /// Sign In\Register view
+        /// Sign In NuGet account view
+        /// </summary>
+        [HttpGet]
+        public virtual ActionResult LogOnNuGetAccount(string returnUrl)
+        {
+            ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
+
+            if (Request.IsAuthenticated)
+            {
+                return LoggedInRedirect(returnUrl);
+            }
+
+            return SignInNuGetAccountView(new LogOnViewModel());
+        }
+
         /// </summary>
         [HttpGet]
         public virtual ActionResult SignUp(string returnUrl)
@@ -87,8 +100,7 @@ namespace NuGetGallery
 
             if (Request.IsAuthenticated)
             {
-                TempData["Message"] = Strings.AlreadyLoggedIn;
-                return SafeRedirect(returnUrl);
+                return LoggedInRedirect(returnUrl);
             }
 
             return RegisterView(new LogOnViewModel());
@@ -103,8 +115,7 @@ namespace NuGetGallery
 
             if (Request.IsAuthenticated)
             {
-                TempData["Message"] = Strings.AlreadyLoggedIn;
-                return SafeRedirect(returnUrl);
+                return LoggedInRedirect(returnUrl);
             }
 
             if (!ModelState.IsValid)
@@ -113,7 +124,6 @@ namespace NuGetGallery
             }
 
             var authenticationResult = await _authService.Authenticate(model.SignIn.UserNameOrEmail, model.SignIn.Password);
-
 
             if (authenticationResult.Result != PasswordAuthenticationResult.AuthenticationResult.Success)
             {
@@ -134,7 +144,7 @@ namespace NuGetGallery
                     modelErrorMessage = string.Format(CultureInfo.CurrentCulture, Strings.UserAccountLocked, timeRemaining);
                 }
 
-                ModelState.AddModelError("SignIn", modelErrorMessage);
+                ModelState.AddModelError("SignInNuGetAccount", modelErrorMessage);
 
                 return SignInOrExternalLinkView(model, linkingAccount);
             }
@@ -193,7 +203,7 @@ namespace NuGetGallery
         [HttpGet]
         public virtual ActionResult RegisterLegacy(string returnUrl)
         {
-            return Redirect(Url.LogOn(returnUrl, relativeUrl: false));
+            return Redirect(Url.LogOnNuGetAccount(returnUrl, relativeUrl: false));
         }
         
         [HttpPost]
@@ -436,7 +446,7 @@ namespace NuGetGallery
             }
             else
             {
-                return SignInView(model);
+                return SignInNuGetAccountView(model);
             }
         }
 
@@ -452,6 +462,12 @@ namespace NuGetGallery
             }
         }
 
+        private ActionResult LoggedInRedirect(string returnUrl)
+        {
+            TempData["Message"] = Strings.AlreadyLoggedIn;
+            return SafeRedirect(returnUrl);
+        }
+
         private ActionResult SignInView(LogOnViewModel existingModel)
         {
             return AuthenticationView("SignIn", existingModel);
@@ -462,6 +478,11 @@ namespace NuGetGallery
             return AuthenticationView("Register", existingModel);
         }
 
+        private ActionResult SignInNuGetAccountView(LogOnViewModel existingModel)
+        {
+            return AuthenticationView("SignInNuGetAccount", existingModel);
+        }
+        
         private ActionResult LinkExternalView(LogOnViewModel existingModel)
         {
             return AuthenticationView("LinkExternal", existingModel);

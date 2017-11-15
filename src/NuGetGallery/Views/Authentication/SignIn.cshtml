@@ -30,16 +30,17 @@
                 </a>
             </div>
         </div>
-        <div class="row or-row">
-            <div class="@ViewHelpers.GetColumnClasses(ViewBag) text-center">
-                <b>OR</b>
-            </div>
+        <div class="row text-center create-provider-account">
+            No Account?
+            <a href="@Url.Authenticate(provider.ProviderName, (string)ViewData[Constants.ReturnUrlViewDataKey])">Create one!</a>
         </div>
     }
-    
-    <div class="row">
-        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
-            @Html.Partial("_SignIn", Model)
+
+    <div class="row nuget-signin">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag) text-center">
+            <p class="text-center">
+                <a href="@Url.LogOnNuGetAccount()">Sign in using NuGet.org account</a>
+            </p>
         </div>
     </div>
 </section>
