@@ -156,6 +156,7 @@ namespace NuGetGallery
                 properties.Add(VerifyPackageKeyStatusCode, statusCode.ToString());
             });
         }
+
         public void TrackNewUserRegistrationEvent(User user, Credential credential)
         {
 
