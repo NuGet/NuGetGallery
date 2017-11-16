@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NuGetGallery.Areas.Admin.Models;
@@ -33,7 +34,7 @@ namespace NuGetGallery.Areas.Admin
         /// <returns>Returns a <see cref="IReadOnlyCollection{Issue}"/> that matches the provided filter parameters.</returns>
         IReadOnlyCollection<Issue> GetIssues(int? assignedTo = null, string reason = null, int? issueStatusId = null, string galleryUsername = null);
 
-        Task AddNewSupportRequestAsync(string subject, string message, string requestorEmailAddress, string reason,
+        Task<bool> AddNewSupportRequestAsync(string subject, string message, string requestorEmailAddress, string reason,
             User user, Package package = null);
         Task UpdateIssueAsync(int issueId, int? assignedToId, int issueStatusId, string comment, string editedBy);
         int GetIssueCount(int? assignedToId, string reason, int? issueStatusId);

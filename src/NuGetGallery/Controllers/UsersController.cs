@@ -8,6 +8,8 @@ using System.Net;
 using System.Net.Mail;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using NuGetGallery.Areas.Admin;
+using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
@@ -28,6 +30,7 @@ namespace NuGetGallery
         private readonly AuthenticationService _authService;
         private readonly ICredentialBuilder _credentialBuilder;
         private readonly IDeleteAccountService _deleteAccountService;
+        private readonly ISupportRequestService _supportRequestService;
 
         public UsersController(
             ICuratedFeedService feedsQuery,
@@ -38,7 +41,8 @@ namespace NuGetGallery
             IAppConfiguration config,
             AuthenticationService authService,
             ICredentialBuilder credentialBuilder,
-            IDeleteAccountService deleteAccountService)
+            IDeleteAccountService deleteAccountService,
+            ISupportRequestService supportRequestService)
         {
             _curatedFeedService = feedsQuery ?? throw new ArgumentNullException(nameof(feedsQuery));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
@@ -49,6 +53,7 @@ namespace NuGetGallery
             _authService = authService ?? throw new ArgumentNullException(nameof(authService));
             _credentialBuilder = credentialBuilder ?? throw new ArgumentNullException(nameof(credentialBuilder));
             _deleteAccountService = deleteAccountService ?? throw new ArgumentNullException(nameof(deleteAccountService));
+            _supportRequestService = supportRequestService ?? throw new ArgumentNullException(nameof(supportRequestService));
         }
 
         [HttpGet]
@@ -92,6 +97,65 @@ namespace NuGetGallery
         public virtual ActionResult Account()
         {
             return AccountView(new AccountViewModel());
+        }
+
+        [HttpGet]
+        [Authorize]
+        public virtual ActionResult DeleteRequest()
+        {
+            var user = GetCurrentUser();
+
+            if (user == null || user.IsDeleted)
+            {
+                return HttpNotFound("User not found.");
+            }
+
+            var listPackageItems = _packageService
+                 .FindPackagesByOwner(user, includeUnlisted: true)
+                 .Select(p => new ListPackageItemViewModel(p))
+                 .ToList();
+
+            bool hasPendingRequest = _supportRequestService.GetIssues().Where((issue)=> string.Equals(issue.CreatedBy, user.Username) && 
+                                                                                 string.Equals(issue.IssueTitle, Strings.AccountDelete_SupportRequestTitle) &&
+                                                                                 issue.Key != IssueStatusKeys.Resolved).Any();
+
+            var model = new DeleteAccountViewModel()
+            {
+                Packages = listPackageItems,
+                User = user,
+                AccountName = user.Username,
+                HasOrphanPackages = listPackageItems.Any(p => p.Owners.Count <= 1),
+                HasPendingRequests = hasPendingRequest
+            };
+            
+            return View("DeleteAccount", model);
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> RequestAccountDeletion()
+        {
+            var user = GetCurrentUser();
+
+            if (user == null || user.IsDeleted)
+            {
+                return HttpNotFound("User not found.");
+            }
+
+            bool isSupportRequestCreated = await _supportRequestService.AddNewSupportRequestAsync(Strings.AccountDelete_SupportRequestTitle,
+                                                    Strings.AccountDelete_SupportRequestTitle,
+                                                    user.EmailAddress,
+                                                    "The user requested to have the account deleted.",
+                                                    user);
+            if (!isSupportRequestCreated)
+            {
+                TempData["RequestFailedMessage"] = Strings.AccountDelete_CreateSupportRequestFails;
+                return RedirectToAction("DeleteRequest");
+            }
+            _messageService.SendAccountDeleteNotice(user.ToMailAddress(), user.Username);
+           
+            return RedirectToAction("DeleteRequest");
         }
 
         [HttpGet]

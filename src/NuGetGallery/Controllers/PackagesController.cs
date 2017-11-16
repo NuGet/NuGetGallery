@@ -767,12 +767,14 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
+            bool hasOwners = package.PackageRegistration.Owners.Any();
             var model = new ContactOwnersViewModel
             {
                 PackageId = package.PackageRegistration.Id,
                 ProjectUrl = package.ProjectUrl,
                 Owners = package.PackageRegistration.Owners.Where(u => u.EmailAllowed),
                 CopySender = true,
+                HasOwners = hasOwners
             };
 
             return View(model);

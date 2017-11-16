@@ -1585,6 +1585,7 @@
     <Compile Include="Services\ReflowPackageService.cs" />
     <Compile Include="Services\TelemetryService.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteUserAccountViewModel.cs" />
+    <Compile Include="ViewModels\DeleteAccountViewModel.cs" />
     <Compile Include="ViewModels\PackageOwnersResultViewModel.cs" />
     <Compile Include="ViewModels\ManagePackagesListViewModel.cs" />
     <Compile Include="ViewModels\ApiKeyListViewModel.cs" />
@@ -1955,6 +1956,7 @@
     <Content Include="Areas\Admin\Views\DeleteAccount\DeleteUserAccount.cshtml" />
     <Content Include="Views\Users\_UserPackagesListForDeletedAccount.cshtml" />
     <Content Include="Views\Users\_ReservedNamespacesList.cshtml" />
+    <Content Include="Views\Users\DeleteAccount.cshtml" />
     <Content Include="Views\Authentication\SignInNuGetAccount.cshtml" />
   </ItemGroup>
   <ItemGroup>

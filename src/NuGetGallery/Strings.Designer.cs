@@ -70,6 +70,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The request failed to be submitted. Please try again or contact support..
+        /// </summary>
+        public static string AccountDelete_CreateSupportRequestFails {
+            get {
+                return ResourceManager.GetString("AccountDelete_CreateSupportRequestFails", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An exception was encoutered while trying to delete the account:{0}. {1}.
         /// </summary>
         public static string AccountDelete_Fail {
@@ -84,6 +93,15 @@ namespace NuGetGallery {
         public static string AccountDelete_Success {
             get {
                 return ResourceManager.GetString("AccountDelete_Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DeleteAccountRequest.
+        /// </summary>
+        public static string AccountDelete_SupportRequestTitle {
+            get {
+                return ResourceManager.GetString("AccountDelete_SupportRequestTitle", resourceCulture);
             }
         }
         
