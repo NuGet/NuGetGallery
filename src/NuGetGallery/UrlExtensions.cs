@@ -325,6 +325,31 @@ namespace NuGetGallery
                 });
         }
 
+        public static string LogOnNuGetAccount(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetRouteLink(
+                url,
+                RouteName.Authentication,
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "action", "LogOnNuGetAccount" }
+                });
+        }
+
+        public static string LogOnNuGetAccount(this UrlHelper url, string returnUrl, bool relativeUrl = true)
+        {
+            return GetRouteLink(
+                url,
+                RouteName.Authentication,
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "action", "LogOnNuGetAccount" },
+                    { "returnUrl", returnUrl }
+                });
+        }
+
         public static string SignUp(this UrlHelper url, bool relativeUrl = true)
         {
             return GetRouteLink(

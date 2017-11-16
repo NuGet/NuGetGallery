@@ -21,6 +21,7 @@ namespace NuGetGallery
             public const string VerifyPackageKey = "VerifyPackageKey";
             public const string PackageReadMeChanged = "PackageReadMeChanged";
             public const string PackagePushNamespaceConflict = "PackagePushNamespaceConflict";
+            public const string NewUserRegistration = "NewUserRegistration";
         }
 
         private IDiagnosticsSource _diagnosticsSource;
@@ -34,7 +35,6 @@ namespace NuGetGallery
 
         // Package push properties
         public const string AuthenticationMethod = "AuthenticationMethod";
-        public const string AccountCreationDate = "AccountCreationDate";
         public const string ClientVersion = "ClientVersion";
         public const string ProtocolVersion = "ProtocolVersion";
         public const string ClientInformation = "ClientInformation";
@@ -42,6 +42,10 @@ namespace NuGetGallery
         public const string KeyCreationDate = "KeyCreationDate";
         public const string PackageId = "PackageId";
         public const string PackageVersion = "PackageVersion";
+
+        // User properties
+        public const string RegistrationMethod = "RegistrationMethod";
+        public const string AccountCreationDate = "AccountCreationDate";
 
         // Verify package properties
         public const string IsVerificationKeyUsed = "IsVerificationKeyUsed";
@@ -153,6 +157,26 @@ namespace NuGetGallery
             });
         }
 
+        public void TrackNewUserRegistrationEvent(User user, Credential credential)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            if (credential == null)
+            {
+                throw new ArgumentNullException(nameof(credential));
+            }
+
+            TrackEvent(Events.NewUserRegistration, properties => {
+                properties.Add(ClientVersion, GetClientVersion());
+                properties.Add(ProtocolVersion, GetProtocolVersion());
+                properties.Add(AccountCreationDate, GetAccountCreationDate(user));
+                properties.Add(RegistrationMethod, GetRegistrationMethod(credential));
+            });
+        }
+
         private static string GetClientVersion()
         {
             return HttpContext.Current?.Request?.Headers[Constants.ClientVersionHeaderName];
@@ -177,6 +201,11 @@ namespace NuGetGallery
         private static string GetAccountCreationDate(User user)
         {
             return user.CreatedUtc?.ToString("O") ?? "N/A";
+        }
+
+        private static string GetRegistrationMethod(Credential cred)
+        {
+            return cred.Type;
         }
 
         private static string GetApiKeyCreationDate(User user, IIdentity identity)

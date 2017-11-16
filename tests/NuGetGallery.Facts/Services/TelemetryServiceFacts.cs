@@ -59,6 +59,10 @@ namespace NuGetGallery
                     yield return new object[] { "PackagePushNamespaceConflict",
                         (TrackAction)(s => s.TrackPackagePushNamespaceConflictEvent(fakes.Package.Id, package.Version, fakes.User, identity))
                     };
+
+                    yield return new object[] { "NewUserRegistration",
+                        (TrackAction)(s => s.TrackNewUserRegistrationEvent(fakes.User, fakes.User.Credentials.First()))
+                    };
                 }
             }
 

@@ -1957,6 +1957,7 @@
     <Content Include="Views\Users\_UserPackagesListForDeletedAccount.cshtml" />
     <Content Include="Views\Users\_ReservedNamespacesList.cshtml" />
     <Content Include="Views\Users\DeleteAccount.cshtml" />
+    <Content Include="Views\Authentication\SignInNuGetAccount.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />
