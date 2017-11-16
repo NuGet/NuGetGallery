@@ -12,6 +12,7 @@ using System.Web.Mvc;
 using Microsoft.Owin;
 using NuGetGallery.Auditing;
 using NuGetGallery.Authentication.Providers;
+using NuGetGallery.Authentication.Providers.CommonAuth;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure.Authentication;
@@ -29,6 +30,11 @@ namespace NuGetGallery.Authentication
         private readonly ICredentialValidator _credentialValidator;
         private readonly IDateTimeProvider _dateTimeProvider;
         private readonly ITelemetryService _telemetryService;
+
+
+        public static readonly string MicrosoftAuthenticationType = "MicrosoftAccount";
+        public static readonly string AADAuthenticationType = "AzureActiveDirectory";
+        public static readonly string MSATenantID = "9188040d-6c67-4c5b-b112-36a304b66dad";
 
         /// <summary>
         /// This ctor is used for test only.
@@ -531,43 +537,101 @@ namespace NuGetGallery.Authentication
                 _trace.Information("No external login found.");
                 return new AuthenticateExternalLoginResult();
             }
-            var idClaim = result.Identity.FindFirst(ClaimTypes.NameIdentifier);
-            if (idClaim == null)
-            {
-                _trace.Error("External Authentication is missing required claim: " + ClaimTypes.NameIdentifier);
-                return new AuthenticateExternalLoginResult();
-            }
 
-            var nameClaim = result.Identity.FindFirst(ClaimTypes.Name);
-            if (nameClaim == null)
+            Authenticator auther = null;
+            string authenticationType;
+            string idClaimValue;
+            string issuer;
+            Claim nameClaim = null;
+            string emailSuffix;
+            var version = result.Identity.FindFirst("ver");
+            if (version != null && version.Value.Equals("2.0"))
             {
-                _trace.Error("External Authentication is missing required claim: " + ClaimTypes.Name);
-                return new AuthenticateExternalLoginResult();
-            }
-
-            var emailClaim = result.Identity.FindFirst(ClaimTypes.Email);
-            string emailSuffix = emailClaim == null ? String.Empty : (" <" + emailClaim.Value + ">");
-
-            Authenticator auther;
-            string authenticationType = idClaim.Issuer;
-            if (!Authenticators.TryGetValue(idClaim.Issuer, out auther))
-            {
-                foreach (var authenticator in Authenticators.Values)
+                var tenantClaim = result.Identity.FindFirst("http://schemas.microsoft.com/identity/claims/tenantid");
+                if (tenantClaim == null)
                 {
-                    if (authenticator.TryMapIssuerToAuthenticationType(idClaim.Issuer, out authenticationType))
+                    _trace.Error("External Authentication is missing required claim: tenantid");
+                    return new AuthenticateExternalLoginResult();
+                }
+
+                var idClaim = result.Identity.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier");
+                if (idClaim == null)
+                {
+                    _trace.Error("External Authentication is missing required claim: 'objectidentifier'");
+                    return new AuthenticateExternalLoginResult();
+                }
+
+                auther = Authenticators
+                    .Values
+                    .First(auth => auth.Name.Equals("CommonAuth", StringComparison.OrdinalIgnoreCase));
+                var emailClaimType = ClaimTypes.Email;
+                if (string.Equals(tenantClaim.Value, MSATenantID, StringComparison.OrdinalIgnoreCase))
+                {
+                    authenticationType = MicrosoftAuthenticationType;
+                    idClaimValue = idClaim.Value.Replace("-", "").Substring(16).ToLowerInvariant();
+                }
+                else
+                {
+                    authenticationType = AADAuthenticationType;
+                    idClaimValue = idClaim.Value;
+                    emailClaimType = "preferred_username";
+                }
+
+                nameClaim = result.Identity.FindFirst("name");
+                if (nameClaim == null)
+                {
+                    _trace.Error("External Authentication is missing required claim: 'name'");
+                    return new AuthenticateExternalLoginResult();
+                }
+
+                var emailClaim = result.Identity.FindFirst(emailClaimType);
+                emailSuffix = emailClaim == null ? String.Empty : (" <" + emailClaim.Value + ">");
+
+                issuer = "v2 " + tenantClaim.Value; //tenantClaime.Issuer?
+            }
+            else
+            {
+                var idClaim = result.Identity.FindFirst(ClaimTypes.NameIdentifier);
+                if (idClaim == null)
+                {
+                    _trace.Error("External Authentication is missing required claim: " + ClaimTypes.NameIdentifier);
+                    return new AuthenticateExternalLoginResult();
+                }
+
+                idClaimValue = idClaim.Value;
+                issuer = idClaim.Issuer;
+                nameClaim = result.Identity.FindFirst(ClaimTypes.Name);
+                if (nameClaim == null)
+                {
+                    _trace.Error("External Authentication is missing required claim: " + ClaimTypes.Name);
+                    return new AuthenticateExternalLoginResult();
+                }
+
+                var emailClaim = result.Identity.FindFirst(ClaimTypes.Email);
+                emailSuffix = emailClaim == null ? String.Empty : (" <" + emailClaim.Value + ">");
+
+                if (!Authenticators.TryGetValue(issuer, out auther))
+                {
+                    foreach (var authenticator in Authenticators.Values)
                     {
-                        auther = authenticator;
-                        break;
+                        if (authenticator.TryMapIssuerToAuthenticationType(issuer, out authenticationType))
+                        {
+                            auther = authenticator;
+                            break;
+                        }
                     }
                 }
+
+                authenticationType = issuer;
             }
+
 
             return new AuthenticateExternalLoginResult()
             {
                 Authentication = null,
                 ExternalIdentity = result.Identity,
                 Authenticator = auther,
-                Credential = _credentialBuilder.CreateExternalCredential(authenticationType, idClaim.Value, nameClaim.Value + emailSuffix)
+                Credential = _credentialBuilder.CreateExternalCredential(authenticationType, idClaimValue, nameClaim.Value + emailSuffix)
             };
         }
 
