@@ -88,6 +88,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; cannot be deleted because it is an organization. A manual delete is required at this time..
+        /// </summary>
+        public static string AccountDelete_OrganizationDeleteNotImplemented {
+            get {
+                return ResourceManager.GetString("AccountDelete_OrganizationDeleteNotImplemented", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; cannot be deleted because it is a member of an organization. A manual delete is required at this time..
+        /// </summary>
+        public static string AccountDelete_OrganizationMemberDeleteNotImplemented {
+            get {
+                return ResourceManager.GetString("AccountDelete_OrganizationMemberDeleteNotImplemented", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The account:{0} was deleted succesfully..
         /// </summary>
         public static string AccountDelete_Success {

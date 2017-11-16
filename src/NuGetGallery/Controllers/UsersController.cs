@@ -112,7 +112,7 @@ namespace NuGetGallery
 
             var listPackageItems = _packageService
                  .FindPackagesByOwner(user, includeUnlisted: true)
-                 .Select(p => new ListPackageItemViewModel(p))
+                 .Select(p => new DeleteAccountPackageItemViewModel(p))
                  .ToList();
 
             bool hasPendingRequest = _supportRequestService.GetIssues().Where((issue)=> string.Equals(issue.CreatedBy, user.Username) && 
@@ -124,7 +124,6 @@ namespace NuGetGallery
                 Packages = listPackageItems,
                 User = user,
                 AccountName = user.Username,
-                HasOrphanPackages = listPackageItems.Any(p => p.Owners.Count <= 1),
                 HasPendingRequests = hasPendingRequest
             };
             
@@ -172,14 +171,13 @@ namespace NuGetGallery
 
             var listPackageItems = _packageService
                  .FindPackagesByOwner(user, includeUnlisted:true)
-                 .Select(p => new ListPackageItemViewModel(p))
+                 .Select(p => new DeleteAccountPackageItemViewModel(p))
                  .ToList();
             var model = new DeleteUserAccountViewModel
             {
                 Packages = listPackageItems,
                 User = user,
                 AccountName = user.Username,
-                HasOrphanPackages = listPackageItems.Any(p => p.Owners.Count <= 1)
             };
             return View("DeleteUserAccount", model);
         }

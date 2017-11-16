@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mail;
 using System.Security.Claims;
@@ -68,6 +69,21 @@ namespace NuGetGallery
             }
 
             return package.Owners.Any(o => user.KeyIsSelfOrOrganization(o.Key));
+        }
+
+        /// <summary>
+        /// Get matching package owner keys for user, used when searching for packages.
+        /// </summary>
+        public static List<int> GetPackageOwnerKeys(this User user)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            var ownerKeys = user.Organizations.Select(org => org.OrganizationKey).ToList();
+            ownerKeys.Insert(0, user.Key);
+            return ownerKeys;
         }
 
         public static bool MatchesUser(this User self, User user)
