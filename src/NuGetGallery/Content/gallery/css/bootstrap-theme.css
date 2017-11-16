@@ -962,6 +962,9 @@ img.reserved-indicator-icon {
 .page-report-abuse .report-form #alreadycontactedowner-label {
   display: inline;
 }
+.page-report-abuse .report-form #form-field-confirm-delete {
+  margin: 20px 0;
+}
 .page-report-abuse .report-form .infringement-claim-requirements h2 {
   margin-top: 15px;
   margin-bottom: 15px;

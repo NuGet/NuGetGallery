@@ -702,6 +702,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Please enter a message..
+        /// </summary>
+        public static string MessageIsRequired {
+            get {
+                return ResourceManager.GetString("MessageIsRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot send added/removed email for credentials of type &apos;{0}&apos;.
         /// </summary>
         public static string MessageService_CannotSendEmailForCredential {
@@ -806,6 +815,15 @@ namespace NuGetGallery {
         public static string OrganizationsCannotCreateCredentials {
             get {
                 return ResourceManager.GetString("OrganizationsCannotCreateCredentials", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Owner Support Request for &apos;{0}&apos; version {1}.
+        /// </summary>
+        public static string OwnerSupportRequestSubjectFormat {
+            get {
+                return ResourceManager.GetString("OwnerSupportRequestSubjectFormat", resourceCulture);
             }
         }
         
@@ -1246,6 +1264,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Your support request has been sent to the gallery operators..
+        /// </summary>
+        public static string SupportRequestSentTransientMessage {
+            get {
+                return ResourceManager.GetString("SupportRequestSentTransientMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The title of your package, &apos;{0}&apos;, is similar to the ID of an existing package, which can cause confusion with our users. Please modify the title of your package and try uploading again..
         /// </summary>
         public static string TitleMatchesExistingRegistration {
@@ -1422,6 +1449,51 @@ namespace NuGetGallery {
         public static string UserNotFound {
             get {
                 return ResourceManager.GetString("UserNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to We&apos;re performing the package delete right now. It may take a while for this change to propagate through our system..
+        /// </summary>
+        public static string UserPackageDeleteCompleteTransientMessage {
+            get {
+                return ResourceManager.GetString("UserPackageDeleteCompleteTransientMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You must confirm the package deletion request..
+        /// </summary>
+        public static string UserPackageDeleteConfirmationIsRequired {
+            get {
+                return ResourceManager.GetString("UserPackageDeleteConfirmationIsRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You must choose whether to delete the package or contact support..
+        /// </summary>
+        public static string UserPackageDeleteDecisionIsRequired {
+            get {
+                return ResourceManager.GetString("UserPackageDeleteDecisionIsRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to (automated).
+        /// </summary>
+        public static string UserPackageDeleteSignature {
+            get {
+                return ResourceManager.GetString("UserPackageDeleteSignature", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This support request is intended for automatic package deletion..
+        /// </summary>
+        public static string UserPackageDeleteSupportRequestMessage {
+            get {
+                return ResourceManager.GetString("UserPackageDeleteSupportRequestMessage", resourceCulture);
             }
         }
         

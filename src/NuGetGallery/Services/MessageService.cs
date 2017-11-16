@@ -692,5 +692,47 @@ Thanks,
                 mailMessage.To.Add(owner.ToMailAddress());
             }
         }
+
+        public void SendPackageDeletedNotice(Package package, string packageUrl, string packageSupportUrl)
+        {
+            string subject = "[{0}] Package deleted - {1} {2}";
+            string body = @"The package [{1} {2}]({3}) was just deleted from {0}. If this was not intended, please [contact support]({4}).
+
+Thanks,
+The {0} Team";
+
+            body = String.Format(
+                CultureInfo.CurrentCulture,
+                body,
+                Config.GalleryOwner.DisplayName,
+                package.PackageRegistration.Id,
+                package.Version,
+                packageUrl,
+                packageSupportUrl);
+
+            subject = String.Format(
+                CultureInfo.CurrentCulture,
+                subject,
+                Config.GalleryOwner.DisplayName,
+                package.PackageRegistration.Id,
+                package.Version);
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = Config.GalleryNoReplyAddress;
+
+                foreach (var owner in package.PackageRegistration.Owners)
+                {
+                    mailMessage.To.Add(owner.ToMailAddress());
+                }
+
+                if (mailMessage.To.Any())
+                {
+                    SendMessage(mailMessage);
+                }
+            }
+        }
     }
 }

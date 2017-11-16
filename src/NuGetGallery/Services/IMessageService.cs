@@ -25,5 +25,6 @@ namespace NuGetGallery
         void SendContactSupportEmail(ContactSupportRequest request);
         void SendPackageAddedNotice(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl);
         void SendAccountDeleteNotice(MailAddress mailAddress, string userName);
+        void SendPackageDeletedNotice(Package package, string packageUrl, string packageSupportUrl);
     }
 }

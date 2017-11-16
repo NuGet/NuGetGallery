@@ -11,13 +11,20 @@ namespace NuGetGallery
 {
     public class DeletePackageViewModel : DisplayPackageViewModel
     {
-        public DeletePackageViewModel(Package package, ReportPackageReason[] reportOtherPackageReasons)
+        public DeletePackageViewModel(Package package, IReadOnlyList<ReportPackageReason> reasons)
             : base(package, package.PackageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version)))
         {
             DeletePackagesRequest = new DeletePackagesRequest
             {
-                Packages = new List<string> { string.Format(CultureInfo.InvariantCulture, "{0}|{1}", package.PackageRegistration.Id, package.Version) },
-                ReasonChoices = reportOtherPackageReasons
+                Packages = new List<string>
+                {
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        "{0}|{1}",
+                        package.PackageRegistration.Id,
+                        package.Version)
+                },
+                ReasonChoices = reasons
             };
         }
 

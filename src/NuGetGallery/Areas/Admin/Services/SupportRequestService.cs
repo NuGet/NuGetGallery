@@ -197,11 +197,15 @@ namespace NuGetGallery.Areas.Admin
             }
         }
 
-        public async Task<bool> AddNewSupportRequestAsync(string subject, string message, string requestorEmailAddress, string reason,
-            User user, Package package = null)
+        public async Task<Issue> AddNewSupportRequestAsync(
+            string subject,
+            string message,
+            string requestorEmailAddress,
+            string reason,
+            User user,
+            Package package = null)
         {
             var loggedInUser = user?.Username ?? "Anonymous";
-            bool result = true;
 
             try
             {
@@ -233,11 +237,12 @@ namespace NuGetGallery.Areas.Admin
                 newIssue.PackageRegistrationKey = package?.PackageRegistrationKey;
 
                 await AddIssueAsync(newIssue);
+
+                return newIssue;
             }
             catch (SqlException sqlException)
             {
                 QuietLog.LogHandledException(sqlException);
-                result = false;
 
                 var packageInfo = "N/A";
                 if (package != null)
@@ -251,10 +256,10 @@ namespace NuGetGallery.Areas.Admin
             }
             catch (Exception e) //In case getting data from PagerDuty has failed
             {
-                result = false;
                 QuietLog.LogHandledException(e);
             }
-            return result;
+
+            return null;
         }
 
         private async Task AddIssueAsync(Issue issue)
@@ -376,7 +381,10 @@ namespace NuGetGallery.Areas.Admin
 
         private Issue GetIssueById(int id)
         {
-            return _supportRequestDbContext.Issues.FirstOrDefault(i => i.Key == id);
+            return _supportRequestDbContext
+                .Issues
+                .Include(x => x.IssueStatus)
+                .FirstOrDefault(i => i.Key == id);
         }
     }
 }
