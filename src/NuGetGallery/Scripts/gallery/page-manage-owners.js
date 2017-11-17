@@ -118,13 +118,13 @@
         },
 
         removeOwner: function (item) {
-            if (item.currentUser) {
+            if (item.grantsCurrentUserAccess) {
                 if (!confirm("Are you sure you want to remove yourself from the owners?")) {
                     return;
                 }
             }
 
-            if (item.currentOrganization) {
+            if (item.isCurrentUserMemberOfOrganization) {
                 if (!confirm("Are you sure you want to remove your organization from the owners?")) {
                     return;
                 }
@@ -143,7 +143,7 @@
                         var numCurrent = 0;
 
                         ko.utils.arrayForEach(viewModel.owners(), function (owner) {
-                            if (owner !== item && owner.currentUser) {
+                            if (owner !== item && owner.grantsCurrentUserAccess) {
                                 numCurrent++;
                             }
                         });
@@ -184,7 +184,7 @@
                 approvedOwner++;
             }
 
-            if (owner.currentUser) {
+            if (owner.grantsCurrentUserAccess) {
                 currentOwnerOwnsNamespace = currentOwnerOwnsNamespace || owner.isNamespaceOwner();
             }
 
@@ -218,8 +218,8 @@
         this.profileUrl = ko.observable(data.ProfileUrl);
         this.imageUrl = ko.observable(data.ImageUrl);
         this.pending = ko.observable(data.Pending);
-        this.currentUser = data.CurrentUser;
-        this.currentOrganization = data.CurrentOrganization;
+        this.grantsCurrentUserAccess = data.GrantsCurrentUserAccess;
+        this.isCurrentUserMemberOfOrganization = data.IsCurrentUserMemberOfOrganization;
         this.isNamespaceOwner = ko.observable(data.IsNamespaceOwner);
     }
 });

@@ -1013,8 +1013,8 @@ namespace NuGetGallery.Controllers
             private static Func<Fakes, User> _getFakesUser = (Fakes fakes) => fakes.User;
             private static Func<Fakes, User> _getFakesOwner = (Fakes fakes) => fakes.Owner;
             private static Func<Fakes, User> _getFakesOrganizationOwner = (Fakes fakes) => fakes.OrganizationOwner;
-            private static Func<Fakes, User> _getFakesOrganizationAdminOwner = (Fakes fakes) => fakes.OrganizationAdminOwner;
-            private static Func<Fakes, User> _getFakesOrganizationCollaboratorOwner = (Fakes fakes) => fakes.OrganizationCollaboratorOwner;
+            private static Func<Fakes, User> _getFakesOrganizationAdminOwner = (Fakes fakes) => fakes.OrganizationOwnerAdmin;
+            private static Func<Fakes, User> _getFakesOrganizationCollaboratorOwner = (Fakes fakes) => fakes.OrganizationOwnerCollaborator;
 
             public static IEnumerable<string> _missingData = new[] { null, string.Empty };
 

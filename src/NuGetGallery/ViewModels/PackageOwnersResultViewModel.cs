@@ -16,9 +16,9 @@ namespace NuGetGallery
 
         public string ImageUrl;
 
-        public bool CurrentUser;
+        public bool GrantsCurrentUserAccess;
 
-        public bool CurrentOrganization;
+        public bool IsCurrentUserMemberOfOrganization;
 
         public bool Pending;
 
@@ -30,8 +30,8 @@ namespace NuGetGallery
             EmailAddress = user.EmailAddress;
             ProfileUrl = url.User(user, relativeUrl: false);
             ImageUrl = GravatarHelper.Url(user.EmailAddress, size: Constants.GravatarImageSize);
-            CurrentUser = PermissionsService.IsActionAllowed(user, currentUser, AccountActions.AcceptPackageOwnershipOnBehalfOf);
-            CurrentOrganization = PermissionsService.IsActionAllowed(user, currentUser, AccountActions.DisplayPrivateOrganization);
+            GrantsCurrentUserAccess = PermissionsService.IsActionAllowed(user, currentUser, AccountActions.ManagePackageOwnershipOnBehalfOf);
+            IsCurrentUserMemberOfOrganization = PermissionsService.IsActionAllowed(user, currentUser, AccountActions.DisplayPrivateOrganization);
             Pending = isPending;
             IsNamespaceOwner = isNamespaceOwner;
         }

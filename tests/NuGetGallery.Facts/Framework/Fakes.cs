@@ -62,8 +62,8 @@ namespace NuGetGallery.Framework
 
             CreateOrganizationUsers(ref key, credentialBuilder, "Owner", out var organizationOwner, out var organizationAdminOwner, out var organizationCollaboratorOwner);
             OrganizationOwner = organizationOwner;
-            OrganizationAdminOwner = organizationAdminOwner;
-            OrganizationCollaboratorOwner = organizationCollaboratorOwner;
+            OrganizationOwnerAdmin = organizationAdminOwner;
+            OrganizationOwnerCollaborator = organizationCollaboratorOwner;
 
             Pbkdf2User = new User("testPbkdf2User")
             {
@@ -126,9 +126,9 @@ namespace NuGetGallery.Framework
 
         public Organization OrganizationOwner { get; }
 
-        public User OrganizationAdminOwner { get; }
+        public User OrganizationOwnerAdmin { get; }
 
-        public User OrganizationCollaboratorOwner { get; }
+        public User OrganizationOwnerCollaborator { get; }
 
         public User ShaUser { get; }
 

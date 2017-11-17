@@ -104,7 +104,7 @@ namespace NuGetGallery
         public virtual ActionResult GetAddPackageOwnerConfirmation(string id, string username)
         {
             ManagePackageOwnerModel model;
-            if (TryGetManagePackageOwnerModel(id, username, add: true, model: out model))
+            if (TryGetManagePackageOwnerModel(id, username, isAddOwner: true, model: out model))
             {
                 return Json(new
                 {
@@ -125,7 +125,7 @@ namespace NuGetGallery
         public async Task<JsonResult> AddPackageOwner(string id, string username, string message)
         {
             ManagePackageOwnerModel model;
-            if (TryGetManagePackageOwnerModel(id, username, add: true, model: out model))
+            if (TryGetManagePackageOwnerModel(id, username, isAddOwner: true, model: out model))
             {
                 var encodedMessage = HttpUtility.HtmlEncode(message);
 
@@ -172,7 +172,7 @@ namespace NuGetGallery
         public async Task<JsonResult> RemovePackageOwner(string id, string username)
         {
             ManagePackageOwnerModel model;
-            if (TryGetManagePackageOwnerModel(id, username, add: false, model: out model))
+            if (TryGetManagePackageOwnerModel(id, username, isAddOwner: false, model: out model))
             {
                 var request = _packageOwnershipManagementService.GetPackageOwnershipRequests(package: model.Package, newOwner: model.User).FirstOrDefault();
 
@@ -290,7 +290,7 @@ namespace NuGetGallery
                 SecurePushSubscription.MinProtocolVersion, SecurePushSubscription.PushKeysExpirationInDays);
         }
 
-        private bool TryGetManagePackageOwnerModel(string id, string username, bool add, out ManagePackageOwnerModel model)
+        private bool TryGetManagePackageOwnerModel(string id, string username, bool isAddOwner, out ManagePackageOwnerModel model)
         {
             if (string.IsNullOrEmpty(id))
             {
@@ -330,13 +330,14 @@ namespace NuGetGallery
                 package.Owners.Any(o => o.MatchesUser(user)) ||
                 _packageOwnershipManagementService.GetPackageOwnershipRequests(package: package, newOwner: user).Any();
 
-            if (add && isOwner)
+            if (isAddOwner && isOwner)
             {
                 model = new ManagePackageOwnerModel(
                     string.Format(CultureInfo.CurrentCulture, Strings.AddOwner_AlreadyOwner, username));
                 return false;
             }
-            if (!add && !isOwner)
+
+            if (!isAddOwner && !isOwner)
             {
                 model = new ManagePackageOwnerModel(
                     string.Format(CultureInfo.CurrentCulture, Strings.RemoveOwner_NotOwner, username));
