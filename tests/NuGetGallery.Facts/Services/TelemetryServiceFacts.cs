@@ -65,7 +65,7 @@ namespace NuGetGallery
                     };
 
                     yield return new object[] { "CredentialAdded",
-                        (TrackAction)(s => s.TrackNewUserRegistrationEvent(fakes.User, fakes.User.Credentials.First()))
+                        (TrackAction)(s => s.TrackNewCredentialCreated(fakes.User, fakes.User.Credentials.First()))
                     };
                 }
             }
