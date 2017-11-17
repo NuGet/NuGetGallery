@@ -368,8 +368,6 @@ namespace NuGetGallery
                 {
                     _telemetryService.TraceException(ex);
 
-                    TempData["Message"] = ex.GetUserSafeMessage();
-
                     return Json(400, new[] { ex.GetUserSafeMessage() });
                 }
             }
@@ -1413,7 +1411,6 @@ namespace NuGetGallery
                 if (owner == null)
                 {
                     var message = string.Format(CultureInfo.CurrentCulture, Strings.VerifyPackage_UserNonExistent, formData.Edit.Owner);
-                    TempData["Message"] = message;
                     return Json(400, new[] { message });
                 }
 
@@ -1426,7 +1423,6 @@ namespace NuGetGallery
                         var message = string.Format(CultureInfo.CurrentCulture,
                             Strings.UploadPackage_NewVersionOnBehalfOfUserNotAllowed,
                             currentUser.Username, owner.Username);
-                        TempData["Message"] = message;
                         return Json(400, new[] { message });
                     }
 
@@ -1436,7 +1432,6 @@ namespace NuGetGallery
                         var message = string.Format(CultureInfo.CurrentCulture,
                             Strings.VerifyPackage_OwnerInvalid,
                             owner.Username, existingPackageRegistration.Id);
-                        TempData["Message"] = message;
                         return Json(400, new[] { message });
                     }
                 }
@@ -1446,7 +1441,6 @@ namespace NuGetGallery
                     var message = string.Format(CultureInfo.CurrentCulture,
                         Strings.UploadPackage_NewIdOnBehalfOfUserNotAllowed,
                         currentUser.Username, owner.Username);
-                    TempData["Message"] = message;
                     return Json(400, new[] { message });
                 }
 
@@ -1465,8 +1459,6 @@ namespace NuGetGallery
                 catch (InvalidPackageException ex)
                 {
                     _telemetryService.TraceException(ex);
-
-                    TempData["Message"] = ex.Message;
 
                     return Json(400, new[] { ex.GetUserSafeMessage() });
                 }
