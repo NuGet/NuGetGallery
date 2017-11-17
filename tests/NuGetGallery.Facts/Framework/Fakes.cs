@@ -50,15 +50,14 @@ namespace NuGetGallery.Framework
                 }
             };
 
-            Organization.Members = new List<Membership>()
+            var membership = new Membership
             {
-                new Membership
-                {
-                    Organization = Organization,
-                    Member = User,
-                    IsAdmin = true
-                }
+                Organization = Organization,
+                Member = User,
+                IsAdmin = true
             };
+            User.Organizations.Add(membership);
+            Organization.Members.Add(membership);
 
             Pbkdf2User = new User("testPbkdf2User")
             {
@@ -127,11 +126,16 @@ namespace NuGetGallery.Framework
 
         public User CreateUser(string userName, params Credential[] credentials)
         {
-            return new User(userName)
+            var user = new User(userName)
             {
                 UnconfirmedEmailAddress = "un@confirmed.com",
                 Credentials = new List<Credential>(credentials)
             };
+            foreach (var credential in credentials)
+            {
+                credential.User = user;
+            }
+            return user;
         }
 
         public static ClaimsPrincipal ToPrincipal(User user)

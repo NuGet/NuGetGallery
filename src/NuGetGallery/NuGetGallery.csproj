@@ -1587,6 +1587,7 @@
     <Compile Include="Areas\Admin\ViewModels\DeleteUserAccountViewModel.cs" />
     <Compile Include="ViewModels\PackageDeleteDecision.cs" />
     <Compile Include="ViewModels\DeleteAccountViewModel.cs" />
+    <Compile Include="ViewModels\ApiKeyOwnerViewModel.cs" />
     <Compile Include="ViewModels\PackageOwnersResultViewModel.cs" />
     <Compile Include="ViewModels\ManagePackagesListViewModel.cs" />
     <Compile Include="ViewModels\ApiKeyListViewModel.cs" />

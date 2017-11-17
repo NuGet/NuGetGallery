@@ -224,21 +224,34 @@ namespace NuGetGallery
                 .Select(c => new ApiKeyViewModel(c))
                 .ToList();
 
-            // Get package IDs
-            var packageIds = _packageService
-                .FindPackageRegistrationsByOwner(user)
-                .Select(p => p.Id)
-                .OrderBy(i => i)
-                .ToList();
+            // Get package owners (user's self or organizations)
+            var owners = user.Organizations
+                .Select(o => CreateApiKeyOwnerViewModel(
+                    o.Organization,
+                    // todo: move logic for canPushNew to PermissionsService
+                    canPushNew: o.IsAdmin)
+                    ).ToList();
+            owners.Insert(0, CreateApiKeyOwnerViewModel(user, canPushNew: true));
 
             var model = new ApiKeyListViewModel
             {
                 ApiKeys = apiKeys,
                 ExpirationInDaysForApiKeyV1 = _config.ExpirationInDaysForApiKeyV1,
-                PackageIds = packageIds,
+                PackageOwners = owners,
             };
 
             return View("ApiKeys", model);
+        }
+
+        private ApiKeyOwnerViewModel CreateApiKeyOwnerViewModel(User user, bool canPushNew)
+        {
+            return new ApiKeyOwnerViewModel(
+                user.Username,
+                canPushNew,
+                packageIds: _packageService.FindPackageRegistrationsByOwner(user)
+                                .Select(p => p.Id)
+                                .OrderBy(i => i)
+                                .ToList());
         }
 
         [Authorize]
@@ -677,12 +690,33 @@ namespace NuGetGallery
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<JsonResult> GenerateApiKey(string description, string[] scopes = null, string[] subjects = null, int? expirationInDays = null)
+        public virtual async Task<JsonResult> GenerateApiKey(string description, string owner, string[] scopes = null, string[] subjects = null, int? expirationInDays = null)
         {
             if (string.IsNullOrWhiteSpace(description))
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return Json(Strings.ApiKeyDescriptionRequired);
+            }
+            if (string.IsNullOrWhiteSpace(owner))
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.ApiKeyOwnerRequired);
+            }
+
+            // Get the owner scope
+            User scopeOwner = _userService.FindByUsername(owner);
+            if (scopeOwner == null)
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.UserNotFound);
+            }
+
+            // todo: move validation logic to PermissionsService
+            var resolvedScopes = BuildScopes(scopeOwner, scopes, subjects);
+            if (!VerifyScopes(scopeOwner, resolvedScopes))
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.ApiKeyScopesNotAllowed);
             }
 
             // Set expiration
@@ -697,7 +731,8 @@ namespace NuGetGallery
                 }
             }
 
-            var newCredential = await GenerateApiKeyInternal(description, BuildScopes(scopes, subjects), expiration);
+            var newCredential = await GenerateApiKeyInternal(description, resolvedScopes, expiration);
+
             var credentialViewModel = _authService.DescribeCredential(newCredential);
             credentialViewModel.Value = newCredential.Value;
 
@@ -728,8 +763,9 @@ namespace NuGetGallery
                 return Json(Strings.CredentialNotFound);
             }
 
+            var scopeOwner = cred.Scopes.GetOwnerScope();
             var scopes = cred.Scopes.Select(x => x.AllowedAction).Distinct().ToArray();
-            var newScopes = BuildScopes(scopes, subjects);
+            var newScopes = BuildScopes(scopeOwner, scopes, subjects);
 
             await _authService.EditCredentialScopes(user, cred, newScopes);
 
@@ -752,7 +788,32 @@ namespace NuGetGallery
             return newCredential;
         }
 
-        private static IList<Scope> BuildScopes(string[] scopes, string[] subjects)
+        // todo: integrate verification logic into PermissionsService.
+        private bool VerifyScopes(User scopeOwner, IEnumerable<Scope> scopes)
+        {
+            var currentUser = GetCurrentUser();
+
+            // scoped to the user
+            if (currentUser.MatchesUser(scopeOwner))
+            {
+                return true;
+            }
+            // scoped to the user's organization
+            else
+            {
+                var organization = currentUser.Organizations
+                    .Where(o => o.Organization.MatchesUser(scopeOwner))
+                    .FirstOrDefault();
+                if (organization != null)
+                {
+                    return organization.IsAdmin || !scopes.Any(s => s.AllowsActions(NuGetScopes.PackagePush));
+                }
+            }
+
+            return false;
+        }
+
+        private IList<Scope> BuildScopes(User scopeOwner, string[] scopes, string[] subjects)
         {
             var result = new List<Scope>();
 
@@ -768,12 +829,12 @@ namespace NuGetGallery
             {
                 foreach (var scope in scopes)
                 {
-                    result.AddRange(subjectsList.Select(subject => new Scope(subject, scope)));
+                    result.AddRange(subjectsList.Select(subject => new Scope(scopeOwner, subject, scope)));
                 }
             }
             else
             {
-                result.AddRange(subjectsList.Select(subject => new Scope(subject, NuGetScopes.All)));
+                result.AddRange(subjectsList.Select(subject => new Scope(scopeOwner, subject, NuGetScopes.All)));
             }
 
             return result;
@@ -781,9 +842,8 @@ namespace NuGetGallery
 
         private static IList<Scope> BuildScopes(IEnumerable<Scope> scopes)
         {
-            return scopes.Select(scope => new Scope {AllowedAction = scope.AllowedAction, Subject = scope.Subject}).ToList();
+            return scopes.Select(scope => new Scope(scope.Owner, scope.Subject, scope.AllowedAction)).ToList();
         }
-
 
         private async Task<JsonResult> RemoveApiKeyCredential(User user, Credential cred)
         {

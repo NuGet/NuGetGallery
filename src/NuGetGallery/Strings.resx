@@ -649,4 +649,10 @@ For more information, please contact '{2}'.</value>
   <data name="UserPackageDeleteSupportRequestMessage" xml:space="preserve">
     <value>This support request is intended for automatic package deletion.</value>
   </data>
+  <data name="ApiKeyOwnerRequired" xml:space="preserve">
+    <value>You must specify a package owner to generate an API key.</value>
+  </data>
+  <data name="ApiKeyScopesNotAllowed" xml:space="preserve">
+    <value>The current user does not have permission to create an ApiKey with the specified owner or scopes.</value>
+  </data>
 </root>
