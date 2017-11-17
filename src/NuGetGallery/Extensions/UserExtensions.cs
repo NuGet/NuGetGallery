@@ -72,9 +72,10 @@ namespace NuGetGallery
         }
 
         /// <summary>
-        /// Get matching package owner keys for user, used when searching for packages.
+        /// Get account keys for the user and their organizations.
+        /// This method is compatible with EF queries and can be used to filter packages by owner.
         /// </summary>
-        public static List<int> GetPackageOwnerKeys(this User user)
+        public static List<int> GetUserAndOrganizationAccountKeys(this User user)
         {
             if (user == null)
             {

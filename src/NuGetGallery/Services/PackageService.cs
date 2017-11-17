@@ -232,7 +232,7 @@ namespace NuGetGallery
         /// </summary>
         private void MergeLatestStablePackagesByOwner(User user, bool includeUnlisted, Dictionary<string, Package> mergedResults)
         {
-            var ownerKeys = user.GetPackageOwnerKeys();
+            var ownerKeys = user.GetUserAndOrganizationAccountKeys();
 
             IQueryable<Package> latestStablePackageVersions = _packageRepository.GetAll()
                             .Where(p => p.PackageRegistration.Owners.Any(o => ownerKeys.Contains(o.Key)))
@@ -265,7 +265,7 @@ namespace NuGetGallery
         /// </summary>
         private void MergeLatestPackagesByOwner(User user, bool includeUnlisted, Dictionary<string, Package> mergedResults)
         {
-            var ownerKeys = user.GetPackageOwnerKeys();
+            var ownerKeys = user.GetUserAndOrganizationAccountKeys();
 
             IQueryable<Package> latestPackageVersions;
             if (includeUnlisted)

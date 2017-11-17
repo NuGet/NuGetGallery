@@ -88,7 +88,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Account &apos;{0}&apos; cannot be deleted because it is an organization. A manual delete is required at this time..
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; cannot be deleted because it is an organization. The organization must be manually migrated to a user account without memberships before the account can be deleted..
         /// </summary>
         public static string AccountDelete_OrganizationDeleteNotImplemented {
             get {
@@ -97,7 +97,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Account &apos;{0}&apos; cannot be deleted because it is a member of an organization. A manual delete is required at this time..
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; cannot be deleted because it is a member of an organization. The user needs to be manually removed from any organizations before the account can be deleted..
         /// </summary>
         public static string AccountDelete_OrganizationMemberDeleteNotImplemented {
             get {
