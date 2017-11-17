@@ -143,7 +143,7 @@ namespace NuGetGallery.Controllers
 
                 ResultAssert.IsView(result, viewName: SignInViewNuGetName);
                 Assert.False(controller.ModelState.IsValid);
-                Assert.Equal(Strings.UsernameAndPasswordNotFound, controller.ModelState[SignInViewNuGetName].Errors[0].ErrorMessage);
+                Assert.Equal(Strings.UsernameAndPasswordNotFound, controller.ModelState[SignInViewName].Errors[0].ErrorMessage);
             }
 
             [Fact]
