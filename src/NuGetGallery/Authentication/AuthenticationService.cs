@@ -461,6 +461,8 @@ namespace NuGetGallery.Authentication
             await Auditing.SaveAuditRecordAsync(new UserAuditRecord(user, AuditedUserAction.AddCredential, credential));
             user.Credentials.Add(credential);
             await Entities.SaveChangesAsync();
+
+            _telemetryService.TrackNewCredentialCreated(user, credential);
         }
 
         public virtual CredentialViewModel DescribeCredential(Credential credential)
