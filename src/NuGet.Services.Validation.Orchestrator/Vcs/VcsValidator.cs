@@ -6,10 +6,12 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs.Validation.Common;
 using NuGet.Services.Validation.Orchestrator;
 using NuGet.Versioning;
+using NuGetGallery;
 
 namespace NuGet.Services.Validation.Vcs
 {
@@ -19,20 +21,34 @@ namespace NuGet.Services.Validation.Vcs
 
         private readonly IPackageValidationService _validationService;
         private readonly IPackageValidationAuditor _validationAuditor;
+        private readonly ICorePackageService _packageService;
+        private readonly IPackageCriteriaEvaluator _criteriaEvaluator;
+        private readonly IOptionsSnapshot<VcsConfiguration> _config;
         private readonly ILogger<VcsValidator> _logger;
 
         public VcsValidator(
             IPackageValidationService validationService,
             IPackageValidationAuditor validationAuditor,
+            ICorePackageService packageService,
+            IPackageCriteriaEvaluator criteriaEvaluator,
+            IOptionsSnapshot<VcsConfiguration> config,
             ILogger<VcsValidator> logger)
         {
             _validationService = validationService ?? throw new ArgumentNullException(nameof(validationService));
             _validationAuditor = validationAuditor ?? throw new ArgumentNullException(nameof(validationAuditor));
+            _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
+            _criteriaEvaluator = criteriaEvaluator ?? throw new ArgumentNullException(nameof(criteriaEvaluator));
+            _config = config ?? throw new ArgumentNullException(nameof(config));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<ValidationStatus> GetStatusAsync(IValidationRequest request)
         {
+            if (ShouldSkip(request))
+            {
+                return ValidationStatus.Succeeded;
+            }
+
             var audit = await _validationAuditor.ReadAuditAsync(
                 request.ValidationId,
                 NormalizePackageId(request.PackageId),
@@ -90,6 +106,11 @@ namespace NuGet.Services.Validation.Vcs
 
         public async Task<ValidationStatus> StartValidationAsync(IValidationRequest request)
         {
+            if (ShouldSkip(request))
+            {
+                return ValidationStatus.Succeeded;
+            }
+
             var normalizedPackageId = NormalizePackageId(request.PackageId);
             var normalizedPackageVerison = NormalizePackageVersion(request.PackageVersion);
 
@@ -133,6 +154,27 @@ namespace NuGet.Services.Validation.Vcs
         private static string NormalizePackageId(string packageId)
         {
             return packageId.ToLowerInvariant();
+        }
+
+        private bool ShouldSkip(IValidationRequest request)
+        {
+            var package = _packageService.FindPackageByIdAndVersionStrict(
+                request.PackageId,
+                request.PackageVersion);
+
+            if (!_criteriaEvaluator.IsMatch(_config.Value.PackageCriteria, package))
+            {
+                // This means the validation has already started. This is acceptable so we should move on.
+                _logger.LogInformation(
+                    "The VCS validation for {validationId} ({packageId} {packageVersion}) was skipped due to package criteria configuration.",
+                    request.ValidationId,
+                    request.PackageId,
+                    request.PackageVersion);
+
+                return true;
+            }
+
+            return false;
         }
     }
 }

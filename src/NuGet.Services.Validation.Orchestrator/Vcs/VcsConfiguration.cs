@@ -17,5 +17,10 @@ namespace NuGet.Services.Validation.Vcs
         /// The connection string to use to connect to an Azure Storage account.
         /// </summary>
         public string DataStorageAccount { get; set; }
+
+        /// <summary>
+        /// The criteria used to determine if a package should be scanned by VCS.
+        /// </summary>
+        public PackageCriteria PackageCriteria { get; set; } = new PackageCriteria();
     }
 }

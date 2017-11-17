@@ -14,16 +14,16 @@ namespace NuGet.Services.Validation.Orchestrator
     /// </summary>
     public class ConfigurationValidator
     {
-        private readonly ValidationConfiguration configuration;
+        private readonly ValidationConfiguration _configuration;
 
-        public ConfigurationValidator(IOptions<ValidationConfiguration> optionsAccessor)
+        public ConfigurationValidator(IOptionsSnapshot<ValidationConfiguration> optionsAccessor)
         {
             if (optionsAccessor == null)
             {
                 throw new ArgumentNullException(nameof(optionsAccessor));
             }
 
-            this.configuration = optionsAccessor.Value ?? throw new ArgumentException("Value property cannot be null", nameof(optionsAccessor));
+            _configuration = optionsAccessor.Value ?? throw new ArgumentException("Value property cannot be null", nameof(optionsAccessor));
         }
 
         /// <summary>
@@ -31,15 +31,15 @@ namespace NuGet.Services.Validation.Orchestrator
         /// </summary>
         public void Validate()
         {
-            CheckValidationsNumber(configuration.Validations);
+            CheckValidationsNumber(_configuration.Validations);
 
-            CheckPropertyValues(configuration);
+            CheckPropertyValues(_configuration);
 
-            CheckDuplicateValidations(configuration);
+            CheckDuplicateValidations(_configuration);
 
-            CheckUnknownPrerequisites(configuration);
+            CheckUnknownPrerequisites(_configuration);
 
-            CheckPrerequisitesLoops(configuration);
+            CheckPrerequisitesLoops(_configuration);
         }
 
         private static void CheckValidationsNumber(List<ValidationConfigurationItem> validations)

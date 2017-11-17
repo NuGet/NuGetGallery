@@ -287,6 +287,11 @@ namespace NuGet.Jobs.Validation.Runner
                 // Start the validation process for each package
                 foreach (var package in packages)
                 {
+                    // Don't read the package URL from OData. Instead, allow the validators to build the package URL
+                    // themselves. This is important because the URL in the OData feed is not pointing directly to
+                    // Azure Blob Storage, which is required by the VCS validator.
+                    package.DownloadUrl = null;
+
                     await packageValidationService.StartValidationProcessAsync(package, _requestValidationTasks);
                 }
 

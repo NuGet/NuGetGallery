@@ -45,16 +45,37 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConfigurationValidator.cs" />
+    <Compile Include="ContainerBuilderExtensions.cs" />
     <Compile Include="Error.cs" />
+    <Compile Include="GalleryDbConfiguration.cs" />
+    <Compile Include="IValidationOutcomeProcessor.cs" />
+    <Compile Include="IValidationSetProcessor.cs" />
+    <Compile Include="IValidationSetProvider.cs" />
+    <Compile Include="IValidationStorageService.cs" />
+    <Compile Include="IValidatorProvider.cs" />
     <Compile Include="Job.cs" />
+    <Compile Include="OrchestrationRunner.cs" />
+    <Compile Include="OrchestrationRunnerConfiguration.cs" />
+    <Compile Include="PackageValidationMessageDataSerializer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.*.cs" />
-    <Compile Include="ValidateOnlyConfiguration.cs" />
     <Compile Include="ValidationConfiguration.cs" />
     <Compile Include="ValidationConfigurationItem.cs" />
+    <Compile Include="Vcs\IPackageCriteria.cs" />
+    <Compile Include="Vcs\IPackageCriteriaEvaluator.cs" />
+    <Compile Include="Vcs\PackageCriteriaEvaluator.cs" />
+    <Compile Include="Vcs\PackageCriteria.cs" />
     <Compile Include="Vcs\VcsConfiguration.cs" />
     <Compile Include="Vcs\VcsValidator.cs" />
+    <Compile Include="ValidationDbConfiguration.cs" />
+    <Compile Include="ValidationMessageHandler.cs" />
+    <Compile Include="ValidationOutcomeProcessor.cs" />
+    <Compile Include="ValidationRequest.cs" />
+    <Compile Include="ValidationSetProcessor.cs" />
+    <Compile Include="ValidationSetProvider.cs" />
+    <Compile Include="ValidationStorageService.cs" />
+    <Compile Include="ValidatorProvider.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -69,10 +90,19 @@
     <PackageReference Include="Autofac.Extensions.DependencyInjection">
       <Version>4.2.0</Version>
     </PackageReference>
+    <PackageReference Include="EntityFramework">
+      <Version>6.1.3</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.ApplicationInsights">
+      <Version>2.2.0</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Configuration">
       <Version>1.1.2</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder">
+      <Version>1.1.2</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions">
       <Version>1.1.2</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection">
@@ -88,25 +118,31 @@
       <Version>1.1.2</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Configuration">
-      <Version>2.2.5</Version>
+      <Version>2.4.1-master-17060</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Services.Contracts">
+      <Version>2.4.1-master-17060</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Services.KeyVault">
+      <Version>2.4.1-master-17060</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Logging">
-      <Version>2.2.5</Version>
+      <Version>2.4.1-master-17060</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Services.ServiceBus">
+      <Version>2.4.1-dev-17394</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation">
-      <Version>2.3.0</Version>
+      <Version>2.4.1-dev-17394</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Versioning">
       <Version>4.3.0</Version>
     </PackageReference>
+    <PackageReference Include="NuGetGallery.Core">
+      <Version>4.4.4-dev-pkurl-16418</Version>
+    </PackageReference>
     <PackageReference Include="Serilog">
       <Version>2.5.0</Version>
-    </PackageReference>
-    <PackageReference Include="Serilog.Sinks.ApplicationInsights">
-      <Version>2.2.1</Version>
-    </PackageReference>
-    <PackageReference Include="Serilog.Sinks.Console">
-      <Version>3.1.0</Version>
     </PackageReference>
     <PackageReference Include="WindowsAzure.Storage">
       <Version>7.1.2</Version>
@@ -123,5 +159,10 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="..\..\build\sign.targets" Condition="Exists('..\..\build\sign.targets')" />
+  <PropertyGroup>
+    <SignPath>..\..\build</SignPath>
+    <SignPath Condition="'$(BUILD_SOURCESDIRECTORY)' != ''">$(BUILD_SOURCESDIRECTORY)\build</SignPath>
+    <SignPath Condition="'$(NuGetBuildPath)' != ''">$(NuGetBuildPath)</SignPath>
+  </PropertyGroup>
+  <Import Project="$(SignPath)\sign.targets" Condition="Exists('$(SignPath)\sign.targets')" />
 </Project>
