@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using NuGetGallery.Authentication;
@@ -69,6 +70,19 @@ namespace NuGetGallery
             }
 
             return scope.OwnerKey.HasValue;
+        }
+
+        public static User GetOwnerScope(this IEnumerable<Scope> scopes)
+        {
+            if (scopes == null)
+            {
+                throw new ArgumentNullException(nameof(scopes));
+            }
+
+            // Gallery currently restricts ApiKeys to a single owner scope.
+            return scopes.Select(s => s.Owner)
+                .Distinct()
+                .SingleOrDefault();
         }
         
         private static bool AllowsAction(this Scope scope, string requestedAction)

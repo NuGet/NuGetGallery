@@ -19,6 +19,7 @@ using System.Web.Mvc;
 using NuGet.Packaging;
 using NuGet.Versioning;
 using NuGetGallery.Areas.Admin;
+using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
@@ -35,6 +36,29 @@ namespace NuGetGallery
     public partial class PackagesController
         : AppController
     {
+        private static readonly IReadOnlyList<ReportPackageReason> ReportAbuseReasons = new[]
+        {
+            ReportPackageReason.ViolatesALicenseIOwn,
+            ReportPackageReason.ContainsMaliciousCode,
+            ReportPackageReason.HasABugOrFailedToInstall,
+            ReportPackageReason.Other
+        };
+
+        private static readonly IReadOnlyList<ReportPackageReason> ReportMyPackageReasons = new[]
+        {
+            ReportPackageReason.ContainsPrivateAndConfidentialData,
+            ReportPackageReason.ReleasedInPublicByAccident,
+            ReportPackageReason.ContainsMaliciousCode,
+            ReportPackageReason.Other
+        };
+
+        private static readonly IReadOnlyList<ReportPackageReason> DeleteReasons = new[]
+        {
+            ReportPackageReason.ContainsPrivateAndConfidentialData,
+            ReportPackageReason.ReleasedInPublicByAccident,
+            ReportPackageReason.ContainsMaliciousCode,
+        };
+
         // TODO: add support for URL-based package submission
         // TODO: add support for uploading logos and screenshots
         // TODO: improve validation summary emphasis
@@ -564,14 +588,6 @@ namespace NuGetGallery
             return View(viewModel);
         }
 
-        // NOTE: Intentionally NOT requiring authentication
-        private static readonly ReportPackageReason[] ReportOtherPackageReasons = new[] {
-            ReportPackageReason.ViolatesALicenseIOwn,
-            ReportPackageReason.ContainsMaliciousCode,
-            ReportPackageReason.HasABugOrFailedToInstall,
-            ReportPackageReason.Other
-        };
-
         [HttpGet]
         public virtual ActionResult ReportAbuse(string id, string version)
         {
@@ -584,7 +600,7 @@ namespace NuGetGallery
 
             var model = new ReportAbuseViewModel
             {
-                ReasonChoices = ReportOtherPackageReasons,
+                ReasonChoices = ReportAbuseReasons,
                 PackageId = id,
                 PackageVersion = package.Version,
                 CopySender = true,
@@ -610,17 +626,10 @@ namespace NuGetGallery
             return View(model);
         }
 
-        private static readonly ReportPackageReason[] ReportMyPackageReasons = {
-            ReportPackageReason.ContainsPrivateAndConfidentialData,
-            ReportPackageReason.ReleasedInPublicByAccident,
-            ReportPackageReason.ContainsMaliciousCode,
-            ReportPackageReason.Other
-        };
-
         [HttpGet]
         [Authorize]
         [RequiresAccountConfirmation("contact support about your package")]
-        public virtual ActionResult ReportMyPackage(string id, string version)
+        public virtual async Task<ActionResult> ReportMyPackage(string id, string version)
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
 
@@ -628,20 +637,23 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-
-            // If user hit this url by constructing it manually but is not the owner, redirect them to ReportAbuse
+            
             if (!PermissionsService.IsActionAllowed(package, User, PackageActions.ReportMyPackage))
             {
-                return RedirectToAction("ReportAbuse", new { id, version });
+                return RedirectToAction(nameof(ReportAbuse), new { id, version });
             }
+
+            var allowDelete = await _packageDeleteService.CanPackageBeDeletedByUserAsync(package);
 
             var model = new ReportMyPackageViewModel
             {
                 ReasonChoices = ReportMyPackageReasons,
+                DeleteReasonChoices = DeleteReasons,
                 ConfirmedUser = GetCurrentUser().Confirmed,
                 PackageId = id,
                 PackageVersion = package.Version,
-                CopySender = true
+                CopySender = true,
+                AllowDelete = allowDelete,
             };
 
             return View(model);
@@ -652,16 +664,17 @@ namespace NuGetGallery
         [ValidateSpamPrevention]
         public virtual async Task<ActionResult> ReportAbuse(string id, string version, ReportAbuseViewModel reportForm)
         {
-            // Html Encode the message
-            reportForm.Message = System.Web.HttpUtility.HtmlEncode(reportForm.Message);
-
-            var modelIsValid = ModelState.IsValid;
-            if (reportForm.Reason == ReportPackageReason.ViolatesALicenseIOwn)
+            reportForm.Message = HttpUtility.HtmlEncode(reportForm.Message);
+            
+            if (reportForm.Reason == ReportPackageReason.ViolatesALicenseIOwn
+                && string.IsNullOrWhiteSpace(reportForm.Signature))
             {
-                modelIsValid = modelIsValid && !string.IsNullOrEmpty(reportForm.Signature);
+                ModelState.AddModelError(
+                    nameof(ReportAbuseViewModel.Signature),
+                    "The signature is required.");
             }
 
-            if (!modelIsValid)
+            if (!ModelState.IsValid)
             {
                 return ReportAbuse(id, version);
             }
@@ -716,23 +729,115 @@ namespace NuGetGallery
         [ValidateSpamPrevention]
         public virtual async Task<ActionResult> ReportMyPackage(string id, string version, ReportMyPackageViewModel reportForm)
         {
-            // Html Encode the message
-            reportForm.Message = System.Web.HttpUtility.HtmlEncode(reportForm.Message);
-
-            if (!ModelState.IsValid)
+            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
+            
+            var failureResult = await ValidateReportMyPackageViewModel(reportForm, package);
+            if (failureResult != null)
             {
-                return ReportMyPackage(id, version);
+                return failureResult;
+            }
+            
+            // Override the copy sender and message fields if we are performing an auto-delete.
+            if (reportForm.DeleteDecision == PackageDeleteDecision.DeletePackage)
+            {
+                reportForm.CopySender = false;
+                reportForm.Message = Strings.UserPackageDeleteSupportRequestMessage;
             }
 
-            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
+            var user = GetCurrentUser();
+            var from = user.ToMailAddress();
+            var subject = string.Format(
+                Strings.OwnerSupportRequestSubjectFormat,
+                package.PackageRegistration.Id,
+                package.NormalizedVersion);
+            var reason = EnumHelper.GetDescription(reportForm.Reason.Value);
+            var supportRequest = await _supportRequestService.AddNewSupportRequestAsync(
+                subject,
+                reportForm.Message,
+                from.Address,
+                reason,
+                user,
+                package);
+
+            var deleted = false;
+            if (supportRequest != null
+                && reportForm.DeleteDecision == PackageDeleteDecision.DeletePackage)
+            {
+                deleted = await DeletePackageOnBehalfOfUserAsync(package, user, reason, supportRequest);
+            }
+
+            if (!deleted)
+            {
+                NotifyReportMyPackageSupportRequest(reportForm, package, user, from);
+            }
+
+            return Redirect(Url.Package(package.PackageRegistration.Id, package.NormalizedVersion));
+        }
+
+        private async Task<ActionResult> ValidateReportMyPackageViewModel(ReportMyPackageViewModel reportForm, Package package)
+        {
             if (package == null)
             {
                 return HttpNotFound();
             }
 
-            var user = GetCurrentUser();
-            MailAddress from = user.ToMailAddress();
+            if (!PermissionsService.IsActionAllowed(package, User, PackageActions.ReportMyPackage))
+            {
+                return RedirectToAction(nameof(ReportAbuse), new { id = package.PackageRegistration.Id, version = package.NormalizedVersion });
+            }
 
+            reportForm.Message = HttpUtility.HtmlEncode(reportForm.Message);
+
+            // Enforce the auto-delete rules.
+            var allowDelete = false;
+            if (reportForm.DeleteDecision != PackageDeleteDecision.ContactSupport)
+            {
+                allowDelete = await _packageDeleteService.CanPackageBeDeletedByUserAsync(package);
+                if (!allowDelete)
+                {
+                    reportForm.DeleteDecision = null;
+                }
+            }
+
+            // Require a delete decision if auto-delete is allowed and implied by the reason.
+            if (allowDelete
+                && reportForm.Reason.HasValue
+                && DeleteReasons.Contains(reportForm.Reason.Value)
+                && !reportForm.DeleteDecision.HasValue)
+            {
+                ModelState.AddModelError(
+                    nameof(ReportMyPackageViewModel.DeleteDecision),
+                    Strings.UserPackageDeleteDecisionIsRequired);
+            }
+
+            // Require the confirmation checkbox if we are performing an auto-delete.
+            if (reportForm.DeleteDecision == PackageDeleteDecision.DeletePackage
+                && !reportForm.DeleteConfirmation)
+            {
+                ModelState.AddModelError(
+                    nameof(ReportMyPackageViewModel.DeleteConfirmation),
+                    Strings.UserPackageDeleteConfirmationIsRequired);
+            }
+
+            // Unless we're performing an auto-delete, require a message.
+            if (reportForm.DeleteDecision != PackageDeleteDecision.DeletePackage
+                && string.IsNullOrWhiteSpace(reportForm.Message))
+            {
+                ModelState.AddModelError(
+                    nameof(ReportMyPackageViewModel.Message),
+                    Strings.MessageIsRequired);
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return await ReportMyPackage(package.PackageRegistration.Id, package.NormalizedVersion);
+            }
+
+            return null;
+        }
+
+        private void NotifyReportMyPackageSupportRequest(ReportMyPackageViewModel reportForm, Package package, User user, MailAddress from)
+        {
             var request = new ReportPackageRequest
             {
                 FromAddress = from,
@@ -744,15 +849,53 @@ namespace NuGetGallery
                 CopySender = reportForm.CopySender
             };
 
-            var subject = $"Owner Support Request for '{package.PackageRegistration.Id}' version {package.Version}";
-            var reason = EnumHelper.GetDescription(reportForm.Reason.Value);
-
-            await _supportRequestService.AddNewSupportRequestAsync(subject, reportForm.Message, from.Address, reason, user, package);
-
             _messageService.ReportMyPackage(request);
 
-            TempData["Message"] = "Your support request has been sent to the gallery operators.";
-            return Redirect(Url.Package(id, version));
+            TempData["Message"] = Strings.SupportRequestSentTransientMessage;
+        }
+
+        private async Task<bool> DeletePackageOnBehalfOfUserAsync(
+            Package package,
+            User user,
+            string reason,
+            Issue supportRequest)
+        {
+            var deleted = false;
+            try
+            {
+                await _packageDeleteService.SoftDeletePackagesAsync(
+                    new[] { package },
+                    user,
+                    reason,
+                    signature: Strings.UserPackageDeleteSignature);
+                deleted = true;
+            }
+            catch (Exception e)
+            {
+                // Swallow exceptions that occur during the delete process. If this happens, we'll just
+                // send out the support request as usual and handle it manually.
+                QuietLog.LogHandledException(e);
+            }
+
+            if (deleted)
+            {
+                // Only close the support request if we have successfully deleted the package.
+                await _supportRequestService.UpdateIssueAsync(
+                    issueId: supportRequest.Key,
+                    assignedToId: null,
+                    issueStatusId: IssueStatusKeys.Resolved,
+                    comment: null,
+                    editedBy: user.Username);
+
+                _messageService.SendPackageDeletedNotice(
+                    package,
+                    Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                    Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false));
+
+                TempData["Message"] = Strings.UserPackageDeleteCompleteTransientMessage;
+            }
+
+            return deleted;
         }
 
         [HttpGet]
@@ -767,12 +910,14 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
+            bool hasOwners = package.PackageRegistration.Owners.Any();
             var model = new ContactOwnersViewModel
             {
                 PackageId = package.PackageRegistration.Id,
                 ProjectUrl = package.ProjectUrl,
                 Owners = package.PackageRegistration.Owners.Where(u => u.EmailAllowed),
                 CopySender = true,
+                HasOwners = hasOwners
             };
 
             return View(model);

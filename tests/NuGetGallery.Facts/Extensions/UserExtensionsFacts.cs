@@ -206,7 +206,7 @@ namespace NuGetGallery.Extensions
                 // Legacy V2 with no owner scope should match self or organizations.
                 var credential = new Credential(CredentialTypes.ApiKey.V2, "")
                 {
-                    Scopes = new[] { new Scope(null, "subject", "allowedAction") }
+                    Scopes = new[] { new Scope((User)null, "subject", "allowedAction") }
                 };
 
                 Assert.True(user.MatchesOwnerScope(credential));

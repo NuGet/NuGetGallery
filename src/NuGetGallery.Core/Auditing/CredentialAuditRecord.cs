@@ -43,7 +43,8 @@ namespace NuGetGallery.Auditing
             Scopes = new List<ScopeAuditRecord>();
             foreach (var scope in credential.Scopes)
             {
-                Scopes.Add(new ScopeAuditRecord(scope.Subject, scope.AllowedAction));
+                var ownerScope = scope.Owner?.Username;
+                Scopes.Add(new ScopeAuditRecord(ownerScope, scope.Subject, scope.AllowedAction));
             }
         }
     }

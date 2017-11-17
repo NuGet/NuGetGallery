@@ -1353,6 +1353,7 @@ namespace NuGetGallery.Authentication
             {
                 // Arrange
                 var cred = new CredentialBuilder().CreateApiKey(Fakes.ExpirationForApiKeyV1);
+                cred.User = new User("user");
                 cred.Description = "description";
                 cred.Scopes = new[] { new Scope("123", NuGetScopes.PackagePushVersion), new Scope("123", NuGetScopes.PackageUnlist) };
                 cred.Expires = hasExpired ? DateTime.UtcNow - TimeSpan.FromDays(1) : DateTime.UtcNow + TimeSpan.FromDays(1);
