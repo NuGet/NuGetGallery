@@ -23,7 +23,7 @@ namespace NuGet.Jobs.Validation.Common.OData
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<List<NuGetPackage>> GetPackagesAsync(Uri uri, int continuationsToFollow = 0)
+        public async Task<List<NuGetPackage>> GetPackagesAsync(Uri uri, bool includeDownloadUrl, int continuationsToFollow = 0)
         {
             _logger.LogInformation($"Start retrieving packages from URL {{{TraceConstant.Url}}}...", uri);
 
@@ -79,6 +79,14 @@ namespace NuGet.Jobs.Validation.Common.OData
                     Title = propertiesElement.GetString(dataservices + "Title", null)
                 };
 
+                if (!includeDownloadUrl)
+                {
+                    // Don't read the package URL from OData. Instead, allow the callers to build the package URL
+                    // themselves. This is important because the URL in the OData feed is not pointing directly to
+                    // Azure Blob Storage, which is required by the VCS validator.
+                    package.DownloadUrl = null;
+                }
+
                 result.Add(package);
             }
 
@@ -95,7 +103,7 @@ namespace NuGet.Jobs.Validation.Common.OData
                     var href = continuationLink.Attribute("href").Value;
 
                     _logger.LogInformation($"Start following continuation token {{{TraceConstant.Url}}}...", href);
-                    result.AddRange(await GetPackagesAsync(new Uri(href), continuationsToFollow - 1));
+                    result.AddRange(await GetPackagesAsync(new Uri(href), includeDownloadUrl, continuationsToFollow - 1));
                     _logger.LogInformation($"Finished following continuation token {{{TraceConstant.Url}}}.", href);
                 }
             }
