@@ -48,6 +48,7 @@
     <Compile Include="ServiceBus\ITopicClient.cs" />
     <Compile Include="Validation\IValidationRequest.cs" />
     <Compile Include="Validation\IValidator.cs" />
+    <Compile Include="Validation\ValidationResult.cs" />
     <Compile Include="Validation\ValidationStatus.cs" />
   </ItemGroup>
   <ItemGroup>
