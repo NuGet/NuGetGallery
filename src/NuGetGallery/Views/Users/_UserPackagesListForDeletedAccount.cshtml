@@ -1,4 +1,4 @@
-﻿@model DeleteAccountPackagesListViewModel
+﻿@model ManagePackagesListViewModel
 
 <div class="row user-package-list align-left">
     <div class="col-md-12 align-left ">
@@ -21,7 +21,7 @@
                     {
                         <tr class="manage-package-listing">
                             <td class="align-middle ">
-                                @if (package.WillBeOrphan)
+                                @if (package.HasSingleOwner)
                                 {
                                     <i class="ms-Icon ms-Icon--StatusErrorFull red-check" title="After account delete the package will not have any owners."></i>
                                 }

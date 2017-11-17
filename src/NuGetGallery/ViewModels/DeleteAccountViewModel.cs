@@ -10,7 +10,7 @@ namespace NuGetGallery
     {
         private bool? _hasOrphanPackages;
 
-        public List<DeleteAccountPackageItemViewModel> Packages { get; set; }
+        public List<ListPackageItemViewModel> Packages { get; set; }
 
         public User User { get; set; }
 
@@ -24,7 +24,7 @@ namespace NuGetGallery
             {
                 if (!_hasOrphanPackages.HasValue)
                 {
-                    _hasOrphanPackages = Packages?.Any(p => p.WillBeOrphan);
+                    _hasOrphanPackages = Packages?.Any(p => p.HasSingleOwner);
                 }
                 return _hasOrphanPackages ?? false;
             }

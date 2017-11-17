@@ -24,7 +24,7 @@
 
             <div class="form-group">
                 @{
-                    @Html.Partial("_UserPackagesListForDeletedAccount", new DeleteAccountPackagesListViewModel(@Model.Packages, "Packages"))
+                    @Html.Partial("_UserPackagesListForDeletedAccount", new ManagePackagesListViewModel(@Model.Packages, "Packages"))
                 }
             </div>
         </div>

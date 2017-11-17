@@ -1586,8 +1586,6 @@
     <Compile Include="Services\TelemetryService.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteUserAccountViewModel.cs" />
     <Compile Include="ViewModels\PackageDeleteDecision.cs" />
-    <Compile Include="ViewModels\DeleteAccountPackageItemViewModel.cs" />
-    <Compile Include="ViewModels\DeleteAccountPackagesListViewModel.cs" />
     <Compile Include="ViewModels\DeleteAccountViewModel.cs" />
     <Compile Include="ViewModels\ApiKeyOwnerViewModel.cs" />
     <Compile Include="ViewModels\PackageOwnersResultViewModel.cs" />

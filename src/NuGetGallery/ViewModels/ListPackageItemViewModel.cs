@@ -49,6 +49,18 @@ namespace NuGetGallery
             }
         }
 
+        public bool HasSingleOwner
+        {
+            get
+            {
+                var organization = Owners.FirstOrDefault() as Organization;
+
+                return Owners.Count == 1 &&
+                    // last owner is not an organization, or is an organization with one member.
+                    (organization == null || organization.Members.Count == 1);
+            }
+        }
+
         public bool IsActionAllowed(IPrincipal principal, PermissionLevel actionPermissionLevel)
         {
             return PermissionsService.IsActionAllowed(Owners, principal, actionPermissionLevel);

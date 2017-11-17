@@ -112,7 +112,7 @@ namespace NuGetGallery
 
             var listPackageItems = _packageService
                  .FindPackagesByOwner(user, includeUnlisted: true)
-                 .Select(p => new DeleteAccountPackageItemViewModel(p))
+                 .Select(p => new ListPackageItemViewModel(p))
                  .ToList();
 
             bool hasPendingRequest = _supportRequestService.GetIssues().Where((issue)=> string.Equals(issue.CreatedBy, user.Username) && 
@@ -171,7 +171,7 @@ namespace NuGetGallery
 
             var listPackageItems = _packageService
                  .FindPackagesByOwner(user, includeUnlisted:true)
-                 .Select(p => new DeleteAccountPackageItemViewModel(p))
+                 .Select(p => new ListPackageItemViewModel(p))
                  .ToList();
             var model = new DeleteUserAccountViewModel
             {
