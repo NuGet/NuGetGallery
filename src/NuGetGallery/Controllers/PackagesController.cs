@@ -1589,7 +1589,16 @@ namespace NuGetGallery
 
                 if (pendEdit)
                 {
-                    _editPackageService.StartEditPackageRequest(package, formData.Edit, currentUser);
+                    try
+                    {
+                        _editPackageService.StartEditPackageRequest(package, formData.Edit, currentUser);
+                    }
+                    catch (EntityException ex)
+                    {
+                        _telemetryService.TraceException(ex);
+
+                        return Json(400, new[] { ex.Message });
+                    }
                 }
 
                 if (!formData.Listed)
