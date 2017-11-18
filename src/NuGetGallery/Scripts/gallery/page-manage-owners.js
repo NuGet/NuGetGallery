@@ -31,7 +31,49 @@
         message: ko.observable(''),
 
         IsAllowedToRemove: function (owner) {
-            return true;
+            if (isUserAnAdmin.toLocaleLowerCase() === "True".toLocaleLowerCase()
+                || owner.pending()) {
+                return true;
+            };
+
+            if (this.owners().length < 2) {
+                return false;
+            }
+
+            var approvedOwner = 0;
+            var currentOwnerOwnsNamespace = false;
+            var namespaceOwnerCount = 0;
+
+            ko.utils.arrayForEach(this.owners(), function (owner) {
+                if (owner.pending() === false) {
+                    approvedOwner++;
+                }
+
+                if (owner.grantsCurrentUserAccess) {
+                    currentOwnerOwnsNamespace = currentOwnerOwnsNamespace || owner.isNamespaceOwner();
+                }
+
+                if (owner.isNamespaceOwner() === true) {
+                    namespaceOwnerCount++;
+                }
+            });
+
+            return approvedOwner >= 2
+                && (!owner.isNamespaceOwner()
+                    || (currentOwnerOwnsNamespace
+                        && namespaceOwnerCount >= 2));
+        },
+
+        IsOnlyUserGrantingAccessToCurrentUser: function (owner) {
+            var numUsersGrantingCurrentUserAccess = 0;
+
+            ko.utils.arrayForEach(this.owners(), function (owner) {
+                if (owner.grantsCurrentUserAccess) {
+                    numUsersGrantingCurrentUserAccess++;
+                }
+            });
+
+            return numUsersGrantingCurrentUserAccess < 2;
         },
 
         resetAddOwnerConfirmation: function () {
@@ -118,14 +160,15 @@
         },
 
         removeOwner: function (item) {
-            if (item.grantsCurrentUserAccess) {
-                if (!confirm("Are you sure you want to remove yourself from the owners?")) {
-                    return;
-                }
-            }
+            var isOnlyUserGrantingAccessToCurrentUser = viewModel.IsOnlyUserGrantingAccessToCurrentUser(item);
+            var isOnlyUserGrantingAccessToCurrentUserMessage = isOnlyUserGrantingAccessToCurrentUser ? " You will no longer be able to manage the package if you do!" : "";
 
             if (item.isCurrentUserMemberOfOrganization) {
-                if (!confirm("Are you sure you want to remove your organization from the owners?")) {
+                if (!confirm("Are you sure you want to remove your organization as an owner of this package?" + isOnlyUserGrantingAccessToCurrentUserMessage)) {
+                    return;
+                }
+            } else if (item.grantsCurrentUserAccess) {
+                if (!confirm("Are you sure you want to remove yourself as an owner of this package?" + isOnlyUserGrantingAccessToCurrentUserMessage)) {
                     return;
                 }
             }
@@ -140,15 +183,7 @@
                 }),
                 success: function (data) {
                     if (data.success) {
-                        var numCurrent = 0;
-
-                        ko.utils.arrayForEach(viewModel.owners(), function (owner) {
-                            if (owner !== item && owner.grantsCurrentUserAccess) {
-                                numCurrent++;
-                            }
-                        });
-
-                        if (numCurrent < 1) {
+                        if (isOnlyUserGrantingAccessToCurrentUser) {
                             window.location.href = packageUrl;
                         }
 
@@ -163,40 +198,6 @@
             })
             .error(failHandler);
         }
-    };
-
-    viewModel.IsAllowedToRemove = function (owner) {
-        if (isUserAnAdmin.toLocaleLowerCase() === "True".toLocaleLowerCase()
-            || owner.pending()) {
-            return true;
-        };
-
-        if (this.owners().length < 2) {
-            return false;
-        }
-
-        var approvedOwner = 0;
-        var currentOwnerOwnsNamespace = false;
-        var namespaceOwnerCount = 0;
-
-        ko.utils.arrayForEach(this.owners(), function (owner) {
-            if (owner.pending() === false) {
-                approvedOwner++;
-            }
-
-            if (owner.grantsCurrentUserAccess) {
-                currentOwnerOwnsNamespace = currentOwnerOwnsNamespace || owner.isNamespaceOwner();
-            }
-
-            if (owner.isNamespaceOwner() === true) {
-                namespaceOwnerCount++;
-            }
-        });
-
-        return approvedOwner >= 2
-            && (!owner.isNamespaceOwner()
-                || (currentOwnerOwnsNamespace
-                    && namespaceOwnerCount >= 2));
     };
 
     ko.applyBindings(viewModel);
