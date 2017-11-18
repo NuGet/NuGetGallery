@@ -1557,9 +1557,7 @@ namespace NuGetGallery
                 {
                     _telemetryService.TraceException(ex);
 
-                    TempData["Message"] = ex.Message;
-
-                    return Json(400, new[] { ex.GetUserSafeMessage() });
+                    return Json(400, new[] { ex.Message });
                 }
 
                 var pendEdit = false;
