@@ -28,11 +28,17 @@ namespace NuGetGallery.Services
             private static readonly IEnumerable<ReturnsExpectedPermissionLevels_State> _stateValues = 
                 Enum.GetValues(typeof(ReturnsExpectedPermissionLevels_State)).Cast<ReturnsExpectedPermissionLevels_State>();
 
+            private static readonly int _maxStateValue =
+                Enum.GetValues(typeof(ReturnsExpectedPermissionLevels_State)).Cast<int>().Max();
+
+            private static readonly int _maxPermissionLevel =
+                Enum.GetValues(typeof(PermissionLevel)).Cast<int>().Max();
+
             public static IEnumerable<object[]> ReturnsExpectedPermissionLevels_Data
             {
                 get
                 {
-                    for (int i = 0; i < Enum.GetValues(typeof(ReturnsExpectedPermissionLevels_State)).Cast<int>().Max() * 2; i++)
+                    for (int i = 0; i < _maxStateValue * 2; i++)
                     {
                         yield return new object[]
                         {
@@ -103,10 +109,17 @@ namespace NuGetGallery.Services
 
             private void AssertPermissionLevels(IEnumerable<User> owners, User user, PermissionLevel expectedLevel)
             {
-                Assert.Equal(expectedLevel, PermissionsService.GetPermissionLevel(owners, user));
+                for (int i = 0; i < _maxPermissionLevel * 2; i++)
+                {
+                    var permissionLevel = (PermissionLevel)i;
 
-                var principal = GetPrincipal(user);
-                Assert.Equal(expectedLevel, PermissionsService.GetPermissionLevel(owners, principal));
+                    var shouldSucceed = (permissionLevel & expectedLevel) > 0;
+
+                    Assert.Equal(shouldSucceed, PermissionsService.IsActionAllowed(owners, user, permissionLevel));
+
+                    var principal = GetPrincipal(user);
+                    Assert.Equal(shouldSucceed, PermissionsService.IsActionAllowed(owners, principal, permissionLevel));
+                }
             }
 
             private IPrincipal GetPrincipal(User u)
