@@ -1557,7 +1557,9 @@ namespace NuGetGallery
                 {
                     _telemetryService.TraceException(ex);
 
-                    return Json(400, new[] { ex.Message });
+                    TempData["Message"] = ex.Message;
+
+                    return Json(400, new[] { ex.GetUserSafeMessage() });
                 }
 
                 var pendEdit = false;
@@ -1587,16 +1589,7 @@ namespace NuGetGallery
 
                 if (pendEdit)
                 {
-                    try
-                    {
-                        _editPackageService.StartEditPackageRequest(package, formData.Edit, currentUser);
-                    }
-                    catch (EntityException ex)
-                    {
-                        _telemetryService.TraceException(ex);
-
-                        return Json(400, new[] { ex.Message });
-                    }
+                    _editPackageService.StartEditPackageRequest(package, formData.Edit, currentUser);
                 }
 
                 if (!formData.Listed)

@@ -140,8 +140,7 @@ var AsyncFileUploadManager = new function () {
     }
 
     function cancelUploadAsync(callback, error) {
-        clearErrors();
-
+        $('#warning-container').addClass("hidden");
         $.ajax({
             url: _cancelUrl,
             type: 'POST',
@@ -193,8 +192,6 @@ var AsyncFileUploadManager = new function () {
             return;
         }
 
-        clearErrors()
-
         var failureContainer = $("#validation-failure-container");
         var failureListContainer = document.createElement("div");
         $(failureListContainer).attr("id", "validation-failure-list");
@@ -207,10 +204,6 @@ var AsyncFileUploadManager = new function () {
     function clearErrors() {
         $("#validation-failure-container").addClass("hidden");
         $("#validation-failure-list").remove();
-
-        var warnings = $('#warning-container');
-        warnings.addClass("hidden");
-        warnings.children().remove();
     }
 
     function bindData(model) {
@@ -252,7 +245,7 @@ var AsyncFileUploadManager = new function () {
                 $('#verify-submit-button').attr('disabled', 'disabled');
                 $('#verify-submit-button').attr('value', 'Submitting');
                 $('#verify-submit-button').addClass('.loading');
-                submitVerifyAsync(navigateToPage, bindData.bind(this, model));
+                submitVerifyAsync(navigateToPage);
             });
 
             $('#iconurl-field').on('change', function () {
