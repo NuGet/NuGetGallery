@@ -64,7 +64,7 @@
                         && namespaceOwnerCount >= 2));
         },
 
-        IsOnlyUserGrantingAccessToCurrentUser: function (owner) {
+        IsOnlyUserGrantingAccessToCurrentUser: function () {
             var numUsersGrantingCurrentUserAccess = 0;
 
             ko.utils.arrayForEach(this.owners(), function (owner) {
@@ -160,7 +160,7 @@
         },
 
         removeOwner: function (item) {
-            var isOnlyUserGrantingAccessToCurrentUser = viewModel.IsOnlyUserGrantingAccessToCurrentUser(item);
+            var isOnlyUserGrantingAccessToCurrentUser = viewModel.IsOnlyUserGrantingAccessToCurrentUser();
             var isOnlyUserGrantingAccessToCurrentUserMessage = isOnlyUserGrantingAccessToCurrentUser ? " You will no longer be able to manage the package if you do!" : "";
 
             if (item.isCurrentUserMemberOfOrganization) {
