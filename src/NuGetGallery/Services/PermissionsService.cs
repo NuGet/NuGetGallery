@@ -78,7 +78,7 @@ namespace NuGetGallery
         {
             if (currentUser == null)
             {
-                return PermissionLevelsMatch(PermissionLevel.Anonymous, actionPermissionLevel);
+                return PermissionLevelsIntersect(PermissionLevel.Anonymous, actionPermissionLevel);
             }
 
             return HasPermission(
@@ -92,7 +92,7 @@ namespace NuGetGallery
         {
             if (currentPrincipal == null)
             {
-                return PermissionLevelsMatch(PermissionLevel.Anonymous, actionPermissionLevel);
+                return PermissionLevelsIntersect(PermissionLevel.Anonymous, actionPermissionLevel);
             }
 
             return HasPermission(
@@ -105,19 +105,19 @@ namespace NuGetGallery
         private static bool HasPermission(IEnumerable<User> entityOwners, bool isUserAdmin, Func<User, bool> isUserMatch, PermissionLevel actionPermissionLevel)
         {
             if ((entityOwners == null || !entityOwners.Any()) &&
-                PermissionLevelsMatch(PermissionLevel.Anonymous, actionPermissionLevel))
-            {
-                return true;
-            }
-
-            if (isUserAdmin &&
-                PermissionLevelsMatch(PermissionLevel.SiteAdmin, actionPermissionLevel))
+                PermissionLevelsIntersect(PermissionLevel.Anonymous, actionPermissionLevel))
             {
                 return true;
             }
 
             if (entityOwners.Any(isUserMatch) &&
-                PermissionLevelsMatch(PermissionLevel.Owner, actionPermissionLevel))
+                PermissionLevelsIntersect(PermissionLevel.Owner, actionPermissionLevel))
+            {
+                return true;
+            }
+
+            if (isUserAdmin &&
+                PermissionLevelsIntersect(PermissionLevel.SiteAdmin, actionPermissionLevel))
             {
                 return true;
             }
@@ -130,21 +130,21 @@ namespace NuGetGallery
                 .ToArray();
 
             if (matchingMembers.Any(m => m.IsAdmin) &&
-                PermissionLevelsMatch(PermissionLevel.OrganizationAdmin, actionPermissionLevel))
+                PermissionLevelsIntersect(PermissionLevel.OrganizationAdmin, actionPermissionLevel))
             {
                 return true;
             }
 
             if (matchingMembers.Any() &&
-                PermissionLevelsMatch(PermissionLevel.OrganizationCollaborator, actionPermissionLevel))
+                PermissionLevelsIntersect(PermissionLevel.OrganizationCollaborator, actionPermissionLevel))
             {
                 return true;
             }
 
-            return PermissionLevelsMatch(PermissionLevel.Anonymous, actionPermissionLevel);
+            return PermissionLevelsIntersect(PermissionLevel.Anonymous, actionPermissionLevel);
         }
 
-        private static bool PermissionLevelsMatch(PermissionLevel first, PermissionLevel second)
+        private static bool PermissionLevelsIntersect(PermissionLevel first, PermissionLevel second)
         {
             return (first & second) > 0;
         }
