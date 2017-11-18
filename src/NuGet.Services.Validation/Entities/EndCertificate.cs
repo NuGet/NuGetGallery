@@ -7,9 +7,10 @@ using System.Collections.Generic;
 namespace NuGet.Services.Validation
 {
     /// <summary>
-    /// A X.509 Certificate used by one or more <see cref="PackageSignature" />s for one or more <see cref="PackageSigningState"/>s.
+    /// A X.509 end-certificate, either a signing certificate or a timestamp certificate, 
+    /// used by one or more <see cref="PackageSignature" />s for one or more <see cref="PackageSigningState"/>s.
     /// </summary>
-    public class Certificate
+    public class EndCertificate
     {
         /// <summary>
         /// The database-mastered identifier for this certificate.
@@ -24,7 +25,7 @@ namespace NuGet.Services.Validation
         /// <summary>
         /// The last known status for this certificate. This may be stale.
         /// </summary>
-        public CertificateStatus Status { get; set; }
+        public EndCertificateStatus Status { get; set; }
 
         /// <summary>
         /// The time at which the status was known to be correct, according to the Certificate Authority.
@@ -78,6 +79,12 @@ namespace NuGet.Services.Validation
         /// A certificate should be periodically validated to ensure it has not be revoked. This is the list
         /// of all validations performed for this certificate.
         /// </summary>
-        public virtual ICollection<CertificateValidation> Validations { get; set; }
+        public virtual ICollection<EndCertificateValidation> Validations { get; set; }
+
+        /// <summary>
+        /// An end-certificate is linked to its <see cref="ParentCertificate"/>s (Intermediary and/or Root certificates) by <see cref="CertificateChainLink"/>s.
+        /// Combined, this allows for revalidation of the certificate chain.
+        /// </summary>
+        public virtual ICollection<CertificateChainLink> CertificateChainLinks { get; set; }
     }
 }

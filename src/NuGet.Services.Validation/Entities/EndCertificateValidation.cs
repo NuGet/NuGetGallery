@@ -8,7 +8,7 @@ namespace NuGet.Services.Validation
     /// <summary>
     /// The validation performed for a given certificate.
     /// </summary>
-    public class CertificateValidation
+    public class EndCertificateValidation
     {
         /// <summary>
         /// The database-mastered identifier for this certificate.
@@ -16,9 +16,9 @@ namespace NuGet.Services.Validation
         public long Key { get; set; }
 
         /// <summary>
-        /// The key to the <see cref="Certificate"/> this validation is for.
+        /// The key to the <see cref="EndCertificate"/> this validation is for.
         /// </summary>
-        public long CertificateKey { get; set; }
+        public long EndCertificateKey { get; set; }
 
         /// <summary>
         /// The unique identifier that represents the round of validation that kicked off
@@ -28,15 +28,15 @@ namespace NuGet.Services.Validation
         public Guid ValidationId { get; set; }
 
         /// <summary>
-        /// The determined <see cref="Certificate"/> Status after the validation finished. NULL
+        /// The determined <see cref="EndCertificate"/> Status after the validation finished. NULL
         /// if the validation has not completed yet.
         /// </summary>
-        public CertificateStatus? Status { get; set; }
+        public EndCertificateStatus? Status { get; set; }
 
         /// <summary>
-        /// The <see cref="Certificate"/> this validation is for.
+        /// The <see cref="EndCertificate"/> this validation is for.
         /// </summary>
-        public Certificate Certificate { get; set; }
+        public EndCertificate EndCertificate { get; set; }
 
         /// <summary>
         /// Check whether the validation is complete or not.
