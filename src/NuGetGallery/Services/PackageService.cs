@@ -214,7 +214,7 @@ namespace NuGetGallery
         /// <summary>
         /// Find packages by owner, including organization owners that the user belongs to.
         /// </summary>
-        public IEnumerable<Package> FindPackagesByOwner(User user, bool includeUnlisted)
+        public IEnumerable<Package> FindPackagesByAnyMatchingOwner(User user, bool includeUnlisted)
         {
             // Like DisplayPackage we should prefer to show you information from the latest stable version,
             // but show you the latest version (potentially latest UNLISTED version) otherwise.

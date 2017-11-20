@@ -111,7 +111,7 @@ namespace NuGetGallery
             }
 
             var listPackageItems = _packageService
-                 .FindPackagesByOwner(user, includeUnlisted: true)
+                 .FindPackagesByAnyMatchingOwner(user, includeUnlisted: true)
                  .Select(p => new ListPackageItemViewModel(p))
                  .ToList();
 
@@ -170,7 +170,7 @@ namespace NuGetGallery
             }
 
             var listPackageItems = _packageService
-                 .FindPackagesByOwner(user, includeUnlisted:true)
+                 .FindPackagesByAnyMatchingOwner(user, includeUnlisted:true)
                  .Select(p => new ListPackageItemViewModel(p))
                  .ToList();
             var model = new DeleteUserAccountViewModel
@@ -284,7 +284,7 @@ namespace NuGetGallery
         public virtual ActionResult Packages()
         {
             var user = GetCurrentUser();
-            var packages = _packageService.FindPackagesByOwner(user, includeUnlisted: true)
+            var packages = _packageService.FindPackagesByAnyMatchingOwner(user, includeUnlisted: true)
                 .Select(p => new ListPackageItemViewModel(p)).OrderBy(p => p.Id).ToList();
 
             var incoming = _packageOwnerRequestService.GetPackageOwnershipRequests(newOwner: user);
@@ -470,7 +470,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            var packages = _packageService.FindPackagesByOwner(user, includeUnlisted: false)
+            var packages = _packageService.FindPackagesByAnyMatchingOwner(user, includeUnlisted: false)
                 .OrderByDescending(p => p.PackageRegistration.DownloadCount)
                 .Select(p => new ListPackageItemViewModel(p)
                 {

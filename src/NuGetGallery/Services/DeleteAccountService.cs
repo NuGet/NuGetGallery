@@ -144,7 +144,7 @@ namespace NuGetGallery
 
         private async Task DeleteGalleryUserAccountImplAsync(User useToBeDeleted, User admin, string signature, bool unlistOrphanPackages)
         {
-            var ownedPackages = _packageService.FindPackagesByOwner(useToBeDeleted, includeUnlisted: true).ToList();
+            var ownedPackages = _packageService.FindPackagesByAnyMatchingOwner(useToBeDeleted, includeUnlisted: true).ToList();
 
             await RemoveOwnership(useToBeDeleted, admin, unlistOrphanPackages, ownedPackages);
             await RemoveReservedNamespaces(useToBeDeleted);

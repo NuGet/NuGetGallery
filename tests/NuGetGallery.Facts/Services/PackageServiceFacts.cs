@@ -916,7 +916,7 @@ namespace NuGetGallery
             }
         }
 
-        public class TheFindPackagesByOwnerMethod : TestContainer
+        public class TheFindPackagesByAnyMatchingOwnerMethod : TestContainer
         {
             public static IEnumerable<object[]> TestData_PackageOwnerVariants
             {
@@ -964,7 +964,7 @@ namespace NuGetGallery
                 context.Packages.Add(package);
                 var service = Get<PackageService>();
 
-                var packages = service.FindPackagesByOwner(currentUser, includeUnlisted: false);
+                var packages = service.FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: false);
                 Assert.Equal(1, packages.Count());
             }
 
@@ -982,7 +982,7 @@ namespace NuGetGallery
                 context.Packages.Add(package);
                 var service = Get<PackageService>();
 
-                var packages = service.FindPackagesByOwner(currentUser, includeUnlisted: false);
+                var packages = service.FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: false);
                 Assert.Equal(0, packages.Count());
             }
 
@@ -1000,7 +1000,7 @@ namespace NuGetGallery
                 context.Packages.Add(package);
                 var service = Get<PackageService>();
 
-                var packages = service.FindPackagesByOwner(currentUser, includeUnlisted: true);
+                var packages = service.FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: true);
                 Assert.Equal(1, packages.Count());
             }
 
@@ -1023,7 +1023,7 @@ namespace NuGetGallery
                 context.Packages.Add(packageB);
                 var service = Get<PackageService>();
 
-                var packages = service.FindPackagesByOwner(currentUser, includeUnlisted: false).ToList();
+                var packages = service.FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: false).ToList();
                 Assert.Equal(2, packages.Count);
                 Assert.Contains(packageA, packages);
                 Assert.Contains(packageB, packages);
@@ -1047,7 +1047,7 @@ namespace NuGetGallery
                 context.Packages.Add(latestStablePackage);
                 var service = Get<PackageService>();
 
-                var packages = service.FindPackagesByOwner(currentUser, includeUnlisted: false).ToList();
+                var packages = service.FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: false).ToList();
                 Assert.Equal(1, packages.Count);
                 Assert.Contains(latestStablePackage, packages);
             }
@@ -1069,7 +1069,7 @@ namespace NuGetGallery
                 context.Packages.Add(latestStablePackage);
                 var service = Get<PackageService>();
 
-                var packages = service.FindPackagesByOwner(currentUser, includeUnlisted: false).ToList();
+                var packages = service.FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: false).ToList();
                 Assert.Equal(1, packages.Count);
                 Assert.Contains(latestStablePackage, packages);
             }
@@ -1092,7 +1092,7 @@ namespace NuGetGallery
                 context.Packages.Add(package1);
                 var service = Get<PackageService>();
 
-                var packages = service.FindPackagesByOwner(currentUser, includeUnlisted: false);
+                var packages = service.FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: false);
                 Assert.Equal(1, packages.Count());
                 Assert.Contains(package2, packages);
             }
