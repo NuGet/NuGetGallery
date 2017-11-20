@@ -1,0 +1,98 @@
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System.Collections.Generic;
+using System.Linq;
+using NuGetGallery.Framework;
+using Xunit;
+
+namespace NuGetGallery.ViewModels
+{
+    public class DeleteAccountViewModelFacts
+    {
+        public class TheHasOrphanPackagesProperty
+        {
+            [Fact]
+            public void WhenPackagesNotSet_ReturnsFalse()
+            {
+                var viewModel = new DeleteAccountViewModel();
+
+                Assert.False(viewModel.HasOrphanPackages);
+            }
+
+            [Fact]
+            public void WhenPackageHasMultipleUserOwners_ReturnsFalse()
+            {
+                var user = new User("theUser");
+                var user2 = new User("theOtherUser");
+                var viewModel = CreateViewModel(user, user2);
+
+                Assert.Equal(2, viewModel.Packages.First().Owners.Count);
+                Assert.False(viewModel.HasOrphanPackages);
+            }
+
+            [Fact]
+            public void WhenPackageHasSingleOrgOwnerWithMultipleMembers_ReturnsFalse()
+            {
+                var fakes = new Fakes();
+                var organization = fakes.Organization;
+                var otherMembership = new Membership
+                {
+                    Organization = organization,
+                    Member = fakes.ShaUser,
+                    IsAdmin = false
+                };
+                organization.Members.Add(otherMembership);
+                var viewModel = CreateViewModel(organization);
+
+                Assert.Equal(2, organization.Members.Count);
+                Assert.Equal(1, viewModel.Packages.First().Owners.Count);
+                Assert.False(viewModel.HasOrphanPackages);
+            }
+
+            [Fact]
+            public void WhenPackageHasSingleUserOwner_ReturnsTrue()
+            {
+                var user = new User("theUser");
+                var viewModel = CreateViewModel(user);
+                
+                Assert.Equal(1, viewModel.Packages.First().Owners.Count);
+                Assert.True(viewModel.HasOrphanPackages);
+            }
+
+            [Fact]
+            public void WhenPackageHasSingleOrgOwnerWithSingleMember_ReturnsTrue()
+            {
+                var organization = new Fakes().Organization;
+                var viewModel = CreateViewModel(organization);
+
+                Assert.Equal(1, organization.Members.Count);
+                Assert.Equal(1, viewModel.Packages.First().Owners.Count);
+                Assert.True(viewModel.HasOrphanPackages);
+            }
+
+            private DeleteAccountViewModel CreateViewModel(params User[] owners)
+            {
+                var package = new Package()
+                {
+                    Version = "1.0.0"
+                };
+                var packageRegistration = new PackageRegistration()
+                {
+                    Id = "thePackage",
+                    Packages = new[] { package },
+                    Owners = owners
+                };
+                package.PackageRegistration = packageRegistration;
+
+                return new DeleteAccountViewModel()
+                {
+                    Packages = new List<ListPackageItemViewModel>()
+                    {
+                        new ListPackageItemViewModel(package)
+                    }
+                };
+            }
+        }
+    }
+}
