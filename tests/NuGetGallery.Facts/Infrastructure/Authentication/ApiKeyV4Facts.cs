@@ -31,6 +31,7 @@ namespace NuGetGallery.Infrastructure.Authentication
         [Theory]
         [InlineData(null)]
         [InlineData("")]
+        [InlineData(" ")]
         [InlineData("abc")]
         [InlineData("SEMTXET5UU6UZDD4AMK57TR46I==")]
         public void TryParseFailsForIllegalApiKeys(string inputApiKey)

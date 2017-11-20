@@ -3,13 +3,14 @@
 
 using System;
 using System.Security.Cryptography;
+using System.Text;
 
 namespace NuGetGallery.Infrastructure.Authentication
 {
     public class ApiKeyV4
     {
         private const int IdPartLengthBytes = 10;
-        private static readonly byte[] IdPrefix = new byte[] { 118, 52 };
+        private static readonly byte[] IdPrefix = Encoding.ASCII.GetBytes("v4");
 
         internal const int IdPartBase32Length = 20;
         internal const int IdAndPasswordLength = 46;
@@ -55,15 +56,15 @@ namespace NuGetGallery.Infrastructure.Authentication
 
         public bool Verify(string encryptedApiKey)
         {
-            if (string.IsNullOrEmpty(encryptedApiKey) || encryptedApiKey.Length != IdAndPasswordEncryptedLength)
+            if (string.IsNullOrWhiteSpace(encryptedApiKey) || encryptedApiKey.Length != IdAndPasswordEncryptedLength)
             {
                 return false;
             }
 
-            string encyptedApiKeyIdPart = encryptedApiKey.Substring(0, IdPartBase32Length);
-            string encryptedApiKeyPasswordPart = encryptedApiKey.Substring(IdPartBase32Length, encryptedApiKey.Length - IdPartBase32Length);
+            string encryptedApiKeyIdPart = encryptedApiKey.Substring(0, IdPartBase32Length);
+            string encryptedApiKeyPasswordPart = encryptedApiKey.Substring(IdPartBase32Length);
 
-            if (string.Compare(IdPart, Normalize(encyptedApiKeyIdPart)) != 0)
+            if (!string.Equals(IdPart, Normalize(encryptedApiKeyIdPart)))
             {
                 return false;
             }
@@ -82,8 +83,8 @@ namespace NuGetGallery.Infrastructure.Authentication
             }
 
             byte[] idBytes = new byte[IdPartLengthBytes + IdPrefix.Length];
-            Buffer.BlockCopy(IdPrefix, 0, idBytes, 0, IdPrefix.Length);
-            Buffer.BlockCopy(randomBytes, 0, idBytes, IdPrefix.Length, randomBytes.Length);
+            Buffer.BlockCopy(src: IdPrefix, srcOffset: 0, dst: idBytes, dstOffset: 0, count: IdPrefix.Length);
+            Buffer.BlockCopy(src: randomBytes, srcOffset: 0, dst: idBytes, dstOffset: IdPrefix.Length, count: randomBytes.Length);
 
             // Convert to Base32 string. The length of the string is APIKeyV4_IdPartBase64Length
             string idString = idBytes.ToBase32String().RemoveBase32Padding();
@@ -116,7 +117,7 @@ namespace NuGetGallery.Infrastructure.Authentication
 
                 if (success)
                 {
-                    string password = plaintextApiKey.Substring(IdPartBase32Length, plaintextApiKey.Length - IdPartBase32Length);
+                    string password = plaintextApiKey.Substring(IdPartBase32Length);
 
                     PlaintextApiKey = plaintextApiKey;
                     IdPart = Normalize(id);

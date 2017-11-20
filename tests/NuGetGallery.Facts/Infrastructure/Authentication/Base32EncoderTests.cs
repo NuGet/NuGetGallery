@@ -30,21 +30,38 @@ namespace NuGetGallery.Infrastructure
         [InlineData("abc")]
         [InlineData("SEMTXET5UU6UZDD4AMK57TR46I==")]
         [InlineData("mjwgc===")]
+        [InlineData("GEYq====")]
         public void WhenDataIsNotLegalBase32DecodeThrows(string input)
         {
-            Assert.Throws<InvalidOperationException>(() => Base32Encoder.Decode(base32String: input));
+            Assert.Throws<ArgumentException>(() => Base32Encoder.Decode(base32String: input));
         }
 
         [Theory]
         [InlineData("", "")]
-        [InlineData("NBSWY3DP", "hello")]
-        [InlineData("EA======", " ")]
-        [InlineData("EB2GQ2LTEBUXGIDBEB3GK4TZEBWG63THEBZXI4TJNZTSA53JORUCA3DPORZSA33GEBQWCYLBMFQWCYLBMEQGS3RAORUGKIDFNZSCAYLBMFQWCYLBMFQWCYLBMFQWCYLBMFQWCYLBMFQWCYLBMFQWCYLBMFQWCYLBMFQWCYLBMFQWCYLBMFQWCYLBMFQWCYI=",
-                    " this is a very long string with lots of aaaaaaaaaa in the end aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")]
-        public void WhenValidBase32StringProvideDecodeSucceeds(string base32String, string decodedString)
+        [InlineData("f", "MY======")]
+        [InlineData("fo", "MZXQ====")]
+        [InlineData("foo", "MZXW6===")]
+        [InlineData("foob", "MZXW6YQ=")]
+        [InlineData("fooba", "MZXW6YTB")]
+        [InlineData("foobar", "MZXW6YTBOI======")]
+        public void WhenValidBase32StringProvideDecodeSucceeds(string decodedString, string base32String)
         {
             Assert.Equal(decodedString, Encoding.ASCII.GetString(base32String.FromBase32String()));
         }
+
+        [Theory]
+        [InlineData("", "")]
+        [InlineData("f", "MY======")]
+        [InlineData("fo", "MZXQ====")]
+        [InlineData("foo", "MZXW6===")]
+        [InlineData("foob", "MZXW6YQ=")]
+        [InlineData("fooba", "MZXW6YTB")]
+        [InlineData("foobar", "MZXW6YTBOI======")]
+        public void WhenDataIsEncodedTheResultIsCorrect(string input, string base32String)
+        {
+            Assert.Equal(base32String, Base32Encoder.ToBase32String(Encoding.ASCII.GetBytes(input)));
+        }
+
 
         [Theory]
         [InlineData("")]
