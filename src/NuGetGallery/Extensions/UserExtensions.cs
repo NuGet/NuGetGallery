@@ -71,22 +71,6 @@ namespace NuGetGallery
             return package.Owners.Any(o => user.KeyIsSelfOrOrganization(o.Key));
         }
 
-        /// <summary>
-        /// Get account keys for the user and their organizations.
-        /// This method is compatible with EF queries and can be used to filter packages by owner.
-        /// </summary>
-        public static List<int> GetUserAndOrganizationAccountKeys(this User user)
-        {
-            if (user == null)
-            {
-                throw new ArgumentNullException(nameof(user));
-            }
-
-            var ownerKeys = user.Organizations.Select(org => org.OrganizationKey).ToList();
-            ownerKeys.Insert(0, user.Key);
-            return ownerKeys;
-        }
-
         public static bool MatchesUser(this User self, User user)
         {
             return self.Key == user.Key;

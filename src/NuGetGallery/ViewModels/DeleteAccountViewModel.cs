@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -8,7 +9,12 @@ namespace NuGetGallery
 {
     public class DeleteAccountViewModel
     {
-        private bool? _hasOrphanPackages;
+        private Lazy<bool> _hasOrphanPackages;
+
+        public DeleteAccountViewModel()
+        {
+            _hasOrphanPackages = new Lazy<bool>(() => Packages.Any(p => p.HasSingleOwner));
+        }
 
         public List<ListPackageItemViewModel> Packages { get; set; }
 
@@ -22,11 +28,7 @@ namespace NuGetGallery
         {
             get
             {
-                if (!_hasOrphanPackages.HasValue)
-                {
-                    _hasOrphanPackages = Packages?.Any(p => p.HasSingleOwner);
-                }
-                return _hasOrphanPackages ?? false;
+                return Packages == null ? false : _hasOrphanPackages.Value;
             }
         }
     }

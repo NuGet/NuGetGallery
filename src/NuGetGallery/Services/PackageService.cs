@@ -218,11 +218,14 @@ namespace NuGetGallery
         {
             // Like DisplayPackage we should prefer to show you information from the latest stable version,
             // but show you the latest version (potentially latest UNLISTED version) otherwise.
+            
+            var ownerKeys = user.Organizations.Select(org => org.OrganizationKey).ToList();
+            ownerKeys.Insert(0, user.Key);
 
             var mergedResults = new Dictionary<string, Package>(StringComparer.OrdinalIgnoreCase);
 
-            MergeLatestPackagesByOwner(user, includeUnlisted, mergedResults);
-            MergeLatestStablePackagesByOwner(user, includeUnlisted, mergedResults);
+            MergeLatestPackagesByOwner(ownerKeys, includeUnlisted, mergedResults);
+            MergeLatestStablePackagesByOwner(ownerKeys, includeUnlisted, mergedResults);
 
             return mergedResults.Values;
         }
@@ -230,10 +233,8 @@ namespace NuGetGallery
         /// <summary>
         /// Merge latest stable packages by owner, including organization owners that the user belongs to.
         /// </summary>
-        private void MergeLatestStablePackagesByOwner(User user, bool includeUnlisted, Dictionary<string, Package> mergedResults)
+        private void MergeLatestStablePackagesByOwner(List<int> ownerKeys, bool includeUnlisted, Dictionary<string, Package> mergedResults)
         {
-            var ownerKeys = user.GetUserAndOrganizationAccountKeys();
-
             IQueryable<Package> latestStablePackageVersions = _packageRepository.GetAll()
                             .Where(p => p.PackageRegistration.Owners.Any(o => ownerKeys.Contains(o.Key)))
                             .Where(p => p.IsLatestStable || p.IsLatestStableSemVer2)
@@ -263,10 +264,8 @@ namespace NuGetGallery
         /// <summary>
         /// Merge latest packages by owner, including organization owners that the user belongs to.
         /// </summary>
-        private void MergeLatestPackagesByOwner(User user, bool includeUnlisted, Dictionary<string, Package> mergedResults)
+        private void MergeLatestPackagesByOwner(List<int> ownerKeys, bool includeUnlisted, Dictionary<string, Package> mergedResults)
         {
-            var ownerKeys = user.GetUserAndOrganizationAccountKeys();
-
             IQueryable<Package> latestPackageVersions;
             if (includeUnlisted)
             {
@@ -280,9 +279,8 @@ namespace NuGetGallery
             else
             {
                 latestPackageVersions = _packageRepository.GetAll()
-                    .Where(p =>
-                        p.PackageRegistration.Owners.Any(owner => owner.Key == user.Key)
-                        && (p.IsLatest || p.IsLatestSemVer2))
+                    .Where(p => p.PackageRegistration.Owners.Any(o => ownerKeys.Contains(o.Key)))
+                    .Where(p => p.IsLatest || p.IsLatestSemVer2)
                     .Include(p => p.PackageRegistration)
                     .Include(p => p.PackageRegistration.Owners);
             }
