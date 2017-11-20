@@ -106,7 +106,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The user &apos;{0}&apos; is already an owner or pending owner of the package!.
+        ///   Looks up a localized string similar to The user &apos;{0}&apos; is already an owner or pending owner of the package..
         /// </summary>
         public static string AddOwner_AlreadyOwner {
             get {
@@ -729,6 +729,60 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The user &apos;{0}&apos; is already an owner or pending owner of this package..
+        /// </summary>
+        public static string ManagePackageOwners_AlreadyPending {
+            get {
+                return ResourceManager.GetString("ManagePackageOwners_AlreadyPending", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An unexpected error occurred: {0}.
+        /// </summary>
+        public static string ManagePackageOwners_Error {
+            get {
+                return ResourceManager.GetString("ManagePackageOwners_Error", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please enter a valid user name..
+        /// </summary>
+        public static string ManagePackageOwners_InvalidUsername {
+            get {
+                return ResourceManager.GetString("ManagePackageOwners_InvalidUsername", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Are you sure you want to remove your organization as an owner of this package?.
+        /// </summary>
+        public static string ManagePackageOwners_RemovingOrganization {
+            get {
+                return ResourceManager.GetString("ManagePackageOwners_RemovingOrganization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You will no longer be able to manage the package if you do..
+        /// </summary>
+        public static string ManagePackageOwners_RemovingOwnership {
+            get {
+                return ResourceManager.GetString("ManagePackageOwners_RemovingOwnership", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Are you sure you want to remove yourself as an owner of this package?.
+        /// </summary>
+        public static string ManagePackageOwners_RemovingSelf {
+            get {
+                return ResourceManager.GetString("ManagePackageOwners_RemovingSelf", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Please enter a message..
         /// </summary>
         public static string MessageIsRequired {
@@ -1044,7 +1098,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The user &apos;{0}&apos; is not an owner or pending owner of the package!.
+        ///   Looks up a localized string similar to The user &apos;{0}&apos; is not an owner or pending owner of the package..
         /// </summary>
         public static string RemoveOwner_NotOwner {
             get {

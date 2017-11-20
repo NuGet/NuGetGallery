@@ -16,7 +16,7 @@
         "Add Owner");
 
     var failHandler = function (jqXHR, textStatus, errorThrown) {
-        viewModel.message('An unexpected error occurred! "' + errorThrown + '"');
+        viewModel.message(window.nuget.formatString(errorThrown));
     };
 
     var viewModel = {
@@ -63,8 +63,13 @@
                     || (currentOwnerOwnsNamespace
                         && namespaceOwnerCount >= 2));
         },
-
+        
         IsOnlyUserGrantingAccessToCurrentUser: function () {
+            if (isUserAnAdmin.toLocaleLowerCase() === "True".toLocaleLowerCase()) {
+                // If user is an admin, removing any user will not remove their ability to manage package owners.
+                return false;
+            };
+
             var numUsersGrantingCurrentUserAccess = 0;
 
             ko.utils.arrayForEach(this.owners(), function (owner) {
@@ -91,7 +96,7 @@
 
             var newUsername = viewModel.newOwnerUsername();
             if (!newUsername) {
-                viewModel.message("Please enter a valid user name.");
+                viewModel.message(strings_InvalidUsername);
                 return;
             }
 
@@ -100,7 +105,7 @@
                 function (owner) { return owner.name().toUpperCase() == newUsername.toUpperCase() });
 
             if (existingOwner) {
-                viewModel.message("The user '" + newUsername + "' is already an owner or pending owner of this package.");
+                viewModel.message(window.nuget.formatString(strings_AlreadyPending, newUsername));
                 return;
             }
 
@@ -161,14 +166,14 @@
 
         removeOwner: function (item) {
             var isOnlyUserGrantingAccessToCurrentUser = viewModel.IsOnlyUserGrantingAccessToCurrentUser();
-            var isOnlyUserGrantingAccessToCurrentUserMessage = isOnlyUserGrantingAccessToCurrentUser ? " You will no longer be able to manage the package if you do!" : "";
+            var isOnlyUserGrantingAccessToCurrentUserMessage = isOnlyUserGrantingAccessToCurrentUser ? strings_RemovingOwnership : "";
 
             if (item.isCurrentUserMemberOfOrganization) {
-                if (!confirm("Are you sure you want to remove your organization as an owner of this package?" + isOnlyUserGrantingAccessToCurrentUserMessage)) {
+                if (!confirm(strings_RemovingOrganization + " " + isOnlyUserGrantingAccessToCurrentUserMessage)) {
                     return;
                 }
             } else if (item.grantsCurrentUserAccess) {
-                if (!confirm("Are you sure you want to remove yourself as an owner of this package?" + isOnlyUserGrantingAccessToCurrentUserMessage)) {
+                if (!confirm(strings_RemovingSelf + " " + isOnlyUserGrantingAccessToCurrentUserMessage)) {
                     return;
                 }
             }
