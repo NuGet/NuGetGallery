@@ -4,20 +4,71 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGetGallery.Authentication;
+using NuGetGallery.Framework;
 using NuGetGallery.Security;
 using Xunit;
 using Moq;
 
-
-namespace NuGetGallery.Services
+namespace NuGetGallery
 {
     public class DeleteAccountServiceFacts
     {
         public class TheDeleteGalleryUserAccountAsyncMethod
         {
+            [Fact]
+            public async Task WhenAccountIsOrganization_DoesNotDelete()
+            {
+                // Arrange
+                var fakes = new Fakes();
+                var testableService = new DeleteAccountTestService(fakes.Organization, fakes.Package);
+                var deleteAccountService = testableService.GetDeleteAccountService();
+
+                // Act
+                var result = await deleteAccountService.DeleteGalleryUserAccountAsync(
+                    fakes.Organization,
+                    fakes.Admin,
+                    "signature",
+                    unlistOrphanPackages: true,
+                    commitAsTransaction: false);
+
+                // Assert
+                Assert.False(result.Success);
+
+                var expected = string.Format(CultureInfo.CurrentCulture,
+                    Strings.AccountDelete_OrganizationDeleteNotImplemented,
+                    fakes.Organization.Username);
+                Assert.Equal(expected, result.Description);
+            }
+
+            [Fact]
+            public async Task WhenAccountIsOrganizationMember_DoesNotDelete()
+            {
+                // Arrange
+                var fakes = new Fakes();
+                var testableService = new DeleteAccountTestService(fakes.User, fakes.Package);
+                var deleteAccountService = testableService.GetDeleteAccountService();
+
+                // Act
+                var result = await deleteAccountService.DeleteGalleryUserAccountAsync(
+                    fakes.User,
+                    fakes.Admin,
+                    "signature",
+                    unlistOrphanPackages: true,
+                    commitAsTransaction: false);
+
+                // Assert
+                Assert.False(result.Success);
+
+                var expected = string.Format(CultureInfo.CurrentCulture,
+                    Strings.AccountDelete_OrganizationMemberDeleteNotImplemented,
+                    fakes.User.Username);
+                Assert.Equal(expected, result.Description);
+            }
+
             [Fact]
             public async Task NullUser()
             {

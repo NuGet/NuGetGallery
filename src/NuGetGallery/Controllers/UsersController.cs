@@ -124,7 +124,6 @@ namespace NuGetGallery
                 Packages = listPackageItems,
                 User = user,
                 AccountName = user.Username,
-                HasOrphanPackages = listPackageItems.Any(p => p.Owners.Count <= 1),
                 HasPendingRequests = hasPendingRequest
             };
             
@@ -179,7 +178,6 @@ namespace NuGetGallery
                 Packages = listPackageItems,
                 User = user,
                 AccountName = user.Username,
-                HasOrphanPackages = listPackageItems.Any(p => p.Owners.Count <= 1)
             };
             return View("DeleteUserAccount", model);
         }

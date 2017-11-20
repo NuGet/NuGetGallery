@@ -159,7 +159,7 @@ namespace NuGetGallery.Configuration
         /// Gets the SQL Connection string used to connect to the database for validations
         /// </summary>
         [DisplayName("ValidationSqlServer")]
-        [DefaultValue("Validation.SqlServer")]
+        [DefaultValue("ValidationSqlServer")]
         public string SqlConnectionStringValidation { get; set; }
 
         /// <summary>
