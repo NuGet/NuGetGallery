@@ -7,9 +7,11 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
 using Moq;
 using NuGet.Jobs.Validation.Common;
+using NuGetGallery;
 using Xunit;
 
 namespace NuGet.Services.Validation.Vcs
@@ -234,6 +236,30 @@ namespace NuGet.Services.Validation.Vcs
                     Times.Never);
             }
 
+            [Fact]
+            public async Task ReturnsSuccessIfPackageIsExcludedByCriteria()
+            {
+                // Arrange
+                _criteriaEvaluator
+                    .Setup(x => x.IsMatch(It.IsAny<IPackageCriteria>(), It.IsAny<Package>()))
+                    .Returns(false);
+                
+                // Act
+                var actual = await _target.GetStatusAsync(_validationRequest.Object);
+
+                // Assert
+                Assert.Equal(ValidationStatus.Succeeded, actual);
+                _packageService.Verify(
+                    x => x.FindPackageByIdAndVersionStrict(PackageId, PackageVersion),
+                    Times.Once);
+                _criteriaEvaluator.Verify(
+                    x => x.IsMatch(It.IsAny<IPackageCriteria>(), It.IsAny<Package>()),
+                    Times.Once);
+                _validationAuditor.Verify(
+                    x => x.ReadAuditAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>()),
+                    Times.Never);
+            }
+
             public static IEnumerable<object[]> IncompleteTestData => IncompleteEvents.Select(e => new object[] { e });
             public static IEnumerable<object[]> SucceededTestData => SucceededEvents.Select(e => new object[] { e });
             public static IEnumerable<object[]> FailedTestData => FailedEvents.Select(e => new object[] { e });
@@ -338,6 +364,33 @@ namespace NuGet.Services.Validation.Vcs
                     Times.Never);
             }
 
+            [Fact]
+            public async Task ReturnsSuccessIfPackageIsExcludedByCriteria()
+            {
+                // Arrange
+                _criteriaEvaluator
+                    .Setup(x => x.IsMatch(It.IsAny<IPackageCriteria>(), It.IsAny<Package>()))
+                    .Returns(false);
+
+                // Act
+                var actual = await _target.StartValidationAsync(_validationRequest.Object);
+
+                // Assert
+                Assert.Equal(ValidationStatus.Succeeded, actual);
+                _packageService.Verify(
+                    x => x.FindPackageByIdAndVersionStrict(PackageId, PackageVersion),
+                    Times.Once);
+                _criteriaEvaluator.Verify(
+                    x => x.IsMatch(It.IsAny<IPackageCriteria>(), It.IsAny<Package>()),
+                    Times.Once);
+                _validationAuditor.Verify(
+                    x => x.ReadAuditAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>()),
+                    Times.Never);
+                _validationService.Verify(
+                    x => x.StartValidationProcessAsync(It.IsAny<NuGetPackage>(), It.IsAny<string[]>(), It.IsAny<Guid>()),
+                    Times.Never);
+            }
+
             private class StartedValidation
             {
                 public StartedValidation(NuGetPackage package, string[] validators, Guid validationId)
@@ -355,18 +408,19 @@ namespace NuGet.Services.Validation.Vcs
 
         public abstract class FactsBase
         {
+            protected readonly VcsConfiguration _config;
+            protected readonly Mock<IValidationRequest> _validationRequest;
             protected readonly Mock<IPackageValidationService> _validationService;
             protected readonly Mock<IPackageValidationAuditor> _validationAuditor;
+            protected readonly Mock<ICorePackageService> _packageService;
+            protected readonly Mock<IPackageCriteriaEvaluator> _criteriaEvaluator;
+            protected readonly Mock<IOptionsSnapshot<VcsConfiguration>> _options;
             protected readonly Mock<ILogger<VcsValidator>> _logger;
-            protected readonly Mock<IValidationRequest> _validationRequest;
             protected readonly VcsValidator _target;
 
             public FactsBase()
             {
-                _validationService = new Mock<IPackageValidationService>();
-                _validationAuditor = new Mock<IPackageValidationAuditor>();
-                _logger = new Mock<ILogger<VcsValidator>>();
-
+                _config = new VcsConfiguration();
                 _validationRequest = new Mock<IValidationRequest>();
                 _validationRequest.Setup(x => x.NupkgUrl).Returns(NupkgUrl);
                 _validationRequest.Setup(x => x.PackageId).Returns(PackageId);
@@ -374,9 +428,27 @@ namespace NuGet.Services.Validation.Vcs
                 _validationRequest.Setup(x => x.PackageVersion).Returns(PackageVersion);
                 _validationRequest.Setup(x => x.ValidationId).Returns(ValidationId);
 
+                _validationService = new Mock<IPackageValidationService>();
+                _validationAuditor = new Mock<IPackageValidationAuditor>();
+                _packageService = new Mock<ICorePackageService>();
+                _criteriaEvaluator = new Mock<IPackageCriteriaEvaluator>();
+                _options = new Mock<IOptionsSnapshot<VcsConfiguration>>();
+                _logger = new Mock<ILogger<VcsValidator>>();
+
+                _criteriaEvaluator
+                    .Setup(x => x.IsMatch(It.IsAny<IPackageCriteria>(), It.IsAny<Package>()))
+                    .Returns(true);
+
+                _options
+                    .Setup(x => x.Value)
+                    .Returns(() => _config);
+
                 _target = new VcsValidator(
                     _validationService.Object,
                     _validationAuditor.Object,
+                    _packageService.Object,
+                    _criteriaEvaluator.Object,
+                    _options.Object,
                     _logger.Object);
             }
         }

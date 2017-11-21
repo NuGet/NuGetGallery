@@ -12,7 +12,15 @@
   },
   "Vcs": {
     "ContainerName": "validation",
-    "DataStorageAccount": "UseDevelopmentStorage=true"
+    "DataStorageAccount": "UseDevelopmentStorage=true",
+    "PackageCriteria": {
+      "ExcludeOwners": [
+        "NugetTestAccount"
+      ],
+      "IncludeIdPatterns": [
+        "E2E.SemVer1Stable.*"
+      ]
+    }
   },
   "PackageSigning": {
     "ServiceBus": {
