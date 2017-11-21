@@ -30,7 +30,10 @@ namespace NuGetGallery
             FrameworkReferenceGroups = packageMetadata.GetFrameworkReferenceGroups();
             Dependencies = new DependencySetsViewModel(packageMetadata.GetDependencyGroups().AsPackageDependencyEnumerable());
             DevelopmentDependency = packageMetadata.GetValueFromMetadata("developmentDependency");
-            Edit = new EditPackageVersionRequest(packageMetadata, possibleOwners);
+            Edit = new EditPackageVersionRequest(packageMetadata);
+
+            PossibleOwners = possibleOwners.Select(u => u.Username);
+            Owner = PossibleOwners.First();
         }
 
         public string Id { get; set; }
@@ -44,6 +47,10 @@ namespace NuGetGallery
         /// The non-normalized, unmodified, original version as defined in the nuspec.
         /// </summary>
         public string OriginalVersion { get; set; }
+
+        public string Owner { get; set; }
+        public IEnumerable<string> PossibleOwners { get; set; }
+
         public bool IsSemVer2 => HasSemVer2Version || HasSemVer2Dependency;
         public bool HasSemVer2Version { get; set; }
         public bool HasSemVer2Dependency { get; set; }

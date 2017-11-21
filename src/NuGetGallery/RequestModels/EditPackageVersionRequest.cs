@@ -25,7 +25,7 @@ namespace NuGetGallery
         {
         }
 
-        public EditPackageVersionRequest(PackageMetadata packageMetadata, IEnumerable<User> possibleOwners)
+        public EditPackageVersionRequest(PackageMetadata packageMetadata)
         {
 
             Authors = packageMetadata.Authors.Flatten();
@@ -40,13 +40,10 @@ namespace NuGetGallery
             Tags = PackageHelper.ParseTags(packageMetadata.Tags);
             VersionTitle = packageMetadata.Title;
 
-            PossibleOwners = possibleOwners.Select(u => u.Username);
-            Owner = PossibleOwners.First();
-
             ReadMe = new ReadMeRequest();
         }
 
-        public EditPackageVersionRequest(Package package, PackageEdit pendingMetadata, IEnumerable<User> possibleOwners)
+        public EditPackageVersionRequest(Package package, PackageEdit pendingMetadata)
         {
             var metadata = pendingMetadata ?? new PackageEdit
             {
@@ -74,9 +71,6 @@ namespace NuGetGallery
             Tags = metadata.Tags;
             VersionTitle = metadata.Title;
             ReadMeState = metadata.ReadMeState;
-
-            PossibleOwners = possibleOwners.Select(u => u.Username);
-            Owner = PossibleOwners.FirstOrDefault();
 
             ReadMe = new ReadMeRequest();
         }
@@ -134,9 +128,6 @@ namespace NuGetGallery
 
         [Display(Name = RequiresLicenseAcceptanceStr)]
         public bool RequiresLicenseAcceptance { get; set; }
-
-        public string Owner { get; set; }
-        public IEnumerable<string> PossibleOwners { get; set; }
 
         public PackageEditReadMeState ReadMeState { get; set; }
 

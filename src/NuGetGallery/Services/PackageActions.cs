@@ -21,10 +21,7 @@ namespace NuGetGallery
         /// The user can upload new versions of the package from the UI.
         /// </summary>
         public static PermissionLevel UploadNewVersion =
-            PermissionLevel.Owner |
-            PermissionLevel.OrganizationAdmin |
-            PermissionLevel.SiteAdmin |
-            PermissionLevel.OrganizationCollaborator;
+            PermissionLevel.Owner;
 
         /// <summary>
         /// The user can edit existing versions of the package from the UI.
