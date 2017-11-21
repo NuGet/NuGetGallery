@@ -87,12 +87,14 @@ namespace NuGetGallery.FunctionalTests.Commandline
                 // 3. Upload package using 'push' api key => expect success
                 TestOutputHelper.WriteLine($"3. Trying to upload package '{packageId}', version '{version1}' using 'push' API key. Expected result: success.");
                 await _clientSdkHelper.UploadExistingPackage(package1FullPath, EnvironmentSettings.TestAccountApiKey_Push);
-                _clientSdkHelper.VerifyPackageExistsInSource(packageId, version1);
 
                 // 4. Upload new version of package using 'push version' api key => expect success
                 TestOutputHelper.WriteLine($"4. Trying to upload package '{packageId}', version '{version2}' using 'push version' API key. Expected result: success.");
                 await _clientSdkHelper.UploadExistingPackage(package2FullPath, EnvironmentSettings.TestAccountApiKey_PushVersion);
-                _clientSdkHelper.VerifyPackageExistsInSource(packageId, version2);
+
+                // Verify the existence of the two pushed packages.
+                await _clientSdkHelper.VerifyPackageExistsInV2Async(packageId, version1);
+                await _clientSdkHelper.VerifyPackageExistsInV2Async(packageId, version2);
 
                 // 5. Try unlisting package version1 using 'push' api key => expect failture
                 TestOutputHelper.WriteLine($"5. Trying to unlist package '{packageId}', version '{version1}' using 'push' API key. Expected result: failure.");
@@ -133,9 +135,7 @@ namespace NuGetGallery.FunctionalTests.Commandline
 
             Assert.True(processResult.ExitCode == 0, Constants.UploadFailureMessage);
 
-            var packageVersionExistsInSource = _clientSdkHelper.CheckIfPackageVersionExistsInSource(packageId, version, UrlHelper.V2FeedRootUrl);
-            var userMessage = string.Format(Constants.PackageNotFoundAfterUpload, packageId, UrlHelper.V2FeedRootUrl);
-            Assert.True(packageVersionExistsInSource, userMessage);
+            await _clientSdkHelper.VerifyPackageExistsInV2AndV3Async(packageId, version);
 
             //Delete package from local disk so once it gets uploaded
             if (File.Exists(packageFullPath))

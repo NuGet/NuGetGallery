@@ -65,6 +65,8 @@ namespace NuGetGallery.Configuration
 
         public bool AsynchronousPackageValidationEnabled { get; set; }
 
+        public bool BlockingAsynchronousPackageValidationEnabled { get; set; }
+
         /// <summary>
         /// Gets the URI to the search service
         /// </summary>
@@ -157,7 +159,7 @@ namespace NuGetGallery.Configuration
         /// Gets the SQL Connection string used to connect to the database for validations
         /// </summary>
         [DisplayName("ValidationSqlServer")]
-        [DefaultValue("Validation.SqlServer")]
+        [DefaultValue("ValidationSqlServer")]
         public string SqlConnectionStringValidation { get; set; }
 
         /// <summary>

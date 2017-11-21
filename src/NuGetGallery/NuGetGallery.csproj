@@ -1586,11 +1586,15 @@
     <Compile Include="Services\ReflowPackageService.cs" />
     <Compile Include="Services\TelemetryService.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteUserAccountViewModel.cs" />
+    <Compile Include="ViewModels\PackageDeleteDecision.cs" />
+    <Compile Include="ViewModels\DeleteAccountViewModel.cs" />
+    <Compile Include="ViewModels\ApiKeyOwnerViewModel.cs" />
     <Compile Include="ViewModels\PackageOwnersResultViewModel.cs" />
     <Compile Include="ViewModels\ManagePackagesListViewModel.cs" />
     <Compile Include="ViewModels\ApiKeyListViewModel.cs" />
     <Compile Include="ViewModels\ApiKeyViewModel.cs" />
     <Compile Include="ViewModels\OwnerRequestsListItemViewModel.cs" />
+    <Compile Include="ViewModels\ReportViewModel.cs" />
     <Compile Include="ViewModels\ReservedNamespaceListViewModel.cs" />
     <Compile Include="ViewModels\ReservedNamespaceListItemViewModel.cs" />
     <Compile Include="ViewModels\OwnerRequestsListViewModel.cs" />
@@ -1956,6 +1960,8 @@
     <Content Include="Areas\Admin\Views\DeleteAccount\DeleteUserAccount.cshtml" />
     <Content Include="Views\Users\_UserPackagesListForDeletedAccount.cshtml" />
     <Content Include="Views\Users\_ReservedNamespacesList.cshtml" />
+    <Content Include="Views\Users\DeleteAccount.cshtml" />
+    <Content Include="Views\Authentication\SignInNuGetAccount.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />

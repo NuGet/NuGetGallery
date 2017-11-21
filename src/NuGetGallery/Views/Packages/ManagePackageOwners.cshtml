@@ -46,7 +46,8 @@
                             <a data-bind="attr: {href: profileUrl, title: name}, text: name"></a>
                         </span>
                         <span style="font-style:italic">
-                            <span data-bind="visible: current">(that's you)</span>
+                            <span data-bind="visible: grantsCurrentUserAccess && !isCurrentUserMemberOfOrganization">(that's you)</span>
+                            <span data-bind="visible: isCurrentUserMemberOfOrganization">(your organization)</span>
                             <span data-bind="visible: pending">(pending approval)</span>
                         </span>
                     </div>
@@ -146,6 +147,14 @@
         var getAddPackageOwnerConfirmationUrl = "@Url.GetAddPackageOwnerConfirmation()";
         var addPackageOwnerUrl = "@Url.AddPackageOwner()";
         var removePackageOwnerUrl = "@Url.RemovePackageOwner()";
+
+        // Strings
+        var strings_Error = "@Html.Raw(Strings.ManagePackageOwners_Error)";
+        var strings_InvalidUsername = "@Html.Raw(Strings.ManagePackageOwners_InvalidUsername)";
+        var strings_AlreadyPending = "@Html.Raw(Strings.ManagePackageOwners_AlreadyPending)";
+        var strings_RemovingOwnership = "@Html.Raw(Strings.ManagePackageOwners_RemovingOwnership)";
+        var strings_RemovingOrganization = "@Html.Raw(Strings.ManagePackageOwners_RemovingOrganization)";
+        var strings_RemovingSelf = "@Html.Raw(Strings.ManagePackageOwners_RemovingSelf)";
     </script>
 
     @Scripts.Render("~/Scripts/gallery/page-manage-owners.min.js")

@@ -13,7 +13,6 @@
             <h1>Register</h1>
         </div>
     </div>
-
     @foreach (var provider in Model.Providers)
     {
         <div class="row">
@@ -24,8 +23,7 @@
                     {
                         <img height="24" width="24" alt="" aria-hidden="true"
                              src="@Href(provider.UI.IconImagePath)"
-                             @(!string.IsNullOrEmpty(provider.UI.IconImageFallbackPath) ? (IHtmlString) ViewHelpers.ImageFallback(Url.Absolute(provider.UI.IconImageFallbackPath)) : new HtmlString(string.Empty))
-                             />
+                             @(!string.IsNullOrEmpty(provider.UI.IconImageFallbackPath) ? (IHtmlString)ViewHelpers.ImageFallback(Url.Absolute(provider.UI.IconImageFallbackPath)) : new HtmlString(string.Empty)) />
                     }
                     @provider.UI.RegisterMessage
                 </a>

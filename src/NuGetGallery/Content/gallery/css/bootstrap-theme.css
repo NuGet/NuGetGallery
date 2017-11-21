@@ -962,6 +962,9 @@ img.reserved-indicator-icon {
 .page-report-abuse .report-form #alreadycontactedowner-label {
   display: inline;
 }
+.page-report-abuse .report-form #form-field-confirm-delete {
+  margin: 20px 0;
+}
 .page-report-abuse .report-form .infringement-claim-requirements h2 {
   margin-top: 15px;
   margin-bottom: 15px;
@@ -973,11 +976,20 @@ img.reserved-indicator-icon {
   margin-top: 80px;
 }
 .page-sign-in .provider-button {
+  font-size: 16px;
   line-height: 2em;
 }
 .page-sign-in .provider-button img {
   margin-right: 5px;
   margin-bottom: 1px;
+}
+.page-sign-in .nuget-signin {
+  margin: 20px;
+  font-size: 14px;
+}
+.page-sign-in .create-provider-account {
+  margin-top: 10px;
+  font-size: 14px;
 }
 .page-sign-in .or-row {
   margin: 20px;

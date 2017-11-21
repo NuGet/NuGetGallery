@@ -197,8 +197,13 @@ namespace NuGetGallery.Areas.Admin
             }
         }
 
-        public async Task AddNewSupportRequestAsync(string subject, string message, string requestorEmailAddress, string reason,
-            User user, Package package = null)
+        public async Task<Issue> AddNewSupportRequestAsync(
+            string subject,
+            string message,
+            string requestorEmailAddress,
+            string reason,
+            User user,
+            Package package = null)
         {
             var loggedInUser = user?.Username ?? "Anonymous";
 
@@ -232,6 +237,8 @@ namespace NuGetGallery.Areas.Admin
                 newIssue.PackageRegistrationKey = package?.PackageRegistrationKey;
 
                 await AddIssueAsync(newIssue);
+
+                return newIssue;
             }
             catch (SqlException sqlException)
             {
@@ -251,6 +258,8 @@ namespace NuGetGallery.Areas.Admin
             {
                 QuietLog.LogHandledException(e);
             }
+
+            return null;
         }
 
         private async Task AddIssueAsync(Issue issue)
@@ -372,7 +381,10 @@ namespace NuGetGallery.Areas.Admin
 
         private Issue GetIssueById(int id)
         {
-            return _supportRequestDbContext.Issues.FirstOrDefault(i => i.Key == id);
+            return _supportRequestDbContext
+                .Issues
+                .Include(x => x.IssueStatus)
+                .FirstOrDefault(i => i.Key == id);
         }
     }
 }

@@ -647,6 +647,36 @@ The {3} Team";
             }
         }
 
+        public void SendAccountDeleteNotice(MailAddress mailAddress, string account)
+        {
+            string body = @"We received a request to delete your account {0}. If you did not initiate this request please contact the {1} team immediately.
+{2}When your account will be deleted, we will:{2}
+ - revoke your API key(s)
+ - remove you as the owner for any package you own 
+ - remove your ownership from any ID prefix reservations and delete any ID prefix reservations that you were the only owner of 
+
+{2}We will not delete the NuGet packages associated with the account.
+
+Thanks,
+{2}The {1} Team";
+
+            body = String.Format(
+                CultureInfo.CurrentCulture,
+                body,
+                account,
+                Config.GalleryOwner.DisplayName,
+                Environment.NewLine);
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = Strings.AccountDelete_SupportRequestTitle;
+                mailMessage.Body = body;
+                mailMessage.From = Config.GalleryNoReplyAddress;
+
+                mailMessage.To.Add(mailAddress.Address);
+                SendMessage(mailMessage);
+            }
+        }
         private static void AddOwnersToMailMessage(PackageRegistration packageRegistration, MailMessage mailMessage)
         {
             foreach (var owner in packageRegistration.Owners.Where(o => o.EmailAllowed))
@@ -660,6 +690,48 @@ The {3} Team";
             foreach (var owner in packageRegistration.Owners.Where(o => o.NotifyPackagePushed))
             {
                 mailMessage.To.Add(owner.ToMailAddress());
+            }
+        }
+
+        public void SendPackageDeletedNotice(Package package, string packageUrl, string packageSupportUrl)
+        {
+            string subject = "[{0}] Package deleted - {1} {2}";
+            string body = @"The package [{1} {2}]({3}) was just deleted from {0}. If this was not intended, please [contact support]({4}).
+
+Thanks,
+The {0} Team";
+
+            body = String.Format(
+                CultureInfo.CurrentCulture,
+                body,
+                Config.GalleryOwner.DisplayName,
+                package.PackageRegistration.Id,
+                package.Version,
+                packageUrl,
+                packageSupportUrl);
+
+            subject = String.Format(
+                CultureInfo.CurrentCulture,
+                subject,
+                Config.GalleryOwner.DisplayName,
+                package.PackageRegistration.Id,
+                package.Version);
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = Config.GalleryNoReplyAddress;
+
+                foreach (var owner in package.PackageRegistration.Owners)
+                {
+                    mailMessage.To.Add(owner.ToMailAddress());
+                }
+
+                if (mailMessage.To.Any())
+                {
+                    SendMessage(mailMessage);
+                }
             }
         }
     }
