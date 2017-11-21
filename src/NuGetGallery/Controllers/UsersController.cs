@@ -284,8 +284,30 @@ namespace NuGetGallery
         public virtual ActionResult Packages()
         {
             var user = GetCurrentUser();
-            var packages = _packageService.FindPackagesByAnyMatchingOwner(user, includeUnlisted: true)
-                .Select(p => new ListPackageItemViewModel(p)).OrderBy(p => p.Id).ToList();
+
+            var owners = new List<ListPackageOwnerViewModel> {
+                new ListPackageOwnerViewModel
+                {
+                    Username = "All packages"
+                },
+                new ListPackageOwnerViewModel(user)
+                {
+                    CanManagePackageOwners = PermissionsService.IsActionAllowed(user, user, PackageActions.ManagePackageOwners)
+                }
+            }.Concat(user.Organizations.Select(o => new ListPackageOwnerViewModel(o.Organization)
+            {
+                CanManagePackageOwners = PermissionsService.IsActionAllowed(o.Organization, user, PackageActions.ManagePackageOwners)
+            }));
+
+            var packages = _packageService.FindPackagesByAnyMatchingOwner(user, includeUnlisted: true);
+            var listedPackages = packages
+                .Where(p => p.Listed)
+                .Select(p => new ListPackageItemViewModel(p)).OrderBy(p => p.Id)
+                .ToList();
+            var unlistedPackages = packages
+                .Where(p => !p.Listed)
+                .Select(p => new ListPackageItemViewModel(p)).OrderBy(p => p.Id)
+                .ToList();
 
             var incoming = _packageOwnerRequestService.GetPackageOwnershipRequests(newOwner: user);
             var outgoing = _packageOwnerRequestService.GetPackageOwnershipRequests(requestingOwner: user);
@@ -295,7 +317,9 @@ namespace NuGetGallery
 
             var model = new ManagePackagesViewModel
             {
-                Packages = packages,
+                Owners = owners,
+                ListedPackages = listedPackages,
+                UnlistedPackages = unlistedPackages,
                 OwnerRequests = ownerRequests,
                 ReservedNamespaces = reservedPrefixes
             };
