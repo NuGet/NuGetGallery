@@ -334,7 +334,7 @@ namespace NuGetGallery
                     case PasswordResetResultType.Success:
                         return SendPasswordResetEmail(result.User, forgotPassword: true);
                     default:
-                        throw new NotImplementedException($"The passwword reset result type '{result.Type}' is not supported.");
+                        throw new NotImplementedException($"The password reset result type '{result.Type}' is not supported.");
                 }
             }
 
