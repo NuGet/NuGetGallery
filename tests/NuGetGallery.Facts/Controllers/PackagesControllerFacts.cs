@@ -99,7 +99,7 @@ namespace NuGetGallery
                 IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces;
                 reservedNamespaceService.Setup(s => s.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out userOwnedMatchingNamespaces))
                     .Returns(true);
-                reservedNamespaceService.Setup(s => s.IsPushAllowedOnBehalfOfOwner(It.IsAny<string>(), It.IsAny<User>(), out userOwnedMatchingNamespaces))
+                reservedNamespaceService.Setup(s => s.IsPushAllowedOnBehalfOfOwners(It.IsAny<string>(), It.IsAny<User>(), out userOwnedMatchingNamespaces))
                     .Returns(true);
             }
 
@@ -2197,7 +2197,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillShowTheViewWithErrorsWhenThePackageIdMatchesNonOwnedNamespace()
+            public async Task WillShowTheViewWithErrorsWhenThePackageIdMatchesUnownedNamespace()
             {
                 var fakeUploadedFile = new Mock<HttpPostedFileBase>();
                 fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
@@ -2214,7 +2214,7 @@ namespace NuGetGallery
                 var fakeReservedNamespaceService = new Mock<IReservedNamespaceService>();
                 IReadOnlyCollection<ReservedNamespace> matchingNamespaces;
                 fakeReservedNamespaceService
-                    .Setup(r => r.IsPushAllowedOnBehalfOfOwner(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
+                    .Setup(r => r.IsPushAllowedOnBehalfOfOwners(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
                     .Returns(false);
 
                 var fakeTelemetryService = new Mock<ITelemetryService>();
@@ -2259,7 +2259,7 @@ namespace NuGetGallery
                     .Setup(r => r.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
                     .Returns(true);
                 fakeReservedNamespaceService
-                    .Setup(r => r.IsPushAllowedOnBehalfOfOwner(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
+                    .Setup(r => r.IsPushAllowedOnBehalfOfOwners(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
                     .Returns(true);
 
                 var controller = CreateController(
@@ -2278,7 +2278,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillUploadThePackageWhenIdMatchesOwnedNonNamespaceButPackageExists()
+            public async Task WillUploadThePackageWhenIdMatchesUnownedNamespaceButPackageExists()
             {
                 var packageId = "Random.Package1";
 
@@ -2303,7 +2303,7 @@ namespace NuGetGallery
                     .Setup(r => r.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
                     .Returns(false);
                 fakeReservedNamespaceService
-                    .Setup(r => r.IsPushAllowedOnBehalfOfOwner(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
+                    .Setup(r => r.IsPushAllowedOnBehalfOfOwners(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
                     .Returns(false);
 
                 var controller = CreateController(
@@ -2603,7 +2603,7 @@ namespace NuGetGallery
             [Fact]
             public Task WillCreateThePackageForCurrentUser()
             {
-                return WillCreateThePackage(TestUtility.FakeUser, TestUtility.FakeUser);
+                return VerifyCreateThePackage(TestUtility.FakeUser, TestUtility.FakeUser, succeeds: true);
             }
 
             [Theory]
@@ -2611,20 +2611,68 @@ namespace NuGetGallery
             [InlineData(true)]
             public Task WillCreateThePackageForOrganization(bool isAdmin)
             {
-                var key = 1414;
-                var currentUser = new User { Key = key++, Username = "usertest" };
+                CreateOrganizationUser(isAdmin, out var organization, out var currentUser);
+                return VerifyCreateThePackage(organization, currentUser, succeeds: true, packageExists: true);
+            }
 
-                var organization = new Organization("organizationtest") { Key = key++ };
+            [Fact]
+            public Task WillNotCreateThePackageForCurrentUserWhenThePackageIdMatchesUnownedNamespace()
+            {
+                return VerifyCreateThePackage(TestUtility.FakeUser, TestUtility.FakeUser, succeeds: true, matchesReservedNamespace: true);
+            }
+
+            [Fact]
+            public Task WillNotCreateThePackageForOrganizationWhenThePackageIdMatchesUnownedNamespace()
+            {
+                CreateOrganizationUser(true, out var organization, out var currentUser);
+                return VerifyCreateThePackage(organization, currentUser, succeeds: true, matchesReservedNamespace: true);
+            }
+
+            [Fact]
+            public Task WillCreateThePackageForCurrentUserWhenIdMatchesOwnedNamespace()
+            {
+                return VerifyCreateThePackage(TestUtility.FakeUser, TestUtility.FakeUser, succeeds: true, matchesReservedNamespace: true, ownerCanPushToReservedNamespace: true);
+            }
+
+            [Fact]
+            public Task WillCreateThePackageForOrganizationWhenIdMatchesOwnedNamespace()
+            {
+                CreateOrganizationUser(true, out var organization, out var currentUser);
+                return VerifyCreateThePackage(organization, currentUser, succeeds: true, matchesReservedNamespace: true, ownerCanPushToReservedNamespace: true);
+            }
+
+            [Fact]
+            public Task WillCreateThePackageForCurrentUserWhenIdMatchesUnownedNamespaceButPackageExists()
+            {
+                return VerifyCreateThePackage(TestUtility.FakeUser, TestUtility.FakeUser, succeeds: true, packageExists: true, matchesReservedNamespace: true, ownerCanPushToReservedNamespace: true);
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public Task WillCreateThePackageForOrganizationWhenIdMatchesUnownedNamespaceButPackageExists(bool isAdmin)
+            {
+                CreateOrganizationUser(isAdmin, out var organization, out var currentUser);
+                return VerifyCreateThePackage(organization, currentUser, succeeds: true, packageExists: true, matchesReservedNamespace: true, ownerCanPushToReservedNamespace: true);
+            }
+
+            private void CreateOrganizationUser(bool isAdmin, out Organization organization, out User currentUser)
+            {
+                var key = 1414;
+                currentUser = new User { Key = key++, Username = "usertest" };
+
+                organization = new Organization("organizationtest") { Key = key++ };
 
                 var organizationMembership = new Membership() { Organization = organization, Member = currentUser, IsAdmin = isAdmin };
                 organization.Members.Add(organizationMembership);
                 currentUser.Organizations = organization.Members;
-
-                return WillCreateThePackage(organization, currentUser, true);
             }
 
-            private async Task WillCreateThePackage(User owner, User currentUser, bool packageExists = false)
+            private async Task VerifyCreateThePackage(User owner, User currentUser, bool succeeds, bool packageExists = false, bool matchesReservedNamespace = false, bool ownerCanPushToReservedNamespace = false)
             {
+                var packageId = "theId";
+                var packageVersion = "1.0.0";
+
                 var fakeUploadFileService = new Mock<IUploadFileService>();
                 using (var fakeFileStream = new MemoryStream())
                 {
@@ -2633,7 +2681,7 @@ namespace NuGetGallery
                     {
                         fakePackageService
                             .Setup(x => x.FindPackageRegistrationById(It.IsAny<string>()))
-                            .Returns(new PackageRegistration { Id = "theId", Owners = new[] { owner } });
+                            .Returns(new PackageRegistration { Id = packageId, Owners = new[] { owner } });
                     }
 
                     fakeUploadFileService.Setup(x => x.GetUploadFileAsync(currentUser.Key)).Returns(Task.FromResult<Stream>(fakeFileStream));
@@ -2646,8 +2694,22 @@ namespace NuGetGallery
                             It.IsAny<PackageStreamMetadata>(),
                             It.IsAny<User>(),
                             It.IsAny<User>()))
-                        .Returns(Task.FromResult(new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" }));
-                    var fakeNuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.0");
+                        .Returns(Task.FromResult(new Package { PackageRegistration = new PackageRegistration { Id = packageId }, Version = packageVersion }));
+                    var fakeNuGetPackage = TestPackage.CreateTestPackageStream(packageId, packageVersion);
+
+                    var fakeReservedNamespaceService = new Mock<IReservedNamespaceService>();
+                    IReadOnlyCollection<ReservedNamespace> matchingNamespaces;
+                    var ownerCanPush = !matchesReservedNamespace || ownerCanPushToReservedNamespace;
+                    var currentUserCanPush = !matchesReservedNamespace;
+
+                    fakeReservedNamespaceService.Setup(x => x.IsPushAllowed(packageId, owner, out matchingNamespaces))
+                        .Returns(ownerCanPush);
+                    fakeReservedNamespaceService.Setup(x => x.IsPushAllowed(packageId, currentUser, out matchingNamespaces))
+                        .Returns(currentUserCanPush);
+                    fakeReservedNamespaceService.Setup(x => x.IsPushAllowedOnBehalfOfOwners(packageId, owner, out matchingNamespaces))
+                        .Returns(ownerCanPush);
+                    fakeReservedNamespaceService.Setup(x => x.IsPushAllowedOnBehalfOfOwners(packageId, currentUser, out matchingNamespaces))
+                        .Returns(ownerCanPush);
 
                     var fakeUserService = new Mock<IUserService>();
                     fakeUserService.Setup(x => x.FindByUsername(owner.Username)).Returns(owner);
@@ -2663,12 +2725,19 @@ namespace NuGetGallery
 
                     await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Owner = owner.Username });
 
-                    fakePackageUploadService.Verify(x => x.GeneratePackageAsync(
-                        It.IsAny<string>(),
-                        It.IsAny<PackageArchiveReader>(),
-                        It.IsAny<PackageStreamMetadata>(),
-                        It.IsAny<User>(),
-                        It.IsAny<User>()), Times.Once);
+                    if (succeeds)
+                    {
+                        fakePackageUploadService.Verify(x => x.GeneratePackageAsync(
+                            It.IsAny<string>(),
+                            It.IsAny<PackageArchiveReader>(),
+                            It.IsAny<PackageStreamMetadata>(),
+                            It.IsAny<User>(),
+                            It.IsAny<User>()), Times.Once);
+                    }
+                    else
+                    {
+                        Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+                    }
                 }
             }
 

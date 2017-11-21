@@ -273,29 +273,27 @@ namespace NuGetGallery
                 }
 
                 var id = nuspec.GetId();
-                var packageRegistration = _packageService.FindPackageRegistrationById(id);
+                var existingPackageRegistration = _packageService.FindPackageRegistrationById(id);
+
                 // For a new package id verify if the user is allowed to use it.
-                if (packageRegistration == null)
+                if (existingPackageRegistration == null && !_reservedNamespaceService.IsPushAllowedOnBehalfOfOwners(id, currentUser, out var matchingNamespaces))
                 {
-                    if (!_reservedNamespaceService.IsPushAllowedOnBehalfOfOwner(id, currentUser, out var matchingNamespaces))
-                    {
-                        ModelState.AddModelError(
-                            string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict));
+                    ModelState.AddModelError(
+                        string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict));
 
-                        var version = nuspec.GetVersion().ToNormalizedString();
-                        _telemetryService.TrackPackagePushNamespaceConflictEvent(id, version, currentUser, User.Identity);
+                    var version = nuspec.GetVersion().ToNormalizedString();
+                    _telemetryService.TrackPackagePushNamespaceConflictEvent(id, version, currentUser, User.Identity);
 
-                        return Json(409, new string[] { string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict) });
-                    }
+                    return Json(409, new string[] { string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict) });
                 }
 
                 // For existing package ID verify that the current user has the rights to upload new versions
-                if (packageRegistration != null && !PermissionsService.IsActionAllowed(packageRegistration, currentUser, PackageActions.UploadNewVersion))
+                if (existingPackageRegistration != null && !PermissionsService.IsActionAllowedOnBehalfOfOwners(existingPackageRegistration, currentUser, AccountActions.UploadNewVersionOnBehalfOf))
                 {
                     ModelState.AddModelError(
-                        string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id));
+                        string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, existingPackageRegistration.Id));
 
-                    return Json(409, new[] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id) });
+                    return Json(409, new[] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, existingPackageRegistration.Id) });
                 }
 
                 var nuspecVersion = nuspec.GetVersion();
@@ -1422,13 +1420,26 @@ namespace NuGetGallery
                         return Json(400, new[] { message });
                     }
                 }
-                else if (!PermissionsService.IsActionAllowed(owner, currentUser, AccountActions.UploadNewIdOnBehalfOf))
+                else
                 {
-                    // The user is not allowed to upload a new ID on behalf of the owner specified in the form
-                    var message = string.Format(CultureInfo.CurrentCulture,
-                        Strings.UploadPackage_NewIdOnBehalfOfUserNotAllowed,
-                        currentUser.Username, owner.Username);
-                    return Json(400, new[] { message });
+                    if (!PermissionsService.IsActionAllowed(owner, currentUser, AccountActions.UploadNewIdOnBehalfOf))
+                    {
+                        // The user is not allowed to upload a new ID on behalf of the owner specified in the form
+                        var message = string.Format(CultureInfo.CurrentCulture,
+                            Strings.UploadPackage_NewIdOnBehalfOfUserNotAllowed,
+                            currentUser.Username, owner.Username);
+                        return Json(400, new[] { message });
+                    }
+
+                    if (!_reservedNamespaceService.IsPushAllowed(packageMetadata.Id, owner, out var userOwnerdMatchingNamespaces))
+                    {
+                        // The owner specified in the form is not allowed to push to a reserved namespace matching the new ID
+                        var version = packageMetadata.Version.ToNormalizedString();
+                        _telemetryService.TrackPackagePushNamespaceConflictEvent(packageMetadata.Id, version, currentUser, User.Identity);
+
+                        var message = string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict);
+                        return Json(409, new string[] { message });
+                    }
                 }
 
                 // update relevant database tables

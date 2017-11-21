@@ -60,11 +60,27 @@ namespace NuGetGallery
         }
 
         /// <summary>
+        /// Is <paramref name="currentPrincipal"/> allowed to perform <paramref name="actionPermissionLevel"/> on behalf of the owners of <paramref name="packageRegistration"/>?
+        /// </summary>
+        public static bool IsActionAllowedOnBehalfOfOwners(PackageRegistration packageRegistration, User currentUser, PermissionLevel actionPermissionLevel)
+        {
+            return IsActionAllowedOnBehalfOfOwners(packageRegistration.Owners, currentUser, actionPermissionLevel);
+        }
+
+        /// <summary>
         /// Is <paramref name="currentUser"/> allowed to perform <paramref name="actionPermissionLevel"/> on <paramref name="reservedNamespace"/>?
         /// </summary>
         public static bool IsActionAllowed(ReservedNamespace reservedNamespace, User currentUser, PermissionLevel actionPermissionLevel)
         {
             return IsActionAllowed(reservedNamespace.Owners, currentUser, actionPermissionLevel);
+        }
+
+        /// <summary>
+        /// Is <paramref name="currentPrincipal"/> allowed to perform <paramref name="actionPermissionLevel"/> on behalf of the owners of <paramref name="reservedNamespace"/>?
+        /// </summary>
+        public static bool IsActionAllowedOnBehalfOfOwners(ReservedNamespace reservedNamespace, User currentUser, PermissionLevel actionPermissionLevel)
+        {
+            return IsActionAllowedOnBehalfOfOwners(reservedNamespace.Owners, currentUser, actionPermissionLevel);
         }
 
         /// <summary>
@@ -82,6 +98,14 @@ namespace NuGetGallery
         {
             var userPermissionLevel = GetPermissionLevel(entityOwners, currentUser);
             return IsAllowed(userPermissionLevel, actionPermissionLevel);
+        }
+
+        /// <summary>
+        /// Is <paramref name="currentPrincipal"/> allowed to perform <paramref name="actionPermissionLevel"/> on behalf of the owners of the entity owned by <paramref name="entityOwners"/>?
+        /// </summary>
+        public static bool IsActionAllowedOnBehalfOfOwners(IEnumerable<User> entityOwners, User currentUser, PermissionLevel actionPermissionLevel)
+        {
+            return entityOwners.Any(o => IsActionAllowed(o, currentUser, actionPermissionLevel));
         }
 
         private static bool IsAllowed(PermissionLevel userPermissionLevel, PermissionLevel actionPermissionLevel)

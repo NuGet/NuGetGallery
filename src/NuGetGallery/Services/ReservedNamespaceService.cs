@@ -373,11 +373,11 @@ namespace NuGetGallery
                 out userOwnedMatchingNamespaces);
         }
 
-        public bool IsPushAllowedOnBehalfOfOwner(string id, User user, out IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces)
+        public bool IsPushAllowedOnBehalfOfOwners(string id, User user, out IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces)
         {
             return IsPushAllowedInternal(id,
                 user,
-                rn => rn.Owners.Any(o => PermissionsService.IsActionAllowed(o, user, AccountActions.PushToReservedNamespaceOnBehalfOf)),
+                rn => PermissionsService.IsActionAllowedOnBehalfOfOwners(rn, user, AccountActions.PushToReservedNamespaceOnBehalfOf),
                 out userOwnedMatchingNamespaces);
         }
 
