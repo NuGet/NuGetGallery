@@ -32,9 +32,8 @@ namespace NuGetGallery.FunctionalTests.WebUITests.UploadAndDownload
 
             var uploadRequest = AssertAndValidationHelper.GetHttpRequestForUrl(UrlHelper.UploadPageUrl);
             yield return uploadRequest;
-
-            string packageId;
-            packageId = DateTime.Now.Ticks.ToString();
+            
+            var packageId = $"UploadPackageFromUI.{DateTimeOffset.UtcNow.Ticks}";
             var packageCreationHelper = new PackageCreationHelper();
             var packageFullPath = packageCreationHelper.CreatePackage(packageId).Result;
             var uploadPostRequest = AssertAndValidationHelper.GetUploadPostRequestForPackage(this, packageFullPath);
