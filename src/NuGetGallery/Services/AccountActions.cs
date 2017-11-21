@@ -12,7 +12,7 @@ namespace NuGetGallery
         /// The user can manage ownership of the package on behalf of the account.
         /// The user can accept, reject, and cancel package ownership requests on behalf of the account.
         /// </summary>
-        public static PermissionLevel ManagePackageOwnersOnBehalfOf =
+        public static PermissionLevel ManagePackageOwnershipOnBehalfOf =
             PermissionLevel.Owner |
             PermissionLevel.OrganizationAdmin;
 

@@ -824,7 +824,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            if (!PermissionsService.IsActionAllowed(package, User, PackageActions.ManagePackageOwners))
+            if (!PermissionsService.IsActionAllowed(package, User, PackageActions.ManagePackageOwnership))
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
@@ -1123,7 +1123,7 @@ namespace NuGetGallery
             }
 
             var user = _userService.FindByUsername(username);
-            if (!PermissionsService.IsActionAllowed(user, GetCurrentUser(), AccountActions.ManagePackageOwnersOnBehalfOf))
+            if (!PermissionsService.IsActionAllowed(user, GetCurrentUser(), AccountActions.ManagePackageOwnershipOnBehalfOf))
             {
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.NotYourRequest));
             }
