@@ -309,7 +309,7 @@
                     }
                     else
                     {
-                        <p>To enable password login, please confirm your account.</p>
+                        <p>To enable password login, please <a href="@Url.ConfirmationRequired()">confirm</a> your account.</p>
                     }
                 </text>,
                 ViewData.ModelState.Keys.Any(x => x.StartsWith("ChangePassword")))
