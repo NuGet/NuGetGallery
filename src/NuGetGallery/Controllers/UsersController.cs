@@ -575,8 +575,8 @@ namespace NuGetGallery
             if (oldPassword == null)
             {
                 // User is requesting a password set email
-                var result = await _authService.GeneratePasswordResetToken(user, Constants.PasswordResetTokenExpirationHours * 60);
-                if (result == PasswordResetResultType.UserNotConfirmed)
+                var resetResultType = await _authService.GeneratePasswordResetToken(user, Constants.PasswordResetTokenExpirationHours * 60);
+                if (resetResultType == PasswordResetResultType.UserNotConfirmed)
                 {
                     ModelState.AddModelError("ChangePassword", Strings.UserIsNotYetConfirmed);
                     return AccountView(model);
