@@ -679,9 +679,8 @@ namespace NuGetGallery
             {
                 // Arrange 
                 var fakes = new Fakes();
-                var user = fakes.User;
+                var user = isAdmin ? fakes.OrganizationAdmin : fakes.OrganizationCollaborator;
                 var orgUser = fakes.Organization;
-                user.Organizations.First().IsAdmin = isAdmin;
                 GetMock<IUserService>()
                     .Setup(u => u.FindByUsername(orgUser.Username))
                     .Returns(orgUser);
@@ -708,9 +707,8 @@ namespace NuGetGallery
             {
                 // Arrange 
                 var fakes = new Fakes();
-                var user = fakes.User;
+                var user = isAdmin ? fakes.OrganizationAdmin : fakes.OrganizationCollaborator;
                 var orgUser = fakes.Organization;
-                user.Organizations.First().IsAdmin = isAdmin;
                 GetMock<IUserService>()
                     .Setup(u => u.FindByUsername(orgUser.Username))
                     .Returns(orgUser);
