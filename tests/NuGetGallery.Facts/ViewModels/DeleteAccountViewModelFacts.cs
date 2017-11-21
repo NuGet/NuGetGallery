@@ -34,15 +34,20 @@ namespace NuGetGallery.ViewModels
             [Fact]
             public void WhenPackageHasSingleOrgOwnerWithMultipleMembers_ReturnsFalse()
             {
-                var fakes = new Fakes();
-                var organization = fakes.Organization;
-                var otherMembership = new Membership
+                var organization = new Organization();
+                for (int i = 0; i < 2; i++)
                 {
-                    Organization = organization,
-                    Member = fakes.ShaUser,
-                    IsAdmin = false
-                };
-                organization.Members.Add(otherMembership);
+                    var user = new User();
+                    var membership = new Membership()
+                    {
+                        Organization = organization,
+                        Member = user,
+                        IsAdmin = false
+                    };
+                    organization.Members.Add(membership);
+                    user.Organizations.Add(membership);
+                }
+                
                 var viewModel = CreateViewModel(organization);
 
                 Assert.Equal(2, organization.Members.Count);
@@ -63,7 +68,17 @@ namespace NuGetGallery.ViewModels
             [Fact]
             public void WhenPackageHasSingleOrgOwnerWithSingleMember_ReturnsTrue()
             {
-                var organization = new Fakes().Organization;
+                var organization = new Organization();
+                var user = new User();
+                var membership = new Membership()
+                {
+                    Organization = organization,
+                    Member = user,
+                    IsAdmin = false
+                };
+                organization.Members.Add(membership);
+                user.Organizations.Add(membership);
+                
                 var viewModel = CreateViewModel(organization);
 
                 Assert.Equal(1, organization.Members.Count);

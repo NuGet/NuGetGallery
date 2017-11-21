@@ -49,12 +49,13 @@ namespace NuGetGallery
             {
                 // Arrange
                 var fakes = new Fakes();
-                var testableService = new DeleteAccountTestService(fakes.User, fakes.Package);
+                var account = fakes.OrganizationCollaborator;
+                var testableService = new DeleteAccountTestService(account, fakes.Package);
                 var deleteAccountService = testableService.GetDeleteAccountService();
 
                 // Act
                 var result = await deleteAccountService.DeleteGalleryUserAccountAsync(
-                    fakes.User,
+                    account,
                     fakes.Admin,
                     "signature",
                     unlistOrphanPackages: true,
@@ -65,7 +66,7 @@ namespace NuGetGallery
 
                 var expected = string.Format(CultureInfo.CurrentCulture,
                     Strings.AccountDelete_OrganizationMemberDeleteNotImplemented,
-                    fakes.User.Username);
+                    account.Username);
                 Assert.Equal(expected, result.Description);
             }
 
