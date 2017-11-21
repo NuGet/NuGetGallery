@@ -1402,47 +1402,10 @@ namespace NuGetGallery
                     return Json(400, new[] { message });
                 }
 
-                var existingPackageRegistration = _packageService.FindPackageRegistrationById(packageMetadata.Id);
-                if (existingPackageRegistration != null)
+                var permissionsCheckResult = CheckPermissionsForVerifyPackage(packageMetadata, owner, currentUser);
+                if (permissionsCheckResult != null)
                 {
-                    if (!PermissionsService.IsActionAllowed(owner, currentUser, AccountActions.UploadNewVersionOnBehalfOf))
-                    {
-                        // The user is not allowed to upload a new version on behalf of the owner specified in the form
-                        var message = string.Format(CultureInfo.CurrentCulture,
-                            Strings.UploadPackage_NewVersionOnBehalfOfUserNotAllowed,
-                            currentUser.Username, owner.Username);
-                        return Json(400, new[] { message });
-                    }
-
-                    if (!PermissionsService.IsActionAllowed(existingPackageRegistration, owner, PackageActions.UploadNewVersion))
-                    {
-                        // The owner specified in the form is not allowed to upload a new version of the package
-                        var message = string.Format(CultureInfo.CurrentCulture,
-                            Strings.VerifyPackage_OwnerInvalid,
-                            owner.Username, existingPackageRegistration.Id);
-                        return Json(400, new[] { message });
-                    }
-                }
-                else
-                {
-                    if (!PermissionsService.IsActionAllowed(owner, currentUser, AccountActions.UploadNewIdOnBehalfOf))
-                    {
-                        // The user is not allowed to upload a new ID on behalf of the owner specified in the form
-                        var message = string.Format(CultureInfo.CurrentCulture,
-                            Strings.UploadPackage_NewIdOnBehalfOfUserNotAllowed,
-                            currentUser.Username, owner.Username);
-                        return Json(400, new[] { message });
-                    }
-
-                    if (!_reservedNamespaceService.IsPushAllowed(packageMetadata.Id, owner, out var userOwnerdMatchingNamespaces))
-                    {
-                        // The owner specified in the form is not allowed to push to a reserved namespace matching the new ID
-                        var version = packageMetadata.Version.ToNormalizedString();
-                        _telemetryService.TrackPackagePushNamespaceConflictEvent(packageMetadata.Id, version, currentUser, User.Identity);
-
-                        var message = string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict);
-                        return Json(409, new string[] { message });
-                    }
+                    return permissionsCheckResult;
                 }
 
                 // update relevant database tables
@@ -1544,6 +1507,57 @@ namespace NuGetGallery
             {
                 location = Url.Package(package.PackageRegistration.Id, package.NormalizedVersion)
             });
+        }
+
+        private JsonResult CheckPermissionsForVerifyPackage(PackageMetadata packageMetadata, User owner, User currentUser)
+        {
+            var packageId = packageMetadata.Id;
+            var packageVersion = packageMetadata.Version;
+
+            var existingPackageRegistration = _packageService.FindPackageRegistrationById(packageId);
+            if (existingPackageRegistration != null)
+            {
+                if (!PermissionsService.IsActionAllowed(owner, currentUser, AccountActions.UploadNewVersionOnBehalfOf))
+                {
+                    // The user is not allowed to upload a new version on behalf of the owner specified in the form
+                    var message = string.Format(CultureInfo.CurrentCulture,
+                        Strings.UploadPackage_NewVersionOnBehalfOfUserNotAllowed,
+                        currentUser.Username, owner.Username);
+                    return Json(400, new[] { message });
+                }
+
+                if (!PermissionsService.IsActionAllowed(existingPackageRegistration, owner, PackageActions.UploadNewVersion))
+                {
+                    // The owner specified in the form is not allowed to upload a new version of the package
+                    var message = string.Format(CultureInfo.CurrentCulture,
+                        Strings.VerifyPackage_OwnerInvalid,
+                        owner.Username, existingPackageRegistration.Id);
+                    return Json(400, new[] { message });
+                }
+            }
+            else
+            {
+                if (!PermissionsService.IsActionAllowed(owner, currentUser, AccountActions.UploadNewIdOnBehalfOf))
+                {
+                    // The user is not allowed to upload a new ID on behalf of the owner specified in the form
+                    var message = string.Format(CultureInfo.CurrentCulture,
+                        Strings.UploadPackage_NewIdOnBehalfOfUserNotAllowed,
+                        currentUser.Username, owner.Username);
+                    return Json(400, new[] { message });
+                }
+
+                if (!_reservedNamespaceService.IsPushAllowed(packageId, owner, out var userOwnerdMatchingNamespaces))
+                {
+                    // The owner specified in the form is not allowed to push to a reserved namespace matching the new ID
+                    var version = packageVersion.ToNormalizedString();
+                    _telemetryService.TrackPackagePushNamespaceConflictEvent(packageId, version, currentUser, User.Identity);
+
+                    var message = string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict);
+                    return Json(409, new string[] { message });
+                }
+            }
+
+            return null;
         }
 
         private async Task<PackageArchiveReader> SafeCreatePackage(User currentUser, Stream uploadFile)

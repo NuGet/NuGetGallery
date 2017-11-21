@@ -9,7 +9,6 @@ namespace NuGetGallery
         /// The user can push to this reserved namespace.
         /// </summary>
         public static PermissionLevel PushToReservedNamespace =
-            PermissionLevel.Owner |
-            PermissionLevel.SiteAdmin;
+            PermissionLevel.Owner;
     }
 }
