@@ -15,7 +15,7 @@
                 <span>My @Model.Name Packages</span>
             </a>
         </h2>
-        <div class="panel-collapse collapse in" id="packages-@Model.Name" aria-expanded="true">
+        <div class="panel-collapse collapse in" id="packages-@Model.Name" aria-expanded="true" data-bind="visible: ListVisible">
             <p>
                 You have <b>@Model.Packages.Count().ToNuGetNumberString() @Model.Name.ToLowerInvariant() @packagesString</b>
                 with a total of <b>@numDownloads.ToNuGetNumberString() @downloadsString</b>
