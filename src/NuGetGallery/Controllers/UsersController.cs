@@ -334,7 +334,7 @@ namespace NuGetGallery
                     case PasswordResetResultType.Success:
                         return SendPasswordResetEmail(result.User, forgotPassword: true);
                     default:
-                        throw new NotImplementedException($"The passwword reset result type '{result.Type}' is not supported.");
+                        throw new NotImplementedException($"The password reset result type '{result.Type}' is not supported.");
                 }
             }
 
@@ -575,7 +575,12 @@ namespace NuGetGallery
             if (oldPassword == null)
             {
                 // User is requesting a password set email
-                await _authService.GeneratePasswordResetToken(user, Constants.PasswordResetTokenExpirationHours * 60);
+                var resetResultType = await _authService.GeneratePasswordResetToken(user, Constants.PasswordResetTokenExpirationHours * 60);
+                if (resetResultType == PasswordResetResultType.UserNotConfirmed)
+                {
+                    ModelState.AddModelError("ChangePassword", Strings.UserIsNotYetConfirmed);
+                    return AccountView(model);
+                }
 
                 return SendPasswordResetEmail(user, forgotPassword: false);
             }
