@@ -326,7 +326,7 @@ namespace NuGetGallery.Controllers
 
                         // Assert
                         Assert.False(data.success);
-                        Assert.Equal($"The user '{userToAdd.Username}' is already an owner or pending owner of the package!", data.message);
+                        Assert.Equal(string.Format(Strings.AddOwner_AlreadyOwner, userToAdd.Username), data.message);
                     }
 
                     [Theory]
@@ -353,7 +353,7 @@ namespace NuGetGallery.Controllers
 
                         // Assert
                         Assert.False(data.success);
-                        Assert.Equal($"The user '{userToAdd.Username}' is already an owner or pending owner of the package!", data.message);
+                        Assert.Equal(string.Format(Strings.AddOwner_AlreadyOwner, userToAdd.Username), data.message);
                     }
 
                     public class TheGetAddPackageOwnerConfirmationMethod : TestContainer
@@ -825,7 +825,7 @@ namespace NuGetGallery.Controllers
 
                         // Assert
                         Assert.False(data.success);
-                        Assert.Equal($"The user '{userToRemove.Username}' is not an owner or pending owner of the package!", data.message);
+                        Assert.Equal(string.Format(Strings.RemoveOwner_NotOwner, userToRemove.Username), data.message);
                     }
 
                     [Theory]
