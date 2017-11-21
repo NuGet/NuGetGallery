@@ -10,7 +10,7 @@ namespace NuGetGallery.Infrastructure.Authentication
     {
         private const byte Bitmask = 0x1F;
         private static readonly char[] _encodingChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567=".ToCharArray();
-        private const byte PaddingCharacterIndex = 32;
+        private static readonly byte PaddingCharacterIndex = (byte)Array.IndexOf(_encodingChars, '=');
         private const char PaddingChar = '=';
         private static readonly string _paddingstring = new string(PaddingChar, 1);
 
