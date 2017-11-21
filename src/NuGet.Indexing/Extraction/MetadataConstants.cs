@@ -17,6 +17,7 @@ namespace NuGet.Indexing
             public const string NormalizedVersionPropertyName = "Version";
             public const string FullVersionPropertyName = "FullVersion";
             public const string VerbatimVersionPropertyName = "OriginalVersion";
+            public const string CaseInsensitiveNormalizedVersionPropertyName = "CaseInsensitiveNormalizedVersion";
 
             // Date Properties
             public const string LastEditedDatePropertyName = "LastEditedDate";

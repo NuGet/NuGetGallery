@@ -8,6 +8,7 @@ using Lucene.Net.Analysis;
 using Lucene.Net.Analysis.Tokenattributes;
 using Lucene.Net.Index;
 using Lucene.Net.Search;
+using LuceneConstants = NuGet.Indexing.MetadataConstants.LuceneMetadata;
 
 namespace NuGet.Indexing
 {
@@ -38,7 +39,7 @@ namespace NuGet.Indexing
                 return new MatchAllDocsQuery();
             }
 
-            return ExecuteAnalyzer(new PackageAnalyzer(), "IdAutocomplete", q);
+            return ExecuteAnalyzer(new PackageAnalyzer(), LuceneConstants.IdAutocompletePropertyName, q);
         }
 
         // Lucene Query creation logic
@@ -149,23 +150,23 @@ namespace NuGet.Indexing
                 query = subQuery;
             }
 
-            query.Add(ConstructClauseQuery(analyzer, "Id", values, Occur.SHOULD, 8.0f), Occur.SHOULD);
-            query.Add(ConstructClauseQuery(analyzer, "ShingledId", values), Occur.SHOULD);
-            query.Add(ConstructClauseQuery(analyzer, "TokenizedId", values), Occur.SHOULD);
+            query.Add(ConstructClauseQuery(analyzer, LuceneConstants.IdPropertyName, values, Occur.SHOULD, 8.0f), Occur.SHOULD);
+            query.Add(ConstructClauseQuery(analyzer, LuceneConstants.ShingledIdPropertyName, values), Occur.SHOULD);
+            query.Add(ConstructClauseQuery(analyzer, LuceneConstants.TokenizedIdPropertyName, values), Occur.SHOULD);
             if (values.Count() > 1)
             {
-                query.Add(ConstructClauseQuery(analyzer, "TokenizedId", values, Occur.MUST, 4.0f), Occur.SHOULD);
+                query.Add(ConstructClauseQuery(analyzer, LuceneConstants.TokenizedIdPropertyName, values, Occur.MUST, 4.0f), Occur.SHOULD);
             }
         }
 
         private static void PackageIdClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values)
         {
-            query.Add(ConstructClauseQuery(analyzer, "Id", values), Occur.MUST);
+            query.Add(ConstructClauseQuery(analyzer, LuceneConstants.IdPropertyName, values), Occur.MUST);
         }
 
         private static void VersionClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values, Occur occur)
         {
-            query.Add(ConstructClauseQuery(analyzer, "Version", values), occur);
+            query.Add(ConstructClauseQuery(analyzer, LuceneConstants.NormalizedVersionPropertyName, values), occur);
         }
 
         private static void TitleClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values, Occur occur)
@@ -177,31 +178,31 @@ namespace NuGet.Indexing
                 query = subQuery;
             }
 
-            query.Add(ConstructClauseQuery(analyzer, "Title", values, Occur.SHOULD), Occur.SHOULD);
+            query.Add(ConstructClauseQuery(analyzer, LuceneConstants.TitlePropertyName, values, Occur.SHOULD), Occur.SHOULD);
             if (values.Count() > 1)
             {
-                query.Add(ConstructClauseQuery(analyzer, "Title", values, Occur.MUST, 4.0f), Occur.SHOULD);
+                query.Add(ConstructClauseQuery(analyzer, LuceneConstants.TitlePropertyName, values, Occur.MUST, 4.0f), Occur.SHOULD);
             }
         }
 
         private static void DescriptionClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values, Occur occur)
         {
-            query.Add(ConstructClauseQuery(analyzer, "Description", values), occur);
+            query.Add(ConstructClauseQuery(analyzer, LuceneConstants.DescriptionPropertyName, values), occur);
         }
 
         private static void SummaryClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values, Occur occur)
         {
-            query.Add(ConstructClauseQuery(analyzer, "Summary", values), occur);
+            query.Add(ConstructClauseQuery(analyzer, LuceneConstants.SummaryPropertyName, values), occur);
         }
 
         private static void TagClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values, Occur occur)
         {
-            query.Add(ConstructClauseQuery(analyzer, "Tags", values, Occur.SHOULD, 2.0f), occur);
+            query.Add(ConstructClauseQuery(analyzer, LuceneConstants.TagsPropertyName, values, Occur.SHOULD, 2.0f), occur);
         }
 
         private static void AuthorClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values, Occur occur)
         {
-            query.Add(ConstructClauseQuery(analyzer, "Authors", values), occur);
+            query.Add(ConstructClauseQuery(analyzer, LuceneConstants.AuthorsPropertyName, values), occur);
         }
 
         private static IEnumerable<Filter> OwnerFilters(
