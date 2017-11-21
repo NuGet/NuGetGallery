@@ -6,11 +6,12 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
+using NuGetGallery.Areas.Admin;
+using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Authentication;
 using NuGetGallery.Security;
 using Xunit;
 using Moq;
-
 
 namespace NuGetGallery.Services
 {
@@ -105,6 +106,7 @@ namespace NuGetGallery.Services
                 Assert.Null(testUser.EmailAddress);
                 Assert.Equal<int>(1, testableService.DeletedAccounts.Count());
                 Assert.Equal<string>(signature, testableService.DeletedAccounts.ElementAt(0).Signature);
+                Assert.Equal<int>(1, testableService.SupportRequests.Count);
             }
 
             private static User CreateTestData(ref PackageRegistration registration)
@@ -138,6 +140,7 @@ namespace NuGetGallery.Services
             private ICollection<Package> _userPackages;
 
             public List<AccountDelete> DeletedAccounts = new List<AccountDelete>();
+            public List<Issue> SupportRequests = new List<Issue>();
 
             public DeleteAccountTestService(User user, PackageRegistration userPackagesRegistration)
             {
@@ -147,6 +150,24 @@ namespace NuGetGallery.Services
                 _user.SecurityPolicies.Add(_securityPolicy);
                 _userPackagesRegistration = userPackagesRegistration;
                 _userPackages = userPackagesRegistration.Packages;
+                SupportRequests.Add(new Issue()
+                {
+                    CreatedBy = user.Username,
+                    Key = 1,
+                    IssueTitle = Strings.AccountDelete_SupportRequestTitle,
+                    OwnerEmail = user.EmailAddress,
+                    IssueStatusId = IssueStatusKeys.New,
+                    HistoryEntries = new List<History>() { new History() { EditedBy = user.Username, IssueId = 1, Key = 1, IssueStatusId = IssueStatusKeys.New} }
+                });
+                SupportRequests.Add(new Issue()
+                {
+                    CreatedBy = $"{user.Username}_second",
+                    Key = 2,
+                    IssueTitle = "Second",
+                    OwnerEmail = "random",
+                    IssueStatusId = IssueStatusKeys.New,
+                    HistoryEntries = new List<History>() { new History() { EditedBy = $"{user.Username}_second", IssueId = 2, Key = 2, IssueStatusId = IssueStatusKeys.New } }
+                });
             }
 
             public DeleteAccountService GetDeleteAccountService()
@@ -158,7 +179,8 @@ namespace NuGetGallery.Services
                     SetupPackageOwnershipManagementService().Object,
                     SetupReservedNamespaceService().Object,
                     SetupSecurityPolicyService().Object,
-                    new TestableAuthService());
+                    new TestableAuthService(),
+                    SetupSupportRequestService().Object);
             }
 
             private class TestableAuthService : AuthenticationService
@@ -231,6 +253,18 @@ namespace NuGetGallery.Services
                               .Callback<Package, bool>((package, commit) => { package.Listed = false; });
                 return packageService;
             }
+             
+            private Mock<ISupportRequestService> SetupSupportRequestService()
+            {
+                var supportService = new Mock<ISupportRequestService>();
+                supportService.Setup(m => m.GetIssues(null, null, null, null)).Returns(SupportRequests);
+                var issue = SupportRequests.Where(i => string.Equals(i.CreatedBy, _user.Username)).FirstOrDefault();
+                supportService.Setup(m => m.DeleteSupportRequestsAsync(_user.Username))
+                              .Returns(Task.FromResult<bool>(true))
+                              .Callback( () => SupportRequests.Remove(issue));
+
+                return supportService;
+            }
 
             private Mock<IPackageOwnershipManagementService> SetupPackageOwnershipManagementService()
             {
@@ -245,7 +279,6 @@ namespace NuGetGallery.Services
                                                             );
                 return packageOwnershipManagementService;
             }
-
         }
     }
 }

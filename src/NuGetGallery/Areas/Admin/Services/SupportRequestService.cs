@@ -318,6 +318,32 @@ namespace NuGetGallery.Areas.Admin
             return issue?.Name;
         }
 
+        public async Task<bool> DeleteSupportRequestsAsync(string createdBy)
+        {
+            if(createdBy == null)
+            {
+                throw new ArgumentNullException(nameof(createdBy));
+            }
+            var userCreatedIssues = GetIssues().Where(i => string.Equals(i.CreatedBy, createdBy)).ToList();
+            // Delete all the support requests with exception of the delete account request.
+            // For the delete account support request the user data.
+            foreach(var issue in userCreatedIssues.Where(i => !string.Equals(i.IssueTitle, Strings.AccountDelete_SupportRequestTitle)))
+            {
+                _supportRequestDbContext.Issues.Remove(issue);
+            }
+            foreach(var deletedIssue in userCreatedIssues.Where(i => string.Equals(i.IssueTitle, Strings.AccountDelete_SupportRequestTitle)))
+            {
+                deletedIssue.OwnerEmail = "null";
+                deletedIssue.CreatedBy = null;
+                foreach(var historyEntry in deletedIssue.HistoryEntries)
+                {
+                    historyEntry.EditedBy = null;
+                }
+            }
+            await _supportRequestDbContext.CommitChangesAsync();
+            return true;
+        }
+
         private IQueryable<Issue> GetFilteredIssuesQueryable(int? assignedTo = null, string reason = null, int? issueStatusId = null, string galleryUsername = null)
         {
             IQueryable<Issue> queryable = _supportRequestDbContext.Issues

@@ -4,7 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Transactions;
 using NuGetGallery.Authentication;
+using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Security;
 
@@ -20,6 +22,7 @@ namespace NuGetGallery
         private readonly ISecurityPolicyService _securityPolicyService;
         private readonly AuthenticationService _authService;
         private readonly IEntityRepository<User> _userRepository;
+        private readonly ISupportRequestService _supportRequestService;
 
         public DeleteAccountService(IEntityRepository<AccountDelete> accountDeleteRepository,
                                     IEntityRepository<User> userRepository,
@@ -28,7 +31,8 @@ namespace NuGetGallery
                                     IPackageOwnershipManagementService packageOwnershipManagementService,
                                     IReservedNamespaceService reservedNamespaceService,
                                     ISecurityPolicyService securityPolicyService,
-                                    AuthenticationService authService
+                                    AuthenticationService authService,
+                                    ISupportRequestService supportRequestService
             )
         {
             _accountDeleteRepository = accountDeleteRepository ?? throw new ArgumentNullException(nameof(accountDeleteRepository));
@@ -39,6 +43,7 @@ namespace NuGetGallery
             _reservedNamespaceService = reservedNamespaceService ?? throw new ArgumentNullException(nameof(reservedNamespaceService));
             _securityPolicyService = securityPolicyService ?? throw new ArgumentNullException(nameof(securityPolicyService));
             _authService = authService ?? throw new ArgumentNullException(nameof(authService));
+            _supportRequestService = supportRequestService ?? throw new ArgumentNullException(nameof(supportRequestService));
         }
 
         /// <summary>
@@ -90,6 +95,7 @@ namespace NuGetGallery
                 {
                     await DeleteGalleryUserAccountImplAsync(userToBeDeleted, admin, signature, unlistOrphanPackages);
                 }
+                await RemoveSupportRequests(userToBeDeleted);
                 return new DeleteUserAccountStatus()
                 {
                     Success = true,
@@ -109,16 +115,16 @@ namespace NuGetGallery
             }
         }
 
-        private async Task DeleteGalleryUserAccountImplAsync(User useToBeDeleted, User admin, string signature, bool unlistOrphanPackages)
+        private async Task DeleteGalleryUserAccountImplAsync(User userToBeDeleted, User admin, string signature, bool unlistOrphanPackages)
         {
-            var ownedPackages = _packageService.FindPackagesByOwner(useToBeDeleted, includeUnlisted: true).ToList();
+            var ownedPackages = _packageService.FindPackagesByOwner(userToBeDeleted, includeUnlisted: true).ToList();
 
-            await RemoveOwnership(useToBeDeleted, admin, unlistOrphanPackages, ownedPackages);
-            await RemoveReservedNamespaces(useToBeDeleted);
-            await RemoveSecurityPolicies(useToBeDeleted);
-            await RemoveUserCredentials(useToBeDeleted);
-            await RemoveUserDataInUserTable(useToBeDeleted);
-            await InsertDeleteAccount(useToBeDeleted, admin, signature);
+            await RemoveOwnership(userToBeDeleted, admin, unlistOrphanPackages, ownedPackages);
+            await RemoveReservedNamespaces(userToBeDeleted);
+            await RemoveSecurityPolicies(userToBeDeleted);
+            await RemoveUserCredentials(userToBeDeleted);
+            await RemoveUserDataInUserTable(userToBeDeleted);
+            await InsertDeleteAccount(userToBeDeleted, admin, signature);
         }
 
         private async Task InsertDeleteAccount(User user, User admin, string signature)
@@ -177,6 +183,11 @@ namespace NuGetGallery
         {
             user.SetAccountAsDeleted();
             await _userRepository.CommitChangesAsync();
+        }
+
+        private async Task RemoveSupportRequests(User user)
+        {
+            await _supportRequestService.DeleteSupportRequestsAsync(user.Username);
         }
     }
 }
