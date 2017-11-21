@@ -294,9 +294,16 @@ namespace NuGetGallery
                 new PackageAuditRecord(package, AuditedPackageAction.Verify));
 
             User owner;
-            var apiScopeEvaluationResult = CredentialTypes.IsPackageVerificationApiKey(credential.Type) ?
-                EvaluateApiScopeOnExisting(package.PackageRegistration, out owner, NuGetScopes.PackageVerify) :
-                EvaluateApiScopeOnExisting(package.PackageRegistration, out owner, NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion);
+            ApiScopeEvaluationResult apiScopeEvaluationResult;
+            if (CredentialTypes.IsPackageVerificationApiKey(credential.Type))
+            {
+                apiScopeEvaluationResult = EvaluateApiScopeOnExisting(package.PackageRegistration, out owner, NuGetScopes.PackageVerify);
+            }
+            else
+            {
+                apiScopeEvaluationResult = EvaluateApiScopeOnExisting(package.PackageRegistration, out owner, NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion);
+            }
+
             if (apiScopeEvaluationResult != ApiScopeEvaluationResult.Success)
             {
                 return GetHttpResultFromFailedApiScopeEvaluation(apiScopeEvaluationResult, id, version);
@@ -803,7 +810,7 @@ namespace NuGetGallery
             {
                 // Legacy V1 API key without scopes.
                 // Evaluate it as if it has an unlimited scope.
-                scopes = new[] { new Scope(null, NuGetPackagePattern.AllInclusivePattern, NuGetScopes.All) };
+                scopes = new[] { new Scope(ownerKey: null, subject: NuGetPackagePattern.AllInclusivePattern, allowedAction: NuGetScopes.All) };
             }
 
             var failedApiScopeEvaluationResults = new List<ApiScopeEvaluationResult>();
