@@ -1941,10 +1941,10 @@ namespace NuGetGallery
                     .Setup(stub => stub.FindByUsername(userName))
                     .Returns(testUser);
                 GetMock<IPackageService>()
-                    .Setup(stub => stub.FindPackagesByOwner(testUser, It.IsAny<bool>()))
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>()))
                     .Returns(userPackages);
                 GetMock<IPackageService>()
-                    .Setup(stub => stub.FindPackagesByOwner(testUser, It.IsAny<bool>()))
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>()))
                     .Returns(userPackages);
 
                 // act
@@ -2003,7 +2003,7 @@ namespace NuGetGallery
                     .Setup(stub => stub.FindByUsername(userName))
                     .Returns(testUser);
                 GetMock<IPackageService>()
-                    .Setup(stub => stub.FindPackagesByOwner(testUser, It.IsAny<bool>()))
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>()))
                     .Returns(userPackages);
                 GetMock<ISupportRequestService>()
                    .Setup(stub => stub.GetIssues(null, null, null, null))
@@ -2046,7 +2046,7 @@ namespace NuGetGallery
                     .Setup(stub => stub.FindByUsername(userName))
                     .Returns(testUser);
                 GetMock<IPackageService>()
-                    .Setup(stub => stub.FindPackagesByOwner(testUser, It.IsAny<bool>()))
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>()))
                     .Returns(userPackages);
                 GetMock<ISupportRequestService>()
                    .Setup(stub => stub.GetIssues(null, null, null, userName))
