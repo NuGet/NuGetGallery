@@ -3597,13 +3597,10 @@ namespace NuGetGallery
 
                 var packageRegistration = new PackageRegistration { Id = packageId, Owners = owners };
 
-                var fakePackageService = new Mock<IPackageService>();
-                fakePackageService.Setup(x => x.FindPackageRegistrationById(packageId)).Returns(packageRegistration);
-
-                var controller = CreateController(GetConfigurationService(), packageService: fakePackageService);
+                var controller = CreateController(GetConfigurationService());
                 controller.SetCurrentUser(currentUser);
 
-                var possibleOwners = controller.GetPossibleOwnersForUpload(packageId);
+                var possibleOwners = controller.GetPossibleOwnersForUpload(packageId, packageRegistration);
                 Assert.True(possibleOwners.SequenceEqual(expectedPossibleOwners));
             }
 
@@ -3695,7 +3692,7 @@ namespace NuGetGallery
                 var controller = CreateController(GetConfigurationService(), reservedNamespaceService: fakeReservedNamespaceService);
                 controller.SetCurrentUser(currentUser);
 
-                var possibleOwners = controller.GetPossibleOwnersForUpload(packageId);
+                var possibleOwners = controller.GetPossibleOwnersForUpload(packageId, null);
                 Assert.True(possibleOwners.SequenceEqual(expectedPossibleOwners.Distinct()));
             }
 

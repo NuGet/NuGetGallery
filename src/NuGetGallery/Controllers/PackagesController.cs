@@ -159,8 +159,9 @@ namespace NuGetGallery
                     }
 
                     model.IsUploadInProgress = true;
-                    
-                    var verifyRequest = new VerifyPackageRequest(packageMetadata, GetPossibleOwnersForUpload(packageMetadata.Id));
+
+                    var existingPackageRegistration = _packageService.FindPackageRegistrationById(packageMetadata.Id);
+                    var verifyRequest = new VerifyPackageRequest(packageMetadata, GetPossibleOwnersForUpload(packageMetadata.Id, existingPackageRegistration));
 
                     model.InProgressUpload = verifyRequest;
                 }
@@ -196,6 +197,8 @@ namespace NuGetGallery
                 ModelState.AddModelError(String.Empty, Strings.UploadFileMustBeNuGetPackage);
                 return Json(400, new[] { Strings.UploadFileMustBeNuGetPackage });
             }
+
+            PackageRegistration existingPackageRegistration;
 
             using (var uploadStream = uploadFile.InputStream)
             {
@@ -273,7 +276,7 @@ namespace NuGetGallery
                 }
 
                 var id = nuspec.GetId();
-                var existingPackageRegistration = _packageService.FindPackageRegistrationById(id);
+                existingPackageRegistration = _packageService.FindPackageRegistrationById(id);
 
                 // For a new package id verify if the user is allowed to use it.
                 if (existingPackageRegistration == null && !_reservedNamespaceService.IsPushAllowedOnBehalfOfOwners(id, currentUser, out var matchingNamespaces))
@@ -360,7 +363,7 @@ namespace NuGetGallery
                 }
             }
 
-            var model = new VerifyPackageRequest(packageMetadata, GetPossibleOwnersForUpload(packageMetadata.Id));
+            var model = new VerifyPackageRequest(packageMetadata, GetPossibleOwnersForUpload(packageMetadata.Id, existingPackageRegistration));
 
             return Json(model);
         }
@@ -1665,11 +1668,11 @@ namespace NuGetGallery
         /// Determines the possible owners for a package that is being uploaded by the current user.
         /// Assumes the current user has permissions to upload the package.
         /// </summary>
+        /// <param name="packageId">The package ID being uploaded to.</param>
         /// <param name="existingPackageRegistration">The package registration being uploaded to.</param>
-        internal IEnumerable<User> GetPossibleOwnersForUpload(string packageId)
+        internal IEnumerable<User> GetPossibleOwnersForUpload(string packageId, PackageRegistration existingPackageRegistration)
         {
             IEnumerable<User> possibleOwners;
-            var existingPackageRegistration = _packageService.FindPackageRegistrationById(packageId);
             var currentUser = GetCurrentUser();
 
             if (existingPackageRegistration != null)
