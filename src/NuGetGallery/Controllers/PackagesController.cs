@@ -1675,7 +1675,8 @@ namespace NuGetGallery
             if (existingPackageRegistration != null)
             {
                 possibleOwners = existingPackageRegistration.Owners
-                    .Where(u => PermissionsService.IsActionAllowed(u, currentUser, AccountActions.UploadNewVersionOnBehalfOf));
+                    .Where(u => PermissionsService.IsActionAllowed(u, currentUser, AccountActions.UploadNewVersionOnBehalfOf))
+                    .Where(u => PermissionsService.IsActionAllowed(existingPackageRegistration, u, PackageActions.UploadNewVersion));
                 if (!possibleOwners.Any())
                 {
                     // If the user has the right to upload to the package but they are not able to upload as any of the existing owners, allow the user to upload as themselves.

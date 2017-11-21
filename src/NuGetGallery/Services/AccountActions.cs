@@ -36,7 +36,6 @@ namespace NuGetGallery
         /// </summary>
         public static PermissionLevel PushToReservedNamespaceOnBehalfOf =
             PermissionLevel.Owner |
-            PermissionLevel.OrganizationAdmin |
-            PermissionLevel.SiteAdmin;
+            PermissionLevel.OrganizationAdmin;
     }
 }

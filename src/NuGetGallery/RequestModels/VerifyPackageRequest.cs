@@ -32,7 +32,7 @@ namespace NuGetGallery
             DevelopmentDependency = packageMetadata.GetValueFromMetadata("developmentDependency");
             Edit = new EditPackageVersionRequest(packageMetadata);
 
-            PossibleOwners = possibleOwners.Select(u => u.Username);
+            PossibleOwners = possibleOwners.Select(u => u.Username).ToList();
             Owner = PossibleOwners.First();
         }
 
