@@ -33,7 +33,7 @@ namespace NuGetGallery.Framework
                     TestCredentialHelper.CreateV1ApiKey(Guid.Parse("669e180e-335c-491a-ac26-e83c4bd31d65"),
                         ExpirationForApiKeyV1),
                     TestCredentialHelper.CreateV2ApiKey(Guid.Parse("779e180e-335c-491a-ac26-e83c4bd31d87"),
-                        ExpirationForApiKeyV1),
+                        ExpirationForApiKeyV1).WithDefaultScopes(),
                     TestCredentialHelper.CreateV2VerificationApiKey(Guid.Parse("b0c51551-823f-4701-8496-43980b4b3913")),
                     TestCredentialHelper.CreateExternalCredential("abc")
                 }

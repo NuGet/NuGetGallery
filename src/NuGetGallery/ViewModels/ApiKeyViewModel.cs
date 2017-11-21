@@ -54,7 +54,7 @@ namespace NuGetGallery
             Description = cred.Description;
             Expires = cred.Expires?.ToString("O");
             HasExpired = cred.HasExpired;
-            IsNonScopedV1ApiKey = cred.IsNonScopedV1ApiKey;
+            IsNonScopedV1ApiKey = cred.IsNonScopedApiKey;
             Owner = owner;
             Scopes = scopes;
             Packages = packages;
