@@ -1591,7 +1591,8 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<JsonResult> CancelUpload()
         {
-            await _uploadFileService.DeleteUploadFileAsync(GetCurrentUser().Key);
+            var currentUser = GetCurrentUser();
+            await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
 
             return Json(null);
         }
