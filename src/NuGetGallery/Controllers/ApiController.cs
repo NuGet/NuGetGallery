@@ -407,21 +407,21 @@ namespace NuGetGallery
                         var packageRegistration = PackageService.FindPackageRegistrationById(id);
                         if (packageRegistration == null)
                         {
-                            // Check if API key allows pushing a new package ID
+                            // Check if the current user's scopes allow pushing a new package ID
                             var apiScopeEvaluationResult = EvaluateApiScopeOnNew(id, out owner);
                             if (apiScopeEvaluationResult != ApiScopeEvaluationResult.Success)
                             {
-                                // User cannot push a new package ID as the API key scope does not allow it
+                                // User cannot push a new package ID as the current user's scopes does not allow it
                                 return GetHttpResultFromFailedApiScopeEvaluation(apiScopeEvaluationResult, id, version);
                             }
                         }
                         else
                         {
-                            // Check if API key allows pushing the current package ID
+                            // Check if the current user's scopes allow pushing a new version of an existing package ID
                             var apiScopeEvaluationResult = EvaluateApiScopeOnExisting(packageRegistration, out owner, NuGetScopes.PackagePushVersion, NuGetScopes.PackagePush);
                             if (apiScopeEvaluationResult != ApiScopeEvaluationResult.Success)
                             {
-                                // User cannot push a package as the API key scope does not allow it
+                                // User cannot push a package as the current user's scopes does not allow it
                                 await AuditingService.SaveAuditRecordAsync(
                                     new FailedAuthenticatedOperationAuditRecord(
                                         currentUser.Username,
@@ -548,7 +548,7 @@ namespace NuGetGallery
                     HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
             }
 
-            // Check if API key allows listing/unlisting the current package ID
+            // Check if the current user's scopes allow listing/unlisting the current package ID
             var apiScopeEvaluationResult = EvaluateApiScopeOnExisting(package, out var owner, NuGetScopes.PackageUnlist);
             if (apiScopeEvaluationResult != ApiScopeEvaluationResult.Success)
             {
@@ -573,7 +573,7 @@ namespace NuGetGallery
                     HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
             }
 
-            // Check if API key allows listing/unlisting the current package ID
+            // Check if the current user's scopes allow listing/unlisting the current package ID
             var apiScopeEvaluationResult = EvaluateApiScopeOnExisting(package.PackageRegistration, out var owner, NuGetScopes.PackageUnlist);
             if (apiScopeEvaluationResult != ApiScopeEvaluationResult.Success)
             {
@@ -699,10 +699,33 @@ namespace NuGetGallery
             return new HttpStatusCodeResult(HttpStatusCode.NotFound);
         }
 
+        /// <summary>
+        /// The result of evaluating the current user's scopes.
+        /// </summary>
+        /// <remarks>
+        /// When an current user's scopes are evaluated and none evaluate with <see cref="Success"/>, 
+        /// the failed result to return is determined by <see cref="ChooseFailureResult(ApiScopeEvaluationResult, ApiScopeEvaluationResult)"/>.
+        /// </remarks>
         private enum ApiScopeEvaluationResult
         {
+            /// <summary>
+            /// An error occurred and scopes were unable to be evaluated.
+            /// </summary>
+            Unknown,
+
+            /// <summary>
+            /// The scopes evaluated successfully.
+            /// </summary>
             Success,
+
+            /// <summary>
+            /// The scopes do not match the action being performed.
+            /// </summary>
             Forbidden,
+
+            /// <summary>
+            /// The scopes match the action being performed, but there is a reserved namespace conflict that prevents this action from being successful.
+            /// </summary>
             ConflictReservedNamespace
         }
 
@@ -730,21 +753,48 @@ namespace NuGetGallery
             }
         }
 
+        /// <summary>
+        /// Evaluates the current user's scopes against <paramref name="requestedActions"/> and an existing package ID specified by <paramref name="package"/>.
+        /// </summary>
+        /// <param name="owner">
+        /// The <see cref="User"/> specified by the <see cref="Scope.OwnerKey"/> of the <see cref="Scope"/> that evaluated with <see cref="ApiScopeEvaluationResult.Success"/>.
+        /// If no <see cref="Scope"/>s evaluate to <see cref="ApiScopeEvaluationResult.Success"/>, this will be null.
+        /// </param>
+        /// <returns>A <see cref="ApiScopeEvaluationResult"/> that describes the evaluation of the .</returns>
         private ApiScopeEvaluationResult EvaluateApiScopeOnExisting(Package package, out User owner, params string[] requestedActions)
         {
             return EvaluateApiScopeOnExisting(package.PackageRegistration, out owner, requestedActions);
         }
 
+        /// <summary>
+        /// Evaluates the current user's scopes against <paramref name="requestedActions"/> and an existing package ID specified by <paramref name="packageRegistration"/>.
+        /// </summary>
+        /// <param name="owner">
+        /// The <see cref="User"/> specified by the <see cref="Scope.OwnerKey"/> of the <see cref="Scope"/> that evaluated with <see cref="ApiScopeEvaluationResult.Success"/>.
+        /// If no <see cref="Scope"/>s evaluate to <see cref="ApiScopeEvaluationResult.Success"/>, this will be null.
+        /// </param>
+        /// <returns>A <see cref="ApiScopeEvaluationResult"/> that describes the evaluation of the .</returns>
         private ApiScopeEvaluationResult EvaluateApiScopeOnExisting(PackageRegistration packageRegistration, out User owner, params string[] requestedActions)
         {
             return EvaluateApiScope(new ScopeSubject(packageRegistration), out owner, requestedActions);
         }
 
+        /// <summary>
+        /// Evaluates the current user's scopes against a new package ID specified by <paramref name="id"/>.
+        /// </summary>
+        /// <param name="owner">
+        /// The <see cref="User"/> specified by the <see cref="Scope.OwnerKey"/> of the <see cref="Scope"/> that evaluated with <see cref="ApiScopeEvaluationResult.Success"/>.
+        /// If no <see cref="Scope"/>s evaluate to <see cref="ApiScopeEvaluationResult.Success"/>, this will be null.
+        /// </param>
+        /// <returns>A <see cref="ApiScopeEvaluationResult"/> that describes the evaluation of the .</returns>
         private ApiScopeEvaluationResult EvaluateApiScopeOnNew(string id, out User owner)
         {
             return EvaluateApiScope(new ScopeSubject(id, ReservedNamespaceService), out owner, NuGetScopes.PackagePush);
         }
 
+        /// <summary>
+        /// Helps evaluate whether or not the current user has the correct scopes to perform an action on a subject.
+        /// </summary>
         private class ScopeSubject
         {
             private string _id;
@@ -752,6 +802,9 @@ namespace NuGetGallery
 
             private readonly PackageRegistration _packageRegistration;
 
+            /// <summary>
+            /// Determines whether or not <paramref name="scope"/> allows actions on this subject.
+            /// </summary>
             public ApiScopeEvaluationResult IsSubjectAllowedByScope(Scope scope)
             {
                 if (!scope.AllowsSubject(_id ?? _packageRegistration.Id))
@@ -762,6 +815,9 @@ namespace NuGetGallery
                 return ApiScopeEvaluationResult.Success;
             }
 
+            /// <summary>
+            /// Determines whether or not <paramref name="owner"/> is allowed to perform <paramref name="requestedActions"/> on this subject.
+            /// </summary>
             public ApiScopeEvaluationResult IsActionAllowedOnSubjectByOwner(User owner, params string[] requestedActions)
             {
                 if (!NuGetScopes.IsActionAllowedOnSubjectByOwner(_packageRegistration, owner, requestedActions))
@@ -777,6 +833,11 @@ namespace NuGetGallery
                 return ApiScopeEvaluationResult.Success;
             }
 
+            /// <summary>
+            /// Constructs a <see cref="ScopeSubject"/> to help evaluate scopes against a new ID.
+            /// </summary>
+            /// <param name="id">The ID of the package being uploaded.</param>
+            /// <param name="reservedNamespaceService">A service to get information about <see cref="ReservedNamespace"/>s from.</param>
             public ScopeSubject(string id, IReservedNamespaceService reservedNamespaceService)
             {
                 if (string.IsNullOrEmpty(id))
@@ -788,6 +849,10 @@ namespace NuGetGallery
                 _reservedNamespaceService = reservedNamespaceService ?? throw new ArgumentNullException(nameof(reservedNamespaceService));
             }
 
+            /// <summary>
+            /// Constructs a <see cref="ScopeSubject"/> to help evaluate scopes against a new version of an existing ID.
+            /// </summary>
+            /// <param name="packageRegistration">The <see cref="PackageRegistration"/> of the new version being pushed.</param>
             public ScopeSubject(PackageRegistration packageRegistration)
             {
                 if (string.IsNullOrEmpty(packageRegistration.Id))
@@ -799,6 +864,14 @@ namespace NuGetGallery
             }
         }
 
+        /// <summary>
+        /// Evaluates the current user's scopes against <paramref name="scopeSubject"/> and <paramref name="requestedActions"/>.
+        /// </summary>
+        /// <param name="owner">
+        /// The <see cref="User"/> specified by the <see cref="Scope.OwnerKey"/> of the <see cref="Scope"/> that evaluated with <see cref="ApiScopeEvaluationResult.Success"/>.
+        /// If no <see cref="Scope"/>s evaluate to <see cref="ApiScopeEvaluationResult.Success"/>, this will be null.
+        /// </param>
+        /// <returns>A <see cref="ApiScopeEvaluationResult"/> that describes the evaluation of the .</returns>
         private ApiScopeEvaluationResult EvaluateApiScope(ScopeSubject scopeSubject, out User owner, params string[] requestedActions)
         {
             owner = null;
@@ -813,7 +886,7 @@ namespace NuGetGallery
                 scopes = new[] { new Scope(ownerKey: null, subject: NuGetPackagePattern.AllInclusivePattern, allowedAction: NuGetScopes.All) };
             }
 
-            var failedApiScopeEvaluationResults = new List<ApiScopeEvaluationResult>();
+            var failureResult = ApiScopeEvaluationResult.Unknown;
 
             foreach (var scope in scopes)
             {
@@ -821,14 +894,14 @@ namespace NuGetGallery
                 if (isSubjectAllowedByScope != ApiScopeEvaluationResult.Success)
                 {
                     // Subject (package ID) does not match.
-                    failedApiScopeEvaluationResults.Add(isSubjectAllowedByScope);
+                    failureResult = ChooseFailureResult(failureResult, isSubjectAllowedByScope);
                     continue;
                 }
 
                 if (!scope.AllowsActions(requestedActions))
                 {
                     // Action scopes does not match.
-                    failedApiScopeEvaluationResults.Add(ApiScopeEvaluationResult.Forbidden);
+                    failureResult = ChooseFailureResult(failureResult, ApiScopeEvaluationResult.Forbidden);
                     continue;
                 }
 
@@ -839,7 +912,7 @@ namespace NuGetGallery
                 if (!NuGetScopes.IsActionAllowedOnOwnerByCurrentUser(ownerInScope, currentUser, requestedActions))
                 {
                     // User does not have permission to do the action on behalf of the owner in the scope.
-                    failedApiScopeEvaluationResults.Add(ApiScopeEvaluationResult.Forbidden);
+                    failureResult = ChooseFailureResult(failureResult, ApiScopeEvaluationResult.Forbidden);
                     continue;
                 }
 
@@ -847,7 +920,7 @@ namespace NuGetGallery
                 if (isActionAllowedOnSubject != ApiScopeEvaluationResult.Success)
                 {
                     // The owner in the scope does not have permission to do the action on the scope's subject.
-                    failedApiScopeEvaluationResults.Add(isActionAllowedOnSubject);
+                    failureResult = ChooseFailureResult(failureResult, isActionAllowedOnSubject);
                     continue;
                 }
 
@@ -855,7 +928,17 @@ namespace NuGetGallery
                 return ApiScopeEvaluationResult.Success;
             }
 
-            return failedApiScopeEvaluationResults.Max();
+            return failureResult;
+        }
+
+        /// <summary>
+        /// Determines the <see cref="ApiScopeEvaluationResult"/> to return from <see cref="EvaluateApiScope(ScopeSubject, out User, string[])"/> when no <see cref="Scope"/>s return <see cref="ApiScopeEvaluationResult.Success"/>.
+        /// </summary>
+        /// <param name="last">The result of the <see cref="Scope"/>s that have been evaluated so far.</param>
+        /// <param name="next">The result of the <see cref="Scope"/> that was just evaluated.</param>
+        private ApiScopeEvaluationResult ChooseFailureResult(ApiScopeEvaluationResult last, ApiScopeEvaluationResult next)
+        {
+            return new[] { last, next }.Max();
         }
     }
 }
