@@ -257,15 +257,14 @@ namespace NuGetGallery.Framework
                 }
             };
 
-            admin.Organizations = new[]
+            var adminMembership = new Membership
             {
-                new Membership
-                {
-                    Organization = organization,
-                    Member = admin,
-                    IsAdmin = true
-                }
+                Organization = organization,
+                Member = admin,
+                IsAdmin = true
             };
+            admin.Organizations.Add(adminMembership);
+            Organization.Members.Add(adminMembership);
 
             collaborator = new User("testOrganizationCollaborator" + suffix)
             {
@@ -277,15 +276,14 @@ namespace NuGetGallery.Framework
                 }
             };
 
-            collaborator.Organizations = new[]
+            var collaboratorMembership = new Membership
             {
-                new Membership
-                {
-                    Organization = organization,
-                    Member = collaborator,
-                    IsAdmin = false
-                }
+                Organization = organization,
+                Member = collaborator,
+                IsAdmin = false
             };
+            collaborator.Organizations.Add(collaboratorMembership);
+            Organization.Members.Add(collaboratorMembership);
 
             organization.Members = admin.Organizations.Concat(collaborator.Organizations).ToList();
         }
