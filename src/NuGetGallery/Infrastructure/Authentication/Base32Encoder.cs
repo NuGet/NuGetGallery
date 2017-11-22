@@ -10,7 +10,7 @@ namespace NuGetGallery.Infrastructure.Authentication
     {
         private const byte Bitmask = 0x1F;
         private static readonly char[] _encodingChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567=".ToCharArray();
-        private const byte PaddingByte = 0x20;
+        private static readonly byte PaddingCharacterIndex = (byte)Array.IndexOf(_encodingChars, '=');
         private const char PaddingChar = '=';
         private static readonly string _paddingstring = new string(PaddingChar, 1);
 
@@ -68,9 +68,9 @@ namespace NuGetGallery.Infrastructure.Authentication
             }
 
             // Validate base32 format
-            if ((base32String.Length % 8 != 0) || (base32String.Where(t => !_encodingChars.Contains(t)).Count() != 0))
+            if (base32String.Length % 8 != 0)
             {
-                throw new InvalidOperationException($"{nameof(base32String)} is not a valid base32 encoding");
+                throw new ArgumentException($"{nameof(base32String)} is not a valid base32 encoding");
             }
 
             // Initialized with all zeros
@@ -78,15 +78,22 @@ namespace NuGetGallery.Infrastructure.Authentication
 
             int bitLocation = 0;
 
-            foreach (Char c in base32String.ToUpperInvariant())
+            foreach (Char c in base32String)
             {
                 int byteOffset = bitLocation / 8;
                 int bitOffset = bitLocation % 8;
 
-                byte val = (byte)Array.IndexOf(_encodingChars, c);
+                int index = Array.IndexOf(_encodingChars, c);
+
+                if (index == -1)
+                {
+                    throw new ArgumentException($"{nameof(base32String)} is not a valid base32 encoding");
+                }
+
+                byte val = (byte)index;
 
                 // If we hit an equals sign, we need to stop processing
-                if (val == PaddingByte) { break; }
+                if (val == PaddingCharacterIndex) { break; }
 
                 // Locate bits in val correcty respective to the byte
                 int shift = 3 - bitOffset;
@@ -147,7 +154,7 @@ namespace NuGetGallery.Infrastructure.Authentication
 
             // 0x20 is returned if the requested index is past the end of data
             // equates to padding char "="
-            byte retval = PaddingByte;
+            byte retval = PaddingCharacterIndex;
 
             // Get location of token in bits
             int byteOffset = (index * 5) / 8;
