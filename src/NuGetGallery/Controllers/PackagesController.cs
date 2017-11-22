@@ -1495,13 +1495,20 @@ namespace NuGetGallery
 
             var currentUser = GetCurrentUser();
 
+            // Check that the owner specified in the form is valid
+            var owner = _userService.FindByUsername(formData.Owner);
+
+            if (owner == null)
+            {
+                var message = string.Format(CultureInfo.CurrentCulture, Strings.VerifyPackage_UserNonExistent, formData.Owner);
+                return Json(400, new[] { message });
+            }
+
             Package package;
             using (Stream uploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
                 if (uploadFile == null)
                 {
-                    TempData["Message"] = Strings.VerifyPackage_UploadNotFound;
-
                     return Json(400, new[] { Strings.VerifyPackage_UploadNotFound });
                 }
 
@@ -1525,8 +1532,6 @@ namespace NuGetGallery
                         && String.Equals(packageMetadata.Version.ToFullStringSafe(), formData.Version, StringComparison.OrdinalIgnoreCase)
                         && String.Equals(packageMetadata.Version.OriginalVersion, formData.OriginalVersion, StringComparison.OrdinalIgnoreCase)))
                     {
-                        TempData["Message"] = Strings.VerifyPackage_PackageFileModified;
-
                         return Json(400, new[] { Strings.VerifyPackage_PackageFileModified });
                     }
                 }
@@ -1537,15 +1542,6 @@ namespace NuGetGallery
                     Hash = CryptographyService.GenerateHash(uploadFile.AsSeekableStream()),
                     Size = uploadFile.Length,
                 };
-
-                // Check that the owner specified in the form is valid
-                var owner = _userService.FindByUsername(formData.Owner);
-
-                if (owner == null)
-                {
-                    var message = string.Format(CultureInfo.CurrentCulture, Strings.VerifyPackage_UserNonExistent, formData.Owner);
-                    return Json(400, new[] { message });
-                }
 
                 var permissionsCheckResult = CheckPermissionsForVerifyPackage(packageMetadata, owner, currentUser);
                 if (permissionsCheckResult != null)
@@ -1849,9 +1845,11 @@ namespace NuGetGallery
                 possibleOwners = existingPackageRegistration.Owners
                     .Where(u => PermissionsService.IsActionAllowed(u, currentUser, AccountActions.UploadNewVersionOnBehalfOf))
                     .Where(u => PermissionsService.IsActionAllowed(existingPackageRegistration, u, PackageActions.UploadNewVersion));
+
                 if (!possibleOwners.Any())
                 {
-                    // If the user has the right to upload to the package but they are not able to upload as any of the existing owners, allow the user to upload as themselves.
+                    // If the current user cannot upload the package on behalf of any of the existing owners, show the current user as the only possible owner in the upload form.
+                    // If the current user doesn't have the rights to upload the package, the package upload will be rejected by submitting the form.
                     possibleOwners = new User[] { currentUser };
                 }
             }

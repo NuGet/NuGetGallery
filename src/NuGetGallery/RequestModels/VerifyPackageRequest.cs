@@ -33,7 +33,6 @@ namespace NuGetGallery
             Edit = new EditPackageVersionRequest(packageMetadata);
 
             PossibleOwners = possibleOwners.Select(u => u.Username).ToList();
-            Owner = PossibleOwners.First();
         }
 
         public string Id { get; set; }
@@ -48,8 +47,15 @@ namespace NuGetGallery
         /// </summary>
         public string OriginalVersion { get; set; }
 
+        /// <summary>
+        /// The username of the <see cref="User"/> to upload the package as.
+        /// </summary>
         public string Owner { get; set; }
-        public IEnumerable<string> PossibleOwners { get; set; }
+
+        /// <summary>
+        /// The usernames of the <see cref="User"/>s that the current user can upload the package as.
+        /// </summary>
+        public IReadOnlyCollection<string> PossibleOwners { get; set; }
 
         public bool IsSemVer2 => HasSemVer2Version || HasSemVer2Dependency;
         public bool HasSemVer2Version { get; set; }
