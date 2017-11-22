@@ -34,11 +34,6 @@ namespace NuGetGallery.Authentication
 
         public static bool IsActionAllowedOnSubjectByOwner(PackageRegistration packageRegistration, User owner, params string[] requestedActions)
         {
-            if (packageRegistration == null)
-            {
-                return true;
-            }
-
             return requestedActions
                 .Select(GetRequiredPackageAction)
                 .Any(p => PermissionsService.IsActionAllowed(packageRegistration, owner, p));

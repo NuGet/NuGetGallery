@@ -776,7 +776,7 @@ namespace NuGetGallery
         /// <returns>A <see cref="ApiScopeEvaluationResult"/> that describes the evaluation of the .</returns>
         private ApiScopeEvaluationResult EvaluateApiScopeOnExisting(PackageRegistration packageRegistration, out User owner, params string[] requestedActions)
         {
-            return EvaluateApiScope(new ScopeSubject(packageRegistration), out owner, requestedActions);
+            return EvaluateApiScope(new ExistingScopeSubject(packageRegistration), out owner, requestedActions);
         }
 
         /// <summary>
@@ -789,56 +789,34 @@ namespace NuGetGallery
         /// <returns>A <see cref="ApiScopeEvaluationResult"/> that describes the evaluation of the .</returns>
         private ApiScopeEvaluationResult EvaluateApiScopeOnNew(string id, out User owner)
         {
-            return EvaluateApiScope(new ScopeSubject(id, ReservedNamespaceService), out owner, NuGetScopes.PackagePush);
+            return EvaluateApiScope(new NewScopeSubject(id, ReservedNamespaceService), out owner, NuGetScopes.PackagePush);
         }
 
         /// <summary>
-        /// Helps evaluate whether or not the current user has the correct scopes to perform an action on a subject.
+        /// Helps evaluate whether or not the current user has the correct <see cref="Scope"/>s to perform an action on a subject.
         /// </summary>
-        private class ScopeSubject
+        private interface IScopeSubject
         {
-            private string _id;
-            private IReservedNamespaceService _reservedNamespaceService;
-
-            private readonly PackageRegistration _packageRegistration;
-
             /// <summary>
             /// Determines whether or not <paramref name="scope"/> allows actions on this subject.
             /// </summary>
-            public ApiScopeEvaluationResult IsSubjectAllowedByScope(Scope scope)
-            {
-                if (!scope.AllowsSubject(_id ?? _packageRegistration.Id))
-                {
-                    return ApiScopeEvaluationResult.Forbidden;
-                }
-
-                return ApiScopeEvaluationResult.Success;
-            }
+            ApiScopeEvaluationResult IsSubjectAllowedByScope(Scope scope);
 
             /// <summary>
             /// Determines whether or not <paramref name="owner"/> is allowed to perform <paramref name="requestedActions"/> on this subject.
             /// </summary>
-            public ApiScopeEvaluationResult IsActionAllowedOnSubjectByOwner(User owner, params string[] requestedActions)
-            {
-                if (!NuGetScopes.IsActionAllowedOnSubjectByOwner(_packageRegistration, owner, requestedActions))
-                {
-                    return ApiScopeEvaluationResult.Forbidden;
-                }
+            ApiScopeEvaluationResult IsActionAllowedOnSubjectByOwner(User owner, params string[] requestedActions);
+        }
 
-                if (_packageRegistration == null && !_reservedNamespaceService.IsPushAllowed(_id, owner, out var userOwnedNamespaces))
-                {
-                    return ApiScopeEvaluationResult.ConflictReservedNamespace;
-                }
-
-                return ApiScopeEvaluationResult.Success;
-            }
-
-            /// <summary>
-            /// Constructs a <see cref="ScopeSubject"/> to help evaluate scopes against a new ID.
-            /// </summary>
-            /// <param name="id">The ID of the package being uploaded.</param>
-            /// <param name="reservedNamespaceService">A service to get information about <see cref="ReservedNamespace"/>s from.</param>
-            public ScopeSubject(string id, IReservedNamespaceService reservedNamespaceService)
+        /// <summary>
+        /// An <see cref="IScopeSubject"/> to help evaluate scopes against a new package ID.
+        /// </summary>
+        private class NewScopeSubject : IScopeSubject
+        {
+            private readonly string _id;
+            private readonly IReservedNamespaceService _reservedNamespaceService;
+            
+            public NewScopeSubject(string id, IReservedNamespaceService reservedNamespaceService)
             {
                 if (string.IsNullOrEmpty(id))
                 {
@@ -849,11 +827,35 @@ namespace NuGetGallery
                 _reservedNamespaceService = reservedNamespaceService ?? throw new ArgumentNullException(nameof(reservedNamespaceService));
             }
 
-            /// <summary>
-            /// Constructs a <see cref="ScopeSubject"/> to help evaluate scopes against a new version of an existing ID.
-            /// </summary>
-            /// <param name="packageRegistration">The <see cref="PackageRegistration"/> of the new version being pushed.</param>
-            public ScopeSubject(PackageRegistration packageRegistration)
+            public ApiScopeEvaluationResult IsSubjectAllowedByScope(Scope scope)
+            {
+                if (!scope.AllowsSubject(_id))
+                {
+                    return ApiScopeEvaluationResult.Forbidden;
+                }
+
+                return ApiScopeEvaluationResult.Success;
+            }
+            
+            public ApiScopeEvaluationResult IsActionAllowedOnSubjectByOwner(User owner, params string[] requestedActions)
+            {
+                if (!_reservedNamespaceService.IsPushAllowed(_id, owner, out var userOwnedNamespaces))
+                {
+                    return ApiScopeEvaluationResult.ConflictReservedNamespace;
+                }
+
+                return ApiScopeEvaluationResult.Success;
+            }
+        }
+
+        /// <summary>
+        /// An <see cref="IScopeSubject"/> to help evaluate scopes against an existing package ID.
+        /// </summary>
+        private class ExistingScopeSubject : IScopeSubject
+        {
+            private readonly PackageRegistration _packageRegistration;
+
+            public ExistingScopeSubject(PackageRegistration packageRegistration)
             {
                 if (string.IsNullOrEmpty(packageRegistration.Id))
                 {
@@ -861,6 +863,26 @@ namespace NuGetGallery
                 }
 
                 _packageRegistration = packageRegistration ?? throw new ArgumentNullException(nameof(packageRegistration));
+            }
+
+            public ApiScopeEvaluationResult IsSubjectAllowedByScope(Scope scope)
+            {
+                if (!scope.AllowsSubject(_packageRegistration.Id))
+                {
+                    return ApiScopeEvaluationResult.Forbidden;
+                }
+
+                return ApiScopeEvaluationResult.Success;
+            }
+
+            public ApiScopeEvaluationResult IsActionAllowedOnSubjectByOwner(User owner, params string[] requestedActions)
+            {
+                if (!NuGetScopes.IsActionAllowedOnSubjectByOwner(_packageRegistration, owner, requestedActions))
+                {
+                    return ApiScopeEvaluationResult.Forbidden;
+                }
+
+                return ApiScopeEvaluationResult.Success;
             }
         }
 
@@ -872,7 +894,7 @@ namespace NuGetGallery
         /// If no <see cref="Scope"/>s evaluate to <see cref="ApiScopeEvaluationResult.Success"/>, this will be null.
         /// </param>
         /// <returns>A <see cref="ApiScopeEvaluationResult"/> that describes the evaluation of the .</returns>
-        private ApiScopeEvaluationResult EvaluateApiScope(ScopeSubject scopeSubject, out User owner, params string[] requestedActions)
+        private ApiScopeEvaluationResult EvaluateApiScope(IScopeSubject scopeSubject, out User owner, params string[] requestedActions)
         {
             owner = null;
 
@@ -932,7 +954,7 @@ namespace NuGetGallery
         }
 
         /// <summary>
-        /// Determines the <see cref="ApiScopeEvaluationResult"/> to return from <see cref="EvaluateApiScope(ScopeSubject, out User, string[])"/> when no <see cref="Scope"/>s return <see cref="ApiScopeEvaluationResult.Success"/>.
+        /// Determines the <see cref="ApiScopeEvaluationResult"/> to return from <see cref="EvaluateApiScope(IScopeSubject, out User, string[])"/> when no <see cref="Scope"/>s return <see cref="ApiScopeEvaluationResult.Success"/>.
         /// </summary>
         /// <param name="last">The result of the <see cref="Scope"/>s that have been evaluated so far.</param>
         /// <param name="next">The result of the <see cref="Scope"/> that was just evaluated.</param>
