@@ -1,17 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs.Validation.Common;
 using NuGet.Jobs.Validation.Common.OData;
 using NuGet.Jobs.Validation.Common.Validators.Vcs;
-using System.Web;
 
 namespace NuGet.Jobs.Validation.Helper
 {
@@ -24,10 +21,10 @@ namespace NuGet.Jobs.Validation.Helper
         private readonly PackageValidationService _packageValidationService;
         private readonly string _galleryBaseAddress;
 
-        public string PackageId { get; private set; }
-        public string PackageVersion { get; private set; }
+        public Action Action => Action.Rescan;
 
-        public Action Action => Helper.Action.Rescan;
+        public string PackageId { get; }
+        public string PackageVersion { get; }
 
         public Rescan(
             IDictionary<string, string> jobArgsDictionary, 
@@ -36,8 +33,7 @@ namespace NuGet.Jobs.Validation.Helper
             string containerName,
             NuGetV2Feed feed, 
             PackageValidationService packageValidationService,
-            string galleryBaseAddress
-            )
+            string galleryBaseAddress)
         {
             _logger = logger;
             _feed = feed;
@@ -60,7 +56,12 @@ namespace NuGet.Jobs.Validation.Helper
                 PackageId,
                 PackageVersion);
 
-            NuGetPackage package = await Util.GetPackage(_galleryBaseAddress, _feed, PackageId, PackageVersion);
+            var package = await Util.GetPackage(
+                _galleryBaseAddress,
+                _feed,
+                PackageId,
+                PackageVersion,
+                includeDownloadUrl: false);
             if (package == null)
             {
                 _logger.LogError($"Unable to find {{{TraceConstant.PackageId}}} " +

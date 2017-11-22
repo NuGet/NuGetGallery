@@ -32,6 +32,12 @@
     },
     {
       "incorrectpackageid": "fakexrmeasy",
+      "incorrectpackageversionpattern": "9.(.*)",
+      "correctedpackageid": "fakexrmeasy.9",
+      "correctedpackageversionpattern": "$1"
+    },
+    {
+      "incorrectpackageid": "fakexrmeasy",
       "incorrectpackageversionpattern": "2013.(.*)",
       "correctedpackageid": "fakexrmeasy.2013",
       "correctedpackageversionpattern": "$1"

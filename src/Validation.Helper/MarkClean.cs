@@ -4,12 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Web;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs.Validation.Common;
 using NuGet.Jobs.Validation.Common.OData;
 using NuGet.Jobs.Validation.Common.Validators.Vcs;
-using System.Web;
 
 namespace NuGet.Jobs.Validation.Helper
 {
@@ -25,10 +25,10 @@ namespace NuGet.Jobs.Validation.Helper
         private readonly PackageValidationAuditor _packageValidationAuditor;
         private readonly string _galleryBaseAddress;
 
-        public Action Action => Helper.Action.MarkClean;
+        public Action Action => Action.MarkClean;
 
-        public string PackageId { get; private set; }
-        public string PackageVersion { get; private set; }
+        public string PackageId { get; }
+        public string PackageVersion { get; }
 
         public MarkClean(
             IDictionary<string, string> jobArgsDictionary,
@@ -37,8 +37,7 @@ namespace NuGet.Jobs.Validation.Helper
             string containerName,
             NuGetV2Feed feed,
             PackageValidationAuditor packageValidationAuditor,
-            string galleryBaseAddress
-            )
+            string galleryBaseAddress)
         {
             _logger = logger;
             _cloudStorageAccount = cloudStorageAccount;
@@ -59,13 +58,18 @@ namespace NuGet.Jobs.Validation.Helper
 
         public async Task<bool> Run()
         {
-
             _logger.LogInformation($"Starting creating successful scan entry for the {{{TraceConstant.PackageId}}} " +
                     $"{{{TraceConstant.PackageVersion}}}",
                 PackageId,
                 PackageVersion);
 
-            NuGetPackage package = await Util.GetPackage(_galleryBaseAddress, _feed, PackageId, PackageVersion);
+            var package = await Util.GetPackage(
+                _galleryBaseAddress,
+                _feed,
+                PackageId,
+                PackageVersion,
+                includeDownloadUrl: false);
+
             if (package == null)
             {
                 _logger.LogError($"Unable to find {{{TraceConstant.PackageId}}} " +

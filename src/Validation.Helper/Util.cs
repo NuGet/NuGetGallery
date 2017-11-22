@@ -15,23 +15,29 @@ namespace NuGet.Jobs.Validation.Helper
             string galleryBaseAddress, 
             NuGetV2Feed feed, 
             string packageId, 
-            string packageVersion)
+            string packageVersion,
+            bool includeDownloadUrl)
         {
             // We'll try the normalized version first, then fall back to non-normalized
             // one if it fails.
             var url = GetNormalizedPackageUrl(galleryBaseAddress, packageId, packageVersion);
-            var package = await GetPackage(feed, url);
+            var package = await GetPackage(feed, url, includeDownloadUrl);
             if (package != null)
             {
                 return package;
             }
             url = GetPackageUrl(galleryBaseAddress, packageId, packageVersion);
-            return await GetPackage(feed, url);
+            return await GetPackage(feed, url, includeDownloadUrl);
         }
 
-        private static async Task<NuGetPackage> GetPackage(NuGetV2Feed feed, Uri url)
+        private static async Task<NuGetPackage> GetPackage(NuGetV2Feed feed, Uri url, bool includeDownloadUrl)
         {
-            return (await feed.GetPackagesAsync(url)).FirstOrDefault();
+            var packages = await feed.GetPackagesAsync(
+                url,
+                includeDownloadUrl,
+                continuationsToFollow: 0);
+
+            return packages.FirstOrDefault();
         }
 
         /// <summary>
@@ -45,7 +51,7 @@ namespace NuGet.Jobs.Validation.Helper
         /// <param name="packageId">Package ID.</param>
         /// <param name="packageVersion">Non-normalized package version.</param>
         /// <returns>URL of the OData request providing package information for the requested package.</returns>
-        public static Uri GetPackageUrl(string galleryBaseAddress, string packageId, string packageVersion)
+        private static Uri GetPackageUrl(string galleryBaseAddress, string packageId, string packageVersion)
         {
             return new Uri($"{galleryBaseAddress}/Packages?" +
                 $"$filter=Id eq '{packageId}' and Version eq '{packageVersion}' and true");
@@ -62,7 +68,7 @@ namespace NuGet.Jobs.Validation.Helper
         /// <param name="packageId">Package ID.</param>
         /// <param name="normalizedPackageVersion">Normalized package version.</param>
         /// <returns>URL of the OData request providing package information for the requested package.</returns>
-        public static Uri GetNormalizedPackageUrl(string galleryBaseAddress, string packageId, string normalizedPackageVersion)
+        private static Uri GetNormalizedPackageUrl(string galleryBaseAddress, string packageId, string normalizedPackageVersion)
         {
             return new Uri($"{galleryBaseAddress}/Packages?" +
                 $"$filter=Id eq '{packageId}' and NormalizedVersion eq '{normalizedPackageVersion}' and true");
