@@ -45,7 +45,7 @@ namespace NuGet.Jobs.Validation.Common.Validators
             string packageUrl;
             if (message.Package.DownloadUrl != null)
             {
-                packageUrl = message.Package.DownloadUrl.ToString();
+                packageUrl = message.Package.DownloadUrl.AbsoluteUri;
             }
             else
             {
