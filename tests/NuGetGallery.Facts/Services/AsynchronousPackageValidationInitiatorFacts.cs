@@ -68,16 +68,35 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task ReturnsCorrectPackageStatus()
+            public async Task ReturnsCorrectPackageStatusInNonBlockingMode()
             {
                 // Arrange
                 var package = GetPackage();
+                _appConfiguration
+                    .SetupGet(x => x.BlockingAsynchronousPackageValidationEnabled)
+                    .Returns(false);
 
                 // Act
                 var actual = await _target.StartValidationAsync(package);
 
                 // Assert
                 Assert.Equal(PackageStatus.Available, actual);
+            }
+
+            [Fact]
+            public async Task ReturnsCorrectPackageStatusInBlockingMode()
+            {
+                // Arrange
+                var package = GetPackage();
+                _appConfiguration
+                    .SetupGet(x => x.BlockingAsynchronousPackageValidationEnabled)
+                    .Returns(true);
+
+                // Act
+                var actual = await _target.StartValidationAsync(package);
+
+                // Assert
+                Assert.Equal(PackageStatus.Validating, actual);
             }
 
             private Package GetPackage()

@@ -23,6 +23,7 @@ namespace NuGetGallery.Controllers
     {
         private const string RegisterViewName = "Register";
         private const string SignInViewName = "SignIn";
+        private const string SignInViewNuGetName = "SignInNuGetAccount";
         private const string LinkExternalViewName = "LinkExternal";
 
         public class TheLogOnAction : TestContainer
@@ -122,7 +123,7 @@ namespace NuGetGallery.Controllers
 
                 var result = await controller.SignIn(new LogOnViewModel(), null, linkingAccount: false);
 
-                ResultAssert.IsView(result, viewName: SignInViewName, viewData: new
+                ResultAssert.IsView(result, viewName: SignInViewNuGetName, viewData: new
                 {
                     ReturnUrl = (string)null
                 });
@@ -140,7 +141,7 @@ namespace NuGetGallery.Controllers
                     new LogOnViewModel() { SignIn = new SignInViewModel() },
                     "theReturnUrl", linkingAccount: false);
 
-                ResultAssert.IsView(result, viewName: SignInViewName);
+                ResultAssert.IsView(result, viewName: SignInViewNuGetName);
                 Assert.False(controller.ModelState.IsValid);
                 Assert.Equal(Strings.UsernameAndPasswordNotFound, controller.ModelState[SignInViewName].Errors[0].ErrorMessage);
             }

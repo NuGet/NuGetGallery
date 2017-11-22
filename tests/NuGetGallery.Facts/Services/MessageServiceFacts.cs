@@ -670,8 +670,9 @@ namespace NuGetGallery
             public void ApiKeyRemovedMessageIsCorrect()
             {
                 var user = new User { EmailAddress = "legit@example.com", Username = "foo" };
-                var cred = new CredentialBuilder().CreateApiKey(TimeSpan.FromDays(1));
+                var cred = TestCredentialHelper.CreateV2ApiKey(Guid.NewGuid(), TimeSpan.FromDays(1)).WithDefaultScopes();
                 cred.Description = "new api key";
+                cred.User = user;
 
                 var messageService = TestableMessageService.Create(
                     GetService<AuthenticationService>(),
@@ -730,8 +731,9 @@ namespace NuGetGallery
             public void ApiKeyAddedMessageIsCorrect()
             {
                 var user = new User { EmailAddress = "legit@example.com", Username = "foo" };
-                var cred = new CredentialBuilder().CreateApiKey(TimeSpan.FromDays(1));
+                var cred = TestCredentialHelper.CreateV2ApiKey(Guid.NewGuid(), TimeSpan.FromDays(1)).WithDefaultScopes();
                 cred.Description = "new api key";
+                cred.User = user;
 
                 var messageService = TestableMessageService.Create(
                     GetService<AuthenticationService>(),
@@ -857,6 +859,51 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Empty(messageService.MockMailSender.Sent);
+            }
+        }
+
+        public class TheSendPackageDeletedNoticeMethod
+            : TestContainer
+        {
+            [Fact]
+            public void WillSendEmailToAllOwners()
+            {
+                // Arrange
+                var nugetVersion = new NuGetVersion("3.1.0");
+                var packageRegistration = new PackageRegistration
+                {
+                    Id = "smangit",
+                    Owners = new[]
+                    {
+                        new User { EmailAddress = "yung@example.com" },
+                        new User { EmailAddress = "flynt@example.com" }
+                    }
+                };
+                var package = new Package
+                {
+                    Version = "3.1.0",
+                    PackageRegistration = packageRegistration
+                };
+                packageRegistration.Packages.Add(package);
+                
+                var messageService = TestableMessageService.Create(
+                    GetService<AuthenticationService>(),
+                    GetConfigurationService());
+                var packageUrl = $"https://localhost/packages/{packageRegistration.Id}/{nugetVersion.ToNormalizedString()}";
+                var supportUrl = $"https://localhost/packages/{packageRegistration.Id}/{nugetVersion.ToNormalizedString()}/ReportMyPackage";
+
+                // Act
+                messageService.SendPackageDeletedNotice(package, packageUrl, supportUrl);
+
+                // Assert
+                var message = messageService.MockMailSender.Sent.Last();
+
+                Assert.Equal("yung@example.com", message.To[0].Address);
+                Assert.Equal("flynt@example.com", message.To[1].Address);
+                Assert.Equal(TestGalleryNoReplyAddress, message.From);
+                Assert.Contains($"[Joe Shmoe] Package deleted - {packageRegistration.Id} {nugetVersion.ToNormalizedString()}", message.Subject);
+                Assert.Contains(
+                    $"The package [{packageRegistration.Id} {nugetVersion.ToFullString()}]({packageUrl}) was just deleted from Joe Shmoe. If this was not intended, please [contact support]({supportUrl}).", message.Body);
             }
         }
 

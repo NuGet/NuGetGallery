@@ -61,6 +61,13 @@ namespace NuGetGallery
             _auditingService = auditingService;
         }
 
+        public Task<bool> CanPackageBeDeletedByUserAsync(Package package)
+        {
+            // For now, don't allow user's to delete their packages.
+            // https://github.com/NuGet/Engineering/issues/921
+            return Task.FromResult(false);
+        }
+
         public async Task SoftDeletePackagesAsync(IEnumerable<Package> packages, User deletedBy, string reason, string signature)
         {
             using (var strategy = new SuspendDbExecutionStrategy())

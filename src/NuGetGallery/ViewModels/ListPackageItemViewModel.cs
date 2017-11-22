@@ -1,9 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using NuGetGallery.Helpers;
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Principal;
+using NuGetGallery.Helpers;
 
 namespace NuGetGallery
 {
@@ -43,9 +44,23 @@ namespace NuGetGallery
         {
             get
             {
-                // only use the version in URLs when necessary. This would happen when the latest version is not the same as the latest stable version.
+                // only use the version in URLs when necessary. This would happen when the latest version is not the
+                // same as the latest stable version.
                 return !(!IsSemVer2 && LatestVersion && LatestStableVersion) 
                     && !(IsSemVer2 && LatestStableVersionSemVer2 && LatestVersionSemVer2);
+            }
+        }
+
+        public bool HasSingleOwner
+        {
+            get
+            {
+                var organization = Owners.FirstOrDefault() as Organization;
+
+                return Owners.Count == 1 &&
+                    // A package has a single owner if its last owner is a user account or is an organization account
+                    // that has a single member.
+                    (organization == null || organization.Members.Count == 1);
             }
         }
 

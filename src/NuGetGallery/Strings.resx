@@ -618,4 +618,71 @@ For more information, please contact '{2}'.</value>
   <data name="AccountDelete_Success" xml:space="preserve">
     <value>The account:{0} was deleted succesfully.</value>
   </data>
+  <data name="AccountDelete_CreateSupportRequestFails" xml:space="preserve">
+    <value>The request failed to be submitted. Please try again or contact support.</value>
+  </data>
+  <data name="AccountDelete_SupportRequestTitle" xml:space="preserve">
+    <value>DeleteAccountRequest</value>
+  </data>
+  <data name="MessageIsRequired" xml:space="preserve">
+    <value>Please enter a message.</value>
+  </data>
+  <data name="OwnerSupportRequestSubjectFormat" xml:space="preserve">
+    <value>Owner Support Request for '{0}' version {1}</value>
+    <comment>{0} is the package ID. {1} is the normalized package version.</comment>
+  </data>
+  <data name="SupportRequestSentTransientMessage" xml:space="preserve">
+    <value>Your support request has been sent to the gallery operators.</value>
+  </data>
+  <data name="UserPackageDeleteCompleteTransientMessage" xml:space="preserve">
+    <value>We're performing the package delete right now. It may take a while for this change to propagate through our system.</value>
+  </data>
+  <data name="UserPackageDeleteConfirmationIsRequired" xml:space="preserve">
+    <value>You must confirm the package deletion request.</value>
+  </data>
+  <data name="UserPackageDeleteDecisionIsRequired" xml:space="preserve">
+    <value>You must choose whether to delete the package or contact support.</value>
+  </data>
+  <data name="UserPackageDeleteSignature" xml:space="preserve">
+    <value>(automated)</value>
+  </data>
+  <data name="UserPackageDeleteSupportRequestMessage" xml:space="preserve">
+    <value>This support request is intended for automatic package deletion.</value>
+  </data>
+  <data name="ApiKeyOwnerRequired" xml:space="preserve">
+    <value>You must specify a package owner to generate an API key.</value>
+  </data>
+  <data name="ApiKeyScopesNotAllowed" xml:space="preserve">
+    <value>The current user does not have permission to create an ApiKey with the specified owner or scopes.</value>
+  </data>
+  <data name="AddOwner_AlreadyOwner" xml:space="preserve">
+    <value>The user '{0}' is already an owner or pending owner of the package.</value>
+  </data>
+  <data name="RemoveOwner_NotOwner" xml:space="preserve">
+    <value>The user '{0}' is not an owner or pending owner of the package.</value>
+  </data>
+  <data name="ManagePackageOwners_AlreadyPending" xml:space="preserve">
+    <value>The user '{0}' is already an owner or pending owner of this package.</value>
+  </data>
+  <data name="ManagePackageOwners_Error" xml:space="preserve">
+    <value>An unexpected error occurred: {0}</value>
+  </data>
+  <data name="ManagePackageOwners_InvalidUsername" xml:space="preserve">
+    <value>Please enter a valid user name.</value>
+  </data>
+  <data name="ManagePackageOwners_RemovingOrganization" xml:space="preserve">
+    <value>Are you sure you want to remove your organization as an owner of this package?</value>
+  </data>
+  <data name="ManagePackageOwners_RemovingOwnership" xml:space="preserve">
+    <value>You will no longer be able to manage the package if you do.</value>
+  </data>
+  <data name="ManagePackageOwners_RemovingSelf" xml:space="preserve">
+    <value>Are you sure you want to remove yourself as an owner of this package?</value>
+  </data>
+  <data name="AccountDelete_OrganizationDeleteNotImplemented" xml:space="preserve">
+    <value>Account '{0}' cannot be deleted because it is an organization. The organization must be manually migrated to a user account without memberships before the account can be deleted.</value>
+  </data>
+  <data name="AccountDelete_OrganizationMemberDeleteNotImplemented" xml:space="preserve">
+    <value>Account '{0}' cannot be deleted because it is a member of an organization. The user needs to be manually removed from any organizations before the account can be deleted.</value>
+  </data>
 </root>

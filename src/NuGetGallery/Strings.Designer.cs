@@ -70,6 +70,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The request failed to be submitted. Please try again or contact support..
+        /// </summary>
+        public static string AccountDelete_CreateSupportRequestFails {
+            get {
+                return ResourceManager.GetString("AccountDelete_CreateSupportRequestFails", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An exception was encoutered while trying to delete the account:{0}. {1}.
         /// </summary>
         public static string AccountDelete_Fail {
@@ -79,11 +88,47 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; cannot be deleted because it is an organization. The organization must be manually migrated to a user account without memberships before the account can be deleted..
+        /// </summary>
+        public static string AccountDelete_OrganizationDeleteNotImplemented {
+            get {
+                return ResourceManager.GetString("AccountDelete_OrganizationDeleteNotImplemented", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; cannot be deleted because it is a member of an organization. The user needs to be manually removed from any organizations before the account can be deleted..
+        /// </summary>
+        public static string AccountDelete_OrganizationMemberDeleteNotImplemented {
+            get {
+                return ResourceManager.GetString("AccountDelete_OrganizationMemberDeleteNotImplemented", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The account:{0} was deleted succesfully..
         /// </summary>
         public static string AccountDelete_Success {
             get {
                 return ResourceManager.GetString("AccountDelete_Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DeleteAccountRequest.
+        /// </summary>
+        public static string AccountDelete_SupportRequestTitle {
+            get {
+                return ResourceManager.GetString("AccountDelete_SupportRequestTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The user &apos;{0}&apos; is already an owner or pending owner of the package..
+        /// </summary>
+        public static string AddOwner_AlreadyOwner {
+            get {
+                return ResourceManager.GetString("AddOwner_AlreadyOwner", resourceCulture);
             }
         }
         
@@ -288,11 +333,29 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You must specify a package owner to generate an API key..
+        /// </summary>
+        public static string ApiKeyOwnerRequired {
+            get {
+                return ResourceManager.GetString("ApiKeyOwnerRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An API key must be provided in the &apos;X-NuGet-ApiKey&apos; header to use this service.
         /// </summary>
         public static string ApiKeyRequired {
             get {
                 return ResourceManager.GetString("ApiKeyRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The current user does not have permission to create an ApiKey with the specified owner or scopes..
+        /// </summary>
+        public static string ApiKeyScopesNotAllowed {
+            get {
+                return ResourceManager.GetString("ApiKeyScopesNotAllowed", resourceCulture);
             }
         }
         
@@ -684,6 +747,69 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The user &apos;{0}&apos; is already an owner or pending owner of this package..
+        /// </summary>
+        public static string ManagePackageOwners_AlreadyPending {
+            get {
+                return ResourceManager.GetString("ManagePackageOwners_AlreadyPending", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An unexpected error occurred: {0}.
+        /// </summary>
+        public static string ManagePackageOwners_Error {
+            get {
+                return ResourceManager.GetString("ManagePackageOwners_Error", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please enter a valid user name..
+        /// </summary>
+        public static string ManagePackageOwners_InvalidUsername {
+            get {
+                return ResourceManager.GetString("ManagePackageOwners_InvalidUsername", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Are you sure you want to remove your organization as an owner of this package?.
+        /// </summary>
+        public static string ManagePackageOwners_RemovingOrganization {
+            get {
+                return ResourceManager.GetString("ManagePackageOwners_RemovingOrganization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You will no longer be able to manage the package if you do..
+        /// </summary>
+        public static string ManagePackageOwners_RemovingOwnership {
+            get {
+                return ResourceManager.GetString("ManagePackageOwners_RemovingOwnership", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Are you sure you want to remove yourself as an owner of this package?.
+        /// </summary>
+        public static string ManagePackageOwners_RemovingSelf {
+            get {
+                return ResourceManager.GetString("ManagePackageOwners_RemovingSelf", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please enter a message..
+        /// </summary>
+        public static string MessageIsRequired {
+            get {
+                return ResourceManager.GetString("MessageIsRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot send added/removed email for credentials of type &apos;{0}&apos;.
         /// </summary>
         public static string MessageService_CannotSendEmailForCredential {
@@ -788,6 +914,15 @@ namespace NuGetGallery {
         public static string OrganizationsCannotCreateCredentials {
             get {
                 return ResourceManager.GetString("OrganizationsCannotCreateCredentials", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Owner Support Request for &apos;{0}&apos; version {1}.
+        /// </summary>
+        public static string OwnerSupportRequestSubjectFormat {
+            get {
+                return ResourceManager.GetString("OwnerSupportRequestSubjectFormat", resourceCulture);
             }
         }
         
@@ -977,6 +1112,15 @@ namespace NuGetGallery {
         public static string RemoveOwner_NotAllowed {
             get {
                 return ResourceManager.GetString("RemoveOwner_NotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The user &apos;{0}&apos; is not an owner or pending owner of the package..
+        /// </summary>
+        public static string RemoveOwner_NotOwner {
+            get {
+                return ResourceManager.GetString("RemoveOwner_NotOwner", resourceCulture);
             }
         }
         
@@ -1228,6 +1372,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Your support request has been sent to the gallery operators..
+        /// </summary>
+        public static string SupportRequestSentTransientMessage {
+            get {
+                return ResourceManager.GetString("SupportRequestSentTransientMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The title of your package, &apos;{0}&apos;, is similar to the ID of an existing package, which can cause confusion with our users. Please modify the title of your package and try uploading again..
         /// </summary>
         public static string TitleMatchesExistingRegistration {
@@ -1404,6 +1557,51 @@ namespace NuGetGallery {
         public static string UserNotFound {
             get {
                 return ResourceManager.GetString("UserNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to We&apos;re performing the package delete right now. It may take a while for this change to propagate through our system..
+        /// </summary>
+        public static string UserPackageDeleteCompleteTransientMessage {
+            get {
+                return ResourceManager.GetString("UserPackageDeleteCompleteTransientMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You must confirm the package deletion request..
+        /// </summary>
+        public static string UserPackageDeleteConfirmationIsRequired {
+            get {
+                return ResourceManager.GetString("UserPackageDeleteConfirmationIsRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You must choose whether to delete the package or contact support..
+        /// </summary>
+        public static string UserPackageDeleteDecisionIsRequired {
+            get {
+                return ResourceManager.GetString("UserPackageDeleteDecisionIsRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to (automated).
+        /// </summary>
+        public static string UserPackageDeleteSignature {
+            get {
+                return ResourceManager.GetString("UserPackageDeleteSignature", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This support request is intended for automatic package deletion..
+        /// </summary>
+        public static string UserPackageDeleteSupportRequestMessage {
+            get {
+                return ResourceManager.GetString("UserPackageDeleteSupportRequestMessage", resourceCulture);
             }
         }
         

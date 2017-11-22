@@ -1,0 +1,93 @@
+﻿@using NuGetGallery
+@model NuGetGallery.DeleteAccountViewModel
+@{
+    ViewBag.Title = "Delete Account " + Model.AccountName;
+    ViewBag.MdPageColumns = Constants.ColumnsFormMd;
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
+}
+
+<section role="main" class="container main-container page-delete-account">
+    <div class="form-group">
+        <div class="form-group package-controls">
+            <h1 class="text-center">Delete Account</h1>
+            <div class="text-center ms-font-xxl">
+                <a href="@Url.User(@Model.User)">@Model.AccountName</a>
+            </div>
+            @if ((TempData["RequestFailedMessage"] != null))
+            {
+                var message = (string)TempData["RequestFailedMessage"];
+                @ViewHelpers.AlertDanger(@<p><b class="keywords">@message</b> <br /></p>)
+            }
+            else
+            {
+                if (Model.HasPendingRequests)
+                {
+                    @ViewHelpers.AlertWarning(@<text>
+                        <b class="keywords">Request submitted.</b> <br />
+                        It may take up to 5 business days to process account deletion requests. <a href="https://go.microsoft.com/fwlink/?linkid=862770">Read more.</a><br />
+                    </text>)
+                }
+                else
+                {
+                    @ViewHelpers.AlertWarning(@<text><strong class="keywords">Important</strong> <br />
+                        Once your account is deleted you cannot undo it. <a href="https://go.microsoft.com/fwlink/?linkid=862770">Read more.</a><br />
+                    </text>)
+                    <p>
+                        When you account is deleted we will<br />
+                        <ul>
+                            <li>Revoke your api key(s).</li>
+                            <li>Remove you as the owner for any packages you own.</li>
+                            <li>Remove your ownership from any ID prefix reservations and delete any ID prefix reservations that you were the only owner of.</li>
+                            <li>Not delete the NuGet packages associated with the account.</li>
+                        </ul>
+                    </p>
+                    if (Model.HasOrphanPackages)
+                    {
+                            @ViewHelpers.AlertDanger(@<text>One or more packages do not have co-owners.</text>)
+                    }
+                    <p>
+                        Before submitting the request, it is recommended that you transfer ownership of any package where you are the sole owner, using the <i>manage owners</i> <i class="ms-Icon ms-Icon--People" aria-hidden="true"></i> button for that package below. Read more about <a href="https://go.microsoft.com/fwlink/?linkid=862794">Manage package owners.</a>
+                        This will enable us to expedite processing your request.<br />
+                        If you choose to proceed without fixing this issue, someone from the NuGet team may reach out and work with you to find a resolution.
+                    </p>
+                    <div class="form-group">
+                        @{
+                            @Html.Partial("_UserPackagesListForDeletedAccount", new ManagePackagesListViewModel(@Model.Packages, "Packages"))
+                        }
+                    </div>
+                    <div class="form-group danger-zone">
+                        <text>
+                            @using (Html.BeginForm("RequestAccountDeletion", "Users", FormMethod.Post, new { id = "delete-form" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                <p>
+                                    <strong>By proceeding, I understand that I am relinquishing ownership of the package/s listed above, and any existent package ID reservation/s will be dissociated with this account.</strong>
+                                </p>
+                                <div class="row form-group">
+                                    <div class="col-sm-6">
+                                        <input type="submit" class="btn btn-primary btn-danger form-control" id="delete-account" value="Submit request to delete my account." />
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <a href="@Url.Home()" role="button" class="btn btn-default form-control" id="cancel-delete-account">Cancel</a>
+                                    </div>
+                                </div>
+                            }
+                        </text>
+                    </div>
+                }
+            }
+        </div>
+     </div>
+</section>
+
+@section BottomScripts {
+    <script type="text/javascript">
+        $(function () {
+            $('#delete-form').submit(function(e) {
+                if (!confirm('Are you sure you want to continue to delete this account?')) {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+}

@@ -29,7 +29,7 @@
             </div>
         </div>
         <div class="form-group danger-zone">
-            @using (Html.BeginForm("Delete", "Users", new { id = "delete-form" }))
+            @using (Html.BeginForm("Delete", "Users", FormMethod.Post, new { id = "delete-form" }))
             {
                 @Html.HttpMethodOverride(HttpVerbs.Delete)
                 @Html.AntiForgeryToken()
@@ -71,7 +71,7 @@
 @section BottomScripts {
     <script type="text/javascript">
         $(function () {
-            $('#delete-form').submit(function(e) {
+            $('#delete-form').submit(function (e) {
                 if (!confirm('Are you sure you want to continue to delete this account?')) {
                     e.preventDefault();
                 }

@@ -10,7 +10,7 @@ namespace NuGetGallery.FunctionalTests
     /// </summary>
     public class UrlHelper
     {
-        private const string _logonPageUrlSuffix = "users/account/LogOn";
+        private const string _logonPageUrlSuffix = "users/account/LogOnNuGetAccount";
         private const string _editUrlSuffix = "packages/{0}/{1}/Edit";
         private const string _cancelUrlSuffix = "packages/manage/cancel-upload";
         private const string _signInPageUrlSuffix = "users/account/SignIn";

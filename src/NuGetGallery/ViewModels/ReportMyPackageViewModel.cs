@@ -1,35 +1,25 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Web.Mvc;
-using NuGetGallery.Infrastructure;
 
 namespace NuGetGallery
 {
-    public class ReportMyPackageViewModel
+    public class ReportMyPackageViewModel : ReportViewModel
     {
-        public string PackageId { get; set; }
-        public string PackageVersion { get; set; }
+        public bool AllowDelete { get; set; }
+        
+        public PackageDeleteDecision? DeleteDecision { get; set; }
 
-        [NotEqual(ReportPackageReason.HasABugOrFailedToInstall, ErrorMessage = "Unfortunately we cannot provide support for bugs in NuGet Packages. Please contact owner(s) for assistance.")]
-        [Required(ErrorMessage = "You must select a reason for reporting the package.")]
-        [Display(Name = "Reason")]
-        public ReportPackageReason? Reason { get; set; }
-
-        [Display(Name = "Send me a copy")]
-        public bool CopySender { get; set; }
-
-        [Required(ErrorMessage = "Please enter a message.")]
+        public bool DeleteConfirmation { get; set; }
+                
         [AllowHtml]
         [StringLength(4000)]
         [Display(Name = "Details")]
         public string Message { get; set; }
 
-        public bool ConfirmedUser { get; set; }
-
-        public IEnumerable<ReportPackageReason> ReasonChoices { get; set; }
-
-        public ReportMyPackageViewModel()
-        {
-        }
+        public IReadOnlyList<ReportPackageReason> DeleteReasonChoices { get; set; }
     }
 }

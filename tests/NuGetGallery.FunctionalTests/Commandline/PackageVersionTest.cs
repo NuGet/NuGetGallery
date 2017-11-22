@@ -31,10 +31,10 @@ namespace NuGetGallery.FunctionalTests.Commandline
             await _clientSdkHelper.UploadNewPackage(packageId, "1.0.0");
             await _clientSdkHelper.UploadNewPackage(packageId, "2.0.0");
 
-            _clientSdkHelper.VerifyPackageExistsInSource(packageId, "1.0.0");
-            _clientSdkHelper.VerifyPackageExistsInSource(packageId, "2.0.0");
+            await _clientSdkHelper.VerifyPackageExistsInV2AndV3Async(packageId, "1.0.0");
+            await _clientSdkHelper.VerifyPackageExistsInV2AndV3Async(packageId, "2.0.0");
 
-            _clientSdkHelper.VerifyVersionCount(packageId, 2);
+            await _clientSdkHelper.VerifyVersionCountAsync(packageId, 2);
         }
     }
 }
