@@ -72,50 +72,53 @@ namespace NuGet.Services.Validation.Orchestrator
             bool tryMoreValidations = false;
             foreach (var packageValidation in validationSet.PackageValidations.Where(v => v.ValidationStatus == ValidationStatus.Incomplete))
             {
-                _logger.LogInformation("Processing incomplete validation {ValidationType} for {PackageId} {PackageVersion}, validation set {ValidationSetId}, {ValidationId}",
-                    packageValidation.Type,
-                    package.PackageRegistration.Id,
-                    package.NormalizedVersion,
-                    validationSet.ValidationTrackingId,
-                    packageValidation.Key);
-                var validationConfiguration = GetValidationConfiguration(packageValidation.Type);
-                if (validationConfiguration == null)
+                using (_logger.BeginScope("Incomplete {ValidationType} Key {ValidationId}", packageValidation.Type, packageValidation.Key))
                 {
-                    await OnUnknownValidation(packageValidation);
-                    continue;
-                }
+                    _logger.LogInformation("Processing incomplete validation {ValidationType} for {PackageId} {PackageVersion}, validation set {ValidationSetId}, {ValidationId}",
+                        packageValidation.Type,
+                        package.PackageRegistration.Id,
+                        package.NormalizedVersion,
+                        validationSet.ValidationTrackingId,
+                        packageValidation.Key);
+                    var validationConfiguration = GetValidationConfiguration(packageValidation.Type);
+                    if (validationConfiguration == null)
+                    {
+                        await OnUnknownValidation(packageValidation);
+                        continue;
+                    }
 
-                var validator = _validatorProvider.GetValidator(packageValidation.Type);
-                var validationRequest = await CreateValidationRequest(packageValidation.PackageValidationSet, packageValidation, package, validationConfiguration);
-                var validationStatus = await validator.GetStatusAsync(validationRequest);
-                _logger.LogInformation("New status for validation {ValidationType} for {PackageId} {PackageVersion} is {ValidationStatus}, validation set {ValidationSetId}, {ValidationId}",
-                    packageValidation.Type,
-                    package.PackageRegistration.Id,
-                    package.NormalizedVersion,
-                    validationStatus,
-                    validationSet.ValidationTrackingId,
-                    packageValidation.Key);
+                    var validator = _validatorProvider.GetValidator(packageValidation.Type);
+                    var validationRequest = await CreateValidationRequest(packageValidation.PackageValidationSet, packageValidation, package, validationConfiguration);
+                    var validationStatus = await validator.GetStatusAsync(validationRequest);
+                    _logger.LogInformation("New status for validation {ValidationType} for {PackageId} {PackageVersion} is {ValidationStatus}, validation set {ValidationSetId}, {ValidationId}",
+                        packageValidation.Type,
+                        package.PackageRegistration.Id,
+                        package.NormalizedVersion,
+                        validationStatus,
+                        validationSet.ValidationTrackingId,
+                        packageValidation.Key);
 
-                switch (validationStatus)
-                {
-                    case ValidationStatus.Incomplete:
-                        await ProcessIncompleteValidation(packageValidation, validationConfiguration);
-                        break;
+                    switch (validationStatus)
+                    {
+                        case ValidationStatus.Incomplete:
+                            await ProcessIncompleteValidation(packageValidation, validationConfiguration);
+                            break;
 
-                    case ValidationStatus.Failed:
-                        await _validationStorageService.UpdateValidationStatusAsync(packageValidation, validationStatus);
-                        break;
+                        case ValidationStatus.Failed:
+                            await _validationStorageService.UpdateValidationStatusAsync(packageValidation, validationStatus);
+                            break;
 
-                    case ValidationStatus.Succeeded:
-                        await _validationStorageService.UpdateValidationStatusAsync(packageValidation, validationStatus);
-                        // need another iteration to try running new validations
-                        tryMoreValidations = true;
-                        break;
+                        case ValidationStatus.Succeeded:
+                            await _validationStorageService.UpdateValidationStatusAsync(packageValidation, validationStatus);
+                            // need another iteration to try running new validations
+                            tryMoreValidations = true;
+                            break;
 
-                    default:
-                        throw new InvalidOperationException($"Unexpected validation state: " +
-                            $"DB: {ValidationStatus.Incomplete} ({(int)ValidationStatus.Incomplete}), " +
-                            $"Actual: {validationStatus} {(int)validationStatus}");
+                        default:
+                            throw new InvalidOperationException($"Unexpected validation state: " +
+                                $"DB: {ValidationStatus.Incomplete} ({(int)ValidationStatus.Incomplete}), " +
+                                $"Actual: {validationStatus} {(int)validationStatus}");
+                    }
                 }
             }
 
@@ -127,67 +130,70 @@ namespace NuGet.Services.Validation.Orchestrator
             bool tryMoreValidations = false;
             foreach (var packageValidation in validationSet.PackageValidations.Where(v => v.ValidationStatus == ValidationStatus.NotStarted))
             {
-                _logger.LogInformation("Processing not started validation {ValidationType} for {PackageId} {PackageVersion}, validation set {ValidationSetId}, {ValidationId}",
+                using (_logger.BeginScope("Not started {ValidationType} Key {ValidationId}", packageValidation.Type, packageValidation.Key))
+                {
+                    _logger.LogInformation("Processing not started validation {ValidationType} for {PackageId} {PackageVersion}, validation set {ValidationSetId}, {ValidationId}",
                     packageValidation.Type,
                     package.PackageRegistration.Id,
                     package.NormalizedVersion,
                     validationSet.ValidationTrackingId,
                     packageValidation.Key);
-                var validationConfiguration = GetValidationConfiguration(packageValidation.Type);
-                if (validationConfiguration == null)
-                {
-                    await OnUnknownValidation(packageValidation);
-                    continue;
-                }
+                    var validationConfiguration = GetValidationConfiguration(packageValidation.Type);
+                    if (validationConfiguration == null)
+                    {
+                        await OnUnknownValidation(packageValidation);
+                        continue;
+                    }
 
-                bool prerequisitesAreMet = ArePrerequisitesMet(packageValidation, validationSet);
-                if (!prerequisitesAreMet)
-                {
-                    _logger.LogInformation("Prerequisites are not met for validation {ValidationType} for {PackageId} {PackageVersion}, validation set {ValidationSetId}, {ValidationId}",
-                        packageValidation.Type,
-                        package.PackageRegistration.Id,
-                        package.NormalizedVersion,
-                        validationSet.ValidationTrackingId,
-                        packageValidation.Key);
-                    continue;
-                }
+                    bool prerequisitesAreMet = ArePrerequisitesMet(packageValidation, validationSet);
+                    if (!prerequisitesAreMet)
+                    {
+                        _logger.LogInformation("Prerequisites are not met for validation {ValidationType} for {PackageId} {PackageVersion}, validation set {ValidationSetId}, {ValidationId}",
+                            packageValidation.Type,
+                            package.PackageRegistration.Id,
+                            package.NormalizedVersion,
+                            validationSet.ValidationTrackingId,
+                            packageValidation.Key);
+                        continue;
+                    }
 
-                var validator = _validatorProvider.GetValidator(packageValidation.Type);
-                var validationRequest = await CreateValidationRequest(packageValidation.PackageValidationSet, packageValidation, package, validationConfiguration);
-                var validationStatus = await validator.GetStatusAsync(validationRequest);
+                    var validator = _validatorProvider.GetValidator(packageValidation.Type);
+                    var validationRequest = await CreateValidationRequest(packageValidation.PackageValidationSet, packageValidation, package, validationConfiguration);
+                    var validationStatus = await validator.GetStatusAsync(validationRequest);
 
-                if (validationStatus == ValidationStatus.NotStarted)
-                {
-                    _logger.LogInformation("Requesting validation {ValidationType} for {PackageId} {PackageVersion}, validation set {ValidationSetId}, {ValidationId}, {NupkgUrl}",
-                        packageValidation.Type,
-                        package.PackageRegistration.Id,
-                        package.NormalizedVersion,
-                        validationSet.ValidationTrackingId,
-                        packageValidation.Key,
-                        validationRequest.NupkgUrl);
-                    validationStatus = await validator.StartValidationAsync(validationRequest);
-                    _logger.LogInformation("Got validationStatus = {ValidationStatus} for validation {ValidationType} for {PackageId} {PackageVersion}, validation set {ValidationSetId}, {ValidationId}",
-                        validationStatus,
-                        packageValidation.Type,
-                        package.PackageRegistration.Id,
-                        package.NormalizedVersion,
-                        validationSet.ValidationTrackingId,
-                        packageValidation.Key);
-                }
+                    if (validationStatus == ValidationStatus.NotStarted)
+                    {
+                        _logger.LogInformation("Requesting validation {ValidationType} for {PackageId} {PackageVersion}, validation set {ValidationSetId}, {ValidationId}, {NupkgUrl}",
+                            packageValidation.Type,
+                            package.PackageRegistration.Id,
+                            package.NormalizedVersion,
+                            validationSet.ValidationTrackingId,
+                            packageValidation.Key,
+                            validationRequest.NupkgUrl);
+                        validationStatus = await validator.StartValidationAsync(validationRequest);
+                        _logger.LogInformation("Got validationStatus = {ValidationStatus} for validation {ValidationType} for {PackageId} {PackageVersion}, validation set {ValidationSetId}, {ValidationId}",
+                            validationStatus,
+                            packageValidation.Type,
+                            package.PackageRegistration.Id,
+                            package.NormalizedVersion,
+                            validationSet.ValidationTrackingId,
+                            packageValidation.Key);
+                    }
 
-                if (validationStatus == ValidationStatus.NotStarted)
-                {
-                    _logger.LogWarning("Unexpected NotStarted state after start attempt for validation {ValidationName}, package: {PackageId} {PackageVersion}",
-                        packageValidation.Type,
-                        packageValidation.PackageValidationSet.PackageId,
-                        packageValidation.PackageValidationSet.PackageNormalizedVersion);
-                }
-                else
-                {
-                    await _validationStorageService.MarkValidationStartedAsync(packageValidation, validationStatus);
-                }
+                    if (validationStatus == ValidationStatus.NotStarted)
+                    {
+                        _logger.LogWarning("Unexpected NotStarted state after start attempt for validation {ValidationName}, package: {PackageId} {PackageVersion}",
+                            packageValidation.Type,
+                            packageValidation.PackageValidationSet.PackageId,
+                            packageValidation.PackageValidationSet.PackageNormalizedVersion);
+                    }
+                    else
+                    {
+                        await _validationStorageService.MarkValidationStartedAsync(packageValidation, validationStatus);
+                    }
 
-                tryMoreValidations = tryMoreValidations || validationStatus == ValidationStatus.Succeeded;
+                    tryMoreValidations = tryMoreValidations || validationStatus == ValidationStatus.Succeeded;
+                }
             }
 
             return tryMoreValidations;
