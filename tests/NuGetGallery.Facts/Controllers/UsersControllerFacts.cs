@@ -1605,26 +1605,51 @@ namespace NuGetGallery
                 Assert.True(user.Credentials.Contains(cred));
             }
 
+            public static IEnumerable<object[]> GivenANonScopedApiKeyCredential_ReturnsUnsupported_Input
+            {
+                get
+                {
+                    return new[]
+                    {
+                        new object[]
+                        {
+                            TestCredentialHelper.CreateV1ApiKey(Guid.NewGuid(), TimeSpan.FromDays(1))
+                        },
+                        new object[]
+                        {
+                            TestCredentialHelper.CreateExternalCredential("abc")
+                        },
+                        new object[]
+                        {
+                            TestCredentialHelper.CreateSha1Password("abcd")
+                        }
+                    };
+                }
+            }
+
             [Theory]
-            [InlineData(CredentialTypes.ApiKey.V1)]
-            [InlineData(CredentialTypes.Password.V3)]
-            [InlineData(CredentialTypes.ExternalPrefix + "bla")]
-            public async Task GivenANonApiKeyV2Credential_ReturnsUnsupported(string credentialType)
+            [MemberData(nameof(GivenANonScopedApiKeyCredential_ReturnsUnsupported_Input))]
+            public async Task GivenANonScopedApiKeyCredential_ReturnsUnsupported(Credential credential)
             {
                 // Arrange
+                var fakes = Get<Fakes>();
+                var user = fakes.CreateUser("test", credential);
+                credential.Key = 1;
+
                 var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
 
                 // Act
                 var result = await controller.RegenerateCredential(
-                    credentialType: credentialType,
-                    credentialKey: CredentialKey);
+                    credentialType: credential.Type,
+                    credentialKey: credential.Key);
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
                 Assert.True(string.Compare((string)result.Data, Strings.Unsupported) == 0);
             }
 
-            public static IEnumerable<object[]> RegenerateApiKeyCredential_Input
+            public static IEnumerable<object[]> GivenValidRequest_ItGeneratesNewCredAndRemovesOldCredAndSendsNotificationToUser_Input
             {
                 get
                 {
@@ -1653,7 +1678,7 @@ namespace NuGetGallery
                 }
             }
 
-            [MemberData(nameof(RegenerateApiKeyCredential_Input))]
+            [MemberData(nameof(GivenValidRequest_ItGeneratesNewCredAndRemovesOldCredAndSendsNotificationToUser_Input))]
             [Theory]
             public async Task GivenValidRequest_ItGeneratesNewCredAndRemovesOldCredAndSendsNotificationToUser(
                 string description, Scope[] scopes)
@@ -1726,20 +1751,44 @@ namespace NuGetGallery
 
         public class TheEditCredentialAction : TestContainer
         {
+            public static IEnumerable<object[]> GivenANonApiKeyV2Credential_ReturnsUnsupported_Input
+            {
+                get
+                {
+                    return new[]
+                    {
+                        new object[]
+                        {
+                            TestCredentialHelper.CreateV1ApiKey(Guid.NewGuid(), TimeSpan.FromDays(1))
+                        },
+                        new object[]
+                        {
+                            TestCredentialHelper.CreateExternalCredential("abc")
+                        },
+                        new object[]
+                        {
+                            TestCredentialHelper.CreateSha1Password("abcd")
+                        }
+                    };
+                }
+            }
 
             [Theory]
-            [InlineData(CredentialTypes.ApiKey.V1)]
-            [InlineData(CredentialTypes.Password.V3)]
-            [InlineData(CredentialTypes.ExternalPrefix + "bla")]
-            public async Task GivenANonApiKeyV2Credential_ReturnsUnsupported(string credentialType)
+            [MemberData(nameof(GivenANonApiKeyV2Credential_ReturnsUnsupported_Input))]
+            public async Task GivenANonApiKeyV2Credential_ReturnsUnsupported(Credential credential)
             {
                 // Arrange
+                var fakes = Get<Fakes>();
+                var user = fakes.CreateUser("test", credential);
+                credential.Key = 1;
+
                 var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
 
                 // Act
                 var result = await controller.EditCredential(
-                    credentialType: credentialType,
-                    credentialKey: CredentialKey,
+                    credentialType: credential.Type,
+                    credentialKey: credential.Key,
                     subjects: new[] { "a", "b" });
 
                 // Assert

@@ -648,12 +648,6 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<JsonResult> RegenerateCredential(string credentialType, int? credentialKey)
         {
-            if (credentialType != CredentialTypes.ApiKey.V2)
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(Strings.Unsupported);
-            }
-
             var user = GetCurrentUser();
             var cred = user.Credentials.SingleOrDefault(
                 c => string.Equals(c.Type, credentialType, StringComparison.OrdinalIgnoreCase)
@@ -663,6 +657,12 @@ namespace NuGetGallery
             {
                 Response.StatusCode = (int)HttpStatusCode.NotFound;
                 return Json(Strings.CredentialNotFound);
+            }
+
+            if (!cred.IsScopedApiKey())
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.Unsupported);
             }
            
             var newCredential = await GenerateApiKeyInternal(
@@ -749,12 +749,6 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<JsonResult> EditCredential(string credentialType, int? credentialKey, string[] subjects)
         {
-            if (credentialType != CredentialTypes.ApiKey.V2)
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(Strings.Unsupported);
-            }
-
             var user = GetCurrentUser();
             var cred = user.Credentials.SingleOrDefault(
                 c => string.Equals(c.Type, credentialType, StringComparison.OrdinalIgnoreCase)
@@ -764,6 +758,12 @@ namespace NuGetGallery
             {
                 Response.StatusCode = (int)HttpStatusCode.NotFound;
                 return Json(Strings.CredentialNotFound);
+            }
+
+            if (!cred.IsScopedApiKey())
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.Unsupported);
             }
 
             var scopeOwner = cred.Scopes.GetOwnerScope();
