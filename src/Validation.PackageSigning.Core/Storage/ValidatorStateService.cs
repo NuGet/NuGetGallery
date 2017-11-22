@@ -74,13 +74,26 @@ namespace NuGet.Jobs.Validation.PackageSigning.Storage
             return status;
         }
 
+        public Task<ValidatorStatus> GetStatusAsync(Guid validationId)
+        {
+            return _validationContext
+                .ValidatorStatuses
+                .Where(s => s.ValidationId == validationId)
+                .FirstOrDefaultAsync();
+        }
+
         public Task<bool> IsRevalidationRequestAsync(IValidationRequest request)
+        {
+            return IsRevalidationRequestAsync(request.PackageKey, request.ValidationId);
+        }
+
+        public Task<bool> IsRevalidationRequestAsync(int packageKey, Guid validationId)
         {
             return _validationContext
                         .ValidatorStatuses
-                        .Where(s => s.PackageKey == request.PackageKey)
+                        .Where(s => s.PackageKey == packageKey)
                         .Where(s => s.ValidatorName == _validatorName)
-                        .Where(s => s.ValidationId != request.ValidationId)
+                        .Where(s => s.ValidationId != validationId)
                         .AnyAsync();
         }
 

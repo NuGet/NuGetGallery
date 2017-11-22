@@ -16,6 +16,7 @@ using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
 using NuGet.Jobs.Validation.Common;
+using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
 using NuGet.Services.Configuration;
 using NuGet.Services.KeyVault;
@@ -41,6 +42,7 @@ namespace NuGet.Services.Validation.Orchestrator
         private const string ServiceBusConfigurationSectionName = "ServiceBus";
 
         private const string VcsBindingKey = VcsSectionName;
+        private const string PackageVerificationTopicClientBindingKey = "PackageVerificationTopicClient";
         private const string PackageSigningBindingKey = PackageSigningSectionName;
         private const string PackageCertificatesBindingKey = PackageCertificatesSectionName;
         private const string ValidationStorageBindingKey = "ValidationStorage";
@@ -170,6 +172,10 @@ namespace NuGet.Services.Validation.Orchestrator
             services.AddTransient<IBrokeredMessageSerializer<PackageValidationMessageData>, PackageValidationMessageDataSerializationAdapter>();
             services.AddTransient<IPackageCriteriaEvaluator, PackageCriteriaEvaluator>();
             services.AddTransient<VcsValidator>();
+            services.AddTransient<IPackageSignatureVerificationEnqueuer, PackageSignatureVerificationEnqueuer>();
+            services.AddTransient<IBrokeredMessageSerializer<SignatureValidationMessage>, SignatureValidationMessageSerializer>();
+            services.AddTransient<IValidatorStateService, ValidatorStateService>();
+            services.AddTransient<PackageSigningValidator>();
         }
 
         private static IServiceProvider CreateProvider(IServiceCollection services)
@@ -188,6 +194,14 @@ namespace NuGet.Services.Validation.Orchestrator
                     return cloudStorageAccount;
                 })
                 .Keyed<CloudStorageAccount>(VcsBindingKey);
+            containerBuilder
+                .Register(c =>
+                {
+                    var serviceBusConfiguration = c.Resolve<IOptionsSnapshot<ServiceBusConfiguration>>();
+                    var topicClient = new TopicClientWrapper(serviceBusConfiguration.Value.ConnectionString, serviceBusConfiguration.Value.TopicPath);
+                    return topicClient;
+                })
+                .Keyed<TopicClientWrapper>(PackageVerificationTopicClientBindingKey);
 
             containerBuilder
                 .RegisterType<PackageValidationService>()
@@ -204,6 +218,17 @@ namespace NuGet.Services.Validation.Orchestrator
                     (pi, ctx) => pi.ParameterType == typeof(string),
                     (pi, ctx) => ctx.Resolve<IOptionsSnapshot<VcsConfiguration>>().Value.ContainerName))
                 .As<IPackageValidationAuditor>();
+
+            containerBuilder
+                .RegisterType<PackageSignatureVerificationEnqueuer>()
+                .WithParameter(new ResolvedParameter(
+                    (pi, ctx) => pi.ParameterType == typeof(ITopicClient),
+                    (pi, ctx) => ctx.ResolveKeyed<TopicClientWrapper>(PackageVerificationTopicClientBindingKey)))
+                .WithParameter(new ResolvedParameter(
+                    (pi, ctx) => pi.ParameterType == typeof(IBrokeredMessageSerializer<SignatureValidationMessage>),
+                    (pi, ctx) => ctx.Resolve<SignatureValidationMessageSerializer>()
+                    ))
+                .As<IPackageSignatureVerificationEnqueuer>();
 
             containerBuilder
                 .Register(c => 
