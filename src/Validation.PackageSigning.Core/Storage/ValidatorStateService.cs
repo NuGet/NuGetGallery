@@ -14,8 +14,6 @@ namespace NuGet.Jobs.Validation.PackageSigning.Storage
 {
     public class ValidatorStateService : IValidatorStateService
     {
-        private const int UniqueConstraintViolationErrorCode = 2627;
-
         private readonly IValidationEntitiesContext _validationContext;
         private readonly ILogger<ValidatorStateService> _logger;
         private readonly string _validatorName;
@@ -114,7 +112,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.Storage
 
                 return AddStatusResult.Success;
             }
-            catch (DbUpdateException e) when (IsUniqueConstraintViolationException(e))
+            catch (DbUpdateException e) when (e.IsUniqueConstraintViolationException())
             {
                 return AddStatusResult.StatusAlreadyExists;
             }
@@ -193,18 +191,6 @@ namespace NuGet.Jobs.Validation.PackageSigning.Storage
             }
 
             return desiredState;
-        }
-
-        private static bool IsUniqueConstraintViolationException(DbUpdateException e)
-        {
-            var sqlException = e.GetBaseException() as SqlException;
-
-            if (sqlException != null)
-            {
-                return sqlException.Errors.Cast<SqlError>().Any(error => error.Number == UniqueConstraintViolationErrorCode);
-            }
-
-            return false;
         }
     }
 }

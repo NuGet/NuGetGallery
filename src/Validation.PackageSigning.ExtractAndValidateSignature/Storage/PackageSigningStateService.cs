@@ -2,8 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Data.Entity.Infrastructure;
-using System.Linq;
+using System.Data.Entity;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Validation;
@@ -41,49 +40,33 @@ namespace NuGet.Jobs.Validation.PackageSigning.Storage
                 throw new ArgumentException(nameof(packageVersion));
             }
 
-            // Check for revalidation
-            var currentState = _validationContext.PackageSigningStates.FirstOrDefault(s => s.PackageKey == packageKey);
-            if (isRevalidationRequest && currentState != null)
+            // It is possible this package has already been validated. If so, the package's state will already exist
+            // in the database. Updates to this state should only be requested on explicit revalidation gestures. However,
+            // this invariant may be broken due to message duplication.
+            var signatureState = await _validationContext.PackageSigningStates.FirstOrDefaultAsync(s => s.PackageKey == packageKey);
+
+            if (signatureState != null && !isRevalidationRequest)
             {
-                // Update existing record
-                currentState.SigningStatus = status;
+                return SavePackageSigningStateResult.StatusAlreadyExists;
+            }
+
+            if (signatureState != null)
+            {
+                signatureState.SigningStatus = status;
             }
             else
             {
-                // Insert new record
-                currentState = new PackageSigningState
+                // This package does not have a persisted record for its state. Create a new one.
+                _validationContext.PackageSigningStates.Add(new PackageSigningState
                 {
                     PackageId = packageId,
                     PackageKey = packageKey,
                     PackageNormalizedVersion = NuGetVersion.Parse(packageVersion).ToNormalizedString(),
                     SigningStatus = status
-                };
-
-                _validationContext.PackageSigningStates.Add(currentState);
+                });
             }
 
-            try
-            {
-                await _validationContext.SaveChangesAsync();
-
-                return SavePackageSigningStateResult.Success;
-            }
-            catch (DbUpdateException e) when (e.IsUniqueConstraintViolationException())
-            {
-                return SavePackageSigningStateResult.StatusAlreadyExists;
-            }
-            catch (DbUpdateConcurrencyException e)
-            {
-                _logger.LogWarning(
-                    0,
-                    e,
-                    "Failed to update package signing state for package id {PackageId} version {PackageVersion} to status {NewStatus} due to concurrency exception.",
-                    packageId,
-                    packageVersion,
-                    status);
-
-                return SavePackageSigningStateResult.Stale;
-            }
+            return SavePackageSigningStateResult.Success;
         }
     }
 }

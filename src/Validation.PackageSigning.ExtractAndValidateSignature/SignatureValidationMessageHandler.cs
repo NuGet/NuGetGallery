@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Data.Entity.Infrastructure;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -103,30 +104,66 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
         private async Task<bool> HandleUnsignedPackageAsync(ValidatorStatus validation, SignatureValidationMessage message)
         {
             _logger.LogInformation(
-                        "Package {PackageId} {PackageVersion} is unsigned, no additional validations necessary.",
+                        "Package {PackageId} {PackageVersion} is unsigned, no additional validations necessary for {ValidationId}.",
                         message.PackageId,
-                        message.PackageVersion);
+                        message.PackageVersion,
+                        message.ValidationId);
 
-            var savePackageSigningStateResult = await _packageSigningStateService.TrySetPackageSigningState(
-                validation.PackageKey,
-                message.PackageId,
-                message.PackageVersion,
-                isRevalidationRequest: false,
-                status: PackageSigningStatus.Unsigned);
+            // Update the package's state.
+            // TODO: Determine whether this is a revalidation request.
+            var result = await _packageSigningStateService.TrySetPackageSigningState(
+                            validation.PackageKey,
+                            message.PackageId,
+                            message.PackageVersion,
+                            isRevalidationRequest: false,
+                            status: PackageSigningStatus.Unsigned);
+
+            if (result == SavePackageSigningStateResult.StatusAlreadyExists)
+            {
+                _logger.LogWarning(
+                    "Updates to package signature's state are only allowed on explicit revalidations for package {PackageId} {PackageVersion} for {ValidationId}",
+                    message.PackageId,
+                    message.PackageVersion,
+                    message.ValidationId);
+
+                // The message's request is invalid and no amount of retrying will fix it.
+                // Consume the message.
+                return true;
+            }
 
             validation.State = ValidationStatus.Succeeded;
-            var saveStateResult = await _validatorStateService.SaveStatusAsync(validation);
 
-            // Consume the message if successfully saved state.
-            return saveStateResult == SaveStatusResult.Success;
+            try
+            {
+                var saveStatus = await _validatorStateService.SaveStatusAsync(validation);
+
+                if (saveStatus == SaveStatusResult.Success)
+                {
+                    // Consume the message.
+                    return true;
+                }
+            }
+            catch (DbUpdateException e) when (e.IsUniqueConstraintViolationException())
+            {
+            }
+
+            _logger.LogWarning(
+                "Unable to save to save, requeueing package {PackageId} {PackageVersion} for validation id: {ValidationId}.",
+                message.PackageId,
+                message.PackageVersion,
+                message.ValidationId);
+
+            // Message may be retried.
+            return false;
         }
 
         private async Task<bool> BlockSignedPackageAsync(ValidatorStatus validation, SignatureValidationMessage message)
         {
             _logger.LogInformation(
-                        "Signed package {PackageId} {PackageVersion} is blocked.",
+                        "Signed package {PackageId} {PackageVersion} is blocked for validation {ValidationId}.",
                         message.PackageId,
-                        message.PackageVersion);
+                        message.PackageVersion,
+                        message.ValidationId);
 
             validation.State = ValidationStatus.Failed;
             var saveStateResult = await _validatorStateService.SaveStatusAsync(validation);

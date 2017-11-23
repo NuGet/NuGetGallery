@@ -15,10 +15,5 @@ namespace NuGet.Jobs.Validation.PackageSigning.Storage
         /// exists with the same validation id.
         /// </summary>
         StatusAlreadyExists,
-
-        /// <summary>
-        /// Failed to persist the <see cref="PackageSigningStatus"/> due to a concurrency exception.
-        /// </summary>
-        Stale
     }
 }
