@@ -40,7 +40,7 @@ namespace Validation.Common.Tests
                 Assert.Equal(ValidationResult.Asynchronous, actual);
                 _scanningService.Verify(
                     x => x.CreateVirusScanJobAsync(
-                        _message.Package.DownloadUrl.ToString(),
+                        _message.Package.DownloadUrl.AbsoluteUri,
                         _callbackUrl,
                         $"NuGet - f470b9fb-0243-4f65-8aef-90d93dfe1a03 - NuGet.Versioning 3.4.0-ALPHA",
                         _message.ValidationId),
