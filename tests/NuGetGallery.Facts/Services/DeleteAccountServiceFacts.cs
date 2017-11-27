@@ -4,11 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Authentication;
+using NuGetGallery.Framework;
 using NuGetGallery.Security;
 using Xunit;
 using Moq;
@@ -19,6 +21,57 @@ namespace NuGetGallery.Services
     {
         public class TheDeleteGalleryUserAccountAsyncMethod
         {
+            [Fact]
+            public async Task WhenAccountIsOrganization_DoesNotDelete()
+            {
+                // Arrange
+                var fakes = new Fakes();
+                var testableService = new DeleteAccountTestService(fakes.Organization, fakes.Package);
+                var deleteAccountService = testableService.GetDeleteAccountService();
+
+                // Act
+                var result = await deleteAccountService.DeleteGalleryUserAccountAsync(
+                    fakes.Organization,
+                    fakes.Admin,
+                    "signature",
+                    unlistOrphanPackages: true,
+                    commitAsTransaction: false);
+
+                // Assert
+                Assert.False(result.Success);
+
+                var expected = string.Format(CultureInfo.CurrentCulture,
+                    Strings.AccountDelete_OrganizationDeleteNotImplemented,
+                    fakes.Organization.Username);
+                Assert.Equal(expected, result.Description);
+            }
+
+            [Fact]
+            public async Task WhenAccountIsOrganizationMember_DoesNotDelete()
+            {
+                // Arrange
+                var fakes = new Fakes();
+                var account = fakes.OrganizationCollaborator;
+                var testableService = new DeleteAccountTestService(account, fakes.Package);
+                var deleteAccountService = testableService.GetDeleteAccountService();
+
+                // Act
+                var result = await deleteAccountService.DeleteGalleryUserAccountAsync(
+                    account,
+                    fakes.Admin,
+                    "signature",
+                    unlistOrphanPackages: true,
+                    commitAsTransaction: false);
+
+                // Assert
+                Assert.False(result.Success);
+
+                var expected = string.Format(CultureInfo.CurrentCulture,
+                    Strings.AccountDelete_OrganizationMemberDeleteNotImplemented,
+                    account.Username);
+                Assert.Equal(expected, result.Description);
+            }
+
             [Fact]
             public async Task NullUser()
             {
@@ -246,7 +299,7 @@ namespace NuGetGallery.Services
             private Mock<IPackageService> SetupPackageService()
             {
                 var packageService = new Mock<IPackageService>();
-                packageService.Setup(m => m.FindPackagesByOwner(_user, true)).Returns(_userPackages);
+                packageService.Setup(m => m.FindPackagesByAnyMatchingOwner(_user, true)).Returns(_userPackages);
                 //the .Returns(Task.CompletedTask) to avoid NullRef exception by the Mock infrastructure when invoking async operations
                 packageService.Setup(m => m.MarkPackageUnlistedAsync(It.IsAny<Package>(), true))
                               .Returns(Task.CompletedTask)

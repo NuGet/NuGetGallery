@@ -111,7 +111,7 @@ namespace NuGetGallery
             }
 
             var listPackageItems = _packageService
-                 .FindPackagesByOwner(user, includeUnlisted: true)
+                 .FindPackagesByAnyMatchingOwner(user, includeUnlisted: true)
                  .Select(p => new ListPackageItemViewModel(p))
                  .ToList();
 
@@ -124,7 +124,6 @@ namespace NuGetGallery
                 Packages = listPackageItems,
                 User = user,
                 AccountName = user.Username,
-                HasOrphanPackages = listPackageItems.Any(p => p.Owners.Count <= 1),
                 HasPendingRequests = hasPendingRequest
             };
             
@@ -171,7 +170,7 @@ namespace NuGetGallery
             }
 
             var listPackageItems = _packageService
-                 .FindPackagesByOwner(user, includeUnlisted:true)
+                 .FindPackagesByAnyMatchingOwner(user, includeUnlisted:true)
                  .Select(p => new ListPackageItemViewModel(p))
                  .ToList();
             var model = new DeleteUserAccountViewModel
@@ -179,7 +178,6 @@ namespace NuGetGallery
                 Packages = listPackageItems,
                 User = user,
                 AccountName = user.Username,
-                HasOrphanPackages = listPackageItems.Any(p => p.Owners.Count <= 1)
             };
             return View("DeleteUserAccount", model);
         }
@@ -224,21 +222,34 @@ namespace NuGetGallery
                 .Select(c => new ApiKeyViewModel(c))
                 .ToList();
 
-            // Get package IDs
-            var packageIds = _packageService
-                .FindPackageRegistrationsByOwner(user)
-                .Select(p => p.Id)
-                .OrderBy(i => i)
-                .ToList();
+            // Get package owners (user's self or organizations)
+            var owners = user.Organizations
+                .Select(o => CreateApiKeyOwnerViewModel(
+                    o.Organization,
+                    // todo: move logic for canPushNew to PermissionsService
+                    canPushNew: o.IsAdmin)
+                    ).ToList();
+            owners.Insert(0, CreateApiKeyOwnerViewModel(user, canPushNew: true));
 
             var model = new ApiKeyListViewModel
             {
                 ApiKeys = apiKeys,
                 ExpirationInDaysForApiKeyV1 = _config.ExpirationInDaysForApiKeyV1,
-                PackageIds = packageIds,
+                PackageOwners = owners,
             };
 
             return View("ApiKeys", model);
+        }
+
+        private ApiKeyOwnerViewModel CreateApiKeyOwnerViewModel(User user, bool canPushNew)
+        {
+            return new ApiKeyOwnerViewModel(
+                user.Username,
+                canPushNew,
+                packageIds: _packageService.FindPackageRegistrationsByOwner(user)
+                                .Select(p => p.Id)
+                                .OrderBy(i => i)
+                                .ToList());
         }
 
         [Authorize]
@@ -273,7 +284,7 @@ namespace NuGetGallery
         public virtual ActionResult Packages()
         {
             var user = GetCurrentUser();
-            var packages = _packageService.FindPackagesByOwner(user, includeUnlisted: true)
+            var packages = _packageService.FindPackagesByAnyMatchingOwner(user, includeUnlisted: true)
                 .Select(p => new ListPackageItemViewModel(p)).OrderBy(p => p.Id).ToList();
 
             var incoming = _packageOwnerRequestService.GetPackageOwnershipRequests(newOwner: user);
@@ -323,7 +334,7 @@ namespace NuGetGallery
                     case PasswordResetResultType.Success:
                         return SendPasswordResetEmail(result.User, forgotPassword: true);
                     default:
-                        throw new NotImplementedException($"The passwword reset result type '{result.Type}' is not supported.");
+                        throw new NotImplementedException($"The password reset result type '{result.Type}' is not supported.");
                 }
             }
 
@@ -459,7 +470,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            var packages = _packageService.FindPackagesByOwner(user, includeUnlisted: false)
+            var packages = _packageService.FindPackagesByAnyMatchingOwner(user, includeUnlisted: false)
                 .OrderByDescending(p => p.PackageRegistration.DownloadCount)
                 .Select(p => new ListPackageItemViewModel(p)
                 {
@@ -564,7 +575,12 @@ namespace NuGetGallery
             if (oldPassword == null)
             {
                 // User is requesting a password set email
-                await _authService.GeneratePasswordResetToken(user, Constants.PasswordResetTokenExpirationHours * 60);
+                var resetResultType = await _authService.GeneratePasswordResetToken(user, Constants.PasswordResetTokenExpirationHours * 60);
+                if (resetResultType == PasswordResetResultType.UserNotConfirmed)
+                {
+                    ModelState.AddModelError("ChangePassword", Strings.UserIsNotYetConfirmed);
+                    return AccountView(model);
+                }
 
                 return SendPasswordResetEmail(user, forgotPassword: false);
             }
@@ -632,12 +648,6 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<JsonResult> RegenerateCredential(string credentialType, int? credentialKey)
         {
-            if (credentialType != CredentialTypes.ApiKey.V2)
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(Strings.Unsupported);
-            }
-
             var user = GetCurrentUser();
             var cred = user.Credentials.SingleOrDefault(
                 c => string.Equals(c.Type, credentialType, StringComparison.OrdinalIgnoreCase)
@@ -647,6 +657,12 @@ namespace NuGetGallery
             {
                 Response.StatusCode = (int)HttpStatusCode.NotFound;
                 return Json(Strings.CredentialNotFound);
+            }
+
+            if (!cred.IsScopedApiKey())
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.Unsupported);
             }
            
             var newCredential = await GenerateApiKeyInternal(
@@ -677,12 +693,33 @@ namespace NuGetGallery
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<JsonResult> GenerateApiKey(string description, string[] scopes = null, string[] subjects = null, int? expirationInDays = null)
+        public virtual async Task<JsonResult> GenerateApiKey(string description, string owner, string[] scopes = null, string[] subjects = null, int? expirationInDays = null)
         {
             if (string.IsNullOrWhiteSpace(description))
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return Json(Strings.ApiKeyDescriptionRequired);
+            }
+            if (string.IsNullOrWhiteSpace(owner))
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.ApiKeyOwnerRequired);
+            }
+
+            // Get the owner scope
+            User scopeOwner = _userService.FindByUsername(owner);
+            if (scopeOwner == null)
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.UserNotFound);
+            }
+
+            // todo: move validation logic to PermissionsService
+            var resolvedScopes = BuildScopes(scopeOwner, scopes, subjects);
+            if (!VerifyScopes(scopeOwner, resolvedScopes))
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.ApiKeyScopesNotAllowed);
             }
 
             // Set expiration
@@ -697,7 +734,8 @@ namespace NuGetGallery
                 }
             }
 
-            var newCredential = await GenerateApiKeyInternal(description, BuildScopes(scopes, subjects), expiration);
+            var newCredential = await GenerateApiKeyInternal(description, resolvedScopes, expiration);
+
             var credentialViewModel = _authService.DescribeCredential(newCredential);
             credentialViewModel.Value = newCredential.Value;
 
@@ -711,12 +749,6 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<JsonResult> EditCredential(string credentialType, int? credentialKey, string[] subjects)
         {
-            if (credentialType != CredentialTypes.ApiKey.V2)
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(Strings.Unsupported);
-            }
-
             var user = GetCurrentUser();
             var cred = user.Credentials.SingleOrDefault(
                 c => string.Equals(c.Type, credentialType, StringComparison.OrdinalIgnoreCase)
@@ -728,8 +760,15 @@ namespace NuGetGallery
                 return Json(Strings.CredentialNotFound);
             }
 
+            if (!cred.IsScopedApiKey())
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.Unsupported);
+            }
+
+            var scopeOwner = cred.Scopes.GetOwnerScope();
             var scopes = cred.Scopes.Select(x => x.AllowedAction).Distinct().ToArray();
-            var newScopes = BuildScopes(scopes, subjects);
+            var newScopes = BuildScopes(scopeOwner, scopes, subjects);
 
             await _authService.EditCredentialScopes(user, cred, newScopes);
 
@@ -752,7 +791,32 @@ namespace NuGetGallery
             return newCredential;
         }
 
-        private static IList<Scope> BuildScopes(string[] scopes, string[] subjects)
+        // todo: integrate verification logic into PermissionsService.
+        private bool VerifyScopes(User scopeOwner, IEnumerable<Scope> scopes)
+        {
+            var currentUser = GetCurrentUser();
+
+            // scoped to the user
+            if (currentUser.MatchesUser(scopeOwner))
+            {
+                return true;
+            }
+            // scoped to the user's organization
+            else
+            {
+                var organization = currentUser.Organizations
+                    .Where(o => o.Organization.MatchesUser(scopeOwner))
+                    .FirstOrDefault();
+                if (organization != null)
+                {
+                    return organization.IsAdmin || !scopes.Any(s => s.AllowsActions(NuGetScopes.PackagePush));
+                }
+            }
+
+            return false;
+        }
+
+        private IList<Scope> BuildScopes(User scopeOwner, string[] scopes, string[] subjects)
         {
             var result = new List<Scope>();
 
@@ -768,12 +832,12 @@ namespace NuGetGallery
             {
                 foreach (var scope in scopes)
                 {
-                    result.AddRange(subjectsList.Select(subject => new Scope(subject, scope)));
+                    result.AddRange(subjectsList.Select(subject => new Scope(scopeOwner, subject, scope)));
                 }
             }
             else
             {
-                result.AddRange(subjectsList.Select(subject => new Scope(subject, NuGetScopes.All)));
+                result.AddRange(subjectsList.Select(subject => new Scope(scopeOwner, subject, NuGetScopes.All)));
             }
 
             return result;
@@ -781,9 +845,8 @@ namespace NuGetGallery
 
         private static IList<Scope> BuildScopes(IEnumerable<Scope> scopes)
         {
-            return scopes.Select(scope => new Scope {AllowedAction = scope.AllowedAction, Subject = scope.Subject}).ToList();
+            return scopes.Select(scope => new Scope(scope.Owner, scope.Subject, scope.AllowedAction)).ToList();
         }
-
 
         private async Task<JsonResult> RemoveApiKeyCredential(User user, Credential cred)
         {

@@ -33,7 +33,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
 
         public async Task UploadPackageIfNecessary(string packageName, string version, string minClientVersion, string title, string tags, string description)
         {
-            if (!PackageExists(packageName, version, UrlHelper.V2FeedRootUrl))
+            if (!await _clientSdkHelper.CheckIfPackageVersionExistsInV2AndV3Async(packageName, version))
             {
                 await _clientSdkHelper.UploadNewPackageAndVerify(packageName, version, minClientVersion, title, tags, description);
             }
@@ -41,7 +41,7 @@ namespace NuGetGallery.FunctionalTests.Fluent
 
         public async Task UploadPackageIfNecessary(string packageName, string version, string minClientVersion, string title, string tags, string description, string licenseUrl)
         {
-            if (!PackageExists(packageName, version, UrlHelper.V2FeedRootUrl))
+            if (!await _clientSdkHelper.CheckIfPackageVersionExistsInV2AndV3Async(packageName, version))
             {
                 await _clientSdkHelper.UploadNewPackageAndVerify(packageName, version, minClientVersion, title, tags, description, licenseUrl);
             }
@@ -72,11 +72,6 @@ namespace NuGetGallery.FunctionalTests.Fluent
                 }
             }
             return found;
-        }
-
-        private bool PackageExists(string packageName, string version, string url)
-        {
-            return _clientSdkHelper.CheckIfPackageVersionExistsInSource(packageName, version, url);
         }
 
         public static bool CheckForPackageExistence

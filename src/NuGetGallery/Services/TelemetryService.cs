@@ -22,6 +22,7 @@ namespace NuGetGallery
             public const string PackageReadMeChanged = "PackageReadMeChanged";
             public const string PackagePushNamespaceConflict = "PackagePushNamespaceConflict";
             public const string NewUserRegistration = "NewUserRegistration";
+            public const string CredentialAdded = "CredentialAdded";
         }
 
         private IDiagnosticsSource _diagnosticsSource;
@@ -159,6 +160,16 @@ namespace NuGetGallery
 
         public void TrackNewUserRegistrationEvent(User user, Credential credential)
         {
+            TrackAccountActivityForEvent(Events.NewUserRegistration, user, credential);
+        }
+
+        public void TrackNewCredentialCreated(User user, Credential credential)
+        {
+            TrackAccountActivityForEvent(Events.CredentialAdded, user, credential);
+        }
+
+        private void TrackAccountActivityForEvent(string eventName, User user, Credential credential)
+        {
             if (user == null)
             {
                 throw new ArgumentNullException(nameof(user));
@@ -169,7 +180,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(credential));
             }
 
-            TrackEvent(Events.NewUserRegistration, properties => {
+            TrackEvent(eventName, properties => {
                 properties.Add(ClientVersion, GetClientVersion());
                 properties.Add(ProtocolVersion, GetProtocolVersion());
                 properties.Add(AccountCreationDate, GetAccountCreationDate(user));

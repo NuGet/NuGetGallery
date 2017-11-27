@@ -1272,7 +1272,7 @@ namespace NuGetGallery
             }
             
             var user = _userService.FindByUsername(username);
-            if (!PermissionsService.IsActionAllowed(user, GetCurrentUser(), AccountActions.AcceptPackageOwnershipOnBehalfOf))
+            if (!PermissionsService.IsActionAllowed(user, GetCurrentUser(), AccountActions.ManagePackageOwnershipOnBehalfOf))
             {
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.NotYourRequest));
             }
@@ -1557,9 +1557,7 @@ namespace NuGetGallery
                 {
                     _telemetryService.TraceException(ex);
 
-                    TempData["Message"] = ex.Message;
-
-                    return Json(400, new[] { ex.GetUserSafeMessage() });
+                    return Json(400, new[] { ex.Message });
                 }
 
                 var pendEdit = false;
@@ -1589,7 +1587,16 @@ namespace NuGetGallery
 
                 if (pendEdit)
                 {
-                    _editPackageService.StartEditPackageRequest(package, formData.Edit, currentUser);
+                    try
+                    {
+                        _editPackageService.StartEditPackageRequest(package, formData.Edit, currentUser);
+                    }
+                    catch (EntityException ex)
+                    {
+                        _telemetryService.TraceException(ex);
+
+                        return Json(400, new[] { ex.Message });
+                    }
                 }
 
                 if (!formData.Listed)

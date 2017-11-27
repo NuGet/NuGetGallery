@@ -200,8 +200,9 @@ namespace NuGetGallery.Authentication
                     return null;
                 }
 
-                if (matched.Type == CredentialTypes.ApiKey.V1
-                    && !matched.HasBeenUsedInLastDays(_config.ExpirationInDaysForApiKeyV1))
+                if (CredentialTypes.IsApiKey(matched.Type) &&
+                    !matched.IsScopedApiKey() &&
+                    !matched.HasBeenUsedInLastDays(_config.ExpirationInDaysForApiKeyV1))
                 {
                     // API key credential was last used a long, long time ago - expire it
                     await Auditing.SaveAuditRecordAsync(
@@ -461,6 +462,8 @@ namespace NuGetGallery.Authentication
             await Auditing.SaveAuditRecordAsync(new UserAuditRecord(user, AuditedUserAction.AddCredential, credential));
             user.Credentials.Add(credential);
             await Entities.SaveChangesAsync();
+
+            _telemetryService.TrackNewCredentialCreated(user, credential);
         }
 
         public virtual CredentialViewModel DescribeCredential(Credential credential)
@@ -487,15 +490,19 @@ namespace NuGetGallery.Authentication
                 // Set the description as the value for legacy API keys
                 Description = credential.Description, 
                 Value = kind == CredentialKind.Token && credential.Description == null ? credential.Value : null,
-                Scopes = credential.Scopes.Select(s => new ScopeViewModel(s.Subject, NuGetScopes.Describe(s.AllowedAction))).ToList(),
+                Scopes = credential.Scopes.Select(s => new ScopeViewModel(
+                        s.Owner?.Username ?? credential.User.Username,
+                        s.Subject,
+                        NuGetScopes.Describe(s.AllowedAction)))
+                    .ToList(),
                 ExpirationDuration = credential.ExpirationTicks != null ? new TimeSpan?(new TimeSpan(credential.ExpirationTicks.Value)) : null
             };
 
             credentialViewModel.HasExpired = credential.HasExpired ||
-                                             (credentialViewModel.IsNonScopedV1ApiKey &&
+                                             (credentialViewModel.IsNonScopedApiKey &&
                                               !credential.HasBeenUsedInLastDays(_config.ExpirationInDaysForApiKeyV1));
 
-            credentialViewModel.Description = credentialViewModel.IsNonScopedV1ApiKey
+            credentialViewModel.Description = credentialViewModel.IsNonScopedApiKey
                 ? Strings.NonScopedApiKeyDescription : credentialViewModel.Description;
 
             return credentialViewModel;

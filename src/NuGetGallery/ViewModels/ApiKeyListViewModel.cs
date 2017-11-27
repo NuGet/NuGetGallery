@@ -9,6 +9,6 @@ namespace NuGetGallery
     {
         public IList<ApiKeyViewModel> ApiKeys { get; set; }
         public int ExpirationInDaysForApiKeyV1 { get; set; }
-        public IList<string> PackageIds { get; set; }
+        public IList<ApiKeyOwnerViewModel> PackageOwners { get; set; }
     }
 }

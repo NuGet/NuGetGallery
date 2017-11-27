@@ -138,7 +138,7 @@ namespace NuGetGallery.Extensions
             [Fact]
             public void WhenHasNoOwnerScope_ReturnsFalse()
             {
-                var scope = new Scope(null, "subject", "action");
+                var scope = new Scope((User)null, "subject", "action");
 
                 Assert.False(scope.HasOwnerScope());
             }

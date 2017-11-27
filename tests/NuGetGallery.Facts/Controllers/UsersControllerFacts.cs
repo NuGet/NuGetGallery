@@ -329,7 +329,7 @@ namespace NuGetGallery
                 var controller = GetController<UsersController>();
 
                 var model = new ForgotPasswordViewModel { Email = "user" };
-                
+
                 try
                 {
                     // Act 
@@ -414,7 +414,7 @@ namespace NuGetGallery
                     ConfirmPassword = "pwd",
                     NewPassword = "newpwd"
                 };
-                
+
                 await controller.ResetPassword("user", "token", model, forgot: false);
 
                 GetMock<IMessageService>()
@@ -436,7 +436,7 @@ namespace NuGetGallery
                 Assert.IsType<ViewResult>(result);
 
                 var viewResult = result as ViewResult;
-                Assert.Equal(forgot, viewResult.ViewBag.ForgotPassword); 
+                Assert.Equal(forgot, viewResult.ViewBag.ForgotPassword);
             }
         }
 
@@ -633,12 +633,123 @@ namespace NuGetGallery
                 // Act
                 var result = await controller.GenerateApiKey(
                     description: description,
+                    owner: user.Username,
                     scopes: null,
                     expirationInDays: null);
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
                 Assert.True(string.Compare((string)result.Data, Strings.ApiKeyDescriptionRequired) == 0);
+            }
+
+            [Fact]
+            public async Task WhenScopeOwnerDoesNotMatch_ReturnsBadRequest()
+            {
+                // Arrange 
+                var fakes = new Fakes();
+                var user = fakes.User;
+                var otherUser = fakes.ShaUser;
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername(otherUser.Username))
+                    .Returns(otherUser);
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.GenerateApiKey(
+                    description: "theApiKey",
+                    owner: otherUser.Username,
+                    scopes: new[] { NuGetScopes.PackagePush },
+                    subjects: new[] { "*" },
+                    expirationInDays: null);
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+                Assert.True(string.Compare((string)result.Data, Strings.ApiKeyScopesNotAllowed) == 0);
+            }
+
+            [Theory]
+            [InlineData(true, NuGetScopes.PackagePush)]
+            [InlineData(true, NuGetScopes.PackagePushVersion)]
+            [InlineData(true, NuGetScopes.PackageUnlist)]
+            [InlineData(false, NuGetScopes.PackagePushVersion)]
+            [InlineData(false, NuGetScopes.PackageUnlist)]
+            public async Task WhenScopeOwnerMatchesOrganizationWithPermission_ReturnsSuccess(bool isAdmin, string scope)
+            {
+                // Arrange 
+                var fakes = new Fakes();
+                var user = isAdmin ? fakes.OrganizationAdmin : fakes.OrganizationCollaborator;
+                var orgUser = fakes.Organization;
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername(orgUser.Username))
+                    .Returns(orgUser);
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Arrange & Act
+                var result = await controller.GenerateApiKey(
+                    description: "theApiKey",
+                    owner: orgUser.Username,
+                    scopes: new[] { scope },
+                    subjects: new[] { "*" },
+                    expirationInDays: null);
+
+                // Assert
+                var apiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKey.V2);
+                Assert.NotNull(apiKey);
+            }
+
+            [Theory]
+            [InlineData(false, NuGetScopes.PackagePush)]
+            public async Task WhenScopeOwnerMatchesOrganizationWithoutPermission_ReturnsFailure(bool isAdmin, string scope)
+            {
+                // Arrange 
+                var fakes = new Fakes();
+                var user = isAdmin ? fakes.OrganizationAdmin : fakes.OrganizationCollaborator;
+                var orgUser = fakes.Organization;
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername(orgUser.Username))
+                    .Returns(orgUser);
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Arrange & Act
+                var result = await controller.GenerateApiKey(
+                    description: "theApiKey",
+                    owner: orgUser.Username,
+                    scopes: new[] { scope },
+                    subjects: new[] { "*" },
+                    expirationInDays: null);
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+                Assert.True(string.Compare((string)result.Data, Strings.ApiKeyScopesNotAllowed) == 0);
+            }
+
+            private async Task<JsonResult> GenerateApiKeyForOrganization(bool isAdmin, string scope)
+            {
+                // Arrange 
+                var fakes = new Fakes();
+                var user = fakes.User;
+                var orgUser = fakes.Organization;
+                orgUser.Organizations.First().IsAdmin = isAdmin;
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername(orgUser.Username))
+                    .Returns(orgUser);
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                return await controller.GenerateApiKey(
+                    description: "theApiKey",
+                    owner: orgUser.Username,
+                    scopes: new[] { scope },
+                    subjects: new[] { "*" },
+                    expirationInDays: null);
             }
 
             [InlineData(180, 180)]
@@ -657,14 +768,18 @@ namespace NuGetGallery
 
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername(user.Username))
+                    .Returns(user);
 
                 // Act
                 await controller.GenerateApiKey(
                     description: "my new api key",
-                    scopes: new [] { NuGetScopes.PackageUnlist },
+                    owner: user.Username,
+                    scopes: new[] { NuGetScopes.PackageUnlist },
                     subjects: null,
                     expirationInDays: inputExpirationInDays);
-                
+
                 // Assert
                 var apiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKey.V2);
 
@@ -721,7 +836,7 @@ namespace NuGetGallery
                             new []
                             {
                                 new Scope("*", NuGetScopes.All)
-                            } 
+                            }
                         },
                         new object[]
                         {
@@ -737,13 +852,16 @@ namespace NuGetGallery
                     };
                 }
             }
-                
+
             [MemberData(nameof(CreatesNewApiKeyCredential_Input))]
             [Theory]
             public async Task CreatesNewApiKeyCredential(string description, string[] scopes, string[] subjects, Scope[] expectedScopes)
             {
                 // Arrange 
                 var user = new User("the-username");
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername(user.Username))
+                    .Returns(user);
 
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
@@ -751,6 +869,7 @@ namespace NuGetGallery
                 // Act
                 await controller.GenerateApiKey(
                     description: description,
+                    owner: user.Username,
                     scopes: scopes,
                     subjects: subjects,
                     expirationInDays: null);
@@ -781,11 +900,15 @@ namespace NuGetGallery
 
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername(user.Username))
+                    .Returns(user);
 
                 var result = await controller.GenerateApiKey(
                     description: "description",
-                    scopes: new [] { NuGetScopes.PackageUnlist, NuGetScopes.PackagePush },
-                    subjects: new [] { "a" },
+                    owner: user.Username,
+                    scopes: new[] { NuGetScopes.PackageUnlist, NuGetScopes.PackagePush },
+                    subjects: new[] { "a" },
                     expirationInDays: 90);
 
                 var credentialViewModel = result.Data as ApiKeyViewModel;
@@ -806,9 +929,13 @@ namespace NuGetGallery
 
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername(user.Username))
+                    .Returns(user);
 
                 var result = await controller.GenerateApiKey(
                     description: "description",
+                    owner: user.Username,
                     scopes: new[] { NuGetScopes.PackageUnlist, NuGetScopes.PackagePush },
                     subjects: new[] { "a" },
                     expirationInDays: 90);
@@ -981,14 +1108,14 @@ namespace NuGetGallery
                 {
                     Username = "theUsername",
                     EmailAddress = "test@example.com",
-                    Credentials = new [] { new Credential(CredentialTypes.Password.V3, "abc") }
+                    Credentials = new[] { new Credential(CredentialTypes.Password.V3, "abc") }
                 };
 
                 Credential credential;
                 GetMock<AuthenticationService>()
                     .Setup(u => u.ValidatePasswordCredential(It.IsAny<IEnumerable<Credential>>(), It.IsAny<string>(), out credential))
                     .Returns(false);
-               
+
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
@@ -1004,7 +1131,7 @@ namespace NuGetGallery
                 var result = await controller.ChangeEmail(model);
 
                 Assert.IsType<ViewResult>(result);
-                Assert.IsType<AccountViewModel>(((ViewResult) result).Model);
+                Assert.IsType<AccountViewModel>(((ViewResult)result).Model);
             }
         }
 
@@ -1128,7 +1255,7 @@ namespace NuGetGallery
                 user.Credentials.Add(cred);
                 user.Credentials.Add(new CredentialBuilder()
                     .CreateExternalCredential("MicrosoftAccount", "blorg", "bloog"));
-                
+
                 GetMock<AuthenticationService>()
                     .Setup(a => a.RemoveCredential(user, cred))
                     .Completes()
@@ -1214,6 +1341,32 @@ namespace NuGetGallery
                 // Assert
                 Assert.Equal(TestUtility.GallerySiteRootHttps + "account/setpassword/test/t0k3n", actualConfirmUrl);
                 GetMock<IMessageService>().VerifyAll();
+            }
+
+            [Fact]
+            public async Task GivenNoOldPasswordForUnconfirmedAccount_ItAddsModelError()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var user = fakes.CreateUser("test");
+                user.UnconfirmedEmailAddress = "unconfirmed@example.com";
+                GetMock<AuthenticationService>()
+                    .Setup(a => a.GeneratePasswordResetToken(user, It.IsAny<int>()))
+                    .ReturnsAsync(PasswordResetResultType.UserNotConfirmed);
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                await controller.ChangePassword(new AccountViewModel());
+
+                // Assert
+                var errorMessages = controller
+                    .ModelState["ChangePassword"]
+                    .Errors
+                    .Select(e => e.ErrorMessage)
+                    .ToArray();
+                Assert.Equal(errorMessages, new[] { Strings.UserIsNotYetConfirmed });
             }
         }
 
@@ -1398,7 +1551,8 @@ namespace NuGetGallery
                 // Arrange
                 var fakes = Get<Fakes>();
                 var creds = new Credential[5];
-                for (int i = 0; i < creds.Length; i++) {
+                for (int i = 0; i < creds.Length; i++)
+                {
                     creds[i] = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "bloog" + i);
                     creds[i].Key = i + 1;
                 }
@@ -1451,26 +1605,51 @@ namespace NuGetGallery
                 Assert.True(user.Credentials.Contains(cred));
             }
 
+            public static IEnumerable<object[]> GivenANonScopedApiKeyCredential_ReturnsUnsupported_Input
+            {
+                get
+                {
+                    return new[]
+                    {
+                        new object[]
+                        {
+                            TestCredentialHelper.CreateV1ApiKey(Guid.NewGuid(), TimeSpan.FromDays(1))
+                        },
+                        new object[]
+                        {
+                            TestCredentialHelper.CreateExternalCredential("abc")
+                        },
+                        new object[]
+                        {
+                            TestCredentialHelper.CreateSha1Password("abcd")
+                        }
+                    };
+                }
+            }
+
             [Theory]
-            [InlineData(CredentialTypes.ApiKey.V1)]
-            [InlineData(CredentialTypes.Password.V3)]
-            [InlineData(CredentialTypes.ExternalPrefix + "bla")]
-            public async Task GivenANonApiKeyV2Credential_ReturnsUnsupported(string credentialType)
+            [MemberData(nameof(GivenANonScopedApiKeyCredential_ReturnsUnsupported_Input))]
+            public async Task GivenANonScopedApiKeyCredential_ReturnsUnsupported(Credential credential)
             {
                 // Arrange
+                var fakes = Get<Fakes>();
+                var user = fakes.CreateUser("test", credential);
+                credential.Key = 1;
+
                 var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
 
                 // Act
                 var result = await controller.RegenerateCredential(
-                    credentialType: credentialType,
-                    credentialKey: CredentialKey);
+                    credentialType: credential.Type,
+                    credentialKey: credential.Key);
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
                 Assert.True(string.Compare((string)result.Data, Strings.Unsupported) == 0);
             }
 
-            public static IEnumerable<object[]> RegenerateApiKeyCredential_Input
+            public static IEnumerable<object[]> GivenValidRequest_ItGeneratesNewCredAndRemovesOldCredAndSendsNotificationToUser_Input
             {
                 get
                 {
@@ -1499,7 +1678,7 @@ namespace NuGetGallery
                 }
             }
 
-            [MemberData(nameof(RegenerateApiKeyCredential_Input))]
+            [MemberData(nameof(GivenValidRequest_ItGeneratesNewCredAndRemovesOldCredAndSendsNotificationToUser_Input))]
             [Theory]
             public async Task GivenValidRequest_ItGeneratesNewCredAndRemovesOldCredAndSendsNotificationToUser(
                 string description, Scope[] scopes)
@@ -1519,7 +1698,11 @@ namespace NuGetGallery
                     .Setup(u => u.AddCredential(
                         user,
                         It.Is<Credential>(c => c.Type == CredentialTypes.ApiKey.V2)))
-                    .Callback<User, Credential>((u, c) => u.Credentials.Add(c))
+                    .Callback<User, Credential>((u, c) =>
+                    {
+                        u.Credentials.Add(c);
+                        c.User = u;
+                    })
                     .Completes()
                     .Verifiable();
 
@@ -1568,20 +1751,44 @@ namespace NuGetGallery
 
         public class TheEditCredentialAction : TestContainer
         {
+            public static IEnumerable<object[]> GivenANonApiKeyV2Credential_ReturnsUnsupported_Input
+            {
+                get
+                {
+                    return new[]
+                    {
+                        new object[]
+                        {
+                            TestCredentialHelper.CreateV1ApiKey(Guid.NewGuid(), TimeSpan.FromDays(1))
+                        },
+                        new object[]
+                        {
+                            TestCredentialHelper.CreateExternalCredential("abc")
+                        },
+                        new object[]
+                        {
+                            TestCredentialHelper.CreateSha1Password("abcd")
+                        }
+                    };
+                }
+            }
 
             [Theory]
-            [InlineData(CredentialTypes.ApiKey.V1)]
-            [InlineData(CredentialTypes.Password.V3)]
-            [InlineData(CredentialTypes.ExternalPrefix + "bla")]
-            public async Task GivenANonApiKeyV2Credential_ReturnsUnsupported(string credentialType)
+            [MemberData(nameof(GivenANonApiKeyV2Credential_ReturnsUnsupported_Input))]
+            public async Task GivenANonApiKeyV2Credential_ReturnsUnsupported(Credential credential)
             {
                 // Arrange
+                var fakes = Get<Fakes>();
+                var user = fakes.CreateUser("test", credential);
+                credential.Key = 1;
+
                 var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
 
                 // Act
                 var result = await controller.EditCredential(
-                    credentialType: credentialType,
-                    credentialKey: CredentialKey,
+                    credentialType: credential.Type,
+                    credentialKey: credential.Key,
                     subjects: new[] { "a", "b" });
 
                 // Assert
@@ -1768,11 +1975,11 @@ namespace NuGetGallery
                 // Arrange
                 string userName = "DeletedUser";
                 var controller = GetController<UsersController>();
-           
+
                 var fakes = Get<Fakes>();
                 var testUser = fakes.CreateUser(userName);
                 testUser.IsDeleted = true;
-               
+
                 GetMock<IUserService>()
                     .Setup(stub => stub.FindByUsername(userName))
                     .Returns(testUser);
@@ -1796,7 +2003,7 @@ namespace NuGetGallery
 
                 PackageRegistration packageRegistration = new PackageRegistration();
                 packageRegistration.Owners.Add(testUser);
-                
+
                 Package userPackage = new Package()
                 {
                     Description = "TestPackage",
@@ -1812,15 +2019,15 @@ namespace NuGetGallery
                     .Setup(stub => stub.FindByUsername(userName))
                     .Returns(testUser);
                 GetMock<IPackageService>()
-                    .Setup(stub => stub.FindPackagesByOwner(testUser, It.IsAny<bool>()))
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>()))
                     .Returns(userPackages);
                 GetMock<IPackageService>()
-                    .Setup(stub => stub.FindPackagesByOwner(testUser, It.IsAny<bool>()))
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>()))
                     .Returns(userPackages);
 
                 // act
                 var model = ResultAssert.IsView<DeleteUserAccountViewModel>(controller.Delete(accountName: userName), viewName: "DeleteUserAccount");
-               
+
                 // Assert
                 Assert.Equal(userName, model.AccountName);
                 Assert.Equal<int>(1, model.Packages.Count());
@@ -1859,7 +2066,7 @@ namespace NuGetGallery
 
                 List<Package> userPackages = new List<Package>() { userPackage };
                 List<Issue> issues = new List<Issue>();
-                if ( withPendingIssues )
+                if (withPendingIssues)
                 {
                     issues.Add(new Issue()
                     {
@@ -1874,7 +2081,7 @@ namespace NuGetGallery
                     .Setup(stub => stub.FindByUsername(userName))
                     .Returns(testUser);
                 GetMock<IPackageService>()
-                    .Setup(stub => stub.FindPackagesByOwner(testUser, It.IsAny<bool>()))
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>()))
                     .Returns(userPackages);
                 GetMock<ISupportRequestService>()
                    .Setup(stub => stub.GetIssues(null, null, null, null))
@@ -1917,7 +2124,7 @@ namespace NuGetGallery
                     .Setup(stub => stub.FindByUsername(userName))
                     .Returns(testUser);
                 GetMock<IPackageService>()
-                    .Setup(stub => stub.FindPackagesByOwner(testUser, It.IsAny<bool>()))
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>()))
                     .Returns(userPackages);
                 GetMock<ISupportRequestService>()
                    .Setup(stub => stub.GetIssues(null, null, null, userName))

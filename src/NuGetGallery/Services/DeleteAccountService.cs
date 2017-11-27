@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Transactions;
@@ -71,15 +72,43 @@ namespace NuGetGallery
             {
                 throw new ArgumentNullException(nameof(admin));
             }
-            if(userToBeDeleted.IsDeleted)
+
+            if (userToBeDeleted.IsDeleted)
             {
                 return new DeleteUserAccountStatus()
                 {
                     Success = false,
-                    Description = string.Format(Strings.AccountDelete_AccountAlreadyDeleted, userToBeDeleted.Username),
+                    Description = string.Format(CultureInfo.CurrentCulture,
+                        Strings.AccountDelete_AccountAlreadyDeleted,
+                        userToBeDeleted.Username),
                     AccountName = userToBeDeleted.Username
                 };
             }
+
+            // The deletion of Organization and Organization member accounts is disabled for now.
+            if (userToBeDeleted is Organization)
+            {
+                return new DeleteUserAccountStatus()
+                {
+                    Success = false,
+                    Description = string.Format(CultureInfo.CurrentCulture,
+                        Strings.AccountDelete_OrganizationDeleteNotImplemented,
+                        userToBeDeleted.Username),
+                    AccountName = userToBeDeleted.Username
+                };
+            }
+            else if (userToBeDeleted.Organizations.Any())
+            {
+                return new DeleteUserAccountStatus()
+                {
+                    Success = false,
+                    Description = string.Format(CultureInfo.CurrentCulture,
+                        Strings.AccountDelete_OrganizationMemberDeleteNotImplemented,
+                        userToBeDeleted.Username),
+                    AccountName = userToBeDeleted.Username
+                };
+            }
+
             try
             {
                 if (commitAsTransaction)
@@ -99,7 +128,9 @@ namespace NuGetGallery
                 return new DeleteUserAccountStatus()
                 {
                     Success = true,
-                    Description = string.Format(Strings.AccountDelete_Success, userToBeDeleted.Username),
+                    Description = string.Format(CultureInfo.CurrentCulture,
+                        Strings.AccountDelete_Success,
+                        userToBeDeleted.Username),
                     AccountName = userToBeDeleted.Username
                 };
             }
@@ -109,7 +140,9 @@ namespace NuGetGallery
                 return new DeleteUserAccountStatus()
                 {
                     Success = true,
-                    Description = string.Format(Strings.AccountDelete_Fail, userToBeDeleted.Username, e),
+                    Description = string.Format(CultureInfo.CurrentCulture,
+                        Strings.AccountDelete_Fail,
+                        userToBeDeleted.Username, e),
                     AccountName = userToBeDeleted.Username
                 };
             }
@@ -117,7 +150,7 @@ namespace NuGetGallery
 
         private async Task DeleteGalleryUserAccountImplAsync(User userToBeDeleted, User admin, string signature, bool unlistOrphanPackages)
         {
-            var ownedPackages = _packageService.FindPackagesByOwner(userToBeDeleted, includeUnlisted: true).ToList();
+            var ownedPackages = _packageService.FindPackagesByAnyMatchingOwner(useToBeDeleted, includeUnlisted: true).ToList();
 
             await RemoveOwnership(userToBeDeleted, admin, unlistOrphanPackages, ownedPackages);
             await RemoveReservedNamespaces(userToBeDeleted);
