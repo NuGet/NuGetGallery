@@ -46,7 +46,7 @@ namespace NuGet.Services.BasicSearchTests.TestSupport
 
         public string GetPackagePath(PackageVersion version)
         {
-            return Path.Combine(_settings.PackageDirectory, $"{version.Id}.{version.Version}.nupkg".ToLower());
+            return Path.Combine(_settings.PackageDirectory, $"{version.Id}.{version.Version}.nupkg".ToLowerInvariant());
         }
 
         private async Task DownloadPackageAsync(PackageVersion version)
@@ -63,7 +63,7 @@ namespace NuGet.Services.BasicSearchTests.TestSupport
                 _packageBaseAddress = await GetPackageBaseAddressAsync();
             }
 
-            string relativeUri = $"{version.Id}/{version.Version}/{version.Id}.{version.Version}.nupkg".ToLower();
+            string relativeUri = $"{version.Id}/{version.Version}/{version.Id}.{version.Version}.nupkg".ToLowerInvariant();
             var requestUri = new Uri(new Uri(_packageBaseAddress, UriKind.Absolute), relativeUri);
             var response = await _client.GetAsync(requestUri);
             if (response.StatusCode != HttpStatusCode.OK)

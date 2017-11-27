@@ -79,6 +79,9 @@ namespace NuGet.IndexingTests
 
                 // dots in prerelease
                 yield return new TestCase("1.0.0-alpha.1");
+
+                // lowercase (invariant)
+                yield return new TestCase("1.0.0-İıIi");
             }
         }
 
