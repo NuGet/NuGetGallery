@@ -4,6 +4,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure.Annotations;
+using System.Threading.Tasks;
 
 namespace NuGet.Services.Validation
 {
@@ -27,23 +28,17 @@ namespace NuGet.Services.Validation
 
         private const string PackageSignaturesTable = "PackageSignatures";
         private const string PackageSignaturesPackageKeyIndex = "IX_PackageSignatures_PackageKey";
-        private const string PackageSignaturesEndCertificateKeyIndex = "IX_PackageSignatures_EndCertificateKey";
+        private const string PackageSignaturesCertificateKeyIndex = "IX_PackageSignatures_CertificateKey";
         private const string PackageSignaturesStatusIndex = "IX_PackageSignatures_Status";
 
         private const string TrustedTimestampsTable = "TrustedTimestamps";
 
-        private const string EndCertificatesTable = "EndCertificates";
-        private const string EndCertificatesThumbprintIndex = "IX_EndCertificates_Thumbprint";
+        private const string CertificatesTable = "Certificates";
+        private const string CertificatesThumbprintIndex = "IX_Certificates_Thumbprint";
 
-        private const string ParentCertificatesTable = "ParentCertificates";
-        private const string ParentCertificatesThumbprintIndex = "IX_ParentCertificates_Thumbprint";
-
-        private const string CertificateChainLinksTable = "CertificateChainLinks";
-        private const string CertificateChainLinkEndCertificateKeyParentCertificateKeyIndex = "IX_CertificateChainLinks_EndCertificateKeyParentCertificateKey";
-
-        private const string EndCertificateValidationsTable = "EndCertificateValidations";
-        private const string EndCertificateValidationsValidationIdIndex = "IX_EndCertificateValidations_ValidationId";
-        private const string EndCertificateValidationsCertificateKeyValidationIdIndex = "IX_EndCertificateValidations_EndCertificateKey_ValidationId";
+        private const string CertificateValidationsTable = "CertificateValidations";
+        private const string CertificateValidationsValidationIdIndex = "IX_CertificateValidations_ValidationId";
+        private const string CertificateValidationsCertificateKeyValidationIdIndex = "IX_CertificateValidations_CertificateKey_ValidationId";
 
         static ValidationEntitiesContext()
         {
@@ -54,13 +49,12 @@ namespace NuGet.Services.Validation
         public IDbSet<PackageValidationSet> PackageValidationSets { get; set; }
         public IDbSet<PackageValidation> PackageValidations { get; set; }
         public IDbSet<ValidatorStatus> ValidatorStatuses { get; set; }
+
         public IDbSet<PackageSigningState> PackageSigningStates { get; set; }
         public IDbSet<PackageSignature> PackageSignatures { get; set; }
         public IDbSet<TrustedTimestamp> TrustedTimestamps { get; set; }
-        public IDbSet<EndCertificate> EndCertificates { get; set; }
-        public IDbSet<EndCertificateValidation> CertificateValidations { get; set; }
-        public IDbSet<ParentCertificate> ParentCertificates { get; set; }
-        public IDbSet<CertificateChainLink> CertificateChainLinks { get; set; }
+        public IDbSet<Certificate> Certificates { get; set; }
+        public IDbSet<CertificateValidation> CertificateValidations { get; set; }
 
         public ValidationEntitiesContext() : this("Validation.SqlServer")
         {
@@ -246,13 +240,13 @@ namespace NuGet.Services.Validation
                     }));
 
             modelBuilder.Entity<PackageSignature>()
-                .Property(s => s.EndCertificateKey)
+                .Property(s => s.CertificateKey)
                 .IsRequired()
                 .HasColumnAnnotation(
                     IndexAnnotation.AnnotationName,
                     new IndexAnnotation(new[]
                     {
-                        new IndexAttribute(PackageSignaturesEndCertificateKeyIndex)
+                        new IndexAttribute(PackageSignaturesCertificateKeyIndex)
                     }));
 
             modelBuilder.Entity<PackageSignature>()
@@ -279,9 +273,9 @@ namespace NuGet.Services.Validation
                 .WillCascadeOnDelete();
 
             modelBuilder.Entity<PackageSignature>()
-                .HasRequired(s => s.EndCertificate)
+                .HasRequired(s => s.Certificate)
                 .WithMany(c => c.PackageSignatures)
-                .HasForeignKey(s => s.EndCertificateKey)
+                .HasForeignKey(s => s.CertificateKey)
                 .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<TrustedTimestamp>()
@@ -293,140 +287,79 @@ namespace NuGet.Services.Validation
                 .HasColumnType("datetime2");
 
             modelBuilder.Entity<TrustedTimestamp>()
-                .HasRequired(s => s.EndCertificate)
+                .HasRequired(s => s.Certificate)
                 .WithMany(c => c.TrustedTimestamps)
-                .HasForeignKey(s => s.EndCertificateKey)
+                .HasForeignKey(s => s.CertificateKey)
                 .WillCascadeOnDelete(false);
 
-            modelBuilder.Entity<EndCertificate>()
-                .ToTable(EndCertificatesTable, SignatureSchema)
+            modelBuilder.Entity<Certificate>()
+                .ToTable(CertificatesTable, SignatureSchema)
                 .HasKey(c => c.Key);
 
-            modelBuilder.Entity<EndCertificate>()
+            modelBuilder.Entity<Certificate>()
                 .Property(c => c.Thumbprint)
-                .HasMaxLength(40)
+                .HasMaxLength(20)
                 .HasColumnType("char")
                 .IsRequired()
                 .HasColumnAnnotation(
                     IndexAnnotation.AnnotationName,
                     new IndexAnnotation(new[]
                     {
-                        new IndexAttribute(EndCertificatesThumbprintIndex)
+                        new IndexAttribute(CertificatesThumbprintIndex)
                         {
                             IsUnique = true,
                         }
                     }));
 
-            modelBuilder.Entity<EndCertificate>()
+            modelBuilder.Entity<Certificate>()
                 .Property(c => c.StatusUpdateTime)
                 .HasColumnType("datetime2");
 
-            modelBuilder.Entity<EndCertificate>()
+            modelBuilder.Entity<Certificate>()
                 .Property(c => c.NextStatusUpdateTime)
                 .HasColumnType("datetime2");
 
-            modelBuilder.Entity<EndCertificate>()
+            modelBuilder.Entity<Certificate>()
                 .Property(c => c.LastVerificationTime)
                 .HasColumnType("datetime2");
 
-            modelBuilder.Entity<EndCertificate>()
+            modelBuilder.Entity<Certificate>()
                 .Property(c => c.RevocationTime)
                 .HasColumnType("datetime2");
 
-            modelBuilder.Entity<EndCertificate>()
+            modelBuilder.Entity<Certificate>()
                 .Property(c => c.RowVersion)
                 .IsRowVersion();
 
-            modelBuilder.Entity<EndCertificate>()
+            modelBuilder.Entity<Certificate>()
                 .HasMany(c => c.Validations)
-                .WithRequired(v => v.EndCertificate)
-                .HasForeignKey(v => v.EndCertificateKey)
+                .WithRequired(v => v.Certificate)
+                .HasForeignKey(v => v.CertificateKey)
                 .WillCascadeOnDelete();
 
-            modelBuilder.Entity<EndCertificate>()
-                .HasMany(c => c.CertificateChainLinks)
-                .WithRequired(v => v.EndCertificate)
-                .HasForeignKey(v => v.EndCertificateKey)
-                .WillCascadeOnDelete();
-
-            modelBuilder.Entity<CertificateChainLink>()
-                .ToTable(CertificateChainLinksTable, SignatureSchema)
-                .HasKey(t => t.Key);
-
-            modelBuilder.Entity<CertificateChainLink>()
-                .Property(v => v.EndCertificateKey)
-                .IsRequired()
-                .HasColumnAnnotation(
-                    IndexAnnotation.AnnotationName,
-                    new IndexAnnotation(new[]
-                    {
-                        new IndexAttribute(CertificateChainLinkEndCertificateKeyParentCertificateKeyIndex, 0)
-                        {
-                            IsUnique = true
-                        }
-                    }));
-
-            modelBuilder.Entity<CertificateChainLink>()
-                .Property(v => v.ParentCertificateKey)
-                .IsRequired()
-                .HasColumnAnnotation(
-                    IndexAnnotation.AnnotationName,
-                    new IndexAnnotation(new[]
-                    {
-                        new IndexAttribute(CertificateChainLinkEndCertificateKeyParentCertificateKeyIndex, 1)
-                        {
-                            IsUnique = true
-                        }
-                    }));
-
-            modelBuilder.Entity<ParentCertificate>()
-                .ToTable(ParentCertificatesTable, SignatureSchema)
-                .HasKey(c => c.Key);
-
-            modelBuilder.Entity<ParentCertificate>()
-                .HasMany(v => v.CertificateChainLinks)
-                .WithRequired(v => v.ParentCertificate)
-                .HasForeignKey(v => v.ParentCertificateKey)
-                .WillCascadeOnDelete();
-
-            modelBuilder.Entity<ParentCertificate>()
-                .Property(c => c.Thumbprint)
-                .HasMaxLength(40)
-                .HasColumnType("char")
-                .IsRequired()
-                .HasColumnAnnotation(
-                    IndexAnnotation.AnnotationName,
-                    new IndexAnnotation(new[]
-                    {
-                        new IndexAttribute(ParentCertificatesThumbprintIndex)
-                        {
-                            IsUnique = true
-                        }
-                    }));
-
-            modelBuilder.Entity<EndCertificateValidation>()
-                .ToTable(EndCertificateValidationsTable, SignatureSchema)
+            modelBuilder.Entity<CertificateValidation>()
+                .ToTable(CertificateValidationsTable, SignatureSchema)
                 .HasKey(v => v.Key);
 
-            modelBuilder.Entity<EndCertificateValidation>()
-                .Property(v => v.EndCertificateKey)
+            modelBuilder.Entity<CertificateValidation>()
+                .Property(v => v.CertificateKey)
                 .IsRequired()
                 .HasColumnAnnotation(
                     IndexAnnotation.AnnotationName,
                     new IndexAnnotation(new[]
                     {
-                        new IndexAttribute(EndCertificateValidationsCertificateKeyValidationIdIndex, 1)
+                        new IndexAttribute(CertificateValidationsCertificateKeyValidationIdIndex, 1)
                     }));
 
-            modelBuilder.Entity<EndCertificateValidation>()
+            modelBuilder.Entity<CertificateValidation>()
                 .Property(v => v.ValidationId)
                 .IsRequired()
                 .HasColumnAnnotation(
                     IndexAnnotation.AnnotationName,
                     new IndexAnnotation(new[]
                     {
-                        new IndexAttribute(EndCertificateValidationsValidationIdIndex),
-                        new IndexAttribute(EndCertificateValidationsCertificateKeyValidationIdIndex, 2)
+                        new IndexAttribute(CertificateValidationsValidationIdIndex),
+                        new IndexAttribute(CertificateValidationsCertificateKeyValidationIdIndex, 2)
                     }));
         }
     }
