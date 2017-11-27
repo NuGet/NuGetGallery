@@ -326,7 +326,7 @@ namespace NuGetGallery.Areas.Admin
             }
             var userCreatedIssues = GetIssues().Where(i => string.Equals(i.CreatedBy, createdBy)).ToList();
             // Delete all the support requests with exception of the delete account request.
-            // For the delete account support request the user data.
+            // For the DeleteAccount support request clean the user data.
             foreach(var issue in userCreatedIssues.Where(i => !string.Equals(i.IssueTitle, Strings.AccountDelete_SupportRequestTitle)))
             {
                 _supportRequestDbContext.Issues.Remove(issue);
