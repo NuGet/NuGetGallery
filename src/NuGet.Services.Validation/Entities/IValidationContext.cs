@@ -11,13 +11,12 @@ namespace NuGet.Services.Validation
         IDbSet<PackageValidationSet> PackageValidationSets { get; }
         IDbSet<PackageValidation> PackageValidations { get; }
         IDbSet<ValidatorStatus> ValidatorStatuses { get; }
+
         IDbSet<PackageSigningState> PackageSigningStates { get; }
         IDbSet<PackageSignature> PackageSignatures { get; }
         IDbSet<TrustedTimestamp> TrustedTimestamps { get; }
-        IDbSet<EndCertificate> EndCertificates { get; }
-        IDbSet<EndCertificateValidation> CertificateValidations { get; }
-        IDbSet<CertificateChainLink> CertificateChainLinks { get; }
-        IDbSet<ParentCertificate> ParentCertificates { get; }
+        IDbSet<Certificate> Certificates { get; }
+        IDbSet<CertificateValidation> CertificateValidations { get; }
 
         Task<int> SaveChangesAsync();
     }
