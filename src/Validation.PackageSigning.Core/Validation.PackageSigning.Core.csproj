@@ -38,10 +38,10 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NuGet.Services.ServiceBus">
-      <Version>2.4.2</Version>
+      <Version>2.4.3</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation">
-      <Version>2.4.2</Version>
+      <Version>2.4.3</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
