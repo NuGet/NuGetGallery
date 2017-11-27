@@ -40,9 +40,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Entities\Certificate.cs" />
-    <Compile Include="Entities\CertificateStatus.cs" />
-    <Compile Include="Entities\CertificateValidation.cs" />
+    <Compile Include="Entities\CertificateChainLink.cs" />
+    <Compile Include="Entities\EndCertificate.cs" />
+    <Compile Include="Entities\EndCertificateStatus.cs" />
+    <Compile Include="Entities\EndCertificateValidation.cs" />
     <Compile Include="Entities\IValidationContext.cs" />
     <Compile Include="Entities\PackageSigningState.cs" />
     <Compile Include="Entities\PackageSignature.cs" />
@@ -50,6 +51,7 @@
     <Compile Include="Entities\PackageSigningStatus.cs" />
     <Compile Include="Entities\PackageValidation.cs" />
     <Compile Include="Entities\PackageValidationSet.cs" />
+    <Compile Include="Entities\ParentCertificate.cs" />
     <Compile Include="Entities\TrustedTimestamp.cs" />
     <Compile Include="Entities\ValidationContext.cs" />
     <Compile Include="Entities\ValidatorStatus.cs" />
@@ -60,9 +62,9 @@
     <Compile Include="Migrations\201709202218143_AddValidationSchema.Designer.cs">
       <DependentUpon>201709202218143_AddValidationSchema.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201710191647050_AddPackageSigningSchema.cs" />
-    <Compile Include="Migrations\201710191647050_AddPackageSigningSchema.Designer.cs">
-      <DependentUpon>201710191647050_AddPackageSigningSchema.cs</DependentUpon>
+    <Compile Include="Migrations\201711171804026_AddPackageSigningSchema.cs" />
+    <Compile Include="Migrations\201711171804026_AddPackageSigningSchema.Designer.cs">
+      <DependentUpon>201711171804026_AddPackageSigningSchema.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\ValidationMigrationsConfiguration.cs" />
     <Compile Include="PackageValidationEnqueuer.cs" />
@@ -70,6 +72,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.*.cs" />
     <Compile Include="ServiceBusMessageSerializer.cs" />
+    <Compile Include="ValidationResult.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -89,8 +92,8 @@
     <EmbeddedResource Include="Migrations\201709202218143_AddValidationSchema.resx">
       <DependentUpon>201709202218143_AddValidationSchema.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201710191647050_AddPackageSigningSchema.resx">
-      <DependentUpon>201710191647050_AddPackageSigningSchema.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201711171804026_AddPackageSigningSchema.resx">
+      <DependentUpon>201711171804026_AddPackageSigningSchema.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

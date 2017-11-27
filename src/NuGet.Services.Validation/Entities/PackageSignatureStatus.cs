@@ -23,7 +23,7 @@ namespace NuGet.Services.Validation
         /// <summary>
         /// A signature is considered to be in its "grace period" if one of its certificate's status is unknown OR
         /// its last known status is older than the signature itself. In other words, a signature is in
-        /// its grace period if one or more the signature's <see cref="Certificate"/>s' "StatusUpdateTime" is before
+        /// its grace period if one or more the signature's <see cref="EndCertificate"/>s' "StatusUpdateTime" is before
         /// <see cref="PackageSignature"/>'s "SignedAt".
         /// </summary>
         InGracePeriod = 2,
