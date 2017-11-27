@@ -292,11 +292,17 @@ namespace NuGetGallery
                 },
                 new ListPackageOwnerViewModel(user)
                 {
-                    CanManagePackageOwners = PermissionsService.IsActionAllowed(user, user, PackageActions.ManagePackageOwners)
+                    CanManagePackageOwners = PermissionsService.IsActionAllowed(
+                        account: user,
+                        currentUser: user,
+                        action: PackageActions.ManagePackageOwners)
                 }
             }.Concat(user.Organizations.Select(o => new ListPackageOwnerViewModel(o.Organization)
             {
-                CanManagePackageOwners = PermissionsService.IsActionAllowed(o.Organization, user, PackageActions.ManagePackageOwners)
+                CanManagePackageOwners = PermissionsService.IsActionAllowed(
+                    account: o.Organization,
+                    currentUser: user,
+                    action: PackageActions.ManagePackageOwners)
             }));
 
             var packages = _packageService.FindPackagesByAnyMatchingOwner(user, includeUnlisted: true);
