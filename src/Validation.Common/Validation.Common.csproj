@@ -105,11 +105,11 @@
     <Reference Include="NuGet.ApplicationInsights.Owin, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.ApplicationInsights.Owin.4.1.0\lib\net452\NuGet.ApplicationInsights.Owin.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Services.KeyVault, Version=2.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.KeyVault.2.2.3\lib\net45\NuGet.Services.KeyVault.dll</HintPath>
+    <Reference Include="NuGet.Services.KeyVault, Version=2.4.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.KeyVault.2.4.2\lib\net45\NuGet.Services.KeyVault.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Services.Logging, Version=2.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.Logging.2.2.3\lib\net452\NuGet.Services.Logging.dll</HintPath>
+    <Reference Include="NuGet.Services.Logging, Version=2.4.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.Logging.2.4.2\lib\net452\NuGet.Services.Logging.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Services.VirusScanning.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Services.VirusScanning.Vcs.3.2.0\lib\net452\NuGet.Services.VirusScanning.Core.dll</HintPath>
