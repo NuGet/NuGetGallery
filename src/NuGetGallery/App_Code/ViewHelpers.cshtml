@@ -236,6 +236,16 @@
         });
 }
 
+@helper UserLinkWithIcon(UrlHelper url, User user) {
+    <span class="ms-noWrap">
+        @if (user is Organization)
+        {
+            <i class="ms-Icon ms-Icon--Group" aria-hidden="true"></i>
+        }
+        <a href="@url.User(user.Username)">@user.Username</a>
+    </span>
+}
+
 @helper WriteMeta(string name, string val) {
     if(!String.IsNullOrEmpty(val)) {
         <meta name="deployment-@name" content="@val" />

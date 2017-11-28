@@ -200,8 +200,9 @@ namespace NuGetGallery.Authentication
                     return null;
                 }
 
-                if (matched.Type == CredentialTypes.ApiKey.V1
-                    && !matched.HasBeenUsedInLastDays(_config.ExpirationInDaysForApiKeyV1))
+                if (CredentialTypes.IsApiKey(matched.Type) &&
+                    !matched.IsScopedApiKey() &&
+                    !matched.HasBeenUsedInLastDays(_config.ExpirationInDaysForApiKeyV1))
                 {
                     // API key credential was last used a long, long time ago - expire it
                     await Auditing.SaveAuditRecordAsync(
@@ -498,10 +499,10 @@ namespace NuGetGallery.Authentication
             };
 
             credentialViewModel.HasExpired = credential.HasExpired ||
-                                             (credentialViewModel.IsNonScopedV1ApiKey &&
+                                             (credentialViewModel.IsNonScopedApiKey &&
                                               !credential.HasBeenUsedInLastDays(_config.ExpirationInDaysForApiKeyV1));
 
-            credentialViewModel.Description = credentialViewModel.IsNonScopedV1ApiKey
+            credentialViewModel.Description = credentialViewModel.IsNonScopedApiKey
                 ? Strings.NonScopedApiKeyDescription : credentialViewModel.Description;
 
             return credentialViewModel;

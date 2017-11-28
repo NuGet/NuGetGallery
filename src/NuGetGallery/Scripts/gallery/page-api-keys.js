@@ -87,7 +87,7 @@
                 this.Description(data.Description || null);
                 this.Expires(data.Expires || null);
                 this.HasExpired(data.HasExpired || false);
-                this.IsNonScopedV1ApiKey(data.IsNonScopedV1ApiKey || false);
+                this.IsNonScopedApiKey(data.IsNonScopedApiKey || false);
                 this.Owner(data.Owner || null);
                 this.Scopes(data.Scopes || []);
                 this.Packages(data.Packages || []);
@@ -100,7 +100,7 @@
             this.Description = ko.observable();
             this.Expires = ko.observable();
             this.HasExpired = ko.observable();
-            this.IsNonScopedV1ApiKey = ko.observable();
+            this.IsNonScopedApiKey = ko.observable();
             this.Owner = ko.observable();
             this.Scopes = ko.observableArray();
             this.Packages = ko.observableArray();
@@ -184,7 +184,7 @@
             this.IconUrl = ko.pureComputed(function () {
                 if (this.HasExpired()) {
                     return initialData.ImageUrls.ApiKeyExpired;
-                } else if (this.IsNonScopedV1ApiKey()) {
+                } else if (this.IsNonScopedApiKey()) {
                     return initialData.ImageUrls.ApiKeyLegacy;
                 } else if (this.Value()) {
                     return initialData.ImageUrls.ApiKeyNew;
@@ -196,7 +196,7 @@
                 var url;
                 if (this.HasExpired()) {
                     url = initialData.ImageUrls.ApiKeyExpiredFallback;
-                } else if (this.IsNonScopedV1ApiKey()) {
+                } else if (this.IsNonScopedApiKey()) {
                     url =  initialData.ImageUrls.ApiKeyLegacyFallback;
                 } else if (this.Value()) {
                     url =  initialData.ImageUrls.ApiKeyNewFallback;
