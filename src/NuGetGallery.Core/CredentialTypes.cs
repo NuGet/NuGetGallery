@@ -55,9 +55,9 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="credential"></param>
         /// <returns></returns>
-        public static bool IsSupportedCredential(this Credential credential)
+        public static bool IsSupportedCredential(Credential credential)
         {
-            return credential.IsViewSupportedCredential() || IsPackageVerificationApiKey(credential.Type);
+            return IsViewSupportedCredential(credential) || IsPackageVerificationApiKey(credential.Type);
         }
 
         /// <summary>
@@ -66,15 +66,10 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="credential"></param>
         /// <returns></returns>
-        public static bool IsViewSupportedCredential(this Credential credential)
+        public static bool IsViewSupportedCredential(Credential credential)
         {
             return SupportedCredentialTypes.Any(credType => string.Compare(credential.Type, credType, StringComparison.OrdinalIgnoreCase) == 0)
                     || credential.Type.StartsWith(ExternalPrefix, StringComparison.OrdinalIgnoreCase);
-        }
-
-        public static bool IsScopedApiKey(this Credential credential)
-        {
-            return IsApiKey(credential.Type) && credential.Scopes != null && credential.Scopes.Any();
         }
     }
 }

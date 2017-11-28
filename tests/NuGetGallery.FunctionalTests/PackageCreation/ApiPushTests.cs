@@ -19,11 +19,9 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
     public class ApiPushTests : GalleryTestBase
     {
         private const int TaskCount = 16;
-        private readonly ClientSdkHelper _clientSdkHelper;
 
         public ApiPushTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
         {
-            _clientSdkHelper = new ClientSdkHelper(TestOutputHelper);
         }
 
         [Fact]
@@ -68,9 +66,6 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
                     {
                         TestOutputHelper.WriteLine($"Task {taskIndex:D2} push:     HTTP {(int)statusCodes[taskIndex - 1]}");
                     }
-
-                    // Wait for the packages to be available in V2 (due to async validation)
-                    await _clientSdkHelper.VerifyPackageExistsInV2Async(packageId, packageVersion);
 
                     var downloadUrl = $"{UrlHelper.V2FeedRootUrl}package/{packageId}/{packageVersion}";
                     using (var response = await client.GetAsync(downloadUrl))

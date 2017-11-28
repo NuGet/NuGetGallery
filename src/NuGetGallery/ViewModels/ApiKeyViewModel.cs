@@ -54,14 +54,14 @@ namespace NuGetGallery
             Description = cred.Description;
             Expires = cred.Expires?.ToString("O");
             HasExpired = cred.HasExpired;
-            IsNonScopedApiKey = cred.IsNonScopedApiKey;
+            IsNonScopedV1ApiKey = cred.IsNonScopedV1ApiKey;
             Owner = owner;
             Scopes = scopes;
             Packages = packages;
             GlobPattern = globPattern;
         }
 
-        public bool IsNonScopedApiKey { get; set; }
+        public bool IsNonScopedV1ApiKey { get; set; }
         public bool HasExpired { get; set; }
         public string Expires { get; set; }
         public string Owner { get; set; }

@@ -916,124 +916,92 @@ namespace NuGetGallery
             }
         }
 
-        public class TheFindPackagesByAnyMatchingOwnerMethod : TestContainer
+        public class TheFindPackagesByOwnerMethod : TestContainer
         {
-            public static IEnumerable<object[]> TestData_PackageOwnerVariants
+            [Fact]
+            public void ReturnsAListedPackage()
             {
-                get
-                {
-                    var organization = new Organization { Username = "organization" };
-
-                    var admin = new User { Username = "admin" };
-                    var adminMembership = new Membership
-                    {
-                        Organization = organization,
-                        Member = admin,
-                        IsAdmin = true
-                    };
-                    organization.Members.Add(adminMembership);
-                    admin.Organizations.Add(adminMembership);
-
-                    var collaborator = new User { Username = "collaborator" };
-                    var collaboratorMembership = new Membership
-                    {
-                        Organization = organization,
-                        Member = admin,
-                        IsAdmin = false
-                    };
-                    organization.Members.Add(collaboratorMembership);
-                    collaborator.Organizations.Add(collaboratorMembership);
-
-                    yield return new object[] { admin, admin };
-                    yield return new object[] { admin, organization };
-                    yield return new object[] { collaborator, organization };
-                }
-            }
-
-            [Theory]
-            [MemberData(nameof(TestData_PackageOwnerVariants))]
-            public void ReturnsAListedPackage(User currentUser, User packageOwner)
-            {
-                var packageRegistration = new PackageRegistration { Id = "theId", Owners = { packageOwner } };
+                var owner = new User { Username = "someone" };
+                var packageRegistration = new PackageRegistration { Id = "theId", Owners = { owner } };
                 var package = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true, IsLatestSemVer2 = true, IsLatestStableSemVer2 = true };
                 packageRegistration.Packages.Add(package);
 
                 var context = GetFakeContext();
-                context.Users.Add(currentUser);
+                context.Users.Add(owner);
                 context.PackageRegistrations.Add(packageRegistration);
                 context.Packages.Add(package);
                 var service = Get<PackageService>();
 
-                var packages = service.FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: false);
+                var packages = service.FindPackagesByOwner(owner, includeUnlisted: false);
                 Assert.Equal(1, packages.Count());
             }
 
-            [Theory]
-            [MemberData(nameof(TestData_PackageOwnerVariants))]
-            public void ReturnsNoUnlistedPackagesWhenIncludeUnlistedIsFalse(User currentUser, User packageOwner)
+            [Fact]
+            public void ReturnsNoUnlistedPackagesWhenIncludeUnlistedIsFalse()
             {
-                var packageRegistration = new PackageRegistration { Id = "theId", Owners = { packageOwner } };
+                var owner = new User { Username = "someone" };
+                var packageRegistration = new PackageRegistration { Id = "theId", Owners = { owner } };
                 var package = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = false, IsLatest = false, IsLatestStable = false };
                 packageRegistration.Packages.Add(package);
 
                 var context = GetFakeContext();
-                context.Users.Add(currentUser);
+                context.Users.Add(owner);
                 context.PackageRegistrations.Add(packageRegistration);
                 context.Packages.Add(package);
                 var service = Get<PackageService>();
 
-                var packages = service.FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: false);
+                var packages = service.FindPackagesByOwner(owner, includeUnlisted: false);
                 Assert.Equal(0, packages.Count());
             }
 
-            [Theory]
-            [MemberData(nameof(TestData_PackageOwnerVariants))]
-            public void ReturnsAnUnlistedPackageWhenIncludeUnlistedIsTrue(User currentUser, User packageOwner)
+            [Fact]
+            public void ReturnsAnUnlistedPackageWhenIncludeUnlistedIsTrue()
             {
-                var packageRegistration = new PackageRegistration { Id = "theId", Owners = { packageOwner } };
+                var owner = new User { Username = "someone" };
+                var packageRegistration = new PackageRegistration { Id = "theId", Owners = { owner } };
                 var package = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = false, IsLatest = false, IsLatestStable = false };
                 packageRegistration.Packages.Add(package);
 
                 var context = GetFakeContext();
-                context.Users.Add(currentUser);
+                context.Users.Add(owner);
                 context.PackageRegistrations.Add(packageRegistration);
                 context.Packages.Add(package);
                 var service = Get<PackageService>();
 
-                var packages = service.FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: true);
+                var packages = service.FindPackagesByOwner(owner, includeUnlisted: true);
                 Assert.Equal(1, packages.Count());
             }
 
-            [Theory]
-            [MemberData(nameof(TestData_PackageOwnerVariants))]
-            public void ReturnsAPackageForEachPackageRegistration(User currentUser, User packageOwner)
+            [Fact]
+            public void ReturnsAPackageForEachPackageRegistration()
             {
-                var packageRegistrationA = new PackageRegistration { Id = "idA", Owners = { packageOwner } };
-                var packageRegistrationB = new PackageRegistration { Id = "idB", Owners = { packageOwner } };
+                var owner = new User { Username = "someone" };
+                var packageRegistrationA = new PackageRegistration { Id = "idA", Owners = { owner } };
+                var packageRegistrationB = new PackageRegistration { Id = "idB", Owners = { owner } };
                 var packageA = new Package { Version = "1.0", PackageRegistration = packageRegistrationA, Listed = true, IsLatestSemVer2 = true, IsLatestStableSemVer2 = true };
                 var packageB = new Package { Version = "1.0", PackageRegistration = packageRegistrationB, Listed = true, IsLatestSemVer2 = true, IsLatestStableSemVer2 = true };
                 packageRegistrationA.Packages.Add(packageA);
                 packageRegistrationB.Packages.Add(packageB);
 
                 var context = GetFakeContext();
-                context.Users.Add(currentUser);
+                context.Users.Add(owner);
                 context.PackageRegistrations.Add(packageRegistrationA);
                 context.PackageRegistrations.Add(packageRegistrationB);
                 context.Packages.Add(packageA);
                 context.Packages.Add(packageB);
                 var service = Get<PackageService>();
 
-                var packages = service.FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: false).ToList();
+                var packages = service.FindPackagesByOwner(owner, includeUnlisted: false).ToList();
                 Assert.Equal(2, packages.Count);
                 Assert.Contains(packageA, packages);
                 Assert.Contains(packageB, packages);
             }
 
-            [Theory]
-            [MemberData(nameof(TestData_PackageOwnerVariants))]
-            public void ReturnsOnlyLatestStableSemVer2PackageIfBothExist(User currentUser, User packageOwner)
+            [Fact]
+            public void ReturnsOnlyLatestStableSemVer2PackageIfBothExist()
             {
-                var packageRegistration = new PackageRegistration { Id = "theId", Owners = { packageOwner } };
+                var owner = new User { Username = "someone" };
+                var packageRegistration = new PackageRegistration { Id = "theId", Owners = { owner } };
                 var latestPackage = new Package { Version = "2.0.0-alpha", PackageRegistration = packageRegistration, Listed = true, IsLatest = true };
                 var latestSemVer2Package = new Package { Version = "2.0.0-alpha.1", PackageRegistration = packageRegistration, Listed = true, IsLatestSemVer2 = true };
                 var latestStablePackage = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true, IsLatestStableSemVer2 = true };
@@ -1041,58 +1009,58 @@ namespace NuGetGallery
                 packageRegistration.Packages.Add(latestStablePackage);
 
                 var context = GetFakeContext();
-                context.Users.Add(currentUser);
+                context.Users.Add(owner);
                 context.PackageRegistrations.Add(packageRegistration);
                 context.Packages.Add(latestPackage);
                 context.Packages.Add(latestStablePackage);
                 var service = Get<PackageService>();
 
-                var packages = service.FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: false).ToList();
+                var packages = service.FindPackagesByOwner(owner, includeUnlisted: false).ToList();
                 Assert.Equal(1, packages.Count);
                 Assert.Contains(latestStablePackage, packages);
             }
 
-            [Theory]
-            [MemberData(nameof(TestData_PackageOwnerVariants))]
-            public void ReturnsOnlyLatestStablePackageIfNoLatestStableSemVer2Exist(User currentUser, User packageOwner)
+            [Fact]
+            public void ReturnsOnlyLatestStablePackageIfNoLatestStableSemVer2Exist()
             {
-                var packageRegistration = new PackageRegistration { Id = "theId", Owners = { packageOwner } };
+                var owner = new User { Username = "someone" };
+                var packageRegistration = new PackageRegistration { Id = "theId", Owners = { owner } };
                 var latestPackage = new Package { Version = "2.0.0-alpha", PackageRegistration = packageRegistration, Listed = true, IsLatest = true };
                 var latestStablePackage = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true, IsLatestStable = true };
                 packageRegistration.Packages.Add(latestPackage);
                 packageRegistration.Packages.Add(latestStablePackage);
 
                 var context = GetFakeContext();
-                context.Users.Add(currentUser);
+                context.Users.Add(owner);
                 context.PackageRegistrations.Add(packageRegistration);
                 context.Packages.Add(latestPackage);
                 context.Packages.Add(latestStablePackage);
                 var service = Get<PackageService>();
 
-                var packages = service.FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: false).ToList();
+                var packages = service.FindPackagesByOwner(owner, includeUnlisted: false).ToList();
                 Assert.Equal(1, packages.Count);
                 Assert.Contains(latestStablePackage, packages);
             }
 
-            [Theory]
-            [MemberData(nameof(TestData_PackageOwnerVariants))]
-            public void ReturnsFirstIfMultiplePackagesSetToLatest(User currentUser, User packageOwner)
+            [Fact]
+            public void ReturnsFirstIfMultiplePackagesSetToLatest()
             {
                 // Verify behavior to work around IsLatest concurrency issue: https://github.com/NuGet/NuGetGallery/issues/2514
-                var packageRegistration = new PackageRegistration { Id = "theId", Owners = { packageOwner } };
+                var owner = new User { Username = "someone" };
+                var packageRegistration = new PackageRegistration { Id = "theId", Owners = { owner } };
                 var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true, IsLatest = true, IsLatestStable = true };
                 var package2 = new Package { Version = "2.0", PackageRegistration = packageRegistration, Listed = true, IsLatest = true, IsLatestStable = true };
                 packageRegistration.Packages.Add(package2);
                 packageRegistration.Packages.Add(package1);
 
                 var context = GetFakeContext();
-                context.Users.Add(currentUser);
+                context.Users.Add(owner);
                 context.PackageRegistrations.Add(packageRegistration);
                 context.Packages.Add(package2);
                 context.Packages.Add(package1);
                 var service = Get<PackageService>();
 
-                var packages = service.FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: false);
+                var packages = service.FindPackagesByOwner(owner, includeUnlisted: false);
                 Assert.Equal(1, packages.Count());
                 Assert.Contains(package2, packages);
             }
