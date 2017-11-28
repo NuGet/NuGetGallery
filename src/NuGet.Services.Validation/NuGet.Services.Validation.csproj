@@ -53,7 +53,7 @@
     <Compile Include="Entities\PackageValidationSet.cs" />
     <Compile Include="Entities\ParentCertificate.cs" />
     <Compile Include="Entities\TrustedTimestamp.cs" />
-    <Compile Include="Entities\ValidationContext.cs" />
+    <Compile Include="Entities\ValidationEntitiesContext.cs" />
     <Compile Include="Entities\ValidatorStatus.cs" />
     <Compile Include="IPackageValidationEnqueuer.cs" />
     <Compile Include="IServiceBusMessageSerializer.cs" />
@@ -62,9 +62,9 @@
     <Compile Include="Migrations\201709202218143_AddValidationSchema.Designer.cs">
       <DependentUpon>201709202218143_AddValidationSchema.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201711171804026_AddPackageSigningSchema.cs" />
-    <Compile Include="Migrations\201711171804026_AddPackageSigningSchema.Designer.cs">
-      <DependentUpon>201711171804026_AddPackageSigningSchema.cs</DependentUpon>
+    <Compile Include="Migrations\201711291837076_AddPackageSigningSchema.cs" />
+    <Compile Include="Migrations\201711291837076_AddPackageSigningSchema.Designer.cs">
+      <DependentUpon>201711291837076_AddPackageSigningSchema.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\ValidationMigrationsConfiguration.cs" />
     <Compile Include="PackageValidationEnqueuer.cs" />
@@ -75,7 +75,9 @@
     <Compile Include="ValidationResult.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
+    <None Include="app.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
@@ -92,8 +94,8 @@
     <EmbeddedResource Include="Migrations\201709202218143_AddValidationSchema.resx">
       <DependentUpon>201709202218143_AddValidationSchema.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201711171804026_AddPackageSigningSchema.resx">
-      <DependentUpon>201711171804026_AddPackageSigningSchema.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201711291837076_AddPackageSigningSchema.resx">
+      <DependentUpon>201711291837076_AddPackageSigningSchema.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

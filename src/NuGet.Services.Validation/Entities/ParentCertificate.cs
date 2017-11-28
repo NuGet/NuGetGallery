@@ -15,9 +15,11 @@ namespace NuGet.Services.Validation
         /// The database-mastered identifier for this certificate.
         /// </summary>
         public long Key { get; set; }
-        
+
         /// <summary>
-        /// The SHA1 thumbprint that uniquely identifies this certificate. This is a string with exactly 40 characters.
+        /// The SHA-256 thumbprint (fingerprint) that uniquely identifies this certificate. This is a string with
+        /// exactly 64 characters and is the hexadecimal encoding of the hash digest. Note that the SQL column that
+        /// stores this property allows longer string values to facilitate future hash algorithm changes.
         /// </summary>
         public string Thumbprint { get; set; }
 

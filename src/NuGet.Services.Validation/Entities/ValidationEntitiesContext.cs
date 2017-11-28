@@ -13,6 +13,19 @@ namespace NuGet.Services.Validation
     [DbConfigurationType(typeof(EntitiesConfiguration))]
     public class ValidationEntitiesContext : DbContext, IValidationEntitiesContext
     {
+        /// <summary>
+        /// We use a SHA-256 thumbprint for comparing certificates. This has a digest size of 256 bytes which is 64
+        /// characters long when encoding as a hexadecimal string. However, to be flexible for future hash algorithms,
+        /// we take a larger value so that no schema change will be necessary (hopefully).
+        /// </summary>
+        private const int MaximumThumbprintLength = 256;
+
+        /// <summary>
+        /// Since we encode thumbprints using hexadecimal, NVARCHAR is not necessary. Additionally, we use varchar
+        /// instead of char so that hash algorithm changes do no require schema changes.
+        /// </summary>
+        private const string ThumbprintColumnType = "varchar";
+
         private const string SignatureSchema = "signature";
 
         private const string PackageValidationSetsValidationTrackingId = "IX_PackageValidationSets_ValidationTrackingId";
@@ -304,8 +317,8 @@ namespace NuGet.Services.Validation
 
             modelBuilder.Entity<EndCertificate>()
                 .Property(c => c.Thumbprint)
-                .HasMaxLength(40)
-                .HasColumnType("char")
+                .HasMaxLength(MaximumThumbprintLength)
+                .HasColumnType(ThumbprintColumnType)
                 .IsRequired()
                 .HasColumnAnnotation(
                     IndexAnnotation.AnnotationName,
@@ -391,8 +404,8 @@ namespace NuGet.Services.Validation
 
             modelBuilder.Entity<ParentCertificate>()
                 .Property(c => c.Thumbprint)
-                .HasMaxLength(40)
-                .HasColumnType("char")
+                .HasMaxLength(MaximumThumbprintLength)
+                .HasColumnType(ThumbprintColumnType)
                 .IsRequired()
                 .HasColumnAnnotation(
                     IndexAnnotation.AnnotationName,
