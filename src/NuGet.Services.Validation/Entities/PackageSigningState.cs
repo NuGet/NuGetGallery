@@ -7,7 +7,7 @@ namespace NuGet.Services.Validation
 {
     /// <summary>
     /// The metadata for a package's signing. A package may be signed with one or more <see cref="PackageSignature"/>s
-    /// using one or more <see cref="Certificate"/>s.
+    /// using one or more <see cref="EndCertificate"/>s.
     /// </summary>
     public class PackageSigningState
     {
