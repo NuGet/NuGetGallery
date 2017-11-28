@@ -24,6 +24,7 @@ namespace NuGetGallery
         /// <summary>
         /// Package owner (user or organization) scoping.
         /// </summary>
+        [JsonIgnore]
         public virtual User Owner { get; set; }
 
         /// <summary>
