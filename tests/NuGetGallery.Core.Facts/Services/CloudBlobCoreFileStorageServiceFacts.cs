@@ -541,15 +541,13 @@ namespace NuGetGallery
                 Assert.Equal("endOfAccess", ex.ParamName);
             }
 
-            private const string fileName = "theFileName";
-            private const string signature = "?secret=42";
-
-            [Theory]
-            [InlineData(CoreConstants.ValidationFolderName, "http://example.com/" + CoreConstants.ValidationFolderName + "/" + fileName + signature)]
-            [InlineData(CoreConstants.PackagesFolderName, "http://example.com/" + CoreConstants.PackagesFolderName + "/" + fileName)]
-            public async Task WillUseSasTokenDependingOnContainerAvailability(string containerName, string expectedUri)
+            [Fact]
+            public async Task WillConcatenateSignatureWithUri()
             {
-                var setupResult = Setup(containerName, fileName);
+                const string folderName = CoreConstants.ValidationFolderName;
+                const string fileName = "theFileName";
+                const string signature = "?secret=42";
+                var setupResult = Setup(folderName, fileName);
                 var fakeBlobClient = setupResult.Item1;
                 var fakeBlob = setupResult.Item2;
                 var blobUri = setupResult.Item3;
@@ -557,30 +555,10 @@ namespace NuGetGallery
                 fakeBlob.Setup(b => b.GetSharedReadSignature(It.IsAny<DateTimeOffset?>())).Returns(signature);
                 var service = CreateService(fakeBlobClient);
 
-                var uri = await service.GetFileReadUriAsync(containerName, fileName, DateTimeOffset.Now.AddHours(3));
+                var uri = await service.GetFileReadUriAsync(folderName, fileName, DateTimeOffset.Now.AddHours(3));
 
+                string expectedUri = new Uri(blobUri, signature).AbsoluteUri;
                 Assert.Equal(expectedUri, uri.AbsoluteUri);
-            }
-
-            [Fact]
-            public async Task WillThrowIfNoEndOfAccessSpecifiedForNonPublicContainer()
-            {
-                var service = CreateService();
-
-                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.GetFileReadUriAsync(CoreConstants.ValidationFolderName, "theFileName", null));
-                Assert.Equal("endOfAccess", ex.ParamName);
-            }
-
-            [Fact]
-            public async Task WillNotThrowIfNoEndOfAccessSpecifiedForPublicContainer()
-            {
-                const string packagesFolderName = CoreConstants.PackagesFolderName;
-                var setupResult = Setup(packagesFolderName, fileName);
-                var service = CreateService(setupResult.Item1);
-
-                var ex = await Record.ExceptionAsync(() => service.GetFileReadUriAsync(packagesFolderName, fileName, null));
-
-                Assert.Null(ex);
             }
 
             [Fact]
@@ -611,10 +589,7 @@ namespace NuGetGallery
             {
                 var fakeBlobClient = new Mock<ICloudBlobClient>();
                 var fakeContainer = new Mock<ICloudBlobContainer>();
-                fakeBlobClient
-                    .Setup(bc => bc.GetContainerReference(folderName))
-                    .Returns(fakeContainer.Object)
-                    .Callback(() => { int i = 0; i = i + 1; });
+                fakeBlobClient.Setup(bc => bc.GetContainerReference(folderName)).Returns(fakeContainer.Object);
                 var fakeBlob = new Mock<ISimpleCloudBlob>();
                 fakeContainer.Setup(c => c.GetBlobReference(fileName)).Returns(fakeBlob.Object);
 

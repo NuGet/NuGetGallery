@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet;
-using NuGet.Versioning;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -17,10 +16,6 @@ namespace NuGetGallery.FunctionalTests
     public class ClientSdkHelper
         : HelperBase
     {
-        private static readonly TimeSpan SleepDuration = TimeSpan.FromSeconds(15);
-        private static readonly TimeSpan TotalSleepDuration = TimeSpan.FromMinutes(30);
-        private static readonly int Attempts = (int) (TotalSleepDuration.Ticks / SleepDuration.Ticks);
-
         public ClientSdkHelper(ITestOutputHelper testOutputHelper)
             : base(testOutputHelper)
         {
@@ -64,78 +59,44 @@ namespace NuGetGallery.FunctionalTests
         }
 
         /// <summary>
-        /// Checks if the given package version is present in V2 and V3. This method bypasses the hijack.
+        /// Checks if the given package version is present in the source.
         /// </summary>
-        public async Task<bool> CheckIfPackageVersionExistsInV2Async(string packageId, string version)
+        public bool CheckIfPackageVersionExistsInSource(string packageId, string version, string sourceUrl)
         {
-            var sourceUrl = UrlHelper.V2FeedRootUrl;
-            var normalizedVersion = NuGetVersion.Parse(version).ToNormalizedString();
-            var filter = $"Id eq '{packageId}' and NormalizedVersion eq '{normalizedVersion}' and 1 eq 1";
-            var url = UrlHelper.V2FeedRootUrl + $"/Packages/$count?$filter={Uri.EscapeDataString(filter)}";
-            using (var httpClient = new System.Net.Http.HttpClient())
-            {
-                return await VerifyWithRetryAsync(
-                    $"Verifying that package {packageId} {version} exists on source {sourceUrl} (non-hijacked).",
-                    async () =>
-                    {
-                        var count = int.Parse(await httpClient.GetStringAsync(url));
-                        if (count == 0)
-                        {
-                            return false;
-                        }
-                        else if (count == 1)
-                        {
-                            return true;
-                        }
-                        else
-                        {
-                            Assert.False(true, $"The count returned by {url} was {count} and it should have been 0 or 1.");
-                            return false;
-                        }
-                    });
-            }
-        }
-
-        /// <summary>
-        /// Checks if the given package version is present in V2 and V3. This method depends on V2 hijacking to V3.
-        /// </summary>
-        public async Task<bool> CheckIfPackageVersionExistsInV2AndV3Async(string packageId, string version)
-        {
-            var sourceUrl = UrlHelper.V2FeedRootUrl;
             var repo = PackageRepositoryFactory.Default.CreateRepository(sourceUrl);
-            NuGet.SemanticVersion semVersion = NuGet.SemanticVersion.Parse(version);
+            SemanticVersion semVersion = SemanticVersion.Parse(version);
 
-            return await VerifyWithRetryAsync(
-                $"Verifying that package {packageId} {version} exists on source {sourceUrl} (hijacked).",
+            return VerifyWithRetry(
+                $"Verifying that package {packageId} {version} exists on source {sourceUrl}",
                 () =>
                 {
                     var package = repo.FindPackage(packageId, semVersion);
 
-                    return Task.FromResult(package != null);
+                    return package != null;
                 });
         }
 
-        private async Task<bool> VerifyWithRetryAsync(string actionPhrase, Func<Task<bool>> actionAsync)
+        private bool VerifyWithRetry(string actionPhrase, Func<bool> action)
         {
             bool success = false;
+            const int intervalSec = 30;
+            const int maxAttempts = 30;
 
             try
             {
-                WriteLine($"{actionPhrase} ({Attempts} attempts, interval {SleepDuration.TotalSeconds} seconds).");
+                WriteLine($"{actionPhrase} ({maxAttempts} attempts, interval {intervalSec} seconds).");
 
-                for (var i = 0; i < Attempts && !success; i++)
+                for (var i = 0; i < maxAttempts && !success; i++)
                 {
                     if (i != 0)
                     {
-                        await Task.Delay(SleepDuration);
+                        WriteLine($"[verification attempt {i}]: Waiting {intervalSec} seconds before next check...");
+                        Thread.Sleep(intervalSec * 1000);
                     }
 
                     WriteLine($"[verification attempt {i}]: Executing... ");
-                    success = await actionAsync();
-                    if (success)
-                    {
-                        WriteLine("Successful!");
-                    }
+                    success = action();
+                    WriteLine(success ? "Successful!" : "NOT successful!");
                 }
             }
             catch (Exception ex)
@@ -154,7 +115,7 @@ namespace NuGetGallery.FunctionalTests
         {
             await UploadNewPackage(packageId, version, minClientVersion, title, tags, description, licenseUrl, dependencies);
 
-            await VerifyPackageExistsInV2AndV3Async(packageId, version);
+            VerifyPackageExistsInSource(packageId, version);
         }
 
         public async Task UploadNewPackage(string packageId, string version = "1.0.0", string minClientVersion = null,
@@ -195,7 +156,7 @@ namespace NuGetGallery.FunctionalTests
         {
             await UnlistPackage(packageId, version);
 
-            await VerifyPackageExistsInV2AndV3Async(packageId, version);
+            VerifyPackageExistsInSource(packageId, version);
         }
 
         public async Task UnlistPackage(string packageId, string version = "1.0.0", string apiKey = null)
@@ -220,16 +181,9 @@ namespace NuGetGallery.FunctionalTests
         /// </summary>
         /// <param name="packageId">Id of the package.</param>
         /// <param name="version">Version of the package.</param>
-        public async Task VerifyPackageExistsInV2AndV3Async(string packageId, string version = "1.0.0")
+        public void VerifyPackageExistsInSource(string packageId, string version = "1.0.0")
         {
-            var packageExistsInSource = await CheckIfPackageVersionExistsInV2AndV3Async(packageId, version);
-            Assert.True(packageExistsInSource,
-                $"Package {packageId} with version {version} is not found on the site {UrlHelper.V2FeedRootUrl} and V3.");
-        }
-        
-        public async Task VerifyPackageExistsInV2Async(string packageId, string version)
-        {
-            var packageExistsInSource = await CheckIfPackageVersionExistsInV2Async(packageId, version);
+            var packageExistsInSource = CheckIfPackageVersionExistsInSource(packageId, version, UrlHelper.V2FeedRootUrl);
             Assert.True(packageExistsInSource,
                 $"Package {packageId} with version {version} is not found on the site {UrlHelper.V2FeedRootUrl}.");
         }
@@ -247,7 +201,7 @@ namespace NuGetGallery.FunctionalTests
             return version.ToString();
         }
 
-        public async Task VerifyVersionCountAsync(string packageId, int expectedVersionCount, bool allowPreRelease = true)
+        public void VerifyVersionCount(string packageId, int expectedVersionCount, bool allowPreRelease = true)
         {
             var repo = PackageRepositoryFactory.Default.CreateRepository(SourceUrl);
 
@@ -255,7 +209,7 @@ namespace NuGetGallery.FunctionalTests
             // gallery handles this request, it delegates to the search service. Since the search service can lag being
             // the gallery database (due to the time it takes for packages to make it through the V3 pipeline and into
             // an active Lucene index), we retry the request for a while.
-            Assert.True(await VerifyWithRetryAsync(
+            Assert.True(VerifyWithRetry(
                 $"Verifying count of {packageId} versions is {expectedVersionCount}",
                 () =>
                 {
@@ -268,7 +222,7 @@ namespace NuGetGallery.FunctionalTests
 
                     var versionsDisplay = string.Join(", ", packages.Select(p => p.Version));
                     WriteLine($"{actualVersionCount} versions of {packageId} found: {versionsDisplay}");
-                    return Task.FromResult(actualVersionCount == expectedVersionCount);
+                    return actualVersionCount == expectedVersionCount;
                 }));
         }
 
@@ -299,7 +253,7 @@ namespace NuGetGallery.FunctionalTests
         public static int GetDownLoadStatisticsForPackageVersion(string packageId, string packageVersion)
         {
             var repo = PackageRepositoryFactory.Default.CreateRepository(SourceUrl);
-            var package = repo.FindPackage(packageId, new NuGet.SemanticVersion(packageVersion));
+            var package = repo.FindPackage(packageId, new SemanticVersion(packageVersion));
             return package.DownloadCount;
         }
 
@@ -338,7 +292,7 @@ namespace NuGetGallery.FunctionalTests
         public bool IsPackageVersionUnListed(string packageId, string version)
         {
             IPackageRepository repo = PackageRepositoryFactory.Default.CreateRepository(SourceUrl);
-            IPackage package = repo.FindPackage(packageId, new NuGet.SemanticVersion(version), true, true);
+            IPackage package = repo.FindPackage(packageId, new SemanticVersion(version), true, true);
             if (package != null)
                 return !package.Listed;
             else
@@ -402,7 +356,7 @@ namespace NuGetGallery.FunctionalTests
             var packageRepository = PackageRepositoryFactory.Default.CreateRepository(UrlHelper.V2FeedRootUrl);
             var packageManager = new PackageManager(packageRepository, Environment.CurrentDirectory);
 
-            packageManager.InstallPackage(packageId, new NuGet.SemanticVersion(version));
+            packageManager.InstallPackage(packageId, new SemanticVersion(version));
 
             Assert.True(CheckIfPackageVersionInstalled(packageId, version),
                 "Package install failed. Either the file is not present on disk or it is corrupted. Check logs for details");

@@ -227,9 +227,6 @@ namespace NuGetGallery
                 _packageFileService.Verify(
                     x => x.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()),
                     Times.Once);
-                _packageFileService.Verify(
-                    x => x.SaveValidationPackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()),
-                    Times.Never);
                 _entitiesContext.Verify(
                     x => x.SaveChangesAsync(),
                     Times.Once);
@@ -249,9 +246,6 @@ namespace NuGetGallery
                 _packageFileService.Verify(
                     x => x.SaveValidationPackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()),
                     Times.Once);
-                _packageFileService.Verify(
-                    x => x.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()),
-                    Times.Never);
                 _entitiesContext.Verify(
                     x => x.SaveChangesAsync(),
                     Times.Once);
@@ -276,27 +270,10 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task DoesNotCommitToDatabaseWhenThePackageFileConflicts()
+            public async Task DoesNotCommitToDatabaseWhenTheFileConflicts()
             {
                 _packageFileService
                     .Setup(x => x.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()))
-                    .Throws(_conflictException);
-
-                var result = await _target.CommitPackageAsync(_package, _packageFile);
-
-                _entitiesContext.Verify(
-                    x => x.SaveChangesAsync(),
-                    Times.Never);
-                Assert.Equal(PackageCommitResult.Conflict, result);
-            }
-
-            [Fact]
-            public async Task DoesNotCommitToDatabaseWhenThValidationFileConflicts()
-            {
-                _package.PackageStatusKey = PackageStatus.Validating;
-
-                _packageFileService
-                    .Setup(x => x.SaveValidationPackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()))
                     .Throws(_conflictException);
 
                 var result = await _target.CommitPackageAsync(_package, _packageFile);
@@ -349,36 +326,6 @@ namespace NuGetGallery
                     x => x.DeleteValidationPackageFileAsync(It.IsAny<string>(), It.IsAny<string>()),
                     Times.Once);
                 Assert.Same(_unexpectedException, exception);
-            }
-
-            [Fact]
-            public async Task RejectsUploadWhenValidatingAndPackageExistsInPackagesContainer()
-            {
-                _package.PackageStatusKey = PackageStatus.Validating;
-
-                _packageFileService
-                    .Setup(x => x.DoesPackageFileExistAsync(It.IsAny<Package>()))
-                    .ReturnsAsync(true);
-
-                var result = await _target.CommitPackageAsync(_package, _packageFile);
-                
-                _packageFileService.Verify(
-                    x => x.SaveValidationPackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()),
-                    Times.Once);
-                _packageFileService.Verify(
-                    x => x.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()),
-                    Times.Never);
-                _entitiesContext.Verify(
-                    x => x.SaveChangesAsync(),
-                    Times.Never);
-                _packageFileService.Verify(
-                    x => x.DoesPackageFileExistAsync(It.IsAny<Package>()),
-                    Times.Once);
-                _packageFileService.Verify(
-                    x => x.DeleteValidationPackageFileAsync(It.IsAny<string>(), It.IsAny<string>()),
-                    Times.Once);
-
-                Assert.Equal(PackageCommitResult.Conflict, result);
             }
         }
 

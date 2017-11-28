@@ -61,24 +61,9 @@ namespace NuGetGallery.Framework
             builder.Register(_ =>
                     {
                         var mockService = new Mock<IPackageService>();
-                        
-                        foreach (var packageRegistration in fakes.PackageRegistrations)
-                        {
-                            mockService
-                                .Setup(p => p.FindPackageRegistrationById(packageRegistration.Id))
-                                .Returns(packageRegistration);
-
-                            foreach (var package in packageRegistration.Packages)
-                            {
-                                mockService
-                                    .Setup(p => p.FindPackageByIdAndVersion(
-                                        packageRegistration.Id,
-                                        package.Version,
-                                        It.Is<int?>(x => package.SemVerLevelKey == null || package.SemVerLevelKey == SemVerLevelKey.Unknown || (x != null && package.SemVerLevelKey <= x)),
-                                        It.Is<bool>(x => x || !package.IsPrerelease)))
-                                    .Returns(package);
-                            }
-                        }
+                        mockService
+                            .Setup(p => p.FindPackageRegistrationById(fakes.Package.Id))
+                            .Returns(fakes.Package);
                         return mockService.Object;
                     })
                 .As<IPackageService>()
@@ -87,12 +72,9 @@ namespace NuGetGallery.Framework
             builder.Register(_ =>
             {
                 var mockService = new Mock<IUserService>();
-
-                foreach (var user in fakes.Users)
-                {
-                    mockService.Setup(u => u.FindByUsername(user.Username)).Returns(user);
-                }
-
+                mockService.Setup(u => u.FindByUsername(fakes.User.Username)).Returns(fakes.User);
+                mockService.Setup(u => u.FindByUsername(fakes.Owner.Username)).Returns(fakes.Owner);
+                mockService.Setup(u => u.FindByUsername(fakes.Admin.Username)).Returns(fakes.Admin);
                 return mockService.Object;
             }).As<IUserService>()
               .SingleInstance();

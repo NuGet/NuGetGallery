@@ -13,12 +13,11 @@ using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
 using Newtonsoft.Json.Linq;
-using NuGetGallery.Framework;
 using Xunit;
 
 namespace NuGetGallery
 {
-    public class StatisticsControllerFacts : TestContainer
+    public class StatisticsControllerFacts
     {
         [Fact]
         public async Task StatisticsHomePage_ValidateReportStructureAndAvailability()

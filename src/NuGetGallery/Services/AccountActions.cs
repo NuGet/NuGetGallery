@@ -9,17 +9,10 @@ namespace NuGetGallery
     public static class AccountActions
     {
         /// <summary>
-        /// If an account is requested to be an owner of a package, the user can accept the request on behalf of the account.
+        /// If a user is requested to be an owner of a package, this user can accept the request on behalf of the other user.
         /// </summary>
-        public static PermissionLevel ManagePackageOwnershipOnBehalfOf =
+        public static PermissionLevel AcceptPackageOwnershipOnBehalfOf =
             PermissionLevel.Owner |
             PermissionLevel.OrganizationAdmin;
-
-        /// <summary>
-        /// The user can see private information about an organization account.
-        /// </summary>
-        public static PermissionLevel DisplayPrivateOrganization =
-            PermissionLevel.OrganizationAdmin |
-            PermissionLevel.OrganizationCollaborator;
     }
 }

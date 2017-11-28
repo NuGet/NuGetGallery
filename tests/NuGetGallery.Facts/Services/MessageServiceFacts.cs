@@ -670,9 +670,8 @@ namespace NuGetGallery
             public void ApiKeyRemovedMessageIsCorrect()
             {
                 var user = new User { EmailAddress = "legit@example.com", Username = "foo" };
-                var cred = TestCredentialHelper.CreateV2ApiKey(Guid.NewGuid(), TimeSpan.FromDays(1)).WithDefaultScopes();
+                var cred = new CredentialBuilder().CreateApiKey(TimeSpan.FromDays(1));
                 cred.Description = "new api key";
-                cred.User = user;
 
                 var messageService = TestableMessageService.Create(
                     GetService<AuthenticationService>(),
@@ -731,9 +730,8 @@ namespace NuGetGallery
             public void ApiKeyAddedMessageIsCorrect()
             {
                 var user = new User { EmailAddress = "legit@example.com", Username = "foo" };
-                var cred = TestCredentialHelper.CreateV2ApiKey(Guid.NewGuid(), TimeSpan.FromDays(1)).WithDefaultScopes();
+                var cred = new CredentialBuilder().CreateApiKey(TimeSpan.FromDays(1));
                 cred.Description = "new api key";
-                cred.User = user;
 
                 var messageService = TestableMessageService.Create(
                     GetService<AuthenticationService>(),

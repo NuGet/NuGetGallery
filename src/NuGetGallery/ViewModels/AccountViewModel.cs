@@ -96,11 +96,11 @@ namespace NuGetGallery
         public string Value { get; set; }
         public TimeSpan? ExpirationDuration { get; set; }
 
-        public bool IsNonScopedApiKey
+        public bool IsNonScopedV1ApiKey
         {
             get
             {
-                return CredentialTypes.IsApiKey(Type) && !Scopes.AnySafe();
+                return string.Equals(Type, CredentialTypes.ApiKey.V1, StringComparison.OrdinalIgnoreCase);
             }
         }
     }

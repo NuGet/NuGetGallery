@@ -21,13 +21,13 @@
                     {
                         <tr class="manage-package-listing">
                             <td class="align-middle ">
-                                @if (package.HasSingleOwner)
+                                @if (package.Owners.Count() > 1)
                                 {
-                                    <i class="ms-Icon ms-Icon--StatusErrorFull red-check" title="After account delete the package will not have any owners."></i>
+                                    <i  class="ms-Icon ms-Icon--CompletedSolid green-check" title="After account delete the package will still at least one owner."></i>
                                 }
-                                else
+                                else 
                                 {
-                                    <i class="ms-Icon ms-Icon--CompletedSolid green-check" title="After account delete the package will still have at least one owner."></i>
+                                    <i  class="ms-Icon ms-Icon--StatusErrorFull red-check" title="After account delete the package will not have any owners."></i>
                                 }
                             </td>
                             <td class="align-middle hidden-xs">
@@ -39,7 +39,7 @@
                             <td class="align-middle">
                                 @foreach (var owner in package.Owners)
                                 {
-                                    @ViewHelpers.UserLinkWithIcon(Url, owner);
+                                    <a href="@Url.User(owner.Username)">@owner.Username</a>
                                 }
                             </td>
                             <td class="align-middle text-nowrap">@package.TotalDownloadCount.ToNuGetNumberString()</td>

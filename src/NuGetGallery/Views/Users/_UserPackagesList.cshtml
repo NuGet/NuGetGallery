@@ -45,7 +45,7 @@
                             <td class="align-middle">
                             @foreach (var owner in package.Owners)
                             {
-                                @ViewHelpers.UserLinkWithIcon(Url, owner);
+                                <a href="@Url.User(owner.Username)">@owner.Username</a>
                             }
                             </td>
                             <td class="align-middle text-nowrap">@package.TotalDownloadCount.ToNuGetNumberString()</td>
