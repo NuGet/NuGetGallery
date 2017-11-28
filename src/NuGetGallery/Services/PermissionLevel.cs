@@ -9,7 +9,7 @@ namespace NuGetGallery
     /// Represents the level of access a <see cref="User"/> has with a resource such as a <see cref="Package"/> or account (e.g. another <see cref="User"/>).
     /// </summary>
     [Flags]
-    public enum PermissionLevel
+    public enum PermissionRole
     {
         /// <summary>
         /// The default rights, held by all users.
