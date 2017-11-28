@@ -655,4 +655,34 @@ For more information, please contact '{2}'.</value>
   <data name="ApiKeyScopesNotAllowed" xml:space="preserve">
     <value>The current user does not have permission to create an ApiKey with the specified owner or scopes.</value>
   </data>
+  <data name="AddOwner_AlreadyOwner" xml:space="preserve">
+    <value>The user '{0}' is already an owner or pending owner of the package.</value>
+  </data>
+  <data name="RemoveOwner_NotOwner" xml:space="preserve">
+    <value>The user '{0}' is not an owner or pending owner of the package.</value>
+  </data>
+  <data name="ManagePackageOwners_AlreadyPending" xml:space="preserve">
+    <value>The user '{0}' is already an owner or pending owner of this package.</value>
+  </data>
+  <data name="ManagePackageOwners_Error" xml:space="preserve">
+    <value>An unexpected error occurred: {0}</value>
+  </data>
+  <data name="ManagePackageOwners_InvalidUsername" xml:space="preserve">
+    <value>Please enter a valid user name.</value>
+  </data>
+  <data name="ManagePackageOwners_RemovingOrganization" xml:space="preserve">
+    <value>Are you sure you want to remove your organization as an owner of this package?</value>
+  </data>
+  <data name="ManagePackageOwners_RemovingOwnership" xml:space="preserve">
+    <value>You will no longer be able to manage the package if you do.</value>
+  </data>
+  <data name="ManagePackageOwners_RemovingSelf" xml:space="preserve">
+    <value>Are you sure you want to remove yourself as an owner of this package?</value>
+  </data>
+  <data name="AccountDelete_OrganizationDeleteNotImplemented" xml:space="preserve">
+    <value>Account '{0}' cannot be deleted because it is an organization. The organization must be manually migrated to a user account without memberships before the account can be deleted.</value>
+  </data>
+  <data name="AccountDelete_OrganizationMemberDeleteNotImplemented" xml:space="preserve">
+    <value>Account '{0}' cannot be deleted because it is a member of an organization. The user needs to be manually removed from any organizations before the account can be deleted.</value>
+  </data>
 </root>
