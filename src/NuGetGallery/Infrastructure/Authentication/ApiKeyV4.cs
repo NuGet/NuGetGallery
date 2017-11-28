@@ -14,7 +14,7 @@ namespace NuGetGallery.Infrastructure.Authentication
 
         internal const int IdPartBase32Length = 20;
         internal const int IdAndPasswordLength = 46;
-        internal const int IdAndPasswordEncryptedLength = 124;
+        internal const int IdAndPasswordHashedLength = 124;
 
         /// <summary>
         /// Plaintext format of the ApiKey
@@ -22,9 +22,9 @@ namespace NuGetGallery.Infrastructure.Authentication
         public string PlaintextApiKey { get; private set; }
 
         /// <summary>
-        /// Encrypted format of the ApiKey. Will be set only if Create() method was used.
+        /// Hashed format of the ApiKey. Will be set only if Create() method was used.
         /// </summary>
-        public string EncryptedApiKey { get; private set; }
+        public string HashedApiKey { get; private set; }
 
         /// <summary>
         /// Id part of the ApiKey
@@ -40,6 +40,9 @@ namespace NuGetGallery.Infrastructure.Authentication
         {
         }
 
+        /// <summary>
+        /// Creates a random ApiKey V4.
+        /// </summary>
         public static ApiKeyV4 Create()
         {
             var apiKey = new ApiKeyV4();
@@ -48,29 +51,35 @@ namespace NuGetGallery.Infrastructure.Authentication
             return apiKey;
         }
 
+        /// <summary>
+        /// Parses the provided string and creates an ApiKeyV4 if it's successful.
+        /// </summary>
         public static bool TryParse(string plaintextApiKey, out ApiKeyV4 apiKey)
         {
             apiKey = new ApiKeyV4();
             return apiKey.TryParseInternal(plaintextApiKey);
         }
 
-        public bool Verify(string encryptedApiKey)
+        /// <summary>
+        /// Verified this ApiKey with provided hashed ApiKey. 
+        /// </summary>
+        public bool Verify(string hashedApiKey)
         {
-            if (string.IsNullOrWhiteSpace(encryptedApiKey) || encryptedApiKey.Length != IdAndPasswordEncryptedLength)
+            if (string.IsNullOrWhiteSpace(hashedApiKey) || hashedApiKey.Length != IdAndPasswordHashedLength)
             {
                 return false;
             }
 
-            string encryptedApiKeyIdPart = encryptedApiKey.Substring(0, IdPartBase32Length);
-            string encryptedApiKeyPasswordPart = encryptedApiKey.Substring(IdPartBase32Length);
+            string hashedApiKeyIdPart = hashedApiKey.Substring(0, IdPartBase32Length);
+            string hashedApiKeyPasswordPart = hashedApiKey.Substring(IdPartBase32Length);
 
-            if (!string.Equals(IdPart, Normalize(encryptedApiKeyIdPart)))
+            if (!string.Equals(IdPart, Normalize(hashedApiKeyIdPart)))
             {
                 return false;
             }
 
             // The verification is not case sensitive. This is to maintain the existing behavior that ApiKey authentication is not case-sensitive.
-            return V3Hasher.VerifyHash(encryptedApiKeyPasswordPart.ToUpper().FromBase32String(), PasswordPart);
+            return V3Hasher.VerifyHash(hashedApiKeyPasswordPart.ToUpper().FromBase32String(), PasswordPart);
         }
 
         private void CreateInternal()
@@ -94,12 +103,12 @@ namespace NuGetGallery.Infrastructure.Authentication
             passwordString = Normalize(passwordString);
 
             // No need to remove padding or normalize here.. it's stored in the DB and doesn't need to be pretty
-            var encryptedPasswordString = V3Hasher.GenerateHashAsBytes(passwordString).ToBase32String();
+            var hashedPasswordString = V3Hasher.GenerateHashAsBytes(passwordString).ToBase32String();
 
             IdPart = Normalize(idString);
             PasswordPart = passwordString;
-            PlaintextApiKey = idString + passwordString;
-            EncryptedApiKey = idString + encryptedPasswordString;
+            PlaintextApiKey = IdPart + passwordString;
+            HashedApiKey = IdPart + hashedPasswordString;
         }
 
         private bool TryParseInternal(string plaintextApiKey)
