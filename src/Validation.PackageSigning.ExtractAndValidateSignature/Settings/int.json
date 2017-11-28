@@ -1,0 +1,16 @@
+﻿{
+  "ValidationDb": {
+    "ConnectionString": "Data Source=tcp:#{Jobs.validation.DatabaseAddress};Initial Catalog=nuget-int-validation;Integrated Security=False;User ID=$$Int-ValidationDBWriter-UserName$$;Password=$$Int-ValidationDBWriter-Password$$;Connect Timeout=30;Encrypt=True"
+  },
+  "ServiceBus": {
+    "ConnectionString": "Endpoint=sb://nugetint.servicebus.windows.net/;SharedAccessKeyName=extract-and-validate-signature;SharedAccessKey=$$Int-ServiceBus-SharedAccessKey-Validation-ExtractAndValidatePackageSignature$$",
+    "TopicPath": "validate-signature",
+    "SubscriptionName": "extract-and-validate-signature"
+  },
+  "KeyVault_VaultName": "#{Deployment.Azure.KeyVault.VaultName}",
+  "KeyVault_ClientId": "#{Deployment.Azure.KeyVault.ClientId}",
+  "KeyVault_CertificateThumbprint": "#{Deployment.Azure.KeyVault.CertificateThumbprint}",
+  "KeyVault_ValidateCertificate": true,
+  "KeyVault_StoreName": "My",
+  "KeyVault_StoreLocation": "LocalMachine"
+}

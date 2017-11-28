@@ -22,6 +22,21 @@
       ]
     }
   },
+  "PackageSigning": {
+    "ServiceBus": {
+      "ConnectionString": "",
+      "TopicPath": "",
+      "SubscriptionName": ""
+    }
+  },
+  "PackageCertificates": {
+    "CertificateRevalidationThreshold": "1:00:00:00",
+    "ServiceBus": {
+      "ConnectionString": "",
+      "TopicPath": "",
+      "SubscriptionName": ""
+    }
+  },
   "RunnerConfiguration": {
     "ProcessRecycleInterval": "1:00:00:00",
     "ShutdownWaitInterval": "00:01:00"

@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{E6D094FB-9068-4578-B176-116F97E7506B}</ProjectGuid>
+    <ProjectGuid>{DD043977-6BCD-475A-BEE2-8C34309EC622}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>NuGet.Services.Validation.Orchestrator</RootNamespace>
-    <AssemblyName>NuGet.Services.Validation.Orchestrator</AssemblyName>
+    <RootNamespace>NuGet.Jobs.Validation.PackageSigning</RootNamespace>
+    <AssemblyName>NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -36,69 +36,47 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
+    <Reference Include="System.Security" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ConfigurationValidator.cs" />
-    <Compile Include="ContainerBuilderExtensions.cs" />
-    <Compile Include="Error.cs" />
-    <Compile Include="GalleryDbConfiguration.cs" />
-    <Compile Include="IValidationOutcomeProcessor.cs" />
-    <Compile Include="IValidationSetProcessor.cs" />
-    <Compile Include="IValidationSetProvider.cs" />
-    <Compile Include="IValidationStorageService.cs" />
-    <Compile Include="IValidatorProvider.cs" />
+    <Compile Include="Storage\PackageSigningStateService.cs" />
+    <Compile Include="Storage\SavePackageSigningStateResult.cs" />
+    <Compile Include="Storage\IPackageSigningStateService.cs" />
     <Compile Include="Job.cs" />
-    <Compile Include="OrchestrationRunner.cs" />
-    <Compile Include="OrchestrationRunnerConfiguration.cs" />
-    <Compile Include="PackageCertificates\CertificateVerificationEnqueuer.cs" />
-    <Compile Include="PackageCertificates\ICertificateVerificationEnqueuer.cs" />
-    <Compile Include="PackageCertificates\PackageCertificatesConfiguration.cs" />
-    <Compile Include="PackageCertificates\PackageCertificatesValidator.cs" />
-    <Compile Include="PackageSigning\IPackageSignatureVerificationEnqueuer.cs" />
-    <Compile Include="PackageSigning\PackageSignatureVerificationEnqueuer.cs" />
-    <Compile Include="PackageSigning\PackageSigningConfiguration.cs" />
-    <Compile Include="PackageSigning\PackageSigningValidator.cs" />
-    <Compile Include="PackageValidationMessageDataSerializer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Properties\AssemblyInfo.*.cs" />
-    <Compile Include="ValidationConfiguration.cs" />
-    <Compile Include="ValidationConfigurationItem.cs" />
-    <Compile Include="Vcs\IPackageCriteria.cs" />
-    <Compile Include="Vcs\IPackageCriteriaEvaluator.cs" />
-    <Compile Include="Vcs\PackageCriteriaEvaluator.cs" />
-    <Compile Include="Vcs\PackageCriteria.cs" />
-    <Compile Include="Vcs\VcsConfiguration.cs" />
-    <Compile Include="Vcs\VcsValidator.cs" />
-    <Compile Include="ValidationDbConfiguration.cs" />
-    <Compile Include="ValidationMessageHandler.cs" />
-    <Compile Include="ValidationOutcomeProcessor.cs" />
-    <Compile Include="ValidationRequest.cs" />
-    <Compile Include="ValidationSetProcessor.cs" />
-    <Compile Include="ValidationSetProvider.cs" />
-    <Compile Include="ValidationStorageService.cs" />
-    <Compile Include="ValidatorProvider.cs" />
+    <Compile Include="SignatureValidationMessageHandler.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="settings.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <None Include="Scripts\*" />
+    <None Include="Settings\*" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj">
+      <Project>{4B4B1EFB-8F33-42E6-B79F-54E7F3293D31}</Project>
+      <Name>NuGet.Jobs.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Services.Validation.Orchestrator\NuGet.Services.Validation.Orchestrator.csproj">
+      <Project>{E6D094FB-9068-4578-B176-116F97E7506B}</Project>
+      <Name>NuGet.Services.Validation.Orchestrator</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Validation.Common\Validation.Common.csproj">
+      <Project>{2539DDF3-0CC5-4A03-B5F9-39B47744A7BD}</Project>
+      <Name>Validation.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Validation.PackageSigning.Core\Validation.PackageSigning.Core.csproj">
+      <Project>{91c060da-736f-4da9-a57f-cb3ac0e6cb10}</Project>
+      <Name>Validation.PackageSigning.Core</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Autofac">
-      <Version>4.6.1</Version>
+      <Version>4.6.2</Version>
     </PackageReference>
     <PackageReference Include="Autofac.Extensions.DependencyInjection">
       <Version>4.2.0</Version>
-    </PackageReference>
-    <PackageReference Include="EntityFramework">
-      <Version>6.1.3</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.ApplicationInsights">
       <Version>2.2.0</Version>
@@ -114,12 +92,6 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection">
       <Version>1.1.1</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Logging">
-      <Version>1.1.2</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions">
-      <Version>1.1.2</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions">
       <Version>1.1.2</Version>
@@ -143,34 +115,14 @@
       <Version>2.4.3</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Versioning">
-      <Version>4.3.0</Version>
-    </PackageReference>
-    <PackageReference Include="NuGetGallery.Core">
-      <Version>4.4.4-dev-18034</Version>
-    </PackageReference>
-    <PackageReference Include="Serilog">
-      <Version>2.5.0</Version>
+      <Version>4.4.0</Version>
     </PackageReference>
     <PackageReference Include="System.Net.Http">
       <Version>4.3.3</Version>
     </PackageReference>
     <PackageReference Include="WindowsAzure.Storage">
-      <Version>7.1.2</Version>
+      <Version>8.5.0</Version>
     </PackageReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj">
-      <Project>{4b4b1efb-8f33-42e6-b79f-54e7f3293d31}</Project>
-      <Name>NuGet.Jobs.Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Validation.Common\Validation.Common.csproj">
-      <Project>{2539ddf3-0cc5-4a03-b5f9-39b47744a7bd}</Project>
-      <Name>Validation.Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Validation.PackageSigning.Core\Validation.PackageSigning.Core.csproj">
-      <Project>{91C060DA-736F-4DA9-A57F-CB3AC0E6CB10}</Project>
-      <Name>Validation.PackageSigning.Core</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
