@@ -15,11 +15,12 @@ namespace NuGetGallery.Infrastructure.Authentication
 
             // Assert
             Assert.NotNull(apiKey);
-            Assert.NotNull(apiKey.EncryptedApiKey);
-            Assert.Equal(ApiKeyV4.IdAndPasswordEncryptedLength, apiKey.EncryptedApiKey.Length);
+            Assert.NotNull(apiKey.HashedApiKey);
+            Assert.Equal(ApiKeyV4.IdAndPasswordHashedLength, apiKey.HashedApiKey.Length);
 
             Assert.NotNull(apiKey.PlaintextApiKey);
             Assert.Equal(ApiKeyV4.IdAndPasswordLength, apiKey.PlaintextApiKey.Length);
+            Assert.Equal(apiKey.PlaintextApiKey.ToLower(), apiKey.PlaintextApiKey);
 
             Assert.NotNull(apiKey.IdPart);
             Assert.Equal(ApiKeyV4.IdPartBase32Length, apiKey.IdPart.Length);
@@ -57,7 +58,7 @@ namespace NuGetGallery.Infrastructure.Authentication
             Assert.Equal(inputApiKey, apiKey.PlaintextApiKey);
             Assert.Equal(idPart, apiKey.IdPart);
             Assert.Equal(passwordPart, apiKey.PasswordPart);
-            Assert.Null(apiKey.EncryptedApiKey);
+            Assert.Null(apiKey.HashedApiKey);
         }
 
         [Theory]
@@ -65,37 +66,37 @@ namespace NuGetGallery.Infrastructure.Authentication
         [InlineData("")]
         [InlineData("abc")]
         [InlineData("oy2iuvoucviouojnrbzaqxjewdop3yseppnqlewvavhupm")]
-        public void VerifyFailsForIllegalInput(string encryptedApiKey)
+        public void VerifyFailsForIllegalInput(string hashedApiKey)
         {
             // Arrange
             var apiKey = ApiKeyV4.Create();
 
             // Act & Assert
-            Assert.False(apiKey.Verify(encryptedApiKey));
+            Assert.False(apiKey.Verify(hashedApiKey));
         }
 
         [Fact]
-        public void VerifyFailsOnIncorrectEncryptedKey()
+        public void VerifyFailsOnIncorrectHashedKey()
         {
             // Arrange
             var apiKey = ApiKeyV4.Create();
-            var encryptedApiKey = "oy2iuvoucviouojnrbzaAEAAAAABAAACOEAAAAABAMHUIIUXSFAIOTEAFWF3K2E7L6YRUDOZDPHKSRX3YEOFUWPCID325EZH5JXBBGBMYBECT4KCGMWOQQ======";
+            var hashedApiKey = "oy2iuvoucviouojnrbzaAEAAAAABAAACOEAAAAABAMHUIIUXSFAIOTEAFWF3K2E7L6YRUDOZDPHKSRX3YEOFUWPCID325EZH5JXBBGBMYBECT4KCGMWOQQ======";
 
             // Act & Assert
-            Assert.False(apiKey.Verify(encryptedApiKey));
+            Assert.False(apiKey.Verify(hashedApiKey));
         }
 
 
         [Theory]
         [InlineData("oy2iuvoucviouojnrbzaqxjewdop3yseppnqlewvavhupm", "oy2iuvoucviouojnrbzaAEAAAAABAAACOEAAAAABAMHUIIUXSFAIOTEAFWF3K2E7L6YRUDOZDPHKSRX3YEOFUWPCID325EZH5JXBBGBMYBECT4KCGMWOQQ======")]
         [InlineData("OY2IUVOUCVIOUOJNRBZAQXJEWDOP3YSEPPNQLEWVAVHUPM", "oy2iuvoucviouojnrbzaAEAAAAABAAACOEAAAAABAMHUIIUXSFAIOTEAFWF3K2E7L6YRUDOZDPHKSRX3YEOFUWPCID325EZH5JXBBGBMYBECT4KCGMWOQQ======")]
-        public void VerifySucceedsOnValidApiKeys(string inputApiKey, string encryptedApiKey)
+        public void VerifySucceedsOnValidApiKeys(string inputApiKey, string hashedApiKey)
         {
             // Arrange 
             Assert.True(ApiKeyV4.TryParse(inputApiKey, out var apiKey));
 
             // Act & Assert
-            Assert.True(apiKey.Verify(encryptedApiKey));
+            Assert.True(apiKey.Verify(hashedApiKey));
         }
 
         [Fact]
@@ -106,7 +107,7 @@ namespace NuGetGallery.Infrastructure.Authentication
             ApiKeyV4.TryParse(apiKey.PlaintextApiKey, out var parsedApiKey);
 
             // Act & Assert
-            Assert.True(parsedApiKey.Verify(apiKey.EncryptedApiKey));
+            Assert.True(parsedApiKey.Verify(apiKey.HashedApiKey));
         }
     }
 }
