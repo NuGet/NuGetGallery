@@ -1272,7 +1272,7 @@ namespace NuGetGallery
             }
             
             var user = _userService.FindByUsername(username);
-            if (!PermissionsService.IsActionAllowed(user, GetCurrentUser(), AccountActions.ManagePackageOwnershipOnBehalfOf))
+            if (!PermissionsService.IsActionAllowed(user, GetCurrentUser(), AccountActions.AcceptPackageOwnershipOnBehalfOf))
             {
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.NotYourRequest));
             }

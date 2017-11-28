@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Net;
@@ -16,19 +15,6 @@ namespace NuGetGallery
 {
     public class CloudBlobCoreFileStorageService : ICoreFileStorageService
     {
-        private static readonly HashSet<string> KnownPublicFolders = new HashSet<string> {
-            CoreConstants.PackagesFolderName,
-            CoreConstants.PackageBackupsFolderName,
-            CoreConstants.DownloadsFolderName
-        };
-
-        private static readonly HashSet<string> KnownPrivateFolders = new HashSet<string> {
-            CoreConstants.ContentFolderName,
-            CoreConstants.UploadsFolderName,
-            CoreConstants.PackageReadMesFolderName,
-            CoreConstants.ValidationFolderName
-        };
-
         protected readonly ICloudBlobClient _client;
         protected readonly ConcurrentDictionary<string, ICloudBlobContainer> _containers = new ConcurrentDictionary<string, ICloudBlobContainer>();
 
@@ -132,19 +118,8 @@ namespace NuGetGallery
             {
                 throw new ArgumentOutOfRangeException(nameof(endOfAccess), $"{nameof(endOfAccess)} is in the past");
             }
-            bool isPublicFolder = IsPublicContainer(folderName);
-            if (!isPublicFolder && endOfAccess == null)
-            {
-                throw new ArgumentNullException(nameof(endOfAccess), $"{nameof(endOfAccess)} must not be null for non-public containers");
-            }
-
             ICloudBlobContainer container = await GetContainerAsync(folderName);
             var blob = container.GetBlobReference(fileName);
-            if (isPublicFolder)
-            {
-                return blob.Uri;
-            }
-
             return new Uri(blob.Uri, blob.GetSharedReadSignature(endOfAccess));
         }
 
@@ -156,25 +131,30 @@ namespace NuGetGallery
                 return container;
             }
 
-            container = await PrepareContainer(folderName, IsPublicContainer(folderName));
+            Task<ICloudBlobContainer> creationTask;
+            switch (folderName)
+            {
+                case CoreConstants.PackagesFolderName:
+                case CoreConstants.PackageBackupsFolderName:
+                case CoreConstants.DownloadsFolderName:
+                    creationTask = PrepareContainer(folderName, isPublic: true);
+                    break;
+
+                case CoreConstants.ContentFolderName:
+                case CoreConstants.UploadsFolderName:
+                case CoreConstants.PackageReadMesFolderName:
+                case CoreConstants.ValidationFolderName:
+                    creationTask = PrepareContainer(folderName, isPublic: false);
+                    break;
+
+                default:
+                    throw new InvalidOperationException(
+                        String.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));
+            }
+
+            container = await creationTask;
             _containers[folderName] = container;
             return container;
-        }
-
-        private bool IsPublicContainer(string folderName)
-        {
-            if (KnownPublicFolders.Contains(folderName))
-            {
-                return true;
-            }
-
-            if (KnownPrivateFolders.Contains(folderName))
-            {
-                return false;
-            }
-
-            throw new InvalidOperationException(
-                String.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));
         }
 
         private async Task<StorageResult> GetBlobContentAsync(string folderName, string fileName, string ifNoneMatch = null)
