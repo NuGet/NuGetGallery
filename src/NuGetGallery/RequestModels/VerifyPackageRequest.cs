@@ -14,23 +14,35 @@ namespace NuGetGallery
 
         public VerifyPackageRequest(PackageMetadata packageMetadata)
         {
-            var dependencyGroups = packageMetadata.GetDependencyGroups();
-
             Id = packageMetadata.Id;
             Version = packageMetadata.Version.ToFullStringSafe();
             OriginalVersion = packageMetadata.Version.OriginalVersion;
             HasSemVer2Version = packageMetadata.Version.IsSemVer2;
-            HasSemVer2Dependency = dependencyGroups.Any(d => d.Packages.Any(
+            HasSemVer2Dependency = packageMetadata.GetDependencyGroups().Any(d => d.Packages.Any(
                                 p => (p.VersionRange.HasUpperBound && p.VersionRange.MaxVersion.IsSemVer2)
                                     || (p.VersionRange.HasLowerBound && p.VersionRange.MinVersion.IsSemVer2)));
-            LicenseUrl = packageMetadata.LicenseUrl.ToEncodedUrlStringOrNull();
-            Listed = true;
+            
+            // Verifiable fields
             Language = packageMetadata.Language;
             MinClientVersionDisplay = packageMetadata.MinClientVersion.ToFullStringSafe();
             FrameworkReferenceGroups = packageMetadata.GetFrameworkReferenceGroups();
             Dependencies = new DependencySetsViewModel(packageMetadata.GetDependencyGroups().AsPackageDependencyEnumerable());
             DevelopmentDependency = packageMetadata.GetValueFromMetadata("developmentDependency");
-            Edit = new EditPackageVersionRequest(packageMetadata);
+            Authors = packageMetadata.Authors.Flatten();
+            Copyright = packageMetadata.Copyright;
+            Description = packageMetadata.Description;
+            IconUrl = packageMetadata.IconUrl.ToEncodedUrlStringOrNull();
+            LicenseUrl = packageMetadata.LicenseUrl.ToEncodedUrlStringOrNull();
+            ProjectUrl = packageMetadata.ProjectUrl.ToEncodedUrlStringOrNull();
+            ReleaseNotes = packageMetadata.ReleaseNotes;
+            RequiresLicenseAcceptance = packageMetadata.RequireLicenseAcceptance;
+            Summary = packageMetadata.Summary;
+            Tags = PackageHelper.ParseTags(packageMetadata.Tags);
+            Title = packageMetadata.Title;
+
+            // Editable server-state
+            Listed = true;
+            Edit = new EditPackageVersionRequest();
         }
 
         public string Id { get; set; }
@@ -47,13 +59,27 @@ namespace NuGetGallery
         public bool IsSemVer2 => HasSemVer2Version || HasSemVer2Dependency;
         public bool HasSemVer2Version { get; set; }
         public bool HasSemVer2Dependency { get; set; }
-        public string LicenseUrl { get; set; }
+
+        // Editable server-state
         public bool Listed { get; set; }
         public EditPackageVersionRequest Edit { get; set; }
-        public string MinClientVersionDisplay { get; set; }
-        public string Language { get; set; }
-        public string DevelopmentDependency { get; set; }
+
+        // Verifiable fields
+        public string Authors { get; set; }
+        public string Copyright { get; set; }
+        public string Description { get; set; }
         public DependencySetsViewModel Dependencies { get; set; }
+        public string DevelopmentDependency { get; set; }
         public IReadOnlyCollection<FrameworkSpecificGroup> FrameworkReferenceGroups { get; set; }
+        public string IconUrl { get; set; }
+        public string Language { get; set; }
+        public string LicenseUrl { get; set; }
+        public string MinClientVersionDisplay { get; set; }
+        public string ProjectUrl { get; set; }
+        public string ReleaseNotes { get; set; }
+        public bool RequiresLicenseAcceptance { get; set; }
+        public string Summary { get; set; }
+        public string Tags { get; set; }
+        public string Title { get; set; }
     }
 }

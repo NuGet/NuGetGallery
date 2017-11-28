@@ -3350,16 +3350,6 @@ namespace NuGetGallery
             {
                 get
                 {
-                    yield return new object[] { new EditPackageVersionRequest() { RequiresLicenseAcceptance = true } };
-                    yield return new object[] { new EditPackageVersionRequest() { IconUrl = "https://iconnew" } };
-                    yield return new object[] { new EditPackageVersionRequest() { ProjectUrl = "https://projectnew" } };
-                    yield return new object[] { new EditPackageVersionRequest() { Authors = "author1new authors2new" } };
-                    yield return new object[] { new EditPackageVersionRequest() { Copyright = "copyright" } };
-                    yield return new object[] { new EditPackageVersionRequest() { Description = "new desc" } };
-                    yield return new object[] { new EditPackageVersionRequest() { ReleaseNotes = "notes123" } };
-                    yield return new object[] { new EditPackageVersionRequest() { Summary = "summary new" } };
-                    yield return new object[] { new EditPackageVersionRequest() { Tags = "tag1new tag2new" } };
-                    yield return new object[] { new EditPackageVersionRequest() { VersionTitle = "title" } };
                     yield return new object[] { new EditPackageVersionRequest() {
                         ReadMe = new ReadMeRequest { SourceType = "Written", SourceText = "markdown" } }
                     };
@@ -3418,16 +3408,6 @@ namespace NuGetGallery
         {
             get
             {
-                yield return new object[] { new EditPackageVersionRequest() { RequiresLicenseAcceptance = true } };
-                yield return new object[] { new EditPackageVersionRequest() { IconUrl = "https://iconnew" } };
-                yield return new object[] { new EditPackageVersionRequest() { ProjectUrl = "https://projectnew" } };
-                yield return new object[] { new EditPackageVersionRequest() { Authors = "author1new authors2new" } };
-                yield return new object[] { new EditPackageVersionRequest() { Copyright = "copyright" } };
-                yield return new object[] { new EditPackageVersionRequest() { Description = "new desc" } };
-                yield return new object[] { new EditPackageVersionRequest() { ReleaseNotes = "notes123" } };
-                yield return new object[] { new EditPackageVersionRequest() { Summary = "summary new" } };
-                yield return new object[] { new EditPackageVersionRequest() { Tags = "tag1new tag2new" } };
-                yield return new object[] { new EditPackageVersionRequest() { VersionTitle = "title" } };
                 yield return new object[] { new EditPackageVersionRequest() {
                     ReadMe = new ReadMeRequest { SourceType = "Written", SourceText = "markdown"} }
                 };
