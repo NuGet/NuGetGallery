@@ -1092,14 +1092,16 @@ namespace NuGetGallery
                     Assert.Equal(0, fakes.Owner.SecurityPolicies.Count);
 
                     // Act & Assert
-                    var policyMessages = await AssertConfirmOwnerSubscribesUser(fakes, fakes.Owner, fakes.ShaUser);
-                    Assert.Equal(3, policyMessages.Count);
+                    var policyMessages = await AssertConfirmOwnerSubscribesUser(fakes, fakes.Owner, fakes.ShaUser, fakes.OrganizationOwner);
+                    Assert.Equal(4, policyMessages.Count);
 
                     // subscribed notification
                     Assert.StartsWith("Owner(s) 'testUser' has (have) the following requirements that are now enforced for your account:",
                         policyMessages[fakes.Owner.Username]);
                     Assert.StartsWith("Owner(s) 'testUser' has (have) the following requirements that are now enforced for your account:",
                         policyMessages[fakes.ShaUser.Username]);
+                    Assert.StartsWith("Owner(s) 'testUser' has (have) the following requirements that are now enforced for your account:",
+                        policyMessages[fakes.OrganizationOwner.Username]);
 
                     // propagator notification
                     Assert.StartsWith("Owner(s) 'testUser' has (have) the following requirements that are now enforced for co-owner(s) '",
@@ -1120,10 +1122,11 @@ namespace NuGetGallery
                     var policyMessages = await AssertConfirmOwnerSubscribesUser(fakes, fakes.User);
 
                     Assert.False(policyMessages.ContainsKey(fakes.User.Username));
-                    Assert.Equal(2, policyMessages.Count);
+                    Assert.Equal(3, policyMessages.Count);
                     Assert.StartsWith("Owner(s) 'testPackageOwner' has (have) the following requirements that are now enforced for co-owner(s) 'testUser':",
                         policyMessages[fakes.Owner.Username]);
                     Assert.Equal("", policyMessages[fakes.ShaUser.Username]);
+                    Assert.Equal("", policyMessages[fakes.OrganizationOwner.Username]);
                 }
 
                 private async Task<IDictionary<string, string>> AssertConfirmOwnerSubscribesUser(Fakes fakes, params User[] usersSubscribed)

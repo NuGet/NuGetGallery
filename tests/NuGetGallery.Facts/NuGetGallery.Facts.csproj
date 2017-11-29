@@ -533,6 +533,7 @@
     <Compile Include="TestUtils\TestDataUtility.cs" />
     <Compile Include="TestUtils\TestUtility.cs" />
     <Compile Include="UrlExtensionsFacts.cs" />
+    <Compile Include="ViewModels\DeleteAccountViewModelFacts.cs" />
     <Compile Include="ViewModels\DependencySetsViewModelFacts.cs" />
     <Compile Include="ViewModels\DisplayPackageViewModelFacts.cs" />
     <Compile Include="ViewModels\ListPackageItemViewModelFacts.cs" />
