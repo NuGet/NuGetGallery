@@ -1,24 +1,32 @@
-﻿using System.Security.Principal;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-namespace NuGetGallery.Services
+using System.Security.Principal;
+
+namespace NuGetGallery
 {
+    /// <summary>
+    /// An action requiring permissions on a <see cref="User"/>.
+    /// </summary>
     public class ActionRequiringAccountPermissions
     {
-        public PermissionRole RequiredAccountPermissionRole { get; }
-
-        public ActionRequiringAccountPermissions(PermissionRole requiredAccountPermissionRole)
+        public PermissionsRequirement AccountPermissionsRequirement { get; }
+        
+        public ActionRequiringAccountPermissions(PermissionsRequirement accountPermissionsRequirement)
         {
-            RequiredAccountPermissionRole = requiredAccountPermissionRole;
+            AccountPermissionsRequirement = accountPermissionsRequirement;
         }
 
-        public void CheckIsAllowed(User currentUser, User account)
+        public PermissionsFailure IsAllowed(User currentUser, User account)
         {
-            if (!PermissionsService.IsActionAllowed())
+            return PermissionsHelpers.IsRequirementSatisfied(AccountPermissionsRequirement, currentUser, account) ? 
+                PermissionsFailure.None : PermissionsFailure.Account;
         }
 
-        public void CheckIsAllowed(IPrincipal currentPrincipal, User account)
+        public PermissionsFailure IsAllowed(IPrincipal currentPrincipal, User account)
         {
-
+            return PermissionsHelpers.IsRequirementSatisfied(AccountPermissionsRequirement, currentPrincipal, account) ? 
+                PermissionsFailure.None : PermissionsFailure.Account;
         }
     }
 }

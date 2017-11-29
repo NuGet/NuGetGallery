@@ -63,10 +63,5 @@ namespace NuGetGallery
                     (organization == null || organization.Members.Count == 1);
             }
         }
-
-        public bool IsActionAllowed(IPrincipal principal, PermissionRole actionPermissionLevel)
-        {
-            return PermissionsService.IsActionAllowed(Owners, principal, actionPermissionLevel);
-        }
     }
 }

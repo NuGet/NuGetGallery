@@ -800,6 +800,10 @@
       <DependentUpon>201711021733062_ApiKeyOwnerScope.cs</DependentUpon>
     </Compile>
     <Compile Include="Services\ActionRequiringAccountPermissions.cs" />
+    <Compile Include="Services\ActionRequiringEntityPermissions.cs" />
+    <Compile Include="Services\ActionRequiringPackagePermissions.cs" />
+    <Compile Include="Services\ActionRequiringReservedNamespacePermissions.cs" />
+    <Compile Include="Services\ActionsRequiringPermissions.cs" />
     <Compile Include="Services\AsynchronousPackageValidationInitiator.cs" />
     <Compile Include="Services\CloudBlobFileStorageService.cs" />
     <Compile Include="Services\DeleteAccountService.cs" />
@@ -891,7 +895,8 @@
     <Compile Include="Services\PackageUploadService.cs" />
     <Compile Include="Services\IReservedNamespaceService.cs" />
     <Compile Include="Services\IPackageUploadService.cs" />
-    <Compile Include="Services\PermissionLevel.cs" />
+    <Compile Include="Services\PermissionsFailure.cs" />
+    <Compile Include="Services\PermissionsRequirement.cs" />
     <Compile Include="Services\ReservedNamespaceService.cs" />
     <Compile Include="Services\ReadMeService.cs" />
     <Compile Include="Services\TelemetryClientWrapper.cs" />

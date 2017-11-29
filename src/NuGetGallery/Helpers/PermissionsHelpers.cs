@@ -6,118 +6,108 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Principal;
 
-namespace NuGetGallery.Helpers
+namespace NuGetGallery
 {
     public class PermissionsHelpers
     {
         /// <summary>
-        /// Is <paramref name="currentPrincipal"/> allowed to perform <paramref name="actionPermissionLevel"/> on <paramref name="package"/>?
+        /// Is <paramref name="currentPrincipal"/> allowed to perform an action with a requirement of <paramref name="permissionsRequirement"/> on <paramref name="packageRegistration"/>?
         /// </summary>
-        public static bool IsActionAllowed(PermissionRole actionPermissionLevel, IPrincipal currentPrincipal, Package package)
+        public static bool IsRequirementSatisfied(PermissionsRequirement permissionsRequirement, IPrincipal currentPrincipal, PackageRegistration packageRegistration)
         {
-            return IsActionAllowed(actionPermissionLevel, currentPrincipal, package.PackageRegistration);
+            return IsRequirementSatisfied(permissionsRequirement, currentPrincipal, packageRegistration.Owners);
         }
 
         /// <summary>
-        /// Is <paramref name="currentPrincipal"/> allowed to perform <paramref name="actionPermissionLevel"/> on <paramref name="packageRegistration"/>?
+        /// Is <paramref name="currentPrincipal"/> allowed to perform an action with a requirement of <paramref name="permissionsRequirement"/> on <paramref name="reservedNamespace"/>?
         /// </summary>
-        public static bool IsActionAllowed(PermissionRole actionPermissionLevel, IPrincipal currentPrincipal, PackageRegistration packageRegistration)
+        public static bool IsRequirementSatisfied(PermissionsRequirement permissionsRequirement, IPrincipal currentPrincipal, ReservedNamespace reservedNamespace)
         {
-            return IsActionAllowed(actionPermissionLevel, currentPrincipal, packageRegistration.Owners);
+            return reservedNamespace.IsSharedNamespace || IsRequirementSatisfied(permissionsRequirement, currentPrincipal, reservedNamespace.Owners);
         }
 
         /// <summary>
-        /// Is <paramref name="currentPrincipal"/> allowed to perform <paramref name="actionPermissionLevel"/> on <paramref name="account"/>?
+        /// Is <paramref name="currentPrincipal"/> allowed to perform an action with a requirement of <paramref name="permissionsRequirement"/> on <paramref name="account"/>?
         /// </summary>
-        public static bool IsActionAllowed(PermissionRole actionPermissionLevel, IPrincipal currentPrincipal, User account)
+        public static bool IsRequirementSatisfied(PermissionsRequirement permissionsRequirement, IPrincipal currentPrincipal, User account)
         {
-            return IsActionAllowed(actionPermissionLevel, currentPrincipal, new User[] { account });
+            return IsRequirementSatisfied(permissionsRequirement, currentPrincipal, new User[] { account });
         }
 
         /// <summary>
-        /// Is <paramref name="currentPrincipal"/> allowed to perform <paramref name="actionPermissionLevel"/> on the entity owned by <paramref name="entityOwners"/>?
+        /// Is <paramref name="currentPrincipal"/> allowed to perform an action with a requirement of <paramref name="permissionsRequirement"/> on the entity owned by <paramref name="entityOwners"/>?
         /// </summary>
-        public static bool IsActionAllowed(PermissionRole actionPermissionLevel, IPrincipal currentPrincipal, IEnumerable<User> entityOwners)
-        {
-            return HasPermission(actionPermissionLevel, currentPrincipal, entityOwners);
-        }
-
-        /// <summary>
-        /// Is <paramref name="currentUser"/> allowed to perform <paramref name="actionPermissionLevel"/> on <paramref name="package"/>?
-        /// </summary>
-        public static bool IsActionAllowed(PermissionRole actionPermissionLevel, User currentUser, Package package)
-        {
-            return IsActionAllowed(actionPermissionLevel, currentUser, package.PackageRegistration);
-        }
-
-        /// <summary>
-        /// Is <paramref name="currentUser"/> allowed to perform <paramref name="actionPermissionLevel"/> on <paramref name="packageRegistration"/>?
-        /// </summary>
-        public static bool IsActionAllowed(PermissionRole actionPermissionLevel, User currentUser, PackageRegistration packageRegistration)
-        {
-            return IsActionAllowed(actionPermissionLevel, currentUser, packageRegistration.Owners);
-        }
-
-        /// <summary>
-        /// Is <paramref name="currentPrincipal"/> allowed to perform <paramref name="actionPermissionLevel"/> on <paramref name="account"/>?
-        /// </summary>
-        public static bool IsActionAllowed(User currentUser, User account, PermissionRole action)
-        {
-            return IsActionAllowed(action, currentUser, new User[] { account });
-        }
-
-        /// <summary>
-        /// Is <paramref name="currentPrincipal"/> allowed to perform <paramref name="actionPermissionLevel"/> on the entity owned by <paramref name="entityOwners"/>?
-        /// </summary>
-        public static bool IsActionAllowed(PermissionRole actionPermissionLevel, User currentUser, IEnumerable<User> entityOwners)
-        {
-            return HasPermission(actionPermissionLevel, currentUser, entityOwners);
-        }
-
-        private static bool HasPermission(PermissionRole actionPermissionLevel, User currentUser, IEnumerable<User> owners)
-        {
-            if (currentUser == null)
-            {
-                return PermissionLevelsIntersect(PermissionRole.Anonymous, actionPermissionLevel);
-            }
-
-            return HasPermission(
-                actionPermissionLevel,
-                currentUser.IsAdministrator(),
-                u => currentUser.MatchesUser(u),
-                owners);
-        }
-
-        private static bool HasPermission(PermissionRole actionPermissionLevel, IPrincipal currentPrincipal, IEnumerable<User> entityOwners)
+        public static bool IsRequirementSatisfied(PermissionsRequirement permissionsRequirement, IPrincipal currentPrincipal, IEnumerable<User> entityOwners)
         {
             if (currentPrincipal == null)
             {
-                return PermissionLevelsIntersect(PermissionRole.Anonymous, actionPermissionLevel);
+                return PermissionLevelsIntersect(PermissionsRequirement.Anonymous, permissionsRequirement);
             }
 
-            return HasPermission(
-                actionPermissionLevel,
+            return IsRequirementSatisfied(
+                permissionsRequirement,
                 currentPrincipal.IsAdministrator(),
                 u => currentPrincipal.MatchesUser(u),
                 entityOwners);
         }
 
-        private static bool HasPermission(PermissionRole actionPermissionLevel, bool isUserAdmin, Func<User, bool> isUserMatch, IEnumerable<User> entityOwners)
+        /// <summary>
+        /// Is <paramref name="currentUser"/> allowed to perform an action with a requirement of <paramref name="permissionsRequirement"/> on <paramref name="packageRegistration"/>?
+        /// </summary>
+        public static bool IsRequirementSatisfied(PermissionsRequirement permissionsRequirement, User currentUser, PackageRegistration packageRegistration)
+        {
+            return IsRequirementSatisfied(permissionsRequirement, currentUser, packageRegistration.Owners);
+        }
+
+        /// <summary>
+        /// Is <paramref name="currentUser"/> allowed to perform an action with a requirement of <paramref name="permissionsRequirement"/> on <paramref name="reservedNamespace"/>?
+        /// </summary>
+        public static bool IsRequirementSatisfied(PermissionsRequirement permissionsRequirement, User currentUser, ReservedNamespace reservedNamespace)
+        {
+            return reservedNamespace.IsSharedNamespace || IsRequirementSatisfied(permissionsRequirement, currentUser, reservedNamespace.Owners);
+        }
+
+        /// <summary>
+        /// Is <paramref name="currentPrincipal"/> allowed to perform an action with a requirement of <paramref name="permissionsRequirement"/> on <paramref name="account"/>?
+        /// </summary>
+        public static bool IsRequirementSatisfied(PermissionsRequirement action, User currentUser, User account)
+        {
+            return IsRequirementSatisfied(action, currentUser, new User[] { account });
+        }
+
+        /// <summary>
+        /// Is <paramref name="currentPrincipal"/> allowed to perform an action with a requirement of <paramref name="permissionsRequirement"/> on the entity owned by <paramref name="entityOwners"/>?
+        /// </summary>
+        public static bool IsRequirementSatisfied(PermissionsRequirement permissionsRequirement, User currentUser, IEnumerable<User> entityOwners)
+        {
+            if (currentUser == null)
+            {
+                return PermissionLevelsIntersect(PermissionsRequirement.Anonymous, permissionsRequirement);
+            }
+
+            return IsRequirementSatisfied(
+                permissionsRequirement,
+                currentUser.IsAdministrator(),
+                u => currentUser.MatchesUser(u),
+                entityOwners);
+        }
+
+        private static bool IsRequirementSatisfied(PermissionsRequirement permissionsRequirement, bool isUserAdmin, Func<User, bool> isUserMatch, IEnumerable<User> entityOwners)
         {
             if ((entityOwners == null || !entityOwners.Any()) &&
-                PermissionLevelsIntersect(PermissionRole.Anonymous, actionPermissionLevel))
+                PermissionLevelsIntersect(PermissionsRequirement.Anonymous, permissionsRequirement))
             {
                 return true;
             }
 
             if (entityOwners.Any(isUserMatch) &&
-                PermissionLevelsIntersect(PermissionRole.Owner, actionPermissionLevel))
+                PermissionLevelsIntersect(PermissionsRequirement.Owner, permissionsRequirement))
             {
                 return true;
             }
 
             if (isUserAdmin &&
-                PermissionLevelsIntersect(PermissionRole.SiteAdmin, actionPermissionLevel))
+                PermissionLevelsIntersect(PermissionsRequirement.SiteAdmin, permissionsRequirement))
             {
                 return true;
             }
@@ -130,21 +120,21 @@ namespace NuGetGallery.Helpers
                 .ToArray();
 
             if (matchingMembers.Any(m => m.IsAdmin) &&
-                PermissionLevelsIntersect(PermissionRole.OrganizationAdmin, actionPermissionLevel))
+                PermissionLevelsIntersect(PermissionsRequirement.OrganizationAdmin, permissionsRequirement))
             {
                 return true;
             }
 
             if (matchingMembers.Any() &&
-                PermissionLevelsIntersect(PermissionRole.OrganizationCollaborator, actionPermissionLevel))
+                PermissionLevelsIntersect(PermissionsRequirement.OrganizationCollaborator, permissionsRequirement))
             {
                 return true;
             }
 
-            return PermissionLevelsIntersect(PermissionRole.Anonymous, actionPermissionLevel);
+            return PermissionLevelsIntersect(PermissionsRequirement.Anonymous, permissionsRequirement);
         }
 
-        private static bool PermissionLevelsIntersect(PermissionRole first, PermissionRole second)
+        private static bool PermissionLevelsIntersect(PermissionsRequirement first, PermissionsRequirement second)
         {
             return (first & second) > 0;
         }

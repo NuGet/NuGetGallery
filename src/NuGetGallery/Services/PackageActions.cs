@@ -11,53 +11,53 @@ namespace NuGetGallery
         /// <summary>
         /// The user can see private information about the package.
         /// </summary>
-        public static PermissionRole DisplayPrivatePackage = 
-            PermissionRole.Owner | 
-            PermissionRole.OrganizationAdmin | 
-            PermissionRole.SiteAdmin | 
-            PermissionRole.OrganizationCollaborator;
+        public static PermissionsRequirement DisplayPrivatePackage = 
+            PermissionsRequirement.Owner | 
+            PermissionsRequirement.OrganizationAdmin | 
+            PermissionsRequirement.SiteAdmin | 
+            PermissionsRequirement.OrganizationCollaborator;
 
         /// <summary>
         /// The user can upload new versions of the package.
         /// </summary>
-        public static PermissionRole UploadNewVersion = 
-            PermissionRole.Owner | 
-            PermissionRole.OrganizationAdmin | 
-            PermissionRole.SiteAdmin | 
-            PermissionRole.OrganizationCollaborator;
+        public static PermissionsRequirement UploadNewVersion = 
+            PermissionsRequirement.Owner | 
+            PermissionsRequirement.OrganizationAdmin | 
+            PermissionsRequirement.SiteAdmin | 
+            PermissionsRequirement.OrganizationCollaborator;
 
         /// <summary>
         /// The user can edit existing versions of the package.
         /// </summary>
-        public static PermissionRole Edit = 
-            PermissionRole.Owner |
-            PermissionRole.OrganizationAdmin |
-            PermissionRole.SiteAdmin |
-            PermissionRole.OrganizationCollaborator;
+        public static PermissionsRequirement Edit = 
+            PermissionsRequirement.Owner |
+            PermissionsRequirement.OrganizationAdmin |
+            PermissionsRequirement.SiteAdmin |
+            PermissionsRequirement.OrganizationCollaborator;
 
         /// <summary>
         /// The user can unlist and relist existing versions of the package.
         /// </summary>
-        public static PermissionRole Unlist =
-            PermissionRole.Owner |
-            PermissionRole.OrganizationAdmin |
-            PermissionRole.SiteAdmin |
-            PermissionRole.OrganizationCollaborator;
+        public static PermissionsRequirement Unlist =
+            PermissionsRequirement.Owner |
+            PermissionsRequirement.OrganizationAdmin |
+            PermissionsRequirement.SiteAdmin |
+            PermissionsRequirement.OrganizationCollaborator;
 
         /// <summary>
         /// The user can manage ownership of the package.
         /// </summary>
-        public static PermissionRole ManagePackageOwners =
-            PermissionRole.Owner |
-            PermissionRole.OrganizationAdmin |
-            PermissionRole.SiteAdmin;
+        public static PermissionsRequirement ManagePackageOwners =
+            PermissionsRequirement.Owner |
+            PermissionsRequirement.OrganizationAdmin |
+            PermissionsRequirement.SiteAdmin;
 
         /// <summary>
         /// The user can report the package as the package's owner.
         /// This is usually used for requesting deletion of packages.
         /// </summary>
-        public static PermissionRole ReportMyPackage =
-            PermissionRole.Owner |
-            PermissionRole.OrganizationAdmin;
+        public static PermissionsRequirement ReportMyPackage =
+            PermissionsRequirement.Owner |
+            PermissionsRequirement.OrganizationAdmin;
     }
 }

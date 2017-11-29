@@ -11,15 +11,15 @@ namespace NuGetGallery
         /// <summary>
         /// If an account is requested to be an owner of a package, the user can accept the request on behalf of the account.
         /// </summary>
-        public static PermissionRole ManagePackageOwnershipOnBehalfOf =
-            PermissionRole.Owner |
-            PermissionRole.OrganizationAdmin;
+        public static PermissionsRequirement ManagePackageOwnershipOnBehalfOf =
+            PermissionsRequirement.Owner |
+            PermissionsRequirement.OrganizationAdmin;
 
         /// <summary>
         /// The user can see private information about an organization account.
         /// </summary>
-        public static PermissionRole DisplayPrivateOrganization =
-            PermissionRole.OrganizationAdmin |
-            PermissionRole.OrganizationCollaborator;
+        public static PermissionsRequirement DisplayPrivateOrganization =
+            PermissionsRequirement.OrganizationAdmin |
+            PermissionsRequirement.OrganizationCollaborator;
     }
 }
