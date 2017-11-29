@@ -7,7 +7,6 @@ using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Logging;
@@ -163,7 +162,7 @@ namespace NuGet.Jobs
                 // Wait for <sleepDuration> milliSeconds and run the job again
                 _logger.LogInformation("Will sleep for {SleepDuration} before the next Job run", PrettyPrintTime(sleepDuration));
                 
-                Thread.Sleep(sleepDuration);
+                await Task.Delay(sleepDuration);
             }
         }
     }

@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
@@ -26,9 +28,9 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
     public class Job : JobBase
     {
         /// <summary>
-        /// The configured service provider, used to instiate the services this job depends on.
+        /// The maximum number of concurrent connections that can be established to a single server.
         /// </summary>
-        private IServiceProvider _serviceProvider;
+        private const int MaximumConnectionsPerServer = 64;
 
         /// <summary>
         /// The argument this job uses to determine the configuration file's path.
@@ -37,6 +39,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
 
         private const string ValidationDbConfigurationSectionName = "ValidationDb";
         private const string ServiceBusConfigurationSectionName = "ServiceBus";
+        private const string PackageDownloadTimeoutName = "PackageDownloadTimeout";
 
         /// <summary>
         /// The maximum time that a KeyVault secret will be cached for.
@@ -54,11 +57,18 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
         /// </summary>
         private static readonly TimeSpan MaxShutdownTime = TimeSpan.FromMinutes(1);
 
+        /// <summary>
+        /// The configured service provider, used to instiate the services this job depends on.
+        /// </summary>
+        private IServiceProvider _serviceProvider;
+
         public override void Init(IDictionary<string, string> jobArgsDictionary)
         {
             var configurationFilename = JobConfigurationManager.GetArgument(jobArgsDictionary, ConfigurationArgument);
 
             _serviceProvider = GetServiceProvider(GetConfigurationRoot(configurationFilename));
+
+            ServicePointManager.DefaultConnectionLimit = MaximumConnectionsPerServer;
         }
 
         public override async Task Run()
@@ -144,6 +154,22 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
             services.AddTransient<IBrokeredMessageSerializer<SignatureValidationMessage>, SignatureValidationMessageSerializer>();
             services.AddTransient<IMessageHandler<SignatureValidationMessage>, SignatureValidationMessageHandler>();
             services.AddTransient<IPackageSigningStateService, PackageSigningStateService>();
+
+            services.AddSingleton(p =>
+            {
+                var assemblyName = typeof(SignatureValidationMessage).Assembly.GetName();
+
+                var client = new HttpClient(new WebRequestHandler
+                {
+                    AllowPipelining = true,
+                    AutomaticDecompression = (DecompressionMethods.GZip | DecompressionMethods.Deflate),
+                });
+
+                client.Timeout = configurationRoot.GetValue<TimeSpan>(PackageDownloadTimeoutName);
+                client.DefaultRequestHeaders.Add("user-agent", $"{assemblyName.Name}/{assemblyName.Version}");
+
+                return client;
+            });
         }
 
         private IServiceProvider GetServiceProvider(IConfigurationRoot configurationRoot)
