@@ -2044,11 +2044,13 @@ namespace NuGetGallery
                 // Arrange
                 string userName = "DeletedUser";
                 string emailAddress = $"{userName}@coldmail.com";
+                int userKey = 1;
 
                 var controller = GetController<UsersController>();
                 var fakes = Get<Fakes>();
                 var testUser = fakes.CreateUser(userName);
                 testUser.EmailAddress = emailAddress;
+                testUser.Key = userKey;
                 testUser.IsDeleted = false;
 
                 controller.SetCurrentUser(testUser);
@@ -2073,6 +2075,7 @@ namespace NuGetGallery
                         IssueTitle = Strings.AccountDelete_SupportRequestTitle,
                         OwnerEmail = emailAddress,
                         CreatedBy = userName,
+                        UserKey = 1,
                         IssueStatus = new IssueStatus() { Key = IssueStatusKeys.New, Name = "OneIssue" }
                     });
                 }

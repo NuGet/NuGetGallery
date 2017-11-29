@@ -111,6 +111,12 @@ namespace NuGetGallery
 
             try
             {
+                // The support requests db and gallery db are different.
+                // TransactionScope can be used for doing transaction actions across db on the same server but not on different servers.
+                // The below code will clean first the suppport requests and after the gallery data.
+                // The order is important in order to allow the admin the oportunity to execute this step again.
+                await RemoveSupportRequests(userToBeDeleted);
+
                 if (commitAsTransaction)
                 {
                     using (var strategy = new SuspendDbExecutionStrategy())
@@ -124,7 +130,6 @@ namespace NuGetGallery
                 {
                     await DeleteGalleryUserAccountImplAsync(userToBeDeleted, admin, signature, unlistOrphanPackages);
                 }
-                await RemoveSupportRequests(userToBeDeleted);
                 return new DeleteUserAccountStatus()
                 {
                     Success = true,
