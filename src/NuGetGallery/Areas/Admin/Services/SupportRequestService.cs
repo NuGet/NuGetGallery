@@ -318,7 +318,7 @@ namespace NuGetGallery.Areas.Admin
             return issue?.Name;
         }
 
-        public async Task<bool> DeleteSupportRequestsAsync(string createdBy)
+        public async Task DeleteSupportRequestsAsync(string createdBy)
         {
             if(createdBy == null)
             {
@@ -331,17 +331,16 @@ namespace NuGetGallery.Areas.Admin
             {
                 _supportRequestDbContext.Issues.Remove(issue);
             }
-            foreach(var deletedIssue in userCreatedIssues.Where(i => string.Equals(i.IssueTitle, Strings.AccountDelete_SupportRequestTitle)))
+            foreach(var accountDeletedIssue in userCreatedIssues.Where(i => string.Equals(i.IssueTitle, Strings.AccountDelete_SupportRequestTitle)))
             {
-                deletedIssue.OwnerEmail = "null";
-                deletedIssue.CreatedBy = null;
-                foreach(var historyEntry in deletedIssue.HistoryEntries)
+                accountDeletedIssue.OwnerEmail = "deletedaccount";
+                accountDeletedIssue.CreatedBy = null;
+                foreach(var historyEntry in accountDeletedIssue.HistoryEntries)
                 {
                     historyEntry.EditedBy = null;
                 }
             }
             await _supportRequestDbContext.CommitChangesAsync();
-            return true;
         }
 
         private IQueryable<Issue> GetFilteredIssuesQueryable(int? assignedTo = null, string reason = null, int? issueStatusId = null, string galleryUsername = null)
