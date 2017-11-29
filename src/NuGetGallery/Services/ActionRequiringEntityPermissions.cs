@@ -8,6 +8,7 @@ using System.Security.Principal;
 namespace NuGetGallery
 {
     public abstract class ActionRequiringEntityPermissions<TEntity>
+        : IActionRequiringEntityPermissions<TEntity>
     {
         public PermissionsRequirement AccountOnBehalfOfPermissionsRequirement { get; }
         public PermissionsRequirement EntityPermissionsRequirement { get; }

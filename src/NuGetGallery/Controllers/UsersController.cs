@@ -112,7 +112,7 @@ namespace NuGetGallery
 
             var listPackageItems = _packageService
                  .FindPackagesByAnyMatchingOwner(user, includeUnlisted: true)
-                 .Select(p => new ListPackageItemViewModel(p))
+                 .Select(p => new ListPackageItemViewModel(p, user))
                  .ToList();
 
             bool hasPendingRequest = _supportRequestService.GetIssues().Where((issue)=> string.Equals(issue.CreatedBy, user.Username) && 
@@ -171,7 +171,7 @@ namespace NuGetGallery
 
             var listPackageItems = _packageService
                  .FindPackagesByAnyMatchingOwner(user, includeUnlisted:true)
-                 .Select(p => new ListPackageItemViewModel(p))
+                 .Select(p => new ListPackageItemViewModel(p, user))
                  .ToList();
             var model = new DeleteUserAccountViewModel
             {
@@ -285,7 +285,7 @@ namespace NuGetGallery
         {
             var user = GetCurrentUser();
             var packages = _packageService.FindPackagesByAnyMatchingOwner(user, includeUnlisted: true)
-                .Select(p => new ListPackageItemViewModel(p)).OrderBy(p => p.Id).ToList();
+                .Select(p => new ListPackageItemViewModel(p, user)).OrderBy(p => p.Id).ToList();
 
             var incoming = _packageOwnerRequestService.GetPackageOwnershipRequests(newOwner: user);
             var outgoing = _packageOwnerRequestService.GetPackageOwnershipRequests(requestingOwner: user);
@@ -472,7 +472,7 @@ namespace NuGetGallery
 
             var packages = _packageService.FindPackagesByAnyMatchingOwner(user, includeUnlisted: false)
                 .OrderByDescending(p => p.PackageRegistration.DownloadCount)
-                .Select(p => new ListPackageItemViewModel(p)
+                .Select(p => new ListPackageItemViewModel(p, user)
                 {
                     DownloadCount = p.PackageRegistration.DownloadCount
                 }).ToList();

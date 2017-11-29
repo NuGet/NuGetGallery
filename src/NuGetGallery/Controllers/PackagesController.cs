@@ -300,7 +300,7 @@ namespace NuGetGallery
                 var packageRegistration = _packageService.FindPackageRegistrationById(id);
                 IEnumerable<User> accountsAllowedOnBehalfOf;
                 // For a new package id verify if the user is allowed to use it.
-                if (packageRegistration == null && !ActionsRequiringPermissions.UploadNewPackageId.TryGetAccountsIsAllowedOnBehalfOf(currentUser, id, _reservedNamespaceService, out accountsAllowedOnBehalfOf))
+                if (packageRegistration == null && !ActionsRequiringPermissions.UploadNewPackageId.TryGetAccountsIsAllowedOnBehalfOf(currentUser, new ActionOnNewPackageContext(id, _reservedNamespaceService), out accountsAllowedOnBehalfOf))
                 {
                     ModelState.AddModelError(
                         string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict));
@@ -427,7 +427,7 @@ namespace NuGetGallery
                 .ToList()
                 .OrderByDescending(p => new NuGetVersion(p.Version));
 
-            var model = new DisplayPackageViewModel(package, packageHistory);
+            var model = new DisplayPackageViewModel(package, currentUser, packageHistory);
 
             var isReadMePending = false;
             if (ActionsRequiringPermissions.EditPackage.TryGetAccountsIsAllowedOnBehalfOf(currentUser, package, out accountsAllowedOnBehalfOf))
@@ -572,6 +572,7 @@ namespace NuGetGallery
 
             var viewModel = new PackageListViewModel(
                 results.Data,
+                GetCurrentUser(),
                 results.IndexTimestampUtc,
                 q,
                 totalHits,
@@ -975,7 +976,7 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
 
-            var model = new ManagePackageOwnersViewModel(package, User);
+            var model = new ManagePackageOwnersViewModel(package, GetCurrentUser());
 
             return View(model);
         }
@@ -995,7 +996,7 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
 
-            var model = new DeletePackageViewModel(package, ReportMyPackageReasons);
+            var model = new DeletePackageViewModel(package, GetCurrentUser(), ReportMyPackageReasons);
 
             model.VersionSelectList = new SelectList(
                 model.PackageVersions

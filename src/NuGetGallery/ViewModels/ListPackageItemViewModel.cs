@@ -13,7 +13,7 @@ namespace NuGetGallery
         private const int _descriptionLengthLimit = 300;
         private const string _omissionString = "...";
 
-        public ListPackageItemViewModel(Package package)
+        public ListPackageItemViewModel(Package package, User currentUser)
             : base(package)
         {
             Tags = package.Tags?
@@ -24,6 +24,7 @@ namespace NuGetGallery
 
             Authors = package.FlattenedAuthors;
             MinClientVersion = package.MinClientVersion;
+            CurrentUser = currentUser;
             Owners = package.PackageRegistration?.Owners;
             IsVerified = package.PackageRegistration?.IsVerified;
 
@@ -33,6 +34,7 @@ namespace NuGetGallery
         }
 
         public string Authors { get; set; }
+        public User CurrentUser { get; set; }
         public ICollection<User> Owners { get; set; }
         public IEnumerable<string> Tags { get; set; }
         public string MinClientVersion { get; set; }
@@ -62,6 +64,11 @@ namespace NuGetGallery
                     // that has a single member.
                     (organization == null || organization.Members.Count == 1);
             }
+        }
+
+        public bool IsActionAllowed(ActionRequiringPackagePermissions actionRequiringPackagePermissions)
+        {
+            return actionRequiringPackagePermissions.TryGetAccountsIsAllowedOnBehalfOf(CurrentUser, this, out var accountsAllowedOnBehalfOf);
         }
     }
 }
