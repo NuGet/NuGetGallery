@@ -276,6 +276,25 @@ namespace NuGetGallery.Controllers
                     }
 
                     [Theory]
+                    [MemberData(nameof(ReturnsFailureIfCurrentUserNotFoundByAddRequests_Data))]
+                    public async Task ReturnsFailureIfCurrentUserNotFound(InvokePackageOwnerModificationRequest request, Func<Fakes, User> getCurrentUser, Func<Fakes, User> getUserToAdd)
+                    {
+                        // Arrange
+                        var fakes = Get<Fakes>();
+                        var currentUser = getCurrentUser(fakes);
+                        var userToAdd = getUserToAdd(fakes);
+                        var controller = GetController<JsonApiController>();
+
+                        // Act
+                        var result = await request(controller, fakes.Package.Id, userToAdd.Username);
+                        dynamic data = ((JsonResult)result).Data;
+
+                        // Assert
+                        Assert.False(data.success);
+                        Assert.Equal("Current user not found.", data.message);
+                    }
+
+                    [Theory]
                     [MemberData(nameof(AllCanManagePackageOwnersPairedWithCannotBeAddedByAddRequests_Data))]
                     public async Task ReturnsFailureIfNewOwnerIsAlreadyOwner(InvokePackageOwnerModificationRequest request, Func<Fakes, User> getCurrentUser, Func<Fakes, User> getUserToAdd)
                     {
@@ -720,6 +739,25 @@ namespace NuGetGallery.Controllers
                         {
                             return AllCanManagePackageOwnersPairedWithCanBeRemoved_Data.Where(o => o[0] != o[1]);
                         }
+                    }
+
+                    [Theory]
+                    [MemberData(nameof(ReturnsFailureIfCurrentUserNotFound_Data))]
+                    public async Task ReturnsFailureIfCurrentUserNotFound(Func<Fakes, User> getCurrentUser, Func<Fakes, User> getUserToRemove)
+                    {
+                        // Arrange
+                        var fakes = Get<Fakes>();
+                        var currentUser = getCurrentUser(fakes);
+                        var userToRemove = getUserToRemove(fakes);
+                        var controller = GetController<JsonApiController>();
+
+                        // Act
+                        var result = await controller.RemovePackageOwner(fakes.Package.Id, userToRemove.Username);
+                        dynamic data = result.Data;
+
+                        // Assert
+                        Assert.False(data.success);
+                        Assert.Equal("Current user not found.", data.message);
                     }
 
                     [Theory]

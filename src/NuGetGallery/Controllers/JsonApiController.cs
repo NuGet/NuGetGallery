@@ -314,6 +314,12 @@ namespace NuGetGallery
             }
 
             var currentUser = GetCurrentUser();
+            if (currentUser == null)
+            {
+                model = new ManagePackageOwnerModel(Strings.AddOwner_CurrentUserNotFound);
+                return false;
+            }
+
             if (!ActionsRequiringPermissions.ManagePackageOwnership.TryGetAccountsIsAllowedOnBehalfOf(currentUser, package, out var accountsAllowedOnBehalfOf))
             {
                 model = new ManagePackageOwnerModel(Strings.AddOwner_NotPackageOwner);
