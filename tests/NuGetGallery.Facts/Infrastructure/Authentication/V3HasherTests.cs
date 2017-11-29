@@ -3,7 +3,7 @@
 
 using System;
 using System.Diagnostics;
-using NuGetGallery.Services.Authentication;
+using NuGetGallery.Infrastructure.Authentication;
 using Xunit;
 
 namespace NuGetGallery.Authentication
@@ -18,6 +18,19 @@ namespace NuGetGallery.Authentication
 
             // Act
             string hash = V3Hasher.GenerateHash(password);
+
+            // Assert
+            Assert.True(V3Hasher.VerifyHash(hash, password));
+        }
+
+        [Fact]
+        public void WhenStringIsHashedAsBytesItCanBeVerified()
+        {
+            // Arrange
+            string password = "arew234235wfsdq2321edfewasddsfrstete";
+
+            // Act
+            byte[] hash = V3Hasher.GenerateHashAsBytes(password);
 
             // Assert
             Assert.True(V3Hasher.VerifyHash(hash, password));
