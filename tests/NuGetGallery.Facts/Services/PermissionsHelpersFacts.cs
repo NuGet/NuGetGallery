@@ -58,7 +58,7 @@ namespace NuGetGallery.Services
             public void ReturnsSatisfiedRequirementWhenExpected(IEnumerable<ReturnsSatisfiedRequirementWhenExpected_State> states)
             {
                 // Arrange
-                var expectedPermissionLevel = PermissionsRequirement.Anonymous;
+                var expectedPermissionLevel = PermissionsRequirement.None;
 
                 var owners = new List<User>();
 

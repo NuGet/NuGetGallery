@@ -19,7 +19,7 @@ namespace NuGetGallery
         /// <summary>
         /// No requirement--any user can satisfy the requirement.
         /// </summary>
-        Anonymous = 1,
+        None = 1,
 
         /// <summary>
         /// If the user is an owner of the <see cref="Package"/>, <see cref="User"/>, or <see cref="ReservedNamespace"/>, they satisfy the requirement.

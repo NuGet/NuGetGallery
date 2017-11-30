@@ -41,7 +41,7 @@ namespace NuGetGallery
         {
             if (currentPrincipal == null)
             {
-                return PermissionLevelsIntersect(PermissionsRequirement.Anonymous, permissionsRequirement);
+                return PermissionLevelsIntersect(PermissionsRequirement.None, permissionsRequirement);
             }
 
             return IsRequirementSatisfied(
@@ -82,7 +82,7 @@ namespace NuGetGallery
         {
             if (currentUser == null)
             {
-                return PermissionLevelsIntersect(PermissionsRequirement.Anonymous, permissionsRequirement);
+                return PermissionLevelsIntersect(PermissionsRequirement.None, permissionsRequirement);
             }
 
             return IsRequirementSatisfied(
@@ -95,7 +95,7 @@ namespace NuGetGallery
         private static bool IsRequirementSatisfied(PermissionsRequirement permissionsRequirement, bool isUserAdmin, Func<User, bool> isUserMatch, IEnumerable<User> entityOwners)
         {
             if ((entityOwners == null || !entityOwners.Any()) &&
-                PermissionLevelsIntersect(PermissionsRequirement.Anonymous, permissionsRequirement))
+                PermissionLevelsIntersect(PermissionsRequirement.None, permissionsRequirement))
             {
                 return true;
             }
@@ -131,7 +131,7 @@ namespace NuGetGallery
                 return true;
             }
 
-            return PermissionLevelsIntersect(PermissionsRequirement.Anonymous, permissionsRequirement);
+            return PermissionLevelsIntersect(PermissionsRequirement.None, permissionsRequirement);
         }
 
         private static bool PermissionLevelsIntersect(PermissionsRequirement first, PermissionsRequirement second)
