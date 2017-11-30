@@ -14,14 +14,10 @@ namespace NuGetGallery
         : IActionRequiringEntityPermissions<TEntity>
     {
         public PermissionsRequirement AccountOnBehalfOfPermissionsRequirement { get; }
-        public PermissionsRequirement EntityPermissionsRequirement { get; }
 
-        public ActionRequiringEntityPermissions(
-            PermissionsRequirement accountOnBehalfOfPermissionsRequirement,
-            PermissionsRequirement entityPermissionsRequirement)
+        public ActionRequiringEntityPermissions(PermissionsRequirement accountOnBehalfOfPermissionsRequirement)
         {
             AccountOnBehalfOfPermissionsRequirement = accountOnBehalfOfPermissionsRequirement;
-            EntityPermissionsRequirement = entityPermissionsRequirement;
         }
 
         /// <summary>
@@ -60,7 +56,17 @@ namespace NuGetGallery
         public bool TryGetAccountsIsAllowedOnBehalfOf(User currentUser, TEntity entity, out IEnumerable<User> accountsAllowedOnBehalfOf)
         {
             accountsAllowedOnBehalfOf = Enumerable.Empty<User>();
-            var possibleAccountsOnBehalfOf = new[] { currentUser }.Concat(GetOwners(entity)).Distinct();
+
+            var possibleAccountsOnBehalfOf = 
+                new[] { currentUser }
+                    .Union(GetOwners(entity));
+
+            if (currentUser != null)
+            {
+                possibleAccountsOnBehalfOf = 
+                    possibleAccountsOnBehalfOf
+                        .Union(currentUser.Organizations.Select(o => o.Organization));
+            }
 
             foreach (var accountOnBehalfOf in possibleAccountsOnBehalfOf)
             {

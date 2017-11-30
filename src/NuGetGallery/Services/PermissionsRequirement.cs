@@ -12,6 +12,11 @@ namespace NuGetGallery
     public enum PermissionsRequirement
     {
         /// <summary>
+        /// No user can satisfy the requirement.
+        /// </summary>
+        Unsatisfiable = 0,
+
+        /// <summary>
         /// No requirement--any user can satisfy the requirement.
         /// </summary>
         Anonymous = 1,

@@ -432,6 +432,7 @@
     <Compile Include="Helpers\HtmlExtensionsFacts.cs" />
     <Compile Include="HttpContextBaseExtensionsFacts.cs" />
     <Compile Include="Security\RequireMinProtocolVersionForPushPolicyFacts.cs" />
+    <Compile Include="Services\ActionRequiringEntityPermissionsFacts.cs" />
     <Compile Include="Services\DeleteAccountServiceFacts.cs" />
     <Compile Include="Services\JsonStatisticsServiceFacts.cs" />
     <Compile Include="Services\PackageOwnerRequestServiceFacts.cs" />

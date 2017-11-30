@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Principal;
 
 namespace NuGetGallery
@@ -12,11 +13,14 @@ namespace NuGetGallery
     public class ActionRequiringPackagePermissions
         : ActionRequiringEntityPermissions<PackageRegistration>, IActionRequiringEntityPermissions<Package>, IActionRequiringEntityPermissions<ListPackageItemViewModel>
     {
+        public PermissionsRequirement PackageRegistrationPermissionsRequirement { get; }
+
         public ActionRequiringPackagePermissions(
             PermissionsRequirement accountOnBehalfOfPermissionsRequirement,
             PermissionsRequirement packageRegistrationPermissionsRequirement)
-            : base(accountOnBehalfOfPermissionsRequirement, packageRegistrationPermissionsRequirement)
+            : base(accountOnBehalfOfPermissionsRequirement)
         {
+            PackageRegistrationPermissionsRequirement = packageRegistrationPermissionsRequirement;
         }
 
         public PermissionsFailure IsAllowed(User currentUser, User account, Package package)
@@ -41,7 +45,7 @@ namespace NuGetGallery
 
         protected override PermissionsFailure IsAllowedOnEntity(User account, PackageRegistration packageRegistration)
         {
-            return PermissionsHelpers.IsRequirementSatisfied(EntityPermissionsRequirement, account, packageRegistration) ? PermissionsFailure.None : PermissionsFailure.PackageRegistration;
+            return PermissionsHelpers.IsRequirementSatisfied(PackageRegistrationPermissionsRequirement, account, packageRegistration) ? PermissionsFailure.None : PermissionsFailure.PackageRegistration;
         }
 
         public bool TryGetAccountsIsAllowedOnBehalfOf(User currentUser, Package package, out IEnumerable<User> accountsAllowedOnBehalfOf)
@@ -56,7 +60,7 @@ namespace NuGetGallery
 
         protected override IEnumerable<User> GetOwners(PackageRegistration packageRegistration)
         {
-            return packageRegistration.Owners;
+            return packageRegistration != null ? packageRegistration.Owners : Enumerable.Empty<User>();
         }
 
         private PackageRegistration ConvertPackageToRegistration(Package package)

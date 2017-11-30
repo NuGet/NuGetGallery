@@ -25,11 +25,14 @@ namespace NuGetGallery
     public class ActionRequiringReservedNamespacePermissions
         : ActionRequiringEntityPermissions<IEnumerable<ReservedNamespace>>, IActionRequiringEntityPermissions<ActionOnNewPackageContext>
     {
+        public PermissionsRequirement ReservedNamespacePermissionsRequirement { get; }
+
         public ActionRequiringReservedNamespacePermissions(
             PermissionsRequirement accountOnBehalfOfPermissionsRequirement,
             PermissionsRequirement reservedNamespacePermissionsRequirement)
-            : base(accountOnBehalfOfPermissionsRequirement, reservedNamespacePermissionsRequirement)
+            : base(accountOnBehalfOfPermissionsRequirement)
         {
+            ReservedNamespacePermissionsRequirement = reservedNamespacePermissionsRequirement;
         }
 
         public PermissionsFailure IsAllowed(User currentUser, User account, ActionOnNewPackageContext newPackageContext)
@@ -49,7 +52,7 @@ namespace NuGetGallery
                 return PermissionsFailure.None;
             }
 
-            return reservedNamespaces.Any(rn => PermissionsHelpers.IsRequirementSatisfied(EntityPermissionsRequirement, account, rn)) ?
+            return reservedNamespaces.Any(rn => PermissionsHelpers.IsRequirementSatisfied(ReservedNamespacePermissionsRequirement, account, rn)) ?
                 PermissionsFailure.None : PermissionsFailure.ReservedNamespace;
         }
 
