@@ -78,6 +78,11 @@ namespace NuGetGallery.Services
             }
         }
 
+        protected void SendMessage(MailMessage mailMessage)
+        {
+            SendMessage(mailMessage, copySender: false);
+        }
+
         virtual protected void SendMessage(MailMessage mailMessage, bool copySender)
         {
             MailSender.Send(mailMessage);

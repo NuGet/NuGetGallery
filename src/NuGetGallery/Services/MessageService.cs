@@ -81,7 +81,7 @@ namespace NuGetGallery
                     // CCing helps to create a thread of email that can be augmented by the sending user
                     mailMessage.CC.Add(request.FromAddress);
                 }
-                SendMessage(mailMessage, copySender: false);
+                SendMessage(mailMessage);
             }
         }
 
@@ -128,7 +128,7 @@ namespace NuGetGallery
                     // CCing helps to create a thread of email that can be augmented by the sending user
                     mailMessage.CC.Add(request.FromAddress);
                 }
-                SendMessage(mailMessage, copySender: false);
+                SendMessage(mailMessage);
             }
         }
 
@@ -199,7 +199,7 @@ The {0} Team";
                 mailMessage.From = Config.GalleryNoReplyAddress;
 
                 mailMessage.To.Add(toAddress);
-                SendMessage(mailMessage, copySender: false);
+                SendMessage(mailMessage);
             }
         }
 
@@ -229,7 +229,7 @@ The {0} Team";
                 mailMessage.From = Config.GalleryNoReplyAddress;
 
                 mailMessage.To.Add(newEmailAddress);
-                SendMessage(mailMessage, copySender: false);
+                SendMessage(mailMessage);
             }
         }
 
@@ -259,7 +259,7 @@ The {0} Team";
                 mailMessage.From = Config.GalleryNoReplyAddress;
 
                 mailMessage.To.Add(new MailAddress(oldEmailAddress, user.Username));
-                SendMessage(mailMessage, copySender: false);
+                SendMessage(mailMessage);
             }
         }
 
@@ -282,7 +282,7 @@ The {0} Team";
                 mailMessage.From = Config.GalleryNoReplyAddress;
 
                 mailMessage.To.Add(user.ToMailAddress());
-                SendMessage(mailMessage, copySender: false);
+                SendMessage(mailMessage);
             }
         }
 
@@ -330,7 +330,7 @@ The {Config.GalleryOwner.DisplayName} Team";
                 mailMessage.ReplyToList.Add(fromUser.ToMailAddress());
 
                 mailMessage.To.Add(toUser.ToMailAddress());
-                SendMessage(mailMessage, copySender: false);
+                SendMessage(mailMessage);
             }
         }
 
@@ -356,7 +356,7 @@ The {Config.GalleryOwner.DisplayName} Team");
                 mailMessage.ReplyToList.Add(newOwner.ToMailAddress());
 
                 mailMessage.To.Add(requestingOwner.ToMailAddress());
-                SendMessage(mailMessage, copySender: false);
+                SendMessage(mailMessage);
             }
         }
 
@@ -382,7 +382,7 @@ The {Config.GalleryOwner.DisplayName} Team");
                 mailMessage.ReplyToList.Add(requestingOwner.ToMailAddress());
 
                 mailMessage.To.Add(newOwner.ToMailAddress());
-                SendMessage(mailMessage, copySender: false);
+                SendMessage(mailMessage);
             }
         }
 
@@ -416,7 +416,7 @@ The {3} Team";
                 mailMessage.ReplyToList.Add(Config.GalleryNoReplyAddress);
 
                 mailMessage.To.Add(toUser.ToMailAddress());
-                SendMessage(mailMessage, copySender: false);
+                SendMessage(mailMessage);
             }
         }
 
@@ -445,7 +445,7 @@ The {3} Team";
                 mailMessage.ReplyToList.Add(fromUser.ToMailAddress());
 
                 mailMessage.To.Add(toUser.ToMailAddress());
-                SendMessage(mailMessage, copySender: false);
+                SendMessage(mailMessage);
             }
         }
 
@@ -553,7 +553,7 @@ The {3} Team";
                 {
                     mailMessage.CC.Add(request.FromAddress);
                 }
-                SendMessage(mailMessage, copySender: false);
+                SendMessage(mailMessage);
             }
         }
 
@@ -571,7 +571,7 @@ The {3} Team";
                 mailMessage.From = Config.GalleryOwner;
 
                 mailMessage.To.Add(user.ToMailAddress());
-                SendMessage(mailMessage, copySender: false);
+                SendMessage(mailMessage);
             }
         }
 
@@ -602,7 +602,7 @@ Thanks,
                 mailMessage.From = Config.GalleryNoReplyAddress;
 
                 mailMessage.To.Add(mailAddress.Address);
-                SendMessage(mailMessage, copySender: false);
+                SendMessage(mailMessage);
             }
         }
 
@@ -643,7 +643,7 @@ The {0} Team";
 
                 if (mailMessage.To.Any())
                 {
-                    SendMessage(mailMessage, copySender: false);
+                    SendMessage(mailMessage);
                 }
             }
         }
