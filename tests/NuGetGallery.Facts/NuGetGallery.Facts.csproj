@@ -465,6 +465,7 @@
     <Compile Include="Services\ReflowPackageServiceFacts.cs" />
     <Compile Include="Services\ReservedNamespaceServiceFacts.cs" />
     <Compile Include="Services\SearchAdaptorFacts.cs" />
+    <Compile Include="Services\SupportRequestServiceFacts.cs" />
     <Compile Include="Services\TelemetryServiceFacts.cs" />
     <Compile Include="Services\ValidationServiceFacts.cs" />
     <Compile Include="Telemetry\ClientInformationTelemetryEnricherTests.cs" />

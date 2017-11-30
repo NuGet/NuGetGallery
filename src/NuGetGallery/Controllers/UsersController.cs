@@ -115,7 +115,7 @@ namespace NuGetGallery
                  .Select(p => new ListPackageItemViewModel(p))
                  .ToList();
 
-            bool hasPendingRequest = _supportRequestService.GetIssues().Where((issue)=> string.Equals(issue.CreatedBy, user.Username) && 
+            bool hasPendingRequest = _supportRequestService.GetIssues().Where((issue)=> (issue.UserKey.HasValue && issue.UserKey.Value == user.Key) && 
                                                                                  string.Equals(issue.IssueTitle, Strings.AccountDelete_SupportRequestTitle) &&
                                                                                  issue.Key != IssueStatusKeys.Resolved).Any();
 
