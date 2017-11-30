@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using NuGet.Versioning;
 using Xunit;
@@ -237,6 +238,111 @@ namespace NuGetGallery.ViewModels
 
             // Assert
             Assert.False(hasNewerPrerelease);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void HasSemVer2DependencyIsFalseWhenInvalidDependencyVersionRange(string versionSpec)
+        {
+            // Arrange
+            var package = CreateTestPackage("1.0.0", dependencyVersion: versionSpec);
+            var history = package.PackageRegistration.Packages.OrderByDescending(p => p.Version);
+
+            // Act
+            var viewModel = new DisplayPackageViewModel(package, history);
+
+            // Assert
+            Assert.False(viewModel.HasSemVer2Dependency);
+        }
+
+        [Theory]
+        [InlineData("2.0.0-alpha.1")]
+        [InlineData("2.0.0+metadata")]
+        [InlineData("2.0.0-alpha+metadata")]
+        public void HasSemVer2DependencyWhenSemVer2DependencyVersionSpec(string versionSpec)
+        {
+            // Arrange
+            var package = CreateTestPackage("1.0.0", dependencyVersion: versionSpec);
+            var history = package.PackageRegistration.Packages.OrderByDescending(p => p.Version);
+
+            // Act
+            var viewModel = new DisplayPackageViewModel(package, history);
+
+            // Assert
+            Assert.True(viewModel.HasSemVer2Dependency);
+        }
+
+        [Theory]
+        [InlineData("2.0.0-alpha")]
+        [InlineData("2.0.0")]
+        [InlineData("2.0.0.0")]
+        public void HasSemVer2DependencyIsFalseWhenNonSemVer2DependencyVersionSpec(string versionSpec)
+        {
+            // Arrange
+            var package = CreateTestPackage("1.0.0", dependencyVersion: versionSpec);
+            var history = package.PackageRegistration.Packages.OrderByDescending(p => p.Version);
+
+            // Act
+            var viewModel = new DisplayPackageViewModel(package, history);
+
+            // Assert
+            Assert.False(viewModel.HasSemVer2Dependency);
+        }
+
+        [Theory]
+        [InlineData("2.0.0-alpha")]
+        [InlineData("2.0.0")]
+        [InlineData("2.0.0.0")]
+        public void HasSemVer2VersionIsFalseWhenNonSemVer2Version(string version)
+        {
+            // Arrange
+            var package = CreateTestPackage(version);
+            var history = package.PackageRegistration.Packages.OrderByDescending(p => p.Version);
+
+            // Act
+            var viewModel = new DisplayPackageViewModel(package, history);
+
+            // Assert
+            Assert.False(viewModel.HasSemVer2Version);
+        }
+
+        [Theory]
+        [InlineData("2.0.0-alpha.1")]
+        [InlineData("2.0.0+metadata")]
+        [InlineData("2.0.0-alpha+metadata")]
+        public void HasSemVer2VersionIsTrueWhenSemVer2Version(string version)
+        {
+            // Arrange
+            var package = CreateTestPackage(version);
+            var history = package.PackageRegistration.Packages.OrderByDescending(p => p.Version);
+
+            // Act
+            var viewModel = new DisplayPackageViewModel(package, history);
+
+            // Assert
+            Assert.True(viewModel.HasSemVer2Version);
+        }
+
+        private Package CreateTestPackage(string version, string dependencyVersion = null)
+        {
+            var package = new Package
+            {
+                Version = version,
+                PackageRegistration = new PackageRegistration
+                {
+                    Owners = Enumerable.Empty<User>().ToList(),
+                }
+            };
+            if (!string.IsNullOrEmpty(dependencyVersion))
+            {
+                package.Dependencies = new List<PackageDependency>
+                {
+                    new PackageDependency { VersionSpec = dependencyVersion }
+                };
+            }
+            package.PackageRegistration.Packages = new[] { package };
+            return package;
         }
     }
 }
