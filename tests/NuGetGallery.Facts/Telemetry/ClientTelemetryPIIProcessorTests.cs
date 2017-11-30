@@ -3,9 +3,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.IO;
 using System.Security.Principal;
 using System.Web;
+using System.Web.Routing;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
@@ -44,25 +46,19 @@ namespace NuGetGallery.Telemetry
             piiProcessor.Process(telemetryItem);
 
             // Assert
-            string expected = actionIsPII ? "https://localhost/" : telemetryItem.Url.ToString();
+            string expected = actionIsPII ? $"https://localhost/{ClientTelemetryPIIProcessor.DefaultTelemetryUserName}" : telemetryItem.Url.ToString();
             Assert.Equal(expected, telemetryItem.Url.ToString());
         }
 
         [Fact]
-        public void UrlIsUpdatedOnUserContext()
+        public void ValidatePIIRoutes()
         {
             // Arange
-            string userName = "user1";
-            var piiProcessor = CreatePIIProcessor(false, userName);
-            RequestTelemetry telemetryItem = new RequestTelemetry();
-            telemetryItem.Url = new Uri($"https://localhost/route1?username={userName}");
+            HashSet<string> existentPIIOperations = ClientTelemetryPIIProcessor.PiiActions;
+            List<string> piiOperationsFromRoutes = GetPIIOperationsFromRoute();
 
-            // Act
-            piiProcessor.Process(telemetryItem);
-
-            // Assert
-            string expected = "https://localhost/route1?username=username";
-            Assert.Equal(expected, telemetryItem.Url.ToString());
+            // Act and Assert
+            Assert.True(existentPIIOperations.SetEquals(piiOperationsFromRoutes));
         }
 
         private ClientTelemetryPIIProcessor CreatePIIProcessor(bool isPIIOperation, string userName)
@@ -92,70 +88,29 @@ namespace NuGetGallery.Telemetry
             {
                 return _isPIIOperation;
             }
-
-            protected override HttpContextBase GetHttpContext()
-            {
-                return new TestHttpContext();
-            }
-
-            protected override IOwinContext GetOwingContext(HttpContextBase httpContext)
-            {
-                return new TestOwinContext(_testUser);
-            }
         }
 
-        private class TestHttpContext : HttpContextBase
+        private List<string> GetPIIOperationsFromRoute()
         {
-            public override HttpRequestBase Request
+            RouteCollection currentRoutes = new RouteCollection();
+            NuGetGallery.Routes.RegisterApiV2Routes(currentRoutes);
+            NuGetGallery.Routes.RegisterUIRoutes(currentRoutes);
+
+            var piiRoutes = currentRoutes.Where((r) =>
             {
-                get
-                {
-                    var request = new Mock<HttpRequestBase>();
-                    request.Setup(m => m.IsAuthenticated).Returns(true);
-                    return request.Object;
-                }
-            }
+                Route webRoute = r as Route;
+                return webRoute != null ? IsPIIUrl(webRoute.Url.ToString()) : false;
+            }).Select((r)=> {
+                var dd = ((Route)r).Defaults;
+                return $"{dd["controller"]}/{dd["action"]}";
+            }).Distinct().ToList();
+
+            return piiRoutes;
         }
 
-        private class TestOwinContext : IOwinContext
+        private bool IsPIIUrl(string url)
         {
-            private User _user;
-            public TestOwinContext(User user)
-            {
-                _user = user;
-                Environment = new Dictionary<string, object>();
-                Environment.Add(Constants.CurrentUserOwinEnvironmentKey, _user);
-                var owinUser = new Mock<IPrincipal>();
-                var request = new Mock<IOwinRequest>();
-                request.Setup(m => m.User).Returns(owinUser.Object);
-                Request = request.Object;
-            }
-
-            public IOwinRequest Request
-            {
-                get;
-            }
-
-            public IOwinResponse Response => throw new NotImplementedException();
-
-            public IAuthenticationManager Authentication => throw new NotImplementedException();
-
-            public IDictionary<string, object> Environment
-            {
-                get;
-            }
-
-            public TextWriter TraceOutput { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-
-            public T Get<T>(string key)
-            {
-                throw new NotImplementedException();
-            }
-
-            public IOwinContext Set<T>(string key, T value)
-            {
-                throw new NotImplementedException();
-            }
+            return url.ToLower().Contains("username") || url.ToLower().Contains("accountname");
         }
     }
 }
