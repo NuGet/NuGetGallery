@@ -19,6 +19,7 @@ using System.Web.Mvc;
 using NuGet.Packaging;
 using NuGet.Versioning;
 using NuGetGallery.Areas.Admin;
+using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
@@ -35,6 +36,29 @@ namespace NuGetGallery
     public partial class PackagesController
         : AppController
     {
+        private static readonly IReadOnlyList<ReportPackageReason> ReportAbuseReasons = new[]
+        {
+            ReportPackageReason.ViolatesALicenseIOwn,
+            ReportPackageReason.ContainsMaliciousCode,
+            ReportPackageReason.HasABugOrFailedToInstall,
+            ReportPackageReason.Other
+        };
+
+        private static readonly IReadOnlyList<ReportPackageReason> ReportMyPackageReasons = new[]
+        {
+            ReportPackageReason.ContainsPrivateAndConfidentialData,
+            ReportPackageReason.ReleasedInPublicByAccident,
+            ReportPackageReason.ContainsMaliciousCode,
+            ReportPackageReason.Other
+        };
+
+        private static readonly IReadOnlyList<ReportPackageReason> DeleteReasons = new[]
+        {
+            ReportPackageReason.ContainsPrivateAndConfidentialData,
+            ReportPackageReason.ReleasedInPublicByAccident,
+            ReportPackageReason.ContainsMaliciousCode,
+        };
+
         // TODO: add support for URL-based package submission
         // TODO: add support for uploading logos and screenshots
         // TODO: improve validation summary emphasis
@@ -161,16 +185,7 @@ namespace NuGetGallery
                     model.IsUploadInProgress = true;
 
                     var existingPackageRegistration = _packageService.FindPackageRegistrationById(packageMetadata.Id);
-
-                    if (existingPackageRegistration == null && !_reservedNamespaceService.IsPushAllowedOnBehalfOfOwner(packageMetadata.Id, currentUser, out var userOwnerMatchingNamespaces) ||
-                        (existingPackageRegistration != null && !PermissionsService.IsActionAllowed(existingPackageRegistration, currentUser, PackageActions.UploadNewVersion)))
-                    {
-                        // This user no longer has the rights to upload to this package. Cancel this upload.
-                        await CancelPendingUpload();
-                        return View();
-                    }
-
-                    var verifyRequest = new VerifyPackageRequest(packageMetadata, GetPossibleOwnersForUpload(packageMetadata.Id));
+                    var verifyRequest = new VerifyPackageRequest(packageMetadata, GetPossibleOwnersForUpload(packageMetadata.Id, existingPackageRegistration));
 
                     model.InProgressUpload = verifyRequest;
                 }
@@ -206,6 +221,8 @@ namespace NuGetGallery
                 ModelState.AddModelError(String.Empty, Strings.UploadFileMustBeNuGetPackage);
                 return Json(400, new[] { Strings.UploadFileMustBeNuGetPackage });
             }
+
+            PackageRegistration existingPackageRegistration;
 
             using (var uploadStream = uploadFile.InputStream)
             {
@@ -283,29 +300,27 @@ namespace NuGetGallery
                 }
 
                 var id = nuspec.GetId();
-                var packageRegistration = _packageService.FindPackageRegistrationById(id);
+                existingPackageRegistration = _packageService.FindPackageRegistrationById(id);
+
                 // For a new package id verify if the user is allowed to use it.
-                if (packageRegistration == null)
+                if (existingPackageRegistration == null && !_reservedNamespaceService.IsPushAllowedOnBehalfOfOwners(id, currentUser, out var matchingNamespaces))
                 {
-                    if (!_reservedNamespaceService.IsPushAllowedOnBehalfOfOwner(id, currentUser, out var matchingNamespaces))
-                    {
-                        ModelState.AddModelError(
-                            string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict));
+                    ModelState.AddModelError(
+                        string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict));
 
-                        var version = nuspec.GetVersion().ToNormalizedString();
-                        _telemetryService.TrackPackagePushNamespaceConflictEvent(id, version, currentUser, User.Identity);
+                    var version = nuspec.GetVersion().ToNormalizedString();
+                    _telemetryService.TrackPackagePushNamespaceConflictEvent(id, version, currentUser, User.Identity);
 
-                        return Json(409, new string[] { string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict) });
-                    }
+                    return Json(409, new string[] { string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict) });
                 }
 
                 // For existing package ID verify that the current user has the rights to upload new versions
-                if (packageRegistration != null && !PermissionsService.IsActionAllowed(packageRegistration, currentUser, PackageActions.UploadNewVersion))
+                if (existingPackageRegistration != null && !PermissionsService.IsActionAllowedOnBehalfOfOwners(existingPackageRegistration, currentUser, AccountActions.UploadNewVersionOnBehalfOf))
                 {
                     ModelState.AddModelError(
-                        string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id));
+                        string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, existingPackageRegistration.Id));
 
-                    return Json(409, new[] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id) });
+                    return Json(409, new[] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, existingPackageRegistration.Id) });
                 }
 
                 var nuspecVersion = nuspec.GetVersion();
@@ -368,13 +383,11 @@ namespace NuGetGallery
                 {
                     _telemetryService.TraceException(ex);
 
-                    TempData["Message"] = ex.GetUserSafeMessage();
-
                     return Json(400, new[] { ex.GetUserSafeMessage() });
                 }
             }
 
-            var model = new VerifyPackageRequest(packageMetadata, GetPossibleOwnersForUpload(packageMetadata.Id));
+            var model = new VerifyPackageRequest(packageMetadata, GetPossibleOwnersForUpload(packageMetadata.Id, existingPackageRegistration));
 
             return Json(model);
         }
@@ -571,14 +584,6 @@ namespace NuGetGallery
             return View(viewModel);
         }
 
-        // NOTE: Intentionally NOT requiring authentication
-        private static readonly ReportPackageReason[] ReportOtherPackageReasons = new[] {
-            ReportPackageReason.ViolatesALicenseIOwn,
-            ReportPackageReason.ContainsMaliciousCode,
-            ReportPackageReason.HasABugOrFailedToInstall,
-            ReportPackageReason.Other
-        };
-
         [HttpGet]
         public virtual ActionResult ReportAbuse(string id, string version)
         {
@@ -591,7 +596,7 @@ namespace NuGetGallery
 
             var model = new ReportAbuseViewModel
             {
-                ReasonChoices = ReportOtherPackageReasons,
+                ReasonChoices = ReportAbuseReasons,
                 PackageId = id,
                 PackageVersion = package.Version,
                 CopySender = true,
@@ -617,17 +622,10 @@ namespace NuGetGallery
             return View(model);
         }
 
-        private static readonly ReportPackageReason[] ReportMyPackageReasons = {
-            ReportPackageReason.ContainsPrivateAndConfidentialData,
-            ReportPackageReason.ReleasedInPublicByAccident,
-            ReportPackageReason.ContainsMaliciousCode,
-            ReportPackageReason.Other
-        };
-
         [HttpGet]
         [Authorize]
         [RequiresAccountConfirmation("contact support about your package")]
-        public virtual ActionResult ReportMyPackage(string id, string version)
+        public virtual async Task<ActionResult> ReportMyPackage(string id, string version)
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
 
@@ -635,20 +633,23 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-
-            // If user hit this url by constructing it manually but is not the owner, redirect them to ReportAbuse
+            
             if (!PermissionsService.IsActionAllowed(package, User, PackageActions.ReportMyPackage))
             {
-                return RedirectToAction("ReportAbuse", new { id, version });
+                return RedirectToAction(nameof(ReportAbuse), new { id, version });
             }
+
+            var allowDelete = await _packageDeleteService.CanPackageBeDeletedByUserAsync(package);
 
             var model = new ReportMyPackageViewModel
             {
                 ReasonChoices = ReportMyPackageReasons,
+                DeleteReasonChoices = DeleteReasons,
                 ConfirmedUser = GetCurrentUser().Confirmed,
                 PackageId = id,
                 PackageVersion = package.Version,
-                CopySender = true
+                CopySender = true,
+                AllowDelete = allowDelete,
             };
 
             return View(model);
@@ -659,16 +660,17 @@ namespace NuGetGallery
         [ValidateSpamPrevention]
         public virtual async Task<ActionResult> ReportAbuse(string id, string version, ReportAbuseViewModel reportForm)
         {
-            // Html Encode the message
-            reportForm.Message = System.Web.HttpUtility.HtmlEncode(reportForm.Message);
-
-            var modelIsValid = ModelState.IsValid;
-            if (reportForm.Reason == ReportPackageReason.ViolatesALicenseIOwn)
+            reportForm.Message = HttpUtility.HtmlEncode(reportForm.Message);
+            
+            if (reportForm.Reason == ReportPackageReason.ViolatesALicenseIOwn
+                && string.IsNullOrWhiteSpace(reportForm.Signature))
             {
-                modelIsValid = modelIsValid && !string.IsNullOrEmpty(reportForm.Signature);
+                ModelState.AddModelError(
+                    nameof(ReportAbuseViewModel.Signature),
+                    "The signature is required.");
             }
 
-            if (!modelIsValid)
+            if (!ModelState.IsValid)
             {
                 return ReportAbuse(id, version);
             }
@@ -723,23 +725,115 @@ namespace NuGetGallery
         [ValidateSpamPrevention]
         public virtual async Task<ActionResult> ReportMyPackage(string id, string version, ReportMyPackageViewModel reportForm)
         {
-            // Html Encode the message
-            reportForm.Message = System.Web.HttpUtility.HtmlEncode(reportForm.Message);
-
-            if (!ModelState.IsValid)
+            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
+            
+            var failureResult = await ValidateReportMyPackageViewModel(reportForm, package);
+            if (failureResult != null)
             {
-                return ReportMyPackage(id, version);
+                return failureResult;
+            }
+            
+            // Override the copy sender and message fields if we are performing an auto-delete.
+            if (reportForm.DeleteDecision == PackageDeleteDecision.DeletePackage)
+            {
+                reportForm.CopySender = false;
+                reportForm.Message = Strings.UserPackageDeleteSupportRequestMessage;
             }
 
-            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
+            var user = GetCurrentUser();
+            var from = user.ToMailAddress();
+            var subject = string.Format(
+                Strings.OwnerSupportRequestSubjectFormat,
+                package.PackageRegistration.Id,
+                package.NormalizedVersion);
+            var reason = EnumHelper.GetDescription(reportForm.Reason.Value);
+            var supportRequest = await _supportRequestService.AddNewSupportRequestAsync(
+                subject,
+                reportForm.Message,
+                from.Address,
+                reason,
+                user,
+                package);
+
+            var deleted = false;
+            if (supportRequest != null
+                && reportForm.DeleteDecision == PackageDeleteDecision.DeletePackage)
+            {
+                deleted = await DeletePackageOnBehalfOfUserAsync(package, user, reason, supportRequest);
+            }
+
+            if (!deleted)
+            {
+                NotifyReportMyPackageSupportRequest(reportForm, package, user, from);
+            }
+
+            return Redirect(Url.Package(package.PackageRegistration.Id, package.NormalizedVersion));
+        }
+
+        private async Task<ActionResult> ValidateReportMyPackageViewModel(ReportMyPackageViewModel reportForm, Package package)
+        {
             if (package == null)
             {
                 return HttpNotFound();
             }
 
-            var user = GetCurrentUser();
-            MailAddress from = user.ToMailAddress();
+            if (!PermissionsService.IsActionAllowed(package, User, PackageActions.ReportMyPackage))
+            {
+                return RedirectToAction(nameof(ReportAbuse), new { id = package.PackageRegistration.Id, version = package.NormalizedVersion });
+            }
 
+            reportForm.Message = HttpUtility.HtmlEncode(reportForm.Message);
+
+            // Enforce the auto-delete rules.
+            var allowDelete = false;
+            if (reportForm.DeleteDecision != PackageDeleteDecision.ContactSupport)
+            {
+                allowDelete = await _packageDeleteService.CanPackageBeDeletedByUserAsync(package);
+                if (!allowDelete)
+                {
+                    reportForm.DeleteDecision = null;
+                }
+            }
+
+            // Require a delete decision if auto-delete is allowed and implied by the reason.
+            if (allowDelete
+                && reportForm.Reason.HasValue
+                && DeleteReasons.Contains(reportForm.Reason.Value)
+                && !reportForm.DeleteDecision.HasValue)
+            {
+                ModelState.AddModelError(
+                    nameof(ReportMyPackageViewModel.DeleteDecision),
+                    Strings.UserPackageDeleteDecisionIsRequired);
+            }
+
+            // Require the confirmation checkbox if we are performing an auto-delete.
+            if (reportForm.DeleteDecision == PackageDeleteDecision.DeletePackage
+                && !reportForm.DeleteConfirmation)
+            {
+                ModelState.AddModelError(
+                    nameof(ReportMyPackageViewModel.DeleteConfirmation),
+                    Strings.UserPackageDeleteConfirmationIsRequired);
+            }
+
+            // Unless we're performing an auto-delete, require a message.
+            if (reportForm.DeleteDecision != PackageDeleteDecision.DeletePackage
+                && string.IsNullOrWhiteSpace(reportForm.Message))
+            {
+                ModelState.AddModelError(
+                    nameof(ReportMyPackageViewModel.Message),
+                    Strings.MessageIsRequired);
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return await ReportMyPackage(package.PackageRegistration.Id, package.NormalizedVersion);
+            }
+
+            return null;
+        }
+
+        private void NotifyReportMyPackageSupportRequest(ReportMyPackageViewModel reportForm, Package package, User user, MailAddress from)
+        {
             var request = new ReportPackageRequest
             {
                 FromAddress = from,
@@ -751,15 +845,53 @@ namespace NuGetGallery
                 CopySender = reportForm.CopySender
             };
 
-            var subject = $"Owner Support Request for '{package.PackageRegistration.Id}' version {package.Version}";
-            var reason = EnumHelper.GetDescription(reportForm.Reason.Value);
-
-            await _supportRequestService.AddNewSupportRequestAsync(subject, reportForm.Message, from.Address, reason, user, package);
-
             _messageService.ReportMyPackage(request);
 
-            TempData["Message"] = "Your support request has been sent to the gallery operators.";
-            return Redirect(Url.Package(id, version));
+            TempData["Message"] = Strings.SupportRequestSentTransientMessage;
+        }
+
+        private async Task<bool> DeletePackageOnBehalfOfUserAsync(
+            Package package,
+            User user,
+            string reason,
+            Issue supportRequest)
+        {
+            var deleted = false;
+            try
+            {
+                await _packageDeleteService.SoftDeletePackagesAsync(
+                    new[] { package },
+                    user,
+                    reason,
+                    signature: Strings.UserPackageDeleteSignature);
+                deleted = true;
+            }
+            catch (Exception e)
+            {
+                // Swallow exceptions that occur during the delete process. If this happens, we'll just
+                // send out the support request as usual and handle it manually.
+                QuietLog.LogHandledException(e);
+            }
+
+            if (deleted)
+            {
+                // Only close the support request if we have successfully deleted the package.
+                await _supportRequestService.UpdateIssueAsync(
+                    issueId: supportRequest.Key,
+                    assignedToId: null,
+                    issueStatusId: IssueStatusKeys.Resolved,
+                    comment: null,
+                    editedBy: user.Username);
+
+                _messageService.SendPackageDeletedNotice(
+                    package,
+                    Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                    Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false));
+
+                TempData["Message"] = Strings.UserPackageDeleteCompleteTransientMessage;
+            }
+
+            return deleted;
         }
 
         [HttpGet]
@@ -774,12 +906,14 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
+            bool hasOwners = package.PackageRegistration.Owners.Any();
             var model = new ContactOwnersViewModel
             {
                 PackageId = package.PackageRegistration.Id,
                 ProjectUrl = package.ProjectUrl,
                 Owners = package.PackageRegistration.Owners.Where(u => u.EmailAllowed),
                 CopySender = true,
+                HasOwners = hasOwners
             };
 
             return View(model);
@@ -835,7 +969,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            if (!PermissionsService.IsActionAllowed(package, User, PackageActions.ManagePackageOwners))
+            if (!PermissionsService.IsActionAllowed(package, User, PackageActions.ManagePackageOwnership))
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
@@ -1039,10 +1173,7 @@ namespace NuGetGallery
             // Create edit model from the latest pending edit.
             var pendingMetadata = _editPackageService.GetPendingMetadata(package);
 
-            // No point in allowing users to specify the owner who edited the package: just show the first.
-            var possibleOwners = GetPossibleOwnersForUpload(package.PackageRegistration.Id).Take(1);
-
-            model.Edit = new EditPackageVersionRequest(package, pendingMetadata, possibleOwners);
+            model.Edit = new EditPackageVersionRequest(package, pendingMetadata);
 
             // Update edit model with the active or pending readme.md data.
             var isReadMePending = model.Edit.ReadMeState != PackageEditReadMeState.Unchanged;
@@ -1137,7 +1268,7 @@ namespace NuGetGallery
             }
 
             var user = _userService.FindByUsername(username);
-            if (!PermissionsService.IsActionAllowed(user, GetCurrentUser(), AccountActions.ManagePackageOwnersOnBehalfOf))
+            if (!PermissionsService.IsActionAllowed(user, GetCurrentUser(), AccountActions.ManagePackageOwnershipOnBehalfOf))
             {
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.NotYourRequest));
             }
@@ -1364,13 +1495,20 @@ namespace NuGetGallery
 
             var currentUser = GetCurrentUser();
 
+            // Check that the owner specified in the form is valid
+            var owner = _userService.FindByUsername(formData.Owner);
+
+            if (owner == null)
+            {
+                var message = string.Format(CultureInfo.CurrentCulture, Strings.VerifyPackage_UserNonExistent, formData.Owner);
+                return Json(400, new[] { message });
+            }
+
             Package package;
             using (Stream uploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
                 if (uploadFile == null)
                 {
-                    TempData["Message"] = Strings.VerifyPackage_UploadNotFound;
-
                     return Json(400, new[] { Strings.VerifyPackage_UploadNotFound });
                 }
 
@@ -1394,8 +1532,6 @@ namespace NuGetGallery
                         && String.Equals(packageMetadata.Version.ToFullStringSafe(), formData.Version, StringComparison.OrdinalIgnoreCase)
                         && String.Equals(packageMetadata.Version.OriginalVersion, formData.OriginalVersion, StringComparison.OrdinalIgnoreCase)))
                     {
-                        TempData["Message"] = Strings.VerifyPackage_PackageFileModified;
-
                         return Json(400, new[] { Strings.VerifyPackage_PackageFileModified });
                     }
                 }
@@ -1407,47 +1543,10 @@ namespace NuGetGallery
                     Size = uploadFile.Length,
                 };
 
-                // Check that the owner specified in the form is valid
-                var owner = _userService.FindByUsername(formData.Edit.Owner);
-
-                if (owner == null)
+                var permissionsCheckResult = CheckPermissionsForVerifyPackage(packageMetadata, owner, currentUser);
+                if (permissionsCheckResult != null)
                 {
-                    var message = string.Format(CultureInfo.CurrentCulture, Strings.VerifyPackage_UserNonExistent, formData.Edit.Owner);
-                    TempData["Message"] = message;
-                    return Json(400, new[] { message });
-                }
-
-                var existingPackageRegistration = _packageService.FindPackageRegistrationById(packageMetadata.Id);
-                if (existingPackageRegistration != null)
-                {
-                    if (!PermissionsService.IsActionAllowed(owner, currentUser, AccountActions.UploadNewVersionOnBehalfOf))
-                    {
-                        // The user is not allowed to upload a new version on behalf of the owner specified in the form
-                        var message = string.Format(CultureInfo.CurrentCulture,
-                            Strings.UploadPackage_NewVersionOnBehalfOfUserNotAllowed,
-                            currentUser.Username, owner.Username);
-                        TempData["Message"] = message;
-                        return Json(400, new[] { message });
-                    }
-
-                    if (!PermissionsService.IsActionAllowed(existingPackageRegistration, owner, PackageActions.UploadNewVersion))
-                    {
-                        // The owner specified in the form is not allowed to upload a new version of the package
-                        var message = string.Format(CultureInfo.CurrentCulture,
-                            Strings.VerifyPackage_OwnerInvalid,
-                            owner.Username, existingPackageRegistration.Id);
-                        TempData["Message"] = message;
-                        return Json(400, new[] { message });
-                    }
-                }
-                else if (!PermissionsService.IsActionAllowed(owner, currentUser, AccountActions.UploadNewIdOnBehalfOf))
-                {
-                    // The user is not allowed to upload a new ID on behalf of the owner specified in the form
-                    var message = string.Format(CultureInfo.CurrentCulture,
-                        Strings.UploadPackage_NewIdOnBehalfOfUserNotAllowed,
-                        currentUser.Username, owner.Username);
-                    TempData["Message"] = message;
-                    return Json(400, new[] { message });
+                    return permissionsCheckResult;
                 }
 
                 // update relevant database tables
@@ -1466,9 +1565,7 @@ namespace NuGetGallery
                 {
                     _telemetryService.TraceException(ex);
 
-                    TempData["Message"] = ex.Message;
-
-                    return Json(400, new[] { ex.GetUserSafeMessage() });
+                    return Json(400, new[] { ex.Message });
                 }
 
                 var pendEdit = false;
@@ -1498,7 +1595,16 @@ namespace NuGetGallery
 
                 if (pendEdit)
                 {
-                    _editPackageService.StartEditPackageRequest(package, formData.Edit, currentUser);
+                    try
+                    {
+                        _editPackageService.StartEditPackageRequest(package, formData.Edit, currentUser);
+                    }
+                    catch (EntityException ex)
+                    {
+                        _telemetryService.TraceException(ex);
+
+                        return Json(400, new[] { ex.Message });
+                    }
                 }
 
                 if (!formData.Listed)
@@ -1553,6 +1659,57 @@ namespace NuGetGallery
             });
         }
 
+        private JsonResult CheckPermissionsForVerifyPackage(PackageMetadata packageMetadata, User owner, User currentUser)
+        {
+            var packageId = packageMetadata.Id;
+            var packageVersion = packageMetadata.Version;
+
+            var existingPackageRegistration = _packageService.FindPackageRegistrationById(packageId);
+            if (existingPackageRegistration != null)
+            {
+                if (!PermissionsService.IsActionAllowed(owner, currentUser, AccountActions.UploadNewVersionOnBehalfOf))
+                {
+                    // The user is not allowed to upload a new version on behalf of the owner specified in the form
+                    var message = string.Format(CultureInfo.CurrentCulture,
+                        Strings.UploadPackage_NewVersionOnBehalfOfUserNotAllowed,
+                        currentUser.Username, owner.Username);
+                    return Json(400, new[] { message });
+                }
+
+                if (!PermissionsService.IsActionAllowed(existingPackageRegistration, owner, PackageActions.UploadNewVersion))
+                {
+                    // The owner specified in the form is not allowed to upload a new version of the package
+                    var message = string.Format(CultureInfo.CurrentCulture,
+                        Strings.VerifyPackage_OwnerInvalid,
+                        owner.Username, existingPackageRegistration.Id);
+                    return Json(400, new[] { message });
+                }
+            }
+            else
+            {
+                if (!PermissionsService.IsActionAllowed(owner, currentUser, AccountActions.UploadNewIdOnBehalfOf))
+                {
+                    // The user is not allowed to upload a new ID on behalf of the owner specified in the form
+                    var message = string.Format(CultureInfo.CurrentCulture,
+                        Strings.UploadPackage_NewIdOnBehalfOfUserNotAllowed,
+                        currentUser.Username, owner.Username);
+                    return Json(400, new[] { message });
+                }
+
+                if (!_reservedNamespaceService.IsPushAllowed(packageId, owner, out var userOwnerdMatchingNamespaces))
+                {
+                    // The owner specified in the form is not allowed to push to a reserved namespace matching the new ID
+                    var version = packageVersion.ToNormalizedString();
+                    _telemetryService.TrackPackagePushNamespaceConflictEvent(packageId, version, currentUser, User.Identity);
+
+                    var message = string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict);
+                    return Json(409, new string[] { message });
+                }
+            }
+
+            return null;
+        }
+
         private async Task<PackageArchiveReader> SafeCreatePackage(User currentUser, Stream uploadFile)
         {
             Exception caught = null;
@@ -1598,7 +1755,8 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<JsonResult> CancelUpload()
         {
-            await CancelPendingUpload();
+            var currentUser = GetCurrentUser();
+            await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
 
             return Json(null);
         }
@@ -1657,15 +1815,6 @@ namespace NuGetGallery
             return Redirect(urlFactory(package, /*relativeUrl:*/ true));
         }
 
-        /// <summary>
-        /// Deletes the current user's pending upload, deleting their uploaded file
-        /// </summary>
-        private Task CancelPendingUpload()
-        {
-            var currentUser = GetCurrentUser();
-            return _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
-        }
-
         // this methods exist to make unit testing easier
         protected internal virtual PackageArchiveReader CreatePackage(Stream stream)
         {
@@ -1684,20 +1833,23 @@ namespace NuGetGallery
         /// Determines the possible owners for a package that is being uploaded by the current user.
         /// Assumes the current user has permissions to upload the package.
         /// </summary>
-        /// <param name="id">The ID of the package being uploaded</param>
-        internal IEnumerable<User> GetPossibleOwnersForUpload(string id)
+        /// <param name="packageId">The package ID being uploaded to.</param>
+        /// <param name="existingPackageRegistration">The package registration being uploaded to.</param>
+        internal IEnumerable<User> GetPossibleOwnersForUpload(string packageId, PackageRegistration existingPackageRegistration)
         {
             IEnumerable<User> possibleOwners;
-            var existingPackageRegistration = _packageService.FindPackageRegistrationById(id);
             var currentUser = GetCurrentUser();
 
             if (existingPackageRegistration != null)
             {
                 possibleOwners = existingPackageRegistration.Owners
-                    .Where(u => PermissionsService.IsActionAllowed(u, currentUser, AccountActions.UploadNewVersionOnBehalfOf));
+                    .Where(u => PermissionsService.IsActionAllowed(u, currentUser, AccountActions.UploadNewVersionOnBehalfOf))
+                    .Where(u => PermissionsService.IsActionAllowed(existingPackageRegistration, u, PackageActions.UploadNewVersion));
+
                 if (!possibleOwners.Any())
                 {
-                    // If the user has the right to upload to the package but they are not able to upload as any of the existing owners (e.g. site admin), allow the user to upload as themselves.
+                    // If the current user cannot upload the package on behalf of any of the existing owners, show the current user as the only possible owner in the upload form.
+                    // If the current user doesn't have the rights to upload the package, the package upload will be rejected by submitting the form.
                     possibleOwners = new User[] { currentUser };
                 }
             }
@@ -1711,7 +1863,7 @@ namespace NuGetGallery
                     new[] { currentUser }
                         .Concat(organizations)
                        .Where(u => PermissionsService.IsActionAllowed(u, currentUser, AccountActions.UploadNewIdOnBehalfOf))
-                       .Where(u => _reservedNamespaceService.IsPushAllowed(id, u, out var matchingNamespaces))
+                       .Where(u => _reservedNamespaceService.IsPushAllowed(packageId, u, out var matchingNamespaces))
                        .ToArray();
             }
 

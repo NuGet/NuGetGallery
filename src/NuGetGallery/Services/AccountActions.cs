@@ -9,10 +9,9 @@ namespace NuGetGallery
     public static class AccountActions
     {
         /// <summary>
-        /// The user can manage ownership of the package on behalf of the account.
-        /// The user can accept, reject, and cancel package ownership requests on behalf of the account.
+        /// If an account is requested to be an owner of a package, the user can accept the request on behalf of the account.
         /// </summary>
-        public static PermissionLevel ManagePackageOwnersOnBehalfOf =
+        public static PermissionLevel ManagePackageOwnershipOnBehalfOf =
             PermissionLevel.Owner |
             PermissionLevel.OrganizationAdmin;
 
@@ -76,7 +75,13 @@ namespace NuGetGallery
         /// </summary>
         public static PermissionLevel PushToReservedNamespaceOnBehalfOf =
             PermissionLevel.Owner |
+            PermissionLevel.OrganizationAdmin;
+
+        /// <summary>
+        /// The user can see private information about an organization account.
+        /// </summary>
+        public static PermissionLevel DisplayPrivateOrganization =
             PermissionLevel.OrganizationAdmin |
-            PermissionLevel.SiteAdmin;
+            PermissionLevel.OrganizationCollaborator;
     }
 }

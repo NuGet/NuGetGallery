@@ -569,7 +569,7 @@
                         <a href="@Url.EditPackage(Model.Id, Model.Version)">Edit package</a>
                     </li>
                 }
-                @if (Model.IsActionAllowed(User, PackageActions.ManagePackageOwners))
+                @if (Model.IsActionAllowed(User, PackageActions.ManagePackageOwnership))
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--People" aria-hidden="true"></i>
@@ -629,18 +629,25 @@
 
             <h2>Owners</h2>
             <ul class="list-unstyled owner-list">
-                @foreach (var owner in Model.Owners)
-                {
-                    <li>
-                        @if (!String.IsNullOrEmpty(owner.EmailAddress))
-                        {
-                            <a href="@Url.User(owner)" title="@owner.Username">@ViewHelpers.GravatarImage(owner.EmailAddress, owner.Username, Constants.GravatarElementSize)</a>
-                        }
-                        <a href="@Url.User(owner)" title="@owner.Username">
-                            @owner.Username
-                        </a>
-                    </li>
-                }
+                @if (!Model.Owners.Any())
+    {
+            @ViewHelpers.AlertWarning(@<text>This package has no owners and is not being actively maintained.</text>)
+}
+else
+{
+foreach (var owner in Model.Owners)
+{
+            <li>
+                @if (!String.IsNullOrEmpty(owner.EmailAddress))
+    {
+            <a href="@Url.User(owner)" title="@owner.Username">@ViewHelpers.GravatarImage(owner.EmailAddress, owner.Username, Constants.GravatarElementSize)</a>
+}
+                <a href="@Url.User(owner)" title="@owner.Username">
+                    @owner.Username
+                </a>
+            </li>
+}
+}
             </ul>
 
             @if (!Model.Deleted)

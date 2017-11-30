@@ -1,11 +1,11 @@
 ﻿namespace NuGetGallery.Areas.Admin.Models
 {
-    internal class IssueStatusKeys
+    public class IssueStatusKeys
     {
-        internal const int New = 0;
-        internal const int Working = 1;
-        internal const int WaitingForCustomer = 2;
-        internal const int Resolved = 3;
+        public const int New = 0;
+        public const int Working = 1;
+        public const int WaitingForCustomer = 2;
+        public const int Resolved = 3;
 
         /// <summary>
         /// Does not exist in database.

@@ -50,12 +50,12 @@ namespace NuGetGallery
                 return Json(new { message = Strings.AddOwner_PackageNotFound });
             }
 
-            if (!PermissionsService.IsActionAllowed(package, HttpContext.User, PackageActions.ManagePackageOwners))
+            if (!PermissionsService.IsActionAllowed(package, HttpContext.User, PackageActions.ManagePackageOwnership))
             {
                 return new HttpUnauthorizedResult();
             }
 
-            var currentUserName = HttpContext.User.Identity.Name;
+            var currentUser = GetCurrentUser();
             var packageRegistrationOwners = package.PackageRegistration.Owners;
             var allMatchingNamespaceOwners = package
                 .PackageRegistration
@@ -69,18 +69,18 @@ namespace NuGetGallery
             var owners =
                 packageAndReservedNamespaceOwners
                 .Select(u => new PackageOwnersResultViewModel(
-                    u.Username,
-                    u.EmailAddress,
-                    isCurrentUser: u.Username == currentUserName,
-                    isPending: false,
+                    u, 
+                    currentUser,
+                    Url,
+                    isPending: false, 
                     isNamespaceOwner: true));
 
             var packageOwnersOnlyResultViewModel =
                 packageOwnersOnly
                 .Select(u => new PackageOwnersResultViewModel(
-                    u.Username,
-                    u.EmailAddress,
-                    isCurrentUser: u.Username == currentUserName,
+                    u,
+                    currentUser,
+                    Url,
                     isPending: false,
                     isNamespaceOwner: false));
 
@@ -89,21 +89,13 @@ namespace NuGetGallery
             var pending =
                 _packageOwnershipManagementService.GetPackageOwnershipRequests(package: package.PackageRegistration)
                 .Select(r => new PackageOwnersResultViewModel(
-                    r.NewOwner.Username,
-                    r.NewOwner.EmailAddress,
-                    isCurrentUser: false,
+                    r.NewOwner,
+                    currentUser,
+                    Url,
                     isPending: true,
                     isNamespaceOwner: false));
 
-            var result = owners.Union(pending).Select(o => new
-            {
-                name = o.Name,
-                profileUrl = Url.User(o.Name, relativeUrl: false),
-                imageUrl = GravatarHelper.Url(o.EmailAddress, size: Constants.GravatarImageSize),
-                current = o.Current,
-                pending = o.Pending,
-                isNamespaceOwner = o.IsNamespaceOwner
-            });
+            var result = owners.Union(pending);
 
             return Json(result, JsonRequestBehavior.AllowGet);
         }
@@ -112,7 +104,7 @@ namespace NuGetGallery
         public virtual ActionResult GetAddPackageOwnerConfirmation(string id, string username)
         {
             ManagePackageOwnerModel model;
-            if (TryGetManagePackageOwnerModel(id, username, out model))
+            if (TryGetManagePackageOwnerModel(id, username, isAddOwner: true, model: out model))
             {
                 return Json(new
                 {
@@ -133,7 +125,7 @@ namespace NuGetGallery
         public async Task<JsonResult> AddPackageOwner(string id, string username, string message)
         {
             ManagePackageOwnerModel model;
-            if (TryGetManagePackageOwnerModel(id, username, out model))
+            if (TryGetManagePackageOwnerModel(id, username, isAddOwner: true, model: out model))
             {
                 var encodedMessage = HttpUtility.HtmlEncode(message);
 
@@ -161,10 +153,12 @@ namespace NuGetGallery
                 return Json(new
                 {
                     success = true,
-                    name = model.User.Username,
-                    profileUrl = Url.User(model.User.Username, relativeUrl: false),
-                    imageUrl = GravatarHelper.Url(model.User.EmailAddress, size: Constants.GravatarImageSize),
-                    pending = true
+                    model = new PackageOwnersResultViewModel(
+                        model.User,
+                        model.CurrentUser,
+                        Url,
+                        isPending: true,
+                        isNamespaceOwner: false)
                 });
             }
             else
@@ -178,7 +172,7 @@ namespace NuGetGallery
         public async Task<JsonResult> RemovePackageOwner(string id, string username)
         {
             ManagePackageOwnerModel model;
-            if (TryGetManagePackageOwnerModel(id, username, out model))
+            if (TryGetManagePackageOwnerModel(id, username, isAddOwner: false, model: out model))
             {
                 var request = _packageOwnershipManagementService.GetPackageOwnershipRequests(package: model.Package, newOwner: model.User).FirstOrDefault();
 
@@ -296,7 +290,7 @@ namespace NuGetGallery
                 SecurePushSubscription.MinProtocolVersion, SecurePushSubscription.PushKeysExpirationInDays);
         }
 
-        private bool TryGetManagePackageOwnerModel(string id, string username, out ManagePackageOwnerModel model)
+        private bool TryGetManagePackageOwnerModel(string id, string username, bool isAddOwner, out ManagePackageOwnerModel model)
         {
             if (string.IsNullOrEmpty(id))
             {
@@ -313,7 +307,7 @@ namespace NuGetGallery
                 model = new ManagePackageOwnerModel(Strings.AddOwner_PackageNotFound);
                 return false;
             }
-            if (!PermissionsService.IsActionAllowed(package, HttpContext.User, PackageActions.ManagePackageOwners))
+            if (!PermissionsService.IsActionAllowed(package, HttpContext.User, PackageActions.ManagePackageOwnership))
             {
                 model = new ManagePackageOwnerModel(Strings.AddOwner_NotPackageOwner);
                 return false;
@@ -329,6 +323,24 @@ namespace NuGetGallery
             {
                 model = new ManagePackageOwnerModel(
                     string.Format(CultureInfo.CurrentCulture, Strings.AddOwner_OwnerNotConfirmed, username));
+                return false;
+            }
+
+            var isOwner = 
+                package.Owners.Any(o => o.MatchesUser(user)) ||
+                _packageOwnershipManagementService.GetPackageOwnershipRequests(package: package, newOwner: user).Any();
+
+            if (isAddOwner && isOwner)
+            {
+                model = new ManagePackageOwnerModel(
+                    string.Format(CultureInfo.CurrentCulture, Strings.AddOwner_AlreadyOwner, username));
+                return false;
+            }
+
+            if (!isAddOwner && !isOwner)
+            {
+                model = new ManagePackageOwnerModel(
+                    string.Format(CultureInfo.CurrentCulture, Strings.RemoveOwner_NotOwner, username));
                 return false;
             }
 

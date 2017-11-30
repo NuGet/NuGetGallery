@@ -252,57 +252,64 @@
                 @<text>Password Login</text>,
                 @<text><em>@(Model.HasPassword ? "(Enabled)" : "(Disabled)")</em></text>,
                 @<text>
-                    @using (Html.BeginForm("ChangePassword", "Users"))
+                    @if (CurrentUser.Confirmed)
                     {
-                        @Html.AntiForgeryToken()
-                        @Html.ShowValidationMessagesFor(m => m.ChangePassword)
+                        using (Html.BeginForm("ChangePassword", "Users"))
+                        {
+                            @Html.AntiForgeryToken()
+                            @Html.ShowValidationMessagesFor(m => m.ChangePassword)
 
-                        if (Model.SignInCredentialCount > 1)
-                        {
-                            <div class="form-group @Html.HasErrorFor(m => m.ChangePassword.EnablePasswordLogin)">
-                                @Html.ShowCheckboxFor(m => m.ChangePassword.EnablePasswordLogin)
-                                @Html.ShowLabelFor(m => m.ChangePassword.EnablePasswordLogin)
-                                @Html.ShowValidationMessagesFor(m => m.ChangePassword.EnablePasswordLogin)
-                            </div>
-                        }
-                        else
-                        {
-                            @Html.HiddenFor(m => m.ChangePassword.EnablePasswordLogin);
-                        }
+                            if (Model.SignInCredentialCount > 1)
+                            {
+                                <div class="form-group @Html.HasErrorFor(m => m.ChangePassword.EnablePasswordLogin)">
+                                    @Html.ShowCheckboxFor(m => m.ChangePassword.EnablePasswordLogin)
+                                    @Html.ShowLabelFor(m => m.ChangePassword.EnablePasswordLogin)
+                                    @Html.ShowValidationMessagesFor(m => m.ChangePassword.EnablePasswordLogin)
+                                </div>
+                            }
+                            else
+                            {
+                                @Html.HiddenFor(m => m.ChangePassword.EnablePasswordLogin);
+                            }
 
-                        if (Model.HasPassword)
-                        {
-                            <div class="form-group @Html.HasErrorFor(m => m.ChangePassword.OldPassword)">
-                                @Html.ShowLabelFor(m => m.ChangePassword.OldPassword)
-                                @Html.ShowPasswordFor(m => m.ChangePassword.OldPassword)
-                                @Html.ShowValidationMessagesFor(m => m.ChangePassword.OldPassword)
-                            </div>
-                            <div class="form-group @Html.HasErrorFor(m => m.ChangePassword.NewPassword)">
-                                @Html.ShowLabelFor(m => m.ChangePassword.NewPassword)
-                                @Html.ShowPasswordFor(m => m.ChangePassword.NewPassword)
-                                @Html.ShowValidationMessagesFor(m => m.ChangePassword.NewPassword)
-                            </div>
-                            <div class="form-group @Html.HasErrorFor(m => m.ChangePassword.VerifyPassword)">
-                                @Html.ShowLabelFor(m => m.ChangePassword.VerifyPassword)
-                                @Html.ShowPasswordFor(m => m.ChangePassword.VerifyPassword)
-                                @Html.ShowValidationMessagesFor(m => m.ChangePassword.VerifyPassword)
-                            </div>
-                        }
-                        else
-                        {
-                            <p>To enable password login, an email will be sent to '@(CurrentUser.EmailAddress ?? CurrentUser.UnconfirmedEmailAddress)'.</p>
-                        }
+                            if (Model.HasPassword)
+                            {
+                                <div class="form-group @Html.HasErrorFor(m => m.ChangePassword.OldPassword)">
+                                    @Html.ShowLabelFor(m => m.ChangePassword.OldPassword)
+                                    @Html.ShowPasswordFor(m => m.ChangePassword.OldPassword)
+                                    @Html.ShowValidationMessagesFor(m => m.ChangePassword.OldPassword)
+                                </div>
+                                <div class="form-group @Html.HasErrorFor(m => m.ChangePassword.NewPassword)">
+                                    @Html.ShowLabelFor(m => m.ChangePassword.NewPassword)
+                                    @Html.ShowPasswordFor(m => m.ChangePassword.NewPassword)
+                                    @Html.ShowValidationMessagesFor(m => m.ChangePassword.NewPassword)
+                                </div>
+                                <div class="form-group @Html.HasErrorFor(m => m.ChangePassword.VerifyPassword)">
+                                    @Html.ShowLabelFor(m => m.ChangePassword.VerifyPassword)
+                                    @Html.ShowPasswordFor(m => m.ChangePassword.VerifyPassword)
+                                    @Html.ShowValidationMessagesFor(m => m.ChangePassword.VerifyPassword)
+                                </div>
+                            }
+                            else
+                            {
+                                <p>To enable password login, an email will be sent to '@(CurrentUser.EmailAddress ?? CurrentUser.UnconfirmedEmailAddress)'.</p>
+                            }
 
-                        <div class="row form-group">
-                            <div class="col-sm-6">
-                                <input type="submit" class="btn btn-primary form-control" value="@(Model.HasPassword ? "Save" : "Enable Password Login")" />
+                            <div class="row form-group">
+                                <div class="col-sm-6">
+                                    <input type="submit" class="btn btn-primary form-control" value="@(Model.HasPassword ? "Save" : "Enable Password Login")" />
+                                </div>
+                                <div class="col-sm-6">
+                                    <a href="#" role="button" class="btn btn-default form-control" id="cancel-change-password">
+                                        Cancel
+                                    </a>
+                                </div>
                             </div>
-                            <div class="col-sm-6">
-                                <a href="#" role="button" class="btn btn-default form-control" id="cancel-change-password">
-                                    Cancel
-                                </a>
-                            </div>
-                        </div>
+                        }
+                    }
+                    else
+                    {
+                        <p>To enable password login, please <a href="@Url.ConfirmationRequired()">confirm</a> your account.</p>
                     }
                 </text>,
                 ViewData.ModelState.Keys.Any(x => x.StartsWith("ChangePassword")))

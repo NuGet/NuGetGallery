@@ -54,9 +54,12 @@ namespace NuGetGallery
             [Theory]
             [InlineData("/", "https", "unittest.nuget.org", "https://unittest.nuget.org")]
             [InlineData("/Account/SignIn", "https", "unittest.nuget.org", "https://unittest.nuget.org/Account/SignIn")]
+            [InlineData("/Account/SignInNuGetAccount", "https", "unittest.nuget.org", "https://unittest.nuget.org/Account/SignInNuGetAccount")]
             [InlineData("https://localhost", "https", "unittest.nuget.org", "https://unittest.nuget.org")]
             [InlineData("https://localhost/Account/SignIn", "https", "unittest.nuget.org", "https://unittest.nuget.org/Account/SignIn")]
+            [InlineData("https://localhost/Account/SignInNuGetAccount", "https", "unittest.nuget.org", "https://unittest.nuget.org/Account/SignInNuGetAccount")]
             [InlineData("https://localhost/Account/SignIn?returnUrl=%2F", "https", "unittest.nuget.org", "https://unittest.nuget.org/Account/SignIn?returnUrl=%2F")]
+            [InlineData("https://localhost/Account/SignInNuGetAccount?returnUrl=%2F", "https", "unittest.nuget.org", "https://unittest.nuget.org/Account/SignInNuGetAccount?returnUrl=%2F")]
             public void UsesConfiguredSiteRootInAbsoluteUri(
                 string returnUrl, 
                 string protocol, 

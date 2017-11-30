@@ -38,14 +38,17 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         public async Task FindPackagesByIdTest()
         {
             string packageId = string.Format("TestV2FeedFindPackagesById.{0}", DateTime.UtcNow.Ticks);
-
+            
             TestOutputHelper.WriteLine("Uploading package '{0}'", packageId);
-            await _clientSdkHelper.UploadNewPackage(packageId);
+            await _clientSdkHelper.UploadNewPackage(packageId, "1.0.0");
 
             TestOutputHelper.WriteLine("Uploaded package '{0}'", packageId);
             await _clientSdkHelper.UploadNewPackage(packageId, "2.0.0");
 
-            // "&$orderby=Version" is appended to bypass the search hijacker
+            // Wait for the packages to be available in V2 (due to async validation)
+            await _clientSdkHelper.VerifyPackageExistsInV2Async(packageId, "1.0.0");
+            await _clientSdkHelper.VerifyPackageExistsInV2Async(packageId, "2.0.0");
+
             string url = UrlHelper.V2FeedRootUrl + @"/FindPackagesById()?id='" + packageId + "'&$orderby=Version";
             string[] expectedTexts =
             {
@@ -68,15 +71,22 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             // Because it waits for previous requests to finish before starting new ones, it will only catch ordering issues if these issues are greater than a second or two.
             // This is consistent with the time frame in which we've seen these issues in the past, but if new issues arise that are on a smaller scale, this test will not catch it!
             var packageIds = new List<string>(PackagesInOrderNumPackages);
+            var packageVersion = "1.0.0";
             var startingTime = DateTime.UtcNow;
 
             // Upload the packages in order.
             var uploadStartTimestamp = DateTime.UtcNow.AddMinutes(-1);
             for (var i = 0; i < PackagesInOrderNumPackages; i++)
             {
-                var packageId = GetPackagesAppearInFeedInOrderPackageId(startingTime, i);
-                await _clientSdkHelper.UploadNewPackage(packageId);
+                var packageId = $"TestV2FeedPackagesAppearInFeedInOrderTest.{startingTime.Ticks}.{i}";
+                await _clientSdkHelper.UploadNewPackage(packageId, packageVersion);
                 packageIds.Add(packageId);
+            }
+
+            // Wait for the packages to be available in V2 (due to async validation)
+            foreach (var packageId in packageIds)
+            {
+                await _clientSdkHelper.VerifyPackageExistsInV2Async(packageId, packageVersion);
             }
 
             await CheckPackageTimestampsInOrder(packageIds, "Created", uploadStartTimestamp);
@@ -89,11 +99,6 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             }
 
             await CheckPackageTimestampsInOrder(packageIds, "LastEdited", unlistStartTimestamp);
-        }
-
-        private static string GetPackagesAppearInFeedInOrderPackageId(DateTime startingTime, int i)
-        {
-            return $"TestV2FeedPackagesAppearInFeedInOrderTest.{startingTime.Ticks}.{i}";
         }
 
         private static string GetPackagesAppearInFeedInOrderUrl(DateTime time, string timestamp)
@@ -139,25 +144,29 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         [Category("P1Tests")]
         public async Task GetUpdates1199RegressionTest()
         {
-            // Use the same package name, but force the version to be unique.
-            var packageName = "GetUpdates1199RegressionTest";
+            // Use unique version to make the assertions simpler.
             var ticks = DateTime.Now.Ticks.ToString();
-            var version1 = new Version(ticks.Substring(0, 6) + "." + ticks.Substring(6, 6) + "." + ticks.Substring(12, 6)).ToString();
+            var packageId = $"GetUpdates1199RegressionTest.{ticks}";
+            var version1 = "1.0.0";
             var version2 = new Version(Convert.ToInt32(ticks.Substring(0, 6) + 1) + "." + ticks.Substring(6, 6) + "." + ticks.Substring(12, 6)).ToString();
-            var package1Location = await _packageCreationHelper.CreatePackageWithTargetFramework(packageName, version1, "net45");
+            var package1Location = await _packageCreationHelper.CreatePackageWithTargetFramework(packageId, version1, "net45");
 
             var processResult = await _commandlineHelper.UploadPackageAsync(package1Location, UrlHelper.V2FeedPushSourceUrl);
 
             Assert.True(processResult.ExitCode == 0, Constants.UploadFailureMessage + "Exit Code: " + processResult.ExitCode + ". Error message: \"" + processResult.StandardError + "\"");
 
-            var package2Location = await _packageCreationHelper.CreatePackageWithTargetFramework(packageName, version2, "net40");
+            var package2Location = await _packageCreationHelper.CreatePackageWithTargetFramework(packageId, version2, "net40");
             processResult = await _commandlineHelper.UploadPackageAsync(package2Location, UrlHelper.V2FeedPushSourceUrl);
 
             Assert.True((processResult.ExitCode == 0), Constants.UploadFailureMessage + "Exit Code: " + processResult.ExitCode + ". Error message: \"" + processResult.StandardError + "\"");
 
+            // Wait for the packages to be available in V2 (due to async validation)
+            await _clientSdkHelper.VerifyPackageExistsInV2Async(packageId, version1);
+            await _clientSdkHelper.VerifyPackageExistsInV2Async(packageId, version2);
+
             var packagesList = new List<string>
             {
-                packageName,
+                packageId,
                 "Microsoft.Bcl.Build",
                 "Microsoft.Bcl",
                 "Microsoft.Net.Http"
@@ -179,7 +188,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                 @"'";
             string[] expectedTexts =
             {
-                $@"<title type=""text"">{packageName}</title>",
+                $@"<title type=""text"">{packageId}</title>",
                 $@"<d:Version>{version2}</d:Version><d:NormalizedVersion>{version2}</d:NormalizedVersion>"
             };
             var containsResponseText = await _odataHelper.ContainsResponseText(url, expectedTexts);
