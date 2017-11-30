@@ -31,6 +31,46 @@ namespace NuGetGallery
             PermissionLevel.OrganizationCollaborator;
 
         /// <summary>
+        /// The user can perform all API actions on behalf of the account.
+        /// </summary>
+        public static PermissionLevel ApiAllOnBehalfOf =
+            ApiPushOnBehalfOf &
+            ApiPushVersionOnBehalfOf &
+            ApiUnlistOnBehalfOf &
+            ApiVerifyOnBehalfOf;
+
+        /// <summary>
+        /// The user can push new package IDs on behalf of the account.
+        /// </summary>
+        public static PermissionLevel ApiPushOnBehalfOf =
+            PermissionLevel.Owner |
+            PermissionLevel.OrganizationAdmin;
+
+        /// <summary>
+        /// The user can push new versions of an existing package using the API on behalf of the account.
+        /// </summary>
+        public static PermissionLevel ApiPushVersionOnBehalfOf =
+            PermissionLevel.Owner |
+            PermissionLevel.OrganizationAdmin |
+            PermissionLevel.OrganizationCollaborator;
+
+        /// <summary>
+        /// The user can unlist and relist existing versions of a package using the API on behalf of the account.
+        /// </summary>
+        public static PermissionLevel ApiUnlistOnBehalfOf =
+            PermissionLevel.Owner |
+            PermissionLevel.OrganizationAdmin |
+            PermissionLevel.OrganizationCollaborator;
+
+        /// <summary>
+        /// The user can create a verification key for a package using the API on behalf of the account.
+        /// </summary>
+        public static PermissionLevel ApiVerifyOnBehalfOf =
+            PermissionLevel.Owner |
+            PermissionLevel.OrganizationAdmin |
+            PermissionLevel.OrganizationCollaborator;
+
+        /// <summary>
         /// The user can push to reserved namespaces on behalf of another owner.
         /// </summary>
         public static PermissionLevel PushToReservedNamespaceOnBehalfOf =
