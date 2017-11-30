@@ -17,15 +17,11 @@ namespace NuGetGallery.ViewModels
                 // Arrange
                 var controller = GetController<UsersController>();
                 var user = new User("theUser");
-                var packageViewModel = new ListPackageItemViewModel(new Package
+                var packages = new List<ListPackageItemViewModel>
                 {
-                    PackageRegistration = new PackageRegistration
-                    {
-                        DownloadCount = int.MaxValue
-                    },
-                    Version = "1.0.0"
-                });
-                var packages = new List<ListPackageItemViewModel> { packageViewModel, packageViewModel };
+                    CreatePackageItemViewModel("1.0.0"),
+                    CreatePackageItemViewModel("2.0.0")
+                };
 
                 // Act
                 var profile = new UserProfileModel(user, packages, 0, 10, controller.Url);
@@ -33,6 +29,18 @@ namespace NuGetGallery.ViewModels
                 // Assert
                 long expected = (long)int.MaxValue * 2;
                 Assert.Equal(expected, profile.TotalPackageDownloadCount);
+            }
+
+            private ListPackageItemViewModel CreatePackageItemViewModel(string version)
+            {
+                return new ListPackageItemViewModel(new Package
+                {
+                    PackageRegistration = new PackageRegistration
+                    {
+                        DownloadCount = int.MaxValue
+                    },
+                    Version = version
+                });
             }
         }
     }
