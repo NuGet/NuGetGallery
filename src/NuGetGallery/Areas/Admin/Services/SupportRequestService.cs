@@ -324,7 +324,7 @@ namespace NuGetGallery.Areas.Admin
             {
                 throw new ArgumentNullException(nameof(createdBy));
             }
-            var userCreatedIssues = GetIssues().Where(i => string.Equals(i.CreatedBy, createdBy)).ToList();
+            var userCreatedIssues = GetIssues().Where(i => string.Equals(i.CreatedBy, createdBy, StringComparison.InvariantCultureIgnoreCase)).ToList();
             // Delete all the support requests with exception of the delete account request.
             // For the DeleteAccount support request clean the user data.
             foreach(var issue in userCreatedIssues.Where(i => !string.Equals(i.IssueTitle, Strings.AccountDelete_SupportRequestTitle)))
@@ -337,7 +337,10 @@ namespace NuGetGallery.Areas.Admin
                 accountDeletedIssue.CreatedBy = null;
                 foreach(var historyEntry in accountDeletedIssue.HistoryEntries)
                 {
-                    historyEntry.EditedBy = null;
+                    if (string.Equals(historyEntry.EditedBy, createdBy, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        historyEntry.EditedBy = null;
+                    }
                 }
             }
             await _supportRequestDbContext.CommitChangesAsync();
