@@ -4,11 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
-using Microsoft.Owin;
 
 namespace NuGetGallery
 {
@@ -18,9 +16,9 @@ namespace NuGetGallery
         /// Default user name that will replace the real user name.
         /// This value will be saved in AI instead of the real value.
         /// </summary>
-        public const string DefaultTelemetryUserName = "HiddenUserName";
+        internal const string DefaultTelemetryUserName = "HiddenUserName";
 
-        public static readonly HashSet<string> PiiActions = new HashSet<string>{
+        internal static readonly HashSet<string> PiiActions = new HashSet<string>{
             "Packages/ConfirmPendingOwnershipRequest",
             "Packages/RejectPendingOwnershipRequest",
             "Packages/CancelPendingOwnershipRequest",
@@ -29,7 +27,7 @@ namespace NuGetGallery
             "Users/Profiles",
             "Users/ResetPassword"};
 
-        private ITelemetryProcessor Next { get; set; }
+        private ITelemetryProcessor Next { get; }
 
         public ClientTelemetryPIIProcessor(ITelemetryProcessor next)
         {
@@ -44,16 +42,18 @@ namespace NuGetGallery
 
         private void ModifyItem(ITelemetry item)
         {
-            if(item != null && item is RequestTelemetry)
+            var requestTelemetryItem = item as RequestTelemetry;
+            if(requestTelemetryItem != null)
             {
-                ((RequestTelemetry)item).Url = GetUri((RequestTelemetry)item);
+                requestTelemetryItem.Url = ObfuscateUri(requestTelemetryItem);
             }
         }
 
-        private Uri GetUri(RequestTelemetry telemetryItem)
+        private Uri ObfuscateUri(RequestTelemetry telemetryItem)
         {
             if(IsPIIOperation(telemetryItem.Context.Operation.Name))
             {
+                // The new url form will be: https://nuget.org/HiddenUserName
                 return new Uri($"{telemetryItem.Url.Scheme}://{telemetryItem.Url.Host}/{DefaultTelemetryUserName}");
             }
             return telemetryItem.Url;
@@ -61,7 +61,12 @@ namespace NuGetGallery
 
         protected virtual bool IsPIIOperation(string operationName)
         {
+            if(string.IsNullOrEmpty(operationName))
+            {
+                return false;
+            }
             // Remove the verb from the operation name.
+            // An example of operationName : GET Users/Profiles
             return PiiActions.Contains(operationName.Split(' ').Last());
         }
     }

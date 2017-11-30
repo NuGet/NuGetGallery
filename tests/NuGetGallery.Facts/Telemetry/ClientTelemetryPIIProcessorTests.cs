@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
@@ -50,6 +51,28 @@ namespace NuGetGallery.Telemetry
             Assert.Equal(expected, telemetryItem.Url.ToString());
         }
 
+        [Theory]
+        [MemberData(nameof(PIIOperationDataGenerator))]
+        public void TestValidPIIOperations(string operation)
+        {
+            // Arange
+            var piiProcessor = (TestClientTelemetryPIIProcessor)CreatePIIProcessor(false, "user");
+
+            // Act and Assert
+            Assert.True(piiProcessor.IsPIIOperationBase(operation));
+        }
+
+        [Theory]
+        [MemberData(nameof(InvalidPIIOPerationDataGenerator))]
+        public void TestInvalidPIIOperations(string operation)
+        {
+            // Arange
+            var piiProcessor = (TestClientTelemetryPIIProcessor)CreatePIIProcessor(false, "user");
+
+            // Act and Assert
+            Assert.False(piiProcessor.IsPIIOperationBase(operation));
+        }
+
         [Fact]
         public void ValidatePIIRoutes()
         {
@@ -88,11 +111,16 @@ namespace NuGetGallery.Telemetry
             {
                 return _isPIIOperation;
             }
+
+            public bool IsPIIOperationBase(string operationName)
+            {
+                return base.IsPIIOperation(operationName);
+            }
         }
 
-        private List<string> GetPIIOperationsFromRoute()
+        private static List<string> GetPIIOperationsFromRoute()
         {
-            RouteCollection currentRoutes = new RouteCollection();
+            var currentRoutes = new RouteCollection();
             NuGetGallery.Routes.RegisterApiV2Routes(currentRoutes);
             NuGetGallery.Routes.RegisterUIRoutes(currentRoutes);
 
@@ -108,9 +136,21 @@ namespace NuGetGallery.Telemetry
             return piiRoutes;
         }
 
-        private bool IsPIIUrl(string url)
+        private static bool IsPIIUrl(string url)
         {
             return url.ToLower().Contains("username") || url.ToLower().Contains("accountname");
+        }
+
+        public static IEnumerable<string[]> PIIOperationDataGenerator()
+        {
+            return GetPIIOperationsFromRoute().Select(o => new string[]{$"GET {o}"});
+        }
+
+        public static IEnumerable<string[]> InvalidPIIOPerationDataGenerator()
+        {
+            yield return new string[]{ null };
+            yield return new string[]{ string.Empty };
+            yield return new string[]{"Some random data" };
         }
     }
 }
