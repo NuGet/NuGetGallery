@@ -426,7 +426,6 @@
     <Compile Include="Controllers\UsersControllerFacts.cs" />
     <Compile Include="Extensions\PrincipalExtensionsFacts.cs" />
     <Compile Include="Extensions\ScopeExtensionsFacts.cs" />
-    <Compile Include="Extensions\UserExtensionsFacts.cs" />
     <Compile Include="Filters\ApiScopeRequiredAttributeFacts.cs" />
     <Compile Include="Framework\TestGalleryConfigurationService.cs" />
     <Compile Include="Helpers\HtmlExtensionsFacts.cs" />

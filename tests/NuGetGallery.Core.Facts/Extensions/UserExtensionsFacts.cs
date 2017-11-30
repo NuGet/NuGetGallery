@@ -17,7 +17,7 @@ namespace NuGetGallery.Extensions
             {
                 Assert.Throws<ArgumentNullException>(() =>
                 {
-                    UserExtensions.ToMailAddress(null);
+                    UserExtensionsCore.ToMailAddress(null);
                 });
             }
 
@@ -59,7 +59,7 @@ namespace NuGetGallery.Extensions
             {
                 Assert.Throws<ArgumentNullException>(() =>
                 {
-                    UserExtensions.GetCurrentApiKeyCredential(null, new ClaimsIdentity());
+                    UserExtensionsCore.GetCurrentApiKeyCredential(null, new ClaimsIdentity());
                 });
             }
 
@@ -73,10 +73,11 @@ namespace NuGetGallery.Extensions
                 user.Credentials.Add(new Credential(CredentialTypes.ApiKey.V2, "A"));
                 user.Credentials.Add(new Credential(credentialType, "B"));
 
-                var identity = AuthenticationService.CreateIdentity(
-                    new User("testuser"),
-                    AuthenticationTypes.ApiKey,
-                    new Claim(NuGetClaims.ApiKey, "B"));
+                var identity = new ClaimsIdentity(
+                    claims: new[] { new Claim(NuGetClaims.ApiKey, "B") }, 
+                    authenticationType: "ApiKey",
+                    nameType: ClaimsIdentity.DefaultNameClaimType,
+                    roleType: ClaimsIdentity.DefaultRoleClaimType);
 
                 // Act
                 var credential = user.GetCurrentApiKeyCredential(identity);
@@ -93,9 +94,11 @@ namespace NuGetGallery.Extensions
                 user.Credentials.Add(new Credential(CredentialTypes.ApiKey.V2, "A"));
                 user.Credentials.Add(new Credential(CredentialTypes.ApiKey.V2, "B"));
 
-                var identity = AuthenticationService.CreateIdentity(
-                    new User("testuser"),
-                    AuthenticationTypes.LocalUser);
+                var identity = new ClaimsIdentity(
+                    claims: new Claim[0],
+                    authenticationType: "LocalUser",
+                    nameType: ClaimsIdentity.DefaultNameClaimType,
+                    roleType: ClaimsIdentity.DefaultRoleClaimType);
 
                 // Act & Assert
                 Assert.Null(user.GetCurrentApiKeyCredential(identity));
@@ -109,7 +112,7 @@ namespace NuGetGallery.Extensions
             {
                 Assert.Throws<ArgumentNullException>(() =>
                 {
-                    UserExtensions.IsOwnerOrMemberOfOrganizationOwner(null, new PackageRegistration());
+                    UserExtensionsCore.IsOwnerOrMemberOfOrganizationOwner(null, new PackageRegistration());
                 });
             }
 
@@ -176,7 +179,7 @@ namespace NuGetGallery.Extensions
             {
                 Assert.Throws<ArgumentNullException>(() =>
                 {
-                    UserExtensions.MatchesOwnerScope(null, new Credential());
+                    UserExtensionsCore.MatchesOwnerScope(null, new Credential());
                 });
             }
 
@@ -185,7 +188,7 @@ namespace NuGetGallery.Extensions
             {
                 Assert.Throws<ArgumentNullException>(() =>
                 {
-                    UserExtensions.MatchesOwnerScope(new User(), null);
+                    UserExtensionsCore.MatchesOwnerScope(new User(), null);
                 });
             }
 

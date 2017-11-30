@@ -36,6 +36,11 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AnglicanGeek.MarkdownMailer, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\AnglicanGeek.MarkdownMailer.1.2\lib\net40\AnglicanGeek.MarkdownMailer.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Elmah, Version=1.2.14706.0, Culture=neutral, PublicKeyToken=57eac04b2e0f138e, processorArchitecture=MSIL">
       <HintPath>..\..\packages\elmah.corelibrary.strongname.1.2.2\lib\Elmah.dll</HintPath>
       <Private>True</Private>
@@ -195,6 +200,7 @@
     <Compile Include="Entities\SuspendDbExecutionStrategy.cs" />
     <Compile Include="Entities\UserSecurityPolicy.cs" />
     <Compile Include="Entities\User.cs" />
+    <Compile Include="Extensions\UserExtensionsCore.cs" />
     <Compile Include="ICloudStorageStatusDependency.cs" />
     <Compile Include="Infrastructure\AzureEntityList.cs" />
     <Compile Include="Infrastructure\TableErrorLog.cs" />
@@ -218,10 +224,13 @@
     <Compile Include="Services\CloudBlobCoreFileStorageService.cs" />
     <Compile Include="Services\CloudBlobWrapper.cs" />
     <Compile Include="Services\CloudFileReference.cs" />
+    <Compile Include="Services\CoreMessageService.cs" />
     <Compile Include="Services\CorePackageFileService.cs" />
     <Compile Include="Services\CorePackageService.cs" />
     <Compile Include="Services\ICloudBlobClient.cs" />
     <Compile Include="Services\ICloudBlobContainer.cs" />
+    <Compile Include="Services\ICoreMessageService.cs" />
+    <Compile Include="Services\ICoreMessageServiceConfiguration.cs" />
     <Compile Include="Services\ICorePackageFileService.cs" />
     <Compile Include="Services\ICorePackageService.cs" />
     <Compile Include="Services\IFileReference.cs" />

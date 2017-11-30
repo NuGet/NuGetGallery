@@ -14,21 +14,20 @@ using NuGetGallery.Services;
 
 namespace NuGetGallery
 {
-    public class MessageService : IMessageService
+    public class MessageService : CoreMessageService, IMessageService
     {
         protected MessageService()
         {
         }
 
         public MessageService(IMailSender mailSender, IAppConfiguration config, AuthenticationService authService)
-            : this()
+            : base(mailSender, config)
         {
             MailSender = mailSender;
             Config = config;
             AuthService = authService;
         }
 
-        public IMailSender MailSender { get; protected set; }
         public IAppConfiguration Config { get; protected set; }
         public AuthenticationService AuthService { get; protected set; }
 
@@ -574,79 +573,6 @@ The {3} Team";
             }
         }
 
-        private void SendMessage(MailMessage mailMessage, bool copySender = false)
-        {
-            try
-            {
-                MailSender.Send(mailMessage);
-                if (copySender)
-                {
-                    var senderCopy = new MailMessage(
-                        Config.GalleryOwner,
-                        mailMessage.ReplyToList.First())
-                    {
-                        Subject = mailMessage.Subject + " [Sender Copy]",
-                        Body = String.Format(
-                                CultureInfo.CurrentCulture,
-                                "You sent the following message via {0}: {1}{1}{2}",
-                                Config.GalleryOwner.DisplayName,
-                                Environment.NewLine,
-                                mailMessage.Body),
-                    };
-                    senderCopy.ReplyToList.Add(mailMessage.ReplyToList.First());
-                    MailSender.Send(senderCopy);
-                }
-            }
-            catch (InvalidOperationException ex)
-            {
-                // Log but swallow the exception
-                QuietLog.LogHandledException(ex);
-            }
-            catch (SmtpException ex)
-            {
-                // Log but swallow the exception
-                QuietLog.LogHandledException(ex);
-            }
-        }
-
-        public void SendPackageAddedNotice(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl)
-        {
-            string subject = "[{0}] Package published - {1} {2}";
-            string body = @"The package [{1} {2}]({3}) was just published on {0}. If this was not intended, please [contact support]({4}).
-
------------------------------------------------
-<em style=""font-size: 0.8em;"">
-    To stop receiving emails as an owner of this package, sign in to the {0} and
-    [change your email notification settings]({5}).
-</em>";
-
-            body = String.Format(
-                CultureInfo.CurrentCulture,
-                body,
-                Config.GalleryOwner.DisplayName,
-                package.PackageRegistration.Id,
-                package.Version,
-                packageUrl,
-                packageSupportUrl,
-                emailSettingsUrl);
-
-            subject = String.Format(CultureInfo.CurrentCulture, subject, Config.GalleryOwner.DisplayName, package.PackageRegistration.Id, package.Version);
-
-            using (var mailMessage = new MailMessage())
-            {
-                mailMessage.Subject = subject;
-                mailMessage.Body = body;
-                mailMessage.From = Config.GalleryNoReplyAddress;
-
-                AddOwnersSubscribedToPackagePushedNotification(package.PackageRegistration, mailMessage);
-
-                if (mailMessage.To.Any())
-                {
-                    SendMessage(mailMessage);
-                }
-            }
-        }
-
         public void SendAccountDeleteNotice(MailAddress mailAddress, string account)
         {
             string body = @"We received a request to delete your account {0}. If you did not initiate this request please contact the {1} team immediately.
@@ -675,21 +601,6 @@ Thanks,
 
                 mailMessage.To.Add(mailAddress.Address);
                 SendMessage(mailMessage);
-            }
-        }
-        private static void AddOwnersToMailMessage(PackageRegistration packageRegistration, MailMessage mailMessage)
-        {
-            foreach (var owner in packageRegistration.Owners.Where(o => o.EmailAllowed))
-            {
-                mailMessage.To.Add(owner.ToMailAddress());
-            }
-        }
-
-        private static void AddOwnersSubscribedToPackagePushedNotification(PackageRegistration packageRegistration, MailMessage mailMessage)
-        {
-            foreach (var owner in packageRegistration.Owners.Where(o => o.NotifyPackagePushed))
-            {
-                mailMessage.To.Add(owner.ToMailAddress());
             }
         }
 
@@ -732,6 +643,24 @@ The {0} Team";
                 {
                     SendMessage(mailMessage);
                 }
+            }
+        }
+
+        override protected void SendMessage(MailMessage mailMessage, bool copySender = false)
+        {
+            try
+            {
+                base.SendMessage(mailMessage, copySender);
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Log but swallow the exception
+                QuietLog.LogHandledException(ex);
+            }
+            catch (SmtpException ex)
+            {
+                // Log but swallow the exception
+                QuietLog.LogHandledException(ex);
             }
         }
     }
