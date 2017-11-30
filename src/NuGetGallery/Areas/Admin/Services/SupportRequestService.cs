@@ -318,6 +318,34 @@ namespace NuGetGallery.Areas.Admin
             return issue?.Name;
         }
 
+        public async Task DeleteSupportRequestsAsync(string createdBy)
+        {
+            if(createdBy == null)
+            {
+                throw new ArgumentNullException(nameof(createdBy));
+            }
+            var userCreatedIssues = GetIssues().Where(i => string.Equals(i.CreatedBy, createdBy, StringComparison.InvariantCultureIgnoreCase)).ToList();
+            // Delete all the support requests with exception of the delete account request.
+            // For the DeleteAccount support request clean the user data.
+            foreach(var issue in userCreatedIssues.Where(i => !string.Equals(i.IssueTitle, Strings.AccountDelete_SupportRequestTitle)))
+            {
+                _supportRequestDbContext.Issues.Remove(issue);
+            }
+            foreach(var accountDeletedIssue in userCreatedIssues.Where(i => string.Equals(i.IssueTitle, Strings.AccountDelete_SupportRequestTitle)))
+            {
+                accountDeletedIssue.OwnerEmail = "deletedaccount";
+                accountDeletedIssue.CreatedBy = null;
+                foreach(var historyEntry in accountDeletedIssue.HistoryEntries)
+                {
+                    if (string.Equals(historyEntry.EditedBy, createdBy, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        historyEntry.EditedBy = null;
+                    }
+                }
+            }
+            await _supportRequestDbContext.CommitChangesAsync();
+        }
+
         private IQueryable<Issue> GetFilteredIssuesQueryable(int? assignedTo = null, string reason = null, int? issueStatusId = null, string galleryUsername = null)
         {
             IQueryable<Issue> queryable = _supportRequestDbContext.Issues

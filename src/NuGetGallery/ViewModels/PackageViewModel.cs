@@ -30,12 +30,6 @@ namespace NuGetGallery
 
             NuGetVersion = NuGetVersion.Parse(_fullVersion);
 
-            HasSemVer2Version = NuGetVersion.IsSemVer2;
-            HasSemVer2Dependency = package.Dependencies.ToList()
-                .Where(pd => !string.IsNullOrEmpty(pd.VersionSpec))
-                .Select(pd => VersionRange.Parse(pd.VersionSpec))
-                .Any(p => (p.HasUpperBound && p.MaxVersion.IsSemVer2) || (p.HasLowerBound && p.MinVersion.IsSemVer2));
-
             Description = package.Description;
             ReleaseNotes = package.ReleaseNotes;
             IconUrl = package.IconUrl;
@@ -95,8 +89,6 @@ namespace NuGetGallery
         public string Version { get; set; }
         public string FullVersion => _fullVersion;
         public bool IsSemVer2 => _isSemVer2;
-        public bool HasSemVer2Version { get; }
-        public bool HasSemVer2Dependency { get; }
 
         public string Title
         {

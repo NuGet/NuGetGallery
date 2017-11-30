@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 
-namespace NuGetGallery.Services.Authentication
+namespace NuGetGallery.Infrastructure.Authentication
 {
     /// <summary>
     /// This code is mostly copied from https://github.com/aspnet/Identity/blob/dev/src/Microsoft.AspNetCore.Identity/PasswordHasher.cs
@@ -22,15 +22,68 @@ namespace NuGetGallery.Services.Authentication
         /// Returns a hashed representation of the supplied <paramref name="input"/>.
         /// </summary>
         /// <param name="input">The string to hash.</param>
-        /// <returns>A hashed representation of the supplied <paramref name="input"/>.</returns>
+        /// <returns>A hashed representation of the supplied<paramref name="input"/> Encoded to Base64 string.</returns>
         public static string GenerateHash(string input)
         {
-            return Convert.ToBase64String(
-                GenerateHashInternal(input, DefaultRng,
+            return Convert.ToBase64String(GenerateHashAsBytes(input));
+        }
+
+        /// <summary>
+        /// Returns a hashed representation of the supplied <paramref name="input"/>.
+        /// </summary>
+        /// <param name="input">The string to hash.</param>
+        /// <returns>A hashed representation of the supplied <paramref name="input"/>.</returns>
+        public static byte[] GenerateHashAsBytes(string input)
+        {
+            return GenerateHashInternal(input, DefaultRng,
                 prf: KeyDerivationPrf.HMACSHA256,
                 iterCount: IterationCount,
                 saltSize: 128 / 8,
-                numBytesRequested: 256 / 8));
+                numBytesRequested: 256 / 8);
+        }
+
+        /// <summary>
+        /// Returns a <see cref="bool"/> indicating the result of a hash comparison.
+        /// </summary>
+        /// <param name="hashedData">The hash value for a user's stored credential.</param>
+        /// <param name="providedInput">The input supplied for comparison.</param>
+        /// <returns>A <see cref="bool"/> indicating the result of a hash comparison.</returns>
+        public static bool VerifyHash(byte[] hashedData, string providedInput)
+        {
+            if (hashedData == null)
+            {
+                throw new ArgumentNullException(nameof(hashedData));
+            }
+
+            if (providedInput == null)
+            {
+                throw new ArgumentNullException(nameof(providedInput));
+            }
+
+            // Read the format marker from the hashed credential
+            if (hashedData.Length == 0)
+            {
+                return false;
+            }
+
+            // Verify format marker
+            if (hashedData[0] != 0x01)
+            {
+                return false;
+            }
+
+            return VerifyHashInternal(hashedData, providedInput);
+        }
+
+        /// <summary>
+        /// Returns a <see cref="bool"/> indicating the result of a hash comparison.
+        /// </summary>
+        /// <param name="hashedData">The hash value for a user's stored credential (Base64 encoded).</param>
+        /// <param name="providedInput">The input supplied for comparison.</param>
+        /// <returns>A <see cref="bool"/> indicating the result of a hash comparison.</returns>
+        public static bool VerifyHash(string hashedData, string providedInput)
+        {
+            return VerifyHash(Convert.FromBase64String(hashedData), providedInput);
         }
 
         private static byte[] GenerateHashInternal(string input, RandomNumberGenerator rng, KeyDerivationPrf prf, int iterCount, int saltSize, int numBytesRequested)
@@ -48,40 +101,6 @@ namespace NuGetGallery.Services.Authentication
             Buffer.BlockCopy(salt, 0, outputBytes, 13, salt.Length);
             Buffer.BlockCopy(subkey, 0, outputBytes, 13 + saltSize, subkey.Length);
             return outputBytes;
-        }
-
-        /// <summary>
-        /// Returns a <see cref="bool"/> indicating the result of a hash comparison.
-        /// </summary>
-        /// <param name="hashedData">The hash value for a user's stored credential.</param>
-        /// <param name="providedInput">The input supplied for comparison.</param>
-        /// <returns>A <see cref="bool"/> indicating the result of a hash comparison.</returns>
-        public static bool VerifyHash(string hashedData, string providedInput)
-        {
-            if (hashedData == null)
-            {
-                throw new ArgumentNullException(nameof(hashedData));
-            }
-            if (providedInput == null)
-            {
-                throw new ArgumentNullException(nameof(providedInput));
-            }
-
-            byte[] decodedHashedCredential = Convert.FromBase64String(hashedData);
-
-            // read the format marker from the hashed credential
-            if (decodedHashedCredential.Length == 0)
-            {
-                return false;
-            }
-
-            // Verify format marker
-            if (decodedHashedCredential[0] != 0x01)
-            {
-                return false;
-            }
-
-            return VerifyHashInternal(decodedHashedCredential, providedInput);
         }
 
         private static bool VerifyHashInternal(byte[] hashedData, string providedInput)

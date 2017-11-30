@@ -785,9 +785,15 @@
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Helpers\GravatarHelper.cs" />
     <Compile Include="Helpers\RegexEx.cs" />
+    <Compile Include="Infrastructure\Authentication\ApiKeyV4.cs" />
+    <Compile Include="Infrastructure\Authentication\Base32Encoder.cs" />
     <Compile Include="Migrations\201711082145351_AddAccountDelete.cs" />
     <Compile Include="Migrations\201711082145351_AddAccountDelete.Designer.cs">
       <DependentUpon>201711082145351_AddAccountDelete.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201711291842225_AddCertificate.cs" />
+    <Compile Include="Migrations\201711291842225_AddCertificate.Designer.cs">
+      <DependentUpon>201711291842225_AddCertificate.cs</DependentUpon>
     </Compile>
     <Compile Include="RequestModels\DeleteAccountRequest.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.cs" />
@@ -1892,6 +1898,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201711082145351_AddAccountDelete.resx">
       <DependentUpon>201711082145351_AddAccountDelete.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201711291842225_AddCertificate.resx">
+      <DependentUpon>201711291842225_AddCertificate.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
