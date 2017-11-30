@@ -19,7 +19,7 @@ namespace NuGetGallery
             PackagePage = pageIndex;
             PackagePageSize = pageSize;
             
-            TotalPackageDownloadCount = AllPackages.Sum(p => p.TotalDownloadCount);
+            TotalPackageDownloadCount = AllPackages.Sum(p => ((long)p.TotalDownloadCount));
 
             PackagePageTotalCount = (TotalPackages + PackagePageSize - 1) / PackagePageSize;
 
@@ -38,7 +38,7 @@ namespace NuGetGallery
         public string UnconfirmedEmailAddress { get; set; }
         public ICollection<ListPackageItemViewModel> AllPackages { get; private set; }
         public ICollection<ListPackageItemViewModel> PagedPackages { get; private set; }
-        public int TotalPackageDownloadCount { get; private set; }
+        public long TotalPackageDownloadCount { get; private set; }
         public int TotalPackages { get; private set; }
         public int PackagePage { get; private set; }
         public int PackagePageSize { get; private set; }
