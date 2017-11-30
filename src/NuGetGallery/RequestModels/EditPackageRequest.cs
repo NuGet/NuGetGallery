@@ -10,7 +10,7 @@ namespace NuGetGallery
     {
         public SelectList VersionSelectList { get; set; }
 
-        public EditPackageVersionRequest Edit { get; set; }
+        public EditPackageVersionReadMeRequest Edit { get; set; }
 
         public string PackageId { get; set; }
         public string PackageTitle { get; set; }

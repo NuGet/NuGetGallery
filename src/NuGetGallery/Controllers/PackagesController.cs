@@ -1177,7 +1177,7 @@ namespace NuGetGallery
             // Create edit model from the latest pending edit.
             var pendingMetadata = _editPackageService.GetPendingMetadata(package);
 
-            model.Edit = new EditPackageVersionRequest(package, pendingMetadata);
+            model.Edit = new EditPackageVersionReadMeRequest(pendingMetadata);
 
             // Update edit model with the active or pending readme.md data.
             var isReadMePending = model.Edit.ReadMeState != PackageEditReadMeState.Unchanged;
@@ -1231,9 +1231,8 @@ namespace NuGetGallery
                     await _entitiesContext.SaveChangesAsync();
 
                     // Add an auditing record for the package edit. HasReadMe flag is updated in DB by background job.
-                    var packageWithEditsApplied = formData.Edit.ApplyTo(package);
-                    packageWithEditsApplied.HasReadMe = hasReadMe;
-                    await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(packageWithEditsApplied, AuditedPackageAction.Edit));
+                    package.HasReadMe = hasReadMe;
+                    await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(package, AuditedPackageAction.Edit));
                 }
                 catch (EntityException ex)
                 {
@@ -1568,19 +1567,6 @@ namespace NuGetGallery
                         pendEdit = true;
                         _telemetryService.TrackPackageReadMeChangeEvent(package, formData.Edit.ReadMe.SourceType, formData.Edit.ReadMeState);
                     }
-                    
-                    pendEdit = pendEdit || formData.Edit.RequiresLicenseAcceptance != packageMetadata.RequireLicenseAcceptance;
-
-                    pendEdit = pendEdit || IsDifferent(formData.Edit.IconUrl, packageMetadata.IconUrl.ToEncodedUrlStringOrNull());
-                    pendEdit = pendEdit || IsDifferent(formData.Edit.ProjectUrl, packageMetadata.ProjectUrl.ToEncodedUrlStringOrNull());
-
-                    pendEdit = pendEdit || IsDifferent(formData.Edit.Authors, packageMetadata.Authors.Flatten());
-                    pendEdit = pendEdit || IsDifferent(formData.Edit.Copyright, packageMetadata.Copyright);
-                    pendEdit = pendEdit || IsDifferent(formData.Edit.Description, packageMetadata.Description);
-                    pendEdit = pendEdit || IsDifferent(formData.Edit.ReleaseNotes, packageMetadata.ReleaseNotes);
-                    pendEdit = pendEdit || IsDifferent(formData.Edit.Summary, packageMetadata.Summary);
-                    pendEdit = pendEdit || IsDifferent(formData.Edit.Tags, PackageHelper.ParseTags(packageMetadata.Tags));
-                    pendEdit = pendEdit || IsDifferent(formData.Edit.VersionTitle, packageMetadata.Title);
                 }
 
                 await _packageService.PublishPackageAsync(package, commitChanges: false);
