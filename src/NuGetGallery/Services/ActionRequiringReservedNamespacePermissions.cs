@@ -7,6 +7,9 @@ using System.Security.Principal;
 
 namespace NuGetGallery
 {
+    /// <summary>
+    /// Context object for checking permissions of an action involving a new package ID.
+    /// </summary>
     public class ActionOnNewPackageContext
     {
         public string PackageId { get; }

@@ -77,12 +77,12 @@
                 }
             </div>
             
-            @if (Model.IsActionAllowed(ActionsRequiringPermissions.EditPackage) ||
-                Model.IsActionAllowed(ActionsRequiringPermissions.ManagePackageOwnership) ||
-                Model.IsActionAllowed(ActionsRequiringPermissions.UnlistOrRelistPackage))
+            @if (Model.CanEdit ||
+                Model.CanManageOwners ||
+                Model.CanUnlistOrRelist)
             {
                 <ul class="package-list manage-package">
-                    @if (Model.IsActionAllowed(ActionsRequiringPermissions.EditPackage))
+                    @if (Model.CanEdit)
                     {
                         <li>
                             <a href="@Url.EditPackage(Model.Id, Model.Version)" class="icon-link">
@@ -91,7 +91,7 @@
                             </a>
                         </li>
                     }
-                    @if (Model.IsActionAllowed(ActionsRequiringPermissions.ManagePackageOwnership))
+                    @if (Model.CanManageOwners)
                     {
                         <li>
                             <a href="@Url.ManagePackageOwners(Model)" class="icon-link">
@@ -100,7 +100,7 @@
                             </a>
                         </li>
                     }
-                    @if (Model.IsActionAllowed(ActionsRequiringPermissions.UnlistOrRelistPackage))
+                    @if (Model.CanUnlistOrRelist)
                     {
                         <li>
                             <a href="@Url.DeletePackage(Model)" class="icon-link">

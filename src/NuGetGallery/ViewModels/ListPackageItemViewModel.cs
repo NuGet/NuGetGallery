@@ -24,17 +24,21 @@ namespace NuGetGallery
 
             Authors = package.FlattenedAuthors;
             MinClientVersion = package.MinClientVersion;
-            CurrentUser = currentUser;
             Owners = package.PackageRegistration?.Owners;
             IsVerified = package.PackageRegistration?.IsVerified;
 
             bool wasTruncated;
             ShortDescription = Description.TruncateAtWordBoundary(_descriptionLengthLimit, _omissionString, out wasTruncated);
             IsDescriptionTruncated = wasTruncated;
+
+            CanDisplayPrivateMetadata = CanPerformAction(currentUser, package, ActionsRequiringPermissions.DisplayPrivatePackageMetadata);
+            CanEdit = CanPerformAction(currentUser, package, ActionsRequiringPermissions.EditPackage);
+            CanUnlistOrRelist = CanPerformAction(currentUser, package, ActionsRequiringPermissions.UnlistOrRelistPackage);
+            CanManageOwners = CanPerformAction(currentUser, package, ActionsRequiringPermissions.ManagePackageOwnership);
+            CanReportAsOwner = CanPerformAction(currentUser, package, ActionsRequiringPermissions.ReportPackageAsOwner);
         }
 
         public string Authors { get; set; }
-        public User CurrentUser { get; set; }
         public ICollection<User> Owners { get; set; }
         public IEnumerable<string> Tags { get; set; }
         public string MinClientVersion { get; set; }
@@ -66,9 +70,15 @@ namespace NuGetGallery
             }
         }
 
-        public bool IsActionAllowed(ActionRequiringPackagePermissions actionRequiringPackagePermissions)
+        public bool CanDisplayPrivateMetadata { get; set; }
+        public bool CanEdit { get; set; }
+        public bool CanUnlistOrRelist { get; set; }
+        public bool CanManageOwners { get; set; }
+        public bool CanReportAsOwner { get; set; }
+
+        private bool CanPerformAction(User currentUser, Package package, ActionRequiringPackagePermissions action)
         {
-            return actionRequiringPackagePermissions.TryGetAccountsIsAllowedOnBehalfOf(CurrentUser, this, out var accountsAllowedOnBehalfOf);
+            return action.TryGetAccountsIsAllowedOnBehalfOf(currentUser, package, out var accountsAllowedOnBehalfOf);
         }
     }
 }

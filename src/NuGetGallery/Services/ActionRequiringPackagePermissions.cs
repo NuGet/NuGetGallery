@@ -8,10 +8,10 @@ using System.Security.Principal;
 namespace NuGetGallery
 {
     /// <summary>
-    /// An action requiring permissions on a <see cref="Package"/> that can be done on behalf of another <see cref="User"/>.
+    /// An action requiring permissions on a <see cref="PackageRegistration"/> or <see cref="Package"/> that can be done on behalf of another <see cref="User"/>.
     /// </summary>
     public class ActionRequiringPackagePermissions
-        : ActionRequiringEntityPermissions<PackageRegistration>, IActionRequiringEntityPermissions<Package>, IActionRequiringEntityPermissions<ListPackageItemViewModel>
+        : ActionRequiringEntityPermissions<PackageRegistration>, IActionRequiringEntityPermissions<Package>
     {
         public PermissionsRequirement PackageRegistrationPermissionsRequirement { get; }
 
@@ -28,19 +28,9 @@ namespace NuGetGallery
             return IsAllowed(currentUser, account, ConvertPackageToRegistration(package));
         }
 
-        public PermissionsFailure IsAllowed(User currentUser, User account, ListPackageItemViewModel model)
-        {
-            return IsAllowed(currentUser, account, ConvertListPackageItemViewModelToRegistration(model));
-        }
-
         public PermissionsFailure IsAllowed(IPrincipal currentPrincipal, User account, Package package)
         {
             return IsAllowed(currentPrincipal, account, ConvertPackageToRegistration(package));
-        }
-
-        public PermissionsFailure IsAllowed(IPrincipal currentPrincipal, User account, ListPackageItemViewModel model)
-        {
-            return IsAllowed(currentPrincipal, account, ConvertListPackageItemViewModelToRegistration(model));
         }
 
         protected override PermissionsFailure IsAllowedOnEntity(User account, PackageRegistration packageRegistration)
@@ -53,11 +43,6 @@ namespace NuGetGallery
             return TryGetAccountsIsAllowedOnBehalfOf(currentUser, ConvertPackageToRegistration(package), out accountsAllowedOnBehalfOf);
         }
 
-        public bool TryGetAccountsIsAllowedOnBehalfOf(User currentUser, ListPackageItemViewModel model, out IEnumerable<User> accountsAllowedOnBehalfOf)
-        {
-            return TryGetAccountsIsAllowedOnBehalfOf(currentUser, ConvertListPackageItemViewModelToRegistration(model), out accountsAllowedOnBehalfOf);
-        }
-
         protected override IEnumerable<User> GetOwners(PackageRegistration packageRegistration)
         {
             return packageRegistration != null ? packageRegistration.Owners : Enumerable.Empty<User>();
@@ -66,11 +51,6 @@ namespace NuGetGallery
         private PackageRegistration ConvertPackageToRegistration(Package package)
         {
             return package.PackageRegistration;
-        }
-
-        private PackageRegistration ConvertListPackageItemViewModelToRegistration(ListPackageItemViewModel model)
-        {
-            return new PackageRegistration { Owners = model.Owners };
         }
     }
 }
