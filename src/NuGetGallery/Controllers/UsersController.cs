@@ -782,13 +782,25 @@ namespace NuGetGallery
             var user = GetCurrentUser();
 
             // Create a new API Key credential, and save to the database
-            var newCredential = _credentialBuilder.CreateApiKey(expiration);
+            var newCredential = _credentialBuilder.CreateApiKey(expiration, out string plaintextApiKey);
             newCredential.Description = description;
             newCredential.Scopes = scopes;
 
             await _authService.AddCredential(user, newCredential);
 
-            return newCredential;
+            // Replace the encrypted value with the plaintext value for presenting to the user
+            var viewableCredential = CloneCredential(newCredential);
+            viewableCredential.Value = plaintextApiKey;
+
+            return viewableCredential;
+        }
+
+        private static Credential CloneCredential(Credential newCredential)
+        {
+            var viewableCredential = newCredential.Clone();
+            viewableCredential.Scopes = newCredential.Scopes.Select(s => s.Clone()).ToList();
+            viewableCredential.User = newCredential.User.Clone();
+            return viewableCredential;
         }
 
         // todo: integrate verification logic into PermissionsService.
@@ -845,7 +857,7 @@ namespace NuGetGallery
 
         private static IList<Scope> BuildScopes(IEnumerable<Scope> scopes)
         {
-            return scopes.Select(scope => new Scope(scope.Owner, scope.Subject, scope.AllowedAction)).ToList();
+            return scopes.Select(scope => scope.Clone()).ToList();
         }
 
         private async Task<JsonResult> RemoveApiKeyCredential(User user, Credential cred)

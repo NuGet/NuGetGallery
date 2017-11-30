@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Web.Helpers;
 using NuGetGallery.Services.Authentication;
 
@@ -26,6 +27,27 @@ namespace NuGetGallery.Infrastructure.Authentication
             }
 
             return validator(providedPassword, credential);
+        }
+
+        public IList<Credential> ValidateApiKeyCredential(IQueryable<Credential> allCredentials, string providedApiKey)
+        {
+            List<Credential> results;
+
+            if (ApiKeyV4.TryParse(providedApiKey, out ApiKeyV4 apiKeyV4))
+            {
+                var foundApiKeys = allCredentials.Where(c => c.Type == CredentialTypes.ApiKey.V4 &&
+                                                             c.Value.StartsWith(apiKeyV4.IdPart)).ToList();
+
+                // There shouldn't be duplications in the id part because it's long enough, but we shouldn't assume that.
+                results = foundApiKeys.Where(c => apiKeyV4.Verify(c.Value)).ToList();
+            }
+            else
+            {
+                results = allCredentials.Where(c => c.Type.StartsWith(CredentialTypes.ApiKey.Prefix) &&
+                                                        c.Value == providedApiKey).ToList();
+            }
+
+            return results;
         }
     }
 }

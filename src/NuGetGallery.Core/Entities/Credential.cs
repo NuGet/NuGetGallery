@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 
 namespace NuGetGallery
 {
@@ -105,6 +106,25 @@ namespace NuGetGallery
             }
 
             return true;
+        }
+
+        public Credential Clone()
+        {
+            // Creates a copy without referenced Entities, to avoid risk of
+            // circular clones.
+            return new Credential()
+            {
+                Created = Created,
+                Description = Description,
+                ExpirationTicks = ExpirationTicks,
+                Expires = Expires,
+                Identity = Identity,
+                Key = Key,
+                LastUsed = LastUsed,
+                Type = Type,
+                Value = Value,
+                UserKey = UserKey
+            };
         }
     }
 }

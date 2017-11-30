@@ -102,7 +102,7 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                             AuthenticationService.CreateIdentity(
                                 user, 
                                 AuthenticationTypes.ApiKey, 
-                                new Claim(NuGetClaims.ApiKey, apiKey),
+                                new Claim(NuGetClaims.ApiKey, credential.Value), // For apikey.v4 this will hold the hashed value
                                 new Claim(NuGetClaims.Scope, scopes),
                                 new Claim(NuGetClaims.CredentialKey, credential.Key.ToString())),
                             new AuthenticationProperties());
