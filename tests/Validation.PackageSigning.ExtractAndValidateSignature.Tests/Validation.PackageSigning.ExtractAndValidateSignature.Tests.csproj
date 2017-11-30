@@ -39,6 +39,7 @@
     <Compile Include="DbSetMockFactory.cs" />
     <Compile Include="PackageSigningStateServiceFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SignatureValidationMessageHandlerFacts.cs" />
     <Compile Include="XunitLoggerFactoryExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -56,6 +57,10 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Validation.PackageSigning.Core\Validation.PackageSigning.Core.csproj">
+      <Project>{91C060DA-736F-4DA9-A57F-CB3AC0E6CB10}</Project>
+      <Name>Validation.PackageSigning.Core</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\Validation.PackageSigning.ExtractAndValidateSignature\Validation.PackageSigning.ExtractAndValidateSignature.csproj">
       <Project>{DD043977-6BCD-475A-BEE2-8C34309EC622}</Project>
       <Name>Validation.PackageSigning.ExtractAndValidateSignature</Name>
@@ -63,6 +68,11 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TestData\TestUnsigned.1.0.0.nupkg" />
+    <EmbeddedResource Include="TestData\TestSigned.leaf-1.1.0.0.nupkg" />
+    <EmbeddedResource Include="TestData\TestSigned.leaf-2.2.0.0.nupkg" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
