@@ -57,7 +57,7 @@ namespace NuGetGallery.Services
 
                 if (mailMessage.To.Any())
                 {
-                    SendMessage(mailMessage);
+                    SendMessage(mailMessage, copySender: false);
                 }
             }
         }
@@ -78,7 +78,7 @@ namespace NuGetGallery.Services
             }
         }
 
-        virtual protected void SendMessage(MailMessage mailMessage, bool copySender = false)
+        virtual protected void SendMessage(MailMessage mailMessage, bool copySender)
         {
             MailSender.Send(mailMessage);
             if (copySender)

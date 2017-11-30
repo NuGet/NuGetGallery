@@ -23,12 +23,14 @@ namespace NuGetGallery
         public MessageService(IMailSender mailSender, IAppConfiguration config, AuthenticationService authService)
             : base(mailSender, config)
         {
-            MailSender = mailSender;
-            Config = config;
             AuthService = authService;
         }
 
-        public IAppConfiguration Config { get; protected set; }
+        public IAppConfiguration Config
+        {
+            get { return (IAppConfiguration)CoreConfiguration; }
+            set { CoreConfiguration = value; }
+        }
         public AuthenticationService AuthService { get; protected set; }
 
         public void ReportAbuse(ReportPackageRequest request)
@@ -79,7 +81,7 @@ namespace NuGetGallery
                     // CCing helps to create a thread of email that can be augmented by the sending user
                     mailMessage.CC.Add(request.FromAddress);
                 }
-                SendMessage(mailMessage);
+                SendMessage(mailMessage, copySender: false);
             }
         }
 
@@ -126,7 +128,7 @@ namespace NuGetGallery
                     // CCing helps to create a thread of email that can be augmented by the sending user
                     mailMessage.CC.Add(request.FromAddress);
                 }
-                SendMessage(mailMessage);
+                SendMessage(mailMessage, copySender: false);
             }
         }
 
@@ -197,7 +199,7 @@ The {0} Team";
                 mailMessage.From = Config.GalleryNoReplyAddress;
 
                 mailMessage.To.Add(toAddress);
-                SendMessage(mailMessage);
+                SendMessage(mailMessage, copySender: false);
             }
         }
 
@@ -227,7 +229,7 @@ The {0} Team";
                 mailMessage.From = Config.GalleryNoReplyAddress;
 
                 mailMessage.To.Add(newEmailAddress);
-                SendMessage(mailMessage);
+                SendMessage(mailMessage, copySender: false);
             }
         }
 
@@ -257,7 +259,7 @@ The {0} Team";
                 mailMessage.From = Config.GalleryNoReplyAddress;
 
                 mailMessage.To.Add(new MailAddress(oldEmailAddress, user.Username));
-                SendMessage(mailMessage);
+                SendMessage(mailMessage, copySender: false);
             }
         }
 
@@ -280,7 +282,7 @@ The {0} Team";
                 mailMessage.From = Config.GalleryNoReplyAddress;
 
                 mailMessage.To.Add(user.ToMailAddress());
-                SendMessage(mailMessage);
+                SendMessage(mailMessage, copySender: false);
             }
         }
 
@@ -328,7 +330,7 @@ The {Config.GalleryOwner.DisplayName} Team";
                 mailMessage.ReplyToList.Add(fromUser.ToMailAddress());
 
                 mailMessage.To.Add(toUser.ToMailAddress());
-                SendMessage(mailMessage);
+                SendMessage(mailMessage, copySender: false);
             }
         }
 
@@ -354,7 +356,7 @@ The {Config.GalleryOwner.DisplayName} Team");
                 mailMessage.ReplyToList.Add(newOwner.ToMailAddress());
 
                 mailMessage.To.Add(requestingOwner.ToMailAddress());
-                SendMessage(mailMessage);
+                SendMessage(mailMessage, copySender: false);
             }
         }
 
@@ -380,7 +382,7 @@ The {Config.GalleryOwner.DisplayName} Team");
                 mailMessage.ReplyToList.Add(requestingOwner.ToMailAddress());
 
                 mailMessage.To.Add(newOwner.ToMailAddress());
-                SendMessage(mailMessage);
+                SendMessage(mailMessage, copySender: false);
             }
         }
 
@@ -414,7 +416,7 @@ The {3} Team";
                 mailMessage.ReplyToList.Add(Config.GalleryNoReplyAddress);
 
                 mailMessage.To.Add(toUser.ToMailAddress());
-                SendMessage(mailMessage);
+                SendMessage(mailMessage, copySender: false);
             }
         }
 
@@ -443,7 +445,7 @@ The {3} Team";
                 mailMessage.ReplyToList.Add(fromUser.ToMailAddress());
 
                 mailMessage.To.Add(toUser.ToMailAddress());
-                SendMessage(mailMessage);
+                SendMessage(mailMessage, copySender: false);
             }
         }
 
@@ -551,7 +553,7 @@ The {3} Team";
                 {
                     mailMessage.CC.Add(request.FromAddress);
                 }
-                SendMessage(mailMessage);
+                SendMessage(mailMessage, copySender: false);
             }
         }
 
@@ -569,7 +571,7 @@ The {3} Team";
                 mailMessage.From = Config.GalleryOwner;
 
                 mailMessage.To.Add(user.ToMailAddress());
-                SendMessage(mailMessage);
+                SendMessage(mailMessage, copySender: false);
             }
         }
 
@@ -600,7 +602,7 @@ Thanks,
                 mailMessage.From = Config.GalleryNoReplyAddress;
 
                 mailMessage.To.Add(mailAddress.Address);
-                SendMessage(mailMessage);
+                SendMessage(mailMessage, copySender: false);
             }
         }
 
@@ -641,12 +643,12 @@ The {0} Team";
 
                 if (mailMessage.To.Any())
                 {
-                    SendMessage(mailMessage);
+                    SendMessage(mailMessage, copySender: false);
                 }
             }
         }
 
-        override protected void SendMessage(MailMessage mailMessage, bool copySender = false)
+        override protected void SendMessage(MailMessage mailMessage, bool copySender)
         {
             try
             {

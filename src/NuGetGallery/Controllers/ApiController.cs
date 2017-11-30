@@ -500,10 +500,13 @@ namespace NuGetGallery
                             new PackageAuditRecord(package, AuditedPackageAction.Create, PackageCreatedVia.Api));
 
                         // Notify user of push
-                        MessageService.SendPackageAddedNotice(package,
-                            Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
-                            Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
-                            Url.AccountSettings(relativeUrl: false));
+                        if (package.PackageStatusKey != PackageStatus.Validating)
+                        {
+                            MessageService.SendPackageAddedNotice(package,
+                                Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                                Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                                Url.AccountSettings(relativeUrl: false));
+                        }
 
                         TelemetryService.TrackPackagePushEvent(package, user, User.Identity);
 
