@@ -168,7 +168,7 @@
             var isOnlyUserGrantingAccessToCurrentUser = viewModel.IsOnlyUserGrantingAccessToCurrentUser();
             var isOnlyUserGrantingAccessToCurrentUserMessage = isOnlyUserGrantingAccessToCurrentUser ? strings_RemovingOwnership : "";
 
-            if (item.isCurrentUserMemberOfOrganization) {
+            if (item.isCurrentUserAdminOfOrganization) {
                 if (!confirm(strings_RemovingOrganization + " " + isOnlyUserGrantingAccessToCurrentUserMessage)) {
                     return;
                 }
@@ -225,7 +225,7 @@
         this.imageUrl = ko.observable(data.ImageUrl);
         this.pending = ko.observable(data.Pending);
         this.grantsCurrentUserAccess = data.GrantsCurrentUserAccess;
-        this.isCurrentUserMemberOfOrganization = data.IsCurrentUserMemberOfOrganization;
+        this.isCurrentUserAdminOfOrganization = data.IsCurrentUserAdminOfOrganization;
         this.isNamespaceOwner = ko.observable(data.IsNamespaceOwner);
     }
 });

@@ -7,7 +7,7 @@ using System.Security.Principal;
 namespace NuGetGallery
 {
     /// <summary>
-    /// An action requiring permissions on a <see cref="Package"/>.
+    /// An action requiring permissions on a <see cref="Package"/> that can be done on behalf of another <see cref="User"/>.
     /// </summary>
     public class ActionRequiringPackagePermissions
         : ActionRequiringEntityPermissions<PackageRegistration>, IActionRequiringEntityPermissions<Package>, IActionRequiringEntityPermissions<ListPackageItemViewModel>

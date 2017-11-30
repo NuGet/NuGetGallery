@@ -3,6 +3,7 @@
 
 using System.Web.Mvc;
 using NuGetGallery.Helpers;
+using System.Linq;
 
 namespace NuGetGallery
 {
@@ -18,7 +19,7 @@ namespace NuGetGallery
 
         public bool GrantsCurrentUserAccess;
 
-        public bool IsCurrentUserMemberOfOrganization;
+        public bool IsCurrentUserAdminOfOrganization;
 
         public bool Pending;
 
@@ -31,7 +32,7 @@ namespace NuGetGallery
             ProfileUrl = url.User(user, relativeUrl: false);
             ImageUrl = GravatarHelper.Url(user.EmailAddress, size: Constants.GravatarImageSize);
             GrantsCurrentUserAccess = ActionsRequiringPermissions.ManagePackageOwnership.IsAllowed(currentUser, user, packageRegistration) == PermissionsFailure.None;
-            IsCurrentUserMemberOfOrganization = ActionsRequiringPermissions.DisplayPrivateOrganization.IsAllowed(currentUser, user) == PermissionsFailure.None;
+            IsCurrentUserAdminOfOrganization = user is Organization && (user as Organization).Members.Where(m => m.IsAdmin).Any();
             Pending = isPending;
             IsNamespaceOwner = isNamespaceOwner;
         }
