@@ -42,7 +42,7 @@ namespace NuGetGallery
 
             // Editable server-state
             Listed = true;
-            Edit = new EditPackageVersionRequest();
+            Edit = new EditPackageVersionReadMeRequest();
         }
 
         public string Id { get; set; }
@@ -62,7 +62,7 @@ namespace NuGetGallery
 
         // Editable server-state
         public bool Listed { get; set; }
-        public EditPackageVersionRequest Edit { get; set; }
+        public EditPackageVersionReadMeRequest Edit { get; set; }
 
         // Verifiable fields
         public string Authors { get; set; }

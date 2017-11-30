@@ -20,39 +20,39 @@ namespace NuGetGallery
         /// <summary>
         /// Returns the newest, uncompleted metadata for a package (i.e. a pending edit)
         /// </summary>
-        public virtual PackageEdit GetPendingMetadata(Package p)
+        public virtual PackageEdit GetPendingMetadata(Package package)
         {
             return EntitiesContext.Set<PackageEdit>()
-                .Where(m => m.PackageKey == p.Key)
+                .Where(m => m.PackageKey == package.Key)
                 .OrderByDescending(m => m.Timestamp)
                 .FirstOrDefault();
         }
 
-        public virtual void StartEditPackageRequest(Package p, EditPackageVersionRequest request, User editingUser)
+        public virtual void StartEditPackageRequest(Package package, EditPackageVersionReadMeRequest request, User editingUser)
         {
             var edit = new PackageEdit
             {
                 // No longer change these fields as they are no longer editable.
                 // To be removed in a next wave of package immutability implementation.
                 // (when no pending edits left to be processed in the db)
-                Authors = p.FlattenedAuthors,
-                Copyright = p.Copyright,
-                Description = p.Description,
-                IconUrl = p.IconUrl,
-                LicenseUrl = p.LicenseUrl,
-                ProjectUrl = p.ProjectUrl,
-                ReleaseNotes = p.ReleaseNotes,
-                RequiresLicenseAcceptance = p.RequiresLicenseAcceptance,
-                Summary = p.Summary,
-                Tags = p.Tags,
-                Title = p.Title,
+                Authors = package.FlattenedAuthors,
+                Copyright = package.Copyright,
+                Description = package.Description,
+                IconUrl = package.IconUrl,
+                LicenseUrl = package.LicenseUrl,
+                ProjectUrl = package.ProjectUrl,
+                ReleaseNotes = package.ReleaseNotes,
+                RequiresLicenseAcceptance = package.RequiresLicenseAcceptance,
+                Summary = package.Summary,
+                Tags = package.Tags,
+                Title = package.Title,
                 
                 // Readme
                 ReadMeState = request.ReadMeState,
 
                 // Other
                 User = editingUser,
-                Package = p,
+                Package = package,
                 Timestamp = DateTime.UtcNow,
                 TriedCount = 0,
             };

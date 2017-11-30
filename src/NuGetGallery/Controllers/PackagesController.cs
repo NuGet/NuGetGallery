@@ -1177,7 +1177,7 @@ namespace NuGetGallery
             // Create edit model from the latest pending edit.
             var pendingMetadata = _editPackageService.GetPendingMetadata(package);
 
-            model.Edit = new EditPackageVersionRequest(pendingMetadata);
+            model.Edit = new EditPackageVersionReadMeRequest(pendingMetadata);
 
             // Update edit model with the active or pending readme.md data.
             var isReadMePending = model.Edit.ReadMeState != PackageEditReadMeState.Unchanged;

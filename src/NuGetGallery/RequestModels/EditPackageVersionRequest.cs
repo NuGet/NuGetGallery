@@ -3,14 +3,14 @@
 
 namespace NuGetGallery
 {
-    public class EditPackageVersionRequest
+    public class EditPackageVersionReadMeRequest
     {
-        public EditPackageVersionRequest()
+        public EditPackageVersionReadMeRequest()
         {
             ReadMe = new ReadMeRequest();
         }
 
-        public EditPackageVersionRequest(PackageEdit pendingMetadata)
+        public EditPackageVersionReadMeRequest(PackageEdit pendingMetadata)
         {
             var metadata = pendingMetadata ?? new PackageEdit();
 

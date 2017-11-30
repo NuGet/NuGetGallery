@@ -1636,7 +1636,7 @@ namespace NuGetGallery
 
                 var formData = new VerifyPackageRequest
                 {
-                    Edit = new EditPackageVersionRequest
+                    Edit = new EditPackageVersionReadMeRequest
                     {
                         ReadMe = new ReadMeRequest
                         {
@@ -1673,7 +1673,7 @@ namespace NuGetGallery
 
                 var formData = new VerifyPackageRequest
                 {
-                    Edit = new EditPackageVersionRequest()
+                    Edit = new EditPackageVersionReadMeRequest()
                 };
 
                 // Act.
@@ -3350,7 +3350,7 @@ namespace NuGetGallery
             {
                 get
                 {
-                    yield return new object[] { new EditPackageVersionRequest() {
+                    yield return new object[] { new EditPackageVersionReadMeRequest() {
                         ReadMe = new ReadMeRequest { SourceType = "Written", SourceText = "markdown" } }
                     };
                 }
@@ -3358,7 +3358,7 @@ namespace NuGetGallery
 
             [Theory]
             [MemberData("WillApplyEdits_Data")]
-            public async Task WillApplyEdits(EditPackageVersionRequest edit)
+            public async Task WillApplyEdits(EditPackageVersionReadMeRequest edit)
             {
                 // Arrange
                 using (var fakeFileStream = new MemoryStream())
@@ -3408,7 +3408,7 @@ namespace NuGetGallery
         {
             get
             {
-                yield return new object[] { new EditPackageVersionRequest() {
+                yield return new object[] { new EditPackageVersionReadMeRequest() {
                     ReadMe = new ReadMeRequest { SourceType = "Written", SourceText = "markdown"} }
                 };
             }
@@ -3416,7 +3416,7 @@ namespace NuGetGallery
 
         [Theory]
         [MemberData(nameof(WillApplyReadMe_Data))]
-        public async Task WillApplyReadMeForWrittenReadMeData(EditPackageVersionRequest edit)
+        public async Task WillApplyReadMeForWrittenReadMeData(EditPackageVersionReadMeRequest edit)
         {
             // Arrange
             using (var fakeFileStream = new MemoryStream())
