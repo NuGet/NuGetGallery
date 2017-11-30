@@ -1971,6 +1971,8 @@
     <Content Include="Views\Users\_ReservedNamespacesList.cshtml" />
     <Content Include="Views\Users\DeleteAccount.cshtml" />
     <Content Include="Views\Authentication\SignInNuGetAccount.cshtml" />
+    <Content Include="Views\Packages\_VerifyForm.cshtml" />
+    <Content Include="Views\Packages\_VerifyMetadata.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />
