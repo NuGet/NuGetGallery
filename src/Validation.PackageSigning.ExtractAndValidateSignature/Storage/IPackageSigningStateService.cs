@@ -8,11 +8,10 @@ namespace NuGet.Jobs.Validation.PackageSigning.Storage
 {
     public interface IPackageSigningStateService
     {
-        Task<SavePackageSigningStateResult> TrySetPackageSigningState(
+        Task SetPackageSigningState(
             int packageKey,
             string packageId,
             string packageVersion,
-            bool isRevalidationRequest,
             PackageSigningStatus status);
     }
 }

@@ -121,26 +121,11 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
                         message.ValidationId);
 
             // Update the package's state.
-            // TODO: Determine whether this is a revalidation request.
-            var result = await _packageSigningStateService.TrySetPackageSigningState(
-                            validation.PackageKey,
-                            message.PackageId,
-                            message.PackageVersion,
-                            isRevalidationRequest: false,
-                            status: PackageSigningStatus.Unsigned);
-
-            if (result == SavePackageSigningStateResult.StatusAlreadyExists)
-            {
-                _logger.LogWarning(
-                    "Updates to package signature's state are only allowed on explicit revalidations for package {PackageId} {PackageVersion} for {ValidationId}",
-                    message.PackageId,
-                    message.PackageVersion,
-                    message.ValidationId);
-
-                // The message's request is invalid and no amount of retrying will fix it.
-                // Consume the message.
-                return true;
-            }
+            await _packageSigningStateService.SetPackageSigningState(
+                validation.PackageKey,
+                message.PackageId,
+                message.PackageVersion,
+                status: PackageSigningStatus.Unsigned);
 
             validation.State = ValidationStatus.Succeeded;
 
@@ -153,16 +138,25 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
                     // Consume the message.
                     return true;
                 }
+                else
+                {
+                    _logger.LogWarning(
+                        "Unable to save to save due to stale context, requeueing package {PackageId} {PackageVersion} for validation id: {ValidationId}.",
+                        message.PackageId,
+                        message.PackageVersion,
+                        message.ValidationId);
+                }
             }
             catch (DbUpdateException e) when (e.IsUniqueConstraintViolationException())
             {
+                _logger.LogWarning(
+                    0,
+                    e,
+                    "Unable to save to save due to unique contrainst violation, requeueing package {PackageId} {PackageVersion} for validation id: {ValidationId}.",
+                    message.PackageId,
+                    message.PackageVersion,
+                    message.ValidationId);
             }
-
-            _logger.LogWarning(
-                "Unable to save to save, requeueing package {PackageId} {PackageVersion} for validation id: {ValidationId}.",
-                message.PackageId,
-                message.PackageVersion,
-                message.ValidationId);
 
             // Message may be retried.
             return false;

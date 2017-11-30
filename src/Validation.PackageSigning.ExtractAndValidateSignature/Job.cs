@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Reflection;
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
@@ -157,7 +158,9 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
 
             services.AddSingleton(p =>
             {
-                var assemblyName = typeof(SignatureValidationMessage).Assembly.GetName();
+                var assembly = Assembly.GetEntryAssembly();
+                var assemblyName = assembly.GetName().Name;
+                var assemblyVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "0.0.0";
 
                 var client = new HttpClient(new WebRequestHandler
                 {
@@ -166,7 +169,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
                 });
 
                 client.Timeout = configurationRoot.GetValue<TimeSpan>(PackageDownloadTimeoutName);
-                client.DefaultRequestHeaders.Add("user-agent", $"{assemblyName.Name}/{assemblyName.Version}");
+                client.DefaultRequestHeaders.Add("user-agent", $"{assemblyName}/{assemblyVersion}");
 
                 return client;
             });

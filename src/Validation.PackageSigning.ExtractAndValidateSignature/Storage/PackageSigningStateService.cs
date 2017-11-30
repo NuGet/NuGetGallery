@@ -10,8 +10,7 @@ using NuGet.Versioning;
 
 namespace NuGet.Jobs.Validation.PackageSigning.Storage
 {
-    public class PackageSigningStateService
-        : IPackageSigningStateService
+    public class PackageSigningStateService : IPackageSigningStateService
     {
         private readonly IValidationEntitiesContext _validationContext;
         private readonly ILogger<PackageSigningStateService> _logger;
@@ -24,11 +23,10 @@ namespace NuGet.Jobs.Validation.PackageSigning.Storage
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<SavePackageSigningStateResult> TrySetPackageSigningState(
+        public async Task SetPackageSigningState(
             int packageKey,
             string packageId,
             string packageVersion,
-            bool isRevalidationRequest,
             PackageSigningStatus status)
         {
             if (string.IsNullOrEmpty(packageId))
@@ -45,11 +43,6 @@ namespace NuGet.Jobs.Validation.PackageSigning.Storage
             // this invariant may be broken due to message duplication.
             var signatureState = await _validationContext.PackageSigningStates.FirstOrDefaultAsync(s => s.PackageKey == packageKey);
 
-            if (signatureState != null && !isRevalidationRequest)
-            {
-                return SavePackageSigningStateResult.StatusAlreadyExists;
-            }
-
             if (signatureState != null)
             {
                 signatureState.SigningStatus = status;
@@ -65,8 +58,6 @@ namespace NuGet.Jobs.Validation.PackageSigning.Storage
                     SigningStatus = status
                 });
             }
-
-            return SavePackageSigningStateResult.Success;
         }
     }
 }
