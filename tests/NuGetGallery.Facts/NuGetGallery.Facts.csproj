@@ -539,6 +539,7 @@
     <Compile Include="ViewModels\ListPackageItemViewModelFacts.cs" />
     <Compile Include="ViewModels\PackageViewModelFacts.cs" />
     <Compile Include="ViewModels\PreviousNextPagerViewModelFacts.cs" />
+    <Compile Include="ViewModels\UserProfileModelFacts.cs" />
     <Compile Include="Views\UrlHelperFacts.cs" />
   </ItemGroup>
   <ItemGroup>
