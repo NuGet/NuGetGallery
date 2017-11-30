@@ -469,6 +469,7 @@
     <Compile Include="Services\TelemetryServiceFacts.cs" />
     <Compile Include="Services\ValidationServiceFacts.cs" />
     <Compile Include="Telemetry\ClientInformationTelemetryEnricherTests.cs" />
+    <Compile Include="Telemetry\ClientTelemetryPIIProcessorTests.cs" />
     <Compile Include="TestUtils\Infrastructure\TestableV1Feed.cs" />
     <Compile Include="TestUtils\Infrastructure\TestableV2Feed.cs" />
     <Compile Include="TestUtils\Infrastructure\TestDependencyResolver.cs" />
