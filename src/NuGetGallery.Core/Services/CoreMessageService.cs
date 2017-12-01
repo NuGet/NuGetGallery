@@ -62,6 +62,44 @@ namespace NuGetGallery.Services
             }
         }
 
+        public void SendPackageValidationFailedNotice(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl)
+        {
+            string subject = "[{0}] Package published - {1} {2}";
+            string body = @"The package [{1} {2}]({3}) failed validation and was therefore not published on {0}. Note that the package will not be available for consumption and you will not be able to push the same package ID and version until further action is taken. Please [contact support]({4}) for next steps.
+
+-----------------------------------------------
+<em style=""font-size: 0.8em;"">
+    To stop receiving emails as an owner of this package, sign in to the {0} and
+    [change your email notification settings]({5}).
+</em>";
+
+            body = string.Format(
+                CultureInfo.CurrentCulture,
+                body,
+                CoreConfiguration.GalleryOwner.DisplayName,
+                package.PackageRegistration.Id,
+                package.Version,
+                packageUrl,
+                packageSupportUrl,
+                emailSettingsUrl);
+
+            subject = string.Format(CultureInfo.CurrentCulture, subject, CoreConfiguration.GalleryOwner.DisplayName, package.PackageRegistration.Id, package.Version);
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = CoreConfiguration.GalleryNoReplyAddress;
+
+                AddOwnersSubscribedToPackagePushedNotification(package.PackageRegistration, mailMessage);
+
+                if (mailMessage.To.Any())
+                {
+                    SendMessage(mailMessage, copySender: false);
+                }
+            }
+        }
+
         protected static void AddOwnersToMailMessage(PackageRegistration packageRegistration, MailMessage mailMessage)
         {
             foreach (var owner in packageRegistration.Owners.Where(o => o.EmailAllowed))
