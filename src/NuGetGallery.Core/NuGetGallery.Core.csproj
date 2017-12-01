@@ -162,6 +162,7 @@
     <Compile Include="Diagnostics\IDiagnosticsService.cs" />
     <Compile Include="Diagnostics\IDiagnosticsSource.cs" />
     <Compile Include="DisposableAction.cs" />
+    <Compile Include="Entities\Certificate.cs" />
     <Compile Include="Entities\Credential.cs" />
     <Compile Include="Entities\CuratedFeed.cs" />
     <Compile Include="Entities\CuratedPackage.cs" />
