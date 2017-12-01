@@ -29,7 +29,7 @@ namespace NuGetGallery.Infrastructure.Authentication
             return validator(providedPassword, credential);
         }
 
-        public IList<Credential> ValidateApiKeyCredential(IQueryable<Credential> allCredentials, string providedApiKey)
+        public IList<Credential> GetValidCredentialsForApiKey(IQueryable<Credential> allCredentials, string providedApiKey)
         {
             List<Credential> results;
 

@@ -64,10 +64,5 @@ namespace NuGetGallery
             Subject = subject;
             AllowedAction = allowedAction;
         }
-
-        public Scope Clone()
-        {
-            return new Scope(Owner != null ? Owner.Key : OwnerKey, Subject, AllowedAction);
-        }
     }
 }

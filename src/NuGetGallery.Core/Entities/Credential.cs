@@ -107,25 +107,5 @@ namespace NuGetGallery
 
             return true;
         }
-
-        /// <summary>
-        /// Creates a copy without referenced <see cref="IEntity"/> to avoid risk of circular clones.
-        /// </summary>
-        public Credential Clone()
-        {
-            return new Credential()
-            {
-                Created = Created,
-                Description = Description,
-                ExpirationTicks = ExpirationTicks,
-                Expires = Expires,
-                Identity = Identity,
-                Key = Key,
-                LastUsed = LastUsed,
-                Type = Type,
-                Value = Value,
-                UserKey = UserKey
-            };
-        }
     }
 }

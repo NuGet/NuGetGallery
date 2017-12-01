@@ -19,6 +19,6 @@ namespace NuGetGallery.Infrastructure.Authentication
         /// <param name="allCredentials">An <see cref="IQueryable"/> with of all credentials.</param>
         /// <param name="providedApiKey">User provided ApiKey</param>
         /// <returns>List of matching ApiKeys. If only a single result is expected it's up to the caller to validate count.</returns>
-        IList<Credential> ValidateApiKeyCredential(IQueryable<Credential> allCredentials, string providedApiKey);
+        IList<Credential> GetValidCredentialsForApiKey(IQueryable<Credential> allCredentials, string providedApiKey);
     }
 }

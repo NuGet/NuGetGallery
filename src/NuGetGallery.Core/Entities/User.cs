@@ -140,28 +140,5 @@ namespace NuGetGallery
         {
             return Roles.Any(r => String.Equals(r.Name, roleName, StringComparison.OrdinalIgnoreCase));
         }
-
-        /// <summary>
-        /// Creates a copy without referenced <see cref="IEntity"/> to avoid risk of circular clones.
-        /// </summary>
-        public User Clone()
-        {
-            return new User()
-            {
-                CreatedUtc = CreatedUtc,
-                EmailAddress = EmailAddress,
-                EmailAllowed = EmailAllowed,
-                EmailConfirmationToken = EmailConfirmationToken,
-                FailedLoginCount = FailedLoginCount,
-                IsDeleted = IsDeleted,
-                Key = Key,
-                LastFailedLoginUtc = LastFailedLoginUtc,
-                NotifyPackagePushed = NotifyPackagePushed,
-                PasswordResetToken = PasswordResetToken,
-                PasswordResetTokenExpirationDate = PasswordResetTokenExpirationDate,
-                UnconfirmedEmailAddress = UnconfirmedEmailAddress,
-                Username = Username
-            };
-        }
     }
 }

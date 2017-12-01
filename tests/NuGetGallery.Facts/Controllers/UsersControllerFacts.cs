@@ -383,7 +383,9 @@ namespace NuGetGallery
             [InlineData(true)]
             public async Task ResetsPasswordForValidToken(bool forgot)
             {
-                var cred = new Credential("foo", "bar") { User = new User("foobar") };
+                var cred = new CredentialBuilder().CreatePasswordCredential("foo");
+                cred.User = new User("foobar");
+
                 GetMock<AuthenticationService>()
                     .Setup(u => u.ResetPasswordWithToken("user", "token", "newpwd"))
                     .CompletesWith(cred);
@@ -404,7 +406,9 @@ namespace NuGetGallery
             [Fact]
             public async Task SendsPasswordAddedMessageWhenForgotFalse()
             {
-                var cred = new Credential("foo", "bar") { User = new User("foobar") };
+                var cred = new CredentialBuilder().CreatePasswordCredential("foo");
+                cred.User = new User("foobar");
+
                 GetMock<AuthenticationService>()
                     .Setup(u => u.ResetPasswordWithToken("user", "token", "newpwd"))
                     .CompletesWith(cred);
@@ -418,7 +422,8 @@ namespace NuGetGallery
                 await controller.ResetPassword("user", "token", model, forgot: false);
 
                 GetMock<IMessageService>()
-                    .Verify(m => m.SendCredentialAddedNotice(cred.User, cred));
+                    .Verify(m => m.SendCredentialAddedNotice(cred.User, 
+                                                             It.Is<CredentialViewModel>(c => c.Type == cred.Type)));
             }
 
             [Theory]
@@ -686,9 +691,8 @@ namespace NuGetGallery
                     .Returns(orgUser);
 
                 GetMock<AuthenticationService>()
-                .Setup(u => u.AddCredential(
-                    It.IsAny<User>(),
-                    It.IsAny<Credential>()))
+                    .Setup(u => u.AddCredential(It.IsAny<User>(),
+                                                It.IsAny<Credential>()))
                 .Callback<User, Credential>((u, c) =>
                 {
                     u.Credentials.Add(c);
@@ -1009,7 +1013,7 @@ namespace NuGetGallery
                     expirationInDays: 90);
 
                 GetMock<IMessageService>()
-                    .Verify(m => m.SendCredentialAddedNotice(user, It.IsAny<Credential>()));
+                    .Verify(m => m.SendCredentialAddedNotice(user, It.IsAny<CredentialViewModel>()));
             }
         }
 
@@ -1327,7 +1331,10 @@ namespace NuGetGallery
                     .Completes()
                     .Verifiable();
                 GetMock<IMessageService>()
-                    .Setup(m => m.SendCredentialRemovedNotice(user, cred))
+                    .Setup(m => 
+                                m.SendCredentialRemovedNotice(
+                                    user,
+                                    It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.ExternalPrefix + "MicrosoftAccount")))
                     .Verifiable();
 
                 var controller = GetController<UsersController>();
@@ -1492,7 +1499,9 @@ namespace NuGetGallery
                     .Completes()
                     .Verifiable();
                 GetMock<IMessageService>()
-                    .Setup(m => m.SendCredentialRemovedNotice(user, cred))
+                    .Setup(m => m.SendCredentialRemovedNotice(
+                                    user,
+                                    It.Is<CredentialViewModel>(c => c.Type == cred.Type)))
                     .Verifiable();
 
                 var controller = GetController<UsersController>();
@@ -1595,7 +1604,10 @@ namespace NuGetGallery
                     .Completes()
                     .Verifiable();
                 GetMock<IMessageService>()
-                    .Setup(m => m.SendCredentialRemovedNotice(user, cred))
+                    .Setup(m => 
+                                m.SendCredentialRemovedNotice(
+                                    user,
+                                    It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.ExternalPrefix + "MicrosoftAccount")))
                     .Verifiable();
 
                 var controller = GetController<UsersController>();

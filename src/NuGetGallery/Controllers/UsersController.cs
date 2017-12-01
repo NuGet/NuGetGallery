@@ -402,7 +402,7 @@ namespace NuGetGallery
             if (credential != null && !forgot)
             {
                 // Setting a password, so notify the user
-                _messageService.SendCredentialAddedNotice(credential.User, credential);
+                _messageService.SendCredentialAddedNotice(credential.User, _authService.DescribeCredential(credential));
             }
 
             return RedirectToAction(
@@ -665,7 +665,7 @@ namespace NuGetGallery
                 return Json(Strings.Unsupported);
             }
            
-            var newCredential = await GenerateApiKeyInternal(
+            var newCredentialViewModel = await GenerateApiKeyInternal(
                 cred.Description,
                 BuildScopes(cred.Scopes),
                 cred.ExpirationTicks.HasValue
@@ -673,10 +673,7 @@ namespace NuGetGallery
 
             await _authService.RemoveCredential(user, cred);
 
-            var credentialViewModel = _authService.DescribeCredential(newCredential);
-            credentialViewModel.Value = newCredential.Value;
-
-            return Json(new ApiKeyViewModel(credentialViewModel));
+            return Json(new ApiKeyViewModel(newCredentialViewModel));
         }
 
         private static bool CredentialKeyMatches(int? credentialKey, Credential c)
@@ -734,14 +731,11 @@ namespace NuGetGallery
                 }
             }
 
-            var newCredential = await GenerateApiKeyInternal(description, resolvedScopes, expiration);
+            var newCredentialViewModel = await GenerateApiKeyInternal(description, resolvedScopes, expiration);
 
-            var credentialViewModel = _authService.DescribeCredential(newCredential);
-            credentialViewModel.Value = newCredential.Value;
+            _messageService.SendCredentialAddedNotice(GetCurrentUser(), newCredentialViewModel);
 
-            _messageService.SendCredentialAddedNotice(GetCurrentUser(), newCredential);
-
-            return Json(new ApiKeyViewModel(credentialViewModel));
+            return Json(new ApiKeyViewModel(newCredentialViewModel));
         }
 
         [Authorize]
@@ -777,7 +771,7 @@ namespace NuGetGallery
             return Json(new ApiKeyViewModel(credentialViewModel));
         }
 
-        private async Task<Credential> GenerateApiKeyInternal(string description, ICollection<Scope> scopes, TimeSpan? expiration)
+        private async Task<CredentialViewModel> GenerateApiKeyInternal(string description, ICollection<Scope> scopes, TimeSpan? expiration)
         {
             var user = GetCurrentUser();
 
@@ -788,19 +782,10 @@ namespace NuGetGallery
 
             await _authService.AddCredential(user, newCredential);
 
-            // Replace the encrypted value with the plaintext value for presenting to the user
-            var viewableCredential = CloneCredential(newCredential);
-            viewableCredential.Value = plaintextApiKey;
+            var credentialViewModel = _authService.DescribeCredential(newCredential);
+            credentialViewModel.Value = plaintextApiKey;
 
-            return viewableCredential;
-        }
-
-        private static Credential CloneCredential(Credential newCredential)
-        {
-            var viewableCredential = newCredential.Clone();
-            viewableCredential.Scopes = newCredential.Scopes.Select(s => s.Clone()).ToList();
-            viewableCredential.User = newCredential.User.Clone();
-            return viewableCredential;
+            return credentialViewModel;
         }
 
         // todo: integrate verification logic into PermissionsService.
@@ -857,7 +842,7 @@ namespace NuGetGallery
 
         private static IList<Scope> BuildScopes(IEnumerable<Scope> scopes)
         {
-            return scopes.Select(scope => scope.Clone()).ToList();
+            return scopes.Select(scope => new Scope(scope.Owner, scope.Subject, scope.AllowedAction)).ToList();
         }
 
         private async Task<JsonResult> RemoveApiKeyCredential(User user, Credential cred)
@@ -871,7 +856,7 @@ namespace NuGetGallery
             await _authService.RemoveCredential(user, cred);
 
             // Notify the user of the change
-            _messageService.SendCredentialRemovedNotice(user, cred);
+            _messageService.SendCredentialRemovedNotice(user, _authService.DescribeCredential(cred));
 
             return Json(Strings.CredentialRemoved);
         }
@@ -895,7 +880,7 @@ namespace NuGetGallery
                 await _authService.RemoveCredential(user, cred);
 
                 // Notify the user of the change
-                _messageService.SendCredentialRemovedNotice(user, cred);
+                _messageService.SendCredentialRemovedNotice(user, _authService.DescribeCredential(cred));
 
                 TempData["Message"] = message;
             }

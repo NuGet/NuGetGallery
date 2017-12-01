@@ -451,8 +451,7 @@ namespace NuGetGallery.Authentication
                 var entities = Get<IEntitiesContext>();
                 var cred1 = _fakes.User.Credentials.Single(c => string.Equals(c.Type, apiKeyType, StringComparison.OrdinalIgnoreCase));
                 cred1.Key = 42;
-                var cred2 = cred1.Clone();
-                cred2.Key = 43;
+                var cred2 = new Credential { Key = 43, Type = cred1.Type, Value = cred1.Value };
 
                 var creds = entities.Set<Credential>();
                 creds.Add(cred1);
