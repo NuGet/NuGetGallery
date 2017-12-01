@@ -23,6 +23,7 @@ using NuGet.Services.KeyVault;
 using NuGet.Services.ServiceBus;
 using NuGet.Services.Validation;
 using NuGet.Services.Validation.PackageSigning;
+using NuGetGallery;
 
 namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
 {
@@ -38,6 +39,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
         /// </summary>
         private const string ConfigurationArgument = "Configuration";
 
+        private const string GalleryDbConfigurationSectionName = "GalleryDb";
         private const string ValidationDbConfigurationSectionName = "ValidationDb";
         private const string ServiceBusConfigurationSectionName = "ServiceBus";
         private const string PackageDownloadTimeoutName = "PackageDownloadTimeout";
@@ -133,6 +135,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
 
         private void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
+            services.Configure<GalleryDbConfiguration>(configurationRoot.GetSection(GalleryDbConfigurationSectionName));
             services.Configure<ValidationDbConfiguration>(configurationRoot.GetSection(ValidationDbConfigurationSectionName));
             services.Configure<ServiceBusConfiguration>(configurationRoot.GetSection(ServiceBusConfigurationSectionName));
 
@@ -145,6 +148,15 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
                 return new ValidationEntitiesContext(config.ConnectionString);
             });
 
+            services.AddTransient<IEntityRepository<Certificate>, EntityRepository<Certificate>>();
+
+            services.AddScoped<IEntitiesContext>(p =>
+            {
+                var config = p.GetRequiredService<IOptionsSnapshot<GalleryDbConfiguration>>().Value;
+
+                return new EntitiesContext(config.ConnectionString, readOnly: true);
+            });
+
             services.AddTransient<ISubscriptionClient>(p =>
             {
                 var config = p.GetRequiredService<IOptionsSnapshot<ServiceBusConfiguration>>().Value;
@@ -155,6 +167,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
             services.AddTransient<IBrokeredMessageSerializer<SignatureValidationMessage>, SignatureValidationMessageSerializer>();
             services.AddTransient<IMessageHandler<SignatureValidationMessage>, SignatureValidationMessageHandler>();
             services.AddTransient<IPackageSigningStateService, PackageSigningStateService>();
+            services.AddTransient<ISignatureValidator, SignatureValidator>();
 
             services.AddSingleton(p =>
             {

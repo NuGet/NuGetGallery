@@ -1,4 +1,7 @@
 ﻿{
+  "GalleryDb": {
+    "ConnectionString": "Data Source=tcp:#{Jobs.validation.GalleryDatabaseAddress};Initial Catalog=NuGetGallery;Integrated Security=False;User ID=$$Prod-GalleryDBReadonly-UserName$$;Password=$$Prod-GalleryDBReadonly-Password$$;Connect Timeout=30;Encrypt=True"
+  },
   "ValidationDb": {
     "ConnectionString": "Data Source=tcp:#{Jobs.validation.DatabaseAddress};Initial Catalog=nuget-prod-validation;Integrated Security=False;User ID=$$Prod-ValidationDBWriter-UserName$$;Password=$$Prod-ValidationDBWriter-Password$$;Connect Timeout=30;Encrypt=True"
   },

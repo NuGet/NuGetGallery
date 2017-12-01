@@ -109,8 +109,8 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
 
             [Theory]
             [InlineData(TestResources.UnsignedPackage, "TestUnsigned", "1.0.0")]
-            [InlineData(TestResources.SignedPackage1, "TestSigned.leaf-1", "1.0.0")]
-            [InlineData(TestResources.SignedPackage2, "TestSigned.leaf-2", "2.0.0")]
+            [InlineData(TestResources.SignedPackageLeaf1, "TestSigned.leaf-1", "1.0.0")]
+            [InlineData(TestResources.SignedPackageLeaf2, "TestSigned.leaf-2", "2.0.0")]
             public async Task LoadsTheDownloadPackage(string resourceName, string id, string version)
             {
                 // Arrange

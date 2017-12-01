@@ -118,6 +118,9 @@
     <PackageReference Include="NuGet.Services.Validation">
       <Version>2.5.0</Version>
     </PackageReference>
+    <PackageReference Include="NuGetGallery.Core">
+      <Version>4.4.4-dev-18499</Version>
+    </PackageReference>
     <PackageReference Include="System.Net.Http">
       <Version>4.3.3</Version>
     </PackageReference>

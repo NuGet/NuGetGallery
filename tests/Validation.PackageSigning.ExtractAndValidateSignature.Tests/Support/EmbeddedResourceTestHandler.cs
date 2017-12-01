@@ -32,7 +32,7 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                 return new HttpResponseMessage(HttpStatusCode.NotFound);
             }
 
-            var resourceStream = GetType().Assembly.GetManifestResourceStream(resourceName);
+            var resourceStream = TestResources.GetResourceStream(resourceName);
             if (resourceStream == null)
             {
                 return new HttpResponseMessage(HttpStatusCode.NotFound);
