@@ -198,7 +198,7 @@ namespace NuGetGallery
 
                 var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(user);
-                controller.MockMessageService.Setup(p => p.SendPackageAddedNotice(package, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                controller.MockMessageService.Setup(p => p.SendPackageUploadedNotice(package, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                     .Verifiable();
                 controller.MockPackageUploadService
                     .Setup(p => p.GeneratePackageAsync(
