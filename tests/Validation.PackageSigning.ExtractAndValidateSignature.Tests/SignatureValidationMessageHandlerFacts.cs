@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,6 +11,8 @@ using Moq;
 using NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
+using NuGet.Packaging.Core;
+using NuGet.Packaging.Signing;
 using NuGet.Services.Validation;
 using Xunit;
 
@@ -19,40 +20,27 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
 {
     public class SignatureValidationMessageHandlerFacts
     {
-        private const string ResourceNamespace = "Validation.PackageSigning.ExtractAndValidateSignature.Tests.TestData";
-        private const string TestBaseUrl = "http://example/validation/";
-        
+        private static readonly Uri TestPackageUri = new Uri("http://example/validation/NuGet.Versioning.4.3.0.nupkg");
+
         public class HandleAsync
         {
-            private readonly SignatureValidationMessage _unsignedPackage;
-            private readonly SignatureValidationMessage _signedPackage1;
-            private readonly SignatureValidationMessage _signedPackage2;
+            private readonly SignatureValidationMessage _message;
             private readonly ValidatorStatus _validation;
             private readonly Dictionary<Uri, string> _urlToResourceName;
             private readonly EmbeddedResourceTestHandler _handler;
             private readonly HttpClient _httpClient;
             private readonly Mock<IValidatorStateService> _validatorStateService;
-            private readonly Mock<IPackageSigningStateService> _packageSigningStateService;
+            private readonly Mock<ISignatureValidator> _signatureValidator;
             private readonly Mock<ILogger<SignatureValidationMessageHandler>> _logger;
             private readonly SignatureValidationMessageHandler _target;
 
             public HandleAsync()
             {
-                _unsignedPackage = new SignatureValidationMessage(
-                    "TestUnsigned",
-                    "1.0.0",
-                    new Uri(TestBaseUrl + "TestUnsigned.1.0.0.nupkg"),
+                _message = new SignatureValidationMessage(
+                    "NuGet.Versioning",
+                    "4.3.0",
+                    TestPackageUri,
                     new Guid("18e83aca-953a-4484-a698-a8fb8619e0bd"));
-                _signedPackage1 = new SignatureValidationMessage(
-                    "TestSigned.leaf-1",
-                    "1.0.0",
-                    new Uri(TestBaseUrl + "TestSigned.leaf-1.1.0.0.nupkg"),
-                    new Guid("ee3c0cbe-44fe-48b4-9153-663cce2ee5ad"));
-                _signedPackage2 = new SignatureValidationMessage(
-                    "TestSigned.leaf-2",
-                    "2.0.0",
-                    new Uri(TestBaseUrl + "TestSigned.leaf-2.2.0.0.nupkg"),
-                    new Guid("0c7054dd-9205-4c3a-be9f-8d33eade1e5c"));
 
                 _validation = new ValidatorStatus
                 {
@@ -61,141 +49,146 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                 };
                 _urlToResourceName = new Dictionary<Uri, string>
                 {
-                    { _unsignedPackage.NupkgUri, ResourceNamespace + ".TestUnsigned.1.0.0.nupkg" },
-                    { _signedPackage1.NupkgUri, ResourceNamespace + ".TestSigned.leaf-1.1.0.0.nupkg" },
-                    { _signedPackage2.NupkgUri, ResourceNamespace + ".TestSigned.leaf-2.1.0.0.nupkg" },
+                    { _message.NupkgUri, TestResources.UnsignedPackage },
                 };
 
                 _handler = new EmbeddedResourceTestHandler(_urlToResourceName);
                 _httpClient = new HttpClient(_handler);
                 _validatorStateService = new Mock<IValidatorStateService>();
-                _packageSigningStateService = new Mock<IPackageSigningStateService>();
+                _signatureValidator = new Mock<ISignatureValidator>();
                 _logger = new Mock<ILogger<SignatureValidationMessageHandler>>();
 
                 _validatorStateService
                     .Setup(x => x.GetStatusAsync(It.IsAny<Guid>()))
                     .ReturnsAsync(() => _validation);
 
+                _signatureValidator
+                    .Setup(x => x.ValidateAsync(
+                        It.IsAny<ISignedPackageReader>(),
+                        It.IsAny<ValidatorStatus>(),
+                        It.IsAny<SignatureValidationMessage>(),
+                        It.IsAny<CancellationToken>()))
+                    .Returns(Task.CompletedTask)
+                    .Callback(() => _validation.State = ValidationStatus.Succeeded);
+
                 _target = new SignatureValidationMessageHandler(
                     _httpClient,
                     _validatorStateService.Object,
-                    _packageSigningStateService.Object,
+                    _signatureValidator.Object,
                     _logger.Object);
             }
 
             [Theory]
-            [InlineData(ValidationStatus.NotStarted)]
-            [InlineData(ValidationStatus.Failed)]
-            [InlineData(ValidationStatus.Succeeded)]
-            public async Task DoesNotReprocessCompletedValidations(ValidationStatus state)
+            [InlineData(ValidationStatus.NotStarted, false)]
+            [InlineData(ValidationStatus.Failed, true)]
+            [InlineData(ValidationStatus.Succeeded, true)]
+            public async Task HandlesUnexpectedPackageStatuses(ValidationStatus state, bool expectedSuccess)
             {
                 // Arrange
                 _validation.State = state;
 
                 // Act
-                var success = await _target.HandleAsync(_signedPackage1);
+                var actualSuccess = await _target.HandleAsync(_message);
 
                 // Assert
-                Assert.True(success, "The handler should have succeeded processing the message.");
+                Assert.Equal(expectedSuccess, actualSuccess);
                 _validatorStateService.Verify(
                     x => x.GetStatusAsync(It.IsAny<Guid>()),
                     Times.Once);
+                _signatureValidator.Verify(
+                    x => x.ValidateAsync(
+                        It.IsAny<ISignedPackageReader>(),
+                        It.IsAny<ValidatorStatus>(),
+                        It.IsAny<SignatureValidationMessage>(),
+                        It.IsAny<CancellationToken>()),
+                    Times.Never);
                 _validatorStateService.Verify(
                     x => x.SaveStatusAsync(It.IsAny<ValidatorStatus>()),
                     Times.Never);
-                _packageSigningStateService.Verify(
-                    x => x.SetPackageSigningState(
-                        It.IsAny<int>(),
-                        It.IsAny<string>(),
-                        It.IsAny<string>(),
-                        It.IsAny<PackageSigningStatus>()),
-                    Times.Never);
             }
 
-            [Fact]
-            public async Task RejectsSignedPackages()
+            [Theory]
+            [InlineData(TestResources.UnsignedPackage, "TestUnsigned", "1.0.0")]
+            [InlineData(TestResources.SignedPackage1, "TestSigned.leaf-1", "1.0.0")]
+            [InlineData(TestResources.SignedPackage2, "TestSigned.leaf-2", "2.0.0")]
+            public async Task LoadsTheDownloadPackage(string resourceName, string id, string version)
             {
-                // Arrange & Act
-                var success = await _target.HandleAsync(_signedPackage1);
+                // Arrange
+                string validatedId = null;
+                string validatedVersion = null;
+                _urlToResourceName[_message.NupkgUri] = resourceName;
+                _signatureValidator
+                    .Setup(x => x.ValidateAsync(
+                        It.IsAny<ISignedPackageReader>(),
+                        It.IsAny<ValidatorStatus>(),
+                        It.IsAny<SignatureValidationMessage>(),
+                        It.IsAny<CancellationToken>()))
+                    .Returns(Task.CompletedTask)
+                    .Callback<ISignedPackageReader, ValidatorStatus, SignatureValidationMessage, CancellationToken>((v, _, __, ___) =>
+                    {
+                        _validation.State = ValidationStatus.Succeeded;
+                        var identity = ((IPackageCoreReader)v).GetIdentity();
+                        validatedId = identity.Id;
+                        validatedVersion = identity.Version.ToNormalizedString();
+                    });
+
+                // Act
+                var success = await _target.HandleAsync(_message);
+
+                // Assert
+                Assert.True(success, "The handler should have succeeded processing the message.");
+                Assert.Equal(id, validatedId);
+                Assert.Equal(version, validatedVersion);
+            }
+
+            [Theory]
+            [InlineData(ValidationStatus.Failed)]
+            [InlineData(ValidationStatus.Succeeded)]
+            public async Task SavesTerminalState(ValidationStatus state)
+            {
+                // Arrange
+                _signatureValidator
+                    .Setup(x => x.ValidateAsync(
+                        It.IsAny<ISignedPackageReader>(),
+                        It.IsAny<ValidatorStatus>(),
+                        It.IsAny<SignatureValidationMessage>(),
+                        It.IsAny<CancellationToken>()))
+                    .Returns(Task.CompletedTask)
+                    .Callback(() => _validation.State = state);
+
+                // Act
+                var success = await _target.HandleAsync(_message);
 
                 // Assert
                 Assert.True(success, "The handler should have succeeded processing the message.");
                 _validatorStateService.Verify(
                     x => x.SaveStatusAsync(It.IsAny<ValidatorStatus>()),
                     Times.Once);
-                Assert.Equal(ValidationStatus.Failed, _validation.State);
-                _packageSigningStateService.Verify(
-                    x => x.SetPackageSigningState(
-                        It.IsAny<int>(),
-                        It.IsAny<string>(),
-                        It.IsAny<string>(),
-                        It.IsAny<PackageSigningStatus>()),
-                    Times.Never);
             }
 
-            [Fact]
-            public async Task SucceedsWithUnsignedPackages()
+            [Theory]
+            [InlineData(ValidationStatus.NotStarted)]
+            [InlineData(ValidationStatus.Incomplete)]
+            public async Task RejectsNonTerminalState(ValidationStatus state)
             {
-                // Arrange & Act
-                var success = await _target.HandleAsync(_unsignedPackage);
+                // Arrange
+                _signatureValidator
+                    .Setup(x => x.ValidateAsync(
+                        It.IsAny<ISignedPackageReader>(),
+                        It.IsAny<ValidatorStatus>(),
+                        It.IsAny<SignatureValidationMessage>(),
+                        It.IsAny<CancellationToken>()))
+                    .Returns(Task.CompletedTask)
+                    .Callback(() => _validation.State = state);
+
+                // Act
+                var success = await _target.HandleAsync(_message);
 
                 // Assert
-                Assert.True(success, "The handler should have succeeded processing the message.");
+                Assert.False(success, "The handler should have failed processing the message.");
                 _validatorStateService.Verify(
                     x => x.SaveStatusAsync(It.IsAny<ValidatorStatus>()),
-                    Times.Once);
-                Assert.Equal(ValidationStatus.Succeeded, _validation.State);
-                _packageSigningStateService.Verify(
-                    x => x.SetPackageSigningState(
-                        It.IsAny<int>(),
-                        It.IsAny<string>(),
-                        It.IsAny<string>(),
-                        It.IsAny<PackageSigningStatus>()),
-                    Times.Once);
-                _packageSigningStateService.Verify(
-                    x => x.SetPackageSigningState(
-                        _validation.PackageKey,
-                        _unsignedPackage.PackageId,
-                        _unsignedPackage.PackageVersion,
-                        PackageSigningStatus.Unsigned),
-                    Times.Once);
-            }
-        }
-
-        private class EmbeddedResourceTestHandler : HttpMessageHandler
-        {
-            private readonly IReadOnlyDictionary<Uri, string> _urlToResourceName;
-
-            public EmbeddedResourceTestHandler(IReadOnlyDictionary<Uri, string> urlToResourceName)
-            {
-                _urlToResourceName = urlToResourceName;
-            }
-
-            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-            {
-                return Task.FromResult(Send(request));
-            }
-
-            private HttpResponseMessage Send(HttpRequestMessage request)
-            {
-                if (request.Method != HttpMethod.Get
-                    || !_urlToResourceName.TryGetValue(request.RequestUri, out var resourceName))
-                {
-                    return new HttpResponseMessage(HttpStatusCode.NotFound);
-                }
-
-                var resourceStream = GetType().Assembly.GetManifestResourceStream(resourceName);
-                if (resourceStream == null)
-                {
-                    return new HttpResponseMessage(HttpStatusCode.NotFound);
-                }
-
-                return new HttpResponseMessage
-                {
-                    StatusCode = HttpStatusCode.OK,
-                    RequestMessage = request,
-                    Content = new StreamContent(resourceStream),
-                };
+                    Times.Never);
             }
         }
     }

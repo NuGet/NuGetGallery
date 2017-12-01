@@ -23,7 +23,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.Storage
         /// Get the persisted <see cref="ValidatorStatus"/> for the given validation ID.
         /// </summary>
         /// <param name="validationId">The validation ID of the validator status to be fetched.</param>
-        /// <returns>The persisted status of the validation request, or, a new <see cref="ValidatorStatus"/> if no status has been persisted.</returns>
+        /// <returns>The persisted status of the validation request, or null if no status has been persisted.</returns>
         Task<ValidatorStatus> GetStatusAsync(Guid validationId);
 
         /// <summary>

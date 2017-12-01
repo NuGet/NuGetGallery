@@ -40,6 +40,8 @@
     <Reference Include="System.Security" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ISignatureValidator.cs" />
+    <Compile Include="SignatureValidator.cs" />
     <Compile Include="Storage\PackageSigningStateService.cs" />
     <Compile Include="Storage\IPackageSigningStateService.cs" />
     <Compile Include="Job.cs" />

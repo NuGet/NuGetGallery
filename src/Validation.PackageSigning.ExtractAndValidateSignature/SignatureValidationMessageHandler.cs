@@ -31,7 +31,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
 
         private readonly HttpClient _httpClient;
         private readonly IValidatorStateService _validatorStateService;
-        private readonly IPackageSigningStateService _packageSigningStateService;
+        private readonly ISignatureValidator _signatureValidator;
         private readonly ILogger<SignatureValidationMessageHandler> _logger;
 
         /// <summary>
@@ -44,12 +44,12 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
         public SignatureValidationMessageHandler(
             HttpClient httpClient,
             IValidatorStateService validatorStateService,
-            IPackageSigningStateService packageSigningStateService,
+            ISignatureValidator signatureValidator,
             ILogger<SignatureValidationMessageHandler> logger)
         {
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _validatorStateService = validatorStateService ?? throw new ArgumentNullException(nameof(validatorStateService));
-            _packageSigningStateService = packageSigningStateService ?? throw new ArgumentNullException(nameof(packageSigningStateService));
+            _signatureValidator = signatureValidator ?? throw new ArgumentNullException(nameof(signatureValidator));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -62,6 +62,11 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
         /// If <c>false</c>, the validation should be retried later.
         /// </returns>
         public async Task<bool> HandleAsync(SignatureValidationMessage message)
+        {
+            return await HandleAsync(message, CancellationToken.None);
+        }
+
+        private async Task<bool> HandleAsync(SignatureValidationMessage message, CancellationToken cancellationToken)
         {
             // Find the signature validation entity that matches this message.
             var validation = await _validatorStateService.GetStatusAsync(message.ValidationId);
@@ -78,10 +83,22 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
                 // Message may be retried.
                 return false;
             }
+            else if (validation.State == ValidationStatus.NotStarted)
+            {
+                _logger.LogWarning(
+                    "Unexpected signature verification status '{ValidatorState}' when 'Incomplete' was expected, requeueing (package id: {PackageId} package version: {PackageVersion} validation id: {ValidationId})",
+                    validation.State,
+                    message.PackageId,
+                    message.PackageVersion,
+                    message.ValidationId);
+
+                // Message may be retried.
+                return false;
+            }
             else if (validation.State != ValidationStatus.Incomplete)
             {
                 _logger.LogWarning(
-                    "Invalid signature verification status '{ValidatorState}' when 'Incomplete' was expected, dropping message (package id: {PackageId} package version: {PackageVersion} validation id: {ValidationId})",
+                    "Terminal signature verification status '{ValidatorState}' when 'Incomplete' was expected, dropping message (package id: {PackageId} package version: {PackageVersion} validation id: {ValidationId})",
                     validation.State,
                     message.PackageId,
                     message.PackageVersion,
@@ -92,43 +109,32 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
             }
 
             // Validate package
-            if ( ! await IsSigned(message.NupkgUri, CancellationToken.None))
-            {
-                return await HandleUnsignedPackageAsync(validation, message);
-            }
-            else
-            {
-                // Pre-wave 1: block signed packages on nuget.org
-                return await BlockSignedPackageAsync(validation, message);
-            }
-        }
-
-        private async Task<bool> IsSigned(Uri packageUri, CancellationToken cancellationToken)
-        {
-            using (var packageStream = await DownloadPackageAsync(packageUri, cancellationToken))
+            using (var packageStream = await DownloadPackageAsync(message.NupkgUri, cancellationToken))
             using (var package = new PackageArchiveReader(packageStream, leaveStreamOpen: false))
             {
-                return await package.IsSignedAsync(cancellationToken);
+                await _signatureValidator.ValidateAsync(package, validation, message, cancellationToken);
             }
+
+            // The signature validator should do all of the work to bring this validation to its completion.
+            if (validation.State != ValidationStatus.Succeeded
+                && validation.State != ValidationStatus.Failed)
+            {
+                _logger.LogError("The signature validator should have set the status 'Succeeded' or 'Failed', not " +
+                    "'{ValidatorState}' (package id: {PackageId} package version: {PackageVersion} validation id: {ValidationId})",
+                    validation.State,
+                    message.PackageId,
+                    message.PackageVersion,
+                    message.ValidationId);
+
+                return false;
+            }
+
+            // Save the resulting validation status.
+            return await SaveStatusAsync(validation, message);
         }
 
-        private async Task<bool> HandleUnsignedPackageAsync(ValidatorStatus validation, SignatureValidationMessage message)
+        private async Task<bool> SaveStatusAsync(ValidatorStatus validation, SignatureValidationMessage message)
         {
-            _logger.LogInformation(
-                        "Package {PackageId} {PackageVersion} is unsigned, no additional validations necessary for {ValidationId}.",
-                        message.PackageId,
-                        message.PackageVersion,
-                        message.ValidationId);
-
-            // Update the package's state.
-            await _packageSigningStateService.SetPackageSigningState(
-                validation.PackageKey,
-                message.PackageId,
-                message.PackageVersion,
-                status: PackageSigningStatus.Unsigned);
-
-            validation.State = ValidationStatus.Succeeded;
-
             try
             {
                 var saveStatus = await _validatorStateService.SaveStatusAsync(validation);
@@ -160,21 +166,6 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
 
             // Message may be retried.
             return false;
-        }
-
-        private async Task<bool> BlockSignedPackageAsync(ValidatorStatus validation, SignatureValidationMessage message)
-        {
-            _logger.LogInformation(
-                        "Signed package {PackageId} {PackageVersion} is blocked for validation {ValidationId}.",
-                        message.PackageId,
-                        message.PackageVersion,
-                        message.ValidationId);
-
-            validation.State = ValidationStatus.Failed;
-            var saveStateResult = await _validatorStateService.SaveStatusAsync(validation);
-
-            // Consume the message if successfully saved state.
-            return saveStateResult == SaveStatusResult.Success;
         }
 
         private async Task<Stream> DownloadPackageAsync(Uri packageUri, CancellationToken cancellationToken)
