@@ -862,6 +862,121 @@ namespace NuGetGallery
             }
         }
 
+        public class TheSendPackageUploadedNoticeMethod
+            : TestContainer
+        {
+            [Theory]
+            [InlineData("1.2.3")]
+            [InlineData("1.2.3-alpha")]
+            [InlineData("1.2.3-alpha.1")]
+            [InlineData("1.2.3+metadata")]
+            [InlineData("1.2.3-alpha+metadata")]
+            [InlineData("1.2.3-alpha.1+metadata")]
+            public void WillSendEmailToAllOwners(string version)
+            {
+                // Arrange
+                var nugetVersion = new NuGetVersion(version);
+                var packageRegistration = new PackageRegistration
+                {
+                    Id = "smangit",
+                    Owners = new[]
+                    {
+                        new User { EmailAddress = "yung@example.com", NotifyPackagePushed = true },
+                        new User { EmailAddress = "flynt@example.com", NotifyPackagePushed = true }
+                    }
+                };
+                var package = new Package
+                {
+                    Version = version,
+                    PackageRegistration = packageRegistration
+                };
+                packageRegistration.Packages.Add(package);
+
+                // Act
+                var messageService = TestableMessageService.Create(
+                    GetService<AuthenticationService>(),
+                    GetConfigurationService());
+                var packageUrl = $"https://localhost/packages/{packageRegistration.Id}/{nugetVersion.ToNormalizedString()}";
+                var supportUrl = $"https://localhost/packages/{packageRegistration.Id}/{nugetVersion.ToNormalizedString()}/ReportMyPackage";
+                var emailSettingsUrl = "https://localhost/account";
+                messageService.SendPackageUploadedNotice(package, packageUrl, supportUrl, emailSettingsUrl);
+
+                // Assert
+                var message = messageService.MockMailSender.Sent.Last();
+
+                Assert.Equal("yung@example.com", message.To[0].Address);
+                Assert.Equal("flynt@example.com", message.To[1].Address);
+                Assert.Equal(TestGalleryNoReplyAddress, message.From);
+                Assert.Contains($"[Joe Shmoe] Package uploaded - {packageRegistration.Id} {nugetVersion.ToNormalizedString()}", message.Subject);
+                Assert.DoesNotContain("publish", message.Subject);
+                Assert.Contains(
+                    $"The package [{packageRegistration.Id} {nugetVersion.ToFullString()}]({packageUrl}) was just uploaded to Joe Shmoe. If this was not intended, please [contact support]({supportUrl}).", message.Body);
+            }
+
+            [Fact]
+            public void WillNotSendEmailToOwnerThatOptsOut()
+            {
+                // Arrange
+                var packageRegistration = new PackageRegistration
+                {
+                    Id = "smangit",
+                    Owners = new[]
+                    {
+                        new User { EmailAddress = "yung@example.com", NotifyPackagePushed = true },
+                        new User { EmailAddress = "flynt@example.com", NotifyPackagePushed = false }
+                    }
+                };
+                var package = new Package
+                {
+                    Version = "1.2.3",
+                    PackageRegistration = packageRegistration
+                };
+                packageRegistration.Packages.Add(package);
+
+                // Act
+                var messageService = TestableMessageService.Create(
+                    GetService<AuthenticationService>(),
+                    GetConfigurationService());
+                messageService.SendPackageUploadedNotice(package, "http://dummy1", "http://dummy2", "http://dummy3");
+
+                // Assert
+                var message = messageService.MockMailSender.Sent.Last();
+
+                Assert.Equal("yung@example.com", message.To[0].Address);
+                Assert.Equal(1, message.To.Count);
+            }
+
+            [Fact]
+            public void WillNotAttemptToSendIfNoOwnersAllow()
+            {
+                // Arrange
+                var packageRegistration = new PackageRegistration
+                {
+                    Id = "smangit",
+                    Owners = new[]
+                    {
+                        new User { EmailAddress = "yung@example.com", EmailAllowed = false },
+                        new User { EmailAddress = "flynt@example.com", EmailAllowed = false }
+                    }
+                };
+                var package = new Package
+                {
+                    Version = "1.2.3",
+                    PackageRegistration = packageRegistration
+                };
+                packageRegistration.Packages.Add(package);
+
+                // Act
+                var messageService = TestableMessageService.Create(
+                    GetService<AuthenticationService>(),
+                    GetConfigurationService());
+                messageService.SendPackageUploadedNotice(package, "http://dummy1", "http://dummy2", "http://dummy3");
+
+                // Assert
+                Assert.Empty(messageService.MockMailSender.Sent);
+            }
+        }
+
         public class TheSendPackageDeletedNoticeMethod
             : TestContainer
         {
