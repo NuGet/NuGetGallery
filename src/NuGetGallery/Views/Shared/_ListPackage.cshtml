@@ -77,15 +77,9 @@
                 }
             </div>
             
-<<<<<<< HEAD
             @if (Model.CanEdit ||
                 Model.CanManageOwners ||
                 Model.CanUnlistOrRelist)
-=======
-            @if (Model.IsActionAllowed(User, PackageActions.Edit) ||
-                Model.IsActionAllowed(User, PackageActions.ManagePackageOwnership) ||
-                Model.IsActionAllowed(User, PackageActions.Unlist))
->>>>>>> allow ui org upload
             {
                 <ul class="package-list manage-package">
                     @if (Model.CanEdit)
@@ -97,11 +91,7 @@
                             </a>
                         </li>
                     }
-<<<<<<< HEAD
                     @if (Model.CanManageOwners)
-=======
-                    @if (Model.IsActionAllowed(User, PackageActions.ManagePackageOwnership))
->>>>>>> allow ui org upload
                     {
                         <li>
                             <a href="@Url.ManagePackageOwners(Model)" class="icon-link">
