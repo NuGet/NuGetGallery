@@ -144,7 +144,7 @@
     <Compile Include="Entities\PackageFacts.cs" />
     <Compile Include="Entities\UserFacts.cs" />
     <Compile Include="Entities\UserSecurityPolicyFacts.cs" />
-    <Compile Include="Extensions\UserExtensionsFacts.cs" />
+    <Compile Include="Extensions\UserExtensionsCoreFacts.cs" />
     <Compile Include="PackageStatusFacts.cs" />
     <Compile Include="Packaging\ManifestValidatorFacts.cs" />
     <Compile Include="Packaging\PackageIdValidatorTest.cs" />

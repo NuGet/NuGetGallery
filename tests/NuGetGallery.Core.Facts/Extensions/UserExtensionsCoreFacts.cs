@@ -8,7 +8,7 @@ using Xunit;
 
 namespace NuGetGallery.Extensions
 {
-    public class UserExtensionsFacts
+    public class UserExtensionsCoreFacts
     {
         public class TheToMailAddressMethod
         {
