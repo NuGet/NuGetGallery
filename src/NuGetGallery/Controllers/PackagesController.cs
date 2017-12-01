@@ -1631,7 +1631,7 @@ namespace NuGetGallery
                     new PackageAuditRecord(package, AuditedPackageAction.Create, PackageCreatedVia.Web));
 
                 // notify user
-                _messageService.SendPackageAddedNotice(package,
+                _messageService.SendPackageUploadedNotice(package,
                     Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
                     Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
                     Url.AccountSettings(relativeUrl: false));
