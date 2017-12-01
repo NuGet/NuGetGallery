@@ -31,11 +31,10 @@ namespace NuGetGallery.Extensions
                 user.Credentials.Add(new Credential(CredentialTypes.ApiKey.V2, "A"));
                 user.Credentials.Add(new Credential(credentialType, "B"));
 
-                var identity = new ClaimsIdentity(
-                    claims: new[] { new Claim(NuGetClaims.ApiKey, "B") }, 
-                    authenticationType: "ApiKey",
-                    nameType: ClaimsIdentity.DefaultNameClaimType,
-                    roleType: ClaimsIdentity.DefaultRoleClaimType);
+                var identity = AuthenticationService.CreateIdentity(
+                    new User("testuser"),
+                    AuthenticationTypes.ApiKey,
+                    new Claim(NuGetClaims.ApiKey, "B"));
 
                 // Act
                 var credential = user.GetCurrentApiKeyCredential(identity);
@@ -52,11 +51,9 @@ namespace NuGetGallery.Extensions
                 user.Credentials.Add(new Credential(CredentialTypes.ApiKey.V2, "A"));
                 user.Credentials.Add(new Credential(CredentialTypes.ApiKey.V2, "B"));
 
-                var identity = new ClaimsIdentity(
-                    claims: new Claim[0],
-                    authenticationType: "LocalUser",
-                    nameType: ClaimsIdentity.DefaultNameClaimType,
-                    roleType: ClaimsIdentity.DefaultRoleClaimType);
+                var identity = AuthenticationService.CreateIdentity(
+                    new User("testuser"),
+                    AuthenticationTypes.LocalUser);
 
                 // Act & Assert
                 Assert.Null(user.GetCurrentApiKeyCredential(identity));
