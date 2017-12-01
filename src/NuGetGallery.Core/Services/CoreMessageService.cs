@@ -35,7 +35,7 @@ namespace NuGetGallery.Services
     [change your email notification settings]({5}).
 </em>";
 
-            body = String.Format(
+            body = string.Format(
                 CultureInfo.CurrentCulture,
                 body,
                 CoreConfiguration.GalleryOwner.DisplayName,
@@ -45,7 +45,7 @@ namespace NuGetGallery.Services
                 packageSupportUrl,
                 emailSettingsUrl);
 
-            subject = String.Format(CultureInfo.CurrentCulture, subject, CoreConfiguration.GalleryOwner.DisplayName, package.PackageRegistration.Id, package.Version);
+            subject = string.Format(CultureInfo.CurrentCulture, subject, CoreConfiguration.GalleryOwner.DisplayName, package.PackageRegistration.Id, package.Version);
 
             using (var mailMessage = new MailMessage())
             {
@@ -93,7 +93,7 @@ namespace NuGetGallery.Services
                     mailMessage.ReplyToList.First())
                 {
                     Subject = mailMessage.Subject + " [Sender Copy]",
-                    Body = String.Format(
+                    Body = string.Format(
                             CultureInfo.CurrentCulture,
                             "You sent the following message via {0}: {1}{1}{2}",
                             CoreConfiguration.GalleryOwner.DisplayName,
