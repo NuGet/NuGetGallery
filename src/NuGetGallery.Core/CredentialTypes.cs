@@ -48,7 +48,7 @@ namespace NuGetGallery
             return type.Equals(ApiKey.VerifyV1, StringComparison.OrdinalIgnoreCase);
         }
         
-        internal static List<string> SupportedCredentialTypes = new List<string> { Password.Sha1, Password.Pbkdf2, Password.V3, ApiKey.V1, ApiKey.V2, ApiKey.V4 };
+        internal static IReadOnlyList<string> SupportedCredentialTypes = new List<string> { Password.Sha1, Password.Pbkdf2, Password.V3, ApiKey.V1, ApiKey.V2, ApiKey.V4 };
 
         /// <summary>
         /// Determines whether a credential is supported (internal or from the UI). For forward compatibility,

@@ -108,10 +108,11 @@ namespace NuGetGallery
             return true;
         }
 
+        /// <summary>
+        /// Creates a copy without referenced <see cref="IEntity"/> to avoid risk of circular clones.
+        /// </summary>
         public Credential Clone()
         {
-            // Creates a copy without referenced Entities, to avoid risk of
-            // circular clones.
             return new Credential()
             {
                 Created = Created,
