@@ -648,7 +648,7 @@ The {0} Team";
             }
         }
 
-        override protected void SendMessage(MailMessage mailMessage, bool copySender)
+        protected override void SendMessage(MailMessage mailMessage, bool copySender)
         {
             try
             {
