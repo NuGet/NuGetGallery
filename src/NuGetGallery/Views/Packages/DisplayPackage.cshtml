@@ -569,7 +569,7 @@
                         <a href="@Url.EditPackage(Model.Id, Model.Version)">Edit package</a>
                     </li>
                 }
-                @if (Model.IsActionAllowed(User, PackageActions.ManagePackageOwners))
+                @if (Model.IsActionAllowed(User, PackageActions.ManagePackageOwnership))
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--People" aria-hidden="true"></i>

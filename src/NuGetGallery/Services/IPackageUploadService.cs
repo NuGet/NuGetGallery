@@ -30,7 +30,8 @@ namespace NuGetGallery
             string id,
             PackageArchiveReader nugetPackage,
             PackageStreamMetadata packageStreamMetadata,
-            User user);
+            User owner,
+            User currentUser);
 
         /// <summary>
         /// Commit the provided package metadata and stream to the package file storage and to the database. This

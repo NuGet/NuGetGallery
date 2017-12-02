@@ -57,7 +57,7 @@
                                         <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
                                     </a>
                                 }
-                                @if (package.IsActionAllowed(User, PackageActions.ManagePackageOwners))
+                                @if (package.IsActionAllowed(User, PackageActions.ManagePackageOwnership))
                                 {
                                     <a href="@Url.ManagePackageOwners(package)" class="btn" title="Manage Owners" aria-label="Manage Owners for Package @package.Id">
                                         <i class="ms-Icon ms-Icon--People" aria-hidden="true"></i>

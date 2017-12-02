@@ -16,6 +16,28 @@ namespace NuGetGallery
             PermissionLevel.OrganizationAdmin;
 
         /// <summary>
+        /// The user can upload new package IDs on behalf of the account using the UI.
+        /// </summary>
+        public static PermissionLevel UploadNewIdOnBehalfOf =
+            PermissionLevel.Owner |
+            PermissionLevel.OrganizationAdmin;
+
+        /// <summary>
+        /// The user can upload new versions of an existing package on behalf of the account using the UI.
+        /// </summary>
+        public static PermissionLevel UploadNewVersionOnBehalfOf =
+            PermissionLevel.Owner |
+            PermissionLevel.OrganizationAdmin |
+            PermissionLevel.OrganizationCollaborator;
+
+        /// <summary>
+        /// The user can push to reserved namespaces on behalf of another owner.
+        /// </summary>
+        public static PermissionLevel PushToReservedNamespaceOnBehalfOf =
+            PermissionLevel.Owner |
+            PermissionLevel.OrganizationAdmin;
+
+        /// <summary>
         /// The user can see private information about an organization account.
         /// </summary>
         public static PermissionLevel DisplayPrivateOrganization =

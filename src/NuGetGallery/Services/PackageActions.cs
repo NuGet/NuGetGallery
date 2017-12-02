@@ -11,32 +11,29 @@ namespace NuGetGallery
         /// <summary>
         /// The user can see private information about the package.
         /// </summary>
-        public static PermissionLevel DisplayPrivatePackage = 
-            PermissionLevel.Owner | 
-            PermissionLevel.OrganizationAdmin | 
-            PermissionLevel.SiteAdmin | 
-            PermissionLevel.OrganizationCollaborator;
-
-        /// <summary>
-        /// The user can upload new versions of the package.
-        /// </summary>
-        public static PermissionLevel UploadNewVersion = 
-            PermissionLevel.Owner | 
-            PermissionLevel.OrganizationAdmin | 
-            PermissionLevel.SiteAdmin | 
-            PermissionLevel.OrganizationCollaborator;
-
-        /// <summary>
-        /// The user can edit existing versions of the package.
-        /// </summary>
-        public static PermissionLevel Edit = 
+        public static PermissionLevel DisplayPrivatePackage =
             PermissionLevel.Owner |
             PermissionLevel.OrganizationAdmin |
             PermissionLevel.SiteAdmin |
             PermissionLevel.OrganizationCollaborator;
 
         /// <summary>
-        /// The user can unlist and relist existing versions of the package.
+        /// The user can upload new versions of the package from the UI.
+        /// </summary>
+        public static PermissionLevel UploadNewVersion =
+            PermissionLevel.Owner;
+
+        /// <summary>
+        /// The user can edit existing versions of the package from the UI.
+        /// </summary>
+        public static PermissionLevel Edit =
+            PermissionLevel.Owner |
+            PermissionLevel.OrganizationAdmin |
+            PermissionLevel.SiteAdmin |
+            PermissionLevel.OrganizationCollaborator;
+
+        /// <summary>
+        /// The user can unlist and relist existing versions of the package from the UI.
         /// </summary>
         public static PermissionLevel Unlist =
             PermissionLevel.Owner |
@@ -47,7 +44,7 @@ namespace NuGetGallery
         /// <summary>
         /// The user can manage ownership of the package.
         /// </summary>
-        public static PermissionLevel ManagePackageOwners =
+        public static PermissionLevel ManagePackageOwnership =
             PermissionLevel.Owner |
             PermissionLevel.OrganizationAdmin |
             PermissionLevel.SiteAdmin;

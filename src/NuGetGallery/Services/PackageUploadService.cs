@@ -37,15 +37,17 @@ namespace NuGetGallery
             string id,
             PackageArchiveReader nugetPackage,
             PackageStreamMetadata packageStreamMetadata,
-            User user)
+            User owner,
+            User currentUser)
         {
-            var isPushAllowed = _reservedNamespaceService.IsPushAllowed(id, user, out IReadOnlyCollection<ReservedNamespace> userOwnedNamespaces);
+            var isPushAllowed = _reservedNamespaceService.IsPushAllowed(id, owner, out IReadOnlyCollection<ReservedNamespace> userOwnedNamespaces);
             var shouldMarkIdVerified = isPushAllowed && userOwnedNamespaces != null && userOwnedNamespaces.Any();
 
             var package = await _packageService.CreatePackageAsync(
                 nugetPackage,
                 packageStreamMetadata,
-                user,
+                owner,
+                currentUser,
                 isVerified: shouldMarkIdVerified);
 
             await _validationService.StartValidationAsync(package);

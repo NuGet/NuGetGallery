@@ -78,7 +78,7 @@
             </div>
             
             @if (Model.IsActionAllowed(User, PackageActions.Edit) ||
-                Model.IsActionAllowed(User, PackageActions.ManagePackageOwners) ||
+                Model.IsActionAllowed(User, PackageActions.ManagePackageOwnership) ||
                 Model.IsActionAllowed(User, PackageActions.Unlist))
             {
                 <ul class="package-list manage-package">
@@ -91,7 +91,7 @@
                             </a>
                         </li>
                     }
-                    @if (Model.IsActionAllowed(User, PackageActions.ManagePackageOwners))
+                    @if (Model.IsActionAllowed(User, PackageActions.ManagePackageOwnership))
                     {
                         <li>
                             <a href="@Url.ManagePackageOwners(Model)" class="icon-link">
