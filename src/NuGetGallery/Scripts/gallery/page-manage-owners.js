@@ -64,7 +64,12 @@
                         && namespaceOwnerCount >= 2));
         },
         
-        IsOnlyUserGrantingAccessToCurrentUser: function () {
+        IsOnlyUserGrantingAccessToCurrentUser: function (item) {
+            if (!item.grantsCurrentUserAccess) {
+                // If the user we are trying to remove is not granting the current user access, they cannot be the only user granting access to the current user.
+                return false;
+            }
+
             if (isUserAnAdmin.toLocaleLowerCase() === "True".toLocaleLowerCase()) {
                 // If user is an admin, removing any user will not remove their ability to manage package owners.
                 return false;
@@ -165,7 +170,7 @@
         },
 
         removeOwner: function (item) {
-            var isOnlyUserGrantingAccessToCurrentUser = viewModel.IsOnlyUserGrantingAccessToCurrentUser();
+            var isOnlyUserGrantingAccessToCurrentUser = viewModel.IsOnlyUserGrantingAccessToCurrentUser(item);
             var isOnlyUserGrantingAccessToCurrentUserMessage = isOnlyUserGrantingAccessToCurrentUser ? strings_RemovingOwnership : "";
 
             if (item.isCurrentUserMemberOfOrganization) {
