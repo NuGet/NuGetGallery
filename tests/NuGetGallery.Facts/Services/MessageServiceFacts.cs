@@ -208,12 +208,20 @@ namespace NuGetGallery
             public void WillCopySenderIfAsked()
             {
                 var from = new MailAddress("smangit@example.com", "flossy");
-                var package = new PackageRegistration { Id = "smangit" };
-                package.Owners = new[]
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration
                     {
-                        new User { EmailAddress = "yung@example.com", EmailAllowed = true },
-                        new User { EmailAddress = "flynt@example.com", EmailAllowed = true }
-                    };
+                        Id = "smangit",
+                        Owners = new[]
+                        {
+                            new User { EmailAddress = "yung@example.com", EmailAllowed = true },
+                            new User { EmailAddress = "flynt@example.com", EmailAllowed = true }
+                        }
+                    },
+                    Version = "1.0.0"
+                };
+
                 var messageService = TestableMessageService.Create(
                     GetService<AuthenticationService>(),
                     GetConfigurationService());
@@ -222,7 +230,7 @@ namespace NuGetGallery
 
                 var messages = messageService.MockMailSender.Sent;
                 Assert.Equal(2, messages.Count);
-                Assert.Equal(package.Owners.Count, messages[0].To.Count);
+                Assert.Equal(package.PackageRegistration.Owners.Count, messages[0].To.Count);
                 Assert.Equal(1, messages[1].To.Count);
                 Assert.Equal("yung@example.com", messages[0].To[0].Address);
                 Assert.Equal("flynt@example.com", messages[0].To[1].Address);
@@ -237,14 +245,18 @@ namespace NuGetGallery
             public void WillSendEmailToAllOwners()
             {
                 var from = new MailAddress("smangit@example.com", "flossy");
-                var package = new PackageRegistration
+                var package = new Package
                 {
-                    Id = "smangit",
-                    Owners = new[]
+                    PackageRegistration =new PackageRegistration
                     {
-                        new User { EmailAddress = "yung@example.com", EmailAllowed = true },
-                        new User { EmailAddress = "flynt@example.com", EmailAllowed = true }
-                    }
+                        Id = "smangit",
+                        Owners = new[]
+                        {
+                            new User { EmailAddress = "yung@example.com", EmailAllowed = true },
+                            new User { EmailAddress = "flynt@example.com", EmailAllowed = true }
+                        }
+                    },
+                    Version = "1.0.0"
                 };
 
                 var messageService = TestableMessageService.Create(
@@ -261,21 +273,25 @@ namespace NuGetGallery
                 Assert.Contains("[Joe Shmoe] Message for owners of the package 'smangit'", message.Subject);
                 Assert.Contains("Test message", message.Body);
                 Assert.Contains(
-                    "User flossy &lt;smangit@example.com&gt; sends the following message to the owners of Package 'smangit'.", message.Body);
+                    "User flossy &lt;smangit@example.com&gt; sends the following message to the owners of Package 'smangit' '1.0.0'.", message.Body);
             }
 
             [Fact]
             public void WillNotSendEmailToOwnerThatOptsOut()
             {
                 var from = new MailAddress("smangit@example.com", "flossy");
-                var package = new PackageRegistration
+                var package = new Package
                 {
-                    Id = "smangit",
-                    Owners = new[]
+                    PackageRegistration = new PackageRegistration
                     {
-                        new User { EmailAddress = "yung@example.com", EmailAllowed = true },
-                        new User { EmailAddress = "flynt@example.com", EmailAllowed = false }
-                    }
+                        Id = "smangit",
+                        Owners = new[]
+                        {
+                            new User { EmailAddress = "yung@example.com", EmailAllowed = true },
+                            new User { EmailAddress = "flynt@example.com", EmailAllowed = false }
+                        }
+                    },
+                    Version = "1.0.0"
                 };
 
                 var messageService = TestableMessageService.Create(
@@ -293,14 +309,18 @@ namespace NuGetGallery
             public void WillNotAttemptToSendIfNoOwnersAllow()
             {
                 var from = new MailAddress("smangit@example.com", "flossy");
-                var package = new PackageRegistration
+                var package = new Package
                 {
-                    Id = "smangit",
-                    Owners = new[]
+                    PackageRegistration = new PackageRegistration
                     {
-                        new User { EmailAddress = "yung@example.com", EmailAllowed = false },
-                        new User { EmailAddress = "flynt@example.com", EmailAllowed = false }
-                    }
+                        Id = "smangit",
+                        Owners = new[]
+                        {
+                            new User {EmailAddress = "yung@example.com", EmailAllowed = false},
+                            new User {EmailAddress = "flynt@example.com", EmailAllowed = false}
+                        }
+                    },
+                    Version = "1.0.0"
                 };
 
                 var messageService = TestableMessageService.Create(
@@ -315,12 +335,19 @@ namespace NuGetGallery
             public void WillNotCopySenderIfNoOwnersAllow()
             {
                 var from = new MailAddress("smangit@example.com", "flossy");
-                var package = new PackageRegistration { Id = "smangit" };
-                package.Owners = new[]
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration
                     {
-                        new User { EmailAddress = "yung@example.com", EmailAllowed = false },
-                        new User { EmailAddress = "flynt@example.com", EmailAllowed = false }
-                    };
+                        Id = "smangit",
+                        Owners = new[]
+                        {
+                            new User { EmailAddress = "yung@example.com", EmailAllowed = false },
+                            new User { EmailAddress = "flynt@example.com", EmailAllowed = false }
+                        }
+                    },
+                    Version = "1.0.0"
+                };
 
                 var messageService = TestableMessageService.Create(
                     GetService<AuthenticationService>(),

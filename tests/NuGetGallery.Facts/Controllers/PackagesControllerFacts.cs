@@ -1209,16 +1209,17 @@ namespace NuGetGallery
                                 new User { Username = "grinch", EmailAllowed = false },
                                 new User { Username = "helpful2", EmailAllowed = true }
                             }
-                    }
+                    },
+                    Version = "1.0.0"
                 };
 
                 var packageService = new Mock<IPackageService>();
-                packageService.Setup(p => p.FindPackageByIdAndVersion("pkgid", null, null, true)).Returns(package);
+                packageService.Setup(p => p.FindPackageByIdAndVersionStrict("pkgid", "1.0.0")).Returns(package);
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService);
 
-                var model = (controller.ContactOwners("pkgid") as ViewResult).Model as ContactOwnersViewModel;
+                var model = (controller.ContactOwners("pkgid", "1.0.0") as ViewResult).Model as ContactOwnersViewModel;
 
                 Assert.Equal(2, model.Owners.Count());
                 Assert.Empty(model.Owners.Where(u => u.Username == "grinch"));
@@ -1232,15 +1233,19 @@ namespace NuGetGallery
                 messageService.Setup(
                     s => s.SendContactOwnersMessage(
                         It.IsAny<MailAddress>(),
-                        It.IsAny<PackageRegistration>(),
+                        It.IsAny<Package>(),
                         It.IsAny<string>(),
                         It.IsAny<string>(),
                         false))
-                    .Callback<MailAddress, PackageRegistration, string, string, bool>((_, __, msg, ___, ____) => sentMessage = msg);
-                var package = new PackageRegistration { Id = "factory" };
+                    .Callback<MailAddress, Package, string, string, bool>((_, __, msg, ___, ____) => sentMessage = msg);
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = "factory" },
+                    Version = "1.0.0"
+                };
 
                 var packageService = new Mock<IPackageService>();
-                packageService.Setup(p => p.FindPackageRegistrationById("factory")).Returns(package);
+                packageService.Setup(p => p.FindPackageByIdAndVersionStrict("factory", "1.0.0")).Returns(package);
                 var userService = new Mock<IUserService>();
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -1252,7 +1257,7 @@ namespace NuGetGallery
                     Message = "I like the cut of your jib. It's <b>bold</b>.",
                 };
 
-                var result = controller.ContactOwners("factory", model) as RedirectToRouteResult;
+                var result = controller.ContactOwners("factory", "1.0.0", model) as RedirectToRouteResult;
 
                 Assert.Equal("I like the cut of your jib. It&#39;s &lt;b&gt;bold&lt;/b&gt;.", sentMessage);
             }
@@ -1264,13 +1269,17 @@ namespace NuGetGallery
                 messageService.Setup(
                     s => s.SendContactOwnersMessage(
                         It.IsAny<MailAddress>(),
-                        It.IsAny<PackageRegistration>(),
+                        It.IsAny<Package>(),
                         "I like the cut of your jib",
                         It.IsAny<string>(), false));
-                var package = new PackageRegistration { Id = "factory" };
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = "factory" },
+                    Version = "1.0.0"
+                };
 
                 var packageService = new Mock<IPackageService>();
-                packageService.Setup(p => p.FindPackageRegistrationById("factory")).Returns(package);
+                packageService.Setup(p => p.FindPackageByIdAndVersionStrict("factory", "1.0.0")).Returns(package);
                 var userService = new Mock<IUserService>();
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -1282,7 +1291,7 @@ namespace NuGetGallery
                     Message = "I like the cut of your jib",
                 };
 
-                var result = controller.ContactOwners("factory", model) as RedirectToRouteResult;
+                var result = controller.ContactOwners("factory", "1.0.0", model) as RedirectToRouteResult;
 
                 Assert.NotNull(result);
             }
