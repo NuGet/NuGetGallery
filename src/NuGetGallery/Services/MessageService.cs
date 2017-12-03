@@ -134,7 +134,7 @@ namespace NuGetGallery
         public void SendContactOwnersMessage(MailAddress fromAddress, Package package, string message, string emailSettingsUrl, bool copySender)
         {
             string subject = "[{0}] Message for owners of the package '{1}'";
-            string body = @"_User {0} &lt;{1}&gt; sends the following message to the owners of Package '{2}' '{3}'._
+            string body = @"_User {0} &lt;{1}&gt; sends the following message to the owners of Package '{2}' {3}._
 
 {4}
 
