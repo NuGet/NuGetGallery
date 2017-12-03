@@ -386,7 +386,7 @@ namespace NuGetGallery
             routes.Redirect(
                 r => r.MapRoute(
                     "PackageActions",
-                    "Package/{action}/{id}",
+                    "Package/{action}/{id}/{version}",
                     new { controller = "Packages", action = "ContactOwners" },
                     // This next bit looks bad, but it's not. It will never change because
                     // it's mapping the legacy routes to the new better routes.

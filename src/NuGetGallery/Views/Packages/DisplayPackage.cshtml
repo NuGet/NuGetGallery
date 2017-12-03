@@ -529,7 +529,7 @@
                 }
                 <li>
                     <i class="ms-Icon ms-Icon--Mail" aria-hidden="true"></i>
-                    <a href="@Url.ContactOwners(Model.Id)" title="Ask the package owners a question">Contact owners</a>
+                    <a href="@Url.ContactOwners(Model.Id, Model.Version)" title="Ask the package owners a question">Contact owners</a>
                 </li>
                 @if (Model.IsActionAllowed(User, PackageActions.ReportMyPackage))
                 {

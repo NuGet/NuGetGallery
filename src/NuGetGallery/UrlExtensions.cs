@@ -774,7 +774,7 @@ namespace NuGetGallery
             return GetActionLink(url, "Contact", "Pages", relativeUrl);
         }
 
-        public static string ContactOwners(this UrlHelper url, string id, bool relativeUrl = true)
+        public static string ContactOwners(this UrlHelper url, string id, string version, bool relativeUrl = true)
         {
             return GetActionLink(
                 url,
@@ -783,7 +783,8 @@ namespace NuGetGallery
                 relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
-                    { "id", id }
+                    { "id", id },
+                    { "version", version }
                 });
         }
 

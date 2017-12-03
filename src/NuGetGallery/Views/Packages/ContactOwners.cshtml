@@ -1,6 +1,6 @@
 ﻿@model ContactOwnersViewModel
 @{
-    ViewBag.Title = "Contact Owners";
+    ViewBag.Title = "Contact the Owners of " + Model.PackageId + " " + Model.PackageVersion;
     ViewBag.Tab = "Packages";
     ViewBag.MdPageColumns = Constants.ColumnsFormMd;
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
@@ -12,9 +12,10 @@
             @Html.Partial("_PackageHeading", new PackageHeadingModel
                    {
                        PageHeading = "Contact the Owners of",
-                       PackageDisplay = Model.PackageId.Abbreviate(50),
+                       PackageDisplay = Model.PackageId + " " + Model.PackageVersion,
                        Id = Model.PackageId,
-                       LinkIdOnly = true
+                       Version = Model.PackageVersion,
+                       LinkIdOnly = false
                    })
             @if (Model.Owners.Any())
             {
