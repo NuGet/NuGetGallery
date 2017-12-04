@@ -1,21 +1,6 @@
-﻿<form id="verify-metadata-form">
+﻿<form id="edit-readme-form">
     @Html.AntiForgeryToken()
-
-    <div id="verify-collapser-container" class="hidden">
-        <h2>
-            <a href="#" role="button" data-toggle="collapse" data-target="#verify-package-form"
-               aria-expanded="true" aria-controls="verify-package-form" id="show-verify-package-form">
-                <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
-                <span>Verify</span>
-            </a>
-        </h2>
-    </div>
-
-    <div id="verify-package-container">
-    </div>
-
-    @Html.Partial("_EditMetadata")
-
+        
     <div id="readme-collapser-container" class="hidden">
         <h2>
             <a href="#" role="button" data-toggle="collapse" data-target="#readme-package-form"
