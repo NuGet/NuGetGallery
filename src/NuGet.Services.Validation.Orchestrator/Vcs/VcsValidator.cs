@@ -77,6 +77,7 @@ namespace NuGet.Services.Validation.Vcs
                 case ValidationEvent.ValidatorException:
                 case ValidationEvent.BeforeVirusScanRequest:
                 case ValidationEvent.VirusScanRequestSent:
+                case ValidationEvent.VirusScanRequestFailed:
                     return ValidationStatus.Incomplete;
                 case ValidationEvent.PackageClean:
                     return ValidationStatus.Succeeded;

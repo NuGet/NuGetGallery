@@ -36,6 +36,7 @@ namespace NuGet.Services.Validation.Vcs
                 ValidationEvent.ValidatorException,
                 ValidationEvent.BeforeVirusScanRequest,
                 ValidationEvent.VirusScanRequestSent,
+                ValidationEvent.VirusScanRequestFailed,
             };
 
             private static readonly ISet<ValidationEvent> SucceededEvents = new HashSet<ValidationEvent>

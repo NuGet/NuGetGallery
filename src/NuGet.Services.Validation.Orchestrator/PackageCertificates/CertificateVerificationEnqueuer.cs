@@ -18,7 +18,7 @@ namespace NuGet.Services.Validation.PackageCertificates
             _topicClient = topicClient ?? throw new ArgumentNullException(nameof(topicClient));
         }
 
-        public async Task EnqueueVerificationAsync(IValidationRequest request, Certificate certificate)
+        public async Task EnqueueVerificationAsync(IValidationRequest request, EndCertificate certificate)
         {
             var message = new CertificateValidationMessage(certificate.Key, request.ValidationId);
             var brokeredMessage = _serializer.Serialize(message);

@@ -25,46 +25,7 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
             }
 
             [Fact]
-            public async Task ReturnsStatusAlreadyExistsWhenSignatureStateNotNullAndNotRevalidating()
-            {
-                // Arrange
-                const int packageKey = 1;
-                const string packageId = "packageId";
-                const string packageVersion = "1.0.0";
-                var packageSigningState = new PackageSigningState
-                {
-                    PackageId = packageId,
-                    PackageKey = packageKey,
-                    SigningStatus = PackageSigningStatus.Valid,
-                    PackageNormalizedVersion = packageVersion
-                };
-
-                var logger = _loggerFactory.CreateLogger<PackageSigningStateService>();
-                var packageSigningStatesDbSetMock = DbSetMockFactory.Create(packageSigningState);
-                var validationContextMock = new Mock<IValidationEntitiesContext>(MockBehavior.Strict);
-                validationContextMock.Setup(m => m.PackageSigningStates).Returns(packageSigningStatesDbSetMock);
-
-                // Act
-                var packageSigningStateService = new PackageSigningStateService(validationContextMock.Object, logger);
-
-                // Assert
-                var result = await packageSigningStateService.TrySetPackageSigningState(
-                    packageKey,
-                    packageId,
-                    packageVersion,
-                    isRevalidationRequest: false,
-                    status: PackageSigningStatus.Valid);
-
-                // Assert
-                Assert.Equal(SavePackageSigningStateResult.StatusAlreadyExists, result);
-                validationContextMock.Verify(
-                    m => m.SaveChangesAsync(),
-                    Times.Never,
-                    "Saving the context here is unnecessary.");
-            }
-
-            [Fact]
-            public async Task ReturnsStatusSuccessAndUpdatedExistingStateWhenSignatureStateNotNullAndRevalidating()
+            public async Task UpdatesExistingStateWhenSignatureStateNotNullAndRevalidating()
             {
                 // Arrange
                 const int packageKey = 1;
@@ -88,15 +49,13 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                 var packageSigningStateService = new PackageSigningStateService(validationContextMock.Object, logger);
 
                 // Assert
-                var result = await packageSigningStateService.TrySetPackageSigningState(
+                await packageSigningStateService.SetPackageSigningState(
                     packageKey,
                     packageId,
                     packageVersion,
-                    isRevalidationRequest: true,
                     status: newStatus);
 
                 // Assert
-                Assert.Equal(SavePackageSigningStateResult.Success, result);
                 Assert.Equal(newStatus, packageSigningState.SigningStatus);
                 validationContextMock.Verify(
                     m => m.SaveChangesAsync(),
@@ -105,7 +64,7 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
             }
 
             [Fact]
-            public async Task ReturnsStatusSuccessAndAddedNewStateWhenSignatureStateIsNull()
+            public async Task AddsNewStateWhenSignatureStateIsNull()
             {
                 // Arrange
                 const int packageKey = 1;
@@ -122,16 +81,13 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                 var packageSigningStateService = new PackageSigningStateService(validationContextMock.Object, logger);
 
                 // Assert
-                var result = await packageSigningStateService.TrySetPackageSigningState(
+                await packageSigningStateService.SetPackageSigningState(
                     packageKey,
                     packageId,
                     packageVersion,
-                    isRevalidationRequest: true,
                     status: newStatus);
 
                 // Assert
-                Assert.Equal(SavePackageSigningStateResult.Success, result);
-
                 var newState = validationContextMock.Object.PackageSigningStates.FirstOrDefault();
                 Assert.NotNull(newState);
                 Assert.Equal(packageKey, newState.PackageKey);

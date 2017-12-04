@@ -9,5 +9,7 @@ namespace NuGet.Jobs.Validation.PackageSigning
     {
         public static EventId ValidatorStateServiceFailedToAddStatus = new EventId(1000, "Failed to add validator's status");
         public static EventId ValidatorStateServiceFailedToUpdateStatus = new EventId(1001, "Failed to update validator's status");
+
+        public static EventId ValidateSignatureFailedToDownloadPackageStatus = new EventId(1100, "Failed to download package");
     }
 }

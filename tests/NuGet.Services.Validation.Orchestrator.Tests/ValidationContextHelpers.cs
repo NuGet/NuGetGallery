@@ -18,18 +18,18 @@ namespace NuGet.Services.Validation
             Mock<IDbSet<ValidatorStatus>> validatorStatusesMock = null,
             Mock<IDbSet<PackageSigningState>> packageSigningStatesMock = null,
             Mock<IDbSet<PackageSignature>> packageSignaturesMock = null,
-            Mock<IDbSet<Certificate>> certificatesMock = null,
-            Mock<IDbSet<CertificateValidation>> certificateValidationsMock = null,
+            Mock<IDbSet<EndCertificate>> endCertificatesMock = null,
+            Mock<IDbSet<EndCertificateValidation>> certificateValidationsMock = null,
             IEnumerable<ValidatorStatus> validatorStatuses = null,
             IEnumerable<PackageSigningState> packageSigningStates = null,
             IEnumerable<PackageSignature> packageSignatures = null,
-            IEnumerable<Certificate> certificates = null,
-            IEnumerable<CertificateValidation> certificateValidations = null)
+            IEnumerable<EndCertificate> endCertificates = null,
+            IEnumerable<EndCertificateValidation> certificateValidations = null)
         {
             validationContext.SetupDbSet(c => c.ValidatorStatuses, validatorStatusesMock, validatorStatuses);
             validationContext.SetupDbSet(c => c.PackageSigningStates, packageSigningStatesMock, packageSigningStates);
             validationContext.SetupDbSet(c => c.PackageSignatures, packageSignaturesMock, packageSignatures);
-            validationContext.SetupDbSet(c => c.Certificates, certificatesMock, certificates);
+            validationContext.SetupDbSet(c => c.EndCertificates, endCertificatesMock, endCertificates);
             validationContext.SetupDbSet(c => c.CertificateValidations, certificateValidationsMock, certificateValidations);
         }
 

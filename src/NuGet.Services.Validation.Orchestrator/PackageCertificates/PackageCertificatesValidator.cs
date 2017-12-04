@@ -224,7 +224,7 @@ namespace NuGet.Services.Validation.PackageCertificates
                         .PackageSignatures
                         .Where(s => s.PackageKey == request.PackageKey)
                         .Include(s => s.TrustedTimestamps)
-                        .Include(s => s.Certificate)
+                        .Include(s => s.EndCertificate)
                         .ToListAsync();
         }
 
@@ -249,13 +249,13 @@ namespace NuGet.Services.Validation.PackageCertificates
         /// <returns>True if the signature should be "Valid", false if it should be "InGracePeriod".</returns>
         private bool IsValidSignatureOutOfGracePeriod(PackageSignature signature)
         {
-            var certificate = signature.Certificate;
+            var certificate = signature.EndCertificate;
 
             // A signature can be valid even if its certificate is revoked as long as the certificate
             // revocation date begins after the signature was created. The validation pipeline does
             // not revalidate revoked certificates, thus, a valid package signature with a revoked
             // certificate should be "Valid" regardless of the certificate's status update time.
-            if (certificate.Status == CertificateStatus.Revoked)
+            if (certificate.Status == EndCertificateStatus.Revoked)
             {
                 return true;
             }
@@ -284,14 +284,14 @@ namespace NuGet.Services.Validation.PackageCertificates
                     {
                         // Revalidation requests do NOT revalidate certificates that are known to be revoked. Thus,
                         // certificates that were revoked before the package was signed ALWAYS invalidate the signature.
-                        if (s.Certificate.Status == CertificateStatus.Revoked)
+                        if (s.EndCertificate.Status == EndCertificateStatus.Revoked)
                         {
-                            return s.TrustedTimestamps.Any(t => s.Certificate.RevocationTime.Value <= t.Value);
+                            return s.TrustedTimestamps.Any(t => s.EndCertificate.RevocationTime.Value <= t.Value);
                         }
 
                         // Revalidation requests will revalidate invalid certificates. Therefore, invalid certificates
                         // should invalidate the signature only if this is not a revalidation request.
-                        if (s.Certificate.Status == CertificateStatus.Invalid)
+                        if (s.EndCertificate.Status == EndCertificateStatus.Invalid)
                         {
                             return !isRevalidationRequest;
                         }
@@ -330,14 +330,14 @@ namespace NuGet.Services.Validation.PackageCertificates
         /// <param name="signatures">The signatures used to sign the package requested by the validation request.</param>
         /// <param name="isRevalidationRequest">Whether this package has already been validated.</param>
         /// <returns>The certificates used to sign the package that should be validated.</returns>
-        private IEnumerable<Certificate> FindCertificatesToValidateAsync(IEnumerable<PackageSignature> signatures, bool isRevalidationRequest)
+        private IEnumerable<EndCertificate> FindCertificatesToValidateAsync(IEnumerable<PackageSignature> signatures, bool isRevalidationRequest)
         {
             // Get all the certificates used to sign the signatures. Note that revoked certificates
             // should NEVER be revalidated as Certificate Authorities may, under certain conditions,
             // drop a revoked certificate's revocation information. Revalidating such a revoked
             // certificate would cause the certificate to be marked as "Good" when in reality it
             // should remain revoked.
-            var certificates = signatures.Select(s => s.Certificate).Where(c => c.Status != CertificateStatus.Revoked);
+            var certificates = signatures.Select(s => s.EndCertificate).Where(c => c.Status != EndCertificateStatus.Revoked);
 
             // Skip certificates that have been validated recently unless this is a revalidation request.
             if (!isRevalidationRequest)
@@ -353,7 +353,7 @@ namespace NuGet.Services.Validation.PackageCertificates
         /// </summary>
         /// <param name="certificate">The certificate that may be revalidated.</param>
         /// <returns>Whether the certificate should be revalidated.</returns>
-        private bool ShouldValidateCertificate(Certificate certificate)
+        private bool ShouldValidateCertificate(EndCertificate certificate)
         {
             // Validate the certificate only if it has never been validated before, or, if
             // its last validation time is past the maximum revalidation threshold.
@@ -368,13 +368,13 @@ namespace NuGet.Services.Validation.PackageCertificates
         }
 
         /// <summary>
-        /// Enqueue certificate verifications and add <see cref="CertificateValidation"/> entities
+        /// Enqueue certificate verifications and add <see cref="EndCertificateValidation"/> entities
         /// for each validation. Note that this does NOT save the entity context!
         /// </summary>
         /// <param name="request">The package validation request.</param>
         /// <param name="certificates">The certificates that should be verified.</param>
         /// <returns>A task that completes when all certificate verifications have been enqueued.</returns>
-        private Task StartCertificateValidationsAsync(IValidationRequest request, IEnumerable<Certificate> certificates)
+        private Task StartCertificateValidationsAsync(IValidationRequest request, IEnumerable<EndCertificate> certificates)
         {
             var startCertificateVerificationTasks = new List<Task>();
 
@@ -382,10 +382,10 @@ namespace NuGet.Services.Validation.PackageCertificates
             {
                 startCertificateVerificationTasks.Add(_certificateVerificationEnqueuer.EnqueueVerificationAsync(request, certificate));
 
-                _validationContext.CertificateValidations.Add(new CertificateValidation
+                _validationContext.CertificateValidations.Add(new EndCertificateValidation
                 {
                     ValidationId = request.ValidationId,
-                    Certificate = certificate,
+                    EndCertificate = certificate,
                     Status = null,
                 });
             }
