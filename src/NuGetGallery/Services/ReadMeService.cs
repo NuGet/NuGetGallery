@@ -80,11 +80,10 @@ namespace NuGetGallery
         /// Get the converted HTML from the stored ReadMe markdown.
         /// </summary>
         /// <param name="package">Package entity associated with the ReadMe.</param>
-        /// <param name="isPending">Whether to retrieve the pending ReadMe.</param>
-        /// <returns>Pending or active ReadMe converted to HTML.</returns>
-        public async Task<string> GetReadMeHtmlAsync(Package package, bool isPending = false)
+        /// <returns>ReadMe converted to HTML.</returns>
+        public async Task<string> GetReadMeHtmlAsync(Package package)
         {
-            var readMeMd = await GetReadMeMdAsync(package, isPending);
+            var readMeMd = await GetReadMeMdAsync(package);
             return string.IsNullOrEmpty(readMeMd) ?
                 readMeMd :
                 GetReadMeHtml(readMeMd);
@@ -94,13 +93,12 @@ namespace NuGetGallery
         /// Get package ReadMe markdown from storage.
         /// </summary>
         /// <param name="package">Package entity associated with the ReadMe.</param>
-        /// <param name="isPending">Whether to retrieve the pending ReadMe.</param>
-        /// <returns>Pending or active ReadMe markdown from storage.</returns>
-        public async Task<string> GetReadMeMdAsync(Package package, bool isPending = false)
+        /// <returns>ReadMe markdown from storage.</returns>
+        public async Task<string> GetReadMeMdAsync(Package package)
         {
-            if (package.HasReadMe || isPending)
+            if (package.HasReadMe)
             {
-                return await _packageFileService.DownloadReadMeMdFileAsync(package, isPending);
+                return await _packageFileService.DownloadReadMeMdFileAsync(package);
             }
 
             return null;
@@ -110,9 +108,9 @@ namespace NuGetGallery
         /// Save a pending ReadMe if changes are detected.
         /// </summary>
         /// <param name="package">Package entity associated with the ReadMe.</param>
-        /// <param name="edit">Package edit entity.</param>
-        /// <returns>True if a ReadMe is pending, false otherwise.</returns>
-        public async Task<bool> SavePendingReadMeMdIfChanged(Package package, EditPackageVersionReadMeRequest edit, Encoding encoding)
+        /// <param name="edit">Package version edit readme request.</param>
+        /// <returns>True if the package has a non-empty readme, false otherwise.</returns>
+        public async Task<bool> SaveReadMeMdIfChanged(Package package, EditPackageVersionReadMeRequest edit, Encoding encoding)
         {
             var activeReadMe = package.HasReadMe ?
                 NormalizeNewLines(await GetReadMeMdAsync(package)) :
@@ -125,12 +123,12 @@ namespace NuGetGallery
             var hasReadMe = !string.IsNullOrWhiteSpace(newReadMe);
             if (hasReadMe && !newReadMe.Equals(activeReadMe))
             {
-                await _packageFileService.SavePendingReadMeMdFileAsync(package, newReadMe);
+                await _packageFileService.SaveReadMeMdFileAsync(package, newReadMe);
                 edit.ReadMeState = PackageEditReadMeState.Changed;
             }
             else if (!hasReadMe && !string.IsNullOrEmpty(activeReadMe))
             {
-                await _packageFileService.DeleteReadMeMdFileAsync(package, isPending: true);
+                await _packageFileService.DeleteReadMeMdFileAsync(package);
                 edit.ReadMeState = PackageEditReadMeState.Deleted;
             }
             else

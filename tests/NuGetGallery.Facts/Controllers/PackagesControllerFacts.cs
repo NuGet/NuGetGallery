@@ -41,7 +41,6 @@ namespace NuGetGallery
             Mock<IUserService> userService = null,
             Mock<IMessageService> messageService = null,
             Mock<HttpContextBase> httpContext = null,
-            Mock<EditPackageService> editPackageService = null,
             Stream fakeNuGetPackage = null,
             Mock<ISearchService> searchService = null,
             Exception readPackageException = null,
@@ -84,9 +83,7 @@ namespace NuGetGallery
             indexingService = indexingService ?? new Mock<IIndexingService>();
 
             cacheService = cacheService ?? new Mock<ICacheService>();
-
-            editPackageService = editPackageService ?? new Mock<EditPackageService>();
-
+            
             packageDeleteService = packageDeleteService ?? new Mock<IPackageDeleteService>();
 
             supportRequestService = supportRequestService ?? new Mock<ISupportRequestService>();
@@ -123,7 +120,6 @@ namespace NuGetGallery
                 configurationService.Current,
                 indexingService.Object,
                 cacheService.Object,
-                editPackageService.Object,
                 packageDeleteService.Object,
                 supportRequestService.Object,
                 auditingService,
@@ -380,52 +376,7 @@ namespace NuGetGallery
                 return result;
             }
 
-            [Fact]
-            public async Task GivenAValidPackageThatTheCurrentUserOwnsItDisablesResponseCaching()
-            {
-                // Arrange
-                var packageService = new Mock<IPackageService>();
-                var editPackageService = new Mock<EditPackageService>();
-                var httpContext = new Mock<HttpContextBase>();
-                var httpCachePolicy = new Mock<HttpCachePolicyBase>(MockBehavior.Strict);
-                var controller = CreateController(
-                    GetConfigurationService(),
-                    packageService: packageService,
-                    editPackageService: editPackageService,
-                    httpContext: httpContext);
-
-                controller.SetCurrentUser(TestUtility.FakeUser);
-                httpContext.Setup(c => c.Response.Cache).Returns(httpCachePolicy.Object);
-
-                httpCachePolicy.Setup(c => c.SetCacheability(HttpCacheability.NoCache)).Verifiable();
-                httpCachePolicy.Setup(c => c.SetNoStore()).Verifiable();
-                httpCachePolicy.Setup(c => c.SetMaxAge(TimeSpan.Zero)).Verifiable();
-                httpCachePolicy.Setup(c => c.SetRevalidation(HttpCacheRevalidation.AllCaches)).Verifiable();
-
-                var package = new Package()
-                {
-                    PackageRegistration = new PackageRegistration()
-                    {
-                        Id = "Foo",
-                        Owners = new List<User>() { TestUtility.FakeUser }
-                    },
-                    Version = "01.1.01",
-                    NormalizedVersion = "1.1.1",
-                    Title = "A test package!"
-                };
-
-                packageService
-                    .Setup(p => p.FindPackageByIdAndVersion("Foo", "1.1.1", SemVerLevelKey.SemVer2, true))
-                    .Returns(package);
-
-                // Act
-                await controller.DisplayPackage("Foo", "1.1.1");
-
-                // Assert
-                httpCachePolicy.VerifyAll();
-            }
-
-            public static IEnumerable<object[]> EditedPackageOwners
+            public static IEnumerable<object[]> PackageOwners
             {
                 get
                 {
@@ -455,7 +406,7 @@ namespace NuGetGallery
                 }
             }
 
-            public static IEnumerable<object[]> EditedPackageNonOwners
+            public static IEnumerable<object[]> PackageNonOwners
             {
                 get
                 {
@@ -474,50 +425,34 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [MemberData(nameof(EditedPackageOwners))]
+            [MemberData(nameof(PackageOwners))]
             public Task GivenAnOwnedValidPackageWithNoEditsItDisplaysCurrentMetadata(User currentUser, User owner)
             {
-                return CheckValidPackageWithEdits(currentUser, owner, isEdited: false, seeEdit: false);
+                return CheckValidPackage(currentUser, owner);
             }
 
             [Theory]
-            [MemberData(nameof(EditedPackageOwners))]
-            public Task GivenAnOwnedValidPackageWithEditsItDisplaysEditedMetadata(User currentUser, User owner)
-            {
-                return CheckValidPackageWithEdits(currentUser, owner, isEdited: true, seeEdit: true);
-            }
-
-            [Theory]
-            [MemberData(nameof(EditedPackageNonOwners))]
+            [MemberData(nameof(PackageNonOwners))]
             public Task GivenAnUnownedValidPackageWithNoEditsItDisplaysCurrentMetadata(User currentUser, User owner)
             {
-                return CheckValidPackageWithEdits(currentUser, owner, isEdited: false, seeEdit: false);
+                return CheckValidPackage(currentUser, owner);
             }
 
-            [Theory]
-            [MemberData(nameof(EditedPackageNonOwners))]
-            public Task GivenAnUnownedValidPackageWithEditsItDisplaysEditedMetadata(User currentUser, User owner)
-            {
-                return CheckValidPackageWithEdits(currentUser, owner, isEdited: true, seeEdit: false);
-            }
-
-            private async Task CheckValidPackageWithEdits(User currentUser, User owner, bool isEdited, bool seeEdit)
+            private async Task CheckValidPackage(User currentUser, User owner)
             {
                 // Arrange
                 var packageService = new Mock<IPackageService>();
                 var indexingService = new Mock<IIndexingService>();
-                var editPackageService = new Mock<EditPackageService>();
                 var httpContext = new Mock<HttpContextBase>();
                 var httpCachePolicy = new Mock<HttpCachePolicyBase>();
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
-                    editPackageService: editPackageService,
                     indexingService: indexingService,
                     httpContext: httpContext);
                 controller.SetCurrentUser(currentUser);
                 httpContext.Setup(c => c.Response.Cache).Returns(httpCachePolicy.Object);
-                var uneditedTitle = "A test package!";
+                var title = "A test package!";
                 var package = new Package()
                 {
                     PackageRegistration = new PackageRegistration()
@@ -527,19 +462,13 @@ namespace NuGetGallery
                     },
                     Version = "01.1.01",
                     NormalizedVersion = "1.1.1",
-                    Title = uneditedTitle
+                    Title = title
                 };
 
                 packageService
                     .Setup(p => p.FindPackageByIdAndVersion("Foo", "1.1.1", SemVerLevelKey.SemVer2, true))
                     .Returns(package);
-
-                var editedTitle = "A modified package!";
-                var packageEdit = isEdited ? new PackageEdit { Title = editedTitle } : null;
-                editPackageService
-                    .Setup(e => e.GetPendingMetadata(package))
-                    .Returns(packageEdit);
-
+                                
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
 
                 // Act
@@ -549,7 +478,7 @@ namespace NuGetGallery
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal("Foo", model.Id);
                 Assert.Equal("1.1.1", model.Version);
-                Assert.Equal(seeEdit ? editedTitle : uneditedTitle, model.Title);
+                Assert.Equal(title, model.Title);
             }
 
             [Fact]
@@ -712,7 +641,7 @@ namespace NuGetGallery
 
                 if (hasReadMe)
                 {
-                    fileService.Setup(f => f.DownloadReadMeMdFileAsync(It.IsAny<Package>(), It.IsAny<bool>())).Returns(Task.FromResult(readMeHtml));
+                    fileService.Setup(f => f.DownloadReadMeMdFileAsync(It.IsAny<Package>())).Returns(Task.FromResult(readMeHtml));
                 }
 
                 return await controller.DisplayPackage("Foo", /*version*/null);
@@ -1866,7 +1795,6 @@ namespace NuGetGallery
                 User owner,
                 bool hasReadMe = false,
                 bool isPackageLocked = false,
-                PackageEdit packageEdit = null,
                 Mock<IPackageFileService> packageFileService = null)
             {
                 var package = new Package
@@ -1883,15 +1811,10 @@ namespace NuGetGallery
                     .Returns(package);
                 packageService.Setup(s => s.FindPackageRegistrationById(It.IsAny<string>()))
                     .Returns(package.PackageRegistration);
-
-                var editPackageService = new Mock<EditPackageService>();                    
-                editPackageService.Setup(s => s.GetPendingMetadata(It.IsAny<Package>()))
-                    .Returns(packageEdit);
-
+                
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
-                    editPackageService: editPackageService,
                     packageFileService: packageFileService);
                 controller.SetCurrentUser(currentUser);
 
@@ -1969,27 +1892,15 @@ namespace NuGetGallery
 
                 packageRegistration.Packages.Add(package);
                 packageRegistration.Packages.Add(olderPackageVersion);
-
-                var packageEdit = new PackageEdit
-                {
-                    PackageKey = package.Key,
-                    Package = package,
-                    User = currentUser,
-                    UserKey = currentUser.Key
-                };
-
+                
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
                 packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0.0", SemVerLevelKey.Unknown, true))
                     .Returns(package).Verifiable();
-
-                var editPackageService = new Mock<EditPackageService>(MockBehavior.Strict);
-                editPackageService.Setup(svc => svc.GetPendingMetadata(package))
-                    .Returns(packageEdit).Verifiable();
+                
 
                 var controller = CreateController(
                     GetConfigurationService(),
-                    packageService: packageService,
-                    editPackageService: editPackageService);
+                    packageService: packageService);
                 controller.SetCurrentUser(currentUser);
 
                 var routeCollection = new RouteCollection();
@@ -2001,7 +1912,6 @@ namespace NuGetGallery
 
                 // Assert
                 packageService.Verify();
-                editPackageService.Verify();
 
                 Assert.IsType<ViewResult>(result);
                 var model = ((ViewResult)result).Model as EditPackageRequest;
@@ -2024,55 +1934,13 @@ namespace NuGetGallery
                 }
             }
 
-            public static IEnumerable<object[]> WhenReadMeEditPending_ReturnsPending_Data
-            {
-                get
-                {
-                    foreach (var ownerData in Owner_Data)
-                    {
-                        foreach (var readMeState in new[] { PackageEditReadMeState.Changed, PackageEditReadMeState.Deleted })
-                        {
-                            yield return ownerData.Concat(new object[] { readMeState }).ToArray();
-                        }
-                    }
-                }
-            }
-
-            [Theory]
-            [MemberData(nameof(WhenReadMeEditPending_ReturnsPending_Data))]
-            public async Task WhenReadMeEditPending_ReturnsPending(User currentUser, User owner, PackageEditReadMeState readMeState)
-            {
-                // Arrange
-                var packageEdit = new PackageEdit { ReadMeState = readMeState };
-
-                var packageFileService = new Mock<IPackageFileService>();
-                packageFileService.Setup(s => s.DownloadReadMeMdFileAsync(It.IsAny<Package>(), It.IsAny<bool>()))
-                    .Returns(Task.FromResult("markdown"))
-                    .Verifiable();
-
-                var controller = SetupController(currentUser, owner, packageEdit: packageEdit, packageFileService: packageFileService);
-
-                // Act.
-                var result = await controller.Edit("packageId", "1.0");
-
-                // Assert.
-                var model = ResultAssert.IsView<EditPackageRequest>(result);
-
-                Assert.NotNull(model?.Edit?.ReadMe);
-                Assert.Equal("Written", model.Edit.ReadMe.SourceType);
-                Assert.Equal("markdown", model.Edit.ReadMe.SourceText);
-
-                packageFileService.Verify(s => s.DownloadReadMeMdFileAsync(It.IsAny<Package>(), true), Times.Once);
-                packageFileService.Verify(s => s.DownloadReadMeMdFileAsync(It.IsAny<Package>(), false), Times.Never);
-            }
-
             [Theory]
             [MemberData(nameof(Owner_Data))]
             public async Task WhenNoReadMeEditPending_ReturnsActive(User currentUser, User owner)
             {
                 // Arrange
                 var packageFileService = new Mock<IPackageFileService>();
-                packageFileService.Setup(s => s.DownloadReadMeMdFileAsync(It.IsAny<Package>(), It.IsAny<bool>()))
+                packageFileService.Setup(s => s.DownloadReadMeMdFileAsync(It.IsAny<Package>()))
                     .Returns(Task.FromResult("markdown"))
                     .Verifiable();
 
@@ -2088,8 +1956,7 @@ namespace NuGetGallery
                 Assert.Equal("Written", model.Edit.ReadMe.SourceType);
                 Assert.Equal("markdown", model.Edit.ReadMe.SourceText);
 
-                packageFileService.Verify(s => s.DownloadReadMeMdFileAsync(It.IsAny<Package>(), false), Times.Once);
-                packageFileService.Verify(s => s.DownloadReadMeMdFileAsync(It.IsAny<Package>(), true), Times.Never);
+                packageFileService.Verify(s => s.DownloadReadMeMdFileAsync(It.IsAny<Package>()), Times.Once);
             }
 
             [Theory]
@@ -2098,7 +1965,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var packageFileService = new Mock<IPackageFileService>();
-                packageFileService.Setup(s => s.DownloadReadMeMdFileAsync(It.IsAny<Package>(), It.IsAny<bool>()))
+                packageFileService.Setup(s => s.DownloadReadMeMdFileAsync(It.IsAny<Package>()))
                     .Returns(Task.FromResult("markdown"))
                     .Verifiable();
 
@@ -2114,7 +1981,7 @@ namespace NuGetGallery
                 Assert.Null(model.Edit.ReadMe.SourceType);
                 Assert.Null(model.Edit.ReadMe.SourceText);
 
-                packageFileService.Verify(s => s.DownloadReadMeMdFileAsync(It.IsAny<Package>(), It.IsAny<bool>()), Times.Never);
+                packageFileService.Verify(s => s.DownloadReadMeMdFileAsync(It.IsAny<Package>()), Times.Never);
             }
 
             [Theory]
@@ -2159,7 +2026,7 @@ namespace NuGetGallery
 
         public class TheEditPostMethod : TheEditMethods
         {
-            public static IEnumerable<object[]> OnPostBackWithReadMe_SavesPending_Data
+            public static IEnumerable<object[]> OnPostBackWithReadMe_Saves_Data
             {
                 get
                 {
@@ -2207,15 +2074,15 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [MemberData(nameof(OnPostBackWithReadMe_SavesPending_Data))]
-            public async Task OnPostBackWithReadMe_SavesPending(User currentUser, User owner, bool hasReadMe)
+            [MemberData(nameof(OnPostBackWithReadMe_Saves_Data))]
+            public async Task OnPostBackWithReadMe_Saves(User currentUser, User owner, bool hasReadMe)
             {
                 // Arrange
                 var packageFileService = new Mock<IPackageFileService>();
-                packageFileService.Setup(s => s.DownloadReadMeMdFileAsync(It.IsAny<Package>(), It.IsAny<bool>()))
+                packageFileService.Setup(s => s.DownloadReadMeMdFileAsync(It.IsAny<Package>()))
                     .Returns(Task.FromResult("markdown"))
                     .Verifiable();
-                packageFileService.Setup(s => s.SavePendingReadMeMdFileAsync(It.IsAny<Package>(), It.IsAny<string>()))
+                packageFileService.Setup(s => s.SaveReadMeMdFileAsync(It.IsAny<Package>(), It.IsAny<string>()))
                     .Returns(Task.CompletedTask)
                     .Verifiable();
 
@@ -2237,23 +2104,22 @@ namespace NuGetGallery
                 var result = await controller.Edit("packageId", "1.0", formData, "returnUrl");
 
                 // Assert.
-                packageFileService.Verify(s => s.SavePendingReadMeMdFileAsync(It.IsAny<Package>(), "markdown2"));
+                packageFileService.Verify(s => s.SaveReadMeMdFileAsync(It.IsAny<Package>(), "markdown2"));
 
                 // Verify that a comparison was done against the active readme.
-                packageFileService.Verify(s => s.DownloadReadMeMdFileAsync(It.IsAny<Package>(), false), Times.Exactly(hasReadMe ? 1 : 0));
-                packageFileService.Verify(s => s.DownloadReadMeMdFileAsync(It.IsAny<Package>(), true), Times.Never);
+                packageFileService.Verify(s => s.DownloadReadMeMdFileAsync(It.IsAny<Package>()), Times.Exactly(hasReadMe ? 1 : 0));
             }
 
             [Theory]
             [MemberData(nameof(Owner_Data))]
-            public async Task OnPostBackWithNoReadMe_DeletesPending(User currentUser, User owner)
+            public async Task OnPostBackWithNoReadMe_Deletes(User currentUser, User owner)
             {
                 // Arrange
                 var packageFileService = new Mock<IPackageFileService>();
-                packageFileService.Setup(s => s.DownloadReadMeMdFileAsync(It.IsAny<Package>(), It.IsAny<bool>()))
+                packageFileService.Setup(s => s.DownloadReadMeMdFileAsync(It.IsAny<Package>()))
                     .Returns(Task.FromResult("markdown"))
                     .Verifiable();
-                packageFileService.Setup(s => s.DeleteReadMeMdFileAsync(It.IsAny<Package>(), It.IsAny<bool>()))
+                packageFileService.Setup(s => s.DeleteReadMeMdFileAsync(It.IsAny<Package>()))
                     .Returns(Task.CompletedTask)
                     .Verifiable();
 
@@ -2268,11 +2134,10 @@ namespace NuGetGallery
                 var result = await controller.Edit("packageId", "1.0", formData, "returnUrl");
 
                 // Assert.
-                packageFileService.Verify(s => s.DeleteReadMeMdFileAsync(It.IsAny<Package>(), true));
+                packageFileService.Verify(s => s.DeleteReadMeMdFileAsync(It.IsAny<Package>()));
 
                 // Verify that a comparison was done against the active readme.
-                packageFileService.Verify(s => s.DownloadReadMeMdFileAsync(It.IsAny<Package>(), false), Times.Once);
-                packageFileService.Verify(s => s.DownloadReadMeMdFileAsync(It.IsAny<Package>(), true), Times.Never);
+                packageFileService.Verify(s => s.DownloadReadMeMdFileAsync(It.IsAny<Package>()), Times.Once);
             }
 
             [Theory]
@@ -4713,68 +4578,6 @@ namespace NuGetGallery
                 }
             }
 
-            public static IEnumerable<object[]> WillApplyEdits_Data
-            {
-                get
-                {
-                    yield return new object[] { new EditPackageVersionReadMeRequest() {
-                        ReadMe = new ReadMeRequest { SourceType = "Written", SourceText = "markdown" } }
-                    };
-                }
-            }
-
-            [Theory]
-            [MemberData("WillApplyEdits_Data")]
-            public async Task WillApplyEdits(EditPackageVersionReadMeRequest edit)
-            {
-                // Arrange
-                using (var fakeFileStream = new MemoryStream())
-                {
-                    var fakeUploadFileService = new Mock<IUploadFileService>();
-                    fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(fakeFileStream));
-                    fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.CompletedTask);
-
-                    var packageUploadService = new Mock<IPackageUploadService>();
-
-                    var fakePackage = new Package { PackageRegistration = new PackageRegistration { Id = "thePackageId" }, Version = "1.0.0" };
-                    packageUploadService
-                        .Setup(x => x.GeneratePackageAsync(
-                            It.IsAny<string>(),
-                            It.IsAny<PackageArchiveReader>(),
-                            It.IsAny<PackageStreamMetadata>(),
-                            It.IsAny<User>(),
-                            It.IsAny<User>()))
-                        .Returns(Task.FromResult(fakePackage));
-
-                    var fakeEditPackageService = new Mock<EditPackageService>();
-
-                    var fakePackageFileService = new Mock<IPackageFileService>();
-                    fakePackageFileService.Setup(x => x.SavePendingReadMeMdFileAsync(fakePackage, It.IsAny<string>())).Returns(Task.CompletedTask);
-
-                    var fakeUserService = new Mock<IUserService>();
-                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username)).Returns(TestUtility.FakeUser);
-
-                    var controller = CreateController(
-                        GetConfigurationService(),
-                        packageUploadService: packageUploadService,
-                        editPackageService: fakeEditPackageService,
-                        uploadFileService: fakeUploadFileService,
-                        packageFileService: fakePackageFileService,
-                        userService: fakeUserService);
-
-                    controller.SetCurrentUser(TestUtility.FakeUser);
-
-                    // Act
-                    await controller.VerifyPackage(new VerifyPackageRequest { Listed = true, Owner = TestUtility.FakeUser.Username, Edit = edit });
-
-                    // Assert 
-                    fakeEditPackageService.Verify(x => x.StartEditPackageRequest(fakePackage, edit, TestUtility.FakeUser), Times.Once);
-
-                    var hasReadMe = !string.IsNullOrEmpty(edit.ReadMe?.SourceType);
-                    fakePackageFileService.Verify(x => x.SavePendingReadMeMdFileAsync(fakePackage, "markdown"), Times.Exactly(hasReadMe ? 1 : 0));
-                }
-            }
-
             [Theory]
             [InlineData(false, false,  true)]
             [InlineData( true, false,  true)]
@@ -4864,11 +4667,9 @@ namespace NuGetGallery
                         It.IsAny<User>(),
                         It.IsAny<User>()))
                     .Returns(Task.FromResult(fakePackage));
-
-                var fakeEditPackageService = new Mock<EditPackageService>();
-
+                
                 var fakePackageFileService = new Mock<IPackageFileService>();
-                fakePackageFileService.Setup(x => x.SavePendingReadMeMdFileAsync(fakePackage, It.IsAny<string>())).Returns(Task.CompletedTask);
+                fakePackageFileService.Setup(x => x.SaveReadMeMdFileAsync(fakePackage, It.IsAny<string>())).Returns(Task.CompletedTask);
 
                 var fakeUserService = new Mock<IUserService>();
                 fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username)).Returns(TestUtility.FakeUser);
@@ -4876,7 +4677,6 @@ namespace NuGetGallery
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageUploadService: packageUploadService,
-                    editPackageService: fakeEditPackageService,
                     uploadFileService: fakeUploadFileService,
                     packageFileService: fakePackageFileService,
                     userService: fakeUserService);
@@ -4887,7 +4687,7 @@ namespace NuGetGallery
                 await controller.VerifyPackage(new VerifyPackageRequest { Listed = true, Owner = TestUtility.FakeUser.Username, Edit = edit });
 
                 var hasReadMe = !string.IsNullOrEmpty(edit.ReadMe?.SourceType);
-                fakePackageFileService.Verify(x => x.SavePendingReadMeMdFileAsync(fakePackage, "markdown"), Times.Exactly(hasReadMe ? 1 : 0));
+                fakePackageFileService.Verify(x => x.SaveReadMeMdFileAsync(fakePackage, "markdown"), Times.Exactly(hasReadMe ? 1 : 0));
             }
         }
 

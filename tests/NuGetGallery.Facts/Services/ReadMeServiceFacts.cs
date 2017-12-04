@@ -110,7 +110,7 @@ namespace NuGetGallery
                 var package = new Package() { HasReadMe = false };
 
                 // Act & Assert
-                Assert.Null(await readMeService.GetReadMeHtmlAsync(package, isPending: false));
+                Assert.Null(await readMeService.GetReadMeHtmlAsync(package));
             }
 
             private static string StripNewLines(string text)

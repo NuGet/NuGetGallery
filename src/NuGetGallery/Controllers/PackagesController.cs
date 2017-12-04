@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Entity;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -75,7 +74,6 @@ namespace NuGetGallery
         private readonly IEntitiesContext _entitiesContext;
         private readonly IIndexingService _indexingService;
         private readonly ICacheService _cacheService;
-        private readonly EditPackageService _editPackageService;
         private readonly IPackageDeleteService _packageDeleteService;
         private readonly ISupportRequestService _supportRequestService;
         private readonly IAuditingService _auditingService;
@@ -99,7 +97,6 @@ namespace NuGetGallery
             IAppConfiguration config,
             IIndexingService indexingService,
             ICacheService cacheService,
-            EditPackageService editPackageService,
             IPackageDeleteService packageDeleteService,
             ISupportRequestService supportRequestService,
             IAuditingService auditingService,
@@ -122,7 +119,6 @@ namespace NuGetGallery
             _config = config;
             _indexingService = indexingService;
             _cacheService = cacheService;
-            _editPackageService = editPackageService;
             _packageDeleteService = packageDeleteService;
             _supportRequestService = supportRequestService;
             _auditingService = auditingService;
@@ -325,7 +321,7 @@ namespace NuGetGallery
                 var id = nuspec.GetId();
                 var existingPackageRegistration = _packageService.FindPackageRegistrationById(id);
                 // For a new package id verify if the user is allowed to use it.
-                if (existingPackageRegistration == null && 
+                if (existingPackageRegistration == null &&
                     ActionsRequiringPermissions.UploadNewPackageId.CheckPermissionsOnBehalfOfAnyAccount(
                         currentUser, new ActionOnNewPackageContext(id, _reservedNamespaceService)) != PermissionsCheckResult.Allowed)
                 {
@@ -337,7 +333,7 @@ namespace NuGetGallery
 
                     return Json(409, new string[] { string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict) });
                 }
-                
+
                 // For existing package id verify if it is owned by the current user
                 if (existingPackageRegistration != null)
                 {
@@ -468,25 +464,7 @@ namespace NuGetGallery
                                         .Distinct()
                                         .ToList();
 
-            var isReadMePending = false;
-            if (ActionsRequiringPermissions.EditPackage.CheckPermissionsOnBehalfOfAnyAccount(currentUser, package) == PermissionsCheckResult.Allowed)
-            {
-                // Tell logged-in package owners not to cache the package page,
-                // so they won't be confused about the state of pending edits.
-                Response.Cache.SetCacheability(HttpCacheability.NoCache);
-                Response.Cache.SetNoStore();
-                Response.Cache.SetMaxAge(TimeSpan.Zero);
-                Response.Cache.SetRevalidation(HttpCacheRevalidation.AllCaches);
-
-                var pendingMetadata = _editPackageService.GetPendingMetadata(package);
-                if (pendingMetadata != null)
-                {
-                    model.SetPendingMetadata(pendingMetadata);
-                    isReadMePending = pendingMetadata.ReadMeState != PackageEditReadMeState.Unchanged;
-                }
-            }
-
-            model.ReadMeHtml = await _readMeService.GetReadMeHtmlAsync(package, isReadMePending);
+            model.ReadMeHtml = await _readMeService.GetReadMeHtmlAsync(package);
 
             var externalSearchService = _searchService as ExternalSearchService;
             if (_searchService.ContainsAllVersions && externalSearchService != null)
@@ -674,7 +652,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            
+
             if (ActionsRequiringPermissions.ReportPackageAsOwner.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
             {
                 return RedirectToAction(nameof(ReportAbuse), new { id, version });
@@ -702,7 +680,7 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> ReportAbuse(string id, string version, ReportAbuseViewModel reportForm)
         {
             reportForm.Message = HttpUtility.HtmlEncode(reportForm.Message);
-            
+
             if (reportForm.Reason == ReportPackageReason.ViolatesALicenseIOwn
                 && string.IsNullOrWhiteSpace(reportForm.Signature))
             {
@@ -767,13 +745,13 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> ReportMyPackage(string id, string version, ReportMyPackageViewModel reportForm)
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
-            
+
             var failureResult = await ValidateReportMyPackageViewModel(reportForm, package);
             if (failureResult != null)
             {
                 return failureResult;
             }
-            
+
             // Override the copy sender and message fields if we are performing an auto-delete.
             if (reportForm.DeleteDecision == PackageDeleteDecision.DeletePackage)
             {
@@ -1215,17 +1193,13 @@ namespace NuGetGallery
                     url = UrlExtensions.EditPackage(Url, model.PackageId, e.NormalizedVersion)
                 }), "url", "text", UrlExtensions.EditPackage(Url, model.PackageId, model.Version));
 
-                // Create edit model from the latest pending edit.
-                var pendingMetadata = _editPackageService.GetPendingMetadata(package);
+                model.Edit = new EditPackageVersionReadMeRequest();
 
-                model.Edit = new EditPackageVersionReadMeRequest(pendingMetadata);
-
-                // Update edit model with the active or pending readme.md data.
-                var isReadMePending = model.Edit.ReadMeState != PackageEditReadMeState.Unchanged;
-                if (package.HasReadMe || isReadMePending)
+                // Update edit model with the readme.md data.
+                if (package.HasReadMe)
                 {
                     model.Edit.ReadMe.SourceType = ReadMeService.TypeWritten;
-                    model.Edit.ReadMe.SourceText = await _readMeService.GetReadMeMdAsync(package, isReadMePending);
+                    model.Edit.ReadMe.SourceText = await _readMeService.GetReadMeMdAsync(package);
                 }
             }
 
@@ -1263,29 +1237,16 @@ namespace NuGetGallery
 
             if (formData.Edit != null)
             {
-                try
+                // Update readme.md file, if modified.
+                var hasReadMe = await _readMeService.SaveReadMeMdIfChanged(package, formData.Edit, Request.ContentEncoding);
+                if (hasReadMe)
                 {
-                    // Update pending readme.md file, if modified.
-                    var hasReadMe = await _readMeService.SavePendingReadMeMdIfChanged(package, formData.Edit, Request.ContentEncoding);
-                    if (hasReadMe)
-                    {
-                        _telemetryService.TrackPackageReadMeChangeEvent(package, formData.Edit.ReadMe.SourceType, formData.Edit.ReadMeState);
-                    }
-
-                    // Queue package edit in database for processing in background (HandlePackageEdits job).
-                    var user = GetCurrentUser();
-                    _editPackageService.StartEditPackageRequest(package, formData.Edit, user);
-                    await _entitiesContext.SaveChangesAsync();
-
-                    // Add an auditing record for the package edit. HasReadMe flag is updated in DB by background job.
-                    package.HasReadMe = hasReadMe;
-                    await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(package, AuditedPackageAction.Edit));
+                    _telemetryService.TrackPackageReadMeChangeEvent(package, formData.Edit.ReadMe.SourceType, formData.Edit.ReadMeState);
                 }
-                catch (EntityException ex)
-                {
-                    ModelState.AddModelError("Edit.VersionTitle", ex.Message);
-                    return Json(400, new[] { ex.Message });
-                }
+
+                // Add an auditing record for the package edit.
+                package.HasReadMe = hasReadMe;
+                await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(package, AuditedPackageAction.Edit));
             }
 
             return Json(new
@@ -1677,31 +1638,15 @@ namespace NuGetGallery
                     return Json(400, new[] { ex.Message });
                 }
 
-                var pendEdit = false;
                 if (formData.Edit != null)
                 {
-                    if (await _readMeService.SavePendingReadMeMdIfChanged(package, formData.Edit, Request.ContentEncoding))
+                    if (await _readMeService.SaveReadMeMdIfChanged(package, formData.Edit, Request.ContentEncoding))
                     {
-                        pendEdit = true;
                         _telemetryService.TrackPackageReadMeChangeEvent(package, formData.Edit.ReadMe.SourceType, formData.Edit.ReadMeState);
                     }
                 }
 
                 await _packageService.PublishPackageAsync(package, commitChanges: false);
-
-                if (pendEdit)
-                {
-                    try
-                    {
-                        _editPackageService.StartEditPackageRequest(package, formData.Edit, currentUser);
-                    }
-                    catch (EntityException ex)
-                    {
-                        _telemetryService.TraceException(ex);
-
-                        return Json(400, new[] { ex.Message });
-                    }
-                }
 
                 if (!formData.Listed)
                 {
