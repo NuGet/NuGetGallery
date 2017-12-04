@@ -4,7 +4,6 @@ var EditReadmeManager = new function () {
     var _currVersion;
     var _viewModel;
     var _changedState;
-    var _resetFunctions;
     var _submitUrl;
     var _cancelUrl;
     var _submitting;
@@ -17,7 +16,6 @@ var EditReadmeManager = new function () {
         _cancelUrl = cancelUrl;
         _viewModel = model;
         _changedState = {};
-        _resetFunctions = {};
         bindData(_viewModel);
 
         $(window).on('beforeunload', confirmLeave);
@@ -32,15 +30,6 @@ var EditReadmeManager = new function () {
             $(this).addClass("edited");
             _changedState[$(this).attr('id')] = true;
             $('#verify-submit-button').removeAttr('disabled');
-        });
-
-        // This sets up a series of functions that are capable of "resetting" the values in the inputs
-        // Currently unused.
-        $('input[type="text"], input[type="checkbox"], textarea').each(function (index) {
-            _resetFunctions[$(this).attr('id')] = function (newValue) {
-                _changedState[$(this).attr('id')] = false;
-                $(this).val(newValue);
-            }.bind(this, $(this).val());
         });
     }
 
