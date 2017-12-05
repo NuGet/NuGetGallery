@@ -41,47 +41,44 @@
     </div>
 </script>
 
-<script type="text/html" id="edit-metadata-template">
+<script type="text/html" id="verify-metadata-template">
     <div class="collapse in">
         <div data-bind="if: $data">
 
-                <div class="verify-package-field form-group readonly">
+                <div class="verify-package-field">
                     <label for="Id" class="verify-package-field-heading">Package ID</label>
                     <p data-bind="text: $data.Id"></p>
                     <input data-bind="value: $data.Id" type="hidden" name="Id" class="form-control" />
                 </div>
 
-                <div class="verify-package-field form-group readonly">
+                <div class="verify-package-field">
                     <label for="Version" class="verify-package-field-heading">Version</label>
                     <p data-bind="text: $data.Version"></p>
                     <input data-bind="value: $data.Version" type="hidden" name="Version" class="form-control" />
+                    <input data-bind="value: $data.OriginalVersion" type="hidden" name="OriginalVersion" class="form-control" />
                 </div>
 
-                <div class="verify-package-field form-group readonly">
-                    <label for="MinClientVersionDisplay" class="verify-package-field-heading">Minimum NuGet Client Version</label>
+                <div class="verify-package-field">
+                    <label class="verify-package-field-heading">Minimum NuGet Client Version</label>
                     <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.MinClientVersionDisplay }}"></div>
-                    <input data-bind="value: $data.MinClientVersionDisplay" type="hidden" name="MinClientVersionDisplay" class="form-control" />
                 </div>
 
-                <div class="verify-package-field form-group readonly">
-                    <label for="LicenseUrl" class="verify-package-field-heading">License URL</label>
+                <div class="verify-package-field">
+                    <label class="verify-package-field-heading">License URL</label>
                     <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.LicenseUrl, Link: true }}"></div>
-                    <input data-bind="value: $data.LicenseUrl" type="hidden" name="LicenseUrl" class="form-control" />
                 </div>
 
-                <div class="verify-package-field form-group readonly">
-                    <label for="Language" class="verify-package-field-heading">Language</label>
+                <div class="verify-package-field">
+                    <label class="verify-package-field-heading">Language</label>
                     <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.Language }}"></div>
-                    <input data-bind="value: $data.Language" type="hidden" name="Language" class="form-control" />
                 </div>
 
-                <div class="verify-package-field form-group readonly">
-                    <label for="DevelopmentDependency" class="verify-package-field-heading">Development Dependency</label>
+                <div class="verify-package-field">
+                    <label class="verify-package-field-heading">Development Dependency</label>
                     <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.DevelopmentDependency }}"></div>
-                    <input data-bind="value: $data.DevelopmentDependency" type="hidden" name="DevelopmentDependency" class="form-control" />
                 </div>
 
-                <div class="verify-package-field form-group readonly">
+                <div class="verify-package-field">
                     <div class="verify-package-field-heading">Dependencies</div>
                     <!-- ko if: $data.Dependencies && Object.keys($data.Dependencies.DependencySets).length > 0 -->
                     <div data-bind="template: {name: 'display-dependencysets', data: { DependencySets: Dependencies.DependencySets, OnlyHasAllFrameworks: Dependencies.OnlyHasAllFrameworks }}"></div>
@@ -91,75 +88,65 @@
                     <!-- /ko -->
                 </div>
 
-                <!--BEGIN EDITABLE FIELDS-->
-                <div class="verify-package-field form-group editable">
-                    <label for="title-field" class="verify-package-field-heading">Title</label>
-                    <input data-bind="value: Edit.VersionTitle" type="text" class="form-control" name="Edit.VersionTitle" id="title-field" />
+                <div class="verify-package-field">
+                    <label class="verify-package-field-heading">Title</label>
+                    <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.Title }}"></div>
                 </div>
 
-                <div class="verify-package-field form-group editable">
-                    <label for="description-field" class="verify-package-field-heading">Description</label>
-                    <textarea data-bind="value: Edit.Description" class="form-control tall-text-input" name="Edit.Description" id="description-field" />
+                <div class="verify-package-field">
+                    <label class="verify-package-field-heading">Description</label>
+                    <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.Description }}"></div>
                 </div>
 
-                <div class="verify-package-field form-group editable">
-                    <div class="verify-package-field-heading"><label for="summary-field">Summary</label> (shown on package search page)</div>
-                    <textarea data-bind="value: Edit.Summary" class="form-control tall-text-input" name="Edit.Summary" id="summary-field" />
+                <div class="verify-package-field">
+                    <div class="verify-package-field-heading"><label>Summary</label> (shown on package search page)</div>
+                    <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.Summary }}"></div>
                 </div>
 
-                <div class="verify-package-field form-group editable">
-                    <div class="verify-package-field-heading"><label for="releasenotes-field">Release Notes</label> (for this version)</div>
-                    <textarea data-bind="value: Edit.ReleaseNotes" class="form-control tall-text-input" name="Edit.ReleaseNotes" id="releasenotes-field" />
+                <div class="verify-package-field">
+                    <div class="verify-package-field-heading"><label>Release Notes</label> (for this version)</div>
+                    <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.ReleaseNotes }}"></div>
                 </div>
 
-                <div class="verify-package-field form-group editable">
-                    <label for="projecturl-field" class="verify-package-field-heading">Project URL</label>
-                    <input data-bind="value: Edit.ProjectUrl" type="text" class="form-control" name="Edit.ProjectUrl" id="projecturl-field" />
+                <div class="verify-package-field">
+                    <label class="verify-package-field-heading">Project URL</label>
+                    <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.ProjectUrl }}"></div>
                 </div>
 
-                <div class="verify-package-field form-group editable">
+                <div class="verify-package-field">
                     <!-- Bind an on change event here to update the preview below-->
-                    <label for="iconurl-field" class="verify-package-field-heading">Icon URL</label>
-                    <input data-bind="value: Edit.IconUrl" type="text" class="form-control" name="Edit.IconUrl" id="iconurl-field" />
+                    <label class="verify-package-field-heading">Icon URL</label>
+                    <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.IconUrl }}"></div>
                 </div>
 
-                <div class="verify-package-field form-group editable row">
+                <!-- ko if: $data.IconUrl -->
+                <div class="verify-package-field row">
                     <div class="verify-package-field-heading col-sm-12">Icon Preview</div>
                     <div id="icon-preview-container" class="col-sm-1">
-                        <!-- ko if: Edit.IconUrl -->
-                        <img class="package-icon img-responsive" id="icon-preview" data-bind="attr: { src: Edit.IconUrl }" /> <!-- probably need to check this for safety-->
-                        <!-- /ko -->
-                        <!-- ko ifnot: Edit.IconUrl -->
-                        <p><i>(none specified)</i></p>
-                        <!-- /ko -->
+                        <img class="package-icon img-responsive" id="icon-preview" data-bind="attr: { src: $data.IconUrl }" /> <!-- probably need to check this for safety-->
                     </div>
                 </div>
+                <!-- /ko -->
 
-                <div class="verify-package-field form-group editable">
-                    <div class="verify-package-field-heading"><label for="authors-field">Authors</label> (comma separated - e.g. 'Anna, Bob, Carl')</div>
-                    <input data-bind="value: Edit.Authors" type="text" class="form-control" name="Edit.Authors" id="authors-field" />
+                <div class="verify-package-field">
+                    <div class="verify-package-field-heading"><label>Authors</label></div>
+                    <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.Authors }}"></div>
                 </div>
 
-                <div class="verify-package-field form-group editable">
-                    <label for="copyright-field" class="verify-package-field-heading">Copyright</label>
-                    <input data-bind="value: Edit.Copyright" type="text" class="form-control" name="Edit.Copyright" id="copyright-field" />
+                <div class="verify-package-field">
+                    <label class="verify-package-field-heading">Copyright</label>
+                    <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.Copyright }}"></div>
                 </div>
 
-                <div class="verify-package-field form-group editable">
-                    <div class="verify-package-field-heading"><label for="tags-field">Tags</label> (space separated - e.g. 'ASP.NET Template MVC')</div>
-                    <input data-bind="value: Edit.Tags" type="text" class="form-control" name="Edit.Tags" id="tags-field" />
+                <div class="verify-package-field">
+                    <div class="verify-package-field-heading"><label>Tags</label></div>
+                    <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.Tags }}"></div>
                 </div>
 
                 <!-- ko if: $data.LicenseUrl -->
-                <div class="verify-package-field form-group editable">
-                    <div class="verify-package-field-heading">License Acceptance</div>
-                    <div class="checkbox">
-                        <label>
-                            <input data-bind="attr: { 'checked' : $data.Edit.RequiresLicenseAcceptance ? $data.Edit.RequiresLicenseAcceptance : null }"
-                                   type="checkbox" name="Edit.RequiresLicenseAcceptance" id="Edit.RequiresLicenseAcceptance" value="true" />
-                            Require license acceptance
-                        </label>
-                    </div>
+                <div class="verify-package-field">
+                    <div class="verify-package-field-heading">Require License Acceptance</div>
+                    <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.RequiresLicenseAcceptance }}"></div>
                 </div>
                 <!-- /ko -->
 
@@ -175,7 +162,6 @@
                     </div>
                 </div>
                 <!-- /ko -->
-            @*</form>*@
         </div>
 
         <!-- ko if: $data.IsSemVer2 -->
