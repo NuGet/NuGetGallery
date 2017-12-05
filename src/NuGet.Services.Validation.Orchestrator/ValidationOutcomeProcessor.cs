@@ -138,15 +138,7 @@ namespace NuGet.Services.Validation.Orchestrator
 
         private bool AllValidationsSucceeded(PackageValidationSet packageValidationSet)
         {
-            var completeValidations = new HashSet<string>(packageValidationSet
-                .PackageValidations
-                .Where(v => v.ValidationStatus == ValidationStatus.Succeeded)
-                .Select(v => v.Type));
-            var requiredValidations = _validationConfiguration
-                .Validations
-                .Select(v => v.Name);
-
-            return completeValidations.IsSupersetOf(requiredValidations);
+            return packageValidationSet.PackageValidations.All(pv => pv.ValidationStatus == ValidationStatus.Succeeded);
         }
 
         private IEnumerable<PackageValidation> GetFailedValidations(PackageValidationSet packageValidationSet)
