@@ -1,20 +1,51 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace NuGetGallery
 {
     public class PackageStatusFacts
     {
-        public void AssertAvailableNotChanged()
+        /// <summary>
+        /// These values are immutable since they are persisted to the database. This dictionary should only ever be
+        /// appended to as new <see cref="PackageStatus"/> values are added.
+        /// </summary>
+        private static readonly IReadOnlyDictionary<PackageStatus, int> ImmutablePackageStatusValues = new Dictionary<PackageStatus, int>
         {
-            Assert.Equal(0, (int)PackageStatus.Available);
+            { PackageStatus.Available, 0 },
+            { PackageStatus.Deleted, 1 },
+            { PackageStatus.Validating, 2 },
+            { PackageStatus.FailedValidation, 3 },
+        };
+
+        [Fact]
+        public void AssertNotChanged()
+        {
+            foreach (var pair in ImmutablePackageStatusValues)
+            {
+                Assert.Equal(pair.Value, (int)pair.Key);
+            }
         }
 
-        public void AssertDeletedNotChanged()
+        [Fact]
+        public void AssertAllValuesAreImmutable()
         {
-            Assert.Equal(1, (int)PackageStatus.Deleted);
+            var expected = ImmutablePackageStatusValues
+                .Keys
+                .OrderBy(x => x)
+                .ToList();
+
+            var actual = Enum
+                .GetValues(typeof(PackageStatus))
+                .Cast<PackageStatus>()
+                .OrderBy(x => x)
+                .ToList();
+
+            Assert.Equal(expected, actual);
         }
     }
 }
