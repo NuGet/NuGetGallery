@@ -39,10 +39,13 @@ namespace NuGetGallery.Framework
                         ExpirationForApiKeyV1),
                     TestCredentialHelper.CreateV2ApiKey(Guid.Parse("779e180e-335c-491a-ac26-e83c4bd31d87"),
                         ExpirationForApiKeyV1).WithDefaultScopes(),
+                    TestCredentialHelper.CreateV4ApiKey(null, out string apiKeyV4PlaintextValue).WithDefaultScopes(),
                     TestCredentialHelper.CreateV2VerificationApiKey(Guid.Parse("b0c51551-823f-4701-8496-43980b4b3913")),
                     TestCredentialHelper.CreateExternalCredential("abc")
                 }
             };
+
+            ApiKeyV4PlaintextValue = apiKeyV4PlaintextValue;
 
             Organization = new Organization("testOrganization")
             {
@@ -139,6 +142,8 @@ namespace NuGetGallery.Framework
         public User Owner { get; }
 
         public PackageRegistration Package { get; }
+
+        public string ApiKeyV4PlaintextValue { get; }
 
         public User CreateUser(string userName, params Credential[] credentials)
         {

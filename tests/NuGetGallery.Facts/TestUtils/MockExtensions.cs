@@ -91,19 +91,19 @@ namespace NuGetGallery
             self.Verify(e => e.SaveChangesAsync(), times);
         }
 
-        public static IReturnsResult<AuthenticationService> SetupAuth(this Mock<AuthenticationService> self, Credential cred, User user)
+        public static IReturnsResult<AuthenticationService> SetupAuth(this Mock<AuthenticationService> self, Credential cred, User user, string credentialValue = null)
         {
             if (CredentialTypes.IsApiKey(cred.Type))
             {
                 return self.Setup(us => us.Authenticate(It.Is<string>(c =>
-                            string.Equals(c, cred.Value, StringComparison.Ordinal))))
+                            string.Equals(c, credentialValue ?? cred.Value, StringComparison.Ordinal))))
                     .Returns(Task.FromResult(user == null ? null : new AuthenticatedUser(user, cred)));
             }
             else
             {
                 return self.Setup(us => us.Authenticate(It.Is<Credential>(c =>
                         string.Equals(c.Type, cred.Type, StringComparison.OrdinalIgnoreCase) &&
-                        string.Equals(c.Value, cred.Value, StringComparison.Ordinal))))
+                        string.Equals(c.Value, credentialValue ?? cred.Value, StringComparison.Ordinal))))
                     .Returns(Task.FromResult(user == null ? null : new AuthenticatedUser(user, cred)));
             }
         }

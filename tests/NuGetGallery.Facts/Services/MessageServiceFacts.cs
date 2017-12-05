@@ -629,6 +629,13 @@ namespace NuGetGallery
         public class TheSendCredentialRemovedNoticeMethod
             : TestContainer
         {
+            private AuthenticationService _authenticationService;
+
+            public TheSendCredentialRemovedNoticeMethod()
+            {
+                _authenticationService = GetService<AuthenticationService>();
+            }
+
             [Fact]
             public void UsesProviderNounToDescribeCredentialIfPresent()
             {
@@ -637,9 +644,10 @@ namespace NuGetGallery
                 const string MicrosoftAccountCredentialName = "Microsoft account";
 
                 var messageService = TestableMessageService.Create(
-                    GetService<AuthenticationService>(),
+                    _authenticationService,
                     GetConfigurationService());
-                messageService.SendCredentialRemovedNotice(user, cred);
+
+                messageService.SendCredentialRemovedNotice(user, _authenticationService.DescribeCredential(cred));
                 var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal(user.ToMailAddress(), message.To[0]);
@@ -655,9 +663,9 @@ namespace NuGetGallery
                 var cred = new CredentialBuilder().CreatePasswordCredential("bogus");
 
                 var messageService = TestableMessageService.Create(
-                    GetService<AuthenticationService>(),
+                    _authenticationService,
                     GetConfigurationService());
-                messageService.SendCredentialRemovedNotice(user, cred);
+                messageService.SendCredentialRemovedNotice(user, _authenticationService.DescribeCredential(cred));
                 var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal(user.ToMailAddress(), message.To[0]);
@@ -675,9 +683,9 @@ namespace NuGetGallery
                 cred.User = user;
 
                 var messageService = TestableMessageService.Create(
-                    GetService<AuthenticationService>(),
+                    _authenticationService,
                     GetConfigurationService());
-                messageService.SendCredentialRemovedNotice(user, cred);
+                messageService.SendCredentialRemovedNotice(user, _authenticationService.DescribeCredential(cred));
                 var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal(user.ToMailAddress(), message.To[0]);
@@ -690,6 +698,13 @@ namespace NuGetGallery
         public class TheSendCredentialAddedNoticeMethod
             : TestContainer
         {
+            private AuthenticationService _authenticationService;
+
+            public TheSendCredentialAddedNoticeMethod()
+            {
+                _authenticationService = GetService<AuthenticationService>();
+            }
+
             [Fact]
             public void UsesProviderNounToDescribeCredentialIfPresent()
             {
@@ -698,9 +713,9 @@ namespace NuGetGallery
                 const string MicrosoftAccountCredentialName = "Microsoft account";
 
                 var messageService = TestableMessageService.Create(
-                    GetService<AuthenticationService>(),
+                    _authenticationService,
                     GetConfigurationService());
-                messageService.SendCredentialAddedNotice(user, cred);
+                messageService.SendCredentialAddedNotice(user, _authenticationService.DescribeCredential(cred));
                 var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal(user.ToMailAddress(), message.To[0]);
@@ -716,9 +731,9 @@ namespace NuGetGallery
                 var cred = new CredentialBuilder().CreatePasswordCredential("bogus");
 
                 var messageService = TestableMessageService.Create(
-                    GetService<AuthenticationService>(),
+                    _authenticationService,
                     GetConfigurationService());
-                messageService.SendCredentialAddedNotice(user, cred);
+                messageService.SendCredentialAddedNotice(user, _authenticationService.DescribeCredential(cred));
                 var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal(user.ToMailAddress(), message.To[0]);
@@ -736,9 +751,9 @@ namespace NuGetGallery
                 cred.User = user;
 
                 var messageService = TestableMessageService.Create(
-                    GetService<AuthenticationService>(),
+                    _authenticationService,
                     GetConfigurationService());
-                messageService.SendCredentialAddedNotice(user, cred);
+                messageService.SendCredentialAddedNotice(user, _authenticationService.DescribeCredential(cred));
                 var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal(user.ToMailAddress(), message.To[0]);
