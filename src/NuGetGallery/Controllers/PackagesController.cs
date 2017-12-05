@@ -904,7 +904,7 @@ namespace NuGetGallery
         public virtual ActionResult ContactOwners(string id, string version)
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
-            if (package == null)
+            if (package == null || package.PackageRegistration == null)
             {
                 return HttpNotFound();
             }

@@ -273,7 +273,7 @@ namespace NuGetGallery
                 Assert.Contains("[Joe Shmoe] Message for owners of the package 'smangit'", message.Subject);
                 Assert.Contains("Test message", message.Body);
                 Assert.Contains(
-                    "User flossy &lt;smangit@example.com&gt; sends the following message to the owners of Package 'smangit' 1.0.0.", message.Body);
+                    "User flossy &lt;smangit@example.com&gt; sends the following message to the owners of package 'smangit 1.0.0.'", message.Body);
             }
 
             [Fact]
