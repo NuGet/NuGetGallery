@@ -12,48 +12,6 @@ namespace NuGetGallery.Extensions
 {
     public class UserExtensionsFacts
     {
-        public class TheToMailAddressMethod
-        {
-            [Fact]
-            public void WhenUserIsNull_ThrowsArgumentNullException()
-            {
-                Assert.Throws<ArgumentNullException>(() =>
-                {
-                    UserExtensions.ToMailAddress(null);
-                });
-            }
-
-            [Fact]
-            public void WhenConfirmed_ReturnsEmailAddress()
-            {
-                // User.Confirmed is calculated property based on EmailAddress
-                var user = new User("confirmed")
-                {
-                    EmailAddress = "confirmed@example.com"
-                };
-
-                var mailAddress = user.ToMailAddress();
-
-                Assert.Equal("confirmed@example.com", mailAddress.Address);
-                Assert.Equal("confirmed", mailAddress.User);
-            }
-
-            [Fact]
-            public void WhenNotConfirmed_ReturnsUnconfirmedEmailAddress()
-            {
-                // User.Confirmed is calculated property based on EmailAddress
-                var user = new User("unconfirmed")
-                {
-                    UnconfirmedEmailAddress = "unconfirmed@example.com"
-                };
-
-                var mailAddress = user.ToMailAddress();
-
-                Assert.Equal("unconfirmed@example.com", mailAddress.Address);
-                Assert.Equal("unconfirmed", mailAddress.User);
-            }
-        }
-
         public class TheGetCurrentApiKeyCredentialMethod
         {
             [Fact]
