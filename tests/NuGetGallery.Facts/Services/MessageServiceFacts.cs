@@ -207,153 +207,209 @@ namespace NuGetGallery
             [Fact]
             public void WillCopySenderIfAsked()
             {
-                var from = new MailAddress("smangit@example.com", "flossy");
+                // arrange
+                var packageId = "smangit";
+                var packageVersion = "1.0.0";
+                var fromAddress = "smangit@example.com";
+                var fromName = "flossy";
+                var ownerAddress = "yung@example.com";
+                var ownerAddress2 = "flynt@example.com";
+
+                var from = new MailAddress(fromAddress, fromName);
                 var package = new Package
                 {
                     PackageRegistration = new PackageRegistration
                     {
-                        Id = "smangit",
+                        Id = packageId,
                         Owners = new[]
                         {
-                            new User { EmailAddress = "yung@example.com", EmailAllowed = true },
-                            new User { EmailAddress = "flynt@example.com", EmailAllowed = true }
+                            new User { EmailAddress = ownerAddress, EmailAllowed = true },
+                            new User { EmailAddress = ownerAddress2, EmailAllowed = true }
                         }
                     },
-                    Version = "1.0.0"
+                    Version = packageVersion
                 };
 
                 var messageService = TestableMessageService.Create(
                     GetService<AuthenticationService>(),
                     GetConfigurationService());
 
+                // act
                 messageService.SendContactOwnersMessage(from, package, "Test message", "http://someurl/", true);
-
                 var messages = messageService.MockMailSender.Sent;
+
+                // assert
                 Assert.Equal(2, messages.Count);
                 Assert.Equal(package.PackageRegistration.Owners.Count, messages[0].To.Count);
                 Assert.Equal(1, messages[1].To.Count);
-                Assert.Equal("yung@example.com", messages[0].To[0].Address);
-                Assert.Equal("flynt@example.com", messages[0].To[1].Address);
+                Assert.Equal(ownerAddress, messages[0].To[0].Address);
+                Assert.Equal(ownerAddress2, messages[0].To[1].Address);
                 Assert.Equal(messages[1].ReplyToList.Single(), messages[1].To.First());
                 Assert.Equal(TestGalleryOwner, messages[0].From);
                 Assert.Equal(TestGalleryOwner, messages[1].From);
-                Assert.Equal("smangit@example.com", messages[0].ReplyToList.Single().Address);
-                Assert.Equal("smangit@example.com", messages[1].ReplyToList.Single().Address);
+                Assert.Equal(fromAddress, messages[0].ReplyToList.Single().Address);
+                Assert.Equal(fromAddress, messages[1].ReplyToList.Single().Address);
             }
 
             [Fact]
             public void WillSendEmailToAllOwners()
             {
-                var from = new MailAddress("smangit@example.com", "flossy");
+                // arrange
+                var packageId = "smangit";
+                var packageVersion = "1.0.0";
+                var fromAddress = "smangit@example.com";
+                var fromName = "flossy";
+                var ownerAddress = "yung@example.com";
+                var ownerAddress2 = "flynt@example.com";
+                var messageText = "Test message";
+
+                var from = new MailAddress(fromAddress, fromName);
                 var package = new Package
                 {
                     PackageRegistration =new PackageRegistration
                     {
-                        Id = "smangit",
+                        Id = packageId,
                         Owners = new[]
                         {
-                            new User { EmailAddress = "yung@example.com", EmailAllowed = true },
-                            new User { EmailAddress = "flynt@example.com", EmailAllowed = true }
+                            new User { EmailAddress = ownerAddress, EmailAllowed = true },
+                            new User { EmailAddress = ownerAddress2, EmailAllowed = true }
                         }
                     },
-                    Version = "1.0.0"
+                    Version = packageVersion
                 };
 
                 var messageService = TestableMessageService.Create(
                     GetService<AuthenticationService>(),
                     GetConfigurationService());
 
-                messageService.SendContactOwnersMessage(from, package, "Test message", "http://someurl/", false);
+                // act
+                messageService.SendContactOwnersMessage(from, package, messageText, "http://someurl/", false);
                 var message = messageService.MockMailSender.Sent.Last();
 
-                Assert.Equal("yung@example.com", message.To[0].Address);
-                Assert.Equal("flynt@example.com", message.To[1].Address);
+                // assert
+                Assert.Equal(ownerAddress, message.To[0].Address);
+                Assert.Equal(ownerAddress2, message.To[1].Address);
                 Assert.Equal(TestGalleryOwner, message.From);
-                Assert.Equal("smangit@example.com", message.ReplyToList.Single().Address);
-                Assert.Contains("[Joe Shmoe] Message for owners of the package 'smangit'", message.Subject);
-                Assert.Contains("Test message", message.Body);
+                Assert.Equal(fromAddress, message.ReplyToList.Single().Address);
+                Assert.Contains($"[{TestGalleryOwner.DisplayName}] Message for owners of the package '{packageId}'", message.Subject);
+                Assert.Contains(messageText, message.Body);
                 Assert.Contains(
-                    "User flossy &lt;smangit@example.com&gt; sends the following message to the owners of package 'smangit 1.0.0.'", message.Body);
+                    $"User {fromName} &lt;{fromAddress}&gt; sends the following message to the owners of package '{packageId} {packageVersion}'.", message.Body);
             }
 
             [Fact]
             public void WillNotSendEmailToOwnerThatOptsOut()
             {
-                var from = new MailAddress("smangit@example.com", "flossy");
+                // arrange
+                var packageId = "smangit";
+                var packageVersion = "1.0.0";
+                var fromAddress = "smangit@example.com";
+                var fromName = "flossy";
+                var ownerAddress = "yung@example.com";
+                var ownerAddress2 = "flynt@example.com";
+                var messageText = "Test message";
+
+                var from = new MailAddress(fromAddress, fromName);
                 var package = new Package
                 {
                     PackageRegistration = new PackageRegistration
                     {
-                        Id = "smangit",
+                        Id = packageId,
                         Owners = new[]
                         {
-                            new User { EmailAddress = "yung@example.com", EmailAllowed = true },
-                            new User { EmailAddress = "flynt@example.com", EmailAllowed = false }
+                            new User { EmailAddress = ownerAddress, EmailAllowed = true },
+                            new User { EmailAddress = ownerAddress2, EmailAllowed = false }
                         }
                     },
-                    Version = "1.0.0"
+                    Version = packageVersion
                 };
 
                 var messageService = TestableMessageService.Create(
                     GetService<AuthenticationService>(),
                     GetConfigurationService());
 
-                messageService.SendContactOwnersMessage(from, package, "Test message", "http://someurl/", false);
+                // act
+                messageService.SendContactOwnersMessage(from, package, messageText, "http://someurl/", false);
                 var message = messageService.MockMailSender.Sent.Last();
 
-                Assert.Equal("yung@example.com", message.To[0].Address);
+                // assert
+                Assert.Equal(ownerAddress, message.To[0].Address);
                 Assert.Equal(1, message.To.Count);
             }
 
             [Fact]
             public void WillNotAttemptToSendIfNoOwnersAllow()
             {
-                var from = new MailAddress("smangit@example.com", "flossy");
+                // arrange
+                var packageId = "smangit";
+                var packageVersion = "1.0.0";
+                var fromAddress = "smangit@example.com";
+                var fromName = "flossy";
+                var ownerAddress = "yung@example.com";
+                var ownerAddress2 = "flynt@example.com";
+                var messageText = "Test message";
+
+                var from = new MailAddress(fromAddress, fromName);
                 var package = new Package
                 {
                     PackageRegistration = new PackageRegistration
                     {
-                        Id = "smangit",
+                        Id = packageId,
                         Owners = new[]
                         {
-                            new User {EmailAddress = "yung@example.com", EmailAllowed = false},
-                            new User {EmailAddress = "flynt@example.com", EmailAllowed = false}
+                            new User { EmailAddress = ownerAddress, EmailAllowed = false },
+                            new User { EmailAddress = ownerAddress2, EmailAllowed = false }
                         }
                     },
-                    Version = "1.0.0"
+                    Version = packageVersion
                 };
 
                 var messageService = TestableMessageService.Create(
                     GetService<AuthenticationService>(),
                     GetConfigurationService());
-                messageService.SendContactOwnersMessage(from, package, "Test message", "http://someurl/", false);
 
+                // act
+                messageService.SendContactOwnersMessage(from, package, messageText, "http://someurl/", false);
+
+                // assert
                 Assert.Empty(messageService.MockMailSender.Sent);
             }
 
             [Fact]
             public void WillNotCopySenderIfNoOwnersAllow()
             {
-                var from = new MailAddress("smangit@example.com", "flossy");
+                // arrange
+                var packageId = "smangit";
+                var packageVersion = "1.0.0";
+                var fromAddress = "smangit@example.com";
+                var fromName = "flossy";
+                var ownerAddress = "yung@example.com";
+                var ownerAddress2 = "flynt@example.com";
+                var messageText = "Test message";
+
+                var from = new MailAddress(fromAddress, fromName);
                 var package = new Package
                 {
                     PackageRegistration = new PackageRegistration
                     {
-                        Id = "smangit",
+                        Id = packageId,
                         Owners = new[]
                         {
-                            new User { EmailAddress = "yung@example.com", EmailAllowed = false },
-                            new User { EmailAddress = "flynt@example.com", EmailAllowed = false }
+                            new User { EmailAddress = ownerAddress, EmailAllowed = false },
+                            new User { EmailAddress = ownerAddress2, EmailAllowed = false }
                         }
                     },
-                    Version = "1.0.0"
+                    Version = packageVersion
                 };
 
                 var messageService = TestableMessageService.Create(
                     GetService<AuthenticationService>(),
                     GetConfigurationService());
-                messageService.SendContactOwnersMessage(from, package, "Test message", "http://someurl/", false);
 
+                // act
+                messageService.SendContactOwnersMessage(from, package, messageText, "http://someurl/", false);
+
+                // assert
                 Assert.Empty(messageService.MockMailSender.Sent);
             }
         }
