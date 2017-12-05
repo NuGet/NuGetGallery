@@ -9,7 +9,7 @@ namespace NuGetGallery.Infrastructure.Authentication
     {
         Credential CreatePasswordCredential(string plaintextPassword);
 
-        Credential CreateApiKey(TimeSpan? expiration);
+        Credential CreateApiKey(TimeSpan? expiration, out string plaintextApiKey);
 
         Credential CreatePackageVerificationApiKey(Credential originalApiKey, string id);
 

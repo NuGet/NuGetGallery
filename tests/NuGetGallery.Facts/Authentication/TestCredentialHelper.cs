@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Web.Helpers;
+using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Services.Authentication;
 
 namespace NuGetGallery.Authentication
@@ -35,6 +36,15 @@ namespace NuGetGallery.Authentication
         public static Credential CreateV2ApiKey(Guid apiKey, TimeSpan? expiration)
         {
             return CreateApiKey(CredentialTypes.ApiKey.V2, apiKey.ToString(), expiration);
+        }
+
+        public static Credential CreateV4ApiKey(TimeSpan? expiration, out string plaintextApiKey)
+        {
+            var apiKey = ApiKeyV4.Create();
+
+            plaintextApiKey = apiKey.PlaintextApiKey;
+
+            return CreateApiKey(CredentialTypes.ApiKey.V4, apiKey.HashedApiKey, expiration);
         }
 
         public static Credential WithDefaultScopes(this Credential credential)

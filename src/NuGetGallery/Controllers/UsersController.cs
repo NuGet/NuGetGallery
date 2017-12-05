@@ -402,7 +402,7 @@ namespace NuGetGallery
             if (credential != null && !forgot)
             {
                 // Setting a password, so notify the user
-                _messageService.SendCredentialAddedNotice(credential.User, credential);
+                _messageService.SendCredentialAddedNotice(credential.User, _authService.DescribeCredential(credential));
             }
 
             return RedirectToAction(
@@ -665,7 +665,7 @@ namespace NuGetGallery
                 return Json(Strings.Unsupported);
             }
            
-            var newCredential = await GenerateApiKeyInternal(
+            var newCredentialViewModel = await GenerateApiKeyInternal(
                 cred.Description,
                 BuildScopes(cred.Scopes),
                 cred.ExpirationTicks.HasValue
@@ -673,10 +673,7 @@ namespace NuGetGallery
 
             await _authService.RemoveCredential(user, cred);
 
-            var credentialViewModel = _authService.DescribeCredential(newCredential);
-            credentialViewModel.Value = newCredential.Value;
-
-            return Json(new ApiKeyViewModel(credentialViewModel));
+            return Json(new ApiKeyViewModel(newCredentialViewModel));
         }
 
         private static bool CredentialKeyMatches(int? credentialKey, Credential c)
@@ -734,14 +731,11 @@ namespace NuGetGallery
                 }
             }
 
-            var newCredential = await GenerateApiKeyInternal(description, resolvedScopes, expiration);
+            var newCredentialViewModel = await GenerateApiKeyInternal(description, resolvedScopes, expiration);
 
-            var credentialViewModel = _authService.DescribeCredential(newCredential);
-            credentialViewModel.Value = newCredential.Value;
+            _messageService.SendCredentialAddedNotice(GetCurrentUser(), newCredentialViewModel);
 
-            _messageService.SendCredentialAddedNotice(GetCurrentUser(), newCredential);
-
-            return Json(new ApiKeyViewModel(credentialViewModel));
+            return Json(new ApiKeyViewModel(newCredentialViewModel));
         }
 
         [Authorize]
@@ -777,18 +771,21 @@ namespace NuGetGallery
             return Json(new ApiKeyViewModel(credentialViewModel));
         }
 
-        private async Task<Credential> GenerateApiKeyInternal(string description, ICollection<Scope> scopes, TimeSpan? expiration)
+        private async Task<CredentialViewModel> GenerateApiKeyInternal(string description, ICollection<Scope> scopes, TimeSpan? expiration)
         {
             var user = GetCurrentUser();
 
             // Create a new API Key credential, and save to the database
-            var newCredential = _credentialBuilder.CreateApiKey(expiration);
+            var newCredential = _credentialBuilder.CreateApiKey(expiration, out string plaintextApiKey);
             newCredential.Description = description;
             newCredential.Scopes = scopes;
 
             await _authService.AddCredential(user, newCredential);
 
-            return newCredential;
+            var credentialViewModel = _authService.DescribeCredential(newCredential);
+            credentialViewModel.Value = plaintextApiKey;
+
+            return credentialViewModel;
         }
 
         // todo: integrate verification logic into PermissionsService.
@@ -859,7 +856,7 @@ namespace NuGetGallery
             await _authService.RemoveCredential(user, cred);
 
             // Notify the user of the change
-            _messageService.SendCredentialRemovedNotice(user, cred);
+            _messageService.SendCredentialRemovedNotice(user, _authService.DescribeCredential(cred));
 
             return Json(Strings.CredentialRemoved);
         }
@@ -883,7 +880,7 @@ namespace NuGetGallery
                 await _authService.RemoveCredential(user, cred);
 
                 // Notify the user of the change
-                _messageService.SendCredentialRemovedNotice(user, cred);
+                _messageService.SendCredentialRemovedNotice(user, _authService.DescribeCredential(cred));
 
                 TempData["Message"] = message;
             }

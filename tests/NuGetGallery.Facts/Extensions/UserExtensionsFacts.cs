@@ -2,8 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Security.Claims;
 using NuGetGallery.Authentication;
+using NuGetGallery.Framework;
 using Xunit;
 
 namespace NuGetGallery.Extensions
@@ -64,25 +66,28 @@ namespace NuGetGallery.Extensions
             }
 
             [Theory]
-            [InlineData("apikey.v2")]
-            [InlineData("apikey.verify.v1")]
+            [InlineData(CredentialTypes.ApiKey.V1)]
+            [InlineData(CredentialTypes.ApiKey.V2)]
+            [InlineData(CredentialTypes.ApiKey.V4)]
+            [InlineData(CredentialTypes.ApiKey.VerifyV1)]
             public void ReturnsApiKeyMatchingClaim(string credentialType)
             {
                 // Arrange
-                var user = new User("testuser");
-                user.Credentials.Add(new Credential(CredentialTypes.ApiKey.V2, "A"));
-                user.Credentials.Add(new Credential(credentialType, "B"));
+                var fakes = new Fakes();
+                var user = fakes.User;
+
+                var credential = user.Credentials.First(c => c.Type == credentialType);
 
                 var identity = AuthenticationService.CreateIdentity(
-                    new User("testuser"),
+                    new User(user.Username),
                     AuthenticationTypes.ApiKey,
-                    new Claim(NuGetClaims.ApiKey, "B"));
+                    new Claim(NuGetClaims.ApiKey, credential.Value));
 
                 // Act
-                var credential = user.GetCurrentApiKeyCredential(identity);
+                var result = user.GetCurrentApiKeyCredential(identity);
 
                 // Assert
-                Assert.Equal("B", credential.Value);
+                Assert.Equal(credential.Value, result.Value);
             }
 
             [Fact]

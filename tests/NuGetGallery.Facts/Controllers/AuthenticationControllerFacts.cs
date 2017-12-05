@@ -296,7 +296,8 @@ namespace NuGetGallery.Controllers
                     .Completes()
                     .Verifiable();
                 GetMock<IMessageService>()
-                    .Setup(x => x.SendCredentialAddedNotice(authUser.User, externalCred))
+                    .Setup(x => x.SendCredentialAddedNotice(authUser.User, 
+                                                            It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.ExternalPrefix + "MicrosoftAccount")))
                     .Verifiable();
 
                 var controller = GetController<AuthenticationController>();
@@ -364,7 +365,8 @@ namespace NuGetGallery.Controllers
                     .Verifiable();
 
                 GetMock<IMessageService>()
-                    .Setup(x => x.SendCredentialAddedNotice(authUser.User, externalCred))
+                    .Setup(x => x.SendCredentialAddedNotice(authUser.User,
+                                                            It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.ExternalPrefix + providerUsedForLogin)))
                     .Verifiable();
 
                 EnableAllAuthenticators(Get<AuthenticationService>());
