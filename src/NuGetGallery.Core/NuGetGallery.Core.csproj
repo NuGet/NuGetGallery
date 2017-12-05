@@ -131,6 +131,7 @@
     <Compile Include="Auditing\AuditingService.cs" />
     <Compile Include="Auditing\AuditRecord.cs" />
     <Compile Include="Auditing\FailedAuthenticatedOperationAuditRecord.cs" />
+    <Compile Include="Auditing\PIIUtil.cs" />
     <Compile Include="Auditing\ReservedNamespaceAuditRecord.cs" />
     <Compile Include="Auditing\UserSecurityPolicyAuditRecord.cs" />
     <Compile Include="Auditing\FileSystemAuditingService.cs" />
@@ -198,6 +199,7 @@
     <Compile Include="Entities\User.cs" />
     <Compile Include="ICloudStorageStatusDependency.cs" />
     <Compile Include="Infrastructure\AzureEntityList.cs" />
+    <Compile Include="Infrastructure\ElmahException.cs" />
     <Compile Include="Infrastructure\TableErrorLog.cs" />
     <Compile Include="Authentication\NuGetClaims.cs" />
     <Compile Include="PackageReaderCoreExtensions.cs" />

@@ -54,7 +54,7 @@ namespace NuGetGallery
             if(IsPIIOperation(telemetryItem.Context.Operation.Name))
             {
                 // The new url form will be: https://nuget.org/HiddenUserName
-                return new Uri($"{telemetryItem.Url.Scheme}://{telemetryItem.Url.Host}/{DefaultTelemetryUserName}");
+                return new Uri(DefaultObfuscatedUrl(telemetryItem.Url));
             }
             return telemetryItem.Url;
         }
@@ -68,6 +68,11 @@ namespace NuGetGallery
             // Remove the verb from the operation name.
             // An example of operationName : GET Users/Profiles
             return PiiActions.Contains(operationName.Split(' ').Last());
+        }
+
+        internal static string DefaultObfuscatedUrl(Uri url)
+        {
+            return url == null ? string.Empty : $"{url.Scheme}://{url.Host}/{DefaultTelemetryUserName}";
         }
     }
 }

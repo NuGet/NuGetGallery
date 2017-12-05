@@ -181,9 +181,27 @@ namespace NuGetGallery.Infrastructure
 
             public override string Log(Error error)
             {
+                Obfuscate(error);
                 var entity = new ErrorEntity(error);
                 long pos = _entityList.Add(entity);
                 return pos.ToString(CultureInfo.InvariantCulture);
             }
-        }
+
+            private void Obfuscate(Error error)
+            {
+                error.ServerVariables["AUTH_USER"] = string.Empty;
+                error.ServerVariables["LOGON_USER"] = string.Empty;
+                error.ServerVariables["REMOTE_USER"] = string.Empty;
+
+                error.ServerVariables["REMOTE_ADDR"] = PIIUtil.ObfuscateIp(error.ServerVariables["REMOTE_ADDR"]);
+                error.ServerVariables["REMOTE_HOST"] = PIIUtil.ObfuscateIp(error.ServerVariables["REMOTE_HOST"]);
+                error.ServerVariables["LOCAL_ADDR"] = PIIUtil.ObfuscateIp(error.ServerVariables["LOCAL_ADDR"]);
+
+                var piiServerVaribles = ((ElmahException)error.Exception).ServerVariables;
+                foreach (var key in piiServerVaribles.Keys)
+                {
+                    error.ServerVariables[key] = piiServerVaribles[key];
+                }
+            }
+    }
 }

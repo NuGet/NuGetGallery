@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Web;
+using System.Web.Routing;
 using Elmah;
 
 namespace NuGetGallery
@@ -41,9 +42,11 @@ namespace NuGetGallery
         {
             try
             {
-                if (HttpContext.Current != null)
+                var currentHttpContext = HttpContext.Current;
+                if (currentHttpContext != null)
                 {
-                    ErrorSignal.FromCurrentContext().Raise(e);
+                    ElmahException elmahException = new ElmahException(e, GetObfuscatedServerVariables(new HttpContextWrapper(currentHttpContext)));
+                    ErrorSignal.FromCurrentContext().Raise(elmahException);
                 }
                 else
                 {
@@ -60,6 +63,38 @@ namespace NuGetGallery
             {
                 // logging failed, don't allow exception to escape
             }
+        }
+
+        internal static bool IsPIIRoute(RouteData route, out string operation)
+        {
+            if(route == null)
+            {
+                operation = string.Empty;
+                return false;
+            }
+            operation = $"{route.Values["controller"]}/{route.Values["action"]}";
+            return ClientTelemetryPIIProcessor.PiiActions.Contains(operation);
+        }
+
+        internal static Dictionary<string, string> GetObfuscatedServerVariables(HttpContextBase currentContext)
+        {
+            string operation = string.Empty;
+            if(currentContext == null ||
+               currentContext.Request == null ||
+               currentContext.Request.RequestContext == null ||
+               !IsPIIRoute(currentContext.Request.RequestContext.RouteData, out operation))
+            {
+                return null;
+            }
+            Dictionary<string, string> obfuscatedServerVariables = new Dictionary<string, string>();
+            var obfuscatedURL = ClientTelemetryPIIProcessor.DefaultObfuscatedUrl(currentContext.Request.Url);
+            obfuscatedServerVariables.Add("HTTP_REFERER", obfuscatedURL);
+            obfuscatedServerVariables.Add("PATH_INFO", operation);
+            obfuscatedServerVariables.Add("PATH_TRANSLATED", operation);
+            obfuscatedServerVariables.Add("SCRIPT_NAME", operation);
+            obfuscatedServerVariables.Add("URL", obfuscatedURL);
+
+            return obfuscatedServerVariables;
         }
     }
 }
