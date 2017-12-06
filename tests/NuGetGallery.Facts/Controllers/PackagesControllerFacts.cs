@@ -306,7 +306,7 @@ namespace NuGetGallery
 
             [Theory]
             [MemberData(nameof(GivenAValidatingPackage_Data))]
-            public async Task GivenAValidatingPackageWhileLoggedOutDoesNotOwnThenHideIt(PackageStatus packageStatus)
+            public async Task GivenAValidatingPackageWhileLoggedOutThenHideIt(PackageStatus packageStatus)
             {
                 // Arrange & Act
                 var result = await GetActionResultForPackageStatusAsync(

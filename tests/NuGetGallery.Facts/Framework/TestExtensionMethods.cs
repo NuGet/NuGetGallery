@@ -57,6 +57,9 @@ namespace NuGetGallery
         {
             if (user == null)
             {
+                // Reset the current user
+                self.OwinContext.Request.User = null;
+                self.OwinContext.Environment.Remove(Constants.CurrentUserOwinEnvironmentKey);
                 return;
             }
 
