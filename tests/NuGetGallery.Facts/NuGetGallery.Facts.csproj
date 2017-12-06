@@ -41,10 +41,8 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="AnglicanGeek.MarkdownMailer, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\AnglicanGeek.MarkdownMailer.1.2\lib\net40\AnglicanGeek.MarkdownMailer.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="AnglicanGeek.MarkdownMailer, Version=1.2.0.0, Culture=neutral, PublicKeyToken=f32adc156e6c65f2, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\AnglicanGeek.MarkdownMailer.StrongName.1.2.0\lib\net40\AnglicanGeek.MarkdownMailer.dll</HintPath>
     </Reference>
     <Reference Include="Autofac, Version=3.5.0.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -78,10 +76,8 @@
       <HintPath>..\..\packages\Lucene.Net.3.0.3\lib\NET40\Lucene.Net.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="MarkdownSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\MarkdownSharp.1.13.0.0\lib\35\MarkdownSharp.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="MarkdownSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=db5eab8f88aa1509, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\MarkdownSharp.StrongName.1.13.0\lib\35\MarkdownSharp.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.ApplicationInsights, Version=2.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Microsoft.ApplicationInsights.2.2.0\lib\net46\Microsoft.ApplicationInsights.dll</HintPath>
@@ -541,6 +537,7 @@
     <Compile Include="ViewModels\ListPackageItemViewModelFacts.cs" />
     <Compile Include="ViewModels\PackageViewModelFacts.cs" />
     <Compile Include="ViewModels\PreviousNextPagerViewModelFacts.cs" />
+    <Compile Include="ViewModels\UserProfileModelFacts.cs" />
     <Compile Include="Views\UrlHelperFacts.cs" />
   </ItemGroup>
   <ItemGroup>

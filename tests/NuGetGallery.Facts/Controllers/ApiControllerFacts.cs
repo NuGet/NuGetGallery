@@ -14,6 +14,7 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet.Packaging;
 using NuGetGallery.Auditing;
@@ -669,8 +670,11 @@ namespace NuGetGallery
                 package.PackageRegistration = new PackageRegistration();
                 package.Version = "1.0.42";
 
+                var credential = TestCredentialHelper.CreateV4ApiKey(expiration: null, plaintextApiKey: out string plaintextApiKey);
+                credential.Scopes = JsonConvert.DeserializeObject<List<Scope>>(apiKeyScopes);
+
                 var controller = new TestableApiController(GetConfigurationService());
-                controller.SetCurrentUser(user, apiKeyScopes);
+                controller.SetCurrentUser(user, credential);
                 controller.SetupPackageFromInputStream(nuGetPackage);
                 controller.MockPackageUploadService
                     .Setup(x => x.GeneratePackageAsync(
@@ -723,8 +727,11 @@ namespace NuGetGallery
 
                 var user = new User { EmailAddress = "confirmed@email.com", Username = "username", Key = 1 };
 
+                var credential = TestCredentialHelper.CreateV4ApiKey(expiration: null, plaintextApiKey: out string plaintextApiKey);
+                credential.Scopes = JsonConvert.DeserializeObject<List<Scope>>(apiKeyScopes);
+
                 var controller = new TestableApiController(GetConfigurationService());
-                controller.SetCurrentUser(user, apiKeyScopes);
+                controller.SetCurrentUser(user, credential);
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
                 var packageRegistration = new PackageRegistration();
@@ -847,8 +854,11 @@ namespace NuGetGallery
                     }
                 };
 
+                var credential = TestCredentialHelper.CreateV4ApiKey(expiration: null, plaintextApiKey: out string plaintextApiKey);
+                credential.Scopes = JsonConvert.DeserializeObject<List<Scope>>(apiKeyScope);
+
                 var controller = new TestableApiController(GetConfigurationService());
-                controller.SetCurrentUser(owner, apiKeyScope);
+                controller.SetCurrentUser(owner, credential);
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict("theId", "1.0.42"))
                     .Returns(package);
 
@@ -1166,14 +1176,14 @@ namespace NuGetGallery
         {
             internal TestableApiController SetupController(string keyType, string scopes, Package package, bool isOwner = true)
             {
-                var credential = new Credential(keyType, string.Empty, TimeSpan.FromDays(1));
+                var fakes = Get<Fakes>();
+                var user = fakes.User;
+                var credential = user.Credentials.First(c => c.Type == keyType);
+
                 if (!string.IsNullOrWhiteSpace(scopes))
                 {
-                    credential.Scopes.AddRange(Newtonsoft.Json.JsonConvert.DeserializeObject<List<Scope>>(scopes));
+                    credential.Scopes = JsonConvert.DeserializeObject<List<Scope>>(scopes);
                 }
-
-                var user = Get<Fakes>().CreateUser("testuser");
-                user.Credentials.Add(credential);
 
                 if (package != null && isOwner)
                 {
@@ -1198,7 +1208,7 @@ namespace NuGetGallery
                     .Setup(s => s.FindPackageByIdAndVersion(id, version, SemVerLevelKey.SemVer2, true))
                     .Returns(package);
 
-                controller.SetCurrentUser(user, scopes);
+                controller.SetCurrentUser(user, credential);
 
                 return controller;
             }
@@ -1244,7 +1254,7 @@ namespace NuGetGallery
             private async Task<Scope> InvokeAsync(string scope)
             {
                 // Arrange
-                var controller = SetupController(CredentialTypes.ApiKey.V2, scope, package: null);
+                var controller = SetupController(CredentialTypes.ApiKey.V4, scope, package: null);
 
                 // Act
                 var jsonResult = await controller.CreatePackageVerificationKeyAsync("foo", "1.0.0") as JsonResult;
@@ -1281,7 +1291,7 @@ namespace NuGetGallery
             public async Task VerifyPackageKeyAsync_Returns400IfSecurityPolicyFails()
             {
                 // Arrange
-                var controller = SetupController(CredentialTypes.ApiKey.V2, "", package: null);
+                var controller = SetupController(CredentialTypes.ApiKey.V4, "", package: null);
                 controller.MockSecurityPolicyService.Setup(s => s.EvaluateAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>()))
                     .Returns(Task.FromResult(SecurityPolicyResult.CreateErrorResult("A")));
 
@@ -1293,13 +1303,13 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData("")]
-            [InlineData("[{\"a\":\"package:push\", \"s\":\"foo\"}]")]
-            [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"foo\"}]")]
-            public async Task VerifyPackageKeyAsync_Returns404IfPackageDoesNotExist_ApiKeyV2(string scope)
+            [InlineData(CredentialTypes.ApiKey.V1, "")]
+            [InlineData(CredentialTypes.ApiKey.V2, "[{\"a\":\"package:push\", \"s\":\"foo\"}]")]
+            [InlineData(CredentialTypes.ApiKey.V4, "[{\"a\":\"package:pushversion\", \"s\":\"foo\"}]")]
+            public async Task VerifyPackageKeyAsync_Returns404IfPackageDoesNotExist_ApiKey(string apiKeyType, string scope)
             {
                 // Arrange
-                var controller = SetupController(CredentialTypes.ApiKey.V2, scope, package: null);
+                var controller = SetupController(apiKeyType, scope, package: null);
 
                 // Act
                 var result = await controller.VerifyPackageKeyAsync("foo", "1.0.0");
@@ -1339,10 +1349,10 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData("")]
-            [InlineData("[{\"a\":\"package:push\", \"s\":\"foo\"}]")]
-            [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"foo\"}]")]
-            public async Task VerifyPackageKeyAsync_Returns403IfUserIsNotAnOwner_ApiKeyV2(string scope)
+            [InlineData(CredentialTypes.ApiKey.V1, "")]
+            [InlineData(CredentialTypes.ApiKey.V2, "[{\"a\":\"package:push\", \"s\":\"foo\"}]")]
+            [InlineData(CredentialTypes.ApiKey.V4, "[{\"a\":\"package:pushversion\", \"s\":\"foo\"}]")]
+            public async Task VerifyPackageKeyAsync_Returns403IfUserIsNotAnOwner_ApiKey(string apiKeyType, string scope)
             {
                 // Arrange
                 var package = new Package
@@ -1350,7 +1360,7 @@ namespace NuGetGallery
                     PackageRegistration = new PackageRegistration() { Id = "foo" },
                     Version = "1.0.0"
                 };
-                var controller = SetupController(CredentialTypes.ApiKey.V2, scope, package, isOwner: false);
+                var controller = SetupController(apiKeyType, scope, package, isOwner: false);
 
                 // Act
                 var result = await controller.VerifyPackageKeyAsync("foo", "1.0.0");
@@ -1396,12 +1406,12 @@ namespace NuGetGallery
 
             [Theory]
             // action mismatch
-            [InlineData("[{\"a\":\"package:unlist\", \"s\":\"foo\"}]")]
-            [InlineData("[{\"a\":\"package:verify\", \"s\":\"foo\"}]")]
+            [InlineData(CredentialTypes.ApiKey.V2, "[{\"a\":\"package:unlist\", \"s\":\"foo\"}]")]
+            [InlineData(CredentialTypes.ApiKey.V4, "[{\"a\":\"package:verify\", \"s\":\"foo\"}]")]
             // subject mismatch
-            [InlineData("[{\"a\":\"package:push\", \"s\":\"notfoo\"}]")]
-            [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"notfoo\"}]")]
-            public async Task VerifyPackageKeyAsync_Returns403IfScopeDoesNotMatch_ApiKeyV2(string scope)
+            [InlineData(CredentialTypes.ApiKey.V2, "[{\"a\":\"package:push\", \"s\":\"notfoo\"}]")]
+            [InlineData(CredentialTypes.ApiKey.V4, "[{\"a\":\"package:pushversion\", \"s\":\"notfoo\"}]")]
+            public async Task VerifyPackageKeyAsync_Returns403IfScopeDoesNotMatch_ApiKey(string apiKeyType, string scope)
             {
                 // Arrange
                 var package = new Package
@@ -1409,7 +1419,7 @@ namespace NuGetGallery
                     PackageRegistration = new PackageRegistration() { Id = "foo" },
                     Version = "1.0.0"
                 };
-                var controller = SetupController(CredentialTypes.ApiKey.V2, scope, package);
+                var controller = SetupController(apiKeyType, scope, package);
 
                 // Act
                 var result = await controller.VerifyPackageKeyAsync("foo", "1.0.0");
@@ -1459,10 +1469,10 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData("")]
-            [InlineData("[{\"a\":\"package:push\", \"s\":\"foo\"}]")]
-            [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"foo\"}]")]
-            public async Task VerifyPackageKeyAsync_Returns200IfApiKeyWithPushCapability_ApiKeyV2(string scope)
+            [InlineData(CredentialTypes.ApiKey.V1, "")]
+            [InlineData(CredentialTypes.ApiKey.V2, "[{\"a\":\"package:push\", \"s\":\"foo\"}]")]
+            [InlineData(CredentialTypes.ApiKey.V4, "[{\"a\":\"package:pushversion\", \"s\":\"foo\"}]")]
+            public async Task VerifyPackageKeyAsync_Returns200IfApiKeyWithPushCapability_ApiKey(string apiKeyType, string scope)
             {
                 // Arrange
                 var package = new Package
@@ -1470,7 +1480,7 @@ namespace NuGetGallery
                     PackageRegistration = new PackageRegistration() { Id = "foo" },
                     Version = "1.0.0"
                 };
-                var controller = SetupController(CredentialTypes.ApiKey.V2, scope, package);
+                var controller = SetupController(apiKeyType, scope, package);
 
                 // Act
                 var result = await controller.VerifyPackageKeyAsync("foo", "1.0.0");
@@ -1517,7 +1527,7 @@ namespace NuGetGallery
                     PackageRegistration = new PackageRegistration() { Id = "foo" },
                     Version = "1.0.0"
                 };
-                var controller = SetupController(CredentialTypes.ApiKey.V2, "", package);
+                var controller = SetupController(CredentialTypes.ApiKey.V4, "", package);
 
                 // Act
                 var result = await controller.VerifyPackageKeyAsync("foo", "1.0.0");

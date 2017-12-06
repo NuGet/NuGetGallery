@@ -8,7 +8,6 @@ using System.Net.Mail;
 using System.Text;
 using System.Web;
 using AnglicanGeek.MarkdownMailer;
-using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Services;
 
@@ -20,10 +19,9 @@ namespace NuGetGallery
         {
         }
 
-        public MessageService(IMailSender mailSender, IAppConfiguration config, AuthenticationService authService)
+        public MessageService(IMailSender mailSender, IAppConfiguration config)
             : base(mailSender, config)
         {
-            AuthService = authService;
         }
 
         public IAppConfiguration Config
@@ -31,7 +29,6 @@ namespace NuGetGallery
             get { return (IAppConfiguration)CoreConfiguration; }
             set { CoreConfiguration = value; }
         }
-        public AuthenticationService AuthService { get; protected set; }
 
         public void ReportAbuse(ReportPackageRequest request)
         {
@@ -449,13 +446,13 @@ The {3} Team";
             }
         }
 
-        public void SendCredentialRemovedNotice(User user, Credential removed)
+        public void SendCredentialRemovedNotice(User user, CredentialViewModel removedCredentialViewModel)
         {
-            if (CredentialTypes.IsApiKey(removed.Type))
+            if (CredentialTypes.IsApiKey(removedCredentialViewModel.Type))
             {
                 SendApiKeyChangeNotice(
                     user,
-                    removed,
+                    removedCredentialViewModel,
                     Strings.Emails_ApiKeyRemoved_Body,
                     Strings.Emails_CredentialRemoved_Subject);
             }
@@ -463,20 +460,20 @@ The {3} Team";
             {
                 SendCredentialChangeNotice(
                     user,
-                    removed,
+                    removedCredentialViewModel,
                     Strings.Emails_CredentialRemoved_Body,
                     Strings.Emails_CredentialRemoved_Subject);
             }
             
         }
 
-        public void SendCredentialAddedNotice(User user, Credential added)
+        public void SendCredentialAddedNotice(User user, CredentialViewModel addedCrdentialViewModel)
         {
-            if (CredentialTypes.IsApiKey(added.Type))
+            if (CredentialTypes.IsApiKey(addedCrdentialViewModel.Type))
             {
                 SendApiKeyChangeNotice(
                     user,
-                    added,
+                    addedCrdentialViewModel,
                     Strings.Emails_ApiKeyAdded_Body,
                     Strings.Emails_CredentialAdded_Subject);
             }
@@ -484,20 +481,18 @@ The {3} Team";
             {
                 SendCredentialChangeNotice(
                     user,
-                    added,
+                    addedCrdentialViewModel,
                     Strings.Emails_CredentialAdded_Body,
                     Strings.Emails_CredentialAdded_Subject);
             }
         }
 
-        private void SendApiKeyChangeNotice(User user, Credential changed, string bodyTemplate, string subjectTemplate)
+        private void SendApiKeyChangeNotice(User user, CredentialViewModel changedCredentialViewModel, string bodyTemplate, string subjectTemplate)
         {
-            var credViewModel = AuthService.DescribeCredential(changed);
-
             string body = String.Format(
                 CultureInfo.CurrentCulture,
                 bodyTemplate,
-                credViewModel.Description);
+                changedCredentialViewModel.Description);
 
             string subject = String.Format(
                 CultureInfo.CurrentCulture,
@@ -508,11 +503,10 @@ The {3} Team";
             SendSupportMessage(user, body, subject);
         }
 
-        private void SendCredentialChangeNotice(User user, Credential changed, string bodyTemplate, string subjectTemplate)
+        private void SendCredentialChangeNotice(User user, CredentialViewModel changedCredentialViewModel, string bodyTemplate, string subjectTemplate)
         {
             // What kind of credential is this?
-            var credViewModel = AuthService.DescribeCredential(changed);
-            string name = credViewModel.AuthUI == null ? credViewModel.TypeCaption : credViewModel.AuthUI.AccountNoun;
+            string name = changedCredentialViewModel.AuthUI == null ? changedCredentialViewModel.TypeCaption : changedCredentialViewModel.AuthUI.AccountNoun;
 
             string body = String.Format(
                 CultureInfo.CurrentCulture,

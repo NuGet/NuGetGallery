@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Owin;
 using Moq;
+using Newtonsoft.Json;
 using NuGetGallery.Authentication;
 
 namespace NuGetGallery
@@ -19,17 +20,17 @@ namespace NuGetGallery
         /// does NOT use AppController.GetCurrentUser()! In those cases, use
         /// TestExtensionMethods.SetCurrentUser(AppController, User) instead.
         /// </summary>
-        public static void SetOwinContextCurrentUser(this AppController self, User user, string scopes = null)
+        public static void SetOwinContextCurrentUser(this AppController self, User user, Credential credential = null)
         {
             ClaimsIdentity identity = null;
 
-            if (scopes != null)
+            if (credential != null)
             {
                 identity = AuthenticationService.CreateIdentity(
                     user,
                     AuthenticationTypes.ApiKey,
-                    new Claim(NuGetClaims.ApiKey, string.Empty),
-                    new Claim(NuGetClaims.Scope, scopes));
+                    new Claim(NuGetClaims.ApiKey, credential.Value),
+                    new Claim(NuGetClaims.Scope, JsonConvert.SerializeObject(credential.Scopes, Formatting.None)));
             }
             else
             {
@@ -46,9 +47,9 @@ namespace NuGetGallery
             self.OwinContext.Request.User = principal;
         }
 
-        public static void SetCurrentUser(this AppController self, User user, string scopes = null)
+        public static void SetCurrentUser(this AppController self, User user, Credential credential = null)
         {
-            SetOwinContextCurrentUser(self, user, scopes);
+            SetOwinContextCurrentUser(self, user, credential);
             self.OwinContext.Environment[Constants.CurrentUserOwinEnvironmentKey] = user;
         }
 
