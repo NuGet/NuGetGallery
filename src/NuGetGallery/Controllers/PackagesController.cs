@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Entity;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -431,6 +432,13 @@ namespace NuGetGallery
                 .OrderByDescending(p => new NuGetVersion(p.Version));
 
             var model = new DisplayPackageViewModel(package, packageHistory);
+
+            var validationIssues = await _validationService.GetLatestValidationIssuesAsync(package);
+
+            model.ValidationIssues = validationIssues
+                                        .Select(i => i.GetMessage())
+                                        .Distinct()
+                                        .ToList();
 
             var isReadMePending = false;
             if (PermissionsService.IsActionAllowed(package, User, PackageActions.Edit))

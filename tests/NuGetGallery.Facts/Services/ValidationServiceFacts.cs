@@ -3,6 +3,7 @@
 
 using System.Threading.Tasks;
 using Moq;
+using NuGet.Services.Validation;
 using Xunit;
 
 namespace NuGetGallery
@@ -95,9 +96,12 @@ namespace NuGetGallery
 
                 _package = new Package();
 
+                var validationContext = new Mock<IValidationEntitiesContext>();
+
                 _target = new ValidationService(
                     _packageService.Object,
-                    _initiator.Object);
+                    _initiator.Object,
+                    validationContext.Object);
             }
         }
     }
