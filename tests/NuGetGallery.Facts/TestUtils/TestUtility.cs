@@ -27,7 +27,7 @@ namespace NuGetGallery
 
         public static readonly string FakeAdminName = "theAdmin";
         public static readonly int FakeAdminKey = 43;
-        public static readonly User FakeAdminUser = new User() { Username = FakeAdminName, Key = FakeAdminKey, Roles = new List<Role>() { new Role() { Name = Constants.AdminRoleName } } };
+        public static readonly User FakeAdminUser = new User() { Username = FakeAdminName, Key = FakeAdminKey, Roles = new[] { new Role { Name = Constants.AdminRoleName } } };
 
         public static readonly string FakeOrganizationName = "theOrganization";
         public static readonly int FakeOrganizationKey = 44;

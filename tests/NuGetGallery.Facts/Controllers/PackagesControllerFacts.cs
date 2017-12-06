@@ -239,43 +239,6 @@ namespace NuGetGallery
                 ResultAssert.IsNotFound(result);
             }
 
-            [Fact]
-            public async Task GivenAValidPackageThatTheCurrentUserDoesNotOwnItDisplaysCurrentMetadata()
-            {
-                // Arrange
-                var packageService = new Mock<IPackageService>();
-                var indexingService = new Mock<IIndexingService>();
-                var controller = CreateController(
-                    GetConfigurationService(),
-                    packageService: packageService,
-                    indexingService: indexingService);
-                controller.SetCurrentUser(TestUtility.FakeUser);
-
-                packageService.Setup(p => p.FindPackageByIdAndVersion("Foo", "1.1.1", SemVerLevelKey.SemVer2, true))
-                              .Returns(new Package()
-                              {
-                                  PackageRegistration = new PackageRegistration()
-                                  {
-                                      Id = "Foo",
-                                      Owners = new List<User>()
-                                  },
-                                  Version = "01.1.01",
-                                  NormalizedVersion = "1.1.1",
-                                  Title = "A test package!"
-                              });
-
-                indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
-
-                // Act
-                var result = await controller.DisplayPackage("Foo", "1.1.1");
-
-                // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
-                Assert.Equal("Foo", model.Id);
-                Assert.Equal("1.1.1", model.Version);
-                Assert.Equal("A test package!", model.Title);
-            }
-
             public static IEnumerable<PackageStatus> ValidatingPackageStatuses = 
                 new[] { PackageStatus.Validating , PackageStatus.FailedValidation};
 
@@ -383,6 +346,7 @@ namespace NuGetGallery
                     packageService: packageService,
                     httpContext: httpContext);
                 controller.SetCurrentUser(currentUser);
+
                 httpContext.Setup(c => c.Response.Cache).Returns(httpCachePolicy.Object);
 
                 var package = new Package
@@ -426,6 +390,7 @@ namespace NuGetGallery
                     packageService: packageService,
                     editPackageService: editPackageService,
                     httpContext: httpContext);
+
                 controller.SetCurrentUser(TestUtility.FakeUser);
                 httpContext.Setup(c => c.Response.Cache).Returns(httpCachePolicy.Object);
 
@@ -547,12 +512,7 @@ namespace NuGetGallery
                     editPackageService: editPackageService,
                     indexingService: indexingService,
                     httpContext: httpContext);
-
-                if (currentUser != null)
-                {
-                    controller.SetCurrentUser(currentUser);
-                }
-
+                controller.SetCurrentUser(currentUser);
                 httpContext.Setup(c => c.Response.Cache).Returns(httpCachePolicy.Object);
                 var uneditedTitle = "A test package!";
                 var package = new Package()
