@@ -2,18 +2,18 @@
     'use strict';
     
     $(function () {
-        function PackageListItemViewModel(parent, packageItem) {
+        function PackageListItemViewModel(packagesListViewModel, packageItem) {
             var self = this;
 
-            this.Parent = parent;
+            this.PackagesListViewModel = packagesListViewModel;
             this.Id = packageItem.Id;
             this.Owners = packageItem.Owners;
             this.DownloadCount = packageItem.TotalDownloadCount;
             this.LatestVersion = packageItem.LatestVersion;
             this.PackageIconUrl = (packageItem.PackageIconUrl)
                 ? packageItem.PackageIconUrl
-                : this.Parent.Parent.DefaultPackageIconUrl;
-            this.PackageIconUrlFallback = this.Parent.Parent.PackageIconUrlFallback;
+                : this.PackagesListViewModel.ManagePackagesViewModel.DefaultPackageIconUrl;
+            this.PackageIconUrlFallback = this.PackagesListViewModel.ManagePackagesViewModel.PackageIconUrlFallback;
             this.PackageUrl = packageItem.PackageUrl;
             this.EditUrl = packageItem.EditUrl;
             this.ManageOwnersUrl = packageItem.ManageOwnersUrl;
@@ -38,10 +38,10 @@
             };
         }
 
-        function PackagesListViewModel(parent, type, packages) {
+        function PackagesListViewModel(managePackagesViewModel, type, packages) {
             var self = this;
 
-            this.Parent = parent;
+            this.ManagePackagesViewModel = managePackagesViewModel;
             this.Type = type;
             this.Packages = $.map(packages, function (data) {
                 return new PackageListItemViewModel(self, data)
@@ -49,7 +49,7 @@
             this.VisiblePackagesCount = ko.observable();
             this.VisibleDownloadCount = ko.observable();
 
-            this.Parent.OwnerFilter.subscribe(function (newOwner) {
+            this.ManagePackagesViewModel.OwnerFilter.subscribe(function (newOwner) {
                 var packagesCount = 0;
                 var downloadCount = 0;
                 for (var i in self.Packages) {
