@@ -51,19 +51,19 @@
                             <td class="align-middle text-nowrap">@package.TotalDownloadCount.ToNuGetNumberString()</td>
                             <td class="align-middle text-nowrap">@package.FullVersion.Abbreviate(25)</td>
                             <td class="text-right align-middle package-controls">
-                                @if (package.IsActionAllowed(User, PackageActions.Edit))
+                                @if (package.CanEdit)
                                 {
                                     <a href="@Url.EditPackage(package.Id, package.Version)" class="btn" title="Edit Package" aria-label="Edit Package @package.Id  Version @package.Version">
                                         <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
                                     </a>
                                 }
-                                @if (package.IsActionAllowed(User, PackageActions.ManagePackageOwners))
+                                @if (package.CanManageOwners)
                                 {
                                     <a href="@Url.ManagePackageOwners(package)" class="btn" title="Manage Owners" aria-label="Manage Owners for Package @package.Id">
                                         <i class="ms-Icon ms-Icon--People" aria-hidden="true"></i>
                                     </a>
                                 }
-                                @if (package.IsActionAllowed(User, PackageActions.Unlist))
+                                @if (package.CanUnlistOrRelist)
                                 {
                                     <a href="@Url.DeletePackage(package)" class="btn" title="Delete Package" aria-lable="Delete Package @package.Id  Version @package.Version">
                                         <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>

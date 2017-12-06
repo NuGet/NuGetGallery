@@ -87,9 +87,7 @@ namespace NuGetGallery.Controllers
                     var fakes = Get<Fakes>();
                     var currentUser = getCurrentUser(fakes);
                     var controller = GetController<JsonApiController>();
-                    GetMock<HttpContextBase>()
-                        .Setup(c => c.User)
-                        .Returns(Fakes.ToPrincipal(currentUser));
+                    controller.SetCurrentUser(currentUser);
 
                     // Act
                     var result = await request(controller, fakes.Package.Id, "nonUser");
@@ -108,9 +106,7 @@ namespace NuGetGallery.Controllers
                     var fakes = Get<Fakes>();
                     var currentUser = getCurrentUser(fakes);
                     var controller = GetController<JsonApiController>();
-                    GetMock<HttpContextBase>()
-                        .Setup(c => c.User)
-                        .Returns(Fakes.ToPrincipal(currentUser));
+                    controller.SetCurrentUser(currentUser);
 
                     // Act
                     var result = await request(controller, fakes.Package.Id, "nonUser");
@@ -129,9 +125,7 @@ namespace NuGetGallery.Controllers
                     var fakes = Get<Fakes>();
                     var currentUser = getCurrentUser(fakes);
                     var controller = GetController<JsonApiController>();
-                    GetMock<HttpContextBase>()
-                        .Setup(c => c.User)
-                        .Returns(Fakes.ToPrincipal(currentUser));
+                    controller.SetCurrentUser(currentUser);
                     fakes.User.UnconfirmedEmailAddress = fakes.User.EmailAddress;
                     fakes.User.EmailAddress = null;
 
@@ -290,13 +284,6 @@ namespace NuGetGallery.Controllers
                         var currentUser = getCurrentUser(fakes);
                         var userToAdd = getUserToAdd(fakes);
                         var controller = GetController<JsonApiController>();
-                        GetMock<HttpContextBase>()
-                            .Setup(c => c.User)
-                            .Returns(Fakes.ToPrincipal(currentUser));
-
-                        GetMock<IUserService>()
-                            .Setup(x => x.FindByUsername(currentUser.Username))
-                            .Returns<User>(null);
 
                         // Act
                         var result = await request(controller, fakes.Package.Id, userToAdd.Username);
@@ -316,9 +303,7 @@ namespace NuGetGallery.Controllers
                         var currentUser = getCurrentUser(fakes);
                         var userToAdd = getUserToAdd(fakes);
                         var controller = GetController<JsonApiController>();
-                        GetMock<HttpContextBase>()
-                            .Setup(c => c.User)
-                            .Returns(Fakes.ToPrincipal(currentUser));
+                        controller.SetCurrentUser(currentUser);
 
                         // Act
                         var result = await request(controller, fakes.Package.Id, userToAdd.Username);
@@ -339,9 +324,7 @@ namespace NuGetGallery.Controllers
                         var userToAdd = getUserToAdd(fakes);
                         var package = fakes.Package;
                         var controller = GetController<JsonApiController>();
-                        GetMock<HttpContextBase>()
-                            .Setup(c => c.User)
-                            .Returns(Fakes.ToPrincipal(currentUser));
+                        controller.SetCurrentUser(currentUser);
 
                         GetMock<IPackageOwnershipManagementService>()
                             .Setup(x => x.GetPackageOwnershipRequests(package, null, userToAdd))
@@ -370,9 +353,7 @@ namespace NuGetGallery.Controllers
                             var currentUser = getCurrentUser(fakes);
                             var userToAdd = getUserToAdd(fakes);
                             var controller = GetController<JsonApiController>();
-                            GetMock<HttpContextBase>()
-                                .Setup(c => c.User)
-                                .Returns(Fakes.ToPrincipal(currentUser));
+                            controller.SetCurrentUser(currentUser);
 
                             // Act
                             var result = controller.GetAddPackageOwnerConfirmation(fakes.Package.Id, userToAdd.Username);
@@ -392,10 +373,7 @@ namespace NuGetGallery.Controllers
                             var currentUser = getCurrentUser(fakes);
                             var userToAdd = getUserToAdd(fakes);
                             var controller = GetController<JsonApiController>();
-
-                            GetMock<HttpContextBase>()
-                                .Setup(c => c.User)
-                                .Returns(Fakes.ToPrincipal(currentUser));
+                            controller.SetCurrentUser(currentUser);
 
                             userToAdd.SecurityPolicies = (new RequireSecurePushForCoOwnersPolicy().Policies).ToList();
 
@@ -442,9 +420,7 @@ namespace NuGetGallery.Controllers
                             var userToAdd = getUserToAdd(fakes);
                             var existingOwner = getExistingOwner(fakes);
                             var controller = GetController<JsonApiController>();
-                            GetMock<HttpContextBase>()
-                                .Setup(c => c.User)
-                                .Returns(Fakes.ToPrincipal(currentUser));
+                            controller.SetCurrentUser(currentUser);
                             existingOwner.SecurityPolicies = (new RequireSecurePushForCoOwnersPolicy().Policies).ToList();
 
                             // Act
@@ -467,9 +443,7 @@ namespace NuGetGallery.Controllers
                             var currentUser = getCurrentUser(fakes);
                             var userToAdd = getUserToAdd(fakes);
                             var controller = GetController<JsonApiController>();
-                            GetMock<HttpContextBase>()
-                                .Setup(c => c.User)
-                                .Returns(Fakes.ToPrincipal(currentUser));
+                            controller.SetCurrentUser(currentUser);
                             GetMock<ISecurityPolicyService>().Setup(s => s.IsSubscribed(userToAdd, SecurePushSubscription.Name)).Returns(true);
                             currentUser.SecurityPolicies = (new RequireSecurePushForCoOwnersPolicy().Policies).ToList();
 
@@ -493,9 +467,7 @@ namespace NuGetGallery.Controllers
                             var userToAdd = getUserToAdd(fakes);
                             var pendingUser = getPendingUser(fakes);
                             var controller = GetController<JsonApiController>();
-                            GetMock<HttpContextBase>()
-                                .Setup(c => c.User)
-                                .Returns(Fakes.ToPrincipal(currentUser));
+                            controller.SetCurrentUser(currentUser);
 
                             pendingUser.SecurityPolicies = (new RequireSecurePushForCoOwnersPolicy().Policies).ToList();
 
@@ -533,9 +505,7 @@ namespace NuGetGallery.Controllers
                             var userToAdd = getUserToAdd(fakes);
                             var pendingUser = getPendingUser(fakes);
                             var controller = GetController<JsonApiController>();
-                            GetMock<HttpContextBase>()
-                                .Setup(c => c.User)
-                                .Returns(Fakes.ToPrincipal(currentUser));
+                            controller.SetCurrentUser(currentUser);
                             GetMock<ISecurityPolicyService>().Setup(s => s.IsSubscribed(userToAdd, SecurePushSubscription.Name)).Returns(true);
 
                             pendingUser.SecurityPolicies = (new RequireSecurePushForCoOwnersPolicy().Policies).ToList();
@@ -576,12 +546,7 @@ namespace NuGetGallery.Controllers
                             var userToAdd = getUserToAdd(fakes);
 
                             var controller = GetController<JsonApiController>();
-
-                            var httpContextMock = GetMock<HttpContextBase>();
-                            httpContextMock
-                                .Setup(c => c.User)
-                                .Returns(Fakes.ToPrincipal(currentUser))
-                                .Verifiable();
+                            controller.SetCurrentUser(currentUser);
 
                             var packageOwnershipManagementServiceMock = GetMock<IPackageOwnershipManagementService>();
                             packageOwnershipManagementServiceMock
@@ -609,8 +574,7 @@ namespace NuGetGallery.Controllers
                             Assert.True(data.success);
                             Assert.Equal(userToAdd.Username, model.Name);
                             Assert.True(model.Pending);
-
-                            httpContextMock.Verify();
+                            
                             packageOwnershipManagementServiceMock.Verify();
                             messageServiceMock.Verify();
                         }
@@ -682,10 +646,7 @@ namespace NuGetGallery.Controllers
                         {
                             // Arrange
                             var controller = GetController<JsonApiController>();
-
-                            GetMock<HttpContextBase>()
-                                .Setup(c => c.User)
-                                .Returns(Fakes.ToPrincipal(currentUser));
+                            controller.SetCurrentUser(currentUser);
 
                             userToSubscribe.SecurityPolicies = (new RequireSecurePushForCoOwnersPolicy().Policies).ToList();
 
@@ -789,13 +750,6 @@ namespace NuGetGallery.Controllers
                         var currentUser = getCurrentUser(fakes);
                         var userToRemove = getUserToRemove(fakes);
                         var controller = GetController<JsonApiController>();
-                        GetMock<HttpContextBase>()
-                            .Setup(c => c.User)
-                            .Returns(Fakes.ToPrincipal(currentUser));
-
-                        GetMock<IUserService>()
-                            .Setup(x => x.FindByUsername(currentUser.Username))
-                            .Returns<User>(null);
 
                         // Act
                         var result = await controller.RemovePackageOwner(fakes.Package.Id, userToRemove.Username);
@@ -815,9 +769,7 @@ namespace NuGetGallery.Controllers
                         var currentUser = getCurrentUser(fakes);
                         var userToRemove = getUserToRemove(fakes);
                         var controller = GetController<JsonApiController>();
-                        GetMock<HttpContextBase>()
-                            .Setup(c => c.User)
-                            .Returns(Fakes.ToPrincipal(currentUser));
+                        controller.SetCurrentUser(currentUser);
 
                         // Act
                         var result = await controller.RemovePackageOwner(fakes.Package.Id, userToRemove.Username);
@@ -838,9 +790,7 @@ namespace NuGetGallery.Controllers
                         var requestedUser = getPendingUser(fakes);
                         var package = fakes.Package;
                         var controller = GetController<JsonApiController>();
-                        GetMock<HttpContextBase>()
-                            .Setup(c => c.User)
-                            .Returns(Fakes.ToPrincipal(currentUser));
+                        controller.SetCurrentUser(currentUser);
 
                         var packageOwnershipManagementService = GetMock<IPackageOwnershipManagementService>();
 
@@ -871,9 +821,7 @@ namespace NuGetGallery.Controllers
                         var userToRemove = getUserToRemove(fakes);
                         var package = fakes.Package;
                         var controller = GetController<JsonApiController>();
-                        GetMock<HttpContextBase>()
-                            .Setup(c => c.User)
-                            .Returns(Fakes.ToPrincipal(currentUser));
+                        controller.SetCurrentUser(currentUser);
 
                         var packageOwnershipManagementService = GetMock<IPackageOwnershipManagementService>();
 
@@ -998,9 +946,7 @@ namespace NuGetGallery.Controllers
                     var fakes = Get<Fakes>();
                     var currentUser = getCurrentUser(fakes);
                     var controller = GetController<JsonApiController>();
-                    GetMock<HttpContextBase>()
-                        .Setup(c => c.User)
-                        .Returns(Fakes.ToPrincipal(currentUser));
+                    controller.SetCurrentUser(currentUser);
 
                     // Act
                     var result = controller.GetPackageOwners(fakes.Package.Id, fakes.Package.Packages.First().Version);

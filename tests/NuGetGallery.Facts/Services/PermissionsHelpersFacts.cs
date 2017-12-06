@@ -10,14 +10,14 @@ using Xunit;
 
 namespace NuGetGallery.Services
 {
-    public class PermissionsServiceFacts
+    public class PermissionsHelpersFacts
     {
-        public class TheGetPermissionLevelMethod
+        public class TheIsRequirementSatisfiedMethod
         {
             private int _key = 0;
 
             [Flags]
-            public enum ReturnsExpectedPermissionLevels_State
+            public enum ReturnsSatisfiedRequirementWhenExpected_State
             {
                 IsOwner = 1,
                 IsSiteAdmin = 2,
@@ -25,16 +25,16 @@ namespace NuGetGallery.Services
                 IsOrganizationCollaborator = 8,
             }
 
-            private static readonly IEnumerable<ReturnsExpectedPermissionLevels_State> _stateValues = 
-                Enum.GetValues(typeof(ReturnsExpectedPermissionLevels_State)).Cast<ReturnsExpectedPermissionLevels_State>();
+            private static readonly IEnumerable<ReturnsSatisfiedRequirementWhenExpected_State> _stateValues = 
+                Enum.GetValues(typeof(ReturnsSatisfiedRequirementWhenExpected_State)).Cast<ReturnsSatisfiedRequirementWhenExpected_State>();
 
             private static readonly int _maxStateValue =
-                Enum.GetValues(typeof(ReturnsExpectedPermissionLevels_State)).Cast<int>().Max();
+                Enum.GetValues(typeof(ReturnsSatisfiedRequirementWhenExpected_State)).Cast<int>().Max();
 
-            private static readonly int _maxPermissionLevel =
-                Enum.GetValues(typeof(PermissionLevel)).Cast<int>().Max();
+            private static readonly int _maxPermissionsRequirement =
+                Enum.GetValues(typeof(PermissionsRequirement)).Cast<int>().Max();
 
-            public static IEnumerable<object[]> ReturnsExpectedPermissionLevels_Data
+            public static IEnumerable<object[]> ReturnsSatisfiedRequirementWhenExpected_Data
             {
                 get
                 {
@@ -48,48 +48,48 @@ namespace NuGetGallery.Services
                 }
             }
 
-            private static bool Includes(int i, ReturnsExpectedPermissionLevels_State state)
+            private static bool Includes(int i, ReturnsSatisfiedRequirementWhenExpected_State state)
             {
                 return (i & (int)state) == 0;
             }
 
             [Theory]
-            [MemberData(nameof(ReturnsExpectedPermissionLevels_Data))]
-            public void ReturnsExpectedPermissionLevels(IEnumerable<ReturnsExpectedPermissionLevels_State> states)
+            [MemberData(nameof(ReturnsSatisfiedRequirementWhenExpected_Data))]
+            public void ReturnsSatisfiedRequirementWhenExpected(IEnumerable<ReturnsSatisfiedRequirementWhenExpected_State> states)
             {
                 // Arrange
-                var expectedPermissionLevel = PermissionLevel.Anonymous;
+                var expectedPermissionLevel = PermissionsRequirement.None;
 
                 var owners = new List<User>();
 
                 var user = new User("testuser") { Key = _key++ };
 
-                if (states.Contains(ReturnsExpectedPermissionLevels_State.IsOwner))
+                if (states.Contains(ReturnsSatisfiedRequirementWhenExpected_State.IsOwner))
                 {
                     owners.Add(user);
-                    expectedPermissionLevel |= PermissionLevel.Owner;
+                    expectedPermissionLevel |= PermissionsRequirement.Owner;
                 }
 
-                if (states.Contains(ReturnsExpectedPermissionLevels_State.IsSiteAdmin))
+                if (states.Contains(ReturnsSatisfiedRequirementWhenExpected_State.IsSiteAdmin))
                 {
                     user.Roles.Add(new Role { Name = Constants.AdminRoleName });
-                    expectedPermissionLevel |= PermissionLevel.SiteAdmin;
+                    expectedPermissionLevel |= PermissionsRequirement.SiteAdmin;
                 }
 
-                if (states.Contains(ReturnsExpectedPermissionLevels_State.IsOrganizationAdmin))
+                if (states.Contains(ReturnsSatisfiedRequirementWhenExpected_State.IsOrganizationAdmin))
                 {
                     CreateOrganizationOwnerAndAddUserAsMember(owners, user, true);
-                    expectedPermissionLevel |= PermissionLevel.OrganizationAdmin;
+                    expectedPermissionLevel |= PermissionsRequirement.OrganizationAdmin;
                 }
 
-                if (states.Contains(ReturnsExpectedPermissionLevels_State.IsOrganizationCollaborator))
+                if (states.Contains(ReturnsSatisfiedRequirementWhenExpected_State.IsOrganizationCollaborator))
                 {
                     CreateOrganizationOwnerAndAddUserAsMember(owners, user, false);
-                    expectedPermissionLevel |= PermissionLevel.OrganizationCollaborator;
+                    expectedPermissionLevel |= PermissionsRequirement.OrganizationCollaborator;
                 }
 
                 // Assert
-                AssertPermissionLevels(owners, user, expectedPermissionLevel);
+                AssertIsRequirementSatisfied(owners, user, expectedPermissionLevel);
             }
 
             private void CreateOrganizationOwnerAndAddUserAsMember(List<User> owners, User user, bool isAdmin)
@@ -107,18 +107,18 @@ namespace NuGetGallery.Services
                 owners.Add(organization);
             }
 
-            private void AssertPermissionLevels(IEnumerable<User> owners, User user, PermissionLevel expectedLevel)
+            private void AssertIsRequirementSatisfied(IEnumerable<User> owners, User user, PermissionsRequirement expectedSatisfiedPermissionsRequirement)
             {
-                for (int i = 0; i < _maxPermissionLevel * 2; i++)
+                for (int i = 0; i < _maxPermissionsRequirement * 2; i++)
                 {
-                    var permissionLevel = (PermissionLevel)i;
+                    var permissionsRequirement = (PermissionsRequirement)i;
 
-                    var shouldSucceed = (permissionLevel & expectedLevel) > 0;
+                    var shouldSucceed = (permissionsRequirement & expectedSatisfiedPermissionsRequirement) > 0;
 
-                    Assert.Equal(shouldSucceed, PermissionsService.IsActionAllowed(owners, user, permissionLevel));
+                    Assert.Equal(shouldSucceed, PermissionsHelpers.IsRequirementSatisfied(permissionsRequirement, user, owners));
 
                     var principal = GetPrincipal(user);
-                    Assert.Equal(shouldSucceed, PermissionsService.IsActionAllowed(owners, principal, permissionLevel));
+                    Assert.Equal(shouldSucceed, PermissionsHelpers.IsRequirementSatisfied(permissionsRequirement, principal, owners));
                 }
             }
 
