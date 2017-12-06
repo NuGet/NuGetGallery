@@ -82,13 +82,11 @@
         ko.applyBindings(managePackagesViewModel, document.body);
 
         // Configure the expander headings.
-        window.nuget.configureExpanderHeading("packages-Published");
-        window.nuget.configureExpanderHeading("packages-Unlisted");
-
-        window.nuget.configureExpanderHeading("requests-Incoming");
-        window.nuget.configureExpanderHeading("requests-Outgoing");
-
-        window.nuget.configureExpanderHeading("reservednamespaces");
+        window.nuget.configureExpanderHeading("listed-container");
+        window.nuget.configureExpanderHeading("unlisted-container");
+        window.nuget.configureExpanderHeading("namespaces-container");
+        window.nuget.configureExpanderHeading("requests-incoming-container");
+        window.nuget.configureExpanderHeading("requests-outgoing-container");
     });
 
 })();
