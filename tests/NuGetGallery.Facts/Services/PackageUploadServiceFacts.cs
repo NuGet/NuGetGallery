@@ -74,27 +74,6 @@ namespace NuGetGallery
         public class TheGeneratePackageAsyncMethod
         {
             [Fact]
-            public async Task WillStartAsynchronousValidation()
-            {
-                var validationService = new Mock<IValidationService>();
-
-                var id = "Microsoft.Aspnet.Mvc";
-                var packageUploadService = CreateService(validationService: validationService);
-                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(id: id);
-                var currentUser = new User();
-
-                var package = await packageUploadService.GeneratePackageAsync(
-                    id,
-                    nugetPackage.Object,
-                    new PackageStreamMetadata(),
-                    currentUser);
-
-                validationService.Verify(
-                    x => x.StartValidationAsync(package),
-                    Times.Once);
-            }
-
-            [Fact]
             public async Task WillCallCreatePackageAsyncCorrectly()
             {
                 var packageService = new Mock<IPackageService>();
@@ -198,6 +177,18 @@ namespace NuGetGallery
                     x => x.SaveChangesAsync(),
                     Times.Once);
                 Assert.Equal(PackageCommitResult.Success, result);
+            }
+
+            [Fact]
+            public async Task WillStartAsynchronousValidation()
+            {
+                _package.PackageStatusKey = PackageStatus.Available;
+
+                var result = await _target.CommitPackageAsync(_package, _packageFile);
+
+                _validationService.Verify(
+                    x => x.StartValidationAsync(_package),
+                    Times.Once);
             }
 
             [Theory]
