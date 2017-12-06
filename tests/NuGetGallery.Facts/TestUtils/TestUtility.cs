@@ -6,16 +6,11 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Net.Mail;
 using System.Reflection;
-using System.Security.Principal;
 using System.Text;
-using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
-using NuGet;
-using NuGetGallery.Framework;
-using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
@@ -27,10 +22,40 @@ namespace NuGetGallery
         public static readonly string GallerySiteRootHttps = $"https://{galleryHostName}/";
 
         public static readonly string FakeUserName = "theUsername";
-        public static readonly string FakeAdminName = "theAdmin";
+        public static readonly int FakeUserKey = 42;
+        public static readonly User FakeUser = new User() { Username = FakeUserName, Key = FakeUserKey };
 
-        public static readonly User FakeUser = new User() { Username = FakeUserName, Key = 42 };
-        public static readonly User FakeAdminUser = new User() { Username = FakeAdminName, Roles = new List<Role>() { new Role() { Name = Constants.AdminRoleName } } };
+        public static readonly string FakeAdminName = "theAdmin";
+        public static readonly int FakeAdminKey = 43;
+        public static readonly User FakeAdminUser = new User() { Username = FakeAdminName, Key = FakeAdminKey, Roles = new List<Role>() { new Role() { Name = Constants.AdminRoleName } } };
+
+        public static readonly string FakeOrganizationName = "theOrganization";
+        public static readonly int FakeOrganizationKey = 44;
+        public static readonly Organization FakeOrganization;
+
+        public static readonly string FakeOrganizationAdminName = "theOrganizationAdmin";
+        public static readonly int FakeOrganizationAdminKey = 45;
+        public static readonly User FakeOrganizationAdmin;
+
+        public static readonly string FakeOrganizationCollaboratorName = "theOrganizationCollaborator";
+        public static readonly int FakeOrganizationCollaboratorKey = 45;
+        public static readonly User FakeOrganizationCollaborator;
+
+        static TestUtility()
+        {
+            // Set up fake Organization users
+            FakeOrganization = new Organization { Username = FakeOrganizationName, Key = FakeOrganizationKey };
+            FakeOrganizationAdmin = new User { Username = FakeOrganizationAdminName, Key = FakeOrganizationAdminKey };
+            FakeOrganizationCollaborator = new User { Username = FakeOrganizationCollaboratorName, Key = FakeOrganizationCollaboratorKey };
+
+            var organizationAdminMembership = new Membership { IsAdmin = true, Member = FakeOrganizationAdmin, MemberKey = FakeOrganizationAdmin.Key, Organization = FakeOrganization, OrganizationKey = FakeOrganization.Key };
+            FakeOrganizationAdmin.Organizations = new[] { organizationAdminMembership };
+
+            var organizationCollaboratorMembership = new Membership { IsAdmin = false, Member = FakeOrganizationCollaborator, MemberKey = FakeOrganizationCollaborator.Key, Organization = FakeOrganization, OrganizationKey = FakeOrganization.Key };
+            FakeOrganizationCollaborator.Organizations = new[] { organizationCollaboratorMembership };
+
+            FakeOrganization.Members = new[] { organizationAdminMembership, organizationCollaboratorMembership };
+        }
 
         // We only need this method because testing URL generation is a pain.
         // Alternatively, we could write our own service for generating URLs.
