@@ -227,6 +227,58 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .Verify(ps => ps.UpdatePackageStatusAsync(Package, PackageStatus.FailedValidation, It.IsAny<bool>()), Times.Never());
         }
 
+        [Theory]
+        [InlineData(2, 1, 0, ValidationStatus.Incomplete, PackageStatus.Validating)]
+        [InlineData(2, 1, 1, ValidationStatus.Incomplete, PackageStatus.Available)]
+        [InlineData(3, 2, 0, ValidationStatus.Incomplete, PackageStatus.Validating)]
+        [InlineData(3, 2, 1, ValidationStatus.Incomplete, PackageStatus.Validating)]
+        [InlineData(3, 2, 2, ValidationStatus.Incomplete, PackageStatus.Available)]
+        [InlineData(2, 1, 0, ValidationStatus.Failed, PackageStatus.FailedValidation)]
+        [InlineData(3, 2, 0, ValidationStatus.Failed, PackageStatus.FailedValidation)]
+        [InlineData(3, 2, 1, ValidationStatus.Failed, PackageStatus.FailedValidation)]
+        public async Task PrefersDbOverConfigurationForDeterminingSuccess(
+            int numConfiguredValidators,
+            int numDbValidators,
+            int numSucceededValidators,
+            ValidationStatus notSucceededStatus,
+            PackageStatus expectedStatus)
+        {
+            for (int cfgValidatorIndex = 0; cfgValidatorIndex < numConfiguredValidators; ++cfgValidatorIndex)
+            {
+                Configuration.Validations.Add(new ValidationConfigurationItem
+                {
+                    Name = "validation" + cfgValidatorIndex,
+                    FailAfter = TimeSpan.FromDays(1),
+                    RequiredValidations = new List<string> { }
+                });
+            }
+
+            for (int dbValidatorIndex = 0; dbValidatorIndex < numDbValidators; ++dbValidatorIndex)
+            {
+                ValidationSet.PackageValidations.Add(new PackageValidation
+                {
+                    Type = "validation" + dbValidatorIndex,
+                    ValidationStatus = dbValidatorIndex < numSucceededValidators ? ValidationStatus.Succeeded : notSucceededStatus
+                });
+            }
+
+            var processor = CreateProcessor();
+            await processor.ProcessValidationOutcomeAsync(ValidationSet, Package);
+
+            if (expectedStatus != PackageStatus.Validating)
+            {
+                PackageServiceMock
+                    .Verify(ps => ps.UpdatePackageStatusAsync(Package, expectedStatus, true), Times.Once());
+                PackageServiceMock
+                    .Verify(ps => ps.UpdatePackageStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), It.IsAny<bool>()), Times.Once());
+            }
+            else
+            {
+                PackageServiceMock
+                    .Verify(ps => ps.UpdatePackageStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), It.IsAny<bool>()), Times.Never());
+            }
+        }
+
         public ValidationOutcomeProcessorFacts()
         {
             PackageServiceMock = new Mock<ICorePackageService>();

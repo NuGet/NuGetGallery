@@ -96,7 +96,7 @@
       <Version>1.1.2</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Packaging">
-      <Version>4.6.0-preview1-4690</Version>
+      <Version>4.6.0-preview2-4699</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Configuration">
       <Version>2.5.0</Version>
