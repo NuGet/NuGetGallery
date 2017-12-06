@@ -3,12 +3,13 @@
 
 using NuGetGallery.Configuration;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using NuGetGallery.Areas.Admin;
-using NuGetGallery.Areas.Admin.Controllers;
+using NuGetGallery.Helpers;
 
 namespace NuGetGallery
 {
@@ -446,6 +447,26 @@ namespace NuGetGallery
             return GetActionLink(url, "Profiles", "Users", relativeUrl, routeValues);
         }
 
+        public static RouteValueTemplate<User> UserTemplate(
+            this UrlHelper url,
+            string scheme = null,
+            bool relativeUrl = true)
+        {
+            var routesGenerator = new Dictionary<string, Func<User, object>>
+            {
+                { "username", u => u.Username }
+            };
+
+            Func<RouteValueDictionary, string> linkGenerator = rv => GetActionLink(
+                url,
+                "Profiles",
+                "Users",
+                relativeUrl,
+                routeValues: rv);
+
+            return new RouteValueTemplate<User>(linkGenerator, routesGenerator);
+        }
+
         public static string User(
             this UrlHelper url,
             string username,
@@ -462,6 +483,26 @@ namespace NuGetGallery
                 {
                     { "username", username },
                 });
+        }
+
+        public static RouteValueTemplate<IPackageVersionModel> EditPackageTemplate(
+            this UrlHelper url,
+            bool relativeUrl = true)
+        {
+            var routesGenerator = new Dictionary<string, Func<IPackageVersionModel, object>>
+            {
+                { "action", p => "Edit" },
+                { "id", p => p.Id },
+                { "version", p => p.Version }
+            };
+
+            Func<RouteValueDictionary, string> linkGenerator = rv => GetRouteLink(
+                url,
+                RouteName.PackageVersionAction,
+                relativeUrl,
+                routeValues: rv);
+
+            return new RouteValueTemplate<IPackageVersionModel>(linkGenerator, routesGenerator);
         }
 
         public static string EditPackage(
@@ -539,21 +580,32 @@ namespace NuGetGallery
             return url.RevalidatePackage(package.Id, package.Version, relativeUrl);
         }
 
+        public static RouteValueTemplate<IPackageVersionModel> DeletePackageTemplate(
+            this UrlHelper url,
+            bool relativeUrl = true)
+        {
+            var routesGenerator = new Dictionary<string, Func<IPackageVersionModel, object>>
+            {
+                { "id", p => p.Id },
+                { "version", p => p.Version }
+            };
+
+            Func<RouteValueDictionary, string> linkGenerator = rv => GetActionLink(
+                url,
+                "Delete",
+                "Packages",
+                relativeUrl,
+                routeValues: rv);
+
+            return new RouteValueTemplate<IPackageVersionModel>(linkGenerator, routesGenerator);
+        }
+
         public static string DeletePackage(
             this UrlHelper url,
             IPackageVersionModel package,
             bool relativeUrl = true)
         {
-            return GetActionLink(
-                url,
-                "Delete",
-                "Packages",
-                relativeUrl,
-                routeValues: new RouteValueDictionary
-                {
-                    { "id", package.Id },
-                    { "version", package.Version }
-                });
+            return url.DeletePackageTemplate(relativeUrl).Resolve(package);
         }
 
         public static string AccountSettings(
@@ -638,17 +690,26 @@ namespace NuGetGallery
             return GetActionLink(url, "Packages", "Users", relativeUrl);
         }
 
-        public static string ManagePackageOwners(this UrlHelper url, IPackageVersionModel package, bool relativeUrl = true)
+        public static RouteValueTemplate<IPackageVersionModel> ManagePackageOwnersTemplate(this UrlHelper url, bool relativeUrl = true)
         {
-            return GetActionLink(
+            var routesGenerator = new Dictionary<string, Func<IPackageVersionModel, object>>
+            {
+                { "id", p => p.Id },
+            };
+
+            Func<RouteValueDictionary, string> linkGenerator = rv => GetActionLink(
                 url,
                 "ManagePackageOwners",
                 "Packages",
                 relativeUrl,
-                routeValues: new RouteValueDictionary
-                {
-                    { "id", package.Id }
-                });
+                routeValues: rv);
+
+            return new RouteValueTemplate<IPackageVersionModel>(linkGenerator, routesGenerator);
+        }
+
+        public static string ManagePackageOwners(this UrlHelper url, IPackageVersionModel package, bool relativeUrl = true)
+        {
+            return url.ManagePackageOwnersTemplate(relativeUrl).Resolve(package);
         }
 
         public static string GetAddPackageOwnerConfirmation(this UrlHelper url, bool relativeUrl = true)
@@ -884,7 +945,7 @@ namespace NuGetGallery
             return url;
         }
 
-        private static string GetActionLink(
+        public static string GetActionLink(
             UrlHelper url,
             string actionName,
             string controllerName,
