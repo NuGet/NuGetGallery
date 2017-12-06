@@ -64,7 +64,7 @@ namespace NuGetGallery.Services
 
         public void SendPackageValidationFailedNotice(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl)
         {
-            string subject = "[{0}] Package published - {1} {2}";
+            string subject = "[{0}] Package validation failed - {1} {2}";
             string body = @"The package [{1} {2}]({3}) failed validation and was therefore not published on {0}. Note that the package will not be available for consumption and you will not be able to push the same package ID and version until further action is taken. Please [contact support]({4}) for next steps.
 
 -----------------------------------------------
