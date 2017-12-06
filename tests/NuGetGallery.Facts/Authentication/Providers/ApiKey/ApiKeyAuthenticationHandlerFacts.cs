@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.Owin;
@@ -161,7 +161,7 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
             }
         }
 
-        public class TheAuthenticateCoreAsyncMethod
+        public class TheAuthenticateCoreAsyncMethod : TestContainer
         {
             [Fact]
             public async Task GivenNoApiKeyHeader_ItReturnsNull()
@@ -193,20 +193,29 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                 Assert.Null(ticket);
             }
 
-            [Fact]
-            public async Task GivenMatchingApiKey_ItReturnsTicketWithClaims()
+            [Theory]
+            [InlineData(CredentialTypes.ApiKey.V1)]
+            [InlineData(CredentialTypes.ApiKey.V2)]
+            [InlineData(CredentialTypes.ApiKey.V4)]
+            public async Task GivenMatchingApiKey_ItReturnsTicketWithClaims(string apiKeyType)
             {
                 // Arrange
-                var user = new User { Username = "theUser", EmailAddress = "confirmed@example.com" };
+                var fakes = Get<Fakes>();
+                var user = fakes.User;
+
+                //var user = new User { Username = "theUser", EmailAddress = "confirmed@example.com" };
                 var handler = await TestableApiKeyAuthenticationHandler.CreateAsync(new ApiKeyAuthenticationOptions());
-                var apiKeyCredential = new CredentialBuilder().CreateApiKey(Fakes.ExpirationForApiKeyV1);
+
+                var apiKeyCredential = user.Credentials.First(c => c.Type == apiKeyType);
                 apiKeyCredential.Key = 99;
-                apiKeyCredential.Scopes = new List<Scope>() { new Scope("a", "b") };
+
+                var plaintextApiKey = apiKeyCredential.Type == CredentialTypes.ApiKey.V4 ? fakes.ApiKeyV4PlaintextValue : apiKeyCredential.Value;
 
                 handler.OwinContext.Request.Headers.Set(
                     Constants.ApiKeyHeaderName,
-                    apiKeyCredential.Value.ToLowerInvariant());
-                handler.MockAuth.SetupAuth(apiKeyCredential, user);
+                    plaintextApiKey);
+
+                handler.MockAuth.SetupAuth(apiKeyCredential, user, credentialValue: plaintextApiKey);
 
                 // Act
                 var ticket = await handler.InvokeAuthenticateCoreAsync();
@@ -214,7 +223,7 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                 // Assert
                 Assert.NotNull(ticket);
                 Assert.Equal(user.Username, ticket.Identity.GetClaimOrDefault(ClaimTypes.NameIdentifier));
-                Assert.Equal(apiKeyCredential.Value.ToLower(), ticket.Identity.GetClaimOrDefault(NuGetClaims.ApiKey));
+                Assert.Equal(apiKeyCredential.Value, ticket.Identity.GetClaimOrDefault(NuGetClaims.ApiKey));
                 Assert.Equal(apiKeyCredential.Key.ToString(), ticket.Identity.GetClaimOrDefault(NuGetClaims.CredentialKey));
                 Assert.Equal(JsonConvert.SerializeObject(apiKeyCredential.Scopes, Formatting.None), ticket.Identity.GetClaimOrDefault(NuGetClaims.Scope));
             }
@@ -225,12 +234,12 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                 // Arrange
                 var user = new User { Username = "theUser", EmailAddress = "confirmed@example.com" };
                 TestableApiKeyAuthenticationHandler handler = await TestableApiKeyAuthenticationHandler.CreateAsync(new ApiKeyAuthenticationOptions());
-                var apiKeyCredential = new CredentialBuilder().CreateApiKey(Fakes.ExpirationForApiKeyV1);
+                var apiKeyCredential = new CredentialBuilder().CreateApiKey(Fakes.ExpirationForApiKeyV1, out string plaintextApiKey);
 
                 handler.OwinContext.Request.Headers.Set(
                     Constants.ApiKeyHeaderName,
-                    apiKeyCredential.Value.ToLowerInvariant());
-                handler.MockAuth.SetupAuth(apiKeyCredential, user);
+                    plaintextApiKey);
+                handler.MockAuth.SetupAuth(apiKeyCredential, user, credentialValue: plaintextApiKey);
 
                 // Act
                 await handler.InvokeAuthenticateCoreAsync();
@@ -247,13 +256,13 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                 // Arrange
                 var user = new User { Key = 1234, Username = "theUser", EmailAddress = "confirmed@example.com" };
                 TestableApiKeyAuthenticationHandler handler = await TestableApiKeyAuthenticationHandler.CreateAsync(new ApiKeyAuthenticationOptions());
-                var apiKeyCredential = new CredentialBuilder().CreateApiKey(Fakes.ExpirationForApiKeyV1);
+                var apiKeyCredential = new CredentialBuilder().CreateApiKey(Fakes.ExpirationForApiKeyV1, out string plaintextApiKey);
                 apiKeyCredential.Scopes.Add(new Scope(1234, "thePackage", "theAction"));
 
                 handler.OwinContext.Request.Headers.Set(
                     Constants.ApiKeyHeaderName,
-                    apiKeyCredential.Value.ToLowerInvariant());
-                handler.MockAuth.SetupAuth(apiKeyCredential, user);
+                    plaintextApiKey);
+                handler.MockAuth.SetupAuth(apiKeyCredential, user, credentialValue: plaintextApiKey);
 
                 // Act
                 await handler.InvokeAuthenticateCoreAsync();
@@ -280,13 +289,13 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                 });
 
                 TestableApiKeyAuthenticationHandler handler = await TestableApiKeyAuthenticationHandler.CreateAsync(new ApiKeyAuthenticationOptions());
-                var apiKeyCredential = new CredentialBuilder().CreateApiKey(Fakes.ExpirationForApiKeyV1);
+                var apiKeyCredential = new CredentialBuilder().CreateApiKey(Fakes.ExpirationForApiKeyV1, out string plaintextApiKey);
                 apiKeyCredential.Scopes.Add(new Scope(2345, "thePackage", "theAction"));
 
                 handler.OwinContext.Request.Headers.Set(
                     Constants.ApiKeyHeaderName,
-                    apiKeyCredential.Value.ToLowerInvariant());
-                handler.MockAuth.SetupAuth(apiKeyCredential, user);
+                    plaintextApiKey);
+                handler.MockAuth.SetupAuth(apiKeyCredential, user, credentialValue: plaintextApiKey);
 
                 // Act
                 await handler.InvokeAuthenticateCoreAsync();
@@ -303,13 +312,13 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                 // Arrange
                 var user = new User { Key = 1234, Username = "theUser", EmailAddress = "confirmed@example.com" };
                 TestableApiKeyAuthenticationHandler handler = await TestableApiKeyAuthenticationHandler.CreateAsync(new ApiKeyAuthenticationOptions());
-                var apiKeyCredential = new CredentialBuilder().CreateApiKey(Fakes.ExpirationForApiKeyV1);
+                var apiKeyCredential = new CredentialBuilder().CreateApiKey(Fakes.ExpirationForApiKeyV1, out string plaintextApiKey);
                 apiKeyCredential.Scopes.Add(new Scope(2345, "thePackage", "theAction"));
 
                 handler.OwinContext.Request.Headers.Set(
                     Constants.ApiKeyHeaderName,
-                    apiKeyCredential.Value.ToLowerInvariant());
-                handler.MockAuth.SetupAuth(apiKeyCredential, user);
+                    plaintextApiKey);
+                handler.MockAuth.SetupAuth(apiKeyCredential, user, credentialValue: plaintextApiKey);
                 
                 // Act
                 var body = await handler.OwinContext.Response.CaptureBodyAsString(async () =>

@@ -1821,7 +1821,7 @@ namespace NuGetGallery
 
                 var formData = new VerifyPackageRequest
                 {
-                    Edit = new EditPackageVersionRequest
+                    Edit = new EditPackageVersionReadMeRequest
                     {
                         ReadMe = new ReadMeRequest
                         {
@@ -1858,7 +1858,7 @@ namespace NuGetGallery
 
                 var formData = new VerifyPackageRequest
                 {
-                    Edit = new EditPackageVersionRequest()
+                    Edit = new EditPackageVersionReadMeRequest()
                 };
 
                 // Act.
@@ -3535,17 +3535,7 @@ namespace NuGetGallery
             {
                 get
                 {
-                    yield return new object[] { new EditPackageVersionRequest() { RequiresLicenseAcceptance = true } };
-                    yield return new object[] { new EditPackageVersionRequest() { IconUrl = "https://iconnew" } };
-                    yield return new object[] { new EditPackageVersionRequest() { ProjectUrl = "https://projectnew" } };
-                    yield return new object[] { new EditPackageVersionRequest() { Authors = "author1new authors2new" } };
-                    yield return new object[] { new EditPackageVersionRequest() { Copyright = "copyright" } };
-                    yield return new object[] { new EditPackageVersionRequest() { Description = "new desc" } };
-                    yield return new object[] { new EditPackageVersionRequest() { ReleaseNotes = "notes123" } };
-                    yield return new object[] { new EditPackageVersionRequest() { Summary = "summary new" } };
-                    yield return new object[] { new EditPackageVersionRequest() { Tags = "tag1new tag2new" } };
-                    yield return new object[] { new EditPackageVersionRequest() { VersionTitle = "title" } };
-                    yield return new object[] { new EditPackageVersionRequest() {
+                    yield return new object[] { new EditPackageVersionReadMeRequest() {
                         ReadMe = new ReadMeRequest { SourceType = "Written", SourceText = "markdown" } }
                     };
                 }
@@ -3553,7 +3543,7 @@ namespace NuGetGallery
 
             [Theory]
             [MemberData("WillApplyEdits_Data")]
-            public async Task WillApplyEdits(EditPackageVersionRequest edit)
+            public async Task WillApplyEdits(EditPackageVersionReadMeRequest edit)
             {
                 // Arrange
                 using (var fakeFileStream = new MemoryStream())
@@ -3603,17 +3593,7 @@ namespace NuGetGallery
         {
             get
             {
-                yield return new object[] { new EditPackageVersionRequest() { RequiresLicenseAcceptance = true } };
-                yield return new object[] { new EditPackageVersionRequest() { IconUrl = "https://iconnew" } };
-                yield return new object[] { new EditPackageVersionRequest() { ProjectUrl = "https://projectnew" } };
-                yield return new object[] { new EditPackageVersionRequest() { Authors = "author1new authors2new" } };
-                yield return new object[] { new EditPackageVersionRequest() { Copyright = "copyright" } };
-                yield return new object[] { new EditPackageVersionRequest() { Description = "new desc" } };
-                yield return new object[] { new EditPackageVersionRequest() { ReleaseNotes = "notes123" } };
-                yield return new object[] { new EditPackageVersionRequest() { Summary = "summary new" } };
-                yield return new object[] { new EditPackageVersionRequest() { Tags = "tag1new tag2new" } };
-                yield return new object[] { new EditPackageVersionRequest() { VersionTitle = "title" } };
-                yield return new object[] { new EditPackageVersionRequest() {
+                yield return new object[] { new EditPackageVersionReadMeRequest() {
                     ReadMe = new ReadMeRequest { SourceType = "Written", SourceText = "markdown"} }
                 };
             }
@@ -3621,7 +3601,7 @@ namespace NuGetGallery
 
         [Theory]
         [MemberData(nameof(WillApplyReadMe_Data))]
-        public async Task WillApplyReadMeForWrittenReadMeData(EditPackageVersionRequest edit)
+        public async Task WillApplyReadMeForWrittenReadMeData(EditPackageVersionReadMeRequest edit)
         {
             // Arrange
             using (var fakeFileStream = new MemoryStream())
