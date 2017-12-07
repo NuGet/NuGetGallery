@@ -45,7 +45,7 @@ namespace NuGetGallery
                 var currentHttpContext = HttpContext.Current;
                 if (currentHttpContext != null)
                 {
-                    ElmahException elmahException = new ElmahException(e, GetObfuscatedServerVariables(new HttpContextWrapper(currentHttpContext)));
+                    var elmahException = new ElmahException(e, GetObfuscatedServerVariables(new HttpContextWrapper(currentHttpContext)));
                     ErrorSignal.FromCurrentContext().Raise(elmahException);
                 }
                 else
@@ -73,9 +73,15 @@ namespace NuGetGallery
                 return false;
             }
             operation = $"{route.Values["controller"]}/{route.Values["action"]}";
-            return ClientTelemetryPIIProcessor.PiiActions.Contains(operation);
+            return Obfuscator.PIIActions.Contains(operation);
         }
 
+        /// <summary>
+        /// These values will be used to overwrite the serverVariables in the Elmah error before the exception is logged.
+        /// These are the serverVariables that Gallery decides that will be obfuscated and the values to be used for obfuscation.
+        /// </summary>
+        /// <param name="currentContext">The current HttpContext.</param>
+        /// <returns>A dictionary with the server variables that will be obfuscated.</returns>
         internal static Dictionary<string, string> GetObfuscatedServerVariables(HttpContextBase currentContext)
         {
             string operation = string.Empty;
@@ -86,8 +92,9 @@ namespace NuGetGallery
             {
                 return null;
             }
-            Dictionary<string, string> obfuscatedServerVariables = new Dictionary<string, string>();
-            var obfuscatedURL = ClientTelemetryPIIProcessor.DefaultObfuscatedUrl(currentContext.Request.Url);
+            
+            var obfuscatedServerVariables = new Dictionary<string, string>();
+            var obfuscatedURL = Obfuscator.DefaultObfuscatedUrl(currentContext.Request.Url);
             obfuscatedServerVariables.Add("HTTP_REFERER", obfuscatedURL);
             obfuscatedServerVariables.Add("PATH_INFO", operation);
             obfuscatedServerVariables.Add("PATH_TRANSLATED", operation);

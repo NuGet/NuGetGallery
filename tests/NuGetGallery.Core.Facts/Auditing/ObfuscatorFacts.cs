@@ -5,17 +5,18 @@ using Xunit;
 
 namespace NuGetGallery.Auditing
 {
-    public class PIIUtilFacts
+    public class ObfuscatorFacts
     {
         [Theory]
-        [InlineData("1.2.3.4", "1.2.3.0")]
-        [InlineData("1234", "1234")]
+        [InlineData("fe80:ffff:1111:023c:1ff:fe23:4567:890a", "fe80:ffff:1111:023c:0000:0000:0000:0000")]
+        [InlineData("192.168.0.100", "192.168.0.0")]
+        [InlineData("400.400.400.400", "400.400.400.400")]
         [InlineData(null, null)]
-        [InlineData(".1234", ".1234")]
+        [InlineData("hello", "hello")]
         public void ObfuscateIpFact(string input, string expectedOutput)
         {
             // Arrange & Act
-            var output = PIIUtil.ObfuscateIp(input);
+            var output = Obfuscator.ObfuscateIp(input);
 
             // Assert
             Assert.Equal(expectedOutput, output);

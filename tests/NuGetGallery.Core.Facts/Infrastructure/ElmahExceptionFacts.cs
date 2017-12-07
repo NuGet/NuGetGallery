@@ -10,7 +10,7 @@ namespace NuGetGallery.Infrastructure
     public class ElmahExceptionFacts
     {
         [Fact]
-        public void ValidElamhException()
+        public void ValidElmahException()
         {
             // Arrange & Act
             var exception = new Exception("Boo", new Exception("Inner Boo"));
@@ -30,7 +30,7 @@ namespace NuGetGallery.Infrastructure
         }
 
         [Fact]
-        public void NullElamhExceptionServerVariables()
+        public void NullElmahExceptionServerVariables()
         {
             // Arrange & Act
             var exception = new Exception("Boo", new Exception("Inner Boo"));

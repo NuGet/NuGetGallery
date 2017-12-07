@@ -46,11 +46,11 @@ namespace NuGetGallery.Telemetry
             var serverVariables = QuietLog.GetObfuscatedServerVariables(context);
 
             // Assert
-            Assert.Equal<string>(ClientTelemetryPIIProcessor.DefaultObfuscatedUrl(context.Request.Url), serverVariables["HTTP_REFERER"]);
+            Assert.Equal<string>(Obfuscator.DefaultObfuscatedUrl(context.Request.Url), serverVariables["HTTP_REFERER"]);
             Assert.Equal<string>(context.Operation, serverVariables["PATH_INFO"]);
             Assert.Equal<string>(context.Operation, serverVariables["PATH_TRANSLATED"]);
             Assert.Equal<string>(context.Operation, serverVariables["SCRIPT_NAME"]);
-            Assert.Equal<string>(ClientTelemetryPIIProcessor.DefaultObfuscatedUrl(context.Request.Url), serverVariables["URL"]);
+            Assert.Equal<string>(Obfuscator.DefaultObfuscatedUrl(context.Request.Url), serverVariables["URL"]);
         }
 
         [Fact]
@@ -105,7 +105,7 @@ namespace NuGetGallery.Telemetry
 
         public static IEnumerable<string[]> IsPIIRouteFactsValidDataGenerator()
         {
-            return ClientTelemetryPIIProcessor.PiiActions.Select(o => o.Split('/'));
+            return Obfuscator.PIIActions.Select(o => o.Split('/'));
         }
 
         private class TestHttpContext : HttpContextBase

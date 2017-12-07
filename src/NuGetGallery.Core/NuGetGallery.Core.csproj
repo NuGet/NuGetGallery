@@ -137,7 +137,7 @@
     <Compile Include="Auditing\AuditingService.cs" />
     <Compile Include="Auditing\AuditRecord.cs" />
     <Compile Include="Auditing\FailedAuthenticatedOperationAuditRecord.cs" />
-    <Compile Include="Auditing\PIIUtil.cs" />
+    <Compile Include="Auditing\Obfuscator.cs" />
     <Compile Include="Auditing\ReservedNamespaceAuditRecord.cs" />
     <Compile Include="Auditing\UserSecurityPolicyAuditRecord.cs" />
     <Compile Include="Auditing\FileSystemAuditingService.cs" />

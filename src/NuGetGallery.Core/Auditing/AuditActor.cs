@@ -65,7 +65,7 @@ namespace NuGetGallery.Auditing
                 clientIpAddress = context.Request.UserHostAddress;
             }
 
-            clientIpAddress = PIIUtil.ObfuscateIp(clientIpAddress);
+            clientIpAddress = Obfuscator.ObfuscateIp(clientIpAddress);
 
             string user = null;
             string authType = null;

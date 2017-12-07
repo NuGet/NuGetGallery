@@ -12,21 +12,6 @@ namespace NuGetGallery
 {
     public class ClientTelemetryPIIProcessor : ITelemetryProcessor
     {
-        /// <summary>
-        /// Default user name that will replace the real user name.
-        /// This value will be saved in AI instead of the real value.
-        /// </summary>
-        internal const string DefaultTelemetryUserName = "HiddenUserName";
-
-        internal static readonly HashSet<string> PiiActions = new HashSet<string>{
-            "Packages/ConfirmPendingOwnershipRequest",
-            "Packages/RejectPendingOwnershipRequest",
-            "Packages/CancelPendingOwnershipRequest",
-            "Users/Confirm",
-            "Users/Delete",
-            "Users/Profiles",
-            "Users/ResetPassword"};
-
         private ITelemetryProcessor Next { get; }
 
         public ClientTelemetryPIIProcessor(ITelemetryProcessor next)
@@ -54,7 +39,7 @@ namespace NuGetGallery
             if(IsPIIOperation(telemetryItem.Context.Operation.Name))
             {
                 // The new url form will be: https://nuget.org/HiddenUserName
-                return new Uri(DefaultObfuscatedUrl(telemetryItem.Url));
+                return new Uri(Obfuscator.DefaultObfuscatedUrl(telemetryItem.Url));
             }
             return telemetryItem.Url;
         }
@@ -67,12 +52,7 @@ namespace NuGetGallery
             }
             // Remove the verb from the operation name.
             // An example of operationName : GET Users/Profiles
-            return PiiActions.Contains(operationName.Split(' ').Last());
-        }
-
-        internal static string DefaultObfuscatedUrl(Uri url)
-        {
-            return url == null ? string.Empty : $"{url.Scheme}://{url.Host}/{DefaultTelemetryUserName}";
+            return Obfuscator.PIIActions.Contains(operationName.Split(' ').Last());
         }
     }
 }

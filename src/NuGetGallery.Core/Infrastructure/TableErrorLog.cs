@@ -10,6 +10,7 @@ using System.Linq;
 using Elmah;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
+using NuGetGallery.Auditing;
 
 namespace NuGetGallery.Infrastructure
 {
@@ -189,19 +190,23 @@ namespace NuGetGallery.Infrastructure
 
             private void Obfuscate(Error error)
             {
+                var elmahException = error.Exception as ElmahException;
+                if (elmahException != null)
+                {
+                    var piiServerVaribles = elmahException.ServerVariables;
+                    foreach (var key in piiServerVaribles.Keys)
+                    {
+                        error.ServerVariables[key] = piiServerVaribles[key];
+                    }
+                }
+
                 error.ServerVariables["AUTH_USER"] = string.Empty;
                 error.ServerVariables["LOGON_USER"] = string.Empty;
                 error.ServerVariables["REMOTE_USER"] = string.Empty;
 
-                error.ServerVariables["REMOTE_ADDR"] = PIIUtil.ObfuscateIp(error.ServerVariables["REMOTE_ADDR"]);
-                error.ServerVariables["REMOTE_HOST"] = PIIUtil.ObfuscateIp(error.ServerVariables["REMOTE_HOST"]);
-                error.ServerVariables["LOCAL_ADDR"] = PIIUtil.ObfuscateIp(error.ServerVariables["LOCAL_ADDR"]);
-
-                var piiServerVaribles = ((ElmahException)error.Exception).ServerVariables;
-                foreach (var key in piiServerVaribles.Keys)
-                {
-                    error.ServerVariables[key] = piiServerVaribles[key];
-                }
+                error.ServerVariables["REMOTE_ADDR"] = Obfuscator.ObfuscateIp(error.ServerVariables["REMOTE_ADDR"]);
+                error.ServerVariables["REMOTE_HOST"] = Obfuscator.ObfuscateIp(error.ServerVariables["REMOTE_HOST"]);
+                error.ServerVariables["LOCAL_ADDR"] = Obfuscator.ObfuscateIp(error.ServerVariables["LOCAL_ADDR"]);
             }
-    }
+        }
 }
