@@ -1,7 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System;
 using Xunit;
 
 namespace NuGetGallery.ViewModels
@@ -95,6 +95,49 @@ namespace NuGetGallery.ViewModels
             };
             var packageViewModel = new PackageViewModel(package);
             Assert.NotNull(packageViewModel.LicenseUrl);
+        }
+
+        [Theory]
+        [InlineData(PackageStatus.Available, true, PackageStatusSummary.Listed)]
+        [InlineData(PackageStatus.Available, false, PackageStatusSummary.Unlisted)]
+        [InlineData(PackageStatus.Deleted, true, PackageStatusSummary.None)]
+        [InlineData(PackageStatus.Deleted, false, PackageStatusSummary.None)]
+        [InlineData(PackageStatus.FailedValidation, true, PackageStatusSummary.FailedValidation)]
+        [InlineData(PackageStatus.FailedValidation, false, PackageStatusSummary.FailedValidation)]
+        [InlineData(PackageStatus.Validating, true, PackageStatusSummary.Validating)]
+        [InlineData(PackageStatus.Validating, false, PackageStatusSummary.Validating)]
+        public void PackageStatusSummaryIsCorrect(PackageStatus packageStatus, bool isListed, PackageStatusSummary expected)
+        {
+            // Arrange
+            var package = new Package
+            {
+                Version = "1.0.0",
+                PackageStatusKey = packageStatus,
+                Listed = isListed
+            };
+
+            // Act 
+            var packageViewModel = new PackageViewModel(package);
+
+            // Assert
+            Assert.Equal(expected, packageViewModel.PackageStatusSummary);
+        }
+
+        [Fact]
+        public void PackageStatusSummaryThrowsForUnexpectedPackageStatus()
+        {
+            // Arrange
+            var package = new Package
+            {
+                Version = "1.0.0",
+                PackageStatusKey = (PackageStatus)4,
+            };
+
+            // Act 
+            var packageViewModel = new PackageViewModel(package);
+
+            // Assert
+            Assert.Throws<ArgumentOutOfRangeException>(() => packageViewModel.PackageStatusSummary);
         }
     }
 }
