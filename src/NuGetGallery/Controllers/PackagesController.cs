@@ -433,7 +433,7 @@ namespace NuGetGallery
             var model = new DisplayPackageViewModel(package, packageHistory);
 
             var isReadMePending = false;
-            if (PermissionsService.IsActionAllowed(package, User, PackageActions.Edit))
+            if (PermissionsService.IsActionAllowed(package, User, PackageActions.DisplayPrivatePackage))
             {
                 // Tell logged-in package owners not to cache the package page,
                 // so they won't be confused about the state of pending edits.
