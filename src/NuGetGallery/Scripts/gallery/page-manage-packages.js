@@ -72,6 +72,10 @@
             this.PackageIconUrlFallback = initialData.PackageIconUrlFallback;
 
             this.OwnerFilter = ko.observable();
+            // More filter entries than 'All' and current user
+            if (this.Owners.length > 2) {
+                $("#ownerFilter").removeClass("hidden");
+            }
             
             this.ListedPackages = new PackagesListViewModel(this, "published", initialData.ListedPackages);
             this.UnlistedPackages = new PackagesListViewModel(this, "unlisted", initialData.UnlistedPackages);
