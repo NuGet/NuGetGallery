@@ -1848,6 +1848,7 @@ namespace NuGetGallery
             public static string EncodedMessage = "Gollum took my &lt;b&gt;finger&lt;/bold&gt;";
             public static string ReporterEmailAddress = "frodo@hobbiton.example.com";
             public static string Signature = "Frodo";
+            public static User Owner = new User { Key = 313, Username = "Gollum", EmailAddress = "gollum@mordor.com" };
 
             public static IEnumerable<object[]> NotOwner_Data
             {
@@ -1856,13 +1857,19 @@ namespace NuGetGallery
                     yield return new object[]
                     {
                         null,
-                        null
+                        Owner
                     };
 
                     yield return new object[]
                     {
                         TestUtility.FakeUser,
-                        null
+                        Owner
+                    };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeAdminUser,
+                        Owner
                     };
                 }
             }
@@ -1873,17 +1880,11 @@ namespace NuGetGallery
                 {
                     yield return new object[]
                     {
-                        TestUtility.FakeAdminUser,
-                        null
-                    };
-
-                    yield return new object[]
-                    {
                         TestUtility.FakeUser,
                         TestUtility.FakeUser
                     };
 
-                    /*yield return new object[]
+                    yield return new object[]
                     {
                         TestUtility.FakeOrganizationAdmin,
                         TestUtility.FakeOrganization
@@ -1893,7 +1894,7 @@ namespace NuGetGallery
                     {
                         TestUtility.FakeOrganizationCollaborator,
                         TestUtility.FakeOrganization
-                    };*/
+                    };
                 }
             }
 
@@ -1947,14 +1948,13 @@ namespace NuGetGallery
             [Fact]
             public async Task FormSendsMessageToGalleryOwnerWithEmailOnlyWhenUnauthenticated()
             {
-                var result = await GetReportAbuseFormResult(null, null, out var package, out var messageService);
+                var result = await GetReportAbuseFormResult(null, Owner, out var package, out var messageService);
 
                 Assert.NotNull(result);
                 messageService.Verify(
                     s => s.ReportAbuse(
                         It.Is<ReportPackageRequest>(
                             r => r.FromAddress.Address == ReporterEmailAddress
-                                 && r.FromAddress.DisplayName == Signature
                                  && r.Package == package
                                  && r.Reason == EnumHelper.GetDescription(ReportPackageReason.ViolatesALicenseIOwn)
                                  && r.Message == EncodedMessage
@@ -1965,7 +1965,7 @@ namespace NuGetGallery
             public async Task FormSendsMessageToGalleryOwnerWithUserInfoWhenAuthenticated()
             {
                 var currentUser = TestUtility.FakeUser;
-                var result = await GetReportAbuseFormResult(currentUser, owner: null, package: out var package, messageService: out var messageService);
+                var result = await GetReportAbuseFormResult(currentUser, owner: Owner, package: out var package, messageService: out var messageService);
 
                 Assert.NotNull(result);
                 messageService.Verify(
@@ -2020,7 +2020,7 @@ namespace NuGetGallery
                     Signature = Signature
                 };
 
-                if (!string.IsNullOrEmpty(currentUser.EmailAddress))
+                if (currentUser != null)
                 {
                     model.Email = currentUser.EmailAddress;
                 }
