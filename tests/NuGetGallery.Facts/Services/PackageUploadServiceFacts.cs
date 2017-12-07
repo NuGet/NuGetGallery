@@ -169,7 +169,12 @@ namespace NuGetGallery
             [MemberData(nameof(SupportedPackageStatuses))]
             public async Task CommitsAfterSavingSupportedPackageStatuses(PackageStatus packageStatus)
             {
-                _package.PackageStatusKey = packageStatus;
+                _package.PackageStatusKey = PackageStatus.Available;
+
+                _validationService
+                    .Setup(vs => vs.StartValidationAsync(_package))
+                    .Returns(Task.CompletedTask)
+                    .Callback(() => _package.PackageStatusKey = packageStatus);
 
                 var result = await _target.CommitPackageAsync(_package, _packageFile);
 
@@ -179,23 +184,16 @@ namespace NuGetGallery
                 Assert.Equal(PackageCommitResult.Success, result);
             }
 
-            [Fact]
-            public async Task WillStartAsynchronousValidation()
-            {
-                _package.PackageStatusKey = PackageStatus.Available;
-
-                var result = await _target.CommitPackageAsync(_package, _packageFile);
-
-                _validationService.Verify(
-                    x => x.StartValidationAsync(_package),
-                    Times.Once);
-            }
-
             [Theory]
             [MemberData(nameof(UnsupportedPackageStatuses))]
             public async Task RejectsUnsupportedPackageStatuses(PackageStatus packageStatus)
             {
-                _package.PackageStatusKey = packageStatus;
+                _package.PackageStatusKey = PackageStatus.Available;
+
+                _validationService
+                    .Setup(vs => vs.StartValidationAsync(_package))
+                    .Returns(Task.CompletedTask)
+                    .Callback(() => _package.PackageStatusKey = packageStatus);
 
                 await Assert.ThrowsAsync<ArgumentException>(
                     () => _target.CommitPackageAsync(_package, _packageFile));
@@ -203,6 +201,57 @@ namespace NuGetGallery
                 _entitiesContext.Verify(
                     x => x.SaveChangesAsync(),
                     Times.Never);
+            }
+
+            [Theory]
+            [MemberData(nameof(SupportedPackageStatuses))]
+            public async Task StartsAsynchronousValidation(PackageStatus packageStatus)
+            {
+                _package.PackageStatusKey = packageStatus;
+
+                var result = await _target.CommitPackageAsync(_package, _packageFile);
+
+                _validationService.Verify(
+                    x => x.StartValidationAsync(_package),
+                    Times.Once);
+                _validationService.Verify(
+                    x => x.StartValidationAsync(It.IsAny<Package>()),
+                    Times.Once);
+            }
+
+            [Theory]
+            [MemberData(nameof(SupportedPackageStatuses))]
+            public async Task StartsValidationBeforeOtherPackageOperations(PackageStatus packageStatus)
+            {
+                _package.PackageStatusKey = packageStatus;
+
+                bool otherOperationsDone = false;
+                _validationService
+                    .Setup(vs => vs.StartValidationAsync(It.IsAny<Package>()))
+                    .Returns(Task.CompletedTask)
+                    .Callback(() => Assert.False(otherOperationsDone));
+
+                _entitiesContext
+                    .Setup(ec => ec.SaveChangesAsync())
+                    .Returns(Task.FromResult(1))
+                    .Callback(() => otherOperationsDone = true);
+                _packageFileService
+                    .Setup(pfs => pfs.SaveValidationPackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()))
+                    .Returns(Task.CompletedTask)
+                    .Callback(() => otherOperationsDone = true);
+                _packageFileService
+                    .Setup(x => x.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()))
+                    .Returns(Task.CompletedTask)
+                    .Callback(() => otherOperationsDone = true);
+
+                var result = await _target.CommitPackageAsync(_package, _packageFile);
+
+                _validationService
+                    .Verify(vs => vs.StartValidationAsync(It.IsAny<Package>()),
+                    Times.AtLeastOnce);
+                _entitiesContext.Verify(
+                    x => x.SaveChangesAsync(),
+                    Times.Once);
             }
 
             [Fact]
