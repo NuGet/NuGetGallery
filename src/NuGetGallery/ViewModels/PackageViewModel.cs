@@ -15,6 +15,7 @@ namespace NuGetGallery
         private string _pendingTitle;
         private string _fullVersion;
 
+        private readonly PackageStatus _packageStatus;
         internal readonly NuGetVersion NuGetVersion;
 
         public PackageViewModel(Package package)
@@ -42,13 +43,13 @@ namespace NuGetGallery
             LatestStableVersionSemVer2 = package.IsLatestStableSemVer2;
             LastUpdated = package.Published;
             Listed = package.Listed;
-            PackageStatus = package.PackageStatusKey;
+            _packageStatus = package.PackageStatusKey;
             DownloadCount = package.DownloadCount;
             Prerelease = package.IsPrerelease;
             LicenseReportUrl = package.LicenseReportUrl;
 
             var licenseNames = package.LicenseNames;
-            if (!String.IsNullOrEmpty(licenseNames))
+            if (!string.IsNullOrEmpty(licenseNames))
             {
                 LicenseNames = licenseNames.Split(',').Select(l => l.Trim());
             }
@@ -70,11 +71,10 @@ namespace NuGetGallery
         public bool Prerelease { get; set; }
         public int DownloadCount { get; set; }
         public bool Listed { get; set; }
-        public bool FailedValidation => PackageStatus == PackageStatus.FailedValidation;
-        public bool Available => PackageStatus == PackageStatus.Available;
-        public bool Validating => PackageStatus == PackageStatus.Validating;
-        public bool Deleted => PackageStatus == PackageStatus.Deleted;
-        public PackageStatus PackageStatus { get; set; }
+        public bool FailedValidation => _packageStatus == PackageStatus.FailedValidation;
+        public bool Available => _packageStatus == PackageStatus.Available;
+        public bool Validating => _packageStatus == PackageStatus.Validating;
+        public bool Deleted => _packageStatus == PackageStatus.Deleted;
 
         public int TotalDownloadCount
         {
@@ -99,6 +99,34 @@ namespace NuGetGallery
         public bool IsCurrent(IPackageVersionModel current)
         {
             return current.Version == Version && current.Id == Id;
+        }
+
+        public PackageStatusSummary PackageStatusSummary
+        {
+            get
+            {
+                switch (_packageStatus)
+                {
+                    case PackageStatus.Validating:
+                    {
+                        return PackageStatusSummary.Validating;
+                    }
+                    case PackageStatus.FailedValidation:
+                    {
+                        return PackageStatusSummary.FailedValidation;
+                    }
+                    case PackageStatus.Available:
+                    {
+                        return Listed ? PackageStatusSummary.Listed : PackageStatusSummary.Unlisted;
+                    }
+                    case PackageStatus.Deleted:
+                    {
+                        return PackageStatusSummary.None;
+                    }
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(PackageStatus));
+                }
+            }
         }
     }
 }
