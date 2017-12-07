@@ -1842,153 +1842,191 @@ namespace NuGetGallery
         public class TheReportAbuseMethod
             : TestContainer
         {
-            [Fact]
-            public async Task SendsMessageToGalleryOwnerWithEmailOnlyWhenUnauthenticated()
+            public static string PackageId = "gollum";
+            public static string PackageVersion = "2.0.1";
+            public static string UnencodedMessage = "Gollum took my <b>finger</bold>";
+            public static string EncodedMessage = "Gollum took my &lt;b&gt;finger&lt;/bold&gt;";
+            public static string ReporterEmailAddress = "frodo@hobbiton.example.com";
+            public static string Signature = "Frodo";
+
+            public static IEnumerable<object[]> NotOwner_Data
             {
-                var messageService = new Mock<IMessageService>();
-                messageService.Setup(
-                    s => s.ReportAbuse(It.Is<ReportPackageRequest>(r => r.Message == "Mordor took my finger")));
-                var package = new Package
+                get
                 {
-                    PackageRegistration = new PackageRegistration { Id = "mordor" },
-                    Version = "2.0.1"
-                };
-                var packageService = new Mock<IPackageService>();
-                packageService.Setup(p => p.FindPackageByIdAndVersionStrict("mordor", "2.0.1")).Returns(package);
-                var httpContext = new Mock<HttpContextBase>();
-                var controller = CreateController(
-                    GetConfigurationService(),
-                    packageService: packageService,
-                    messageService: messageService,
-                    httpContext: httpContext);
-                var model = new ReportAbuseViewModel
-                {
-                    Email = "frodo@hobbiton.example.com",
-                    Message = "Mordor took my finger.",
-                    Reason = ReportPackageReason.ViolatesALicenseIOwn,
-                    AlreadyContactedOwner = true,
-                    Signature = "Frodo"
-                };
+                    yield return new object[]
+                    {
+                        null,
+                        null
+                    };
 
-                TestUtility.SetupUrlHelper(controller, httpContext);
-                var result = await controller.ReportAbuse("mordor", "2.0.1", model) as RedirectResult;
-
-                Assert.NotNull(result);
-                messageService.Verify(
-                    s => s.ReportAbuse(
-                        It.Is<ReportPackageRequest>(
-                            r => r.FromAddress.Address == "frodo@hobbiton.example.com"
-                                 && r.Package == package
-                                 && r.Reason == EnumHelper.GetDescription(ReportPackageReason.ViolatesALicenseIOwn)
-                                 && r.Message == "Mordor took my finger."
-                                 && r.AlreadyContactedOwners)));
+                    yield return new object[]
+                    {
+                        TestUtility.FakeUser,
+                        null
+                    };
+                }
             }
 
-            [Fact]
-            public async Task SendsMessageToGalleryOwnerWithUserInfoWhenAuthenticated()
+            public static IEnumerable<object[]> Owner_Data
             {
-                var messageService = new Mock<IMessageService>();
-                messageService.Setup(
-                    s => s.ReportAbuse(It.Is<ReportPackageRequest>(r => r.Message == "Mordor took my finger")));
-                var user = new User { EmailAddress = "frodo@hobbiton.example.com", Username = "Frodo", Key = 1 };
-                var package = new Package
+                get
                 {
-                    PackageRegistration = new PackageRegistration { Id = "mordor" },
-                    Version = "2.0.1"
-                };
-                var packageService = new Mock<IPackageService>();
-                packageService.Setup(p => p.FindPackageByIdAndVersionStrict("mordor", It.IsAny<string>())).Returns(package);
-                var httpContext = new Mock<HttpContextBase>();
-                var controller = CreateController(
-                    GetConfigurationService(),
-                    packageService: packageService,
-                    messageService: messageService,
-                    httpContext: httpContext);
-                controller.SetCurrentUser(user);
-                var model = new ReportAbuseViewModel
-                {
-                    Message = "Mordor took my finger",
-                    Reason = ReportPackageReason.ViolatesALicenseIOwn,
-                    Signature = "Frodo"
-                };
+                    yield return new object[]
+                    {
+                        TestUtility.FakeAdminUser,
+                        null
+                    };
 
-                TestUtility.SetupUrlHelper(controller, httpContext);
-                ActionResult result = await controller.ReportAbuse("mordor", "2.0.1", model) as RedirectResult;
+                    yield return new object[]
+                    {
+                        TestUtility.FakeUser,
+                        TestUtility.FakeUser
+                    };
 
-                Assert.NotNull(result);
-                messageService.Verify(
-                    s => s.ReportAbuse(
-                        It.Is<ReportPackageRequest>(
-                            r => r.Message == "Mordor took my finger"
-                                 && r.FromAddress.Address == "frodo@hobbiton.example.com"
-                                 && r.FromAddress.DisplayName == "Frodo"
-                                 && r.Reason == EnumHelper.GetDescription(ReportPackageReason.ViolatesALicenseIOwn))));
+                    /*yield return new object[]
+                    {
+                        TestUtility.FakeOrganizationAdmin,
+                        TestUtility.FakeOrganization
+                    };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeOrganizationCollaborator,
+                        TestUtility.FakeOrganization
+                    };*/
+                }
             }
 
-            [Fact]
-            public void FormRedirectsPackageOwnerToReportMyPackage()
+            [Theory]
+            [MemberData(nameof(NotOwner_Data))]
+            public void ShowsFormWhenNotOwner(User currentUser, User owner)
             {
-                var user = new User { EmailAddress = "darklord@mordor.com", Username = "Sauron" };
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration { Id = "Mordor", Owners = { user } },
-                    Version = "2.0.1"
-                };
-                var packageService = new Mock<IPackageService>();
-                packageService.Setup(p => p.FindPackageByIdAndVersionStrict("Mordor", It.IsAny<string>())).Returns(package);
-                var httpContext = new Mock<HttpContextBase>();
-                var controller = CreateController(
-                    GetConfigurationService(),
-                    packageService: packageService,
-                    httpContext: httpContext);
-                controller.SetCurrentUser(user);
+                var result = GetReportAbuseResult(currentUser, owner, out var package);
 
-                TestUtility.SetupUrlHelper(controller, httpContext);
-                ActionResult result = controller.ReportAbuse("Mordor", "2.0.1");
+                Assert.IsType<ViewResult>(result);
+                var viewResult = result as ViewResult;
+
+                Assert.IsType<ReportAbuseViewModel>(viewResult.Model);
+                var model = viewResult.Model as ReportAbuseViewModel;
+
+                Assert.Equal(PackageId, model.PackageId);
+                Assert.Equal(PackageVersion, model.PackageVersion);
+            }
+
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public void RedirectsToReportMyPackageWhenOwner(User currentUser, User owner)
+            {
+                var result = GetReportAbuseResult(currentUser, owner, out var package);
+                
                 Assert.IsType<RedirectToRouteResult>(result);
-                Assert.Equal("ReportMyPackage", ((RedirectToRouteResult)result).RouteValues["Action"]);
+                var redirectResult = result as RedirectToRouteResult;
+                Assert.Equal("ReportMyPackage", redirectResult.RouteValues["Action"]);
+            }
+
+            public ActionResult GetReportAbuseResult(User currentUser, User owner, out Package package)
+            {
+                package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = PackageId, Owners = { owner } },
+                    Version = PackageVersion
+                };
+                var packageService = new Mock<IPackageService>();
+                packageService.Setup(p => p.FindPackageByIdAndVersionStrict(PackageId, It.IsAny<string>())).Returns(package);
+                var httpContext = new Mock<HttpContextBase>();
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    httpContext: httpContext);
+                controller.SetCurrentUser(currentUser);
+                TestUtility.SetupUrlHelper(controller, httpContext);
+
+                return controller.ReportAbuse(PackageId, PackageVersion);
             }
 
             [Fact]
-            public async Task HtmlEncodesMessageContent()
+            public async Task FormSendsMessageToGalleryOwnerWithEmailOnlyWhenUnauthenticated()
             {
-                var messageService = new Mock<IMessageService>();
+                var result = await GetReportAbuseFormResult(null, null, out var package, out var messageService);
+
+                Assert.NotNull(result);
+                messageService.Verify(
+                    s => s.ReportAbuse(
+                        It.Is<ReportPackageRequest>(
+                            r => r.FromAddress.Address == ReporterEmailAddress
+                                 && r.FromAddress.DisplayName == Signature
+                                 && r.Package == package
+                                 && r.Reason == EnumHelper.GetDescription(ReportPackageReason.ViolatesALicenseIOwn)
+                                 && r.Message == EncodedMessage
+                                 && r.AlreadyContactedOwners)));
+            }
+
+            [Fact]
+            public async Task FormSendsMessageToGalleryOwnerWithUserInfoWhenAuthenticated()
+            {
+                var currentUser = TestUtility.FakeUser;
+                var result = await GetReportAbuseFormResult(currentUser, owner: null, package: out var package, messageService: out var messageService);
+
+                Assert.NotNull(result);
+                messageService.Verify(
+                    s => s.ReportAbuse(
+                        It.Is<ReportPackageRequest>(
+                            r => r.Message == EncodedMessage
+                                 && r.FromAddress.Address == currentUser.EmailAddress
+                                 && r.FromAddress.DisplayName == currentUser.Username
+                                 && r.Package == package
+                                 && r.Reason == EnumHelper.GetDescription(ReportPackageReason.ViolatesALicenseIOwn)
+                                 && r.AlreadyContactedOwners)));
+            }
+            
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public async Task FormRedirectsToReportMyPackageWhenOwner(User currentUser, User owner)
+            {
+                var result = await GetReportAbuseFormResult(currentUser, owner, out var package, out var messageService);
+                
+                messageService.Verify(s => s.ReportAbuse(It.IsAny<ReportPackageRequest>()), Times.Never());
+
+                Assert.IsType<RedirectToRouteResult>(result);
+                var redirectResult = result as RedirectToRouteResult;
+                Assert.Equal("ReportMyPackage", redirectResult.RouteValues["Action"]);
+            }
+
+            public Task<ActionResult> GetReportAbuseFormResult(User currentUser, User owner, out Package package, out Mock<IMessageService> messageService)
+            {
+                messageService = new Mock<IMessageService>();
                 messageService.Setup(
-                    s => s.ReportAbuse(It.Is<ReportPackageRequest>(r => r.Message == "Mordor took my finger")));
-                var package = new Package
+                    s => s.ReportAbuse(It.Is<ReportPackageRequest>(r => r.Message == UnencodedMessage)));
+                package = new Package
                 {
-                    PackageRegistration = new PackageRegistration { Id = "mordor" },
+                    PackageRegistration = new PackageRegistration { Id = PackageId, Owners = new[] { owner } },
                     Version = "2.0.1"
                 };
                 var packageService = new Mock<IPackageService>();
-                packageService.Setup(p => p.FindPackageByIdAndVersionStrict("mordor", "2.0.1")).Returns(package);
+                packageService.Setup(p => p.FindPackageByIdAndVersionStrict(PackageId, PackageVersion)).Returns(package);
                 var httpContext = new Mock<HttpContextBase>();
-                httpContext.Setup(h => h.Request.IsAuthenticated).Returns(false);
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
                     messageService: messageService,
                     httpContext: httpContext);
+                controller.SetCurrentUser(currentUser);
                 var model = new ReportAbuseViewModel
                 {
-                    Email = "frodo@hobbiton.example.com",
-                    Message = "I like the cut of your jib. It's <b>bold</b>.",
+                    Email = ReporterEmailAddress,
+                    Message = UnencodedMessage,
                     Reason = ReportPackageReason.ViolatesALicenseIOwn,
                     AlreadyContactedOwner = true,
-                    Signature = "Frodo"
+                    Signature = Signature
                 };
 
-                TestUtility.SetupUrlHelper(controller, httpContext);
-                await controller.ReportAbuse("mordor", "2.0.1", model);
+                if (!string.IsNullOrEmpty(currentUser.EmailAddress))
+                {
+                    model.Email = currentUser.EmailAddress;
+                }
 
-                messageService.Verify(
-                    s => s.ReportAbuse(
-                        It.Is<ReportPackageRequest>(
-                            r => r.FromAddress.Address == "frodo@hobbiton.example.com"
-                                 && r.Package == package
-                                 && r.Reason == EnumHelper.GetDescription(ReportPackageReason.ViolatesALicenseIOwn)
-                                 && r.Message == "I like the cut of your jib. It&#39;s &lt;b&gt;bold&lt;/b&gt;."
-                                 && r.AlreadyContactedOwners)));
+                TestUtility.SetupUrlHelper(controller, httpContext);
+                return controller.ReportAbuse(PackageId, PackageVersion, model);
             }
         }
 
