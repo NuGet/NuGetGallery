@@ -1933,7 +1933,7 @@ namespace NuGetGallery
                     Version = PackageVersion
                 };
                 var packageService = new Mock<IPackageService>();
-                packageService.Setup(p => p.FindPackageByIdAndVersionStrict(PackageId, It.IsAny<string>())).Returns(package);
+                packageService.Setup(p => p.FindPackageByIdAndVersionStrict(PackageId, PackageVersion)).Returns(package);
                 var httpContext = new Mock<HttpContextBase>();
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -2185,7 +2185,7 @@ namespace NuGetGallery
                 Assert.IsType<RedirectToRouteResult>(result);
                 Assert.Equal("ReportAbuse", ((RedirectToRouteResult)result).RouteValues["Action"]);
             }
-            
+
             [Theory]
             [MemberData(nameof(OwnerAndNotOwner_Data))]
             public async Task GetRedirectsMissingPackageToNotFound(User currentUser, User owner)
