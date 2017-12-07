@@ -21,7 +21,7 @@ namespace NuGetGallery
         public ValidationService(
             IPackageService packageService,
             IPackageValidationInitiator initiator,
-            IValidationEntitiesContext validationContext)
+            ValidationEntitiesContext validationContext)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _initiator = initiator ?? throw new ArgumentNullException(nameof(initiator));

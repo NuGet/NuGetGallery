@@ -157,32 +157,21 @@
 
             @if (Model.FailedValidation)
             {
+                @ViewHelpers.AlertDanger(
+                    @<text>
+                        <strong>Package publishing failed.</strong> This package could not be published since package
+                        validation failed. Please contact <a href="mailto:support@nuget.org">support@nuget.org</a>.
+                    </text>
+                )
+
                 if (Model.ValidationIssues.Any())
                 {
-                    @ViewHelpers.AlertDanger(
-                        @<text>
-                            <strong>Package publishing failed.</strong> This package could not be published since package
-                            validation failed due to the following issue:
-
-                            <ul>
-                                @foreach (var issue in Model.ValidationIssues)
-                                {
-                                    <li>@issue</li>
-                                }
-                            </ul>
-
-                            Please contact <a href="mailto:support@nuget.org">support@nuget.org</a>.
-                        </text>
-                    )
-                }
-                else
-                {
-                    @ViewHelpers.AlertDanger(
-                        @<text>
-                            <strong>Package publishing failed.</strong> This package could not be published since package
-                            validation failed. Please contact <a href="mailto:support@nuget.org">support@nuget.org</a>.
-                        </text>
-                    )
+                    foreach (var issue in Model.ValidationIssues)
+                    {
+                        @ViewHelpers.AlertDanger(
+                            @<text>@issue</text>
+                        )
+                    }
                 }
             }
 

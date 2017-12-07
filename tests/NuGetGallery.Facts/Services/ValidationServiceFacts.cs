@@ -96,7 +96,7 @@ namespace NuGetGallery
 
                 _package = new Package();
 
-                var validationContext = new Mock<IValidationEntitiesContext>();
+                var validationContext = new Mock<ValidationEntitiesContext>();
 
                 _target = new ValidationService(
                     _packageService.Object,
