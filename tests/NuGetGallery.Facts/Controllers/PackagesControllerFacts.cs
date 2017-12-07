@@ -2034,41 +2034,37 @@ namespace NuGetGallery
             : TestContainer
         {
             private Package _package;
+            private static User _owner = new User { EmailAddress = "frodo@hobbiton.example.com", Username = "Frodo", Key = 2 };
             private ReportMyPackageViewModel _viewModel;
             private Issue _supportRequest;
-            private User _user;
             private Mock<IPackageService> _packageService;
             private Mock<IMessageService> _messageService;
             private Mock<IPackageDeleteService> _packageDeleteService;
             private Mock<ISupportRequestService> _supportRequestService;
             private PackagesController _controller;
 
-            public TheReportMyPackageMethod()
+            public void SetupTest(User currentUser, User owner)
             {
-                _user = new User
+                if (owner == null)
                 {
-                    EmailAddress = "frodo@hobbiton.example.com",
-                    Username = "Frodo",
-                    Key = 2
-                };
+                    owner = _owner;
+                }
+
                 _package = new Package
                 {
                     PackageRegistration = new PackageRegistration
                     {
                         Id = "Mordor",
-                        Owners = { _user },
+                        Owners = { owner },
                     },
                     Version = "2.00.1",
                     NormalizedVersion = "2.0.1",
                 };
+
                 _viewModel = new ReportMyPackageViewModel
                 {
                     Reason = ReportPackageReason.ContainsPrivateAndConfidentialData,
                     Message = "Message!",
-                };
-                _supportRequest = new Issue
-                {
-                    Key = 23,
                 };
 
                 _packageService = new Mock<IPackageService>();
@@ -2078,6 +2074,11 @@ namespace NuGetGallery
 
                 _messageService = new Mock<IMessageService>();
                 _packageDeleteService = new Mock<IPackageDeleteService>();
+
+                _supportRequest = new Issue
+                {
+                    Key = 23,
+                };
 
                 _supportRequestService = new Mock<ISupportRequestService>();
                 _supportRequestService
@@ -2098,66 +2099,120 @@ namespace NuGetGallery
                     packageDeleteService: _packageDeleteService,
                     supportRequestService: _supportRequestService,
                     httpContext: httpContext);
-                _controller.SetCurrentUser(_user);
+                _controller.SetCurrentUser(currentUser);
 
                 TestUtility.SetupUrlHelper(_controller, httpContext);
             }
 
-            [Fact]
-            public async Task GetRedirectsNonOwnersToReportAbuse()
+            public static IEnumerable<object[]> OwnerAndNotOwner_Data => Owner_Data.Concat(NotOwner_Data);
+
+            public static IEnumerable<object[]> NotOwner_Data
+            {
+                get
+                {
+                    yield return new object[]
+                    {
+                        null,
+                        null
+                    };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeUser,
+                        null
+                    };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeAdminUser,
+                        null
+                    };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeOrganizationCollaborator,
+                        TestUtility.FakeOrganization
+                    };
+                }
+            }
+
+            public static IEnumerable<object[]> Owner_Data
+            {
+                get
+                {
+                    yield return new object[]
+                    {
+                        TestUtility.FakeUser,
+                        TestUtility.FakeUser
+                    };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeOrganizationAdmin,
+                        TestUtility.FakeOrganization
+                    };
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(NotOwner_Data))]
+            public async Task GetRedirectsNonOwnersToReportAbuse(User currentUser, User owner)
             {
                 await RedirectsNonOwnersToReportAbuse(
+                    currentUser, owner,
                     () => _controller.ReportMyPackage(
                         _package.PackageRegistration.Id,
                         _package.Version));
             }
 
-            [Fact]
-            public async Task PostRedirectsNonOwnersToReportAbuse()
+            [Theory]
+            [MemberData(nameof(NotOwner_Data))]
+            public async Task PostRedirectsNonOwnersToReportAbuse(User currentUser, User owner)
             {
                 await RedirectsNonOwnersToReportAbuse(
+                    currentUser, owner,
                     () => _controller.ReportMyPackage(
                         _package.PackageRegistration.Id,
                         _package.Version,
                         _viewModel));
             }
 
-            private async Task RedirectsNonOwnersToReportAbuse(Func<Task<ActionResult>> actAsync)
+            private async Task RedirectsNonOwnersToReportAbuse(User currentUser, User owner, Func<Task<ActionResult>> actAsync)
             {
-                // Arrange
-                _package.PackageRegistration.Owners.Clear();
-
-                // Act
+                SetupTest(currentUser, owner);
                 var result = await actAsync();
-
-                // Assert
+                
                 Assert.IsType<RedirectToRouteResult>(result);
                 Assert.Equal("ReportAbuse", ((RedirectToRouteResult)result).RouteValues["Action"]);
             }
-
-
-            [Fact]
-            public async Task GetRedirectsMissingPackageToNotFound()
+            
+            [Theory]
+            [MemberData(nameof(OwnerAndNotOwner_Data))]
+            public async Task GetRedirectsMissingPackageToNotFound(User currentUser, User owner)
             {
                 await RedirectsMissingPackageToNotFound(
+                    currentUser, owner,
                     () => _controller.ReportMyPackage(
                         _package.PackageRegistration.Id,
                         _package.Version));
             }
 
-            [Fact]
-            public async Task PostRedirectsMissingPackageToNotFound()
+            [Theory]
+            [MemberData(nameof(OwnerAndNotOwner_Data))]
+            public async Task PostRedirectsMissingPackageToNotFound(User currentUser, User owner)
             {
                 await RedirectsMissingPackageToNotFound(
+                    currentUser, owner,
                     () => _controller.ReportMyPackage(
                         _package.PackageRegistration.Id,
                         _package.Version,
                         _viewModel));
             }
 
-            private async Task RedirectsMissingPackageToNotFound(Func<Task<ActionResult>> actAsync)
+            private async Task RedirectsMissingPackageToNotFound(User currentUser, User owner, Func<Task<ActionResult>> actAsync)
             {
                 // Arrange
+                SetupTest(currentUser: null, owner: _owner);
                 _packageService
                     .Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
                     .Returns<Package>(null);
@@ -2169,10 +2224,12 @@ namespace NuGetGallery
                 Assert.IsType<HttpNotFoundResult>(result);
             }
 
-            [Fact]
-            public async Task HtmlEncodesMessageContent()
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public async Task HtmlEncodesMessageContent(User currentUser, User owner)
             {
                 // Arrange
+                SetupTest(currentUser, owner);
                 _viewModel.Message = "I like the cut of your jib. It's <b>bold</b>.";
                 _viewModel.Reason = ReportPackageReason.ViolatesALicenseIOwn;
 
@@ -2189,16 +2246,18 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.NotNull(reportRequest);
-                Assert.Equal(_user.EmailAddress, reportRequest.FromAddress.Address);
+                Assert.Equal(currentUser.EmailAddress, reportRequest.FromAddress.Address);
                 Assert.Same(_package, reportRequest.Package);
                 Assert.Equal(EnumHelper.GetDescription(ReportPackageReason.ViolatesALicenseIOwn), reportRequest.Reason);
                 Assert.Equal("I like the cut of your jib. It&#39;s &lt;b&gt;bold&lt;/b&gt;.", reportRequest.Message);
             }
 
-            [Fact]
-            public async Task DoesNotCheckDeleteAllowedIfDeleteWasNotRequested()
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public async Task DoesNotCheckDeleteAllowedIfDeleteWasNotRequested(User currentUser, User owner)
             {
                 // Arrange
+                SetupTest(currentUser, owner);
                 _viewModel.DeleteDecision = PackageDeleteDecision.ContactSupport;
                 _viewModel.Message = "Test message!";
 
@@ -2220,18 +2279,20 @@ namespace NuGetGallery
                             _package.PackageRegistration.Id,
                             _package.NormalizedVersion),
                         "Test message!",
-                        _user.EmailAddress,
+                        currentUser.EmailAddress,
                         EnumHelper.GetDescription(_viewModel.Reason.Value),
-                        _user,
+                        currentUser,
                         _package),
                     Times.Once);
                 Assert.Equal(Strings.SupportRequestSentTransientMessage, _controller.TempData["Message"]);
             }
 
-            [Fact]
-            public async Task AllowsPackageDelete()
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public async Task AllowsPackageDelete(User currentUser, User owner)
             {
                 // Arrange
+                SetupTest(currentUser, owner);
                 _viewModel.DeleteDecision = PackageDeleteDecision.DeletePackage;
                 _viewModel.DeleteConfirmation = true;
                 _packageDeleteService
@@ -2254,15 +2315,15 @@ namespace NuGetGallery
                             _package.PackageRegistration.Id,
                             _package.NormalizedVersion),
                         Strings.UserPackageDeleteSupportRequestMessage,
-                        _user.EmailAddress,
+                        currentUser.EmailAddress,
                         EnumHelper.GetDescription(_viewModel.Reason.Value),
-                        _user,
+                        currentUser,
                         _package),
                     Times.Once);
                 _packageDeleteService.Verify(
                     x => x.SoftDeletePackagesAsync(
                         It.Is<IEnumerable<Package>>(p => p.First() == _package),
-                        _user,
+                        currentUser,
                         EnumHelper.GetDescription(_viewModel.Reason.Value),
                         Strings.UserPackageDeleteSignature),
                     Times.Once);
@@ -2272,7 +2333,7 @@ namespace NuGetGallery
                         null,
                         IssueStatusKeys.Resolved,
                         null,
-                        _user.Username),
+                        currentUser.Username),
                     Times.Once);
                 _messageService.Verify(
                     x => x.SendPackageDeletedNotice(
@@ -2287,10 +2348,12 @@ namespace NuGetGallery
                     Times.Never);
             }
 
-            [Fact]
-            public async Task TreatsDeleteFailureAsNormalRequest()
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public async Task TreatsDeleteFailureAsNormalRequest(User currentUser, User owner)
             {
                 // Arrange
+                SetupTest(currentUser, owner);
                 _viewModel.DeleteDecision = PackageDeleteDecision.DeletePackage;
                 _viewModel.DeleteConfirmation = true;
                 _viewModel.CopySender = true;
@@ -2317,7 +2380,7 @@ namespace NuGetGallery
                 _packageDeleteService.Verify(
                     x => x.SoftDeletePackagesAsync(
                         It.Is<IEnumerable<Package>>(p => p.First() == _package),
-                        _user,
+                        currentUser,
                         EnumHelper.GetDescription(_viewModel.Reason.Value),
                         Strings.UserPackageDeleteSignature),
                     Times.Once);
@@ -2340,10 +2403,12 @@ namespace NuGetGallery
                     Times.Once);
             }
 
-            [Fact]
-            public async Task RequiresMessageWhenNotDeleting()
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public async Task RequiresMessageWhenNotDeleting(User currentUser, User owner)
             {
                 // Arrange
+                SetupTest(currentUser, owner);
                 _viewModel.DeleteDecision = PackageDeleteDecision.ContactSupport;
                 _viewModel.Message = null;
                 _packageDeleteService
@@ -2366,10 +2431,12 @@ namespace NuGetGallery
                         .Select(x => x.ErrorMessage));
             }
 
-            [Fact]
-            public async Task RequiresConfirmationWhenDeleting()
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public async Task RequiresConfirmationWhenDeleting(User currentUser, User owner)
             {
                 // Arrange
+                SetupTest(currentUser, owner);
                 _viewModel.DeleteDecision = PackageDeleteDecision.DeletePackage;
                 _viewModel.DeleteConfirmation = false;
                 _packageDeleteService
@@ -2392,13 +2459,37 @@ namespace NuGetGallery
                         .Select(x => x.ErrorMessage));
             }
 
+            private static IEnumerable<ReportPackageReason> ReasonsRequiringDeleteDecision = new[]
+            {
+                ReportPackageReason.ContainsMaliciousCode,
+                ReportPackageReason.ContainsPrivateAndConfidentialData,
+                ReportPackageReason.ReleasedInPublicByAccident
+            };
+
+            private static IEnumerable<ReportPackageReason> ReasonsNotRequiringDeleteDecision = new[]
+            {
+                ReportPackageReason.Other
+            };
+
+            private static IEnumerable<object[]> MergeOwnersWithReasons(IEnumerable<ReportPackageReason> reasons)
+            {
+                foreach (var ownerData in Owner_Data)
+                {
+                    foreach (var reason in reasons)
+                    {
+                        yield return ownerData.Concat(new object[] { reason }).ToArray();
+                    }
+                }
+            }
+
+            public static IEnumerable<object[]> RequiresDeleteDecision_Data => MergeOwnersWithReasons(ReasonsRequiringDeleteDecision);
+
             [Theory]
-            [InlineData(ReportPackageReason.ContainsMaliciousCode)]
-            [InlineData(ReportPackageReason.ContainsPrivateAndConfidentialData)]
-            [InlineData(ReportPackageReason.ReleasedInPublicByAccident)]
-            public async Task RequiresDeleteDecision(ReportPackageReason reason)
+            [MemberData(nameof(RequiresDeleteDecision_Data))]
+            public async Task RequiresDeleteDecision(User currentUser, User owner, ReportPackageReason reason)
             {
                 // Arrange
+                SetupTest(currentUser, owner);
                 _viewModel.Reason = reason;
                 _viewModel.DeleteDecision = null;
                 _viewModel.DeleteConfirmation = true;
@@ -2421,12 +2512,15 @@ namespace NuGetGallery
                         .SelectMany(x => x.Errors)
                         .Select(x => x.ErrorMessage));
             }
-            
+
+            public static IEnumerable<object[]> DoesNotRequireDeleteDecision_Data => MergeOwnersWithReasons(ReasonsNotRequiringDeleteDecision);
+
             [Theory]
-            [InlineData(ReportPackageReason.Other)]
-            public async Task DoesNotRequireDeleteDecision(ReportPackageReason reason)
+            [MemberData(nameof(DoesNotRequireDeleteDecision_Data))]
+            public async Task DoesNotRequireDeleteDecision(User currentUser, User owner, ReportPackageReason reason)
             {
                 // Arrange
+                SetupTest(currentUser, owner);
                 _viewModel.Reason = reason;
                 _viewModel.DeleteDecision = null;
                 _packageDeleteService
@@ -2457,10 +2551,12 @@ namespace NuGetGallery
                     Times.Once);
             }
 
-            [Fact]
-            public async Task IgnoresDeleteRequestWhenNotAllowed()
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public async Task IgnoresDeleteRequestWhenNotAllowed(User currentUser, User owner)
             {
                 // Arrange
+                SetupTest(currentUser, owner);
                 _viewModel.Reason = ReportPackageReason.ContainsPrivateAndConfidentialData;
                 _viewModel.DeleteDecision = PackageDeleteDecision.DeletePackage;
                 _viewModel.DeleteConfirmation = true;
