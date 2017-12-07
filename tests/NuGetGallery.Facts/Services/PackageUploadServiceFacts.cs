@@ -169,7 +169,7 @@ namespace NuGetGallery
             [MemberData(nameof(SupportedPackageStatuses))]
             public async Task CommitsAfterSavingSupportedPackageStatuses(PackageStatus packageStatus)
             {
-                _package.PackageStatusKey = PackageStatus.Available;
+                _package.PackageStatusKey = PackageStatus.FailedValidation;
 
                 _validationService
                     .Setup(vs => vs.StartValidationAsync(_package))
