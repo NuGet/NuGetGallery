@@ -214,6 +214,24 @@ namespace NuGetGallery
             return GetRouteLink(url, RouteName.ListPackages, relativeUrl);
         }
 
+        public static RouteValueTemplate<IPackageVersionModel> PackageRegistrationTemplate(
+            this UrlHelper url,
+            bool relativeUrl = true)
+        {
+            var routesGenerator = new Dictionary<string, Func<IPackageVersionModel, object>>
+            {
+                { "id", p => p.Id }
+            };
+
+            Func<RouteValueDictionary, string> linkGenerator = rv => GetRouteLink(
+                url,
+                RouteName.DisplayPackage,
+                relativeUrl,
+                routeValues: rv);
+
+            return new RouteValueTemplate<IPackageVersionModel>(linkGenerator, routesGenerator);
+        }
+
         public static string Package(this UrlHelper url, string id, bool relativeUrl = true)
         {
             return url.Package(id, version: null, relativeUrl: relativeUrl);

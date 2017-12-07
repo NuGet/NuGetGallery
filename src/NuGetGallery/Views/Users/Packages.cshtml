@@ -178,24 +178,41 @@
 </script>
 
 @functions {
+    private RouteValueTemplate<User> userUrlTemplate;
+    private RouteValueTemplate<IPackageVersionModel> packageUrlTemplate;
+    private RouteValueTemplate<IPackageVersionModel> editUrlTemplate;
+    private RouteValueTemplate<IPackageVersionModel> manageOwnersUrlTemplate;
+    private RouteValueTemplate<IPackageVersionModel> deleteUrlTemplate;
+
     dynamic GetSerializablePackage(ListPackageItemViewModel p)
     {
+        if (deleteUrlTemplate == null)
+        {
+            // Performance: RouteCollection.VirtualPath is expensive, so resolve the path once and save as a template.
+            // Then substitute route values into the template path when rendering links for each package on the page.
+            userUrlTemplate = Url.UserTemplate();
+            packageUrlTemplate = Url.PackageRegistrationTemplate();
+            editUrlTemplate = Url.EditPackageTemplate();
+            manageOwnersUrlTemplate = Url.ManagePackageOwnersTemplate();
+            deleteUrlTemplate = Url.DeletePackageTemplate();
+        }
+
         return new
         {
             p.Id,
             Owners = p.Owners.Select(o => new
             {
                 o.Username,
-                ProfileUrl = Url.User(o),
+                ProfileUrl = userUrlTemplate.Resolve(o),
                 IsOrganization = o is Organization
             }),
             p.TotalDownloadCount,
             LatestVersion = p.FullVersion.Abbreviate(25),
-            PackageIconUrl = @PackageHelper.ShouldRenderUrl(p.IconUrl) ? p.IconUrl : null,
-            PackageUrl = @Url.Package(p.Id),
-            EditUrl = @Url.EditPackage(p.Id, p.Version),
-            ManageOwnersUrl = @Url.ManagePackageOwners(p),
-            DeleteUrl = @Url.DeletePackage(p),
+            PackageIconUrl = PackageHelper.ShouldRenderUrl(p.IconUrl) ? p.IconUrl : null,
+            PackageUrl = packageUrlTemplate.Resolve(p),
+            EditUrl = editUrlTemplate.Resolve(p),
+            ManageOwnersUrl = manageOwnersUrlTemplate.Resolve(p),
+            DeleteUrl = deleteUrlTemplate.Resolve(p),
             CanEdit = p.IsActionAllowed(User, PackageActions.Edit),
             CanManageOwners = p.IsActionAllowed(User, PackageActions.ManagePackageOwners),
             CanDelete = p.IsActionAllowed(User, PackageActions.Unlist)
