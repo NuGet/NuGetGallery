@@ -52,6 +52,7 @@ namespace NuGetGallery
                 // be a failed validation set for a package whose validation has failed.
                 var validationSet = await _validationContext
                             .PackageValidationSets
+                            .Where(s => s.PackageKey == package.Key)
                             .OrderByDescending(s => s.Updated)
                             .Where(s => s.PackageValidations.Any(v => v.ValidationStatus == ValidationStatus.Failed))
                             .Include(s => s.PackageValidations.Select(v => v.PackageValidationIssues))

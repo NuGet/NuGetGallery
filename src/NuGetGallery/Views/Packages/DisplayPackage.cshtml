@@ -164,14 +164,11 @@
                     </text>
                 )
 
-                if (Model.ValidationIssues.Any())
+                foreach (var issue in Model.ValidationIssues)
                 {
-                    foreach (var issue in Model.ValidationIssues)
-                    {
-                        @ViewHelpers.AlertDanger(
-                            @<text>@issue</text>
-                        )
-                    }
+                    @ViewHelpers.AlertDanger(
+                        @<text>@issue</text>
+                    )
                 }
             }
 
