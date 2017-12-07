@@ -1588,6 +1588,7 @@
     <Compile Include="Services\ReflowPackageService.cs" />
     <Compile Include="Services\TelemetryService.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteUserAccountViewModel.cs" />
+    <Compile Include="ViewModels\ListPackageOwnerViewModel.cs" />
     <Compile Include="ViewModels\PackageDeleteDecision.cs" />
     <Compile Include="ViewModels\DeleteAccountViewModel.cs" />
     <Compile Include="ViewModels\ApiKeyOwnerViewModel.cs" />
@@ -1955,7 +1956,6 @@
     <Content Include="Views\Authentication\LinkExternal.cshtml" />
     <Content Include="Views\Authentication\_SignIn.cshtml" />
     <Content Include="Views\Authentication\_Register.cshtml" />
-    <Content Include="Views\Users\_UserPackagesList.cshtml" />
     <Content Include="Views\Users\_ConfirmationResendForm.cshtml" />
     <Content Include="Views\Shared\_PackageHeading.cshtml" />
     <Content Include="Views\Packages\_ImportReadMe.cshtml" />
