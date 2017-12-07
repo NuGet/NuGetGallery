@@ -35,6 +35,11 @@ namespace NuGet.Services.Storage
             return File.Exists(fileName);
         }
 
+        public override Task<bool> ExistsAsync(string fileName, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(Exists(fileName));
+        }
+
         public override Task<IEnumerable<StorageListItem>> List(CancellationToken cancellationToken)
         {
             DirectoryInfo directoryInfo = new DirectoryInfo(Path);
