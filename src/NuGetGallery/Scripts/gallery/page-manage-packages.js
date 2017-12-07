@@ -13,7 +13,6 @@
             this.PackageIconUrl = (packageItem.PackageIconUrl)
                 ? packageItem.PackageIconUrl
                 : this.PackagesListViewModel.ManagePackagesViewModel.DefaultPackageIconUrl;
-            this.PackageIconUrlFallback = this.PackagesListViewModel.ManagePackagesViewModel.PackageIconUrlFallback;
             this.PackageUrl = packageItem.PackageUrl;
             this.EditUrl = packageItem.EditUrl;
             this.ManageOwnersUrl = packageItem.ManageOwnersUrl;
@@ -36,6 +35,10 @@
                 }
                 this.Visible(visible);
             };
+            this.PackageIconUrlFallback = ko.pureComputed(function () {
+                var url = this.PackagesListViewModel.ManagePackagesViewModel.PackageIconUrlFallback;
+                return "this.src='" + url + "'; this.onerror = null;";
+            }, this);
         }
 
         function PackagesListViewModel(managePackagesViewModel, type, packages) {
