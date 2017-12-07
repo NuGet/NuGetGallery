@@ -691,12 +691,6 @@ namespace NuGetGallery
             {
                 user = GetCurrentUser();
                 from = user.ToMailAddress();
-                
-                // If user logged on in as owner a different tab, then submitted the form, we can redirect them to ReportMyPackage
-                if (PermissionsService.IsActionAllowed(package, user, PackageActions.ReportMyPackage))
-                {
-                    return RedirectToAction("ReportMyPackage", new { id, version });
-                }
             }
             else
             {

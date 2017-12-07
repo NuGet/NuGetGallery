@@ -1961,11 +1961,28 @@ namespace NuGetGallery
                                  && r.AlreadyContactedOwners)));
             }
 
-            [Fact]
-            public async Task FormSendsMessageToGalleryOwnerWithUserInfoWhenAuthenticated()
+            public static IEnumerable<object[]> FormSendsMessageToGalleryOwnerWithUserInfoWhenAuthenticated_Data
             {
-                var currentUser = TestUtility.FakeUser;
-                var result = await GetReportAbuseFormResult(currentUser, owner: Owner, package: out var package, messageService: out var messageService);
+                get
+                {
+                    var authenticatedUserTest = new[] 
+                    {
+                        new object[]
+                        {
+                            TestUtility.FakeUser,
+                            Owner
+                        }
+                    };
+
+                    return authenticatedUserTest.Concat(Owner_Data);
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(FormSendsMessageToGalleryOwnerWithUserInfoWhenAuthenticated_Data))]
+            public async Task FormSendsMessageToGalleryOwnerWithUserInfoWhenAuthenticated(User currentUser, User owner)
+            {
+                var result = await GetReportAbuseFormResult(currentUser, owner, package: out var package, messageService: out var messageService);
 
                 Assert.NotNull(result);
                 messageService.Verify(
@@ -1977,19 +1994,6 @@ namespace NuGetGallery
                                  && r.Package == package
                                  && r.Reason == EnumHelper.GetDescription(ReportPackageReason.ViolatesALicenseIOwn)
                                  && r.AlreadyContactedOwners)));
-            }
-            
-            [Theory]
-            [MemberData(nameof(Owner_Data))]
-            public async Task FormRedirectsToReportMyPackageWhenOwner(User currentUser, User owner)
-            {
-                var result = await GetReportAbuseFormResult(currentUser, owner, out var package, out var messageService);
-                
-                messageService.Verify(s => s.ReportAbuse(It.IsAny<ReportPackageRequest>()), Times.Never());
-
-                Assert.IsType<RedirectToRouteResult>(result);
-                var redirectResult = result as RedirectToRouteResult;
-                Assert.Equal("ReportMyPackage", redirectResult.RouteValues["Action"]);
             }
 
             public Task<ActionResult> GetReportAbuseFormResult(User currentUser, User owner, out Package package, out Mock<IMessageService> messageService)
