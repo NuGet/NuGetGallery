@@ -474,28 +474,28 @@ namespace NuGetGallery
             [MemberData(nameof(EditedPackageOwners))]
             public Task GivenAnOwnedValidPackageWithNoEditsItDisplaysCurrentMetadata(User currentUser, User owner)
             {
-                return CheckValidPackageWithEdits(currentUser, owner, false, false);
+                return CheckValidPackageWithEdits(currentUser, owner, isEdited: false, seeEdit: false);
             }
 
             [Theory]
             [MemberData(nameof(EditedPackageOwners))]
             public Task GivenAnOwnedValidPackageWithEditsItDisplaysEditedMetadata(User currentUser, User owner)
             {
-                return CheckValidPackageWithEdits(currentUser, owner, true, true);
+                return CheckValidPackageWithEdits(currentUser, owner, isEdited: true, seeEdit: true);
             }
 
             [Theory]
             [MemberData(nameof(EditedPackageNonOwners))]
             public Task GivenAnUnownedValidPackageWithNoEditsItDisplaysCurrentMetadata(User currentUser, User owner)
             {
-                return CheckValidPackageWithEdits(currentUser, owner, false, false);
+                return CheckValidPackageWithEdits(currentUser, owner, isEdited: false, seeEdit: false);
             }
 
             [Theory]
             [MemberData(nameof(EditedPackageNonOwners))]
             public Task GivenAnUnownedValidPackageWithEditsItDisplaysEditedMetadata(User currentUser, User owner)
             {
-                return CheckValidPackageWithEdits(currentUser, owner, true, false);
+                return CheckValidPackageWithEdits(currentUser, owner, isEdited: true, seeEdit: false);
             }
 
             private async Task CheckValidPackageWithEdits(User currentUser, User owner, bool isEdited, bool seeEdit)
