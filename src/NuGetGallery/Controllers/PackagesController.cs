@@ -433,7 +433,7 @@ namespace NuGetGallery
 
             var model = new DisplayPackageViewModel(package, packageHistory);
 
-            var validationIssues = await _validationService.GetLatestValidationIssuesAsync(package);
+            var validationIssues = _validationService.GetLatestValidationIssues(package);
 
             model.ValidationIssues = validationIssues
                                         .Select(i => i.GetMessage())

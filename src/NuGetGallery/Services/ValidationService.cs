@@ -15,17 +15,16 @@ namespace NuGetGallery
     {
         private readonly IPackageService _packageService;
         private readonly IPackageValidationInitiator _initiator;
-        private readonly IValidationEntitiesContext _validationContext;
-
+        private readonly IEntityRepository<PackageValidationSet> _validationSets;
 
         public ValidationService(
             IPackageService packageService,
             IPackageValidationInitiator initiator,
-            ValidationEntitiesContext validationContext)
+            IEntityRepository<PackageValidationSet> validationSets)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _initiator = initiator ?? throw new ArgumentNullException(nameof(initiator));
-            _validationContext = validationContext ?? throw new ArgumentNullException(nameof(validationContext));
+            _validationSets = validationSets ?? throw new ArgumentNullException(nameof(validationSets));
         }
 
         public async Task StartValidationAsync(Package package)
@@ -43,20 +42,20 @@ namespace NuGetGallery
             await _initiator.StartValidationAsync(package);
         }
 
-        public async Task<IEnumerable<ValidationIssue>> GetLatestValidationIssuesAsync(Package package)
+        public IEnumerable<ValidationIssue> GetLatestValidationIssues(Package package)
         {
             // Only query the database for validation issues if the package has failed validation.
             if (package.PackageStatusKey == PackageStatus.FailedValidation)
             {
                 // Grab the most recent failed validation set for this package. There should always
                 // be a failed validation set for a package whose validation has failed.
-                var validationSet = await _validationContext
-                            .PackageValidationSets
-                            .Where(s => s.PackageKey == package.Key)
-                            .OrderByDescending(s => s.Updated)
-                            .Where(s => s.PackageValidations.Any(v => v.ValidationStatus == ValidationStatus.Failed))
-                            .Include(s => s.PackageValidations.Select(v => v.PackageValidationIssues))
-                            .FirstOrDefaultAsync();
+                var validationSet = _validationSets
+                                        .GetAll()
+                                        .Where(s => s.PackageKey == package.Key)
+                                        .Where(s => s.PackageValidations.Any(v => v.ValidationStatus == ValidationStatus.Failed))
+                                        .Include(s => s.PackageValidations.Select(v => v.PackageValidationIssues))
+                                        .OrderByDescending(s => s.Updated)
+                                        .FirstOrDefault();
 
                 if (validationSet != null)
                 {

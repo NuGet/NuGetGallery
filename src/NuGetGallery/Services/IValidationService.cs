@@ -31,6 +31,6 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="package">The package whose validation issues should be fetched.</param>
         /// <returns>The validation issues encountered in the latest validation.</returns>
-        Task<IEnumerable<ValidationIssue>> GetLatestValidationIssuesAsync(Package package);
+        IEnumerable<ValidationIssue> GetLatestValidationIssues(Package package);
     }
 }
