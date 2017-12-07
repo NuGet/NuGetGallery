@@ -64,8 +64,8 @@ namespace NuGetGallery
             {
                 uploadFileService = new Mock<IUploadFileService>();
                 uploadFileService.Setup(x => x.DeleteUploadFileAsync(It.IsAny<int>())).Returns(Task.FromResult(0));
-                uploadFileService.Setup(x => x.GetUploadFileAsync(42)).Returns(Task.FromResult<Stream>(null));
-                uploadFileService.Setup(x => x.SaveUploadFileAsync(42, It.IsAny<Stream>())).Returns(Task.FromResult(0));
+                uploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(null));
+                uploadFileService.Setup(x => x.SaveUploadFileAsync(TestUtility.FakeUser.Key, It.IsAny<Stream>())).Returns(Task.FromResult(0));
             }
             userService = userService ?? new Mock<IUserService>();
             messageService = messageService ?? new Mock<IMessageService>();
@@ -241,66 +241,94 @@ namespace NuGetGallery
                 ResultAssert.IsNotFound(result);
             }
 
-            [Fact]
-            public async Task GivenAValidPackageThatTheCurrentUserDoesNotOwnItDisplaysCurrentMetadata()
-            {
-                // Arrange
-                var packageService = new Mock<IPackageService>();
-                var indexingService = new Mock<IIndexingService>();
-                var controller = CreateController(
-                    GetConfigurationService(),
-                    packageService: packageService,
-                    indexingService: indexingService);
-                controller.SetCurrentUser(TestUtility.FakeUser);
+            public static IEnumerable<PackageStatus> ValidatingPackageStatuses = 
+                new[] { PackageStatus.Validating , PackageStatus.FailedValidation};
 
-                packageService.Setup(p => p.FindPackageByIdAndVersion("Foo", "1.1.1", SemVerLevelKey.SemVer2, true))
-                              .Returns(new Package()
-                              {
-                                  PackageRegistration = new PackageRegistration()
-                                  {
-                                      Id = "Foo",
-                                      Owners = new List<User>()
-                                  },
-                                  Version = "01.1.01",
-                                  NormalizedVersion = "1.1.1",
-                                  Title = "A test package!"
-                              });
-
-                indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
-
-                // Act
-                var result = await controller.DisplayPackage("Foo", "1.1.1");
-
-                // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
-                Assert.Equal("Foo", model.Id);
-                Assert.Equal("1.1.1", model.Version);
-                Assert.Equal("A test package!", model.Title);
-            }
+            public static IEnumerable<object[]> GivenAValidatingPackage_Data => ValidatingPackageStatuses.Select(s => new object[] { s });
 
             [Theory]
-            [InlineData(PackageStatus.Validating)]
-            [InlineData(PackageStatus.FailedValidation)]
+            [MemberData(nameof(GivenAValidatingPackage_Data))]
             public async Task GivenAValidatingPackageThatTheCurrentUserOwnsThenShowIt(PackageStatus packageStatus)
             {
                 // Arrange & Act
                 var result = await GetActionResultForPackageStatusAsync(
                     packageStatus,
-                    p => p.PackageRegistration.Owners.Add(TestUtility.FakeUser));
+                    TestUtility.FakeUser,
+                    TestUtility.FakeUser);
 
                 // Assert
                 Assert.IsType<ViewResult>(result);
             }
 
             [Theory]
-            [InlineData(PackageStatus.Validating)]
-            [InlineData(PackageStatus.FailedValidation)]
+            [MemberData(nameof(GivenAValidatingPackage_Data))]
+            public async Task GivenAValidatingPackageAsAdminThenShowIt(PackageStatus packageStatus)
+            {
+                // Arrange & Act
+                var result = await GetActionResultForPackageStatusAsync(
+                    packageStatus,
+                    TestUtility.FakeAdminUser,
+                    new User { Key = 132114 });
+
+                // Assert
+                Assert.IsType<ViewResult>(result);
+            }
+
+            public static IEnumerable<object[]> GivenAValidatingPackageThatCurrentUsersOrganizationOwnsThenShowIt_Data
+            {
+                get
+                {
+                    foreach (var isAdmin in new[] { true, false })
+                    {
+                        foreach (var status in ValidatingPackageStatuses)
+                        {
+                            yield return new object[]
+                            {
+                                status,
+                                isAdmin
+                            };
+                        }
+                    }
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(GivenAValidatingPackageThatCurrentUsersOrganizationOwnsThenShowIt_Data))]
+            public async Task GivenAValidatingPackageThatCurrentUsersOrganizationOwnsThenShowIt(PackageStatus packageStatus, bool isAdmin)
+            {
+                // Arrange & Act
+                var result = await GetActionResultForPackageStatusAsync(
+                    packageStatus,
+                    isAdmin ? TestUtility.FakeOrganizationAdmin : TestUtility.FakeOrganizationCollaborator,
+                    TestUtility.FakeOrganization);
+
+                // Assert
+                Assert.IsType<ViewResult>(result);
+            }
+
+            [Theory]
+            [MemberData(nameof(GivenAValidatingPackage_Data))]
+            public async Task GivenAValidatingPackageWhileLoggedOutThenHideIt(PackageStatus packageStatus)
+            {
+                // Arrange & Act
+                var result = await GetActionResultForPackageStatusAsync(
+                    packageStatus,
+                    null,
+                    new User { Key = 132114 });
+
+                // Assert
+                ResultAssert.IsNotFound(result);
+            }
+
+            [Theory]
+            [MemberData(nameof(GivenAValidatingPackage_Data))]
             public async Task GivenAValidatingPackageThatTheCurrentUserDoesNotOwnThenHideIt(PackageStatus packageStatus)
             {
                 // Arrange & Act
                 var result = await GetActionResultForPackageStatusAsync(
                     packageStatus,
-                    p => p.PackageRegistration.Owners.Clear());
+                    TestUtility.FakeUser,
+                    new User { Key = 132114 });
 
                 // Assert
                 ResultAssert.IsNotFound(result);
@@ -308,7 +336,8 @@ namespace NuGetGallery
 
             private async Task<ActionResult> GetActionResultForPackageStatusAsync(
                 PackageStatus packageStatus,
-                Action<Package> mutatePackage)
+                User currentUser,
+                User owner)
             {
                 // Arrange
                 var packageService = new Mock<IPackageService>();
@@ -318,7 +347,8 @@ namespace NuGetGallery
                     GetConfigurationService(),
                     packageService: packageService,
                     httpContext: httpContext);
-                controller.SetCurrentUser(TestUtility.FakeUser);
+                controller.SetCurrentUser(currentUser);
+
                 httpContext.Setup(c => c.Response.Cache).Returns(httpCachePolicy.Object);
 
                 var package = new Package
@@ -326,14 +356,12 @@ namespace NuGetGallery
                     PackageRegistration = new PackageRegistration()
                     {
                         Id = "NuGet.Versioning",
-                        Owners = new List<User>(),
+                        Owners = new[] { owner }
                     },
                     Version = "3.4.0",
                     NormalizedVersion = "3.4.0",
                     PackageStatusKey = packageStatus,
                 };
-
-                mutatePackage(package);
 
                 packageService
                     .Setup(p => p.FindPackageByIdAndVersion(
@@ -364,6 +392,7 @@ namespace NuGetGallery
                     packageService: packageService,
                     editPackageService: editPackageService,
                     httpContext: httpContext);
+
                 controller.SetCurrentUser(TestUtility.FakeUser);
                 httpContext.Setup(c => c.Response.Cache).Returns(httpCachePolicy.Object);
 
@@ -395,57 +424,83 @@ namespace NuGetGallery
                 httpCachePolicy.VerifyAll();
             }
 
-            [Fact]
-            public async Task GivenAValidPackageThatTheCurrentUserOwnsWithNoEditsItDisplaysCurrentMetadata()
+            public static IEnumerable<object[]> EditedPackageOwners
             {
-                // Arrange
-                var packageService = new Mock<IPackageService>();
-                var indexingService = new Mock<IIndexingService>();
-                var editPackageService = new Mock<EditPackageService>();
-                var httpContext = new Mock<HttpContextBase>();
-                var httpCachePolicy = new Mock<HttpCachePolicyBase>();
-                var controller = CreateController(
-                    GetConfigurationService(),
-                    packageService: packageService,
-                    editPackageService: editPackageService,
-                    indexingService: indexingService,
-                    httpContext: httpContext);
-                controller.SetCurrentUser(TestUtility.FakeUser);
-                httpContext.Setup(c => c.Response.Cache).Returns(httpCachePolicy.Object);
-
-                var package = new Package()
+                get
                 {
-                    PackageRegistration = new PackageRegistration()
+                    yield return new object[]
                     {
-                        Id = "Foo",
-                        Owners = new List<User>() { TestUtility.FakeUser }
-                    },
-                    Version = "01.1.01",
-                    NormalizedVersion = "1.1.1",
-                    Title = "A test package!"
-                };
+                        TestUtility.FakeUser,
+                        TestUtility.FakeUser
+                    };
 
-                packageService
-                    .Setup(p => p.FindPackageByIdAndVersion("Foo", "1.1.1", SemVerLevelKey.SemVer2, true))
-                    .Returns(package);
-                editPackageService
-                    .Setup(e => e.GetPendingMetadata(package))
-                    .ReturnsNull();
+                    yield return new object[]
+                    {
+                        TestUtility.FakeAdminUser,
+                        new User { Key = 12414 }
+                    };
 
-                indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
+                    yield return new object[]
+                    {
+                        TestUtility.FakeOrganizationAdmin,
+                        TestUtility.FakeOrganization
+                    };
 
-                // Act
-                var result = await controller.DisplayPackage("Foo", "1.1.1");
-
-                // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
-                Assert.Equal("Foo", model.Id);
-                Assert.Equal("1.1.1", model.Version);
-                Assert.Equal("A test package!", model.Title);
+                    yield return new object[]
+                    {
+                        TestUtility.FakeOrganizationCollaborator,
+                        TestUtility.FakeOrganization
+                    };
+                }
             }
 
-            [Fact]
-            public async Task GivenAValidPackageThatTheCurrentUserOwnsWithEditsItDisplaysEditedMetadata()
+            public static IEnumerable<object[]> EditedPackageNonOwners
+            {
+                get
+                {
+                    yield return new object[]
+                    {
+                        TestUtility.FakeUser,
+                        new User { Key = 12414 }
+                    };
+
+                    yield return new object[]
+                    {
+                        null,
+                        TestUtility.FakeUser
+                    };
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(EditedPackageOwners))]
+            public Task GivenAnOwnedValidPackageWithNoEditsItDisplaysCurrentMetadata(User currentUser, User owner)
+            {
+                return CheckValidPackageWithEdits(currentUser, owner, isEdited: false, seeEdit: false);
+            }
+
+            [Theory]
+            [MemberData(nameof(EditedPackageOwners))]
+            public Task GivenAnOwnedValidPackageWithEditsItDisplaysEditedMetadata(User currentUser, User owner)
+            {
+                return CheckValidPackageWithEdits(currentUser, owner, isEdited: true, seeEdit: true);
+            }
+
+            [Theory]
+            [MemberData(nameof(EditedPackageNonOwners))]
+            public Task GivenAnUnownedValidPackageWithNoEditsItDisplaysCurrentMetadata(User currentUser, User owner)
+            {
+                return CheckValidPackageWithEdits(currentUser, owner, isEdited: false, seeEdit: false);
+            }
+
+            [Theory]
+            [MemberData(nameof(EditedPackageNonOwners))]
+            public Task GivenAnUnownedValidPackageWithEditsItDisplaysEditedMetadata(User currentUser, User owner)
+            {
+                return CheckValidPackageWithEdits(currentUser, owner, isEdited: true, seeEdit: false);
+            }
+
+            private async Task CheckValidPackageWithEdits(User currentUser, User owner, bool isEdited, bool seeEdit)
             {
                 // Arrange
                 var packageService = new Mock<IPackageService>();
@@ -459,29 +514,30 @@ namespace NuGetGallery
                     editPackageService: editPackageService,
                     indexingService: indexingService,
                     httpContext: httpContext);
-                controller.SetCurrentUser(TestUtility.FakeUser);
+                controller.SetCurrentUser(currentUser);
                 httpContext.Setup(c => c.Response.Cache).Returns(httpCachePolicy.Object);
+                var uneditedTitle = "A test package!";
                 var package = new Package()
                 {
                     PackageRegistration = new PackageRegistration()
                     {
                         Id = "Foo",
-                        Owners = new List<User>() { TestUtility.FakeUser }
+                        Owners = new List<User>() { owner }
                     },
                     Version = "01.1.01",
                     NormalizedVersion = "1.1.1",
-                    Title = "A test package!"
+                    Title = uneditedTitle
                 };
 
                 packageService
                     .Setup(p => p.FindPackageByIdAndVersion("Foo", "1.1.1", SemVerLevelKey.SemVer2, true))
                     .Returns(package);
+
+                var editedTitle = "A modified package!";
+                var packageEdit = isEdited ? new PackageEdit { Title = editedTitle } : null;
                 editPackageService
                     .Setup(e => e.GetPendingMetadata(package))
-                    .Returns(new PackageEdit()
-                    {
-                        Title = "A modified package!"
-                    });
+                    .Returns(packageEdit);
 
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
 
@@ -492,7 +548,7 @@ namespace NuGetGallery
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal("Foo", model.Id);
                 Assert.Equal("1.1.1", model.Version);
-                Assert.Equal("A modified package!", model.Title);
+                Assert.Equal(seeEdit ? editedTitle : uneditedTitle, model.Title);
             }
 
             [Fact]
