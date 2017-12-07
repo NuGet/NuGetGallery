@@ -70,7 +70,7 @@ namespace NuGetGallery
                 }
             }
 
-            return new ValidationIssue[0];
+            return Enumerable.Empty<ValidationIssue>();
         }
     }
 }
