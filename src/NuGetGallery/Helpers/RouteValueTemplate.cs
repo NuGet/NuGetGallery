@@ -27,9 +27,10 @@ namespace NuGetGallery.Helpers
         public string Resolve(T item)
         {
             var link = LinkTemplate;
-            foreach (var value in GetValues(item))
+            foreach (var routeValue in GetRouteValues(item))
             {
-                link = link.Replace($"{{{value.Key}}}", value.Value.ToString());
+                var value = routeValue.Value as string ?? string.Empty;
+                link = link.Replace($"{{{routeValue.Key}}}", value);
             }
             return link;
         }
@@ -43,7 +44,7 @@ namespace NuGetGallery.Helpers
                     );
         }
 
-        private IDictionary<string, object> GetValues(T item)
+        private IDictionary<string, object> GetRouteValues(T item)
         {
             return RoutesGenerator.ToDictionary(
                 keySelector: i => i.Key,

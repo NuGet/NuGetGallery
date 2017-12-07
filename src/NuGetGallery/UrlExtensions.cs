@@ -220,7 +220,8 @@ namespace NuGetGallery
         {
             var routesGenerator = new Dictionary<string, Func<IPackageVersionModel, object>>
             {
-                { "id", p => p.Id }
+                { "id", p => p.Id },
+                { "version", p => null }
             };
 
             Func<RouteValueDictionary, string> linkGenerator = rv => GetRouteLink(
