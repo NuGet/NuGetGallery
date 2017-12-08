@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NuGet.Versioning;
 
 namespace NuGetGallery
 {
@@ -21,6 +22,12 @@ namespace NuGetGallery
 
             if (!isVersionHistory)
             {
+                HasSemVer2Version = NuGetVersion.IsSemVer2;
+                HasSemVer2Dependency = package.Dependencies.ToList()
+                    .Where(pd => !string.IsNullOrEmpty(pd.VersionSpec))
+                    .Select(pd => VersionRange.Parse(pd.VersionSpec))
+                    .Any(p => (p.HasUpperBound && p.MaxVersion.IsSemVer2) || (p.HasLowerBound && p.MinVersion.IsSemVer2));
+
                 Dependencies = new DependencySetsViewModel(package.Dependencies);
                 PackageVersions = packageHistory.Select(p => new DisplayPackageViewModel(p, packageHistory, isVersionHistory: true));
             }
@@ -68,6 +75,9 @@ namespace NuGetGallery
         public DateTime? LastEdited { get; set; }
         public int DownloadsPerDay { get; private set; }
         public int TotalDaysSinceCreated { get; private set; }
+
+        public bool HasSemVer2Version { get; }
+        public bool HasSemVer2Dependency { get; }
 
         public bool HasNewerPrerelease
         {

@@ -2,9 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Transactions;
 using NuGetGallery.Authentication;
+using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Security;
 
@@ -20,6 +23,7 @@ namespace NuGetGallery
         private readonly ISecurityPolicyService _securityPolicyService;
         private readonly AuthenticationService _authService;
         private readonly IEntityRepository<User> _userRepository;
+        private readonly ISupportRequestService _supportRequestService;
 
         public DeleteAccountService(IEntityRepository<AccountDelete> accountDeleteRepository,
                                     IEntityRepository<User> userRepository,
@@ -28,7 +32,8 @@ namespace NuGetGallery
                                     IPackageOwnershipManagementService packageOwnershipManagementService,
                                     IReservedNamespaceService reservedNamespaceService,
                                     ISecurityPolicyService securityPolicyService,
-                                    AuthenticationService authService
+                                    AuthenticationService authService,
+                                    ISupportRequestService supportRequestService
             )
         {
             _accountDeleteRepository = accountDeleteRepository ?? throw new ArgumentNullException(nameof(accountDeleteRepository));
@@ -39,6 +44,7 @@ namespace NuGetGallery
             _reservedNamespaceService = reservedNamespaceService ?? throw new ArgumentNullException(nameof(reservedNamespaceService));
             _securityPolicyService = securityPolicyService ?? throw new ArgumentNullException(nameof(securityPolicyService));
             _authService = authService ?? throw new ArgumentNullException(nameof(authService));
+            _supportRequestService = supportRequestService ?? throw new ArgumentNullException(nameof(supportRequestService));
         }
 
         /// <summary>
@@ -66,17 +72,51 @@ namespace NuGetGallery
             {
                 throw new ArgumentNullException(nameof(admin));
             }
-            if(userToBeDeleted.IsDeleted)
+
+            if (userToBeDeleted.IsDeleted)
             {
                 return new DeleteUserAccountStatus()
                 {
                     Success = false,
-                    Description = string.Format(Strings.AccountDelete_AccountAlreadyDeleted, userToBeDeleted.Username),
+                    Description = string.Format(CultureInfo.CurrentCulture,
+                        Strings.AccountDelete_AccountAlreadyDeleted,
+                        userToBeDeleted.Username),
                     AccountName = userToBeDeleted.Username
                 };
             }
+
+            // The deletion of Organization and Organization member accounts is disabled for now.
+            if (userToBeDeleted is Organization)
+            {
+                return new DeleteUserAccountStatus()
+                {
+                    Success = false,
+                    Description = string.Format(CultureInfo.CurrentCulture,
+                        Strings.AccountDelete_OrganizationDeleteNotImplemented,
+                        userToBeDeleted.Username),
+                    AccountName = userToBeDeleted.Username
+                };
+            }
+            else if (userToBeDeleted.Organizations.Any())
+            {
+                return new DeleteUserAccountStatus()
+                {
+                    Success = false,
+                    Description = string.Format(CultureInfo.CurrentCulture,
+                        Strings.AccountDelete_OrganizationMemberDeleteNotImplemented,
+                        userToBeDeleted.Username),
+                    AccountName = userToBeDeleted.Username
+                };
+            }
+
             try
             {
+                // The support requests db and gallery db are different.
+                // TransactionScope can be used for doing transaction actions across db on the same server but not on different servers.
+                // The below code will clean first the suppport requests and after the gallery data.
+                // The order is important in order to allow the admin the oportunity to execute this step again.
+                await RemoveSupportRequests(userToBeDeleted);
+
                 if (commitAsTransaction)
                 {
                     using (var strategy = new SuspendDbExecutionStrategy())
@@ -93,7 +133,9 @@ namespace NuGetGallery
                 return new DeleteUserAccountStatus()
                 {
                     Success = true,
-                    Description = string.Format(Strings.AccountDelete_Success, userToBeDeleted.Username),
+                    Description = string.Format(CultureInfo.CurrentCulture,
+                        Strings.AccountDelete_Success,
+                        userToBeDeleted.Username),
                     AccountName = userToBeDeleted.Username
                 };
             }
@@ -103,22 +145,24 @@ namespace NuGetGallery
                 return new DeleteUserAccountStatus()
                 {
                     Success = true,
-                    Description = string.Format(Strings.AccountDelete_Fail, userToBeDeleted.Username, e),
+                    Description = string.Format(CultureInfo.CurrentCulture,
+                        Strings.AccountDelete_Fail,
+                        userToBeDeleted.Username, e),
                     AccountName = userToBeDeleted.Username
                 };
             }
         }
 
-        private async Task DeleteGalleryUserAccountImplAsync(User useToBeDeleted, User admin, string signature, bool unlistOrphanPackages)
+        private async Task DeleteGalleryUserAccountImplAsync(User userToBeDeleted, User admin, string signature, bool unlistOrphanPackages)
         {
-            var ownedPackages = _packageService.FindPackagesByOwner(useToBeDeleted, includeUnlisted: true).ToList();
+            var ownedPackages = _packageService.FindPackagesByAnyMatchingOwner(userToBeDeleted, includeUnlisted: true).ToList();
 
-            await RemoveOwnership(useToBeDeleted, admin, unlistOrphanPackages, ownedPackages);
-            await RemoveReservedNamespaces(useToBeDeleted);
-            await RemoveSecurityPolicies(useToBeDeleted);
-            await RemoveUserCredentials(useToBeDeleted);
-            await RemoveUserDataInUserTable(useToBeDeleted);
-            await InsertDeleteAccount(useToBeDeleted, admin, signature);
+            await RemoveOwnership(userToBeDeleted, admin, unlistOrphanPackages, ownedPackages);
+            await RemoveReservedNamespaces(userToBeDeleted);
+            await RemoveSecurityPolicies(userToBeDeleted);
+            await RemoveUserCredentials(userToBeDeleted);
+            await RemoveUserDataInUserTable(userToBeDeleted);
+            await InsertDeleteAccount(userToBeDeleted, admin, signature);
         }
 
         private async Task InsertDeleteAccount(User user, User admin, string signature)
@@ -177,6 +221,11 @@ namespace NuGetGallery
         {
             user.SetAccountAsDeleted();
             await _userRepository.CommitChangesAsync();
+        }
+
+        private async Task RemoveSupportRequests(User user)
+        {
+            await _supportRequestService.DeleteSupportRequestsAsync(user.Username);
         }
     }
 }

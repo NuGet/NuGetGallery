@@ -1,9 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+
 using System;
 using System.Linq;
-using System.Net.Mail;
 using System.Security.Claims;
 using System.Security.Principal;
 using NuGetGallery.Authentication;
@@ -15,22 +15,9 @@ namespace NuGetGallery
     /// </summary>
     public static class UserExtensions
     {
-        /// <summary>
-        /// Convert a User's email to a System.Net MailAddress.
-        /// </summary>
-        public static MailAddress ToMailAddress(this User user)
+        public static bool IsAdministrator(this User self)
         {
-            if (user == null)
-            {
-                throw new ArgumentNullException(nameof(user));
-            }
-
-            if (!user.Confirmed)
-            {
-                return new MailAddress(user.UnconfirmedEmailAddress, user.Username);
-            }
-
-            return new MailAddress(user.EmailAddress, user.Username);
+            return self.IsInRole(Constants.AdminRoleName);
         }
 
         /// <summary>
@@ -75,11 +62,6 @@ namespace NuGetGallery
             return self.Key == user.Key;
         }
 
-        public static bool IsAdministrator(this User self)
-        {
-            return self.IsInRole(Constants.AdminRoleName);
-        }
-        
         /// <summary>
         /// Determine if the current user matches the owner scope of the current credential.
         /// There is a match if the owner scope is self or an organization to which the user
@@ -97,7 +79,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(user));
             }
 
-            if (credential== null)
+            if (credential == null)
             {
                 throw new ArgumentNullException(nameof(credential));
             }
@@ -107,7 +89,7 @@ namespace NuGetGallery
             {
                 return true;
             }
-            
+
             return credential.Scopes
                 .Select(s => s.OwnerKey)
                 .Distinct()
@@ -121,7 +103,7 @@ namespace NuGetGallery
                 || user.Organizations.Any(o => o.OrganizationKey == accountKey);
         }
 
-	public static void SetAccountAsDeleted(this User user)
+        public static void SetAccountAsDeleted(this User user)
         {
             user.EmailAddress = null;
             user.UnconfirmedEmailAddress = null;
@@ -132,6 +114,6 @@ namespace NuGetGallery
             user.LastFailedLoginUtc = null;
             user.FailedLoginCount = 0;
             user.IsDeleted = true;
-	}
+        }
     }
 }

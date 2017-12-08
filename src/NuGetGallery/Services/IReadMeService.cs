@@ -44,6 +44,6 @@ namespace NuGetGallery
         /// <param name="package">Package entity associated with the ReadMe.</param>
         /// <param name="edit">Package edit entity.</param>
         /// <returns>True if a ReadMe is pending, false otherwise.</returns>
-        Task<bool> SavePendingReadMeMdIfChanged(Package package, EditPackageVersionRequest edit, Encoding encoding);
+        Task<bool> SavePendingReadMeMdIfChanged(Package package, EditPackageVersionReadMeRequest edit, Encoding encoding);
     }
 }

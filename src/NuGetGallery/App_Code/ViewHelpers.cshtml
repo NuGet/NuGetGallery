@@ -92,7 +92,7 @@
 {
     @AlertWarning(
     @<text>
-        Editing package metadata is not recommended.<br/>
+        Editing package metadata is not supported.<br/>
         <em>
             To make edits to the package metadata, we recommend uploading a new version of the package created using the updated nuspec.
             <a href="https://docs.microsoft.com/en-us/nuget/policies/nuget-faq#managing-packages-on-nugetorg" alt="Read more">Read more</a><br />
@@ -234,6 +234,16 @@
             title = username,
             @class = classAttribute
         });
+}
+
+@helper UserLinkWithIcon(UrlHelper url, User user) {
+    <span class="ms-noWrap">
+        @if (user is Organization)
+        {
+            <i class="ms-Icon ms-Icon--Group" aria-hidden="true"></i>
+        }
+        <a href="@url.User(user.Username)">@user.Username</a>
+    </span>
 }
 
 @helper WriteMeta(string name, string val) {

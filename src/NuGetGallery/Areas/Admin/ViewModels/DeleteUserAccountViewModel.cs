@@ -1,23 +1,16 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace NuGetGallery.Areas.Admin.ViewModels
 {
-    public class DeleteUserAccountViewModel
+    public class DeleteUserAccountViewModel : DeleteAccountViewModel
     {
         public DeleteUserAccountViewModel()
         {
             ShouldUnlist = true;
         }
-
-        public List<ListPackageItemViewModel> Packages { get; set; }
-
-        public User User { get; set; }
-
-        public string AccountName { get; set; }
 
         [Required(ErrorMessage = "Please sign using your name.")]
         [StringLength(1000)]
@@ -26,8 +19,6 @@ namespace NuGetGallery.Areas.Admin.ViewModels
 
         [Display(Name = "Unlist the packages with no other owners.")]
         public bool ShouldUnlist { get; set; }
-
-        public bool HasOrphanPackages { get; set; }
     }
 
 }

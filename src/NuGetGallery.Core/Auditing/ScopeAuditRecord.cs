@@ -5,11 +5,13 @@ namespace NuGetGallery.Auditing
 {
     public class ScopeAuditRecord
     {
+        public string OwnerUsername { get; set; }
         public string Subject { get; set; }
         public string AllowedAction { get; set; }
 
-        public ScopeAuditRecord(string subject, string allowedAction)
+        public ScopeAuditRecord(string ownerUsername, string subject, string allowedAction)
         {
+            OwnerUsername = ownerUsername;
             Subject = subject;
             AllowedAction = allowedAction;
         }

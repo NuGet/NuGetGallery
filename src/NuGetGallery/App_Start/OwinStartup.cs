@@ -78,7 +78,9 @@ namespace NuGetGallery
 
                     return processor;
                 });
-                
+
+                telemetryProcessorChainBuilder.Use(next => new ClientTelemetryPIIProcessor(next));
+
                 var telemetry = dependencyResolver.GetService<TelemetryClientWrapper>();
                 telemetryProcessorChainBuilder.Use(
                     next => new ExceptionTelemetryProcessor(next, telemetry.UnderlyingClient));

@@ -143,7 +143,7 @@ namespace NuGetGallery.Controllers
 
                 ResultAssert.IsView(result, viewName: SignInViewNuGetName);
                 Assert.False(controller.ModelState.IsValid);
-                Assert.Equal(Strings.UsernameAndPasswordNotFound, controller.ModelState[SignInViewNuGetName].Errors[0].ErrorMessage);
+                Assert.Equal(Strings.UsernameAndPasswordNotFound, controller.ModelState[SignInViewName].Errors[0].ErrorMessage);
             }
 
             [Fact]
@@ -296,7 +296,8 @@ namespace NuGetGallery.Controllers
                     .Completes()
                     .Verifiable();
                 GetMock<IMessageService>()
-                    .Setup(x => x.SendCredentialAddedNotice(authUser.User, externalCred))
+                    .Setup(x => x.SendCredentialAddedNotice(authUser.User, 
+                                                            It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.ExternalPrefix + "MicrosoftAccount")))
                     .Verifiable();
 
                 var controller = GetController<AuthenticationController>();
@@ -364,7 +365,8 @@ namespace NuGetGallery.Controllers
                     .Verifiable();
 
                 GetMock<IMessageService>()
-                    .Setup(x => x.SendCredentialAddedNotice(authUser.User, externalCred))
+                    .Setup(x => x.SendCredentialAddedNotice(authUser.User,
+                                                            It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.ExternalPrefix + providerUsedForLogin)))
                     .Verifiable();
 
                 EnableAllAuthenticators(Get<AuthenticationService>());

@@ -266,6 +266,17 @@
         return data;
     };
 
+    // Implementation of C#'s string.Format for use in Javascript
+    nuget.formatString = function (stringToFormat) {
+        var i = arguments.length - 1;
+
+        while (i--) {
+            stringToFormat = stringToFormat.replace(new RegExp('\\{' + i + '\\}', 'gm'), arguments[i + 1]);
+        }
+
+        return stringToFormat;
+    }
+
     window.nuget = nuget;
 
     initializeJQueryValidator();

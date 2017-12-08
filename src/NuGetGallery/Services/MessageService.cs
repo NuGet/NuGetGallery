@@ -8,29 +8,27 @@ using System.Net.Mail;
 using System.Text;
 using System.Web;
 using AnglicanGeek.MarkdownMailer;
-using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Services;
 
 namespace NuGetGallery
 {
-    public class MessageService : IMessageService
+    public class MessageService : CoreMessageService, IMessageService
     {
         protected MessageService()
         {
         }
 
-        public MessageService(IMailSender mailSender, IAppConfiguration config, AuthenticationService authService)
-            : this()
+        public MessageService(IMailSender mailSender, IAppConfiguration config)
+            : base(mailSender, config)
         {
-            MailSender = mailSender;
-            Config = config;
-            AuthService = authService;
         }
 
-        public IMailSender MailSender { get; protected set; }
-        public IAppConfiguration Config { get; protected set; }
-        public AuthenticationService AuthService { get; protected set; }
+        public IAppConfiguration Config
+        {
+            get { return (IAppConfiguration)CoreConfiguration; }
+            set { CoreConfiguration = value; }
+        }
 
         public void ReportAbuse(ReportPackageRequest request)
         {
@@ -448,13 +446,13 @@ The {3} Team";
             }
         }
 
-        public void SendCredentialRemovedNotice(User user, Credential removed)
+        public void SendCredentialRemovedNotice(User user, CredentialViewModel removedCredentialViewModel)
         {
-            if (CredentialTypes.IsApiKey(removed.Type))
+            if (CredentialTypes.IsApiKey(removedCredentialViewModel.Type))
             {
                 SendApiKeyChangeNotice(
                     user,
-                    removed,
+                    removedCredentialViewModel,
                     Strings.Emails_ApiKeyRemoved_Body,
                     Strings.Emails_CredentialRemoved_Subject);
             }
@@ -462,20 +460,20 @@ The {3} Team";
             {
                 SendCredentialChangeNotice(
                     user,
-                    removed,
+                    removedCredentialViewModel,
                     Strings.Emails_CredentialRemoved_Body,
                     Strings.Emails_CredentialRemoved_Subject);
             }
             
         }
 
-        public void SendCredentialAddedNotice(User user, Credential added)
+        public void SendCredentialAddedNotice(User user, CredentialViewModel addedCrdentialViewModel)
         {
-            if (CredentialTypes.IsApiKey(added.Type))
+            if (CredentialTypes.IsApiKey(addedCrdentialViewModel.Type))
             {
                 SendApiKeyChangeNotice(
                     user,
-                    added,
+                    addedCrdentialViewModel,
                     Strings.Emails_ApiKeyAdded_Body,
                     Strings.Emails_CredentialAdded_Subject);
             }
@@ -483,20 +481,18 @@ The {3} Team";
             {
                 SendCredentialChangeNotice(
                     user,
-                    added,
+                    addedCrdentialViewModel,
                     Strings.Emails_CredentialAdded_Body,
                     Strings.Emails_CredentialAdded_Subject);
             }
         }
 
-        private void SendApiKeyChangeNotice(User user, Credential changed, string bodyTemplate, string subjectTemplate)
+        private void SendApiKeyChangeNotice(User user, CredentialViewModel changedCredentialViewModel, string bodyTemplate, string subjectTemplate)
         {
-            var credViewModel = AuthService.DescribeCredential(changed);
-
             string body = String.Format(
                 CultureInfo.CurrentCulture,
                 bodyTemplate,
-                credViewModel.Description);
+                changedCredentialViewModel.Description);
 
             string subject = String.Format(
                 CultureInfo.CurrentCulture,
@@ -507,11 +503,10 @@ The {3} Team";
             SendSupportMessage(user, body, subject);
         }
 
-        private void SendCredentialChangeNotice(User user, Credential changed, string bodyTemplate, string subjectTemplate)
+        private void SendCredentialChangeNotice(User user, CredentialViewModel changedCredentialViewModel, string bodyTemplate, string subjectTemplate)
         {
             // What kind of credential is this?
-            var credViewModel = AuthService.DescribeCredential(changed);
-            string name = credViewModel.AuthUI == null ? credViewModel.TypeCaption : credViewModel.AuthUI.AccountNoun;
+            string name = changedCredentialViewModel.AuthUI == null ? changedCredentialViewModel.TypeCaption : changedCredentialViewModel.AuthUI.AccountNoun;
 
             string body = String.Format(
                 CultureInfo.CurrentCulture,
@@ -574,45 +569,12 @@ The {3} Team";
             }
         }
 
-        private void SendMessage(MailMessage mailMessage, bool copySender = false)
+        public void SendPackageUploadedNotice(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl)
         {
-            try
-            {
-                MailSender.Send(mailMessage);
-                if (copySender)
-                {
-                    var senderCopy = new MailMessage(
-                        Config.GalleryOwner,
-                        mailMessage.ReplyToList.First())
-                    {
-                        Subject = mailMessage.Subject + " [Sender Copy]",
-                        Body = String.Format(
-                                CultureInfo.CurrentCulture,
-                                "You sent the following message via {0}: {1}{1}{2}",
-                                Config.GalleryOwner.DisplayName,
-                                Environment.NewLine,
-                                mailMessage.Body),
-                    };
-                    senderCopy.ReplyToList.Add(mailMessage.ReplyToList.First());
-                    MailSender.Send(senderCopy);
-                }
-            }
-            catch (InvalidOperationException ex)
-            {
-                // Log but swallow the exception
-                QuietLog.LogHandledException(ex);
-            }
-            catch (SmtpException ex)
-            {
-                // Log but swallow the exception
-                QuietLog.LogHandledException(ex);
-            }
-        }
+            string subject = "[{0}] Package uploaded - {1} {2}";
+            string body = @"The package [{1} {2}]({3}) was just uploaded to {0}. If this was not intended, please [contact support]({4}).
 
-        public void SendPackageAddedNotice(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl)
-        {
-            string subject = "[{0}] Package published - {1} {2}";
-            string body = @"The package [{1} {2}]({3}) was just published on {0}. If this was not intended, please [contact support]({4}).
+Note: This package has not been published yet. It will appear in search results and will be available for install/restore after both validation and indexing are complete. Package validation and indexing may take up to an hour.
 
 -----------------------------------------------
 <em style=""font-size: 0.8em;"">
@@ -647,19 +609,94 @@ The {3} Team";
             }
         }
 
-        private static void AddOwnersToMailMessage(PackageRegistration packageRegistration, MailMessage mailMessage)
+        public void SendAccountDeleteNotice(MailAddress mailAddress, string account)
         {
-            foreach (var owner in packageRegistration.Owners.Where(o => o.EmailAllowed))
+            string body = @"We received a request to delete your account {0}. If you did not initiate this request please contact the {1} team immediately.
+{2}When your account will be deleted, we will:{2}
+ - revoke your API key(s)
+ - remove you as the owner for any package you own 
+ - remove your ownership from any ID prefix reservations and delete any ID prefix reservations that you were the only owner of 
+
+{2}We will not delete the NuGet packages associated with the account.
+
+Thanks,
+{2}The {1} Team";
+
+            body = String.Format(
+                CultureInfo.CurrentCulture,
+                body,
+                account,
+                Config.GalleryOwner.DisplayName,
+                Environment.NewLine);
+
+            using (var mailMessage = new MailMessage())
             {
-                mailMessage.To.Add(owner.ToMailAddress());
+                mailMessage.Subject = Strings.AccountDelete_SupportRequestTitle;
+                mailMessage.Body = body;
+                mailMessage.From = Config.GalleryNoReplyAddress;
+
+                mailMessage.To.Add(mailAddress.Address);
+                SendMessage(mailMessage);
             }
         }
 
-        private static void AddOwnersSubscribedToPackagePushedNotification(PackageRegistration packageRegistration, MailMessage mailMessage)
+        public void SendPackageDeletedNotice(Package package, string packageUrl, string packageSupportUrl)
         {
-            foreach (var owner in packageRegistration.Owners.Where(o => o.NotifyPackagePushed))
+            string subject = "[{0}] Package deleted - {1} {2}";
+            string body = @"The package [{1} {2}]({3}) was just deleted from {0}. If this was not intended, please [contact support]({4}).
+
+Thanks,
+The {0} Team";
+
+            body = String.Format(
+                CultureInfo.CurrentCulture,
+                body,
+                Config.GalleryOwner.DisplayName,
+                package.PackageRegistration.Id,
+                package.Version,
+                packageUrl,
+                packageSupportUrl);
+
+            subject = String.Format(
+                CultureInfo.CurrentCulture,
+                subject,
+                Config.GalleryOwner.DisplayName,
+                package.PackageRegistration.Id,
+                package.Version);
+
+            using (var mailMessage = new MailMessage())
             {
-                mailMessage.To.Add(owner.ToMailAddress());
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = Config.GalleryNoReplyAddress;
+
+                foreach (var owner in package.PackageRegistration.Owners)
+                {
+                    mailMessage.To.Add(owner.ToMailAddress());
+                }
+
+                if (mailMessage.To.Any())
+                {
+                    SendMessage(mailMessage);
+                }
+            }
+        }
+
+        protected override void SendMessage(MailMessage mailMessage, bool copySender)
+        {
+            try
+            {
+                base.SendMessage(mailMessage, copySender);
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Log but swallow the exception
+                QuietLog.LogHandledException(ex);
+            }
+            catch (SmtpException ex)
+            {
+                // Log but swallow the exception
+                QuietLog.LogHandledException(ex);
             }
         }
     }

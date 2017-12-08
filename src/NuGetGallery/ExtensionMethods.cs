@@ -291,6 +291,19 @@ namespace NuGetGallery
         public static MvcHtmlString ShowEnumDropDownListFor<TModel, TEnum>(
             this HtmlHelper<TModel> html,
             Expression<Func<TModel, TEnum?>> expression,
+            string emptyItemText)
+          where TEnum : struct
+        {
+            var values = Enum
+                .GetValues(typeof(TEnum))
+                .Cast<TEnum>();
+
+            return ShowEnumDropDownListFor<TModel, TEnum>(html, expression, values, emptyItemText);
+        }
+
+        public static MvcHtmlString ShowEnumDropDownListFor<TModel, TEnum>(
+            this HtmlHelper<TModel> html,
+            Expression<Func<TModel, TEnum?>> expression,
             IEnumerable<TEnum> values,
             string emptyItemText)
           where TEnum : struct

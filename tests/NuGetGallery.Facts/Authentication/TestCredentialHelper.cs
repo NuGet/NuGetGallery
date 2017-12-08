@@ -2,7 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Web.Helpers;
+using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Services.Authentication;
 
 namespace NuGetGallery.Authentication
@@ -10,7 +12,7 @@ namespace NuGetGallery.Authentication
     /// <summary>
     /// Builds all kinds of supported credentials for test purposes.
     /// </summary>
-    public class TestCredentialHelper
+    public static class TestCredentialHelper
     {
         public static Credential CreatePbkdf2Password(string plaintextPassword)
         {
@@ -34,6 +36,26 @@ namespace NuGetGallery.Authentication
         public static Credential CreateV2ApiKey(Guid apiKey, TimeSpan? expiration)
         {
             return CreateApiKey(CredentialTypes.ApiKey.V2, apiKey.ToString(), expiration);
+        }
+
+        public static Credential CreateV4ApiKey(TimeSpan? expiration, out string plaintextApiKey)
+        {
+            var apiKey = ApiKeyV4.Create();
+
+            plaintextApiKey = apiKey.PlaintextApiKey;
+
+            return CreateApiKey(CredentialTypes.ApiKey.V4, apiKey.HashedApiKey, expiration);
+        }
+
+        public static Credential WithDefaultScopes(this Credential credential)
+        {
+            credential.Scopes = new List<Scope>() {
+                  new Scope("*", NuGetScopes.PackageUnlist),
+                  new Scope("*", NuGetScopes.PackagePush),
+                  new Scope("*", NuGetScopes.PackagePushVersion)
+            };
+
+            return credential;
         }
 
         public static Credential CreateV2VerificationApiKey(Guid apiKey)

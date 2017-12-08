@@ -4,7 +4,6 @@
 using System;
 using System.Linq;
 using NuGetGallery.Authentication;
-using NuGetGallery.Services.Authentication;
 
 namespace NuGetGallery.Infrastructure.Authentication
 {
@@ -19,11 +18,15 @@ namespace NuGetGallery.Infrastructure.Authentication
                 V3Hasher.GenerateHash(plaintextPassword));
         }
 
-        public Credential CreateApiKey(TimeSpan? expiration)
+        public Credential CreateApiKey(TimeSpan? expiration, out string plaintextApiKey)
         {
+            var apiKey = ApiKeyV4.Create();
+
+            plaintextApiKey = apiKey.PlaintextApiKey;
+
             return new Credential(
-               CredentialTypes.ApiKey.V2,
-               CreateKeyString(),
+               CredentialTypes.ApiKey.V4,
+               apiKey.HashedApiKey,
                expiration: expiration);
         }
 
@@ -42,7 +45,7 @@ namespace NuGetGallery.Infrastructure.Authentication
             {
                 // Legacy API key with no owner scope.
                 credential.Scopes = new[] { new Scope(
-                    ownerKey: null,
+                    owner: null,
                     subject: id,
                     allowedAction: NuGetScopes.PackageVerify)
                 };

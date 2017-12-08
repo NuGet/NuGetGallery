@@ -22,6 +22,7 @@ namespace NuGetGallery
             public const string Prefix = "apikey.";
             public const string V1 = Prefix + "v1";
             public const string V2 = Prefix + "v2";
+            public const string V4 = Prefix + "v4";
             public const string VerifyV1 = Prefix + "verify.v1";
         }
 
@@ -47,7 +48,7 @@ namespace NuGetGallery
             return type.Equals(ApiKey.VerifyV1, StringComparison.OrdinalIgnoreCase);
         }
         
-        internal static List<string> SupportedCredentialTypes = new List<string> { Password.Sha1, Password.Pbkdf2, Password.V3, ApiKey.V1, ApiKey.V2 };
+        internal static IReadOnlyList<string> SupportedCredentialTypes = new List<string> { Password.Sha1, Password.Pbkdf2, Password.V3, ApiKey.V1, ApiKey.V2, ApiKey.V4 };
 
         /// <summary>
         /// Determines whether a credential is supported (internal or from the UI). For forward compatibility,
@@ -55,9 +56,9 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="credential"></param>
         /// <returns></returns>
-        public static bool IsSupportedCredential(Credential credential)
+        public static bool IsSupportedCredential(this Credential credential)
         {
-            return IsViewSupportedCredential(credential) || IsPackageVerificationApiKey(credential.Type);
+            return credential.IsViewSupportedCredential() || IsPackageVerificationApiKey(credential.Type);
         }
 
         /// <summary>
@@ -66,10 +67,15 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="credential"></param>
         /// <returns></returns>
-        public static bool IsViewSupportedCredential(Credential credential)
+        public static bool IsViewSupportedCredential(this Credential credential)
         {
             return SupportedCredentialTypes.Any(credType => string.Compare(credential.Type, credType, StringComparison.OrdinalIgnoreCase) == 0)
                     || credential.Type.StartsWith(ExternalPrefix, StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static bool IsScopedApiKey(this Credential credential)
+        {
+            return IsApiKey(credential.Type) && credential.Scopes != null && credential.Scopes.Any();
         }
     }
 }

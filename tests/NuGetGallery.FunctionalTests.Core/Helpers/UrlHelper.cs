@@ -13,7 +13,7 @@ namespace NuGetGallery.FunctionalTests
         private const string _logonPageUrlSuffix = "users/account/LogOnNuGetAccount";
         private const string _editUrlSuffix = "packages/{0}/{1}/Edit";
         private const string _cancelUrlSuffix = "packages/manage/cancel-upload";
-        private const string _signInPageUrlSuffix = "users/account/SignInNuGetAccount";
+        private const string _signInPageUrlSuffix = "users/account/SignIn";
         private const string _logOffPageUrlSuffix = "users/account/LogOff?returnUrl=%2F";
         private const string _logonPageUrlOnPackageUploadSuffix = "users/account/LogOn?ReturnUrl=%2fpackages%2fupload";
         private const string _packagesPageUrlSuffix = "packages";

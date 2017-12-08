@@ -16,6 +16,7 @@ using Moq;
 using NuGet.Packaging;
 using NuGet.Versioning;
 using NuGetGallery.Areas.Admin;
+using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
@@ -1091,14 +1092,16 @@ namespace NuGetGallery
                     Assert.Equal(0, fakes.Owner.SecurityPolicies.Count);
 
                     // Act & Assert
-                    var policyMessages = await AssertConfirmOwnerSubscribesUser(fakes, fakes.Owner, fakes.ShaUser);
-                    Assert.Equal(3, policyMessages.Count);
+                    var policyMessages = await AssertConfirmOwnerSubscribesUser(fakes, fakes.Owner, fakes.ShaUser, fakes.OrganizationOwner);
+                    Assert.Equal(4, policyMessages.Count);
 
                     // subscribed notification
                     Assert.StartsWith("Owner(s) 'testUser' has (have) the following requirements that are now enforced for your account:",
                         policyMessages[fakes.Owner.Username]);
                     Assert.StartsWith("Owner(s) 'testUser' has (have) the following requirements that are now enforced for your account:",
                         policyMessages[fakes.ShaUser.Username]);
+                    Assert.StartsWith("Owner(s) 'testUser' has (have) the following requirements that are now enforced for your account:",
+                        policyMessages[fakes.OrganizationOwner.Username]);
 
                     // propagator notification
                     Assert.StartsWith("Owner(s) 'testUser' has (have) the following requirements that are now enforced for co-owner(s) '",
@@ -1119,10 +1122,11 @@ namespace NuGetGallery
                     var policyMessages = await AssertConfirmOwnerSubscribesUser(fakes, fakes.User);
 
                     Assert.False(policyMessages.ContainsKey(fakes.User.Username));
-                    Assert.Equal(2, policyMessages.Count);
+                    Assert.Equal(3, policyMessages.Count);
                     Assert.StartsWith("Owner(s) 'testPackageOwner' has (have) the following requirements that are now enforced for co-owner(s) 'testUser':",
                         policyMessages[fakes.Owner.Username]);
                     Assert.Equal("", policyMessages[fakes.ShaUser.Username]);
+                    Assert.Equal("", policyMessages[fakes.OrganizationOwner.Username]);
                 }
 
                 private async Task<IDictionary<string, string>> AssertConfirmOwnerSubscribesUser(Fakes fakes, params User[] usersSubscribed)
@@ -1632,7 +1636,7 @@ namespace NuGetGallery
 
                 var formData = new VerifyPackageRequest
                 {
-                    Edit = new EditPackageVersionRequest
+                    Edit = new EditPackageVersionReadMeRequest
                     {
                         ReadMe = new ReadMeRequest
                         {
@@ -1669,7 +1673,7 @@ namespace NuGetGallery
 
                 var formData = new VerifyPackageRequest
                 {
-                    Edit = new EditPackageVersionRequest()
+                    Edit = new EditPackageVersionReadMeRequest()
                 };
 
                 // Act.
@@ -1935,68 +1939,463 @@ namespace NuGetGallery
         public class TheReportMyPackageMethod
             : TestContainer
         {
-            [Fact]
-            public void FormRedirectsNonOwnersToReportAbuse()
-            {
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration { Id = "Mordor", Owners = { new User { Username = "Sauron", Key = 1 } } },
-                    Version = "2.0.1"
-                };
-                var user = new User { EmailAddress = "frodo@hobbiton.example.com", Username = "Frodo", Key = 2 };
-                var packageService = new Mock<IPackageService>();
-                packageService.Setup(p => p.FindPackageByIdAndVersionStrict("Mordor", It.IsAny<string>())).Returns(package);
-                var httpContext = new Mock<HttpContextBase>();
-                var controller = CreateController(
-                    GetConfigurationService(),
-                    packageService: packageService,
-                    httpContext: httpContext);
-                controller.SetCurrentUser(user);
+            private Package _package;
+            private ReportMyPackageViewModel _viewModel;
+            private Issue _supportRequest;
+            private User _user;
+            private Mock<IPackageService> _packageService;
+            private Mock<IMessageService> _messageService;
+            private Mock<IPackageDeleteService> _packageDeleteService;
+            private Mock<ISupportRequestService> _supportRequestService;
+            private PackagesController _controller;
 
-                TestUtility.SetupUrlHelper(controller, httpContext);
-                ActionResult result = controller.ReportMyPackage("Mordor", "2.0.1");
+            public TheReportMyPackageMethod()
+            {
+                _user = new User
+                {
+                    EmailAddress = "frodo@hobbiton.example.com",
+                    Username = "Frodo",
+                    Key = 2
+                };
+                _package = new Package
+                {
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "Mordor",
+                        Owners = { _user },
+                    },
+                    Version = "2.00.1",
+                    NormalizedVersion = "2.0.1",
+                };
+                _viewModel = new ReportMyPackageViewModel
+                {
+                    Reason = ReportPackageReason.ContainsPrivateAndConfidentialData,
+                    Message = "Message!",
+                };
+                _supportRequest = new Issue
+                {
+                    Key = 23,
+                };
+
+                _packageService = new Mock<IPackageService>();
+                _packageService
+                    .Setup(p => p.FindPackageByIdAndVersionStrict(_package.PackageRegistration.Id, _package.Version))
+                    .Returns(_package);
+
+                _messageService = new Mock<IMessageService>();
+                _packageDeleteService = new Mock<IPackageDeleteService>();
+
+                _supportRequestService = new Mock<ISupportRequestService>();
+                _supportRequestService
+                    .Setup(x => x.AddNewSupportRequestAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<User>(),
+                        It.IsAny<Package>()))
+                    .ReturnsAsync(() => _supportRequest);
+
+                var httpContext = new Mock<HttpContextBase>();
+                _controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: _packageService,
+                    messageService: _messageService,
+                    packageDeleteService: _packageDeleteService,
+                    supportRequestService: _supportRequestService,
+                    httpContext: httpContext);
+                _controller.SetCurrentUser(_user);
+
+                TestUtility.SetupUrlHelper(_controller, httpContext);
+            }
+
+            [Fact]
+            public async Task GetRedirectsNonOwnersToReportAbuse()
+            {
+                await RedirectsNonOwnersToReportAbuse(
+                    () => _controller.ReportMyPackage(
+                        _package.PackageRegistration.Id,
+                        _package.Version));
+            }
+
+            [Fact]
+            public async Task PostRedirectsNonOwnersToReportAbuse()
+            {
+                await RedirectsNonOwnersToReportAbuse(
+                    () => _controller.ReportMyPackage(
+                        _package.PackageRegistration.Id,
+                        _package.Version,
+                        _viewModel));
+            }
+
+            private async Task RedirectsNonOwnersToReportAbuse(Func<Task<ActionResult>> actAsync)
+            {
+                // Arrange
+                _package.PackageRegistration.Owners.Clear();
+
+                // Act
+                var result = await actAsync();
+
+                // Assert
                 Assert.IsType<RedirectToRouteResult>(result);
                 Assert.Equal("ReportAbuse", ((RedirectToRouteResult)result).RouteValues["Action"]);
+            }
+
+
+            [Fact]
+            public async Task GetRedirectsMissingPackageToNotFound()
+            {
+                await RedirectsMissingPackageToNotFound(
+                    () => _controller.ReportMyPackage(
+                        _package.PackageRegistration.Id,
+                        _package.Version));
+            }
+
+            [Fact]
+            public async Task PostRedirectsMissingPackageToNotFound()
+            {
+                await RedirectsMissingPackageToNotFound(
+                    () => _controller.ReportMyPackage(
+                        _package.PackageRegistration.Id,
+                        _package.Version,
+                        _viewModel));
+            }
+
+            private async Task RedirectsMissingPackageToNotFound(Func<Task<ActionResult>> actAsync)
+            {
+                // Arrange
+                _packageService
+                    .Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns<Package>(null);
+
+                // Act
+                var result = await actAsync();
+
+                // Assert
+                Assert.IsType<HttpNotFoundResult>(result);
             }
 
             [Fact]
             public async Task HtmlEncodesMessageContent()
             {
-                var user = new User { Username = "Sauron", Key = 1, EmailAddress = "sauron@mordor.example.com" };
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration { Id = "mordor", Owners = { user } },
-                    Version = "2.0.1"
-                };
-                var packageService = new Mock<IPackageService>();
-                packageService.Setup(p => p.FindPackageByIdAndVersionStrict("mordor", "2.0.1")).Returns(package);
+                // Arrange
+                _viewModel.Message = "I like the cut of your jib. It's <b>bold</b>.";
+                _viewModel.Reason = ReportPackageReason.ViolatesALicenseIOwn;
 
                 ReportPackageRequest reportRequest = null;
-                var messageService = new Mock<IMessageService>();
-                messageService
+                _messageService
                     .Setup(s => s.ReportMyPackage(It.IsAny<ReportPackageRequest>()))
                     .Callback<ReportPackageRequest>(r => reportRequest = r);
-                var httpContext = new Mock<HttpContextBase>();
-                var controller = CreateController(
-                    GetConfigurationService(),
-                    packageService: packageService,
-                    messageService: messageService,
-                    httpContext: httpContext);
-                controller.SetCurrentUser(user);
-                var model = new ReportMyPackageViewModel
-                {
-                    Message = "I like the cut of your jib. It's <b>bold</b>.",
-                    Reason = ReportPackageReason.ViolatesALicenseIOwn
-                };
 
-                TestUtility.SetupUrlHelper(controller, httpContext);
-                await controller.ReportMyPackage("mordor", "2.0.1", model);
+                // Act
+                await _controller.ReportMyPackage(
+                    _package.PackageRegistration.Id,
+                    _package.Version,
+                    _viewModel);
 
+                // Assert
                 Assert.NotNull(reportRequest);
-                Assert.Equal(user.EmailAddress, reportRequest.FromAddress.Address);
-                Assert.Same(package, reportRequest.Package);
+                Assert.Equal(_user.EmailAddress, reportRequest.FromAddress.Address);
+                Assert.Same(_package, reportRequest.Package);
                 Assert.Equal(EnumHelper.GetDescription(ReportPackageReason.ViolatesALicenseIOwn), reportRequest.Reason);
                 Assert.Equal("I like the cut of your jib. It&#39;s &lt;b&gt;bold&lt;/b&gt;.", reportRequest.Message);
+            }
+
+            [Fact]
+            public async Task DoesNotCheckDeleteAllowedIfDeleteWasNotRequested()
+            {
+                // Arrange
+                _viewModel.DeleteDecision = PackageDeleteDecision.ContactSupport;
+                _viewModel.Message = "Test message!";
+
+                // Act
+                var result = await _controller.ReportMyPackage(
+                    _package.PackageRegistration.Id,
+                    _package.Version,
+                    _viewModel);
+
+                // Assert
+                _packageDeleteService.Verify(
+                    x => x.CanPackageBeDeletedByUserAsync(
+                        It.IsAny<Package>()),
+                    Times.Never);
+                _supportRequestService.Verify(
+                    x => x.AddNewSupportRequestAsync(
+                        string.Format(
+                            Strings.OwnerSupportRequestSubjectFormat,
+                            _package.PackageRegistration.Id,
+                            _package.NormalizedVersion),
+                        "Test message!",
+                        _user.EmailAddress,
+                        EnumHelper.GetDescription(_viewModel.Reason.Value),
+                        _user,
+                        _package),
+                    Times.Once);
+                Assert.Equal(Strings.SupportRequestSentTransientMessage, _controller.TempData["Message"]);
+            }
+
+            [Fact]
+            public async Task AllowsPackageDelete()
+            {
+                // Arrange
+                _viewModel.DeleteDecision = PackageDeleteDecision.DeletePackage;
+                _viewModel.DeleteConfirmation = true;
+                _packageDeleteService
+                    .Setup(x => x.CanPackageBeDeletedByUserAsync(It.IsAny<Package>()))
+                    .ReturnsAsync(true);
+
+                // Act
+                var result = await _controller.ReportMyPackage(
+                    _package.PackageRegistration.Id,
+                    _package.Version,
+                    _viewModel);
+
+                // Assert
+                Assert.IsType<RedirectResult>(result);
+
+                _supportRequestService.Verify(
+                    x => x.AddNewSupportRequestAsync(
+                        string.Format(
+                            Strings.OwnerSupportRequestSubjectFormat,
+                            _package.PackageRegistration.Id,
+                            _package.NormalizedVersion),
+                        Strings.UserPackageDeleteSupportRequestMessage,
+                        _user.EmailAddress,
+                        EnumHelper.GetDescription(_viewModel.Reason.Value),
+                        _user,
+                        _package),
+                    Times.Once);
+                _packageDeleteService.Verify(
+                    x => x.SoftDeletePackagesAsync(
+                        It.Is<IEnumerable<Package>>(p => p.First() == _package),
+                        _user,
+                        EnumHelper.GetDescription(_viewModel.Reason.Value),
+                        Strings.UserPackageDeleteSignature),
+                    Times.Once);
+                _supportRequestService.Verify(
+                    x => x.UpdateIssueAsync(
+                        _supportRequest.Key,
+                        null,
+                        IssueStatusKeys.Resolved,
+                        null,
+                        _user.Username),
+                    Times.Once);
+                _messageService.Verify(
+                    x => x.SendPackageDeletedNotice(
+                        _package,
+                        It.IsAny<string>(),
+                        It.IsAny<string>()),
+                    Times.Once);
+                Assert.Equal(Strings.UserPackageDeleteCompleteTransientMessage, _controller.TempData["Message"]);
+
+                _messageService.Verify(
+                    x => x.ReportMyPackage(It.IsAny<ReportPackageRequest>()),
+                    Times.Never);
+            }
+
+            [Fact]
+            public async Task TreatsDeleteFailureAsNormalRequest()
+            {
+                // Arrange
+                _viewModel.DeleteDecision = PackageDeleteDecision.DeletePackage;
+                _viewModel.DeleteConfirmation = true;
+                _viewModel.CopySender = true;
+                _packageDeleteService
+                    .Setup(x => x.CanPackageBeDeletedByUserAsync(It.IsAny<Package>()))
+                    .ReturnsAsync(true);
+                _packageDeleteService
+                    .Setup(x => x.SoftDeletePackagesAsync(
+                        It.IsAny<IEnumerable<Package>>(),
+                        It.IsAny<User>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>()))
+                    .Throws(new Exception("bad!"));
+
+                // Act
+                var result = await _controller.ReportMyPackage(
+                    _package.PackageRegistration.Id,
+                    _package.Version,
+                    _viewModel);
+
+                // Assert
+                Assert.IsType<RedirectResult>(result);
+                Assert.False(_viewModel.CopySender, "The sender is not copied when an automatic delete fails.");
+                _packageDeleteService.Verify(
+                    x => x.SoftDeletePackagesAsync(
+                        It.Is<IEnumerable<Package>>(p => p.First() == _package),
+                        _user,
+                        EnumHelper.GetDescription(_viewModel.Reason.Value),
+                        Strings.UserPackageDeleteSignature),
+                    Times.Once);
+                _supportRequestService.Verify(
+                    x => x.UpdateIssueAsync(
+                        It.IsAny<int>(),
+                        It.IsAny<int?>(),
+                        It.IsAny<int>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>()),
+                    Times.Never);
+                _messageService.Verify(
+                    x => x.SendPackageDeletedNotice(
+                        It.IsAny<Package>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>()),
+                    Times.Never);
+                _messageService.Verify(
+                    x => x.ReportMyPackage(It.IsAny<ReportPackageRequest>()),
+                    Times.Once);
+            }
+
+            [Fact]
+            public async Task RequiresMessageWhenNotDeleting()
+            {
+                // Arrange
+                _viewModel.DeleteDecision = PackageDeleteDecision.ContactSupport;
+                _viewModel.Message = null;
+                _packageDeleteService
+                    .Setup(x => x.CanPackageBeDeletedByUserAsync(It.IsAny<Package>()))
+                    .ReturnsAsync(true);
+
+                // Act
+                var result = await _controller.ReportMyPackage(
+                    _package.PackageRegistration.Id,
+                    _package.Version,
+                    _viewModel);
+
+                // Assert
+                Assert.Contains(
+                    Strings.MessageIsRequired,
+                    _controller
+                        .ModelState
+                        .Values
+                        .SelectMany(x => x.Errors)
+                        .Select(x => x.ErrorMessage));
+            }
+
+            [Fact]
+            public async Task RequiresConfirmationWhenDeleting()
+            {
+                // Arrange
+                _viewModel.DeleteDecision = PackageDeleteDecision.DeletePackage;
+                _viewModel.DeleteConfirmation = false;
+                _packageDeleteService
+                    .Setup(x => x.CanPackageBeDeletedByUserAsync(It.IsAny<Package>()))
+                    .ReturnsAsync(true);
+
+                // Act
+                var result = await _controller.ReportMyPackage(
+                    _package.PackageRegistration.Id,
+                    _package.Version,
+                    _viewModel);
+
+                // Assert
+                Assert.Contains(
+                    Strings.UserPackageDeleteConfirmationIsRequired,
+                    _controller
+                        .ModelState
+                        .Values
+                        .SelectMany(x => x.Errors)
+                        .Select(x => x.ErrorMessage));
+            }
+
+            [Theory]
+            [InlineData(ReportPackageReason.ContainsMaliciousCode)]
+            [InlineData(ReportPackageReason.ContainsPrivateAndConfidentialData)]
+            [InlineData(ReportPackageReason.ReleasedInPublicByAccident)]
+            public async Task RequiresDeleteDecision(ReportPackageReason reason)
+            {
+                // Arrange
+                _viewModel.Reason = reason;
+                _viewModel.DeleteDecision = null;
+                _viewModel.DeleteConfirmation = true;
+                _packageDeleteService
+                    .Setup(x => x.CanPackageBeDeletedByUserAsync(It.IsAny<Package>()))
+                    .ReturnsAsync(true);
+
+                // Act
+                var result = await _controller.ReportMyPackage(
+                    _package.PackageRegistration.Id,
+                    _package.Version,
+                    _viewModel);
+
+                // Assert
+                Assert.Contains(
+                    Strings.UserPackageDeleteDecisionIsRequired,
+                    _controller
+                        .ModelState
+                        .Values
+                        .SelectMany(x => x.Errors)
+                        .Select(x => x.ErrorMessage));
+            }
+            
+            [Theory]
+            [InlineData(ReportPackageReason.Other)]
+            public async Task DoesNotRequireDeleteDecision(ReportPackageReason reason)
+            {
+                // Arrange
+                _viewModel.Reason = reason;
+                _viewModel.DeleteDecision = null;
+                _packageDeleteService
+                    .Setup(x => x.CanPackageBeDeletedByUserAsync(It.IsAny<Package>()))
+                    .ReturnsAsync(false);
+
+                // Act
+                var result = await _controller.ReportMyPackage(
+                    _package.PackageRegistration.Id,
+                    _package.Version,
+                    _viewModel);
+
+                // Assert
+                Assert.IsType<RedirectResult>(result);
+                Assert.Equal(
+                    Strings.SupportRequestSentTransientMessage,
+                    _controller.TempData["Message"]);
+
+                _packageDeleteService.Verify(
+                    x => x.SoftDeletePackagesAsync(
+                        It.IsAny<IEnumerable<Package>>(),
+                        It.IsAny<User>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>()),
+                    Times.Never);
+                _messageService.Verify(
+                    x => x.ReportMyPackage(It.IsAny<ReportPackageRequest>()),
+                    Times.Once);
+            }
+
+            [Fact]
+            public async Task IgnoresDeleteRequestWhenNotAllowed()
+            {
+                // Arrange
+                _viewModel.Reason = ReportPackageReason.ContainsPrivateAndConfidentialData;
+                _viewModel.DeleteDecision = PackageDeleteDecision.DeletePackage;
+                _viewModel.DeleteConfirmation = true;
+                _packageDeleteService
+                    .Setup(x => x.CanPackageBeDeletedByUserAsync(It.IsAny<Package>()))
+                    .ReturnsAsync(false);
+
+                // Act
+                var result = await _controller.ReportMyPackage(
+                    _package.PackageRegistration.Id,
+                    _package.Version,
+                    _viewModel);
+
+                // Assert
+                Assert.IsType<RedirectResult>(result);
+                Assert.Equal(
+                    Strings.SupportRequestSentTransientMessage,
+                    _controller.TempData["Message"]);
+
+                _packageDeleteService.Verify(
+                    x => x.SoftDeletePackagesAsync(
+                        It.IsAny<IEnumerable<Package>>(),
+                        It.IsAny<User>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>()),
+                    Times.Never);
+                _messageService.Verify(
+                    x => x.ReportMyPackage(It.IsAny<ReportPackageRequest>()),
+                    Times.Once);
             }
         }
 
@@ -2951,17 +3350,7 @@ namespace NuGetGallery
             {
                 get
                 {
-                    yield return new object[] { new EditPackageVersionRequest() { RequiresLicenseAcceptance = true } };
-                    yield return new object[] { new EditPackageVersionRequest() { IconUrl = "https://iconnew" } };
-                    yield return new object[] { new EditPackageVersionRequest() { ProjectUrl = "https://projectnew" } };
-                    yield return new object[] { new EditPackageVersionRequest() { Authors = "author1new authors2new" } };
-                    yield return new object[] { new EditPackageVersionRequest() { Copyright = "copyright" } };
-                    yield return new object[] { new EditPackageVersionRequest() { Description = "new desc" } };
-                    yield return new object[] { new EditPackageVersionRequest() { ReleaseNotes = "notes123" } };
-                    yield return new object[] { new EditPackageVersionRequest() { Summary = "summary new" } };
-                    yield return new object[] { new EditPackageVersionRequest() { Tags = "tag1new tag2new" } };
-                    yield return new object[] { new EditPackageVersionRequest() { VersionTitle = "title" } };
-                    yield return new object[] { new EditPackageVersionRequest() {
+                    yield return new object[] { new EditPackageVersionReadMeRequest() {
                         ReadMe = new ReadMeRequest { SourceType = "Written", SourceText = "markdown" } }
                     };
                 }
@@ -2969,7 +3358,7 @@ namespace NuGetGallery
 
             [Theory]
             [MemberData("WillApplyEdits_Data")]
-            public async Task WillApplyEdits(EditPackageVersionRequest edit)
+            public async Task WillApplyEdits(EditPackageVersionReadMeRequest edit)
             {
                 // Arrange
                 using (var fakeFileStream = new MemoryStream())
@@ -3019,17 +3408,7 @@ namespace NuGetGallery
         {
             get
             {
-                yield return new object[] { new EditPackageVersionRequest() { RequiresLicenseAcceptance = true } };
-                yield return new object[] { new EditPackageVersionRequest() { IconUrl = "https://iconnew" } };
-                yield return new object[] { new EditPackageVersionRequest() { ProjectUrl = "https://projectnew" } };
-                yield return new object[] { new EditPackageVersionRequest() { Authors = "author1new authors2new" } };
-                yield return new object[] { new EditPackageVersionRequest() { Copyright = "copyright" } };
-                yield return new object[] { new EditPackageVersionRequest() { Description = "new desc" } };
-                yield return new object[] { new EditPackageVersionRequest() { ReleaseNotes = "notes123" } };
-                yield return new object[] { new EditPackageVersionRequest() { Summary = "summary new" } };
-                yield return new object[] { new EditPackageVersionRequest() { Tags = "tag1new tag2new" } };
-                yield return new object[] { new EditPackageVersionRequest() { VersionTitle = "title" } };
-                yield return new object[] { new EditPackageVersionRequest() {
+                yield return new object[] { new EditPackageVersionReadMeRequest() {
                     ReadMe = new ReadMeRequest { SourceType = "Written", SourceText = "markdown"} }
                 };
             }
@@ -3037,7 +3416,7 @@ namespace NuGetGallery
 
         [Theory]
         [MemberData(nameof(WillApplyReadMe_Data))]
-        public async Task WillApplyReadMeForWrittenReadMeData(EditPackageVersionRequest edit)
+        public async Task WillApplyReadMeForWrittenReadMeData(EditPackageVersionReadMeRequest edit)
         {
             // Arrange
             using (var fakeFileStream = new MemoryStream())

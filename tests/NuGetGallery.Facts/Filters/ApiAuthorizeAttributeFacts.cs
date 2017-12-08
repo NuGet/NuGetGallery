@@ -2,7 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Linq;
+using System.Security.Claims;
 using System.Web;
 using System.Web.Mvc;
 using Moq;
@@ -31,16 +32,41 @@ namespace NuGetGallery.Filters
             Assert.Equal(AuthenticationTypes.ApiKey, owinContext.Authentication.AuthenticationResponseChallenge.AuthenticationTypes[0]);
         }
 
-        private Mock<AuthorizationContext> BuildAuthorizationContext(bool authenticated = true, Mock<ISecurityPolicyService> policyService = null)
+        [Fact]
+        public void OnAutorization_SucceedsForAuthenticatedUser()
+        {
+            var context = BuildAuthorizationContext(authenticated: true).Object;
+            var attribute = new ApiAuthorizeAttribute();
+
+            // Act
+            attribute.OnAuthorization(context);
+
+            var owinContext = context.HttpContext.GetOwinContext();
+
+            // Assert
+            Assert.Equal(200, owinContext.Response.StatusCode);
+        }
+
+        private Mock<AuthorizationContext> BuildAuthorizationContext(bool authenticated = true)
         {
             var mockController = new Mock<AppController>();
-            mockController.Setup(x => x.GetService<ISecurityPolicyService>()).Returns(policyService?.Object);
+            var user = new User();
+            user.Credentials.Add(TestCredentialHelper.CreateV4ApiKey(expiration: null, plaintextApiKey: out string plaintextApiKey));
+
+            mockController.Setup(c => c.GetCurrentUser()).Returns(user);
 
             var mockHttpContext = new Mock<HttpContextBase>();
             mockHttpContext.SetupGet(c => c.Items).Returns(new Dictionary<object, object> {
                 { "owin.Environment", new Dictionary<string, object>() }
             });
-            mockHttpContext.SetupGet(c => c.User.Identity.IsAuthenticated).Returns(authenticated);
+
+            var mockIdentity = new Mock<ClaimsIdentity>();
+
+            mockIdentity.SetupGet(i => i.Claims).Returns(new List<Claim>() { new Claim(NuGetClaims.ApiKey, user.Credentials.First().Value) });
+            mockIdentity.SetupGet(i => i.IsAuthenticated).Returns(authenticated);
+            mockIdentity.SetupGet(i => i.AuthenticationType).Returns(AuthenticationTypes.ApiKey);
+
+            mockHttpContext.SetupGet(c => c.User.Identity).Returns(mockIdentity.Object);
             mockHttpContext.SetupGet(c => c.Response.Cache).Returns(new Mock<HttpCachePolicyBase>().Object);
 
             var mockActionDescriptor = new Mock<ActionDescriptor>();

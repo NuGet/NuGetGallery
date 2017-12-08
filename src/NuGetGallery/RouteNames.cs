@@ -77,5 +77,6 @@ namespace NuGetGallery
         public const string JsonApi = "JsonApi";
         public const string Downloads = "Downloads";
         public const string AdminDeleteAccount = "AdminDeleteAccount";
+        public const string UserDeleteAccount = "DeleteAccount";
     }
 }

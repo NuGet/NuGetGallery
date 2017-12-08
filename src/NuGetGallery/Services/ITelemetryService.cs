@@ -23,6 +23,8 @@ namespace NuGetGallery
 
         void TrackNewUserRegistrationEvent(User user, Credential identity);
 
+        void TrackNewCredentialCreated(User user, Credential credential);
+
         /// <summary>
         /// Create a trace for an exception. These are informational for support requests.
         /// </summary>
