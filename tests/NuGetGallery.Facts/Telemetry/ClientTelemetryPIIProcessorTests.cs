@@ -84,6 +84,25 @@ namespace NuGetGallery.Telemetry
             Assert.True(existentPIIOperations.SetEquals(piiOperationsFromRoutes));
         }
 
+        [Fact]
+        public void PIIActionsAreNotCaseSensitive()
+        {
+            // Arange
+            HashSet<string> existentPIIOperations = Obfuscator.ObfuscatedActions;
+            var lowerInvariant = existentPIIOperations.Select(a => a.ToLowerInvariant());
+            var upperInvariant = existentPIIOperations.Select(a => a.ToUpperInvariant());
+
+            // Act and Assert
+            foreach (var action in lowerInvariant)
+            {
+                Assert.True(Obfuscator.ObfuscatedActions.Contains(action));
+            }
+            foreach (var action in upperInvariant)
+            {
+                Assert.True(Obfuscator.ObfuscatedActions.Contains(action));
+            }
+        }
+
         private ClientTelemetryPIIProcessor CreatePIIProcessor(bool isPIIOperation, string userName)
         {
             return new TestClientTelemetryPIIProcessor(new TestProcessorNext(), isPIIOperation, userName);
