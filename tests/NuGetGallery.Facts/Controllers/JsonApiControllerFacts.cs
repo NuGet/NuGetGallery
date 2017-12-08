@@ -1010,6 +1010,7 @@ namespace NuGetGallery.Controllers
                 }
             }
 
+            private static Func<Fakes, User> _getFakesNull = (Fakes fakes) => null;
             private static Func<Fakes, User> _getFakesUser = (Fakes fakes) => fakes.User;
             private static Func<Fakes, User> _getFakesOwner = (Fakes fakes) => fakes.Owner;
             private static Func<Fakes, User> _getFakesOrganizationOwner = (Fakes fakes) => fakes.OrganizationOwner;
@@ -1027,6 +1028,7 @@ namespace NuGetGallery.Controllers
 
             private static IEnumerable<Func<Fakes, User>> _cannotManagePackageOwnersUsers = new Func<Fakes, User>[]
             {
+                _getFakesNull,
                 _getFakesUser,
                 _getFakesOrganizationCollaboratorOwner,
             };
