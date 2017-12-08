@@ -120,6 +120,7 @@ namespace NuGet.Services.Storage
 
         public Uri BaseAddress { get; protected set; }
         public abstract bool Exists(string fileName);
+        public abstract Task<bool> ExistsAsync(string fileName, CancellationToken cancellationToken);
         public abstract Task<IEnumerable<StorageListItem>> List(CancellationToken cancellationToken);
 
         public bool Verbose
