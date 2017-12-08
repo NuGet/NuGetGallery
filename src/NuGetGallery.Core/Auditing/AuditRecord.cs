@@ -17,6 +17,11 @@ namespace NuGetGallery.Auditing
             return _resourceType ?? (_resourceType = InferResourceType());
         }
 
+        public virtual AuditRecord Obfuscate()
+        {
+            return this;
+        }
+
         private string InferResourceType()
         {
             string type = GetType().Name;

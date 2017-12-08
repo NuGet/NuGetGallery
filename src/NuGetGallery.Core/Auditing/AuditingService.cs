@@ -50,10 +50,11 @@ namespace NuGetGallery.Auditing
                 throw new ArgumentNullException(nameof(record));
             }
 
-            var entry = new AuditEntry(record, await GetActorAsync());
+            var persistedRecord = GetRecord(record);
+            var entry = new AuditEntry(persistedRecord, await GetActorAsync());
             var rendered = RenderAuditEntry(entry);
 
-            await SaveAuditRecordAsync(rendered, record.GetResourceType(), record.GetPath(), record.GetAction(), entry.Actor.TimestampUtc);
+            await SaveAuditRecordAsync(rendered, persistedRecord.GetResourceType(), persistedRecord.GetPath(), persistedRecord.GetAction(), entry.Actor.TimestampUtc);
         }
 
         /// <summary>
@@ -86,6 +87,16 @@ namespace NuGetGallery.Auditing
         protected virtual Task<AuditActor> GetActorAsync()
         {
             return AuditActor.GetCurrentMachineActorAsync();
+        }
+
+        /// <summary>
+        /// Used for cases when the AuditService needs to do more processing of the audit record before saving the data to the storage.
+        /// </summary>
+        /// <param name="record">The current record.</param>
+        /// <returns>The record to be saved.</returns>
+        protected virtual AuditRecord GetRecord(AuditRecord record)
+        {
+            return record;
         }
 
         private class NullAuditingService : AuditingService

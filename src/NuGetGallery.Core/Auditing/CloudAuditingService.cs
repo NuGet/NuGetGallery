@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
@@ -17,6 +19,7 @@ namespace NuGetGallery.Auditing
     public class CloudAuditingService : AuditingService, ICloudStorageStatusDependency
     {
         public static readonly string DefaultContainerName = "auditing";
+        public static HashSet<string> cloudPersistedTypes = new HashSet<string>() { "package" };
 
         private CloudBlobContainer _auditContainer;
         private string _instanceId;
@@ -46,8 +49,17 @@ namespace NuGetGallery.Auditing
             return await AuditActor.GetCurrentMachineActorAsync(onBehalfOf);
         }
 
+        protected override AuditRecord GetRecord(AuditRecord record)
+        {
+            return record.Obfuscate();
+        }
+
         protected override async Task SaveAuditRecordAsync(string auditData, string resourceType, string filePath, string action, DateTime timestamp)
         {
+            if (!cloudPersistedTypes.Contains(resourceType.ToLowerInvariant()))
+            {
+                return;
+            }
             string fullPath =
                 $"{resourceType.ToLowerInvariant()}/" +
                 $"{filePath.Replace(Path.DirectorySeparatorChar, '/')}/" +

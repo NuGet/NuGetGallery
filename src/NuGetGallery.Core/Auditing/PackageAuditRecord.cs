@@ -71,5 +71,60 @@ namespace NuGetGallery.Auditing
             return $"{Id}/{NuGetVersionFormatter.Normalize(Version)}"
                 .ToLowerInvariant();
         }
+
+        public override AuditRecord Obfuscate()
+        {
+            var obfuscatedPackage = CreateObfuscatedPackage();
+            var obfuscatedAuditedPackage = AuditedPackage.CreateFrom(obfuscatedPackage);
+
+            return new PackageAuditRecord(Id, Version, Hash, obfuscatedAuditedPackage, RegistrationRecord, Action, Reason );
+        }
+
+        private Package CreateObfuscatedPackage()
+        {
+            Package obfuscatedPacakge = new Package();
+            obfuscatedPacakge.PackageRegistrationKey = PackageRecord.PackageRegistrationKey;
+            obfuscatedPacakge.Copyright = PackageRecord.Copyright;
+            obfuscatedPacakge.Created = PackageRecord.Created;
+            obfuscatedPacakge.Description = PackageRecord.Description;
+            obfuscatedPacakge.ReleaseNotes = PackageRecord.ReleaseNotes;
+            obfuscatedPacakge.DownloadCount = PackageRecord.DownloadCount;
+            obfuscatedPacakge.HashAlgorithm = PackageRecord.HashAlgorithm;
+            obfuscatedPacakge.Hash = PackageRecord.Hash;
+            obfuscatedPacakge.IconUrl = PackageRecord.IconUrl;
+            obfuscatedPacakge.IsLatest = PackageRecord.IsLatest;
+            obfuscatedPacakge.IsLatestStable = PackageRecord.IsLatestStable;
+            obfuscatedPacakge.LastUpdated = PackageRecord.LastUpdated;
+            obfuscatedPacakge.LastEdited = PackageRecord.LastEdited;
+            obfuscatedPacakge.LicenseUrl = PackageRecord.LicenseUrl;
+            obfuscatedPacakge.HideLicenseReport = PackageRecord.HideLicenseReport;
+            obfuscatedPacakge.Language = PackageRecord.Language;
+            obfuscatedPacakge.Published = PackageRecord.Published;
+            obfuscatedPacakge.PackageFileSize = PackageRecord.PackageFileSize;
+            obfuscatedPacakge.ProjectUrl = PackageRecord.ProjectUrl;
+            obfuscatedPacakge.RequiresLicenseAcceptance = PackageRecord.RequiresLicenseAcceptance;
+            obfuscatedPacakge.Summary = PackageRecord.Summary;
+            obfuscatedPacakge.Tags = PackageRecord.Tags;
+            obfuscatedPacakge.Title = PackageRecord.Title;
+            obfuscatedPacakge.Version = PackageRecord.Version;
+            obfuscatedPacakge.NormalizedVersion = PackageRecord.NormalizedVersion;
+            obfuscatedPacakge.LicenseNames = PackageRecord.LicenseNames;
+            obfuscatedPacakge.LicenseReportUrl = PackageRecord.LicenseReportUrl;
+            obfuscatedPacakge.Listed = PackageRecord.Listed;
+            obfuscatedPacakge.IsPrerelease = PackageRecord.IsPrerelease;
+            obfuscatedPacakge.FlattenedAuthors = string.Empty;
+            obfuscatedPacakge.FlattenedDependencies = PackageRecord.FlattenedDependencies;
+            obfuscatedPacakge.Key = PackageRecord.Key;
+            obfuscatedPacakge.MinClientVersion = PackageRecord.MinClientVersion;
+            obfuscatedPacakge.UserKey = -1;
+#pragma warning disable CS0612 // Type or member is obsolete
+            obfuscatedPacakge.Deleted = PackageRecord.Deleted;
+#pragma warning restore CS0612 // Type or member is obsolete
+            obfuscatedPacakge.HasReadMe = PackageRecord.HasReadMe;
+            obfuscatedPacakge.PackageStatusKey = (PackageStatus)PackageRecord.PackageStatusKey;
+
+            return obfuscatedPacakge;
+
+        }
     }
 }
