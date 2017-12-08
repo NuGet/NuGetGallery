@@ -38,7 +38,7 @@ namespace NuGetGallery
         {
             if(IsPIIOperation(telemetryItem.Context.Operation.Name))
             {
-                // The new url form will be: https://nuget.org/HiddenUserName
+                // The new url form will be: https://nuget.org/ObfuscatedUserName
                 return new Uri(Obfuscator.DefaultObfuscatedUrl(telemetryItem.Url));
             }
             return telemetryItem.Url;
@@ -52,7 +52,7 @@ namespace NuGetGallery
             }
             // Remove the verb from the operation name.
             // An example of operationName : GET Users/Profiles
-            return Obfuscator.PIIActions.Contains(operationName.Split(' ').Last());
+            return Obfuscator.ObfuscatedActions.Contains(operationName.Split(' ').Last());
         }
     }
 }
