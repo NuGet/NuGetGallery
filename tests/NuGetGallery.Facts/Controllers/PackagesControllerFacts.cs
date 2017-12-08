@@ -14,6 +14,8 @@ using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
 using NuGet.Packaging;
+using NuGet.Services.Validation;
+using NuGet.Services.Validation.Issues;
 using NuGet.Versioning;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Models;
@@ -657,6 +659,67 @@ namespace NuGetGallery
                 }
 
                 return await controller.DisplayPackage("Foo", /*version*/null);
+            }
+
+            [Fact]
+            public async Task GetsAndDeduplicatesValidationIssues()
+            {
+                // Arrange
+                var packageService = new Mock<IPackageService>();
+                var indexingService = new Mock<IIndexingService>();
+                var fileService = new Mock<IPackageFileService>();
+                var validationService = new Mock<IValidationService>();
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService, indexingService: indexingService, packageFileService: fileService, validationService: validationService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = "Foo",
+                        Owners = new List<User>()
+                    },
+                    Version = "01.1.01",
+                    NormalizedVersion = "1.1.1",
+                    Title = "A test package!",
+                };
+
+                packageService.Setup(p => p.FindPackageByIdAndVersion(It.Is<string>(s => s == "Foo"), It.Is<string>(s => s == null), It.Is<int>(i => i == SemVerLevelKey.SemVer2), It.Is<bool>(b => b == true)))
+                    .Returns(package);
+
+                indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
+                
+                validationService.Setup(v => v.GetLatestValidationIssues(It.IsAny<Package>()))
+                    .Returns(new[]
+                    {
+                        new TestIssue("This should be deduplicated"),
+                        new TestIssue("This should be deduplicated"),
+                        new TestIssue("I'm a Teapot"),
+                    });
+
+                // Act
+                var result = await controller.DisplayPackage("Foo", version: null);
+
+                // Assert
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+
+                Assert.Equal(2, model.ValidationIssues.Count());
+                Assert.Equal("This should be deduplicated", model.ValidationIssues[0]);
+                Assert.Equal("I'm a Teapot", model.ValidationIssues[1]);
+            }
+
+            private class TestIssue : ValidationIssue
+            {
+                private readonly string _message;
+
+                public TestIssue(string message) => _message = message;
+
+                public override ValidationIssueCode IssueCode => throw new NotImplementedException();
+
+                public override string GetMessage() => _message;
             }
         }
 
