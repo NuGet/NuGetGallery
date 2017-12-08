@@ -623,6 +623,60 @@ namespace NuGetGallery
             }
         }
 
+        public class TheApiKeysAction
+            : TestContainer
+        {
+            [Fact]
+            public void CurrentUserIsInPackageOwners()
+            {
+                var currentUser = TestUtility.FakeUser;
+
+                var model = GetModelForApiKeys(currentUser);
+                
+                Assert.True(model.PackageOwners.Any(o => o.Owner == currentUser.Username && o.CanPushNew));
+            }
+
+            [Fact]
+            public void AdminIsInPackageOwners()
+            {
+                var currentUser = TestUtility.FakeAdminUser;
+
+                var model = GetModelForApiKeys(currentUser);
+
+                Assert.True(model.PackageOwners.All(o => o.Owner == currentUser.Username && o.CanPushNew));
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public void OrganizationIsInPackageOwners(bool isAdmin)
+            {
+                var currentUser = isAdmin ? TestUtility.FakeOrganizationAdmin : TestUtility.FakeOrganizationCollaborator;
+                var organization = TestUtility.FakeOrganization;
+
+                var model = GetModelForApiKeys(currentUser);
+
+                Assert.True(model.PackageOwners.Any(o => o.Owner == currentUser.Username && o.CanPushNew));
+                Assert.True(model.PackageOwners.Any(o => o.Owner == organization.Username && o.CanPushNew == isAdmin));
+            }
+
+            private ApiKeyListViewModel GetModelForApiKeys(User currentUser)
+            {
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(currentUser);
+
+                // Act
+                var result = controller.ApiKeys();
+
+                // Assert
+                Assert.IsType<ViewResult>(result);
+                var viewResult = result as ViewResult;
+
+                Assert.IsType<ApiKeyListViewModel>(viewResult.Model);
+                return viewResult.Model as ApiKeyListViewModel;
+            }
+        }
+
         public class TheGenerateApiKeyAction : TestContainer
         {
             [InlineData(null)]
@@ -648,12 +702,32 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WhenScopeOwnerDoesNotMatch_ReturnsBadRequest()
+            public Task WhenScopeOwnerDoesNotMatch_ReturnsBadRequest()
             {
                 // Arrange 
                 var fakes = new Fakes();
                 var user = fakes.User;
                 var otherUser = fakes.ShaUser;
+
+                return WhenScopeOwnerDoesNotMatch_ReturnsBadRequest(user, otherUser);
+            }
+
+            [Fact]
+            public Task WhenScopeOwnerDoesNotMatchAsAdmin_ReturnsBadRequest()
+            {
+                // Arrange 
+                var fakes = new Fakes();
+                var user = fakes.Admin;
+                var otherUser = fakes.User;
+
+                return WhenScopeOwnerDoesNotMatch_ReturnsBadRequest(user, otherUser);
+            }
+
+            private async Task WhenScopeOwnerDoesNotMatch_ReturnsBadRequest(User currentUser, User userInOwnerScope)
+            {
+                // Arrange 
+                var user = currentUser;
+                var otherUser = userInOwnerScope;
                 GetMock<IUserService>()
                     .Setup(u => u.FindByUsername(otherUser.Username))
                     .Returns(otherUser);
