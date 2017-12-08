@@ -741,26 +741,35 @@ namespace NuGetGallery
                 Assert.True(string.Compare((string)result.Data, Strings.ApiKeyDescriptionRequired) == 0);
             }
 
-            [Fact]
-            public Task WhenScopeOwnerDoesNotMatch_ReturnsBadRequest()
+            public static IEnumerable<object[]> WhenScopeOwnerDoesNotMatch_ReturnsBadRequest_Data
             {
-                // Arrange 
-                var fakes = new Fakes();
-                var user = fakes.User;
-                var otherUser = fakes.ShaUser;
-
-                return WhenScopeOwnerDoesNotMatch_ReturnsBadRequest(user, otherUser);
+                get
+                {
+                    foreach (var getCurrentUser in 
+                        new Func<Fakes, User>[] 
+                        {
+                            (fakes) => fakes.User,
+                            (fakes) => fakes.Admin
+                        })
+                    {
+                        yield return new object[]
+                        {
+                            getCurrentUser
+                        };
+                    }
+                }
             }
 
-            [Fact]
-            public Task WhenScopeOwnerDoesNotMatchAsAdmin_ReturnsBadRequest()
+            [Theory]
+            [MemberData(nameof(WhenScopeOwnerDoesNotMatch_ReturnsBadRequest_Data))]
+            public Task WhenScopeOwnerDoesNotMatch_ReturnsBadRequest(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange 
                 var fakes = new Fakes();
-                var user = fakes.Admin;
-                var otherUser = fakes.User;
+                var currentUser = getCurrentUser(fakes);
+                var userInOwnerScope = fakes.ShaUser;
 
-                return WhenScopeOwnerDoesNotMatch_ReturnsBadRequest(user, otherUser);
+                return WhenScopeOwnerDoesNotMatch_ReturnsBadRequest(currentUser, userInOwnerScope);
             }
 
             private async Task WhenScopeOwnerDoesNotMatch_ReturnsBadRequest(User currentUser, User userInOwnerScope)
