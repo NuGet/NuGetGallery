@@ -15,7 +15,8 @@ namespace NuGetGallery
         /// </summary>
         internal const string DefaultTelemetryUserName = "ObfuscatedUserName";
 
-        internal static readonly HashSet<string> ObfuscatedActions = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase){
+        internal static readonly HashSet<string> ObfuscatedActions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
             "Packages/ConfirmPendingOwnershipRequest",
             "Packages/RejectPendingOwnershipRequest",
             "Packages/CancelPendingOwnershipRequest",
