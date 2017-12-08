@@ -23,11 +23,11 @@ namespace NuGetGallery
 
         public static readonly string FakeUserName = "theUsername";
         public static readonly int FakeUserKey = 42;
-        public static readonly User FakeUser = new User() { Username = FakeUserName, Key = FakeUserKey };
+        public static readonly User FakeUser = new User() { Username = FakeUserName, Key = FakeUserKey, EmailAddress = "theUsername@nuget.org" };
 
         public static readonly string FakeAdminName = "theAdmin";
         public static readonly int FakeAdminKey = 43;
-        public static readonly User FakeAdminUser = new User() { Username = FakeAdminName, Key = FakeAdminKey, Roles = new[] { new Role { Name = Constants.AdminRoleName } } };
+        public static readonly User FakeAdminUser = new User() { Username = FakeAdminName, Key = FakeAdminKey, EmailAddress = "theAdmin@nuget.org", Roles = new[] { new Role { Name = Constants.AdminRoleName } } };
 
         public static readonly string FakeOrganizationName = "theOrganization";
         public static readonly int FakeOrganizationKey = 44;
@@ -44,9 +44,9 @@ namespace NuGetGallery
         static TestUtility()
         {
             // Set up fake Organization users
-            FakeOrganization = new Organization { Username = FakeOrganizationName, Key = FakeOrganizationKey };
-            FakeOrganizationAdmin = new User { Username = FakeOrganizationAdminName, Key = FakeOrganizationAdminKey };
-            FakeOrganizationCollaborator = new User { Username = FakeOrganizationCollaboratorName, Key = FakeOrganizationCollaboratorKey };
+            FakeOrganization = new Organization { Username = FakeOrganizationName, Key = FakeOrganizationKey, EmailAddress = "organization@nuget.org" };
+            FakeOrganizationAdmin = new User { Username = FakeOrganizationAdminName, Key = FakeOrganizationAdminKey, EmailAddress = "organizationAdmin@nuget.org" };
+            FakeOrganizationCollaborator = new User { Username = FakeOrganizationCollaboratorName, Key = FakeOrganizationCollaboratorKey, EmailAddress = "organizationCollaborator@nuget.org" };
 
             var organizationAdminMembership = new Membership { IsAdmin = true, Member = FakeOrganizationAdmin, MemberKey = FakeOrganizationAdmin.Key, Organization = FakeOrganization, OrganizationKey = FakeOrganization.Key };
             FakeOrganizationAdmin.Organizations = new[] { organizationAdminMembership };
