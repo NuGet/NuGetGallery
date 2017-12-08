@@ -170,6 +170,17 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             return new Uri(BaseAddress, relativeUri);
         }
 
+        /// <summary>
+        /// It will return false if there are changes between the source and destination.
+        /// </summary>
+        /// <param name="firstResourceUri">The first uri.</param>
+        /// <param name="secondResourceUri">The second uri.</param>
+        /// <returns>Default returns false.</returns>
+        public virtual Task<bool> AreSyncronized(Uri firstResourceUri, Uri secondResourceUri)
+        {
+            return Task.FromResult(false);
+        }
+
         protected string GetName(Uri uri)
         {
             var address = Uri.UnescapeDataString(BaseAddress.GetLeftPart(UriPartial.Path));

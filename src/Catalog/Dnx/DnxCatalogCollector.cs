@@ -18,10 +18,12 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
     public class DnxCatalogCollector : CommitCollector
     {
         DnxMaker _dnxMaker;
+        StorageFactory _storageFactory;
 
         public DnxCatalogCollector(Uri index, StorageFactory storageFactory, Func<HttpMessageHandler> handlerFunc = null)
             : base(index, handlerFunc)
         {
+            _storageFactory = storageFactory;
             _dnxMaker = new DnxMaker(storageFactory);
         }
 
@@ -34,24 +36,33 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                 string id = item["nuget:id"].ToString().ToLowerInvariant();
                 string version = NuGetVersionUtility.NormalizeVersion(item["nuget:version"].ToString().ToLowerInvariant());
                 string type = item["@type"].ToString().Replace("nuget:", Schema.Prefixes.NuGet);
+                var destinationStorage = _storageFactory.Create(id);
 
                 if (type == Schema.DataTypes.PackageDetails.ToString())
                 {
-                    // Add/update package
-                    string nuspec = await LoadNuspec(client, id, version, cancellationToken);
-                    if (nuspec != null)
+                    var sourceUri = new Uri(ContentBaseAddress, string.Format("{0}.{1}.nupkg", id, version));
+                    var destinationUri = destinationStorage.GetUri(DnxMaker.GetRelativeAddressNupkg(id, version));
+                    if (!await destinationStorage.AreSyncronized(sourceUri, destinationUri))
                     {
-                        var requestUri = Utilities.GetNugetCacheBustingUri(new Uri(ContentBaseAddress, string.Format("{0}.{1}.nupkg", id, version)));
-                        using (Stream stream = await client.GetStreamAsync(requestUri))
+                        // Add/update package
+                        string nuspec = await LoadNuspec(client, id, version, cancellationToken);
+                        if (nuspec != null)
                         {
-                            await _dnxMaker.AddPackage(stream, nuspec, id, version, cancellationToken);
+                            var requestUri = Utilities.GetNugetCacheBustingUri(sourceUri);
+                            using (Stream stream = await client.GetStreamAsync(requestUri))
+                            {
+                                await _dnxMaker.AddPackage(stream, nuspec, id, version, cancellationToken);
+                            }
+                            Trace.TraceInformation("commit: {0}/{1}", id, version);
                         }
-
-                        Trace.TraceInformation("commit: {0}/{1}", id, version);
+                        else
+                        {
+                            Trace.TraceWarning("no nuspec available for {0}/{1} skipping", id, version);
+                        }
                     }
                     else
                     {
-                        Trace.TraceWarning("no nuspec available for {0}/{1} skipping", id, version);
+                        Trace.TraceInformation("No changes detected: {0}/{1}", id, version);
                     }
                 }
                 else if (type == Schema.DataTypes.PackageDelete.ToString())

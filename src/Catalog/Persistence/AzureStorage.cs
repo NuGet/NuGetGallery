@@ -124,7 +124,6 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             CloudBlockBlob blob = _directory.GetBlockBlobReference(name);
             blob.Properties.ContentType = content.ContentType;
             blob.Properties.CacheControl = content.CacheControl;
-
             if (CompressContent)
             {
                 blob.Properties.ContentEncoding = "gzip";
@@ -282,6 +281,21 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         public override Uri GetUri(string name)
         {
             return new Uri(_directory.Uri, name);
+        }
+
+        public override async Task<bool> AreSyncronized(Uri firstResourceUri, Uri secondResourceUri)
+        {
+            var destination = _directory.GetBlockBlobReference(GetName(secondResourceUri));
+            var source = new CloudBlockBlob(firstResourceUri);
+            if (await destination.ExistsAsync())
+            {
+                if (await source.ExistsAsync())
+                {
+                    return !string.IsNullOrEmpty(source.Properties.ContentMD5) && source.Properties.ContentMD5 == destination.Properties.ContentMD5;
+                }
+                return true;
+            }
+            return !(await source.ExistsAsync());
         }
     }
 }

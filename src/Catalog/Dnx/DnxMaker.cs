@@ -143,7 +143,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             return $"{NuGetVersion.Parse(version).ToNormalizedString()}/{id}.nuspec"; 
         }
 
-        private static string GetRelativeAddressNupkg(string id, string version)
+        public static string GetRelativeAddressNupkg(string id, string version)
         {
             return $"{NuGetVersion.Parse(version).ToNormalizedString()}/{id}.{NuGetVersion.Parse(version).ToNormalizedString()}.nupkg";
         }
