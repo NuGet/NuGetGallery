@@ -190,6 +190,7 @@ namespace NuGetGallery.Infrastructure
 
             private void Obfuscate(Error error)
             {
+                //ServerVariables overrides requiring context from the http request should be handled in NuGetGallery.QuietLog
                 var elmahException = error.Exception as ElmahException;
                 if (elmahException != null)
                 {

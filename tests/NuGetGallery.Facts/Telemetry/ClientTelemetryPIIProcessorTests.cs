@@ -77,7 +77,7 @@ namespace NuGetGallery.Telemetry
         public void ValidatePIIRoutes()
         {
             // Arange
-            HashSet<string> existentPIIOperations = Obfuscator.PIIActions;
+            HashSet<string> existentPIIOperations = Obfuscator.ObfuscatedActions;
             List<string> piiOperationsFromRoutes = GetPIIOperationsFromRoute();
 
             // Act and Assert

@@ -8,7 +8,7 @@ namespace NuGetGallery.Auditing
     public class ObfuscatorFacts
     {
         [Theory]
-        [InlineData("fe80:ffff:1111:023c:1ff:fe23:4567:890a", "fe80:ffff:1111:023c:0000:0000:0000:0000")]
+        [InlineData("fe80:ffff:1111:023c:1ff:fe23:4567:890a", "fe80:ffff:1111:23c::")]
         [InlineData("192.168.0.100", "192.168.0.0")]
         [InlineData("400.400.400.400", "400.400.400.400")]
         [InlineData(null, null)]

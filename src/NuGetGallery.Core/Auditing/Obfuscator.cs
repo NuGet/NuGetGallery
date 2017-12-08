@@ -28,31 +28,18 @@ namespace NuGetGallery.Auditing
                 {
                     case 4:
                         bytes[3] = 0;
-                        foreach (byte b in bytes)
-                        {
-                            obfuscatedIpAddress.AppendFormat("{0}.", b);
-                        }
-                        return obfuscatedIpAddress.ToString().Trim('.');
+                        break;
                     case 16:
                         for (int i = 8; i < 16; i++)
                         {
                             bytes[i] = 0;
                         }
-                        int index = 0;
-                        foreach (byte b in bytes)
-                        {
-                            index++;
-                            obfuscatedIpAddress.AppendFormat("{0:x2}", b);
-                            if (index % 2 == 0)
-                            {
-                                obfuscatedIpAddress.Append(":");
-                                index = 0;
-                            }
-                        }
-                        return obfuscatedIpAddress.ToString().Trim(':'); ;
+                        break;
                     default:
-                        return IP;
+                        break;
                 }
+                address = new IPAddress(bytes);
+                return address.ToString();
             }
             return IP;
         }

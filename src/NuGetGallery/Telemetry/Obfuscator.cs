@@ -13,9 +13,9 @@ namespace NuGetGallery
         /// Default user name that will replace the real user name.
         /// This value will be saved in AI instead of the real value.
         /// </summary>
-        internal const string DefaultTelemetryUserName = "HiddenUserName";
+        internal const string DefaultTelemetryUserName = "ObfuscatedUserName";
 
-        internal static readonly HashSet<string> PIIActions = new HashSet<string>{
+        internal static readonly HashSet<string> ObfuscatedActions = new HashSet<string>{
             "Packages/ConfirmPendingOwnershipRequest",
             "Packages/RejectPendingOwnershipRequest",
             "Packages/CancelPendingOwnershipRequest",

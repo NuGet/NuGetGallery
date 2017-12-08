@@ -73,7 +73,7 @@ namespace NuGetGallery
                 return false;
             }
             operation = $"{route.Values["controller"]}/{route.Values["action"]}";
-            return Obfuscator.PIIActions.Contains(operation);
+            return Obfuscator.ObfuscatedActions.Contains(operation);
         }
 
         /// <summary>

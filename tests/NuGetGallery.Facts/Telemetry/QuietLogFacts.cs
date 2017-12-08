@@ -105,7 +105,7 @@ namespace NuGetGallery.Telemetry
 
         public static IEnumerable<string[]> IsPIIRouteFactsValidDataGenerator()
         {
-            return Obfuscator.PIIActions.Select(o => o.Split('/'));
+            return Obfuscator.ObfuscatedActions.Select(o => o.Split('/'));
         }
 
         private class TestHttpContext : HttpContextBase
