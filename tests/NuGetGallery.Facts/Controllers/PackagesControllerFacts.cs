@@ -3861,8 +3861,101 @@ namespace NuGetGallery
         public class TheSetLicenseReportVisibilityMethod
             : TestContainer
         {
-            [Fact]
-            public async Task IndexingAndPackageServicesAreUpdated()
+            public static IEnumerable<object[]> NotOwner_Data
+            {
+                get
+                {
+                    foreach (var visible in new[] { true, false })
+                    {
+                        yield return new object[]
+                        {
+                            null,
+                            TestUtility.FakeUser,
+                            visible
+                        };
+
+                        yield return new object[]
+                        {
+                            TestUtility.FakeUser,
+                            new User { Key = 5535 },
+                            visible
+                        };
+                    }
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(NotOwner_Data))]
+            public async Task Returns401IfNotOwner(User currentUser, User owner, bool visible)
+            {
+                // Arrange
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = "Foo" },
+                    Version = "1.0",
+                    Listed = true
+                };
+                package.PackageRegistration.Owners.Add(owner);
+
+                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+                packageService.Setup(svc => svc.FindPackageByIdAndVersionStrict("Foo", "1.0"))
+                    .Returns(package);
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService);
+                controller.SetCurrentUser(currentUser);
+                controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
+
+                // Act
+                var result = await controller.SetLicenseReportVisibility("Foo", "1.0", visible: false, urlFactory: (pkg, relativeUrl) => @"~\Bar.cshtml");
+
+                // Assert
+                Assert.IsType<HttpStatusCodeResult>(result);
+                var httpStatusCodeResult = result as HttpStatusCodeResult;
+                Assert.Equal(401, httpStatusCodeResult.StatusCode);
+            }
+
+            public static IEnumerable<object[]> Owner_Data
+            {
+                get
+                {
+                    foreach (var visible in new[] { true, false })
+                    {
+                        yield return new object[]
+                        {
+                            TestUtility.FakeUser,
+                            TestUtility.FakeUser,
+                            visible
+                        };
+
+                        yield return new object[]
+                        {
+                            TestUtility.FakeAdminUser,
+                            TestUtility.FakeUser,
+                            visible
+                        };
+
+                        yield return new object[]
+                        {
+                            TestUtility.FakeOrganizationAdmin,
+                            TestUtility.FakeOrganization,
+                            visible
+                        };
+
+                        yield return new object[]
+                        {
+                            TestUtility.FakeOrganizationCollaborator,
+                            TestUtility.FakeOrganization,
+                            visible
+                        };
+                    }
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public async Task IndexingAndPackageServicesAreUpdated(User currentUser, User owner, bool visible)
             {
                 // Arrange
                 var package = new Package
@@ -3871,7 +3964,7 @@ namespace NuGetGallery
                     Version = "1.0",
                     HideLicenseReport = true
                 };
-                package.PackageRegistration.Owners.Add(new User("Smeagol"));
+                package.PackageRegistration.Owners.Add(owner);
 
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
                 packageService.Setup(svc => svc.SetLicenseReportVisibilityAsync(It.IsAny<Package>(), It.Is<bool>(t => t == true), It.IsAny<bool>()))
@@ -3880,19 +3973,14 @@ namespace NuGetGallery
                     .Returns(Task.CompletedTask).Verifiable();
                 packageService.Setup(svc => svc.FindPackageByIdAndVersionStrict("Foo", "1.0"))
                     .Returns(package).Verifiable();
-
-                var httpContext = new Mock<HttpContextBase>();
-                httpContext.Setup(h => h.Request.IsAuthenticated).Returns(true);
-                httpContext.Setup(h => h.User.Identity.Name).Returns("Smeagol");
-
+                
                 var indexingService = new Mock<IIndexingService>();
 
                 var controller = CreateController(
                         GetConfigurationService(),
                         packageService: packageService,
-                        httpContext: httpContext,
                         indexingService: indexingService);
-                controller.SetCurrentUser(new User("Smeagol"));
+                controller.SetCurrentUser(currentUser);
                 controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
 
                 // Act
