@@ -639,10 +639,7 @@ namespace NuGetGallery
                             TestUtility.FakeOrganizationCollaborator
                         })
                     {
-                        yield return new object[]
-                        {
-                            currentUser
-                        };
+                        yield return MemberDataHelper.AsData(currentUser);
                     }
                 }
             }
@@ -670,6 +667,7 @@ namespace NuGetGallery
                 
                 Assert.Equal(1, model.PackageOwners.Count(o => o.Owner == organization.Username && o.CanPushNew == isAdmin));
             }
+
             public static IEnumerable<object[]> OrganizationIsNotInPackageOwnersIfNotMember_Data
             {
                 get
@@ -681,10 +679,7 @@ namespace NuGetGallery
                             TestUtility.FakeAdminUser
                         })
                     {
-                        yield return new object[]
-                        {
-                            currentUser
-                        };
+                        yield return MemberDataHelper.AsData(currentUser);
                     }
                 }
             }
