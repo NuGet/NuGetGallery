@@ -626,38 +626,78 @@ namespace NuGetGallery
         public class TheApiKeysAction
             : TestContainer
         {
-            [Fact]
-            public void CurrentUserIsInPackageOwners()
+            public static IEnumerable<object[]> CurrentUserIsInPackageOwnersWithPushNew_Data
             {
-                var currentUser = TestUtility.FakeUser;
-
-                var model = GetModelForApiKeys(currentUser);
-                
-                Assert.True(model.PackageOwners.Any(o => o.Owner == currentUser.Username && o.CanPushNew));
-            }
-
-            [Fact]
-            public void AdminIsInPackageOwners()
-            {
-                var currentUser = TestUtility.FakeAdminUser;
-
-                var model = GetModelForApiKeys(currentUser);
-
-                Assert.True(model.PackageOwners.All(o => o.Owner == currentUser.Username && o.CanPushNew));
+                get
+                {
+                    foreach (var currentUser in 
+                        new[] 
+                        {
+                            TestUtility.FakeUser,
+                            TestUtility.FakeAdminUser,
+                            TestUtility.FakeOrganizationAdmin,
+                            TestUtility.FakeOrganizationCollaborator
+                        })
+                    {
+                        yield return new object[]
+                        {
+                            currentUser
+                        };
+                    }
+                }
             }
 
             [Theory]
+            [MemberData(nameof(CurrentUserIsInPackageOwnersWithPushNew_Data))]
+            public void CurrentUserIsFirstInPackageOwnersWithPushNew(User currentUser)
+            {
+                var model = GetModelForApiKeys(currentUser);
+
+                var firstPackageOwner = model.PackageOwners.First();
+                Assert.True(firstPackageOwner.Owner == currentUser.Username);
+                Assert.True(firstPackageOwner.CanPushNew);
+            }
+            
+            [Theory]
             [InlineData(true)]
             [InlineData(false)]
-            public void OrganizationIsInPackageOwners(bool isAdmin)
+            public void OrganizationIsInPackageOwnersIfMember(bool isAdmin)
             {
                 var currentUser = isAdmin ? TestUtility.FakeOrganizationAdmin : TestUtility.FakeOrganizationCollaborator;
                 var organization = TestUtility.FakeOrganization;
 
                 var model = GetModelForApiKeys(currentUser);
+                
+                Assert.Equal(1, model.PackageOwners.Count(o => o.Owner == organization.Username && o.CanPushNew == isAdmin));
+            }
+            public static IEnumerable<object[]> OrganizationIsNotInPackageOwnersIfNotMember_Data
+            {
+                get
+                {
+                    foreach (var currentUser in
+                        new[]
+                        {
+                            TestUtility.FakeUser,
+                            TestUtility.FakeAdminUser
+                        })
+                    {
+                        yield return new object[]
+                        {
+                            currentUser
+                        };
+                    }
+                }
+            }
 
-                Assert.True(model.PackageOwners.Any(o => o.Owner == currentUser.Username && o.CanPushNew));
-                Assert.True(model.PackageOwners.Any(o => o.Owner == organization.Username && o.CanPushNew == isAdmin));
+            [Theory]
+            [MemberData(nameof(OrganizationIsNotInPackageOwnersIfNotMember_Data))]
+            public void OrganizationIsNotInPackageOwnersIfNotMember(User currentUser)
+            {
+                var organization = TestUtility.FakeOrganization;
+
+                var model = GetModelForApiKeys(currentUser);
+
+                Assert.True(!model.PackageOwners.Any(o => o.Owner == organization.Username));
             }
 
             private ApiKeyListViewModel GetModelForApiKeys(User currentUser)
