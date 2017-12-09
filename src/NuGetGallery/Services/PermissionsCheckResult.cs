@@ -4,33 +4,33 @@
 namespace NuGetGallery
 {
     /// <summary>
-    /// Describes the reason why an action from <see cref="ActionsRequiringPermissions"/> is not allowed.
+    /// Describes the result of checking if an <see cref="ActionsRequiringPermissions"/> is allowed.
     /// </summary>
-    public enum PermissionsFailure
+    public enum PermissionsCheckResult
     {
         /// <summary>
-        /// There is no failure. The action is allowed.
+        /// The action is allowed.
         /// </summary>
-        None = default(int),
+        Allowed = default(int),
 
         /// <summary>
-        /// The cause of failure is unknown.
+        /// The reason an action is not allowed is not known.
         /// </summary>
-        Unknown,
+        UnknownFailure,
 
         /// <summary>
         /// The current user does not have permissions to perform the action on the <see cref="User"/>.
         /// </summary>
-        Account,
+        AccountFailure,
 
         /// <summary>
         /// The current user does not have permissions to perform the action on the <see cref="NuGetGallery.PackageRegistration"/> on behalf of another <see cref="User"/>.
         /// </summary>
-        PackageRegistration,
+        PackageRegistrationFailure,
 
         /// <summary>
         /// The current user does not have permissions to perform the action on the <see cref="NuGetGallery.ReservedNamespace"/> on behalf of another <see cref="User"/>.
         /// </summary>
-        ReservedNamespace
+        ReservedNamespaceFailure
     }
 }

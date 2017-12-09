@@ -23,11 +23,11 @@ namespace NuGetGallery
         /// <summary>
         /// Determines whether <paramref name="currentUser"/> can perform this action on <paramref name="entity"/> on behalf of <paramref name="account"/>.
         /// </summary>
-        public PermissionsFailure IsAllowed(User currentUser, User account, TEntity entity)
+        public PermissionsCheckResult IsAllowed(User currentUser, User account, TEntity entity)
         {
             if (!PermissionsHelpers.IsRequirementSatisfied(AccountOnBehalfOfPermissionsRequirement, currentUser, account))
             {
-                return PermissionsFailure.Account;
+                return PermissionsCheckResult.AccountFailure;
             }
             
             return IsAllowedOnEntity(account, entity);
@@ -36,17 +36,17 @@ namespace NuGetGallery
         /// <summary>
         /// Determines whether <paramref name="currentPrincipal"/> can perform this action on <paramref name="entity"/> on behalf of <paramref name="account"/>.
         /// </summary>
-        public PermissionsFailure IsAllowed(IPrincipal currentPrincipal, User account, TEntity entity)
+        public PermissionsCheckResult IsAllowed(IPrincipal currentPrincipal, User account, TEntity entity)
         {
             if (!PermissionsHelpers.IsRequirementSatisfied(AccountOnBehalfOfPermissionsRequirement, currentPrincipal, account))
             {
-                return PermissionsFailure.Account;
+                return PermissionsCheckResult.AccountFailure;
             }
 
             return IsAllowedOnEntity(account, entity);
         }
         
-        protected abstract PermissionsFailure IsAllowedOnEntity(User account, TEntity entity);
+        protected abstract PermissionsCheckResult IsAllowedOnEntity(User account, TEntity entity);
 
         /// <summary>
         /// Determines whether <paramref name="currentPrincipal"/> can perform this action on <paramref name="entity"/> on behalf of any <see cref="User"/>.
@@ -71,7 +71,7 @@ namespace NuGetGallery
             foreach (var accountOnBehalfOf in possibleAccountsOnBehalfOf)
             {
                 var failure = IsAllowed(currentUser, accountOnBehalfOf, entity);
-                if (failure == PermissionsFailure.None)
+                if (failure == PermissionsCheckResult.Allowed)
                 {
                     accountsAllowedOnBehalfOf = accountsAllowedOnBehalfOf.Concat(new[] { accountOnBehalfOf });
                 }

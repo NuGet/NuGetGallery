@@ -23,24 +23,24 @@ namespace NuGetGallery
             PackageRegistrationPermissionsRequirement = packageRegistrationPermissionsRequirement;
         }
 
-        public PermissionsFailure IsAllowed(User currentUser, User account, Package package)
+        public PermissionsCheckResult IsAllowed(User currentUser, User account, Package package)
         {
-            return IsAllowed(currentUser, account, ConvertPackageToRegistration(package));
+            return IsAllowed(currentUser, account, GetPackageRegistration(package));
         }
 
-        public PermissionsFailure IsAllowed(IPrincipal currentPrincipal, User account, Package package)
+        public PermissionsCheckResult IsAllowed(IPrincipal currentPrincipal, User account, Package package)
         {
-            return IsAllowed(currentPrincipal, account, ConvertPackageToRegistration(package));
+            return IsAllowed(currentPrincipal, account, GetPackageRegistration(package));
         }
 
-        protected override PermissionsFailure IsAllowedOnEntity(User account, PackageRegistration packageRegistration)
+        protected override PermissionsCheckResult IsAllowedOnEntity(User account, PackageRegistration packageRegistration)
         {
-            return PermissionsHelpers.IsRequirementSatisfied(PackageRegistrationPermissionsRequirement, account, packageRegistration) ? PermissionsFailure.None : PermissionsFailure.PackageRegistration;
+            return PermissionsHelpers.IsRequirementSatisfied(PackageRegistrationPermissionsRequirement, account, packageRegistration) ? PermissionsCheckResult.Allowed : PermissionsCheckResult.PackageRegistrationFailure;
         }
 
         public bool TryGetAccountsIsAllowedOnBehalfOf(User currentUser, Package package, out IEnumerable<User> accountsAllowedOnBehalfOf)
         {
-            return TryGetAccountsIsAllowedOnBehalfOf(currentUser, ConvertPackageToRegistration(package), out accountsAllowedOnBehalfOf);
+            return TryGetAccountsIsAllowedOnBehalfOf(currentUser, GetPackageRegistration(package), out accountsAllowedOnBehalfOf);
         }
 
         protected override IEnumerable<User> GetOwners(PackageRegistration packageRegistration)
@@ -48,7 +48,7 @@ namespace NuGetGallery
             return packageRegistration != null ? packageRegistration.Owners : Enumerable.Empty<User>();
         }
 
-        private PackageRegistration ConvertPackageToRegistration(Package package)
+        private PackageRegistration GetPackageRegistration(Package package)
         {
             return package.PackageRegistration;
         }

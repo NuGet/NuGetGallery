@@ -38,30 +38,30 @@ namespace NuGetGallery
             ReservedNamespacePermissionsRequirement = reservedNamespacePermissionsRequirement;
         }
 
-        public PermissionsFailure IsAllowed(User currentUser, User account, ActionOnNewPackageContext newPackageContext)
+        public PermissionsCheckResult IsAllowed(User currentUser, User account, ActionOnNewPackageContext newPackageContext)
         {
-            return IsAllowed(currentUser, account, ConvertActionOnNewPackageContextToReservedNamespace(newPackageContext));
+            return IsAllowed(currentUser, account, GetReservedNamespaces(newPackageContext));
         }
 
-        public PermissionsFailure IsAllowed(IPrincipal currentPrincipal, User account, ActionOnNewPackageContext newPackageContext)
+        public PermissionsCheckResult IsAllowed(IPrincipal currentPrincipal, User account, ActionOnNewPackageContext newPackageContext)
         {
-            return IsAllowed(currentPrincipal, account, ConvertActionOnNewPackageContextToReservedNamespace(newPackageContext));
+            return IsAllowed(currentPrincipal, account, GetReservedNamespaces(newPackageContext));
         }
 
-        protected override PermissionsFailure IsAllowedOnEntity(User account, IEnumerable<ReservedNamespace> reservedNamespaces)
+        protected override PermissionsCheckResult IsAllowedOnEntity(User account, IEnumerable<ReservedNamespace> reservedNamespaces)
         {
             if (!reservedNamespaces.Any())
             {
-                return PermissionsFailure.None;
+                return PermissionsCheckResult.Allowed;
             }
 
             return reservedNamespaces.Any(rn => PermissionsHelpers.IsRequirementSatisfied(ReservedNamespacePermissionsRequirement, account, rn)) ?
-                PermissionsFailure.None : PermissionsFailure.ReservedNamespace;
+                PermissionsCheckResult.Allowed : PermissionsCheckResult.ReservedNamespaceFailure;
         }
 
         public bool TryGetAccountsIsAllowedOnBehalfOf(User currentUser, ActionOnNewPackageContext newPackageContext, out IEnumerable<User> accountsAllowedOnBehalfOf)
         {
-            return TryGetAccountsIsAllowedOnBehalfOf(currentUser, ConvertActionOnNewPackageContextToReservedNamespace(newPackageContext), out accountsAllowedOnBehalfOf);
+            return TryGetAccountsIsAllowedOnBehalfOf(currentUser, GetReservedNamespaces(newPackageContext), out accountsAllowedOnBehalfOf);
         }
 
         protected override IEnumerable<User> GetOwners(IEnumerable<ReservedNamespace> reservedNamespaces)
@@ -69,7 +69,7 @@ namespace NuGetGallery
             return reservedNamespaces.Any() ? reservedNamespaces.SelectMany(rn => rn.Owners) : Enumerable.Empty<User>();
         }
 
-        private IEnumerable<ReservedNamespace> ConvertActionOnNewPackageContextToReservedNamespace(ActionOnNewPackageContext newPackageContext)
+        private IEnumerable<ReservedNamespace> GetReservedNamespaces(ActionOnNewPackageContext newPackageContext)
         {
             return newPackageContext.ReservedNamespaceService.GetReservedNamespacesForId(newPackageContext.PackageId);
         }

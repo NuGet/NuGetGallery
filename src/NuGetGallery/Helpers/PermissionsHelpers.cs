@@ -8,7 +8,7 @@ using System.Security.Principal;
 
 namespace NuGetGallery
 {
-    public class PermissionsHelpers
+    public static class PermissionsHelpers
     {
         /// <summary>
         /// Is <paramref name="currentPrincipal"/> allowed to perform an action with a requirement of <paramref name="permissionsRequirement"/> on <paramref name="packageRegistration"/>?
@@ -39,9 +39,14 @@ namespace NuGetGallery
         /// </summary>
         public static bool IsRequirementSatisfied(PermissionsRequirement permissionsRequirement, IPrincipal currentPrincipal, IEnumerable<User> entityOwners)
         {
+            if (PermissionLevelsIntersect(PermissionsRequirement.None, permissionsRequirement))
+            {
+                return true;
+            }
+
             if (currentPrincipal == null)
             {
-                return PermissionLevelsIntersect(PermissionsRequirement.None, permissionsRequirement);
+                return false;
             }
 
             return IsRequirementSatisfied(
@@ -80,9 +85,14 @@ namespace NuGetGallery
         /// </summary>
         public static bool IsRequirementSatisfied(PermissionsRequirement permissionsRequirement, User currentUser, IEnumerable<User> entityOwners)
         {
+            if (PermissionLevelsIntersect(PermissionsRequirement.None, permissionsRequirement))
+            {
+                return true;
+            }
+
             if (currentUser == null)
             {
-                return PermissionLevelsIntersect(PermissionsRequirement.None, permissionsRequirement);
+                return false;
             }
 
             return IsRequirementSatisfied(
@@ -94,44 +104,47 @@ namespace NuGetGallery
 
         private static bool IsRequirementSatisfied(PermissionsRequirement permissionsRequirement, bool isUserAdmin, Func<User, bool> isUserMatch, IEnumerable<User> entityOwners)
         {
-            if ((entityOwners == null || !entityOwners.Any()) &&
-                PermissionLevelsIntersect(PermissionsRequirement.None, permissionsRequirement))
+            if (PermissionLevelsIntersect(PermissionsRequirement.None, permissionsRequirement))
             {
                 return true;
             }
 
-            if (entityOwners.Any(isUserMatch) &&
-                PermissionLevelsIntersect(PermissionsRequirement.Owner, permissionsRequirement))
+            if (entityOwners == null || !entityOwners.Any())
+            {
+                return false;
+            }
+
+            if (PermissionLevelsIntersect(PermissionsRequirement.Owner, permissionsRequirement) &&
+                entityOwners.Any(isUserMatch))
             {
                 return true;
             }
 
-            if (isUserAdmin &&
-                PermissionLevelsIntersect(PermissionsRequirement.SiteAdmin, permissionsRequirement))
+            if (PermissionLevelsIntersect(PermissionsRequirement.SiteAdmin, permissionsRequirement) &&
+                isUserAdmin)
             {
                 return true;
             }
 
             var matchingMembers = entityOwners
-                .Where(o => o is Organization)
-                .Cast<Organization>()
+                .OfType<Organization>()
                 .SelectMany(o => o.Members)
                 .Where(m => isUserMatch(m.Member))
                 .ToArray();
 
-            if (matchingMembers.Any(m => m.IsAdmin) &&
-                PermissionLevelsIntersect(PermissionsRequirement.OrganizationAdmin, permissionsRequirement))
+            if (PermissionLevelsIntersect(PermissionsRequirement.OrganizationAdmin, permissionsRequirement) &&
+                matchingMembers.Any(m => m.IsAdmin))
             {
                 return true;
             }
 
-            if (matchingMembers.Any() &&
-                PermissionLevelsIntersect(PermissionsRequirement.OrganizationCollaborator, permissionsRequirement))
+            if (PermissionLevelsIntersect(PermissionsRequirement.OrganizationCollaborator, permissionsRequirement) &&
+                matchingMembers.Any())
             {
                 return true;
             }
 
-            return PermissionLevelsIntersect(PermissionsRequirement.None, permissionsRequirement);
+            return false;
         }
 
         private static bool PermissionLevelsIntersect(PermissionsRequirement first, PermissionsRequirement second)

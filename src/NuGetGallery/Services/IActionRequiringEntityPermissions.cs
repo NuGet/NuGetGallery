@@ -9,8 +9,8 @@ namespace NuGetGallery
 {
     public interface IActionRequiringEntityPermissions<TEntity>
     {
-        PermissionsFailure IsAllowed(User currentUser, User account, TEntity entity);
-        PermissionsFailure IsAllowed(IPrincipal currentPrincipal, User account, TEntity entity);
+        PermissionsCheckResult IsAllowed(User currentUser, User account, TEntity entity);
+        PermissionsCheckResult IsAllowed(IPrincipal currentPrincipal, User account, TEntity entity);
         bool TryGetAccountsIsAllowedOnBehalfOf(User currentUser, TEntity entity, out IEnumerable<User> accountsAllowedOnBehalfOf);
     }
 }

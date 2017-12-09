@@ -899,7 +899,7 @@
     <Compile Include="Services\IReservedNamespaceService.cs" />
     <Compile Include="Services\IPackageUploadService.cs" />
     <Compile Include="Services\PermissionsService.cs" />
-    <Compile Include="Services\PermissionsFailure.cs" />
+    <Compile Include="Services\PermissionsCheckResult.cs" />
     <Compile Include="Services\PermissionLevel.cs" />
     <Compile Include="Services\PermissionsRequirement.cs" />
     <Compile Include="Services\ReservedNamespaceService.cs" />
