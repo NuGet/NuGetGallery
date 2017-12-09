@@ -210,8 +210,10 @@
 
     nuget.resetFormValidation = function (formElement) {
         var validator = $(formElement).validate();
-        $(formElement).find("*[name]").each(function () {
-            validator.successList.push(this);
+        $(formElement).find("*[name][data-val]").each(function () {
+            if (this.getAttribute("data-val").toLowerCase() === "true") {
+                validator.successList.push(this);
+            }
         });
         validator.showErrors();
         validator.resetForm();
