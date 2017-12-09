@@ -1879,6 +1879,12 @@ namespace NuGetGallery
                         TestUtility.FakeAdminUser,
                         Owner
                     };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeOrganizationCollaborator,
+                        TestUtility.FakeOrganization
+                    };
                 }
             }
 
@@ -1895,12 +1901,6 @@ namespace NuGetGallery
                     yield return new object[]
                     {
                         TestUtility.FakeOrganizationAdmin,
-                        TestUtility.FakeOrganization
-                    };
-
-                    yield return new object[]
-                    {
-                        TestUtility.FakeOrganizationCollaborator,
                         TestUtility.FakeOrganization
                     };
                 }
