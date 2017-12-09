@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 
 namespace NuGet.Services.Validation
 {
@@ -50,6 +51,11 @@ namespace NuGet.Services.Validation
         /// The set that this validation is part of.
         /// </summary>
         public PackageValidationSet PackageValidationSet { get; set; }
+
+        /// <summary>
+        /// The validation issues found by this validation.
+        /// </summary>
+        public virtual ICollection<PackageValidationIssue> PackageValidationIssues { get; set; }
 
         /// <summary>
         /// Used for optimistic concurrency when updating the status of the validation.

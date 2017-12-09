@@ -70,8 +70,9 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
             "$PSScriptRoot\src\NuGet.Services.AzureManagement\Properties\AssemblyInfo.g.cs", `
             "$PSScriptRoot\src\NuGet.Services.Contracts\Properties\AssemblyInfo.g.cs", `
             "$PSScriptRoot\src\NuGet.Services.ServiceBus\Properties\AssemblyInfo.g.cs", `
-            "$PSScriptRoot\src\NuGet.Services.Validation\Properties\AssemblyInfo.g.cs"
-            
+            "$PSScriptRoot\src\NuGet.Services.Validation\Properties\AssemblyInfo.g.cs", `
+            "$PSScriptRoot\src\NuGet.Services.Validation.Issues\Properties\AssemblyInfo.g.cs"
+
         $versionMetadata | ForEach-Object {
             Set-VersionInfo -Path $_ -Version $SimpleVersion -Branch $Branch -Commit $CommitSHA
         }
@@ -101,8 +102,9 @@ Invoke-BuildStep 'Creating artifacts' { `
             "src\NuGet.Services.AzureManagement\NuGet.Services.AzureManagement.csproj", `
             "src\NuGet.Services.Contracts\NuGet.Services.Contracts.csproj", `
             "src\NuGet.Services.ServiceBus\NuGet.Services.ServiceBus.csproj", `
-            "src\NuGet.Services.Validation\NuGet.Services.Validation.csproj"
-        
+            "src\NuGet.Services.Validation\NuGet.Services.Validation.csproj", `
+            "src\NuGet.Services.Validation.Issues\NuGet.Services.Validation.Issues.csproj"
+
         $projects | ForEach-Object {
             New-Package (Join-Path $PSScriptRoot $_) -Configuration $Configuration -Symbols -IncludeReferencedProjects -MSBuildVersion "15"
         }

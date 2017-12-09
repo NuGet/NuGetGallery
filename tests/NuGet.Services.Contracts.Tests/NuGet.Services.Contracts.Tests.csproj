@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="ContractsFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Validation\ValidationErrorCodeFacts.cs" />
     <Compile Include="Validation\ValidationStatusFacts.cs" />
   </ItemGroup>
   <ItemGroup>
