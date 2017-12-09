@@ -1495,8 +1495,6 @@ namespace NuGetGallery
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
                 packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0.0", SemVerLevelKey.Unknown, true))
                     .Returns(package).Verifiable();
-                packageService.Setup(svc => svc.FindPackageRegistrationById("Foo"))
-                    .Returns(package.PackageRegistration).Verifiable();
 
                 var editPackageService = new Mock<EditPackageService>(MockBehavior.Strict);
                 editPackageService.Setup(svc => svc.GetPendingMetadata(package))
@@ -1685,6 +1683,65 @@ namespace NuGetGallery
                 // Verify that a comparison was done against the active readme.
                 packageFileService.Verify(s => s.DownloadReadMeMdFileAsync(It.IsAny<Package>(), false), Times.Once);
                 packageFileService.Verify(s => s.DownloadReadMeMdFileAsync(It.IsAny<Package>(), true), Times.Never);
+            }
+
+            [Fact]
+            public async Task EditGet_WhenPackageIsNotFoundReturns404()
+            {
+                // Arrange
+                var user = new User("Frodo") { Key = 1 };
+                
+                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+                packageService.Setup(svc => svc.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<bool>()))
+                              .Returns<Package>(null);
+                
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService);
+
+                // Act
+                var result = await controller.Edit("Foo", "1.0.0");
+
+                // Assert
+                Assert.IsType<HttpNotFoundResult>(result);
+            }
+
+            [Fact]
+            public async Task EditGet_WhenUserHasNoPermissionsToEditPackageReturns403()
+            {
+                // Arrange
+                var user = new User("Frodo") { Key = 1 };
+                var packageRegistration = new PackageRegistration { Id = "Foo" };
+
+                var package = new Package
+                {
+                    Key = 2,
+                    PackageRegistration = packageRegistration,
+                    Version = "1.0.0+metadata",
+                    Listed = true,
+                    IsLatestSemVer2 = true,
+                    HasReadMe = false
+                };
+
+                packageRegistration.Packages.Add(package);
+
+                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+                packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0.0", SemVerLevelKey.Unknown, true))
+                    .Returns(package).Verifiable();
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService);
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.Edit("Foo", "1.0.0");
+
+                // Assert
+                packageService.Verify();
+
+                Assert.IsType<HttpStatusCodeResult>(result);
+                Assert.Equal((int)HttpStatusCode.Forbidden, (result as HttpStatusCodeResult).StatusCode);
             }
 
             private PackagesController SetupController(bool hasReadMe = false, PackageEdit packageEdit = null,
