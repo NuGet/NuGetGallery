@@ -687,17 +687,21 @@ namespace NuGetGallery
                     Title = "A test package!",
                 };
 
-                packageService.Setup(p => p.FindPackageByIdAndVersion(It.Is<string>(s => s == "Foo"), It.Is<string>(s => s == null), It.Is<int>(i => i == SemVerLevelKey.SemVer2), It.Is<bool>(b => b == true)))
+                packageService.Setup(p => p.FindPackageByIdAndVersion(
+                                                It.Is<string>(s => s == "Foo"),
+                                                It.Is<string>(s => s == null),
+                                                It.Is<int>(i => i == SemVerLevelKey.SemVer2),
+                                                It.Is<bool>(b => b == true)))
                     .Returns(package);
 
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
-                
+
                 validationService.Setup(v => v.GetLatestValidationIssues(It.IsAny<Package>()))
                     .Returns(new[]
                     {
                         new TestIssue("This should be deduplicated"),
-                        new TestIssue("This should be deduplicated"),
                         new TestIssue("I'm a Teapot"),
+                        new TestIssue("This should be deduplicated"),
                     });
 
                 // Act

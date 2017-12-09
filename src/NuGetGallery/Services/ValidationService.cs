@@ -47,12 +47,13 @@ namespace NuGetGallery
             // Only query the database for validation issues if the package has failed validation.
             if (package.PackageStatusKey == PackageStatus.FailedValidation)
             {
-                // Grab the most recent failed validation set for this package. There should always
-                // be a failed validation set for a package whose validation has failed.
+                // Grab the most recently completed validation set for this package. Note that the orchestrator will stop
+                // processing a validation set if all validation succeed, OR, one or more validation fails.
                 var validationSet = _validationSets
                                         .GetAll()
                                         .Where(s => s.PackageKey == package.Key)
-                                        .Where(s => s.PackageValidations.Any(v => v.ValidationStatus == ValidationStatus.Failed))
+                                        .Where(s => s.PackageValidations.All(v => v.ValidationStatus == ValidationStatus.Succeeded) ||
+                                                    s.PackageValidations.Any(v => v.ValidationStatus == ValidationStatus.Failed))
                                         .Include(s => s.PackageValidations.Select(v => v.PackageValidationIssues))
                                         .OrderByDescending(s => s.Updated)
                                         .FirstOrDefault();
