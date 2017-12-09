@@ -39,7 +39,7 @@ namespace NuGetGallery
         /// </summary>
         public static bool IsRequirementSatisfied(PermissionsRequirement permissionsRequirement, IPrincipal currentPrincipal, IEnumerable<User> entityOwners)
         {
-            if (PermissionLevelsIntersect(PermissionsRequirement.None, permissionsRequirement))
+            if (WouldSatisfy(PermissionsRequirement.None, permissionsRequirement))
             {
                 return true;
             }
@@ -85,7 +85,7 @@ namespace NuGetGallery
         /// </summary>
         public static bool IsRequirementSatisfied(PermissionsRequirement permissionsRequirement, User currentUser, IEnumerable<User> entityOwners)
         {
-            if (PermissionLevelsIntersect(PermissionsRequirement.None, permissionsRequirement))
+            if (WouldSatisfy(PermissionsRequirement.None, permissionsRequirement))
             {
                 return true;
             }
@@ -104,7 +104,7 @@ namespace NuGetGallery
 
         private static bool IsRequirementSatisfied(PermissionsRequirement permissionsRequirement, bool isUserAdmin, Func<User, bool> isUserMatch, IEnumerable<User> entityOwners)
         {
-            if (PermissionLevelsIntersect(PermissionsRequirement.None, permissionsRequirement))
+            if (WouldSatisfy(PermissionsRequirement.None, permissionsRequirement))
             {
                 return true;
             }
@@ -114,13 +114,13 @@ namespace NuGetGallery
                 return false;
             }
 
-            if (PermissionLevelsIntersect(PermissionsRequirement.Owner, permissionsRequirement) &&
+            if (WouldSatisfy(PermissionsRequirement.Owner, permissionsRequirement) &&
                 entityOwners.Any(isUserMatch))
             {
                 return true;
             }
 
-            if (PermissionLevelsIntersect(PermissionsRequirement.SiteAdmin, permissionsRequirement) &&
+            if (WouldSatisfy(PermissionsRequirement.SiteAdmin, permissionsRequirement) &&
                 isUserAdmin)
             {
                 return true;
@@ -132,13 +132,13 @@ namespace NuGetGallery
                 .Where(m => isUserMatch(m.Member))
                 .ToArray();
 
-            if (PermissionLevelsIntersect(PermissionsRequirement.OrganizationAdmin, permissionsRequirement) &&
+            if (WouldSatisfy(PermissionsRequirement.OrganizationAdmin, permissionsRequirement) &&
                 matchingMembers.Any(m => m.IsAdmin))
             {
                 return true;
             }
 
-            if (PermissionLevelsIntersect(PermissionsRequirement.OrganizationCollaborator, permissionsRequirement) &&
+            if (WouldSatisfy(PermissionsRequirement.OrganizationCollaborator, permissionsRequirement) &&
                 matchingMembers.Any())
             {
                 return true;
@@ -147,9 +147,12 @@ namespace NuGetGallery
             return false;
         }
 
-        private static bool PermissionLevelsIntersect(PermissionsRequirement first, PermissionsRequirement second)
+        /// <summary>
+        /// Returns true if and only if satisfying <paramref name="permissionsRequirementToCheck"/> would also satisfy <paramref name="permissionsRequirementToSatisfy"/>?
+        /// </summary>
+        private static bool WouldSatisfy(PermissionsRequirement permissionsRequirementToCheck, PermissionsRequirement permissionsRequirementToSatisfy)
         {
-            return (first & second) > 0;
+            return (permissionsRequirementToCheck & permissionsRequirementToSatisfy) > 0;
         }
     }
 }
