@@ -742,7 +742,7 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [MemberData("TheOwnershipRequestMethods_Data")]
+            [MemberData(nameof(TheOwnershipRequestMethods_Data))]
             public async Task WithEmptyTokenReturnsHttpNotFound(InvokeOwnershipRequest invokeOwnershipRequest)
             {
                 // Arrange
@@ -761,7 +761,7 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [MemberData("TheOwnershipRequestMethods_Data")]
+            [MemberData(nameof(TheOwnershipRequestMethods_Data))]
             public async Task WithIdentityNotMatchingUserInRequestReturnsNotYourRequest(InvokeOwnershipRequest invokeOwnershipRequest)
             {
                 // Arrange
@@ -784,15 +784,23 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [MemberData("TheOwnershipRequestMethods_Data")]
-            public async Task WithOrganizationCollaboratorReturnsNotYourRequest(InvokeOwnershipRequest invokeOwnershipRequest)
+            [MemberData(nameof(TheOwnershipRequestMethods_Data))]
+            public Task WithSiteAdminReturnsNotYourRequest(InvokeOwnershipRequest invokeOwnershipRequest)
+            {
+                return ReturnsNotYourRequest(TestUtility.FakeAdminUser, TestUtility.FakeUser, invokeOwnershipRequest);
+            }
+
+            [Theory]
+            [MemberData(nameof(TheOwnershipRequestMethods_Data))]
+            public Task WithOrganizationCollaboratorReturnsNotYourRequest(InvokeOwnershipRequest invokeOwnershipRequest)
+            {
+                return ReturnsNotYourRequest(TestUtility.FakeOrganizationCollaborator, TestUtility.FakeOrganization, invokeOwnershipRequest);
+            }
+
+            private async Task ReturnsNotYourRequest(User currentUser, User owner, InvokeOwnershipRequest invokeOwnershipRequest)
             {
                 // Arrange
                 var package = new PackageRegistration { Id = "foo" };
-
-                var currentUser = new User { Username = "username", Key = _key++ };
-
-                var organization = new Organization { Key = _key++, Username = "organization", Members = new[] { new Membership { Member = currentUser, IsAdmin = false } } };
 
                 var mockHttpContext = new Mock<HttpContextBase>();
 
@@ -800,7 +808,7 @@ namespace NuGetGallery
                 packageService.Setup(p => p.FindPackageRegistrationById(package.Id)).Returns(package);
 
                 var userService = new Mock<IUserService>();
-                userService.Setup(x => x.FindByUsername(organization.Username)).Returns(organization);
+                userService.Setup(x => x.FindByUsername(owner.Username)).Returns(owner);
 
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -811,16 +819,16 @@ namespace NuGetGallery
                 TestUtility.SetupHttpContextMockForUrlGeneration(mockHttpContext, controller);
 
                 // Act
-                var result = await invokeOwnershipRequest(controller, package.Id, organization.Username, "token");
+                var result = await invokeOwnershipRequest(controller, package.Id, owner.Username, "token");
 
                 // Assert
                 var model = ResultAssert.IsView<PackageOwnerConfirmationModel>(result, "ConfirmOwner");
                 Assert.Equal(ConfirmOwnershipResult.NotYourRequest, model.Result);
-                Assert.Equal(organization.Username, model.Username);
+                Assert.Equal(owner.Username, model.Username);
             }
 
             [Theory]
-            [MemberData("TheOwnershipRequestMethods_Data")]
+            [MemberData(nameof(TheOwnershipRequestMethods_Data))]
             public async Task WithNonExistentPackageIdReturnsHttpNotFound(InvokeOwnershipRequest invokeOwnershipRequest)
             {
                 // Arrange
@@ -840,7 +848,7 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [MemberData("TheOwnershipRequestMethods_Data")]
+            [MemberData(nameof(TheOwnershipRequestMethods_Data))]
             public async Task WithOwnerReturnsAlreadyOwnerResult(InvokeOwnershipRequest invokeOwnershipRequest)
             {
                 // Arrange
@@ -1871,6 +1879,12 @@ namespace NuGetGallery
                         TestUtility.FakeAdminUser,
                         Owner
                     };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeOrganizationCollaborator,
+                        TestUtility.FakeOrganization
+                    };
                 }
             }
 
@@ -1887,12 +1901,6 @@ namespace NuGetGallery
                     yield return new object[]
                     {
                         TestUtility.FakeOrganizationAdmin,
-                        TestUtility.FakeOrganization
-                    };
-
-                    yield return new object[]
-                    {
-                        TestUtility.FakeOrganizationCollaborator,
                         TestUtility.FakeOrganization
                     };
                 }
