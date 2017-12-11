@@ -16,29 +16,30 @@ namespace NuGetGallery
 {
     public static class TestUtility
     {
+        private static int _key = 42;
         private static readonly string galleryHostName = "localhost";
 
         public static readonly string GallerySiteRootHttp = $"http://{galleryHostName}/";
         public static readonly string GallerySiteRootHttps = $"https://{galleryHostName}/";
 
         public static readonly string FakeUserName = "theUsername";
-        public static readonly int FakeUserKey = 42;
+        public static readonly int FakeUserKey = _key++;
         public static readonly User FakeUser = new User() { Username = FakeUserName, Key = FakeUserKey, EmailAddress = "theUsername@nuget.org" };
 
         public static readonly string FakeAdminName = "theAdmin";
-        public static readonly int FakeAdminKey = 43;
+        public static readonly int FakeAdminKey = _key++;
         public static readonly User FakeAdminUser = new User() { Username = FakeAdminName, Key = FakeAdminKey, EmailAddress = "theAdmin@nuget.org", Roles = new[] { new Role { Name = Constants.AdminRoleName } } };
 
         public static readonly string FakeOrganizationName = "theOrganization";
-        public static readonly int FakeOrganizationKey = 44;
+        public static readonly int FakeOrganizationKey = _key++;
         public static readonly Organization FakeOrganization;
 
         public static readonly string FakeOrganizationAdminName = "theOrganizationAdmin";
-        public static readonly int FakeOrganizationAdminKey = 45;
+        public static readonly int FakeOrganizationAdminKey = _key++;
         public static readonly User FakeOrganizationAdmin;
 
         public static readonly string FakeOrganizationCollaboratorName = "theOrganizationCollaborator";
-        public static readonly int FakeOrganizationCollaboratorKey = 45;
+        public static readonly int FakeOrganizationCollaboratorKey = _key++;
         public static readonly User FakeOrganizationCollaborator;
 
         static TestUtility()
