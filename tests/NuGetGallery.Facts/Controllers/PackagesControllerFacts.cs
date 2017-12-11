@@ -1347,9 +1347,9 @@ namespace NuGetGallery
         public class TheDeleteMethod
             : TestContainer
         {
-            private static string _packageId = "CrestedGecko";
-            private static PackageRegistration _packageRegistration;
-            private static Package _package;
+            private string _packageId = "CrestedGecko";
+            private PackageRegistration _packageRegistration;
+            private Package _package;
 
             public TheDeleteMethod()
             {
@@ -1388,6 +1388,7 @@ namespace NuGetGallery
                 
                 Assert.IsType<HttpNotFoundResult>(result);
             }
+
             public static IEnumerable<object[]> NotOwner_Data
             {
                 get
@@ -2028,14 +2029,19 @@ namespace NuGetGallery
         public class TheManagePackageOwnersMethod
             : TestContainer
         {
-            private static string _packageId = "CrestedGecko";
-            private static string _packageVersion = "3.4.2";
+            private string _packageId = "CrestedGecko";
+            private string _packageVersion = "3.4.2";
 
-            private static Package _package = new Package
+            private Package _package;
+
+            public TheManagePackageOwnersMethod()
             {
-                PackageRegistration = new PackageRegistration { Id = _packageId },
-                Version = _packageVersion
-            };
+                _package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = _packageId },
+                    Version = _packageVersion
+                };
+            }
 
             public static IEnumerable<object[]> NotOwner_Data
             {
