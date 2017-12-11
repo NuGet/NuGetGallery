@@ -13,8 +13,8 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
         public const string UnsignedPackage = ResourceNamespace + ".TestUnsigned.1.0.0.nupkg";
         public const string SignedPackageLeaf1 = ResourceNamespace + ".TestSigned.leaf-1.1.0.0.nupkg";
         public const string SignedPackageLeaf2 = ResourceNamespace + ".TestSigned.leaf-2.2.0.0.nupkg";
-        public const string Leaf1Thumbprint = "b67827d3556283e5d5d40befefe82e5b55a31f6ff7607ea946da9cc346d31e0a";
-        public const string Leaf2Thumbprint = "d32b7e25c36bc85e4f58038f1aff90ffff2dd9a997deddd0dec05b3bc55fd884";
+        public const string Leaf1Thumbprint = "b287c99e2c35226254a03ce20beffaa51504b8d586734731eaf66521a033ba59";
+        public const string Leaf2Thumbprint = "bbd2309fc08d6b367bce9187ad696a9b2f25a013384f3979c4815dd4650736d0";
 
         public static PackageArchiveReader SignedPackageLeaf1Reader => LoadPackage(SignedPackageLeaf1);
         public static PackageArchiveReader SignedPackageLeaf2Reader => LoadPackage(SignedPackageLeaf2);
