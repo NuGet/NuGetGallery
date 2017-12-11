@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using NuGetGallery.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -9,6 +8,7 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using NuGetGallery.Areas.Admin;
+using NuGetGallery.Configuration;
 using NuGetGallery.Helpers;
 
 namespace NuGetGallery
@@ -214,7 +214,13 @@ namespace NuGetGallery
             return GetRouteLink(url, RouteName.ListPackages, relativeUrl);
         }
 
-        public static RouteValueTemplate<IPackageVersionModel> PackageRegistrationTemplate(
+        /// <summary>
+        /// Initializes a package registration link that can be resolved at a later time.
+        /// 
+        /// Callers should only use this API if they need to generate many links, such as the ManagePackages view
+        /// does. This template reduces the calls to RouteCollection.GetVirtualPath which can be expensive. Callers
+        /// that only need a single link should call Url.Package instead.
+        public static RouteUrlTemplate<IPackageVersionModel> PackageRegistrationTemplate(
             this UrlHelper url,
             bool relativeUrl = true)
         {
@@ -230,7 +236,7 @@ namespace NuGetGallery
                 relativeUrl,
                 routeValues: rv);
 
-            return new RouteValueTemplate<IPackageVersionModel>(linkGenerator, routesGenerator);
+            return new RouteUrlTemplate<IPackageVersionModel>(linkGenerator, routesGenerator);
         }
 
         public static string Package(this UrlHelper url, string id, bool relativeUrl = true)
@@ -466,7 +472,13 @@ namespace NuGetGallery
             return GetActionLink(url, "Profiles", "Users", relativeUrl, routeValues);
         }
 
-        public static RouteValueTemplate<User> UserTemplate(
+        /// <summary>
+        /// Initializes a user link that can be resolved at a later time.
+        /// 
+        /// Callers should only use this API if they need to generate many links, such as the ManagePackages view
+        /// does. This template reduces the calls to RouteCollection.GetVirtualPath which can be expensive. Callers
+        /// that only need a single link should call Url.User instead.
+        public static RouteUrlTemplate<User> UserTemplate(
             this UrlHelper url,
             string scheme = null,
             bool relativeUrl = true)
@@ -483,7 +495,7 @@ namespace NuGetGallery
                 relativeUrl,
                 routeValues: rv);
 
-            return new RouteValueTemplate<User>(linkGenerator, routesGenerator);
+            return new RouteUrlTemplate<User>(linkGenerator, routesGenerator);
         }
 
         public static string User(
@@ -504,7 +516,13 @@ namespace NuGetGallery
                 });
         }
 
-        public static RouteValueTemplate<IPackageVersionModel> EditPackageTemplate(
+        /// <summary>
+        /// Initializes an edit package link that can be resolved at a later time.
+        /// 
+        /// Callers should only use this API if they need to generate many links, such as the ManagePackages view
+        /// does. This template reduces the calls to RouteCollection.GetVirtualPath which can be expensive. Callers
+        /// that only need a single link should call Url.EditPackage instead.
+        public static RouteUrlTemplate<IPackageVersionModel> EditPackageTemplate(
             this UrlHelper url,
             bool relativeUrl = true)
         {
@@ -521,7 +539,7 @@ namespace NuGetGallery
                 relativeUrl,
                 routeValues: rv);
 
-            return new RouteValueTemplate<IPackageVersionModel>(linkGenerator, routesGenerator);
+            return new RouteUrlTemplate<IPackageVersionModel>(linkGenerator, routesGenerator);
         }
 
         public static string EditPackage(
@@ -599,7 +617,13 @@ namespace NuGetGallery
             return url.RevalidatePackage(package.Id, package.Version, relativeUrl);
         }
 
-        public static RouteValueTemplate<IPackageVersionModel> DeletePackageTemplate(
+        /// <summary>
+        /// Initializes a delete package link that can be resolved at a later time.
+        /// 
+        /// Callers should only use this API if they need to generate many links, such as the ManagePackages view
+        /// does. This template reduces the calls to RouteCollection.GetVirtualPath which can be expensive. Callers
+        /// that only need a single link should call Url.DeletePackage instead.
+        public static RouteUrlTemplate<IPackageVersionModel> DeletePackageTemplate(
             this UrlHelper url,
             bool relativeUrl = true)
         {
@@ -616,7 +640,7 @@ namespace NuGetGallery
                 relativeUrl,
                 routeValues: rv);
 
-            return new RouteValueTemplate<IPackageVersionModel>(linkGenerator, routesGenerator);
+            return new RouteUrlTemplate<IPackageVersionModel>(linkGenerator, routesGenerator);
         }
 
         public static string DeletePackage(
@@ -709,7 +733,13 @@ namespace NuGetGallery
             return GetActionLink(url, "Packages", "Users", relativeUrl);
         }
 
-        public static RouteValueTemplate<IPackageVersionModel> ManagePackageOwnersTemplate(this UrlHelper url, bool relativeUrl = true)
+        /// <summary>
+        /// Initializes a manage package owners link that can be resolved at a later time.
+        /// 
+        /// Callers should only use this API if they need to generate many links, such as the ManagePackages view
+        /// does. This template reduces the calls to RouteCollection.GetVirtualPath which can be expensive. Callers
+        /// that only need a single link should call Url.ManagePackageOwners instead.
+        public static RouteUrlTemplate<IPackageVersionModel> ManagePackageOwnersTemplate(this UrlHelper url, bool relativeUrl = true)
         {
             var routesGenerator = new Dictionary<string, Func<IPackageVersionModel, object>>
             {
@@ -723,7 +753,7 @@ namespace NuGetGallery
                 relativeUrl,
                 routeValues: rv);
 
-            return new RouteValueTemplate<IPackageVersionModel>(linkGenerator, routesGenerator);
+            return new RouteUrlTemplate<IPackageVersionModel>(linkGenerator, routesGenerator);
         }
 
         public static string ManagePackageOwners(this UrlHelper url, IPackageVersionModel package, bool relativeUrl = true)

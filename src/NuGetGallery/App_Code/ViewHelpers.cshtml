@@ -246,17 +246,6 @@
     </span>
 }
 
-@helper UserLinkWithIcon(RouteValueTemplate<User> urlTemplate, User user)
-{
-    <span class="ms-noWrap">
-        @if (user is Organization)
-        {
-            <i class="ms-Icon ms-Icon--Group" aria-hidden="true"></i>
-        }
-        <a href="@urlTemplate.Resolve(user)">@user.Username</a>
-    </span>
-}
-
 @helper WriteMeta(string name, string val) {
     if(!String.IsNullOrEmpty(val)) {
         <meta name="deployment-@name" content="@val" />

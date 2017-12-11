@@ -781,7 +781,7 @@
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Helpers\GravatarHelper.cs" />
     <Compile Include="Helpers\RegexEx.cs" />
-    <Compile Include="Helpers\RouteValueTemplate.cs" />
+    <Compile Include="Helpers\RouteUrlTemplate.cs" />
     <Compile Include="Infrastructure\Authentication\ApiKeyV4.cs" />
     <Compile Include="Infrastructure\Authentication\Base32Encoder.cs" />
     <Compile Include="Migrations\201711082145351_AddAccountDelete.cs" />

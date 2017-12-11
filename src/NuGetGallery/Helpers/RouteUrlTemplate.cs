@@ -9,24 +9,23 @@ using System.Web.Routing;
 
 namespace NuGetGallery.Helpers
 {
-    public class RouteValueTemplate<T>
+    public class RouteUrlTemplate<T>
     {
-        public RouteValueTemplate(Func<RouteValueDictionary, string> linkGenerator, IDictionary<string, Func<T, object>> routesGenerator)
+        private string _linkTemplate;
+        private IDictionary<string, Func<T, object>> _routesGenerator;
+
+        public RouteUrlTemplate(Func<RouteValueDictionary, string> linkGenerator, IDictionary<string, Func<T, object>> routesGenerator)
         {
-            RoutesGenerator = routesGenerator;
+            _routesGenerator = routesGenerator ?? throw new ArgumentNullException(nameof(routesGenerator));
 
-            var templateValues = GetTemplateValues();
-            var encodedLinkTemplate = linkGenerator(templateValues);
-            LinkTemplate = HttpUtility.UrlDecode(encodedLinkTemplate);
+            var _linkGenerator = linkGenerator ?? throw new ArgumentNullException(nameof(linkGenerator));
+            var encodedLinkTemplate = linkGenerator(GetTemplateValues());
+            _linkTemplate = HttpUtility.UrlDecode(encodedLinkTemplate);
         }
-
-        private string LinkTemplate { get; set; }
-
-        private IDictionary<string, Func<T, object>> RoutesGenerator { get; set; }
 
         public string Resolve(T item)
         {
-            var link = LinkTemplate;
+            var link = _linkTemplate;
             foreach (var routeValue in GetRouteValues(item))
             {
                 var value = routeValue.Value as string ?? string.Empty;
@@ -38,7 +37,7 @@ namespace NuGetGallery.Helpers
         private RouteValueDictionary GetTemplateValues()
         {
             return new RouteValueDictionary(
-                RoutesGenerator.Keys.ToDictionary(
+                _routesGenerator.Keys.ToDictionary(
                     i => i,
                     i => (object)$"{{{i}}}")
                     );
@@ -46,7 +45,7 @@ namespace NuGetGallery.Helpers
 
         private IDictionary<string, object> GetRouteValues(T item)
         {
-            return RoutesGenerator.ToDictionary(
+            return _routesGenerator.ToDictionary(
                 keySelector: i => i.Key,
                 elementSelector: i => i.Value(item)
                 );
