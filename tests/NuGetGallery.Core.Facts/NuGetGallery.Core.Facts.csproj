@@ -124,6 +124,7 @@
     <Compile Include="Auditing\AuditEntryTests.cs" />
     <Compile Include="Auditing\AuditingServiceTests.cs" />
     <Compile Include="Auditing\AuditRecordTests.cs" />
+    <Compile Include="Auditing\CloudAuditingServiceTests.cs" />
     <Compile Include="Auditing\CredentialAuditRecordTests.cs" />
     <Compile Include="Auditing\EnumTests.cs" />
     <Compile Include="Auditing\FailedAuthenticatedOperationAuditRecordTests.cs" />

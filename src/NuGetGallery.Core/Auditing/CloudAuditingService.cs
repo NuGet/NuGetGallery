@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -19,12 +18,22 @@ namespace NuGetGallery.Auditing
     public class CloudAuditingService : AuditingService, ICloudStorageStatusDependency
     {
         public static readonly string DefaultContainerName = "auditing";
-        public static HashSet<string> cloudPersistedTypes = new HashSet<string>() { "package" };
+        public static HashSet<string> cloudAuditPersistedTypes = new HashSet<string>() { "package" };
 
         private CloudBlobContainer _auditContainer;
         private string _instanceId;
         private string _localIP;
         private Func<Task<AuditActor>> _getOnBehalfOf;
+
+        /// <summary>
+        /// To be used for testing only.
+        /// </summary>
+        public CloudAuditingService(string instanceId, string localIP, Func<Task<AuditActor>> getOnBehalfOf)
+        {
+            _instanceId = instanceId;
+            _localIP = localIP;
+            _getOnBehalfOf = getOnBehalfOf;
+        }
 
         public CloudAuditingService(string instanceId, string localIP, string storageConnectionString, Func<Task<AuditActor>> getOnBehalfOf)
             : this(instanceId, localIP, GetContainer(storageConnectionString), getOnBehalfOf)
@@ -46,17 +55,18 @@ namespace NuGetGallery.Auditing
             if(_getOnBehalfOf != null) {
                 onBehalfOf = await _getOnBehalfOf();
             }
-            return await AuditActor.GetCurrentMachineActorAsync(onBehalfOf);
+            var actor = await AuditActor.GetCurrentMachineActorAsync(onBehalfOf);
+            return AuditActor.Obfuscate(actor);
         }
 
-        protected override AuditRecord GetRecord(AuditRecord record)
+        protected override AuditRecord GetRecordToPersist(AuditRecord record)
         {
             return record.Obfuscate();
         }
 
         protected override async Task SaveAuditRecordAsync(string auditData, string resourceType, string filePath, string action, DateTime timestamp)
         {
-            if (!cloudPersistedTypes.Contains(resourceType.ToLowerInvariant()))
+            if (!cloudAuditPersistedTypes.Contains(resourceType.ToLowerInvariant()))
             {
                 return;
             }

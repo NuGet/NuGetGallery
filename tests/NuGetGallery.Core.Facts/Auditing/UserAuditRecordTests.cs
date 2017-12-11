@@ -113,5 +113,23 @@ namespace NuGetGallery.Auditing
 
             Assert.Equal("a", actualPath);
         }
+
+
+        [Fact]
+        public void ObfuscationIsIgnored()
+        {
+            // Arrange
+            var user = new User()
+            {
+                Username = "A",
+                Roles = new List<Role>(),
+                Credentials = new List<Credential>()
+            };
+
+            var record = new UserAuditRecord(user, AuditedUserAction.Login);
+
+            // Act + Assert
+            Assert.Equal(record, record.Obfuscate());
+        }
     }
 }

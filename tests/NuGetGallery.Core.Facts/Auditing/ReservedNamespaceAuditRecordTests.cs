@@ -73,6 +73,18 @@ namespace NuGetGallery.Auditing
             Assert.Equal("microsoft.", actualPath);
         }
 
+        [Fact]
+        public void ObfuscationIsIgnored()
+        {
+            // Arrange
+            var record = new ReservedNamespaceAuditRecord(
+                new ReservedNamespace() { Value = "MicroSoft." },
+                AuditedReservedNamespaceAction.ReserveNamespace);
+
+            // Act + Assert
+            Assert.Equal(record, record.Obfuscate());
+        }
+
         public static IEnumerable<object[]> InvalidReservedNamespaceActionsForPackageRegistrationAudit
         {
             get

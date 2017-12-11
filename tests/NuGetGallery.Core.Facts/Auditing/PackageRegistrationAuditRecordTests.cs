@@ -34,5 +34,18 @@ namespace NuGetGallery.Auditing
 
             Assert.Equal("a", actualPath);
         }
+
+        [Fact]
+        public void ObfuscationIsIgnored()
+        {
+            // Arrange
+            var record = new PackageRegistrationAuditRecord(
+               new PackageRegistration() { Id = "A" },
+               AuditedPackageRegistrationAction.AddOwner,
+               owner: "b");
+
+            // Act + Assert
+            Assert.Equal(record, record.Obfuscate());
+        }
     }
 }

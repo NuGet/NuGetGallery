@@ -112,10 +112,12 @@ namespace NuGetGallery.Auditing
             obfuscatedPacakge.LicenseReportUrl = PackageRecord.LicenseReportUrl;
             obfuscatedPacakge.Listed = PackageRecord.Listed;
             obfuscatedPacakge.IsPrerelease = PackageRecord.IsPrerelease;
+            // Obfuscate FlattenedAuthors
             obfuscatedPacakge.FlattenedAuthors = string.Empty;
             obfuscatedPacakge.FlattenedDependencies = PackageRecord.FlattenedDependencies;
             obfuscatedPacakge.Key = PackageRecord.Key;
             obfuscatedPacakge.MinClientVersion = PackageRecord.MinClientVersion;
+            // Obfuscate User Key
             obfuscatedPacakge.UserKey = -1;
 #pragma warning disable CS0612 // Type or member is obsolete
             obfuscatedPacakge.Deleted = PackageRecord.Deleted;
