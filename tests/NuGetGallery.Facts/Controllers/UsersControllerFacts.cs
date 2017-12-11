@@ -692,7 +692,7 @@ namespace NuGetGallery
 
                 var model = GetModelForApiKeys(currentUser);
 
-                Assert.True(!model.PackageOwners.Any(o => o.Owner == organization.Username));
+                Assert.Equal(0, model.PackageOwners.Count(o => o.Owner == organization.Username));
             }
 
             private ApiKeyListViewModel GetModelForApiKeys(User currentUser)
