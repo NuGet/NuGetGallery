@@ -3402,6 +3402,57 @@ namespace NuGetGallery
                     fakePackageFileService.Verify(x => x.SavePendingReadMeMdFileAsync(fakePackage, "markdown"), Times.Exactly(hasReadMe ? 1 : 0));
                 }
             }
+
+            [Theory]
+            [InlineData(false, false, 1)]
+            [InlineData(true, false, 1)]
+            [InlineData(false, true, 1)]
+            [InlineData(true, true, 0)]
+            public async Task WillSendPackageAddedNotice(bool asyncValidationEnabled, bool blockingValidationEnabled, int expectedNumCalls)
+            {
+                // Arrange
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                using (var fakeFileStream = new MemoryStream())
+                {
+                    fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(fakeFileStream));
+                    fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.CompletedTask);
+                    var fakePackageUploadService = new Mock<IPackageUploadService>();
+                    var fakePackage = new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" };
+                    fakePackageUploadService
+                        .Setup(x => x.GeneratePackageAsync(
+                            It.IsAny<string>(),
+                            It.IsAny<PackageArchiveReader>(),
+                            It.IsAny<PackageStreamMetadata>(),
+                            It.IsAny<User>()))
+                        .Returns(Task.FromResult(fakePackage));
+                    var fakeNuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.0");
+                    var fakeTelemetryService = new Mock<ITelemetryService>();
+
+                    var configurationService = GetConfigurationService();
+                    configurationService.Current.AsynchronousPackageValidationEnabled = asyncValidationEnabled;
+                    configurationService.Current.BlockingAsynchronousPackageValidationEnabled = blockingValidationEnabled;
+
+                    var fakeMessageService = new Mock<IMessageService>();
+
+                    var controller = CreateController(
+                        configurationService,
+                        packageUploadService: fakePackageUploadService,
+                        uploadFileService: fakeUploadFileService,
+                        fakeNuGetPackage: fakeNuGetPackage,
+                        telemetryService: fakeTelemetryService,
+                        messageService: fakeMessageService);
+
+                    controller.SetCurrentUser(TestUtility.FakeUser);
+
+                    // Act
+                    await controller.VerifyPackage(new VerifyPackageRequest { Listed = true, Edit = null });
+
+                    // Assert
+                    fakeMessageService
+                        .Verify(ms => ms.SendPackageAddedNotice(fakePackage, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
+                        Times.Exactly(expectedNumCalls));
+                }
+            }
         }
 
         public static IEnumerable<object[]> WillApplyReadMe_Data

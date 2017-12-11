@@ -1616,11 +1616,14 @@ namespace NuGetGallery
                 await _auditingService.SaveAuditRecordAsync(
                     new PackageAuditRecord(package, AuditedPackageAction.Create, PackageCreatedVia.Web));
 
-                // notify user
-                _messageService.SendPackageUploadedNotice(package,
-                    Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
-                    Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
-                    Url.AccountSettings(relativeUrl: false));
+                if (!(_config.AsynchronousPackageValidationEnabled && _config.BlockingAsynchronousPackageValidationEnabled))
+                {
+                    // notify user unless async validation in blocking mode is used
+                    _messageService.SendPackageAddedNotice(package,
+                        Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                        Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                        Url.AccountSettings(relativeUrl: false));
+                }
             }
 
             // delete the uploaded binary in the Uploads container

@@ -499,11 +499,14 @@ namespace NuGetGallery
                         await AuditingService.SaveAuditRecordAsync(
                             new PackageAuditRecord(package, AuditedPackageAction.Create, PackageCreatedVia.Api));
 
-                        // Notify user of push
-                        MessageService.SendPackageUploadedNotice(package,
-                            Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
-                            Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
-                            Url.AccountSettings(relativeUrl: false));
+                        if (!(ConfigurationService.Current.AsynchronousPackageValidationEnabled && ConfigurationService.Current.BlockingAsynchronousPackageValidationEnabled))
+                        {
+                            // Notify user of push unelss async validation in blocking mode is used
+                            MessageService.SendPackageAddedNotice(package,
+                                Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                                Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                                Url.AccountSettings(relativeUrl: false));
+                        }
 
                         TelemetryService.TrackPackagePushEvent(package, user, User.Identity);
 
