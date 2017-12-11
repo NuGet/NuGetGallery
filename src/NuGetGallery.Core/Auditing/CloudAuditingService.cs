@@ -18,7 +18,7 @@ namespace NuGetGallery.Auditing
     public class CloudAuditingService : AuditingService, ICloudStorageStatusDependency
     {
         public static readonly string DefaultContainerName = "auditing";
-        public static HashSet<string> cloudAuditPersistedTypes = new HashSet<string>() { "package" };
+        internal static readonly HashSet<string> cloudAuditPersistedTypes = new HashSet<string>() { "package" };
 
         private CloudBlobContainer _auditContainer;
         private string _instanceId;
