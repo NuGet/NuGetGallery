@@ -3405,9 +3405,9 @@ namespace NuGetGallery
 
             [Theory]
             [InlineData(false, false, 1)]
-            [InlineData(true, false, 1)]
-            [InlineData(false, true, 1)]
-            [InlineData(true, true, 0)]
+            [InlineData( true, false, 1)]
+            [InlineData(false,  true, 1)]
+            [InlineData( true,  true, 0)]
             public async Task WillSendPackageAddedNotice(bool asyncValidationEnabled, bool blockingValidationEnabled, int expectedNumCalls)
             {
                 // Arrange
