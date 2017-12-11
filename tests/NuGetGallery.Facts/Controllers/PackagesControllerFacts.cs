@@ -1537,6 +1537,7 @@ namespace NuGetGallery
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
                 packageService.Setup(svc => svc.FindPackageByIdAndVersionStrict("Foo", "1.0"))
                     .Returns(package);
+                // Note: this Mock must be strict because it guarantees that MarkPackageListedAsync is not called!
 
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -3906,6 +3907,7 @@ namespace NuGetGallery
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
                 packageService.Setup(svc => svc.FindPackageByIdAndVersionStrict("Foo", "1.0"))
                     .Returns(package);
+                // Note: this Mock must be strict because it guarantees that SetLicenseReportVisibilityAsync is not called!
 
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -3914,7 +3916,7 @@ namespace NuGetGallery
                 controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
 
                 // Act
-                var result = await controller.SetLicenseReportVisibility("Foo", "1.0", visible: false, urlFactory: (pkg, relativeUrl) => @"~\Bar.cshtml");
+                var result = await controller.SetLicenseReportVisibility("Foo", "1.0", visible: visible, urlFactory: (pkg, relativeUrl) => @"~\Bar.cshtml");
 
                 // Assert
                 Assert.IsType<HttpStatusCodeResult>(result);
@@ -3973,9 +3975,9 @@ namespace NuGetGallery
                 package.PackageRegistration.Owners.Add(owner);
 
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
-                packageService.Setup(svc => svc.SetLicenseReportVisibilityAsync(It.IsAny<Package>(), It.Is<bool>(t => t == true), It.IsAny<bool>()))
+                packageService.Setup(svc => svc.SetLicenseReportVisibilityAsync(It.IsAny<Package>(), It.Is<bool>(t => t == !visible), It.IsAny<bool>()))
                     .Throws(new Exception("Shouldn't be called"));
-                packageService.Setup(svc => svc.SetLicenseReportVisibilityAsync(It.IsAny<Package>(), It.Is<bool>(t => t == false), It.IsAny<bool>()))
+                packageService.Setup(svc => svc.SetLicenseReportVisibilityAsync(It.IsAny<Package>(), It.Is<bool>(t => t == visible), It.IsAny<bool>()))
                     .Returns(Task.CompletedTask).Verifiable();
                 packageService.Setup(svc => svc.FindPackageByIdAndVersionStrict("Foo", "1.0"))
                     .Returns(package).Verifiable();
@@ -3990,7 +3992,7 @@ namespace NuGetGallery
                 controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
 
                 // Act
-                var result = await controller.SetLicenseReportVisibility("Foo", "1.0", visible: false, urlFactory: (pkg, relativeUrl) => @"~\Bar.cshtml");
+                var result = await controller.SetLicenseReportVisibility("Foo", "1.0", visible: visible, urlFactory: (pkg, relativeUrl) => @"~\Bar.cshtml");
 
                 // Assert
                 packageService.Verify();
