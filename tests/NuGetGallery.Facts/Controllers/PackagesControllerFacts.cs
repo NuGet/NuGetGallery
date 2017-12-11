@@ -3404,11 +3404,11 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData(false, false, 1)]
-            [InlineData( true, false, 1)]
-            [InlineData(false,  true, 1)]
-            [InlineData( true,  true, 0)]
-            public async Task WillSendPackageAddedNotice(bool asyncValidationEnabled, bool blockingValidationEnabled, int expectedNumCalls)
+            [InlineData(false, false,  true)]
+            [InlineData( true, false,  true)]
+            [InlineData(false,  true,  true)]
+            [InlineData( true,  true, false)]
+            public async Task WillSendPackageAddedNotice(bool asyncValidationEnabled, bool blockingValidationEnabled, bool callExpected)
             {
                 // Arrange
                 var fakeUploadFileService = new Mock<IUploadFileService>();
@@ -3450,7 +3450,7 @@ namespace NuGetGallery
                     // Assert
                     fakeMessageService
                         .Verify(ms => ms.SendPackageAddedNotice(fakePackage, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
-                        Times.Exactly(expectedNumCalls));
+                        Times.Exactly(callExpected ? 1 : 0));
                 }
             }
         }

@@ -185,11 +185,11 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData(false, false, 1)]
-            [InlineData( true, false, 1)]
-            [InlineData(false,  true, 1)]
-            [InlineData( true,  true, 0)]
-            public async Task CreatePackageWillSendPackageAddedNotice(bool asyncValidationEnabled, bool blockingValidationEnabled, int expectedNumCalls)
+            [InlineData(false, false,  true)]
+            [InlineData( true, false,  true)]
+            [InlineData(false,  true,  true)]
+            [InlineData( true,  true, false)]
+            public async Task CreatePackageWillSendPackageAddedNotice(bool asyncValidationEnabled, bool blockingValidationEnabled, bool callExpected)
             {
                 // Arrange
                 var user = new User() { EmailAddress = "confirmed@email.com" };
@@ -223,7 +223,7 @@ namespace NuGetGallery
                 // Assert
                 controller.MockMessageService
                     .Verify(ms => ms.SendPackageAddedNotice(package, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
-                    Times.Exactly(expectedNumCalls));
+                    Times.Exactly(callExpected ? 1 : 0));
             }
 
             [Fact]
