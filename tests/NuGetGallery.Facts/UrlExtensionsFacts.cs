@@ -41,11 +41,138 @@ namespace NuGetGallery
                     NormalizedVersion = "1.0.0-alpha.1",
                     Version = "1.0.0-alpha.1+metadata"
                 };
-                
+
                 string fixedUrl = UrlExtensions.Package(TestUtility.MockUrlHelper(), package);
 
                 Assert.DoesNotContain("metadata", fixedUrl);
                 Assert.EndsWith(package.NormalizedVersion, fixedUrl);
+            }
+        }
+
+        public class ThePackageRegistrationTemplateHelperMethod
+            : TestContainer
+        {
+            [Fact]
+            public void ResolvePathIsCorrect()
+            {
+                // Arrange
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "TestPackageId"
+                    },
+                    Version = "1.0.0"
+                };
+
+                var urlHelper = TestUtility.MockUrlHelper();
+
+                // Act
+                var result = urlHelper.PackageRegistrationTemplate()
+                    .Resolve(new ListPackageItemViewModel(package));
+
+                // Assert
+                Assert.Equal(urlHelper.Package(package.PackageRegistration), result);
+            }
+        }
+
+        public class TheEditPackageTemplateHelperMethod
+            : TestContainer
+        {
+            [Fact]
+            public void ResolvePathIsCorrect()
+            {
+                // Arrange
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "TestPackageId"
+                    },
+                    Version = "1.0.0"
+                };
+
+                var urlHelper = TestUtility.MockUrlHelper();
+                var packageVM = new ListPackageItemViewModel(package);
+
+                // Act
+                var result = urlHelper.EditPackageTemplate().Resolve(packageVM);
+
+                // Assert
+                Assert.Equal(urlHelper.EditPackage(packageVM.Id, packageVM.Version), result);
+            }
+        }
+
+        public class TheDeletePackageTemplateHelperMethod
+            : TestContainer
+        {
+            [Fact]
+            public void ResolvePathIsCorrect()
+            {
+                // Arrange
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "TestPackageId"
+                    },
+                    Version = "1.0.0"
+                };
+
+                var urlHelper = TestUtility.MockUrlHelper();
+                var packageVM = new ListPackageItemViewModel(package);
+
+                // Act
+                var result = urlHelper.DeletePackageTemplate().Resolve(packageVM);
+
+                // Assert
+                Assert.Equal(urlHelper.DeletePackage(packageVM), result);
+            }
+        }
+
+        public class TheManagePackageOwnersTemplateHelperMethod
+            : TestContainer
+        {
+            [Fact]
+            public void ResolvePathIsCorrect()
+            {
+                // Arrange
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "TestPackageId"
+                    },
+                    Version = "1.0.0"
+                };
+
+                var urlHelper = TestUtility.MockUrlHelper();
+                var packageVM = new ListPackageItemViewModel(package);
+
+                // Act
+                var result = urlHelper.ManagePackageOwnersTemplate().Resolve(packageVM);
+
+                // Assert
+                Assert.Equal(urlHelper.ManagePackageOwners(packageVM), result);
+            }
+        }
+
+        public class TheUserTemplateHelperMethod
+            : TestContainer
+        {
+            [Fact]
+            public void ResolvePathIsCorrect()
+            {
+                // Arrange
+                var user = new User("theUser");
+
+                var urlHelper = TestUtility.MockUrlHelper();
+
+                // Act
+                var result = urlHelper.UserTemplate().Resolve(user);
+
+                // Assert
+                Assert.Equal(urlHelper.User(user), result);
             }
         }
 

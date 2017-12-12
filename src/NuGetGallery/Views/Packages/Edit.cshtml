@@ -6,6 +6,12 @@
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
+<script type="text/html" id="validation-errors">
+    <div data-bind="foreach:$data" class="validation-error-message-list">
+        @ViewHelpers.AlertDanger(@<text><span data-bind="text:$data"></span></text>)
+    </div>
+</script>
+
 <section role="main" class="container main-container page-edit-package">
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">

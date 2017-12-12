@@ -1154,23 +1154,21 @@ namespace NuGetGallery
             var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
-                return Json(404, new[] { string.Format(Strings.PackageWithIdAndVersionNotFound, id, version) });
+                return HttpNotFound();
             }
 
             if (!PermissionsService.IsActionAllowed(package, User, PackageActions.Edit))
             {
-                return Json(403, new[] { Strings.Unauthorized });
+                return new HttpStatusCodeResult(HttpStatusCode.Forbidden, Strings.Unauthorized);
             }
 
             // Create model from the package.
-            var packageRegistration = _packageService.FindPackageRegistrationById(id);
-
             var model = new EditPackageRequest
             {
                 PackageId = package.PackageRegistration.Id,
                 PackageTitle = package.Title,
                 Version = package.NormalizedVersion,
-                PackageVersions = packageRegistration.Packages
+                PackageVersions = package.PackageRegistration.Packages
                     .OrderByDescending(p => new NuGetVersion(p.Version), Comparer<NuGetVersion>.Create((a, b) => a.CompareTo(b)))
                     .ToList()
             };
@@ -1624,11 +1622,14 @@ namespace NuGetGallery
                 await _auditingService.SaveAuditRecordAsync(
                     new PackageAuditRecord(package, AuditedPackageAction.Create, PackageCreatedVia.Web));
 
-                // notify user
-                _messageService.SendPackageUploadedNotice(package,
-                    Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
-                    Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
-                    Url.AccountSettings(relativeUrl: false));
+                if (!(_config.AsynchronousPackageValidationEnabled && _config.BlockingAsynchronousPackageValidationEnabled))
+                {
+                    // notify user unless async validation in blocking mode is used
+                    _messageService.SendPackageAddedNotice(package,
+                        Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                        Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                        Url.AccountSettings(relativeUrl: false));
+                }
             }
 
             // delete the uploaded binary in the Uploads container
