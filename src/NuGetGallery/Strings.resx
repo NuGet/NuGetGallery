@@ -685,4 +685,7 @@ For more information, please contact '{2}'.</value>
   <data name="AccountDelete_OrganizationMemberDeleteNotImplemented" xml:space="preserve">
     <value>Account '{0}' cannot be deleted because it is a member of an organization. The user needs to be manually removed from any organizations before the account can be deleted.</value>
   </data>
+  <data name="PackageIsLocked" xml:space="preserve">
+    <value>Package '{0}' is locked. Contact support@nuget.org to get more details.</value>
+  </data>
 </root>
