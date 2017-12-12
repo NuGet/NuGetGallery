@@ -136,19 +136,19 @@ namespace NuGetGallery
 
                 var validationIssue1 = new PackageValidationIssue
                 {
-                    IssueCode = ValidationIssueCode.PackageIsSignedError,
+                    IssueCode = ValidationIssueCode.PackageIsSigned,
                     Data = "{'packageId':'Hello','packageVersion':'World'}",
                 };
 
                 var validationIssue2 = new PackageValidationIssue
                 {
-                    IssueCode = ValidationIssueCode.PackageIsSignedError,
+                    IssueCode = ValidationIssueCode.PackageIsSigned,
                     Data = "{'packageId':'A moose once bit my sister','packageVersion':'1.2.3'}",
                 };
 
                 var validationIssue3 = new PackageValidationIssue
                 {
-                    IssueCode = ValidationIssueCode.PackageIsSignedError,
+                    IssueCode = ValidationIssueCode.PackageIsSigned,
                     Data = "{'packageId':'Moose bites can be pretty nasty','packageVersion':'4.5.6'}",
                 };
 
