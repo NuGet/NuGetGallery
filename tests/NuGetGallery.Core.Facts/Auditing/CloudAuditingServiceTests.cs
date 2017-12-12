@@ -29,41 +29,16 @@ namespace NuGetGallery.Auditing
         public async Task CloudAuditServiceObfuscateAuditActor()
         {
             // Arrange
-            var service = new CloudAuditingServiceTest("", "", AuditActor.GetCurrentMachineActorAsync);
+            var actor = await AuditActor.GetCurrentMachineActorAsync();
+            var service = new CloudAuditingServiceTest("", "", () => Task.FromResult(actor));
 
             // Act 
             var auditActorToBePersisted = await service.GetCloudAuditActorAsync();
 
             // Assert
             Assert.Equal<string>("ObfuscatedUserName", auditActorToBePersisted.UserName);
-            Assert.Equal(true, IsObfuscatedIp(auditActorToBePersisted.MachineIP));
-        }
-
-        public bool IsObfuscatedIp(string ip)
-        {
-            IPAddress address;
-            if (IPAddress.TryParse(ip, out address))
-            {
-                var bytes = address.GetAddressBytes();
-                var length = bytes.Length;
-                switch (length)
-                {
-                    case 4:
-                         return bytes[3] == 0;
-                    case 16:
-                        for (int i = 8; i < 16; i++)
-                        {
-                            if( bytes[i] != 0 )
-                            {
-                                return false;
-                            }
-                        }
-                        return true;
-                    default:
-                        break;
-                }
-            }
-            return false;
+            // The ObfuscateIp method is unit-tested individually.
+            Assert.Equal(Obfuscator.ObfuscateIp(actor.MachineIP), auditActorToBePersisted.MachineIP);
         }
 
         public class CloudAuditingServiceTest : CloudAuditingService
@@ -79,7 +54,7 @@ namespace NuGetGallery.Auditing
 
             public AuditRecord GetCloudAuditRecord(AuditRecord record)
             {
-                return GetRecordToPersist(record);
+                return PrepareTheRecordForPersistence(record);
             }
         }
 

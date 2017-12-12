@@ -50,7 +50,7 @@ namespace NuGetGallery.Auditing
                 throw new ArgumentNullException(nameof(record));
             }
 
-            var persistedRecord = GetRecordToPersist(record);
+            var persistedRecord = PrepareTheRecordForPersistence(record);
             var entry = new AuditEntry(persistedRecord, await GetActorAsync());
             var rendered = RenderAuditEntry(entry);
 
@@ -94,7 +94,7 @@ namespace NuGetGallery.Auditing
         /// </summary>
         /// <param name="record">The current record.</param>
         /// <returns>The record to be saved.</returns>
-        protected virtual AuditRecord GetRecordToPersist(AuditRecord record)
+        protected virtual AuditRecord PrepareTheRecordForPersistence(AuditRecord record)
         {
             return record;
         }

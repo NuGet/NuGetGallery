@@ -30,9 +30,9 @@ namespace NuGetGallery.Auditing
         /// </summary>
         public CloudAuditingService(string instanceId, string localIP, Func<Task<AuditActor>> getOnBehalfOf)
         {
-            _instanceId = instanceId;
-            _localIP = localIP;
-            _getOnBehalfOf = getOnBehalfOf;
+            _instanceId = instanceId ?? throw new ArgumentNullException(nameof(instanceId));
+            _localIP = localIP ?? throw new ArgumentNullException(nameof(localIP));
+            _getOnBehalfOf = getOnBehalfOf ?? throw new ArgumentNullException(nameof(getOnBehalfOf));
         }
 
         public CloudAuditingService(string instanceId, string localIP, string storageConnectionString, Func<Task<AuditActor>> getOnBehalfOf)
@@ -59,13 +59,14 @@ namespace NuGetGallery.Auditing
             return AuditActor.Obfuscate(actor);
         }
 
-        protected override AuditRecord GetRecordToPersist(AuditRecord record)
+        protected override AuditRecord PrepareTheRecordForPersistence(AuditRecord record)
         {
             return record.Obfuscate();
         }
 
         protected override async Task SaveAuditRecordAsync(string auditData, string resourceType, string filePath, string action, DateTime timestamp)
         {
+            // Only the packages audit records will be saved in the Azure storage.
             if (!cloudAuditPersistedTypes.Contains(resourceType.ToLowerInvariant()))
             {
                 return;

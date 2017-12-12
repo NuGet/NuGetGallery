@@ -91,5 +91,49 @@ namespace NuGetGallery.Auditing.AuditedEntities
                 PackageStatusKey = (int)package.PackageStatusKey,
             };
         }
+
+        public static AuditedPackage CreateObfuscatedAuditPackage(AuditedPackage auditPackage)
+        {
+            return new AuditedPackage
+            {
+                PackageRegistrationKey = auditPackage.PackageRegistrationKey,
+                Copyright = auditPackage.Copyright,
+                Created = auditPackage.Created,
+                Description = auditPackage.Description,
+                ReleaseNotes = auditPackage.ReleaseNotes,
+                DownloadCount = auditPackage.DownloadCount,
+                HashAlgorithm = auditPackage.HashAlgorithm,
+                Hash = auditPackage.Hash,
+                IconUrl = auditPackage.IconUrl,
+                IsLatest = auditPackage.IsLatest,
+                IsLatestStable = auditPackage.IsLatestStable,
+                LastUpdated = auditPackage.LastUpdated,
+                LastEdited = auditPackage.LastEdited,
+                LicenseUrl = auditPackage.LicenseUrl,
+                HideLicenseReport = auditPackage.HideLicenseReport,
+                Language = auditPackage.Language,
+                Published = auditPackage.Published,
+                PackageFileSize = auditPackage.PackageFileSize,
+                ProjectUrl = auditPackage.ProjectUrl,
+                RequiresLicenseAcceptance = auditPackage.RequiresLicenseAcceptance,
+                Summary = auditPackage.Summary,
+                Tags = auditPackage.Tags,
+                Title = auditPackage.Title,
+                Version = auditPackage.Version,
+                NormalizedVersion = auditPackage.NormalizedVersion,
+                LicenseNames = auditPackage.LicenseNames,
+                LicenseReportUrl = auditPackage.LicenseReportUrl,
+                Listed = auditPackage.Listed,
+                IsPrerelease = auditPackage.IsPrerelease,
+                FlattenedAuthors = string.Empty,
+                FlattenedDependencies = auditPackage.FlattenedDependencies,
+                Key = auditPackage.Key,
+                MinClientVersion = auditPackage.MinClientVersion,
+                UserKey = -1,
+                Deleted = auditPackage.Deleted,
+                HasReadMe = auditPackage.HasReadMe,
+                PackageStatusKey = (int)auditPackage.PackageStatusKey,
+            };
+        }
     }
 }
