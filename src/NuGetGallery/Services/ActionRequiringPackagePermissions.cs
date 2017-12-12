@@ -23,17 +23,17 @@ namespace NuGetGallery
             PackageRegistrationPermissionsRequirement = packageRegistrationPermissionsRequirement;
         }
 
-        public PermissionsCheckResult IsAllowed(User currentUser, User account, Package package)
+        public PermissionsCheckResult CheckPermissions(User currentUser, User account, Package package)
         {
-            return IsAllowed(currentUser, account, GetPackageRegistration(package));
+            return CheckPermissions(currentUser, account, GetPackageRegistration(package));
         }
 
-        public PermissionsCheckResult IsAllowed(IPrincipal currentPrincipal, User account, Package package)
+        public PermissionsCheckResult CheckPermissions(IPrincipal currentPrincipal, User account, Package package)
         {
-            return IsAllowed(currentPrincipal, account, GetPackageRegistration(package));
+            return CheckPermissions(currentPrincipal, account, GetPackageRegistration(package));
         }
 
-        protected override PermissionsCheckResult IsAllowedOnEntity(User account, PackageRegistration packageRegistration)
+        protected override PermissionsCheckResult CheckPermissionsForEntity(User account, PackageRegistration packageRegistration)
         {
             return PermissionsHelpers.IsRequirementSatisfied(PackageRegistrationPermissionsRequirement, account, packageRegistration) ? PermissionsCheckResult.Allowed : PermissionsCheckResult.PackageRegistrationFailure;
         }

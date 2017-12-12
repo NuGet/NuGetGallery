@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Principal;
@@ -18,15 +19,18 @@ namespace NuGetGallery
         public ActionOnNewPackageContext(string packageId, IReservedNamespaceService reservedNamespaceService)
         {
             PackageId = packageId;
-            ReservedNamespaceService = reservedNamespaceService;
+            ReservedNamespaceService = reservedNamespaceService ?? throw new ArgumentNullException(nameof(reservedNamespaceService));
         }
     }
 
     /// <summary>
-    /// An action requiring permissions on a <see cref="ReservedNamespace"/> that can be done on behalf of another <see cref="User"/>.
+    /// An action requiring permissions on <see cref="ReservedNamespace"/>s that can be done on behalf of another <see cref="User"/>.
     /// </summary>
+    /// <remarks>
+    /// These permissions use 
+    /// </remarks>
     public class ActionRequiringReservedNamespacePermissions
-        : ActionRequiringEntityPermissions<IEnumerable<ReservedNamespace>>, IActionRequiringEntityPermissions<ActionOnNewPackageContext>
+        : ActionRequiringEntityPermissions<IReadOnlyCollection<ReservedNamespace>>, IActionRequiringEntityPermissions<ActionOnNewPackageContext>
     {
         public PermissionsRequirement ReservedNamespacePermissionsRequirement { get; }
 
@@ -38,17 +42,17 @@ namespace NuGetGallery
             ReservedNamespacePermissionsRequirement = reservedNamespacePermissionsRequirement;
         }
 
-        public PermissionsCheckResult IsAllowed(User currentUser, User account, ActionOnNewPackageContext newPackageContext)
+        public PermissionsCheckResult CheckPermissions(User currentUser, User account, ActionOnNewPackageContext newPackageContext)
         {
-            return IsAllowed(currentUser, account, GetReservedNamespaces(newPackageContext));
+            return CheckPermissions(currentUser, account, GetReservedNamespaces(newPackageContext));
         }
 
-        public PermissionsCheckResult IsAllowed(IPrincipal currentPrincipal, User account, ActionOnNewPackageContext newPackageContext)
+        public PermissionsCheckResult CheckPermissions(IPrincipal currentPrincipal, User account, ActionOnNewPackageContext newPackageContext)
         {
-            return IsAllowed(currentPrincipal, account, GetReservedNamespaces(newPackageContext));
+            return CheckPermissions(currentPrincipal, account, GetReservedNamespaces(newPackageContext));
         }
 
-        protected override PermissionsCheckResult IsAllowedOnEntity(User account, IEnumerable<ReservedNamespace> reservedNamespaces)
+        protected override PermissionsCheckResult CheckPermissionsForEntity(User account, IReadOnlyCollection<ReservedNamespace> reservedNamespaces)
         {
             if (!reservedNamespaces.Any())
             {
@@ -64,12 +68,12 @@ namespace NuGetGallery
             return TryGetAccountsIsAllowedOnBehalfOf(currentUser, GetReservedNamespaces(newPackageContext), out accountsAllowedOnBehalfOf);
         }
 
-        protected override IEnumerable<User> GetOwners(IEnumerable<ReservedNamespace> reservedNamespaces)
+        protected override IEnumerable<User> GetOwners(IReadOnlyCollection<ReservedNamespace> reservedNamespaces)
         {
             return reservedNamespaces.Any() ? reservedNamespaces.SelectMany(rn => rn.Owners) : Enumerable.Empty<User>();
         }
 
-        private IEnumerable<ReservedNamespace> GetReservedNamespaces(ActionOnNewPackageContext newPackageContext)
+        private IReadOnlyCollection<ReservedNamespace> GetReservedNamespaces(ActionOnNewPackageContext newPackageContext)
         {
             return newPackageContext.ReservedNamespaceService.GetReservedNamespacesForId(newPackageContext.PackageId);
         }

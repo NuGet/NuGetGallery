@@ -19,26 +19,26 @@ namespace NuGetGallery
         /// <summary>
         /// No requirement--any user can satisfy the requirement.
         /// </summary>
-        None = 1,
+        None = 1 << 0,
 
         /// <summary>
         /// If the user is an owner of the <see cref="Package"/>, <see cref="User"/>, or <see cref="ReservedNamespace"/>, they satisfy the requirement.
         /// </summary>
-        Owner = 2,
+        Owner = 1 << 1,
 
         /// <summary>
         /// If the user is an admin of the site (see <see cref="Constants.AdminRoleName"/>), they satisfy the requirement.
         /// </summary>
-        SiteAdmin = 4,
+        SiteAdmin = 1 << 2,
 
         /// <summary>
         /// If the user is an admin of an <see cref="Organization"/> (<see cref="Membership.IsAdmin"/> is true) that satisfies <see cref="Owner"/>, they satisfy the requirement.
         /// </summary>
-        OrganizationAdmin = 8,
+        OrganizationAdmin = 1 << 3,
 
         /// <summary>
         /// If the user is a collaborator of an <see cref="Organization"/> (<see cref="Membership.IsAdmin"/> is false) that satisfies <see cref="Owner"/>, they satisfy the requirement.
         /// </summary>
-        OrganizationCollaborator = 16,
+        OrganizationCollaborator = 1 << 4,
     }
 }

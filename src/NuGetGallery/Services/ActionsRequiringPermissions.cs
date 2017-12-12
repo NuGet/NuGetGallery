@@ -14,62 +14,66 @@ namespace NuGetGallery
         /// </summary>
         public static ActionRequiringPackagePermissions DisplayPrivatePackageMetadata =
             new ActionRequiringPackagePermissions(
-                PermissionsRequirement.Owner | PermissionsRequirement.OrganizationAdmin | PermissionsRequirement.OrganizationCollaborator,
-                PermissionsRequirement.Owner | PermissionsRequirement.SiteAdmin);
+                accountOnBehalfOfPermissionsRequirement: RequireOwnerOrOrganizationMember,
+                packageRegistrationPermissionsRequirement: RequireOwnerOrSiteAdmin);
 
         /// <summary>
         /// The action of uploading a new package ID.
         /// </summary>
         public static ActionRequiringReservedNamespacePermissions UploadNewPackageId =
             new ActionRequiringReservedNamespacePermissions(
-                PermissionsRequirement.Owner | PermissionsRequirement.OrganizationAdmin,
-                PermissionsRequirement.Owner);
+                accountOnBehalfOfPermissionsRequirement: RequireOwnerOrOrganizationAdmin,
+                reservedNamespacePermissionsRequirement: PermissionsRequirement.Owner);
 
         /// <summary>
         /// The action of uploading a new version of an existing package ID.
         /// </summary>
         public static ActionRequiringPackagePermissions UploadNewPackageVersion =
             new ActionRequiringPackagePermissions(
-                PermissionsRequirement.Owner | PermissionsRequirement.OrganizationAdmin | PermissionsRequirement.OrganizationCollaborator,
-                PermissionsRequirement.Owner | PermissionsRequirement.SiteAdmin);
+                accountOnBehalfOfPermissionsRequirement: RequireOwnerOrOrganizationMember,
+                packageRegistrationPermissionsRequirement: PermissionsRequirement.Owner);
 
         /// <summary>
         /// The action of editing an existing version of an existing package ID.
         /// </summary>
         public static ActionRequiringPackagePermissions EditPackage =
             new ActionRequiringPackagePermissions(
-                PermissionsRequirement.Owner | PermissionsRequirement.OrganizationAdmin | PermissionsRequirement.OrganizationCollaborator,
-                PermissionsRequirement.Owner | PermissionsRequirement.SiteAdmin);
+                accountOnBehalfOfPermissionsRequirement: RequireOwnerOrOrganizationMember,
+                packageRegistrationPermissionsRequirement: RequireOwnerOrSiteAdmin);
 
         /// <summary>
         /// The action of unlisting or relisting an existing version of an existing package ID.
         /// </summary>
         public static ActionRequiringPackagePermissions UnlistOrRelistPackage =
             new ActionRequiringPackagePermissions(
-                PermissionsRequirement.Owner | PermissionsRequirement.OrganizationAdmin | PermissionsRequirement.OrganizationCollaborator,
-                PermissionsRequirement.Owner | PermissionsRequirement.SiteAdmin);
+                RequireOwnerOrOrganizationMember,
+                packageRegistrationPermissionsRequirement: RequireOwnerOrSiteAdmin);
 
         /// <summary>
         /// The action of managing the ownership of an existing package ID.
         /// </summary>
         public static ActionRequiringPackagePermissions ManagePackageOwnership =
             new ActionRequiringPackagePermissions(
-                PermissionsRequirement.Owner | PermissionsRequirement.OrganizationAdmin,
-                PermissionsRequirement.Owner | PermissionsRequirement.SiteAdmin);
+                accountOnBehalfOfPermissionsRequirement: RequireOwnerOrOrganizationAdmin,
+                packageRegistrationPermissionsRequirement: RequireOwnerOrSiteAdmin);
 
         /// <summary>
         /// The action of reporting an existing package ID as the owner of the package..
         /// </summary>
         public static ActionRequiringPackagePermissions ReportPackageAsOwner =
             new ActionRequiringPackagePermissions(
-                PermissionsRequirement.Owner | PermissionsRequirement.OrganizationAdmin,
-                PermissionsRequirement.Owner);
+                accountOnBehalfOfPermissionsRequirement: RequireOwnerOrOrganizationAdmin,
+                packageRegistrationPermissionsRequirement: PermissionsRequirement.Owner);
 
         /// <summary>
         /// The action of handling package ownership requests for a user to become an owner of a package.
         /// </summary>
         public static ActionRequiringAccountPermissions HandlePackageOwnershipRequest = 
             new ActionRequiringAccountPermissions(
-                PermissionsRequirement.Owner | PermissionsRequirement.OrganizationAdmin);
+                accountPermissionsRequirement: RequireOwnerOrOrganizationAdmin);
+
+        private static PermissionsRequirement RequireOwnerOrSiteAdmin = PermissionsRequirement.Owner | PermissionsRequirement.SiteAdmin;
+        private static PermissionsRequirement RequireOwnerOrOrganizationAdmin = PermissionsRequirement.Owner | PermissionsRequirement.OrganizationAdmin;
+        private static PermissionsRequirement RequireOwnerOrOrganizationMember = PermissionsRequirement.Owner | PermissionsRequirement.OrganizationAdmin | PermissionsRequirement.OrganizationCollaborator;
     }
 }

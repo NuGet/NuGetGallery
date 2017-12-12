@@ -37,16 +37,12 @@ namespace NuGetGallery
         /// <summary>
         /// Is <paramref name="currentPrincipal"/> allowed to perform an action with a requirement of <paramref name="permissionsRequirement"/> on the entity owned by <paramref name="entityOwners"/>?
         /// </summary>
-        public static bool IsRequirementSatisfied(PermissionsRequirement permissionsRequirement, IPrincipal currentPrincipal, IEnumerable<User> entityOwners)
+        public static bool IsRequirementSatisfied(PermissionsRequirement permissionsRequirement, IPrincipal currentPrincipal, ICollection<User> entityOwners)
         {
-            if (WouldSatisfy(PermissionsRequirement.None, permissionsRequirement))
-            {
-                return true;
-            }
-
             if (currentPrincipal == null)
             {
-                return false;
+                /// If the current principal is logged out, only <see cref="PermissionsRequirement.None"/> is satisfied.
+                return WouldSatisfy(PermissionsRequirement.None, permissionsRequirement);
             }
 
             return IsRequirementSatisfied(
@@ -83,16 +79,12 @@ namespace NuGetGallery
         /// <summary>
         /// Is <paramref name="currentPrincipal"/> allowed to perform an action with a requirement of <paramref name="permissionsRequirement"/> on the entity owned by <paramref name="entityOwners"/>?
         /// </summary>
-        public static bool IsRequirementSatisfied(PermissionsRequirement permissionsRequirement, User currentUser, IEnumerable<User> entityOwners)
+        public static bool IsRequirementSatisfied(PermissionsRequirement permissionsRequirement, User currentUser, ICollection<User> entityOwners)
         {
-            if (WouldSatisfy(PermissionsRequirement.None, permissionsRequirement))
-            {
-                return true;
-            }
-
             if (currentUser == null)
             {
-                return false;
+                /// If the current user is logged out, only <see cref="PermissionsRequirement.None"/> is satisfied.
+                return WouldSatisfy(PermissionsRequirement.None, permissionsRequirement);
             }
 
             return IsRequirementSatisfied(
@@ -102,22 +94,18 @@ namespace NuGetGallery
                 entityOwners);
         }
 
-        private static bool IsRequirementSatisfied(PermissionsRequirement permissionsRequirement, bool isUserAdmin, Func<User, bool> isUserMatch, IEnumerable<User> entityOwners)
+        private static bool IsRequirementSatisfied(PermissionsRequirement permissionsRequirement, bool isUserAdmin, Func<User, bool> isUserMatch, ICollection<User> entityOwners)
         {
-            if (WouldSatisfy(PermissionsRequirement.None, permissionsRequirement))
-            {
-                return true;
-            }
-
-            if (WouldSatisfy(PermissionsRequirement.SiteAdmin, permissionsRequirement) &&
-                isUserAdmin)
+            if (isUserAdmin && 
+                WouldSatisfy(PermissionsRequirement.SiteAdmin, permissionsRequirement))
             {
                 return true;
             }
 
             if (entityOwners == null || !entityOwners.Any())
             {
-                return false;
+                /// If there are no owners of the entity and the current user is not a site admin, only <see cref="PermissionsRequirement.None"/> is satisfied.
+                return WouldSatisfy(PermissionsRequirement.None, permissionsRequirement);
             }
 
             if (WouldSatisfy(PermissionsRequirement.Owner, permissionsRequirement) &&
@@ -130,7 +118,8 @@ namespace NuGetGallery
                 .OfType<Organization>()
                 .SelectMany(o => o.Members)
                 .Where(m => isUserMatch(m.Member))
-                .ToArray();
+                .ToList()
+                .AsReadOnly();
 
             if (WouldSatisfy(PermissionsRequirement.OrganizationAdmin, permissionsRequirement) &&
                 matchingMembers.Any(m => m.IsAdmin))
@@ -144,7 +133,8 @@ namespace NuGetGallery
                 return true;
             }
 
-            return false;
+            /// If the current user is not related to the entity in any way and is not a site admin, only <see cref="PermissionsRequirement.None"/> is satisfied.
+            return WouldSatisfy(PermissionsRequirement.None, permissionsRequirement);
         }
 
         /// <summary>
@@ -152,7 +142,7 @@ namespace NuGetGallery
         /// </summary>
         private static bool WouldSatisfy(PermissionsRequirement permissionsRequirementToCheck, PermissionsRequirement permissionsRequirementToSatisfy)
         {
-            return (permissionsRequirementToCheck & permissionsRequirementToSatisfy) > 0;
+            return (permissionsRequirementToCheck & permissionsRequirementToSatisfy) != PermissionsRequirement.Unsatisfiable;
         }
     }
 }

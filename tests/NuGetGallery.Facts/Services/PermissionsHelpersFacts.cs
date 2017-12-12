@@ -19,10 +19,10 @@ namespace NuGetGallery.Services
             [Flags]
             public enum ReturnsSatisfiedRequirementWhenExpected_State
             {
-                IsOwner = 1,
-                IsSiteAdmin = 2,
-                IsOrganizationAdmin = 4,
-                IsOrganizationCollaborator = 8,
+                IsOwner = 1 << 0,
+                IsSiteAdmin = 1 << 1,
+                IsOrganizationAdmin = 1 << 2,
+                IsOrganizationCollaborator = 1 << 3,
             }
 
             private static readonly IEnumerable<ReturnsSatisfiedRequirementWhenExpected_State> _stateValues = 
@@ -107,7 +107,7 @@ namespace NuGetGallery.Services
                 owners.Add(organization);
             }
 
-            private void AssertIsRequirementSatisfied(IEnumerable<User> owners, User user, PermissionsRequirement expectedSatisfiedPermissionsRequirement)
+            private void AssertIsRequirementSatisfied(ICollection<User> owners, User user, PermissionsRequirement expectedSatisfiedPermissionsRequirement)
             {
                 for (int i = 0; i < _maxPermissionsRequirement * 2; i++)
                 {

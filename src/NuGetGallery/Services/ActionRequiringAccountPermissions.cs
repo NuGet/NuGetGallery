@@ -20,7 +20,7 @@ namespace NuGetGallery
         /// <summary>
         /// Determines whether <paramref name="currentUser"/> can perform this action on <paramref name="account"/>.
         /// </summary>
-        public PermissionsCheckResult IsAllowed(User currentUser, User account)
+        public PermissionsCheckResult CheckPermissions(User currentUser, User account)
         {
             return PermissionsHelpers.IsRequirementSatisfied(AccountPermissionsRequirement, currentUser, account) ? 
                 PermissionsCheckResult.Allowed : PermissionsCheckResult.AccountFailure;
@@ -29,7 +29,7 @@ namespace NuGetGallery
         /// <summary>
         /// Determines whether <paramref name="currentPrincipal"/> can perform this action on <paramref name="account"/>.
         /// </summary>
-        public PermissionsCheckResult IsAllowed(IPrincipal currentPrincipal, User account)
+        public PermissionsCheckResult CheckPermissions(IPrincipal currentPrincipal, User account)
         {
             return PermissionsHelpers.IsRequirementSatisfied(AccountPermissionsRequirement, currentPrincipal, account) ? 
                 PermissionsCheckResult.Allowed : PermissionsCheckResult.AccountFailure;

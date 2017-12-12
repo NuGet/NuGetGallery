@@ -14,11 +14,6 @@ namespace NuGetGallery
         Allowed = default(int),
 
         /// <summary>
-        /// The reason an action is not allowed is not known.
-        /// </summary>
-        UnknownFailure,
-
-        /// <summary>
         /// The current user does not have permissions to perform the action on the <see cref="User"/>.
         /// </summary>
         AccountFailure,
