@@ -30,7 +30,7 @@ namespace NuGetGallery.Filters
                 if (apiKeyCredential != null && apiKeyCredential.Expires.HasValue)
                 {
                     var accountUrl = controller.NuGetContext.Config.GetSiteRoot(
-                        controller.NuGetContext.Config.Current.RequireSSL).TrimEnd('/') + "/account";
+                        controller.NuGetContext.Config.Current.RequireSSL).TrimEnd('/') + "/account/ApiKeys";
 
                     var expirationPeriod = apiKeyCredential.Expires.Value - DateTime.UtcNow;
                     if (apiKeyCredential.HasExpired)
