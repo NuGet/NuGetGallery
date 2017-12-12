@@ -42,7 +42,7 @@ namespace NuGetGallery.Services
                     {
                         yield return new object[]
                         {
-                            _stateValues.Where(s => Includes(i, s))
+                            _stateValues.Where(s => Includes(i, s)).ToList()
                         };
                     }
                 }
@@ -50,7 +50,7 @@ namespace NuGetGallery.Services
 
             private static bool Includes(int i, ReturnsSatisfiedRequirementWhenExpected_State state)
             {
-                return (i & (int)state) == 0;
+                return (i & (int)state) > 0;
             }
 
             [Theory]
@@ -62,7 +62,7 @@ namespace NuGetGallery.Services
 
                 var owners = new List<User>();
 
-                var user = new User("testuser") { Key = _key++ };
+                var user = new User("testuser" + _key) { Key = _key++ };
 
                 if (states.Contains(ReturnsSatisfiedRequirementWhenExpected_State.IsOwner))
                 {
@@ -94,7 +94,7 @@ namespace NuGetGallery.Services
 
             private void CreateOrganizationOwnerAndAddUserAsMember(List<User> owners, User user, bool isAdmin)
             {
-                var organization = new Organization();
+                var organization = new Organization("testorg" + _key) { Key = _key++ };
                 organization.Members = new[]
                 {
                     new Membership()

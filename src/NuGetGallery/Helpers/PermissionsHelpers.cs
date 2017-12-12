@@ -109,6 +109,12 @@ namespace NuGetGallery
                 return true;
             }
 
+            if (WouldSatisfy(PermissionsRequirement.SiteAdmin, permissionsRequirement) &&
+                isUserAdmin)
+            {
+                return true;
+            }
+
             if (entityOwners == null || !entityOwners.Any())
             {
                 return false;
@@ -116,12 +122,6 @@ namespace NuGetGallery
 
             if (WouldSatisfy(PermissionsRequirement.Owner, permissionsRequirement) &&
                 entityOwners.Any(isUserMatch))
-            {
-                return true;
-            }
-
-            if (WouldSatisfy(PermissionsRequirement.SiteAdmin, permissionsRequirement) &&
-                isUserAdmin)
             {
                 return true;
             }
@@ -139,7 +139,7 @@ namespace NuGetGallery
             }
 
             if (WouldSatisfy(PermissionsRequirement.OrganizationCollaborator, permissionsRequirement) &&
-                matchingMembers.Any())
+                matchingMembers.Any(m => !m.IsAdmin))
             {
                 return true;
             }
