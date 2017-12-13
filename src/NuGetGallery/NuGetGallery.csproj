@@ -801,6 +801,7 @@
     <Compile Include="Migrations\201711021733062_ApiKeyOwnerScope.Designer.cs">
       <DependentUpon>201711021733062_ApiKeyOwnerScope.cs</DependentUpon>
     </Compile>
+    <Compile Include="Services\ActionOnNewPackageContext.cs" />
     <Compile Include="Services\ActionRequiringAccountPermissions.cs" />
     <Compile Include="Services\ActionRequiringEntityPermissions.cs" />
     <Compile Include="Services\ActionRequiringPackagePermissions.cs" />

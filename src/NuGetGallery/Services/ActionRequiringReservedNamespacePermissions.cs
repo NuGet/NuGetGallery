@@ -1,28 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Principal;
 
 namespace NuGetGallery
 {
-    /// <summary>
-    /// Context object for checking permissions of an action involving a new package ID.
-    /// </summary>
-    public class ActionOnNewPackageContext
-    {
-        public string PackageId { get; }
-        public IReservedNamespaceService ReservedNamespaceService { get; }
-
-        public ActionOnNewPackageContext(string packageId, IReservedNamespaceService reservedNamespaceService)
-        {
-            PackageId = packageId;
-            ReservedNamespaceService = reservedNamespaceService ?? throw new ArgumentNullException(nameof(reservedNamespaceService));
-        }
-    }
-
     /// <summary>
     /// An action requiring permissions on <see cref="ReservedNamespace"/>s that can be done on behalf of another <see cref="User"/>.
     /// </summary>
