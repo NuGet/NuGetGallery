@@ -19,7 +19,7 @@ namespace NuGet.Services.Cursor.Tests
         {
             var storageMock = CreateStorageMock();
             storageMock
-                .Protected().Setup<Task>("OnSave", ItExpr.IsAny<Uri>(), ItExpr.IsAny<StorageContent>(), It.IsAny<bool>(), ItExpr.IsAny<CancellationToken>())
+                .Protected().Setup<Task>("OnSave", ItExpr.IsAny<Uri>(), ItExpr.IsAny<StorageContent>(), true, ItExpr.IsAny<CancellationToken>())
                 .Returns(Task.FromResult(0))
                 .Verifiable();
 
@@ -64,8 +64,8 @@ namespace NuGet.Services.Cursor.Tests
 
             var storageMock = CreateStorageMock();
             storageMock
-                .Protected().Setup<Task>("OnSave", ItExpr.IsAny<Uri>(), ItExpr.IsAny<StorageContent>(), It.IsAny<bool>(), ItExpr.IsAny<CancellationToken>())
-                .Callback<Uri, StorageContent, CancellationToken>((uri, content, token) => { savedContent = content; })
+                .Protected().Setup<Task>("OnSave", ItExpr.IsAny<Uri>(), ItExpr.IsAny<StorageContent>(), true, ItExpr.IsAny<CancellationToken>())
+                .Callback<Uri, StorageContent, bool, CancellationToken>((uri, content, overwrite, token) => { savedContent = content; })
                 .Returns(Task.FromResult(0));
 
             storageMock
