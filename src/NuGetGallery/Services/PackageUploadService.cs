@@ -48,8 +48,6 @@ namespace NuGetGallery
                 user,
                 isVerified: shouldMarkIdVerified);
 
-            await _validationService.StartValidationAsync(package);
-
             if (shouldMarkIdVerified)
             {
                 // Add all relevant package registrations to the applicable namespaces
@@ -66,6 +64,8 @@ namespace NuGetGallery
 
         public async Task<PackageCommitResult> CommitPackageAsync(Package package, Stream packageFile)
         {
+            await _validationService.StartValidationAsync(package);
+
             if (package.PackageStatusKey != PackageStatus.Available
                 && package.PackageStatusKey != PackageStatus.Validating)
             {
