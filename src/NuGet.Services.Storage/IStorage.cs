@@ -12,7 +12,7 @@ namespace NuGet.Services.Storage
     {
         bool Exists(string fileName);
         Task<bool> ExistsAsync(string fileName, CancellationToken cancellationToken);
-        Task Save(Uri resourceUri, StorageContent content, CancellationToken cancellationToken);
+        Task Save(Uri resourceUri, StorageContent content, bool overwrite, CancellationToken cancellationToken);
         Task<StorageContent> Load(Uri resourceUri, CancellationToken cancellationToken);
         Task Delete(Uri resourceUri, CancellationToken cancellationToken);
         Task<string> LoadString(Uri resourceUri, CancellationToken cancellationToken);
