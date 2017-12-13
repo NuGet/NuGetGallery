@@ -8,6 +8,10 @@ namespace NuGetGallery
     /// </summary>
     public static class ActionsRequiringPermissions
     {
+        private const PermissionsRequirement RequireOwnerOrSiteAdmin = PermissionsRequirement.Owner | PermissionsRequirement.SiteAdmin;
+        private const PermissionsRequirement RequireOwnerOrOrganizationAdmin = PermissionsRequirement.Owner | PermissionsRequirement.OrganizationAdmin;
+        private const PermissionsRequirement RequireOwnerOrOrganizationMember = PermissionsRequirement.Owner | PermissionsRequirement.OrganizationAdmin | PermissionsRequirement.OrganizationCollaborator;
+
         /// <summary>
         /// The action of seeing private metadata about a package.
         /// For example, if a package is validating, only users who can perform this action can see the metadata of the package.
@@ -71,9 +75,5 @@ namespace NuGetGallery
         public static ActionRequiringAccountPermissions HandlePackageOwnershipRequest = 
             new ActionRequiringAccountPermissions(
                 accountPermissionsRequirement: RequireOwnerOrOrganizationAdmin);
-
-        private static PermissionsRequirement RequireOwnerOrSiteAdmin = PermissionsRequirement.Owner | PermissionsRequirement.SiteAdmin;
-        private static PermissionsRequirement RequireOwnerOrOrganizationAdmin = PermissionsRequirement.Owner | PermissionsRequirement.OrganizationAdmin;
-        private static PermissionsRequirement RequireOwnerOrOrganizationMember = PermissionsRequirement.Owner | PermissionsRequirement.OrganizationAdmin | PermissionsRequirement.OrganizationCollaborator;
     }
 }
