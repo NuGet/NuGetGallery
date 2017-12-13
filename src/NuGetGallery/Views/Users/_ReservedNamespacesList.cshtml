@@ -1,21 +1,8 @@
 ﻿@model ReservedNamespaceListViewModel
-@{
-    if (!Model.ReservedNamespaces.Any())
-    {
-        return;
-    }
-}
 
 <div class="row user-package-list">
     <div class="col-md-12">
-        <h2>
-            <a href="#" role="button" data-toggle="collapse" data-target="#reservednamespaces"
-               aria-expanded="true" aria-controls="reservednamespaces" id="show-reservednamespaces">
-                <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
-                <span>My Reserved Package IDs</span>
-            </a>
-        </h2>
-        <div class="panel-collapse collapse in" id="reservednamespaces" aria-expanded="true">
+        <div class="panel-collapse collapse in" id="namespaces-container" aria-expanded="true">
             <div class="list-packages" role="list">
                 <table class="table">
                     <thead>

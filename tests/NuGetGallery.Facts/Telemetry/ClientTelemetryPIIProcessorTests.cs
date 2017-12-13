@@ -47,7 +47,7 @@ namespace NuGetGallery.Telemetry
             piiProcessor.Process(telemetryItem);
 
             // Assert
-            string expected = actionIsPII ? $"https://localhost/{ClientTelemetryPIIProcessor.DefaultTelemetryUserName}" : telemetryItem.Url.ToString();
+            string expected = actionIsPII ? $"https://localhost/{Obfuscator.DefaultTelemetryUserName}" : telemetryItem.Url.ToString();
             Assert.Equal(expected, telemetryItem.Url.ToString());
         }
 
@@ -77,7 +77,7 @@ namespace NuGetGallery.Telemetry
         public void ValidatePIIRoutes()
         {
             // Arange
-            HashSet<string> existentPIIOperations = ClientTelemetryPIIProcessor.PiiActions;
+            HashSet<string> existentPIIOperations = Obfuscator.ObfuscatedActions;
             List<string> piiOperationsFromRoutes = GetPIIOperationsFromRoute();
 
             // Act and Assert

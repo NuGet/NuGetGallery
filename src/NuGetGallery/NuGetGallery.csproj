@@ -781,6 +781,7 @@
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Helpers\GravatarHelper.cs" />
     <Compile Include="Helpers\RegexEx.cs" />
+    <Compile Include="Helpers\RouteUrlTemplate.cs" />
     <Compile Include="Infrastructure\Authentication\ApiKeyV4.cs" />
     <Compile Include="Infrastructure\Authentication\Base32Encoder.cs" />
     <Compile Include="Migrations\201711082145351_AddAccountDelete.cs" />
@@ -903,6 +904,7 @@
     <Compile Include="Services\ValidationService.cs" />
     <Compile Include="Telemetry\ClientInformationTelemetryEnricher.cs" />
     <Compile Include="Telemetry\ClientTelemetryPIIProcessor.cs" />
+    <Compile Include="Telemetry\Obfuscator.cs" />
     <Compile Include="Telemetry\QuietExceptionLogger.cs" />
     <Compile Include="Infrastructure\Authentication\CredentialBuilder.cs" />
     <Compile Include="Infrastructure\Authentication\CredentialValidator.cs" />
@@ -1592,6 +1594,7 @@
     <Compile Include="Services\ReflowPackageService.cs" />
     <Compile Include="Services\TelemetryService.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteUserAccountViewModel.cs" />
+    <Compile Include="ViewModels\ListPackageOwnerViewModel.cs" />
     <Compile Include="ViewModels\PackageDeleteDecision.cs" />
     <Compile Include="ViewModels\DeleteAccountViewModel.cs" />
     <Compile Include="ViewModels\ApiKeyOwnerViewModel.cs" />
@@ -1600,6 +1603,7 @@
     <Compile Include="ViewModels\ApiKeyListViewModel.cs" />
     <Compile Include="ViewModels\ApiKeyViewModel.cs" />
     <Compile Include="ViewModels\OwnerRequestsListItemViewModel.cs" />
+    <Compile Include="ViewModels\PackageStatusSummary.cs" />
     <Compile Include="ViewModels\ReportViewModel.cs" />
     <Compile Include="ViewModels\ReservedNamespaceListViewModel.cs" />
     <Compile Include="ViewModels\ReservedNamespaceListItemViewModel.cs" />
@@ -1961,7 +1965,6 @@
     <Content Include="Views\Authentication\LinkExternal.cshtml" />
     <Content Include="Views\Authentication\_SignIn.cshtml" />
     <Content Include="Views\Authentication\_Register.cshtml" />
-    <Content Include="Views\Users\_UserPackagesList.cshtml" />
     <Content Include="Views\Users\_ConfirmationResendForm.cshtml" />
     <Content Include="Views\Shared\_PackageHeading.cshtml" />
     <Content Include="Views\Packages\_ImportReadMe.cshtml" />

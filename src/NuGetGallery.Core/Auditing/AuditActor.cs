@@ -65,10 +65,7 @@ namespace NuGetGallery.Auditing
                 clientIpAddress = context.Request.UserHostAddress;
             }
 
-            if (!string.IsNullOrEmpty(clientIpAddress) && clientIpAddress.IndexOf(".", StringComparison.Ordinal) > 0)
-            {
-                clientIpAddress = clientIpAddress.Substring(0, clientIpAddress.LastIndexOf(".", StringComparison.Ordinal)) + ".0";
-            }
+            clientIpAddress = Obfuscator.ObfuscateIp(clientIpAddress);
 
             string user = null;
             string authType = null;

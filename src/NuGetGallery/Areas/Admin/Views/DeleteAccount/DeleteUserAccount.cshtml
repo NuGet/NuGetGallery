@@ -14,13 +14,13 @@
                 <a href="@Url.User(@Model.User)">@Model.AccountName</a>
             </div>
 
-            @ViewHelpers.AlertDanger(@<p>
+            @ViewHelpers.AlertDanger(@<text>
                 <b class="keywords">Once the account is deleted, it cannot be undone!</b> <br />
                 Deleting the account will: <br />
                 1. Revoke associated API key(s). <br />
                 2. Remove the account as an owner for any child packages.<br />
                 3. Dissociate all previously existent ID prefix reservations with this account.<br />
-            </p>)
+            </text>)
 
             <div class="form-group">
                 @{
@@ -46,7 +46,7 @@
                         <div class="form-group">
                             @Html.EditorFor(m => m.ShouldUnlist)
                             <label class="checkbox-inline">
-                                <b>Unlist the packages without an user.</b>
+                                <b>Unlist the packages without any user.</b>
                             </label>
                             <p>
                                 One or more packages do not have co-owners. If you choose to proceed without fixing this issue, these packages will be orphaned and a warning message will be displayed under owners on the package page.

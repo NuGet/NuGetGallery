@@ -184,8 +184,12 @@ namespace NuGetGallery
                     && ar.Version == package.Version));
             }
 
-            [Fact]
-            public async Task CreatePackageWillSendPackageAddedNotice()
+            [Theory]
+            [InlineData(false, false,  true)]
+            [InlineData( true, false,  true)]
+            [InlineData(false,  true,  true)]
+            [InlineData( true,  true, false)]
+            public async Task CreatePackageWillSendPackageAddedNotice(bool asyncValidationEnabled, bool blockingValidationEnabled, bool callExpected)
             {
                 // Arrange
                 var user = new User() { EmailAddress = "confirmed@email.com" };
@@ -197,10 +201,11 @@ namespace NuGetGallery
                 package.Version = "1.0.42";
                 packageRegistration.Packages.Add(package);
 
-                var controller = new TestableApiController(GetConfigurationService());
+                TestGalleryConfigurationService configurationService = GetConfigurationService();
+                configurationService.Current.AsynchronousPackageValidationEnabled = asyncValidationEnabled;
+                configurationService.Current.BlockingAsynchronousPackageValidationEnabled = blockingValidationEnabled;
+                var controller = new TestableApiController(configurationService);
                 controller.SetCurrentUser(user);
-                controller.MockMessageService.Setup(p => p.SendPackageUploadedNotice(package, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                    .Verifiable();
                 controller.MockPackageUploadService
                     .Setup(p => p.GeneratePackageAsync(
                         It.IsAny<string>(),
@@ -216,7 +221,9 @@ namespace NuGetGallery
                 await controller.CreatePackagePut();
 
                 // Assert
-                controller.MockMessageService.Verify();
+                controller.MockMessageService
+                    .Verify(ms => ms.SendPackageAddedNotice(package, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
+                    Times.Exactly(callExpected ? 1 : 0));
             }
 
             [Fact]

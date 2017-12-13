@@ -1,22 +1,10 @@
 ﻿@model OwnerRequestsListViewModel
 @{
     var requestsString = "request" + (Model.RequestItems.Count() != 1 ? "s" : "");
-
-    if (!Model.RequestItems.Any())
-    {
-        return;
-    }
 }
 
 <div class="row user-package-list">
     <div class="col-md-12">
-        <h2>
-            <a href="#" role="button" data-toggle="collapse" data-target="#requests-@Model.Name"
-               aria-expanded="true" aria-controls="requests-@Model.Name" id="show-requests-@Model.Name">
-                <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
-                <span>Pending Ownership Requests (@Model.Name)</span>
-            </a>
-        </h2>
         <div class="panel-collapse collapse in" id="requests-@Model.Name" aria-expanded="true">
             <p>
                 You have <b>@Model.RequestItems.Count().ToNuGetNumberString() @Model.Name.ToLowerInvariant() @requestsString</b>
