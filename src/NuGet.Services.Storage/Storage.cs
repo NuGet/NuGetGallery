@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -27,11 +28,11 @@ namespace NuGet.Services.Storage
             return BaseAddress.ToString();
         }
 
-        protected abstract Task OnSave(Uri resourceUri, StorageContent content, CancellationToken cancellationToken);
+        protected abstract Task OnSave(Uri resourceUri, StorageContent content, bool overwrite, CancellationToken cancellationToken);
         protected abstract Task<StorageContent> OnLoad(Uri resourceUri, CancellationToken cancellationToken);
         protected abstract Task OnDelete(Uri resourceUri, CancellationToken cancellationToken);
 
-        public async Task Save(Uri resourceUri, StorageContent content, CancellationToken cancellationToken)
+        public async Task Save(Uri resourceUri, StorageContent content, bool overwrite, CancellationToken cancellationToken)
         {
             SaveCount++;
 
@@ -39,7 +40,7 @@ namespace NuGet.Services.Storage
 
             try
             {
-                await OnSave(resourceUri, content, cancellationToken);
+                await OnSave(resourceUri, content, overwrite, cancellationToken);
             }
             catch (Exception e)
             {

@@ -54,6 +54,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Validation.I
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Validation.Issues.Tests", "tests\NuGet.Services.Validation.Issues.Tests\NuGet.Services.Validation.Issues.Tests.csproj", "{E7412F21-169C-4823-AB2C-F6EE20E6411E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Storage.Tests", "tests\NuGet.Services.Storage.Tests\NuGet.Services.Storage.Tests.csproj", "{CEFBA9D0-2B2B-4691-B661-2C8050245C92}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -144,6 +146,10 @@ Global
 		{E7412F21-169C-4823-AB2C-F6EE20E6411E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E7412F21-169C-4823-AB2C-F6EE20E6411E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E7412F21-169C-4823-AB2C-F6EE20E6411E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CEFBA9D0-2B2B-4691-B661-2C8050245C92}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CEFBA9D0-2B2B-4691-B661-2C8050245C92}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CEFBA9D0-2B2B-4691-B661-2C8050245C92}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CEFBA9D0-2B2B-4691-B661-2C8050245C92}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -170,6 +176,7 @@ Global
 		{BA1FB5F1-8F6B-4558-862B-F47C3995B06A} = {7783A106-0F4C-4055-9AB4-413FB2C7B8F0}
 		{4F497FBD-91CF-4FA5-B948-4375BEBFD2C8} = {8415FED7-1BED-4227-8B4F-BB7C24E041CD}
 		{E7412F21-169C-4823-AB2C-F6EE20E6411E} = {7783A106-0F4C-4055-9AB4-413FB2C7B8F0}
+		{CEFBA9D0-2B2B-4691-B661-2C8050245C92} = {7783A106-0F4C-4055-9AB4-413FB2C7B8F0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AA413DB0-5475-4B5D-A3AF-6323DA8D538B}

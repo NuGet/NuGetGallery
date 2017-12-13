@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -58,7 +59,7 @@ namespace NuGet.Services.Storage
 
         //  save
 
-        protected override async Task OnSave(Uri resourceUri, StorageContent content, CancellationToken cancellationToken)
+        protected override async Task OnSave(Uri resourceUri, StorageContent content, bool overwrite, CancellationToken cancellationToken)
         {
             SaveCount++;
 
@@ -91,7 +92,9 @@ namespace NuGet.Services.Storage
                 }
             }
 
-            using (FileStream stream = File.Create(path + name))
+            var fileMode = overwrite ? FileMode.Create : FileMode.CreateNew;
+
+            using (FileStream stream = new FileStream(path + name, fileMode))
             {
                 await content.GetContentStream().CopyToAsync(stream,4096, cancellationToken);
             }

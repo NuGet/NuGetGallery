@@ -34,10 +34,10 @@ namespace NuGet.Services.Storage
             BaseAddress = _primaryStorage.BaseAddress;
         }
         
-        protected override Task OnSave(Uri resourceUri, StorageContent content, CancellationToken cancellationToken)
+        protected override Task OnSave(Uri resourceUri, StorageContent content, bool overwrite, CancellationToken cancellationToken)
         {
             var tasks = new List<Task>();
-            tasks.Add(_primaryStorage.Save(resourceUri, content, cancellationToken));
+            tasks.Add(_primaryStorage.Save(resourceUri, content, overwrite, cancellationToken));
 
             foreach (var storage in _secondaryStorage)
             {
@@ -54,7 +54,7 @@ namespace NuGet.Services.Storage
                         secondaryResourceUri, content);
                 }
 
-                tasks.Add(storage.Save(secondaryResourceUri, secondaryContent, cancellationToken));
+                tasks.Add(storage.Save(secondaryResourceUri, secondaryContent, overwrite, cancellationToken));
             }
 
             return Task.WhenAll(tasks);
