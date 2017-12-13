@@ -27,7 +27,8 @@ namespace NuGetGallery
     /// An action requiring permissions on <see cref="ReservedNamespace"/>s that can be done on behalf of another <see cref="User"/>.
     /// </summary>
     /// <remarks>
-    /// These permissions use 
+    /// These permissions refer to <see cref="IReadOnlyCollection{ReservedNamespace}"/> and not a single <see cref="ReservedNamespace"/> because multiple namespaces can apply to a single ID.
+    /// E.g. "JQuery.Extensions.MyCoolExtension" matches both "JQuery.*" and "JQuery.Extensions.*".
     /// </remarks>
     public class ActionRequiringReservedNamespacePermissions
         : ActionRequiringEntityPermissions<IReadOnlyCollection<ReservedNamespace>>, IActionRequiringEntityPermissions<ActionOnNewPackageContext>
@@ -59,6 +60,7 @@ namespace NuGetGallery
                 return PermissionsCheckResult.Allowed;
             }
 
+            // Permissions on only a single namespace are required to perform the action.
             return reservedNamespaces.Any(rn => PermissionsHelpers.IsRequirementSatisfied(ReservedNamespacePermissionsRequirement, account, rn)) ?
                 PermissionsCheckResult.Allowed : PermissionsCheckResult.ReservedNamespaceFailure;
         }
