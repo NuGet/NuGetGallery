@@ -1353,6 +1353,7 @@ namespace NuGetGallery
                 Assert.IsType<ViewResult>(result);
                 var model = ((ViewResult)result).Model as DeletePackageViewModel;
                 Assert.NotNull(model);
+                Assert.False(model.IsLocked);
 
                 // Verify version select list
                 Assert.Equal(packageRegistration.Packages.Count, model.VersionSelectList.Count());
@@ -1369,6 +1370,36 @@ namespace NuGetGallery
                     Assert.Equal(valueField, selectListItem.Value);
                     Assert.Equal(textField, selectListItem.Text);
                 }
+            }
+
+            [Fact]
+            public void WhenPackageRegistrationIsLockedReturnsLockedState()
+            {
+                // Arrange
+                var user = new User("Frodo") { Key = 1 };
+                var packageRegistration = new PackageRegistration { Id = "Foo", IsLocked = true };
+                packageRegistration.Owners.Add(user);
+
+                var package = new Package
+                {
+                    Key = 2,
+                    PackageRegistration = packageRegistration,
+                    Version = "1.0.0+metadata",
+                };
+
+                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+                packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0.0", SemVerLevelKey.Unknown, true))
+                    .Returns(package);
+
+                var controller = CreateController(GetConfigurationService(), packageService: packageService);
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = controller.Delete("Foo", "1.0.0");
+
+                // Assert
+                var model = ResultAssert.IsView<DeletePackageViewModel>(result);
+                Assert.True(model.IsLocked);
             }
         }
 
@@ -1450,6 +1481,37 @@ namespace NuGetGallery
                 indexingService.Verify(i => i.UpdatePackage(package));
                 Assert.IsType<RedirectResult>(result);
                 Assert.Equal(@"~\Bar.cshtml", ((RedirectResult)result).Url);
+            }
+
+            [Fact]
+            public async Task WhenPackageRegistrationIsLockedReturns403()
+            {
+                // Arrange
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = "Foo", IsLocked = true },
+                    Version = "1.0",
+                };
+                package.PackageRegistration.Owners.Add(new User("Frodo"));
+
+                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+                packageService.Setup(svc => svc.MarkPackageListedAsync(It.IsAny<Package>(), It.IsAny<bool>()))
+                    .Throws(new Exception("Shouldn't be called"));
+                packageService.Setup(svc => svc.MarkPackageUnlistedAsync(It.IsAny<Package>(), It.IsAny<bool>()))
+                    .Throws(new Exception("Shouldn't be called"));
+                packageService.Setup(svc => svc.FindPackageByIdAndVersionStrict("Foo", "1.0"))
+                    .Returns(package);
+
+                var controller = CreateController(GetConfigurationService(), packageService: packageService);
+
+                controller.SetCurrentUser(new User("Frodo"));
+                controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
+
+                // Act
+                var result = await controller.Edit("Foo", "1.0", listed: true, urlFactory: (pkg, relativeUrl) => @"~\Bar.cshtml");
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.Forbidden);
             }
         }
 
@@ -1620,7 +1682,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task EditGet_WhenPackageIsNotFoundReturns404()
+            public async Task WhenPackageIsNotFoundReturns404()
             {
                 // Arrange
                 var user = new User("Frodo") { Key = 1 };
@@ -1641,7 +1703,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task EditGet_WhenUserHasNoPermissionsToEditPackageReturns403()
+            public async Task WhenUserHasNoPermissionsToEditPackageReturns403()
             {
                 // Arrange
                 var user = new User("Frodo") { Key = 1 };
@@ -1678,12 +1740,31 @@ namespace NuGetGallery
                 Assert.Equal((int)HttpStatusCode.Forbidden, (result as HttpStatusCodeResult).StatusCode);
             }
 
+            [Fact]
+            public async Task WhenPackageRegistrationIsLocked_ReturnsLocked()
+            {
+                // Arrange
+                var packageRegistration = new PackageRegistration { Id = "Foo", IsLocked = true };
+
+                var controller = SetupController(packageRegistration: packageRegistration);
+
+                // Act
+                var result = await controller.Edit("Foo", "1.0.0");
+
+                // Assert
+                var model = ResultAssert.IsView<EditPackageRequest>(result);
+                Assert.True(model.IsLocked);
+                Assert.Null(model.PackageVersions);
+                Assert.Null(model.VersionSelectList);
+                Assert.Null(model.Edit);
+            }
+
             private PackagesController SetupController(bool hasReadMe = false, PackageEdit packageEdit = null,
-                Mock<IPackageFileService> packageFileService = null)
+                Mock<IPackageFileService> packageFileService = null, PackageRegistration packageRegistration = null)
             {
                 var package = new Package
                 {
-                    PackageRegistration = new PackageRegistration { Id = "packageId" },
+                    PackageRegistration = packageRegistration ?? new PackageRegistration { Id = "packageId" },
                     Version = "1.0",
                     Listed = true,
                     HasReadMe = hasReadMe
@@ -1786,11 +1867,27 @@ namespace NuGetGallery
                 packageFileService.Verify(s => s.DownloadReadMeMdFileAsync(It.IsAny<Package>(), true), Times.Never);
             }
 
-            private PackagesController SetupController(bool hasReadMe = false, Mock<IPackageFileService> packageFileService = null)
+            [Fact]
+            public async Task WhenPackageRegistrationIsLockedReturns403()
+            {
+                // Arrange
+                var packageRegistration = new PackageRegistration { Id = "Foo", IsLocked = true };
+
+                var controller = SetupController(packageRegistration: packageRegistration);
+
+                // Act
+                var result = await controller.Edit("Foo", "1.0.0", new VerifyPackageRequest(), string.Empty);
+
+                // Assert
+                Assert.IsType<JsonResult>(result);
+                Assert.Equal(403, controller.Response.StatusCode);
+            }
+
+            private PackagesController SetupController(bool hasReadMe = false, Mock<IPackageFileService> packageFileService = null, PackageRegistration packageRegistration = null)
             {
                 var package = new Package
                 {
-                    PackageRegistration = new PackageRegistration { Id = "packageId" },
+                    PackageRegistration = packageRegistration ?? new PackageRegistration { Id = "packageId" },
                     Version = "1.0",
                     Listed = true,
                     HasReadMe = hasReadMe
@@ -2899,6 +2996,30 @@ namespace NuGetGallery
 
                 Assert.NotNull(result);
                 Assert.True(result.Data is VerifyPackageRequest);
+            }
+
+            [Fact]
+            public async Task WillShowViewWithErrorWhenThePackageRegistrationIsLocked()
+            {
+                // Arrange
+                var fakeUploadedFile = new Mock<HttpPostedFileBase>();
+                fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
+                var fakeFileStream = TestPackage.CreateTestPackageStream("theId", "1.0.0");
+                fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
+                var fakePackageRegistration = new PackageRegistration { Id = "theId", IsLocked = true, Owners = new[] { new User { Key = TestUtility.FakeUser.Key } } };
+                var fakePackageService = new Mock<IPackageService>();
+                fakePackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns(fakePackageRegistration);
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: fakePackageService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                // Act
+                var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
+
+                // Assert
+                Assert.IsType<JsonResult>(result);
+                Assert.Equal(403, controller.Response.StatusCode);
             }
         }
 

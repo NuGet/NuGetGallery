@@ -26,10 +26,14 @@ namespace NuGetGallery
                 },
                 ReasonChoices = reasons
             };
+
+            IsLocked = package.PackageRegistration.IsLocked;
         }
 
         public SelectList VersionSelectList { get; set; }
 
         public DeletePackagesRequest DeletePackagesRequest { get; set; }
+
+        public bool IsLocked { get; set; }
     }
 }

@@ -317,12 +317,20 @@ namespace NuGetGallery
                 }
 
                 // For existing package id verify if it is owned by the current user
-                if (packageRegistration != null && !PermissionsService.IsActionAllowed(packageRegistration, currentUser, PackageActions.UploadNewVersion))
+                if (packageRegistration != null)
                 {
-                    ModelState.AddModelError(
-                        string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id));
+                    if (!PermissionsService.IsActionAllowed(packageRegistration, currentUser, PackageActions.UploadNewVersion))
+                    {
+                        ModelState.AddModelError(
+                          string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id));
 
-                    return Json(409, new[] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id) });
+                        return Json(409, new[] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id) });
+                    }
+
+                    if (packageRegistration.IsLocked)
+                    {
+                        return Json(403, new[] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, packageRegistration.Id) });
+                    }
                 }
 
                 var nuspecVersion = nuspec.GetVersion();
@@ -1160,29 +1168,34 @@ namespace NuGetGallery
                 PackageId = package.PackageRegistration.Id,
                 PackageTitle = package.Title,
                 Version = package.NormalizedVersion,
-                PackageVersions = package.PackageRegistration.Packages
-                    .OrderByDescending(p => new NuGetVersion(p.Version), Comparer<NuGetVersion>.Create((a, b) => a.CompareTo(b)))
-                    .ToList()
+                IsLocked = package.PackageRegistration.IsLocked,
             };
 
-            // Create version selection.
-            model.VersionSelectList = new SelectList(model.PackageVersions.Select(e => new
+            if (!model.IsLocked)
             {
-                text = NuGetVersion.Parse(e.Version).ToFullString() + (e.IsLatestSemVer2 ? " (Latest)" : string.Empty),
-                url = UrlExtensions.EditPackage(Url, model.PackageId, e.NormalizedVersion)
-            }), "url", "text", UrlExtensions.EditPackage(Url, model.PackageId, model.Version));
+                model.PackageVersions = package.PackageRegistration.Packages
+                      .OrderByDescending(p => new NuGetVersion(p.Version), Comparer<NuGetVersion>.Create((a, b) => a.CompareTo(b)))
+                      .ToList();
 
-            // Create edit model from the latest pending edit.
-            var pendingMetadata = _editPackageService.GetPendingMetadata(package);
+                // Create version selection.
+                model.VersionSelectList = new SelectList(model.PackageVersions.Select(e => new
+                {
+                    text = NuGetVersion.Parse(e.Version).ToFullString() + (e.IsLatestSemVer2 ? " (Latest)" : string.Empty),
+                    url = UrlExtensions.EditPackage(Url, model.PackageId, e.NormalizedVersion)
+                }), "url", "text", UrlExtensions.EditPackage(Url, model.PackageId, model.Version));
 
-            model.Edit = new EditPackageVersionReadMeRequest(pendingMetadata);
+                // Create edit model from the latest pending edit.
+                var pendingMetadata = _editPackageService.GetPendingMetadata(package);
 
-            // Update edit model with the active or pending readme.md data.
-            var isReadMePending = model.Edit.ReadMeState != PackageEditReadMeState.Unchanged;
-            if (package.HasReadMe || isReadMePending)
-            {
-                model.Edit.ReadMe.SourceType = ReadMeService.TypeWritten;
-                model.Edit.ReadMe.SourceText = await _readMeService.GetReadMeMdAsync(package, isReadMePending);
+                model.Edit = new EditPackageVersionReadMeRequest(pendingMetadata);
+
+                // Update edit model with the active or pending readme.md data.
+                var isReadMePending = model.Edit.ReadMeState != PackageEditReadMeState.Unchanged;
+                if (package.HasReadMe || isReadMePending)
+                {
+                    model.Edit.ReadMe.SourceType = ReadMeService.TypeWritten;
+                    model.Edit.ReadMe.SourceText = await _readMeService.GetReadMeMdAsync(package, isReadMePending);
+                }
             }
 
             return View(model);
@@ -1204,6 +1217,11 @@ namespace NuGetGallery
             if (!PermissionsService.IsActionAllowed(package, User, PackageActions.Edit))
             {
                 return Json(403, new[] { Strings.Unauthorized });
+            }
+
+            if (package.PackageRegistration.IsLocked)
+            {
+                return Json(403, new[] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, package.PackageRegistration.Id) });
             }
 
             if (!ModelState.IsValid)
@@ -1455,9 +1473,15 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
+
             if (!PermissionsService.IsActionAllowed(package, User, PackageActions.Edit))
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
+            }
+
+            if (package.PackageRegistration.IsLocked)
+            {
+                return new HttpStatusCodeResult(403, string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, package.PackageRegistration.Id));
             }
 
             string action;

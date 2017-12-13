@@ -16,5 +16,6 @@ namespace NuGetGallery
         public string PackageTitle { get; set; }
         public string Version { get; set; }
         public IList<Package> PackageVersions { get; set; }
+        public bool IsLocked { get; set; }
     }
 }
