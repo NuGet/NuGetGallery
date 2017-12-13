@@ -439,6 +439,13 @@ namespace NuGetGallery
                                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Unauthorized, Strings.ApiKeyNotAuthorized);
                             }
 
+                            if (packageRegistration.IsLocked)
+                            {
+                                return new HttpStatusCodeWithBodyResult(
+                                    HttpStatusCode.Forbidden,
+                                    string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, packageRegistration.Id));
+                            }
+
                             // Check if a particular Id-Version combination already exists. We eventually need to remove this check.
                             string normalizedVersion = nuspec.GetVersion().ToNormalizedString();
                             bool packageExists =
@@ -564,6 +571,13 @@ namespace NuGetGallery
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
             }
 
+            if (package.PackageRegistration.IsLocked)
+            {
+                return new HttpStatusCodeWithBodyResult(
+                    HttpStatusCode.Forbidden,
+                    string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, package.PackageRegistration.Id));
+            }
+
             await PackageService.MarkPackageUnlistedAsync(package);
             IndexingService.UpdatePackage(package);
             return new EmptyResult();
@@ -587,6 +601,13 @@ namespace NuGetGallery
             if (!HasAnyScopeThatAllows(package.PackageRegistration, NuGetScopes.PackageUnlist))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
+            }
+
+            if (package.PackageRegistration.IsLocked)
+            {
+                return new HttpStatusCodeWithBodyResult(
+                    HttpStatusCode.Forbidden,
+                    string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, package.PackageRegistration.Id));
             }
 
             await PackageService.MarkPackageListedAsync(package);
