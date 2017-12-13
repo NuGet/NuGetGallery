@@ -66,19 +66,5 @@ namespace NuGetGallery.Auditing
 
             Assert.Equal("all", actualResult);
         }
-
-        //[Fact]
-        //public void ObfuscationIsIgnored()
-        //{
-        //    // Arrange
-        //    var record = new FailedAuthenticatedOperationAuditRecord(
-        //        usernameOrEmail: null,
-        //        action: AuditedAuthenticatedOperationAction.FailedLoginNoSuchUser,
-        //        attemptedPackage: null,
-        //        attemptedCredential: null);
-
-        //    // Act + Assert
-        //    Assert.Equal(record, record.Obfuscate());
-        //}
     }
 }

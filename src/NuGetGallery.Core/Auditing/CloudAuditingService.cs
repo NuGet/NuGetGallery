@@ -9,9 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Blob.Protocol;
-
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 
 namespace NuGetGallery.Auditing
 {
@@ -40,7 +38,7 @@ namespace NuGetGallery.Auditing
             _localIP = localIP;
             _auditContainer = auditContainer;
             _getOnBehalfOf = getOnBehalfOf;
-            _cloudAuditingServiceSerializationSettings = GetJsonSettings();
+            _cloudAuditingServiceSerializationSettings = GetCurrentJsonSerializerSettings();
         }
 
         protected override async Task<AuditActor> GetActorAsync()
@@ -50,8 +48,7 @@ namespace NuGetGallery.Auditing
             if(_getOnBehalfOf != null) {
                 onBehalfOf = await _getOnBehalfOf();
             }
-            var actor = await AuditActor.GetCurrentMachineActorAsync(onBehalfOf);
-            return actor;
+            return await AuditActor.GetCurrentMachineActorAsync(onBehalfOf);
         }
 
         protected override async Task SaveAuditRecordAsync(string auditData, string resourceType, string filePath, string action, DateTime timestamp)
@@ -134,7 +131,7 @@ namespace NuGetGallery.Auditing
             }
         }
 
-        private static JsonSerializerSettings GetJsonSettings()
+        private static JsonSerializerSettings GetCurrentJsonSerializerSettings()
         {
             var settings = GetJsonSerializerSettings();
             settings.Converters.Add(new AuditActorObfuscator());

@@ -109,21 +109,6 @@ namespace NuGetGallery.Auditing
                 onBehalfOf);
         }
 
-        public static AuditActor Obfuscate(AuditActor actor)
-        {
-            if(actor == null )
-            {
-                return null;
-            }
-            return new AuditActor(actor.MachineName,
-                Obfuscator.ObfuscateIp(actor.MachineIP),
-                Obfuscator.ObfuscatedUserName,
-                actor.AuthenticationType,
-                actor.CredentialKey,
-                actor.TimestampUtc,
-                Obfuscate(actor.OnBehalfOf));
-        }
-
         public static async Task<string> GetLocalIpAddressAsync()
         {
             string ipAddress = null;
@@ -144,6 +129,5 @@ namespace NuGetGallery.Auditing
         {
             return addrs.Where(a => a.AddressFamily == family).Select(a => a.ToString()).FirstOrDefault();
         }
-
     }
 }
