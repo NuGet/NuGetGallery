@@ -102,6 +102,17 @@ namespace NuGetGallery
                 Assert.Equal(expectedHtml, StripNewLines(ReadMeService.GetReadMeHtml(originalMd)));
             }
 
+            [Fact]
+            public async Task WhenReadMeDoesNotExistReturnsNull()
+            {
+                // Arrange
+                var readMeService = new ReadMeService(new Mock<IPackageFileService>().Object);
+                var package = new Package() { HasReadMe = false };
+
+                // Act & Assert
+                Assert.Null(await readMeService.GetReadMeHtmlAsync(package, isPending: false));
+            }
+
             private static string StripNewLines(string text)
             {
                 return text.Replace("\r\n", "").Replace("\n", "");

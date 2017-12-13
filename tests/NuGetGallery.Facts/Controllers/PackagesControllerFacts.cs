@@ -568,7 +568,7 @@ namespace NuGetGallery
                 Assert.Equal("Foo", model.Id);
                 Assert.Equal("1.1.1", model.Version);
                 Assert.Equal("A test package!", model.Title);
-                Assert.Equal("", model.ReadMeHtml);
+                Assert.Null(model.ReadMeHtml);
             }
 
             [Fact]
@@ -602,25 +602,25 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WhenHasReadMeAndFileNotFound_ReturnsEmptyString()
+            public async Task WhenHasReadMeAndFileNotFound_ReturnsNull()
             {
                 // Arrange & Act
                 var result = await GetDisplayPackageResult(null, true);
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
-                Assert.Equal("", model.ReadMeHtml);
+                Assert.Null(model.ReadMeHtml);
             }
 
             [Fact]
-            public async Task WhenHasReadMeFalse_ReturnsEmptyString()
+            public async Task WhenHasReadMeFalse_ReturnsNull()
             {
                 // Arrange and Act
                 var result = await GetDisplayPackageResult(null, false);
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
-                Assert.Equal("", model.ReadMeHtml);
+                Assert.Null(model.ReadMeHtml);
             }
 
             private async Task<ActionResult> GetDisplayPackageResult(string readMeHtml, bool hasReadMe)
