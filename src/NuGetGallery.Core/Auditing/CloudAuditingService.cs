@@ -10,6 +10,9 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Blob.Protocol;
 
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+
 namespace NuGetGallery.Auditing
 {
     /// <summary>
@@ -19,21 +22,12 @@ namespace NuGetGallery.Auditing
     {
         public static readonly string DefaultContainerName = "auditing";
         internal static readonly HashSet<string> cloudAuditPersistedTypes = new HashSet<string>() { "package" };
+        private JsonSerializerSettings _cloudAuditingServiceSerializationSettings;
 
         private CloudBlobContainer _auditContainer;
         private string _instanceId;
         private string _localIP;
         private Func<Task<AuditActor>> _getOnBehalfOf;
-
-        /// <summary>
-        /// To be used for testing only.
-        /// </summary>
-        public CloudAuditingService(string instanceId, string localIP, Func<Task<AuditActor>> getOnBehalfOf)
-        {
-            _instanceId = instanceId ?? throw new ArgumentNullException(nameof(instanceId));
-            _localIP = localIP ?? throw new ArgumentNullException(nameof(localIP));
-            _getOnBehalfOf = getOnBehalfOf ?? throw new ArgumentNullException(nameof(getOnBehalfOf));
-        }
 
         public CloudAuditingService(string instanceId, string localIP, string storageConnectionString, Func<Task<AuditActor>> getOnBehalfOf)
             : this(instanceId, localIP, GetContainer(storageConnectionString), getOnBehalfOf)
@@ -46,6 +40,7 @@ namespace NuGetGallery.Auditing
             _localIP = localIP;
             _auditContainer = auditContainer;
             _getOnBehalfOf = getOnBehalfOf;
+            _cloudAuditingServiceSerializationSettings = GetJsonSettings();
         }
 
         protected override async Task<AuditActor> GetActorAsync()
@@ -56,12 +51,7 @@ namespace NuGetGallery.Auditing
                 onBehalfOf = await _getOnBehalfOf();
             }
             var actor = await AuditActor.GetCurrentMachineActorAsync(onBehalfOf);
-            return AuditActor.Obfuscate(actor);
-        }
-
-        protected override AuditRecord PrepareTheRecordForPersistence(AuditRecord record)
-        {
-            return record.Obfuscate();
+            return actor;
         }
 
         protected override async Task SaveAuditRecordAsync(string auditData, string resourceType, string filePath, string action, DateTime timestamp)
@@ -144,9 +134,27 @@ namespace NuGetGallery.Auditing
             }
         }
 
+        private static JsonSerializerSettings GetJsonSettings()
+        {
+            var settings = GetJsonSerializerSettings();
+            settings.Converters.Add(new AuditActorObfuscator());
+            settings.Converters.Add(new PackageAuditRecordObfuscator());
+            return settings;
+        }
+
         public Task<bool> IsAvailableAsync()
         {
             return _auditContainer.ExistsAsync();
+        }
+
+        public override string RenderAuditEntry(AuditEntry entry)
+        {
+            if (entry == null)
+            {
+                throw new ArgumentNullException(nameof(entry));
+            }
+
+            return JsonConvert.SerializeObject(entry, _cloudAuditingServiceSerializationSettings);
         }
     }
 }

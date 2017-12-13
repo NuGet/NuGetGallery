@@ -93,16 +93,5 @@ namespace NuGetGallery.Auditing
             // Assert.
             Assert.Equal("d", record.GetPath());
         }
-
-        [Fact]
-        public void ObfuscationIsIgnored()
-        {
-            // Arrange
-            var record = new UserSecurityPolicyAuditRecord("D",
-               AuditedSecurityPolicyAction.Verify, Policies, success: true);
-
-            // Act + Assert
-            Assert.Equal(record, record.Obfuscate());
-        }
     }
 }

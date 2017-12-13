@@ -17,15 +17,6 @@ namespace NuGetGallery.Auditing
             return _resourceType ?? (_resourceType = InferResourceType());
         }
 
-        /// <summary>
-        /// On override it will obfuscate the record.
-        /// </summary>
-        /// <returns>On override a new record that will have certain fields obfuscated. Default the current record.</returns>
-        public virtual AuditRecord Obfuscate()
-        {
-            return this;
-        }
-
         private string InferResourceType()
         {
             string type = GetType().Name;

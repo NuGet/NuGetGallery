@@ -2,8 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Net;
-using System.Threading.Tasks;
+using Microsoft.WindowsAzure.Storage.Blob;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace NuGetGallery.Auditing
@@ -14,74 +15,38 @@ namespace NuGetGallery.Auditing
         public void CloudAuditServiceObfuscateAuditRecord()
         {
             // Arrange
-            var service = new CloudAuditingServiceTest("", "", AuditActor.GetCurrentMachineActorAsync);
-            var auditRecord = new CloudAuditRecordTest("action", "path");
+            CloudBlobContainer nullBlobContainer = null;
+            var service = new CloudAuditingService("id", "1.1.1.1", nullBlobContainer, AuditActor.GetCurrentMachineActorAsync);
+
+            AuditActor onBehalfOf = new AuditActor("machineName", "3.3.3.3", "userName1", "NoAuthentication", "someKey", DateTime.Now, null);
+            AuditActor auditActor = new AuditActor("machineName", "2.2.2.2", "userName1", "NoAuthentication", "someKey", DateTime.Now, onBehalfOf);
+
+            Package p = new Package()
+            {
+                User = new User("userName"),
+                UserKey = 1,
+                PackageRegistration = new PackageRegistration()
+                {
+                    Id = "regId"
+                }
+            };
+            PackageAuditRecord packageAuditRecord = new PackageAuditRecord(p, AuditedPackageAction.Create);
 
             // Act 
-            var auditRecordToBePersisted = service.GetCloudAuditRecord(auditRecord);
+            var auditEntry = service.RenderAuditEntry(new AuditEntry(packageAuditRecord, auditActor));
 
             // Assert
-            Assert.Equal<string>("action_obfuscated", auditRecordToBePersisted.GetAction());
-            Assert.Equal<string>("path_obfuscated", auditRecordToBePersisted.GetPath());
-        }
+            var entry = (JObject)JsonConvert.DeserializeObject(auditEntry);
 
-        [Fact]
-        public async Task CloudAuditServiceObfuscateAuditActor()
-        {
-            // Arrange
-            var actor = await AuditActor.GetCurrentMachineActorAsync();
-            var service = new CloudAuditingServiceTest("", "", () => Task.FromResult(actor));
+            var record = entry["Record"];
+            var actor = entry["Actor"];
 
-            // Act 
-            var auditActorToBePersisted = await service.GetCloudAuditActorAsync();
-
-            // Assert
-            Assert.Equal<string>("ObfuscatedUserName", auditActorToBePersisted.UserName);
-            // The ObfuscateIp method is unit-tested individually.
-            Assert.Equal(Obfuscator.ObfuscateIp(actor.MachineIP), auditActorToBePersisted.MachineIP);
-        }
-
-        public class CloudAuditingServiceTest : CloudAuditingService
-        {
-            public CloudAuditingServiceTest(string instanceId, string localIP, Func<Task<AuditActor>> getOnBehalfOf) : base (instanceId, localIP, getOnBehalfOf)
-            {
-            }
-
-            public async Task<AuditActor> GetCloudAuditActorAsync()
-            {
-                return await GetActorAsync();
-            }
-
-            public AuditRecord GetCloudAuditRecord(AuditRecord record)
-            {
-                return PrepareTheRecordForPersistence(record);
-            }
-        }
-
-        public class CloudAuditRecordTest : AuditRecord
-        {
-            string _action;
-            string _path;
-
-            public CloudAuditRecordTest(string action, string path)
-            {
-                _action = action;
-                _path = path;
-            }
-            public override string GetAction()
-            {
-                return _action;
-            }
-
-            public override string GetPath()
-            {
-                return _path;
-            }
-
-            public override AuditRecord Obfuscate()
-            {
-                return new CloudAuditRecordTest($"{_action}_obfuscated", $"{_path}_obfuscated");
-            }
+            Assert.Equal<string>("-1", record["PackageRecord"]["UserKey"].ToString());
+            Assert.Equal<string>(string.Empty, record["PackageRecord"]["FlattenedAuthors"].ToString());
+            Assert.Equal<string>("ObfuscatedUserName", actor["UserName"].ToString());
+            Assert.Equal<string>("2.2.2.0", actor["MachineIP"].ToString());
+            Assert.Equal<string>("ObfuscatedUserName", actor["OnBehalfOf"]["UserName"].ToString());
+            Assert.Equal<string>("3.3.3.0", actor["OnBehalfOf"]["MachineIP"].ToString());
         }
     }
 }

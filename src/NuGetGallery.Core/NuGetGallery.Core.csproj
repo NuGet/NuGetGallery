@@ -125,6 +125,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Auditing\AggregateAuditingService.cs" />
+    <Compile Include="Auditing\PackageAuditRecordObfuscator.cs" />
     <Compile Include="Auditing\AuditedEntities\AuditedPackage.cs" />
     <Compile Include="Auditing\AuditedEntities\AuditedPackageIdentifier.cs" />
     <Compile Include="Auditing\AuditedAuthenticatedOperationAction.cs" />
@@ -137,6 +138,7 @@
     <Compile Include="Auditing\AuditingService.cs" />
     <Compile Include="Auditing\AuditRecord.cs" />
     <Compile Include="Auditing\FailedAuthenticatedOperationAuditRecord.cs" />
+    <Compile Include="Auditing\AuditActorObfuscator.cs" />
     <Compile Include="Auditing\Obfuscator.cs" />
     <Compile Include="Auditing\ReservedNamespaceAuditRecord.cs" />
     <Compile Include="Auditing\UserSecurityPolicyAuditRecord.cs" />

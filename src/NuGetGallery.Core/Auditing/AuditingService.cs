@@ -22,18 +22,7 @@ namespace NuGetGallery.Auditing
 
         static AuditingService()
         {
-            var settings = new JsonSerializerSettings
-            {
-                DateFormatHandling = DateFormatHandling.IsoDateFormat,
-                DateTimeZoneHandling = DateTimeZoneHandling.Utc,
-                DefaultValueHandling = DefaultValueHandling.Include,
-                Formatting = Formatting.Indented,
-                MaxDepth = 10,
-                MissingMemberHandling = MissingMemberHandling.Ignore,
-                NullValueHandling = NullValueHandling.Include,
-                TypeNameHandling = TypeNameHandling.None
-            };
-            settings.Converters.Add(new StringEnumConverter());
+            var settings = GetJsonSerializerSettings();
             AuditRecordSerializerSettings = settings;
         }
 
@@ -50,11 +39,10 @@ namespace NuGetGallery.Auditing
                 throw new ArgumentNullException(nameof(record));
             }
 
-            var persistedRecord = PrepareTheRecordForPersistence(record);
-            var entry = new AuditEntry(persistedRecord, await GetActorAsync());
+            var entry = new AuditEntry(record, await GetActorAsync());
             var rendered = RenderAuditEntry(entry);
 
-            await SaveAuditRecordAsync(rendered, persistedRecord.GetResourceType(), persistedRecord.GetPath(), persistedRecord.GetAction(), entry.Actor.TimestampUtc);
+            await SaveAuditRecordAsync(rendered, record.GetResourceType(), record.GetPath(), record.GetAction(), entry.Actor.TimestampUtc);
         }
 
         /// <summary>
@@ -89,14 +77,21 @@ namespace NuGetGallery.Auditing
             return AuditActor.GetCurrentMachineActorAsync();
         }
 
-        /// <summary>
-        /// Used for cases when the AuditService needs to do more processing of the audit record before saving the data to the storage.
-        /// </summary>
-        /// <param name="record">The current record.</param>
-        /// <returns>The record to be saved.</returns>
-        protected virtual AuditRecord PrepareTheRecordForPersistence(AuditRecord record)
+        protected static JsonSerializerSettings GetJsonSerializerSettings()
         {
-            return record;
+            var settings = new JsonSerializerSettings
+            {
+                DateFormatHandling = DateFormatHandling.IsoDateFormat,
+                DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+                DefaultValueHandling = DefaultValueHandling.Include,
+                Formatting = Formatting.Indented,
+                MaxDepth = 10,
+                MissingMemberHandling = MissingMemberHandling.Ignore,
+                NullValueHandling = NullValueHandling.Include,
+                TypeNameHandling = TypeNameHandling.None
+            };
+            settings.Converters.Add(new StringEnumConverter());
+            return settings;
         }
 
         private class NullAuditingService : AuditingService

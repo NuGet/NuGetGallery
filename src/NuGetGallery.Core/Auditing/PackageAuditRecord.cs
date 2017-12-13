@@ -71,11 +71,5 @@ namespace NuGetGallery.Auditing
             return $"{Id}/{NuGetVersionFormatter.Normalize(Version)}"
                 .ToLowerInvariant();
         }
-
-        public override AuditRecord Obfuscate()
-        {
-            var obfuscatedAuditedPackage = AuditedPackage.CreateObfuscatedAuditPackage(PackageRecord);
-            return new PackageAuditRecord(Id, Version, Hash, obfuscatedAuditedPackage, RegistrationRecord, Action, Reason );
-        }
     }
 }
