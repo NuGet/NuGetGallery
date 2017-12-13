@@ -263,7 +263,7 @@
 
             @if (!Model.Deleted)
             {
-                if (!string.IsNullOrEmpty(Model.ReadMeHtml))
+                if (Model.ReadMeHtml != null)
                 {
                     <div id="readme-collapser-container">
                         <h2>

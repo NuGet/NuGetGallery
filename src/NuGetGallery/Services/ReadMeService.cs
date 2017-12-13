@@ -86,7 +86,7 @@ namespace NuGetGallery
         {
             var readMeMd = await GetReadMeMdAsync(package, isPending);
             return string.IsNullOrEmpty(readMeMd) ?
-                string.Empty :
+                readMeMd :
                 GetReadMeHtml(readMeMd);
         }
 
