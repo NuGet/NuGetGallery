@@ -11,13 +11,18 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web;
 using NuGetGallery.Authentication;
+using NuGetGallery.Auditing.Obfuscation;
 
 namespace NuGetGallery.Auditing
 {
     public class AuditActor
     {
         public string MachineName { get; set; }
+
+        [Obfuscate(ObfuscationType.IP)]
         public string MachineIP { get; set; }
+
+        [Obfuscate(ObfuscationType.UserName)]
         public string UserName { get; set; }
         public string AuthenticationType { get; set; }
         public string CredentialKey { get; set; }
@@ -65,10 +70,7 @@ namespace NuGetGallery.Auditing
                 clientIpAddress = context.Request.UserHostAddress;
             }
 
-            if (!string.IsNullOrEmpty(clientIpAddress) && clientIpAddress.IndexOf(".", StringComparison.Ordinal) > 0)
-            {
-                clientIpAddress = clientIpAddress.Substring(0, clientIpAddress.LastIndexOf(".", StringComparison.Ordinal)) + ".0";
-            }
+            clientIpAddress = Obfuscator.ObfuscateIp(clientIpAddress);
 
             string user = null;
             string authType = null;

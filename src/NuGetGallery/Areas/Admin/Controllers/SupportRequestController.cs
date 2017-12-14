@@ -231,7 +231,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
             var skip = (pageNumber - 1) * take;
             var galleryUsername = GetLoggedInUser();
-            var issues = _supportRequestService.GetIssues(assignedTo, reason, issueStatusId, galleryUsername);
+            var issues = _supportRequestService.GetIssues(assignedTo, reason, issueStatusId, galleryUsername).Where(i => i.CreatedBy != null);
             IEnumerable<Issue> pagedIssues = issues;
 
             if (skip > 0)

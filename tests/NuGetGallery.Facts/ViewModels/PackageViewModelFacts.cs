@@ -1,7 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System;
 using Xunit;
 
 namespace NuGetGallery.ViewModels
@@ -98,109 +98,46 @@ namespace NuGetGallery.ViewModels
         }
 
         [Theory]
-        [InlineData(null)]
-        [InlineData("")]
-        public void HasSemVer2DependencyIsFalseWhenInvalidDependencyVersionRange(string versionSpec)
+        [InlineData(PackageStatus.Available, true, PackageStatusSummary.Listed)]
+        [InlineData(PackageStatus.Available, false, PackageStatusSummary.Unlisted)]
+        [InlineData(PackageStatus.Deleted, true, PackageStatusSummary.None)]
+        [InlineData(PackageStatus.Deleted, false, PackageStatusSummary.None)]
+        [InlineData(PackageStatus.FailedValidation, true, PackageStatusSummary.FailedValidation)]
+        [InlineData(PackageStatus.FailedValidation, false, PackageStatusSummary.FailedValidation)]
+        [InlineData(PackageStatus.Validating, true, PackageStatusSummary.Validating)]
+        [InlineData(PackageStatus.Validating, false, PackageStatusSummary.Validating)]
+        public void PackageStatusSummaryIsCorrect(PackageStatus packageStatus, bool isListed, PackageStatusSummary expected)
         {
             // Arrange
             var package = new Package
             {
                 Version = "1.0.0",
-                Dependencies = new List<PackageDependency>
-                {
-                    new PackageDependency { VersionSpec = versionSpec}
-                }
+                PackageStatusKey = packageStatus,
+                Listed = isListed
             };
 
-            // Act
-            var viewModel = new PackageViewModel(package);
+            // Act 
+            var packageViewModel = new PackageViewModel(package);
 
             // Assert
-            Assert.False(viewModel.HasSemVer2Dependency);
+            Assert.Equal(expected, packageViewModel.PackageStatusSummary);
         }
 
-        [Theory]
-        [InlineData("2.0.0-alpha.1")]
-        [InlineData("2.0.0+metadata")]
-        [InlineData("2.0.0-alpha+metadata")]
-        public void HasSemVer2DependencyWhenSemVer2DependencyVersionSpec(string versionSpec)
+        [Fact]
+        public void PackageStatusSummaryThrowsForUnexpectedPackageStatus()
         {
             // Arrange
             var package = new Package
             {
                 Version = "1.0.0",
-                Dependencies = new List<PackageDependency>
-                {
-                    new PackageDependency { VersionSpec = versionSpec}
-                }
+                PackageStatusKey = (PackageStatus)4,
             };
 
-            // Act
-            var viewModel = new PackageViewModel(package);
+            // Act 
+            var packageViewModel = new PackageViewModel(package);
 
             // Assert
-            Assert.True(viewModel.HasSemVer2Dependency);
-        }
-
-        [Theory]
-        [InlineData("2.0.0-alpha")]
-        [InlineData("2.0.0")]
-        [InlineData("2.0.0.0")]
-        public void HasSemVer2DependencyIsFalseWhenNonSemVer2DependencyVersionSpec(string versionSpec)
-        {
-            // Arrange
-            var package = new Package
-            {
-                Version = "1.0.0",
-                Dependencies = new List<PackageDependency>
-                {
-                    new PackageDependency { VersionSpec = versionSpec}
-                }
-            };
-
-            // Act
-            var viewModel = new PackageViewModel(package);
-
-            // Assert
-            Assert.False(viewModel.HasSemVer2Dependency);
-        }
-        
-        [Theory]
-        [InlineData("2.0.0-alpha")]
-        [InlineData("2.0.0")]
-        [InlineData("2.0.0.0")]
-        public void HasSemVer2VersionIsFalseWhenNonSemVer2Version(string version)
-        {
-            // Arrange
-            var package = new Package
-            {
-                Version = version
-            };
-
-            // Act
-            var viewModel = new PackageViewModel(package);
-
-            // Assert
-            Assert.False(viewModel.HasSemVer2Version);
-        }
-
-        [Theory]
-        [InlineData("2.0.0-alpha.1")]
-        [InlineData("2.0.0+metadata")]
-        [InlineData("2.0.0-alpha+metadata")]
-        public void HasSemVer2VersionIsTrueWhenSemVer2Version(string version)
-        {
-            // Arrange
-            var package = new Package
-            {
-                Version = version
-            };
-
-            // Act
-            var viewModel = new PackageViewModel(package);
-
-            // Assert
-            Assert.True(viewModel.HasSemVer2Version);
+            Assert.Throws<ArgumentOutOfRangeException>(() => packageViewModel.PackageStatusSummary);
         }
     }
 }

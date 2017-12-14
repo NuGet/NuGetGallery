@@ -2,11 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Net.Mail;
+using NuGetGallery.Services;
 
 namespace NuGetGallery.Configuration
 {
-    public interface IAppConfiguration
+    public interface IAppConfiguration : ICoreMessageServiceConfiguration
     {
         /// <summary>
         /// Gets the location in which the Lucene Index is stored
@@ -132,16 +132,6 @@ namespace NuGetGallery.Configuration
         /// Gets the site brand name i.e. 'NuGet Gallery' by default. Cobranding feature.
         /// </summary>
         string Brand { get; set; }
-
-        /// <summary>
-        /// Gets the gallery owner name and email address
-        /// </summary>
-        MailAddress GalleryOwner { get; set; }
-
-        /// <summary>
-        /// Gets the gallery e-mail from name and email address
-        /// </summary>
-        MailAddress GalleryNoReplyAddress { get; set; }
 
         /// <summary>
         /// Gets the storage mechanism used by this instance of the gallery

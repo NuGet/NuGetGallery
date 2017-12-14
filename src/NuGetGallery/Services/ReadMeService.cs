@@ -86,7 +86,7 @@ namespace NuGetGallery
         {
             var readMeMd = await GetReadMeMdAsync(package, isPending);
             return string.IsNullOrEmpty(readMeMd) ?
-                string.Empty :
+                readMeMd :
                 GetReadMeHtml(readMeMd);
         }
 
@@ -112,7 +112,7 @@ namespace NuGetGallery
         /// <param name="package">Package entity associated with the ReadMe.</param>
         /// <param name="edit">Package edit entity.</param>
         /// <returns>True if a ReadMe is pending, false otherwise.</returns>
-        public async Task<bool> SavePendingReadMeMdIfChanged(Package package, EditPackageVersionRequest edit, Encoding encoding)
+        public async Task<bool> SavePendingReadMeMdIfChanged(Package package, EditPackageVersionReadMeRequest edit, Encoding encoding)
         {
             var activeReadMe = package.HasReadMe ?
                 NormalizeNewLines(await GetReadMeMdAsync(package)) :

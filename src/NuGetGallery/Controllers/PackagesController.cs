@@ -1146,23 +1146,21 @@ namespace NuGetGallery
             var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
-                return Json(404, new[] { string.Format(Strings.PackageWithIdAndVersionNotFound, id, version) });
+                return HttpNotFound();
             }
 
             if (!PermissionsService.IsActionAllowed(package, User, PackageActions.Edit))
             {
-                return Json(403, new[] { Strings.Unauthorized });
+                return new HttpStatusCodeResult(HttpStatusCode.Forbidden, Strings.Unauthorized);
             }
 
             // Create model from the package.
-            var packageRegistration = _packageService.FindPackageRegistrationById(id);
-
             var model = new EditPackageRequest
             {
                 PackageId = package.PackageRegistration.Id,
                 PackageTitle = package.Title,
                 Version = package.NormalizedVersion,
-                PackageVersions = packageRegistration.Packages
+                PackageVersions = package.PackageRegistration.Packages
                     .OrderByDescending(p => new NuGetVersion(p.Version), Comparer<NuGetVersion>.Create((a, b) => a.CompareTo(b)))
                     .ToList()
             };
@@ -1177,7 +1175,7 @@ namespace NuGetGallery
             // Create edit model from the latest pending edit.
             var pendingMetadata = _editPackageService.GetPendingMetadata(package);
 
-            model.Edit = new EditPackageVersionRequest(package, pendingMetadata);
+            model.Edit = new EditPackageVersionReadMeRequest(pendingMetadata);
 
             // Update edit model with the active or pending readme.md data.
             var isReadMePending = model.Edit.ReadMeState != PackageEditReadMeState.Unchanged;
@@ -1231,9 +1229,8 @@ namespace NuGetGallery
                     await _entitiesContext.SaveChangesAsync();
 
                     // Add an auditing record for the package edit. HasReadMe flag is updated in DB by background job.
-                    var packageWithEditsApplied = formData.Edit.ApplyTo(package);
-                    packageWithEditsApplied.HasReadMe = hasReadMe;
-                    await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(packageWithEditsApplied, AuditedPackageAction.Edit));
+                    package.HasReadMe = hasReadMe;
+                    await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(package, AuditedPackageAction.Edit));
                 }
                 catch (EntityException ex)
                 {
@@ -1568,19 +1565,6 @@ namespace NuGetGallery
                         pendEdit = true;
                         _telemetryService.TrackPackageReadMeChangeEvent(package, formData.Edit.ReadMe.SourceType, formData.Edit.ReadMeState);
                     }
-                    
-                    pendEdit = pendEdit || formData.Edit.RequiresLicenseAcceptance != packageMetadata.RequireLicenseAcceptance;
-
-                    pendEdit = pendEdit || IsDifferent(formData.Edit.IconUrl, packageMetadata.IconUrl.ToEncodedUrlStringOrNull());
-                    pendEdit = pendEdit || IsDifferent(formData.Edit.ProjectUrl, packageMetadata.ProjectUrl.ToEncodedUrlStringOrNull());
-
-                    pendEdit = pendEdit || IsDifferent(formData.Edit.Authors, packageMetadata.Authors.Flatten());
-                    pendEdit = pendEdit || IsDifferent(formData.Edit.Copyright, packageMetadata.Copyright);
-                    pendEdit = pendEdit || IsDifferent(formData.Edit.Description, packageMetadata.Description);
-                    pendEdit = pendEdit || IsDifferent(formData.Edit.ReleaseNotes, packageMetadata.ReleaseNotes);
-                    pendEdit = pendEdit || IsDifferent(formData.Edit.Summary, packageMetadata.Summary);
-                    pendEdit = pendEdit || IsDifferent(formData.Edit.Tags, PackageHelper.ParseTags(packageMetadata.Tags));
-                    pendEdit = pendEdit || IsDifferent(formData.Edit.VersionTitle, packageMetadata.Title);
                 }
 
                 await _packageService.PublishPackageAsync(package, commitChanges: false);
@@ -1630,11 +1614,14 @@ namespace NuGetGallery
                 await _auditingService.SaveAuditRecordAsync(
                     new PackageAuditRecord(package, AuditedPackageAction.Create, PackageCreatedVia.Web));
 
-                // notify user
-                _messageService.SendPackageUploadedNotice(package,
-                    Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
-                    Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
-                    Url.AccountSettings(relativeUrl: false));
+                if (!(_config.AsynchronousPackageValidationEnabled && _config.BlockingAsynchronousPackageValidationEnabled))
+                {
+                    // notify user unless async validation in blocking mode is used
+                    _messageService.SendPackageAddedNotice(package,
+                        Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                        Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                        Url.AccountSettings(relativeUrl: false));
+                }
             }
 
             // delete the uploaded binary in the Uploads container

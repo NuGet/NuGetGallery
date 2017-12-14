@@ -6,6 +6,12 @@
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
+<script type="text/html" id="validation-errors">
+    <div data-bind="foreach:$data" class="validation-error-message-list">
+        @ViewHelpers.AlertDanger(@<text><span data-bind="text:$data"></span></text>)
+    </div>
+</script>
+
 <section role="main" class="container main-container page-edit-package">
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
@@ -64,27 +70,28 @@
 
 @section BottomScripts {
     @Scripts.Render("~/Scripts/gallery/page-edit-readme.js")
-    @Scripts.Render("~/Scripts/gallery/page-edit.js")
     <script>
         $(function () {
-        var viewModel = @Html.Raw(Json.Encode(Model.Edit));
-        var realModel = {
-            "Id": '@Model.PackageId',
-            "Version": '@Model.Version',
-            "Edit": viewModel
-        };
-        EditViewManager.init(realModel,
-            '@Url.EditPackage(Model.PackageId, Model.Version)',
-            '@Url.Package(Model.PackageId, Model.Version)');
+            var viewModel = @Html.Raw(Json.Encode(Model.Edit));
+            var realModel = {
+                "Id": '@Model.PackageId',
+                "Version": '@Model.Version',
+                "Edit": viewModel
+            };
+
+            EditReadmeManager.init(
+                realModel,
+                '@Url.EditPackage(Model.PackageId, Model.Version)',
+                '@Url.Package(Model.PackageId, Model.Version)');
 
             if (document.referrer != null
                 && document.referrer.toLocaleLowerCase().endsWith("edit")
                 && document.referrer.indexOf('@Model.PackageId') > -1) {
 
-            $("#input-select-version").focus();
-        }
+                $("#input-select-version").focus();
+            }
 
-        window.nuget.configureExpanderHeading("select-package-version-form");
+            window.nuget.configureExpanderHeading("select-package-version-form");
         });
     </script>
 }

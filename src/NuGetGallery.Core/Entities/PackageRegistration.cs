@@ -24,6 +24,8 @@ namespace NuGetGallery
 
         public bool IsVerified { get; set; }
 
+        public bool IsLocked { get; set; }
+
         public virtual ICollection<User> Owners { get; set; }
         public virtual ICollection<Package> Packages { get; set; }
         public virtual ICollection<ReservedNamespace> ReservedNamespaces { get; set; }

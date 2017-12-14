@@ -93,10 +93,8 @@
     <CodeAnalysisRuleSet>..\Frontend.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="AnglicanGeek.MarkdownMailer, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\AnglicanGeek.MarkdownMailer.1.2\lib\net40\AnglicanGeek.MarkdownMailer.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="AnglicanGeek.MarkdownMailer, Version=1.2.0.0, Culture=neutral, PublicKeyToken=f32adc156e6c65f2, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\AnglicanGeek.MarkdownMailer.StrongName.1.2.0\lib\net40\AnglicanGeek.MarkdownMailer.dll</HintPath>
     </Reference>
     <Reference Include="Antlr3.Runtime, Version=3.3.1.7705, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -213,10 +211,8 @@
       <HintPath>..\..\packages\Lucene.Net.Contrib.3.0.3\lib\net40\Lucene.Net.Contrib.SpellChecker.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="MarkdownSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\MarkdownSharp.1.13.0.0\lib\35\MarkdownSharp.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="MarkdownSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=db5eab8f88aa1509, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\MarkdownSharp.StrongName.1.13.0\lib\35\MarkdownSharp.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.AI.Agent.Intercept, Version=2.0.6.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Microsoft.ApplicationInsights.Agent.Intercept.2.0.6\lib\net45\Microsoft.AI.Agent.Intercept.dll</HintPath>
@@ -785,11 +781,20 @@
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Helpers\GravatarHelper.cs" />
     <Compile Include="Helpers\RegexEx.cs" />
+    <Compile Include="Helpers\RouteUrlTemplate.cs" />
     <Compile Include="Infrastructure\Authentication\ApiKeyV4.cs" />
     <Compile Include="Infrastructure\Authentication\Base32Encoder.cs" />
     <Compile Include="Migrations\201711082145351_AddAccountDelete.cs" />
     <Compile Include="Migrations\201711082145351_AddAccountDelete.Designer.cs">
       <DependentUpon>201711082145351_AddAccountDelete.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201711291842225_AddCertificate.cs" />
+    <Compile Include="Migrations\201711291842225_AddCertificate.Designer.cs">
+      <DependentUpon>201711291842225_AddCertificate.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201712052213307_AddPackageIdLocking.cs" />
+    <Compile Include="Migrations\201712052213307_AddPackageIdLocking.Designer.cs">
+      <DependentUpon>201712052213307_AddPackageIdLocking.cs</DependentUpon>
     </Compile>
     <Compile Include="RequestModels\DeleteAccountRequest.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.cs" />
@@ -898,6 +903,8 @@
     <Compile Include="Services\TelemetryClientWrapper.cs" />
     <Compile Include="Services\ValidationService.cs" />
     <Compile Include="Telemetry\ClientInformationTelemetryEnricher.cs" />
+    <Compile Include="Telemetry\ClientTelemetryPIIProcessor.cs" />
+    <Compile Include="Telemetry\Obfuscator.cs" />
     <Compile Include="Telemetry\QuietExceptionLogger.cs" />
     <Compile Include="Infrastructure\Authentication\CredentialBuilder.cs" />
     <Compile Include="Infrastructure\Authentication\CredentialValidator.cs" />
@@ -1587,6 +1594,7 @@
     <Compile Include="Services\ReflowPackageService.cs" />
     <Compile Include="Services\TelemetryService.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteUserAccountViewModel.cs" />
+    <Compile Include="ViewModels\ListPackageOwnerViewModel.cs" />
     <Compile Include="ViewModels\PackageDeleteDecision.cs" />
     <Compile Include="ViewModels\DeleteAccountViewModel.cs" />
     <Compile Include="ViewModels\ApiKeyOwnerViewModel.cs" />
@@ -1595,6 +1603,7 @@
     <Compile Include="ViewModels\ApiKeyListViewModel.cs" />
     <Compile Include="ViewModels\ApiKeyViewModel.cs" />
     <Compile Include="ViewModels\OwnerRequestsListItemViewModel.cs" />
+    <Compile Include="ViewModels\PackageStatusSummary.cs" />
     <Compile Include="ViewModels\ReportViewModel.cs" />
     <Compile Include="ViewModels\ReservedNamespaceListViewModel.cs" />
     <Compile Include="ViewModels\ReservedNamespaceListItemViewModel.cs" />
@@ -1894,6 +1903,12 @@
     <EmbeddedResource Include="Migrations\201711082145351_AddAccountDelete.resx">
       <DependentUpon>201711082145351_AddAccountDelete.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201711291842225_AddCertificate.resx">
+      <DependentUpon>201711291842225_AddCertificate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201712052213307_AddPackageIdLocking.resx">
+      <DependentUpon>201712052213307_AddPackageIdLocking.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2getupdates.json" />
@@ -1947,11 +1962,9 @@
     <Content Include="Views\Pages\_PagesView.cshtml" />
     <Content Include="Views\Shared\_SearchBar.cshtml" />
     <Content Include="Views\Pages\Downloads.cshtml" />
-    <Content Include="Views\Packages\_EditMetadata.cshtml" />
     <Content Include="Views\Authentication\LinkExternal.cshtml" />
     <Content Include="Views\Authentication\_SignIn.cshtml" />
     <Content Include="Views\Authentication\_Register.cshtml" />
-    <Content Include="Views\Users\_UserPackagesList.cshtml" />
     <Content Include="Views\Users\_ConfirmationResendForm.cshtml" />
     <Content Include="Views\Shared\_PackageHeading.cshtml" />
     <Content Include="Views\Packages\_ImportReadMe.cshtml" />
@@ -1963,6 +1976,8 @@
     <Content Include="Views\Users\_ReservedNamespacesList.cshtml" />
     <Content Include="Views\Users\DeleteAccount.cshtml" />
     <Content Include="Views\Authentication\SignInNuGetAccount.cshtml" />
+    <Content Include="Views\Packages\_VerifyForm.cshtml" />
+    <Content Include="Views\Packages\_VerifyMetadata.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />

@@ -383,7 +383,9 @@ namespace NuGetGallery
             [InlineData(true)]
             public async Task ResetsPasswordForValidToken(bool forgot)
             {
-                var cred = new Credential("foo", "bar") { User = new User("foobar") };
+                var cred = new CredentialBuilder().CreatePasswordCredential("foo");
+                cred.User = new User("foobar");
+
                 GetMock<AuthenticationService>()
                     .Setup(u => u.ResetPasswordWithToken("user", "token", "newpwd"))
                     .CompletesWith(cred);
@@ -404,7 +406,9 @@ namespace NuGetGallery
             [Fact]
             public async Task SendsPasswordAddedMessageWhenForgotFalse()
             {
-                var cred = new Credential("foo", "bar") { User = new User("foobar") };
+                var cred = new CredentialBuilder().CreatePasswordCredential("foo");
+                cred.User = new User("foobar");
+
                 GetMock<AuthenticationService>()
                     .Setup(u => u.ResetPasswordWithToken("user", "token", "newpwd"))
                     .CompletesWith(cred);
@@ -418,7 +422,8 @@ namespace NuGetGallery
                 await controller.ResetPassword("user", "token", model, forgot: false);
 
                 GetMock<IMessageService>()
-                    .Verify(m => m.SendCredentialAddedNotice(cred.User, cred));
+                    .Verify(m => m.SendCredentialAddedNotice(cred.User, 
+                                                             It.Is<CredentialViewModel>(c => c.Type == cred.Type)));
             }
 
             [Theory]
@@ -685,6 +690,17 @@ namespace NuGetGallery
                     .Setup(u => u.FindByUsername(orgUser.Username))
                     .Returns(orgUser);
 
+                GetMock<AuthenticationService>()
+                    .Setup(u => u.AddCredential(It.IsAny<User>(),
+                                                It.IsAny<Credential>()))
+                .Callback<User, Credential>((u, c) =>
+                {
+                    u.Credentials.Add(c);
+                    c.User = u;
+                })
+                .Completes()
+                .Verifiable();
+
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
@@ -697,7 +713,7 @@ namespace NuGetGallery
                     expirationInDays: null);
 
                 // Assert
-                var apiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKey.V2);
+                var apiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKey.V4);
                 Assert.NotNull(apiKey);
             }
 
@@ -766,6 +782,18 @@ namespace NuGetGallery
                 var configurationService = GetConfigurationService();
                 configurationService.Current.ExpirationInDaysForApiKeyV1 = 365;
 
+                GetMock<AuthenticationService>()
+                 .Setup(u => u.AddCredential(
+                     It.IsAny<User>(),
+                     It.IsAny<Credential>()))
+                 .Callback<User, Credential>((u, c) =>
+                 {
+                     u.Credentials.Add(c);
+                     c.User = u;
+                 })
+                 .Completes()
+                 .Verifiable();
+
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
                 GetMock<IUserService>()
@@ -781,7 +809,7 @@ namespace NuGetGallery
                     expirationInDays: inputExpirationInDays);
 
                 // Assert
-                var apiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKey.V2);
+                var apiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKey.V4);
 
                 Assert.NotNull(apiKey);
                 Assert.NotNull(apiKey.Expires);
@@ -863,6 +891,18 @@ namespace NuGetGallery
                     .Setup(u => u.FindByUsername(user.Username))
                     .Returns(user);
 
+                GetMock<AuthenticationService>()
+                   .Setup(u => u.AddCredential(
+                       It.IsAny<User>(),
+                       It.IsAny<Credential>()))
+                   .Callback<User, Credential>((u, c) =>
+                   {
+                       u.Credentials.Add(c);
+                       c.User = u;
+                   })
+                   .Completes()
+                   .Verifiable();
+
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
@@ -875,7 +915,7 @@ namespace NuGetGallery
                     expirationInDays: null);
 
                 // Assert
-                var apiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKey.V2);
+                var apiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKey.V4);
 
                 Assert.NotNull(apiKey);
                 Assert.Equal(description, apiKey.Description);
@@ -893,17 +933,32 @@ namespace NuGetGallery
             [Fact]
             public async Task ReturnsNewCredentialJson()
             {
+                // Arrange
                 var user = new User { Username = "the-username" };
 
                 var configurationService = GetConfigurationService();
                 configurationService.Current.ExpirationInDaysForApiKeyV1 = 365;
 
+                GetMock<AuthenticationService>()
+                  .Setup(u => u.AddCredential(
+                      It.IsAny<User>(),
+                      It.IsAny<Credential>()))
+                  .Callback<User, Credential>((u, c) =>
+                  {
+                      u.Credentials.Add(c);
+                      c.User = u;
+                  })
+                  .Completes()
+                  .Verifiable();
+
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
+
                 GetMock<IUserService>()
                     .Setup(u => u.FindByUsername(user.Username))
                     .Returns(user);
 
+                // Act
                 var result = await controller.GenerateApiKey(
                     description: "description",
                     owner: user.Username,
@@ -911,12 +966,16 @@ namespace NuGetGallery
                     subjects: new[] { "a" },
                     expirationInDays: 90);
 
+                // Assert
                 var credentialViewModel = result.Data as ApiKeyViewModel;
                 Assert.NotNull(credentialViewModel);
 
-                var apiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKey.V2);
+                var apiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKey.V4);
 
-                Assert.Equal(apiKey.Value, credentialViewModel.Value);
+                Assert.NotEqual(apiKey.Value, credentialViewModel.Value);
+                Assert.True(ApiKeyV4.TryParse(credentialViewModel.Value, out ApiKeyV4 apiKeyV4));
+                Assert.True(apiKeyV4.Verify(apiKey.Value));
+
                 Assert.Equal(apiKey.Key, credentialViewModel.Key);
                 Assert.Equal(apiKey.Description, credentialViewModel.Description);
                 Assert.Equal(apiKey.Expires.Value.ToString("O"), credentialViewModel.Expires);
@@ -927,11 +986,24 @@ namespace NuGetGallery
             {
                 var user = new User { Username = "the-username" };
 
+                GetMock<AuthenticationService>()
+                  .Setup(u => u.AddCredential(
+                      It.IsAny<User>(),
+                      It.IsAny<Credential>()))
+                  .Callback<User, Credential>((u, c) =>
+                  {
+                      u.Credentials.Add(c);
+                      c.User = u;
+                  })
+                  .Completes()
+                  .Verifiable();
+
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
                 GetMock<IUserService>()
                     .Setup(u => u.FindByUsername(user.Username))
                     .Returns(user);
+
 
                 var result = await controller.GenerateApiKey(
                     description: "description",
@@ -940,10 +1012,8 @@ namespace NuGetGallery
                     subjects: new[] { "a" },
                     expirationInDays: 90);
 
-                var apiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKey.V2);
-
                 GetMock<IMessageService>()
-                    .Verify(m => m.SendCredentialAddedNotice(user, apiKey));
+                    .Verify(m => m.SendCredentialAddedNotice(user, It.IsAny<CredentialViewModel>()));
             }
         }
 
@@ -1261,7 +1331,10 @@ namespace NuGetGallery
                     .Completes()
                     .Verifiable();
                 GetMock<IMessageService>()
-                    .Setup(m => m.SendCredentialRemovedNotice(user, cred))
+                    .Setup(m => 
+                                m.SendCredentialRemovedNotice(
+                                    user,
+                                    It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.ExternalPrefix + "MicrosoftAccount")))
                     .Verifiable();
 
                 var controller = GetController<UsersController>();
@@ -1426,7 +1499,9 @@ namespace NuGetGallery
                     .Completes()
                     .Verifiable();
                 GetMock<IMessageService>()
-                    .Setup(m => m.SendCredentialRemovedNotice(user, cred))
+                    .Setup(m => m.SendCredentialRemovedNotice(
+                                    user,
+                                    It.Is<CredentialViewModel>(c => c.Type == cred.Type)))
                     .Verifiable();
 
                 var controller = GetController<UsersController>();
@@ -1490,6 +1565,7 @@ namespace NuGetGallery
             [Theory]
             [InlineData(CredentialTypes.ApiKey.V1)]
             [InlineData(CredentialTypes.ApiKey.V2)]
+            [InlineData(CredentialTypes.ApiKey.V4)]
             public async Task GivenNoApiKeyCredential_ErrorIsReturnedWithNoChangesMade(string apiKeyType)
             {
                 // Arrange
@@ -1528,7 +1604,10 @@ namespace NuGetGallery
                     .Completes()
                     .Verifiable();
                 GetMock<IMessageService>()
-                    .Setup(m => m.SendCredentialRemovedNotice(user, cred))
+                    .Setup(m => 
+                                m.SendCredentialRemovedNotice(
+                                    user,
+                                    It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.ExternalPrefix + "MicrosoftAccount")))
                     .Verifiable();
 
                 var controller = GetController<UsersController>();
@@ -1586,7 +1665,7 @@ namespace NuGetGallery
                 var fakes = Get<Fakes>();
 
                 var user = fakes.CreateUser("test",
-                    new CredentialBuilder().CreateApiKey(TimeSpan.FromHours(1)));
+                    new CredentialBuilder().CreateApiKey(TimeSpan.FromHours(1), out string plaintextApiKey));
                 var cred = user.Credentials.First();
 
                 var controller = GetController<UsersController>();
@@ -1685,7 +1764,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var fakes = Get<Fakes>();
-                var apiKey = new CredentialBuilder().CreateApiKey(TimeSpan.FromHours(1));
+                var apiKey = new CredentialBuilder().CreateApiKey(TimeSpan.FromHours(1), out string plaintextApiKey);
                 apiKey.Description = description;
                 apiKey.Scopes = scopes;
                 apiKey.Expires -= TimeSpan.FromDays(1);
@@ -1697,7 +1776,7 @@ namespace NuGetGallery
                 GetMock<AuthenticationService>()
                     .Setup(u => u.AddCredential(
                         user,
-                        It.Is<Credential>(c => c.Type == CredentialTypes.ApiKey.V2)))
+                        It.Is<Credential>(c => c.Type == CredentialTypes.ApiKey.V4)))
                     .Callback<User, Credential>((u, c) =>
                     {
                         u.Credentials.Add(c);
@@ -1727,10 +1806,14 @@ namespace NuGetGallery
 
                 GetMock<AuthenticationService>().VerifyAll();
 
-                var newApiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKey.V2);
+                var newApiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKey.V4);
 
+                // Verify the ApiKey in the view model can be authenticated using the value in the DB
                 Assert.NotNull(newApiKey);
-                Assert.Equal(newApiKey.Value, viewModel.Value);
+                Assert.NotEqual(newApiKey.Value, viewModel.Value);
+                Assert.True(ApiKeyV4.TryParse(viewModel.Value, out ApiKeyV4 apiKeyV4));
+                Assert.True(apiKeyV4.Verify(newApiKey.Value));
+                
                 Assert.Equal(newApiKey.Key, viewModel.Key);
                 Assert.Equal(description, viewModel.Description);
                 Assert.Equal(newApiKey.Expires.Value.ToString("O"), viewModel.Expires);
@@ -1802,7 +1885,7 @@ namespace NuGetGallery
                 // Arrange
                 var fakes = Get<Fakes>();
 
-                var user = fakes.CreateUser("test", new CredentialBuilder().CreateApiKey(TimeSpan.FromHours(1)));
+                var user = fakes.CreateUser("test", new CredentialBuilder().CreateApiKey(TimeSpan.FromHours(1), out string plaintextApiKey));
                 var cred = user.Credentials.First();
 
                 var authenticationService = GetMock<AuthenticationService>();
@@ -1890,7 +1973,7 @@ namespace NuGetGallery
                 const string description = "description";
                 var fakes = Get<Fakes>();
                 var credentialBuilder = new CredentialBuilder();
-                var apiKey = credentialBuilder.CreateApiKey(TimeSpan.FromHours(1));
+                var apiKey = credentialBuilder.CreateApiKey(TimeSpan.FromHours(1), out string plaintextApiKey1);
                 apiKey.Description = description;
                 apiKey.Scopes = existingScopes;
 
@@ -1898,7 +1981,7 @@ namespace NuGetGallery
                 var apiKeyValue = apiKey.Value;
 
 
-                var user = fakes.CreateUser("test", apiKey, credentialBuilder.CreateApiKey(null));
+                var user = fakes.CreateUser("test", apiKey, credentialBuilder.CreateApiKey(null, out string plaintextApiKey2));
                 var cred = user.Credentials.First();
                 cred.Key = CredentialKey;
 
@@ -2044,11 +2127,13 @@ namespace NuGetGallery
                 // Arrange
                 string userName = "DeletedUser";
                 string emailAddress = $"{userName}@coldmail.com";
+                int userKey = 1;
 
                 var controller = GetController<UsersController>();
                 var fakes = Get<Fakes>();
                 var testUser = fakes.CreateUser(userName);
                 testUser.EmailAddress = emailAddress;
+                testUser.Key = userKey;
                 testUser.IsDeleted = false;
 
                 controller.SetCurrentUser(testUser);
@@ -2073,6 +2158,7 @@ namespace NuGetGallery
                         IssueTitle = Strings.AccountDelete_SupportRequestTitle,
                         OwnerEmail = emailAddress,
                         CreatedBy = userName,
+                        UserKey = 1,
                         IssueStatus = new IssueStatus() { Key = IssueStatusKeys.New, Name = "OneIssue" }
                     });
                 }

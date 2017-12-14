@@ -194,7 +194,7 @@
                 )
             }
 
-            @if (Model.Listed && Model.IsIndexed.HasValue && !Model.IsIndexed.Value && !Model.Validating)
+            @if (Model.Listed && Model.IsIndexed.HasValue && !Model.IsIndexed.Value && Model.Available)
             {
                 @ViewHelpers.AlertWarning(
                     @<text>
@@ -379,11 +379,7 @@
                             <th>Last updated</th>
                             @if (Model.IsActionAllowed(User, PackageActions.DisplayPrivatePackage))
                             {
-                                <th>Listed</th>
-                                if (Config.Current.AsynchronousPackageValidationEnabled)
-                                {
-                                    <th>Validation Status</th>
-                                }
+                                <th>Status</th>
                             }
                         </tr>
                     </thead>
@@ -431,24 +427,19 @@
                                     </td>
                                     @if (packageVersion.IsActionAllowed(User, PackageActions.DisplayPrivatePackage))
                                     {
-                                        <td>
-                                            <a href="@Url.DeletePackage(packageVersion)">@(packageVersion.Listed ? "yes" : "no")</a>
-                                        </td>
-                                        if (Config.Current.AsynchronousPackageValidationEnabled)
+                                        var packageStatusSummary = packageVersion.PackageStatusSummary;
+
+                                        if (packageStatusSummary == PackageStatusSummary.Listed ||
+                                            packageStatusSummary == PackageStatusSummary.Unlisted)
                                         {
                                             <td>
-                                                @switch (packageVersion.PackageStatus)
-                                                {
-                                                    case PackageStatus.Available:
-                                                        @:Valid
-                                                        break;
-                                                    case PackageStatus.Validating:
-                                                        @:Validating
-                                                        break;
-                                                    case PackageStatus.FailedValidation:
-                                                        @:Failed validation
-                                                        break;
-                                                }
+                                                <a href="@Url.DeletePackage(packageVersion)">@NuGetGallery.Helpers.EnumHelper.GetDescription(packageStatusSummary)</a>
+                                            </td>
+                                        }
+                                        else
+                                        {
+                                            <td>
+                                                @NuGetGallery.Helpers.EnumHelper.GetDescription(packageStatusSummary)
                                             </td>
                                         }
                                     }
@@ -469,10 +460,6 @@
                                         <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetShortDateString()</span>
                                     </td>
                                     <td></td>
-                                    @if (Config.Current.AsynchronousPackageValidationEnabled)
-                                    {
-                                        <td></td>
-                                    }
                                 </tr>
                             }
                         }
