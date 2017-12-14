@@ -6,6 +6,7 @@ namespace NuGetGallery.Services
     public interface ICoreMessageService
     {
         void SendPackageAddedNotice(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl);
-        void SendPackageValidationFailedNotice(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl);
+        void SendPackageValidationFailedNotice(Package package, string packageUrl, string packageSupportUrl);
+        void SendSignedPackageNotAllowedNotice(Package package, string packageUrl, string announcementsUrl, string twitterUrl);
     }
 }
