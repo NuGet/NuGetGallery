@@ -21,9 +21,6 @@ namespace NuGetGallery
             AccountOnBehalfOfPermissionsRequirement = accountOnBehalfOfPermissionsRequirement;
         }
 
-        /// <summary>
-        /// Determines whether <paramref name="currentUser"/> can perform this action on <paramref name="entity"/> on behalf of <paramref name="account"/>.
-        /// </summary>
         public PermissionsCheckResult CheckPermissions(User currentUser, User account, TEntity entity)
         {
             if (!PermissionsHelpers.IsRequirementSatisfied(AccountOnBehalfOfPermissionsRequirement, currentUser, account))
@@ -34,9 +31,6 @@ namespace NuGetGallery
             return CheckPermissionsForEntity(account, entity);
         }
 
-        /// <summary>
-        /// Determines whether <paramref name="currentPrincipal"/> can perform this action on <paramref name="entity"/> on behalf of <paramref name="account"/>.
-        /// </summary>
         public PermissionsCheckResult CheckPermissions(IPrincipal currentPrincipal, User account, TEntity entity)
         {
             if (!PermissionsHelpers.IsRequirementSatisfied(AccountOnBehalfOfPermissionsRequirement, currentPrincipal, account))
@@ -49,15 +43,9 @@ namespace NuGetGallery
         
         protected abstract PermissionsCheckResult CheckPermissionsForEntity(User account, TEntity entity);
 
-        /// <summary>
-        /// Determines whether <paramref name="currentPrincipal"/> can perform this action on <paramref name="entity"/> on behalf of any <see cref="User"/>.
-        /// </summary>
-        /// <param name="accountsAllowedOnBehalfOf">A <see cref="IEnumerable{User}"/> containing all accounts that <paramref name="currentUser"/> can perform this action on <paramref name="entity"/> on behalf of.</param>
-        /// <returns>True if and only if <paramref name="currentPrincipal"/> can perform this action on <paramref name="entity"/> on behalf of any <see cref="User"/>.</returns>
-        public bool TryGetAccountsIsAllowedOnBehalfOf(User currentUser, TEntity entity, out IEnumerable<User> accountsAllowedOnBehalfOf)
+        public bool TryGetAccountsAllowedOnBehalfOf(User currentUser, TEntity entity, out IEnumerable<User> accountsAllowedOnBehalfOf)
         {
-            var accountsAllowedOnBehalfOfList = new List<User>();
-            accountsAllowedOnBehalfOf = accountsAllowedOnBehalfOfList;
+            accountsAllowedOnBehalfOf = new List<User>();
 
             var possibleAccountsOnBehalfOf = 
                 new[] { currentUser }
@@ -74,10 +62,10 @@ namespace NuGetGallery
 
             foreach (var accountOnBehalfOf in possibleAccountsOnBehalfOf)
             {
-                var failure = CheckPermissions(currentUser, accountOnBehalfOf, entity);
-                if (failure == PermissionsCheckResult.Allowed)
+                var result = CheckPermissions(currentUser, accountOnBehalfOf, entity);
+                if (result == PermissionsCheckResult.Allowed)
                 {
-                    accountsAllowedOnBehalfOfList.Add(accountOnBehalfOf);
+                    (accountsAllowedOnBehalfOf as List<User>).Add(accountOnBehalfOf);
                 }
             }
 

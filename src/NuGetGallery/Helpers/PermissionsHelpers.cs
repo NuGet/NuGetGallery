@@ -118,8 +118,7 @@ namespace NuGetGallery
                 .OfType<Organization>()
                 .SelectMany(o => o.Members)
                 .Where(m => isUserMatch(m.Member))
-                .ToList()
-                .AsReadOnly();
+                .ToList();
 
             if (WouldSatisfy(PermissionsRequirement.OrganizationAdmin, permissionsRequirement) &&
                 matchingMembers.Any(m => m.IsAdmin))

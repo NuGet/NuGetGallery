@@ -8,9 +8,12 @@ namespace NuGetGallery
     /// </summary>
     public static class ActionsRequiringPermissions
     {
-        private const PermissionsRequirement RequireOwnerOrSiteAdmin = PermissionsRequirement.Owner | PermissionsRequirement.SiteAdmin;
-        private const PermissionsRequirement RequireOwnerOrOrganizationAdmin = PermissionsRequirement.Owner | PermissionsRequirement.OrganizationAdmin;
-        private const PermissionsRequirement RequireOwnerOrOrganizationMember = PermissionsRequirement.Owner | PermissionsRequirement.OrganizationAdmin | PermissionsRequirement.OrganizationCollaborator;
+        private const PermissionsRequirement RequireOwnerOrSiteAdmin = 
+            PermissionsRequirement.Owner | PermissionsRequirement.SiteAdmin;
+        private const PermissionsRequirement RequireOwnerOrOrganizationAdmin = 
+            PermissionsRequirement.Owner | PermissionsRequirement.OrganizationAdmin;
+        private const PermissionsRequirement RequireOwnerOrOrganizationMember = 
+            PermissionsRequirement.Owner | PermissionsRequirement.OrganizationAdmin | PermissionsRequirement.OrganizationCollaborator;
 
         /// <summary>
         /// The action of seeing private metadata about a package.
