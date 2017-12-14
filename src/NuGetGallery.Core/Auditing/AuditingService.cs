@@ -18,7 +18,7 @@ namespace NuGetGallery.Auditing
         /// </summary>
         public static readonly AuditingService None = new NullAuditingService();
 
-        private static readonly JsonSerializerSettings AuditRecordSerializerSettings;
+        protected static readonly JsonSerializerSettings AuditRecordSerializerSettings;
 
         static AuditingService()
         {
@@ -37,6 +37,11 @@ namespace NuGetGallery.Auditing
             if (record == null)
             {
                 throw new ArgumentNullException(nameof(record));
+            }
+
+            if(!RecordWillBePersisted(record))
+            {
+                return;
             }
 
             var entry = new AuditEntry(record, await GetActorAsync());
@@ -59,6 +64,14 @@ namespace NuGetGallery.Auditing
             }
 
             return JsonConvert.SerializeObject(entry, AuditRecordSerializerSettings);
+        }
+
+        /// <summary>
+        /// The Auditing services can use it to stop the saving of the record before rendering.
+        /// </summary>
+        public virtual bool RecordWillBePersisted(AuditRecord auditRecord)
+        {
+            return true;
         }
 
         /// <summary>
@@ -88,7 +101,8 @@ namespace NuGetGallery.Auditing
                 MaxDepth = 10,
                 MissingMemberHandling = MissingMemberHandling.Ignore,
                 NullValueHandling = NullValueHandling.Include,
-                TypeNameHandling = TypeNameHandling.None
+                TypeNameHandling = TypeNameHandling.None,
+                
             };
             settings.Converters.Add(new StringEnumConverter());
             return settings;

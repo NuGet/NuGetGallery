@@ -11,13 +11,18 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web;
 using NuGetGallery.Authentication;
+using NuGetGallery.Auditing.Obfuscation;
 
 namespace NuGetGallery.Auditing
 {
     public class AuditActor
     {
         public string MachineName { get; set; }
+
+        [Obfuscate(ObfuscationType.IP)]
         public string MachineIP { get; set; }
+
+        [Obfuscate(ObfuscationType.UserName)]
         public string UserName { get; set; }
         public string AuthenticationType { get; set; }
         public string CredentialKey { get; set; }

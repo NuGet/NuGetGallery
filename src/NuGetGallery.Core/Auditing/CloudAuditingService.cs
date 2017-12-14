@@ -5,11 +5,17 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Blob.Protocol;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
+using NuGetGallery.Auditing.Obfuscation;
 
 namespace NuGetGallery.Auditing
 {
@@ -19,8 +25,6 @@ namespace NuGetGallery.Auditing
     public class CloudAuditingService : AuditingService, ICloudStorageStatusDependency
     {
         public static readonly string DefaultContainerName = "auditing";
-        internal static readonly HashSet<string> cloudAuditPersistedTypes = new HashSet<string>() { "package" };
-        private JsonSerializerSettings _cloudAuditingServiceSerializationSettings;
 
         private CloudBlobContainer _auditContainer;
         private string _instanceId;
@@ -38,7 +42,6 @@ namespace NuGetGallery.Auditing
             _localIP = localIP;
             _auditContainer = auditContainer;
             _getOnBehalfOf = getOnBehalfOf;
-            _cloudAuditingServiceSerializationSettings = GetCurrentJsonSerializerSettings();
         }
 
         protected override async Task<AuditActor> GetActorAsync()
@@ -53,11 +56,6 @@ namespace NuGetGallery.Auditing
 
         protected override async Task SaveAuditRecordAsync(string auditData, string resourceType, string filePath, string action, DateTime timestamp)
         {
-            // Only the packages audit records will be saved in the Azure storage.
-            if (!cloudAuditPersistedTypes.Contains(resourceType.ToLowerInvariant()))
-            {
-                return;
-            }
             string fullPath =
                 $"{resourceType.ToLowerInvariant()}/" +
                 $"{filePath.Replace(Path.DirectorySeparatorChar, '/')}/" +
@@ -131,14 +129,6 @@ namespace NuGetGallery.Auditing
             }
         }
 
-        private static JsonSerializerSettings GetCurrentJsonSerializerSettings()
-        {
-            var settings = GetJsonSerializerSettings();
-            settings.Converters.Add(new AuditActorObfuscator());
-            settings.Converters.Add(new PackageAuditRecordObfuscator());
-            return settings;
-        }
-
         public Task<bool> IsAvailableAsync()
         {
             return _auditContainer.ExistsAsync();
@@ -151,7 +141,14 @@ namespace NuGetGallery.Auditing
                 throw new ArgumentNullException(nameof(entry));
             }
 
-            return JsonConvert.SerializeObject(entry, _cloudAuditingServiceSerializationSettings);
+            var settings = GetJsonSerializerSettings();
+            settings.Converters.Add(new ObfuscatorJsonConverter(entry));
+            return JsonConvert.SerializeObject(entry, settings);
+        }
+
+        public override bool RecordWillBePersisted(AuditRecord auditRecord)
+        {
+            return auditRecord.GetType() == typeof(PackageAuditRecord);
         }
     }
 }

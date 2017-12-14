@@ -129,6 +129,7 @@
     <Compile Include="Auditing\EnumTests.cs" />
     <Compile Include="Auditing\FailedAuthenticatedOperationAuditRecordTests.cs" />
     <Compile Include="Auditing\ObfuscatorFacts.cs" />
+    <Compile Include="Auditing\ObfuscatorJsonConverterTests.cs" />
     <Compile Include="Auditing\ReservedNamespaceAuditRecordTests.cs" />
     <Compile Include="Auditing\UserSecurityPolicyAuditRecordFacts.cs" />
     <Compile Include="Auditing\FileSystemAuditingServiceTests.cs" />
