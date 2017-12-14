@@ -18,7 +18,7 @@ namespace NuGetGallery.Auditing
         /// </summary>
         public static readonly AuditingService None = new NullAuditingService();
 
-        protected static readonly JsonSerializerSettings AuditRecordSerializerSettings;
+        private static readonly JsonSerializerSettings AuditRecordSerializerSettings;
 
         static AuditingService()
         {

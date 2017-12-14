@@ -57,7 +57,7 @@ namespace NuGetGallery.Auditing.Obfuscation
 
                 if (obfuscatorAttribute != null)
                 {
-                    var obfuscationType = (ObfuscationType)typeof(ObfuscateAttribute).GetProperty("ObfuscationType").GetValue(obfuscatorAttribute);
+                    var obfuscationType = ((ObfuscateAttribute)obfuscatorAttribute).ObfuscationType;
                     value = Obfuscate(value, obfuscationType);
                 }
             }
@@ -90,8 +90,9 @@ namespace NuGetGallery.Auditing.Obfuscation
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            return serializer.Deserialize(reader, objectType);
+            throw new NotImplementedException();
         }
-    }
 
+        public override bool CanRead => false;
+    }
 }

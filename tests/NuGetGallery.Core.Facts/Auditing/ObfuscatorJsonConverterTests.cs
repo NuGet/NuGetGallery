@@ -76,7 +76,6 @@ namespace NuGetGallery.Auditing
             Assert.Equal<string>("-1", result["OtherData"]["UserKey"].ToString());
             Assert.Equal<string>("abc", result["SupportedTypeRandom"].ToString());
             Assert.Equal<string>("2.5", result["OtherData"]["NotSupportedTypeRandom"].ToString());
-
         }
 
         public class Data
@@ -101,7 +100,6 @@ namespace NuGetGallery.Auditing
 
             public Data()
             {
-
             }
 
             public Data( string userName, string ip, string authors, int? userKey, string supportedTypeRandom, double notSupportedTypeRandom, Data otherData)
@@ -115,6 +113,5 @@ namespace NuGetGallery.Auditing
                 OtherData = otherData;
             }
         }
-
     }
 }
