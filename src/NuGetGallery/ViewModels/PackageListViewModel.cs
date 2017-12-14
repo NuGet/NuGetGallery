@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,7 @@ namespace NuGetGallery
     {
         public PackageListViewModel(
             IQueryable<Package> packages,
+            User currentUser,
             DateTime? indexTimestampUtc,
             string searchTerm,
             int totalCount,
@@ -18,12 +20,13 @@ namespace NuGetGallery
             int pageSize,
             UrlHelper url,
             bool includePrerelease)
-            : this(packages, indexTimestampUtc, searchTerm, totalCount, pageIndex, pageSize, url, curatedFeed: null, includePrerelease: includePrerelease)
+            : this(packages, currentUser, indexTimestampUtc, searchTerm, totalCount, pageIndex, pageSize, url, curatedFeed: null, includePrerelease: includePrerelease)
         {
         }
 
         public PackageListViewModel(
             IQueryable<Package> packages,
+            User currentUser,
             DateTime? indexTimestampUtc,
             string searchTerm,
             int totalCount,
@@ -34,7 +37,7 @@ namespace NuGetGallery
             bool includePrerelease)
         {
             // TODO: Implement actual sorting
-            IEnumerable<ListPackageItemViewModel> items = packages.ToList().Select(pv => new ListPackageItemViewModel(pv));
+            IEnumerable<ListPackageItemViewModel> items = packages.ToList().Select(pv => new ListPackageItemViewModel(pv, currentUser));
             PageIndex = pageIndex;
             IndexTimestampUtc = indexTimestampUtc;
             PageSize = pageSize;

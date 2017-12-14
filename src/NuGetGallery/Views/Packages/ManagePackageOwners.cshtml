@@ -46,8 +46,8 @@
                             <a data-bind="attr: {href: profileUrl, title: name}, text: name"></a>
                         </span>
                         <span style="font-style:italic">
-                            <span data-bind="visible: grantsCurrentUserAccess && !isCurrentUserMemberOfOrganization">(that's you)</span>
-                            <span data-bind="visible: isCurrentUserMemberOfOrganization">(your organization)</span>
+                            <span data-bind="visible: grantsCurrentUserAccess && !isCurrentUserAdminOfOrganization">(that's you)</span>
+                            <span data-bind="visible: isCurrentUserAdminOfOrganization">(your organization)</span>
                             <span data-bind="visible: pending">(pending approval)</span>
                         </span>
                     </div>

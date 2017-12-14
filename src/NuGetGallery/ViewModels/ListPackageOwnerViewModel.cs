@@ -18,7 +18,5 @@ namespace NuGetGallery
         public bool IsOrganization { get; set; }
 
         public string Username { get; set; }
-
-        public bool CanManagePackageOwners { get; set; }
     }
 }
