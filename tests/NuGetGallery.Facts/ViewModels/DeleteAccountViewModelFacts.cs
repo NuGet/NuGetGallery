@@ -104,7 +104,7 @@ namespace NuGetGallery.ViewModels
                 {
                     Packages = new List<ListPackageItemViewModel>()
                     {
-                        new ListPackageItemViewModel(package)
+                        new ListPackageItemViewModel(package, null)
                     }
                 };
             }

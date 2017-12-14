@@ -9,8 +9,8 @@ namespace NuGetGallery
     {
         public bool IsCurrentUserAnAdmin;
 
-        public ManagePackageOwnersViewModel(Package package, IPrincipal currentUser)
-            : base(package)
+        public ManagePackageOwnersViewModel(Package package, User currentUser)
+            : base(package, currentUser)
         {
             IsCurrentUserAnAdmin = currentUser.IsAdministrator();
         }
