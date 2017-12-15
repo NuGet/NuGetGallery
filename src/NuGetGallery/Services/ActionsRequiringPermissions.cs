@@ -41,6 +41,14 @@ namespace NuGetGallery
                 packageRegistrationPermissionsRequirement: PermissionsRequirement.Owner);
 
         /// <summary>
+        /// The action of verify a package verification key.
+        /// </summary>
+        public static ActionRequiringPackagePermissions VerifyPackage =
+            new ActionRequiringPackagePermissions(
+                PermissionsRequirement.Owner | PermissionsRequirement.OrganizationAdmin | PermissionsRequirement.OrganizationCollaborator,
+                PermissionsRequirement.Owner);
+
+        /// <summary>
         /// The action of editing an existing version of an existing package ID.
         /// </summary>
         public static ActionRequiringPackagePermissions EditPackage =

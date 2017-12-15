@@ -94,6 +94,14 @@ namespace NuGetGallery
                 .SingleOrDefault(u => u.Username == username);
         }
 
+        public virtual User FindByKey(int key)
+        {
+            return UserRepository.GetAll()
+                .Include(u => u.Roles)
+                .Include(u => u.Credentials)
+                .SingleOrDefault(u => u.Key == key);
+        }
+
         public async Task ChangeEmailAddress(User user, string newEmailAddress)
         {
             var existingUsers = FindAllByEmailAddress(newEmailAddress);
