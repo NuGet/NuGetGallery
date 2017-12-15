@@ -688,4 +688,19 @@ For more information, please contact '{2}'.</value>
   <data name="PackageIsLocked" xml:space="preserve">
     <value>Package '{0}' has been locked. This means you cannot publish a new version or change the listing status of a published package version. Please contact support@nuget.org.</value>
   </data>
+  <data name="UploadPackage_NewIdOnBehalfOfUserNotAllowed" xml:space="preserve">
+    <value>User '{0}' does not have the rights to upload a package with a new ID on behalf of user '{1}'.</value>
+  </data>
+  <data name="UploadPackage_NewVersionOnBehalfOfUserNotAllowed" xml:space="preserve">
+    <value>User '{0}' does not have the rights to upload a new version of an existing package on behalf of user '{1}'.</value>
+  </data>
+  <data name="VerifyPackage_OwnerInvalid" xml:space="preserve">
+    <value>User '{0}' does not have the rights to upload new versions of package '{1}'.</value>
+  </data>
+  <data name="VerifyPackage_UserInvalid" xml:space="preserve">
+    <value>You do not have permission to upload packages as user '{0}'.</value>
+  </data>
+  <data name="VerifyPackage_UserNonExistent" xml:space="preserve">
+    <value>The user '{0}' doesn't exist. You cannot upload a package as a user that doesn't exist.</value>
+  </data>
 </root>
