@@ -43,7 +43,7 @@ namespace NuGetGallery
             }
         }
 
-        public class TheIsAllowedMethod
+        public class TheCheckPermissionsMethod
         {
             [Fact]
             public void ReturnsAccountPermissionsFailureWhenAccountCheckFails()
@@ -67,14 +67,15 @@ namespace NuGetGallery
             }
         }
 
-        public class TheTryGetAccountsAllowedOnBehalfOfMethod
+        public class TheCheckPermissionsOnBehalfOfAnyAccountMethod
         {
             [Fact]
             public void SuccessWithNullAccount()
             {
                 var action = new TestableActionRequiringEntityPermissions(PermissionsRequirement.None, (account, entity) => PermissionsCheckResult.Allowed);
 
-                Assert.True(action.TryGetAccountsAllowedOnBehalfOf(null, null, out var accountsAllowedOnBehalfOf));
+                Assert.Equal(PermissionsCheckResult.Allowed, action.CheckPermissionsOnBehalfOfAnyAccount(null, null));
+                Assert.Equal(PermissionsCheckResult.Allowed, action.CheckPermissionsOnBehalfOfAnyAccount(null, null, out var accountsAllowedOnBehalfOf));
                 Assert.True(accountsAllowedOnBehalfOf.SequenceEqual(new User[] { null }));
             }
 
@@ -83,7 +84,8 @@ namespace NuGetGallery
             {
                 var action = new TestableActionRequiringEntityPermissions(PermissionsRequirement.Unsatisfiable, (a, e) => PermissionsCheckResult.Allowed);
 
-                Assert.False(action.TryGetAccountsAllowedOnBehalfOf(null, null, out var accountsAllowedOnBehalfOf));
+                Assert.Equal(PermissionsCheckResult.AccountFailure, action.CheckPermissionsOnBehalfOfAnyAccount(null, null));
+                Assert.Equal(PermissionsCheckResult.AccountFailure, action.CheckPermissionsOnBehalfOfAnyAccount(null, null, out var accountsAllowedOnBehalfOf));
                 Assert.Empty(accountsAllowedOnBehalfOf);
             }
 
@@ -94,18 +96,21 @@ namespace NuGetGallery
 
                 var action = new TestableActionRequiringEntityPermissions(PermissionsRequirement.None, (a, e) => PermissionsCheckResult.Allowed);
 
-                Assert.True(action.TryGetAccountsAllowedOnBehalfOf(user, null, out var accountsAllowedOnBehalfOf));
+                Assert.Equal(PermissionsCheckResult.Allowed, action.CheckPermissionsOnBehalfOfAnyAccount(user, null));
+                Assert.Equal(PermissionsCheckResult.Allowed, action.CheckPermissionsOnBehalfOfAnyAccount(user, null, out var accountsAllowedOnBehalfOf));
                 Assert.True(accountsAllowedOnBehalfOf.SequenceEqual(new[] { user }));
             }
 
             [Fact]
             public void FailureWithNullEntity()
             {
+                var failureResult = (PermissionsCheckResult)99;
                 var user = new User { Key = 1 };
 
                 var action = new TestableActionRequiringEntityPermissions(PermissionsRequirement.None, (a, e) => (PermissionsCheckResult)99);
 
-                Assert.False(action.TryGetAccountsAllowedOnBehalfOf(user, null, out var accountsAllowedOnBehalfOf));
+                Assert.Equal(failureResult, action.CheckPermissionsOnBehalfOfAnyAccount(user, null));
+                Assert.Equal(failureResult, action.CheckPermissionsOnBehalfOfAnyAccount(user, null, out var accountsAllowedOnBehalfOf));
                 Assert.Empty(accountsAllowedOnBehalfOf);
             }
 
@@ -116,7 +121,8 @@ namespace NuGetGallery
 
                 var action = new TestableActionRequiringEntityPermissions(PermissionsRequirement.None, (a, e) => PermissionsCheckResult.Allowed);
 
-                Assert.True(action.TryGetAccountsAllowedOnBehalfOf(user, null, out var accountsAllowedOnBehalfOf));
+                Assert.Equal(PermissionsCheckResult.Allowed, action.CheckPermissionsOnBehalfOfAnyAccount(user, null));
+                Assert.Equal(PermissionsCheckResult.Allowed, action.CheckPermissionsOnBehalfOfAnyAccount(user, null, out var accountsAllowedOnBehalfOf));
                 Assert.True(accountsAllowedOnBehalfOf.SequenceEqual(new[] { user, organization }));
             }
 
@@ -127,7 +133,8 @@ namespace NuGetGallery
 
                 var action = new TestableActionRequiringEntityPermissions(PermissionsRequirement.None, (a, e) => PermissionsCheckResult.Allowed);
 
-                Assert.True(action.TryGetAccountsAllowedOnBehalfOf(null, entity, out var accountsAllowedOnBehalfOf));
+                Assert.Equal(PermissionsCheckResult.Allowed, action.CheckPermissionsOnBehalfOfAnyAccount(null, entity));
+                Assert.Equal(PermissionsCheckResult.Allowed, action.CheckPermissionsOnBehalfOfAnyAccount(null, entity, out var accountsAllowedOnBehalfOf));
                 Assert.True(accountsAllowedOnBehalfOf.SequenceEqual(new[] { null, entityOwner }));
             }
 
@@ -139,7 +146,8 @@ namespace NuGetGallery
 
                 var action = new TestableActionRequiringEntityPermissions(PermissionsRequirement.None, (a, e) => PermissionsCheckResult.Allowed);
 
-                Assert.True(action.TryGetAccountsAllowedOnBehalfOf(user, entity, out var accountsAllowedOnBehalfOf));
+                Assert.Equal(PermissionsCheckResult.Allowed, action.CheckPermissionsOnBehalfOfAnyAccount(user, entity));
+                Assert.Equal(PermissionsCheckResult.Allowed, action.CheckPermissionsOnBehalfOfAnyAccount(user, entity, out var accountsAllowedOnBehalfOf));
                 Assert.True(accountsAllowedOnBehalfOf.SequenceEqual(new[] { user, entityOwner, organization }));
             }
 
@@ -166,7 +174,8 @@ namespace NuGetGallery
                 var action = new TestableActionRequiringEntityPermissions(PermissionsRequirement.None, 
                     (a, e) => expectedAccountsList.Any(u => u.MatchesUser(a)) ? PermissionsCheckResult.Allowed : (PermissionsCheckResult)99);
 
-                Assert.True(action.TryGetAccountsAllowedOnBehalfOf(user, entity, out var accountsAllowedOnBehalfOf));
+                Assert.Equal(PermissionsCheckResult.Allowed, action.CheckPermissionsOnBehalfOfAnyAccount(user, entity));
+                Assert.Equal(PermissionsCheckResult.Allowed, action.CheckPermissionsOnBehalfOfAnyAccount(user, entity, out var accountsAllowedOnBehalfOf));
                 Assert.True(accountsAllowedOnBehalfOf.SequenceEqual(expectedAccountsList));
             }
 

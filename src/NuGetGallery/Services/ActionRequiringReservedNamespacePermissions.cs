@@ -49,9 +49,14 @@ namespace NuGetGallery
                 PermissionsCheckResult.Allowed : PermissionsCheckResult.ReservedNamespaceFailure;
         }
 
-        public bool TryGetAccountsAllowedOnBehalfOf(User currentUser, ActionOnNewPackageContext newPackageContext, out IEnumerable<User> accountsAllowedOnBehalfOf)
+        public PermissionsCheckResult CheckPermissionsOnBehalfOfAnyAccount(User currentUser, ActionOnNewPackageContext newPackageContext)
         {
-            return TryGetAccountsAllowedOnBehalfOf(currentUser, GetReservedNamespaces(newPackageContext), out accountsAllowedOnBehalfOf);
+            return CheckPermissionsOnBehalfOfAnyAccount(currentUser, GetReservedNamespaces(newPackageContext));
+        }
+
+        public PermissionsCheckResult CheckPermissionsOnBehalfOfAnyAccount(User currentUser, ActionOnNewPackageContext newPackageContext, out IEnumerable<User> accountsAllowedOnBehalfOf)
+        {
+            return CheckPermissionsOnBehalfOfAnyAccount(currentUser, GetReservedNamespaces(newPackageContext), out accountsAllowedOnBehalfOf);
         }
 
         protected override IEnumerable<User> GetOwners(IReadOnlyCollection<ReservedNamespace> reservedNamespaces)
