@@ -13,7 +13,7 @@ namespace NuGetGallery.Migrations
         
         string IMigrationMetadata.Id
         {
-            get { return "201712181909207_MembershipRequests"; }
+            get { return "201712182237217_MembershipRequests"; }
         }
         
         string IMigrationMetadata.Source

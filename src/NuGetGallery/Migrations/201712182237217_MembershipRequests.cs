@@ -14,7 +14,8 @@ namespace NuGetGallery.Migrations
                         OrganizationKey = c.Int(nullable: false),
                         NewMemberKey = c.Int(nullable: false),
                         IsAdmin = c.Boolean(nullable: false),
-                        ConfirmationCode = c.String(),
+                        ConfirmationToken = c.String(nullable: false),
+                        RequestDate = c.DateTime(nullable: false),
                     })
                 .PrimaryKey(t => new { t.OrganizationKey, t.NewMemberKey })
                 .ForeignKey("dbo.Users", t => t.OrganizationKey)
