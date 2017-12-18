@@ -18,7 +18,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectory
 
         public AzureActiveDirectoryAuthenticatorConfiguration()
         {
-            AuthenticationType = AzureActiveDirectoryAuthenticator.DefaultAuthenticationType;
+            AuthenticationType = CredentialTypes.ExternalProviders.AzureActiveDirectory;
         }
 
         public override void ApplyToOwinSecurityOptions(AuthenticationOptions options)

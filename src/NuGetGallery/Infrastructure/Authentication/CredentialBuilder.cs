@@ -65,10 +65,15 @@ namespace NuGetGallery.Infrastructure.Authentication
 
         public Credential CreateExternalCredential(string issuer, string value, string identity)
         {
-            return new Credential(CredentialTypes.ExternalPrefix + issuer, value)
+            return new Credential(CredentialTypes.External.Prefix + issuer, value)
             {
                 Identity = identity
             };
+        }
+
+        internal Credential CreateMicrosoftCredential(string value, string identity)
+        {
+            return CreateExternalCredential(CredentialTypes.ExternalProviders.Microsoft, value, identity);
         }
 
         private static string CreateKeyString()

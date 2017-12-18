@@ -10,8 +10,6 @@ namespace NuGetGallery.Authentication.Providers.MicrosoftAccount
 {
     public class MicrosoftAccountAuthenticator : Authenticator<MicrosoftAccountAuthenticatorConfiguration>
     {
-        public static readonly string DefaultAuthenticationType = "MicrosoftAccount";
-
         protected override void AttachToOwinApp(IGalleryConfigurationService config, IAppBuilder app)
         {
             var options = new MicrosoftAccountAuthenticationOptions();

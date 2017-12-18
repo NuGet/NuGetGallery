@@ -596,7 +596,7 @@ namespace NuGetGallery
             public void UsesProviderNounToDescribeCredentialIfPresent()
             {
                 var user = new User { EmailAddress = "legit@example.com", Username = "foo" };
-                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "abc123", "Test User");
+                var cred = new CredentialBuilder().CreateMicrosoftCredential("abc123", "Test User");
                 const string MicrosoftAccountCredentialName = "Microsoft account";
 
                 var messageService = TestableMessageService.Create(GetConfigurationService());
@@ -659,7 +659,7 @@ namespace NuGetGallery
             public void UsesProviderNounToDescribeCredentialIfPresent()
             {
                 var user = new User { EmailAddress = "legit@example.com", Username = "foo" };
-                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "abc123", "Test User");
+                var cred = new CredentialBuilder().CreateMicrosoftCredential("abc123", "Test User");
                 const string MicrosoftAccountCredentialName = "Microsoft account";
 
                 var messageService = TestableMessageService.Create(GetConfigurationService());

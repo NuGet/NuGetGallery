@@ -5,17 +5,16 @@ using System;
 using System.Net.Mail;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
 using Microsoft.Owin;
 using Moq;
-using NuGetGallery.Framework;
 using NuGetGallery.Authentication;
 using NuGetGallery.Authentication.Providers.AzureActiveDirectory;
-using NuGetGallery.Configuration;
 using NuGetGallery.Authentication.Providers.MicrosoftAccount;
+using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Authentication;
 using Xunit;
-using System.Web;
 
 namespace NuGetGallery.Controllers
 {
@@ -59,8 +58,8 @@ namespace NuGetGallery.Controllers
                 Assert.NotNull(model.SignIn);
                 Assert.NotNull(model.Register);
                 Assert.Equal(2, model.Providers.Count);
-                Assert.Equal("AzureActiveDirectory", model.Providers[0].ProviderName);
-                Assert.Equal("MicrosoftAccount", model.Providers[1].ProviderName);
+                Assert.Equal(CredentialTypes.ExternalProviders.AzureActiveDirectory, model.Providers[0].ProviderName);
+                Assert.Equal(CredentialTypes.ExternalProviders.Microsoft, model.Providers[1].ProviderName);
             }
         }
 
@@ -284,7 +283,7 @@ namespace NuGetGallery.Controllers
                 var authUser = new AuthenticatedUser(
                     new User("theUsername") { EmailAddress = "confirmed@example.com" },
                     new Credential { Type = "Foo" });
-                var externalCred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
+                var externalCred = new CredentialBuilder().CreateMicrosoftCredential("blorg", "Bloog");
                 var authResult =
                     new PasswordAuthenticationResult(PasswordAuthenticationResult.AuthenticationResult.Success, authUser);
 
@@ -297,7 +296,7 @@ namespace NuGetGallery.Controllers
                     .Verifiable();
                 GetMock<IMessageService>()
                     .Setup(x => x.SendCredentialAddedNotice(authUser.User, 
-                                                            It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.ExternalPrefix + "MicrosoftAccount")))
+                                                            It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.External.Microsoft)))
                     .Verifiable();
 
                 var controller = GetController<AuthenticationController>();
@@ -329,11 +328,11 @@ namespace NuGetGallery.Controllers
             }
 
             [Theory]
-            [InlineData("MicrosoftAccount", true)]
-            [InlineData("AzureActiveDirectory", false)]
+            [InlineData(CredentialTypes.ExternalProviders.Microsoft, true)]
+            [InlineData(CredentialTypes.ExternalProviders.AzureActiveDirectory, false)]
             public async Task GivenAdminLogsInWithValidExternalAuth_ItChallengesWhenNotUsingRequiredExternalProvider(string providerUsedForLogin, bool shouldChallenge)
             {
-                var enforcedProvider = "AzureActiveDirectory";
+                var enforcedProvider = CredentialTypes.ExternalProviders.AzureActiveDirectory;
 
                 var configurationService = GetConfigurationService();
                 configurationService.Current.ConfirmEmailAddresses = false;
@@ -366,7 +365,7 @@ namespace NuGetGallery.Controllers
 
                 GetMock<IMessageService>()
                     .Setup(x => x.SendCredentialAddedNotice(authUser.User,
-                                                            It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.ExternalPrefix + providerUsedForLogin)))
+                                                            It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.External.Prefix + providerUsedForLogin)))
                     .Verifiable();
 
                 EnableAllAuthenticators(Get<AuthenticationService>());
@@ -596,7 +595,7 @@ namespace NuGetGallery.Controllers
                     },
                     new Credential());
 
-                var externalCred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
+                var externalCred = new CredentialBuilder().CreateMicrosoftCredential("blorg", "Bloog");
                 
                 var authenticationServiceMock = GetMock<AuthenticationService>();
                 var controller = GetController<AuthenticationController>();
@@ -643,12 +642,12 @@ namespace NuGetGallery.Controllers
             }
 
             [Theory]
-            [InlineData("MicrosoftAccount", true)]
-            [InlineData("AzureActiveDirectory", false)]
+            [InlineData(CredentialTypes.ExternalProviders.Microsoft, true)]
+            [InlineData(CredentialTypes.ExternalProviders.AzureActiveDirectory, false)]
             public async Task GivenAdminLogsInWithExternalIdentity_ItChallengesWhenNotUsingRequiredExternalProvider(string providerUsedForLogin, bool shouldChallenge)
             {
                 // Arrange
-                var enforcedProvider = "AzureActiveDirectory";
+                var enforcedProvider = CredentialTypes.ExternalProviders.AzureActiveDirectory;
 
                 var configurationService = GetConfigurationService();
                 configurationService.Current.ConfirmEmailAddresses = false;
@@ -733,10 +732,10 @@ namespace NuGetGallery.Controllers
                 var controller = GetController<AuthenticationController>();
                 
                 // Act
-                var result = controller.ChallengeAuthentication(returnUrl, "MicrosoftAccount");
+                var result = controller.ChallengeAuthentication(returnUrl, CredentialTypes.ExternalProviders.Microsoft);
 
                 // Assert
-                ResultAssert.IsChallengeResult(result, "MicrosoftAccount", "/users/account/authenticate/return?ReturnUrl=" + HttpUtility.UrlEncode(returnUrl));
+                ResultAssert.IsChallengeResult(result, CredentialTypes.ExternalProviders.Microsoft, "/users/account/authenticate/return?ReturnUrl=" + HttpUtility.UrlEncode(returnUrl));
             }
         }
 
@@ -767,7 +766,7 @@ namespace NuGetGallery.Controllers
                 
                 GetMock<AuthenticationService>(); // Force a mock to be created
                 var controller = GetController<AuthenticationController>();
-                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
+                var cred = new CredentialBuilder().CreateMicrosoftCredential("blorg", "Bloog");
                 var authUser = new AuthenticatedUser(
                     fakes.CreateUser("test", cred),
                     cred);
@@ -789,12 +788,12 @@ namespace NuGetGallery.Controllers
             }
 
             [Theory]
-            [InlineData("MicrosoftAccount", true)]
-            [InlineData("AzureActiveDirectory", false)]
+            [InlineData(CredentialTypes.ExternalProviders.Microsoft, true)]
+            [InlineData(CredentialTypes.ExternalProviders.AzureActiveDirectory, false)]
             public async Task GivenAssociatedLocalAdminUser_ItChallengesWhenNotUsingRequiredExternalProvider(string providerUsedForLogin, bool shouldChallenge)
             {
                 // Arrange
-                var enforcedProvider = "AzureActiveDirectory";
+                var enforcedProvider = CredentialTypes.ExternalProviders.AzureActiveDirectory;
 
                 var configurationService = GetConfigurationService();
                 configurationService.Current.ConfirmEmailAddresses = false;
@@ -852,7 +851,7 @@ namespace NuGetGallery.Controllers
             public async Task GivenNoLinkAndNoClaimData_ItDisplaysLogOnViewWithNoPrefilledData()
             {
                 // Arrange
-                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
+                var cred = new CredentialBuilder().CreateMicrosoftCredential("blorg", "Bloog");
                 var msAuther = new MicrosoftAccountAuthenticator();
                 var msaUI = msAuther.GetUI();
 
@@ -917,7 +916,7 @@ namespace NuGetGallery.Controllers
             public async Task GivenNoLinkAndEmailClaim_ItDisplaysLogOnViewWithEmailPrefilled()
             {
                 // Arrange
-                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
+                var cred = new CredentialBuilder().CreateMicrosoftCredential("blorg", "Bloog");
                 var msAuther = new MicrosoftAccountAuthenticator();
                 var msaUI = msAuther.GetUI();
 
@@ -953,7 +952,7 @@ namespace NuGetGallery.Controllers
                 // Arrange
                 var fakes = Get<Fakes>();
                 var existingUser = new User("existingUser") { EmailAddress = "existing@example.com" };
-                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
+                var cred = new CredentialBuilder().CreateMicrosoftCredential("blorg", "Bloog");
                 var msAuther = new MicrosoftAccountAuthenticator();
                 var msaUI = msAuther.GetUI();
                 var authUser = new AuthenticatedUser(
@@ -994,11 +993,11 @@ namespace NuGetGallery.Controllers
         {
             [Theory]
             [InlineData("Foo", true)]
-            [InlineData("AzureActiveDirectory", false)]
+            [InlineData(CredentialTypes.ExternalProviders.AzureActiveDirectory, false)]
             public void VerifyShouldChallenge(string providerUsedForLogin, bool shouldChallenge)
             {
                 // Arrange
-                var enforcedProvider = "AzureActiveDirectory";
+                var enforcedProvider = CredentialTypes.ExternalProviders.AzureActiveDirectory;
 
                 EnableAllAuthenticators(Get<AuthenticationService>());
 
@@ -1012,7 +1011,7 @@ namespace NuGetGallery.Controllers
                             new Role { Name = Constants.AdminRoleName }
                         }
                     },
-                    new Credential { Type = providerUsedForLogin });
+                    new Credential { Type = CredentialTypes.External.Prefix + providerUsedForLogin });
 
                 // Act
                 ActionResult challengeResult;
