@@ -948,6 +948,7 @@ namespace NuGetGallery
             _messageService.SendContactOwnersMessage(
                 fromAddress,
                 package,
+                Url.Package(package, false),
                 contactForm.Message,
                 Url.AccountSettings(relativeUrl: false),
                 contactForm.CopySender);

@@ -208,7 +208,7 @@ namespace NuGetGallery
                     };
                 var messageService = TestableMessageService.Create(GetConfigurationService());
 
-                messageService.SendContactOwnersMessage(from, package, "Test message", "http://someurl/", true);
+                messageService.SendContactOwnersMessage(from, package, "http://someurl/", "Test message", "http://someotherurl/", true);
 
                 var messages = messageService.MockMailSender.Sent;
                 Assert.Equal(2, messages.Count);
@@ -226,30 +226,36 @@ namespace NuGetGallery
             [Fact]
             public void WillSendEmailToAllOwners()
             {
-                var from = new MailAddress("smangit@example.com", "flossy");
+                var id = "smangit";
+                var owner1Email = "yung@example.com";
+                var owner2Email = "flynt@example.com";
+                var userEmail = "smangit@example.com";
+                var from = new MailAddress(userEmail, "flossy");
                 var package = new PackageRegistration
                 {
-                    Id = "smangit",
+                    Id = id,
                     Owners = new[]
                     {
-                        new User { EmailAddress = "yung@example.com", EmailAllowed = true },
-                        new User { EmailAddress = "flynt@example.com", EmailAllowed = true }
+                        new User { EmailAddress = owner1Email, EmailAllowed = true },
+                        new User { EmailAddress = owner2Email, EmailAllowed = true }
                     }
                 };
 
                 var messageService = TestableMessageService.Create(GetConfigurationService());
 
-                messageService.SendContactOwnersMessage(from, package, "Test message", "http://someurl/", false);
+                var packageUrl = "http://someurl/";
+                messageService.SendContactOwnersMessage(from, package, packageUrl, "Test message", "http://someotherurl/", false);
                 var message = messageService.MockMailSender.Sent.Last();
 
-                Assert.Equal("yung@example.com", message.To[0].Address);
-                Assert.Equal("flynt@example.com", message.To[1].Address);
+                Assert.Equal(owner1Email, message.To[0].Address);
+                Assert.Equal(owner2Email, message.To[1].Address);
                 Assert.Equal(TestGalleryOwner, message.From);
-                Assert.Equal("smangit@example.com", message.ReplyToList.Single().Address);
-                Assert.Contains("[Joe Shmoe] Message for owners of the package 'smangit'", message.Subject);
+                Assert.Equal(userEmail, message.ReplyToList.Single().Address);
+                Assert.Contains($"[Joe Shmoe] Message for owners of the package '{id}'", message.Subject);
                 Assert.Contains("Test message", message.Body);
                 Assert.Contains(
-                    "User flossy &lt;smangit@example.com&gt; sends the following message to the owners of Package 'smangit'.", message.Body);
+                    $"User flossy &lt;{userEmail}&gt; sends the following message to the owners of Package '[{id}]({packageUrl})'.", 
+                    message.Body);
             }
 
             [Fact]
@@ -268,7 +274,7 @@ namespace NuGetGallery
 
                 var messageService = TestableMessageService.Create(GetConfigurationService());
 
-                messageService.SendContactOwnersMessage(from, package, "Test message", "http://someurl/", false);
+                messageService.SendContactOwnersMessage(from, package, "http://someurl/", "Test message", "http://someotherurl/", false);
                 var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal("yung@example.com", message.To[0].Address);
@@ -290,7 +296,7 @@ namespace NuGetGallery
                 };
 
                 var messageService = TestableMessageService.Create(GetConfigurationService());
-                messageService.SendContactOwnersMessage(from, package, "Test message", "http://someurl/", false);
+                messageService.SendContactOwnersMessage(from, package, "http://someurl/", "Test message", "http://someotherurl/", false);
 
                 Assert.Empty(messageService.MockMailSender.Sent);
             }
@@ -307,7 +313,7 @@ namespace NuGetGallery
                     };
 
                 var messageService = TestableMessageService.Create(GetConfigurationService());
-                messageService.SendContactOwnersMessage(from, package, "Test message", "http://someurl/", false);
+                messageService.SendContactOwnersMessage(from, package, "http://someurl/", "Test message", "http://someotherurl/", false);
 
                 Assert.Empty(messageService.MockMailSender.Sent);
             }
