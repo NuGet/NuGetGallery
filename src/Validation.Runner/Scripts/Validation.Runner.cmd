@@ -23,7 +23,8 @@ start /w Validation.Runner.exe ^
     -verbose true ^
     -Interval #{Jobs.validation.Interval} ^
     -InstrumentationKey "#{Jobs.validation.ApplicationInsightsInstrumentationKey}" ^
-    -VcsContactAlias "#{Jobs.validation.NugetVcsContactAlias}"
+    -VcsContactAlias "#{Jobs.validation.NugetVcsContactAlias}" ^
+    -BatchSize "#{Jobs.validation.BatchSize}"
 
 echo "Finished #{Jobs.validation.Title}"
 

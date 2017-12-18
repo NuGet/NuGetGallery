@@ -101,6 +101,7 @@ namespace NuGet.Jobs
         public const string RunValidationTasks = "RunValidationTasks";
         public const string RequestValidationTasks = "RequestValidationTasks";
         public const string PackageUrlTemplate = "PackageUrlTemplate";
+        public const string BatchSize = "BatchSize";
 
         // Arguments specific to VCS validation task
         public const string VcsValidatorServiceUrl = "VcsValidatorServiceUrl";
