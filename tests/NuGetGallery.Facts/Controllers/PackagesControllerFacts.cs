@@ -1227,6 +1227,7 @@ namespace NuGetGallery
             [Fact]
             public void HtmlEncodesMessageContent()
             {
+                var sentPackageUrl = string.Empty;
                 var messageService = new Mock<IMessageService>();
                 string sentMessage = null;
                 messageService.Setup(
@@ -1237,7 +1238,11 @@ namespace NuGetGallery
                         It.IsAny<string>(),
                         It.IsAny<string>(),
                         false))
-                    .Callback<MailAddress, PackageRegistration, string, string, string, bool>((_, __, ___, msg, ____, _____) => sentMessage = msg);
+                    .Callback<MailAddress, PackageRegistration, string, string, string, bool>((_, __, packageUrl, msg, ____, _____) =>
+                    {
+                        sentPackageUrl = packageUrl;
+                        sentMessage = msg;
+                    });
                 var package = new PackageRegistration { Id = "factory" };
 
                 var packageService = new Mock<IPackageService>();
@@ -1256,6 +1261,7 @@ namespace NuGetGallery
                 var result = controller.ContactOwners("factory", model) as RedirectToRouteResult;
 
                 Assert.Equal("I like the cut of your jib. It&#39;s &lt;b&gt;bold&lt;/b&gt;.", sentMessage);
+                Assert.Equal(controller.Url.Package(package, false), sentPackageUrl);
             }
 
             [Fact]

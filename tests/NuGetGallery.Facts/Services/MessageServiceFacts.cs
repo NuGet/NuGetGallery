@@ -229,8 +229,9 @@ namespace NuGetGallery
                 var id = "smangit";
                 var owner1Email = "yung@example.com";
                 var owner2Email = "flynt@example.com";
+                var userUsername = "flossy";
                 var userEmail = "smangit@example.com";
-                var from = new MailAddress(userEmail, "flossy");
+                var from = new MailAddress(userEmail, userUsername);
                 var package = new PackageRegistration
                 {
                     Id = id,
@@ -243,8 +244,8 @@ namespace NuGetGallery
 
                 var messageService = TestableMessageService.Create(GetConfigurationService());
 
-                var packageUrl = "http://someurl/";
-                messageService.SendContactOwnersMessage(from, package, packageUrl, "Test message", "http://someotherurl/", false);
+                var packageUrl = "http://packageUrl/";
+                messageService.SendContactOwnersMessage(from, package, packageUrl, "Test message", "http://emailSettingsUrl/", false);
                 var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal(owner1Email, message.To[0].Address);
@@ -254,7 +255,7 @@ namespace NuGetGallery
                 Assert.Contains($"[Joe Shmoe] Message for owners of the package '{id}'", message.Subject);
                 Assert.Contains("Test message", message.Body);
                 Assert.Contains(
-                    $"User flossy &lt;{userEmail}&gt; sends the following message to the owners of Package '[{id}]({packageUrl})'.", 
+                    $"User {userUsername} &lt;{userEmail}&gt; sends the following message to the owners of Package '[{id}]({packageUrl})'.", 
                     message.Body);
             }
 
