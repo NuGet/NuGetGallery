@@ -140,11 +140,27 @@ namespace NuGetGallery
             modelBuilder.Entity<Membership>()
                 .HasKey(m => new { m.OrganizationKey, m.MemberKey });
 
+            modelBuilder.Entity<MembershipRequest>()
+                .HasKey(m => new { m.OrganizationKey, m.NewMemberKey });
+
             modelBuilder.Entity<User>()
                 .HasMany(u => u.Organizations)
                 .WithRequired(m => m.Member)
                 .HasForeignKey(m => m.MemberKey)
                 .WillCascadeOnDelete(true); // Membership will be deleted with the Member account.
+
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.OrganizationRequests)
+                .WithRequired(m => m.NewMember)
+                .HasForeignKey(m => m.NewMemberKey)
+                .WillCascadeOnDelete(false);
+
+            // MemberRequests relationship is with the User table since Organization may still require transformation.
+            modelBuilder.Entity<User>()
+                .HasMany(o => o.MemberRequests)
+                .WithRequired(m => m.Organization)
+                .HasForeignKey(m => m.OrganizationKey)
+                .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<Organization>()
                 .HasMany(o => o.Members)

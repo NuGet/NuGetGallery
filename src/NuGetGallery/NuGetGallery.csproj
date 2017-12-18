@@ -796,6 +796,10 @@
     <Compile Include="Migrations\201712052213307_AddPackageIdLocking.Designer.cs">
       <DependentUpon>201712052213307_AddPackageIdLocking.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201712181909207_MembershipRequests.cs" />
+    <Compile Include="Migrations\201712181909207_MembershipRequests.Designer.cs">
+      <DependentUpon>201712181909207_MembershipRequests.cs</DependentUpon>
+    </Compile>
     <Compile Include="RequestModels\DeleteAccountRequest.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.Designer.cs">
@@ -1908,6 +1912,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201712052213307_AddPackageIdLocking.resx">
       <DependentUpon>201712052213307_AddPackageIdLocking.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201712181909207_MembershipRequests.resx">
+      <DependentUpon>201712181909207_MembershipRequests.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
