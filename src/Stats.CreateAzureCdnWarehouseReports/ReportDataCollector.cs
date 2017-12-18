@@ -13,7 +13,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
 {
     internal class ReportDataCollector
     {
-        private int _commandTimeout;
+        private int _commandTimeoutSeconds;
         private readonly string _procedureName;
         private readonly SqlConnectionStringBuilder _sourceDatabase;
 
@@ -24,7 +24,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
             _logger = logger;
             _procedureName = procedureName;
             _sourceDatabase = sourceDatabase;
-            _commandTimeout = timeout;
+            _commandTimeoutSeconds = timeout;
         }
 
         public async Task<DataTable> CollectAsync(DateTime reportGenerationTime, params Tuple<string, int, string>[] parameters)
@@ -114,7 +114,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
             {
                 var command = new SqlCommand(_procedureName, connection);
                 command.CommandType = CommandType.StoredProcedure;
-                command.CommandTimeout = _commandTimeout;
+                command.CommandTimeout = _commandTimeoutSeconds;
 
                 command.Parameters.Add("ReportGenerationTime", SqlDbType.DateTime).Value = reportGenerationTime;
 
