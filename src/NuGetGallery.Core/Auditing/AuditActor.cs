@@ -17,6 +17,10 @@ namespace NuGetGallery.Auditing
 {
     public class AuditActor
     {
+        private static string _localIpAddress;
+        private static DateTime _localIpAddressExpiration;
+        private const int _localIpAddressExpirationInMinutes = 10;
+
         public string MachineName { get; set; }
 
         [Obfuscate(ObfuscationType.IP)]
@@ -113,10 +117,6 @@ namespace NuGetGallery.Auditing
                 DateTime.UtcNow,
                 onBehalfOf);
         }
-
-        private static string _localIpAddress;
-        private static DateTime _localIpAddressExpiration;
-        private const int _localIpAddressExpirationInMinutes = 5;
 
         /// <summary>
         /// Get the local machine's IP address.
