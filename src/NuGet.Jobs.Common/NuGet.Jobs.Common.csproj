@@ -187,6 +187,7 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Configuration\GalleryDbConfiguration.cs" />
     <Compile Include="Configuration\JobArgumentNames.cs" />
     <Compile Include="Configuration\ServiceBusConfiguration.cs" />
     <Compile Include="Configuration\ValidationDbConfiguration.cs" />

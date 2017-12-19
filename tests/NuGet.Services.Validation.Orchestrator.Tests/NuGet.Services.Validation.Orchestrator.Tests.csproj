@@ -42,6 +42,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConfigurationFacts.cs" />
+    <Compile Include="CoreMessageServiceConfigurationFacts.cs" />
+    <Compile Include="MessageServiceFacts.cs" />
     <Compile Include="OrchestrationRunnerFacts.cs" />
     <Compile Include="PackageCertificates\PackageCertificatesValidatorFacts.cs" />
     <Compile Include="PackageSigning\PackageSigningValidatorFacts.cs" />

@@ -45,6 +45,7 @@ namespace NuGet.Jobs
 
         //Arguments specific to CreateWarehouseReports job
         public const string WarehouseReportName = "WarehouseReportName";
+        public const string PerPackageReportDegreeOfParallelism = "PerPackageReportDegreeOfParallelism";
 
         // Arguments specific to Search* jobs
         public const string DataStorageAccount = "DataStorageAccount";
