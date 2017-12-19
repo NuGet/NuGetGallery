@@ -800,6 +800,10 @@
     <Compile Include="Migrations\201712182237217_MembershipRequests.Designer.cs">
       <DependentUpon>201712182237217_MembershipRequests.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201712192219542_TenantId.cs" />
+    <Compile Include="Migrations\201712192219542_TenantId.Designer.cs">
+      <DependentUpon>201712192219542_TenantId.cs</DependentUpon>
+    </Compile>
     <Compile Include="RequestModels\DeleteAccountRequest.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.Designer.cs">
@@ -1915,6 +1919,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201712182237217_MembershipRequests.resx">
       <DependentUpon>201712182237217_MembershipRequests.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201712192219542_TenantId.resx">
+      <DependentUpon>201712192219542_TenantId.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace NuGetGallery
 {
@@ -24,6 +25,9 @@ namespace NuGetGallery
         {
             Members = new List<Membership>();
         }
+
+        [StringLength(maximumLength: 256)]
+        public string TenantId { get; set; }
 
         /// <summary>
         /// Organization Memberships to this organization.
