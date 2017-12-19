@@ -560,7 +560,7 @@ namespace NuGetGallery.Authentication
             var emailClaim = result.Identity.FindFirst(ClaimTypes.Email);
             string emailSuffix = emailClaim == null ? String.Empty : (" <" + emailClaim.Value + ">");
 
-            var tenantClaim = result.Identity.FindFirst(tenantIdClaimType);
+            var tenantIdClaim = result.Identity.FindFirst(tenantIdClaimType);
 
             Authenticator auther;
             string authenticationType = idClaim.Issuer;
@@ -581,7 +581,7 @@ namespace NuGetGallery.Authentication
                 Authentication = null,
                 ExternalIdentity = result.Identity,
                 Authenticator = auther,
-                Credential = _credentialBuilder.CreateExternalCredential(authenticationType, idClaim.Value, nameClaim.Value + emailSuffix, tenantClaim.Value)
+                Credential = _credentialBuilder.CreateExternalCredential(authenticationType, idClaim.Value, nameClaim.Value + emailSuffix, tenantIdClaim?.Value)
             };
         }
 

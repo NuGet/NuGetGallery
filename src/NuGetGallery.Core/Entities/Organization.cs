@@ -26,9 +26,6 @@ namespace NuGetGallery
             Members = new List<Membership>();
         }
 
-        [StringLength(maximumLength: 256)]
-        public string TenantId { get; set; }
-
         /// <summary>
         /// Organization Memberships to this organization.
         /// </summary>
