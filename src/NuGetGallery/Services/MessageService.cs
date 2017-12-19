@@ -129,17 +129,17 @@ namespace NuGetGallery
             }
         }
 
-        public void SendContactOwnersMessage(MailAddress fromAddress, PackageRegistration packageRegistration, string message, string emailSettingsUrl, bool copySender)
+        public void SendContactOwnersMessage(MailAddress fromAddress, PackageRegistration packageRegistration, string packageUrl, string message, string emailSettingsUrl, bool copySender)
         {
             string subject = "[{0}] Message for owners of the package '{1}'";
-            string body = @"_User {0} &lt;{1}&gt; sends the following message to the owners of Package '{2}'._
+            string body = @"_User {0} &lt;{1}&gt; sends the following message to the owners of Package '[{2}]({3})'._
 
-{3}
+{4}
 
 -----------------------------------------------
 <em style=""font-size: 0.8em;"">
-    To stop receiving contact emails as an owner of this package, sign in to the {4} and
-    [change your email notification settings]({5}).
+    To stop receiving contact emails as an owner of this package, sign in to the {5} and
+    [change your email notification settings]({6}).
 </em>";
 
             body = String.Format(
@@ -148,6 +148,7 @@ namespace NuGetGallery
                 fromAddress.DisplayName,
                 fromAddress.Address,
                 packageRegistration.Id,
+                packageUrl,
                 message,
                 Config.GalleryOwner.DisplayName,
                 emailSettingsUrl);
