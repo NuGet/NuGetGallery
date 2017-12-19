@@ -439,6 +439,13 @@ namespace NuGetGallery
                                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Unauthorized, Strings.ApiKeyNotAuthorized);
                             }
 
+                            if (packageRegistration.IsLocked)
+                            {
+                                return new HttpStatusCodeWithBodyResult(
+                                    HttpStatusCode.Forbidden,
+                                    string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, packageRegistration.Id));
+                            }
+
                             // Check if a particular Id-Version combination already exists. We eventually need to remove this check.
                             string normalizedVersion = nuspec.GetVersion().ToNormalizedString();
                             bool packageExists =
@@ -499,11 +506,14 @@ namespace NuGetGallery
                         await AuditingService.SaveAuditRecordAsync(
                             new PackageAuditRecord(package, AuditedPackageAction.Create, PackageCreatedVia.Api));
 
-                        // Notify user of push
-                        MessageService.SendPackageUploadedNotice(package,
-                            Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
-                            Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
-                            Url.AccountSettings(relativeUrl: false));
+                        if (!(ConfigurationService.Current.AsynchronousPackageValidationEnabled && ConfigurationService.Current.BlockingAsynchronousPackageValidationEnabled))
+                        {
+                            // Notify user of push unless async validation in blocking mode is used
+                            MessageService.SendPackageAddedNotice(package,
+                                Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                                Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                                Url.AccountSettings(relativeUrl: false));
+                        }
 
                         TelemetryService.TrackPackagePushEvent(package, user, User.Identity);
 
@@ -561,6 +571,13 @@ namespace NuGetGallery
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
             }
 
+            if (package.PackageRegistration.IsLocked)
+            {
+                return new HttpStatusCodeWithBodyResult(
+                    HttpStatusCode.Forbidden,
+                    string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, package.PackageRegistration.Id));
+            }
+
             await PackageService.MarkPackageUnlistedAsync(package);
             IndexingService.UpdatePackage(package);
             return new EmptyResult();
@@ -584,6 +601,13 @@ namespace NuGetGallery
             if (!HasAnyScopeThatAllows(package.PackageRegistration, NuGetScopes.PackageUnlist))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
+            }
+
+            if (package.PackageRegistration.IsLocked)
+            {
+                return new HttpStatusCodeWithBodyResult(
+                    HttpStatusCode.Forbidden,
+                    string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, package.PackageRegistration.Id));
             }
 
             await PackageService.MarkPackageListedAsync(package);

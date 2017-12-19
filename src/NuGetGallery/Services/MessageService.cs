@@ -670,10 +670,7 @@ The {0} Team";
                 mailMessage.Body = body;
                 mailMessage.From = Config.GalleryNoReplyAddress;
 
-                foreach (var owner in package.PackageRegistration.Owners)
-                {
-                    mailMessage.To.Add(owner.ToMailAddress());
-                }
+                AddAllOwnersToMailMessage(package.PackageRegistration, mailMessage);
 
                 if (mailMessage.To.Any())
                 {

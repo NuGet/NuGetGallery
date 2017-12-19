@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using NuGetGallery.Auditing.Obfuscation;
 
 namespace NuGetGallery.Auditing.AuditedEntities
 {
@@ -37,10 +38,12 @@ namespace NuGetGallery.Auditing.AuditedEntities
         public string LicenseReportUrl { get; private set; }
         public bool Listed { get; private set; }
         public bool IsPrerelease { get; private set; }
+        [Obfuscate(ObfuscationType.Authors)]
         public string FlattenedAuthors { get; private set; }
         public string FlattenedDependencies { get; private set; }
         public int Key { get; private set; }
         public string MinClientVersion { get; private set; }
+        [Obfuscate(ObfuscationType.UserKey)]
         public int? UserKey { get; private set; }
         public bool Deleted { get; private set; }
         public bool HasReadMe { get; private set; }
