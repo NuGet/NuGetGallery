@@ -20,18 +20,28 @@
 
              @if (Model.IsLocked && !User.IsAdministrator())
              {
-            <div class="validation-error-message-list">
-                @ViewHelpers.AlertDanger(
-                    @<text>
-                        <span>
-                            Package '@Model.Id' has been locked. This means you cannot publish a new version or change the listing status of a published package version. Please contact
-                            <a href="mailto:support@nuget.org?subject=Requesting support for a locked package - '@Model.Id'">support@nuget.org</a>
-                        </span>
-                    </text>)
-            </div>
+                <div class="validation-error-message-list">
+                    @ViewHelpers.AlertDanger(
+                        @<text>
+                            <span>
+                                Package '@Model.Id' has been locked. This means you cannot publish a new version or change the listing status of a published package version. Please contact
+                                <a href="mailto:support@nuget.org?subject=@HttpUtility.UrlPathEncode(string.Format("Requesting support for a locked package - '{0}'", Model.Id))">support@nuget.org</a>
+                            </span>
+                        </text>)
+                </div>
              }
              else
              {
+                 if (Model.IsLocked && User.IsAdministrator())
+                 {
+                    <div class="validation-error-message-list">
+                        @ViewHelpers.AlertDanger(
+                            @<text>
+                                <span>Package '@Model.Id' has been locked.</span>
+                            </text>)
+                    </div>
+                 }
+
                 <h2>
                     <a href="#" role="button" data-toggle="collapse" data-target="#select-version" aria-expanded="true" aria-controls="select-version" id="show-select-version">
                         <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
