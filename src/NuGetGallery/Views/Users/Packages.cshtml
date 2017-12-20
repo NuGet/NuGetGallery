@@ -1,4 +1,5 @@
 ﻿@model ManagePackagesViewModel
+@using Newtonsoft.Json;
 @{
     ViewBag.Title = "Manage My Package";
     ViewBag.Tab = "Packages";
@@ -222,7 +223,7 @@
 
 @section BottomScripts {
     <script type="text/javascript">
-        var initialData = @Html.Raw(Json.Encode(new
+        var initialData = @Html.Raw(JsonConvert.SerializeObject(new
                      {
                          Owners = Model.Owners.Select(o => new
                          {

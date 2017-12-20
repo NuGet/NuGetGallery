@@ -972,6 +972,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Package &apos;{0}&apos; has been locked. This means you cannot publish a new version or change the listing status of a published package version. Please contact support@nuget.org..
+        /// </summary>
+        public static string PackageIsLocked {
+            get {
+                return ResourceManager.GetString("PackageIsLocked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Package versions that differ only by metadata cannot be uploaded. A package with ID &apos;{0}&apos; and version &apos;{1}&apos; already exists and cannot be modified..
         /// </summary>
         public static string PackageVersionDiffersOnlyByMetadataAndCannotBeModified {
