@@ -26,7 +26,7 @@ namespace NuGetGallery.Infrastructure
                     TestCredentialHelper.CreateV1ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1),
                     TestCredentialHelper.CreateV2ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1),
                     TestCredentialHelper.CreateV2VerificationApiKey(Guid.NewGuid()),
-                    credentialBuilder.CreateExternalCredential("MicrosoftAccount", "blarg", "Bloog"),
+                    credentialBuilder.CreateMicrosoftCredential("blarg", "Bloog"),
                     new Credential { Type = "unsupported" }
             };
 

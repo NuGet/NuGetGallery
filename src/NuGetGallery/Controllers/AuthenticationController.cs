@@ -185,7 +185,7 @@ namespace NuGetGallery
                 var providers = enforcedProviders.Split(new[] {';'}, StringSplitOptions.RemoveEmptyEntries);
 
                 if (!providers.Any(p => string.Equals(p, authenticatedUser.CredentialUsed.Type, StringComparison.OrdinalIgnoreCase))
-                    && !providers.Any(p => string.Equals(CredentialTypes.ExternalPrefix + p, authenticatedUser.CredentialUsed.Type, StringComparison.OrdinalIgnoreCase)))
+                    && !providers.Any(p => string.Equals(CredentialTypes.External.Prefix + p, authenticatedUser.CredentialUsed.Type, StringComparison.OrdinalIgnoreCase)))
                 {
                     // Challenge authentication using the first required authentication provider
                     challenge = _authService.Challenge(

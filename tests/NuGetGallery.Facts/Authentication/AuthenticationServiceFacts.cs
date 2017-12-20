@@ -524,7 +524,7 @@ namespace NuGetGallery.Authentication
             public async Task GivenMatchingCredential_ItWritesCredentialLastUsed()
             {
                 // Arrange
-                var cred = _fakes.User.Credentials.Single(c => c.Type.Contains(CredentialTypes.ExternalPrefix));
+                var cred = _fakes.User.Credentials.Single(c => c.Type.Contains(CredentialTypes.External.Prefix));
 
                 var referenceTime = DateTime.UtcNow;
                 _dateTimeProviderMock.SetupGet(x => x.UtcNow).Returns(referenceTime);
@@ -1422,7 +1422,7 @@ namespace NuGetGallery.Authentication
             public void GivenAnExternalCredential_ItDescribesItCorrectly(bool hasExpired)
             {
                 // Arrange
-                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "abc123", "Test User");
+                var cred = new CredentialBuilder().CreateMicrosoftCredential("abc123", "Test User");
                 cred.Expires = hasExpired ? DateTime.UtcNow - TimeSpan.FromDays(1) : DateTime.UtcNow + TimeSpan.FromDays(1);
 
                 var msftAuther = new MicrosoftAccountAuthenticator();
@@ -1650,11 +1650,12 @@ namespace NuGetGallery.Authentication
             public async Task GivenMatchingIssuer_ItReturnsTheAutherWithThatName()
             {
                 // Arrange
+                var issuer = CredentialTypes.ExternalProviders.Microsoft;
                 var authThunk = new AuthenticateThunk()
                 {
                     ShimIdentity = new ClaimsIdentity(new[] {
-                        new Claim(ClaimTypes.NameIdentifier, "blarg", null, "MicrosoftAccount"),
-                        new Claim(ClaimTypes.Name, "bloog", null, "MicrosoftAccount")
+                        new Claim(ClaimTypes.NameIdentifier, "blarg", null, issuer),
+                        new Claim(ClaimTypes.Name, "bloog", null, issuer)
                     })
                 };
                 var authService = Get<AuthenticationService>();
@@ -1666,18 +1667,19 @@ namespace NuGetGallery.Authentication
 
                 // Assert
                 Assert.Same(authThunk.ShimIdentity, result.ExternalIdentity);
-                Assert.Same(authService.Authenticators["MicrosoftAccount"], result.Authenticator);
+                Assert.Same(authService.Authenticators[issuer], result.Authenticator);
             }
 
             [Fact]
             public async Task GivenAnIdentity_ItCreatesAnExternalCredential()
             {
                 // Arrange
+                var issuer = CredentialTypes.ExternalProviders.Microsoft;
                 var authThunk = new AuthenticateThunk()
                 {
                     ShimIdentity = new ClaimsIdentity(new[] {
-                        new Claim(ClaimTypes.NameIdentifier, "blarg", null, "MicrosoftAccount"),
-                        new Claim(ClaimTypes.Name, "bloog", null, "MicrosoftAccount")
+                        new Claim(ClaimTypes.NameIdentifier, "blarg", null, issuer),
+                        new Claim(ClaimTypes.Name, "bloog", null, issuer)
                     })
                 };
                 var authService = Get<AuthenticationService>();
@@ -1689,7 +1691,7 @@ namespace NuGetGallery.Authentication
 
                 // Assert
                 Assert.NotNull(result.Credential);
-                Assert.Equal("external.MicrosoftAccount", result.Credential.Type);
+                Assert.Equal(CredentialTypes.External.Microsoft, result.Credential.Type);
                 Assert.Equal("blarg", result.Credential.Value);
                 Assert.Equal("bloog", result.Credential.Identity);
             }

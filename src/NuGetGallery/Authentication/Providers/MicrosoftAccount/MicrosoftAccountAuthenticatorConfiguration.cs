@@ -1,11 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
-using System.Collections.Generic;
 using System.Configuration;
 using System.Globalization;
-using System.Linq;
-using System.Text;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.MicrosoftAccount;
 
@@ -18,7 +16,7 @@ namespace NuGetGallery.Authentication.Providers.MicrosoftAccount
 
         public MicrosoftAccountAuthenticatorConfiguration()
         {
-            AuthenticationType = MicrosoftAccountAuthenticator.DefaultAuthenticationType;
+            AuthenticationType = CredentialTypes.ExternalProviders.Microsoft;
         }
 
         public override void ApplyToOwinSecurityOptions(AuthenticationOptions options)

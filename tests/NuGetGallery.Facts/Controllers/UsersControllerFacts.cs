@@ -65,7 +65,7 @@ namespace NuGetGallery
                     "test",
                     credentialBuilder.CreatePasswordCredential("hunter2"),
                     TestCredentialHelper.CreateV1ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1),
-                    credentialBuilder.CreateExternalCredential("MicrosoftAccount", "blarg", "Bloog"));
+                    credentialBuilder.CreateMicrosoftCredential("blarg", "Bloog"));
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
@@ -99,7 +99,7 @@ namespace NuGetGallery
                     TestCredentialHelper.CreateSha1Password("sha1"),
                     TestCredentialHelper.CreateV1ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1),
                     TestCredentialHelper.CreateV2ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1),
-                    credentialBuilder.CreateExternalCredential("MicrosoftAccount", "blarg", "Bloog"),
+                    credentialBuilder.CreateMicrosoftCredential("blarg", "Bloog"),
                     new Credential() { Type = "unsupported" }
                 };
 
@@ -1323,8 +1323,7 @@ namespace NuGetGallery
                 var user = new User("foo");
                 var cred = new CredentialBuilder().CreatePasswordCredential("old");
                 user.Credentials.Add(cred);
-                user.Credentials.Add(new CredentialBuilder()
-                    .CreateExternalCredential("MicrosoftAccount", "blorg", "bloog"));
+                user.Credentials.Add(new CredentialBuilder().CreateMicrosoftCredential("blorg", "bloog"));
 
                 GetMock<AuthenticationService>()
                     .Setup(a => a.RemoveCredential(user, cred))
@@ -1334,7 +1333,7 @@ namespace NuGetGallery
                     .Setup(m => 
                                 m.SendCredentialRemovedNotice(
                                     user,
-                                    It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.ExternalPrefix + "MicrosoftAccount")))
+                                    It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.External.Microsoft)))
                     .Verifiable();
 
                 var controller = GetController<UsersController>();
@@ -1470,7 +1469,7 @@ namespace NuGetGallery
                 // Arrange
                 var fakes = Get<Fakes>();
                 var user = fakes.CreateUser("test",
-                    new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "bloog"));
+                    new CredentialBuilder().CreateMicrosoftCredential("blorg", "bloog"));
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
@@ -1492,7 +1491,7 @@ namespace NuGetGallery
                 var cred = credentialBuilder.CreatePasswordCredential("password");
                 var user = fakes.CreateUser("test",
                     cred,
-                    credentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "bloog"));
+                    credentialBuilder.CreateMicrosoftCredential("blorg", "bloog"));
 
                 GetMock<AuthenticationService>()
                     .Setup(a => a.RemoveCredential(user, cred))
@@ -1524,7 +1523,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var fakes = Get<Fakes>();
-                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "bloog");
+                var cred = new CredentialBuilder().CreateMicrosoftCredential("blorg", "bloog");
                 var user = fakes.CreateUser("test", cred);
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
@@ -1552,7 +1551,7 @@ namespace NuGetGallery
 
                 // Act
                 var result = await controller.RemoveCredential(
-                    credentialType: CredentialTypes.ExternalPrefix + "MicrosoftAccount",
+                    credentialType: CredentialTypes.External.Microsoft,
                     credentialKey: null);
 
                 // Assert
@@ -1594,7 +1593,7 @@ namespace NuGetGallery
                 // Arrange
                 var credentialBuilder = new CredentialBuilder();
                 var fakes = Get<Fakes>();
-                var cred = credentialBuilder.CreateExternalCredential("MicrosoftAccount", "blorg", "bloog");
+                var cred = credentialBuilder.CreateMicrosoftCredential("blorg", "bloog");
                 var user = fakes.CreateUser("test",
                     cred,
                     credentialBuilder.CreatePasswordCredential("password"));
@@ -1607,7 +1606,7 @@ namespace NuGetGallery
                     .Setup(m => 
                                 m.SendCredentialRemovedNotice(
                                     user,
-                                    It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.ExternalPrefix + "MicrosoftAccount")))
+                                    It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.External.Microsoft)))
                     .Verifiable();
 
                 var controller = GetController<UsersController>();
@@ -1632,7 +1631,7 @@ namespace NuGetGallery
                 var creds = new Credential[5];
                 for (int i = 0; i < creds.Length; i++)
                 {
-                    creds[i] = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "bloog" + i);
+                    creds[i] = new CredentialBuilder().CreateMicrosoftCredential("blorg", "bloog" + i);
                     creds[i].Key = i + 1;
                 }
 

@@ -26,7 +26,18 @@ namespace NuGetGallery
             public const string VerifyV1 = Prefix + "verify.v1";
         }
 
-        public const string ExternalPrefix = "external.";
+        public static class External
+        {
+            public const string Prefix = "external.";
+            public const string Microsoft = Prefix + ExternalProviders.Microsoft;
+            public const string AzureActiveDirectory = Prefix + ExternalProviders.AzureActiveDirectory;
+        }
+
+        public static class ExternalProviders
+        {
+            public const string Microsoft = "MicrosoftAccount";
+            public const string AzureActiveDirectory = "AzureActiveDirectory";
+        }
 
         public static bool IsPassword(string type)
         {
@@ -46,6 +57,14 @@ namespace NuGetGallery
         public static bool IsPackageVerificationApiKey(string type)
         {
             return type.Equals(ApiKey.VerifyV1, StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Determine if credential is linked to an external AAD account.
+        /// </summary>
+        public static bool IsAzureActiveDirectoryCredential(this Credential credential)
+        {
+            return credential.Type.Equals(External.AzureActiveDirectory, StringComparison.OrdinalIgnoreCase);
         }
         
         internal static IReadOnlyList<string> SupportedCredentialTypes = new List<string> { Password.Sha1, Password.Pbkdf2, Password.V3, ApiKey.V1, ApiKey.V2, ApiKey.V4 };
@@ -70,7 +89,7 @@ namespace NuGetGallery
         public static bool IsViewSupportedCredential(this Credential credential)
         {
             return SupportedCredentialTypes.Any(credType => string.Compare(credential.Type, credType, StringComparison.OrdinalIgnoreCase) == 0)
-                    || credential.Type.StartsWith(ExternalPrefix, StringComparison.OrdinalIgnoreCase);
+                    || credential.Type.StartsWith(External.Prefix, StringComparison.OrdinalIgnoreCase);
         }
 
         public static bool IsScopedApiKey(this Credential credential)

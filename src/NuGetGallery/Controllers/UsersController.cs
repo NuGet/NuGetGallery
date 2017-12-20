@@ -964,7 +964,7 @@ namespace NuGetGallery
         {
             return user.Credentials.Count(c =>
                 c.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase) ||
-                c.Type.StartsWith(CredentialTypes.ExternalPrefix, StringComparison.OrdinalIgnoreCase));
+                c.Type.StartsWith(CredentialTypes.External.Prefix, StringComparison.OrdinalIgnoreCase));
         }
 
         private ActionResult SendPasswordResetEmail(User user, bool forgotPassword)
