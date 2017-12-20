@@ -185,3 +185,8 @@ Results.?.xml
 .vs/config/applicationhost.config
 artifacts/
 .vs
+
+# files are created at build time
+src/NuGetGallery/Content/gallery/css/bootstrap-theme.css
+src/NuGetGallery/Content/gallery/css/bootstrap.css
+src/NuGetGallery/Scripts/gallery/bootstrap.js

@@ -568,7 +568,7 @@ namespace NuGetGallery
                 Assert.Equal("Foo", model.Id);
                 Assert.Equal("1.1.1", model.Version);
                 Assert.Equal("A test package!", model.Title);
-                Assert.Equal("", model.ReadMeHtml);
+                Assert.Null(model.ReadMeHtml);
             }
 
             [Fact]
@@ -602,25 +602,25 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WhenHasReadMeAndFileNotFound_ReturnsEmptyString()
+            public async Task WhenHasReadMeAndFileNotFound_ReturnsNull()
             {
                 // Arrange & Act
                 var result = await GetDisplayPackageResult(null, true);
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
-                Assert.Equal("", model.ReadMeHtml);
+                Assert.Null(model.ReadMeHtml);
             }
 
             [Fact]
-            public async Task WhenHasReadMeFalse_ReturnsEmptyString()
+            public async Task WhenHasReadMeFalse_ReturnsNull()
             {
                 // Arrange and Act
                 var result = await GetDisplayPackageResult(null, false);
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
-                Assert.Equal("", model.ReadMeHtml);
+                Assert.Null(model.ReadMeHtml);
             }
 
             private async Task<ActionResult> GetDisplayPackageResult(string readMeHtml, bool hasReadMe)
@@ -1227,6 +1227,7 @@ namespace NuGetGallery
             [Fact]
             public void HtmlEncodesMessageContent()
             {
+                var sentPackageUrl = string.Empty;
                 var messageService = new Mock<IMessageService>();
                 string sentMessage = null;
                 messageService.Setup(
@@ -1235,8 +1236,13 @@ namespace NuGetGallery
                         It.IsAny<PackageRegistration>(),
                         It.IsAny<string>(),
                         It.IsAny<string>(),
+                        It.IsAny<string>(),
                         false))
-                    .Callback<MailAddress, PackageRegistration, string, string, bool>((_, __, msg, ___, ____) => sentMessage = msg);
+                    .Callback<MailAddress, PackageRegistration, string, string, string, bool>((_, __, packageUrl, msg, ____, _____) =>
+                    {
+                        sentPackageUrl = packageUrl;
+                        sentMessage = msg;
+                    });
                 var package = new PackageRegistration { Id = "factory" };
 
                 var packageService = new Mock<IPackageService>();
@@ -1255,6 +1261,7 @@ namespace NuGetGallery
                 var result = controller.ContactOwners("factory", model) as RedirectToRouteResult;
 
                 Assert.Equal("I like the cut of your jib. It&#39;s &lt;b&gt;bold&lt;/b&gt;.", sentMessage);
+                Assert.Equal(controller.Url.Package(package, false), sentPackageUrl);
             }
 
             [Fact]
@@ -1265,6 +1272,7 @@ namespace NuGetGallery
                     s => s.SendContactOwnersMessage(
                         It.IsAny<MailAddress>(),
                         It.IsAny<PackageRegistration>(),
+                        It.IsAny<string>(),
                         "I like the cut of your jib",
                         It.IsAny<string>(), false));
                 var package = new PackageRegistration { Id = "factory" };
@@ -1353,6 +1361,7 @@ namespace NuGetGallery
                 Assert.IsType<ViewResult>(result);
                 var model = ((ViewResult)result).Model as DeletePackageViewModel;
                 Assert.NotNull(model);
+                Assert.False(model.IsLocked);
 
                 // Verify version select list
                 Assert.Equal(packageRegistration.Packages.Count, model.VersionSelectList.Count());
@@ -1370,10 +1379,39 @@ namespace NuGetGallery
                     Assert.Equal(textField, selectListItem.Text);
                 }
             }
+
+            [Fact]
+            public void WhenPackageRegistrationIsLockedReturnsLockedState()
+            {
+                // Arrange
+                var user = new User("Frodo") { Key = 1 };
+                var packageRegistration = new PackageRegistration { Id = "Foo", IsLocked = true };
+                packageRegistration.Owners.Add(user);
+
+                var package = new Package
+                {
+                    Key = 2,
+                    PackageRegistration = packageRegistration,
+                    Version = "1.0.0+metadata",
+                };
+
+                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+                packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0.0", SemVerLevelKey.Unknown, true))
+                    .Returns(package);
+
+                var controller = CreateController(GetConfigurationService(), packageService: packageService);
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = controller.Delete("Foo", "1.0.0");
+
+                // Assert
+                var model = ResultAssert.IsView<DeletePackageViewModel>(result);
+                Assert.True(model.IsLocked);
+            }
         }
 
-        public class TheEditMethod
-            : TestContainer
+        public class TheUpdateListedMethod : TestContainer
         {
             [Fact]
             public async Task UpdatesUnlistedIfSelected()
@@ -1454,6 +1492,41 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task WhenPackageRegistrationIsLockedReturns403()
+            {
+                // Arrange
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = "Foo", IsLocked = true },
+                    Version = "1.0",
+                };
+                package.PackageRegistration.Owners.Add(new User("Frodo"));
+
+                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+                packageService.Setup(svc => svc.MarkPackageListedAsync(It.IsAny<Package>(), It.IsAny<bool>()))
+                    .Throws(new Exception("Shouldn't be called"));
+                packageService.Setup(svc => svc.MarkPackageUnlistedAsync(It.IsAny<Package>(), It.IsAny<bool>()))
+                    .Throws(new Exception("Shouldn't be called"));
+                packageService.Setup(svc => svc.FindPackageByIdAndVersionStrict("Foo", "1.0"))
+                    .Returns(package);
+
+                var controller = CreateController(GetConfigurationService(), packageService: packageService);
+
+                controller.SetCurrentUser(new User("Frodo"));
+                controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
+
+                // Act
+                var result = await controller.Edit("Foo", "1.0", listed: true, urlFactory: (pkg, relativeUrl) => @"~\Bar.cshtml");
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.Forbidden);
+            }
+        }
+
+        public class TheEditGetMethod
+            : TestContainer
+        {
+            [Fact]
             public async Task UsesNormalizedVersionsInUrlsInSelectList()
             {
                 // Arrange
@@ -1495,8 +1568,6 @@ namespace NuGetGallery
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
                 packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0.0", SemVerLevelKey.Unknown, true))
                     .Returns(package).Verifiable();
-                packageService.Setup(svc => svc.FindPackageRegistrationById("Foo"))
-                    .Returns(package.PackageRegistration).Verifiable();
 
                 var editPackageService = new Mock<EditPackageService>(MockBehavior.Strict);
                 editPackageService.Setup(svc => svc.GetPendingMetadata(package))
@@ -1618,6 +1689,123 @@ namespace NuGetGallery
                 packageFileService.Verify(s => s.DownloadReadMeMdFileAsync(It.IsAny<Package>(), It.IsAny<bool>()), Times.Never);
             }
 
+            [Fact]
+            public async Task WhenPackageIsNotFoundReturns404()
+            {
+                // Arrange
+                var user = new User("Frodo") { Key = 1 };
+                
+                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+                packageService.Setup(svc => svc.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<bool>()))
+                              .Returns<Package>(null);
+                
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService);
+
+                // Act
+                var result = await controller.Edit("Foo", "1.0.0");
+
+                // Assert
+                Assert.IsType<HttpNotFoundResult>(result);
+            }
+
+            [Fact]
+            public async Task WhenUserHasNoPermissionsToEditPackageReturns403()
+            {
+                // Arrange
+                var user = new User("Frodo") { Key = 1 };
+                var packageRegistration = new PackageRegistration { Id = "Foo" };
+
+                var package = new Package
+                {
+                    Key = 2,
+                    PackageRegistration = packageRegistration,
+                    Version = "1.0.0+metadata",
+                    Listed = true,
+                    IsLatestSemVer2 = true,
+                    HasReadMe = false
+                };
+
+                packageRegistration.Packages.Add(package);
+
+                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+                packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0.0", SemVerLevelKey.Unknown, true))
+                    .Returns(package).Verifiable();
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService);
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.Edit("Foo", "1.0.0");
+
+                // Assert
+                packageService.Verify();
+
+                Assert.IsType<HttpStatusCodeResult>(result);
+                Assert.Equal((int)HttpStatusCode.Forbidden, (result as HttpStatusCodeResult).StatusCode);
+            }
+
+            [Fact]
+            public async Task WhenPackageRegistrationIsLocked_ReturnsLocked()
+            {
+                // Arrange
+                var packageRegistration = new PackageRegistration { Id = "Foo", IsLocked = true };
+
+                var controller = SetupController(packageRegistration: packageRegistration);
+
+                // Act
+                var result = await controller.Edit("Foo", "1.0.0");
+
+                // Assert
+                var model = ResultAssert.IsView<EditPackageRequest>(result);
+                Assert.True(model.IsLocked);
+                Assert.Null(model.PackageVersions);
+                Assert.Null(model.VersionSelectList);
+                Assert.Null(model.Edit);
+            }
+
+            private PackagesController SetupController(bool hasReadMe = false, PackageEdit packageEdit = null,
+                Mock<IPackageFileService> packageFileService = null, PackageRegistration packageRegistration = null)
+            {
+                var package = new Package
+                {
+                    PackageRegistration = packageRegistration ?? new PackageRegistration { Id = "packageId" },
+                    Version = "1.0",
+                    Listed = true,
+                    HasReadMe = hasReadMe
+                };
+                package.PackageRegistration.Owners.Add(new User("user"));
+
+                var packageService = new Mock<IPackageService>();
+                packageService.Setup(s => s.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<bool>()))
+                    .Returns(package);
+                packageService.Setup(s => s.FindPackageRegistrationById(It.IsAny<string>()))
+                    .Returns(package.PackageRegistration);
+
+                var editPackageService = new Mock<EditPackageService>();
+                editPackageService.Setup(s => s.GetPendingMetadata(It.IsAny<Package>()))
+                    .Returns(packageEdit);
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    editPackageService: editPackageService,
+                    packageFileService: packageFileService);
+                controller.SetCurrentUser(new User("user"));
+
+                var routeCollection = new RouteCollection();
+                Routes.RegisterRoutes(routeCollection);
+                controller.Url = new UrlHelper(controller.ControllerContext.RequestContext, routeCollection);
+
+                return controller;
+            }
+        }
+
+        public class TheEditPostMethod : TestContainer
+        {
             [Theory]
             [InlineData(true)]
             [InlineData(false)]
@@ -1687,12 +1875,27 @@ namespace NuGetGallery
                 packageFileService.Verify(s => s.DownloadReadMeMdFileAsync(It.IsAny<Package>(), true), Times.Never);
             }
 
-            private PackagesController SetupController(bool hasReadMe = false, PackageEdit packageEdit = null,
-                Mock<IPackageFileService> packageFileService = null)
+            [Fact]
+            public async Task WhenPackageRegistrationIsLockedReturns403()
+            {
+                // Arrange
+                var packageRegistration = new PackageRegistration { Id = "Foo", IsLocked = true };
+
+                var controller = SetupController(packageRegistration: packageRegistration);
+
+                // Act
+                var result = await controller.Edit("Foo", "1.0.0", new VerifyPackageRequest(), string.Empty);
+
+                // Assert
+                Assert.IsType<JsonResult>(result);
+                Assert.Equal(403, controller.Response.StatusCode);
+            }
+
+            private PackagesController SetupController(bool hasReadMe = false, Mock<IPackageFileService> packageFileService = null, PackageRegistration packageRegistration = null)
             {
                 var package = new Package
                 {
-                    PackageRegistration = new PackageRegistration { Id = "packageId" },
+                    PackageRegistration = packageRegistration ?? new PackageRegistration { Id = "packageId" },
                     Version = "1.0",
                     Listed = true,
                     HasReadMe = hasReadMe
@@ -1705,14 +1908,9 @@ namespace NuGetGallery
                 packageService.Setup(s => s.FindPackageRegistrationById(It.IsAny<string>()))
                     .Returns(package.PackageRegistration);
 
-                var editPackageService = new Mock<EditPackageService>();
-                editPackageService.Setup(s => s.GetPendingMetadata(It.IsAny<Package>()))
-                    .Returns(packageEdit);
-
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
-                    editPackageService: editPackageService,
                     packageFileService: packageFileService);
                 controller.SetCurrentUser(new User("user"));
 
@@ -2807,6 +3005,30 @@ namespace NuGetGallery
                 Assert.NotNull(result);
                 Assert.True(result.Data is VerifyPackageRequest);
             }
+
+            [Fact]
+            public async Task WillShowViewWithErrorWhenThePackageRegistrationIsLocked()
+            {
+                // Arrange
+                var fakeUploadedFile = new Mock<HttpPostedFileBase>();
+                fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
+                var fakeFileStream = TestPackage.CreateTestPackageStream("theId", "1.0.0");
+                fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
+                var fakePackageRegistration = new PackageRegistration { Id = "theId", IsLocked = true, Owners = new[] { new User { Key = TestUtility.FakeUser.Key } } };
+                var fakePackageService = new Mock<IPackageService>();
+                fakePackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns(fakePackageRegistration);
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: fakePackageService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                // Act
+                var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
+
+                // Assert
+                Assert.IsType<JsonResult>(result);
+                Assert.Equal(403, controller.Response.StatusCode);
+            }
         }
 
         public class TheVerifyPackageActionForPostRequests
@@ -3400,6 +3622,57 @@ namespace NuGetGallery
 
                     var hasReadMe = !string.IsNullOrEmpty(edit.ReadMe?.SourceType);
                     fakePackageFileService.Verify(x => x.SavePendingReadMeMdFileAsync(fakePackage, "markdown"), Times.Exactly(hasReadMe ? 1 : 0));
+                }
+            }
+
+            [Theory]
+            [InlineData(false, false,  true)]
+            [InlineData( true, false,  true)]
+            [InlineData(false,  true,  true)]
+            [InlineData( true,  true, false)]
+            public async Task WillSendPackageAddedNotice(bool asyncValidationEnabled, bool blockingValidationEnabled, bool callExpected)
+            {
+                // Arrange
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                using (var fakeFileStream = new MemoryStream())
+                {
+                    fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(fakeFileStream));
+                    fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.CompletedTask);
+                    var fakePackageUploadService = new Mock<IPackageUploadService>();
+                    var fakePackage = new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "theVersion" };
+                    fakePackageUploadService
+                        .Setup(x => x.GeneratePackageAsync(
+                            It.IsAny<string>(),
+                            It.IsAny<PackageArchiveReader>(),
+                            It.IsAny<PackageStreamMetadata>(),
+                            It.IsAny<User>()))
+                        .Returns(Task.FromResult(fakePackage));
+                    var fakeNuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.0");
+                    var fakeTelemetryService = new Mock<ITelemetryService>();
+
+                    var configurationService = GetConfigurationService();
+                    configurationService.Current.AsynchronousPackageValidationEnabled = asyncValidationEnabled;
+                    configurationService.Current.BlockingAsynchronousPackageValidationEnabled = blockingValidationEnabled;
+
+                    var fakeMessageService = new Mock<IMessageService>();
+
+                    var controller = CreateController(
+                        configurationService,
+                        packageUploadService: fakePackageUploadService,
+                        uploadFileService: fakeUploadFileService,
+                        fakeNuGetPackage: fakeNuGetPackage,
+                        telemetryService: fakeTelemetryService,
+                        messageService: fakeMessageService);
+
+                    controller.SetCurrentUser(TestUtility.FakeUser);
+
+                    // Act
+                    await controller.VerifyPackage(new VerifyPackageRequest { Listed = true, Edit = null });
+
+                    // Assert
+                    fakeMessageService
+                        .Verify(ms => ms.SendPackageAddedNotice(fakePackage, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
+                        Times.Exactly(callExpected ? 1 : 0));
                 }
             }
         }
