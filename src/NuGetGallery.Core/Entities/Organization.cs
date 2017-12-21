@@ -31,7 +31,7 @@ namespace NuGetGallery
         public virtual ICollection<Membership> Members { get; set; }
 
         /// <summary>
-        /// Organization membership requests, for an organization <see cref="Organization"/> account.
+        /// Requests to become a member of this <see cref="Organization"/>.
         /// </summary>
         public virtual ICollection<MembershipRequest> MemberRequests { get; set; }
     }
