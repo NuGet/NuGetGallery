@@ -174,6 +174,8 @@
     <Compile Include="Entities\Membership.cs" />
     <Compile Include="Entities\Organization.cs" />
     <Compile Include="Entities\AccountDelete.cs" />
+    <Compile Include="Entities\MembershipRequest.cs" />
+    <Compile Include="Entities\OrganizationMigrationRequest.cs" />
     <Compile Include="Entities\PackageDelete.cs" />
     <Compile Include="Entities\EmailMessage.cs" />
     <Compile Include="Entities\EntitiesConfiguration.cs" />

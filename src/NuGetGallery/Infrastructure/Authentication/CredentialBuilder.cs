@@ -63,11 +63,12 @@ namespace NuGetGallery.Infrastructure.Authentication
             return credential;
         }
 
-        public Credential CreateExternalCredential(string issuer, string value, string identity)
+        public Credential CreateExternalCredential(string issuer, string value, string identity, string tenantId = null)
         {
             return new Credential(CredentialTypes.ExternalPrefix + issuer, value)
             {
-                Identity = identity
+                Identity = identity,
+                TenantId = tenantId
             };
         }
 
