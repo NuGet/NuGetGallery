@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 
 namespace NuGetGallery
 {
@@ -30,5 +29,10 @@ namespace NuGetGallery
         /// Organization Memberships to this organization.
         /// </summary>
         public virtual ICollection<Membership> Members { get; set; }
+
+        /// <summary>
+        /// Organization membership requests, for an organization <see cref="Organization"/> account.
+        /// </summary>
+        public virtual ICollection<MembershipRequest> MemberRequests { get; set; }
     }
 }

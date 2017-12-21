@@ -6,17 +6,15 @@ using System.ComponentModel.DataAnnotations;
 
 namespace NuGetGallery
 {
-    public class MembershipRequest
+    public class OrganizationMigrationRequest
     {
-        public int OrganizationKey { get; set; }
+        public int NewOrganizationKey { get; set; }
 
-        public virtual Organization Organization { get; set; }
+        public virtual User NewOrganization { get; set; }
 
-        public int NewMemberKey { get; set; }
+        public int AdminUserKey { get; set; }
 
-        public virtual User NewMember { get; set; }
-
-        public bool IsAdmin { get; set; }
+        public virtual User AdminUser { get; set; }
 
         [Required]
         public string ConfirmationToken { get; set; }
