@@ -38,9 +38,14 @@ namespace NuGetGallery
             return PermissionsHelpers.IsRequirementSatisfied(PackageRegistrationPermissionsRequirement, account, packageRegistration) ? PermissionsCheckResult.Allowed : PermissionsCheckResult.PackageRegistrationFailure;
         }
 
-        public bool TryGetAccountsAllowedOnBehalfOf(User currentUser, Package package, out IEnumerable<User> accountsAllowedOnBehalfOf)
+        public PermissionsCheckResult CheckPermissionsOnBehalfOfAnyAccount(User currentUser, Package package)
         {
-            return TryGetAccountsAllowedOnBehalfOf(currentUser, GetPackageRegistration(package), out accountsAllowedOnBehalfOf);
+            return CheckPermissionsOnBehalfOfAnyAccount(currentUser, GetPackageRegistration(package));
+        }
+
+        public PermissionsCheckResult CheckPermissionsOnBehalfOfAnyAccount(User currentUser, Package package, out IEnumerable<User> accountsAllowedOnBehalfOf)
+        {
+            return CheckPermissionsOnBehalfOfAnyAccount(currentUser, GetPackageRegistration(package), out accountsAllowedOnBehalfOf);
         }
 
         protected override IEnumerable<User> GetOwners(PackageRegistration packageRegistration)

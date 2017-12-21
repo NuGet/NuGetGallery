@@ -43,7 +43,12 @@ namespace NuGetGallery
         
         protected abstract PermissionsCheckResult CheckPermissionsForEntity(User account, TEntity entity);
 
-        public bool TryGetAccountsAllowedOnBehalfOf(User currentUser, TEntity entity, out IEnumerable<User> accountsAllowedOnBehalfOf)
+        public PermissionsCheckResult CheckPermissionsOnBehalfOfAnyAccount(User currentUser, TEntity entity)
+        {
+            return CheckPermissionsOnBehalfOfAnyAccount(currentUser, entity, out var accountsAllowedOnBehalfOf);
+        }
+
+        public PermissionsCheckResult CheckPermissionsOnBehalfOfAnyAccount(User currentUser, TEntity entity, out IEnumerable<User> accountsAllowedOnBehalfOf)
         {
             accountsAllowedOnBehalfOf = new List<User>();
 
@@ -60,16 +65,19 @@ namespace NuGetGallery
 
             possibleAccountsOnBehalfOf = possibleAccountsOnBehalfOf.Distinct(new UserEqualityComparer());
 
+            var aggregateResult = PermissionsCheckResult.Unknown;
+
             foreach (var accountOnBehalfOf in possibleAccountsOnBehalfOf)
             {
                 var result = CheckPermissions(currentUser, accountOnBehalfOf, entity);
+                aggregateResult = ChoosePermissionsCheckResult(aggregateResult, result);
                 if (result == PermissionsCheckResult.Allowed)
                 {
                     (accountsAllowedOnBehalfOf as List<User>).Add(accountOnBehalfOf);
                 }
             }
 
-            return accountsAllowedOnBehalfOf.Any();
+            return aggregateResult;
         }
 
         protected abstract IEnumerable<User> GetOwners(TEntity entity);
@@ -85,6 +93,16 @@ namespace NuGetGallery
             {
                 return obj.Key.GetHashCode();
             }
+        }
+
+        private PermissionsCheckResult ChoosePermissionsCheckResult(PermissionsCheckResult current, PermissionsCheckResult next)
+        {
+            if (current == PermissionsCheckResult.Allowed || next == PermissionsCheckResult.Allowed)
+            {
+                return PermissionsCheckResult.Allowed;
+            }
+
+            return new[] { current, next }.Max();
         }
     }
 }
