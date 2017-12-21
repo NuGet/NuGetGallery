@@ -298,9 +298,8 @@ namespace NuGetGallery
 
                 var id = nuspec.GetId();
                 var packageRegistration = _packageService.FindPackageRegistrationById(id);
-                IEnumerable<User> accountsAllowedOnBehalfOf;
                 // For a new package id verify if the user is allowed to use it.
-                if (packageRegistration == null && !ActionsRequiringPermissions.UploadNewPackageId.TryGetAccountsAllowedOnBehalfOf(currentUser, new ActionOnNewPackageContext(id, _reservedNamespaceService), out accountsAllowedOnBehalfOf))
+                if (packageRegistration == null && ActionsRequiringPermissions.UploadNewPackageId.CheckPermissionsOnBehalfOfAnyAccount(currentUser, new ActionOnNewPackageContext(id, _reservedNamespaceService)) != PermissionsCheckResult.Allowed)
                 {
                     ModelState.AddModelError(
                         string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict));
@@ -312,7 +311,7 @@ namespace NuGetGallery
                 }
 
                 // For existing package id verify if it is owned by the current user
-                if (packageRegistration != null && !ActionsRequiringPermissions.UploadNewPackageVersion.TryGetAccountsAllowedOnBehalfOf(currentUser, packageRegistration, out accountsAllowedOnBehalfOf))
+                if (packageRegistration != null && ActionsRequiringPermissions.UploadNewPackageVersion.CheckPermissionsOnBehalfOfAnyAccount(currentUser, packageRegistration) != PermissionsCheckResult.Allowed)
                 {
                     ModelState.AddModelError(
                         string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id));
@@ -412,11 +411,10 @@ namespace NuGetGallery
 
             // Validating packages should be hidden to everyone but the owners and admins.
             var currentUser = GetCurrentUser();
-            IEnumerable<User> accountsAllowedOnBehalfOf;
             if (package == null
                 || ((package.PackageStatusKey == PackageStatus.Validating
                      || package.PackageStatusKey == PackageStatus.FailedValidation)
-                    && !ActionsRequiringPermissions.DisplayPrivatePackageMetadata.TryGetAccountsAllowedOnBehalfOf(currentUser, package, out accountsAllowedOnBehalfOf)))
+                    && ActionsRequiringPermissions.DisplayPrivatePackageMetadata.CheckPermissionsOnBehalfOfAnyAccount(currentUser, package) != PermissionsCheckResult.Allowed))
             {
                 return HttpNotFound();
             }
@@ -430,7 +428,7 @@ namespace NuGetGallery
             var model = new DisplayPackageViewModel(package, currentUser, packageHistory);
 
             var isReadMePending = false;
-            if (ActionsRequiringPermissions.EditPackage.TryGetAccountsAllowedOnBehalfOf(currentUser, package, out accountsAllowedOnBehalfOf))
+            if (ActionsRequiringPermissions.EditPackage.CheckPermissionsOnBehalfOfAnyAccount(currentUser, package) == PermissionsCheckResult.Allowed)
             {
                 // Tell logged-in package owners not to cache the package page,
                 // so they won't be confused about the state of pending edits.
@@ -609,7 +607,7 @@ namespace NuGetGallery
                 var user = GetCurrentUser();
 
                 // If user logged on in as owner a different tab, then clicked the link, we can redirect them to ReportMyPackage
-                if (ActionsRequiringPermissions.ReportPackageAsOwner.TryGetAccountsAllowedOnBehalfOf(user, package, out var accountsAllowedOnBehalfOf))
+                if (ActionsRequiringPermissions.ReportPackageAsOwner.CheckPermissionsOnBehalfOfAnyAccount(user, package) == PermissionsCheckResult.Allowed)
                 {
                     return RedirectToAction("ReportMyPackage", new { id, version });
                 }
@@ -636,7 +634,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
             
-            if (!ActionsRequiringPermissions.ReportPackageAsOwner.TryGetAccountsAllowedOnBehalfOf(GetCurrentUser(), package, out var accountsAllowedOnBehalfOf))
+            if (ActionsRequiringPermissions.ReportPackageAsOwner.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
             {
                 return RedirectToAction(nameof(ReportAbuse), new { id, version });
             }
@@ -779,7 +777,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            if (!ActionsRequiringPermissions.ReportPackageAsOwner.TryGetAccountsAllowedOnBehalfOf(GetCurrentUser(), package, out var accountsAllowedOnBehalfOf))
+            if (ActionsRequiringPermissions.ReportPackageAsOwner.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
             {
                 return RedirectToAction(nameof(ReportAbuse), new { id = package.PackageRegistration.Id, version = package.NormalizedVersion });
             }
@@ -971,7 +969,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            if (!ActionsRequiringPermissions.ManagePackageOwnership.TryGetAccountsAllowedOnBehalfOf(GetCurrentUser(), package, out var accountsAllowedOnBehalfOf))
+            if (ActionsRequiringPermissions.ManagePackageOwnership.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
@@ -991,7 +989,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            if (!ActionsRequiringPermissions.UnlistOrRelistPackage.TryGetAccountsAllowedOnBehalfOf(GetCurrentUser(), package, out var accountsAllowedOnBehalfOf))
+            if (ActionsRequiringPermissions.UnlistOrRelistPackage.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
@@ -1147,7 +1145,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            if (!ActionsRequiringPermissions.EditPackage.TryGetAccountsAllowedOnBehalfOf(GetCurrentUser(), package, out var accountsAllowedOnBehalfOf))
+            if (ActionsRequiringPermissions.EditPackage.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.Forbidden, Strings.Unauthorized);
             }
@@ -1199,7 +1197,7 @@ namespace NuGetGallery
                 return Json(404, new[] { string.Format(Strings.PackageWithIdAndVersionNotFound, id, version) });
             }
 
-            if (!ActionsRequiringPermissions.EditPackage.TryGetAccountsAllowedOnBehalfOf(GetCurrentUser(), package, out var accountsAllowedOnBehalfOf))
+            if (ActionsRequiringPermissions.EditPackage.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
             {
                 return Json(403, new[] { Strings.Unauthorized });
             }
@@ -1453,7 +1451,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            if (!ActionsRequiringPermissions.EditPackage.TryGetAccountsAllowedOnBehalfOf(GetCurrentUser(), package, out var accountsAllowedOnBehalfOf))
+            if (ActionsRequiringPermissions.EditPackage.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
@@ -1723,7 +1721,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            if (!ActionsRequiringPermissions.EditPackage.TryGetAccountsAllowedOnBehalfOf(GetCurrentUser(), package, out var accountsAllowedOnBehalfOf))
+            if (ActionsRequiringPermissions.EditPackage.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }

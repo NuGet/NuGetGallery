@@ -51,7 +51,7 @@ namespace NuGetGallery
             }
 
             var currentUser = GetCurrentUser();
-            if (!ActionsRequiringPermissions.ManagePackageOwnership.TryGetAccountsAllowedOnBehalfOf(currentUser, package, out var accountsAllowedOnBehalfOf))
+            if (ActionsRequiringPermissions.ManagePackageOwnership.CheckPermissionsOnBehalfOfAnyAccount(currentUser, package) != PermissionsCheckResult.Allowed)
             {
                 return new HttpUnauthorizedResult();
             }
@@ -320,7 +320,7 @@ namespace NuGetGallery
                 return false;
             }
 
-            if (!ActionsRequiringPermissions.ManagePackageOwnership.TryGetAccountsAllowedOnBehalfOf(currentUser, package, out var accountsAllowedOnBehalfOf))
+            if (ActionsRequiringPermissions.ManagePackageOwnership.CheckPermissionsOnBehalfOfAnyAccount(currentUser, package) != PermissionsCheckResult.Allowed)
             {
                 model = new ManagePackageOwnerModel(Strings.AddOwner_NotPackageOwner);
                 return false;
