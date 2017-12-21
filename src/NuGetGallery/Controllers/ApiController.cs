@@ -413,7 +413,7 @@ namespace NuGetGallery
                             }
 
                             // For a new package id verify that the user is allowed to push to the matching namespaces, if any.
-                            if (!ActionsRequiringPermissions.UploadNewPackageId.TryGetAccountsAllowedOnBehalfOf(user, new ActionOnNewPackageContext(id, ReservedNamespaceService), out var accountsAllowedOnBehalfOf))
+                            if (ActionsRequiringPermissions.UploadNewPackageId.CheckPermissionsOnBehalfOfAnyAccount(user, new ActionOnNewPackageContext(id, ReservedNamespaceService)) != PermissionsCheckResult.Allowed)
                             {
                                 var version = nuspec.GetVersion().ToNormalizedString();
                                 TelemetryService.TrackPackagePushNamespaceConflictEvent(id, version, user, User.Identity);
