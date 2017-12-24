@@ -255,11 +255,11 @@ namespace NuGetGallery
                 {
                     PackageRegistration = new PackageRegistration
                     {
-                        Id = packageId,
+                        Id = id,
                         Owners = new[]
                         {
-                            new User { EmailAddress = ownerAddress, EmailAllowed = true },
-                            new User { EmailAddress = ownerAddress2, EmailAllowed = true }
+                            new User { EmailAddress = owner1Email, EmailAllowed = true },
+                            new User { EmailAddress = owner2Email, EmailAllowed = true }
                         }
                     },
                     Version = version
@@ -278,7 +278,7 @@ namespace NuGetGallery
                 Assert.Contains($"[Joe Shmoe] Message for owners of the package '{id}'", message.Subject);
                 Assert.Contains("Test message", message.Body);
                 Assert.Contains(
-                    $"User {userUsername} &lt;{userEmail}&gt; sends the following message to the owners of Package '[{id}]({packageUrl})'.", 
+                    $"User {userUsername} &lt;{userEmail}&gt; sends the following message to the owners of Package '[{id} {version}]({packageUrl})'.", 
                     message.Body);
             }
 
@@ -292,7 +292,6 @@ namespace NuGetGallery
                 var fromName = "flossy";
                 var ownerAddress = "yung@example.com";
                 var ownerAddress2 = "flynt@example.com";
-                var messageText = "Test message";
 
                 var from = new MailAddress(fromAddress, fromName);
                 var package = new Package
@@ -329,7 +328,6 @@ namespace NuGetGallery
                 var fromName = "flossy";
                 var ownerAddress = "yung@example.com";
                 var ownerAddress2 = "flynt@example.com";
-                var messageText = "Test message";
 
                 var from = new MailAddress(fromAddress, fromName);
                 var package = new Package
@@ -363,7 +361,6 @@ namespace NuGetGallery
                 var fromName = "flossy";
                 var ownerAddress = "yung@example.com";
                 var ownerAddress2 = "flynt@example.com";
-                var messageText = "Test message";
 
                 var from = new MailAddress(fromAddress, fromName);
                 var package = new Package

@@ -1406,16 +1406,16 @@ namespace NuGetGallery
                         It.IsAny<string>(),
                         It.IsAny<string>(),
                         false))
-                    .Callback<MailAddress, PackageRegistration, string, string, string, bool>((_, __, packageUrl, msg, ____, _____) =>
+                    .Callback<MailAddress, Package, string, string, string, bool>((_, __, packageUrl, msg, ____, _____) =>
                     {
                         sentPackageUrl = packageUrl;
                         sentMessage = msg;
                     });
                 var package = new Package
                 {
-                    PackageRegistration = new PackageRegistration { Id = packageId },
+                    PackageRegistration = new PackageRegistration {Id = packageId},
                     Version = packageVersion
-                }
+                };
 
                 var packageService = new Mock<IPackageService>();
                 packageService.Setup(p => p.FindPackageByIdAndVersionStrict(packageId, packageVersion)).Returns(package);
