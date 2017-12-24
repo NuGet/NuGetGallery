@@ -184,8 +184,12 @@ namespace NuGetGallery
                     && ar.Version == package.Version));
             }
 
-            [Fact]
-            public async Task CreatePackageWillSendPackageAddedNotice()
+            [Theory]
+            [InlineData(false, false,  true)]
+            [InlineData( true, false,  true)]
+            [InlineData(false,  true,  true)]
+            [InlineData( true,  true, false)]
+            public async Task CreatePackageWillSendPackageAddedNotice(bool asyncValidationEnabled, bool blockingValidationEnabled, bool callExpected)
             {
                 // Arrange
                 var user = new User() { EmailAddress = "confirmed@email.com" };
@@ -197,10 +201,11 @@ namespace NuGetGallery
                 package.Version = "1.0.42";
                 packageRegistration.Packages.Add(package);
 
-                var controller = new TestableApiController(GetConfigurationService());
+                TestGalleryConfigurationService configurationService = GetConfigurationService();
+                configurationService.Current.AsynchronousPackageValidationEnabled = asyncValidationEnabled;
+                configurationService.Current.BlockingAsynchronousPackageValidationEnabled = blockingValidationEnabled;
+                var controller = new TestableApiController(configurationService);
                 controller.SetCurrentUser(user);
-                controller.MockMessageService.Setup(p => p.SendPackageUploadedNotice(package, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                    .Verifiable();
                 controller.MockPackageUploadService
                     .Setup(p => p.GeneratePackageAsync(
                         It.IsAny<string>(),
@@ -216,7 +221,9 @@ namespace NuGetGallery
                 await controller.CreatePackagePut();
 
                 // Assert
-                controller.MockMessageService.Verify();
+                controller.MockMessageService
+                    .Verify(ms => ms.SendPackageAddedNotice(package, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
+                    Times.Exactly(callExpected ? 1 : 0));
             }
 
             [Fact]
@@ -796,6 +803,37 @@ namespace NuGetGallery
 
                 controller.MockTelemetryService.Verify(x => x.TrackPackagePushEvent(It.IsAny<Package>(), user, controller.OwinContext.Request.User.Identity), Times.Once);
             }
+
+            [Fact]
+            public async Task WillFailIfPackageRegistrationIsLocked()
+            {
+                // Arrange
+                const string PackageId = "theId";
+                var nuGetPackage = TestPackage.CreateTestPackageStream(PackageId, "1.0.42");
+
+                var user = new User() { EmailAddress = "confirmed@email.com" };
+                var packageRegistration = new PackageRegistration
+                {
+                    Id = PackageId,
+                    IsLocked = true,
+                    Owners = new List<User> { user }
+                };
+
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.SetCurrentUser(new User());
+                controller.MockPackageService.Setup(x => x.FindPackageRegistrationById(PackageId)).Returns(packageRegistration);
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                // Act
+                var result = await controller.CreatePackagePut();
+
+                // Assert
+                var statusCodeResult = result as HttpStatusCodeWithBodyResult;
+
+                Assert.NotNull(statusCodeResult);
+                Assert.Equal((int)HttpStatusCode.Forbidden, statusCodeResult.StatusCode);
+                Assert.Contains(PackageId, statusCodeResult.StatusDescription);
+            }
         }
 
         public class TheDeletePackageAction
@@ -896,6 +934,43 @@ namespace NuGetGallery
 
                 controller.MockPackageService.Verify(x => x.MarkPackageUnlistedAsync(package, true));
                 controller.MockIndexingService.Verify(i => i.UpdatePackage(package));
+            }
+
+            [Fact]
+            public async Task WillNotUnlistThePackageIfItIsLocked()
+            {
+                // Arrange
+                const string PackageId = "theId";
+                var owner = new User { Key = 1 };
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = PackageId,
+                        Owners = new[] { new User(), owner },
+                        IsLocked = true
+                    }
+                };
+
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.MockPackageService
+                    .Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(package)
+                    .Verifiable();
+
+                controller.SetCurrentUser(owner);
+
+                // Act
+                var result = await controller.DeletePackage(PackageId, "1.0.42");
+
+                // Assert
+                var statusCodeResult = result as HttpStatusCodeWithBodyResult;
+
+                Assert.NotNull(statusCodeResult);
+                Assert.Equal((int)HttpStatusCode.Forbidden, statusCodeResult.StatusCode);
+                Assert.Contains(PackageId, statusCodeResult.StatusDescription);
+
+                controller.MockPackageService.VerifyAll();
             }
         }
 
@@ -1169,6 +1244,43 @@ namespace NuGetGallery
                 ResultAssert.IsEmpty(result);
                 controller.MockPackageService.Verify(x => x.MarkPackageListedAsync(package, It.IsAny<bool>()));
                 controller.MockIndexingService.Verify(i => i.UpdatePackage(package));
+            }
+
+            [Fact]
+            public async Task WillNotListThePackageIfItIsLocked()
+            {
+                // Arrange
+                const string PackageId = "theId";
+                var owner = new User { Key = 1 };
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = PackageId,
+                        Owners = new[] { new User(), owner },
+                        IsLocked = true
+                    }
+                };
+
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.MockPackageService
+                    .Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(package)
+                    .Verifiable();
+
+                controller.SetCurrentUser(owner);
+
+                // Act
+                var result = await controller.PublishPackage(PackageId, "1.0.42");
+
+                // Assert
+                var statusCodeResult = result as HttpStatusCodeWithBodyResult;
+
+                Assert.NotNull(statusCodeResult);
+                Assert.Equal((int)HttpStatusCode.Forbidden, statusCodeResult.StatusCode);
+                Assert.Contains(PackageId, statusCodeResult.StatusDescription);
+
+                controller.MockPackageService.VerifyAll();
             }
         }
 

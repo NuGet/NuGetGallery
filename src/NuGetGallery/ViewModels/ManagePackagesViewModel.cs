@@ -7,7 +7,11 @@ namespace NuGetGallery
 {
     public class ManagePackagesViewModel
     {
-        public IEnumerable<ListPackageItemViewModel> Packages { get; set; }
+        public IEnumerable<ListPackageOwnerViewModel> Owners { get; set; }
+
+        public IEnumerable<ListPackageItemViewModel> ListedPackages { get; set; }
+
+        public IEnumerable<ListPackageItemViewModel> UnlistedPackages { get; set; }
 
         public OwnerRequestsViewModel OwnerRequests { get; set; }
 

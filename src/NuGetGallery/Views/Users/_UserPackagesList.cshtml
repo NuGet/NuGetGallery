@@ -2,7 +2,7 @@
 @{
     var packagesString = "package" + (Model.Packages.Count() != 1 ? "s" : "");
     
-    var numDownloads = Model.Packages.Sum(p => p.TotalDownloadCount);
+    var numDownloads = Model.Packages.Sum(p => (long)p.TotalDownloadCount);
     var downloadsString = "download" + (numDownloads != 1 ? "s" : "");
 }
 

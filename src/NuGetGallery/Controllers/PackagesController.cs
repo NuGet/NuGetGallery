@@ -317,12 +317,20 @@ namespace NuGetGallery
                 }
 
                 // For existing package id verify if it is owned by the current user
-                if (packageRegistration != null && !PermissionsService.IsActionAllowed(packageRegistration, currentUser, PackageActions.UploadNewVersion))
+                if (packageRegistration != null)
                 {
-                    ModelState.AddModelError(
-                        string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id));
+                    if (!PermissionsService.IsActionAllowed(packageRegistration, currentUser, PackageActions.UploadNewVersion))
+                    {
+                        ModelState.AddModelError(
+                          string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id));
 
-                    return Json(409, new[] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id) });
+                        return Json(409, new[] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id) });
+                    }
+
+                    if (packageRegistration.IsLocked)
+                    {
+                        return Json(403, new[] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, packageRegistration.Id) });
+                    }
                 }
 
                 var nuspecVersion = nuspec.GetVersion();
@@ -948,6 +956,7 @@ namespace NuGetGallery
             _messageService.SendContactOwnersMessage(
                 fromAddress,
                 package,
+                Url.Package(package, false),
                 contactForm.Message,
                 Url.AccountSettings(relativeUrl: false),
                 contactForm.CopySender);
@@ -1146,45 +1155,48 @@ namespace NuGetGallery
             var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
-                return Json(404, new[] { string.Format(Strings.PackageWithIdAndVersionNotFound, id, version) });
+                return HttpNotFound();
             }
 
             if (!PermissionsService.IsActionAllowed(package, User, PackageActions.Edit))
             {
-                return Json(403, new[] { Strings.Unauthorized });
+                return new HttpStatusCodeResult(HttpStatusCode.Forbidden, Strings.Unauthorized);
             }
 
             // Create model from the package.
-            var packageRegistration = _packageService.FindPackageRegistrationById(id);
-
             var model = new EditPackageRequest
             {
                 PackageId = package.PackageRegistration.Id,
                 PackageTitle = package.Title,
                 Version = package.NormalizedVersion,
-                PackageVersions = packageRegistration.Packages
-                    .OrderByDescending(p => new NuGetVersion(p.Version), Comparer<NuGetVersion>.Create((a, b) => a.CompareTo(b)))
-                    .ToList()
+                IsLocked = package.PackageRegistration.IsLocked,
             };
 
-            // Create version selection.
-            model.VersionSelectList = new SelectList(model.PackageVersions.Select(e => new
+            if (!model.IsLocked)
             {
-                text = NuGetVersion.Parse(e.Version).ToFullString() + (e.IsLatestSemVer2 ? " (Latest)" : string.Empty),
-                url = UrlExtensions.EditPackage(Url, model.PackageId, e.NormalizedVersion)
-            }), "url", "text", UrlExtensions.EditPackage(Url, model.PackageId, model.Version));
+                model.PackageVersions = package.PackageRegistration.Packages
+                      .OrderByDescending(p => new NuGetVersion(p.Version), Comparer<NuGetVersion>.Create((a, b) => a.CompareTo(b)))
+                      .ToList();
 
-            // Create edit model from the latest pending edit.
-            var pendingMetadata = _editPackageService.GetPendingMetadata(package);
+                // Create version selection.
+                model.VersionSelectList = new SelectList(model.PackageVersions.Select(e => new
+                {
+                    text = NuGetVersion.Parse(e.Version).ToFullString() + (e.IsLatestSemVer2 ? " (Latest)" : string.Empty),
+                    url = UrlExtensions.EditPackage(Url, model.PackageId, e.NormalizedVersion)
+                }), "url", "text", UrlExtensions.EditPackage(Url, model.PackageId, model.Version));
 
-            model.Edit = new EditPackageVersionReadMeRequest(pendingMetadata);
+                // Create edit model from the latest pending edit.
+                var pendingMetadata = _editPackageService.GetPendingMetadata(package);
 
-            // Update edit model with the active or pending readme.md data.
-            var isReadMePending = model.Edit.ReadMeState != PackageEditReadMeState.Unchanged;
-            if (package.HasReadMe || isReadMePending)
-            {
-                model.Edit.ReadMe.SourceType = ReadMeService.TypeWritten;
-                model.Edit.ReadMe.SourceText = await _readMeService.GetReadMeMdAsync(package, isReadMePending);
+                model.Edit = new EditPackageVersionReadMeRequest(pendingMetadata);
+
+                // Update edit model with the active or pending readme.md data.
+                var isReadMePending = model.Edit.ReadMeState != PackageEditReadMeState.Unchanged;
+                if (package.HasReadMe || isReadMePending)
+                {
+                    model.Edit.ReadMe.SourceType = ReadMeService.TypeWritten;
+                    model.Edit.ReadMe.SourceText = await _readMeService.GetReadMeMdAsync(package, isReadMePending);
+                }
             }
 
             return View(model);
@@ -1206,6 +1218,11 @@ namespace NuGetGallery
             if (!PermissionsService.IsActionAllowed(package, User, PackageActions.Edit))
             {
                 return Json(403, new[] { Strings.Unauthorized });
+            }
+
+            if (package.PackageRegistration.IsLocked)
+            {
+                return Json(403, new[] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, package.PackageRegistration.Id) });
             }
 
             if (!ModelState.IsValid)
@@ -1457,9 +1474,15 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
+
             if (!PermissionsService.IsActionAllowed(package, User, PackageActions.Edit))
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
+            }
+
+            if (package.PackageRegistration.IsLocked)
+            {
+                return new HttpStatusCodeResult(403, string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, package.PackageRegistration.Id));
             }
 
             string action;
@@ -1616,11 +1639,14 @@ namespace NuGetGallery
                 await _auditingService.SaveAuditRecordAsync(
                     new PackageAuditRecord(package, AuditedPackageAction.Create, PackageCreatedVia.Web));
 
-                // notify user
-                _messageService.SendPackageUploadedNotice(package,
-                    Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
-                    Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
-                    Url.AccountSettings(relativeUrl: false));
+                if (!(_config.AsynchronousPackageValidationEnabled && _config.BlockingAsynchronousPackageValidationEnabled))
+                {
+                    // notify user unless async validation in blocking mode is used
+                    _messageService.SendPackageAddedNotice(package,
+                        Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                        Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                        Url.AccountSettings(relativeUrl: false));
+                }
             }
 
             // delete the uploaded binary in the Uploads container
