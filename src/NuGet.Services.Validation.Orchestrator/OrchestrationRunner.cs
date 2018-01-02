@@ -21,16 +21,19 @@ namespace NuGet.Services.Validation.Orchestrator
 
         private readonly ISubscriptionProcessor<PackageValidationMessageData> _subscriptionProcessor;
         private readonly OrchestrationRunnerConfiguration _configuration;
+        private readonly IShutdownNotificationProvider _shutdownNotificationProvider;
         private readonly ILogger<OrchestrationRunner> _logger;
 
         public OrchestrationRunner(
             ISubscriptionProcessor<PackageValidationMessageData> subscriptionProcessor,
             IOptionsSnapshot<OrchestrationRunnerConfiguration> configurationAccessor,
+            IShutdownNotificationProvider shutdownNotificationProvider,
             ILogger<OrchestrationRunner> logger)
         {
             _subscriptionProcessor = subscriptionProcessor  ?? throw new ArgumentNullException(nameof(subscriptionProcessor));
             configurationAccessor = configurationAccessor ?? throw new ArgumentNullException(nameof(configurationAccessor));
             _configuration = configurationAccessor.Value ?? throw new ArgumentException("Value property cannot be null", nameof(configurationAccessor));
+            _shutdownNotificationProvider = shutdownNotificationProvider ?? throw new ArgumentNullException(nameof(shutdownNotificationProvider));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -42,7 +45,14 @@ namespace NuGet.Services.Validation.Orchestrator
             await Task.Delay(_configuration.ProcessRecycleInterval);
 
             _logger.LogInformation("Recycling the process...");
-            await _subscriptionProcessor.StartShutdownAsync();
+            _shutdownNotificationProvider.NotifyShutdownInitiated();
+            var shutdownTask = _subscriptionProcessor.StartShutdownAsync();
+            // make sure we don't block on waiting shutdownTask to finish
+            if (await Task.WhenAny(shutdownTask, Task.Delay(_configuration.ShutdownWaitInterval)) != shutdownTask )
+            {
+                _logger.LogWarning("Failed to wait for shutdown initiation task to finish. Waited for {ShutdownWaitInterval}. Will proceed with task termination",
+                    _configuration.ShutdownWaitInterval);
+            }
 
             DateTimeOffset waitStart = DateTimeOffset.Now;
 

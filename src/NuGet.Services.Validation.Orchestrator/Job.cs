@@ -149,6 +149,10 @@ namespace NuGet.Services.Validation.Orchestrator
             services.AddTransient<ConfigurationValidator>();
             services.AddTransient<OrchestrationRunner>();
 
+            services.AddSingleton<IShutdownNotificationProvider, ShutdownNotificationProvider>();
+            services.AddSingleton<IShutdownNotificationTokenProvider>(serviceProvider => 
+                new ShutdownNotificationTokenProvider(serviceProvider.GetRequiredService<IShutdownNotificationProvider>().Token));
+
             services.AddScoped<NuGetGallery.IEntitiesContext>(serviceProvider =>
                 new NuGetGallery.EntitiesContext(
                     serviceProvider.GetRequiredService<IOptionsSnapshot<GalleryDbConfiguration>>().Value.ConnectionString,
