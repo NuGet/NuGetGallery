@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
@@ -97,6 +98,60 @@ namespace NuGetGallery
         public virtual ActionResult Account()
         {
             return AccountView(new AccountViewModel());
+        }
+        
+        [HttpGet]
+        [Authorize]
+        public virtual async Task<ActionResult> ConfirmTransform(string accountName, string token)
+        {
+            var adminUser = GetCurrentUser();
+            if (!adminUser.Confirmed)
+            {
+                TempData["TransformError"] = Strings.TransformAccount_AdminNotConfirmed;
+                return RedirectToAction("ConfirmationRequired");
+            }
+
+            var accountToTransform = _userService.FindByUsername(accountName);
+            if (accountToTransform == null)
+            {
+                TempData["TransformError"] = String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_OrganizationAccountNotFound, accountName);
+                return View("AccountTransformFailed");
+            }
+
+            if (!CanTransformIntoOrganization(accountToTransform))
+            {
+                TempData["TransformError"] = String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_OrganizationAccountNotSupported, accountName);
+                return View("AccountTransformFailed");
+            }
+
+            try
+            {
+                await _userService.TransformToOrganizationAccount(accountToTransform, adminUser, token);
+                
+                TempData["Message"] = String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_Success, accountName);
+
+                // todo: redirect to ManageOrganization (future work)
+                return RedirectToAction("Account");
+            }
+            catch (Exception e)
+            {
+                TempData["TransformError"] = e.GetUserSafeMessage();
+                return View("AccountTransformFailed");
+            }
+        }
+        
+        private bool CanTransformIntoOrganization(User user)
+        {
+            if (!user.Confirmed || user.IsAdministrator())
+            {
+                return false;
+            }
+
+            var userDomain = user.ToMailAddress().Host;
+            return _config.OrganizationsEnabledForDomains.Contains(userDomain, StringComparer.OrdinalIgnoreCase);    
         }
 
         [HttpGet]

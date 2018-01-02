@@ -800,6 +800,10 @@
     <Compile Include="Migrations\201712211850074_MembershipRequests.Designer.cs">
       <DependentUpon>201712211850074_MembershipRequests.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201712220037446_AddMigrateToOrganizationSproc.cs" />
+    <Compile Include="Migrations\201712220037446_AddMigrateToOrganizationSproc.Designer.cs">
+      <DependentUpon>201712220037446_AddMigrateToOrganizationSproc.cs</DependentUpon>
+    </Compile>
     <Compile Include="RequestModels\DeleteAccountRequest.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.Designer.cs">
@@ -905,6 +909,7 @@
     <Compile Include="Services\ReservedNamespaceService.cs" />
     <Compile Include="Services\ReadMeService.cs" />
     <Compile Include="Services\TelemetryClientWrapper.cs" />
+    <Compile Include="Services\TransformAccountException.cs" />
     <Compile Include="Services\ValidationService.cs" />
     <Compile Include="Telemetry\ClientInformationTelemetryEnricher.cs" />
     <Compile Include="Telemetry\ClientTelemetryPIIProcessor.cs" />
@@ -1720,6 +1725,8 @@
     <Content Include="D3 LICENSE.txt" />
     <EmbeddedResource Include="Infrastructure\AddPackageLicenseReport2.Up.sql" />
     <EmbeddedResource Include="Infrastructure\AddPackageLicenseReport2.Down.sql" />
+    <EmbeddedResource Include="Infrastructure\AddMigrateToOrganization.Down.sql" />
+    <EmbeddedResource Include="Infrastructure\AddMigrateToOrganization.Up.sql" />
     <Content Include="NuGetGallery.dll.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <SubType>Designer</SubType>
@@ -1916,6 +1923,9 @@
     <EmbeddedResource Include="Migrations\201712211850074_MembershipRequests.resx">
       <DependentUpon>201712211850074_MembershipRequests.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201712220037446_AddMigrateToOrganizationSproc.resx">
+      <DependentUpon>201712220037446_AddMigrateToOrganizationSproc.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2getupdates.json" />
@@ -1985,6 +1995,7 @@
     <Content Include="Views\Authentication\SignInNuGetAccount.cshtml" />
     <Content Include="Views\Packages\_VerifyForm.cshtml" />
     <Content Include="Views\Packages\_VerifyMetadata.cshtml" />
+    <Content Include="Views\Users\AccountTransformFailed.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />

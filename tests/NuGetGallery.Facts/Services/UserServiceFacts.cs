@@ -8,6 +8,10 @@ using NuGetGallery.Framework;
 using NuGetGallery.Auditing;
 using Xunit;
 using NuGetGallery.TestUtils;
+using Moq;
+using System.Data.SqlClient;
+using System.Data;
+using NuGetGallery.Infrastructure.Authentication;
 
 namespace NuGetGallery
 {
@@ -357,6 +361,120 @@ namespace NuGetGallery
                 var service = new TestableUserService();
 
                 await ContractAssert.ThrowsArgNullAsync(async () => await service.ChangeEmailSubscriptionAsync(null, emailAllowed: true, notifyPackagePushed: true), "user");
+            }
+        }
+
+        public class TheTransformToOrganizationAccountMethod
+        {
+            [Fact]
+            public async Task WhenAccountIsNull_ThrowsArgNullException()
+            {
+                await ContractAssert.ThrowsArgNullAsync(
+                    async () => await new TestableUserService().TransformToOrganizationAccount(null, new User("admin"), "token"),
+                    "accountToTransform");
+            }
+
+            [Fact]
+            public async Task WhenAdminIsNull_ThrowsArgNullException()
+            {
+                await ContractAssert.ThrowsArgNullAsync(
+                    async () => await new TestableUserService().TransformToOrganizationAccount(new User("account"), null, "token"),
+                    "adminUser");
+            }
+
+            [Theory]
+            [InlineData("")]
+            [InlineData(" ")]
+            [InlineData(null)]
+            public async Task WhenTokenIsMissing_ThrowsArgException(string token)
+            {
+                await ContractAssert.ThrowsArgNullAsync(
+                    async () => await new TestableUserService().TransformToOrganizationAccount(new User("account"), new User("admin"), token),
+                    "token");
+            }
+
+            [Fact]
+            public async Task WhenNoTenant_ThrowsTransformAccountException()
+            {
+                // Arrange
+                var account = new User("Account");
+                var admin = new User("Admin");
+                var service = new TestableUserService();
+
+                // Act & Assert
+                var exception = await Assert.ThrowsAsync<TransformAccountException>(
+                    async () => await service.TransformToOrganizationAccount(account, admin, "token"));
+                Assert.Equal(exception.Message, Strings.TransformAccount_AdminDoesNotHaveTenantId);
+            }
+
+            [Fact]
+            public async Task WhenSqlException_ThrowsTransformAccountException()
+            {
+                // Arrange
+                var service = new TestableUserService();
+                var account = new User("Account");
+                var admin = new User("Admin");
+                admin.Credentials.Add(
+                    new CredentialBuilder().CreateExternalCredential(
+                        issuer: "MicrosoftAccount",
+                        value: "abc123",
+                        identity: "Admin",
+                        tenantId: "zyx987"));
+
+                service.MockDatabase
+                    .Setup(db => db.ExecuteSqlCommandAsync(It.IsAny<string>(), It.IsAny<object[]>()))
+                    .ThrowsAsync(new DataException());
+
+                // Act & Assert
+                var exception = await Assert.ThrowsAsync<TransformAccountException>(
+                    async () => await service.TransformToOrganizationAccount(account, admin, "token"));
+                Assert.Equal(exception.Message, Strings.TransformAccount_DatabaseError);
+            }
+
+            [Fact]
+            public async Task WhenSqlResultIsZero_ThrowsTransformAccountException()
+            {
+                // Arrange
+                var service = new TestableUserService();
+                var account = new User("Account");
+                var admin = new User("Admin");
+                admin.Credentials.Add(
+                    new CredentialBuilder().CreateExternalCredential(
+                        issuer: "MicrosoftAccount",
+                        value: "abc123",
+                        identity: "Admin",
+                        tenantId: "zyx987"));
+
+                service.MockDatabase
+                    .Setup(db => db.ExecuteSqlCommandAsync(It.IsAny<string>(), It.IsAny<object[]>()))
+                    .Returns(Task.FromResult(0));
+
+                // Act & Assert
+                var exception = await Assert.ThrowsAsync<TransformAccountException>(
+                    async () => await service.TransformToOrganizationAccount(account, admin, "token"));
+                Assert.Equal(exception.Message, Strings.TransformAccount_SaveFailed);
+            }
+
+            [Fact]
+            public async Task WhenSqlResultIsOne_ReturnsSuccess()
+            {
+                // Arrange
+                var service = new TestableUserService();
+                var account = new User("Account");
+                var admin = new User("Admin");
+                admin.Credentials.Add(
+                    new CredentialBuilder().CreateExternalCredential(
+                        issuer: "MicrosoftAccount",
+                        value: "abc123",
+                        identity: "Admin",
+                        tenantId: "zyx987"));
+
+                service.MockDatabase
+                    .Setup(db => db.ExecuteSqlCommandAsync(It.IsAny<string>(), It.IsAny<object[]>()))
+                    .Returns(Task.FromResult(1));
+
+                // Act
+                await service.TransformToOrganizationAccount(account, admin, "token");
             }
         }
     }

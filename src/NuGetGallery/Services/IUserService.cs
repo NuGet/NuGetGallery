@@ -25,5 +25,7 @@ namespace NuGetGallery
         Task CancelChangeEmailAddress(User user);
 
         Task<IDictionary<int, string>> GetEmailAddressesForUserKeysAsync(IReadOnlyCollection<int> distinctUserKeys);
+
+        Task TransformToOrganizationAccount(User newOrganization, User adminUser, string token);
     }
 }

@@ -93,6 +93,8 @@ namespace NuGetGallery.Configuration
         /// </summary>
         bool BlockingAsynchronousPackageValidationEnabled { get; set; }
 
+        string[] OrganizationsEnabledForDomains { get; set; }
+
         /// <summary>
         /// Gets the URI to the search service
         /// </summary>

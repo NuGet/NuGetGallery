@@ -258,7 +258,7 @@ namespace NuGetGallery.Services
             {
                 var mockContext = new Mock<IEntitiesContext>();
                 var dbContext = new Mock<DbContext>();
-                mockContext.Setup(m => m.GetDatabase()).Returns(dbContext.Object.Database);
+                mockContext.Setup(m => m.GetDatabase()).Returns(new DatabaseWrapper(dbContext.Object.Database));
                 return mockContext;
             }
 

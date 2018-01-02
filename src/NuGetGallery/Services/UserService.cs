@@ -5,11 +5,13 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
-using Crypto = NuGetGallery.CryptographyService;
 using NuGetGallery.Configuration;
 using NuGetGallery.Auditing;
 using System.Threading.Tasks;
-using NuGetGallery.Migrations;
+using NuGetGallery.Security;
+using Crypto = NuGetGallery.CryptographyService;
+using System.Data.SqlClient;
+using System.Data;
 
 namespace NuGetGallery
 {
@@ -19,6 +21,7 @@ namespace NuGetGallery
         public IEntityRepository<User> UserRepository { get; protected set; }
         public IEntityRepository<Credential> CredentialRepository { get; protected set; }
         public IAuditingService Auditing { get; protected set; }
+        public IEntitiesContext EntitiesContext { get; protected set; }
 
         protected UserService() { }
 
@@ -26,13 +29,15 @@ namespace NuGetGallery
             IAppConfiguration config,
             IEntityRepository<User> userRepository,
             IEntityRepository<Credential> credentialRepository,
-            IAuditingService auditing)
+            IAuditingService auditing,
+            IEntitiesContext entitiesContext)
             : this()
         {
             Config = config;
             UserRepository = userRepository;
             CredentialRepository = credentialRepository;
             Auditing = auditing;
+            EntitiesContext = entitiesContext;
         }
 
         public async Task ChangeEmailSubscriptionAsync(User user, bool emailAllowed, bool notifyPackagePushed)
@@ -150,6 +155,50 @@ namespace NuGetGallery
 
             await UserRepository.CommitChangesAsync();
             return true;
+        }
+
+        private const string ExecMigrateToOrganization = "EXEC [dbo].[MigrateToOrganization] @orgKey @adminKey @token";
+        
+        public async Task TransformToOrganizationAccount(User accountToTransform, User adminUser, string token)
+        {
+            accountToTransform = accountToTransform ?? throw new ArgumentNullException(nameof(accountToTransform));
+            adminUser = adminUser?? throw new ArgumentNullException(nameof(adminUser));
+            
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                throw new ArgumentNullException(nameof(token));
+            }
+
+            var tenantId = adminUser.GetTenantId();
+            if (string.IsNullOrWhiteSpace(tenantId))
+            {
+                // todo: add security policy to organization to enforce this (future work)
+                throw new TransformAccountException(Strings.TransformAccount_AdminDoesNotHaveTenantId);
+            }
+
+            // Update from User to Organization account. Note that the type change will only be reflected in future
+            // requests, which use new EF context instances.
+            try
+            {
+                var database = EntitiesContext.GetDatabase();
+                var result = await database.ExecuteSqlCommandAsync(
+                    ExecMigrateToOrganization,
+                    new SqlParameter("organizationKey", accountToTransform.Key),
+                    new SqlParameter("adminKey", adminUser.Key),
+                    new SqlParameter("token", token)
+                    );
+
+                if (result == 0)
+                {
+                    // Stored procedure returned failure, probably due to an unsatisfied migration request.
+                    throw new TransformAccountException(Strings.TransformAccount_SaveFailed);
+                }
+            }
+            catch (Exception ex) when (ex is SqlException || ex is DataException)
+            {
+                // EF exception when saving account transformation to the database.
+                throw new TransformAccountException(Strings.TransformAccount_DatabaseError);
+            }
         }
     }
 }

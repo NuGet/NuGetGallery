@@ -290,6 +290,11 @@ namespace NuGetGallery
                 new { controller = "Users", action = "Account" });
 
             routes.MapRoute(
+                RouteName.TransformAccountConfirmation,
+                "account/transform/confirm/{accountName}/{token}",
+                new { controller = "Users", action = "ConfirmTransform" });
+
+            routes.MapRoute(
                 RouteName.ApiKeys,
                 "account/apikeys",
                 new { controller = "Users", action = "ApiKeys" });

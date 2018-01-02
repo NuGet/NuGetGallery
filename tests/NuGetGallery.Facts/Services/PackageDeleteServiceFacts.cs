@@ -34,7 +34,7 @@ namespace NuGetGallery
 
             var dbContext = new Mock<DbContext>();
             entitiesContext = entitiesContext ?? new Mock<IEntitiesContext>();
-            entitiesContext.Setup(m => m.GetDatabase()).Returns(dbContext.Object.Database);
+            entitiesContext.Setup(m => m.GetDatabase()).Returns(new DatabaseWrapper(dbContext.Object.Database));
 
             packageService = packageService ?? new Mock<IPackageService>();
             indexingService = indexingService ?? new Mock<IIndexingService>();
@@ -72,12 +72,12 @@ namespace NuGetGallery
             {
             }
 
-            protected override async Task ExecuteSqlCommandAsync(Database database, string sql, params object[] parameters)
+            protected override async Task ExecuteSqlCommandAsync(IDatabase database, string sql, params object[] parameters)
             {
                 await TestExecuteSqlCommandAsync(database, sql, parameters);
             }
 
-            public virtual Task TestExecuteSqlCommandAsync(Database database, string sql, params object[] parameters)
+            public virtual Task TestExecuteSqlCommandAsync(IDatabase database, string sql, params object[] parameters)
             {
                 // do nothing - this method solely exists to make verifying SQL queries possible
                 return Task.FromResult(0);
@@ -335,9 +335,9 @@ namespace NuGetGallery
                 var entitiesContext = new Mock<IEntitiesContext>();
                 var service = CreateService(packageRepository: packageRepository, entitiesContext: entitiesContext, setup: svc =>
                 {
-                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<Database>(), "DELETE pa FROM PackageAuthors pa JOIN Packages p ON p.[Key] = pa.PackageKey WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
-                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<Database>(), "DELETE pd FROM PackageDependencies pd JOIN Packages p ON p.[Key] = pd.PackageKey WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
-                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<Database>(), "DELETE pf FROM PackageFrameworks pf JOIN Packages p ON p.[Key] = pf.Package_Key WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
+                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<IDatabase>(), "DELETE pa FROM PackageAuthors pa JOIN Packages p ON p.[Key] = pa.PackageKey WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
+                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<IDatabase>(), "DELETE pd FROM PackageDependencies pd JOIN Packages p ON p.[Key] = pd.PackageKey WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
+                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<IDatabase>(), "DELETE pf FROM PackageFrameworks pf JOIN Packages p ON p.[Key] = pf.Package_Key WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
                 });
                 var packageRegistration = new PackageRegistration();
                 packageRegistration.Packages.Add(new Package { Key = 124, PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests });
@@ -364,11 +364,11 @@ namespace NuGetGallery
                 var entitiesContext = new Mock<IEntitiesContext>();
                 var service = CreateService(packageRepository: packageRepository, entitiesContext: entitiesContext, setup: svc =>
                 {
-                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<Database>(), "DELETE pa FROM PackageAuthors pa JOIN Packages p ON p.[Key] = pa.PackageKey WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
-                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<Database>(), "DELETE pd FROM PackageDependencies pd JOIN Packages p ON p.[Key] = pd.PackageKey WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
-                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<Database>(), "DELETE pf FROM PackageFrameworks pf JOIN Packages p ON p.[Key] = pf.Package_Key WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
+                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<IDatabase>(), "DELETE pa FROM PackageAuthors pa JOIN Packages p ON p.[Key] = pa.PackageKey WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
+                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<IDatabase>(), "DELETE pd FROM PackageDependencies pd JOIN Packages p ON p.[Key] = pd.PackageKey WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
+                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<IDatabase>(), "DELETE pf FROM PackageFrameworks pf JOIN Packages p ON p.[Key] = pf.Package_Key WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
 
-                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<Database>(), PackageDeleteService.DeletePackageRegistrationQuery, It.IsAny<SqlParameter>())).Callback(() => ranDeleteQuery = true).Returns(Task.FromResult(0));
+                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<IDatabase>(), PackageDeleteService.DeletePackageRegistrationQuery, It.IsAny<SqlParameter>())).Callback(() => ranDeleteQuery = true).Returns(Task.FromResult(0));
                 });
                 var packageRegistration = new PackageRegistration();
                 var package = new Package { Key = 123, PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
@@ -395,11 +395,11 @@ namespace NuGetGallery
                 var entitiesContext = new Mock<IEntitiesContext>();
                 var service = CreateService(packageRepository: packageRepository, entitiesContext: entitiesContext, setup: svc =>
                 {
-                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<Database>(), "DELETE pa FROM PackageAuthors pa JOIN Packages p ON p.[Key] = pa.PackageKey WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
-                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<Database>(), "DELETE pd FROM PackageDependencies pd JOIN Packages p ON p.[Key] = pd.PackageKey WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
-                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<Database>(), "DELETE pf FROM PackageFrameworks pf JOIN Packages p ON p.[Key] = pf.Package_Key WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
+                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<IDatabase>(), "DELETE pa FROM PackageAuthors pa JOIN Packages p ON p.[Key] = pa.PackageKey WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
+                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<IDatabase>(), "DELETE pd FROM PackageDependencies pd JOIN Packages p ON p.[Key] = pd.PackageKey WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
+                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<IDatabase>(), "DELETE pf FROM PackageFrameworks pf JOIN Packages p ON p.[Key] = pf.Package_Key WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
 
-                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<Database>(), PackageDeleteService.DeletePackageRegistrationQuery, It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
+                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<IDatabase>(), PackageDeleteService.DeletePackageRegistrationQuery, It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
                 });
                 var packageRegistration = new PackageRegistration();
                 var package = new Package { Key = 123, PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };

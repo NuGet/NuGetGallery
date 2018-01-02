@@ -115,5 +115,12 @@ namespace NuGetGallery
             user.FailedLoginCount = 0;
             user.IsDeleted = true;
         }
+
+        public static string GetTenantId(this User user)
+        {
+            return user.Credentials
+                .SingleOrDefault(c => !string.IsNullOrEmpty(c.TenantId))?
+                .TenantId;
+        }
     }
 }

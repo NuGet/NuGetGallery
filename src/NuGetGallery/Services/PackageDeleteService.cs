@@ -224,7 +224,7 @@ namespace NuGetGallery
             return _auditingService.SaveAuditRecordAsync(auditRecord);
         }
 
-        protected virtual async Task ExecuteSqlCommandAsync(Database database, string sql, params object[] parameters)
+        protected virtual async Task ExecuteSqlCommandAsync(IDatabase database, string sql, params object[] parameters)
         {
             await database.ExecuteSqlCommandAsync(sql, parameters);
         }

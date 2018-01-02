@@ -1408,6 +1408,69 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to transform the account because you do not have an Azure AD sign-in with tenant ID..
+        /// </summary>
+        public static string TransformAccount_AdminDoesNotHaveTenantId {
+            get {
+                return ResourceManager.GetString("TransformAccount_AdminDoesNotHaveTenantId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your account must be confirmed before you can create an organization..
+        /// </summary>
+        public static string TransformAccount_AdminNotConfirmed {
+            get {
+                return ResourceManager.GetString("TransformAccount_AdminNotConfirmed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to transform the account due to a database error..
+        /// </summary>
+        public static string TransformAccount_DatabaseError {
+            get {
+                return ResourceManager.GetString("TransformAccount_DatabaseError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to tranform account &apos;{0}&apos; because it was not found..
+        /// </summary>
+        public static string TransformAccount_OrganizationAccountNotFound {
+            get {
+                return ResourceManager.GetString("TransformAccount_OrganizationAccountNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; cannot be transformed into an organization. Contact support for more information..
+        /// </summary>
+        public static string TransformAccount_OrganizationAccountNotSupported {
+            get {
+                return ResourceManager.GetString("TransformAccount_OrganizationAccountNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to transform the account..
+        /// </summary>
+        public static string TransformAccount_SaveFailed {
+            get {
+                return ResourceManager.GetString("TransformAccount_SaveFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; was successfully transformed into an organization..
+        /// </summary>
+        public static string TransformAccount_Success {
+            get {
+                return ResourceManager.GetString("TransformAccount_Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to User is not authorized.
         /// </summary>
         public static string Unauthorized {
