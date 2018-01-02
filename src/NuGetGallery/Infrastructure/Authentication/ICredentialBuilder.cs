@@ -13,6 +13,6 @@ namespace NuGetGallery.Infrastructure.Authentication
 
         Credential CreatePackageVerificationApiKey(Credential originalApiKey, string id);
 
-        Credential CreateExternalCredential(string issuer, string value, string identity);
+        Credential CreateExternalCredential(string issuer, string value, string identity, string tenantId = null);
     }
 }

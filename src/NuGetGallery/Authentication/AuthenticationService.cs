@@ -23,6 +23,8 @@ namespace NuGetGallery.Authentication
 {
     public class AuthenticationService
     {
+        private const string tenantIdClaimType = "http://schemas.microsoft.com/identity/claims/tenantid";
+
         private Dictionary<string, Func<string, string>> _credentialFormatters;
         private readonly IDiagnosticsSource _trace;
         private readonly IAppConfiguration _config;
@@ -225,6 +227,9 @@ namespace NuGetGallery.Authentication
 
                     return null;
                 }
+
+                // store tenant (organization) id, if available
+                matched.TenantId = credential.TenantId;
 
                 // update last used timestamp
                 matched.LastUsed = _dateTimeProvider.UtcNow;
@@ -548,6 +553,7 @@ namespace NuGetGallery.Authentication
             Authenticator auther = null;
             string authenticationType;
             string idClaimValue;
+            string tenantIdValue = null;
             string issuer;
             Claim nameClaim = null;
             string emailSuffix;
@@ -561,6 +567,8 @@ namespace NuGetGallery.Authentication
                     return new AuthenticateExternalLoginResult();
                 }
 
+                tenantIdValue = tenantClaim.Value;
+
                 var idClaim = result.Identity.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier");
                 if (idClaim == null)
                 {
@@ -572,7 +580,7 @@ namespace NuGetGallery.Authentication
                     .Values
                     .First(auth => auth.Name.Equals("CommonAuth", StringComparison.OrdinalIgnoreCase));
                 var emailClaimType = ClaimTypes.Email;
-                if (string.Equals(tenantClaim.Value, MSATenantID, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(tenantIdValue, MSATenantID, StringComparison.OrdinalIgnoreCase))
                 {
                     authenticationType = MicrosoftAuthenticationType;
                     idClaimValue = idClaim.Value.Replace("-", "").Substring(16).ToLowerInvariant();
@@ -593,8 +601,6 @@ namespace NuGetGallery.Authentication
 
                 var emailClaim = result.Identity.FindFirst(emailClaimType);
                 emailSuffix = emailClaim == null ? String.Empty : (" <" + emailClaim.Value + ">");
-
-                issuer = "v2 " + tenantClaim.Value; //tenantClaime.Issuer?
             }
             else
             {
@@ -632,13 +638,12 @@ namespace NuGetGallery.Authentication
                 authenticationType = issuer;
             }
 
-
             return new AuthenticateExternalLoginResult()
             {
                 Authentication = null,
                 ExternalIdentity = result.Identity,
                 Authenticator = auther,
-                Credential = _credentialBuilder.CreateExternalCredential(authenticationType, idClaimValue, nameClaim.Value + emailSuffix)
+                Credential = _credentialBuilder.CreateExternalCredential(authenticationType, idClaimValue, nameClaim.Value + emailSuffix, tenantIdValue)
             };
         }
 
