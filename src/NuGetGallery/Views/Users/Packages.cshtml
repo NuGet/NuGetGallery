@@ -225,11 +225,7 @@
     <script type="text/javascript">
         var initialData = @Html.Raw(JsonConvert.SerializeObject(new
                      {
-                         Owners = Model.Owners.Select(o => new
-                         {
-                             Username = o.Username,
-                             IsOrganization = o is Organization
-                         }),
+                         Owners = Model.Owners,
                          ListedPackages = Model.ListedPackages
                             .Select(p => GetSerializablePackage(p)),
                          UnlistedPackages = Model.UnlistedPackages
