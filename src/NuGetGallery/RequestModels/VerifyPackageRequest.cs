@@ -12,7 +12,7 @@ namespace NuGetGallery
     {
         public VerifyPackageRequest() { }
 
-        public VerifyPackageRequest(PackageMetadata packageMetadata)
+        public VerifyPackageRequest(PackageMetadata packageMetadata, IEnumerable<User> possibleOwners)
         {
             Id = packageMetadata.Id;
             Version = packageMetadata.Version.ToFullStringSafe();
@@ -43,6 +43,8 @@ namespace NuGetGallery
             // Editable server-state
             Listed = true;
             Edit = new EditPackageVersionReadMeRequest();
+
+            PossibleOwners = possibleOwners.Select(u => u.Username).ToList();
         }
 
         public string Id { get; set; }
@@ -56,6 +58,17 @@ namespace NuGetGallery
         /// The non-normalized, unmodified, original version as defined in the nuspec.
         /// </summary>
         public string OriginalVersion { get; set; }
+
+        /// <summary>
+        /// The username of the <see cref="User"/> to upload the package as.
+        /// </summary>
+        public string Owner { get; set; }
+
+        /// <summary>
+        /// The usernames of the <see cref="User"/>s that the current user can upload the package as.
+        /// </summary>
+        public IReadOnlyCollection<string> PossibleOwners { get; set; }
+
         public bool IsSemVer2 => HasSemVer2Version || HasSemVer2Dependency;
         public bool HasSemVer2Version { get; set; }
         public bool HasSemVer2Dependency { get; set; }

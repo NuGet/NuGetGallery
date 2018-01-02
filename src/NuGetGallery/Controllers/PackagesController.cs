@@ -184,7 +184,27 @@ namespace NuGetGallery
 
                     model.IsUploadInProgress = true;
 
-                    var verifyRequest = new VerifyPackageRequest(packageMetadata);
+                    var existingPackageRegistration = _packageService.FindPackageRegistrationById(packageMetadata.Id);
+                    bool isAllowed;
+                    IEnumerable<User> accountsAllowedOnBehalfOf = Enumerable.Empty<User>();
+                    if (existingPackageRegistration == null)
+                    {
+                        isAllowed = ActionsRequiringPermissions.UploadNewPackageId.CheckPermissionsOnBehalfOfAnyAccount(currentUser, new ActionOnNewPackageContext(packageMetadata.Id, _reservedNamespaceService), out accountsAllowedOnBehalfOf) == PermissionsCheckResult.Allowed;
+                    }
+                    else
+                    {
+                        isAllowed = ActionsRequiringPermissions.UploadNewPackageVersion.CheckPermissionsOnBehalfOfAnyAccount(currentUser, existingPackageRegistration, out accountsAllowedOnBehalfOf) == PermissionsCheckResult.Allowed;
+                    }
+
+                    if (!isAllowed)
+                    {
+                        // If the current user cannot upload the package on behalf of any of the existing owners, show the current user as the only possible owner in the upload form.
+                        // The package upload will be rejected by submitting the form.
+                        // Related: https://github.com/NuGet/NuGetGallery/issues/5043
+                        accountsAllowedOnBehalfOf = new[] { currentUser };
+                    }
+
+                    var verifyRequest = new VerifyPackageRequest(packageMetadata, accountsAllowedOnBehalfOf);
 
                     model.InProgressUpload = verifyRequest;
                 }
@@ -220,6 +240,13 @@ namespace NuGetGallery
                 ModelState.AddModelError(String.Empty, Strings.UploadFileMustBeNuGetPackage);
                 return Json(400, new[] { Strings.UploadFileMustBeNuGetPackage });
             }
+
+            PackageRegistration existingPackageRegistration;
+
+            // If the current user cannot upload the package on behalf of any of the existing owners, show the current user as the only possible owner in the upload form.
+            // If the current user doesn't have the rights to upload the package, the package upload will be rejected by submitting the form.
+            // Related: https://github.com/NuGet/NuGetGallery/issues/5043
+            IEnumerable<User> accountsAllowedOnBehalfOf = new[] { currentUser };
 
             using (var uploadStream = uploadFile.InputStream)
             {
@@ -297,9 +324,9 @@ namespace NuGetGallery
                 }
 
                 var id = nuspec.GetId();
-                var packageRegistration = _packageService.FindPackageRegistrationById(id);
+                existingPackageRegistration = _packageService.FindPackageRegistrationById(id);
                 // For a new package id verify if the user is allowed to use it.
-                if (packageRegistration == null && ActionsRequiringPermissions.UploadNewPackageId.CheckPermissionsOnBehalfOfAnyAccount(currentUser, new ActionOnNewPackageContext(id, _reservedNamespaceService)) != PermissionsCheckResult.Allowed)
+                if (existingPackageRegistration == null && ActionsRequiringPermissions.UploadNewPackageId.CheckPermissionsOnBehalfOfAnyAccount(currentUser, new ActionOnNewPackageContext(id, _reservedNamespaceService)) != PermissionsCheckResult.Allowed)
                 {
                     ModelState.AddModelError(
                         string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict));
@@ -309,14 +336,14 @@ namespace NuGetGallery
 
                     return Json(409, new string[] { string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict) });
                 }
-
+                
                 // For existing package id verify if it is owned by the current user
-                if (packageRegistration != null && ActionsRequiringPermissions.UploadNewPackageVersion.CheckPermissionsOnBehalfOfAnyAccount(currentUser, packageRegistration) != PermissionsCheckResult.Allowed)
+                if (existingPackageRegistration != null && ActionsRequiringPermissions.UploadNewPackageVersion.CheckPermissionsOnBehalfOfAnyAccount(currentUser, existingPackageRegistration) != PermissionsCheckResult.Allowed)
                 {
                     ModelState.AddModelError(
-                        string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id));
+                        string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, existingPackageRegistration.Id));
 
-                    return Json(409, new[] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id) });
+                    return Json(409, new[] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, existingPackageRegistration.Id) });
                 }
 
                 var nuspecVersion = nuspec.GetVersion();
@@ -379,13 +406,11 @@ namespace NuGetGallery
                 {
                     _telemetryService.TraceException(ex);
 
-                    TempData["Message"] = ex.GetUserSafeMessage();
-
                     return Json(400, new[] { ex.GetUserSafeMessage() });
                 }
             }
 
-            var model = new VerifyPackageRequest(packageMetadata);
+            var model = new VerifyPackageRequest(packageMetadata, accountsAllowedOnBehalfOf);
 
             return Json(model);
         }
@@ -446,7 +471,7 @@ namespace NuGetGallery
             }
 
             model.ReadMeHtml = await _readMeService.GetReadMeHtmlAsync(package, isReadMePending);
-            
+
             var externalSearchService = _searchService as ExternalSearchService;
             if (_searchService.ContainsAllVersions && externalSearchService != null)
             {
@@ -969,6 +994,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
+
             if (ActionsRequiringPermissions.ManagePackageOwnership.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
@@ -1263,7 +1289,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            
+
             var user = _userService.FindByUsername(username);
             if (ActionsRequiringPermissions.HandlePackageOwnershipRequest.CheckPermissions(GetCurrentUser(), user) != PermissionsCheckResult.Allowed)
             {
@@ -1276,7 +1302,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            if (package.Owners.Any(o => o.Key == user.Key))
+            if (package.Owners.Any(o => o.MatchesUser(user)))
             {
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.AlreadyOwner));
             }
@@ -1492,13 +1518,20 @@ namespace NuGetGallery
 
             var currentUser = GetCurrentUser();
 
+            // Check that the owner specified in the form is valid
+            var owner = _userService.FindByUsername(formData.Owner);
+
+            if (owner == null)
+            {
+                var message = string.Format(CultureInfo.CurrentCulture, Strings.VerifyPackage_UserNonExistent, formData.Owner);
+                return Json(400, new[] { message });
+            }
+
             Package package;
             using (Stream uploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
                 if (uploadFile == null)
                 {
-                    TempData["Message"] = Strings.VerifyPackage_UploadNotFound;
-
                     return Json(400, new[] { Strings.VerifyPackage_UploadNotFound });
                 }
 
@@ -1522,8 +1555,6 @@ namespace NuGetGallery
                         && String.Equals(packageMetadata.Version.ToFullStringSafe(), formData.Version, StringComparison.OrdinalIgnoreCase)
                         && String.Equals(packageMetadata.Version.OriginalVersion, formData.OriginalVersion, StringComparison.OrdinalIgnoreCase)))
                     {
-                        TempData["Message"] = Strings.VerifyPackage_PackageFileModified;
-
                         return Json(400, new[] { Strings.VerifyPackage_PackageFileModified });
                     }
                 }
@@ -1535,6 +1566,65 @@ namespace NuGetGallery
                     Size = uploadFile.Length,
                 };
 
+                var packageId = packageMetadata.Id;
+                var packageVersion = packageMetadata.Version;
+
+                var existingPackageRegistration = _packageService.FindPackageRegistrationById(packageId);
+                if (existingPackageRegistration == null)
+                {
+                    var checkPermissionsOfUploadNewId = ActionsRequiringPermissions.UploadNewPackageId.CheckPermissions(currentUser, owner, new ActionOnNewPackageContext(packageId, _reservedNamespaceService));
+                    if (checkPermissionsOfUploadNewId != PermissionsCheckResult.Allowed)
+                    {
+                        if (checkPermissionsOfUploadNewId == PermissionsCheckResult.AccountFailure)
+                        {
+                            // The user is not allowed to upload a new ID on behalf of the owner specified in the form
+                            var message = string.Format(CultureInfo.CurrentCulture,
+                                Strings.UploadPackage_NewIdOnBehalfOfUserNotAllowed,
+                                currentUser.Username, owner.Username);
+                            return Json(400, new[] { message });
+                        }
+                        else if (checkPermissionsOfUploadNewId == PermissionsCheckResult.ReservedNamespaceFailure)
+                        {
+                            // The owner specified in the form is not allowed to push to a reserved namespace matching the new ID
+                            var version = packageVersion.ToNormalizedString();
+                            _telemetryService.TrackPackagePushNamespaceConflictEvent(packageId, version, currentUser, User.Identity);
+
+                            var message = string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict);
+                            return Json(409, new string[] { message });
+                        }
+
+                        // An unknown error occurred.
+                        return Json(400, new[] { Strings.VerifyPackage_UnexpectedError });
+                    }
+                }
+                else
+                {
+                    var checkPermissionsOfUploadNewVersion = ActionsRequiringPermissions.UploadNewPackageVersion.CheckPermissions(currentUser, owner, existingPackageRegistration);
+                    if (checkPermissionsOfUploadNewVersion != PermissionsCheckResult.Allowed)
+                    {
+                        if (checkPermissionsOfUploadNewVersion == PermissionsCheckResult.AccountFailure)
+                        {
+                            // The user is not allowed to upload a new version on behalf of the owner specified in the form
+                            var message = string.Format(CultureInfo.CurrentCulture,
+                                Strings.UploadPackage_NewVersionOnBehalfOfUserNotAllowed,
+                                currentUser.Username, owner.Username);
+                            return Json(400, new[] { message });
+                        }
+
+                        if (checkPermissionsOfUploadNewVersion == PermissionsCheckResult.PackageRegistrationFailure)
+                        {
+                            // The owner specified in the form is not allowed to upload a new version of the package
+                            var message = string.Format(CultureInfo.CurrentCulture,
+                                Strings.VerifyPackage_OwnerInvalid,
+                                owner.Username, existingPackageRegistration.Id);
+                            return Json(400, new[] { message });
+                        }
+
+                        // An unknown error occurred.
+                        return Json(400, new[] { Strings.VerifyPackage_UnexpectedError });
+                    }
+                }
+
                 // update relevant database tables
                 try
                 {
@@ -1542,6 +1632,7 @@ namespace NuGetGallery
                         packageMetadata.Id,
                         nugetPackage,
                         packageStreamMetadata,
+                        owner,
                         currentUser);
 
                     Debug.Assert(package.PackageRegistration != null);
