@@ -91,7 +91,7 @@ namespace NuGetGallery
 
             public int GetHashCode(User obj)
             {
-                return obj == null ? -1 : obj.Key;
+                return obj?.Key ?? -1;
             }
         }
 

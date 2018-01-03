@@ -59,12 +59,7 @@ namespace NuGetGallery
 
         public static bool MatchesUser(this User self, User user)
         {
-            if (self == null || user == null)
-            {
-                return self == null && user == null;
-            }
-
-            return self.Key == user.Key;
+            return self?.Key == user?.Key;
         }
 
         /// <summary>

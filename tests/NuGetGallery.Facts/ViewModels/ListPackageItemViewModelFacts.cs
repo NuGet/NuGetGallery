@@ -20,7 +20,7 @@ namespace NuGetGallery.ViewModels
                 Version = "01.02.00.00",
                 NormalizedVersion = "1.3.0" // Different just to prove the View Model is using the DB column.
             };
-            var packageViewModel = new ListPackageItemViewModel(package, null);
+            var packageViewModel = new ListPackageItemViewModel(package, currentUser: null);
             Assert.Equal("1.3.0", packageViewModel.Version);
         }
 
@@ -31,7 +31,7 @@ namespace NuGetGallery.ViewModels
             {
                 Version = "01.02.00.00"
             };
-            var packageViewModel = new ListPackageItemViewModel(package, null);
+            var packageViewModel = new ListPackageItemViewModel(package, currentUser: null);
             Assert.Equal("1.2.0", packageViewModel.Version);
         }
 
@@ -43,7 +43,7 @@ namespace NuGetGallery.ViewModels
                 Version = "1.0.0",
                 LicenseNames = "l1,l2, l3 ,l4  ,  l5 ",
             };
-            var packageViewModel = new ListPackageItemViewModel(package, null);
+            var packageViewModel = new ListPackageItemViewModel(package, currentUser: null);
             Assert.Equal(new string[] { "l1", "l2", "l3", "l4", "l5" }, packageViewModel.LicenseNames);
         }
 
@@ -57,7 +57,7 @@ namespace NuGetGallery.ViewModels
                 LicenseNames = "l1",
                 LicenseReportUrl = "url"
             };
-            var packageViewModel = new ListPackageItemViewModel(package, null);
+            var packageViewModel = new ListPackageItemViewModel(package, currentUser: null);
             Assert.NotNull(packageViewModel.LicenseNames);
             Assert.NotNull(packageViewModel.LicenseReportUrl);
         }
@@ -71,7 +71,7 @@ namespace NuGetGallery.ViewModels
                 HideLicenseReport = false,
                 LicenseReportUrl = "url"
             };
-            var packageViewModel = new ListPackageItemViewModel(package, null);
+            var packageViewModel = new ListPackageItemViewModel(package, currentUser: null);
             Assert.NotNull(packageViewModel.LicenseReportUrl);
         }
 
@@ -84,7 +84,7 @@ namespace NuGetGallery.ViewModels
                 HideLicenseReport = false,
                 LicenseNames = "l1"
             };
-            var packageViewModel = new ListPackageItemViewModel(package, null);
+            var packageViewModel = new ListPackageItemViewModel(package, currentUser: null);
             Assert.NotNull(packageViewModel.LicenseNames);
         }
 
@@ -97,7 +97,7 @@ namespace NuGetGallery.ViewModels
                 HideLicenseReport = true,
                 LicenseUrl = "url"
             };
-            var packageViewModel = new ListPackageItemViewModel(package, null);
+            var packageViewModel = new ListPackageItemViewModel(package, currentUser: null);
             Assert.NotNull(packageViewModel.LicenseUrl);
         }
         #endregion
@@ -112,7 +112,7 @@ namespace NuGetGallery.ViewModels
                 Description = description
             };
 
-            var listPackageItemViewModel = new ListPackageItemViewModel(package, null);
+            var listPackageItemViewModel = new ListPackageItemViewModel(package, currentUser: null);
 
             Assert.Equal(description, listPackageItemViewModel.ShortDescription);
             Assert.Equal(false, listPackageItemViewModel.IsDescriptionTruncated);
@@ -132,7 +132,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 Description = description
             };
 
-            var listPackageItemViewModel = new ListPackageItemViewModel(package, null);
+            var listPackageItemViewModel = new ListPackageItemViewModel(package, currentUser: null);
 
             Assert.NotEqual(description, listPackageItemViewModel.ShortDescription);
             Assert.Equal(true, listPackageItemViewModel.IsDescriptionTruncated);
@@ -153,7 +153,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 Description = description
             };
 
-            var listPackageItemViewModel = new ListPackageItemViewModel(package, null);
+            var listPackageItemViewModel = new ListPackageItemViewModel(package, currentUser: null);
 
             Assert.Equal(charLimit + omission.Length, listPackageItemViewModel.ShortDescription.Length);
             Assert.Equal(true, listPackageItemViewModel.IsDescriptionTruncated);
@@ -168,7 +168,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 Version = "1.0.0"
             };
 
-            var listPackageItemViewModel = new ListPackageItemViewModel(package, null);
+            var listPackageItemViewModel = new ListPackageItemViewModel(package, currentUser: null);
 
             Assert.Equal(null, listPackageItemViewModel.Tags);
         }
@@ -182,7 +182,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 Tags = "tag1 tag2 tag3"
             };
 
-            var listPackageItemViewModel = new ListPackageItemViewModel(package, null);
+            var listPackageItemViewModel = new ListPackageItemViewModel(package, currentUser: null);
 
             Assert.Equal(3, listPackageItemViewModel.Tags.Count());
             Assert.True(listPackageItemViewModel.Tags.Contains("tag1"));
@@ -215,7 +215,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 FlattenedAuthors = flattenedAuthors
             };
 
-            var listPackageItemViewModel = new ListPackageItemViewModel(package, null);
+            var listPackageItemViewModel = new ListPackageItemViewModel(package, currentUser: null);
 
             Assert.Equal(flattenedAuthors, listPackageItemViewModel.Authors);
         }
@@ -230,7 +230,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 IsLatestStable = false
             };
 
-            var listPackageItemViewModel = new ListPackageItemViewModel(package, null);
+            var listPackageItemViewModel = new ListPackageItemViewModel(package, currentUser: null);
             Assert.True(listPackageItemViewModel.UseVersion);
 
             listPackageItemViewModel.LatestVersion = false;
@@ -257,7 +257,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 IsLatestStableSemVer2 = false
             };
 
-            var listPackageItemViewModel = new ListPackageItemViewModel(package, null);
+            var listPackageItemViewModel = new ListPackageItemViewModel(package, currentUser: null);
             Assert.True(listPackageItemViewModel.UseVersion);
 
             listPackageItemViewModel.LatestVersionSemVer2 = false;
