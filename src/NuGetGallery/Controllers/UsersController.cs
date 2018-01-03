@@ -102,7 +102,7 @@ namespace NuGetGallery
         
         [HttpGet]
         [Authorize]
-        public virtual async Task<ActionResult> ConfirmTransform(string accountName, string token)
+        public virtual async Task<ActionResult> ConfirmTransform(string accountNameToTransform, string token)
         {
             var adminUser = GetCurrentUser();
             if (!adminUser.Confirmed)
@@ -111,18 +111,18 @@ namespace NuGetGallery
                 return RedirectToAction("ConfirmationRequired");
             }
 
-            var accountToTransform = _userService.FindByUsername(accountName);
+            var accountToTransform = _userService.FindByUsername(accountNameToTransform);
             if (accountToTransform == null)
             {
                 TempData["TransformError"] = String.Format(CultureInfo.CurrentCulture,
-                    Strings.TransformAccount_OrganizationAccountNotFound, accountName);
+                    Strings.TransformAccount_OrganizationAccountNotFound, accountNameToTransform);
                 return View("AccountTransformFailed");
             }
 
             if (!CanTransformIntoOrganization(accountToTransform))
             {
                 TempData["TransformError"] = String.Format(CultureInfo.CurrentCulture,
-                    Strings.TransformAccount_OrganizationAccountNotSupported, accountName);
+                    Strings.TransformAccount_OrganizationAccountNotSupported, accountNameToTransform);
                 return View("AccountTransformFailed");
             }
 
@@ -131,7 +131,7 @@ namespace NuGetGallery
                 await _userService.TransformToOrganizationAccount(accountToTransform, adminUser, token);
                 
                 TempData["Message"] = String.Format(CultureInfo.CurrentCulture,
-                    Strings.TransformAccount_Success, accountName);
+                    Strings.TransformAccount_Success, accountNameToTransform);
 
                 // todo: redirect to ManageOrganization (future work)
                 return RedirectToAction("Account");
@@ -145,7 +145,7 @@ namespace NuGetGallery
         
         private bool CanTransformIntoOrganization(User user)
         {
-            if (!user.Confirmed || user.IsAdministrator())
+            if (!user.Confirmed || user is Organization || user.IsAdministrator())
             {
                 return false;
             }

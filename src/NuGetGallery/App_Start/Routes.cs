@@ -291,7 +291,7 @@ namespace NuGetGallery
 
             routes.MapRoute(
                 RouteName.TransformAccountConfirmation,
-                "account/transform/confirm/{accountName}/{token}",
+                "account/transform/confirm/{accountNameToTransform}/{token}",
                 new { controller = "Users", action = "ConfirmTransform" });
 
             routes.MapRoute(

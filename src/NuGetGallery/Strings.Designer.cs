@@ -1408,7 +1408,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to transform the account because you do not have an Azure AD sign-in with tenant ID..
+        ///   Looks up a localized string similar to Failed to transform the account because you do not have an Azure AD sign-in with tenant ID. Contact support@nuget.org for more details..
         /// </summary>
         public static string TransformAccount_AdminDoesNotHaveTenantId {
             get {
@@ -1426,7 +1426,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to transform the account due to a database error..
+        ///   Looks up a localized string similar to Failed to transform the account due to an unexpected error. Contact support@nuget.org for more details..
         /// </summary>
         public static string TransformAccount_DatabaseError {
             get {
@@ -1444,20 +1444,11 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Account &apos;{0}&apos; cannot be transformed into an organization. Contact support for more information..
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; cannot be transformed into an organization. Contact support@nuget.org for more details..
         /// </summary>
         public static string TransformAccount_OrganizationAccountNotSupported {
             get {
                 return ResourceManager.GetString("TransformAccount_OrganizationAccountNotSupported", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Failed to transform the account..
-        /// </summary>
-        public static string TransformAccount_SaveFailed {
-            get {
-                return ResourceManager.GetString("TransformAccount_SaveFailed", resourceCulture);
             }
         }
         

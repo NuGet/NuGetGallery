@@ -15,26 +15,31 @@ CREATE PROCEDURE [dbo].[MigrateToOrganization]
 )
 AS
 BEGIN
-	DECLARE @reqCount INT
+	DECLARE @count INT
 
 	-- Ensure migration request exists
-	SELECT @reqCount = COUNT(*)
+	SELECT @count = COUNT(*)
 	FROM [dbo].[OrganizationMigrationRequests]
 	WHERE NewOrganizationKey = @orgKey
 		AND AdminUserKey = @adminKey
 		AND ConfirmationToken = @token
-	IF @reqCount = 0 RETURN
+	IF @count = 0 RETURN
+
+	-- Ensure account is not member of other organizations
+	SELECT @count = COUNT(*) FROM [dbo].[Memberships] WHERE MemberKey = @orgKey
+	IF @count > 0 RETURN
+
+	SELECT @count = COUNT(*) FROM [dbo].[MembershipRequests] WHERE NewMemberKey = @orgKey
+	IF @count > 0 RETURN
 
 	BEGIN TRANSACTION
 	BEGIN TRY
-		-- Ensure Organizations do not have credentials or memberships
-		DELETE FROM [dbo].[Credentials] WHERE UserKey = @orgKey
-		DELETE FROM [dbo].[Memberships] WHERE MemberKey = @orgKey
-		DELETE FROM [dbo].[MembershipRequests] WHERE NewMemberKey = @orgKey
-    
 		-- Change to Organization account with single admin membership
 		INSERT INTO [dbo].[Organizations] ([Key]) VALUES (@orgKey)
 		INSERT INTO [dbo].[Memberships] (OrganizationKey, MemberKey, IsAdmin) VALUES (@orgKey, @adminKey, 1)
+
+		-- Remove organization credentials
+		DELETE FROM [dbo].[Credentials] WHERE UserKey = @orgKey
     
 		-- Delete the migration request
 		DELETE FROM [dbo].[OrganizationMigrationRequests] WHERE NewOrganizationKey = @orgKey

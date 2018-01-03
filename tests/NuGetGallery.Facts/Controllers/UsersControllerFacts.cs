@@ -2297,6 +2297,37 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task WhenAccountToTransformIsAlreadyOrganization_ShowsError()
+            {
+                // Arrange
+                var configurationService = GetConfigurationService();
+                configurationService.Current.OrganizationsEnabledForDomains = new string[] { "example.com" };
+
+                var controller = GetController<UsersController>();
+                var currentUser = new User("OrgAdmin") { EmailAddress = "orgadmin@example.com" };
+                controller.SetCurrentUser(currentUser);
+
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername("account"))
+                    .Returns(new Organization("account")
+                    {
+                        EmailAddress = "account@example.com",
+                        Roles = {
+                            new Role() { Name = "Admins" }
+                        }
+                    });
+
+                // Act
+                var result = await controller.ConfirmTransform("account", "token");
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(
+                    String.Format(CultureInfo.CurrentCulture, Strings.TransformAccount_OrganizationAccountNotSupported, "account"),
+                    controller.TempData["TransformError"]);
+            }
+
+            [Fact]
             public async Task WhenAccountToTransformIsAdmin_ShowsError()
             {
                 // Arrange

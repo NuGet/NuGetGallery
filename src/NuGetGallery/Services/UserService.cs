@@ -157,7 +157,12 @@ namespace NuGetGallery
             await UserRepository.CommitChangesAsync();
             return true;
         }
-        
+
+        /// <summary>
+        /// Transforms a <see cref="User"/> account into an <see cref="Organization"/> account. Note that this must be done
+        /// with a stored procedure because EF does not support changing inheritance types. The change will take effect on
+        /// new EF contexts created after the transaction is committed (i.e., future requests).
+        /// </summary>
         public async Task TransformToOrganizationAccount(User accountToTransform, User adminUser, string token)
         {
             accountToTransform = accountToTransform ?? throw new ArgumentNullException(nameof(accountToTransform));
@@ -174,9 +179,7 @@ namespace NuGetGallery
                 // todo: add security policy to organization below to enforce this (future work, with manage organization)
                 throw new TransformAccountException(Strings.TransformAccount_AdminDoesNotHaveTenantId);
             }
-
-            // Update from User to Organization account. Note that the type change will only be reflected in future
-            // requests, which use new EF context instances.
+            
             try
             {
                 var database = EntitiesContext.GetDatabase();
@@ -191,8 +194,8 @@ namespace NuGetGallery
                 // Result was -1 (found no migration requests with select) or 0 (no insert, update or delete).
                 if (result <= 0)
                 {
-                    // Stored procedure returned failure, probably due to an unsatisfied migration request.
-                    throw new TransformAccountException(Strings.TransformAccount_SaveFailed);
+                    // Stored procedure check failed (i.e., migration request didn't match, or membership existed).
+                    throw new TransformAccountException(Strings.TransformAccount_DatabaseError);
                 }
             }
             catch (Exception ex) when (ex is SqlException || ex is DataException)

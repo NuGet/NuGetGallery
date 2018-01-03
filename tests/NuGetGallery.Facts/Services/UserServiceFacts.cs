@@ -451,7 +451,7 @@ namespace NuGetGallery
                 // Act & Assert
                 var exception = await Assert.ThrowsAsync<TransformAccountException>(
                     async () => await service.TransformToOrganizationAccount(account, admin, "token"));
-                Assert.Equal(exception.Message, Strings.TransformAccount_SaveFailed);
+                Assert.Equal(exception.Message, Strings.TransformAccount_DatabaseError);
             }
 
             [Fact]
