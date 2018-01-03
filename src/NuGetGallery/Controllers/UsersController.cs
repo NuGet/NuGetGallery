@@ -112,7 +112,7 @@ namespace NuGetGallery
 
             var listPackageItems = _packageService
                  .FindPackagesByAnyMatchingOwner(user, includeUnlisted: true)
-                 .Select(p => new ListPackageItemViewModel(p))
+                 .Select(p => new ListPackageItemViewModel(p, user))
                  .ToList();
 
             bool hasPendingRequest = _supportRequestService.GetIssues().Where((issue)=> (issue.UserKey.HasValue && issue.UserKey.Value == user.Key) && 
@@ -171,7 +171,7 @@ namespace NuGetGallery
 
             var listPackageItems = _packageService
                  .FindPackagesByAnyMatchingOwner(user, includeUnlisted:true)
-                 .Select(p => new ListPackageItemViewModel(p))
+                 .Select(p => new ListPackageItemViewModel(p, user))
                  .ToList();
             var model = new DeleteUserAccountViewModel
             {
@@ -283,43 +283,31 @@ namespace NuGetGallery
         [Authorize]
         public virtual ActionResult Packages()
         {
-            var user = GetCurrentUser();
+            var currentUser = GetCurrentUser();
 
             var owners = new List<ListPackageOwnerViewModel> {
                 new ListPackageOwnerViewModel
                 {
                     Username = "All packages"
                 },
-                new ListPackageOwnerViewModel(user)
-                {
-                    CanManagePackageOwners = PermissionsService.IsActionAllowed(
-                        account: user,
-                        currentUser: user,
-                        action: PackageActions.ManagePackageOwners)
-                }
-            }.Concat(user.Organizations.Select(o => new ListPackageOwnerViewModel(o.Organization)
-            {
-                CanManagePackageOwners = PermissionsService.IsActionAllowed(
-                    account: o.Organization,
-                    currentUser: user,
-                    action: PackageActions.ManagePackageOwners)
-            }));
+                new ListPackageOwnerViewModel(currentUser)
+            }.Concat(currentUser.Organizations.Select(o => new ListPackageOwnerViewModel(o.Organization)));
 
-            var packages = _packageService.FindPackagesByAnyMatchingOwner(user, includeUnlisted: true);
+            var packages = _packageService.FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: true);
             var listedPackages = packages
                 .Where(p => p.Listed)
-                .Select(p => new ListPackageItemViewModel(p)).OrderBy(p => p.Id)
+                .Select(p => new ListPackageItemViewModel(p, currentUser)).OrderBy(p => p.Id)
                 .ToList();
             var unlistedPackages = packages
                 .Where(p => !p.Listed)
-                .Select(p => new ListPackageItemViewModel(p)).OrderBy(p => p.Id)
+                .Select(p => new ListPackageItemViewModel(p, currentUser)).OrderBy(p => p.Id)
                 .ToList();
 
-            var incoming = _packageOwnerRequestService.GetPackageOwnershipRequests(newOwner: user);
-            var outgoing = _packageOwnerRequestService.GetPackageOwnershipRequests(requestingOwner: user);
+            var incoming = _packageOwnerRequestService.GetPackageOwnershipRequests(newOwner: currentUser);
+            var outgoing = _packageOwnerRequestService.GetPackageOwnershipRequests(requestingOwner: currentUser);
 
-            var ownerRequests = new OwnerRequestsViewModel(incoming, outgoing, user, _packageService);
-            var reservedPrefixes = new ReservedNamespaceListViewModel(user.ReservedNamespaces);
+            var ownerRequests = new OwnerRequestsViewModel(incoming, outgoing, currentUser, _packageService);
+            var reservedPrefixes = new ReservedNamespaceListViewModel(currentUser.ReservedNamespaces);
 
             var model = new ManagePackagesViewModel
             {
@@ -502,7 +490,7 @@ namespace NuGetGallery
 
             var packages = _packageService.FindPackagesByAnyMatchingOwner(user, includeUnlisted: false)
                 .OrderByDescending(p => p.PackageRegistration.DownloadCount)
-                .Select(p => new ListPackageItemViewModel(p)
+                .Select(p => new ListPackageItemViewModel(p, user)
                 {
                     DownloadCount = p.PackageRegistration.DownloadCount
                 }).ToList();

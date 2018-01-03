@@ -88,6 +88,7 @@ namespace NuGetGallery
 
             var viewModel = new PackageListViewModel(
                 results.Data,
+                GetCurrentUser(),
                 results.IndexTimestampUtc,
                 q,
                 totalHits,
