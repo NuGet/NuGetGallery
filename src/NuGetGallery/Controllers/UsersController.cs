@@ -136,9 +136,9 @@ namespace NuGetGallery
                 // todo: redirect to ManageOrganization (future work)
                 return RedirectToAction("Account");
             }
-            catch (Exception e)
+            catch (TransformAccountException e)
             {
-                TempData["TransformError"] = e.GetUserSafeMessage();
+                TempData["TransformError"] = e.AsUserSafeException().GetUserSafeMessage();
                 return View("AccountTransformFailed");
             }
         }

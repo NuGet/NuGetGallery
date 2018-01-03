@@ -3,20 +3,21 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
-using System.Linq;
-using NuGetGallery.Configuration;
-using NuGetGallery.Auditing;
-using System.Threading.Tasks;
-using NuGetGallery.Security;
-using Crypto = NuGetGallery.CryptographyService;
-using System.Data.SqlClient;
 using System.Data;
+using System.Data.Entity;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Threading.Tasks;
+using NuGetGallery.Auditing;
+using NuGetGallery.Configuration;
+using Crypto = NuGetGallery.CryptographyService;
 
 namespace NuGetGallery
 {
     public class UserService : IUserService
     {
+        private const string ExecMigrateToOrganization = "EXEC @result = [dbo].[MigrateToOrganization] @orgKey, @adminKey, @token";
+
         public IAppConfiguration Config { get; protected set; }
         public IEntityRepository<User> UserRepository { get; protected set; }
         public IEntityRepository<Credential> CredentialRepository { get; protected set; }
@@ -156,8 +157,6 @@ namespace NuGetGallery
             await UserRepository.CommitChangesAsync();
             return true;
         }
-
-        private const string ExecMigrateToOrganization = "EXEC [dbo].[MigrateToOrganization] @orgKey @adminKey @token";
         
         public async Task TransformToOrganizationAccount(User accountToTransform, User adminUser, string token)
         {
@@ -172,7 +171,7 @@ namespace NuGetGallery
             var tenantId = adminUser.GetTenantId();
             if (string.IsNullOrWhiteSpace(tenantId))
             {
-                // todo: add security policy to organization to enforce this (future work)
+                // todo: add security policy to organization below to enforce this (future work, with manage organization)
                 throw new TransformAccountException(Strings.TransformAccount_AdminDoesNotHaveTenantId);
             }
 
@@ -183,12 +182,14 @@ namespace NuGetGallery
                 var database = EntitiesContext.GetDatabase();
                 var result = await database.ExecuteSqlCommandAsync(
                     ExecMigrateToOrganization,
-                    new SqlParameter("organizationKey", accountToTransform.Key),
+                    new SqlParameter("orgKey", accountToTransform.Key),
                     new SqlParameter("adminKey", adminUser.Key),
                     new SqlParameter("token", token)
                     );
 
-                if (result == 0)
+                // For ExecuteSqlCommandAsync result, see SqlDataReader.RecordsAffected.
+                // Result was -1 (found no migration requests with select) or 0 (no insert, update or delete).
+                if (result <= 0)
                 {
                     // Stored procedure returned failure, probably due to an unsatisfied migration request.
                     throw new TransformAccountException(Strings.TransformAccount_SaveFailed);

@@ -2,16 +2,15 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
-using NuGetGallery.Framework;
-using NuGetGallery.Auditing;
-using Xunit;
-using NuGetGallery.TestUtils;
 using Moq;
-using System.Data.SqlClient;
-using System.Data;
+using NuGetGallery.Auditing;
+using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Authentication;
+using NuGetGallery.TestUtils;
+using Xunit;
 
 namespace NuGetGallery
 {
