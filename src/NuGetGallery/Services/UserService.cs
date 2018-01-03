@@ -16,7 +16,7 @@ namespace NuGetGallery
 {
     public class UserService : IUserService
     {
-        private const string ExecMigrateToOrganization = "EXEC @result = [dbo].[MigrateToOrganization] @orgKey, @adminKey, @token";
+        private const string ExecMigrateToOrganization = "EXEC [dbo].[MigrateToOrganization] @orgKey, @adminKey, @token";
 
         public IAppConfiguration Config { get; protected set; }
         public IEntityRepository<User> UserRepository { get; protected set; }
