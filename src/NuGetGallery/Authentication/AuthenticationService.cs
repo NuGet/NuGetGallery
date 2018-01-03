@@ -22,6 +22,8 @@ namespace NuGetGallery.Authentication
 {
     public class AuthenticationService
     {
+        private const string tenantIdClaimType = "http://schemas.microsoft.com/identity/claims/tenantid";
+
         private Dictionary<string, Func<string, string>> _credentialFormatters;
         private readonly IDiagnosticsSource _trace;
         private readonly IAppConfiguration _config;
@@ -219,6 +221,9 @@ namespace NuGetGallery.Authentication
 
                     return null;
                 }
+
+                // store tenant (organization) id, if available
+                matched.TenantId = credential.TenantId;
 
                 // update last used timestamp
                 matched.LastUsed = _dateTimeProvider.UtcNow;
@@ -555,6 +560,8 @@ namespace NuGetGallery.Authentication
             var emailClaim = result.Identity.FindFirst(ClaimTypes.Email);
             string emailSuffix = emailClaim == null ? String.Empty : (" <" + emailClaim.Value + ">");
 
+            var tenantIdClaim = result.Identity.FindFirst(tenantIdClaimType);
+
             Authenticator auther;
             string authenticationType = idClaim.Issuer;
             if (!Authenticators.TryGetValue(idClaim.Issuer, out auther))
@@ -574,7 +581,7 @@ namespace NuGetGallery.Authentication
                 Authentication = null,
                 ExternalIdentity = result.Identity,
                 Authenticator = auther,
-                Credential = _credentialBuilder.CreateExternalCredential(authenticationType, idClaim.Value, nameClaim.Value + emailSuffix)
+                Credential = _credentialBuilder.CreateExternalCredential(authenticationType, idClaim.Value, nameClaim.Value + emailSuffix, tenantIdClaim?.Value)
             };
         }
 

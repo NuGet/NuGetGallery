@@ -540,6 +540,26 @@ namespace NuGetGallery.Authentication
                 Assert.True(cred.LastUsed == referenceTime);
                 Assert.True(cred.LastUsed.HasValue);
             }
+
+            [Fact]
+            public async Task GivenMatchingExternalCredential_ItCopiesTenantId()
+            {
+                // Arrange
+                var cred = _fakes.User.Credentials.Single(c => c.Type.Contains(CredentialTypes.ExternalPrefix));
+
+                var referenceTime = DateTime.UtcNow;
+                _dateTimeProviderMock.SetupGet(x => x.UtcNow).Returns(referenceTime);
+
+                Assert.False(cred.LastUsed.HasValue);
+
+                // Act
+                // Create a new credential to verify that it's a value-based lookup!
+                var result = await _authenticationService.Authenticate(TestCredentialHelper.CreateExternalCredential(cred.Value, tenantId: "fake-tenant-id"));
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.False(string.IsNullOrEmpty(result.CredentialUsed.TenantId));
+            }
         }
 
         public class TheCreateSessionAsyncMethod : TestContainer
