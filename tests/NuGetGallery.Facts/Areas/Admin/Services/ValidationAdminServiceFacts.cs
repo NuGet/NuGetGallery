@@ -40,7 +40,7 @@ namespace NuGetGallery.Areas.Admin.Services
                 var expected = lineArray.ToList();
 
                 // Act
-                var actual = ValidationAdminService.ParseQueryToLines(query);
+                var actual = Helpers.ParseQueryToLines(query);
 
                 // Assert
                 Assert.Equal(expected, actual);
