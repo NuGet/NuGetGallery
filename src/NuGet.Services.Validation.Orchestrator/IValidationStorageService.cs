@@ -35,7 +35,7 @@ namespace NuGet.Services.Validation.Orchestrator
         /// or <see cref="GetValidationSetAsync(Guid)"/> calls.</param>
         /// <param name="validationResult">Validation result. Its status cannot be <see cref="ValidationStatus.NotStarted"/></param>
         /// <returns>Task object tracking the async operation status.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">If <paramref name="startedStatus"/> is <see cref="ValidationStatus.NotStarted"/></exception>
+        /// <exception cref="ArgumentOutOfRangeException">If <paramref name="validationResult"/> has status <see cref="ValidationStatus.NotStarted"/></exception>
         Task MarkValidationStartedAsync(PackageValidation packageValidation, IValidationResult validationResult);
 
         /// <summary>

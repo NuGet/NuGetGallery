@@ -10,6 +10,10 @@
     "TopicPath": "validate-signature",
     "SubscriptionName": "extract-and-validate-signature"
   },
+  "CertificateStore": {
+    "ContainerName": "certificates",
+    "DataStorageAccount": "DefaultEndpointsProtocol=https;AccountName=nugetprod0;AccountKey=$$Prod-NuGetProd0Storage-Key$$"
+  },
 
   "PackageDownloadTimeout": "10:00",
 

@@ -402,7 +402,7 @@ namespace NuGet.Services.Validation.PackageSigning
                 _validationContext.Mock(
                     validatorStatuses: new[] { validatorStatus },
                     packageSigningStates: new[] { packageSigningState },
-                    packageSignatures: new[] { signature } ,
+                    packageSignatures: new[] { signature },
                     endCertificates: new[] { signature.EndCertificate },
                     certificateValidations: new[] { certificateValidation });
 
@@ -996,7 +996,7 @@ namespace NuGet.Services.Validation.PackageSigning
                 packageSignature3.TrustedTimestamps = new[] { timestamp3 };
                 packageSignature4.TrustedTimestamps = new[] { timestamp4 };
                 packageSignature5.TrustedTimestamps = new[] { timestamp5 };
-                packageSignature1.EndCertificate =  certificate1;
+                packageSignature1.EndCertificate = certificate1;
                 packageSignature2.EndCertificate = certificate2;
                 packageSignature3.EndCertificate = certificate3;
                 packageSignature4.EndCertificate = certificate4;

@@ -103,6 +103,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.PackageSigning.E
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.PackageSigning.ExtractAndValidateSignature.Tests", "tests\Validation.PackageSigning.ExtractAndValidateSignature.Tests\Validation.PackageSigning.ExtractAndValidateSignature.Tests.csproj", "{26435822-8938-48C9-96FD-0DCCF8F7CE00}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.PackageSigning.Core.Tests", "tests\Validation.PackageSigning.Core.Tests\Validation.PackageSigning.Core.Tests.csproj", "{B4B7564A-965B-447B-927F-6749E2C08880}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -259,6 +261,10 @@ Global
 		{26435822-8938-48C9-96FD-0DCCF8F7CE00}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{26435822-8938-48C9-96FD-0DCCF8F7CE00}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{26435822-8938-48C9-96FD-0DCCF8F7CE00}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4B7564A-965B-447B-927F-6749E2C08880}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4B7564A-965B-447B-927F-6749E2C08880}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4B7564A-965B-447B-927F-6749E2C08880}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4B7564A-965B-447B-927F-6749E2C08880}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -300,6 +306,7 @@ Global
 		{91C060DA-736F-4DA9-A57F-CB3AC0E6CB10} = {678D7B14-F8BC-4193-99AF-2EE8AA390A02}
 		{DD043977-6BCD-475A-BEE2-8C34309EC622} = {678D7B14-F8BC-4193-99AF-2EE8AA390A02}
 		{26435822-8938-48C9-96FD-0DCCF8F7CE00} = {6A776396-02B1-475D-A104-26940ADB04AB}
+		{B4B7564A-965B-447B-927F-6749E2C08880} = {6A776396-02B1-475D-A104-26940ADB04AB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {284A7AC3-FB43-4F1F-9C9C-2AF0E1F46C2B}

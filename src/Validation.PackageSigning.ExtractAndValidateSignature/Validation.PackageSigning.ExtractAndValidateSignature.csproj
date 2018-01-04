@@ -125,7 +125,7 @@
       <Version>4.3.3</Version>
     </PackageReference>
     <PackageReference Include="WindowsAzure.Storage">
-      <Version>8.5.0</Version>
+      <Version>7.1.2</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

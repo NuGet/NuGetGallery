@@ -15,12 +15,15 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs.Configuration;
+using NuGet.Jobs.Validation.PackageSigning.Configuration;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
 using NuGet.Services.Configuration;
 using NuGet.Services.KeyVault;
 using NuGet.Services.ServiceBus;
+using NuGet.Services.Storage;
 using NuGet.Services.Validation;
 using NuGet.Services.Validation.PackageSigning;
 using NuGetGallery;
@@ -42,6 +45,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
         private const string GalleryDbConfigurationSectionName = "GalleryDb";
         private const string ValidationDbConfigurationSectionName = "ValidationDb";
         private const string ServiceBusConfigurationSectionName = "ServiceBus";
+        private const string CertificateStoreConfigurationSectionName = "CertificateStore";
         private const string PackageDownloadTimeoutName = "PackageDownloadTimeout";
 
         /// <summary>
@@ -138,6 +142,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
             services.Configure<GalleryDbConfiguration>(configurationRoot.GetSection(GalleryDbConfigurationSectionName));
             services.Configure<ValidationDbConfiguration>(configurationRoot.GetSection(ValidationDbConfigurationSectionName));
             services.Configure<ServiceBusConfiguration>(configurationRoot.GetSection(ServiceBusConfigurationSectionName));
+            services.Configure<CertificateStoreConfiguration>(configurationRoot.GetSection(CertificateStoreConfigurationSectionName));
 
             services.AddTransient<ISubscriptionProcessor<SignatureValidationMessage>, SubscriptionProcessor<SignatureValidationMessage>>();
 
@@ -162,6 +167,17 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
                 var config = p.GetRequiredService<IOptionsSnapshot<ServiceBusConfiguration>>().Value;
 
                 return new SubscriptionClientWrapper(config.ConnectionString, config.TopicPath, config.SubscriptionName);
+            });
+
+            services.AddTransient<ICertificateStore>(p =>
+            {
+                var config = p.GetRequiredService<IOptionsSnapshot<CertificateStoreConfiguration>>().Value;
+                var targetStorageAccount = CloudStorageAccount.Parse(config.DataStorageAccount);
+
+                var storageFactory = new AzureStorageFactory(targetStorageAccount, config.ContainerName, LoggerFactory.CreateLogger<AzureStorage>());
+                var storage = storageFactory.Create();
+
+                return new CertificateStore(storage, LoggerFactory.CreateLogger<CertificateStore>());
             });
 
             services.AddTransient<IBrokeredMessageSerializer<SignatureValidationMessage>, SignatureValidationMessageSerializer>();

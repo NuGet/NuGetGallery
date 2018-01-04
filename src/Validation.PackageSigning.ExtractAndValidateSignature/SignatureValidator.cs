@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -113,24 +114,8 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
 
         private HashSet<string> GetThumbprints(IEnumerable<Signature> signatures)
         {
-            var thumbprints = new HashSet<string>();
-
-            foreach (var signature in signatures)
-            {
-                var certificate = signature.SignerInfo.Certificate;
-                using (var sha256 = SHA256.Create())
-                {
-                    var digestBytes = sha256.ComputeHash(certificate.RawData);
-                    var thumbprint = BitConverter
-                        .ToString(digestBytes)
-                        .Replace("-", string.Empty)
-                        .ToLowerInvariant();
-
-                    thumbprints.Add(thumbprint);
-                }
-            }
-
-            return thumbprints;
+            return new HashSet<string>(signatures
+                .Select(x => x.SignerInfo.Certificate.ComputeSHA256Thumbprint()));
         }
 
         private async Task RejectAsync(ValidatorStatus validation, SignatureValidationMessage message)
