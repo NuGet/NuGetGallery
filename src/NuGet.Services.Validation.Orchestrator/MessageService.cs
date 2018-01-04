@@ -60,7 +60,15 @@ namespace NuGet.Services.Validation.Orchestrator
 
             var galleryPackageUrl = string.Format(_emailConfiguration.PackageUrlTemplate, package.PackageRegistration.Id, package.NormalizedVersion);
             var packageSupportUrl = string.Format(_emailConfiguration.PackageSupportTemplate, package.PackageRegistration.Id, package.NormalizedVersion);
-            _coreMessageService.SendPackageValidationFailedNotice(package, galleryPackageUrl, packageSupportUrl, _emailConfiguration.EmailSettingsUrl);
+            _coreMessageService.SendPackageValidationFailedNotice(package, galleryPackageUrl, packageSupportUrl);
+        }
+
+        public void SendPackageSignedValidationFailedMessage(Package package)
+        {
+            package = package ?? throw new ArgumentNullException(nameof(package));
+
+            var galleryPackageUrl = string.Format(_emailConfiguration.PackageUrlTemplate, package.PackageRegistration.Id, package.NormalizedVersion);
+            _coreMessageService.SendSignedPackageNotAllowedNotice(package, galleryPackageUrl, _emailConfiguration.AnnouncementsUrl, _emailConfiguration.TwitterUrl);
         }
     }
 }

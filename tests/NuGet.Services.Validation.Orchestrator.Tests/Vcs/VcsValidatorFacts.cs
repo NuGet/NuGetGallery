@@ -55,10 +55,10 @@ namespace NuGet.Services.Validation.Vcs
             public async Task ReturnsNotStartedForNullAudit()
             {
                 // Arrange & Act
-                var actual = await _target.GetStatusAsync(_validationRequest.Object);
+                var actual = await _target.GetResultAsync(_validationRequest.Object);
 
                 // Assert
-                Assert.Equal(ValidationStatus.NotStarted, actual);
+                Assert.Equal(ValidationStatus.NotStarted, actual.Status);
                 _validationAuditor.Verify(
                     x => x.ReadAuditAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>()),
                     Times.Once);
@@ -100,10 +100,10 @@ namespace NuGet.Services.Validation.Vcs
                     });
 
                 // Act
-                var actual = await _target.GetStatusAsync(_validationRequest.Object);
+                var actual = await _target.GetResultAsync(_validationRequest.Object);
 
                 // Assert
-                Assert.Equal(ValidationStatus.Failed, actual);
+                Assert.Equal(ValidationStatus.Failed, actual.Status);
                 _validationAuditor.Verify(
                     x => x.ReadAuditAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>()),
                     Times.Once);
@@ -140,10 +140,10 @@ namespace NuGet.Services.Validation.Vcs
                     });
 
                 // Act
-                var actual = await _target.GetStatusAsync(_validationRequest.Object);
+                var actual = await _target.GetResultAsync(_validationRequest.Object);
 
                 // Assert
-                Assert.Equal(ValidationStatus.Succeeded, actual);
+                Assert.Equal(ValidationStatus.Succeeded, actual.Status);
                 _validationAuditor.Verify(
                     x => x.ReadAuditAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>()),
                     Times.Once);
@@ -175,10 +175,10 @@ namespace NuGet.Services.Validation.Vcs
                     });
 
                 // Act
-                var actual = await _target.GetStatusAsync(_validationRequest.Object);
+                var actual = await _target.GetResultAsync(_validationRequest.Object);
 
                 // Assert
-                Assert.Equal(ValidationStatus.Incomplete, actual);
+                Assert.Equal(ValidationStatus.Incomplete, actual.Status);
                 _validationAuditor.Verify(
                     x => x.ReadAuditAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>()),
                     Times.Once);
@@ -222,10 +222,10 @@ namespace NuGet.Services.Validation.Vcs
                     });
 
                 // Act
-                var actual = await _target.GetStatusAsync(_validationRequest.Object);
+                var actual = await _target.GetResultAsync(_validationRequest.Object);
 
                 // Assert
-                Assert.Equal(ValidationStatus.Incomplete, actual);
+                Assert.Equal(ValidationStatus.Incomplete, actual.Status);
                 _validationAuditor.Verify(
                     x => x.ReadAuditAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>()),
                     Times.Once);
@@ -246,10 +246,10 @@ namespace NuGet.Services.Validation.Vcs
                     .Returns(false);
                 
                 // Act
-                var actual = await _target.GetStatusAsync(_validationRequest.Object);
+                var actual = await _target.GetResultAsync(_validationRequest.Object);
 
                 // Assert
-                Assert.Equal(ValidationStatus.Succeeded, actual);
+                Assert.Equal(ValidationStatus.Succeeded, actual.Status);
                 _packageService.Verify(
                     x => x.FindPackageByIdAndVersionStrict(PackageId, PackageVersion),
                     Times.Once);
@@ -298,7 +298,7 @@ namespace NuGet.Services.Validation.Vcs
                 Assert.Equal(NormalizedPackageVersion, started.Package.NormalizedVersion);
                 Assert.Equal(NupkgUrl, started.Package.DownloadUrl.ToString());
                 Assert.Equal(new[] { ValidatorName }, started.Validators);
-                Assert.Equal(ValidationStatus.Incomplete, status);
+                Assert.Equal(ValidationStatus.Incomplete, status.Status);
                 _validationService.Verify(
                     x => x.StartValidationProcessAsync(
                         It.IsAny<NuGetPackage>(),
@@ -324,10 +324,10 @@ namespace NuGet.Services.Validation.Vcs
                         inner: null));
 
                 // Act
-                var status = await _target.StartValidationAsync(_validationRequest.Object);
+                var result = await _target.StartValidationAsync(_validationRequest.Object);
 
                 // Assert
-                Assert.Equal(ValidationStatus.Incomplete, status);
+                Assert.Equal(ValidationStatus.Incomplete, result.Status);
                 _validationService.Verify(
                     x => x.StartValidationProcessAsync(
                         It.IsAny<NuGetPackage>(),
@@ -377,7 +377,7 @@ namespace NuGet.Services.Validation.Vcs
                 var actual = await _target.StartValidationAsync(_validationRequest.Object);
 
                 // Assert
-                Assert.Equal(ValidationStatus.Succeeded, actual);
+                Assert.Equal(ValidationStatus.Succeeded, actual.Status);
                 _packageService.Verify(
                     x => x.FindPackageByIdAndVersionStrict(PackageId, PackageVersion),
                     Times.Once);

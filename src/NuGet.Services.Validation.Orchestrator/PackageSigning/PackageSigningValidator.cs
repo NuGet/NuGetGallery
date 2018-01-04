@@ -5,6 +5,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
+using NuGet.Services.Validation.Issues;
 
 namespace NuGet.Services.Validation.PackageSigning
 {
@@ -24,14 +25,29 @@ namespace NuGet.Services.Validation.PackageSigning
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<ValidationStatus> GetStatusAsync(IValidationRequest request)
+        public async Task<IValidationResult> GetResultAsync(IValidationRequest request)
         {
             var validatorStatus = await _validatorStateService.GetStatusAsync(request);
 
-            return validatorStatus.State;
+            if (validatorStatus.State == ValidationStatus.Failed)
+            {
+                // If the validation has failed, assume it is because signed packages are blocked.
+                return ValidationResult.FailedWithIssues(new PackageIsSigned(request.PackageId, request.PackageVersion));
+            }
+            else
+            {
+                return new ValidationResult(validatorStatus.State);
+            }
         }
 
-        public async Task<ValidationStatus> StartValidationAsync(IValidationRequest request)
+        public async Task<IValidationResult> StartValidationAsync(IValidationRequest request)
+        {
+            var status = await StartValidationInternalAsync(request);
+
+            return new ValidationResult(status);
+        }
+
+        public async Task<ValidationStatus> StartValidationInternalAsync(IValidationRequest request)
         {
             // Check that this is the first validation for this specific request.
             var validatorStatus = await _validatorStateService.GetStatusAsync(request);

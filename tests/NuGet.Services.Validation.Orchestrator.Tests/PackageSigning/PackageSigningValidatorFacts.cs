@@ -47,9 +47,9 @@ namespace NuGet.Services.Validation.PackageSigning
                     });
 
                 // Act & Assert
-                var actual = await _target.GetStatusAsync(_validationRequest.Object);
+                var actual = await _target.GetResultAsync(_validationRequest.Object);
 
-                Assert.Equal(status, actual);
+                Assert.Equal(status, actual.Status);
             }
 
             public static IEnumerable<object[]> PossibleValidationStatuses => possibleValidationStatuses.Select(s => new object[] { s });

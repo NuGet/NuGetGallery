@@ -50,7 +50,14 @@ namespace NuGet.Services.Validation.PackageCertificates
             }
         }
 
-        public async Task<ValidationStatus> GetStatusAsync(IValidationRequest request)
+        public async Task<IValidationResult> GetResultAsync(IValidationRequest request)
+        {
+            var status = await GetStatusAsync(request);
+
+            return new ValidationResult(status);
+        }
+
+        private async Task<ValidationStatus> GetStatusAsync(IValidationRequest request)
         {
             // Look up this validator's state in the database.
             var status = await _validatorStateService.GetStatusAsync(request);
@@ -107,7 +114,12 @@ namespace NuGet.Services.Validation.PackageCertificates
             return await _validatorStateService.TryUpdateValidationStatusAsync(request, status, ValidationStatus.Succeeded);
         }
 
-        public async Task<ValidationStatus> StartValidationAsync(IValidationRequest request)
+        public async Task<IValidationResult> StartValidationAsync(IValidationRequest request)
+        {
+            return new ValidationResult(await StartValidationInternalAsync(request));
+        }
+
+        private async Task<ValidationStatus> StartValidationInternalAsync(IValidationRequest request)
         {
             var status = await _validatorStateService.GetStatusAsync(request);
 

@@ -34,5 +34,15 @@ namespace NuGet.Services.Validation.Orchestrator
         /// Url for email settings, so user can opt out of receiving email notifications.
         /// </summary>
         public string EmailSettingsUrl { get; set; }
+
+        /// <summary>
+        /// Url for the announcements github page
+        /// </summary>
+        public string AnnouncementsUrl { get; set; }
+
+        /// <summary>
+        /// NuGet Twitter url
+        /// </summary>
+        public string TwitterUrl { get; set; }
     }
 }

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
+using NuGet.Services.Validation.Issues;
 using NuGetGallery;
 using Xunit;
 
@@ -27,7 +28,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         {
             AddValidationToSet("validation1");
             ValidationStorageMock
-                .Setup(vs => vs.UpdateValidationStatusAsync(ValidationSet.PackageValidations.First(), ValidationStatus.Failed))
+                .Setup(vs => vs.UpdateValidationStatusAsync(ValidationSet.PackageValidations.First(), ValidationResult.Failed))
                 .Returns(Task.FromResult(0))
                 .Verifiable();
 
@@ -35,7 +36,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             await processor.ProcessValidationsAsync(ValidationSet, Package);
 
             ValidationStorageMock
-                .Verify(vs => vs.UpdateValidationStatusAsync(ValidationSet.PackageValidations.First(), ValidationStatus.Failed), Times.Once());
+                .Verify(vs => vs.UpdateValidationStatusAsync(ValidationSet.PackageValidations.First(), ValidationResult.Failed), Times.Once());
         }
     }
 
@@ -46,7 +47,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         [InlineData(ValidationStatus.Incomplete, true)]
         [InlineData(ValidationStatus.Succeeded, true)]
         [InlineData(ValidationStatus.Failed, true)]
-        public async Task StartsNotStartedValidations(ValidationStatus startStatus, bool expectStorageUdpate)
+        public async Task StartsNotStartedValidations(ValidationStatus startStatus, bool expectStorageUpdate)
         {
             UseDefaultValidatorProvider();
             const string validationName = "validation1";
@@ -55,13 +56,13 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             ValidationStatus actualStatus = ValidationStatus.NotStarted;
             validator
-                .Setup(v => v.GetStatusAsync(It.IsAny<IValidationRequest>()))
-                .Returns(() => Task.FromResult(actualStatus))
+                .Setup(v => v.GetResultAsync(It.IsAny<IValidationRequest>()))
+                .ReturnsAsync(new ValidationResult(actualStatus))
                 .Callback<IValidationRequest>(r => Assert.Equal(validation.Key, r.ValidationId));
 
             validator
                 .Setup(v => v.StartValidationAsync(It.IsAny<IValidationRequest>()))
-                .ReturnsAsync(startStatus)
+                .ReturnsAsync(new ValidationResult(startStatus))
                 .Callback<IValidationRequest>(r => {
                     Assert.Equal(validation.Key, r.ValidationId);
                     actualStatus = startStatus;
@@ -69,26 +70,26 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .Verifiable();
 
             ValidationStorageMock
-                .Setup(vs => vs.MarkValidationStartedAsync(validation, startStatus))
+                .Setup(vs => vs.MarkValidationStartedAsync(validation, It.Is<ValidationResult>(r => r.Status == startStatus)))
                 .Returns(Task.FromResult(0))
-                .Callback<PackageValidation, ValidationStatus>((pv, vs) => pv.ValidationStatus = vs)
+                .Callback<PackageValidation, ValidationResult>((pv, vr) => pv.ValidationStatus = vr.Status)
                 .Verifiable();
 
             var processor = CreateProcessor();
             await processor.ProcessValidationsAsync(ValidationSet, Package);
 
             validator.Verify(v => v.StartValidationAsync(It.IsAny<IValidationRequest>()), Times.AtLeastOnce());
-            if (expectStorageUdpate)
+            if (expectStorageUpdate)
             {
                 ValidationStorageMock.Verify(
-                    vs => vs.MarkValidationStartedAsync(validation, startStatus), Times.Once());
+                    vs => vs.MarkValidationStartedAsync(validation, It.Is<ValidationResult>(r => r.Status == startStatus)), Times.Once());
                 ValidationStorageMock.Verify(
-                    vs => vs.MarkValidationStartedAsync(It.IsAny<PackageValidation>(), It.IsAny<ValidationStatus>()), Times.Once());
+                    vs => vs.MarkValidationStartedAsync(It.IsAny<PackageValidation>(), It.IsAny<ValidationResult>()), Times.Once());
             }
             else
             {
                 ValidationStorageMock.Verify(
-                    vs => vs.MarkValidationStartedAsync(It.IsAny<PackageValidation>(), It.IsAny<ValidationStatus>()), Times.Never());
+                    vs => vs.MarkValidationStartedAsync(It.IsAny<PackageValidation>(), It.IsAny<ValidationResult>()), Times.Never());
             }
         }
 
@@ -102,16 +103,16 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             var validator2 = AddValidation(validation2, TimeSpan.FromDays(1), requiredValidations: new[] { validation1 });
 
             validator1
-                .Setup(v => v.GetStatusAsync(It.IsAny<IValidationRequest>()))
-                .ReturnsAsync(ValidationStatus.Incomplete);
+                .Setup(v => v.GetResultAsync(It.IsAny<IValidationRequest>()))
+                .ReturnsAsync(ValidationResult.Incomplete);
 
             validator2
-                .Setup(v => v.GetStatusAsync(It.IsAny<IValidationRequest>()))
-                .ReturnsAsync(ValidationStatus.NotStarted);
+                .Setup(v => v.GetResultAsync(It.IsAny<IValidationRequest>()))
+                .ReturnsAsync(ValidationResult.NotStarted);
 
             validator2
                 .Setup(v => v.StartValidationAsync(It.IsAny<IValidationRequest>()))
-                .ReturnsAsync(ValidationStatus.Incomplete)
+                .ReturnsAsync(ValidationResult.Incomplete)
                 .Verifiable();
 
             var processor = CreateProcessor();
@@ -132,34 +133,105 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             var validation = ValidationSet.PackageValidations.First();
 
             validator
-                .Setup(v => v.GetStatusAsync(It.IsAny<IValidationRequest>()))
-                .ReturnsAsync(targetStatus)
+                .Setup(v => v.GetResultAsync(It.IsAny<IValidationRequest>()))
+                .ReturnsAsync(new ValidationResult(targetStatus))
                 .Verifiable();
 
             ValidationStorageMock
-                .Setup(vs => vs.UpdateValidationStatusAsync(validation, targetStatus))
+                .Setup(vs => vs.UpdateValidationStatusAsync(validation, It.Is<IValidationResult>(r => r.Status == targetStatus)))
                 .Returns(Task.FromResult(0))
-                .Callback<PackageValidation, ValidationStatus>((pv, vs) => pv.ValidationStatus = vs)
+                .Callback<PackageValidation, IValidationResult>((pv, vr) => pv.ValidationStatus = vr.Status)
                 .Verifiable();
 
             var processor = CreateProcessor();
             await processor.ProcessValidationsAsync(ValidationSet, Package);
 
             validator
-                .Verify(v => v.GetStatusAsync(It.IsAny<IValidationRequest>()), Times.AtLeastOnce());
+                .Verify(v => v.GetResultAsync(It.IsAny<IValidationRequest>()), Times.AtLeastOnce());
             if (expectStorageUdpate)
             {
                 ValidationStorageMock.Verify(
-                    vs => vs.UpdateValidationStatusAsync(validation, targetStatus), Times.Once());
+                    vs => vs.UpdateValidationStatusAsync(validation, It.Is<IValidationResult>(r => r.Status == targetStatus)), Times.Once());
                 ValidationStorageMock.Verify(
-                    vs => vs.UpdateValidationStatusAsync(It.IsAny<PackageValidation>(), It.IsAny<ValidationStatus>()), Times.Once());
+                    vs => vs.UpdateValidationStatusAsync(It.IsAny<PackageValidation>(), It.IsAny<ValidationResult>()), Times.Once());
             }
             else
             {
                 ValidationStorageMock.Verify(
-                    vs => vs.UpdateValidationStatusAsync(It.IsAny<PackageValidation>(), It.IsAny<ValidationStatus>()), Times.Never());
+                    vs => vs.UpdateValidationStatusAsync(It.IsAny<PackageValidation>(), It.IsAny<ValidationResult>()), Times.Never());
             }
             Assert.Equal(targetStatus, validation.ValidationStatus);
+        }
+
+        [Theory]
+        [InlineData(ValidationStatus.Failed)]
+        [InlineData(ValidationStatus.Succeeded)]
+        public async Task PersistsValidationIssuesOnStart(ValidationStatus targetStatus)
+        {
+            UseDefaultValidatorProvider();
+            var validator = AddValidation("validation1", TimeSpan.FromDays(1), validationStatus: ValidationStatus.NotStarted);
+            var validation = ValidationSet.PackageValidations.First();
+
+            var validationResult = new ValidationResult(targetStatus, new List<IValidationIssue>
+            {
+                new PackageIsSigned("A", "B")
+            });
+
+            validator
+                .Setup(v => v.GetResultAsync(It.IsAny<IValidationRequest>()))
+                .ReturnsAsync(validationResult)
+                .Verifiable();
+
+            ValidationStorageMock
+                .Setup(vs => vs.MarkValidationStartedAsync(
+                                validation,
+                                It.Is<IValidationResult>(r => r.Status == targetStatus && r.Issues.Any())))
+                .Callback<PackageValidation, IValidationResult>((v, vr) => v.ValidationStatus = vr.Status)
+                .Returns(Task.FromResult(0));
+
+            var processor = CreateProcessor();
+            await processor.ProcessValidationsAsync(ValidationSet, Package);
+
+            ValidationStorageMock
+                .Verify(vs => vs.MarkValidationStartedAsync(
+                                validation,
+                                It.Is<IValidationResult>(r => r.Status == targetStatus && r.Issues.Any())),
+                    Times.Once());
+        }
+
+        [Theory]
+        [InlineData(ValidationStatus.Failed)]
+        [InlineData(ValidationStatus.Succeeded)]
+        public async Task PersistsValidationIssuesOnUpdate(ValidationStatus targetStatus)
+        {
+            UseDefaultValidatorProvider();
+            var validator = AddValidation("validation1", TimeSpan.FromDays(1), validationStatus: ValidationStatus.Incomplete);
+            var validation = ValidationSet.PackageValidations.First();
+
+            var validationResult = new ValidationResult(targetStatus, new List<IValidationIssue>
+            {
+                new PackageIsSigned("A", "B")
+            });
+
+            validator
+                .Setup(v => v.GetResultAsync(It.IsAny<IValidationRequest>()))
+                .ReturnsAsync(validationResult)
+                .Verifiable();
+
+            ValidationStorageMock
+                .Setup(vs => vs.UpdateValidationStatusAsync(
+                                validation,
+                                It.Is<IValidationResult>(r => r.Status == targetStatus && r.Issues.Any())))
+                .Returns(Task.FromResult(0));
+
+            var processor = CreateProcessor();
+            await processor.ProcessValidationsAsync(ValidationSet, Package);
+
+            ValidationStorageMock
+                .Verify(vs => vs.UpdateValidationStatusAsync(
+                                validation,
+                                It.Is<IValidationResult>(r => r.Status == targetStatus && r.Issues.Any())),
+                    Times.Once());
         }
 
         [Theory]
@@ -178,15 +250,18 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .ReturnsAsync(existsInValidationContainer);
             IValidationRequest validationRequest = null;
             validator
-                .Setup(v => v.GetStatusAsync(It.IsAny<IValidationRequest>()))
-                .ReturnsAsync(ValidationStatus.NotStarted)
+                .Setup(v => v.GetResultAsync(It.IsAny<IValidationRequest>()))
+                .ReturnsAsync(ValidationResult.NotStarted)
                 .Callback<IValidationRequest>(vr => validationRequest = vr);
+            validator
+                .Setup(v => v.StartValidationAsync(It.IsAny<IValidationRequest>()))
+                .ReturnsAsync(ValidationResult.Incomplete);
 
             var processor = CreateProcessor();
             await processor.ProcessValidationsAsync(ValidationSet, Package);
 
             validator
-                .Verify(v => v.GetStatusAsync(It.IsAny<IValidationRequest>()), Times.AtLeastOnce());
+                .Verify(v => v.GetResultAsync(It.IsAny<IValidationRequest>()), Times.AtLeastOnce());
             Assert.NotNull(validationRequest);
             Assert.Contains(expectedUrlSubstring, validationRequest.NupkgUrl);
             Assert.Equal(Package.PackageRegistration.Id, validationRequest.PackageId);
