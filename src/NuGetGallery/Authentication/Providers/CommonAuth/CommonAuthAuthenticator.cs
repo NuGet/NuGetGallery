@@ -32,21 +32,8 @@ namespace NuGetGallery.Authentication.Providers.CommonAuth
                 RedirectUri = siteRoot + "users/account/authenticate/return",
                 PostLogoutRedirectUri = siteRoot,
                 Scope = OpenIdConnectScopes.OpenIdProfile + " email",
-                ResponseType = OpenIdConnectResponseTypes.IdToken,
+                ResponseType = OpenIdConnectResponseTypes.CodeIdToken,
                 TokenValidationParameters = new System.IdentityModel.Tokens.TokenValidationParameters() { ValidateIssuer = false },
-                Notifications = new OpenIdConnectAuthenticationNotifications
-                {
-                    RedirectToIdentityProvider = notification =>
-                    {
-                        if (notification.ProtocolMessage.RequestType == OpenIdConnectRequestType.LogoutRequest)
-                        {
-                            // We never intend to sign out at the federated identity. Suppress the redirect.
-                            notification.HandleResponse();
-                        }
-
-                        return Task.FromResult(0);
-                    } 
-                }
             };
 
             Config.ApplyToOwinSecurityOptions(options);
@@ -57,11 +44,12 @@ namespace NuGetGallery.Authentication.Providers.CommonAuth
         public override AuthenticatorUI GetUI()
         {
             return new AuthenticatorUI(
-                "SignIn Common",
-                "Register with Common",
-                "Auth account")
+                Strings.MicrosoftAccount_SignInMessage,
+                Strings.MicrosoftAccount_SignInMessage,
+                Strings.MicrosoftAccount_AccountNoun)
             {
-                ShowOnLoginPage = Config.ShowOnLoginPage
+                IconImagePath = "~/Content/gallery/img/microsoft-account.svg",
+                IconImageFallbackPath = "~/Content/gallery/img/microsoft-account-24x24.png",
             };
         }
 

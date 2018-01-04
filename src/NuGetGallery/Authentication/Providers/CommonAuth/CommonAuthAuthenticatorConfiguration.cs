@@ -12,12 +12,9 @@ namespace NuGetGallery.Authentication.Providers.CommonAuth
     public class CommonAuthAuthenticatorConfiguration : AuthenticatorConfiguration
     {
         public string ClientId { get; set; }
-        public string Authority { get; set; }
-        public string Tenant { get; set; }
-        public string RedirectUri { get; set; }
-        public bool ShowOnLoginPage { get; set; }
-        public string Issuer { get; set; }
+        public string ClientSecret { get; set; }
 
+        private const string Authority = "https://login.microsoftonline.com/{0}/v2.0";
         private const string V2CommonTenant = "common";
 
         public CommonAuthAuthenticatorConfiguration()
@@ -46,23 +43,17 @@ namespace NuGetGallery.Authentication.Providers.CommonAuth
                         "Auth.CommonAuth.ClientId"));
                 }
 
-                opts.ClientId = ClientId;
-
-                // Make sure Authority is configured
-                if (String.IsNullOrEmpty(Authority))
+                if (String.IsNullOrEmpty(ClientSecret))
                 {
                     throw new ConfigurationErrorsException(String.Format(
                         CultureInfo.CurrentCulture,
                         Strings.MissingRequiredConfigurationValue,
-                        "Auth.CommonAuth.Authority"));
+                        "Auth.CommonAuth.ClientSecret"));
                 }
 
-                if (string.IsNullOrEmpty(Tenant))
-                {
-                    Tenant = V2CommonTenant;
-                }
-
-                opts.Authority = String.Format(CultureInfo.InvariantCulture, Authority, Tenant);
+                opts.ClientId = ClientId;
+                opts.ClientSecret = ClientSecret;
+                opts.Authority = String.Format(CultureInfo.InvariantCulture, Authority, V2CommonTenant);
             }
         }
     }
