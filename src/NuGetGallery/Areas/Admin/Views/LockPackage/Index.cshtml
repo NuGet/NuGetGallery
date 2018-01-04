@@ -32,20 +32,29 @@
             @Html.HiddenFor(model => model.Query)
             <div>
                 <h3>Results</h3>
+                <br />
                 <button type="button" onclick="selectall()">Select All</button>
                 <button type="button" onclick="deselectall()">Deselect All</button>
-                <table>
-                    <tbody>
+                <p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Is Locked?</th>
+                            </tr>
+                        </thead>
+                        <tbody>
                         @for (int i = 0; i < Model.PackageLockStates.Count; i++)
                         {
                             <tr>
-                                <td>@Html.CheckBoxFor(model => model.PackageLockStates[i].IsLocked, new { @class = "islockedcheckbox" })</td>
                                 <td>@Html.DisplayTextFor(model => model.PackageLockStates[i].Id)</td>
                                 @Html.HiddenFor(model => model.PackageLockStates[i].Id)
+                                <td>@Html.CheckBoxFor(model => model.PackageLockStates[i].IsLocked, new { @class = "islockedcheckbox" })</td>
                             </tr>
                         }
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </p>
                 <p>
                     <input type="submit" value="Apply" />
                 </p>
