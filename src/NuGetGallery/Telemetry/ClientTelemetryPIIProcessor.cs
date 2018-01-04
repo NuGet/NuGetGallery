@@ -4,9 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Web;
+using System.Web.Routing;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.ApplicationInsights.Extensibility.Implementation;
 
 namespace NuGetGallery
 {
@@ -30,29 +33,13 @@ namespace NuGetGallery
             var requestTelemetryItem = item as RequestTelemetry;
             if(requestTelemetryItem != null)
             {
-                requestTelemetryItem.Url = ObfuscateUri(requestTelemetryItem);
+                requestTelemetryItem.Url = Obfuscator.ObfuscateUrl(requestTelemetryItem.Url);
+                requestTelemetryItem.Name = Obfuscator.ObfuscateName(requestTelemetryItem.Name);
+                if(requestTelemetryItem.Context.Operation != null)
+                {
+                    requestTelemetryItem.Context.Operation.Name = Obfuscator.ObfuscateName(requestTelemetryItem.Context.Operation.Name);
+                }
             }
-        }
-
-        private Uri ObfuscateUri(RequestTelemetry telemetryItem)
-        {
-            if(IsPIIOperation(telemetryItem.Context.Operation.Name))
-            {
-                // The new url form will be: https://nuget.org/ObfuscatedUserName
-                return new Uri(Obfuscator.DefaultObfuscatedUrl(telemetryItem.Url));
-            }
-            return telemetryItem.Url;
-        }
-
-        protected virtual bool IsPIIOperation(string operationName)
-        {
-            if(string.IsNullOrEmpty(operationName))
-            {
-                return false;
-            }
-            // Remove the verb from the operation name.
-            // An example of operationName : GET Users/Profiles
-            return Obfuscator.ObfuscatedActions.Contains(operationName.Split(' ').Last());
         }
     }
 }

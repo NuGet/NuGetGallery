@@ -25,56 +25,32 @@ namespace NuGetGallery.Telemetry
         public void NullTelemetryItemDoesNotThorw()
         {
             // Arange
-            string userName = "user1";
-            var piiProcessor = CreatePIIProcessor(false, userName);
+            var piiProcessor = CreatePIIProcessor();
 
             // Act
             piiProcessor.Process(null);
         }
 
         [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
-        public void UrlIsUpdatedOnPIIAction(bool actionIsPII)
+        [MemberData(nameof(PIIUrlDataGenerator))]
+        public void UrlIsUpdatedOnPIIAction(string inputUrl, string expectedOutputUrl)
         {
             // Arange
-            string userName = "user1";
-            var piiProcessor = CreatePIIProcessor(actionIsPII, userName);
+            var piiProcessor = CreatePIIProcessor();
             RequestTelemetry telemetryItem = new RequestTelemetry();
-            telemetryItem.Url = new Uri("https://localhost/user1");
+            telemetryItem.Url = new Uri(inputUrl);
+            telemetryItem.Name = $"GET {telemetryItem.Url.AbsolutePath}";
 
             // Act
             piiProcessor.Process(telemetryItem);
 
             // Assert
-            string expected = actionIsPII ? $"https://localhost/{Obfuscator.DefaultTelemetryUserName}" : telemetryItem.Url.ToString();
-            Assert.Equal(expected, telemetryItem.Url.ToString());
-        }
-
-        [Theory]
-        [MemberData(nameof(PIIOperationDataGenerator))]
-        public void TestValidPIIOperations(string operation)
-        {
-            // Arange
-            var piiProcessor = (TestClientTelemetryPIIProcessor)CreatePIIProcessor(false, "user");
-
-            // Act and Assert
-            Assert.True(piiProcessor.IsPIIOperationBase(operation));
-        }
-
-        [Theory]
-        [MemberData(nameof(InvalidPIIOPerationDataGenerator))]
-        public void TestInvalidPIIOperations(string operation)
-        {
-            // Arange
-            var piiProcessor = (TestClientTelemetryPIIProcessor)CreatePIIProcessor(false, "user");
-
-            // Act and Assert
-            Assert.False(piiProcessor.IsPIIOperationBase(operation));
+            Assert.Equal(expectedOutputUrl, telemetryItem.Url.ToString());
+            Assert.Equal($"GET {(new Uri(expectedOutputUrl)).AbsolutePath}", $"GET {telemetryItem.Url.AbsolutePath}");
         }
 
         [Fact]
-        public void ValidatePIIRoutes()
+        public void ValidatePIIActions()
         {
             // Arange
             HashSet<string> existentPIIOperations = Obfuscator.ObfuscatedActions;
@@ -84,37 +60,30 @@ namespace NuGetGallery.Telemetry
             Assert.True(existentPIIOperations.SetEquals(piiOperationsFromRoutes));
         }
 
-        private ClientTelemetryPIIProcessor CreatePIIProcessor(bool isPIIOperation, string userName)
+        [Fact]
+        public void ValidatePIIRoutes()
         {
-            return new TestClientTelemetryPIIProcessor(new TestProcessorNext(), isPIIOperation, userName);
+            // Arange
+            List<string> piiUrlRoutes = GetPIIRoutesUrls();
+
+            // Act and Assert
+            string templateKey;
+            foreach (var route in piiUrlRoutes)
+            {
+                var match = Obfuscator.NeedsObfuscation($"/{route}", out templateKey);
+                Assert.True(match, $"Route {route} did not match.");
+            }
+        }
+
+        private ClientTelemetryPIIProcessor CreatePIIProcessor()
+        {
+            return new ClientTelemetryPIIProcessor(new TestProcessorNext());
         }
 
         private class TestProcessorNext : ITelemetryProcessor
         {
             public void Process(ITelemetry item)
             {
-            }
-        }
-
-        private class TestClientTelemetryPIIProcessor : ClientTelemetryPIIProcessor
-        {
-            private User _testUser;
-            private bool _isPIIOperation;
-
-            public TestClientTelemetryPIIProcessor(ITelemetryProcessor next, bool isPIIOperation, string userName) : base(next)
-            {
-                _isPIIOperation = isPIIOperation;
-                _testUser = new User(userName);
-            }
-
-            protected override bool IsPIIOperation(string operationName)
-            {
-                return _isPIIOperation;
-            }
-
-            public bool IsPIIOperationBase(string operationName)
-            {
-                return base.IsPIIOperation(operationName);
             }
         }
 
@@ -128,10 +97,25 @@ namespace NuGetGallery.Telemetry
             {
                 Route webRoute = r as Route;
                 return webRoute != null ? IsPIIUrl(webRoute.Url.ToString()) : false;
-            }).Select((r)=> {
+            }).Select((r) => {
                 var dd = ((Route)r).Defaults;
                 return $"{dd["controller"]}/{dd["action"]}";
             }).Distinct().ToList();
+
+            return piiRoutes;
+        }
+
+        private static List<string> GetPIIRoutesUrls()
+        {
+            var currentRoutes = new RouteCollection();
+            NuGetGallery.Routes.RegisterApiV2Routes(currentRoutes);
+            NuGetGallery.Routes.RegisterUIRoutes(currentRoutes);
+
+            var piiRoutes = currentRoutes.Where((r) =>
+            {
+                Route webRoute = r as Route;
+                return webRoute != null ? IsPIIUrl(webRoute.Url.ToString()) : false;
+            }).Select((r) => ((Route)r).Url).Distinct().ToList();
 
             return piiRoutes;
         }
@@ -141,16 +125,26 @@ namespace NuGetGallery.Telemetry
             return url.ToLower().Contains("username") || url.ToLower().Contains("accountname");
         }
 
-        public static IEnumerable<string[]> PIIOperationDataGenerator()
+        public static IEnumerable<string[]> PIIUrlDataGenerator()
         {
-            return GetPIIOperationsFromRoute().Select(o => new string[]{$"GET {o}"});
+            foreach (var user in GenerateUserNames())
+            {
+                yield return new string[] { $"https://localhost/packages/pack1/owners/{user}/confirm/sometoken", $"https://localhost/packages/pack1/owners/ObfuscatedUserName/confirm/sometoken" };
+                yield return new string[] { $"https://localhost/packages/pack1/owners/{user}/reject/sometoken", $"https://localhost/packages/pack1/owners/ObfuscatedUserName/reject/sometoken" };
+                yield return new string[] { $"https://localhost/packages/pack1/owners/{user}/cancel/sometoken", $"https://localhost/packages/pack1/owners/ObfuscatedUserName/cancel/sometoken" };
+
+                yield return new string[] { $"https://localhost/account/confirm/{user}/sometoken", $"https://localhost/account/confirm/ObfuscatedUserName/sometoken" };
+                yield return new string[] { "https://localhost/account/delete/{user}", $"https://localhost/account/delete/ObfuscatedUserName" };
+
+                yield return new string[] { $"https://localhost/profiles/{user}", $"https://localhost/profiles/ObfuscatedUserName" };
+                yield return new string[] { $"https://localhost/account/setpassword/{user}/sometoken", $"https://localhost/account/setpassword/ObfuscatedUserName/sometoken" };
+                yield return new string[] { $"https://localhost/account/forgotpassword/{user}/sometoken", $"https://localhost/account/forgotpassword/ObfuscatedUserName/sometoken" };
+            }
         }
 
-        public static IEnumerable<string[]> InvalidPIIOPerationDataGenerator()
+        public static List<string> GenerateUserNames()
         {
-            yield return new string[]{ null };
-            yield return new string[]{ string.Empty };
-            yield return new string[]{"Some random data" };
+            return new List<string>{ "user1", "user.1", "user_1", "user-1"};
         }
     }
 }
