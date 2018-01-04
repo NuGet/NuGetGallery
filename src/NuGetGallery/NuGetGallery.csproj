@@ -659,6 +659,7 @@
     <Compile Include="App_Start\AutofacConfig.cs" />
     <Compile Include="Areas\Admin\Controllers\DeleteAccountController.cs" />
     <Compile Include="Areas\Admin\Controllers\DeleteController.cs" />
+    <Compile Include="Areas\Admin\Controllers\LockPackageController.cs" />
     <Compile Include="Areas\Admin\Controllers\ReservedNamespaceController.cs" />
     <Compile Include="Areas\Admin\Controllers\SecurityPolicyController.cs" />
     <Compile Include="Areas\Admin\Controllers\SupportRequestController.cs" />
@@ -677,6 +678,7 @@
     <Compile Include="Areas\Admin\DynamicData\PageTemplates\ListDetails.aspx.designer.cs">
       <DependentUpon>ListDetails.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Areas\Admin\Helpers.cs" />
     <Compile Include="Areas\Admin\Migrations\201602111647053_SupportRequestDbModel.cs" />
     <Compile Include="Areas\Admin\Migrations\201602111647053_SupportRequestDbModel.Designer.cs">
       <DependentUpon>201602111647053_SupportRequestDbModel.cs</DependentUpon>
@@ -699,6 +701,7 @@
     <Compile Include="Areas\Admin\ViewModels\HardDeleteReflowBulkRequestConfirmation.cs" />
     <Compile Include="Areas\Admin\ViewModels\HardDeleteReflowBulkRequest.cs" />
     <Compile Include="Areas\Admin\ViewModels\HardDeleteReflowRequest.cs" />
+    <Compile Include="Areas\Admin\ViewModels\LockPackageViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\PackageValidationViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ValidationPageViewModel.cs" />
     <Compile Include="Areas\Admin\Services\ISupportRequestService.cs" />
@@ -1929,6 +1932,7 @@
     <Content Include="Areas\Admin\Views\Delete\Reflow.cshtml" />
     <Content Include="Areas\Admin\Views\Delete\_ReflowBulk.cshtml" />
     <Content Include="Areas\Admin\Views\Delete\_ReflowBulkConfirm.cshtml" />
+    <Content Include="Areas\Admin\Views\LockPackage\Index.cshtml" />
     <None Include="Scripts\jquery-1.11.0.intellisense.js" />
     <Content Include="Scripts\jquery-1.11.0.js" />
     <Content Include="Scripts\jquery-1.11.0.min.js" />
