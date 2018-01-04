@@ -184,6 +184,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
             services.AddTransient<IMessageHandler<SignatureValidationMessage>, SignatureValidationMessageHandler>();
             services.AddTransient<IPackageSigningStateService, PackageSigningStateService>();
             services.AddTransient<ISignatureValidator, SignatureValidator>();
+            services.AddTransient<ISignaturePartsExtractor, SignaturePartsExtractor>();
 
             services.AddSingleton(p =>
             {

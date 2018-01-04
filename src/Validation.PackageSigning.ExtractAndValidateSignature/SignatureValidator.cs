@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,15 +19,18 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
     public class SignatureValidator : ISignatureValidator
     {
         private readonly IPackageSigningStateService _packageSigningStateService;
+        private readonly ISignaturePartsExtractor _signaturePartsExtractor;
         private readonly IEntityRepository<Certificate> _certificates;
         private readonly ILogger<SignatureValidator> _logger;
 
         public SignatureValidator(
             IPackageSigningStateService packageSigningStateService,
+            ISignaturePartsExtractor signaturePartsExtractor,
             IEntityRepository<Certificate> certificates,
             ILogger<SignatureValidator> logger)
         {
             _packageSigningStateService = packageSigningStateService ?? throw new ArgumentNullException(nameof(packageSigningStateService));
+            _signaturePartsExtractor = signaturePartsExtractor ?? throw new ArgumentNullException(nameof(signaturePartsExtractor));
             _certificates = certificates ?? throw new ArgumentNullException(nameof(certificates));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -108,8 +110,11 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
                 message.ValidationId,
                 packageThumbprints);
 
+            // Extract all of the signature artifacts and persist them.
+            await _signaturePartsExtractor.ExtractAsync(signedPackageReader, cancellationToken);
+
+            // Mark this package as signed.
             await AcceptAsync(validation, message, PackageSigningStatus.Valid);
-            return;
         }
 
         private HashSet<string> GetThumbprints(IEnumerable<Signature> signatures)

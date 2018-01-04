@@ -27,6 +27,7 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
             private readonly SignatureValidationMessage _message;
             private readonly CancellationToken _cancellationToken;
             private readonly Mock<IPackageSigningStateService> _packageSigningStateService;
+            private readonly Mock<ISignaturePartsExtractor> _signaturePartsExtractor;
             private readonly Mock<IEntityRepository<Certificate>> _certificates;
             private readonly Mock<ILogger<SignatureValidator>> _logger;
             private readonly SignatureValidator _target;
@@ -51,6 +52,7 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                 _cancellationToken = CancellationToken.None;
 
                 _packageSigningStateService = new Mock<IPackageSigningStateService>();
+                _signaturePartsExtractor = new Mock<ISignaturePartsExtractor>();
                 _certificates = new Mock<IEntityRepository<Certificate>>();
                 _logger = new Mock<ILogger<SignatureValidator>>();
 
@@ -60,6 +62,7 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
 
                 _target = new SignatureValidator(
                     _packageSigningStateService.Object,
+                    _signaturePartsExtractor.Object,
                     _certificates.Object,
                     _logger.Object);
             }
@@ -81,6 +84,20 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                         It.IsAny<string>(),
                         It.IsAny<PackageSigningStatus>()),
                     Times.Once);
+
+                if (validationStatus == ValidationStatus.Succeeded
+                    && packageSigningStatus == PackageSigningStatus.Valid)
+                {
+                    _signaturePartsExtractor.Verify(
+                        x => x.ExtractAsync(It.IsAny<ISignedPackageReader>(), It.IsAny<CancellationToken>()),
+                        Times.Once);
+                }
+                else
+                {
+                    _signaturePartsExtractor.Verify(
+                        x => x.ExtractAsync(It.IsAny<ISignedPackageReader>(), It.IsAny<CancellationToken>()),
+                        Times.Never);
+                }
             }
 
             [Fact]

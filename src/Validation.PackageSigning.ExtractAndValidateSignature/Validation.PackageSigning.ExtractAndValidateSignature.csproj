@@ -40,7 +40,10 @@
     <Reference Include="System.Security" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Hash.cs" />
+    <Compile Include="ISignaturePartsExtractor.cs" />
     <Compile Include="ISignatureValidator.cs" />
+    <Compile Include="SignaturePartsExtractor.cs" />
     <Compile Include="SignatureValidator.cs" />
     <Compile Include="Storage\PackageSigningStateService.cs" />
     <Compile Include="Storage\IPackageSigningStateService.cs" />
@@ -98,7 +101,7 @@
       <Version>1.1.2</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Packaging">
-      <Version>4.6.0-preview2-4709</Version>
+      <Version>4.6.0-preview3-4785</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Configuration">
       <Version>2.7.0</Version>
