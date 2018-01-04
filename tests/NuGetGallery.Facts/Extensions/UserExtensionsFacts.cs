@@ -224,36 +224,5 @@ namespace NuGetGallery.Extensions
                 Assert.False(user.MatchesOwnerScope(credential));
             }
         }
-
-        public class TheGetTenantIdMethod
-        {
-            [Fact]
-            public void WhenHasTenant_ReturnsValue()
-            {
-                var user = new User() { Key = 1234 };
-                user.Credentials.Add(
-                    new CredentialBuilder().CreateExternalCredential(
-                        issuer: "MicrosoftAccount",
-                        value: "abc123",
-                        identity: "TestUser",
-                        tenantId: "zyx987"));
-
-                Assert.Equal("zyx987", user.GetTenantId());
-            }
-
-            [Fact]
-            public void WhenNoTenant_ReturnsNull()
-            {
-                var user = new User() { Key = 1234 };
-                user.Credentials.Add(
-                    new CredentialBuilder().CreateExternalCredential(
-                        issuer: "MicrosoftAccount",
-                        value: "abc123",
-                        identity: "TestUser",
-                        tenantId: null));
-
-                Assert.Null(user.GetTenantId());
-            }
-        }
     }
 }
