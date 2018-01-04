@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -26,7 +25,6 @@ namespace NuGetGallery
         {
             get;
         }
-
 
         public ObfuscateMetadata(string obfuscateTemplate, string obfuscateValue)
         {
@@ -53,7 +51,7 @@ namespace NuGetGallery
             "Users/Profiles",
             "Users/ResetPassword"};
 
-        internal static readonly Dictionary<string, ObfuscateMetadata> ObfuscatedUrlTemplates = new Dictionary<string, ObfuscateMetadata>
+        internal static readonly Dictionary<string, ObfuscateMetadata> ObfuscatedTemplates = new Dictionary<string, ObfuscateMetadata>
         {
             {@"/packages/(.+)/owners/(.+)/confirm/(.+)", new ObfuscateMetadata(@"/owners/(.+)/confirm", $"/owners/{DefaultTelemetryUserName}/confirm")},
             {@"/packages/(.+)/owners/(.+)/reject/(.+)", new ObfuscateMetadata(@"/owners/(.+)/reject", $"/owners/{DefaultTelemetryUserName}/reject") },
@@ -76,50 +74,31 @@ namespace NuGetGallery
             {
                 return url;
             }
-            string obfuscatedTemplateKey = null;
-            if (NeedsObfuscation(url.AbsolutePath, out obfuscatedTemplateKey))
-            {
-                string obfuscatedPath = Regex.Replace(url.AbsolutePath,
-                                            ObfuscatedUrlTemplates[obfuscatedTemplateKey].ObfuscateTemplate,
-                                            ObfuscatedUrlTemplates[obfuscatedTemplateKey].ObfuscateValue);
-                return new Uri($"{url.Scheme}://{url.Host}{obfuscatedPath}");
-            }
-            return url;
+            return new Uri($"{url.Scheme}://{url.Host}{Obfuscate(url.AbsolutePath)}");
         }
 
-        internal static string ObfuscateName(string name)
+        internal static string Obfuscate(string value)
         {
-            if(name == null)
-            {
-                return name;
-            }
             string obfuscatedTemplateKey = null;
-            if (NeedsObfuscation(name, out obfuscatedTemplateKey))
+            if (value == null || !NeedsObfuscation(value, out obfuscatedTemplateKey))
             {
-                string obfuscatedPath = Regex.Replace(name,
-                                            ObfuscatedUrlTemplates[obfuscatedTemplateKey].ObfuscateTemplate,
-                                            ObfuscatedUrlTemplates[obfuscatedTemplateKey].ObfuscateValue);
-                return obfuscatedPath;
+                return value;
             }
-            return name;
+            string obfuscatedValue = Regex.Replace(value,
+                                             ObfuscatedTemplates[obfuscatedTemplateKey].ObfuscateTemplate,
+                                             ObfuscatedTemplates[obfuscatedTemplateKey].ObfuscateValue);
+            return obfuscatedValue;
         }
 
         internal static bool NeedsObfuscation(string valueToBeVerified, out string obfuscatedTemplateKey)
         {
             obfuscatedTemplateKey = string.Empty;
-            try
+            var match = ObfuscatedTemplates.Where(template => Regex.IsMatch(valueToBeVerified.ToLower(), template.Key)).FirstOrDefault();
+            if (match.Key == null)
             {
-                var match = ObfuscatedUrlTemplates.Where(template => Regex.IsMatch(valueToBeVerified.ToLower(), template.Key)).FirstOrDefault();
-                if (match.Key == null)
-                {
-                    return false;
-                }
-                obfuscatedTemplateKey = match.Key;
+                return false;
             }
-            catch(Exception e)
-            {
-                var s = e.Message;
-            }
+            obfuscatedTemplateKey = match.Key;
             return true;
         }
     }
