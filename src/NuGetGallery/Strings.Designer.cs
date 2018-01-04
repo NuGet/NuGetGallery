@@ -1408,47 +1408,74 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to transform the account because you do not have an Azure AD sign-in with tenant ID. Contact support@nuget.org for more details..
+        ///   Looks up a localized string similar to Failed to transform account &apos;{0}&apos;. Contact support@nuget.org for more details..
         /// </summary>
-        public static string TransformAccount_AdminDoesNotHaveTenantId {
+        public static string TransformAccount_Failed {
             get {
-                return ResourceManager.GetString("TransformAccount_AdminDoesNotHaveTenantId", resourceCulture);
+                return ResourceManager.GetString("TransformAccount_Failed", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Your account must be confirmed before you can create an organization..
+        ///   Looks up a localized string similar to account should not belong to any organizations.
         /// </summary>
-        public static string TransformAccount_AdminNotConfirmed {
+        public static string TransformAccount_FailedReasonHasMemberships {
             get {
-                return ResourceManager.GetString("TransformAccount_AdminNotConfirmed", resourceCulture);
+                return ResourceManager.GetString("TransformAccount_FailedReasonHasMemberships", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to transform the account due to an unexpected error. Contact support@nuget.org for more details..
+        ///   Looks up a localized string similar to account is already an organization.
         /// </summary>
-        public static string TransformAccount_DatabaseError {
+        public static string TransformAccount_FailedReasonIsOrganization {
             get {
-                return ResourceManager.GetString("TransformAccount_DatabaseError", resourceCulture);
+                return ResourceManager.GetString("TransformAccount_FailedReasonIsOrganization", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to tranform account &apos;{0}&apos; because it was not found..
+        ///   Looks up a localized string similar to account should be a confirmed user.
         /// </summary>
-        public static string TransformAccount_OrganizationAccountNotFound {
+        public static string TransformAccount_FailedReasonNotConfirmedUser {
             get {
-                return ResourceManager.GetString("TransformAccount_OrganizationAccountNotFound", resourceCulture);
+                return ResourceManager.GetString("TransformAccount_FailedReasonNotConfirmedUser", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Account &apos;{0}&apos; cannot be transformed into an organization. Contact support@nuget.org for more details..
+        ///   Looks up a localized string similar to account does not support organizations.
         /// </summary>
-        public static string TransformAccount_OrganizationAccountNotSupported {
+        public static string TransformAccount_FailedReasonNotInDomainWhitelist {
             get {
-                return ResourceManager.GetString("TransformAccount_OrganizationAccountNotSupported", resourceCulture);
+                return ResourceManager.GetString("TransformAccount_FailedReasonNotInDomainWhitelist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to transform account &apos;{0}&apos; with reason &apos;{1}&apos;. Contact support@nuget.org for more details..
+        /// </summary>
+        public static string TransformAccount_FailedWithReason {
+            get {
+                return ResourceManager.GetString("TransformAccount_FailedWithReason", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You must confirm the email address for this account in order to complete this request..
+        /// </summary>
+        public static string TransformAccount_NotConfirmed {
+            get {
+                return ResourceManager.GetString("TransformAccount_NotConfirmed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Organization account &apos;{0}&apos; does not exist..
+        /// </summary>
+        public static string TransformAccount_OrganizationAccountDoesNotExist {
+            get {
+                return ResourceManager.GetString("TransformAccount_OrganizationAccountDoesNotExist", resourceCulture);
             }
         }
         

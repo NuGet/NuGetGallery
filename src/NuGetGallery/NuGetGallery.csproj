@@ -800,10 +800,6 @@
     <Compile Include="Migrations\201712211850074_MembershipRequests.Designer.cs">
       <DependentUpon>201712211850074_MembershipRequests.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201712220037446_AddMigrateToOrganizationSproc.cs" />
-    <Compile Include="Migrations\201712220037446_AddMigrateToOrganizationSproc.Designer.cs">
-      <DependentUpon>201712220037446_AddMigrateToOrganizationSproc.cs</DependentUpon>
-    </Compile>
     <Compile Include="RequestModels\DeleteAccountRequest.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.Designer.cs">
@@ -1725,8 +1721,6 @@
     <Content Include="D3 LICENSE.txt" />
     <EmbeddedResource Include="Infrastructure\AddPackageLicenseReport2.Up.sql" />
     <EmbeddedResource Include="Infrastructure\AddPackageLicenseReport2.Down.sql" />
-    <EmbeddedResource Include="Infrastructure\AddMigrateToOrganization.Down.sql" />
-    <EmbeddedResource Include="Infrastructure\AddMigrateToOrganization.Up.sql" />
     <Content Include="NuGetGallery.dll.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <SubType>Designer</SubType>
@@ -1922,9 +1916,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201712211850074_MembershipRequests.resx">
       <DependentUpon>201712211850074_MembershipRequests.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201712220037446_AddMigrateToOrganizationSproc.resx">
-      <DependentUpon>201712220037446_AddMigrateToOrganizationSproc.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

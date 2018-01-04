@@ -16,8 +16,6 @@ namespace NuGetGallery
 {
     public class UserService : IUserService
     {
-        private const string ExecMigrateToOrganization = "EXEC [dbo].[MigrateToOrganization] @orgKey, @adminKey, @token";
-
         public IAppConfiguration Config { get; protected set; }
         public IEntityRepository<User> UserRepository { get; protected set; }
         public IEntityRepository<Credential> CredentialRepository { get; protected set; }
@@ -158,50 +156,42 @@ namespace NuGetGallery
             return true;
         }
 
-        /// <summary>
-        /// Transforms a <see cref="User"/> account into an <see cref="Organization"/> account. Note that this must be done
-        /// with a stored procedure because EF does not support changing inheritance types. The change will take effect on
-        /// new EF contexts created after the transaction is committed (i.e., future requests).
-        /// </summary>
-        public async Task TransformToOrganizationAccount(User accountToTransform, User adminUser, string token)
+        public bool CanTransformUserToOrganization(User accountToTransform, out string errorReason)
         {
-            accountToTransform = accountToTransform ?? throw new ArgumentNullException(nameof(accountToTransform));
-            adminUser = adminUser?? throw new ArgumentNullException(nameof(adminUser));
-            
-            if (string.IsNullOrWhiteSpace(token))
+            errorReason = null;
+
+            if (!accountToTransform.Confirmed)
             {
-                throw new ArgumentNullException(nameof(token));
+                errorReason = Strings.TransformAccount_FailedReasonNotConfirmedUser;
+            }
+            else if (accountToTransform is Organization)
+            {
+                errorReason = Strings.TransformAccount_FailedReasonIsOrganization;
+            }
+            else if (accountToTransform.Organizations.Any() || accountToTransform.OrganizationRequests.Any())
+            {
+                errorReason = Strings.TransformAccount_FailedReasonHasMemberships;
+            }
+            else if (!Config.OrganizationsEnabledForDomains.Contains(accountToTransform.ToMailAddress().Host, StringComparer.OrdinalIgnoreCase))
+            {
+                errorReason = Strings.TransformAccount_FailedReasonNotInDomainWhitelist;
             }
 
-            var tenantId = adminUser.GetTenantId();
-            if (string.IsNullOrWhiteSpace(tenantId))
-            {
-                // todo: add security policy to organization below to enforce this (future work, with manage organization)
-                throw new TransformAccountException(Strings.TransformAccount_AdminDoesNotHaveTenantId);
-            }
+            return errorReason == null;
+        }
+
+        public async Task<bool> TransformUserToOrganization(User accountToTransform, User adminUser, string token)
+        {
+            // todo: check for tenantId and add organization policy to enforce this (future work, with manage organization)
             
             try
             {
-                var database = EntitiesContext.GetDatabase();
-                var result = await database.ExecuteSqlCommandAsync(
-                    ExecMigrateToOrganization,
-                    new SqlParameter("orgKey", accountToTransform.Key),
-                    new SqlParameter("adminKey", adminUser.Key),
-                    new SqlParameter("token", token)
-                    );
-
-                // For ExecuteSqlCommandAsync result, see SqlDataReader.RecordsAffected.
-                // Result was -1 (found no migration requests with select) or 0 (no insert, update or delete).
-                if (result <= 0)
-                {
-                    // Stored procedure check failed (i.e., migration request didn't match, or membership existed).
-                    throw new TransformAccountException(Strings.TransformAccount_DatabaseError);
-                }
+                return await EntitiesContext.TransformUserToOrganization(accountToTransform, adminUser, token);
             }
             catch (Exception ex) when (ex is SqlException || ex is DataException)
             {
-                // EF exception when saving account transformation to the database.
-                throw new TransformAccountException(Strings.TransformAccount_DatabaseError);
+                // todo: log exception
+                return false;
             }
         }
     }

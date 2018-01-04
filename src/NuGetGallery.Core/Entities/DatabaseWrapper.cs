@@ -3,6 +3,8 @@
 
 using System;
 using System.Data.Entity;
+using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace NuGetGallery
@@ -15,7 +17,7 @@ namespace NuGetGallery
         {
             _database = database ?? throw new ArgumentNullException(nameof(database));
         }
-
+        
         public Task<int> ExecuteSqlCommandAsync(string sql, params object[] parameters)
         {
             return _database.ExecuteSqlCommandAsync(sql, parameters);
@@ -24,6 +26,30 @@ namespace NuGetGallery
         public DbContextTransaction BeginTransaction()
         {
             return _database.BeginTransaction();
+        }
+
+        /// <summary>
+        /// Execute an embedded resource SQL script.
+        /// </summary>
+        /// <param name="name">Resource name</param>
+        /// <param name="parameters">SQL parameters</param>
+        /// <returns>Resulting <see cref="System.Data.SqlClient.SqlDataReader.RecordsAffected"/></returns>
+        public async Task<int> ExecuteSqlResourceAsync(string name, params object[] parameters)
+        {
+            string sqlCommand;
+
+            var assembly = Assembly.GetExecutingAssembly();
+            using (var reader = new StreamReader(assembly.GetManifestResourceStream(name)))
+            {
+                sqlCommand = await reader.ReadToEndAsync();
+            }
+
+            if (!string.IsNullOrEmpty(sqlCommand))
+            {
+                return await ExecuteSqlCommandAsync(sqlCommand, parameters);
+            }
+
+            return 0; // no records affected
         }
     }
 }

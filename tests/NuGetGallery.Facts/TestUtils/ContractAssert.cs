@@ -42,5 +42,14 @@ namespace NuGetGallery
                 message + Environment.NewLine + $"Parameter name: {paramName}",
                 argEx.Message);
         }
+
+        public static async void ThrowsArgExceptionAsync(Func<Task> act, string paramName, string message = "")
+        {
+            var argEx = await Assert.ThrowsAsync<ArgumentException>(async () => await act());
+            Assert.Equal(paramName, argEx.ParamName);
+            Assert.Equal(
+                message + Environment.NewLine + $"Parameter name: {paramName}",
+                argEx.Message);
+        }
     }
 }

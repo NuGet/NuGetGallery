@@ -107,7 +107,7 @@ namespace NuGetGallery
             var adminUser = GetCurrentUser();
             if (!adminUser.Confirmed)
             {
-                TempData["TransformError"] = Strings.TransformAccount_AdminNotConfirmed;
+                TempData["TransformError"] = Strings.TransformAccount_NotConfirmed;
                 return RedirectToAction("ConfirmationRequired");
             }
 
@@ -115,43 +115,30 @@ namespace NuGetGallery
             if (accountToTransform == null)
             {
                 TempData["TransformError"] = String.Format(CultureInfo.CurrentCulture,
-                    Strings.TransformAccount_OrganizationAccountNotFound, accountNameToTransform);
+                    Strings.TransformAccount_OrganizationAccountDoesNotExist, accountNameToTransform);
                 return View("AccountTransformFailed");
             }
 
-            if (!CanTransformIntoOrganization(accountToTransform))
+            string errorReason;
+            if (!_userService.CanTransformUserToOrganization(accountToTransform, out errorReason))
             {
                 TempData["TransformError"] = String.Format(CultureInfo.CurrentCulture,
-                    Strings.TransformAccount_OrganizationAccountNotSupported, accountNameToTransform);
+                    Strings.TransformAccount_FailedWithReason, accountNameToTransform, errorReason);
                 return View("AccountTransformFailed");
             }
-
-            try
+            
+            if (!await _userService.TransformUserToOrganization(accountToTransform, adminUser, token))
             {
-                await _userService.TransformToOrganizationAccount(accountToTransform, adminUser, token);
+                TempData["TransformError"] = String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_Failed, accountNameToTransform);
+                return View("AccountTransformFailed");
+            }
                 
-                TempData["Message"] = String.Format(CultureInfo.CurrentCulture,
-                    Strings.TransformAccount_Success, accountNameToTransform);
+            TempData["Message"] = String.Format(CultureInfo.CurrentCulture,
+                Strings.TransformAccount_Success, accountNameToTransform);
 
-                // todo: redirect to ManageOrganization (future work)
-                return RedirectToAction("Account");
-            }
-            catch (TransformAccountException e)
-            {
-                TempData["TransformError"] = e.AsUserSafeException().GetUserSafeMessage();
-                return View("AccountTransformFailed");
-            }
-        }
-        
-        private bool CanTransformIntoOrganization(User user)
-        {
-            if (!user.Confirmed || user is Organization || user.IsAdministrator())
-            {
-                return false;
-            }
-
-            var userDomain = user.ToMailAddress().Host;
-            return _config.OrganizationsEnabledForDomains.Contains(userDomain, StringComparer.OrdinalIgnoreCase);    
+            // todo: redirect to ManageOrganization (future work)
+            return RedirectToAction("Account");
         }
 
         [HttpGet]
