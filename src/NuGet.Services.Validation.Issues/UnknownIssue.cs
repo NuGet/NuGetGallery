@@ -4,12 +4,12 @@
 namespace NuGet.Services.Validation.Issues
 {
     /// <summary>
-    /// A placeholder error when the specific error is unknown.
+    /// A placeholder issue when the specific issue is unknown.
     /// </summary>
     public class UnknownIssue : ValidationIssue
     {
         public override ValidationIssueCode IssueCode => ValidationIssueCode.Unknown;
 
-        public override string GetMessage() => "Package validation failed due to an unknown error.";
+        public override string GetMessage() => Strings.UnknownIssueMessage;
     }
 }

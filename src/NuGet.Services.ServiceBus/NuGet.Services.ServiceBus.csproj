@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="BrokeredMessageSerializer.cs" />
     <Compile Include="BrokeredMessageWrapper.cs" />
+    <Compile Include="Event.cs" />
     <Compile Include="IBrokeredMessageSerializer.cs" />
     <Compile Include="IMessageHandler.cs" />
     <Compile Include="ISubscriptionProcessor.cs" />

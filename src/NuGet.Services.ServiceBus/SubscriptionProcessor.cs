@@ -74,7 +74,7 @@ namespace NuGet.Services.ServiceBus
             }
             catch (Exception e)
             {
-                _logger.LogError("Requeueing message as it was unsuccessfully processed due to exception: {Exception}", e);
+                _logger.LogError(Event.SubscriptionMessageHandlerException, e, "Requeueing message as it was unsuccessfully processed due to exception");
                 throw;
             }
             finally

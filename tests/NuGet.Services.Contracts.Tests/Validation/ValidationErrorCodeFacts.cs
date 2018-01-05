@@ -14,10 +14,13 @@ namespace NuGet.Services.Validation
         [Theory]
         [InlineData(0, ValidationIssueCode.Unknown)]
         [InlineData(1, ValidationIssueCode.PackageIsSigned)]
+#pragma warning disable 618
+        [InlineData(9999, ValidationIssueCode.ObsoleteTesting)]
+#pragma warning restore 618
         public void HasUnchangingValues(int expected, ValidationStatus input)
         {
             Assert.Equal(expected, (int)input);
-            Assert.Equal(2, Enum.GetValues(typeof(ValidationIssueCode)).Length);
+            Assert.Equal(3, Enum.GetValues(typeof(ValidationIssueCode)).Length);
         }
     }
 }
