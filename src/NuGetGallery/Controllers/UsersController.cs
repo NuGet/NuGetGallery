@@ -99,7 +99,65 @@ namespace NuGetGallery
         {
             return AccountView(new AccountViewModel());
         }
-        
+
+        [HttpGet]
+        [Authorize]
+        public virtual ActionResult Transform()
+        {
+            var accountToTransform = GetCurrentUser();
+            string errorReason;
+            if (!_userService.CanTransformUserToOrganization(accountToTransform, out errorReason))
+            {
+                TempData["TransformError"] = String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_FailedWithReason, accountToTransform.Username, errorReason);
+                return View("AccountTransformFailed");
+            }
+
+            var transformRequest = accountToTransform.OrganizationMigrationRequest;
+            if (transformRequest != null)
+            {
+                TempData["Message"] = String.Format(CultureInfo.CurrentCulture, Strings.TransformAccount_RequestExists,
+                    transformRequest.RequestDate.ToNuGetShortDateString(), transformRequest.AdminUser.Username);
+            }
+
+            return View(new TransformAccountViewModel());
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> Transform(TransformAccountViewModel transformViewModel)
+        {
+            var accountToTransform = GetCurrentUser();
+            string errorReason;
+            if (!_userService.CanTransformUserToOrganization(accountToTransform, out errorReason))
+            {
+                TempData["TransformError"] = String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_FailedWithReason, accountToTransform.Username, errorReason);
+                return View("AccountTransformFailed");
+            }
+
+            var adminUser = _userService.FindByUsername(transformViewModel.AdminUsername);
+            if (adminUser == null)
+            {
+                ModelState.AddModelError("AdminUsername", String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_AdminAccountDoesNotExist, transformViewModel.AdminUsername));
+                return View(transformViewModel);
+            }
+
+            if (!adminUser.Confirmed)
+            {
+                ModelState.AddModelError("AdminUsername", Strings.TransformAccount_AdminAccountNotConfirmed);
+                return View(transformViewModel);
+            }
+            
+            await _userService.RequestTransformToOrganizationAccount(accountToTransform, adminUser);
+
+            // prompt for admin sign-on to confirm transformation
+            OwinContext.Authentication.SignOut();
+            return Redirect(Url.ConfirmTransformAccount(accountToTransform));
+        }
+
         [HttpGet]
         [Authorize]
         public virtual async Task<ActionResult> ConfirmTransform(string accountNameToTransform, string token)

@@ -447,6 +447,82 @@ namespace NuGetGallery
             }
         }
 
+        public class TheRequestTransformToOrganizationAccountMethod
+        {
+            [Fact]
+            public async Task WhenAccountIsNull_ThrowsNullRefException()
+            {
+                var service = new TestableUserService();
+
+                await ContractAssert.ThrowsArgNullAsync(
+                    async () => await service.RequestTransformToOrganizationAccount(accountToTransform: null, adminUser: new User("admin")),
+                    "accountToTransform");
+            }
+
+            [Fact]
+            public async Task WhenAdminUserIsNull_ThrowsNullRefException()
+            {
+                var service = new TestableUserService();
+
+                await ContractAssert.ThrowsArgNullAsync(
+                    async () => await service.RequestTransformToOrganizationAccount(accountToTransform: new User("account"), adminUser: null),
+                    "adminUser");
+            }
+
+            [Fact]
+            public Task WhenExistingRequest_Overwrites()
+            {
+                return VerifyCreatesRequest(testOverwrite: true);
+            }
+
+            [Fact]
+            public Task WhenNoExistingRequest_CreatesNew()
+            {
+                return VerifyCreatesRequest(testOverwrite: false);
+            }
+
+            private async Task VerifyCreatesRequest(bool testOverwrite)
+            {
+                // Arrange
+                var service = new TestableUserService();
+                var account = new User("Account");
+                var admin = new User("Admin");
+                admin.Credentials.Add(
+                    new CredentialBuilder().CreateExternalCredential(
+                        issuer: "MicrosoftAccount",
+                        value: "abc123",
+                        identity: "Admin",
+                        tenantId: "zyx987"));
+
+                service.MockUserRepository.Setup(r => r.CommitChangesAsync()).Returns(Task.CompletedTask).Verifiable();
+                
+                DateTime? requestDate = null;
+                string requestToken = null;
+                for (int i = 0; i < (testOverwrite ? 2 : 1); i++)
+                {
+                    // Act
+                    await service.RequestTransformToOrganizationAccount(account, admin);
+
+                    if (testOverwrite && requestDate != null)
+                    {
+                        Assert.True(requestDate < account.OrganizationMigrationRequest.RequestDate);
+                        Assert.NotEqual(requestToken, account.OrganizationMigrationRequest.ConfirmationToken);
+                    }
+                    requestDate = account.OrganizationMigrationRequest.RequestDate;
+                    requestToken = account.OrganizationMigrationRequest.ConfirmationToken;
+
+                    // Assert
+                    service.MockUserRepository.Verify(r => r.CommitChangesAsync(), Times.Once);
+                    service.MockUserRepository.ResetCalls();
+
+                    Assert.NotNull(account.OrganizationMigrationRequest);
+                    Assert.Equal(account, account.OrganizationMigrationRequest.NewOrganization);
+                    Assert.Equal(admin, account.OrganizationMigrationRequest.AdminUser);
+                    Assert.False(String.IsNullOrEmpty(account.OrganizationMigrationRequest.ConfirmationToken));
+                }
+            }
+        }
+
         public class TheTransformToOrganizationAccountMethod
         {
             [Theory]

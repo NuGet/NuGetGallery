@@ -263,9 +263,13 @@ namespace NuGetGallery
             return html.PasswordFor(expression, htmlAttributes);
         }
 
-        public static HtmlString ShowTextBoxFor<TModel, TProperty>(this HtmlHelper<TModel> html, Expression<Func<TModel, TProperty>> expression)
+        public static HtmlString ShowTextBoxFor<TModel, TProperty>(this HtmlHelper<TModel> html, Expression<Func<TModel, TProperty>> expression, bool enabled = true)
         {
             var htmlAttributes = GetHtmlAttributes(html, expression);
+            if (!enabled)
+            {
+                htmlAttributes.Add("disabled", "true");
+            }
             return html.TextBoxFor(expression, htmlAttributes);
         }
 

@@ -155,6 +155,25 @@ namespace NuGetGallery
             await UserRepository.CommitChangesAsync();
             return true;
         }
+        
+        public async Task RequestTransformToOrganizationAccount(User accountToTransform, User adminUser)
+        {
+            accountToTransform = accountToTransform ?? throw new ArgumentNullException(nameof(accountToTransform));
+            adminUser = adminUser ?? throw new ArgumentNullException(nameof(adminUser));
+            
+            // create new or update existing request
+            if (accountToTransform.OrganizationMigrationRequest == null)
+            {
+                accountToTransform.OrganizationMigrationRequest = new OrganizationMigrationRequest();
+            };
+
+            accountToTransform.OrganizationMigrationRequest.NewOrganization = accountToTransform;
+            accountToTransform.OrganizationMigrationRequest.AdminUser = adminUser;
+            accountToTransform.OrganizationMigrationRequest.ConfirmationToken = Crypto.GenerateToken();
+            accountToTransform.OrganizationMigrationRequest.RequestDate = DateTime.UtcNow;
+
+            await UserRepository.CommitChangesAsync();
+        }
 
         public bool CanTransformUserToOrganization(User accountToTransform, out string errorReason)
         {

@@ -1408,6 +1408,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Administrator account &apos;{0}&apos; does not exist..
+        /// </summary>
+        public static string TransformAccount_AdminAccountDoesNotExist {
+            get {
+                return ResourceManager.GetString("TransformAccount_AdminAccountDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Administrator account &apos;{0}&apos; has not validated their email address..
+        /// </summary>
+        public static string TransformAccount_AdminAccountNotConfirmed {
+            get {
+                return ResourceManager.GetString("TransformAccount_AdminAccountNotConfirmed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to transform account &apos;{0}&apos;. Contact support@nuget.org for more details..
         /// </summary>
         public static string TransformAccount_Failed {
@@ -1476,6 +1494,15 @@ namespace NuGetGallery {
         public static string TransformAccount_OrganizationAccountDoesNotExist {
             get {
                 return ResourceManager.GetString("TransformAccount_OrganizationAccountDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Another tranform request was created on {0} with organization admin &apos;{1}&apos;..
+        /// </summary>
+        public static string TransformAccount_RequestExists {
+            get {
+                return ResourceManager.GetString("TransformAccount_RequestExists", resourceCulture);
             }
         }
         

@@ -1619,6 +1619,7 @@
     <Compile Include="ViewModels\ScopeViewModel.cs" />
     <Compile Include="ViewModels\PackageListSearchViewModel.cs" />
     <Compile Include="ViewModels\ThirdPartyPackageManagerViewModel.cs" />
+    <Compile Include="ViewModels\TransformAccountViewModel.cs" />
     <Compile Include="WebApi\PlainTextResult.cs" />
     <Compile Include="WebApi\QueryResult.cs" />
     <Compile Include="WebApi\QueryResultDefaults.cs" />
@@ -1986,6 +1987,7 @@
     <Content Include="Views\Packages\_VerifyForm.cshtml" />
     <Content Include="Views\Packages\_VerifyMetadata.cshtml" />
     <Content Include="Views\Users\AccountTransformFailed.cshtml" />
+    <Content Include="Views\Users\Transform.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />
