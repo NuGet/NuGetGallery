@@ -21,6 +21,7 @@ using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
+using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
@@ -31,6 +32,7 @@ namespace NuGetGallery
     internal class TestableApiController
         : ApiController
     {
+        public TestableApiScopeEvaluator TestableApiScopeEvaluator = new TestableApiScopeEvaluator();
         public Mock<IEntitiesContext> MockEntitiesContext { get; private set; }
         public Mock<IPackageService> MockPackageService { get; private set; }
         public Mock<IPackageFileService> MockPackageFileService { get; private set; }
@@ -54,6 +56,7 @@ namespace NuGetGallery
             MockBehavior behavior = MockBehavior.Default)
         {
             SetOwinContextOverride(Fakes.CreateOwinContext());
+            ApiScopeEvaluator = TestableApiScopeEvaluator;
             EntitiesContext = (MockEntitiesContext = new Mock<IEntitiesContext>()).Object;
             PackageService = (MockPackageService = new Mock<IPackageService>(behavior)).Object;
             UserService = (MockUserService = new Mock<IUserService>(behavior)).Object;
@@ -66,6 +69,9 @@ namespace NuGetGallery
             SecurityPolicyService = (MockSecurityPolicyService = new Mock<ISecurityPolicyService>()).Object;
             ReservedNamespaceService = (MockReservedNamespaceService = new Mock<IReservedNamespaceService>()).Object;
             PackageUploadService = (MockPackageUploadService = new Mock<IPackageUploadService>()).Object;
+
+            TestableApiScopeEvaluator.Result = ApiScopeEvaluationResult.Success;
+            TestableApiScopeEvaluator.OwnerFactory = () => GetCurrentUser();
 
             CredentialBuilder = new CredentialBuilder();
 
