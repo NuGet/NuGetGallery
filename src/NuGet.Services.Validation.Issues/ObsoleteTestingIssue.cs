@@ -25,6 +25,6 @@ namespace NuGet.Services.Validation.Issues
 
         public int B { get; set; }
 
-        public override string GetMessage() => Strings.UnknownIssueMessage;
+        public override string GetMessage() => string.Empty;
     }
 }
