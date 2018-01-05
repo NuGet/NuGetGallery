@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
+using Validation.PackageSigning.Helpers;
 using Xunit;
 
 namespace NuGet.Services.Validation

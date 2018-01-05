@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
-using NuGet.Services.Validation.Orchestrator;
 using NuGet.Services.Validation.PackageCertificates;
+using Validation.PackageSigning.Helpers;
 using Xunit;
 
 namespace NuGet.Services.Validation.PackageSigning

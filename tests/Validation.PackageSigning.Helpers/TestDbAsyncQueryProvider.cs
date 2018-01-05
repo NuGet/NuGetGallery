@@ -8,7 +8,7 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NuGet.Services.Validation
+namespace Validation.PackageSigning.Helpers
 {
     // Copied from https://msdn.microsoft.com/en-us/library/dn314429.aspx
     internal class TestDbAsyncQueryProvider<TEntity> : IDbAsyncQueryProvider
