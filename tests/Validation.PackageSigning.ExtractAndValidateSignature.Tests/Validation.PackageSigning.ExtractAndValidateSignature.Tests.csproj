@@ -38,7 +38,9 @@
     <Compile Include="HashFacts.cs" />
     <Compile Include="SignaturePartsExtractorFacts.cs" />
     <Compile Include="SignatureValidatorFacts.cs" />
-    <Compile Include="Support\DbAsyncQueryProviderMock.cs" />
+    <Compile Include="Support\TestDbAsyncEnumerable.cs" />
+    <Compile Include="Support\TestDbAsyncEnumerator.cs" />
+    <Compile Include="Support\TestDbAsyncQueryProvider.cs" />
     <Compile Include="Support\DbSetMockFactory.cs" />
     <Compile Include="Support\EmbeddedResourceTestHandler.cs" />
     <Compile Include="PackageSigningStateServiceFacts.cs" />
