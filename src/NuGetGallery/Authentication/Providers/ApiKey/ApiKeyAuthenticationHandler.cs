@@ -91,7 +91,7 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                     }
 
                     // Set the current user
-                    Context.Set(Constants.CurrentUserOwinEnvironmentKey, authUser);
+                    Context.Set(NuGetGallery.Constants.CurrentUserOwinEnvironmentKey, authUser);
 
                     // Fetch scopes and store them in a claim
                     var scopes = JsonConvert.SerializeObject(

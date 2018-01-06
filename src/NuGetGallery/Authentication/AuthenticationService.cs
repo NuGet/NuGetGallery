@@ -21,9 +21,36 @@ using static NuGetGallery.Constants;
 
 namespace NuGetGallery.Authentication
 {
+    public static class Constants
+    {
+        public const string MSATenant = "9188040d-6c67-4c5b-b112-36a304b66dad";
+        public const string Version2Endpoint = "2.0";
+
+        public static class Claims
+        {
+            public const string Email = ClaimTypes.Email;
+            public const string Identifier = ClaimTypes.NameIdentifier;
+            public const string Name = ClaimTypes.Name;
+
+            public static class V2
+            {
+                public const string TenantId = "http://schemas.microsoft.com/identity/claims/tenantid";
+                public const string Identifier = "http://schemas.microsoft.com/identity/claims/objectidentifier";
+                public const string Version = "ver";
+                public const string Email = "preferred_username";
+                public const string Name = "name";
+            }
+        }
+
+        public static class AuthenticationType
+        {
+            public const string MicrosoftAccount = "MicrosoftAccount";
+            public const string AzureActiveDirectory = "AzureActiveDirectory";
+        }
+    }
+
     public class AuthenticationService
     {
-        private const string tenantIdClaimType = "http://schemas.microsoft.com/identity/claims/tenantid";
 
         private Dictionary<string, Func<string, string>> _credentialFormatters;
         private readonly IDiagnosticsSource _trace;
@@ -34,9 +61,6 @@ namespace NuGetGallery.Authentication
         private readonly ITelemetryService _telemetryService;
 
 
-        public static readonly string MicrosoftAuthenticationType = "MicrosoftAccount";
-        public static readonly string AADAuthenticationType = "AzureActiveDirectory";
-        public static readonly string MSATenantID = "9188040d-6c67-4c5b-b112-36a304b66dad";
 
         /// <summary>
         /// This ctor is used for test only.
@@ -89,7 +113,7 @@ namespace NuGetGallery.Authentication
                 if (user == null)
                 {
                     _trace.Information("No such user: " + userNameOrEmail);
-                    
+
                     await Auditing.SaveAuditRecordAsync(
                         new FailedAuthenticatedOperationAuditRecord(
                             userNameOrEmail, AuditedAuthenticatedOperationAction.FailedLoginNoSuchUser));
@@ -249,7 +273,7 @@ namespace NuGetGallery.Authentication
             // Issue the session token and clean up the external token if present
             owinContext.Authentication.SignIn(identity);
             owinContext.Authentication.SignOut(AuthenticationTypes.External);
-            
+
             // Write an audit record
             await Auditing.SaveAuditRecordAsync(
                 new UserAuditRecord(user.User, AuditedUserAction.Login, user.CredentialUsed));
@@ -465,7 +489,7 @@ namespace NuGetGallery.Authentication
 
         public virtual async Task AddCredential(User user, Credential credential)
         {
-            if  (user is Organization)
+            if (user is Organization)
             {
                 throw new InvalidOperationException(Strings.OrganizationsCannotCreateCredentials);
             }
@@ -499,7 +523,7 @@ namespace NuGetGallery.Authentication
                 Kind = kind,
                 AuthUI = auther?.GetUI(),
                 // Set the description as the value for legacy API keys
-                Description = credential.Description, 
+                Description = credential.Description,
                 Value = kind == CredentialKind.Token && credential.Description == null ? credential.Value : null,
                 Scopes = credential.Scopes.Select(s => new ScopeViewModel(
                         s.Owner?.Username ?? credential.User.Username,
@@ -553,49 +577,54 @@ namespace NuGetGallery.Authentication
             Authenticator auther = null;
             string authenticationType;
             string idClaimValue;
-            string tenantIdValue = null;
-            string issuer;
+            string tenantId = null;
             Claim nameClaim = null;
             string emailSuffix;
-            var version = result.Identity.FindFirst("ver");
-            if (version != null && version.Value.Equals("2.0"))
+            var version = result.Identity.FindFirst(Constants.Claims.V2.Version);
+            if (version != null && version.Value.Equals(Constants.Version2Endpoint))
             {
-                var tenantClaim = result.Identity.FindFirst("http://schemas.microsoft.com/identity/claims/tenantid");
+                var tenantClaim = result.Identity.FindFirst(Constants.Claims.V2.TenantId);
                 if (tenantClaim == null)
                 {
-                    _trace.Error("External Authentication is missing required claim: tenantid");
+                    _trace.Error($"External Authentication is missing required claim: {Constants.Claims.V2.TenantId}");
                     return new AuthenticateExternalLoginResult();
                 }
 
-                tenantIdValue = tenantClaim.Value;
+                tenantId = tenantClaim.Value;
 
-                var idClaim = result.Identity.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier");
+                var idClaim = result.Identity.FindFirst(Constants.Claims.V2.Identifier);
                 if (idClaim == null)
                 {
-                    _trace.Error("External Authentication is missing required claim: 'objectidentifier'");
+                    _trace.Error($"External Authentication is missing required claim: '{Constants.Claims.V2.Identifier}'");
                     return new AuthenticateExternalLoginResult();
                 }
 
                 auther = Authenticators
                     .Values
-                    .First(auth => auth.Name.Equals("CommonAuth", StringComparison.OrdinalIgnoreCase));
+                    .First(auth => auth.Name.Equals(CommonAuthAuthenticator.DefaultAuthenticationType, StringComparison.OrdinalIgnoreCase));
+
                 var emailClaimType = ClaimTypes.Email;
-                if (string.Equals(tenantIdValue, MSATenantID, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(tenantId, Constants.MSATenant, StringComparison.OrdinalIgnoreCase))
                 {
-                    authenticationType = MicrosoftAuthenticationType;
+                    authenticationType = Constants.AuthenticationType.MicrosoftAccount;
+
+                    // The version2 identifier is returned as 32 character alphanumeric value(padded with 0 and -), 
+                    // where as the existing Microsoft account identifiers are 16 character wide.
+                    // For e.g old format: 0ae45d63e22e4a60, newer format: 000000-0000-0000-000A-E45D-63E-22E4A60
+                    // We need to format the values into the older format for backwards compatibility
                     idClaimValue = idClaim.Value.Replace("-", "").Substring(16).ToLowerInvariant();
                 }
                 else
                 {
-                    authenticationType = AADAuthenticationType;
+                    authenticationType = Constants.AuthenticationType.AzureActiveDirectory;
                     idClaimValue = idClaim.Value;
-                    emailClaimType = "preferred_username";
+                    emailClaimType = Constants.Claims.V2.Email;
                 }
 
-                nameClaim = result.Identity.FindFirst("name");
+                nameClaim = result.Identity.FindFirst(Constants.Claims.V2.Name);
                 if (nameClaim == null)
                 {
-                    _trace.Error("External Authentication is missing required claim: 'name'");
+                    _trace.Error($"External Authentication is missing required claim: '{Constants.Claims.V2.Name}'");
                     return new AuthenticateExternalLoginResult();
                 }
 
@@ -604,7 +633,7 @@ namespace NuGetGallery.Authentication
             }
             else
             {
-                var idClaim = result.Identity.FindFirst(ClaimTypes.NameIdentifier);
+                var idClaim = result.Identity.FindFirst(Constants.Claims.Identifier);
                 if (idClaim == null)
                 {
                     _trace.Error("External Authentication is missing required claim: " + ClaimTypes.NameIdentifier);
@@ -612,7 +641,7 @@ namespace NuGetGallery.Authentication
                 }
 
                 idClaimValue = idClaim.Value;
-                issuer = idClaim.Issuer;
+                string issuer = idClaim.Issuer;
                 nameClaim = result.Identity.FindFirst(ClaimTypes.Name);
                 if (nameClaim == null)
                 {
@@ -643,7 +672,7 @@ namespace NuGetGallery.Authentication
                 Authentication = null,
                 ExternalIdentity = result.Identity,
                 Authenticator = auther,
-                Credential = _credentialBuilder.CreateExternalCredential(authenticationType, idClaimValue, nameClaim.Value + emailSuffix, tenantIdValue)
+                Credential = _credentialBuilder.CreateExternalCredential(authenticationType, idClaimValue, nameClaim.Value + emailSuffix, tenantId)
             };
         }
 
@@ -865,7 +894,7 @@ namespace NuGetGallery.Authentication
 
         private DateTime CalculateAccountUnlockTime(int failedLoginCount, DateTime lastFailedLogin)
         {
-            int lockoutPeriodInMinutes = (int)Math.Pow(AccountLockoutMultiplierInMinutes, (int) ((double)failedLoginCount/AllowedLoginAttempts) - 1);
+            int lockoutPeriodInMinutes = (int)Math.Pow(AccountLockoutMultiplierInMinutes, (int)((double)failedLoginCount / AllowedLoginAttempts) - 1);
 
             return lastFailedLogin + TimeSpan.FromMinutes(lockoutPeriodInMinutes);
         }

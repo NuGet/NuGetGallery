@@ -14,7 +14,7 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
         public string ApiKeyClaim { get; set; }
         
         public ApiKeyAuthenticationOptions() : base(AuthenticationTypes.ApiKey) {
-            ApiKeyHeaderName = Constants.ApiKeyHeaderName;
+            ApiKeyHeaderName = NuGetGallery.Constants.ApiKeyHeaderName;
             ApiKeyClaim = NuGetClaims.ApiKey;
         }
     }

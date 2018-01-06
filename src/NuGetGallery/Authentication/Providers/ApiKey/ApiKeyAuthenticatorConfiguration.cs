@@ -15,7 +15,7 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
             AuthenticationType = AuthenticationTypes.ApiKey;
         }
 
-        [DefaultValue(Constants.ApiKeyHeaderName)]
+        [DefaultValue(NuGetGallery.Constants.ApiKeyHeaderName)]
         public string HeaderName { get; set; }
 
         [DefaultValue(NuGetClaims.ApiKey)]

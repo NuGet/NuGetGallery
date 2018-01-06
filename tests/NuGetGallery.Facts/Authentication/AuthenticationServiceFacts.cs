@@ -588,7 +588,7 @@ namespace NuGetGallery.Authentication
                 Assert.Equal(fakes.Admin.Username, id.Name);
                 Assert.Equal(fakes.Admin.Username, principal.GetClaimOrDefault(ClaimTypes.NameIdentifier));
                 Assert.Equal(AuthenticationTypes.LocalUser, id.AuthenticationType);
-                Assert.True(principal.IsInRole(Constants.AdminRoleName));
+                Assert.True(principal.IsInRole(NuGetGallery.Constants.AdminRoleName));
             }
 
             [Fact]
