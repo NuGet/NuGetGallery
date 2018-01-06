@@ -32,7 +32,7 @@ namespace NuGet.Services.Validation.PackageSigning
             if (validatorStatus.State == ValidationStatus.Failed)
             {
                 // If the validation has failed, assume it is because signed packages are blocked.
-                return ValidationResult.FailedWithIssues(new PackageIsSigned(request.PackageId, request.PackageVersion));
+                return ValidationResult.FailedWithIssues(new PackageIsSigned());
             }
             else
             {
