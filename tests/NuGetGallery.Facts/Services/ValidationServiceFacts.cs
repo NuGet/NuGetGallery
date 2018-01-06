@@ -137,19 +137,19 @@ namespace NuGetGallery
                 var validationIssue1 = new PackageValidationIssue
                 {
                     IssueCode = ValidationIssueCode.PackageIsSigned,
-                    Data = "{'packageId':'Hello','packageVersion':'World'}",
+                    Data = "{}",
                 };
 
                 var validationIssue2 = new PackageValidationIssue
                 {
                     IssueCode = ValidationIssueCode.PackageIsSigned,
-                    Data = "{'packageId':'A moose once bit my sister','packageVersion':'1.2.3'}",
+                    Data = "{}",
                 };
 
                 var validationIssue3 = new PackageValidationIssue
                 {
                     IssueCode = ValidationIssueCode.PackageIsSigned,
-                    Data = "{'packageId':'Moose bites can be pretty nasty','packageVersion':'4.5.6'}",
+                    Data = "{}",
                 };
 
                 packageValidationSet1.PackageValidations = new[] { packageValidation1 };
@@ -170,7 +170,7 @@ namespace NuGetGallery
                 _validationSets.Verify(x => x.GetAll(), Times.Once());
 
                 Assert.Equal(1, issues.Count());
-                Assert.Equal("Package Hello World is signed.", issues.First().GetMessage());
+                Assert.Equal(TestData.PackageIsSignedIssueMessage, issues.First().GetMessage());
             }
         }
 
