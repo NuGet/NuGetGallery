@@ -1,4 +1,5 @@
 ﻿using Moq;
+using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure;
 using System;
 using System.Collections.Generic;
@@ -80,6 +81,41 @@ namespace NuGetGallery.Authentication
 
                 // Assert
                 Assert.Equal(ApiScopeEvaluationResult.Forbidden, result);
+            }
+
+            public static IEnumerable<object[]> EvaluatesNoScopesAsAllInclusive_Data
+            {
+                get
+                {
+                    yield return MemberDataHelper.AsData((IEnumerable<Scope>) null);
+                    yield return MemberDataHelper.AsData(Enumerable.Empty<Scope>());
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(EvaluatesNoScopesAsAllInclusive_Data))]
+            public void EvaluatesNoScopesAsAllInclusive(IEnumerable<Scope> scopes)
+            {
+                // Arrange
+                // To guarantee that the scope is evaluated with an all-inclusive subject scope, we must test it on two subjects that are COMPLETELY different.
+                // For example, if subjects "a" and "ab" are approved, the subject scope could be "a*". However, if subjects "a" and "b" are approved, the subject scope must be "*", which is what we expect for no scopes.
+                var aScopeSubject = new TestableScopeSubjectConverter("a");
+                var bScopeSubject = new TestableScopeSubjectConverter("b");
+
+                var aEvaluator = Setup(aScopeSubject);
+                var bEvaluator = Setup(bScopeSubject);
+
+                // Act
+                EvaluatesNoScopesAsAllInclusive(aEvaluator, scopes);
+                EvaluatesNoScopesAsAllInclusive(bEvaluator, scopes);
+            }
+
+            private void EvaluatesNoScopesAsAllInclusive(ApiScopeEvaluator evaluator, IEnumerable<Scope> scopes)
+            {
+                var action = new TestableActionRequiringEntityPermissions(PermissionsRequirement.None, (u, e) => PermissionsCheckResult.Allowed);
+                var result = evaluator.Evaluate(null, scopes, action, null, out var owner, "notarealaction");
+                Assert.Equal(ApiScopeEvaluationResult.Success, result);
+                Assert.Equal(null, owner);
             }
 
             public static IEnumerable<object[]> ReturnsResultOfActionWhenSubjectAndActionMatches_Data
