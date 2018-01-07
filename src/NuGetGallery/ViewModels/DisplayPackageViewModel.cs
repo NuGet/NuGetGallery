@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NuGet.Services.Validation.Issues;
 using NuGet.Versioning;
 
 namespace NuGetGallery
@@ -11,7 +12,7 @@ namespace NuGetGallery
     public class DisplayPackageViewModel : ListPackageItemViewModel
     {
         public DisplayPackageViewModel(Package package, IOrderedEnumerable<Package> packageHistory)
-            : this(package, packageHistory, false)
+            : this(package, packageHistory, isVersionHistory: false)
         {
         }
 
@@ -68,6 +69,7 @@ namespace NuGetGallery
             }
         }
 
+        public IReadOnlyList<string> ValidationIssues { get; set; }
         public DependencySetsViewModel Dependencies { get; set; }
         public IEnumerable<DisplayPackageViewModel> PackageVersions { get; set; }
         public string Copyright { get; set; }

@@ -163,6 +163,13 @@
                         validation failed. Please contact <a href="mailto:support@nuget.org">support@nuget.org</a>.
                     </text>
                 )
+
+                foreach (var issue in Model.ValidationIssues)
+                {
+                    @ViewHelpers.AlertDanger(
+                        @<text>@issue</text>
+                    )
+                }
             }
 
             @if (Model.Deleted)
