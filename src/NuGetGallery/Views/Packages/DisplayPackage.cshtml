@@ -167,7 +167,7 @@
                 foreach (var issue in Model.ValidationIssues)
                 {
                     @ViewHelpers.AlertDanger(
-                        @<text>@issue</text>
+                        @<text>@Html.Raw(issue)</text>
                     )
                 }
             }
