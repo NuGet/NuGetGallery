@@ -2296,12 +2296,6 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void Post_WhenAdminIsNotConfirmed_ShowsError()
-            {
-                // todo - will add before merging PR
-            }
-
-            [Fact]
             public async Task Post_WhenValid_CreatesRequestAndRedirects()
             {
                 // Arrange
@@ -2340,6 +2334,15 @@ namespace NuGetGallery
 
                 GetMock<IUserService>()
                     .Setup(s => s.RequestTransformToOrganizationAccount(It.IsAny<User>(), It.IsAny<User>()))
+                    .Callback<User, User>((acct, admin) => {
+                        acct.OrganizationMigrationRequest = new OrganizationMigrationRequest()
+                        {
+                            NewOrganization = acct,
+                            AdminUser = admin,
+                            ConfirmationToken = "X",
+                            RequestDate = DateTime.UtcNow
+                        };
+                    })
                     .Returns(Task.CompletedTask)
                     .Verifiable();
 

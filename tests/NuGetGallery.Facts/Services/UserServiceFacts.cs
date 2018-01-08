@@ -503,13 +503,18 @@ namespace NuGetGallery
                     // Act
                     await service.RequestTransformToOrganizationAccount(account, admin);
 
-                    if (testOverwrite && requestDate != null)
+                    if (testOverwrite)
                     {
-                        Assert.True(requestDate < account.OrganizationMigrationRequest.RequestDate);
-                        Assert.NotEqual(requestToken, account.OrganizationMigrationRequest.ConfirmationToken);
+                        if (requestDate != null)
+                        {
+                            Assert.True(requestDate < account.OrganizationMigrationRequest.RequestDate);
+                            Assert.NotEqual(requestToken, account.OrganizationMigrationRequest.ConfirmationToken);
+                        }
+
+                        requestDate = account.OrganizationMigrationRequest.RequestDate;
+                        requestToken = account.OrganizationMigrationRequest.ConfirmationToken;
+                        await Task.Delay(500); // ensure next requestDate is in future
                     }
-                    requestDate = account.OrganizationMigrationRequest.RequestDate;
-                    requestToken = account.OrganizationMigrationRequest.ConfirmationToken;
 
                     // Assert
                     service.MockUserRepository.Verify(r => r.CommitChangesAsync(), Times.Once);
