@@ -48,8 +48,6 @@
     <Compile Include="PackageCertificates\PackageCertificatesValidatorFacts.cs" />
     <Compile Include="PackageSigning\PackageSigningValidatorFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TestDbAsyncQueryProvider.cs" />
-    <Compile Include="ValidationContextHelpers.cs" />
     <Compile Include="ValidationMessageHandlerFacts.cs" />
     <Compile Include="ValidationOutcomeProcessorFacts.cs" />
     <Compile Include="ValidationProviderFacts.cs" />
@@ -68,6 +66,9 @@
     </PackageReference>
     <PackageReference Include="moq">
       <Version>4.5.23</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Services.Validation.Issues">
+      <Version>2.7.1</Version>
     </PackageReference>
     <PackageReference Include="System.Net.Http">
       <Version>4.3.3</Version>
@@ -91,6 +92,10 @@
     <ProjectReference Include="..\..\src\Validation.PackageSigning.Core\Validation.PackageSigning.Core.csproj">
       <Project>{91C060DA-736F-4DA9-A57F-CB3AC0E6CB10}</Project>
       <Name>Validation.PackageSigning.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Validation.PackageSigning.Helpers\Validation.PackageSigning.Helpers.csproj">
+      <Project>{2c5be067-adfd-49e3-ba9f-13a74436e5db}</Project>
+      <Name>Validation.PackageSigning.Helpers</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

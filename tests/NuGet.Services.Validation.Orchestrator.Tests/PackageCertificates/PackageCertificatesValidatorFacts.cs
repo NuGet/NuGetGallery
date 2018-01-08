@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
-using NuGet.Services.Validation.Orchestrator;
 using NuGet.Services.Validation.PackageCertificates;
+using Validation.PackageSigning.Helpers;
 using Xunit;
 
 namespace NuGet.Services.Validation.PackageSigning
@@ -50,9 +50,9 @@ namespace NuGet.Services.Validation.PackageSigning
                 });
 
                 // Act & Assert
-                var actual = await _target.GetStatusAsync(_validationRequest.Object);
+                var actual = await _target.GetResultAsync(_validationRequest.Object);
 
-                Assert.Equal(status, actual);
+                Assert.Equal(status, actual.Status);
             }
 
             public static IEnumerable<object[]> GetReturnsExpectedStatusForCertificateValidationsData()
@@ -174,7 +174,9 @@ namespace NuGet.Services.Validation.PackageSigning
                     certificateValidations: certificateValidations);
 
                 // Act & Assert
-                Assert.Equal(expectedStatus, await _target.GetStatusAsync(_validationRequest.Object));
+                var result = await _target.GetResultAsync(_validationRequest.Object);
+
+                Assert.Equal(expectedStatus, result.Status);
             }
 
             public static IEnumerable<object[]> InvalidSignaturesFailsValidationData()
@@ -282,7 +284,9 @@ namespace NuGet.Services.Validation.PackageSigning
                     certificateValidations: new[] { certificateValidation });
 
                 // Act & Assert
-                Assert.Equal(expectedStatus, await _target.GetStatusAsync(_validationRequest.Object));
+                var result = await _target.GetResultAsync(_validationRequest.Object);
+
+                Assert.Equal(expectedStatus, result.Status);
             }
 
             public static IEnumerable<object[]> ValidSignaturesArePromotedData()
@@ -398,12 +402,14 @@ namespace NuGet.Services.Validation.PackageSigning
                 _validationContext.Mock(
                     validatorStatuses: new[] { validatorStatus },
                     packageSigningStates: new[] { packageSigningState },
-                    packageSignatures: new[] { signature } ,
+                    packageSignatures: new[] { signature },
                     endCertificates: new[] { signature.EndCertificate },
                     certificateValidations: new[] { certificateValidation });
 
                 // Act & Assert
-                Assert.Equal(ValidationStatus.Succeeded, await _target.GetStatusAsync(_validationRequest.Object));
+                var result = await _target.GetResultAsync(_validationRequest.Object);
+
+                Assert.Equal(ValidationStatus.Succeeded, result.Status);
 
                 Assert.Equal(expectedStatus, signature.Status);
             }
@@ -440,7 +446,7 @@ namespace NuGet.Services.Validation.PackageSigning
                 _certificateVerifier.Verify(v => v.EnqueueVerificationAsync(It.IsAny<IValidationRequest>(), It.IsAny<EndCertificate>()), Times.Never);
                 _validationContext.Verify(c => c.SaveChangesAsync(), Times.Never);
 
-                Assert.Equal(status, actual);
+                Assert.Equal(status, actual.Status);
             }
 
             [Fact]
@@ -473,7 +479,7 @@ namespace NuGet.Services.Validation.PackageSigning
                 _certificateVerifier.Verify(v => v.EnqueueVerificationAsync(It.IsAny<IValidationRequest>(), It.IsAny<EndCertificate>()), Times.Never);
                 _validationContext.Verify(c => c.SaveChangesAsync(), Times.Once);
 
-                Assert.Equal(ValidationStatus.Succeeded, actual);
+                Assert.Equal(ValidationStatus.Succeeded, actual.Status);
                 Assert.Equal(ValidationStatus.Succeeded, validatorStatus.State);
             }
 
@@ -537,7 +543,7 @@ namespace NuGet.Services.Validation.PackageSigning
                 _certificateVerifier.Verify(v => v.EnqueueVerificationAsync(It.IsAny<IValidationRequest>(), It.IsAny<EndCertificate>()), Times.Never);
                 _validationContext.Verify(c => c.SaveChangesAsync(), Times.Once);
 
-                Assert.Equal(ValidationStatus.Succeeded, actual);
+                Assert.Equal(ValidationStatus.Succeeded, actual.Status);
                 Assert.Equal(ValidationStatus.Succeeded, validatorStatus.State);
             }
 
@@ -653,7 +659,7 @@ namespace NuGet.Services.Validation.PackageSigning
                 _certificateVerifier.Verify(v => v.EnqueueVerificationAsync(It.IsAny<IValidationRequest>(), It.IsAny<EndCertificate>()), Times.Exactly(2));
                 _validationContext.Verify(c => c.SaveChangesAsync(), Times.Once);
 
-                Assert.Equal(ValidationStatus.Incomplete, actual);
+                Assert.Equal(ValidationStatus.Incomplete, actual.Status);
                 Assert.Equal(ValidationStatus.Incomplete, validatorStatus.State);
             }
 
@@ -743,7 +749,7 @@ namespace NuGet.Services.Validation.PackageSigning
                 _certificateVerifier.Verify(v => v.EnqueueVerificationAsync(It.IsAny<IValidationRequest>(), It.IsAny<EndCertificate>()), Times.Once);
                 _validationContext.Verify(c => c.SaveChangesAsync(), Times.Once);
 
-                Assert.Equal(ValidationStatus.Incomplete, actual);
+                Assert.Equal(ValidationStatus.Incomplete, actual.Status);
                 Assert.Equal(ValidationStatus.Incomplete, validatorStatus.State);
             }
 
@@ -832,7 +838,7 @@ namespace NuGet.Services.Validation.PackageSigning
                 _certificateVerifier.Verify(v => v.EnqueueVerificationAsync(It.IsAny<IValidationRequest>(), It.IsAny<EndCertificate>()), Times.Never);
                 _validationContext.Verify(c => c.SaveChangesAsync(), Times.Once);
 
-                Assert.Equal(ValidationStatus.Failed, actual);
+                Assert.Equal(ValidationStatus.Failed, actual.Status);
                 Assert.Equal(ValidationStatus.Failed, validatorStatus.State);
             }
 
@@ -990,7 +996,7 @@ namespace NuGet.Services.Validation.PackageSigning
                 packageSignature3.TrustedTimestamps = new[] { timestamp3 };
                 packageSignature4.TrustedTimestamps = new[] { timestamp4 };
                 packageSignature5.TrustedTimestamps = new[] { timestamp5 };
-                packageSignature1.EndCertificate =  certificate1;
+                packageSignature1.EndCertificate = certificate1;
                 packageSignature2.EndCertificate = certificate2;
                 packageSignature3.EndCertificate = certificate3;
                 packageSignature4.EndCertificate = certificate4;
@@ -1013,7 +1019,7 @@ namespace NuGet.Services.Validation.PackageSigning
                 _certificateVerifier.Verify(v => v.EnqueueVerificationAsync(It.IsAny<IValidationRequest>(), It.IsAny<EndCertificate>()), Times.Exactly(4));
                 _validationContext.Verify(c => c.SaveChangesAsync(), Times.Once);
 
-                Assert.Equal(ValidationStatus.Incomplete, actual);
+                Assert.Equal(ValidationStatus.Incomplete, actual.Status);
                 Assert.Equal(ValidationStatus.Incomplete, validatorStatus.State);
             }
 
@@ -1103,7 +1109,7 @@ namespace NuGet.Services.Validation.PackageSigning
                 _certificateVerifier.Verify(v => v.EnqueueVerificationAsync(It.IsAny<IValidationRequest>(), It.IsAny<EndCertificate>()), Times.Never);
                 _validationContext.Verify(c => c.SaveChangesAsync(), Times.Once);
 
-                Assert.Equal(ValidationStatus.Failed, actual);
+                Assert.Equal(ValidationStatus.Failed, actual.Status);
                 Assert.Equal(ValidationStatus.Failed, validatorStatus.State);
                 Assert.Equal(PackageSignatureStatus.Invalid, packageSignature1.Status);
                 Assert.Equal(PackageSignatureStatus.Valid, packageSignature2.Status);

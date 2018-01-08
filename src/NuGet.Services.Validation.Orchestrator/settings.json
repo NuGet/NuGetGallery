@@ -64,7 +64,9 @@
     "GalleryNoReplyAddress": "NuGet Gallery <noreply@nuget.org>",
     "PackageUrlTemplate": "https://www.nuget.org/packages/{0}/{1}",
     "PackageSupportTemplate": "https://www.nuget.org/packages/{0}/{1}/ReportMyPackage",
-    "EmailSettingsUrl": "https://www.nuget.org/account"
+    "EmailSettingsUrl": "https://www.nuget.org/account",
+    "AnnouncementsUrl": "https://github.com/NuGet/Announcements/issues",
+    "TwitterUrl": "https://twitter.com/nuget"
   },
   "KeyVault_VaultName": "",
   "KeyVault_ClientId": "",

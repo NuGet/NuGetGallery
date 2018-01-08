@@ -35,6 +35,8 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="HashFacts.cs" />
+    <Compile Include="SignaturePartsExtractorFacts.cs" />
     <Compile Include="SignatureValidatorFacts.cs" />
     <Compile Include="Support\DbAsyncQueryProviderMock.cs" />
     <Compile Include="Support\DbSetMockFactory.cs" />
@@ -42,6 +44,7 @@
     <Compile Include="PackageSigningStateServiceFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SignatureValidationMessageHandlerFacts.cs" />
+    <Compile Include="Support\SubjectAndThumbprint.cs" />
     <Compile Include="Support\XunitLoggerFactoryExtensions.cs" />
     <Compile Include="Support\TestResources.cs" />
   </ItemGroup>
@@ -51,6 +54,9 @@
     </PackageReference>
     <PackageReference Include="Moq">
       <Version>4.7.145</Version>
+    </PackageReference>
+    <PackageReference Include="Portable.BouncyCastle">
+      <Version>1.8.1.3</Version>
     </PackageReference>
     <PackageReference Include="xunit">
       <Version>2.3.1</Version>

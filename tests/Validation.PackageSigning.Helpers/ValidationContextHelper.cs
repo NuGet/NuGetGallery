@@ -8,8 +8,9 @@ using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Linq.Expressions;
 using Moq;
+using NuGet.Services.Validation;
 
-namespace NuGet.Services.Validation
+namespace Validation.PackageSigning.Helpers
 {
     public static class ValidationContextHelpers
     {
@@ -18,17 +19,20 @@ namespace NuGet.Services.Validation
             Mock<IDbSet<ValidatorStatus>> validatorStatusesMock = null,
             Mock<IDbSet<PackageSigningState>> packageSigningStatesMock = null,
             Mock<IDbSet<PackageSignature>> packageSignaturesMock = null,
+            Mock<IDbSet<TrustedTimestamp>> trustedTimestampsMock = null,
             Mock<IDbSet<EndCertificate>> endCertificatesMock = null,
             Mock<IDbSet<EndCertificateValidation>> certificateValidationsMock = null,
             IEnumerable<ValidatorStatus> validatorStatuses = null,
             IEnumerable<PackageSigningState> packageSigningStates = null,
             IEnumerable<PackageSignature> packageSignatures = null,
+            IEnumerable<TrustedTimestamp> trustedTimestamps = null,
             IEnumerable<EndCertificate> endCertificates = null,
             IEnumerable<EndCertificateValidation> certificateValidations = null)
         {
             validationContext.SetupDbSet(c => c.ValidatorStatuses, validatorStatusesMock, validatorStatuses);
             validationContext.SetupDbSet(c => c.PackageSigningStates, packageSigningStatesMock, packageSigningStates);
             validationContext.SetupDbSet(c => c.PackageSignatures, packageSignaturesMock, packageSignatures);
+            validationContext.SetupDbSet(c => c.TrustedTimestamps, trustedTimestampsMock, trustedTimestamps);
             validationContext.SetupDbSet(c => c.EndCertificates, endCertificatesMock, endCertificates);
             validationContext.SetupDbSet(c => c.CertificateValidations, certificateValidationsMock, certificateValidations);
         }

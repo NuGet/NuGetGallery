@@ -13,8 +13,16 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
         public const string UnsignedPackage = ResourceNamespace + ".TestUnsigned.1.0.0.nupkg";
         public const string SignedPackageLeaf1 = ResourceNamespace + ".TestSigned.leaf-1.1.0.0.nupkg";
         public const string SignedPackageLeaf2 = ResourceNamespace + ".TestSigned.leaf-2.2.0.0.nupkg";
-        public const string Leaf1Thumbprint = "b287c99e2c35226254a03ce20beffaa51504b8d586734731eaf66521a033ba59";
-        public const string Leaf2Thumbprint = "bbd2309fc08d6b367bce9187ad696a9b2f25a013384f3979c4815dd4650736d0";
+
+        /// <summary>
+        /// This is the SHA-256 thumbprint of the signing certificate in <see cref="SignedPackageLeaf1"/>.
+        /// </summary>
+        public const string Leaf1Thumbprint = "56a23ed7c0ef80bd0269d4a3b41e3e2830243a9fc85594b6c311e27423df6023";
+
+        /// <summary>
+        /// This is the SHA-256 thumbprint of the signing certificate in <see cref="SignedPackageLeaf2"/>.
+        /// </summary>
+        public const string Leaf2Thumbprint = "cd177f02cb88f6e6fb6b0dd67d68559b101c3e100fb19ebf4db43d9d082674e1";
 
         public static PackageArchiveReader SignedPackageLeaf1Reader => LoadPackage(SignedPackageLeaf1);
         public static PackageArchiveReader SignedPackageLeaf2Reader => LoadPackage(SignedPackageLeaf2);

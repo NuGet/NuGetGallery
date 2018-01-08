@@ -54,12 +54,12 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
         public class TestValidator1 : IValidator
         {
-            public Task<ValidationStatus> GetStatusAsync(IValidationRequest request)
+            public Task<IValidationResult> GetResultAsync(IValidationRequest request)
             {
                 throw new NotImplementedException();
             }
 
-            public Task<ValidationStatus> StartValidationAsync(IValidationRequest request)
+            public Task<IValidationResult> StartValidationAsync(IValidationRequest request)
             {
                 throw new NotImplementedException();
             }

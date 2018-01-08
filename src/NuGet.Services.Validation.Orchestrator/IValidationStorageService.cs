@@ -26,28 +26,29 @@ namespace NuGet.Services.Validation.Orchestrator
         Task<PackageValidationSet> GetValidationSetAsync(Guid validationTrackingId);
 
         /// <summary>
-        /// Updates the passed <see cref="PackageValidation"/> with specified validation status,
-        /// updates the <see cref="PackageValidation.ValidationStatusTimestamp"/>
-        /// and <see cref="PackageValidation.Started"/> properties to current timestamp, persists changes in the storage.
+        /// Updates the passed <see cref="PackageValidation"/> with the validation result's status,
+        /// updates the <see cref="PackageValidation.ValidationStatusTimestamp"/> to current timestamp,
+        /// and persists changes in the storage. The result's status cannot be <see cref="ValidationStatus.NotStarted"/>
         /// </summary>
         /// <param name="packageValidation">Validation object to update, must be an object from the <see cref="PackageValidationSet.PackageValidations"/> collection
         /// from an <see cref="PackageValidationSet"/> previously returned by either <see cref="CreateValidationSetAsync(PackageValidationSet)"/> 
         /// or <see cref="GetValidationSetAsync(Guid)"/> calls.</param>
-        /// <param name="startedStatus">Validation status to set. Cannot be <see cref="ValidationStatus.NotStarted"/></param>
+        /// <param name="validationResult">Validation result. Its status cannot be <see cref="ValidationStatus.NotStarted"/></param>
         /// <returns>Task object tracking the async operation status.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">If <paramref name="startedStatus"/> is <see cref="ValidationStatus.NotStarted"/></exception>
-        Task MarkValidationStartedAsync(PackageValidation packageValidation, ValidationStatus startedStatus);
+        /// <exception cref="ArgumentOutOfRangeException">If <paramref name="validationResult"/> has status <see cref="ValidationStatus.NotStarted"/></exception>
+        Task MarkValidationStartedAsync(PackageValidation packageValidation, IValidationResult validationResult);
 
         /// <summary>
-        /// Updates the passed <see cref="PackageValidation"/> object with specified validation status,
-        /// updates the <see cref="PackageValidation.ValidationStatusTimestamp"/>
-        /// property to current timestamp, persists changes in the storage.
+        /// Updates the passed <see cref="PackageValidation"/> object with the result's validation status,
+        /// updates the <see cref="PackageValidation.ValidationStatusTimestamp"/> property to the current
+        /// timestamp, adds the result's <see cref="PackageValidationIssue"/>s to the validation, and then persists
+        /// changes in the storage.
         /// </summary>
         /// <param name="packageValidation">Validation object to update, must be an object from the <see cref="PackageValidationSet.PackageValidations"/> collection
         /// from an <see cref="PackageValidationSet"/> previously returned by either <see cref="CreateValidationSetAsync(PackageValidationSet)"/> 
         /// or <see cref="GetValidationSetAsync(Guid)"/> calls.</param>
-        /// <param name="validationStatus">Validation status to set.</param>
+        /// <param name="validationResult">The result of the validation.</param>
         /// <returns>Task object tracking the async operation status.</returns>
-        Task UpdateValidationStatusAsync(PackageValidation packageValidation, ValidationStatus validationStatus);
+        Task UpdateValidationStatusAsync(PackageValidation packageValidation, IValidationResult validationResult);
     }
 }

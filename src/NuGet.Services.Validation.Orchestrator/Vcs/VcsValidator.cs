@@ -42,11 +42,11 @@ namespace NuGet.Services.Validation.Vcs
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<ValidationStatus> GetStatusAsync(IValidationRequest request)
+        public async Task<IValidationResult> GetResultAsync(IValidationRequest request)
         {
             if (ShouldSkip(request))
             {
-                return ValidationStatus.Succeeded;
+                return ValidationResult.Succeeded;
             }
 
             var audit = await _validationAuditor.ReadAuditAsync(
@@ -56,7 +56,7 @@ namespace NuGet.Services.Validation.Vcs
 
             if (audit == null)
             {
-                return ValidationStatus.NotStarted;
+                return ValidationResult.NotStarted;
             }
 
             var validationStatusList = audit
@@ -65,9 +65,11 @@ namespace NuGet.Services.Validation.Vcs
                 .Select(x => GetValidationStatus(request, x.EventId))
                 .ToList();
 
-            return validationStatusList.FirstOrDefault(x => x == ValidationStatus.Failed) ??
+            var result = validationStatusList.FirstOrDefault(x => x == ValidationStatus.Failed) ??
                 validationStatusList.FirstOrDefault(x => x == ValidationStatus.Succeeded) ??
                 ValidationStatus.Incomplete;
+
+            return new ValidationResult(result);
         }
 
         private ValidationStatus? GetValidationStatus(IValidationRequest request, ValidationEvent validationEvent)
@@ -105,11 +107,11 @@ namespace NuGet.Services.Validation.Vcs
             }
         }
 
-        public async Task<ValidationStatus> StartValidationAsync(IValidationRequest request)
+        public async Task<IValidationResult> StartValidationAsync(IValidationRequest request)
         {
             if (ShouldSkip(request))
             {
-                return ValidationStatus.Succeeded;
+                return ValidationResult.Succeeded;
             }
 
             var normalizedPackageId = NormalizePackageId(request.PackageId);
@@ -141,7 +143,7 @@ namespace NuGet.Services.Validation.Vcs
                     request.PackageVersion);
             }
 
-            return await GetStatusAsync(request);
+            return await GetResultAsync(request);
         }
 
         private static string NormalizePackageVersion(string packageVersion)

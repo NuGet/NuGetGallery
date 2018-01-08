@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -32,11 +33,57 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .Verify(ps => ps.UpdatePackageStatusAsync(Package, PackageStatus.FailedValidation, true), Times.Once());
             PackageServiceMock
                 .Verify(ps => ps.UpdatePackageStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), It.IsAny<bool>()), Times.Once());
+        }
+
+        [Theory]
+        [InlineData(new ValidationIssueCode[0])]
+        [InlineData(new[] { ValidationIssueCode.Unknown })]
+        [InlineData(new[] { ValidationIssueCode.PackageIsSigned, ValidationIssueCode.Unknown })]
+        [InlineData(new[] { ValidationIssueCode.Unknown, ValidationIssueCode.Unknown })]
+        [InlineData(new[] { ValidationIssueCode.Unknown, ValidationIssueCode.PackageIsSigned })]
+        public async Task SendsFailureEmailOnFailedValidation(ValidationIssueCode[] issueCodes)
+        {
+            AddValidation("validation1", ValidationStatus.Failed);
+            ValidationSet.PackageValidations.First().PackageValidationIssues = issueCodes
+                .Select(ic => new PackageValidationIssue { IssueCode = ic })
+                .ToList();
+
+            PackageServiceMock
+                .Setup(ps => ps.UpdatePackageStatusAsync(Package, PackageStatus.FailedValidation, true))
+                .Returns(Task.FromResult(0))
+                .Verifiable();
+
+            var processor = CreateProcessor();
+            await processor.ProcessValidationOutcomeAsync(ValidationSet, Package);
 
             MessageServiceMock
                 .Verify(ms => ms.SendPackageValidationFailedMessage(Package), Times.Once());
             MessageServiceMock
                 .Verify(ms => ms.SendPackageValidationFailedMessage(It.IsAny<Package>()), Times.Once());
+        }
+
+        [Theory]
+        [InlineData(new[] { ValidationIssueCode.PackageIsSigned })]
+        [InlineData(new[] { ValidationIssueCode.PackageIsSigned, ValidationIssueCode.PackageIsSigned })]
+        public async Task SendsPackageSignedFailureEmail(ValidationIssueCode[] issueCodes)
+        {
+            AddValidation("validation1", ValidationStatus.Failed);
+            ValidationSet.PackageValidations.First().PackageValidationIssues = issueCodes
+                .Select(ic => new PackageValidationIssue { IssueCode = ic })
+                .ToList();
+
+            PackageServiceMock
+                .Setup(ps => ps.UpdatePackageStatusAsync(Package, PackageStatus.FailedValidation, true))
+                .Returns(Task.FromResult(0))
+                .Verifiable();
+
+            var processor = CreateProcessor();
+            await processor.ProcessValidationOutcomeAsync(ValidationSet, Package);
+
+            MessageServiceMock
+                .Verify(ms => ms.SendPackageSignedValidationFailedMessage(Package), Times.Once());
+            MessageServiceMock
+                .Verify(ms => ms.SendPackageSignedValidationFailedMessage(It.IsAny<Package>()), Times.Once());
         }
 
         [Fact]
@@ -268,7 +315,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 ValidationSet.PackageValidations.Add(new PackageValidation
                 {
                     Type = "validation" + dbValidatorIndex,
-                    ValidationStatus = dbValidatorIndex < numSucceededValidators ? ValidationStatus.Succeeded : notSucceededStatus
+                    ValidationStatus = dbValidatorIndex < numSucceededValidators ? ValidationStatus.Succeeded : notSucceededStatus,
+                    PackageValidationIssues = new List<PackageValidationIssue> { }
                 });
             }
 
@@ -348,7 +396,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             ValidationSet.PackageValidations.Add(new PackageValidation
             {
                 Type = validationName,
-                ValidationStatus = validationStatus
+                ValidationStatus = validationStatus,
+                PackageValidationIssues = new List<PackageValidationIssue> { }
             });
             Configuration.Validations.Add(new ValidationConfigurationItem
             {

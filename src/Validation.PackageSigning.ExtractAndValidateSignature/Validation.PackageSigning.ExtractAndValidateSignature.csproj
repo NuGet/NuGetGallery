@@ -40,7 +40,10 @@
     <Reference Include="System.Security" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Hash.cs" />
+    <Compile Include="ISignaturePartsExtractor.cs" />
     <Compile Include="ISignatureValidator.cs" />
+    <Compile Include="SignaturePartsExtractor.cs" />
     <Compile Include="SignatureValidator.cs" />
     <Compile Include="Storage\PackageSigningStateService.cs" />
     <Compile Include="Storage\IPackageSigningStateService.cs" />
@@ -98,34 +101,34 @@
       <Version>1.1.2</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Packaging">
-      <Version>4.6.0-preview2-4709</Version>
+      <Version>4.6.0-preview3-4785</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Configuration">
-      <Version>2.5.0</Version>
+      <Version>2.7.1</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Contracts">
-      <Version>2.5.0</Version>
+      <Version>2.7.1</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.KeyVault">
-      <Version>2.5.0</Version>
+      <Version>2.7.1</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Logging">
-      <Version>2.5.0</Version>
+      <Version>2.7.1</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.ServiceBus">
-      <Version>2.5.0</Version>
+      <Version>2.7.1</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation">
-      <Version>2.5.0</Version>
+      <Version>2.7.1</Version>
     </PackageReference>
     <PackageReference Include="NuGetGallery.Core">
-      <Version>4.4.4-dev-18852</Version>
+      <Version>4.4.4-dev-19677</Version>
     </PackageReference>
     <PackageReference Include="System.Net.Http">
       <Version>4.3.3</Version>
     </PackageReference>
     <PackageReference Include="WindowsAzure.Storage">
-      <Version>8.5.0</Version>
+      <Version>7.1.2</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

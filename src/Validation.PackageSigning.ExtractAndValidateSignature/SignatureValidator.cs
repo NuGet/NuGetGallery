@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -19,15 +19,18 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
     public class SignatureValidator : ISignatureValidator
     {
         private readonly IPackageSigningStateService _packageSigningStateService;
+        private readonly ISignaturePartsExtractor _signaturePartsExtractor;
         private readonly IEntityRepository<Certificate> _certificates;
         private readonly ILogger<SignatureValidator> _logger;
 
         public SignatureValidator(
             IPackageSigningStateService packageSigningStateService,
+            ISignaturePartsExtractor signaturePartsExtractor,
             IEntityRepository<Certificate> certificates,
             ILogger<SignatureValidator> logger)
         {
             _packageSigningStateService = packageSigningStateService ?? throw new ArgumentNullException(nameof(packageSigningStateService));
+            _signaturePartsExtractor = signaturePartsExtractor ?? throw new ArgumentNullException(nameof(signaturePartsExtractor));
             _certificates = certificates ?? throw new ArgumentNullException(nameof(certificates));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -107,30 +110,17 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
                 message.ValidationId,
                 packageThumbprints);
 
+            // Extract all of the signature artifacts and persist them.
+            await _signaturePartsExtractor.ExtractAsync(signedPackageReader, cancellationToken);
+
+            // Mark this package as signed.
             await AcceptAsync(validation, message, PackageSigningStatus.Valid);
-            return;
         }
 
         private HashSet<string> GetThumbprints(IEnumerable<Signature> signatures)
         {
-            var thumbprints = new HashSet<string>();
-
-            foreach (var signature in signatures)
-            {
-                var certificate = signature.SignerInfo.Certificate;
-                using (var sha256 = SHA256.Create())
-                {
-                    var digestBytes = sha256.ComputeHash(certificate.RawData);
-                    var thumbprint = BitConverter
-                        .ToString(digestBytes)
-                        .Replace("-", string.Empty)
-                        .ToLowerInvariant();
-
-                    thumbprints.Add(thumbprint);
-                }
-            }
-
-            return thumbprints;
+            return new HashSet<string>(signatures
+                .Select(x => x.SignerInfo.Certificate.ComputeSHA256Thumbprint()));
         }
 
         private async Task RejectAsync(ValidatorStatus validation, SignatureValidationMessage message)

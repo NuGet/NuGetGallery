@@ -4,12 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
+using Validation.PackageSigning.Helpers;
 using Xunit;
 
 namespace NuGet.Services.Validation
@@ -33,14 +33,14 @@ namespace NuGet.Services.Validation
 
         class AValidator : IValidator
         {
-            public Task<ValidationStatus> GetStatusAsync(IValidationRequest request) => throw new NotImplementedException();
-            public Task<ValidationStatus> StartValidationAsync(IValidationRequest request) => throw new NotImplementedException();
+            public Task<IValidationResult> GetResultAsync(IValidationRequest request) => throw new NotImplementedException();
+            public Task<IValidationResult> StartValidationAsync(IValidationRequest request) => throw new NotImplementedException();
         }
 
         class BValidator : IValidator
         {
-            public Task<ValidationStatus> GetStatusAsync(IValidationRequest request) => throw new NotImplementedException();
-            public Task<ValidationStatus> StartValidationAsync(IValidationRequest request) => throw new NotImplementedException();
+            public Task<IValidationResult> GetResultAsync(IValidationRequest request) => throw new NotImplementedException();
+            public Task<IValidationResult> StartValidationAsync(IValidationRequest request) => throw new NotImplementedException();
         }
 
         public class TheGetStatusMethod : FactsBase

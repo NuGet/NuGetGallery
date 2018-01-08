@@ -89,27 +89,27 @@ namespace NuGet.Services.Validation.Orchestrator
 
                     var validator = _validatorProvider.GetValidator(packageValidation.Type);
                     var validationRequest = await CreateValidationRequest(packageValidation.PackageValidationSet, packageValidation, package, validationConfiguration);
-                    var validationStatus = await validator.GetStatusAsync(validationRequest);
+                    var validationResult = await validator.GetResultAsync(validationRequest);
                     _logger.LogInformation("New status for validation {ValidationType} for {PackageId} {PackageVersion} is {ValidationStatus}, validation set {ValidationSetId}, {ValidationId}",
                         packageValidation.Type,
                         package.PackageRegistration.Id,
                         package.NormalizedVersion,
-                        validationStatus,
+                        validationResult.Status,
                         validationSet.ValidationTrackingId,
                         packageValidation.Key);
 
-                    switch (validationStatus)
+                    switch (validationResult.Status)
                     {
                         case ValidationStatus.Incomplete:
                             await ProcessIncompleteValidation(packageValidation, validationConfiguration);
                             break;
 
                         case ValidationStatus.Failed:
-                            await _validationStorageService.UpdateValidationStatusAsync(packageValidation, validationStatus);
+                            await _validationStorageService.UpdateValidationStatusAsync(packageValidation, validationResult);
                             break;
 
                         case ValidationStatus.Succeeded:
-                            await _validationStorageService.UpdateValidationStatusAsync(packageValidation, validationStatus);
+                            await _validationStorageService.UpdateValidationStatusAsync(packageValidation, validationResult);
                             // need another iteration to try running new validations
                             tryMoreValidations = true;
                             break;
@@ -117,7 +117,7 @@ namespace NuGet.Services.Validation.Orchestrator
                         default:
                             throw new InvalidOperationException($"Unexpected validation state: " +
                                 $"DB: {ValidationStatus.Incomplete} ({(int)ValidationStatus.Incomplete}), " +
-                                $"Actual: {validationStatus} {(int)validationStatus}");
+                                $"Actual: {validationResult.Status} {(int)validationResult.Status}");
                     }
                 }
             }
@@ -159,9 +159,9 @@ namespace NuGet.Services.Validation.Orchestrator
 
                     var validator = _validatorProvider.GetValidator(packageValidation.Type);
                     var validationRequest = await CreateValidationRequest(packageValidation.PackageValidationSet, packageValidation, package, validationConfiguration);
-                    var validationStatus = await validator.GetStatusAsync(validationRequest);
+                    var validationResult = await validator.GetResultAsync(validationRequest);
 
-                    if (validationStatus == ValidationStatus.NotStarted)
+                    if (validationResult.Status == ValidationStatus.NotStarted)
                     {
                         _logger.LogInformation("Requesting validation {ValidationType} for {PackageId} {PackageVersion}, validation set {ValidationSetId}, {ValidationId}, {NupkgUrl}",
                             packageValidation.Type,
@@ -170,9 +170,9 @@ namespace NuGet.Services.Validation.Orchestrator
                             validationSet.ValidationTrackingId,
                             packageValidation.Key,
                             validationRequest.NupkgUrl);
-                        validationStatus = await validator.StartValidationAsync(validationRequest);
+                        validationResult = await validator.StartValidationAsync(validationRequest);
                         _logger.LogInformation("Got validationStatus = {ValidationStatus} for validation {ValidationType} for {PackageId} {PackageVersion}, validation set {ValidationSetId}, {ValidationId}",
-                            validationStatus,
+                            validationResult.Status,
                             packageValidation.Type,
                             package.PackageRegistration.Id,
                             package.NormalizedVersion,
@@ -180,7 +180,7 @@ namespace NuGet.Services.Validation.Orchestrator
                             packageValidation.Key);
                     }
 
-                    if (validationStatus == ValidationStatus.NotStarted)
+                    if (validationResult.Status == ValidationStatus.NotStarted)
                     {
                         _logger.LogWarning("Unexpected NotStarted state after start attempt for validation {ValidationName}, package: {PackageId} {PackageVersion}",
                             packageValidation.Type,
@@ -189,10 +189,10 @@ namespace NuGet.Services.Validation.Orchestrator
                     }
                     else
                     {
-                        await _validationStorageService.MarkValidationStartedAsync(packageValidation, validationStatus);
+                        await _validationStorageService.MarkValidationStartedAsync(packageValidation, validationResult);
                     }
 
-                    tryMoreValidations = tryMoreValidations || validationStatus == ValidationStatus.Succeeded;
+                    tryMoreValidations = tryMoreValidations || validationResult.Status == ValidationStatus.Succeeded;
                 }
             }
 
@@ -212,7 +212,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 packageValidation.PackageValidationSet.PackageId,
                 packageValidation.PackageValidationSet.PackageNormalizedVersion);
 
-            await _validationStorageService.UpdateValidationStatusAsync(packageValidation, ValidationStatus.Failed);
+            await _validationStorageService.UpdateValidationStatusAsync(packageValidation, ValidationResult.Failed);
         }
 
         private async Task ProcessIncompleteValidation(PackageValidation packageValidation, ValidationConfigurationItem validationConfiguration)
@@ -226,7 +226,7 @@ namespace NuGet.Services.Validation.Orchestrator
                     packageValidation.PackageValidationSet.PackageId,
                     packageValidation.PackageValidationSet.PackageNormalizedVersion,
                     validationConfiguration.FailAfter);
-                await _validationStorageService.UpdateValidationStatusAsync(packageValidation, ValidationStatus.Failed);
+                await _validationStorageService.UpdateValidationStatusAsync(packageValidation, ValidationResult.Failed);
                 return;
             }
         }
