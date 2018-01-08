@@ -11,14 +11,9 @@ namespace NuGetGallery
 
         public ListPackageOwnerViewModel(User user)
         {
-            IsOrganization = user is Organization;
             Username = user.Username;
         }
 
-        public bool IsOrganization { get; set; }
-
         public string Username { get; set; }
-
-        public bool CanManagePackageOwners { get; set; }
     }
 }

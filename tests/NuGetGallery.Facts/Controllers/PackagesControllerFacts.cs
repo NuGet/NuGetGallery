@@ -64,8 +64,8 @@ namespace NuGetGallery
             {
                 uploadFileService = new Mock<IUploadFileService>();
                 uploadFileService.Setup(x => x.DeleteUploadFileAsync(It.IsAny<int>())).Returns(Task.FromResult(0));
-                uploadFileService.Setup(x => x.GetUploadFileAsync(42)).Returns(Task.FromResult<Stream>(null));
-                uploadFileService.Setup(x => x.SaveUploadFileAsync(42, It.IsAny<Stream>())).Returns(Task.FromResult(0));
+                uploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(null));
+                uploadFileService.Setup(x => x.SaveUploadFileAsync(TestUtility.FakeUser.Key, It.IsAny<Stream>())).Returns(Task.FromResult(0));
             }
             userService = userService ?? new Mock<IUserService>();
             messageService = messageService ?? new Mock<IMessageService>();
@@ -100,8 +100,8 @@ namespace NuGetGallery
             {
                 reservedNamespaceService = new Mock<IReservedNamespaceService>();
                 IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces = new List<ReservedNamespace>();
-                reservedNamespaceService.Setup(s => s.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out userOwnedMatchingNamespaces))
-                    .Returns(true);
+                reservedNamespaceService.Setup(s => s.GetReservedNamespacesForId(It.IsAny<string>()))
+                    .Returns(new ReservedNamespace[0]);
             }
 
             packageUploadService = packageUploadService ?? new Mock<IPackageUploadService>();
@@ -223,7 +223,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task GivenANonExistantPackageIt404s()
+            public async Task GivenANonExistentPackageIt404s()
             {
                 // Arrange
                 var packageService = new Mock<IPackageService>();
@@ -241,66 +241,94 @@ namespace NuGetGallery
                 ResultAssert.IsNotFound(result);
             }
 
-            [Fact]
-            public async Task GivenAValidPackageThatTheCurrentUserDoesNotOwnItDisplaysCurrentMetadata()
-            {
-                // Arrange
-                var packageService = new Mock<IPackageService>();
-                var indexingService = new Mock<IIndexingService>();
-                var controller = CreateController(
-                    GetConfigurationService(),
-                    packageService: packageService,
-                    indexingService: indexingService);
-                controller.SetCurrentUser(TestUtility.FakeUser);
+            public static IEnumerable<PackageStatus> ValidatingPackageStatuses = 
+                new[] { PackageStatus.Validating , PackageStatus.FailedValidation};
 
-                packageService.Setup(p => p.FindPackageByIdAndVersion("Foo", "1.1.1", SemVerLevelKey.SemVer2, true))
-                              .Returns(new Package()
-                              {
-                                  PackageRegistration = new PackageRegistration()
-                                  {
-                                      Id = "Foo",
-                                      Owners = new List<User>()
-                                  },
-                                  Version = "01.1.01",
-                                  NormalizedVersion = "1.1.1",
-                                  Title = "A test package!"
-                              });
-
-                indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
-
-                // Act
-                var result = await controller.DisplayPackage("Foo", "1.1.1");
-
-                // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
-                Assert.Equal("Foo", model.Id);
-                Assert.Equal("1.1.1", model.Version);
-                Assert.Equal("A test package!", model.Title);
-            }
+            public static IEnumerable<object[]> GivenAValidatingPackage_Data => ValidatingPackageStatuses.Select(s => new object[] { s });
 
             [Theory]
-            [InlineData(PackageStatus.Validating)]
-            [InlineData(PackageStatus.FailedValidation)]
+            [MemberData(nameof(GivenAValidatingPackage_Data))]
             public async Task GivenAValidatingPackageThatTheCurrentUserOwnsThenShowIt(PackageStatus packageStatus)
             {
                 // Arrange & Act
                 var result = await GetActionResultForPackageStatusAsync(
                     packageStatus,
-                    p => p.PackageRegistration.Owners.Add(TestUtility.FakeUser));
+                    TestUtility.FakeUser,
+                    TestUtility.FakeUser);
 
                 // Assert
                 Assert.IsType<ViewResult>(result);
             }
 
             [Theory]
-            [InlineData(PackageStatus.Validating)]
-            [InlineData(PackageStatus.FailedValidation)]
+            [MemberData(nameof(GivenAValidatingPackage_Data))]
+            public async Task GivenAValidatingPackageAsAdminThenShowIt(PackageStatus packageStatus)
+            {
+                // Arrange & Act
+                var result = await GetActionResultForPackageStatusAsync(
+                    packageStatus,
+                    TestUtility.FakeAdminUser,
+                    new User { Key = 132114 });
+
+                // Assert
+                Assert.IsType<ViewResult>(result);
+            }
+
+            public static IEnumerable<object[]> GivenAValidatingPackageThatCurrentUsersOrganizationOwnsThenShowIt_Data
+            {
+                get
+                {
+                    foreach (var isAdmin in new[] { true, false })
+                    {
+                        foreach (var status in ValidatingPackageStatuses)
+                        {
+                            yield return new object[]
+                            {
+                                status,
+                                isAdmin
+                            };
+                        }
+                    }
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(GivenAValidatingPackageThatCurrentUsersOrganizationOwnsThenShowIt_Data))]
+            public async Task GivenAValidatingPackageThatCurrentUsersOrganizationOwnsThenShowIt(PackageStatus packageStatus, bool isAdmin)
+            {
+                // Arrange & Act
+                var result = await GetActionResultForPackageStatusAsync(
+                    packageStatus,
+                    isAdmin ? TestUtility.FakeOrganizationAdmin : TestUtility.FakeOrganizationCollaborator,
+                    TestUtility.FakeOrganization);
+
+                // Assert
+                Assert.IsType<ViewResult>(result);
+            }
+
+            [Theory]
+            [MemberData(nameof(GivenAValidatingPackage_Data))]
+            public async Task GivenAValidatingPackageWhileLoggedOutThenHideIt(PackageStatus packageStatus)
+            {
+                // Arrange & Act
+                var result = await GetActionResultForPackageStatusAsync(
+                    packageStatus,
+                    null,
+                    new User { Key = 132114 });
+
+                // Assert
+                ResultAssert.IsNotFound(result);
+            }
+
+            [Theory]
+            [MemberData(nameof(GivenAValidatingPackage_Data))]
             public async Task GivenAValidatingPackageThatTheCurrentUserDoesNotOwnThenHideIt(PackageStatus packageStatus)
             {
                 // Arrange & Act
                 var result = await GetActionResultForPackageStatusAsync(
                     packageStatus,
-                    p => p.PackageRegistration.Owners.Clear());
+                    TestUtility.FakeUser,
+                    new User { Key = 132114 });
 
                 // Assert
                 ResultAssert.IsNotFound(result);
@@ -308,7 +336,8 @@ namespace NuGetGallery
 
             private async Task<ActionResult> GetActionResultForPackageStatusAsync(
                 PackageStatus packageStatus,
-                Action<Package> mutatePackage)
+                User currentUser,
+                User owner)
             {
                 // Arrange
                 var packageService = new Mock<IPackageService>();
@@ -318,7 +347,8 @@ namespace NuGetGallery
                     GetConfigurationService(),
                     packageService: packageService,
                     httpContext: httpContext);
-                controller.SetCurrentUser(TestUtility.FakeUser);
+                controller.SetCurrentUser(currentUser);
+
                 httpContext.Setup(c => c.Response.Cache).Returns(httpCachePolicy.Object);
 
                 var package = new Package
@@ -326,14 +356,12 @@ namespace NuGetGallery
                     PackageRegistration = new PackageRegistration()
                     {
                         Id = "NuGet.Versioning",
-                        Owners = new List<User>(),
+                        Owners = new[] { owner }
                     },
                     Version = "3.4.0",
                     NormalizedVersion = "3.4.0",
                     PackageStatusKey = packageStatus,
                 };
-
-                mutatePackage(package);
 
                 packageService
                     .Setup(p => p.FindPackageByIdAndVersion(
@@ -364,6 +392,7 @@ namespace NuGetGallery
                     packageService: packageService,
                     editPackageService: editPackageService,
                     httpContext: httpContext);
+
                 controller.SetCurrentUser(TestUtility.FakeUser);
                 httpContext.Setup(c => c.Response.Cache).Returns(httpCachePolicy.Object);
 
@@ -395,57 +424,83 @@ namespace NuGetGallery
                 httpCachePolicy.VerifyAll();
             }
 
-            [Fact]
-            public async Task GivenAValidPackageThatTheCurrentUserOwnsWithNoEditsItDisplaysCurrentMetadata()
+            public static IEnumerable<object[]> EditedPackageOwners
             {
-                // Arrange
-                var packageService = new Mock<IPackageService>();
-                var indexingService = new Mock<IIndexingService>();
-                var editPackageService = new Mock<EditPackageService>();
-                var httpContext = new Mock<HttpContextBase>();
-                var httpCachePolicy = new Mock<HttpCachePolicyBase>();
-                var controller = CreateController(
-                    GetConfigurationService(),
-                    packageService: packageService,
-                    editPackageService: editPackageService,
-                    indexingService: indexingService,
-                    httpContext: httpContext);
-                controller.SetCurrentUser(TestUtility.FakeUser);
-                httpContext.Setup(c => c.Response.Cache).Returns(httpCachePolicy.Object);
-
-                var package = new Package()
+                get
                 {
-                    PackageRegistration = new PackageRegistration()
+                    yield return new object[]
                     {
-                        Id = "Foo",
-                        Owners = new List<User>() { TestUtility.FakeUser }
-                    },
-                    Version = "01.1.01",
-                    NormalizedVersion = "1.1.1",
-                    Title = "A test package!"
-                };
+                        TestUtility.FakeUser,
+                        TestUtility.FakeUser
+                    };
 
-                packageService
-                    .Setup(p => p.FindPackageByIdAndVersion("Foo", "1.1.1", SemVerLevelKey.SemVer2, true))
-                    .Returns(package);
-                editPackageService
-                    .Setup(e => e.GetPendingMetadata(package))
-                    .ReturnsNull();
+                    yield return new object[]
+                    {
+                        TestUtility.FakeAdminUser,
+                        new User { Key = 12414 }
+                    };
 
-                indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
+                    yield return new object[]
+                    {
+                        TestUtility.FakeOrganizationAdmin,
+                        TestUtility.FakeOrganization
+                    };
 
-                // Act
-                var result = await controller.DisplayPackage("Foo", "1.1.1");
-
-                // Assert
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
-                Assert.Equal("Foo", model.Id);
-                Assert.Equal("1.1.1", model.Version);
-                Assert.Equal("A test package!", model.Title);
+                    yield return new object[]
+                    {
+                        TestUtility.FakeOrganizationCollaborator,
+                        TestUtility.FakeOrganization
+                    };
+                }
             }
 
-            [Fact]
-            public async Task GivenAValidPackageThatTheCurrentUserOwnsWithEditsItDisplaysEditedMetadata()
+            public static IEnumerable<object[]> EditedPackageNonOwners
+            {
+                get
+                {
+                    yield return new object[]
+                    {
+                        TestUtility.FakeUser,
+                        new User { Key = 12414 }
+                    };
+
+                    yield return new object[]
+                    {
+                        null,
+                        TestUtility.FakeUser
+                    };
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(EditedPackageOwners))]
+            public Task GivenAnOwnedValidPackageWithNoEditsItDisplaysCurrentMetadata(User currentUser, User owner)
+            {
+                return CheckValidPackageWithEdits(currentUser, owner, isEdited: false, seeEdit: false);
+            }
+
+            [Theory]
+            [MemberData(nameof(EditedPackageOwners))]
+            public Task GivenAnOwnedValidPackageWithEditsItDisplaysEditedMetadata(User currentUser, User owner)
+            {
+                return CheckValidPackageWithEdits(currentUser, owner, isEdited: true, seeEdit: true);
+            }
+
+            [Theory]
+            [MemberData(nameof(EditedPackageNonOwners))]
+            public Task GivenAnUnownedValidPackageWithNoEditsItDisplaysCurrentMetadata(User currentUser, User owner)
+            {
+                return CheckValidPackageWithEdits(currentUser, owner, isEdited: false, seeEdit: false);
+            }
+
+            [Theory]
+            [MemberData(nameof(EditedPackageNonOwners))]
+            public Task GivenAnUnownedValidPackageWithEditsItDisplaysEditedMetadata(User currentUser, User owner)
+            {
+                return CheckValidPackageWithEdits(currentUser, owner, isEdited: true, seeEdit: false);
+            }
+
+            private async Task CheckValidPackageWithEdits(User currentUser, User owner, bool isEdited, bool seeEdit)
             {
                 // Arrange
                 var packageService = new Mock<IPackageService>();
@@ -459,29 +514,30 @@ namespace NuGetGallery
                     editPackageService: editPackageService,
                     indexingService: indexingService,
                     httpContext: httpContext);
-                controller.SetCurrentUser(TestUtility.FakeUser);
+                controller.SetCurrentUser(currentUser);
                 httpContext.Setup(c => c.Response.Cache).Returns(httpCachePolicy.Object);
+                var uneditedTitle = "A test package!";
                 var package = new Package()
                 {
                     PackageRegistration = new PackageRegistration()
                     {
                         Id = "Foo",
-                        Owners = new List<User>() { TestUtility.FakeUser }
+                        Owners = new List<User>() { owner }
                     },
                     Version = "01.1.01",
                     NormalizedVersion = "1.1.1",
-                    Title = "A test package!"
+                    Title = uneditedTitle
                 };
 
                 packageService
                     .Setup(p => p.FindPackageByIdAndVersion("Foo", "1.1.1", SemVerLevelKey.SemVer2, true))
                     .Returns(package);
+
+                var editedTitle = "A modified package!";
+                var packageEdit = isEdited ? new PackageEdit { Title = editedTitle } : null;
                 editPackageService
                     .Setup(e => e.GetPendingMetadata(package))
-                    .Returns(new PackageEdit()
-                    {
-                        Title = "A modified package!"
-                    });
+                    .Returns(packageEdit);
 
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
 
@@ -492,7 +548,7 @@ namespace NuGetGallery
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal("Foo", model.Id);
                 Assert.Equal("1.1.1", model.Version);
-                Assert.Equal("A modified package!", model.Title);
+                Assert.Equal(seeEdit ? editedTitle : uneditedTitle, model.Title);
             }
 
             [Fact]
@@ -753,7 +809,7 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [MemberData("TheOwnershipRequestMethods_Data")]
+            [MemberData(nameof(TheOwnershipRequestMethods_Data))]
             public async Task WithEmptyTokenReturnsHttpNotFound(InvokeOwnershipRequest invokeOwnershipRequest)
             {
                 // Arrange
@@ -772,7 +828,7 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [MemberData("TheOwnershipRequestMethods_Data")]
+            [MemberData(nameof(TheOwnershipRequestMethods_Data))]
             public async Task WithIdentityNotMatchingUserInRequestReturnsNotYourRequest(InvokeOwnershipRequest invokeOwnershipRequest)
             {
                 // Arrange
@@ -795,15 +851,23 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [MemberData("TheOwnershipRequestMethods_Data")]
-            public async Task WithOrganizationCollaboratorReturnsNotYourRequest(InvokeOwnershipRequest invokeOwnershipRequest)
+            [MemberData(nameof(TheOwnershipRequestMethods_Data))]
+            public Task WithSiteAdminReturnsNotYourRequest(InvokeOwnershipRequest invokeOwnershipRequest)
+            {
+                return ReturnsNotYourRequest(TestUtility.FakeAdminUser, TestUtility.FakeUser, invokeOwnershipRequest);
+            }
+
+            [Theory]
+            [MemberData(nameof(TheOwnershipRequestMethods_Data))]
+            public Task WithOrganizationCollaboratorReturnsNotYourRequest(InvokeOwnershipRequest invokeOwnershipRequest)
+            {
+                return ReturnsNotYourRequest(TestUtility.FakeOrganizationCollaborator, TestUtility.FakeOrganization, invokeOwnershipRequest);
+            }
+
+            private async Task ReturnsNotYourRequest(User currentUser, User owner, InvokeOwnershipRequest invokeOwnershipRequest)
             {
                 // Arrange
                 var package = new PackageRegistration { Id = "foo" };
-
-                var currentUser = new User { Username = "username", Key = _key++ };
-
-                var organization = new Organization { Key = _key++, Username = "organization", Members = new[] { new Membership { Member = currentUser, IsAdmin = false } } };
 
                 var mockHttpContext = new Mock<HttpContextBase>();
 
@@ -811,7 +875,7 @@ namespace NuGetGallery
                 packageService.Setup(p => p.FindPackageRegistrationById(package.Id)).Returns(package);
 
                 var userService = new Mock<IUserService>();
-                userService.Setup(x => x.FindByUsername(organization.Username)).Returns(organization);
+                userService.Setup(x => x.FindByUsername(owner.Username)).Returns(owner);
 
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -822,16 +886,16 @@ namespace NuGetGallery
                 TestUtility.SetupHttpContextMockForUrlGeneration(mockHttpContext, controller);
 
                 // Act
-                var result = await invokeOwnershipRequest(controller, package.Id, organization.Username, "token");
+                var result = await invokeOwnershipRequest(controller, package.Id, owner.Username, "token");
 
                 // Assert
                 var model = ResultAssert.IsView<PackageOwnerConfirmationModel>(result, "ConfirmOwner");
                 Assert.Equal(ConfirmOwnershipResult.NotYourRequest, model.Result);
-                Assert.Equal(organization.Username, model.Username);
+                Assert.Equal(owner.Username, model.Username);
             }
 
             [Theory]
-            [MemberData("TheOwnershipRequestMethods_Data")]
+            [MemberData(nameof(TheOwnershipRequestMethods_Data))]
             public async Task WithNonExistentPackageIdReturnsHttpNotFound(InvokeOwnershipRequest invokeOwnershipRequest)
             {
                 // Arrange
@@ -851,7 +915,7 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [MemberData("TheOwnershipRequestMethods_Data")]
+            [MemberData(nameof(TheOwnershipRequestMethods_Data))]
             public async Task WithOwnerReturnsAlreadyOwnerResult(InvokeOwnershipRequest invokeOwnershipRequest)
             {
                 // Arrange
@@ -1366,18 +1430,18 @@ namespace NuGetGallery
         public class TheDeleteMethod
             : TestContainer
         {
-            [Fact]
-            public void DisplaysFullVersionStringAndUsesNormalizedVersionsInUrlsInSelectList()
-            {
-                // Arrange
-                var user = new User("Frodo") { Key = 1 };
-                var packageRegistration = new PackageRegistration { Id = "Foo" };
-                packageRegistration.Owners.Add(user);
+            private string _packageId = "CrestedGecko";
+            private PackageRegistration _packageRegistration;
+            private Package _package;
 
-                var package = new Package
+            public TheDeleteMethod()
+            {
+                _packageRegistration = new PackageRegistration { Id = _packageId };
+
+                _package = new Package
                 {
                     Key = 2,
-                    PackageRegistration = packageRegistration,
+                    PackageRegistration = _packageRegistration,
                     Version = "1.0.0+metadata",
                     Listed = true,
                     IsLatestSemVer2 = true,
@@ -1386,7 +1450,7 @@ namespace NuGetGallery
                 var olderPackageVersion = new Package
                 {
                     Key = 1,
-                    PackageRegistration = packageRegistration,
+                    PackageRegistration = _packageRegistration,
                     Version = "1.0.0-alpha",
                     IsLatest = true,
                     IsLatestSemVer2 = true,
@@ -1394,36 +1458,84 @@ namespace NuGetGallery
                     HasReadMe = false
                 };
 
-                packageRegistration.Packages.Add(package);
-                packageRegistration.Packages.Add(olderPackageVersion);
+                _packageRegistration.Packages.Add(_package);
+                _packageRegistration.Packages.Add(olderPackageVersion);
+            }
 
-                var packageDelete = new PackageDelete
-                {
-                    DeletedBy = user,
-                    DeletedByKey = user.Key,
-                    Packages = new[] { package },
-                    Reason = "Other",
-                    Signature = "John Doe"
-                };
+            [Fact]
+            public void Returns404IfPackageNotFound()
+            {
+                var controller = CreateController(GetConfigurationService());
 
-                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
-                packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0.0", SemVerLevelKey.Unknown, true))
-                    .Returns(package).Verifiable();
+                var result = controller.Delete(_packageRegistration.Id, _package.Version);
                 
-                var controller = CreateController(
-                    GetConfigurationService(),
-                    packageService: packageService);
-                controller.SetCurrentUser(user);
+                Assert.IsType<HttpNotFoundResult>(result);
+            }
 
-                var routeCollection = new RouteCollection();
-                Routes.RegisterRoutes(routeCollection);
-                controller.Url = new UrlHelper(controller.ControllerContext.RequestContext, routeCollection);
+            public static IEnumerable<object[]> NotOwner_Data
+            {
+                get
+                {
+                    yield return new object[]
+                    {
+                        null,
+                        TestUtility.FakeUser
+                    };
 
-                // Act
-                var result = controller.Delete("Foo", "1.0.0");
+                    yield return new object[]
+                    {
+                        TestUtility.FakeUser,
+                        new User { Key = 5535 }
+                    };
+                }
+            }
 
-                // Assert
-                packageService.Verify();
+            [Theory]
+            [MemberData(nameof(NotOwner_Data))]
+            public void Returns401IfNotOwner(User currentUser, User owner)
+            {
+                var result = GetDeleteResult(currentUser, owner, out var controller);
+                
+                Assert.IsType<HttpStatusCodeResult>(result);
+                var httpStatusCodeResult = result as HttpStatusCodeResult;
+                Assert.Equal(401, httpStatusCodeResult.StatusCode);
+            }
+
+            public static IEnumerable<object[]> Owner_Data
+            {
+                get
+                {
+                    yield return new object[]
+                    {
+                        TestUtility.FakeUser,
+                        TestUtility.FakeUser
+                    };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeAdminUser,
+                        TestUtility.FakeUser
+                    };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeOrganizationAdmin,
+                        TestUtility.FakeOrganization
+                    };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeOrganizationCollaborator,
+                        TestUtility.FakeOrganization
+                    };
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public void DisplaysFullVersionStringAndUsesNormalizedVersionsInUrlsInSelectList(User currentUser, User owner)
+            {
+                var result = GetDeleteResult(currentUser, owner, out var controller);
 
                 Assert.IsType<ViewResult>(result);
                 var model = ((ViewResult)result).Model as DeletePackageViewModel;
@@ -1431,9 +1543,9 @@ namespace NuGetGallery
                 Assert.False(model.IsLocked);
 
                 // Verify version select list
-                Assert.Equal(packageRegistration.Packages.Count, model.VersionSelectList.Count());
+                Assert.Equal(_packageRegistration.Packages.Count, model.VersionSelectList.Count());
 
-                foreach (var pkg in packageRegistration.Packages)
+                foreach (var pkg in _packageRegistration.Packages)
                 {
                     var valueField = UrlExtensions.DeletePackage(controller.Url, model);
                     var textField = model.NuGetVersion.ToFullString() + (pkg.IsLatestSemVer2 ? " (Latest)" : string.Empty);
@@ -1476,12 +1588,55 @@ namespace NuGetGallery
                 var model = ResultAssert.IsView<DeletePackageViewModel>(result);
                 Assert.True(model.IsLocked);
             }
+
+            private ActionResult GetDeleteResult(User currentUser, User owner, out PackagesController controller)
+            {
+                _packageRegistration.Owners.Add(owner);
+
+                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+                packageService.Setup(svc => svc.FindPackageByIdAndVersion(_packageId, _package.Version, SemVerLevelKey.Unknown, true))
+                    .Returns(_package).Verifiable();
+
+                controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService);
+                controller.SetCurrentUser(currentUser);
+
+                var routeCollection = new RouteCollection();
+                Routes.RegisterRoutes(routeCollection);
+                controller.Url = new UrlHelper(controller.ControllerContext.RequestContext, routeCollection);
+                
+                var result = controller.Delete(_packageId, _package.Version);
+                
+                packageService.Verify();
+
+                return result;
+            }
         }
 
         public class TheUpdateListedMethod : TestContainer
         {
-            [Fact]
-            public async Task UpdatesUnlistedIfSelected()
+            public static IEnumerable<object[]> NotOwner_Data
+            {
+                get
+                {
+                    yield return new object[]
+                    {
+                        null,
+                        TestUtility.FakeUser
+                    };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeUser,
+                        new User { Key = 5535 }
+                    };
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(NotOwner_Data))]
+            public async Task Returns401IfNotOwner(User currentUser, User owner)
             {
                 // Arrange
                 var package = new Package
@@ -1490,7 +1645,70 @@ namespace NuGetGallery
                     Version = "1.0",
                     Listed = true
                 };
-                package.PackageRegistration.Owners.Add(new User("Frodo"));
+                package.PackageRegistration.Owners.Add(owner);
+
+                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+                packageService.Setup(svc => svc.FindPackageByIdAndVersionStrict("Foo", "1.0"))
+                    .Returns(package);
+                // Note: this Mock must be strict because it guarantees that MarkPackageListedAsync is not called!
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService);
+                controller.SetCurrentUser(currentUser);
+                controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
+
+                // Act
+                var result = await controller.Edit("Foo", "1.0", listed: false, urlFactory: (pkg, relativeUrl) => @"~\Bar.cshtml");
+
+                // Assert
+                Assert.IsType<HttpStatusCodeResult>(result);
+                var httpStatusCodeResult = result as HttpStatusCodeResult;
+                Assert.Equal(401, httpStatusCodeResult.StatusCode);
+            }
+
+            public static IEnumerable<object[]> Owner_Data
+            {
+                get
+                {
+                    yield return new object[]
+                    {
+                        TestUtility.FakeUser,
+                        TestUtility.FakeUser
+                    };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeAdminUser,
+                        TestUtility.FakeUser
+                    };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeOrganizationAdmin,
+                        TestUtility.FakeOrganization
+                    };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeOrganizationCollaborator,
+                        TestUtility.FakeOrganization
+                    };
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public async Task UpdatesUnlistedIfSelected(User currentUser, User owner)
+            {
+                // Arrange
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = "Foo" },
+                    Version = "1.0",
+                    Listed = true
+                };
+                package.PackageRegistration.Owners.Add(owner);
 
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
                 packageService.Setup(svc => svc.MarkPackageListedAsync(It.IsAny<Package>(), It.IsAny<bool>()))
@@ -1506,7 +1724,7 @@ namespace NuGetGallery
                     GetConfigurationService(),
                     packageService: packageService,
                     indexingService: indexingService);
-                controller.SetCurrentUser(new User("Frodo"));
+                controller.SetCurrentUser(currentUser);
                 controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
 
                 // Act
@@ -1519,8 +1737,9 @@ namespace NuGetGallery
                 Assert.Equal(@"~\Bar.cshtml", ((RedirectResult)result).Url);
             }
 
-            [Fact]
-            public async Task UpdatesUnlistedIfNotSelected()
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public async Task UpdatesUnlistedIfNotSelected(User currentUser, User owner)
             {
                 // Arrange
                 var package = new Package
@@ -1529,7 +1748,7 @@ namespace NuGetGallery
                     Version = "1.0",
                     Listed = true
                 };
-                package.PackageRegistration.Owners.Add(new User("Frodo"));
+                package.PackageRegistration.Owners.Add(owner);
 
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
                 packageService.Setup(svc => svc.MarkPackageListedAsync(It.IsAny<Package>(), It.IsAny<bool>()))
@@ -1545,7 +1764,7 @@ namespace NuGetGallery
                     GetConfigurationService(),
                     packageService: packageService,
                     indexingService: indexingService);
-                controller.SetCurrentUser(new User("Frodo"));
+                controller.SetCurrentUser(currentUser);
                 controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
 
                 // Act
@@ -1590,16 +1809,142 @@ namespace NuGetGallery
             }
         }
 
-        public class TheEditGetMethod
+        public class TheEditMethods
             : TestContainer
         {
-            [Fact]
-            public async Task UsesNormalizedVersionsInUrlsInSelectList()
+            public static IEnumerable<object[]> Owner_Data
+            {
+                get
+                {
+                    yield return new object[]
+                    {
+                        TestUtility.FakeUser,
+                        TestUtility.FakeUser
+                    };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeAdminUser,
+                        TestUtility.FakeUser
+                    };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeOrganizationAdmin,
+                        TestUtility.FakeOrganization
+                    };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeOrganizationCollaborator,
+                        TestUtility.FakeOrganization
+                    };
+                }
+            }
+
+            public static IEnumerable<object[]> NotOwner_Data
+            {
+                get
+                {
+                    yield return new object[]
+                    {
+                        null,
+                        TestUtility.FakeUser
+                    };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeUser,
+                        new User { Key = 5535 }
+                    };
+                }
+            }
+
+            protected PackagesController SetupController(
+                User currentUser,
+                User owner,
+                bool hasReadMe = false,
+                bool isPackageLocked = false,
+                PackageEdit packageEdit = null,
+                Mock<IPackageFileService> packageFileService = null)
+            {
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = "packageId", IsLocked = isPackageLocked },
+                    Version = "1.0",
+                    Listed = true,
+                    HasReadMe = hasReadMe,
+                };
+                package.PackageRegistration.Owners.Add(owner);
+
+                var packageService = new Mock<IPackageService>();
+                packageService.Setup(s => s.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<bool>()))
+                    .Returns(package);
+                packageService.Setup(s => s.FindPackageRegistrationById(It.IsAny<string>()))
+                    .Returns(package.PackageRegistration);
+
+                var editPackageService = new Mock<EditPackageService>();                    
+                editPackageService.Setup(s => s.GetPendingMetadata(It.IsAny<Package>()))
+                    .Returns(packageEdit);
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    editPackageService: editPackageService,
+                    packageFileService: packageFileService);
+                controller.SetCurrentUser(currentUser);
+
+                var routeCollection = new RouteCollection();
+                Routes.RegisterRoutes(routeCollection);
+                controller.Url = new UrlHelper(controller.ControllerContext.RequestContext, routeCollection);
+
+                return controller;
+            }
+        }
+
+        public class TheEditGetMethod
+            : TheEditMethods
+        {
+            [Theory]
+            [MemberData(nameof(NotOwner_Data))]
+            public async Task Returns403IfNotOwner(User currentUser, User owner)
             {
                 // Arrange
-                var user = new User("Frodo") { Key = 1 };
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = "Foo" },
+                    Version = "1.0",
+                    Listed = true
+                };
+                package.PackageRegistration.Owners.Add(owner);
+
+                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+                packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0", null, true))
+                    .Returns(package);
+                // Note: this Mock must be strict because it guarantees that MarkPackageListedAsync is not called!
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService);
+                controller.SetCurrentUser(currentUser);
+                controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
+
+                // Act
+                var result = await controller.Edit("Foo", "1.0");
+
+                // Assert
+                Assert.IsType<HttpStatusCodeResult>(result);
+                var httpStatusCodeResult = result as HttpStatusCodeResult;
+                Assert.Equal(403, httpStatusCodeResult.StatusCode);
+            }
+
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public async Task UsesNormalizedVersionsInUrlsInSelectList(User currentUser, User owner)
+            {
+                // Arrange
                 var packageRegistration = new PackageRegistration { Id = "Foo" };
-                packageRegistration.Owners.Add(user);
+                packageRegistration.Owners.Add(owner);
 
                 var package = new Package
                 {
@@ -1628,8 +1973,8 @@ namespace NuGetGallery
                 {
                     PackageKey = package.Key,
                     Package = package,
-                    User = user,
-                    UserKey = user.Key
+                    User = currentUser,
+                    UserKey = currentUser.Key
                 };
 
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
@@ -1644,7 +1989,7 @@ namespace NuGetGallery
                     GetConfigurationService(),
                     packageService: packageService,
                     editPackageService: editPackageService);
-                controller.SetCurrentUser(user);
+                controller.SetCurrentUser(currentUser);
 
                 var routeCollection = new RouteCollection();
                 Routes.RegisterRoutes(routeCollection);
@@ -1678,10 +2023,23 @@ namespace NuGetGallery
                 }
             }
 
+            public static IEnumerable<object[]> WhenReadMeEditPending_ReturnsPending_Data
+            {
+                get
+                {
+                    foreach (var ownerData in Owner_Data)
+                    {
+                        foreach (var readMeState in new[] { PackageEditReadMeState.Changed, PackageEditReadMeState.Deleted })
+                        {
+                            yield return ownerData.Concat(new object[] { readMeState }).ToArray();
+                        }
+                    }
+                }
+            }
+
             [Theory]
-            [InlineData(PackageEditReadMeState.Changed)]
-            [InlineData(PackageEditReadMeState.Deleted)]
-            public async Task WhenReadMeEditPending_ReturnsPending(PackageEditReadMeState readMeState)
+            [MemberData(nameof(WhenReadMeEditPending_ReturnsPending_Data))]
+            public async Task WhenReadMeEditPending_ReturnsPending(User currentUser, User owner, PackageEditReadMeState readMeState)
             {
                 // Arrange
                 var packageEdit = new PackageEdit { ReadMeState = readMeState };
@@ -1691,7 +2049,7 @@ namespace NuGetGallery
                     .Returns(Task.FromResult("markdown"))
                     .Verifiable();
 
-                var controller = SetupController(packageEdit: packageEdit, packageFileService: packageFileService);
+                var controller = SetupController(currentUser, owner, packageEdit: packageEdit, packageFileService: packageFileService);
 
                 // Act.
                 var result = await controller.Edit("packageId", "1.0");
@@ -1707,8 +2065,9 @@ namespace NuGetGallery
                 packageFileService.Verify(s => s.DownloadReadMeMdFileAsync(It.IsAny<Package>(), false), Times.Never);
             }
 
-            [Fact]
-            public async Task WhenNoReadMeEditPending_ReturnsActive()
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public async Task WhenNoReadMeEditPending_ReturnsActive(User currentUser, User owner)
             {
                 // Arrange
                 var packageFileService = new Mock<IPackageFileService>();
@@ -1716,7 +2075,7 @@ namespace NuGetGallery
                     .Returns(Task.FromResult("markdown"))
                     .Verifiable();
 
-                var controller = SetupController(hasReadMe: true, packageFileService: packageFileService);
+                var controller = SetupController(currentUser, owner, hasReadMe: true, packageFileService: packageFileService);
 
                 // Act.
                 var result = await controller.Edit("packageId", "1.0");
@@ -1732,8 +2091,9 @@ namespace NuGetGallery
                 packageFileService.Verify(s => s.DownloadReadMeMdFileAsync(It.IsAny<Package>(), true), Times.Never);
             }
 
-            [Fact]
-            public async Task WhenNoReadMe_ReturnsNull()
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public async Task WhenNoReadMe_ReturnsNull(User currentUser, User owner)
             {
                 // Arrange
                 var packageFileService = new Mock<IPackageFileService>();
@@ -1741,7 +2101,7 @@ namespace NuGetGallery
                     .Returns(Task.FromResult("markdown"))
                     .Verifiable();
 
-                var controller = SetupController(packageFileService: packageFileService);
+                var controller = SetupController(currentUser, owner, packageFileService: packageFileService);
 
                 // Act.
                 var result = await controller.Edit("packageId", "1.0");
@@ -1756,16 +2116,16 @@ namespace NuGetGallery
                 packageFileService.Verify(s => s.DownloadReadMeMdFileAsync(It.IsAny<Package>(), It.IsAny<bool>()), Times.Never);
             }
 
-            [Fact]
-            public async Task WhenPackageIsNotFoundReturns404()
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            [MemberData(nameof(NotOwner_Data))]
+            public async Task WhenPackageIsNotFoundReturns404(User currentUser, User owner)
             {
                 // Arrange
-                var user = new User("Frodo") { Key = 1 };
-                
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
                 packageService.Setup(svc => svc.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<bool>()))
                               .Returns<Package>(null);
-                
+
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService);
@@ -1777,54 +2137,15 @@ namespace NuGetGallery
                 Assert.IsType<HttpNotFoundResult>(result);
             }
 
-            [Fact]
-            public async Task WhenUserHasNoPermissionsToEditPackageReturns403()
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public async Task WhenPackageRegistrationIsLocked_ReturnsLocked(User currentUser, User owner)
             {
                 // Arrange
-                var user = new User("Frodo") { Key = 1 };
-                var packageRegistration = new PackageRegistration { Id = "Foo" };
-
-                var package = new Package
-                {
-                    Key = 2,
-                    PackageRegistration = packageRegistration,
-                    Version = "1.0.0+metadata",
-                    Listed = true,
-                    IsLatestSemVer2 = true,
-                    HasReadMe = false
-                };
-
-                packageRegistration.Packages.Add(package);
-
-                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
-                packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0.0", SemVerLevelKey.Unknown, true))
-                    .Returns(package).Verifiable();
-
-                var controller = CreateController(
-                    GetConfigurationService(),
-                    packageService: packageService);
-                controller.SetCurrentUser(user);
+                var controller = SetupController(currentUser, owner, isPackageLocked: true);
 
                 // Act
-                var result = await controller.Edit("Foo", "1.0.0");
-
-                // Assert
-                packageService.Verify();
-
-                Assert.IsType<HttpStatusCodeResult>(result);
-                Assert.Equal((int)HttpStatusCode.Forbidden, (result as HttpStatusCodeResult).StatusCode);
-            }
-
-            [Fact]
-            public async Task WhenPackageRegistrationIsLocked_ReturnsLocked()
-            {
-                // Arrange
-                var packageRegistration = new PackageRegistration { Id = "Foo", IsLocked = true };
-
-                var controller = SetupController(packageRegistration: packageRegistration);
-
-                // Act
-                var result = await controller.Edit("Foo", "1.0.0");
+                var result = await controller.Edit("packageId", "1.0.0");
 
                 // Assert
                 var model = ResultAssert.IsView<EditPackageRequest>(result);
@@ -1833,50 +2154,60 @@ namespace NuGetGallery
                 Assert.Null(model.VersionSelectList);
                 Assert.Null(model.Edit);
             }
+        }
 
-            private PackagesController SetupController(bool hasReadMe = false, PackageEdit packageEdit = null,
-                Mock<IPackageFileService> packageFileService = null, PackageRegistration packageRegistration = null)
+        public class TheEditPostMethod : TheEditMethods
+        {
+            public static IEnumerable<object[]> OnPostBackWithReadMe_SavesPending_Data
             {
+                get
+                {
+                    foreach (var ownerData in Owner_Data)
+                    {
+                        foreach (var hasReadMe in new[] { false, true })
+                        {
+                            yield return ownerData.Concat(new object[] { hasReadMe }).ToArray();
+                        }
+                    }
+                }
+            }
+            
+            [Theory]
+            [MemberData(nameof(NotOwner_Data))]
+            public async Task Returns401IfNotOwner(User currentUser, User owner)
+            {
+                // Arrange
                 var package = new Package
                 {
-                    PackageRegistration = packageRegistration ?? new PackageRegistration { Id = "packageId" },
+                    PackageRegistration = new PackageRegistration { Id = "Foo" },
                     Version = "1.0",
-                    Listed = true,
-                    HasReadMe = hasReadMe
+                    Listed = true
                 };
-                package.PackageRegistration.Owners.Add(new User("user"));
+                package.PackageRegistration.Owners.Add(owner);
 
-                var packageService = new Mock<IPackageService>();
-                packageService.Setup(s => s.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<bool>()))
+                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+                packageService.Setup(svc => svc.FindPackageByIdAndVersionStrict("Foo", "1.0"))
                     .Returns(package);
-                packageService.Setup(s => s.FindPackageRegistrationById(It.IsAny<string>()))
-                    .Returns(package.PackageRegistration);
-
-                var editPackageService = new Mock<EditPackageService>();
-                editPackageService.Setup(s => s.GetPendingMetadata(It.IsAny<Package>()))
-                    .Returns(packageEdit);
+                // Note: this Mock must be strict because it guarantees that MarkPackageListedAsync is not called!
 
                 var controller = CreateController(
                     GetConfigurationService(),
-                    packageService: packageService,
-                    editPackageService: editPackageService,
-                    packageFileService: packageFileService);
-                controller.SetCurrentUser(new User("user"));
+                    packageService: packageService);
+                controller.SetCurrentUser(currentUser);
+                controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
 
-                var routeCollection = new RouteCollection();
-                Routes.RegisterRoutes(routeCollection);
-                controller.Url = new UrlHelper(controller.ControllerContext.RequestContext, routeCollection);
+                // Act
+                var result = await controller.Edit("Foo", "1.0", listed: false, urlFactory: (pkg, relativeUrl) => @"~\Bar.cshtml");
 
-                return controller;
+                // Assert
+                Assert.IsType<HttpStatusCodeResult>(result);
+                var httpStatusCodeResult = result as HttpStatusCodeResult;
+                Assert.Equal(401, httpStatusCodeResult.StatusCode);
             }
-        }
 
-        public class TheEditPostMethod : TestContainer
-        {
             [Theory]
-            [InlineData(true)]
-            [InlineData(false)]
-            public async Task OnPostBackWithReadMe_SavesPending(bool hasReadMe)
+            [MemberData(nameof(OnPostBackWithReadMe_SavesPending_Data))]
+            public async Task OnPostBackWithReadMe_SavesPending(User currentUser, User owner, bool hasReadMe)
             {
                 // Arrange
                 var packageFileService = new Mock<IPackageFileService>();
@@ -1887,7 +2218,7 @@ namespace NuGetGallery
                     .Returns(Task.CompletedTask)
                     .Verifiable();
 
-                var controller = SetupController(hasReadMe: hasReadMe, packageFileService: packageFileService);
+                var controller = SetupController(currentUser, owner, hasReadMe: hasReadMe, packageFileService: packageFileService);
 
                 var formData = new VerifyPackageRequest
                 {
@@ -1912,8 +2243,9 @@ namespace NuGetGallery
                 packageFileService.Verify(s => s.DownloadReadMeMdFileAsync(It.IsAny<Package>(), true), Times.Never);
             }
 
-            [Fact]
-            public async Task OnPostBackWithNoReadMe_DeletesPending()
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public async Task OnPostBackWithNoReadMe_DeletesPending(User currentUser, User owner)
             {
                 // Arrange
                 var packageFileService = new Mock<IPackageFileService>();
@@ -1924,7 +2256,7 @@ namespace NuGetGallery
                     .Returns(Task.CompletedTask)
                     .Verifiable();
 
-                var controller = SetupController(hasReadMe: true, packageFileService: packageFileService);
+                var controller = SetupController(currentUser, owner, hasReadMe: true, packageFileService: packageFileService);
 
                 var formData = new VerifyPackageRequest
                 {
@@ -1942,50 +2274,19 @@ namespace NuGetGallery
                 packageFileService.Verify(s => s.DownloadReadMeMdFileAsync(It.IsAny<Package>(), true), Times.Never);
             }
 
-            [Fact]
-            public async Task WhenPackageRegistrationIsLockedReturns403()
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public async Task WhenPackageRegistrationIsLockedReturns403(User currentUser, User owner)
             {
                 // Arrange
-                var packageRegistration = new PackageRegistration { Id = "Foo", IsLocked = true };
-
-                var controller = SetupController(packageRegistration: packageRegistration);
+                var controller = SetupController(currentUser, owner, isPackageLocked: true);
 
                 // Act
-                var result = await controller.Edit("Foo", "1.0.0", new VerifyPackageRequest(), string.Empty);
+                var result = await controller.Edit("packageId", "1.0.0", new VerifyPackageRequest(), string.Empty);
 
                 // Assert
                 Assert.IsType<JsonResult>(result);
                 Assert.Equal(403, controller.Response.StatusCode);
-            }
-
-            private PackagesController SetupController(bool hasReadMe = false, Mock<IPackageFileService> packageFileService = null, PackageRegistration packageRegistration = null)
-            {
-                var package = new Package
-                {
-                    PackageRegistration = packageRegistration ?? new PackageRegistration { Id = "packageId" },
-                    Version = "1.0",
-                    Listed = true,
-                    HasReadMe = hasReadMe
-                };
-                package.PackageRegistration.Owners.Add(new User("user"));
-
-                var packageService = new Mock<IPackageService>();
-                packageService.Setup(s => s.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<bool>()))
-                    .Returns(package);
-                packageService.Setup(s => s.FindPackageRegistrationById(It.IsAny<string>()))
-                    .Returns(package.PackageRegistration);
-
-                var controller = CreateController(
-                    GetConfigurationService(),
-                    packageService: packageService,
-                    packageFileService: packageFileService);
-                controller.SetCurrentUser(new User("user"));
-
-                var routeCollection = new RouteCollection();
-                Routes.RegisterRoutes(routeCollection);
-                controller.Url = new UrlHelper(controller.ControllerContext.RequestContext, routeCollection);
-
-                return controller;
             }
         }
 
@@ -2048,156 +2349,311 @@ namespace NuGetGallery
             }
         }
 
+        public class TheManagePackageOwnersMethod
+            : TestContainer
+        {
+            private string _packageId = "CrestedGecko";
+            private string _packageVersion = "3.4.2";
+
+            private Package _package;
+
+            public TheManagePackageOwnersMethod()
+            {
+                _package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = _packageId },
+                    Version = _packageVersion
+                };
+            }
+
+            public static IEnumerable<object[]> NotOwner_Data
+            {
+                get
+                {
+                    yield return new object[]
+                    {
+                        null,
+                        TestUtility.FakeUser
+                    };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeUser,
+                        new User { Key = 1553 }
+                    };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeOrganizationCollaborator,
+                        TestUtility.FakeOrganization
+                    };
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(NotOwner_Data))]
+            public void Returns401IfNotOwner(User currentUser, User owner)
+            {
+                var result = GetManagePackageOwnersResult(currentUser, owner);
+
+                Assert.IsType<HttpStatusCodeResult>(result);
+                var httpStatusCodeResult = result as HttpStatusCodeResult;
+                Assert.Equal(401, httpStatusCodeResult.StatusCode);
+            }
+
+            public static IEnumerable<object[]> Owner_Data
+            {
+                get
+                {
+                    yield return new object[]
+                    {
+                        TestUtility.FakeUser,
+                        TestUtility.FakeUser,
+                        false
+                    };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeAdminUser,
+                        TestUtility.FakeUser,
+                        true
+                    };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeOrganizationAdmin,
+                        TestUtility.FakeOrganization,
+                        false
+                    };
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public void ShowsPageIfOwner(User currentUser, User owner, bool isSiteAdmin)
+            {
+                var result = GetManagePackageOwnersResult(currentUser, owner);
+
+                Assert.IsType<ViewResult>(result);
+                var viewResult = result as ViewResult;
+
+                Assert.IsType<ManagePackageOwnersViewModel>(viewResult.Model);
+                var model = viewResult.Model as ManagePackageOwnersViewModel;
+                Assert.Equal(_packageId, model.Id);
+                Assert.Equal(_packageVersion, model.Version);
+                Assert.Equal(isSiteAdmin, model.IsCurrentUserAnAdmin);
+            }
+
+            private ActionResult GetManagePackageOwnersResult(User currentUser, User owner)
+            {
+                _package.PackageRegistration.Owners = new[] { owner };
+
+                var packageService = new Mock<IPackageService>();
+                packageService
+                    .Setup(p => p.FindPackageByIdAndVersion(_packageId, string.Empty, null, true))
+                    .Returns(_package);
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService);
+                controller.SetCurrentUser(currentUser);
+
+                return controller.ManagePackageOwners(_packageId);
+            }
+        }
+
         public class TheReportAbuseMethod
             : TestContainer
         {
-            [Fact]
-            public async Task SendsMessageToGalleryOwnerWithEmailOnlyWhenUnauthenticated()
+            public static string PackageId = "gollum";
+            public static string PackageVersion = "2.0.1";
+            public static string UnencodedMessage = "Gollum took my <b>finger</bold>";
+            public static string EncodedMessage = "Gollum took my &lt;b&gt;finger&lt;/bold&gt;";
+            public static string ReporterEmailAddress = "frodo@hobbiton.example.com";
+            public static string Signature = "Frodo";
+            public static User Owner = new User { Key = 313, Username = "Gollum", EmailAddress = "gollum@mordor.com" };
+
+            public static IEnumerable<object[]> NotOwner_Data
             {
-                var messageService = new Mock<IMessageService>();
-                messageService.Setup(
-                    s => s.ReportAbuse(It.Is<ReportPackageRequest>(r => r.Message == "Mordor took my finger")));
-                var package = new Package
+                get
                 {
-                    PackageRegistration = new PackageRegistration { Id = "mordor" },
-                    Version = "2.0.1"
-                };
-                var packageService = new Mock<IPackageService>();
-                packageService.Setup(p => p.FindPackageByIdAndVersionStrict("mordor", "2.0.1")).Returns(package);
-                var httpContext = new Mock<HttpContextBase>();
-                var controller = CreateController(
-                    GetConfigurationService(),
-                    packageService: packageService,
-                    messageService: messageService,
-                    httpContext: httpContext);
-                var model = new ReportAbuseViewModel
-                {
-                    Email = "frodo@hobbiton.example.com",
-                    Message = "Mordor took my finger.",
-                    Reason = ReportPackageReason.ViolatesALicenseIOwn,
-                    AlreadyContactedOwner = true,
-                    Signature = "Frodo"
-                };
+                    yield return new object[]
+                    {
+                        null,
+                        Owner
+                    };
 
-                TestUtility.SetupUrlHelper(controller, httpContext);
-                var result = await controller.ReportAbuse("mordor", "2.0.1", model) as RedirectResult;
+                    yield return new object[]
+                    {
+                        TestUtility.FakeUser,
+                        Owner
+                    };
 
-                Assert.NotNull(result);
-                messageService.Verify(
-                    s => s.ReportAbuse(
-                        It.Is<ReportPackageRequest>(
-                            r => r.FromAddress.Address == "frodo@hobbiton.example.com"
-                                 && r.Package == package
-                                 && r.Reason == EnumHelper.GetDescription(ReportPackageReason.ViolatesALicenseIOwn)
-                                 && r.Message == "Mordor took my finger."
-                                 && r.AlreadyContactedOwners)));
+                    yield return new object[]
+                    {
+                        TestUtility.FakeAdminUser,
+                        Owner
+                    };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeOrganizationCollaborator,
+                        TestUtility.FakeOrganization
+                    };
+                }
             }
 
-            [Fact]
-            public async Task SendsMessageToGalleryOwnerWithUserInfoWhenAuthenticated()
+            public static IEnumerable<object[]> Owner_Data
             {
-                var messageService = new Mock<IMessageService>();
-                messageService.Setup(
-                    s => s.ReportAbuse(It.Is<ReportPackageRequest>(r => r.Message == "Mordor took my finger")));
-                var user = new User { EmailAddress = "frodo@hobbiton.example.com", Username = "Frodo", Key = 1 };
-                var package = new Package
+                get
                 {
-                    PackageRegistration = new PackageRegistration { Id = "mordor" },
-                    Version = "2.0.1"
-                };
-                var packageService = new Mock<IPackageService>();
-                packageService.Setup(p => p.FindPackageByIdAndVersionStrict("mordor", It.IsAny<string>())).Returns(package);
-                var httpContext = new Mock<HttpContextBase>();
-                var controller = CreateController(
-                    GetConfigurationService(),
-                    packageService: packageService,
-                    messageService: messageService,
-                    httpContext: httpContext);
-                controller.SetCurrentUser(user);
-                var model = new ReportAbuseViewModel
-                {
-                    Message = "Mordor took my finger",
-                    Reason = ReportPackageReason.ViolatesALicenseIOwn,
-                    Signature = "Frodo"
-                };
+                    yield return new object[]
+                    {
+                        TestUtility.FakeUser,
+                        TestUtility.FakeUser
+                    };
 
-                TestUtility.SetupUrlHelper(controller, httpContext);
-                ActionResult result = await controller.ReportAbuse("mordor", "2.0.1", model) as RedirectResult;
-
-                Assert.NotNull(result);
-                messageService.Verify(
-                    s => s.ReportAbuse(
-                        It.Is<ReportPackageRequest>(
-                            r => r.Message == "Mordor took my finger"
-                                 && r.FromAddress.Address == "frodo@hobbiton.example.com"
-                                 && r.FromAddress.DisplayName == "Frodo"
-                                 && r.Reason == EnumHelper.GetDescription(ReportPackageReason.ViolatesALicenseIOwn))));
+                    yield return new object[]
+                    {
+                        TestUtility.FakeOrganizationAdmin,
+                        TestUtility.FakeOrganization
+                    };
+                }
             }
 
-            [Fact]
-            public void FormRedirectsPackageOwnerToReportMyPackage()
+            [Theory]
+            [MemberData(nameof(NotOwner_Data))]
+            public void ShowsFormWhenNotOwner(User currentUser, User owner)
             {
-                var user = new User { EmailAddress = "darklord@mordor.com", Username = "Sauron" };
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration { Id = "Mordor", Owners = { user } },
-                    Version = "2.0.1"
-                };
-                var packageService = new Mock<IPackageService>();
-                packageService.Setup(p => p.FindPackageByIdAndVersionStrict("Mordor", It.IsAny<string>())).Returns(package);
-                var httpContext = new Mock<HttpContextBase>();
-                var controller = CreateController(
-                    GetConfigurationService(),
-                    packageService: packageService,
-                    httpContext: httpContext);
-                controller.SetCurrentUser(user);
+                var result = GetReportAbuseResult(currentUser, owner, out var package);
 
-                TestUtility.SetupUrlHelper(controller, httpContext);
-                ActionResult result = controller.ReportAbuse("Mordor", "2.0.1");
+                Assert.IsType<ViewResult>(result);
+                var viewResult = result as ViewResult;
+
+                Assert.IsType<ReportAbuseViewModel>(viewResult.Model);
+                var model = viewResult.Model as ReportAbuseViewModel;
+
+                Assert.Equal(PackageId, model.PackageId);
+                Assert.Equal(PackageVersion, model.PackageVersion);
+            }
+
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public void RedirectsToReportMyPackageWhenOwner(User currentUser, User owner)
+            {
+                var result = GetReportAbuseResult(currentUser, owner, out var package);
+                
                 Assert.IsType<RedirectToRouteResult>(result);
-                Assert.Equal("ReportMyPackage", ((RedirectToRouteResult)result).RouteValues["Action"]);
+                var redirectResult = result as RedirectToRouteResult;
+                Assert.Equal("ReportMyPackage", redirectResult.RouteValues["Action"]);
+            }
+
+            public ActionResult GetReportAbuseResult(User currentUser, User owner, out Package package)
+            {
+                package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = PackageId, Owners = { owner } },
+                    Version = PackageVersion
+                };
+                var packageService = new Mock<IPackageService>();
+                packageService.Setup(p => p.FindPackageByIdAndVersionStrict(PackageId, PackageVersion)).Returns(package);
+                var httpContext = new Mock<HttpContextBase>();
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    httpContext: httpContext);
+                controller.SetCurrentUser(currentUser);
+                TestUtility.SetupUrlHelper(controller, httpContext);
+
+                return controller.ReportAbuse(PackageId, PackageVersion);
             }
 
             [Fact]
-            public async Task HtmlEncodesMessageContent()
+            public async Task FormSendsMessageToGalleryOwnerWithEmailOnlyWhenUnauthenticated()
             {
-                var messageService = new Mock<IMessageService>();
-                messageService.Setup(
-                    s => s.ReportAbuse(It.Is<ReportPackageRequest>(r => r.Message == "Mordor took my finger")));
-                var package = new Package
+                var result = await GetReportAbuseFormResult(null, Owner, out var package, out var messageService);
+
+                Assert.NotNull(result);
+                messageService.Verify(
+                    s => s.ReportAbuse(
+                        It.Is<ReportPackageRequest>(
+                            r => r.FromAddress.Address == ReporterEmailAddress
+                                 && r.Package == package
+                                 && r.Reason == EnumHelper.GetDescription(ReportPackageReason.ViolatesALicenseIOwn)
+                                 && r.Message == EncodedMessage
+                                 && r.AlreadyContactedOwners)));
+            }
+
+            public static IEnumerable<object[]> FormSendsMessageToGalleryOwnerWithUserInfoWhenAuthenticated_Data
+            {
+                get
                 {
-                    PackageRegistration = new PackageRegistration { Id = "mordor" },
+                    var authenticatedUserTest = new[] 
+                    {
+                        new object[]
+                        {
+                            TestUtility.FakeUser,
+                            Owner
+                        }
+                    };
+
+                    return authenticatedUserTest.Concat(Owner_Data);
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(FormSendsMessageToGalleryOwnerWithUserInfoWhenAuthenticated_Data))]
+            public async Task FormSendsMessageToGalleryOwnerWithUserInfoWhenAuthenticated(User currentUser, User owner)
+            {
+                var result = await GetReportAbuseFormResult(currentUser, owner, package: out var package, messageService: out var messageService);
+
+                Assert.NotNull(result);
+                messageService.Verify(
+                    s => s.ReportAbuse(
+                        It.Is<ReportPackageRequest>(
+                            r => r.Message == EncodedMessage
+                                 && r.FromAddress.Address == currentUser.EmailAddress
+                                 && r.FromAddress.DisplayName == currentUser.Username
+                                 && r.Package == package
+                                 && r.Reason == EnumHelper.GetDescription(ReportPackageReason.ViolatesALicenseIOwn)
+                                 && r.AlreadyContactedOwners)));
+            }
+
+            public Task<ActionResult> GetReportAbuseFormResult(User currentUser, User owner, out Package package, out Mock<IMessageService> messageService)
+            {
+                messageService = new Mock<IMessageService>();
+                messageService.Setup(
+                    s => s.ReportAbuse(It.Is<ReportPackageRequest>(r => r.Message == UnencodedMessage)));
+                package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = PackageId, Owners = new[] { owner } },
                     Version = "2.0.1"
                 };
                 var packageService = new Mock<IPackageService>();
-                packageService.Setup(p => p.FindPackageByIdAndVersionStrict("mordor", "2.0.1")).Returns(package);
+                packageService.Setup(p => p.FindPackageByIdAndVersionStrict(PackageId, PackageVersion)).Returns(package);
                 var httpContext = new Mock<HttpContextBase>();
-                httpContext.Setup(h => h.Request.IsAuthenticated).Returns(false);
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
                     messageService: messageService,
                     httpContext: httpContext);
+                controller.SetCurrentUser(currentUser);
                 var model = new ReportAbuseViewModel
                 {
-                    Email = "frodo@hobbiton.example.com",
-                    Message = "I like the cut of your jib. It's <b>bold</b>.",
+                    Email = ReporterEmailAddress,
+                    Message = UnencodedMessage,
                     Reason = ReportPackageReason.ViolatesALicenseIOwn,
                     AlreadyContactedOwner = true,
-                    Signature = "Frodo"
+                    Signature = Signature
                 };
 
-                TestUtility.SetupUrlHelper(controller, httpContext);
-                await controller.ReportAbuse("mordor", "2.0.1", model);
+                if (currentUser != null)
+                {
+                    model.Email = currentUser.EmailAddress;
+                }
 
-                messageService.Verify(
-                    s => s.ReportAbuse(
-                        It.Is<ReportPackageRequest>(
-                            r => r.FromAddress.Address == "frodo@hobbiton.example.com"
-                                 && r.Package == package
-                                 && r.Reason == EnumHelper.GetDescription(ReportPackageReason.ViolatesALicenseIOwn)
-                                 && r.Message == "I like the cut of your jib. It&#39;s &lt;b&gt;bold&lt;/b&gt;."
-                                 && r.AlreadyContactedOwners)));
+                TestUtility.SetupUrlHelper(controller, httpContext);
+                return controller.ReportAbuse(PackageId, PackageVersion, model);
             }
         }
 
@@ -2205,41 +2661,37 @@ namespace NuGetGallery
             : TestContainer
         {
             private Package _package;
+            private static User _owner = new User { EmailAddress = "frodo@hobbiton.example.com", Username = "Frodo", Key = 2 };
             private ReportMyPackageViewModel _viewModel;
             private Issue _supportRequest;
-            private User _user;
             private Mock<IPackageService> _packageService;
             private Mock<IMessageService> _messageService;
             private Mock<IPackageDeleteService> _packageDeleteService;
             private Mock<ISupportRequestService> _supportRequestService;
             private PackagesController _controller;
 
-            public TheReportMyPackageMethod()
+            public void SetupTest(User currentUser, User owner)
             {
-                _user = new User
+                if (owner == null)
                 {
-                    EmailAddress = "frodo@hobbiton.example.com",
-                    Username = "Frodo",
-                    Key = 2
-                };
+                    owner = _owner;
+                }
+
                 _package = new Package
                 {
                     PackageRegistration = new PackageRegistration
                     {
                         Id = "Mordor",
-                        Owners = { _user },
+                        Owners = { owner },
                     },
                     Version = "2.00.1",
                     NormalizedVersion = "2.0.1",
                 };
+
                 _viewModel = new ReportMyPackageViewModel
                 {
                     Reason = ReportPackageReason.ContainsPrivateAndConfidentialData,
                     Message = "Message!",
-                };
-                _supportRequest = new Issue
-                {
-                    Key = 23,
                 };
 
                 _packageService = new Mock<IPackageService>();
@@ -2249,6 +2701,11 @@ namespace NuGetGallery
 
                 _messageService = new Mock<IMessageService>();
                 _packageDeleteService = new Mock<IPackageDeleteService>();
+
+                _supportRequest = new Issue
+                {
+                    Key = 23,
+                };
 
                 _supportRequestService = new Mock<ISupportRequestService>();
                 _supportRequestService
@@ -2269,66 +2726,120 @@ namespace NuGetGallery
                     packageDeleteService: _packageDeleteService,
                     supportRequestService: _supportRequestService,
                     httpContext: httpContext);
-                _controller.SetCurrentUser(_user);
+                _controller.SetCurrentUser(currentUser);
 
                 TestUtility.SetupUrlHelper(_controller, httpContext);
             }
 
-            [Fact]
-            public async Task GetRedirectsNonOwnersToReportAbuse()
+            public static IEnumerable<object[]> OwnerAndNotOwner_Data => Owner_Data.Concat(NotOwner_Data);
+
+            public static IEnumerable<object[]> NotOwner_Data
+            {
+                get
+                {
+                    yield return new object[]
+                    {
+                        null,
+                        null
+                    };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeUser,
+                        null
+                    };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeAdminUser,
+                        null
+                    };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeOrganizationCollaborator,
+                        TestUtility.FakeOrganization
+                    };
+                }
+            }
+
+            public static IEnumerable<object[]> Owner_Data
+            {
+                get
+                {
+                    yield return new object[]
+                    {
+                        TestUtility.FakeUser,
+                        TestUtility.FakeUser
+                    };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeOrganizationAdmin,
+                        TestUtility.FakeOrganization
+                    };
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(NotOwner_Data))]
+            public async Task GetRedirectsNonOwnersToReportAbuse(User currentUser, User owner)
             {
                 await RedirectsNonOwnersToReportAbuse(
+                    currentUser, owner,
                     () => _controller.ReportMyPackage(
                         _package.PackageRegistration.Id,
                         _package.Version));
             }
 
-            [Fact]
-            public async Task PostRedirectsNonOwnersToReportAbuse()
+            [Theory]
+            [MemberData(nameof(NotOwner_Data))]
+            public async Task PostRedirectsNonOwnersToReportAbuse(User currentUser, User owner)
             {
                 await RedirectsNonOwnersToReportAbuse(
+                    currentUser, owner,
                     () => _controller.ReportMyPackage(
                         _package.PackageRegistration.Id,
                         _package.Version,
                         _viewModel));
             }
 
-            private async Task RedirectsNonOwnersToReportAbuse(Func<Task<ActionResult>> actAsync)
+            private async Task RedirectsNonOwnersToReportAbuse(User currentUser, User owner, Func<Task<ActionResult>> actAsync)
             {
-                // Arrange
-                _package.PackageRegistration.Owners.Clear();
-
-                // Act
+                SetupTest(currentUser, owner);
                 var result = await actAsync();
-
-                // Assert
+                
                 Assert.IsType<RedirectToRouteResult>(result);
                 Assert.Equal("ReportAbuse", ((RedirectToRouteResult)result).RouteValues["Action"]);
             }
 
-
-            [Fact]
-            public async Task GetRedirectsMissingPackageToNotFound()
+            [Theory]
+            [MemberData(nameof(OwnerAndNotOwner_Data))]
+            public async Task GetRedirectsMissingPackageToNotFound(User currentUser, User owner)
             {
                 await RedirectsMissingPackageToNotFound(
+                    currentUser, owner,
                     () => _controller.ReportMyPackage(
                         _package.PackageRegistration.Id,
                         _package.Version));
             }
 
-            [Fact]
-            public async Task PostRedirectsMissingPackageToNotFound()
+            [Theory]
+            [MemberData(nameof(OwnerAndNotOwner_Data))]
+            public async Task PostRedirectsMissingPackageToNotFound(User currentUser, User owner)
             {
                 await RedirectsMissingPackageToNotFound(
+                    currentUser, owner,
                     () => _controller.ReportMyPackage(
                         _package.PackageRegistration.Id,
                         _package.Version,
                         _viewModel));
             }
 
-            private async Task RedirectsMissingPackageToNotFound(Func<Task<ActionResult>> actAsync)
+            private async Task RedirectsMissingPackageToNotFound(User currentUser, User owner, Func<Task<ActionResult>> actAsync)
             {
                 // Arrange
+                SetupTest(currentUser: null, owner: _owner);
                 _packageService
                     .Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
                     .Returns<Package>(null);
@@ -2340,10 +2851,12 @@ namespace NuGetGallery
                 Assert.IsType<HttpNotFoundResult>(result);
             }
 
-            [Fact]
-            public async Task HtmlEncodesMessageContent()
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public async Task HtmlEncodesMessageContent(User currentUser, User owner)
             {
                 // Arrange
+                SetupTest(currentUser, owner);
                 _viewModel.Message = "I like the cut of your jib. It's <b>bold</b>.";
                 _viewModel.Reason = ReportPackageReason.ViolatesALicenseIOwn;
 
@@ -2360,16 +2873,18 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.NotNull(reportRequest);
-                Assert.Equal(_user.EmailAddress, reportRequest.FromAddress.Address);
+                Assert.Equal(currentUser.EmailAddress, reportRequest.FromAddress.Address);
                 Assert.Same(_package, reportRequest.Package);
                 Assert.Equal(EnumHelper.GetDescription(ReportPackageReason.ViolatesALicenseIOwn), reportRequest.Reason);
                 Assert.Equal("I like the cut of your jib. It&#39;s &lt;b&gt;bold&lt;/b&gt;.", reportRequest.Message);
             }
 
-            [Fact]
-            public async Task DoesNotCheckDeleteAllowedIfDeleteWasNotRequested()
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public async Task DoesNotCheckDeleteAllowedIfDeleteWasNotRequested(User currentUser, User owner)
             {
                 // Arrange
+                SetupTest(currentUser, owner);
                 _viewModel.DeleteDecision = PackageDeleteDecision.ContactSupport;
                 _viewModel.Message = "Test message!";
 
@@ -2391,18 +2906,20 @@ namespace NuGetGallery
                             _package.PackageRegistration.Id,
                             _package.NormalizedVersion),
                         "Test message!",
-                        _user.EmailAddress,
+                        currentUser.EmailAddress,
                         EnumHelper.GetDescription(_viewModel.Reason.Value),
-                        _user,
+                        currentUser,
                         _package),
                     Times.Once);
                 Assert.Equal(Strings.SupportRequestSentTransientMessage, _controller.TempData["Message"]);
             }
 
-            [Fact]
-            public async Task AllowsPackageDelete()
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public async Task AllowsPackageDelete(User currentUser, User owner)
             {
                 // Arrange
+                SetupTest(currentUser, owner);
                 _viewModel.DeleteDecision = PackageDeleteDecision.DeletePackage;
                 _viewModel.DeleteConfirmation = true;
                 _packageDeleteService
@@ -2425,15 +2942,15 @@ namespace NuGetGallery
                             _package.PackageRegistration.Id,
                             _package.NormalizedVersion),
                         Strings.UserPackageDeleteSupportRequestMessage,
-                        _user.EmailAddress,
+                        currentUser.EmailAddress,
                         EnumHelper.GetDescription(_viewModel.Reason.Value),
-                        _user,
+                        currentUser,
                         _package),
                     Times.Once);
                 _packageDeleteService.Verify(
                     x => x.SoftDeletePackagesAsync(
                         It.Is<IEnumerable<Package>>(p => p.First() == _package),
-                        _user,
+                        currentUser,
                         EnumHelper.GetDescription(_viewModel.Reason.Value),
                         Strings.UserPackageDeleteSignature),
                     Times.Once);
@@ -2443,7 +2960,7 @@ namespace NuGetGallery
                         null,
                         IssueStatusKeys.Resolved,
                         null,
-                        _user.Username),
+                        currentUser.Username),
                     Times.Once);
                 _messageService.Verify(
                     x => x.SendPackageDeletedNotice(
@@ -2458,10 +2975,12 @@ namespace NuGetGallery
                     Times.Never);
             }
 
-            [Fact]
-            public async Task TreatsDeleteFailureAsNormalRequest()
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public async Task TreatsDeleteFailureAsNormalRequest(User currentUser, User owner)
             {
                 // Arrange
+                SetupTest(currentUser, owner);
                 _viewModel.DeleteDecision = PackageDeleteDecision.DeletePackage;
                 _viewModel.DeleteConfirmation = true;
                 _viewModel.CopySender = true;
@@ -2488,7 +3007,7 @@ namespace NuGetGallery
                 _packageDeleteService.Verify(
                     x => x.SoftDeletePackagesAsync(
                         It.Is<IEnumerable<Package>>(p => p.First() == _package),
-                        _user,
+                        currentUser,
                         EnumHelper.GetDescription(_viewModel.Reason.Value),
                         Strings.UserPackageDeleteSignature),
                     Times.Once);
@@ -2511,10 +3030,12 @@ namespace NuGetGallery
                     Times.Once);
             }
 
-            [Fact]
-            public async Task RequiresMessageWhenNotDeleting()
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public async Task RequiresMessageWhenNotDeleting(User currentUser, User owner)
             {
                 // Arrange
+                SetupTest(currentUser, owner);
                 _viewModel.DeleteDecision = PackageDeleteDecision.ContactSupport;
                 _viewModel.Message = null;
                 _packageDeleteService
@@ -2537,10 +3058,12 @@ namespace NuGetGallery
                         .Select(x => x.ErrorMessage));
             }
 
-            [Fact]
-            public async Task RequiresConfirmationWhenDeleting()
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public async Task RequiresConfirmationWhenDeleting(User currentUser, User owner)
             {
                 // Arrange
+                SetupTest(currentUser, owner);
                 _viewModel.DeleteDecision = PackageDeleteDecision.DeletePackage;
                 _viewModel.DeleteConfirmation = false;
                 _packageDeleteService
@@ -2563,13 +3086,37 @@ namespace NuGetGallery
                         .Select(x => x.ErrorMessage));
             }
 
+            private static IEnumerable<ReportPackageReason> ReasonsRequiringDeleteDecision = new[]
+            {
+                ReportPackageReason.ContainsMaliciousCode,
+                ReportPackageReason.ContainsPrivateAndConfidentialData,
+                ReportPackageReason.ReleasedInPublicByAccident
+            };
+
+            private static IEnumerable<ReportPackageReason> ReasonsNotRequiringDeleteDecision = new[]
+            {
+                ReportPackageReason.Other
+            };
+
+            private static IEnumerable<object[]> MergeOwnersWithReasons(IEnumerable<ReportPackageReason> reasons)
+            {
+                foreach (var ownerData in Owner_Data)
+                {
+                    foreach (var reason in reasons)
+                    {
+                        yield return ownerData.Concat(new object[] { reason }).ToArray();
+                    }
+                }
+            }
+
+            public static IEnumerable<object[]> RequiresDeleteDecision_Data => MergeOwnersWithReasons(ReasonsRequiringDeleteDecision);
+
             [Theory]
-            [InlineData(ReportPackageReason.ContainsMaliciousCode)]
-            [InlineData(ReportPackageReason.ContainsPrivateAndConfidentialData)]
-            [InlineData(ReportPackageReason.ReleasedInPublicByAccident)]
-            public async Task RequiresDeleteDecision(ReportPackageReason reason)
+            [MemberData(nameof(RequiresDeleteDecision_Data))]
+            public async Task RequiresDeleteDecision(User currentUser, User owner, ReportPackageReason reason)
             {
                 // Arrange
+                SetupTest(currentUser, owner);
                 _viewModel.Reason = reason;
                 _viewModel.DeleteDecision = null;
                 _viewModel.DeleteConfirmation = true;
@@ -2592,12 +3139,15 @@ namespace NuGetGallery
                         .SelectMany(x => x.Errors)
                         .Select(x => x.ErrorMessage));
             }
-            
+
+            public static IEnumerable<object[]> DoesNotRequireDeleteDecision_Data => MergeOwnersWithReasons(ReasonsNotRequiringDeleteDecision);
+
             [Theory]
-            [InlineData(ReportPackageReason.Other)]
-            public async Task DoesNotRequireDeleteDecision(ReportPackageReason reason)
+            [MemberData(nameof(DoesNotRequireDeleteDecision_Data))]
+            public async Task DoesNotRequireDeleteDecision(User currentUser, User owner, ReportPackageReason reason)
             {
                 // Arrange
+                SetupTest(currentUser, owner);
                 _viewModel.Reason = reason;
                 _viewModel.DeleteDecision = null;
                 _packageDeleteService
@@ -2628,10 +3178,12 @@ namespace NuGetGallery
                     Times.Once);
             }
 
-            [Fact]
-            public async Task IgnoresDeleteRequestWhenNotAllowed()
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public async Task IgnoresDeleteRequestWhenNotAllowed(User currentUser, User owner)
             {
                 // Arrange
+                SetupTest(currentUser, owner);
                 _viewModel.Reason = ReportPackageReason.ContainsPrivateAndConfidentialData;
                 _viewModel.DeleteDecision = PackageDeleteDecision.DeletePackage;
                 _viewModel.DeleteConfirmation = true;
@@ -2874,8 +3426,8 @@ namespace NuGetGallery
                 testNamespace.Owners.Add(user1);
                 IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace> { testNamespace };
                 fakeReservedNamespaceService
-                    .Setup(r => r.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
-                    .Returns(false);
+                    .Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
+                    .Returns(matchingNamespaces);
                 var fakeTelemetryService = new Mock<ITelemetryService>();
 
                 var controller = CreateController(
@@ -2918,8 +3470,8 @@ namespace NuGetGallery
                 testNamespace.Owners.Add(user1);
                 IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace> { testNamespace };
                 fakeReservedNamespaceService
-                    .Setup(r => r.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
-                    .Returns(true);
+                    .Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
+                    .Returns(matchingNamespaces);
 
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -2959,8 +3511,8 @@ namespace NuGetGallery
 
                 IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace> { testNamespace };
                 fakeReservedNamespaceService
-                    .Setup(r => r.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
-                    .Returns(true);
+                    .Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
+                    .Returns(matchingNamespaces);
 
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -3851,8 +4403,102 @@ namespace NuGetGallery
         public class TheSetLicenseReportVisibilityMethod
             : TestContainer
         {
-            [Fact]
-            public async Task IndexingAndPackageServicesAreUpdated()
+            public static IEnumerable<object[]> NotOwner_Data
+            {
+                get
+                {
+                    foreach (var visible in new[] { true, false })
+                    {
+                        yield return new object[]
+                        {
+                            null,
+                            TestUtility.FakeUser,
+                            visible
+                        };
+
+                        yield return new object[]
+                        {
+                            TestUtility.FakeUser,
+                            new User { Key = 5535 },
+                            visible
+                        };
+                    }
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(NotOwner_Data))]
+            public async Task Returns401IfNotOwner(User currentUser, User owner, bool visible)
+            {
+                // Arrange
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = "Foo" },
+                    Version = "1.0",
+                    Listed = true
+                };
+                package.PackageRegistration.Owners.Add(owner);
+
+                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+                packageService.Setup(svc => svc.FindPackageByIdAndVersionStrict("Foo", "1.0"))
+                    .Returns(package);
+                // Note: this Mock must be strict because it guarantees that SetLicenseReportVisibilityAsync is not called!
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService);
+                controller.SetCurrentUser(currentUser);
+                controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
+
+                // Act
+                var result = await controller.SetLicenseReportVisibility("Foo", "1.0", visible: visible, urlFactory: (pkg, relativeUrl) => @"~\Bar.cshtml");
+
+                // Assert
+                Assert.IsType<HttpStatusCodeResult>(result);
+                var httpStatusCodeResult = result as HttpStatusCodeResult;
+                Assert.Equal(401, httpStatusCodeResult.StatusCode);
+            }
+
+            public static IEnumerable<object[]> Owner_Data
+            {
+                get
+                {
+                    foreach (var visible in new[] { true, false })
+                    {
+                        yield return new object[]
+                        {
+                            TestUtility.FakeUser,
+                            TestUtility.FakeUser,
+                            visible
+                        };
+
+                        yield return new object[]
+                        {
+                            TestUtility.FakeAdminUser,
+                            TestUtility.FakeUser,
+                            visible
+                        };
+
+                        yield return new object[]
+                        {
+                            TestUtility.FakeOrganizationAdmin,
+                            TestUtility.FakeOrganization,
+                            visible
+                        };
+
+                        yield return new object[]
+                        {
+                            TestUtility.FakeOrganizationCollaborator,
+                            TestUtility.FakeOrganization,
+                            visible
+                        };
+                    }
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public async Task IndexingAndPackageServicesAreUpdated(User currentUser, User owner, bool visible)
             {
                 // Arrange
                 var package = new Package
@@ -3861,32 +4507,27 @@ namespace NuGetGallery
                     Version = "1.0",
                     HideLicenseReport = true
                 };
-                package.PackageRegistration.Owners.Add(new User("Smeagol"));
+                package.PackageRegistration.Owners.Add(owner);
 
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
-                packageService.Setup(svc => svc.SetLicenseReportVisibilityAsync(It.IsAny<Package>(), It.Is<bool>(t => t == true), It.IsAny<bool>()))
+                packageService.Setup(svc => svc.SetLicenseReportVisibilityAsync(It.IsAny<Package>(), It.Is<bool>(t => t == !visible), It.IsAny<bool>()))
                     .Throws(new Exception("Shouldn't be called"));
-                packageService.Setup(svc => svc.SetLicenseReportVisibilityAsync(It.IsAny<Package>(), It.Is<bool>(t => t == false), It.IsAny<bool>()))
+                packageService.Setup(svc => svc.SetLicenseReportVisibilityAsync(It.IsAny<Package>(), It.Is<bool>(t => t == visible), It.IsAny<bool>()))
                     .Returns(Task.CompletedTask).Verifiable();
                 packageService.Setup(svc => svc.FindPackageByIdAndVersionStrict("Foo", "1.0"))
                     .Returns(package).Verifiable();
-
-                var httpContext = new Mock<HttpContextBase>();
-                httpContext.Setup(h => h.Request.IsAuthenticated).Returns(true);
-                httpContext.Setup(h => h.User.Identity.Name).Returns("Smeagol");
-
+                
                 var indexingService = new Mock<IIndexingService>();
 
                 var controller = CreateController(
                         GetConfigurationService(),
                         packageService: packageService,
-                        httpContext: httpContext,
                         indexingService: indexingService);
-                controller.SetCurrentUser(new User("Smeagol"));
+                controller.SetCurrentUser(currentUser);
                 controller.Url = new UrlHelper(new RequestContext(), new RouteCollection());
 
                 // Act
-                var result = await controller.SetLicenseReportVisibility("Foo", "1.0", visible: false, urlFactory: (pkg, relativeUrl) => @"~\Bar.cshtml");
+                var result = await controller.SetLicenseReportVisibility("Foo", "1.0", visible: visible, urlFactory: (pkg, relativeUrl) => @"~\Bar.cshtml");
 
                 // Assert
                 packageService.Verify();
