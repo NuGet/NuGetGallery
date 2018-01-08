@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
 using System.Data.SqlClient;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGetGallery.Auditing;
@@ -159,22 +160,28 @@ namespace NuGetGallery
         public bool CanTransformUserToOrganization(User accountToTransform, out string errorReason)
         {
             errorReason = null;
+            var enabledDomains = Config.OrganizationsEnabledForDomains;
 
             if (!accountToTransform.Confirmed)
             {
-                errorReason = Strings.TransformAccount_FailedReasonNotConfirmedUser;
+                errorReason = String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_FailedReasonNotConfirmedUser, accountToTransform.Username);
             }
             else if (accountToTransform is Organization)
             {
-                errorReason = Strings.TransformAccount_FailedReasonIsOrganization;
+                errorReason = String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_FailedReasonIsOrganization, accountToTransform.Username);
             }
             else if (accountToTransform.Organizations.Any() || accountToTransform.OrganizationRequests.Any())
             {
-                errorReason = Strings.TransformAccount_FailedReasonHasMemberships;
+                errorReason = String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_FailedReasonHasMemberships, accountToTransform.Username);
             }
-            else if (!Config.OrganizationsEnabledForDomains.Contains(accountToTransform.ToMailAddress().Host, StringComparer.OrdinalIgnoreCase))
+            else if (enabledDomains == null ||
+                !enabledDomains.Contains(accountToTransform.ToMailAddress().Host, StringComparer.OrdinalIgnoreCase))
             {
-                errorReason = Strings.TransformAccount_FailedReasonNotInDomainWhitelist;
+                errorReason = String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_FailedReasonNotInDomainWhitelist, accountToTransform.Username);
             }
 
             return errorReason == null;

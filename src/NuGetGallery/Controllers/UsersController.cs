@@ -122,8 +122,7 @@ namespace NuGetGallery
             string errorReason;
             if (!_userService.CanTransformUserToOrganization(accountToTransform, out errorReason))
             {
-                TempData["TransformError"] = String.Format(CultureInfo.CurrentCulture,
-                    Strings.TransformAccount_FailedWithReason, accountNameToTransform, errorReason);
+                TempData["TransformError"] = errorReason;
                 return View("AccountTransformFailed");
             }
             

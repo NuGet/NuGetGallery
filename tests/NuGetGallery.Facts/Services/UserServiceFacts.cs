@@ -3,6 +3,7 @@
 
 using System;
 using System.Data;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Moq;
@@ -378,7 +379,8 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.False(result);
-                Assert.Equal(errorReason, Strings.TransformAccount_FailedReasonNotConfirmedUser);
+                Assert.Equal(errorReason, String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_FailedReasonNotConfirmedUser, unconfirmedUser.Username));
             }
 
             [Fact]
@@ -394,7 +396,8 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.False(result);
-                Assert.Equal(errorReason, Strings.TransformAccount_FailedReasonIsOrganization);
+                Assert.Equal(errorReason, String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_FailedReasonIsOrganization, fakes.Organization.Username));
             }
 
             [Fact]
@@ -410,7 +413,8 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.False(result);
-                Assert.Equal(errorReason, Strings.TransformAccount_FailedReasonHasMemberships);
+                Assert.Equal(errorReason, String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_FailedReasonHasMemberships, fakes.OrganizationCollaborator.Username));
             }
 
             [Fact]
@@ -427,7 +431,8 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.False(result);
-                Assert.Equal(errorReason, Strings.TransformAccount_FailedReasonNotInDomainWhitelist);
+                Assert.Equal(errorReason, String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_FailedReasonNotInDomainWhitelist, fakes.User.Username));
             }
 
             [Fact]

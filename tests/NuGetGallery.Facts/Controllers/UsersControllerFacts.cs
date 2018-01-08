@@ -2280,11 +2280,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.NotNull(result);
-                Assert.Equal(
-                    String.Format(CultureInfo.CurrentCulture,
-                        Strings.TransformAccount_FailedWithReason, "account",
-                        "error"),
-                    controller.TempData["TransformError"]);
+                Assert.Equal("error", controller.TempData["TransformError"]);
             }
 
             [Fact]
