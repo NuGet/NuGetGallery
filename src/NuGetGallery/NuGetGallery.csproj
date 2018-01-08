@@ -726,6 +726,7 @@
     <Compile Include="Authentication\NuGetScopes.cs" />
     <Compile Include="Authentication\PasswordResetResult.cs" />
     <Compile Include="Authentication\Providers\AuthenticatorT.cs" />
+    <Compile Include="Authentication\Providers\AuthInformation.cs" />
     <Compile Include="Authentication\Providers\CommonAuth\CommonAuthAuthenticator.cs" />
     <Compile Include="Authentication\Providers\CommonAuth\CommonAuthAuthenticatorConfiguration.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticator.cs" />

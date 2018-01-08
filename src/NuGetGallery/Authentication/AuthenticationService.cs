@@ -39,6 +39,7 @@ namespace NuGetGallery.Authentication
                 public const string Version = "ver";
                 public const string Email = "preferred_username";
                 public const string Name = "name";
+                public const string Issuer = "iss";
             }
         }
 

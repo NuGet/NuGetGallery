@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Microsoft.IdentityModel.Protocols;
@@ -14,6 +15,10 @@ namespace NuGetGallery.Authentication.Providers.CommonAuth
     public class CommonAuthAuthenticator : Authenticator<CommonAuthAuthenticatorConfiguration>
     {
         public static readonly string DefaultAuthenticationType = "CommonAuth";
+
+        public const string Authority = "https://login.microsoftonline.com/{0}/v2.0";
+
+        public const string V2CommonTenant = "common";
 
         protected override void AttachToOwinApp(IGalleryConfigurationService config, IAppBuilder app)
         {
@@ -58,9 +63,27 @@ namespace NuGetGallery.Authentication.Providers.CommonAuth
             return new ChallengeResult(BaseConfig.AuthenticationType, redirectUrl);
         }
 
+        public override bool IsAuthorForIdentity(ClaimsIdentity claimsIdentity)
+        {
+            Claim issuer = claimsIdentity.FindFirst(Constants.Claims.V2.Issuer);
+            Claim tenant = claimsIdentity.FindFirst(Constants.Claims.V2.TenantId);
+            if (issuer == null || tenant == null)
+            {
+                return false;
+            }
+
+            var expectedIssuer = string.Format(Authority, tenant.Value);
+            return string.Equals(issuer.Value, expectedIssuer, StringComparison.OrdinalIgnoreCase);
+        }
+
         public override bool TryMapIssuerToAuthenticationType(string issuer, out string authenticationType)
         {
             return base.TryMapIssuerToAuthenticationType(issuer, out authenticationType);
+        }
+
+        public override AuthInformation GetAuthInformation(ClaimsIdentity claimsIdentity)
+        {
+            return base.GetAuthInformation(claimsIdentity);
         }
     }
 }

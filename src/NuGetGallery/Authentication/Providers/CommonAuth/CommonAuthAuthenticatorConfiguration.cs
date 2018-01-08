@@ -14,9 +14,6 @@ namespace NuGetGallery.Authentication.Providers.CommonAuth
         public string ClientId { get; set; }
         public string ClientSecret { get; set; }
 
-        private const string Authority = "https://login.microsoftonline.com/{0}/v2.0";
-        private const string V2CommonTenant = "common";
-
         public CommonAuthAuthenticatorConfiguration()
         {
             AuthenticationType = CommonAuthAuthenticator.DefaultAuthenticationType;
@@ -53,7 +50,7 @@ namespace NuGetGallery.Authentication.Providers.CommonAuth
 
                 opts.ClientId = ClientId;
                 opts.ClientSecret = ClientSecret;
-                opts.Authority = String.Format(CultureInfo.InvariantCulture, Authority, V2CommonTenant);
+                opts.Authority = String.Format(CultureInfo.InvariantCulture, CommonAuthAuthenticator.Authority, CommonAuthAuthenticator.V2CommonTenant);
             }
         }
     }

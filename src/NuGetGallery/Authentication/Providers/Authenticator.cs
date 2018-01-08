@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web.Mvc;
@@ -94,6 +95,18 @@ namespace NuGetGallery.Authentication.Providers
             return new HttpUnauthorizedResult();
         }
 
+        public virtual bool IsAuthorForIdentity(ClaimsIdentity claimsIdentity)
+        {
+            // If the issuer of the claims identity is same as that of the authentication type then this is the author.
+            Claim firstClaim = claimsIdentity.Claims.FirstOrDefault();
+            if (firstClaim == null)
+            {
+                return false;
+            }
+
+            return string.Equals(firstClaim.Issuer, BaseConfig.AuthenticationType, StringComparison.OrdinalIgnoreCase);
+        }
+
         public virtual bool TryMapIssuerToAuthenticationType(string issuer, out string authenticationType)
         {
             if (string.Equals(issuer, BaseConfig.AuthenticationType, StringComparison.OrdinalIgnoreCase))
@@ -104,6 +117,11 @@ namespace NuGetGallery.Authentication.Providers
 
             authenticationType = null;
             return false;
+        }
+
+        public virtual AuthInformation GetAuthInformation(ClaimsIdentity claimsIdentity)
+        {
+            return new AuthInformation();
         }
     }
 }
