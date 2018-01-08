@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using NuGetGallery.Helpers;
 
 namespace NuGetGallery
 {
@@ -74,7 +75,8 @@ namespace NuGetGallery
             {
                 return url;
             }
-            return new Uri($"{url.Scheme}://{url.Host}{Obfuscate(url.AbsolutePath)}");
+            var port = url.IsDefaultPort ? string.Empty : $":{url.Port}";
+            return new Uri($"{url.Scheme}://{url.Host}{port}{Obfuscate(url.AbsolutePath)}");
         }
 
         internal static string Obfuscate(string value)
@@ -84,16 +86,19 @@ namespace NuGetGallery
             {
                 return value;
             }
-            string obfuscatedValue = Regex.Replace(value,
-                                             ObfuscatedTemplates[obfuscatedTemplateKey].ObfuscateTemplate,
-                                             ObfuscatedTemplates[obfuscatedTemplateKey].ObfuscateValue);
+            string obfuscatedValue = RegexEx.TryReplaceWithTimeout(value,
+                                            ObfuscatedTemplates[obfuscatedTemplateKey].ObfuscateTemplate,
+                                            match => ObfuscatedTemplates[obfuscatedTemplateKey].ObfuscateValue,
+                                            RegexOptions.IgnoreCase);
             return obfuscatedValue;
         }
 
         internal static bool NeedsObfuscation(string valueToBeVerified, out string obfuscatedTemplateKey)
         {
             obfuscatedTemplateKey = string.Empty;
-            var match = ObfuscatedTemplates.Where(template => Regex.IsMatch(valueToBeVerified.ToLower(), template.Key)).FirstOrDefault();
+            var match = ObfuscatedTemplates
+                        .Where(template => Regex.IsMatch(valueToBeVerified, template.Key, RegexOptions.IgnoreCase, RegexEx.Timeout))
+                        .FirstOrDefault();
             if (match.Key == null)
             {
                 return false;

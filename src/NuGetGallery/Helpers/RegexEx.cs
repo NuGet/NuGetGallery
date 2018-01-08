@@ -8,7 +8,7 @@ namespace NuGetGallery.Helpers
 {
     public static class RegexEx
     {
-        private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(2);
+        internal static readonly TimeSpan Timeout = TimeSpan.FromSeconds(2);
 
         public static string TryReplaceWithTimeout(
             string input,
