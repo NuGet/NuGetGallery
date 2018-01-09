@@ -101,13 +101,10 @@ namespace NuGetGallery.Telemetry
                 _url = url;
             }
 
-            public override Route Route
+            public override Route GetCurrentRoute()
             {
-                get
-                {
-                    var handler = new Mock<IRouteHandler>();
-                    return new Route(_url, handler.Object);
-                }
+                var handler = new Mock<IRouteHandler>();
+                return new Route(_url, handler.Object);
             }
 
         }

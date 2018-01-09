@@ -30,7 +30,7 @@ namespace NuGetGallery
             var requestTelemetryItem = item as RequestTelemetry;
             if(requestTelemetryItem != null)
             {
-                var route = Route;
+                var route = GetCurrentRoute();
                 if(route == null)
                 {
                     return;
@@ -50,12 +50,9 @@ namespace NuGetGallery
             }
         }
 
-        public virtual Route Route
+        public virtual Route GetCurrentRoute()
         {
-            get
-            {
-                return RouteTable.Routes.GetRouteData(new System.Web.HttpContextWrapper(HttpContext.Current)).Route as Route;
-            }
+            return RouteTable.Routes.GetRouteData(new HttpContextWrapper(HttpContext.Current)).Route as Route;
         }
     }
 }

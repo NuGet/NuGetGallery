@@ -36,14 +36,14 @@ namespace NuGetGallery
         public static string ObfuscateUrlPath(this Route route, string urlPath)
         {
             var path = route.Url;
-           if (!ObfuscatedRouteMap.ContainsKey(path))
+            if (!ObfuscatedRouteMap.ContainsKey(path))
             {
                 return null;
             }
             var metadata = ObfuscatedRouteMap[path];
             string[] segments = urlPath.Split('/');
             segments[metadata.ObfuscatedSegment] = metadata.ObfuscateValue;
-            return segments.Aggregate((x, y) => { return x + "/" + y; });
+            return string.Join("/", segments);
         }
     }
 }
