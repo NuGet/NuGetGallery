@@ -433,7 +433,8 @@ namespace NuGetGallery
         /// <returns>The current user</returns>
         public static User GetCurrentUser(this IOwinContext self)
         {
-            if (self.Request.User == null)
+            if (self.Request.User == null || 
+                (self.Request.User.Identity != null && !self.Request.User.Identity.IsAuthenticated))
             {
                 return null;
             }
