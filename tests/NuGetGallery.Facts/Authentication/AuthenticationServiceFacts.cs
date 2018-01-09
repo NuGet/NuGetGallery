@@ -588,7 +588,7 @@ namespace NuGetGallery.Authentication
                 Assert.Equal(fakes.Admin.Username, id.Name);
                 Assert.Equal(fakes.Admin.Username, principal.GetClaimOrDefault(ClaimTypes.NameIdentifier));
                 Assert.Equal(AuthenticationTypes.LocalUser, id.AuthenticationType);
-                Assert.True(principal.IsInRole(NuGetGallery.Constants.AdminRoleName));
+                Assert.True(principal.IsInRole(Constants.AdminRoleName));
             }
 
             [Fact]
@@ -1662,7 +1662,7 @@ namespace NuGetGallery.Authentication
                 var result = await authService.ReadExternalLoginCredential(context);
 
                 // Assert
-                Assert.Same(authThunk.ShimIdentity, result.ExternalIdentity);
+                Assert.Null(result.ExternalIdentity);
                 Assert.Null(result.Authenticator);
             }
 

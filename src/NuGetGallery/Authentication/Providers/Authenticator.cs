@@ -127,12 +127,7 @@ namespace NuGetGallery.Authentication.Providers
             }
 
             var emailClaim = claimsIdentity.FindFirst(ClaimTypes.Email);
-            if (emailClaim == null)
-            {
-                throw new ArgumentException($"External Authentication is missing required claim: {ClaimTypes.Email}");
-            }
-
-            return new AuthInformation(identifierClaim.Value, nameClaim.Value, emailClaim.Value, BaseConfig.AuthenticationType, tenantId: null);
+            return new AuthInformation(identifierClaim.Value, nameClaim.Value, emailClaim?.Value, BaseConfig.AuthenticationType, tenantId: null);
         }
     }
 }

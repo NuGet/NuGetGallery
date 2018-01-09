@@ -92,7 +92,7 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                 handler.OwinContext.Response.StatusCode = 401;
                 handler.OwinContext.Authentication.AuthenticationResponseChallenge =
                     new AuthenticationResponseChallenge(new[] { "blarg" }, new AuthenticationProperties());
-                handler.OwinContext.Request.Headers[NuGetGallery.Constants.ApiKeyHeaderName] = "woozle wuzzle";
+                handler.OwinContext.Request.Headers[Constants.ApiKeyHeaderName] = "woozle wuzzle";
 
                 // Act
                 var body = await handler.OwinContext.Response.CaptureBodyAsString(async () =>
@@ -148,7 +148,7 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                 handler.OwinContext.Response.StatusCode = 401;
                 handler.OwinContext.Authentication.AuthenticationResponseChallenge =
                     new AuthenticationResponseChallenge(new[] { "blarg" }, new AuthenticationProperties());
-                handler.OwinContext.Request.Headers[NuGetGallery.Constants.ApiKeyHeaderName] = "woozle wuzzle";
+                handler.OwinContext.Request.Headers[Constants.ApiKeyHeaderName] = "woozle wuzzle";
 
                 // Act
                 var body = await handler.OwinContext.Response.CaptureBodyAsString(async () =>
@@ -183,7 +183,7 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                 Guid apiKey = Guid.NewGuid();
                 TestableApiKeyAuthenticationHandler handler = await TestableApiKeyAuthenticationHandler.CreateAsync(new ApiKeyAuthenticationOptions());
                 handler.OwinContext.Request.Headers.Set(
-                    NuGetGallery.Constants.ApiKeyHeaderName,
+                    Constants.ApiKeyHeaderName,
                     apiKey.ToString().ToLowerInvariant());
 
                 // Act
@@ -212,7 +212,7 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                 var plaintextApiKey = apiKeyCredential.Type == CredentialTypes.ApiKey.V4 ? fakes.ApiKeyV4PlaintextValue : apiKeyCredential.Value;
 
                 handler.OwinContext.Request.Headers.Set(
-                    NuGetGallery.Constants.ApiKeyHeaderName,
+                    Constants.ApiKeyHeaderName,
                     plaintextApiKey);
 
                 handler.MockAuth.SetupAuth(apiKeyCredential, user, credentialValue: plaintextApiKey);
@@ -237,7 +237,7 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                 var apiKeyCredential = new CredentialBuilder().CreateApiKey(Fakes.ExpirationForApiKeyV1, out string plaintextApiKey);
 
                 handler.OwinContext.Request.Headers.Set(
-                    NuGetGallery.Constants.ApiKeyHeaderName,
+                    Constants.ApiKeyHeaderName,
                     plaintextApiKey);
                 handler.MockAuth.SetupAuth(apiKeyCredential, user, credentialValue: plaintextApiKey);
 
@@ -246,7 +246,7 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
 
                 // Assert
                 var authUser = Assert.IsType<AuthenticatedUser>(
-                    handler.OwinContext.Environment[NuGetGallery.Constants.CurrentUserOwinEnvironmentKey]);
+                    handler.OwinContext.Environment[Constants.CurrentUserOwinEnvironmentKey]);
                 Assert.Same(user, authUser.User);
             }
 
@@ -260,7 +260,7 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                 apiKeyCredential.Scopes.Add(new Scope(1234, "thePackage", "theAction"));
 
                 handler.OwinContext.Request.Headers.Set(
-                    NuGetGallery.Constants.ApiKeyHeaderName,
+                    Constants.ApiKeyHeaderName,
                     plaintextApiKey);
                 handler.MockAuth.SetupAuth(apiKeyCredential, user, credentialValue: plaintextApiKey);
 
@@ -269,7 +269,7 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
 
                 // Assert
                 var authUser = Assert.IsType<AuthenticatedUser>(
-                    handler.OwinContext.Environment[NuGetGallery.Constants.CurrentUserOwinEnvironmentKey]);
+                    handler.OwinContext.Environment[Constants.CurrentUserOwinEnvironmentKey]);
                 Assert.Same(user, authUser.User);
             }
 
@@ -293,7 +293,7 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                 apiKeyCredential.Scopes.Add(new Scope(2345, "thePackage", "theAction"));
 
                 handler.OwinContext.Request.Headers.Set(
-                    NuGetGallery.Constants.ApiKeyHeaderName,
+                    Constants.ApiKeyHeaderName,
                     plaintextApiKey);
                 handler.MockAuth.SetupAuth(apiKeyCredential, user, credentialValue: plaintextApiKey);
 
@@ -302,7 +302,7 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
 
                 // Assert
                 var authUser = Assert.IsType<AuthenticatedUser>(
-                    handler.OwinContext.Environment[NuGetGallery.Constants.CurrentUserOwinEnvironmentKey]);
+                    handler.OwinContext.Environment[Constants.CurrentUserOwinEnvironmentKey]);
                 Assert.Same(user, authUser.User);
             }
 
@@ -316,7 +316,7 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                 apiKeyCredential.Scopes.Add(new Scope(2345, "thePackage", "theAction"));
 
                 handler.OwinContext.Request.Headers.Set(
-                    NuGetGallery.Constants.ApiKeyHeaderName,
+                    Constants.ApiKeyHeaderName,
                     plaintextApiKey);
                 handler.MockAuth.SetupAuth(apiKeyCredential, user, credentialValue: plaintextApiKey);
                 

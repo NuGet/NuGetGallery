@@ -361,6 +361,10 @@ namespace NuGetGallery
                 catch (Exception)
                 {
                     // Consume the exception for now, for backwards compatibility to previous MSA provider.
+                    email = result.ExternalIdentity.GetClaimOrDefault(ClaimTypes.Email);
+                    name = result
+                        .ExternalIdentity 
+                        .GetClaimOrDefault(ClaimTypes.Name);
                 }
 
                 // Check for a user with this email address
