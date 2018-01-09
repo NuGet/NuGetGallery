@@ -29,7 +29,7 @@ namespace NuGetGallery
         Package FindPackageByIdAndVersion(string id, string version, int? semVerLevelKey = null, bool allowPrerelease = true);
 
         Package FindAbsoluteLatestPackageById(string id, int? semVerLevelKey);
-        IEnumerable<Package> FindPackagesByAnyMatchingOwner(User user, bool includeUnlisted);
+        IEnumerable<Package> FindPackagesByAnyMatchingOwner(User user, bool includeUnlisted, bool includeVersions = false);
         IEnumerable<PackageRegistration> FindPackageRegistrationsByOwner(User user);
         IEnumerable<Package> FindDependentPackages(Package package);
 
@@ -72,5 +72,12 @@ namespace NuGetGallery
         Task IncrementDownloadCountAsync(string id, string version, bool commitChanges = true);
 
         Task UpdatePackageVerifiedStatusAsync(IReadOnlyCollection<PackageRegistration> package, bool isVerified);
+
+        /// <summary>
+        /// For a package get the list of owners that are not organizations.
+        /// </summary>
+        /// <param name="package">The package.</param>
+        /// <returns>The list of package owners that are not organizations.</returns>
+        IEnumerable<User> GetPackageUserAccountOwners(Package package);
     }
 }

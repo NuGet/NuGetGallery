@@ -214,7 +214,7 @@ namespace NuGetGallery
         /// <summary>
         /// Find packages by owner, including organization owners that the user belongs to.
         /// </summary>
-        public IEnumerable<Package> FindPackagesByAnyMatchingOwner(User user, bool includeUnlisted)
+        public IEnumerable<Package> FindPackagesByAnyMatchingOwner(User user, bool includeUnlisted, bool includeVersions = false)
         {
             // Like DisplayPackage we should prefer to show you information from the latest stable version,
             // but show you the latest version (potentially latest UNLISTED version) otherwise.
@@ -223,11 +223,16 @@ namespace NuGetGallery
             ownerKeys.Insert(0, user.Key);
 
             var mergedResults = new Dictionary<string, Package>(StringComparer.OrdinalIgnoreCase);
-
-            MergeLatestPackagesByOwner(ownerKeys, includeUnlisted, mergedResults);
-            MergeLatestStablePackagesByOwner(ownerKeys, includeUnlisted, mergedResults);
-
-            return mergedResults.Values;
+            if (includeVersions)
+            {
+                return MergePackagesByOwner(ownerKeys, includeUnlisted);
+            }
+            else
+            {
+                MergeLatestPackagesByOwner(ownerKeys, includeUnlisted, mergedResults);
+                MergeLatestStablePackagesByOwner(ownerKeys, includeUnlisted, mergedResults);
+                return mergedResults.Values;
+            }
         }
 
         /// <summary>
@@ -311,6 +316,44 @@ namespace NuGetGallery
                     mergedResults.Add(latestPackage.PackageRegistration.Id, latestPackage);
                 }
             }
+        }
+
+        /// <summary>
+        /// Merge packages by owner, including organization owners that the user belongs to and including versions.
+        /// </summary>
+        private IEnumerable<Package> MergePackagesByOwner(List<int> ownerKeys, bool includeUnlisted)
+        {
+            IQueryable<Package> packageVersions = _packageRepository.GetAll()
+                    .Where(p => p.PackageRegistration.Owners.Any(o => ownerKeys.Contains(o.Key)))
+                    .Include(p => p.PackageRegistration)
+                    .Include(p => p.PackageRegistration.Owners);
+
+            if(!includeUnlisted)
+            {
+                packageVersions = packageVersions.Where(p => p.Listed);
+            }
+            
+            return packageVersions;
+        }
+
+        /// <summary>
+        /// For a package get the list of owners that are not organizations.
+        /// All the resulted user accounts will be distinct.
+        /// </summary>
+        /// <param name="package">The package.</param>
+        /// <returns>The list of package owners.</returns>
+        public IEnumerable<User> GetPackageUserAccountOwners(Package package)
+        {
+            return package.PackageRegistration.Owners
+                .SelectMany((owner) =>
+                {
+                    if (owner is Organization)
+                    {
+                        return OrganizationExtensions.GetUserAccountMembers((Organization)owner);
+                    }
+                    return new List<User> { owner };
+                })
+                .Distinct();
         }
 
         public IEnumerable<PackageRegistration> FindPackageRegistrationsByOwner(User user)
