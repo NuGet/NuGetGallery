@@ -1,0 +1,18 @@
+﻿@{
+    ViewBag.Title = "Transform Account";
+    ViewBag.MdPageColumns = Constants.ColumnsFormMd;
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
+}
+
+<section role="main" class="container main-container page-api-keys">
+    @if (TempData.ContainsKey("TransformError"))
+    {
+        <div class="row">
+            <h1>
+                Failed to transform to an organization
+            </h1>
+            <hr />
+            @TempData["TransformError"]
+        </div>
+    }
+</section>

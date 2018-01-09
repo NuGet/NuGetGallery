@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
@@ -97,6 +98,46 @@ namespace NuGetGallery
         public virtual ActionResult Account()
         {
             return AccountView(new AccountViewModel());
+        }
+        
+        [HttpGet]
+        [Authorize]
+        public virtual async Task<ActionResult> ConfirmTransform(string accountNameToTransform, string token)
+        {
+            var adminUser = GetCurrentUser();
+            if (!adminUser.Confirmed)
+            {
+                TempData["TransformError"] = Strings.TransformAccount_NotConfirmed;
+                return RedirectToAction("ConfirmationRequired");
+            }
+
+            var accountToTransform = _userService.FindByUsername(accountNameToTransform);
+            if (accountToTransform == null)
+            {
+                TempData["TransformError"] = String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_OrganizationAccountDoesNotExist, accountNameToTransform);
+                return View("AccountTransformFailed");
+            }
+
+            string errorReason;
+            if (!_userService.CanTransformUserToOrganization(accountToTransform, out errorReason))
+            {
+                TempData["TransformError"] = errorReason;
+                return View("AccountTransformFailed");
+            }
+            
+            if (!await _userService.TransformUserToOrganization(accountToTransform, adminUser, token))
+            {
+                TempData["TransformError"] = String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_Failed, accountNameToTransform);
+                return View("AccountTransformFailed");
+            }
+                
+            TempData["Message"] = String.Format(CultureInfo.CurrentCulture,
+                Strings.TransformAccount_Success, accountNameToTransform);
+
+            // todo: redirect to ManageOrganization (future work)
+            return RedirectToAction("Account");
         }
 
         [HttpGet]

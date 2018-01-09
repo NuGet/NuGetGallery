@@ -94,6 +94,11 @@ namespace NuGetGallery.Configuration
         bool BlockingAsynchronousPackageValidationEnabled { get; set; }
 
         /// <summary>
+        /// Whitelist of domains for which the Organizations feature is enabled.
+        /// </summary>
+        string[] OrganizationsEnabledForDomains { get; set; }
+
+        /// <summary>
         /// Gets the URI to the search service
         /// </summary>
         Uri ServiceDiscoveryUri { get; set; }

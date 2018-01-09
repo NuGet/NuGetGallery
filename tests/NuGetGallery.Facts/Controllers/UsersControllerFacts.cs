@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
@@ -13,6 +14,7 @@ using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Authentication;
+using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Authentication;
 using Xunit;
@@ -2345,6 +2347,119 @@ namespace NuGetGallery
                 Assert.Equal<string>("DeleteRequest", (string)result.RouteValues["action"]);
                 bool tempData = controller.TempData.ContainsKey("RequestFailedMessage");
                 Assert.Equal<bool>(!successOnSentRequest, tempData);
+            }
+        }
+
+        public class TheConfirmTransformAction : TestContainer
+        {
+            [Fact]
+            public async Task WhenAdminIsNotConfirmed_ShowsError()
+            {
+                // Arrange
+                var controller = GetController<UsersController>();
+                var currentUser = new User() { UnconfirmedEmailAddress = "unconfirmed@example.com" };
+                controller.SetCurrentUser(currentUser);
+
+                // Act
+                var result = await controller.ConfirmTransform("account", "token");
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(Strings.TransformAccount_NotConfirmed, controller.TempData["TransformError"]);
+            }
+
+            [Fact]
+            public async Task WhenAccountToTransformIsNotFound_ShowsError()
+            {
+                // Arrange
+                var controller = GetController<UsersController>();
+                var currentUser = new User("OrgAdmin") { EmailAddress = "orgadmin@example.com" };
+                controller.SetCurrentUser(currentUser);
+
+                // Act
+                var result = await controller.ConfirmTransform("account", "token");
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(
+                    String.Format(CultureInfo.CurrentCulture, Strings.TransformAccount_OrganizationAccountDoesNotExist, "account"),
+                    controller.TempData["TransformError"]);
+            }
+
+            [Fact]
+            public async Task WhenCanTransformReturnsFalse_ShowsError()
+            {
+                // Arrange
+                var accountToTransform = "account";
+                var controller = CreateController(accountToTransform, canTransformErrorReason: "error");
+
+                // Act
+                var result = await controller.ConfirmTransform(accountToTransform, "token");
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal("error", controller.TempData["TransformError"]);
+            }
+
+            [Fact]
+            public async Task WhenUserServiceReturnsFalse_ShowsError()
+            {
+                // Arrange
+                var accountToTransform = "account";
+                var controller = CreateController(accountToTransform, success: false);
+
+                // Act
+                var result = await controller.ConfirmTransform(accountToTransform, "token");
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(
+                    String.Format(CultureInfo.CurrentCulture,
+                        Strings.TransformAccount_Failed, "account"),
+                    controller.TempData["TransformError"]);
+            }
+
+            [Fact]
+            public async Task WhenUserServiceReturnsSuccess_Redirects()
+            {
+                // Arrange
+                var accountToTransform = "account";
+                var controller = CreateController(accountToTransform, success: true);
+
+                // Act
+                var result = await controller.ConfirmTransform(accountToTransform, "token");
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.False(controller.TempData.ContainsKey("TransformError"));
+            }
+
+            private UsersController CreateController(string accountToTransform, string canTransformErrorReason = "", bool success = true)
+            {
+                // Arrange
+                var configurationService = GetConfigurationService();
+                configurationService.Current.OrganizationsEnabledForDomains = new string[] { "example.com" };
+
+                var controller = GetController<UsersController>();
+                var currentUser = new User("OrgAdmin") { EmailAddress = "orgadmin@example.com" };
+                controller.SetCurrentUser(currentUser);
+
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername(accountToTransform))
+                    .Returns(new User(accountToTransform)
+                    {
+                        EmailAddress = $"{accountToTransform}@example.com"
+                    });
+
+                GetMock<IUserService>()
+                    .Setup(u => u.CanTransformUserToOrganization(It.IsAny<User>(), out canTransformErrorReason))
+                    .Returns(string.IsNullOrEmpty(canTransformErrorReason));
+
+                GetMock<IUserService>()
+                    .Setup(s => s.TransformUserToOrganization(It.IsAny<User>(), It.IsAny<User>(), It.IsAny<string>()))
+                    .Returns(Task.FromResult(success));
+
+                return controller;
             }
         }
     }
