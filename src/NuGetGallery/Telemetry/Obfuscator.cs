@@ -9,31 +9,6 @@ using NuGetGallery.Helpers;
 
 namespace NuGetGallery
 {
-    internal struct ObfuscateMetadata
-    {
-        /// <summary>
-        /// A <see cref="System.Text.RegularExpressions.Regex" to be used for matching the value to be obfuscated./>
-        /// </summary>
-        public string ObfuscateTemplate
-        {
-            get;
-        }
-
-        /// <summary>
-        /// The obfuscation value.
-        /// </summary>
-        public string ObfuscateValue
-        {
-            get;
-        }
-
-        public ObfuscateMetadata(string obfuscateTemplate, string obfuscateValue)
-        {
-            ObfuscateTemplate = obfuscateTemplate;
-            ObfuscateValue = obfuscateValue;
-        }
-    }
-
     internal static class Obfuscator
     {
         /// <summary>
@@ -52,59 +27,9 @@ namespace NuGetGallery
             "Users/Profiles",
             "Users/ResetPassword"};
 
-        internal static readonly Dictionary<string, ObfuscateMetadata> ObfuscatedTemplates = new Dictionary<string, ObfuscateMetadata>
-        {
-            {@"/packages/(.+)/owners/(.+)/confirm/(.+)", new ObfuscateMetadata(@"/owners/(.+)/confirm", $"/owners/{DefaultTelemetryUserName}/confirm")},
-            {@"/packages/(.+)/owners/(.+)/reject/(.+)", new ObfuscateMetadata(@"/owners/(.+)/reject", $"/owners/{DefaultTelemetryUserName}/reject") },
-            {@"/packages/(.+)/owners/(.+)/cancel/(.+)", new ObfuscateMetadata(@"/owners/(.+)/cancel", $"/owners/{DefaultTelemetryUserName}/cancel") },
-            {@"/account/confirm/(.+)/(.+)", new ObfuscateMetadata(@"/account/confirm/(.+)/", $"/account/confirm/{DefaultTelemetryUserName}/") },
-            {@"/account/delete/(.+)", new ObfuscateMetadata(@"/account/delete/(.+)", $"/account/delete/{DefaultTelemetryUserName}") },
-            {@"/profiles/(.+)", new ObfuscateMetadata(@"/profiles/(.+)", $"/profiles/{DefaultTelemetryUserName}") },
-            {@"/account/setpassword/(.+)/(.+)", new ObfuscateMetadata(@"/setpassword/(.+)/", $"/setpassword/{DefaultTelemetryUserName}/") },
-            {@"/account/forgotpassword/(.+)/(.+)", new ObfuscateMetadata(@"/forgotpassword/(.+)/", $"/forgotpassword/{DefaultTelemetryUserName}/") }
-         };
-
         internal static string DefaultObfuscatedUrl(Uri url)
         {
             return url == null ? string.Empty : $"{url.Scheme}://{url.Host}/{DefaultTelemetryUserName}";
-        }
-
-        internal static Uri ObfuscateUrl(Uri url)
-        {
-            if (url == null)
-            {
-                return url;
-            }
-            var port = url.IsDefaultPort ? string.Empty : $":{url.Port}";
-            return new Uri($"{url.Scheme}://{url.Host}{port}{Obfuscate(url.AbsolutePath)}");
-        }
-
-        internal static string Obfuscate(string value)
-        {
-            string obfuscatedTemplateKey = null;
-            if (value == null || !NeedsObfuscation(value, out obfuscatedTemplateKey))
-            {
-                return value;
-            }
-            string obfuscatedValue = RegexEx.TryReplaceWithTimeout(value,
-                                            ObfuscatedTemplates[obfuscatedTemplateKey].ObfuscateTemplate,
-                                            match => ObfuscatedTemplates[obfuscatedTemplateKey].ObfuscateValue,
-                                            RegexOptions.IgnoreCase);
-            return obfuscatedValue;
-        }
-
-        internal static bool NeedsObfuscation(string valueToBeVerified, out string obfuscatedTemplateKey)
-        {
-            obfuscatedTemplateKey = string.Empty;
-            var match = ObfuscatedTemplates
-                        .Where(template => Regex.IsMatch(valueToBeVerified, template.Key, RegexOptions.IgnoreCase, RegexEx.Timeout))
-                        .FirstOrDefault();
-            if (match.Key == null)
-            {
-                return false;
-            }
-            obfuscatedTemplateKey = match.Key;
-            return true;
         }
     }
 }

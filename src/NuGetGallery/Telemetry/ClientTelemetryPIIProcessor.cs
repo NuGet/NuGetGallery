@@ -1,6 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using System.Web;
+using System.Web.Routing;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
@@ -27,12 +30,31 @@ namespace NuGetGallery
             var requestTelemetryItem = item as RequestTelemetry;
             if(requestTelemetryItem != null)
             {
-                requestTelemetryItem.Url = Obfuscator.ObfuscateUrl(requestTelemetryItem.Url);
-                requestTelemetryItem.Name = Obfuscator.Obfuscate(requestTelemetryItem.Name);
-                if(requestTelemetryItem.Context.Operation != null)
+                var route = Route;
+                if(route == null)
                 {
-                    requestTelemetryItem.Context.Operation.Name = Obfuscator.Obfuscate(requestTelemetryItem.Context.Operation.Name);
+                    return;
                 }
+                // Removes the first /
+                var requestPath = requestTelemetryItem.Url.AbsolutePath.Remove(0,1);
+                var obfuscatedPath = route.ObfuscateUrlPath(requestPath);
+                if(obfuscatedPath != null)
+                {
+                    requestTelemetryItem.Url = new Uri(requestTelemetryItem.Url.ToString().Replace(requestPath, obfuscatedPath));
+                    requestTelemetryItem.Name = requestTelemetryItem.Name.Replace(requestPath, obfuscatedPath);
+                    if(requestTelemetryItem.Context.Operation != null && requestTelemetryItem.Context.Operation.Name != null)
+                    {
+                        requestTelemetryItem.Context.Operation.Name = requestTelemetryItem.Context.Operation.Name.Replace(requestPath, obfuscatedPath);
+                    }
+                }
+            }
+        }
+
+        public virtual Route Route
+        {
+            get
+            {
+                return RouteTable.Routes.GetRouteData(new System.Web.HttpContextWrapper(HttpContext.Current)).Route as Route;
             }
         }
     }

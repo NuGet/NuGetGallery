@@ -147,17 +147,20 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.PackageOwnerConfirmation,
                 "packages/{id}/owners/{username}/confirm/{token}",
-                new { controller = "Packages", action = "ConfirmPendingOwnershipRequest" });
+                new { controller = "Packages", action = "ConfirmPendingOwnershipRequest" },
+                new RouteExtensions.ObfuscatedMetadata(3, Obfuscator.DefaultTelemetryUserName));
 
             routes.MapRoute(
                 RouteName.PackageOwnerRejection,
                 "packages/{id}/owners/{username}/reject/{token}",
-                new { controller = "Packages", action = "RejectPendingOwnershipRequest" });
+                new { controller = "Packages", action = "RejectPendingOwnershipRequest" },
+                new RouteExtensions.ObfuscatedMetadata(3, Obfuscator.DefaultTelemetryUserName));
 
             routes.MapRoute(
                 RouteName.PackageOwnerCancellation,
                 "packages/{id}/owners/{username}/cancel/{token}",
-                new { controller = "Packages", action = "CancelPendingOwnershipRequest" });
+                new { controller = "Packages", action = "CancelPendingOwnershipRequest" },
+                new RouteExtensions.ObfuscatedMetadata(3, Obfuscator.DefaultTelemetryUserName));
 
             // We need the following two routes (rather than just one) due to Routing's
             // Consecutive Optional Parameter bug. :(
@@ -242,7 +245,8 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.Profile,
                 "profiles/{username}",
-                new { controller = "Users", action = "Profiles" });
+                new { controller = "Users", action = "Profiles" },
+                new RouteExtensions.ObfuscatedMetadata(1, Obfuscator.DefaultTelemetryUserName));
 
             routes.MapRoute(
                 RouteName.RemovePassword,
@@ -257,17 +261,20 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.PasswordReset,
                 "account/forgotpassword/{username}/{token}",
-                new { controller = "Users", action = "ResetPassword", forgot = true });
+                new { controller = "Users", action = "ResetPassword", forgot = true },
+                new RouteExtensions.ObfuscatedMetadata(2, Obfuscator.DefaultTelemetryUserName));
 
             routes.MapRoute(
                 RouteName.PasswordSet,
                 "account/setpassword/{username}/{token}",
-                new { controller = "Users", action = "ResetPassword", forgot = false });
+                new { controller = "Users", action = "ResetPassword", forgot = false },
+                new RouteExtensions.ObfuscatedMetadata(2, Obfuscator.DefaultTelemetryUserName));
 
             routes.MapRoute(
                 RouteName.ConfirmAccount,
                 "account/confirm/{username}/{token}",
-                new { controller = "Users", action = "Confirm" });
+                new { controller = "Users", action = "Confirm" },
+                new RouteExtensions.ObfuscatedMetadata(2, Obfuscator.DefaultTelemetryUserName));
             
             routes.MapRoute(
                 RouteName.ChangeEmailSubscription,
@@ -277,7 +284,8 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.AdminDeleteAccount,
                 "account/delete/{accountName}",
-                new { controller = "Users", action = "Delete" });
+                new { controller = "Users", action = "Delete" },
+                new RouteExtensions.ObfuscatedMetadata(2, Obfuscator.DefaultTelemetryUserName));
 
             routes.MapRoute(
                 RouteName.UserDeleteAccount,

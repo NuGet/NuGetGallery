@@ -2,25 +2,31 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.IO;
-using System.Security.Principal;
-using System.Web;
 using System.Web.Routing;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
-using Microsoft.Owin;
-using Microsoft.Owin.Security;
 using Moq;
 using Xunit;
 
 namespace NuGetGallery.Telemetry
 {
-    public class ClientTelemetryPIIProcessorTests
+    public class ClientTelemetryPIIProcessorTests 
     {
+        private RouteCollection _currentRoutes ;
+
+        public ClientTelemetryPIIProcessorTests()
+        {
+            if (_currentRoutes == null)
+            {
+                _currentRoutes = new RouteCollection();
+                Routes.RegisterApiV2Routes(_currentRoutes);
+                Routes.RegisterUIRoutes(_currentRoutes);
+            }
+        }
+
         [Fact]
         public void NullTelemetryItemDoesNotThorw()
         {
@@ -33,10 +39,10 @@ namespace NuGetGallery.Telemetry
 
         [Theory]
         [MemberData(nameof(PIIUrlDataGenerator))]
-        public void UrlIsUpdatedOnPIIAction(string inputUrl, string expectedOutputUrl)
+        public void UrlIsUpdatedOnPIIAction(string routePath, string inputUrl, string expectedOutputUrl)
         {
             // Arange
-            var piiProcessor = CreatePIIProcessor();
+            var piiProcessor = CreatePIIProcessor(routePath);
             RequestTelemetry telemetryItem = new RequestTelemetry();
             telemetryItem.Url = new Uri(inputUrl);
             telemetryItem.Name = $"GET {telemetryItem.Url.AbsolutePath}";
@@ -67,17 +73,16 @@ namespace NuGetGallery.Telemetry
             List<string> piiUrlRoutes = GetPIIRoutesUrls();
 
             // Act and Assert
-            string templateKey;
             foreach (var route in piiUrlRoutes)
             {
-                var match = Obfuscator.NeedsObfuscation($"/{route}", out templateKey);
-                Assert.True(match, $"Route {route} did not match.");
+                var expectedTrue = RouteExtensions.ObfuscatedRouteMap.ContainsKey(route);
+                Assert.True(expectedTrue, $"Route was not added to the obfuscated routeMap.");
             }
         }
 
-        private ClientTelemetryPIIProcessor CreatePIIProcessor()
+        private ClientTelemetryPIIProcessor CreatePIIProcessor(string url = "")
         {
-            return new ClientTelemetryPIIProcessor(new TestProcessorNext());
+            return new TestClientTelemetryPIIProcessor(new TestProcessorNext(), url );
         }
 
         private class TestProcessorNext : ITelemetryProcessor
@@ -87,13 +92,29 @@ namespace NuGetGallery.Telemetry
             }
         }
 
-        private static List<string> GetPIIOperationsFromRoute()
+        private class TestClientTelemetryPIIProcessor : ClientTelemetryPIIProcessor
         {
-            var currentRoutes = new RouteCollection();
-            NuGetGallery.Routes.RegisterApiV2Routes(currentRoutes);
-            NuGetGallery.Routes.RegisterUIRoutes(currentRoutes);
+            private string _url = string.Empty;
 
-            var piiRoutes = currentRoutes.Where((r) =>
+            public TestClientTelemetryPIIProcessor(ITelemetryProcessor next, string url) : base (next)
+            {
+                _url = url;
+            }
+
+            public override Route Route
+            {
+                get
+                {
+                    var handler = new Mock<IRouteHandler>();
+                    return new Route(_url, handler.Object);
+                }
+            }
+
+        }
+
+        private List<string> GetPIIOperationsFromRoute()
+        {
+            var piiRoutes = _currentRoutes.Where((r) =>
             {
                 Route webRoute = r as Route;
                 return webRoute != null ? IsPIIUrl(webRoute.Url.ToString()) : false;
@@ -105,13 +126,9 @@ namespace NuGetGallery.Telemetry
             return piiRoutes;
         }
 
-        private static List<string> GetPIIRoutesUrls()
+        private List<string> GetPIIRoutesUrls()
         {
-            var currentRoutes = new RouteCollection();
-            NuGetGallery.Routes.RegisterApiV2Routes(currentRoutes);
-            NuGetGallery.Routes.RegisterUIRoutes(currentRoutes);
-
-            var piiRoutes = currentRoutes.Where((r) =>
+            var piiRoutes = _currentRoutes.Where((r) =>
             {
                 Route webRoute = r as Route;
                 return webRoute != null ? IsPIIUrl(webRoute.Url.ToString()) : false;
@@ -129,16 +146,16 @@ namespace NuGetGallery.Telemetry
         {
             foreach (var user in GenerateUserNames())
             {
-                yield return new string[] { $"https://localhost/packages/pack1/owners/{user}/confirm/sometoken", $"https://localhost/packages/pack1/owners/ObfuscatedUserName/confirm/sometoken" };
-                yield return new string[] { $"https://localhost/packages/pack1/owners/{user}/reject/sometoken", $"https://localhost/packages/pack1/owners/ObfuscatedUserName/reject/sometoken" };
-                yield return new string[] { $"https://localhost/packages/pack1/owners/{user}/cancel/sometoken", $"https://localhost/packages/pack1/owners/ObfuscatedUserName/cancel/sometoken" };
+                yield return new string[] { "packages/{id}/owners/{username}/confirm/{token}",  $"https://localhost/packages/pack1/owners/user1/confirm/sometoken", $"https://localhost/packages/pack1/owners/ObfuscatedUserName/confirm/sometoken" };
+                yield return new string[] { "packages/{id}/owners/{username}/reject/{token}", $"https://localhost/packages/pack1/owners/user1/reject/sometoken", $"https://localhost/packages/pack1/owners/ObfuscatedUserName/reject/sometoken" };
+                yield return new string[] { "packages/{id}/owners/{username}/cancel/{token}", $"https://localhost/packages/pack1/owners/user1/cancel/sometoken", $"https://localhost/packages/pack1/owners/ObfuscatedUserName/cancel/sometoken" };
 
-                yield return new string[] { $"https://localhost/account/confirm/{user}/sometoken", $"https://localhost/account/confirm/ObfuscatedUserName/sometoken" };
-                yield return new string[] { "https://localhost/account/delete/{user}", $"https://localhost/account/delete/ObfuscatedUserName" };
+                yield return new string[] { "account/confirm/{username}/{token}", $"https://localhost/account/confirm/user1/sometoken", $"https://localhost/account/confirm/ObfuscatedUserName/sometoken" };
+                yield return new string[] { "account/delete/{accountName}", "https://localhost/account/delete/user1", $"https://localhost/account/delete/ObfuscatedUserName" };
 
-                yield return new string[] { $"https://localhost/profiles/{user}", $"https://localhost/profiles/ObfuscatedUserName" };
-                yield return new string[] { $"https://localhost/account/setpassword/{user}/sometoken", $"https://localhost/account/setpassword/ObfuscatedUserName/sometoken" };
-                yield return new string[] { $"https://localhost/account/forgotpassword/{user}/sometoken", $"https://localhost/account/forgotpassword/ObfuscatedUserName/sometoken" };
+                yield return new string[] { "profiles/{username}", $"https://localhost/profiles/user1", $"https://localhost/profiles/ObfuscatedUserName" };
+                yield return new string[] { "account/setpassword/{username}/{token}", $"https://localhost/account/setpassword/user1/sometoken", $"https://localhost/account/setpassword/ObfuscatedUserName/sometoken" };
+                yield return new string[] { "account/forgotpassword/{username}/{token}", $"https://localhost/account/forgotpassword/user1/sometoken", $"https://localhost/account/forgotpassword/ObfuscatedUserName/sometoken" };
             }
         }
 

@@ -775,6 +775,7 @@
     <Compile Include="Controllers\ErrorsController.cs" />
     <Compile Include="Controllers\PagesController.cs" />
     <Compile Include="Extensions\PrincipalExtensions.cs" />
+    <Compile Include="Extensions\RouteExtensions.cs" />
     <Compile Include="Extensions\ScopeExtensions.cs" />
     <Compile Include="Extensions\UserExtensions.cs" />
     <Compile Include="Filters\ApiScopeRequiredAttribute.cs" />
