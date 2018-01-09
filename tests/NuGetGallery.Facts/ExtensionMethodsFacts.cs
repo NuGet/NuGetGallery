@@ -1,7 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Microsoft.Owin;
+using Moq;
 using NuGet.Frameworks;
+using System.Security.Principal;
 using Xunit;
 
 namespace NuGetGallery
@@ -40,6 +43,49 @@ namespace NuGetGallery
                 var fx = NuGetFramework.Parse(shortName);
                 var actual = fx.ToFriendlyName(allowRecurseProfile: false);
                 Assert.Equal(expected, actual);
+            }
+        }
+
+        public class TheGetCurrentUserMethod
+        {
+            [Fact]
+            public void ReturnsNullIfNullUser()
+            {
+                // Arrange
+                var mockOwinRequest = new Mock<IOwinRequest>();
+                mockOwinRequest.Setup(x => x.User).Returns<IPrincipal>(null);
+
+                var mockOwinContext = new Mock<IOwinContext>();
+                mockOwinContext.Setup(x => x.Request).Returns(mockOwinRequest.Object);
+
+                // Act
+                var currentUser = mockOwinContext.Object.GetCurrentUser();
+
+                // Assert
+                Assert.Equal(null, currentUser);
+            }
+
+            [Fact]
+            public void ReturnsNullIfUnauthenticatedUser()
+            {
+                // Arrange
+                var mockIdentity = new Mock<IIdentity>();
+                mockIdentity.Setup(x => x.IsAuthenticated).Returns(false);
+
+                var mockPrincipal = new Mock<IPrincipal>();
+                mockPrincipal.Setup(x => x.Identity).Returns(mockIdentity.Object);
+
+                var mockOwinRequest = new Mock<IOwinRequest>();
+                mockOwinRequest.Setup(x => x.User).Returns(mockPrincipal.Object);
+
+                var mockOwinContext = new Mock<IOwinContext>();
+                mockOwinContext.Setup(x => x.Request).Returns(mockOwinRequest.Object);
+
+                // Act
+                var currentUser = mockOwinContext.Object.GetCurrentUser();
+
+                // Assert
+                Assert.Equal(null, currentUser);
             }
         }
     }

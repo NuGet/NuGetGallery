@@ -4,9 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
-using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using NuGet.Services.Validation;
 using NuGet.Versioning;
 using NuGetGallery.Areas.Admin.Models;
@@ -36,7 +34,7 @@ namespace NuGetGallery.Areas.Admin.Services
         /// </summary>
         public IReadOnlyList<PackageValidationSet> Search(string query)
         {
-            var lines = ParseQueryToLines(query);
+            var lines = Helpers.ParseQueryToLines(query);
 
             // Search for matching validation sets using various methods of parsing the lines.
             var validationSets = new Dictionary<long, PackageValidationSet>();
@@ -76,35 +74,6 @@ namespace NuGetGallery.Areas.Admin.Services
             }
 
             return PackageDeletedStatus.NotDeleted;
-        }
-
-        internal static IReadOnlyList<string> ParseQueryToLines(string query)
-        {
-            // Collapse redundant spaces.
-            var normalizedQuery = Regex.Replace(
-                query,
-                @"[^\S\r\n]+",
-                " ",
-                RegexOptions.None,
-                TimeSpan.FromSeconds(10));
-
-            // Split lines and trim.
-            var lines = new List<string>();
-            var uniqueLines = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            using (var stringReader = new StringReader(normalizedQuery))
-            {
-                string line;
-                while ((line = stringReader.ReadLine()) != null)
-                {
-                    var trimmedLine = line.Trim();
-                    if (trimmedLine.Length > 0 && uniqueLines.Add(trimmedLine))
-                    {
-                        lines.Add(trimmedLine);
-                    }
-                }
-            }
-
-            return lines;
         }
 
         private void SearchByValidationSetTrackingId(Dictionary<long, PackageValidationSet> validationSets, string line)

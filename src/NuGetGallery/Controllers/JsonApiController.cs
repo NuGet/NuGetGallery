@@ -50,12 +50,13 @@ namespace NuGetGallery
                 return Json(new { message = Strings.AddOwner_PackageNotFound });
             }
 
-            if (!PermissionsService.IsActionAllowed(package, HttpContext.User, PackageActions.ManagePackageOwners))
+            var currentUser = GetCurrentUser();
+            if (ActionsRequiringPermissions.ManagePackageOwnership.CheckPermissionsOnBehalfOfAnyAccount(currentUser, package) != PermissionsCheckResult.Allowed)
             {
                 return new HttpUnauthorizedResult();
             }
 
-            var currentUser = GetCurrentUser();
+            var packageRegistration = package.PackageRegistration;
             var packageRegistrationOwners = package.PackageRegistration.Owners;
             var allMatchingNamespaceOwners = package
                 .PackageRegistration
@@ -71,6 +72,7 @@ namespace NuGetGallery
                 .Select(u => new PackageOwnersResultViewModel(
                     u, 
                     currentUser,
+                    packageRegistration,
                     Url,
                     isPending: false, 
                     isNamespaceOwner: true));
@@ -80,6 +82,7 @@ namespace NuGetGallery
                 .Select(u => new PackageOwnersResultViewModel(
                     u,
                     currentUser,
+                    packageRegistration,
                     Url,
                     isPending: false,
                     isNamespaceOwner: false));
@@ -91,6 +94,7 @@ namespace NuGetGallery
                 .Select(r => new PackageOwnersResultViewModel(
                     r.NewOwner,
                     currentUser,
+                    packageRegistration,
                     Url,
                     isPending: true,
                     isNamespaceOwner: false));
@@ -156,6 +160,7 @@ namespace NuGetGallery
                     model = new PackageOwnersResultViewModel(
                         model.User,
                         model.CurrentUser,
+                        model.Package,
                         Url,
                         isPending: true,
                         isNamespaceOwner: false)
@@ -307,7 +312,15 @@ namespace NuGetGallery
                 model = new ManagePackageOwnerModel(Strings.AddOwner_PackageNotFound);
                 return false;
             }
-            if (!PermissionsService.IsActionAllowed(package, HttpContext.User, PackageActions.ManagePackageOwners))
+
+            var currentUser = GetCurrentUser();
+            if (currentUser == null)
+            {
+                model = new ManagePackageOwnerModel(Strings.AddOwner_CurrentUserNotFound);
+                return false;
+            }
+
+            if (ActionsRequiringPermissions.ManagePackageOwnership.CheckPermissionsOnBehalfOfAnyAccount(currentUser, package) != PermissionsCheckResult.Allowed)
             {
                 model = new ManagePackageOwnerModel(Strings.AddOwner_NotPackageOwner);
                 return false;
@@ -341,13 +354,6 @@ namespace NuGetGallery
             {
                 model = new ManagePackageOwnerModel(
                     string.Format(CultureInfo.CurrentCulture, Strings.RemoveOwner_NotOwner, username));
-                return false;
-            }
-
-            var currentUser = _userService.FindByUsername(HttpContext.User.Identity.Name);
-            if (currentUser == null)
-            {
-                model = new ManagePackageOwnerModel(Strings.AddOwner_CurrentUserNotFound);
                 return false;
             }
 

@@ -623,6 +623,95 @@ namespace NuGetGallery
             }
         }
 
+        public class TheApiKeysAction
+            : TestContainer
+        {
+            public static IEnumerable<object[]> CurrentUserIsInPackageOwnersWithPushNew_Data
+            {
+                get
+                {
+                    foreach (var currentUser in 
+                        new[] 
+                        {
+                            TestUtility.FakeUser,
+                            TestUtility.FakeAdminUser,
+                            TestUtility.FakeOrganizationAdmin,
+                            TestUtility.FakeOrganizationCollaborator
+                        })
+                    {
+                        yield return MemberDataHelper.AsData(currentUser);
+                    }
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(CurrentUserIsInPackageOwnersWithPushNew_Data))]
+            public void CurrentUserIsFirstInPackageOwnersWithPushNew(User currentUser)
+            {
+                var model = GetModelForApiKeys(currentUser);
+
+                var firstPackageOwner = model.PackageOwners.First();
+                Assert.True(firstPackageOwner.Owner == currentUser.Username);
+                Assert.True(firstPackageOwner.CanPushNew);
+            }
+            
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public void OrganizationIsInPackageOwnersIfMember(bool isAdmin)
+            {
+                var currentUser = isAdmin ? TestUtility.FakeOrganizationAdmin : TestUtility.FakeOrganizationCollaborator;
+                var organization = TestUtility.FakeOrganization;
+
+                var model = GetModelForApiKeys(currentUser);
+                
+                Assert.Equal(1, model.PackageOwners.Count(o => o.Owner == organization.Username && o.CanPushNew == isAdmin));
+            }
+
+            public static IEnumerable<object[]> OrganizationIsNotInPackageOwnersIfNotMember_Data
+            {
+                get
+                {
+                    foreach (var currentUser in
+                        new[]
+                        {
+                            TestUtility.FakeUser,
+                            TestUtility.FakeAdminUser
+                        })
+                    {
+                        yield return MemberDataHelper.AsData(currentUser);
+                    }
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(OrganizationIsNotInPackageOwnersIfNotMember_Data))]
+            public void OrganizationIsNotInPackageOwnersIfNotMember(User currentUser)
+            {
+                var organization = TestUtility.FakeOrganization;
+
+                var model = GetModelForApiKeys(currentUser);
+
+                Assert.Equal(0, model.PackageOwners.Count(o => o.Owner == organization.Username));
+            }
+
+            private ApiKeyListViewModel GetModelForApiKeys(User currentUser)
+            {
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(currentUser);
+
+                // Act
+                var result = controller.ApiKeys();
+
+                // Assert
+                Assert.IsType<ViewResult>(result);
+                var viewResult = result as ViewResult;
+
+                Assert.IsType<ApiKeyListViewModel>(viewResult.Model);
+                return viewResult.Model as ApiKeyListViewModel;
+            }
+        }
+
         public class TheGenerateApiKeyAction : TestContainer
         {
             [InlineData(null)]
@@ -647,13 +736,42 @@ namespace NuGetGallery
                 Assert.True(string.Compare((string)result.Data, Strings.ApiKeyDescriptionRequired) == 0);
             }
 
-            [Fact]
-            public async Task WhenScopeOwnerDoesNotMatch_ReturnsBadRequest()
+            public static IEnumerable<object[]> WhenScopeOwnerDoesNotMatch_ReturnsBadRequest_Data
+            {
+                get
+                {
+                    foreach (var getCurrentUser in 
+                        new Func<Fakes, User>[] 
+                        {
+                            (fakes) => fakes.User,
+                            (fakes) => fakes.Admin
+                        })
+                    {
+                        yield return new object[]
+                        {
+                            getCurrentUser
+                        };
+                    }
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(WhenScopeOwnerDoesNotMatch_ReturnsBadRequest_Data))]
+            public Task WhenScopeOwnerDoesNotMatch_ReturnsBadRequest(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange 
                 var fakes = new Fakes();
-                var user = fakes.User;
-                var otherUser = fakes.ShaUser;
+                var currentUser = getCurrentUser(fakes);
+                var userInOwnerScope = fakes.ShaUser;
+
+                return WhenScopeOwnerDoesNotMatch_ReturnsBadRequest(currentUser, userInOwnerScope);
+            }
+
+            private async Task WhenScopeOwnerDoesNotMatch_ReturnsBadRequest(User currentUser, User userInOwnerScope)
+            {
+                // Arrange 
+                var user = currentUser;
+                var otherUser = userInOwnerScope;
                 GetMock<IUserService>()
                     .Setup(u => u.FindByUsername(otherUser.Username))
                     .Returns(otherUser);
@@ -2102,10 +2220,10 @@ namespace NuGetGallery
                     .Setup(stub => stub.FindByUsername(userName))
                     .Returns(testUser);
                 GetMock<IPackageService>()
-                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>()))
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))
                     .Returns(userPackages);
                 GetMock<IPackageService>()
-                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>()))
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))
                     .Returns(userPackages);
 
                 // act
@@ -2167,7 +2285,7 @@ namespace NuGetGallery
                     .Setup(stub => stub.FindByUsername(userName))
                     .Returns(testUser);
                 GetMock<IPackageService>()
-                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>()))
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))
                     .Returns(userPackages);
                 GetMock<ISupportRequestService>()
                    .Setup(stub => stub.GetIssues(null, null, null, null))
@@ -2210,7 +2328,7 @@ namespace NuGetGallery
                     .Setup(stub => stub.FindByUsername(userName))
                     .Returns(testUser);
                 GetMock<IPackageService>()
-                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>()))
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))
                     .Returns(userPackages);
                 GetMock<ISupportRequestService>()
                    .Setup(stub => stub.GetIssues(null, null, null, userName))

@@ -22,6 +22,8 @@ namespace NuGetGallery.Configuration
         protected const string SettingPrefix = "Gallery.";
         protected const string FeaturePrefix = "Feature.";
         protected const string ServiceBusPrefix = "AzureServiceBus.";
+        protected const string PackageDeletePrefix = "PackageDelete.";
+
         private bool _notInCloud;
         private readonly Lazy<string> _httpSiteRootThunk;
         private readonly Lazy<string> _httpsSiteRootThunk;
@@ -30,6 +32,7 @@ namespace NuGetGallery.Configuration
         private readonly Lazy<IAppConfiguration> _lazyAppConfiguration;
         private readonly Lazy<FeatureConfiguration> _lazyFeatureConfiguration;
         private readonly Lazy<IServiceBusConfiguration> _lazyServiceBusConfiguration;
+        private readonly Lazy<IPackageDeleteConfiguration> _lazyPackageDeleteConfiguration;
 
         public ConfigurationService(ISecretReaderFactory secretReaderFactory)
         {
@@ -41,7 +44,8 @@ namespace NuGetGallery.Configuration
 
             _lazyAppConfiguration = new Lazy<IAppConfiguration>(() => ResolveSettings().Result);
             _lazyFeatureConfiguration = new Lazy<FeatureConfiguration>(() => ResolveFeatures().Result);
-            _lazyServiceBusConfiguration  = new Lazy<IServiceBusConfiguration>(() => ResolveServiceBus().Result);
+            _lazyServiceBusConfiguration = new Lazy<IServiceBusConfiguration>(() => ResolveServiceBus().Result);
+            _lazyPackageDeleteConfiguration = new Lazy<IPackageDeleteConfiguration>(() => ResolvePackageDelete().Result);
         }
 
         public static IEnumerable<PropertyDescriptor> GetConfigProperties<T>(T instance)
@@ -64,6 +68,8 @@ namespace NuGetGallery.Configuration
         public FeatureConfiguration Features => _lazyFeatureConfiguration.Value;
 
         public IServiceBusConfiguration ServiceBus => _lazyServiceBusConfiguration.Value;
+
+        public IPackageDeleteConfiguration PackageDelete => _lazyPackageDeleteConfiguration.Value;
 
         /// <summary>
         /// Gets the site root using the specified protocol
@@ -170,6 +176,11 @@ namespace NuGetGallery.Configuration
         private async Task<IServiceBusConfiguration> ResolveServiceBus()
         {
             return await ResolveConfigObject(new ServiceBusConfiguration(), ServiceBusPrefix);
+        }
+
+        private async Task<IPackageDeleteConfiguration> ResolvePackageDelete()
+        {
+            return await ResolveConfigObject(new PackageDeleteConfiguration(), PackageDeletePrefix);
         }
 
         protected virtual string GetCloudSetting(string settingName)

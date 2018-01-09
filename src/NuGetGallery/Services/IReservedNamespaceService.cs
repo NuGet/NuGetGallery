@@ -90,13 +90,12 @@ namespace NuGetGallery
         IReadOnlyCollection<ReservedNamespace> GetReservedNamespacesForId(string id);
 
         /// <summary>
-        /// Verifies if the id is allowed to be pushed by the user or not and try to get 
-        /// user owned namespaces if any.
+        /// Checks if a new package with an id of <paramref name="id"/> owned by <paramref name="account"/> should be marked as verified.
         /// </summary>
-        /// <param name="id">The package id to lookup</param>
-        /// <param name="user">The user to verify for permission to push to new id</param>
-        /// <param name="userOwnedMatchingNamespaces">The out list of namespaces owned by the user</param>
-        /// <returns>True if the push is allowed for the specified user for the given id, false otherwise</returns>
-        bool IsPushAllowed(string id, User user, out IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces);
+        /// <param name="account">The <see cref="User"/> that will own the new package.</param>
+        /// <param name="id">The <see cref="PackageRegistration.Id"/> of the new package.</param>
+        /// <param name="ownedMatchingReservedNamespaces">The <see cref="ReservedNamespace"/>s that <paramref name="account"/> owns that match <paramref name="id"/>.</param>
+        /// <returns></returns>
+        bool ShouldMarkNewPackageIdVerified(User account, string id, out IReadOnlyCollection<ReservedNamespace> ownedMatchingReservedNamespaces);
     }
 }
