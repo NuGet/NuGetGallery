@@ -15,6 +15,8 @@ namespace NuGet.Services.Validation.Issues
         public static readonly IReadOnlyDictionary<ValidationIssueCode, Type> IssueCodeTypes = new Dictionary<ValidationIssueCode, Type>
         {
             { ValidationIssueCode.PackageIsSigned, GetIssueType<PackageIsSigned>() },
+            { ValidationIssueCode.SignedPackageMustHaveOneSignature, GetIssueType<SignedPackageMustHaveOneSignature>() },
+            { ValidationIssueCode.ClientSigningVerificationFailure, GetIssueType<ClientSigningVerificationFailure>() },
 #pragma warning disable 618
             { ValidationIssueCode.ObsoleteTesting, GetIssueType<ObsoleteTestingIssue>() }
 #pragma warning restore 618

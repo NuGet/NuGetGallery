@@ -21,6 +21,16 @@ namespace NuGet.Services.Validation
         PackageIsSigned = 1,
 
         /// <summary>
+        /// A signing verification failure occurred, where the issue message is mastered by the client APIs.
+        /// </summary>
+        ClientSigningVerificationFailure = 2,
+
+        /// <summary>
+        /// Packages with multiple signatures are blocked.
+        /// </summary>
+        SignedPackageMustHaveOneSignature = 3,
+
+        /// <summary>
         /// Obsolete testing issue - do NOT use this!
         /// </summary>
         [Obsolete("This issue code should only be used for testing")]

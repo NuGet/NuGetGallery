@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 using Xunit;
@@ -52,6 +51,28 @@ namespace NuGet.Services.Validation.Issues.Tests
                 // Assert
                 Assert.Equal(Strings.EmptyJson, result);
             }
+
+            [Fact]
+            public void ClientSigningVerificationFailureSerialization()
+            {
+                // Arrange
+                var signedError = new ClientSigningVerificationFailure("NU3008", "The package integrity check failed.");
+                var result = signedError.Serialize();
+
+                // Assert
+                Assert.Equal(Strings.ClientSigningVerificationFailureIssueJson, result);
+            }
+
+            [Fact]
+            public void SignedPackageMustHaveOneSignatureSerialization()
+            {
+                // Arrange
+                var signedError = new SignedPackageMustHaveOneSignature(count: 2);
+                var result = signedError.Serialize();
+
+                // Assert
+                Assert.Equal(Strings.SignedPackageMustHaveOneSignatureIssueJson, result);
+            }
         }
 
         public class TheDeserializeMethod
@@ -59,8 +80,10 @@ namespace NuGet.Services.Validation.Issues.Tests
             [Fact]
             public void UnknownDeserialization()
             {
-                // Arrange & Act
+                // Arrange
                 var validationIssue = CreatePackageValidationIssue(ValidationIssueCode.Unknown, Strings.EmptyJson);
+
+                // Act
                 var result = ValidationIssue.Deserialize(validationIssue.IssueCode, validationIssue.Data) as UnknownIssue;
 
                 // Assert
@@ -72,9 +95,11 @@ namespace NuGet.Services.Validation.Issues.Tests
             [Fact]
             public void ObsoleteTestingIssueDeserialization()
             {
-                // Arrange & Act
+                // Arrange
 #pragma warning disable 618
                 var validationIssue = CreatePackageValidationIssue(ValidationIssueCode.ObsoleteTesting, Strings.ObsoleteTestingIssueJson);
+
+                // Act
                 var result = ValidationIssue.Deserialize(validationIssue.IssueCode, validationIssue.Data) as ObsoleteTestingIssue;
 #pragma warning restore 618
 
@@ -85,6 +110,53 @@ namespace NuGet.Services.Validation.Issues.Tests
 #pragma warning restore 618
                 Assert.Equal("Hello", result.A);
                 Assert.Equal(123, result.B);
+            }
+            
+            [Fact]
+            public void PackageIsSignedDeserialization()
+            {
+                // Arrange
+                var validationIssue = CreatePackageValidationIssue(ValidationIssueCode.PackageIsSigned, Strings.EmptyJson);
+
+                // Act
+                var result = ValidationIssue.Deserialize(validationIssue.IssueCode, validationIssue.Data);
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(ValidationIssueCode.PackageIsSigned, result.IssueCode);
+            }
+
+            [Fact]
+            public void ClientSigningVerificationFailureDeserialization()
+            {
+                // Arrange
+                var validationIssue = CreatePackageValidationIssue(ValidationIssueCode.ClientSigningVerificationFailure, Strings.ClientSigningVerificationFailureIssueJson);
+
+                // Act
+                var result = ValidationIssue.Deserialize(validationIssue.IssueCode, validationIssue.Data) as ClientSigningVerificationFailure;
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(ValidationIssueCode.ClientSigningVerificationFailure, result.IssueCode);
+                Assert.Equal("NU3008", result.ClientCode);
+                Assert.Equal("The package integrity check failed.", result.ClientMessage);
+                Assert.Equal("NU3008: The package integrity check failed.", result.GetMessage());
+            }
+
+            [Fact]
+            public void SignedPackageMustHaveOneSignatureDeserialization()
+            {
+                // Arrange
+                var validationIssue = CreatePackageValidationIssue(ValidationIssueCode.SignedPackageMustHaveOneSignature, Strings.SignedPackageMustHaveOneSignatureIssueJson);
+
+                // Act
+                var result = ValidationIssue.Deserialize(validationIssue.IssueCode, validationIssue.Data) as SignedPackageMustHaveOneSignature;
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(ValidationIssueCode.SignedPackageMustHaveOneSignature, result.IssueCode);
+                Assert.Equal(2, result.Count);
+                Assert.Equal("This signed package was rejected since it has 2 signatures. A signed package must have exactly one signature.", result.GetMessage());
             }
 
             [Fact]

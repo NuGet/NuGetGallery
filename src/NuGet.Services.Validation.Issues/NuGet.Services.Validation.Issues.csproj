@@ -41,6 +41,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ObsoleteTestingIssue.cs" />
+    <Compile Include="ClientSigningVerificationFailure.cs" />
+    <Compile Include="SignedPackageMustHaveOneSignature.cs" />
     <Compile Include="Strings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

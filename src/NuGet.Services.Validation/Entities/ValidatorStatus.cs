@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 
 namespace NuGet.Services.Validation
 {
@@ -36,5 +37,10 @@ namespace NuGet.Services.Validation
         /// Used for optimistic concurrency when updating the statuses.
         /// </summary>
         public byte[] RowVersion { get; set; }
+
+        /// <summary>
+        /// The validation issues found by this validation.
+        /// </summary>
+        public virtual ICollection<ValidatorIssue> ValidatorIssues { get; set; }
     }
 }

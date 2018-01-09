@@ -61,6 +61,15 @@ namespace NuGet.Services.Validation.Issues.Tests {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {&quot;c&quot;:&quot;NU3008&quot;,&quot;m&quot;:&quot;The package integrity check failed.&quot;}.
+        /// </summary>
+        internal static string ClientSigningVerificationFailureIssueJson {
+            get {
+                return ResourceManager.GetString("ClientSigningVerificationFailureIssueJson", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {}.
         /// </summary>
         internal static string EmptyJson {
@@ -84,6 +93,15 @@ namespace NuGet.Services.Validation.Issues.Tests {
         internal static string ObsoleteTestingIssueJson {
             get {
                 return ResourceManager.GetString("ObsoleteTestingIssueJson", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;c&quot;:2}.
+        /// </summary>
+        internal static string SignedPackageMustHaveOneSignatureIssueJson {
+            get {
+                return ResourceManager.GetString("SignedPackageMustHaveOneSignatureIssueJson", resourceCulture);
             }
         }
     }

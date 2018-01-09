@@ -70,6 +70,15 @@ namespace NuGet.Services.Validation.Issues {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This signed package was rejected since it has {0} signatures. A signed package must have exactly one signature..
+        /// </summary>
+        internal static string SignedPackageMustHaveOneSignatureMessage {
+            get {
+                return ResourceManager.GetString("SignedPackageMustHaveOneSignatureMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Package validation failed due to an unknown error..
         /// </summary>
         internal static string UnknownIssueMessage {

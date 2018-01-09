@@ -120,6 +120,10 @@
   <data name="PackageIsSignedMessage" xml:space="preserve">
     <value>Package publishing failed: This package could not be published since it is signed. We do not accept signed packages at this moment. To be notified about package signing and more, watch our &lt;a href="https://github.com/nuget/announcements/issues"&gt;Announcements&lt;/a&gt; page or follow us on &lt;a href="https://twitter.com/nuget"&gt;Twitter&lt;/a&gt;.</value>
   </data>
+  <data name="SignedPackageMustHaveOneSignatureMessage" xml:space="preserve">
+    <value>This signed package was rejected since it has {0} signatures. A signed package must have exactly one signature.</value>
+    <comment>{0} is the actual number of signatures.</comment>
+  </data>
   <data name="UnknownIssueMessage" xml:space="preserve">
     <value>Package validation failed due to an unknown error.</value>
   </data>
