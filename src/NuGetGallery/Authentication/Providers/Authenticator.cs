@@ -109,25 +109,7 @@ namespace NuGetGallery.Authentication.Providers
 
         public virtual AuthInformation GetAuthInformation(ClaimsIdentity claimsIdentity)
         {
-            if (!IsAuthorForIdentity(claimsIdentity))
-            {
-                throw new ArgumentException($"The identity not authored by {BaseConfig.AuthenticationType}");
-            }
-
-            var identifierClaim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
-            if (identifierClaim == null)
-            {
-                throw new ArgumentException("External Authentication is missing required claim: " + ClaimTypes.NameIdentifier);
-            }
-
-            var nameClaim = claimsIdentity.FindFirst(ClaimTypes.Name);
-            if (nameClaim == null)
-            {
-                throw new ArgumentException($"External Authentication is missing required claim: {ClaimTypes.Name}");
-            }
-
-            var emailClaim = claimsIdentity.FindFirst(ClaimTypes.Email);
-            return new AuthInformation(identifierClaim.Value, nameClaim.Value, emailClaim?.Value, BaseConfig.AuthenticationType, tenantId: null);
+            return new AuthInformation();
         }
     }
 }

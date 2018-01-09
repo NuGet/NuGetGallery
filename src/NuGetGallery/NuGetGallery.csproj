@@ -731,6 +731,7 @@
     <Compile Include="Authentication\Providers\CommonAuth\CommonAuthAuthenticatorConfiguration.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticator.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticatorConfiguration.cs" />
+    <Compile Include="Authentication\Providers\Utils\MSAIdentityExtractor.cs" />
     <Compile Include="Configuration\IGalleryConfigurationService.cs" />
     <Compile Include="Configuration\IServiceBusConfiguration.cs" />
     <Compile Include="Configuration\SecretReader\CachingSecretReader.cs" />

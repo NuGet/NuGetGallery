@@ -2,10 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin.Security.OpenIdConnect;
+using NuGetGallery.Authentication.Providers.Utils;
 using NuGetGallery.Configuration;
 using Owin;
 
@@ -64,6 +66,11 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectory
         public override ActionResult Challenge(string redirectUrl)
         {
             return new ChallengeResult(BaseConfig.AuthenticationType, redirectUrl);
+        }
+
+        public override AuthInformation GetAuthInformation(ClaimsIdentity claimsIdentity)
+        {
+            return MSAIdentityExtractor.GetAuthInformation(claimsIdentity, DefaultAuthenticationType);
         }
     }
 }
