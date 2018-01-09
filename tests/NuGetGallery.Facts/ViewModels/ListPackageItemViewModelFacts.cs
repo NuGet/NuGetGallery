@@ -278,7 +278,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
         public void HasSingleOwner(Package package, bool expectedResult)
         {
             // Arrange
-            var listPackageItemViewModel = new ListPackageItemViewModel(package);
+            var listPackageItemViewModel = new ListPackageItemViewModel(package, currentUser: null);
 
             // Act + Assert
             Assert.Equal(expectedResult, listPackageItemViewModel.HasSingleOwner);

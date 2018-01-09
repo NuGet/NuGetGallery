@@ -12,6 +12,8 @@ namespace NuGetGallery
         /// Returns all the user accounts that are members of an organization.
         /// If the organization has nested organizations their members will be returned as well.
         /// The result will not have duplicate elements.
+        /// 
+        /// Nested organizations (teams) are not supported in the Gallery yet, but this method allows for it in case we lift that constraint.
         /// </summary>
         /// <param name="organization">The organization.</param>
         /// <returns>The <see cref="IEnumerable{User}"/> of users that are not <see cref="Organization"/> and are members of <paramref name="organization"/>.</returns>
