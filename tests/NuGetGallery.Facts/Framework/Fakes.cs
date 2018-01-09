@@ -161,6 +161,11 @@ namespace NuGetGallery.Framework
 
         public static ClaimsPrincipal ToPrincipal(User user)
         {
+            if (user == null)
+            {
+                return null;
+            }
+
             ClaimsIdentity identity = new ClaimsIdentity(
                 claims: Enumerable.Concat(new[] {
                             new Claim(ClaimsIdentity.DefaultNameClaimType, user.Username),

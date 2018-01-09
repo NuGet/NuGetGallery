@@ -18,62 +18,87 @@
                        LinkIdOnly = false
                    })
 
-            <h2>
-                <a href="#" role="button" data-toggle="collapse" data-target="#select-version" aria-expanded="true" aria-controls="select-version" id="show-select-version">
-                    <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
-                    <span>Select Version</span>
-                </a>
-            </h2>
-
-            <div class="panel-collapse collapse in" aria-expanded="true" id="select-version">
-                <div class="form-group">
-                    <label for="input-select-version" id="package-version-label">Select Package Version</label>
-
-                    @Html.DropDownList("version-selection", Model.VersionSelectList,
-                                 new
-                                 {
-                                     @class = "form-control",
-                                     title = "Selection A Version...",
-                                     id = "input-select-version"
-                                 })
+             @if (Model.IsLocked && !User.IsAdministrator())
+             {
+                <div class="validation-error-message-list">
+                    @ViewHelpers.AlertDanger(
+                        @<text>
+                            <span>
+                                Package '@Model.Id' has been locked. This means you cannot publish a new version or change the listing status of a published package version. Please contact
+                                <a href="mailto:support@nuget.org?subject=@HttpUtility.UrlPathEncode(string.Format("Requesting support for a locked package - '{0}'", Model.Id))">support@nuget.org</a>.
+                            </span>
+                        </text>)
                 </div>
-            </div>
-
-            <h2>
-                <a href="#" role="button" data-toggle="collapse" data-target="#list-package" aria-expanded="true" aria-controls="list-package" id="show-list-package">
-                    <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
-                    <span>Package Version Listing</span>
-                </a>
-            </h2>
-
-            <div class="panel-collapse collapse in" aria-expanded="true" id="list-package">
-
-                @if (!User.IsAdministrator())
-                {
-                    @ViewHelpers.AlertInfo(
-                @<text>
-                    You can control how your packages are listed using the checkbox below. As per <a href="https://docs.microsoft.com/en-us/nuget/policies/deleting-packages">policy</a>, permanent deletion is not supported as it would break every project depending on the availability of the package. For more assistance, <a href="@Url.ReportAbuse(Model.Id, Model.Version)" title="Contact Support">Contact Support</a>.
-                </text>
-                    )
-                }
-
-                @using (Html.BeginForm("UpdateListed", "Packages"))
-                {
-                    @Html.AntiForgeryToken()
-                    @Html.Hidden("version", @Model.Version)
-                    <div class="form-group @Html.HasErrorFor(package => package.Listed)">
-                        @Html.ShowCheckboxFor(package => package.Listed)
-                        @Html.ShowLabelFor(package => package.Listed, "List " + Model.Id + " " + Model.Version + " in search results.")
-                        @Html.ShowValidationMessagesFor(package => package.Listed)
-
-                        <p>Unlisted packages cannot be installed directly and do not show up in search results.</p>
+             }
+             else
+             {
+                 if (Model.IsLocked && User.IsAdministrator())
+                 {
+                    <div class="validation-error-message-list">
+                        @ViewHelpers.AlertDanger(
+                            @<text>
+                                <span>Package '@Model.Id' has been locked.</span>
+                            </text>)
                     </div>
+                 }
 
+                <h2>
+                    <a href="#" role="button" data-toggle="collapse" data-target="#select-version" aria-expanded="true" aria-controls="select-version" id="show-select-version">
+                        <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+                        <span>Select Version</span>
+                    </a>
+                </h2>
+
+                <div class="panel-collapse collapse in" aria-expanded="true" id="select-version">
                     <div class="form-group">
-                        <input type="submit" class="btn btn-primary form-control" value="Save" />
+                        <label for="input-select-version" id="package-version-label">Select Package Version</label>
+
+                        @Html.DropDownList("version-selection", Model.VersionSelectList,
+                                       new
+                                       {
+                                           @class = "form-control",
+                                           title = "Selection A Version...",
+                                           id = "input-select-version"
+                                       })
                     </div>
-                }
-            </div>
+                </div>
+
+                <h2>
+                    <a href="#" role="button" data-toggle="collapse" data-target="#list-package" aria-expanded="true" aria-controls="list-package" id="show-list-package">
+                        <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+                        <span>Package Version Listing</span>
+                    </a>
+                </h2>
+
+                <div class="panel-collapse collapse in" aria-expanded="true" id="list-package">
+
+                    @if (!User.IsAdministrator())
+                    {
+                        @ViewHelpers.AlertInfo(
+                    @<text>
+                        You can control how your packages are listed using the checkbox below. As per <a href="https://docs.microsoft.com/en-us/nuget/policies/deleting-packages">policy</a>, permanent deletion is not supported as it would break every project depending on the availability of the package. For more assistance, <a href="@Url.ReportAbuse(Model.Id, Model.Version)" title="Contact Support">Contact Support</a>.
+                    </text>
+                              )
+                    }
+
+                    @using (Html.BeginForm("UpdateListed", "Packages"))
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("version", @Model.Version)
+                        <div class="form-group @Html.HasErrorFor(package => package.Listed)">
+                            @Html.ShowCheckboxFor(package => package.Listed)
+                            @Html.ShowLabelFor(package => package.Listed, "List " + Model.Id + " " + Model.Version + " in search results.")
+                            @Html.ShowValidationMessagesFor(package => package.Listed)
+
+                            <p>Unlisted packages cannot be installed directly and do not show up in search results.</p>
+                        </div>
+
+                        <div class="form-group">
+                            <input type="submit" class="btn btn-primary form-control" value="Save" />
+                        </div>
+                    }
+                </div>
+             }
 
             @if (User.IsAdministrator())
             {

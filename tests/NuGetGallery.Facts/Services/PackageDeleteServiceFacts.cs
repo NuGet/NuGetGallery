@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 using NuGetGallery.Auditing;
+using NuGetGallery.Configuration;
 using Xunit;
 
 namespace NuGetGallery
@@ -26,7 +27,9 @@ namespace NuGetGallery
             Mock<IIndexingService> indexingService = null,
             Mock<IPackageFileService> packageFileService = null,
             Mock<IAuditingService> auditingService = null,
-            Action<Mock<TestPackageDeleteService>> setup = null)
+            Mock<IPackageDeleteConfiguration> config = null,
+            Action<Mock<TestPackageDeleteService>> setup = null,
+            bool useRealConstructor = false)
         {
             packageRepository = packageRepository ?? new Mock<IEntityRepository<Package>>();
             packageRegistrationRepository = packageRegistrationRepository ?? new Mock<IEntityRepository<PackageRegistration>>();
@@ -42,24 +45,43 @@ namespace NuGetGallery
 
             auditingService = auditingService ?? new Mock<IAuditingService>();
 
-            var packageDeleteService = new Mock<TestPackageDeleteService>(
-                packageRepository.Object,
-                packageRegistrationRepository.Object,
-                packageDeletesRepository.Object,
-                entitiesContext.Object,
-                packageService.Object,
-                indexingService.Object,
-                packageFileService.Object,
-                auditingService.Object);
+            config = config ?? new Mock<IPackageDeleteConfiguration>();
 
-            packageDeleteService.CallBase = true;
-
-            if (setup != null)
+            if (useRealConstructor)
             {
-                setup(packageDeleteService);
+                return new PackageDeleteService(
+                    packageRepository.Object,
+                    packageRegistrationRepository.Object,
+                    packageDeletesRepository.Object,
+                    entitiesContext.Object,
+                    packageService.Object,
+                    indexingService.Object,
+                    packageFileService.Object,
+                    auditingService.Object,
+                    config.Object);
             }
+            else
+            {
+                var packageDeleteService = new Mock<TestPackageDeleteService>(
+                    packageRepository.Object,
+                    packageRegistrationRepository.Object,
+                    packageDeletesRepository.Object,
+                    entitiesContext.Object,
+                    packageService.Object,
+                    indexingService.Object,
+                    packageFileService.Object,
+                    auditingService.Object,
+                    config.Object);
 
-            return packageDeleteService.Object;
+                packageDeleteService.CallBase = true;
+
+                if (setup != null)
+                {
+                    setup(packageDeleteService);
+                }
+
+                return packageDeleteService.Object;
+            }
         }
 
         public class TestPackageDeleteService
@@ -67,8 +89,25 @@ namespace NuGetGallery
         {
             public PackageAuditRecord LastAuditRecord { get; set; }
 
-            public TestPackageDeleteService(IEntityRepository<Package> packageRepository, IEntityRepository<PackageRegistration> packageRegistrationRepository, IEntityRepository<PackageDelete> packageDeletesRepository, IEntitiesContext entitiesContext, IPackageService packageService, IIndexingService indexingService, IPackageFileService packageFileService, IAuditingService auditingService)
-                : base(packageRepository, packageRegistrationRepository, packageDeletesRepository, entitiesContext, packageService, indexingService, packageFileService, auditingService)
+            public TestPackageDeleteService(
+                IEntityRepository<Package> packageRepository,
+                IEntityRepository<PackageRegistration> packageRegistrationRepository,
+                IEntityRepository<PackageDelete> packageDeletesRepository,
+                IEntitiesContext entitiesContext,
+                IPackageService packageService,
+                IIndexingService indexingService,
+                IPackageFileService packageFileService,
+                IAuditingService auditingService,
+                IPackageDeleteConfiguration config) : base(
+                    packageRepository,
+                    packageRegistrationRepository,
+                    packageDeletesRepository,
+                    entitiesContext,
+                    packageService,
+                    indexingService,
+                    packageFileService,
+                    auditingService,
+                    config)
             {
             }
 
@@ -87,6 +126,25 @@ namespace NuGetGallery
             {
                 LastAuditRecord = base.CreateAuditRecord(package, packageRegistration, action, reason);
                 return LastAuditRecord;
+            }
+        }
+
+        public class TheConstructor
+        {
+            [Fact]
+            public void RejectsHourLimitWithMaximumDownloadsLessThanStatisticsUpdateFrequencyInHours()
+            {
+                // Arrange
+                var config = new Mock<IPackageDeleteConfiguration>();
+                config.Setup(x => x.StatisticsUpdateFrequencyInHours).Returns(24);
+                config.Setup(x => x.HourLimitWithMaximumDownloads).Returns(23);
+
+                // Act & Assert
+                var exception = Assert.Throws<ArgumentException>(
+                    () => CreateService(config: config, useRealConstructor: true));
+                Assert.Contains(
+                    "StatisticsUpdateFrequencyInHours must be less than HourLimitWithMaximumDownloads.",
+                    exception.Message);
             }
         }
 

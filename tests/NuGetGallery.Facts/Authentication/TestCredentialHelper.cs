@@ -63,9 +63,9 @@ namespace NuGetGallery.Authentication
             return CreateApiKey(CredentialTypes.ApiKey.VerifyV1, apiKey.ToString(), TimeSpan.FromDays(1));
         }
 
-        public static Credential CreateExternalCredential(string value)
+        public static Credential CreateExternalCredential(string value, string tenantId = null)
         {
-            return new Credential { Type = CredentialTypes.ExternalPrefix + "MicrosoftAccount", Value = value };
+            return new Credential { Type = CredentialTypes.ExternalPrefix + "MicrosoftAccount", Value = value, TenantId = tenantId };
         }
 
         internal static Credential CreateApiKey(string type, string apiKey, TimeSpan? expiration)

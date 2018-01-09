@@ -16,56 +16,74 @@
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             @Html.Partial("_PackageHeading", new PackageHeadingModel
-                   {
-                       PageHeading = "Edit Package",
-                       PackageDisplay = Model.PackageId,
-                       Id = Model.PackageId,
-                       Version = Model.Version,
-                       LinkIdOnly = true
-                   })
-            <div id="select-package-version-container">
-                <h2>
-                    <a href="#" role="button" data-toggle="collapse" data-target="#select-package-version-form"
-                       aria-expanded="false" aria-controls="select-package-version-form" id="show-select-package-version-form">
-                        <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
-                        <span>Select Version</span>
-                    </a>
-                </h2>
-                <div class="collapse in" id="select-package-version-form" aria-expanded="true">
-                    <form id="cancel-form">
-                        @Html.AntiForgeryToken()
-                    </form>
-                    <form id="select-version-form" enctype="multipart/form-data">
-                        @Html.AntiForgeryToken()
+            {
+                PageHeading = "Edit Package",
+                PackageDisplay = Model.PackageId,
+                Id = Model.PackageId,
+                Version = Model.Version,
+                LinkIdOnly = true
+            })
 
-                        @Html.ValidationSummary(true)
-                        <div class="row">
-                            <label for="input-select-version" id="package-version-label" class="col-xs-12">
-                                <span>Select a package version</span>
-                                @Html.DropDownList("version-selection", Model.VersionSelectList,
-                           new
-                           {
-                               @class = "form-control selectpicker show-tick show-menu-arrow btn-block",
-                               @title = "Select A Version...",
-                               @id = "input-select-version"
-                           })
-                            </label>
+            @if (Model.IsLocked)
+            {
+                <div class="validation-error-message-list">
+                    @ViewHelpers.AlertDanger(
+                                @<text>
+                                    <span>
+                                        Package '@Model.PackageId' has been locked. This means you cannot publish a new version or change the listing status of a published package version. Please contact
+                                        <a href="mailto:support@nuget.org?subject=@HttpUtility.UrlPathEncode(string.Format("Requesting support for a locked package - '{0}'", Model.PackageId))">support@nuget.org</a>.
+                                    </span>
+                                </text>)
+                </div>
+            }
+            else
+            {
+                <div id="select-package-version-container">
+                    <h2>
+                        <a href="#" role="button" data-toggle="collapse" data-target="#select-package-version-form"
+                           aria-expanded="false" aria-controls="select-package-version-form" id="show-select-package-version-form">
+                            <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+                            <span>Select Version</span>
+                        </a>
+                    </h2>
+                    <div class="collapse in" id="select-package-version-form" aria-expanded="true">
+                        <form id="cancel-form">
+                            @Html.AntiForgeryToken()
+                        </form>
+                        <form id="select-version-form" enctype="multipart/form-data">
+                            @Html.AntiForgeryToken()
+
+                            @Html.ValidationSummary(true)
+                            <div class="row">
+                                <label for="input-select-version" id="package-version-label" class="col-xs-12">
+                                    <span>Select a package version</span>
+                                    @Html.DropDownList("version-selection", Model.VersionSelectList,
+                                                  new
+                                                  {
+                                                      @class = "form-control selectpicker show-tick show-menu-arrow btn-block",
+                                                      @title = "Select A Version...",
+                                                      @id = "input-select-version"
+                                                  })
+                                </label>
+                            </div>
+                        </form>
+                        <div id="validation-failure-container">
                         </div>
-                    </form>
-
-                    <div id="validation-failure-container">
                     </div>
                 </div>
-            </div>
+            }
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-xs-10 col-xs-offset-1">
-            @ViewHelpers.AlertPackageEditRecommendation()
-            @Html.Partial("_EditForm")
+    @if (!Model.IsLocked)
+    {
+        <div class="row">
+            <div class="col-xs-10 col-xs-offset-1">
+                @ViewHelpers.AlertPackageEditRecommendation()
+                @Html.Partial("_EditForm")
+            </div>
         </div>
-    </div>
+    }
 </section>
 
 @section BottomScripts {

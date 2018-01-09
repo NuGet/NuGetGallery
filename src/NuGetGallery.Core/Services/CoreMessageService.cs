@@ -62,16 +62,10 @@ namespace NuGetGallery.Services
             }
         }
 
-        public void SendPackageValidationFailedNotice(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl)
+        public void SendPackageValidationFailedNotice(Package package, string packageUrl, string packageSupportUrl)
         {
             string subject = "[{0}] Package validation failed - {1} {2}";
-            string body = @"The package [{1} {2}]({3}) failed validation and was therefore not published on {0}. Note that the package will not be available for consumption and you will not be able to push the same package ID and version until further action is taken. Please [contact support]({4}) for next steps.
-
------------------------------------------------
-<em style=""font-size: 0.8em;"">
-    To stop receiving emails as an owner of this package, sign in to the {0} and
-    [change your email notification settings]({5}).
-</em>";
+            string body = @"The package [{1} {2}]({3}) failed validation and was therefore not published on {0}. Note that the package will not be available for consumption and you will not be able to push the same package ID and version until further action is taken. Please [contact support]({4}) for next steps.";
 
             body = string.Format(
                 CultureInfo.CurrentCulture,
@@ -80,8 +74,7 @@ namespace NuGetGallery.Services
                 package.PackageRegistration.Id,
                 package.Version,
                 packageUrl,
-                packageSupportUrl,
-                emailSettingsUrl);
+                packageSupportUrl);
 
             subject = string.Format(CultureInfo.CurrentCulture, subject, CoreConfiguration.GalleryOwner.DisplayName, package.PackageRegistration.Id, package.Version);
 
@@ -91,12 +84,52 @@ namespace NuGetGallery.Services
                 mailMessage.Body = body;
                 mailMessage.From = CoreConfiguration.GalleryNoReplyAddress;
 
-                AddOwnersSubscribedToPackagePushedNotification(package.PackageRegistration, mailMessage);
+                AddAllOwnersToMailMessage(package.PackageRegistration, mailMessage);
 
                 if (mailMessage.To.Any())
                 {
                     SendMessage(mailMessage, copySender: false);
                 }
+            }
+        }
+
+        public void SendSignedPackageNotAllowedNotice(Package package, string packageUrl, string announcementsUrl, string twitterUrl)
+        {
+            string subject = "[{0}] Package validation failed - {1} {2}";
+            string body = @"The package [{1} {2}]({3}) could not be published since it is signed. {0} does not accept signed packages at this moment. To be notified when {0} starts accepting signed packages, and more, watch our [Announcements]({4}) page or follow us on [Twitter]({5}).";
+
+            body = string.Format(
+                CultureInfo.CurrentCulture,
+                body,
+                CoreConfiguration.GalleryOwner.DisplayName,
+                package.PackageRegistration.Id,
+                package.Version,
+                packageUrl,
+                announcementsUrl,
+                twitterUrl);
+
+            subject = string.Format(CultureInfo.CurrentCulture, subject, CoreConfiguration.GalleryOwner.DisplayName, package.PackageRegistration.Id, package.Version);
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = CoreConfiguration.GalleryNoReplyAddress;
+
+                AddAllOwnersToMailMessage(package.PackageRegistration, mailMessage);
+
+                if (mailMessage.To.Any())
+                {
+                    SendMessage(mailMessage, copySender: false);
+                }
+            }
+        }
+
+        protected static void AddAllOwnersToMailMessage(PackageRegistration packageRegistration, MailMessage mailMessage)
+        {
+            foreach (var owner in packageRegistration.Owners)
+            {
+                mailMessage.To.Add(owner.ToMailAddress());
             }
         }
 

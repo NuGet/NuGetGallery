@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Entity;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -299,30 +300,32 @@ namespace NuGetGallery
                 var id = nuspec.GetId();
                 var packageRegistration = _packageService.FindPackageRegistrationById(id);
                 // For a new package id verify if the user is allowed to use it.
-                if (packageRegistration == null)
+                if (packageRegistration == null && ActionsRequiringPermissions.UploadNewPackageId.CheckPermissionsOnBehalfOfAnyAccount(currentUser, new ActionOnNewPackageContext(id, _reservedNamespaceService)) != PermissionsCheckResult.Allowed)
                 {
-                    var isPushAllowed = _reservedNamespaceService
-                        .IsPushAllowed(id, currentUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
+                    ModelState.AddModelError(
+                        string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict));
 
-                    if (!isPushAllowed)
-                    {
-                        ModelState.AddModelError(
-                            string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict));
+                    var version = nuspec.GetVersion().ToNormalizedString();
+                    _telemetryService.TrackPackagePushNamespaceConflictEvent(id, version, currentUser, User.Identity);
 
-                        var version = nuspec.GetVersion().ToNormalizedString();
-                        _telemetryService.TrackPackagePushNamespaceConflictEvent(id, version, currentUser, User.Identity);
-
-                        return Json(409, new string[] { string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict) });
-                    }
+                    return Json(409, new string[] { string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict) });
                 }
 
                 // For existing package id verify if it is owned by the current user
-                if (packageRegistration != null && !PermissionsService.IsActionAllowed(packageRegistration, currentUser, PackageActions.UploadNewVersion))
+                if (packageRegistration != null)
                 {
-                    ModelState.AddModelError(
-                        string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id));
+                    if (ActionsRequiringPermissions.UploadNewPackageVersion.CheckPermissionsOnBehalfOfAnyAccount(currentUser, packageRegistration) != PermissionsCheckResult.Allowed)
+                    {
+                        ModelState.AddModelError(
+                          string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id));
 
-                    return Json(409, new[] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id) });
+                        return Json(409, new[] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, packageRegistration.Id) });
+                    }
+
+                    if (packageRegistration.IsLocked)
+                    {
+                        return Json(403, new[] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, packageRegistration.Id) });
+                    }
                 }
 
                 var nuspecVersion = nuspec.GetVersion();
@@ -414,12 +417,13 @@ namespace NuGetGallery
             {
                 package = _packageService.FindPackageByIdAndVersion(id, version, SemVerLevelKey.SemVer2);
             }
-            
+
             // Validating packages should be hidden to everyone but the owners and admins.
+            var currentUser = GetCurrentUser();
             if (package == null
                 || ((package.PackageStatusKey == PackageStatus.Validating
                      || package.PackageStatusKey == PackageStatus.FailedValidation)
-                    && !PermissionsService.IsActionAllowed(package, User, PackageActions.DisplayPrivatePackage)))
+                    && ActionsRequiringPermissions.DisplayPrivatePackageMetadata.CheckPermissionsOnBehalfOfAnyAccount(currentUser, package) != PermissionsCheckResult.Allowed))
             {
                 return HttpNotFound();
             }
@@ -430,10 +434,17 @@ namespace NuGetGallery
                 .ToList()
                 .OrderByDescending(p => new NuGetVersion(p.Version));
 
-            var model = new DisplayPackageViewModel(package, packageHistory);
+            var model = new DisplayPackageViewModel(package, currentUser, packageHistory);
+
+            var validationIssues = _validationService.GetLatestValidationIssues(package);
+
+            model.ValidationIssues = validationIssues
+                                        .Select(i => i.GetMessage())
+                                        .Distinct()
+                                        .ToList();
 
             var isReadMePending = false;
-            if (PermissionsService.IsActionAllowed(package, User, PackageActions.Edit))
+            if (ActionsRequiringPermissions.EditPackage.CheckPermissionsOnBehalfOfAnyAccount(currentUser, package) == PermissionsCheckResult.Allowed)
             {
                 // Tell logged-in package owners not to cache the package page,
                 // so they won't be confused about the state of pending edits.
@@ -575,6 +586,7 @@ namespace NuGetGallery
 
             var viewModel = new PackageListViewModel(
                 results.Data,
+                GetCurrentUser(),
                 results.IndexTimestampUtc,
                 q,
                 totalHits,
@@ -611,7 +623,7 @@ namespace NuGetGallery
                 var user = GetCurrentUser();
 
                 // If user logged on in as owner a different tab, then clicked the link, we can redirect them to ReportMyPackage
-                if (PermissionsService.IsActionAllowed(package, user, PackageActions.ReportMyPackage))
+                if (ActionsRequiringPermissions.ReportPackageAsOwner.CheckPermissionsOnBehalfOfAnyAccount(user, package) == PermissionsCheckResult.Allowed)
                 {
                     return RedirectToAction("ReportMyPackage", new { id, version });
                 }
@@ -638,7 +650,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
             
-            if (!PermissionsService.IsActionAllowed(package, User, PackageActions.ReportMyPackage))
+            if (ActionsRequiringPermissions.ReportPackageAsOwner.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
             {
                 return RedirectToAction(nameof(ReportAbuse), new { id, version });
             }
@@ -781,7 +793,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            if (!PermissionsService.IsActionAllowed(package, User, PackageActions.ReportMyPackage))
+            if (ActionsRequiringPermissions.ReportPackageAsOwner.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
             {
                 return RedirectToAction(nameof(ReportAbuse), new { id = package.PackageRegistration.Id, version = package.NormalizedVersion });
             }
@@ -948,6 +960,7 @@ namespace NuGetGallery
             _messageService.SendContactOwnersMessage(
                 fromAddress,
                 package,
+                Url.Package(package, false),
                 contactForm.Message,
                 Url.AccountSettings(relativeUrl: false),
                 contactForm.CopySender);
@@ -973,12 +986,12 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            if (!PermissionsService.IsActionAllowed(package, User, PackageActions.ManagePackageOwners))
+            if (ActionsRequiringPermissions.ManagePackageOwnership.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
 
-            var model = new ManagePackageOwnersViewModel(package, User);
+            var model = new ManagePackageOwnersViewModel(package, GetCurrentUser());
 
             return View(model);
         }
@@ -993,12 +1006,12 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            if (!PermissionsService.IsActionAllowed(package, User, PackageActions.Unlist))
+            if (ActionsRequiringPermissions.UnlistOrRelistPackage.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }
 
-            var model = new DeletePackageViewModel(package, ReportMyPackageReasons);
+            var model = new DeletePackageViewModel(package, GetCurrentUser(), ReportMyPackageReasons);
 
             model.VersionSelectList = new SelectList(
                 model.PackageVersions
@@ -1149,7 +1162,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            if (!PermissionsService.IsActionAllowed(package, User, PackageActions.Edit))
+            if (ActionsRequiringPermissions.EditPackage.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.Forbidden, Strings.Unauthorized);
             }
@@ -1160,29 +1173,34 @@ namespace NuGetGallery
                 PackageId = package.PackageRegistration.Id,
                 PackageTitle = package.Title,
                 Version = package.NormalizedVersion,
-                PackageVersions = package.PackageRegistration.Packages
-                    .OrderByDescending(p => new NuGetVersion(p.Version), Comparer<NuGetVersion>.Create((a, b) => a.CompareTo(b)))
-                    .ToList()
+                IsLocked = package.PackageRegistration.IsLocked,
             };
 
-            // Create version selection.
-            model.VersionSelectList = new SelectList(model.PackageVersions.Select(e => new
+            if (!model.IsLocked)
             {
-                text = NuGetVersion.Parse(e.Version).ToFullString() + (e.IsLatestSemVer2 ? " (Latest)" : string.Empty),
-                url = UrlExtensions.EditPackage(Url, model.PackageId, e.NormalizedVersion)
-            }), "url", "text", UrlExtensions.EditPackage(Url, model.PackageId, model.Version));
+                model.PackageVersions = package.PackageRegistration.Packages
+                      .OrderByDescending(p => new NuGetVersion(p.Version), Comparer<NuGetVersion>.Create((a, b) => a.CompareTo(b)))
+                      .ToList();
 
-            // Create edit model from the latest pending edit.
-            var pendingMetadata = _editPackageService.GetPendingMetadata(package);
+                // Create version selection.
+                model.VersionSelectList = new SelectList(model.PackageVersions.Select(e => new
+                {
+                    text = NuGetVersion.Parse(e.Version).ToFullString() + (e.IsLatestSemVer2 ? " (Latest)" : string.Empty),
+                    url = UrlExtensions.EditPackage(Url, model.PackageId, e.NormalizedVersion)
+                }), "url", "text", UrlExtensions.EditPackage(Url, model.PackageId, model.Version));
 
-            model.Edit = new EditPackageVersionReadMeRequest(pendingMetadata);
+                // Create edit model from the latest pending edit.
+                var pendingMetadata = _editPackageService.GetPendingMetadata(package);
 
-            // Update edit model with the active or pending readme.md data.
-            var isReadMePending = model.Edit.ReadMeState != PackageEditReadMeState.Unchanged;
-            if (package.HasReadMe || isReadMePending)
-            {
-                model.Edit.ReadMe.SourceType = ReadMeService.TypeWritten;
-                model.Edit.ReadMe.SourceText = await _readMeService.GetReadMeMdAsync(package, isReadMePending);
+                model.Edit = new EditPackageVersionReadMeRequest(pendingMetadata);
+
+                // Update edit model with the active or pending readme.md data.
+                var isReadMePending = model.Edit.ReadMeState != PackageEditReadMeState.Unchanged;
+                if (package.HasReadMe || isReadMePending)
+                {
+                    model.Edit.ReadMe.SourceType = ReadMeService.TypeWritten;
+                    model.Edit.ReadMe.SourceText = await _readMeService.GetReadMeMdAsync(package, isReadMePending);
+                }
             }
 
             return View(model);
@@ -1201,9 +1219,14 @@ namespace NuGetGallery
                 return Json(404, new[] { string.Format(Strings.PackageWithIdAndVersionNotFound, id, version) });
             }
 
-            if (!PermissionsService.IsActionAllowed(package, User, PackageActions.Edit))
+            if (ActionsRequiringPermissions.EditPackage.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
             {
                 return Json(403, new[] { Strings.Unauthorized });
+            }
+
+            if (package.PackageRegistration.IsLocked)
+            {
+                return Json(403, new[] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, package.PackageRegistration.Id) });
             }
 
             if (!ModelState.IsValid)
@@ -1269,7 +1292,7 @@ namespace NuGetGallery
             }
             
             var user = _userService.FindByUsername(username);
-            if (!PermissionsService.IsActionAllowed(user, GetCurrentUser(), AccountActions.ManagePackageOwnershipOnBehalfOf))
+            if (ActionsRequiringPermissions.HandlePackageOwnershipRequest.CheckPermissions(GetCurrentUser(), user) != PermissionsCheckResult.Allowed)
             {
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.NotYourRequest));
             }
@@ -1455,9 +1478,15 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            if (!PermissionsService.IsActionAllowed(package, User, PackageActions.Edit))
+
+            if (ActionsRequiringPermissions.EditPackage.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
+            }
+
+            if (package.PackageRegistration.IsLocked)
+            {
+                return new HttpStatusCodeResult(403, string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, package.PackageRegistration.Id));
             }
 
             string action;
@@ -1725,7 +1754,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            if (!PermissionsService.IsActionAllowed(package, User, PackageActions.Edit))
+            if (ActionsRequiringPermissions.EditPackage.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
             {
                 return new HttpStatusCodeResult(401, "Unauthorized");
             }

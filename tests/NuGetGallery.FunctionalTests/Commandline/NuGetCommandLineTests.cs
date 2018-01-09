@@ -5,6 +5,7 @@ using System;
 using System.ComponentModel;
 using System.IO;
 using System.Threading.Tasks;
+using NuGetGallery.FunctionalTests.XunitExtensions;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -16,6 +17,9 @@ namespace NuGetGallery.FunctionalTests.Commandline
     public class NugetCommandLineTests
         : GalleryTestBase
     {
+        private const string LockedPackageId = "NuGetTest_LockedPackageCannotBeModified";
+        private const string LockedPackageVersion = "1.0.0";
+
         private readonly ClientSdkHelper _clientSdkHelper;
         private readonly CommandlineHelper _commandlineHelper;
         private readonly PackageCreationHelper _packageCreationHelper;
@@ -144,6 +148,34 @@ namespace NuGetGallery.FunctionalTests.Commandline
                 Directory.Delete(Path.GetFullPath(Path.GetDirectoryName(packageFullPath)), true);
             }
             _clientSdkHelper.DownloadPackageAndVerify(packageId);
+        }
+
+        [PackageLockFact]
+        [Description("Verifies push version, and delete are not allowed on a locked package")]
+        [Priority(2)]
+        [Category("P2Tests")]
+        public async Task LockedPackageCannotBeModified()
+        {
+            // Arrange
+            string version = "2.0.0";
+
+            var packageCreationHelper = new PackageCreationHelper(TestOutputHelper);
+            var location = await packageCreationHelper.CreatePackage(LockedPackageId, version);
+
+            // Act & Assert
+            // 1. Try to upload package 
+            TestOutputHelper.WriteLine($"1. Trying to upload package '{LockedPackageId}', version '{version}' to locked package id.");
+            var processResult = await _commandlineHelper.UploadPackageAsync(location, UrlHelper.V2FeedPushSourceUrl, EnvironmentSettings.TestAccountApiKey);
+            Assert.True(processResult.ExitCode != 0, "Package push succeeded, although was expected to fail.");
+            Assert.Contains("locked", processResult.StandardError);
+
+            // 2. Try unlisting the locked package 
+            // Perform a sanity check that the package exists
+            await _clientSdkHelper.VerifyPackageExistsInV2AndV3Async(LockedPackageId, LockedPackageVersion);
+            TestOutputHelper.WriteLine($"5. Trying to unlist locked package '{LockedPackageId}', version '{LockedPackageVersion}'.");
+            processResult = await _commandlineHelper.DeletePackageAsync(LockedPackageId, LockedPackageVersion, UrlHelper.V2FeedPushSourceUrl, EnvironmentSettings.TestAccountApiKey);
+            Assert.True(processResult.ExitCode != 0, "Package delete succeeded, although was expected to fail.");
+            Assert.Contains("locked", processResult.StandardError);
         }
     }
 }

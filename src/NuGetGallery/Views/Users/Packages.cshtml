@@ -214,9 +214,9 @@
             EditUrl = editUrlTemplate.Resolve(p),
             ManageOwnersUrl = manageOwnersUrlTemplate.Resolve(p),
             DeleteUrl = deleteUrlTemplate.Resolve(p),
-            CanEdit = p.IsActionAllowed(User, PackageActions.Edit),
-            CanManageOwners = p.IsActionAllowed(User, PackageActions.ManagePackageOwners),
-            CanDelete = p.IsActionAllowed(User, PackageActions.Unlist)
+            CanEdit = p.CanEdit,
+            CanManageOwners = p.CanManageOwners,
+            CanDelete = p.CanUnlistOrRelist
         };
     }
 }
@@ -225,11 +225,7 @@
     <script type="text/javascript">
         var initialData = @Html.Raw(JsonConvert.SerializeObject(new
                      {
-                         Owners = Model.Owners.Select(o => new
-                         {
-                             Username = o.Username,
-                             IsOrganization = o is Organization
-                         }),
+                         Owners = Model.Owners,
                          ListedPackages = Model.ListedPackages
                             .Select(p => GetSerializablePackage(p)),
                          UnlistedPackages = Model.UnlistedPackages

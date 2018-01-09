@@ -32,9 +32,19 @@ namespace NuGetGallery
         }
 
         /// <summary>
-        /// Organization memberships for a non-organization <see cref="User"/> account.
+        /// Organization memberships, for a non-organization <see cref="User"/> account.
         /// </summary>
         public virtual ICollection<Membership> Organizations { get; set; }
+
+        /// <summary>
+        /// Organization membership requests, for a non-organization <see cref="User"/> account.
+        /// </summary>
+        public virtual ICollection<MembershipRequest> OrganizationRequests { get; set; }
+
+        /// <summary>
+        /// Request to transform a <see cref="User"/> account into an <see cref="Organization"/> account.
+        /// </summary>
+        public virtual OrganizationMigrationRequest OrganizationMigrationRequest { get; set; }
 
         [StringLength(256)]
         public string EmailAddress { get; set; }
