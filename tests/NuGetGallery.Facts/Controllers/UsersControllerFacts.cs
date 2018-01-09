@@ -2350,7 +2350,7 @@ namespace NuGetGallery
             }
         }
 
-        public class TheTransformActionBase : TestContainer
+        public class TheTransformToOrganizationActionBase : TestContainer
         {
             protected UsersController CreateController(string accountToTransform, string canTransformErrorReason = "")
             {
@@ -2390,7 +2390,7 @@ namespace NuGetGallery
             }
         }
 
-        public class TheGetTransformAction : TheTransformActionBase
+        public class TheGetTransformToOrganizationAction : TheTransformToOrganizationActionBase
         {
             [Fact]
             public void WhenCanTransformReturnsFalse_ShowsError()
@@ -2400,7 +2400,7 @@ namespace NuGetGallery
                 var controller = CreateController(accountToTransform, canTransformErrorReason: "error");
 
                 // Act
-                var result = controller.Transform();
+                var result = controller.TransformToOrganization();
 
                 // Assert
                 Assert.NotNull(result);
@@ -2408,7 +2408,7 @@ namespace NuGetGallery
             }
         }
 
-        public class ThePostTransformAction : TheTransformActionBase
+        public class ThePostTransformToOrganizationAction : TheTransformToOrganizationActionBase
         {
             [Fact]
             public async Task WhenCanTransformReturnsFalse_ShowsError()
@@ -2418,7 +2418,7 @@ namespace NuGetGallery
                 var controller = CreateController(accountToTransform, canTransformErrorReason: "error");
 
                 // Act
-                var result = await controller.Transform(new TransformAccountViewModel() {
+                var result = await controller.TransformToOrganization(new TransformAccountViewModel() {
                     AdminUsername = "OrgAdmin"
                 });
 
@@ -2435,7 +2435,7 @@ namespace NuGetGallery
                 var controller = CreateController(accountToTransform);
 
                 // Act
-                var result = await controller.Transform(new TransformAccountViewModel()
+                var result = await controller.TransformToOrganization(new TransformAccountViewModel()
                 {
                     AdminUsername = "AdminThatDoesNotExist"
                 });
@@ -2457,7 +2457,7 @@ namespace NuGetGallery
                 var controller = CreateController(accountToTransform);
 
                 // Act
-                var result = await controller.Transform(new TransformAccountViewModel()
+                var result = await controller.TransformToOrganization(new TransformAccountViewModel()
                 {
                     AdminUsername = "OrgAdmin"
                 });
@@ -2467,7 +2467,7 @@ namespace NuGetGallery
             }
         }
         
-        public class TheConfirmTransformAction : TestContainer
+        public class TheConfirmTransformToOrganizationAction : TestContainer
         {
             [Fact]
             public async Task WhenAdminIsNotConfirmed_ShowsError()
@@ -2478,7 +2478,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(currentUser);
 
                 // Act
-                var result = await controller.ConfirmTransform("account", "token");
+                var result = await controller.ConfirmTransformToOrganization("account", "token");
 
                 // Assert
                 Assert.NotNull(result);
@@ -2494,7 +2494,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(currentUser);
 
                 // Act
-                var result = await controller.ConfirmTransform("account", "token");
+                var result = await controller.ConfirmTransformToOrganization("account", "token");
 
                 // Assert
                 Assert.NotNull(result);
@@ -2511,7 +2511,7 @@ namespace NuGetGallery
                 var controller = CreateController(accountToTransform, canTransformErrorReason: "error");
 
                 // Act
-                var result = await controller.ConfirmTransform(accountToTransform, "token");
+                var result = await controller.ConfirmTransformToOrganization(accountToTransform, "token");
 
                 // Assert
                 Assert.NotNull(result);
@@ -2526,7 +2526,7 @@ namespace NuGetGallery
                 var controller = CreateController(accountToTransform, success: false);
 
                 // Act
-                var result = await controller.ConfirmTransform(accountToTransform, "token");
+                var result = await controller.ConfirmTransformToOrganization(accountToTransform, "token");
 
                 // Assert
                 Assert.NotNull(result);
@@ -2544,7 +2544,7 @@ namespace NuGetGallery
                 var controller = CreateController(accountToTransform, success: true);
 
                 // Act
-                var result = await controller.ConfirmTransform(accountToTransform, "token");
+                var result = await controller.ConfirmTransformToOrganization(accountToTransform, "token");
 
                 // Assert
                 Assert.NotNull(result);

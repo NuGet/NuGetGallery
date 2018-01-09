@@ -2002,7 +2002,7 @@
     <Content Include="Views\Authentication\SignInNuGetAccount.cshtml" />
     <Content Include="Views\Packages\_VerifyForm.cshtml" />
     <Content Include="Views\Packages\_VerifyMetadata.cshtml" />
-    <Content Include="Views\Users\AccountTransformFailed.cshtml" />
+    <Content Include="Views\Users\TransformFailed.cshtml" />
     <Content Include="Views\Users\Transform.cshtml" />
   </ItemGroup>
   <ItemGroup>
@@ -2343,7 +2343,7 @@
     <VisualStudio>
       <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
         <WebProjectProperties>
-          <UseIIS>True</UseIIS>
+          <UseIIS>False</UseIIS>
           <AutoAssignPort>True</AutoAssignPort>
           <DevelopmentServerPort>80</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>

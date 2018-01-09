@@ -102,14 +102,15 @@ namespace NuGetGallery
 
         [HttpGet]
         [Authorize]
-        public virtual ActionResult Transform()
+        [ActionName("Transform")]
+        public virtual ActionResult TransformToOrganization()
         {
             var accountToTransform = GetCurrentUser();
             string errorReason;
             if (!_userService.CanTransformUserToOrganization(accountToTransform, out errorReason))
             {
                 TempData["TransformError"] = errorReason;
-                return View("AccountTransformFailed");
+                return View("TransformFailed");
             }
 
             var transformRequest = accountToTransform.OrganizationMigrationRequest;
@@ -125,14 +126,15 @@ namespace NuGetGallery
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> Transform(TransformAccountViewModel transformViewModel)
+        [ActionName("Transform")]
+        public virtual async Task<ActionResult> TransformToOrganization(TransformAccountViewModel transformViewModel)
         {
             var accountToTransform = GetCurrentUser();
             string errorReason;
             if (!_userService.CanTransformUserToOrganization(accountToTransform, out errorReason))
             {
                 TempData["TransformError"] = errorReason;
-                return View("AccountTransformFailed");
+                return View("TransformFailed");
             }
 
             var adminUser = _userService.FindByUsername(transformViewModel.AdminUsername);
@@ -158,7 +160,8 @@ namespace NuGetGallery
 
         [HttpGet]
         [Authorize]
-        public virtual async Task<ActionResult> ConfirmTransform(string accountNameToTransform, string token)
+        [ActionName("ConfirmTransform")]
+        public virtual async Task<ActionResult> ConfirmTransformToOrganization(string accountNameToTransform, string token)
         {
             var adminUser = GetCurrentUser();
             if (!adminUser.Confirmed)
@@ -172,21 +175,21 @@ namespace NuGetGallery
             {
                 TempData["TransformError"] = String.Format(CultureInfo.CurrentCulture,
                     Strings.TransformAccount_OrganizationAccountDoesNotExist, accountNameToTransform);
-                return View("AccountTransformFailed");
+                return View("TransformFailed");
             }
 
             string errorReason;
             if (!_userService.CanTransformUserToOrganization(accountToTransform, out errorReason))
             {
                 TempData["TransformError"] = errorReason;
-                return View("AccountTransformFailed");
+                return View("TransformFailed");
             }
 
             if (!await _userService.TransformUserToOrganization(accountToTransform, adminUser, token))
             {
                 TempData["TransformError"] = String.Format(CultureInfo.CurrentCulture,
                     Strings.TransformAccount_Failed, accountNameToTransform);
-                return View("AccountTransformFailed");
+                return View("TransformFailed");
             }
 
             TempData["Message"] = String.Format(CultureInfo.CurrentCulture,

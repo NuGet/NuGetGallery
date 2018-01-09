@@ -21,12 +21,12 @@
 
                 <div class="row form-group col-md-9 col-md-pull-3">
                     @Html.Label("Organization")
-                    @Html.ShowTextBoxFor(m => CurrentUser.Username, enabled: false)
+                    <p>@CurrentUser.Username</p>
                 </div>
                 
                 <div class="row form-group col-md-9 col-md-pull-3">
                     @Html.Label("Email")
-                    @Html.ShowTextBoxFor(m => CurrentUser.EmailAddress, enabled: false)
+                    <p>@CurrentUser.EmailAddress</p>
                 </div>
 
                 @using (Html.BeginForm("Transform", "Users"))
