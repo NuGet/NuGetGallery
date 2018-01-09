@@ -69,7 +69,7 @@ namespace NuGetGallery
 
                 // Act
                 var result = urlHelper.PackageRegistrationTemplate()
-                    .Resolve(new ListPackageItemViewModel(package));
+                    .Resolve(new ListPackageItemViewModel(package, currentUser: null));
 
                 // Assert
                 Assert.Equal(urlHelper.Package(package.PackageRegistration), result);
@@ -93,7 +93,7 @@ namespace NuGetGallery
                 };
 
                 var urlHelper = TestUtility.MockUrlHelper();
-                var packageVM = new ListPackageItemViewModel(package);
+                var packageVM = new ListPackageItemViewModel(package, currentUser: null);
 
                 // Act
                 var result = urlHelper.EditPackageTemplate().Resolve(packageVM);
@@ -120,7 +120,7 @@ namespace NuGetGallery
                 };
 
                 var urlHelper = TestUtility.MockUrlHelper();
-                var packageVM = new ListPackageItemViewModel(package);
+                var packageVM = new ListPackageItemViewModel(package, currentUser: null);
 
                 // Act
                 var result = urlHelper.DeletePackageTemplate().Resolve(packageVM);
@@ -147,7 +147,7 @@ namespace NuGetGallery
                 };
 
                 var urlHelper = TestUtility.MockUrlHelper();
-                var packageVM = new ListPackageItemViewModel(package);
+                var packageVM = new ListPackageItemViewModel(package, currentUser: null);
 
                 // Act
                 var result = urlHelper.ManagePackageOwnersTemplate().Resolve(packageVM);

@@ -10,7 +10,7 @@
             this.Owners = packageItem.Owners;
             this.DownloadCount = packageItem.TotalDownloadCount;
             this.LatestVersion = packageItem.LatestVersion;
-            this.PackageIconUrl = (packageItem.PackageIconUrl)
+            this.PackageIconUrl = packageItem.PackageIconUrl
                 ? packageItem.PackageIconUrl
                 : this.PackagesListViewModel.ManagePackagesViewModel.DefaultPackageIconUrl;
             this.PackageUrl = packageItem.PackageUrl;
@@ -47,7 +47,7 @@
             this.ManagePackagesViewModel = managePackagesViewModel;
             this.Type = type;
             this.Packages = $.map(packages, function (data) {
-                return new PackageListItemViewModel(self, data)
+                return new PackageListItemViewModel(self, data);
             });
             this.VisiblePackagesCount = ko.observable();
             this.VisibleDownloadCount = ko.observable();

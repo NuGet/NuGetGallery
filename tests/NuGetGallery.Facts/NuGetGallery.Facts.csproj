@@ -218,18 +218,21 @@
     <Reference Include="NuGet.Protocol, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Protocol.4.3.0-preview1-2524\lib\net45\NuGet.Protocol.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Services.Contracts, Version=2.4.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.Contracts.2.4.0\lib\net45\NuGet.Services.Contracts.dll</HintPath>
+    <Reference Include="NuGet.Services.Contracts, Version=2.7.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.Contracts.2.7.1\lib\net45\NuGet.Services.Contracts.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Services.KeyVault, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Services.KeyVault.1.0.0.0\lib\net45\NuGet.Services.KeyVault.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="NuGet.Services.ServiceBus, Version=2.4.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.ServiceBus.2.4.0\lib\net45\NuGet.Services.ServiceBus.dll</HintPath>
+    <Reference Include="NuGet.Services.ServiceBus, Version=2.7.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.ServiceBus.2.7.1\lib\net45\NuGet.Services.ServiceBus.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Services.Validation, Version=2.4.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.Validation.2.4.0\lib\net45\NuGet.Services.Validation.dll</HintPath>
+    <Reference Include="NuGet.Services.Validation, Version=2.7.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.Validation.2.7.1\lib\net45\NuGet.Services.Validation.dll</HintPath>
+    </Reference>
+    <Reference Include="NuGet.Services.Validation.Issues, Version=2.7.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.Validation.Issues.2.7.1\lib\net45\NuGet.Services.Validation.Issues.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Versioning, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Versioning.4.3.0-preview1-2524\lib\net45\NuGet.Versioning.dll</HintPath>
@@ -388,14 +391,18 @@
     <Compile Include="App_Start\RuntimeServiceProviderTests.cs" />
     <Compile Include="Areas\Admin\Controllers\DeleteAccountControllerFacts.cs" />
     <Compile Include="Areas\Admin\Controllers\DeleteControllerFacts.cs" />
+    <Compile Include="Areas\Admin\Controllers\LockPackageControllerFacts.cs" />
     <Compile Include="Areas\Admin\Controllers\ReservedNamespaceControllerFacts.cs" />
     <Compile Include="Areas\Admin\Controllers\SecurityPolicyControllerFacts.cs" />
+    <Compile Include="Areas\Admin\HelperFacts.cs" />
     <Compile Include="Areas\Admin\Services\ValidationAdminServiceFacts.cs" />
     <Compile Include="Authentication\AuthenticatorFacts.cs" />
     <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationHandlerFacts.cs" />
     <Compile Include="Authentication\AuthenticationServiceFacts.cs" />
     <Compile Include="Authentication\TestCredentialHelper.cs" />
     <Compile Include="Controllers\SupportControllerFacts.cs" />
+    <Compile Include="Extensions\OrganizationExtensionsFacts.cs" />
+    <Compile Include="Framework\MemberDataHelper.cs" />
     <Compile Include="Infrastructure\Authentication\ApiKeyV4Facts.cs" />
     <Compile Include="Infrastructure\Authentication\V3HasherTests.cs" />
     <Compile Include="AutocompleteServicePackageIdsQueryFacts.cs" />
@@ -427,11 +434,12 @@
     <Compile Include="HttpContextBaseExtensionsFacts.cs" />
     <Compile Include="Infrastructure\Authentication\Base32EncoderTests.cs" />
     <Compile Include="Security\RequireMinProtocolVersionForPushPolicyFacts.cs" />
+    <Compile Include="Services\ActionRequiringEntityPermissionsFacts.cs" />
     <Compile Include="Services\DeleteAccountServiceFacts.cs" />
     <Compile Include="Services\JsonStatisticsServiceFacts.cs" />
     <Compile Include="Services\PackageOwnerRequestServiceFacts.cs" />
     <Compile Include="Services\PackageOwnershipManagementServiceFacts.cs" />
-    <Compile Include="Services\PermissionsServiceFacts.cs" />
+    <Compile Include="Services\PermissionsHelpersFacts.cs" />
     <Compile Include="Services\ReadMeServiceFacts.cs" />
     <Compile Include="Infrastructure\UserAuditRecordFacts.cs" />
     <Compile Include="OData\Filter\ODataFilterFacts.cs" />
@@ -465,6 +473,11 @@
     <Compile Include="Telemetry\ClientTelemetryPIIProcessorTests.cs" />
     <Compile Include="Telemetry\ObfuscatorFacts.cs" />
     <Compile Include="Telemetry\QuietLogFacts.cs" />
+    <Compile Include="TestData.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>TestData.resx</DependentUpon>
+    </Compile>
     <Compile Include="TestUtils\Infrastructure\TestableV1Feed.cs" />
     <Compile Include="TestUtils\Infrastructure\TestableV2Feed.cs" />
     <Compile Include="TestUtils\Infrastructure\TestDependencyResolver.cs" />
@@ -567,6 +580,12 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TestData.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>TestData.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets" Condition="Exists('..\..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets')" />

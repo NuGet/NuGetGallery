@@ -809,7 +809,7 @@ namespace NuGetGallery.Services
             }
         }
 
-        public class TheIsPushAllowedMethod
+        public class TheShouldMarkNewPackageVerifiedMethod
         {
             [Theory]
             [InlineData("Microsoft.Aspnet")]
@@ -829,9 +829,10 @@ namespace NuGetGallery.Services
                 existingNamespace.Owners.Add(firstUser);
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
 
-                var isPushAllowed = service.IsPushAllowed(id, lastUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
+                var isPushAllowed = ActionsRequiringPermissions.UploadNewPackageId.CheckPermissions(lastUser, lastUser, new ActionOnNewPackageContext(id, service));
+                var shouldMarkNewPackageVerified = service.ShouldMarkNewPackageIdVerified(lastUser, id, out var matchingNamespaces);
                 Assert.Empty(matchingNamespaces);
-                Assert.False(isPushAllowed);
+                Assert.Equal(PermissionsCheckResult.ReservedNamespaceFailure, isPushAllowed);
             }
 
             [Theory]
@@ -850,9 +851,10 @@ namespace NuGetGallery.Services
                 existingNamespace.Owners.Add(firstUser);
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
 
-                var isPushAllowed = service.IsPushAllowed(id, lastUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
+                var isPushAllowed = ActionsRequiringPermissions.UploadNewPackageId.CheckPermissions(lastUser, lastUser, new ActionOnNewPackageContext(id, service));
+                var shouldMarkNewPackageVerified = service.ShouldMarkNewPackageIdVerified(lastUser, id, out var matchingNamespaces);
                 Assert.Empty(matchingNamespaces);
-                Assert.True(isPushAllowed);
+                Assert.Equal(PermissionsCheckResult.Allowed, isPushAllowed);
             }
 
             [Theory]
@@ -870,9 +872,10 @@ namespace NuGetGallery.Services
                 existingNamespace.Owners.Add(firstUser);
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
 
-                var isPushAllowed = service.IsPushAllowed(id, firstUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
+                var isPushAllowed = ActionsRequiringPermissions.UploadNewPackageId.CheckPermissions(firstUser, firstUser, new ActionOnNewPackageContext(id, service));
+                var shouldMarkNewPackageVerified = service.ShouldMarkNewPackageIdVerified(firstUser, id, out var matchingNamespaces);
                 Assert.NotEmpty(matchingNamespaces);
-                Assert.True(isPushAllowed);
+                Assert.Equal(PermissionsCheckResult.Allowed, isPushAllowed);
             }
 
             [Theory]
@@ -889,9 +892,10 @@ namespace NuGetGallery.Services
                 existingNamespace.Owners.Add(firstUser);
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
 
-                var isPushAllowed = service.IsPushAllowed(id, lastUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
+                var isPushAllowed = ActionsRequiringPermissions.UploadNewPackageId.CheckPermissions(lastUser, lastUser, new ActionOnNewPackageContext(id, service));
+                var shouldMarkNewPackageVerified = service.ShouldMarkNewPackageIdVerified(lastUser, id, out var matchingNamespaces);
                 Assert.Empty(matchingNamespaces);
-                Assert.True(isPushAllowed);
+                Assert.Equal(PermissionsCheckResult.Allowed, isPushAllowed);
             }
 
             [Theory]
@@ -911,9 +915,10 @@ namespace NuGetGallery.Services
                 existingNamespace.Owners.Add(firstUser);
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
 
-                var isPushAllowed = service.IsPushAllowed(id, lastUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
+                var isPushAllowed = ActionsRequiringPermissions.UploadNewPackageId.CheckPermissions(lastUser, lastUser, new ActionOnNewPackageContext(id, service));
+                var shouldMarkNewPackageVerified = service.ShouldMarkNewPackageIdVerified(lastUser, id, out var matchingNamespaces);
                 Assert.Empty(matchingNamespaces);
-                Assert.True(isPushAllowed);
+                Assert.Equal(PermissionsCheckResult.Allowed, isPushAllowed);
             }
 
             [Theory]
@@ -930,8 +935,9 @@ namespace NuGetGallery.Services
                 existingNamespace.Owners.Add(firstUser);
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
 
-                var isPushAllowed = service.IsPushAllowed(id, firstUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
-                Assert.True(isPushAllowed);
+                var isPushAllowed = ActionsRequiringPermissions.UploadNewPackageId.CheckPermissions(firstUser, firstUser, new ActionOnNewPackageContext(id, service));
+                var shouldMarkNewPackageVerified = service.ShouldMarkNewPackageIdVerified(firstUser, id, out var matchingNamespaces);
+                Assert.Equal(PermissionsCheckResult.Allowed, isPushAllowed);
                 Assert.NotEmpty(matchingNamespaces);
                 Assert.True(matchingNamespaces.Count() == 1);
             }
@@ -953,8 +959,9 @@ namespace NuGetGallery.Services
 
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
 
-                var isPushAllowed = service.IsPushAllowed(id, firstUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
-                Assert.True(isPushAllowed);
+                var isPushAllowed = ActionsRequiringPermissions.UploadNewPackageId.CheckPermissions(firstUser, firstUser, new ActionOnNewPackageContext(id, service));
+                var shouldMarkNewPackageVerified = service.ShouldMarkNewPackageIdVerified(firstUser, id, out var matchingNamespaces);
+                Assert.Equal(PermissionsCheckResult.Allowed, isPushAllowed);
                 Assert.NotEmpty(matchingNamespaces);
                 Assert.True(matchingNamespaces.Count() == prefixes.Count());
             }

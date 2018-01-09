@@ -66,6 +66,10 @@ namespace NuGetGallery.Configuration
         public bool AsynchronousPackageValidationEnabled { get; set; }
 
         public bool BlockingAsynchronousPackageValidationEnabled { get; set; }
+        
+        [DefaultValue(null)]
+        [TypeConverter(typeof(StringArrayConverter))]
+        public string[] OrganizationsEnabledForDomains { get; set; }
 
         /// <summary>
         /// Gets the URI to the search service

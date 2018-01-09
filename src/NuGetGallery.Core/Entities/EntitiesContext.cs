@@ -79,9 +79,9 @@ namespace NuGetGallery
             ObjectContext.CommandTimeout = seconds;
         }
 
-        public Database GetDatabase()
+        public IDatabase GetDatabase()
         {
-            return Database;
+            return new DatabaseWrapper(Database);
         }
 
 #pragma warning disable 618 // TODO: remove Package.Authors completely once production services definitely no longer need it

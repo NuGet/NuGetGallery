@@ -2,12 +2,16 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Data;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
-using NuGetGallery.Framework;
+using Moq;
 using NuGetGallery.Auditing;
-using Xunit;
+using NuGetGallery.Framework;
+using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.TestUtils;
+using Xunit;
 
 namespace NuGetGallery
 {
@@ -357,6 +361,146 @@ namespace NuGetGallery
                 var service = new TestableUserService();
 
                 await ContractAssert.ThrowsArgNullAsync(async () => await service.ChangeEmailSubscriptionAsync(null, emailAllowed: true, notifyPackagePushed: true), "user");
+            }
+        }
+
+        public class TheCanTransformToOrganizationMethod
+        {
+            [Fact]
+            public void WhenAccountIsNotConfirmed_ReturnsFalse()
+            {
+                // Arrange
+                var service = new TestableUserService();
+                var unconfirmedUser = new User() { UnconfirmedEmailAddress = "unconfirmed@example.com" };
+
+                // Act
+                string errorReason;
+                var result = service.CanTransformUserToOrganization(unconfirmedUser, out errorReason);
+
+                // Assert
+                Assert.False(result);
+                Assert.Equal(errorReason, String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_FailedReasonNotConfirmedUser, unconfirmedUser.Username));
+            }
+
+            [Fact]
+            public void WhenAccountIsOrganization_ReturnsFalse()
+            {
+                // Arrange
+                var service = new TestableUserService();
+                var fakes = new Fakes();
+
+                // Act
+                string errorReason;
+                var result = service.CanTransformUserToOrganization(fakes.Organization, out errorReason);
+
+                // Assert
+                Assert.False(result);
+                Assert.Equal(errorReason, String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_FailedReasonIsOrganization, fakes.Organization.Username));
+            }
+
+            [Fact]
+            public void WhenAccountHasMemberships_ReturnsFalse()
+            {
+                // Arrange
+                var service = new TestableUserService();
+                var fakes = new Fakes();
+
+                // Act
+                string errorReason;
+                var result = service.CanTransformUserToOrganization(fakes.OrganizationCollaborator, out errorReason);
+
+                // Assert
+                Assert.False(result);
+                Assert.Equal(errorReason, String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_FailedReasonHasMemberships, fakes.OrganizationCollaborator.Username));
+            }
+
+            [Fact]
+            public void WhenAccountIsNotInWhitelist_ReturnsFalse()
+            {
+                // Arrange
+                var service = new TestableUserService();
+                service.MockConfig.SetupGet(c => c.OrganizationsEnabledForDomains).Returns(new[] { "notexample.com" });
+                var fakes = new Fakes();
+
+                // Act
+                string errorReason;
+                var result = service.CanTransformUserToOrganization(fakes.User, out errorReason);
+
+                // Assert
+                Assert.False(result);
+                Assert.Equal(errorReason, String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_FailedReasonNotInDomainWhitelist, fakes.User.Username));
+            }
+
+            [Fact]
+            public void WhenAccountIsInWhitelist_ReturnsTrue()
+            {
+                // Arrange
+                var service = new TestableUserService();
+                service.MockConfig.SetupGet(c => c.OrganizationsEnabledForDomains).Returns(new[] { "example.com" });
+                var fakes = new Fakes();
+
+                // Act
+                string errorReason;
+                var result = service.CanTransformUserToOrganization(fakes.User, out errorReason);
+
+                // Assert
+                Assert.True(result);
+            }
+        }
+
+        public class TheTransformToOrganizationAccountMethod
+        {
+            [Theory]
+            [InlineData(0)]
+            [InlineData(-1)]
+            public async Task WhenSqlResultIsZeroOrLess_ReturnsFalse(int affectedRecords)
+            {
+                // Arrange
+                var service = new TestableUserService();
+                var account = new User("Account");
+                var admin = new User("Admin");
+                admin.Credentials.Add(
+                    new CredentialBuilder().CreateExternalCredential(
+                        issuer: "MicrosoftAccount",
+                        value: "abc123",
+                        identity: "Admin",
+                        tenantId: "zyx987"));
+
+                service.MockDatabase
+                    .Setup(db => db.ExecuteSqlResourceAsync(It.IsAny<string>(), It.IsAny<object[]>()))
+                    .Returns(Task.FromResult(affectedRecords));
+
+                // Act & Assert
+                var result = await service.TransformUserToOrganization(account, admin, "token");
+                Assert.False(result);
+            }
+
+            [Theory]
+            [InlineData(1)]
+            [InlineData(3)]
+            public async Task WhenSqlResultIsPositive_ReturnsTrue(int affectedRecords)
+            {
+                // Arrange
+                var service = new TestableUserService();
+                var account = new User("Account");
+                var admin = new User("Admin");
+                admin.Credentials.Add(
+                    new CredentialBuilder().CreateExternalCredential(
+                        issuer: "MicrosoftAccount",
+                        value: "abc123",
+                        identity: "Admin",
+                        tenantId: "zyx987"));
+
+                service.MockDatabase
+                    .Setup(db => db.ExecuteSqlResourceAsync(It.IsAny<string>(), It.IsAny<object[]>()))
+                    .Returns(Task.FromResult(affectedRecords));
+
+                // Act
+                Assert.True(await service.TransformUserToOrganization(account, admin, "token"));
             }
         }
     }

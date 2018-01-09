@@ -90,6 +90,7 @@
     <Compile Include="XunitExtensions\PriorityAttribute.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="XunitExtensions\CategoryDiscoverer.cs" />
+    <Compile Include="XunitExtensions\PackageLockFactAttribute.cs" />
     <Compile Include="XunitExtensions\TestPriorityOrderer.cs" />
     <Compile Include="Helpers\UrlHelper.cs" />
   </ItemGroup>
