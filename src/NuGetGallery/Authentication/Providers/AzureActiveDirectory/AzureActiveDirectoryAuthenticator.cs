@@ -65,16 +65,5 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectory
         {
             return new ChallengeResult(BaseConfig.AuthenticationType, redirectUrl);
         }
-
-        public override bool TryMapIssuerToAuthenticationType(string issuer, out string authenticationType)
-        {
-            if (string.Equals(issuer, Config.Issuer, StringComparison.OrdinalIgnoreCase))
-            {
-                authenticationType = Config.AuthenticationType;
-                return true;
-            }
-
-            return base.TryMapIssuerToAuthenticationType(issuer, out authenticationType);
-        }
     }
 }

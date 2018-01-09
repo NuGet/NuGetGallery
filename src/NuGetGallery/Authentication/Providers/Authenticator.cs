@@ -107,21 +107,32 @@ namespace NuGetGallery.Authentication.Providers
             return string.Equals(firstClaim.Issuer, BaseConfig.AuthenticationType, StringComparison.OrdinalIgnoreCase);
         }
 
-        public virtual bool TryMapIssuerToAuthenticationType(string issuer, out string authenticationType)
-        {
-            if (string.Equals(issuer, BaseConfig.AuthenticationType, StringComparison.OrdinalIgnoreCase))
-            {
-                authenticationType = BaseConfig.AuthenticationType;
-                return true;
-            }
-
-            authenticationType = null;
-            return false;
-        }
-
         public virtual AuthInformation GetAuthInformation(ClaimsIdentity claimsIdentity)
         {
-            return new AuthInformation();
+            if (!IsAuthorForIdentity(claimsIdentity))
+            {
+                throw new ArgumentException($"The identity not authored by {BaseConfig.AuthenticationType}");
+            }
+
+            var identifierClaim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+            if (identifierClaim == null)
+            {
+                throw new ArgumentException("External Authentication is missing required claim: " + ClaimTypes.NameIdentifier);
+            }
+
+            var nameClaim = claimsIdentity.FindFirst(ClaimTypes.Name);
+            if (nameClaim == null)
+            {
+                throw new ArgumentException($"External Authentication is missing required claim: {ClaimTypes.Name}");
+            }
+
+            var emailClaim = claimsIdentity.FindFirst(ClaimTypes.Email);
+            if (emailClaim == null)
+            {
+                throw new ArgumentException($"External Authentication is missing required claim: {ClaimTypes.Email}");
+            }
+
+            return new AuthInformation(identifierClaim.Value, nameClaim.Value, emailClaim.Value, BaseConfig.AuthenticationType, tenantId: null);
         }
     }
 }

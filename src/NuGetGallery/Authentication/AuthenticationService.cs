@@ -21,38 +21,8 @@ using static NuGetGallery.Constants;
 
 namespace NuGetGallery.Authentication
 {
-    public static class Constants
-    {
-        public const string MSATenant = "9188040d-6c67-4c5b-b112-36a304b66dad";
-        public const string Version2Endpoint = "2.0";
-
-        public static class Claims
-        {
-            public const string Email = ClaimTypes.Email;
-            public const string Identifier = ClaimTypes.NameIdentifier;
-            public const string Name = ClaimTypes.Name;
-
-            public static class V2
-            {
-                public const string TenantId = "http://schemas.microsoft.com/identity/claims/tenantid";
-                public const string Identifier = "http://schemas.microsoft.com/identity/claims/objectidentifier";
-                public const string Version = "ver";
-                public const string Email = "preferred_username";
-                public const string Name = "name";
-                public const string Issuer = "iss";
-            }
-        }
-
-        public static class AuthenticationType
-        {
-            public const string MicrosoftAccount = "MicrosoftAccount";
-            public const string AzureActiveDirectory = "AzureActiveDirectory";
-        }
-    }
-
     public class AuthenticationService
     {
-
         private Dictionary<string, Func<string, string>> _credentialFormatters;
         private readonly IDiagnosticsSource _trace;
         private readonly IAppConfiguration _config;
@@ -60,8 +30,6 @@ namespace NuGetGallery.Authentication
         private readonly ICredentialValidator _credentialValidator;
         private readonly IDateTimeProvider _dateTimeProvider;
         private readonly ITelemetryService _telemetryService;
-
-
 
         /// <summary>
         /// This ctor is used for test only.
@@ -505,12 +473,21 @@ namespace NuGetGallery.Authentication
         public virtual CredentialViewModel DescribeCredential(Credential credential)
         {
             var kind = GetCredentialKind(credential.Type);
-            Authenticator auther = null;
+            Authenticator author = null;
 
             if (kind == CredentialKind.External)
             {
-                string providerName = credential.Type.Split('.')[1];
-                Authenticators.TryGetValue(providerName, out auther);
+                if (string.IsNullOrEmpty(credential.TenantId))
+                {
+                    string providerName = credential.Type.Split('.')[1];
+                    Authenticators.TryGetValue(providerName, out author);
+                }
+                else
+                {
+                    author = Authenticators
+                        .Values
+                        .First(provider => provider.Name.Equals(CommonAuthAuthenticator.DefaultAuthenticationType, StringComparison.OrdinalIgnoreCase));
+                }
             }
 
             var credentialViewModel = new CredentialViewModel
@@ -522,7 +499,7 @@ namespace NuGetGallery.Authentication
                 Created = credential.Created,
                 Expires = credential.Expires,
                 Kind = kind,
-                AuthUI = auther?.GetUI(),
+                AuthUI = author?.GetUI(),
                 // Set the description as the value for legacy API keys
                 Description = credential.Description,
                 Value = kind == CredentialKind.Token && credential.Description == null ? credential.Value : null,
@@ -575,106 +552,41 @@ namespace NuGetGallery.Authentication
                 return new AuthenticateExternalLoginResult();
             }
 
-            Authenticator auther = null;
-            string authenticationType;
-            string idClaimValue;
-            string tenantId = null;
-            Claim nameClaim = null;
-            string emailSuffix;
-            var version = result.Identity.FindFirst(Constants.Claims.V2.Version);
-            if (version != null && version.Value.Equals(Constants.Version2Endpoint))
+            var externalIdentity = result.Identity;
+            Authenticator author = null;
+            foreach (var authenticator in Authenticators.Values)
             {
-                var tenantClaim = result.Identity.FindFirst(Constants.Claims.V2.TenantId);
-                if (tenantClaim == null)
+                if (authenticator.IsAuthorForIdentity(externalIdentity))
                 {
-                    _trace.Error($"External Authentication is missing required claim: {Constants.Claims.V2.TenantId}");
-                    return new AuthenticateExternalLoginResult();
+                    author = authenticator;
+                    break;
                 }
-
-                tenantId = tenantClaim.Value;
-
-                var idClaim = result.Identity.FindFirst(Constants.Claims.V2.Identifier);
-                if (idClaim == null)
-                {
-                    _trace.Error($"External Authentication is missing required claim: '{Constants.Claims.V2.Identifier}'");
-                    return new AuthenticateExternalLoginResult();
-                }
-
-                auther = Authenticators
-                    .Values
-                    .First(auth => auth.Name.Equals(CommonAuthAuthenticator.DefaultAuthenticationType, StringComparison.OrdinalIgnoreCase));
-
-                var emailClaimType = ClaimTypes.Email;
-                if (string.Equals(tenantId, Constants.MSATenant, StringComparison.OrdinalIgnoreCase))
-                {
-                    authenticationType = Constants.AuthenticationType.MicrosoftAccount;
-
-                    // The version2 identifier is returned as 32 character alphanumeric value(padded with 0 and -), 
-                    // where as the existing Microsoft account identifiers are 16 character wide.
-                    // For e.g old format: 0ae45d63e22e4a60, newer format: 000000-0000-0000-000A-E45D-63E-22E4A60
-                    // We need to format the values into the older format for backwards compatibility
-                    idClaimValue = idClaim.Value.Replace("-", "").Substring(16).ToLowerInvariant();
-                }
-                else
-                {
-                    authenticationType = Constants.AuthenticationType.AzureActiveDirectory;
-                    idClaimValue = idClaim.Value;
-                    emailClaimType = Constants.Claims.V2.Email;
-                }
-
-                nameClaim = result.Identity.FindFirst(Constants.Claims.V2.Name);
-                if (nameClaim == null)
-                {
-                    _trace.Error($"External Authentication is missing required claim: '{Constants.Claims.V2.Name}'");
-                    return new AuthenticateExternalLoginResult();
-                }
-
-                var emailClaim = result.Identity.FindFirst(emailClaimType);
-                emailSuffix = emailClaim == null ? String.Empty : (" <" + emailClaim.Value + ">");
-            }
-            else
-            {
-                var idClaim = result.Identity.FindFirst(Constants.Claims.Identifier);
-                if (idClaim == null)
-                {
-                    _trace.Error("External Authentication is missing required claim: " + ClaimTypes.NameIdentifier);
-                    return new AuthenticateExternalLoginResult();
-                }
-
-                idClaimValue = idClaim.Value;
-                string issuer = idClaim.Issuer;
-                nameClaim = result.Identity.FindFirst(ClaimTypes.Name);
-                if (nameClaim == null)
-                {
-                    _trace.Error("External Authentication is missing required claim: " + ClaimTypes.Name);
-                    return new AuthenticateExternalLoginResult();
-                }
-
-                var emailClaim = result.Identity.FindFirst(ClaimTypes.Email);
-                emailSuffix = emailClaim == null ? String.Empty : (" <" + emailClaim.Value + ">");
-
-                if (!Authenticators.TryGetValue(issuer, out auther))
-                {
-                    foreach (var authenticator in Authenticators.Values)
-                    {
-                        if (authenticator.TryMapIssuerToAuthenticationType(issuer, out authenticationType))
-                        {
-                            auther = authenticator;
-                            break;
-                        }
-                    }
-                }
-
-                authenticationType = issuer;
             }
 
-            return new AuthenticateExternalLoginResult()
+            if (author == null)
             {
-                Authentication = null,
-                ExternalIdentity = result.Identity,
-                Authenticator = auther,
-                Credential = _credentialBuilder.CreateExternalCredential(authenticationType, idClaimValue, nameClaim.Value + emailSuffix, tenantId)
-            };
+                _trace.Error($"No authenticator found for identity: {externalIdentity.AuthenticationType}");
+                return new AuthenticateExternalLoginResult();
+            }
+
+            try
+            {
+                var userInfo = author.GetAuthInformation(externalIdentity);
+                var emailSuffix = userInfo.Email == null ? String.Empty : (" <" + userInfo.Email + ">");
+                var identity = userInfo.Name + emailSuffix;
+                return new AuthenticateExternalLoginResult()
+                {
+                    Authentication = null,
+                    ExternalIdentity = externalIdentity,
+                    Authenticator = author,
+                    Credential = _credentialBuilder.CreateExternalCredential(userInfo.AuthenticationType, userInfo.Identifier, identity, userInfo.TenantId)
+                };
+            }
+            catch (Exception ex)
+            {
+                _trace.Error(ex.Message);
+                return new AuthenticateExternalLoginResult();
+            }
         }
 
         public virtual async Task<AuthenticateExternalLoginResult> AuthenticateExternalLogin(IOwinContext context)
@@ -779,13 +691,13 @@ namespace NuGetGallery.Authentication
 
         private string FormatExternalCredentialType(string externalType)
         {
-            Authenticator auther;
-            if (!Authenticators.TryGetValue(externalType, out auther))
+            Authenticator author;
+            if (!Authenticators.TryGetValue(externalType, out author))
             {
                 return externalType;
             }
-            var ui = auther.GetUI();
-            return ui == null ? auther.Name : ui.AccountNoun;
+            var ui = author.GetUI();
+            return ui == null ? author.Name : ui.AccountNoun;
         }
 
         private Credential FindMatchingCredential(Credential credential)
