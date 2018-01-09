@@ -39,8 +39,7 @@ namespace NuGetGallery
             PackageStreamMetadata packageStreamMetadata,
             User user)
         {
-            var isPushAllowed = _reservedNamespaceService.IsPushAllowed(id, user, out IReadOnlyCollection<ReservedNamespace> userOwnedNamespaces);
-            var shouldMarkIdVerified = isPushAllowed && userOwnedNamespaces != null && userOwnedNamespaces.Any();
+            var shouldMarkIdVerified = _reservedNamespaceService.ShouldMarkNewPackageIdVerified(user, id, out var ownedMatchingReservedNamespaces);
 
             var package = await _packageService.CreatePackageAsync(
                 nugetPackage,
@@ -51,7 +50,7 @@ namespace NuGetGallery
             if (shouldMarkIdVerified)
             {
                 // Add all relevant package registrations to the applicable namespaces
-                foreach (var rn in userOwnedNamespaces)
+                foreach (var rn in ownedMatchingReservedNamespaces)
                 {
                     _reservedNamespaceService.AddPackageRegistrationToNamespace(
                         rn.Value,

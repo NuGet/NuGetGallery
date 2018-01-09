@@ -34,8 +34,14 @@ namespace NuGetGallery
             }
             else
             {
-                identity = new ClaimsIdentity(
-                    new[] { new Claim(ClaimTypes.Name, string.IsNullOrEmpty(user.Username) ? "theUserName" : user.Username) });
+                if (string.IsNullOrEmpty(user.Username))
+                {
+                    user.Username = "theUsername";
+                }
+
+                identity = AuthenticationService.CreateIdentity(
+                    user,
+                    AuthenticationTypes.External);
             }
 
             var principal = new ClaimsPrincipal(identity);
@@ -49,6 +55,14 @@ namespace NuGetGallery
 
         public static void SetCurrentUser(this AppController self, User user, Credential credential = null)
         {
+            if (user == null)
+            {
+                // Reset the current user
+                self.OwinContext.Request.User = null;
+                self.OwinContext.Environment.Remove(Constants.CurrentUserOwinEnvironmentKey);
+                return;
+            }
+
             SetOwinContextCurrentUser(self, user, credential);
             self.OwinContext.Environment[Constants.CurrentUserOwinEnvironmentKey] = user;
         }
