@@ -10,7 +10,7 @@ namespace NuGetGallery
     {
         /// <summary>
         /// Returns all the user accounts that are members of an organization.
-        /// If the organization has other child organizations their members will be retuned as well.
+        /// If the organization has nested organizations their members will be returned as well.
         /// The result will not have duplicate elements.
         /// </summary>
         /// <param name="organization">The organization.</param>
