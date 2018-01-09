@@ -486,13 +486,7 @@ namespace NuGetGallery
                 // Arrange
                 var service = new TestableUserService();
                 var account = new User("Account");
-                var admin = new User("Admin");
-                admin.Credentials.Add(
-                    new CredentialBuilder().CreateExternalCredential(
-                        issuer: "MicrosoftAccount",
-                        value: "abc123",
-                        identity: "Admin",
-                        tenantId: "zyx987"));
+                var admin = CreateAdminUser();
 
                 service.MockUserRepository.Setup(r => r.CommitChangesAsync()).Returns(Task.CompletedTask).Verifiable();
                 
@@ -524,7 +518,24 @@ namespace NuGetGallery
                     Assert.Equal(account, account.OrganizationMigrationRequest.NewOrganization);
                     Assert.Equal(admin, account.OrganizationMigrationRequest.AdminUser);
                     Assert.False(String.IsNullOrEmpty(account.OrganizationMigrationRequest.ConfirmationToken));
+
+                    if (testOverwrite)
+                    {
+                        admin = CreateAdminUser();
+                    }
                 }
+            }
+
+            private User CreateAdminUser()
+            {
+                var admin = new User($"Admin-{DateTime.UtcNow.Ticks}");
+                admin.Credentials.Add(
+                    new CredentialBuilder().CreateExternalCredential(
+                        issuer: "MicrosoftAccount",
+                        value: "abc123",
+                        identity: "Admin",
+                        tenantId: "zyx987"));
+                return admin;
             }
         }
 

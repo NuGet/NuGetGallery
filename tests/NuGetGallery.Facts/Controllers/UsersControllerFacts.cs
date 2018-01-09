@@ -2231,88 +2231,9 @@ namespace NuGetGallery
             }
         }
 
-        public class TheTransformAction : TestContainer
+        public class TheTransformActionBase : TestContainer
         {
-            [Fact]
-            public void WhenCanTransformReturnsFalse_ShowsError()
-            {
-                // Arrange
-                var accountToTransform = "account";
-                var controller = CreateController(accountToTransform, canTransformErrorReason: "error");
-
-                // Act
-                var result = controller.Transform();
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal(
-                    String.Format(CultureInfo.CurrentCulture,
-                        Strings.TransformAccount_FailedWithReason, "account",
-                        "error"),
-                    controller.TempData["TransformError"]);
-            }
-
-            [Fact]
-            public async Task Post_CanTransformReturnsFalse_ShowsError()
-            {
-                // Arrange
-                var accountToTransform = "account";
-                var controller = CreateController(accountToTransform, canTransformErrorReason: "error");
-
-                // Act
-                var result = await controller.Transform(new TransformAccountViewModel() {
-                    AdminUsername = "OrgAdmin"
-                });
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal(
-                    String.Format(CultureInfo.CurrentCulture,
-                        Strings.TransformAccount_FailedWithReason, "account",
-                        "error"),
-                    controller.TempData["TransformError"]);
-            }
-
-            [Fact]
-            public async Task Post_WhenAdminIsNotFound_ShowsError()
-            {
-                // Arrange
-                var accountToTransform = "account";
-                var controller = CreateController(accountToTransform);
-
-                // Act
-                var result = await controller.Transform(new TransformAccountViewModel()
-                {
-                    AdminUsername = "AdminThatDoesNotExist"
-                });
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal(1, controller.ModelState["AdminUsername"].Errors.Count);
-                Assert.Equal(
-                    String.Format(CultureInfo.CurrentCulture,
-                        Strings.TransformAccount_AdminAccountDoesNotExist, "AdminThatDoesNotExist"),
-                    controller.ModelState["AdminUsername"].Errors.First().ErrorMessage);
-            }
-
-            [Fact]
-            public async Task Post_WhenValid_CreatesRequestAndRedirects()
-            {
-                // Arrange
-                var accountToTransform = "account";
-                var controller = CreateController(accountToTransform);
-
-                // Act
-                var result = await controller.Transform(new TransformAccountViewModel()
-                {
-                    AdminUsername = "OrgAdmin"
-                });
-
-                // Assert
-                Assert.IsType<RedirectResult>(result);
-            }
-
-            private UsersController CreateController(string accountToTransform, string canTransformErrorReason = "")
+            protected UsersController CreateController(string accountToTransform, string canTransformErrorReason = "")
             {
                 var configurationService = GetConfigurationService();
                 configurationService.Current.OrganizationsEnabledForDomains = new string[] { "example.com" };
@@ -2347,6 +2268,91 @@ namespace NuGetGallery
                     .Verifiable();
 
                 return controller;
+            }
+        }
+
+        public class TheGetTransformAction : TheTransformActionBase
+        {
+            [Fact]
+            public void WhenCanTransformReturnsFalse_ShowsError()
+            {
+                // Arrange
+                var accountToTransform = "account";
+                var controller = CreateController(accountToTransform, canTransformErrorReason: "error");
+
+                // Act
+                var result = controller.Transform();
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(
+                    String.Format(CultureInfo.CurrentCulture,
+                        Strings.TransformAccount_FailedWithReason, "account",
+                        "error"),
+                    controller.TempData["TransformError"]);
+            }
+        }
+
+        public class ThePostTransformAction : TheTransformActionBase
+        {
+            [Fact]
+            public async Task WhenCanTransformReturnsFalse_ShowsError()
+            {
+                // Arrange
+                var accountToTransform = "account";
+                var controller = CreateController(accountToTransform, canTransformErrorReason: "error");
+
+                // Act
+                var result = await controller.Transform(new TransformAccountViewModel() {
+                    AdminUsername = "OrgAdmin"
+                });
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(
+                    String.Format(CultureInfo.CurrentCulture,
+                        Strings.TransformAccount_FailedWithReason, "account",
+                        "error"),
+                    controller.TempData["TransformError"]);
+            }
+
+            [Fact]
+            public async Task WhenAdminIsNotFound_ShowsError()
+            {
+                // Arrange
+                var accountToTransform = "account";
+                var controller = CreateController(accountToTransform);
+
+                // Act
+                var result = await controller.Transform(new TransformAccountViewModel()
+                {
+                    AdminUsername = "AdminThatDoesNotExist"
+                });
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(1, controller.ModelState["AdminUsername"].Errors.Count);
+                Assert.Equal(
+                    String.Format(CultureInfo.CurrentCulture,
+                        Strings.TransformAccount_AdminAccountDoesNotExist, "AdminThatDoesNotExist"),
+                    controller.ModelState["AdminUsername"].Errors.First().ErrorMessage);
+            }
+
+            [Fact]
+            public async Task WhenValid_CreatesRequestAndRedirects()
+            {
+                // Arrange
+                var accountToTransform = "account";
+                var controller = CreateController(accountToTransform);
+
+                // Act
+                var result = await controller.Transform(new TransformAccountViewModel()
+                {
+                    AdminUsername = "OrgAdmin"
+                });
+
+                // Assert
+                Assert.IsType<RedirectResult>(result);
             }
         }
 

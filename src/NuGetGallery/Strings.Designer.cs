@@ -1417,7 +1417,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Administrator account &apos;{0}&apos; has not validated their email address..
+        ///   Looks up a localized string similar to Administrator account &apos;{0}&apos; has not confirmed their email address..
         /// </summary>
         public static string TransformAccount_AdminAccountNotConfirmed {
             get {

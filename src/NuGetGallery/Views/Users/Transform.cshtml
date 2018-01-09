@@ -16,7 +16,7 @@
             <div>
                 <aside class="col-md-3 col-md-push-9">
                     @Html.Label("Logo")
-                    @ViewHelpers.GravatarImage(CurrentUser.EmailAddress, CurrentUser.Username, 332, responsive: true)
+                    @ViewHelpers.GravatarImage(CurrentUser.EmailAddress, CurrentUser.Username, Constants.GravatarImageSizeLarge, responsive: true)
                 </aside>
 
                 <div class="row form-group col-md-9 col-md-pull-3">
