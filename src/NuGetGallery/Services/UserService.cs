@@ -190,16 +190,8 @@ namespace NuGetGallery
         public async Task<bool> TransformUserToOrganization(User accountToTransform, User adminUser, string token)
         {
             // todo: check for tenantId and add organization policy to enforce this (future work, with manage organization)
-            
-            try
-            {
-                return await EntitiesContext.TransformUserToOrganization(accountToTransform, adminUser, token);
-            }
-            catch (Exception ex) when (ex is SqlException || ex is DataException)
-            {
-                // todo: log exception
-                return false;
-            }
+
+            return await EntitiesContext.TransformUserToOrganization(accountToTransform, adminUser, token);
         }
     }
 }
