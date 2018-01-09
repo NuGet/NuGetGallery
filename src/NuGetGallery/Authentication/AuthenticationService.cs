@@ -546,7 +546,7 @@ namespace NuGetGallery.Authentication
         public virtual async Task<AuthenticateExternalLoginResult> ReadExternalLoginCredential(IOwinContext context)
         {
             var result = await context.Authentication.AuthenticateAsync(AuthenticationTypes.External);
-            if (result == null)
+            if (result?.Identity?.Claims == null)
             {
                 _trace.Information("No external login found.");
                 return new AuthenticateExternalLoginResult();
