@@ -55,7 +55,7 @@ namespace NuGetGallery
         {
             get
             {
-                var userAccountOwners = Owners.Where(o => !(o is Organization)).ToList();
+                var userAccountOwners = Owners.Where(o => !(o is Organization)).Distinct().ToList();
                 if (userAccountOwners.Count() > 1)
                 {
                     return false;

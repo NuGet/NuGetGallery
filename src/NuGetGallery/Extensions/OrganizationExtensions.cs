@@ -10,7 +10,8 @@ namespace NuGetGallery
     {
         /// <summary>
         /// Returns all the user accounts that are members of an organization.
-        /// If the orgnaization has other child organizations their members will be retuned as well. The result does not filter duplicate elements.
+        /// If the organization has other child organizations their members will be retuned as well.
+        /// The result will not have duplicate elements.
         /// </summary>
         /// <param name="organization">The organization.</param>
         /// <returns>The <see cref="IEnumerable{User}"/> of users that are not <see cref="Organization"/> and are members of <paramref name="organization"/>.</returns>
@@ -18,7 +19,7 @@ namespace NuGetGallery
         {
             Queue<Organization> organizations = new Queue<Organization>();
             organizations.Enqueue(organization);
-
+            HashSet<User> distinctUsers = new HashSet<User>();
             while (organizations.Any())
             {
                 var currentOrganization = organizations.Dequeue();
@@ -30,10 +31,12 @@ namespace NuGetGallery
                     }
                     else
                     {
-                        yield return membership.Member;
+                        distinctUsers.Add(membership.Member);
                     }
                 }
             }
+
+            return distinctUsers;
         }
     }
 }

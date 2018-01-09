@@ -296,13 +296,13 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 result.Add(new object[] { new Package() { Key = 0, Version = "1.0.0", PackageRegistration = packageRegistration0, Description = description }, result0 });
 
                 var packageRegistration1 = CreatePackageRegistration(1);
-                packageRegistration1.Owners.Add(new User() { Username = "user1" });
+                packageRegistration1.Owners.Add(new User() { Username = "user1", Key = 1 });
                 var result1 = true;
                 result.Add(new object[] { new Package() { Key = 1, Version = "1.0.0", PackageRegistration = packageRegistration1, Description = description }, result1 });
 
                 var packageRegistration2 = CreatePackageRegistration(2);
-                packageRegistration2.Owners.Add(new User() { Username = "user2.1" });
-                packageRegistration2.Owners.Add(new User() { Username = "user2.2" });
+                packageRegistration2.Owners.Add(new User() { Username = "user2.1", Key = 1 });
+                packageRegistration2.Owners.Add(new User() { Username = "user2.2", Key = 2});
                 var result2 = false;
                 result.Add(new object[] { new Package() { Key = 2, Version = "1.0.0", PackageRegistration = packageRegistration2, Description = description }, result2 });
 
@@ -341,14 +341,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 {
                     Username = "userOrg6",
                     Key = 60,
-                    Members = new List<Membership>
-                                                        {
-                                                            new Membership(){
-                                                                Member = user61,
-                                                                MemberKey = user61.Key,
-                                                                OrganizationKey = 60
-                                                            }
-                                                        }
+                    Members = new List<Membership>{new Membership(){Member = user61, MemberKey = user61.Key, OrganizationKey = 60}}
                 });
                 packageRegistration6.Owners.Add(user61);
                 var result6 = true;
@@ -362,19 +355,8 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 {
                     Username = "userOrg7",
                     Key = 70,
-                    Members = new List<Membership>
-                                                        {
-                                                            new Membership(){
-                                                                Member = user71,
-                                                                MemberKey = user71.Key,
-                                                                OrganizationKey = 70
-                                                            },
-                                                            new Membership(){
-                                                                Member = user72,
-                                                                MemberKey = user72.Key,
-                                                                OrganizationKey = 70
-                                                            }
-                                                        }
+                    Members = new List<Membership>{new Membership(){Member = user71, MemberKey = user71.Key, OrganizationKey = 70},
+                                                   new Membership(){Member = user72, MemberKey = user72.Key, OrganizationKey = 70}}
                 });
                 var result7 = false;
                 result.Add(new object[] { new Package() { Key = 7, Version = "1.0.0", PackageRegistration = packageRegistration7, Description = description }, result7 });
@@ -386,27 +368,13 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 {
                     Username = "userOrg81",
                     Key = 801,
-                    Members = new List<Membership>
-                                                        {
-                                                            new Membership(){
-                                                                Member = user81,
-                                                                MemberKey = user81.Key,
-                                                                OrganizationKey = 801
-                                                            }
-                                                        }
+                    Members = new List<Membership>{new Membership(){Member = user81, MemberKey = user81.Key, OrganizationKey = 801}}
                 });
                 packageRegistration8.Owners.Add(new Organization()
                 {
                     Username = "userOrg82",
                     Key = 802,
-                    Members = new List<Membership>
-                                                        {
-                                                            new Membership(){
-                                                                Member = user81,
-                                                                MemberKey = user81.Key,
-                                                                OrganizationKey = 802
-                                                            }
-                                                        }
+                    Members = new List<Membership>{new Membership(){Member = user81, MemberKey = user81.Key, OrganizationKey = 802}}
                 });
                 var result8 = true;
                 result.Add(new object[] { new Package() { Key = 8, Version = "1.0.0", PackageRegistration = packageRegistration8, Description = description }, result8 });
@@ -418,26 +386,13 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 {
                     Username = "org9Child",
                     Key = 902,
-                    Members = new List<Membership>
-                                                            {
-                                                                new Membership(){
-                                                                    Member = user91,
-                                                                    MemberKey = user91.Key,
-                                                                    OrganizationKey = 902
-                                                            }}
+                    Members = new List<Membership>{new Membership(){Member = user91, MemberKey = user91.Key, OrganizationKey = 902}}
                 };
                 packageRegistration9.Owners.Add(new Organization()
                 {
                     Username = "userOrgParent",
                     Key = 901,
-                    Members = new List<Membership>
-                                                        {
-                                                            new Membership(){
-                                                                Member = org91,
-                                                                MemberKey = org91.Key,
-                                                                OrganizationKey = 901
-                                                            }
-                                                        }
+                    Members = new List<Membership>{new Membership(){Member = org91, MemberKey = org91.Key, OrganizationKey = 901}}
                 });
                 var result9 = true;
                 result.Add(new object[] { new Package() { Key = 9, Version = "1.0.0", PackageRegistration = packageRegistration9, Description = description }, result9 });
@@ -449,26 +404,13 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 {
                     Username = "org101Child",
                     Key = 1002,
-                    Members = new List<Membership>
-                                                            {
-                                                                new Membership(){
-                                                                    Member = user101,
-                                                                    MemberKey = user101.Key,
-                                                                    OrganizationKey = 1002
-                                                            }}
+                    Members = new List<Membership>{new Membership(){Member = user101, MemberKey = user101.Key, OrganizationKey = 1002}}
                 };
                 packageRegistration10.Owners.Add(new Organization()
                 {
                     Username = "userOrgParent",
                     Key = 1001,
-                    Members = new List<Membership>
-                                                        {
-                                                            new Membership(){
-                                                                Member = org101,
-                                                                MemberKey = org101.Key,
-                                                                OrganizationKey = 1001
-                                                            }
-                                                        }
+                    Members = new List<Membership>{new Membership(){Member = org101, MemberKey = org101.Key, OrganizationKey = 1001}}
                 });
                 packageRegistration10.Owners.Add(user101);
                 var result10 = true;
@@ -482,26 +424,13 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 {
                     Username = "org111Child",
                     Key = 1102,
-                    Members = new List<Membership>
-                                                            {
-                                                                new Membership(){
-                                                                    Member = user111,
-                                                                    MemberKey = user111.Key,
-                                                                    OrganizationKey = 1102
-                                                            }}
+                    Members = new List<Membership>{new Membership(){Member = user111, MemberKey = user111.Key, OrganizationKey = 1102}}
                 };
                 packageRegistration11.Owners.Add(new Organization()
                 {
                     Username = "userOrgParent",
                     Key = 1101,
-                    Members = new List<Membership>
-                                                        {
-                                                            new Membership(){
-                                                                Member = org111,
-                                                                MemberKey = org111.Key,
-                                                                OrganizationKey = 1101
-                                                            }
-                                                        }
+                    Members = new List<Membership>{new Membership(){Member = org111, MemberKey = org111.Key, OrganizationKey = 1101}}
                 });
                 packageRegistration11.Owners.Add(user112);
                 var result11 = false;

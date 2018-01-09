@@ -14,7 +14,7 @@ namespace NuGetGallery.Extensions
         public void Test_GetUserAccountMembers(Organization o, int expectedMemberCount)
         {
             // Act 
-            var result = o.GetUserAccountMembers().Distinct().Count();
+            var result = o.GetUserAccountMembers().Count();
 
             // Assert 
             Assert.Equal(expectedMemberCount, result);
