@@ -2466,7 +2466,7 @@ namespace NuGetGallery
                 Assert.IsType<RedirectResult>(result);
             }
         }
-
+        
         public class TheConfirmTransformAction : TestContainer
         {
             [Fact]

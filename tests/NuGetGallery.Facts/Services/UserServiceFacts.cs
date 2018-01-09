@@ -543,7 +543,7 @@ namespace NuGetGallery
                 return admin;
             }
         }
-
+        
         public class TheTransformToOrganizationAccountMethod
         {
             [Theory]
