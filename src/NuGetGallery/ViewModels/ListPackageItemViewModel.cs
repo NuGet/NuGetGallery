@@ -13,7 +13,7 @@ namespace NuGetGallery
         private const int _descriptionLengthLimit = 300;
         private const string _omissionString = "...";
 
-        public ListPackageItemViewModel(Package package)
+        public ListPackageItemViewModel(Package package, User currentUser)
             : base(package)
         {
             Tags = package.Tags?
@@ -30,6 +30,12 @@ namespace NuGetGallery
             bool wasTruncated;
             ShortDescription = Description.TruncateAtWordBoundary(_descriptionLengthLimit, _omissionString, out wasTruncated);
             IsDescriptionTruncated = wasTruncated;
+
+            CanDisplayPrivateMetadata = CanPerformAction(currentUser, package, ActionsRequiringPermissions.DisplayPrivatePackageMetadata);
+            CanEdit = CanPerformAction(currentUser, package, ActionsRequiringPermissions.EditPackage);
+            CanUnlistOrRelist = CanPerformAction(currentUser, package, ActionsRequiringPermissions.UnlistOrRelistPackage);
+            CanManageOwners = CanPerformAction(currentUser, package, ActionsRequiringPermissions.ManagePackageOwnership);
+            CanReportAsOwner = CanPerformAction(currentUser, package, ActionsRequiringPermissions.ReportPackageAsOwner);
         }
 
         public string Authors { get; set; }
@@ -55,18 +61,35 @@ namespace NuGetGallery
         {
             get
             {
-                var organization = Owners.FirstOrDefault() as Organization;
+                var userAccountOwners = Owners.Where(o => !(o is Organization)).Distinct().ToList();
+                if (userAccountOwners.Count() > 1)
+                {
+                    return false;
+                }
 
-                return Owners.Count == 1 &&
-                    // A package has a single owner if its last owner is a user account or is an organization account
-                    // that has a single member.
-                    (organization == null || organization.Members.Count == 1);
+                var organizationAccountOwners = Owners.Where(o => o is Organization).ToList();
+                foreach(var o in organizationAccountOwners)
+                {
+                    userAccountOwners = userAccountOwners.Union(OrganizationExtensions.GetUserAccountMembers((Organization)o)).ToList();
+                    if(userAccountOwners.Count() > 1)
+                    {
+                        return false;
+                    }
+                }
+
+                return userAccountOwners.Any();
             }
         }
 
-        public bool IsActionAllowed(IPrincipal principal, PermissionLevel actionPermissionLevel)
+        public bool CanDisplayPrivateMetadata { get; set; }
+        public bool CanEdit { get; set; }
+        public bool CanUnlistOrRelist { get; set; }
+        public bool CanManageOwners { get; set; }
+        public bool CanReportAsOwner { get; set; }
+
+        private static bool CanPerformAction(User currentUser, Package package, ActionRequiringPackagePermissions action)
         {
-            return PermissionsService.IsActionAllowed(Owners, principal, actionPermissionLevel);
+            return action.CheckPermissionsOnBehalfOfAnyAccount(currentUser, package) == PermissionsCheckResult.Allowed;
         }
     }
 }

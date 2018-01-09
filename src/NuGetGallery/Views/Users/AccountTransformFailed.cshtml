@@ -5,13 +5,14 @@
 }
 
 <section role="main" class="container main-container page-api-keys">
-    <div class="row">
-        <h1>
-            Transform Account: Failed
-        </h1>
-        @if (TempData.ContainsKey("TransformError"))
-        {
-            @ViewHelpers.AlertWarning(@<text>@TempData["TransformError"]</text>)
-        }
-    </div>
+    @if (TempData.ContainsKey("TransformError"))
+    {
+        <div class="row">
+            <h1>
+                Failed to transform to an organization
+            </h1>
+            <hr />
+            @TempData["TransformError"]
+        </div>
+    }
 </section>

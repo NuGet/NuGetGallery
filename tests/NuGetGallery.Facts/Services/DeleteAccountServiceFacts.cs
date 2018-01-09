@@ -299,7 +299,7 @@ namespace NuGetGallery.Services
             private Mock<IPackageService> SetupPackageService()
             {
                 var packageService = new Mock<IPackageService>();
-                packageService.Setup(m => m.FindPackagesByAnyMatchingOwner(_user, true)).Returns(_userPackages);
+                packageService.Setup(m => m.FindPackagesByAnyMatchingOwner(_user, true, It.IsAny<bool>())).Returns(_userPackages);
                 //the .Returns(Task.CompletedTask) to avoid NullRef exception by the Mock infrastructure when invoking async operations
                 packageService.Setup(m => m.MarkPackageUnlistedAsync(It.IsAny<Package>(), true))
                               .Returns(Task.CompletedTask)

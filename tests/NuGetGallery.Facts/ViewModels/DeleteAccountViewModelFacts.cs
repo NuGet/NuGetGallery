@@ -23,8 +23,8 @@ namespace NuGetGallery.ViewModels
             [Fact]
             public void WhenPackageHasMultipleUserOwners_ReturnsFalse()
             {
-                var user = new User("theUser");
-                var user2 = new User("theOtherUser");
+                var user = new User("theUser") { Key = 1 };
+                var user2 = new User("theOtherUser") { Key = 2 };
                 var viewModel = CreateViewModel(user, user2);
 
                 Assert.Equal(2, viewModel.Packages.First().Owners.Count);
@@ -37,7 +37,7 @@ namespace NuGetGallery.ViewModels
                 var organization = new Organization();
                 for (int i = 0; i < 2; i++)
                 {
-                    var user = new User();
+                    var user = new User($"theuser{i}") { Key = i };
                     var membership = new Membership()
                     {
                         Organization = organization,
@@ -104,7 +104,7 @@ namespace NuGetGallery.ViewModels
                 {
                     Packages = new List<ListPackageItemViewModel>()
                     {
-                        new ListPackageItemViewModel(package)
+                        new ListPackageItemViewModel(package, currentUser: null)
                     }
                 };
             }

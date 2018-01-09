@@ -44,12 +44,12 @@ namespace NuGetGallery
                 sqlCommand = await reader.ReadToEndAsync();
             }
 
-            if (!string.IsNullOrEmpty(sqlCommand))
+            if (string.IsNullOrEmpty(sqlCommand))
             {
-                return await ExecuteSqlCommandAsync(sqlCommand, parameters);
+                throw new ArgumentException($"SQL resource '{name}' is empty.", "name");
             }
 
-            return 0; // no records affected
+            return await ExecuteSqlCommandAsync(sqlCommand, parameters);
         }
     }
 }

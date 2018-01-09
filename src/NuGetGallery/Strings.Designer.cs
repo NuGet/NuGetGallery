@@ -1426,7 +1426,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to transform account &apos;{0}&apos;. Contact support@nuget.org for more details..
+        ///   Looks up a localized string similar to Unexpected error when transforming account &apos;{0}&apos;. Contact support@nuget.org for more details..
         /// </summary>
         public static string TransformAccount_Failed {
             get {
@@ -1435,7 +1435,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to account should not belong to any organizations.
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; should not belong to any organizations..
         /// </summary>
         public static string TransformAccount_FailedReasonHasMemberships {
             get {
@@ -1444,7 +1444,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to account is already an organization.
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; is already an organization..
         /// </summary>
         public static string TransformAccount_FailedReasonIsOrganization {
             get {
@@ -1453,7 +1453,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to account should be a confirmed user.
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; should be a confirmed user..
         /// </summary>
         public static string TransformAccount_FailedReasonNotConfirmedUser {
             get {
@@ -1462,20 +1462,11 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to account does not support organizations.
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; does not support organizations..
         /// </summary>
         public static string TransformAccount_FailedReasonNotInDomainWhitelist {
             get {
                 return ResourceManager.GetString("TransformAccount_FailedReasonNotInDomainWhitelist", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Failed to transform account &apos;{0}&apos; with reason &apos;{1}&apos;. Contact support@nuget.org for more details..
-        /// </summary>
-        public static string TransformAccount_FailedWithReason {
-            get {
-                return ResourceManager.GetString("TransformAccount_FailedWithReason", resourceCulture);
             }
         }
         
