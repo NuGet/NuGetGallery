@@ -20,6 +20,7 @@ using NuGet.Jobs.Configuration;
 using NuGet.Jobs.Validation.PackageSigning.Configuration;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
+using NuGet.Packaging.Signing;
 using NuGet.Services.Configuration;
 using NuGet.Services.KeyVault;
 using NuGet.Services.ServiceBus;
@@ -185,6 +186,8 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
             services.AddTransient<IPackageSigningStateService, PackageSigningStateService>();
             services.AddTransient<ISignatureValidator, SignatureValidator>();
             services.AddTransient<ISignaturePartsExtractor, SignaturePartsExtractor>();
+
+            services.AddTransient(p => PackageSignatureVerifierFactory.Create());
 
             services.AddSingleton(p =>
             {

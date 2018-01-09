@@ -19,23 +19,30 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
     public class SignatureValidator : ISignatureValidator
     {
         private readonly IPackageSigningStateService _packageSigningStateService;
+        private readonly IPackageSignatureVerifier _packageSignatureVerifier;
         private readonly ISignaturePartsExtractor _signaturePartsExtractor;
         private readonly IEntityRepository<Certificate> _certificates;
         private readonly ILogger<SignatureValidator> _logger;
 
         public SignatureValidator(
             IPackageSigningStateService packageSigningStateService,
+            IPackageSignatureVerifier packageSignatureVerifier,
             ISignaturePartsExtractor signaturePartsExtractor,
             IEntityRepository<Certificate> certificates,
             ILogger<SignatureValidator> logger)
         {
             _packageSigningStateService = packageSigningStateService ?? throw new ArgumentNullException(nameof(packageSigningStateService));
+            _packageSignatureVerifier = packageSignatureVerifier ?? throw new ArgumentNullException(nameof(packageSignatureVerifier));
             _signaturePartsExtractor = signaturePartsExtractor ?? throw new ArgumentNullException(nameof(signaturePartsExtractor));
             _certificates = certificates ?? throw new ArgumentNullException(nameof(certificates));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task ValidateAsync(ISignedPackageReader signedPackageReader, ValidatorStatus validation, SignatureValidationMessage message, CancellationToken cancellationToken)
+        public async Task ValidateAsync(
+            ISignedPackageReader signedPackageReader,
+            ValidatorStatus validation,
+            SignatureValidationMessage message,
+            CancellationToken cancellationToken)
         {
             if (!await signedPackageReader.IsSignedAsync(cancellationToken))
             {
@@ -102,9 +109,37 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
                 return;
             }
 
-            // For now, we assume safe-listed certificates are totally valid.
+            // Call the "verify" API, which does the main logic of signature validation.
+            var verifyResult = await _packageSignatureVerifier.VerifySignaturesAsync(
+                signedPackageReader,
+                cancellationToken);
+            if (!verifyResult.Valid)
+            {
+                var errors = verifyResult
+                    .Results
+                    .SelectMany(x => x.GetErrorIssues())
+                    .Select(x => $"{x.Code}: {x.Message}")
+                    .ToList();
+                var warnings = verifyResult
+                    .Results
+                    .SelectMany(x => x.GetWarningIssues())
+                    .Select(x => $"{x.Code}: {x.Message}")
+                    .ToList();
+
+                _logger.LogInformation(
+                    "Signed package {PackageId} {PackageVersion} is blocked for validation {ValidationId} due to verify failures. Errors: {Errors} Warnings: {Warnings}",
+                    message.PackageId,
+                    message.PackageVersion,
+                    message.ValidationId,
+                    errors,
+                    warnings);
+
+                await RejectAsync(validation, message);
+                return;
+            }
+            
             _logger.LogInformation(
-                "Signed package {PackageId} {PackageVersion} is accepted for validation {ValidationId} with certificate thumbprints: {PackageThumbprints}",
+                "Signed package {PackageId} {PackageVersion} for validation {ValidationId} is valid with certificate thumbprints: {PackageThumbprints}",
                 message.PackageId,
                 message.PackageVersion,
                 message.ValidationId,
