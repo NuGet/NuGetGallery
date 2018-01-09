@@ -99,10 +99,69 @@ namespace NuGetGallery
         {
             return AccountView(new AccountViewModel());
         }
-        
+
         [HttpGet]
         [Authorize]
-        public virtual async Task<ActionResult> ConfirmTransform(string accountNameToTransform, string token)
+        [ActionName("Transform")]
+        public virtual ActionResult TransformToOrganization()
+        {
+            var accountToTransform = GetCurrentUser();
+            string errorReason;
+            if (!_userService.CanTransformUserToOrganization(accountToTransform, out errorReason))
+            {
+                TempData["TransformError"] = errorReason;
+                return View("TransformFailed");
+            }
+
+            var transformRequest = accountToTransform.OrganizationMigrationRequest;
+            if (transformRequest != null)
+            {
+                TempData["Message"] = String.Format(CultureInfo.CurrentCulture, Strings.TransformAccount_RequestExists,
+                    transformRequest.RequestDate.ToNuGetShortDateString(), transformRequest.AdminUser.Username);
+            }
+
+            return View(new TransformAccountViewModel());
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        [ActionName("Transform")]
+        public virtual async Task<ActionResult> TransformToOrganization(TransformAccountViewModel transformViewModel)
+        {
+            var accountToTransform = GetCurrentUser();
+            string errorReason;
+            if (!_userService.CanTransformUserToOrganization(accountToTransform, out errorReason))
+            {
+                TempData["TransformError"] = errorReason;
+                return View("TransformFailed");
+            }
+
+            var adminUser = _userService.FindByUsername(transformViewModel.AdminUsername);
+            if (adminUser == null)
+            {
+                ModelState.AddModelError("AdminUsername", String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_AdminAccountDoesNotExist, transformViewModel.AdminUsername));
+                return View(transformViewModel);
+            }
+
+            if (!adminUser.Confirmed)
+            {
+                ModelState.AddModelError("AdminUsername", Strings.TransformAccount_AdminAccountNotConfirmed);
+                return View(transformViewModel);
+            }
+            
+            await _userService.RequestTransformToOrganizationAccount(accountToTransform, adminUser);
+
+            // prompt for admin sign-on to confirm transformation
+            OwinContext.Authentication.SignOut();
+            return Redirect(Url.ConfirmTransformAccount(accountToTransform));
+        }
+
+        [HttpGet]
+        [Authorize]
+        [ActionName("ConfirmTransform")]
+        public virtual async Task<ActionResult> ConfirmTransformToOrganization(string accountNameToTransform, string token)
         {
             var adminUser = GetCurrentUser();
             if (!adminUser.Confirmed)
@@ -116,23 +175,23 @@ namespace NuGetGallery
             {
                 TempData["TransformError"] = String.Format(CultureInfo.CurrentCulture,
                     Strings.TransformAccount_OrganizationAccountDoesNotExist, accountNameToTransform);
-                return View("AccountTransformFailed");
+                return View("TransformFailed");
             }
 
             string errorReason;
             if (!_userService.CanTransformUserToOrganization(accountToTransform, out errorReason))
             {
                 TempData["TransformError"] = errorReason;
-                return View("AccountTransformFailed");
+                return View("TransformFailed");
             }
-            
+
             if (!await _userService.TransformUserToOrganization(accountToTransform, adminUser, token))
             {
                 TempData["TransformError"] = String.Format(CultureInfo.CurrentCulture,
                     Strings.TransformAccount_Failed, accountNameToTransform);
-                return View("AccountTransformFailed");
+                return View("TransformFailed");
             }
-                
+
             TempData["Message"] = String.Format(CultureInfo.CurrentCulture,
                 Strings.TransformAccount_Success, accountNameToTransform);
 

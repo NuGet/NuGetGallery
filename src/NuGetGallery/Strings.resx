@@ -712,4 +712,13 @@ For more information, please contact '{2}'.</value>
   <data name="TransformAccount_FailedReasonIsOrganization" xml:space="preserve">
     <value>Account '{0}' is already an organization.</value>
   </data>
+  <data name="TransformAccount_AdminAccountDoesNotExist" xml:space="preserve">
+    <value>Administrator account '{0}' does not exist.</value>
+  </data>
+  <data name="TransformAccount_AdminAccountNotConfirmed" xml:space="preserve">
+    <value>Administrator account '{0}' has not confirmed their email address.</value>
+  </data>
+  <data name="TransformAccount_RequestExists" xml:space="preserve">
+    <value>Another tranform request was created on {0} with organization admin '{1}'.</value>
+  </data>
 </root>

@@ -1,0 +1,57 @@
+﻿@model TransformAccountViewModel
+@{
+    ViewBag.Title = "Transform Account";
+    ViewBag.MdPageColumns = Constants.ColumnsFormMd;
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
+}
+
+<section role="main" class="container main-container page-account-settings">
+    <div class="row">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
+            <h1 class="text-center">Transform Account</h1>
+            <div class="text-center ms-font-xxl">
+                <a href="@Url.User(CurrentUser)">@CurrentUser.Username</a>
+            </div>
+
+            <div>
+                <aside class="col-md-3 col-md-push-9">
+                    @Html.Label("Logo")
+                    @ViewHelpers.GravatarImage(CurrentUser.EmailAddress, CurrentUser.Username, Constants.GravatarImageSizeLarge, responsive: true)
+                </aside>
+
+                <div class="row form-group col-md-9 col-md-pull-3">
+                    @Html.Label("Organization")
+                    <p>@CurrentUser.Username</p>
+                </div>
+                
+                <div class="row form-group col-md-9 col-md-pull-3">
+                    @Html.Label("Email")
+                    <p>@CurrentUser.EmailAddress</p>
+                </div>
+
+                @using (Html.BeginForm("Transform", "Users"))
+                {
+                    @Html.AntiForgeryToken()
+
+                    <div class="row form-group col-md-9 col-md-pull-3 @Html.HasErrorFor(m => m.AdminUsername)">
+                        @Html.ShowLabelFor(m => m.AdminUsername)
+                        @Html.ShowTextBoxFor(m => m.AdminUsername)
+                        @Html.ShowValidationMessagesFor(m => m.AdminUsername)
+                    </div>
+
+                    <div class="row form-group">
+                        <div class="col-md-6">
+                            <input type="submit" class="btn btn-primary form-control" value="Transform" />
+                        </div>
+                        <div class="col-md-6">
+                            <a href="#" role="button" class="btn btn-default form-control" id="cancel-transform">
+                                Cancel
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+
+        </div>
+    </div>
+</section>
