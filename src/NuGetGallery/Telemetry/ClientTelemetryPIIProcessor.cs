@@ -36,13 +36,13 @@ namespace NuGetGallery
                     return;
                 }
                 // Removes the first /
-                var requestPath = requestTelemetryItem.Url.AbsolutePath.Remove(0,1);
+                var requestPath = requestTelemetryItem.Url.AbsolutePath.TrimStart('/');
                 var obfuscatedPath = route.ObfuscateUrlPath(requestPath);
                 if(obfuscatedPath != null)
                 {
                     requestTelemetryItem.Url = new Uri(requestTelemetryItem.Url.ToString().Replace(requestPath, obfuscatedPath));
                     requestTelemetryItem.Name = requestTelemetryItem.Name.Replace(requestPath, obfuscatedPath);
-                    if(requestTelemetryItem.Context.Operation != null && requestTelemetryItem.Context.Operation.Name != null)
+                    if(requestTelemetryItem.Context.Operation?.Name != null)
                     {
                         requestTelemetryItem.Context.Operation.Name = requestTelemetryItem.Context.Operation.Name.Replace(requestPath, obfuscatedPath);
                     }
