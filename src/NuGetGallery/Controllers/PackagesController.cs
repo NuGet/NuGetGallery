@@ -325,7 +325,9 @@ namespace NuGetGallery
                 var id = nuspec.GetId();
                 var existingPackageRegistration = _packageService.FindPackageRegistrationById(id);
                 // For a new package id verify if the user is allowed to use it.
-                if (existingPackageRegistration == null && ActionsRequiringPermissions.UploadNewPackageId.CheckPermissionsOnBehalfOfAnyAccount(currentUser, new ActionOnNewPackageContext(id, _reservedNamespaceService)) != PermissionsCheckResult.Allowed)
+                if (existingPackageRegistration == null && 
+                    ActionsRequiringPermissions.UploadNewPackageId.CheckPermissionsOnBehalfOfAnyAccount(
+                        currentUser, new ActionOnNewPackageContext(id, _reservedNamespaceService)) != PermissionsCheckResult.Allowed)
                 {
                     ModelState.AddModelError(
                         string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict));
