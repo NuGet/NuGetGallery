@@ -23,6 +23,7 @@ namespace NuGetGallery
 
         public const int GravatarElementSize = 32;
         public const int GravatarImageSize = GravatarElementSize * 2;
+        public const int GravatarImageSizeLarge = 332;
 
         /// <summary>
         /// Parameters for calculating account lockout period after 

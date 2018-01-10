@@ -1100,6 +1100,52 @@ namespace NuGetGallery
                 Assert.Equal(1, packages.Count());
                 Assert.Contains(package2, packages);
             }
+
+            [Theory]
+            [MemberData(nameof(TestData_PackageOwnerVariants))]
+            public void ReturnsVersionsWhenIncludedVersionsIsTrue_IncludeUnlistedTrue(User currentUser, User packageOwner)
+            {
+                var packageRegistration = new PackageRegistration { Id = "theId", Owners = { packageOwner } };
+                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = false, IsLatest = false, IsLatestStable = false };
+                packageRegistration.Packages.Add(package1);
+
+                var package2 = new Package { Version = "2.0", PackageRegistration = packageRegistration, Listed = true, IsLatest = true, IsLatestStable = true };
+                packageRegistration.Packages.Add(package2);
+
+                var context = GetFakeContext();
+                context.Users.Add(currentUser);
+                context.PackageRegistrations.Add(packageRegistration);
+                context.Packages.Add(package1);
+                context.Packages.Add(package2);
+
+                var service = Get<PackageService>();
+
+                var packages = service.FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: true, includeVersions: true);
+                Assert.Equal(2, packages.Count());
+            }
+
+            [Theory]
+            [MemberData(nameof(TestData_PackageOwnerVariants))]
+            public void ReturnsVersionsWhenIncludedVersionsIsTrue_IncludeUnlistedFalse(User currentUser, User packageOwner)
+            {
+                var packageRegistration = new PackageRegistration { Id = "theId", Owners = { packageOwner } };
+                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = false, IsLatest = false, IsLatestStable = false };
+                packageRegistration.Packages.Add(package1);
+
+                var package2 = new Package { Version = "2.0", PackageRegistration = packageRegistration, Listed = true, IsLatest = true, IsLatestStable = true };
+                packageRegistration.Packages.Add(package2);
+
+                var context = GetFakeContext();
+                context.Users.Add(currentUser);
+                context.PackageRegistrations.Add(packageRegistration);
+                context.Packages.Add(package1);
+                context.Packages.Add(package2);
+
+                var service = Get<PackageService>();
+
+                var packages = service.FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: false, includeVersions: true);
+                Assert.Equal(1, packages.Count());
+            }
         }
 
         public class TheMarkPackageListedMethod
@@ -1677,6 +1723,164 @@ namespace NuGetGallery
                 service.SetLicenseReportVisibilityAsync(package, false);
 
                 Assert.True(package.HideLicenseReport);
+            }
+        }
+
+        public class TheGetPackageUserAccountOwnersMethod : TestContainer
+        {
+            [Theory]
+            [MemberData(nameof(GetPackageUserAccountOwners_Input))]
+            public void TestGetPackageUserAccountOwners(Package package, int expectedResult)
+            {
+                // Arrange
+                var context = GetFakeContext();
+                context.PackageRegistrations.Add(package.PackageRegistration);
+                context.Packages.Add(package);
+                var service = Get<PackageService>();
+
+                // Act
+                var result = service.GetPackageUserAccountOwners(package).Count();
+
+                // Assert
+                Assert.Equal(expectedResult, result);
+            }
+
+            static PackageRegistration CreatePackageRegistration(int key)
+            {
+                return new PackageRegistration() { Key = 1, Id = $"regKey{key}" };
+            }
+
+            public static IEnumerable<object[]> GetPackageUserAccountOwners_Input
+            {
+                get
+                {
+                    List<object[]> result = new List<object[]>();
+
+                    var description = "Description";
+                    var packageRegistration0 = CreatePackageRegistration(0);
+                    var result0 = 0;
+                    result.Add(new object[] { new Package() { Key = 0, Version = "1.0.0", PackageRegistration = packageRegistration0, Description = description }, result0 });
+
+                    var packageRegistration1 = CreatePackageRegistration(1);
+                    packageRegistration1.Owners.Add(new User() { Username = "user1", Key = 1 });
+                    var result1 = 1;
+                    result.Add(new object[] { new Package() { Key = 1, Version = "1.0.0", PackageRegistration = packageRegistration1, Description = description }, result1 });
+
+                    var packageRegistration2 = CreatePackageRegistration(2);
+                    packageRegistration2.Owners.Add(new User() { Username = "user2.1" , Key = 1});
+                    packageRegistration2.Owners.Add(new User() { Username = "user2.2" , Key = 2});
+                    var result2 = 2;
+                    result.Add(new object[] { new Package() { Key = 2, Version = "1.0.0", PackageRegistration = packageRegistration2, Description = description }, result2 });
+
+                    var packageRegistration3 = CreatePackageRegistration(3);
+                    packageRegistration3.Owners.Add(new Organization() { Username = "userOrg3", Members = new List<Membership>() });
+                    var result3 = 0;
+                    result.Add(new object[] { new Package() { Key = 3, Version = "1.0.0", PackageRegistration = packageRegistration3, Description = description }, result3 });
+
+                    var packageRegistration4 = CreatePackageRegistration(4);
+                    packageRegistration4.Owners.Add(new User() { Username = "user4.1" });
+                    packageRegistration4.Owners.Add(new Organization() { Username = "userOrg4" });
+                    var result4 = 1;
+                    result.Add(new object[] { new Package() { Key = 4, Version = "1.0.0", PackageRegistration = packageRegistration4, Description = description }, result4 });
+
+                    // A single organization with one owner
+                    var packageRegistration5 = CreatePackageRegistration(5);
+                    var user51 = new User() { Username = "user5.1", Key = 51 };
+                    packageRegistration5.Owners.Add(new Organization()
+                    {
+                        Username = "userOrg5",
+                        Key = 50,
+                        Members = new List<Membership>{new Membership(){Member = user51, MemberKey = user51.Key, OrganizationKey = 50}}
+                    });
+                    var result5 = 1;
+                    result.Add(new object[] { new Package() { Key = 5, Version = "1.0.0", PackageRegistration = packageRegistration5, Description = description }, result5 });
+
+                    // Same user in organization and as individual account
+                    var packageRegistration6 = CreatePackageRegistration(6);
+                    var user61 = new User() { Username = "user6.1", Key = 61 };
+                    packageRegistration6.Owners.Add(new Organization()
+                    {
+                        Username = "userOrg6",
+                        Key = 60,
+                        Members = new List<Membership>{new Membership(){Member = user61, MemberKey = user61.Key, OrganizationKey = 60}}
+                    });
+                    packageRegistration6.Owners.Add(user61);
+                    var result6 = 1;
+                    result.Add(new object[] { new Package() { Key = 6, Version = "1.0.0", PackageRegistration = packageRegistration6, Description = description }, result6 });
+
+                    // One organization with two members
+                    var packageRegistration7 = CreatePackageRegistration(7);
+                    var user71 = new User() { Username = "user7.1", Key = 71 };
+                    var user72 = new User() { Username = "user7.2", Key = 72 };
+                    packageRegistration7.Owners.Add(new Organization()
+                    {
+                        Username = "userOrg7",
+                        Key = 70,
+                        Members = new List<Membership>{new Membership(){Member = user71, MemberKey = user71.Key, OrganizationKey = 70},
+                                                       new Membership(){Member = user72, MemberKey = user72.Key, OrganizationKey = 70}}});
+                    var result7 = 2;
+                    result.Add(new object[] { new Package() { Key = 7, Version = "1.0.0", PackageRegistration = packageRegistration7, Description = description }, result7 });
+
+                    // Two organizations with same member
+                    var packageRegistration8 = CreatePackageRegistration(9);
+                    var user81 = new User() { Username = "user8.1", Key = 81 };
+                    packageRegistration8.Owners.Add(new Organization(){Username = "userOrg81", Key = 801,
+                        Members = new List<Membership>{new Membership(){Member = user81, MemberKey = user81.Key, OrganizationKey = 801}}});
+                    packageRegistration8.Owners.Add(new Organization(){Username = "userOrg82", Key = 802,
+                        Members = new List<Membership>{new Membership(){Member = user81, MemberKey = user81.Key, OrganizationKey = 802}}});
+                    var result8 = 1;
+                    result.Add(new object[] { new Package() { Key = 8, Version = "1.0.0", PackageRegistration = packageRegistration8, Description = description }, result8 });
+
+                    // Organization with suborganization with one member 
+                    var packageRegistration9 = CreatePackageRegistration(9);
+                    var user91 = new User() { Username = "user9.1", Key = 91 };
+                    var org91 = new Organization()
+                    {
+                        Username = "org9Child",
+                        Key = 902,
+                        Members = new List<Membership>{new Membership(){Member = user91, MemberKey = user91.Key, OrganizationKey = 902}}};
+                    packageRegistration9.Owners.Add(new Organization(){Username = "userOrgParent", Key = 901,
+                        Members = new List<Membership>{new Membership(){Member = org91, MemberKey = org91.Key, OrganizationKey = 901}}});
+                    var result9 = 1;
+                    result.Add(new object[] { new Package() { Key = 9, Version = "1.0.0", PackageRegistration = packageRegistration9, Description = description }, result9 });
+
+                    // Organization with suborganization with one member and one individual user account
+                    var packageRegistration10 = CreatePackageRegistration(10);
+                    var user101 = new User() { Username = "user10.1", Key = 101 };
+                    var org101 = new Organization()
+                    {
+                        Username = "org101Child",
+                        Key = 1002,
+                        Members = new List<Membership>{new Membership(){Member = user101, MemberKey = user101.Key, OrganizationKey = 1002}}
+                    };
+                    packageRegistration10.Owners.Add(new Organization(){Username = "userOrgParent", Key = 1001,
+                        Members = new List<Membership>{new Membership(){Member = org101, MemberKey = org101.Key, OrganizationKey = 1001}}});
+                    packageRegistration10.Owners.Add(user101);
+                    var result10 = 1;
+                    result.Add(new object[] { new Package() { Key = 10, Version = "1.0.0", PackageRegistration = packageRegistration10, Description = description }, result10 });
+
+                    // Organization with suborganization with one member and one individual different user account
+                    var packageRegistration11 = CreatePackageRegistration(11);
+                    var user111 = new User() { Username = "user11.1", Key = 111 };
+                    var user112 = new User() { Username = "user11.2", Key = 112 };
+                    var org111 = new Organization()
+                    {
+                        Username = "org111Child",
+                        Key = 1102,
+                        Members = new List<Membership>{new Membership(){Member = user111, MemberKey = user111.Key, OrganizationKey = 1102}}
+                    };
+                    packageRegistration11.Owners.Add(new Organization()
+                    {
+                        Username = "userOrgParent",
+                        Key = 1101,
+                        Members = new List<Membership>{new Membership(){Member = org111, MemberKey = org111.Key, OrganizationKey = 1101}}
+                    });
+                    packageRegistration11.Owners.Add(user112);
+                    var result11 = 2;
+                    result.Add(new object[] { new Package() { Key = 11, Version = "1.0.0", PackageRegistration = packageRegistration11, Description = description }, result11 });
+
+                    return result;
+                }
             }
         }
     }

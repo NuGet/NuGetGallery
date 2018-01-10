@@ -15,7 +15,7 @@ namespace NuGetGallery
     /// future if we want to add constraints for user accounts or user-only settings.
     /// </summary>
     /// <see href="https://weblogs.asp.net/manavi/inheritance-mapping-strategies-with-entity-framework-code-first-ctp5-part-2-table-per-type-tpt" />
-    public class User : IEntity
+    public class User : IEntity, IEquatable<User>
     {
         public User() : this(null)
         {
@@ -27,6 +27,7 @@ namespace NuGetGallery
             SecurityPolicies = new List<UserSecurityPolicy>();
             ReservedNamespaces = new HashSet<ReservedNamespace>();
             Organizations = new List<Membership>();
+            OrganizationRequests = new List<MembershipRequest>();
             Roles = new List<Role>();
             Username = username;
         }
@@ -149,6 +150,50 @@ namespace NuGetGallery
         public bool IsInRole(string roleName)
         {
             return Roles.Any(r => String.Equals(r.Name, roleName, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public bool Equals(User other)
+        {
+            return other.Key == Key;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if(obj == null)
+            {
+                return false;
+            }
+            User user = obj as User;
+            if(user == null)
+            {
+                return false;
+            }
+            return Equals(user);
+        }
+
+        public override int GetHashCode()
+        {
+            return Key.GetHashCode();
+        }
+
+        public static bool operator ==(User user1, User user2)
+        {
+            if (((object)user1) == null || ((object)user2) == null)
+            {
+                return Equals(user1, user2);
+            }
+
+            return user1.Equals(user2);
+        }
+
+        public static bool operator !=(User user1, User user2)
+        {
+            if (((object)user1) == null || ((object)user2) == null)
+            {
+                return !Equals(user1, user2);
+            }
+
+            return !user1.Equals(user2);
         }
     }
 }

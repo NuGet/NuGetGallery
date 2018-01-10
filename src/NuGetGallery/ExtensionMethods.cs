@@ -263,9 +263,13 @@ namespace NuGetGallery
             return html.PasswordFor(expression, htmlAttributes);
         }
 
-        public static HtmlString ShowTextBoxFor<TModel, TProperty>(this HtmlHelper<TModel> html, Expression<Func<TModel, TProperty>> expression)
+        public static HtmlString ShowTextBoxFor<TModel, TProperty>(this HtmlHelper<TModel> html, Expression<Func<TModel, TProperty>> expression, bool enabled = true)
         {
             var htmlAttributes = GetHtmlAttributes(html, expression);
+            if (!enabled)
+            {
+                htmlAttributes.Add("disabled", "true");
+            }
             return html.TextBoxFor(expression, htmlAttributes);
         }
 
@@ -433,7 +437,8 @@ namespace NuGetGallery
         /// <returns>The current user</returns>
         public static User GetCurrentUser(this IOwinContext self)
         {
-            if (self.Request.User == null)
+            if (self.Request.User == null || 
+                (self.Request.User.Identity != null && !self.Request.User.Identity.IsAuthenticated))
             {
                 return null;
             }

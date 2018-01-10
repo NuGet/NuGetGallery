@@ -782,6 +782,7 @@
     <Compile Include="Controllers\AppController.cs" />
     <Compile Include="Controllers\ErrorsController.cs" />
     <Compile Include="Controllers\PagesController.cs" />
+    <Compile Include="Extensions\OrganizationExtensions.cs" />
     <Compile Include="Extensions\PrincipalExtensions.cs" />
     <Compile Include="Extensions\ScopeExtensions.cs" />
     <Compile Include="Extensions\UserExtensions.cs" />
@@ -1633,6 +1634,7 @@
     <Compile Include="ViewModels\ScopeViewModel.cs" />
     <Compile Include="ViewModels\PackageListSearchViewModel.cs" />
     <Compile Include="ViewModels\ThirdPartyPackageManagerViewModel.cs" />
+    <Compile Include="ViewModels\TransformAccountViewModel.cs" />
     <Compile Include="WebApi\PlainTextResult.cs" />
     <Compile Include="WebApi\QueryResult.cs" />
     <Compile Include="WebApi\QueryResultDefaults.cs" />
@@ -2000,6 +2002,8 @@
     <Content Include="Views\Authentication\SignInNuGetAccount.cshtml" />
     <Content Include="Views\Packages\_VerifyForm.cshtml" />
     <Content Include="Views\Packages\_VerifyMetadata.cshtml" />
+    <Content Include="Views\Users\TransformFailed.cshtml" />
+    <Content Include="Views\Users\Transform.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />
@@ -2339,7 +2343,7 @@
     <VisualStudio>
       <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
         <WebProjectProperties>
-          <UseIIS>True</UseIIS>
+          <UseIIS>False</UseIIS>
           <AutoAssignPort>True</AutoAssignPort>
           <DevelopmentServerPort>80</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
