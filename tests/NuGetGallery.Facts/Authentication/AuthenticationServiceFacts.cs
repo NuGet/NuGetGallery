@@ -1715,7 +1715,7 @@ namespace NuGetGallery.Authentication
             }
         }
 
-        private class AuthenticateThunk
+        public class AuthenticateThunk
         {
             public IIdentity ShimIdentity { get; set; }
             public string[] InvokedAuthTypes { get; private set; }

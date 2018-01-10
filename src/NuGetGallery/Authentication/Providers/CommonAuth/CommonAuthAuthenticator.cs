@@ -29,10 +29,9 @@ namespace NuGetGallery.Authentication.Providers.CommonAuth
         }
 
         public static readonly string DefaultAuthenticationType = "CommonAuth";
-
-        public const string Authority = "https://login.microsoftonline.com/{0}/v2.0";
-        public const string PersonalMSATenant = "9188040d-6c67-4c5b-b112-36a304b66dad";
-        public const string V2CommonTenant = "common";
+        public static readonly string PersonalMSATenant = "9188040d-6c67-4c5b-b112-36a304b66dad";
+        public static readonly string V2CommonTenant = "common";
+        public static readonly string Authority = "https://login.microsoftonline.com/{0}/v2.0";
 
         protected override void AttachToOwinApp(IGalleryConfigurationService config, IAppBuilder app)
         {
@@ -112,14 +111,13 @@ namespace NuGetGallery.Authentication.Providers.CommonAuth
                 throw new ArgumentException($"External Authentication is missing required claim: '{V2Claims.Identifier}'");
             }
 
-            var emailClaimType = ClaimTypes.Email;
             if (string.Equals(tenantId, PersonalMSATenant, StringComparison.OrdinalIgnoreCase))
             {
                 authenticationType = AuthenticationType.MicrosoftAccount;
 
-                // The V2 common authentication identifier is returned as 32 character alphanumeric value(padded with 0 and -), 
+                // The MSA v2 authentication identifier is returned as 32 character alphanumeric value(padded with 0 and -), 
                 // where as the existing Microsoft account identifiers are 16 character wide.
-                // For e.g old format: 0ae45d63e22e4a60, newer format: 000000-0000-0000-000A-E45D-63E-22E4A60
+                // For e.g old format: 0ae45d63e22e4a60, newer format: 000000-0000-0000-000A-E45D-63E2-2E4A60
                 // We need to format the values into the older format for backwards compatibility
                 identifier = idClaim.Value.Replace("-", "").Substring(16).ToLowerInvariant();
             }
@@ -127,7 +125,6 @@ namespace NuGetGallery.Authentication.Providers.CommonAuth
             {
                 authenticationType = AuthenticationType.AzureActiveDirectory;
                 identifier = idClaim.Value;
-                emailClaimType = V2Claims.Email;
             }
 
             var nameClaim = claimsIdentity.FindFirst(V2Claims.Name);
@@ -136,7 +133,7 @@ namespace NuGetGallery.Authentication.Providers.CommonAuth
                 throw new ArgumentException($"External Authentication is missing required claim: '{V2Claims.Name}'");
             }
 
-            var emailClaim = claimsIdentity.FindFirst(emailClaimType);
+            var emailClaim = claimsIdentity.FindFirst(V2Claims.Email);
             if (emailClaim == null)
             {
                 throw new ArgumentException($"External Authentication is missing required claim: '{V2Claims.Email}'");
