@@ -12,6 +12,7 @@ using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
 using NuGet.Packaging.Signing;
 using NuGet.Services.Validation;
+using NuGet.Services.Validation.Issues;
 using NuGetGallery;
 
 namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
@@ -38,23 +39,23 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task ValidateAsync(
+        public async Task<SignatureValidatorResult> ValidateAsync(
+            int packageKey,
             ISignedPackageReader signedPackageReader,
-            ValidatorStatus validation,
             SignatureValidationMessage message,
             CancellationToken cancellationToken)
         {
             if (!await signedPackageReader.IsSignedAsync(cancellationToken))
             {
-                await HandleUnsignedPackageAsync(validation, message);
+                return await HandleUnsignedPackageAsync(packageKey, message);
             }
             else
             {
-                await HandleSignedPackageAsync(signedPackageReader, validation, message, cancellationToken);
+                return await HandleSignedPackageAsync(packageKey, signedPackageReader, message, cancellationToken);
             }
         }
         
-        private async Task HandleUnsignedPackageAsync(ValidatorStatus validation, SignatureValidationMessage message)
+        private async Task<SignatureValidatorResult> HandleUnsignedPackageAsync(int packageKey, SignatureValidationMessage message)
         {
             _logger.LogInformation(
                 "Package {PackageId} {PackageVersion} is unsigned, no additional validations necessary for {ValidationId}.",
@@ -62,13 +63,12 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
                 message.PackageVersion,
                 message.ValidationId);
 
-            await AcceptAsync(validation, message, PackageSigningStatus.Unsigned);
-            return;
+            return await AcceptAsync(packageKey, message, PackageSigningStatus.Unsigned);
         }
 
-        private async Task HandleSignedPackageAsync(
+        private async Task<SignatureValidatorResult> HandleSignedPackageAsync(
+            int packageKey,
             ISignedPackageReader signedPackageReader,
-            ValidatorStatus validation,
             SignatureValidationMessage message,
             CancellationToken cancellationToken)
         {
@@ -83,8 +83,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
                     message.ValidationId,
                     packageSignatures.Count);
 
-                await RejectAsync(validation, message);
-                return;
+                return await RejectAsync(packageKey, message);
             }
 
             // Block packages with any unknown signing certificates.
@@ -105,8 +104,10 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
                     message.ValidationId,
                     unknownThumbprints);
 
-                await RejectAsync(validation, message);
-                return;
+                return await RejectAsync(
+                    packageKey,
+                    message,
+                    new PackageIsSigned());
             }
 
             // Call the "verify" API, which does the main logic of signature validation.
@@ -115,12 +116,15 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
                 cancellationToken);
             if (!verifyResult.Valid)
             {
-                var errors = verifyResult
+                var errorIssues = verifyResult
                     .Results
                     .SelectMany(x => x.GetErrorIssues())
+                    .ToList();
+
+                var errorsForLogs = errorIssues
                     .Select(x => $"{x.Code}: {x.Message}")
                     .ToList();
-                var warnings = verifyResult
+                var warningsForLogs = verifyResult
                     .Results
                     .SelectMany(x => x.GetWarningIssues())
                     .Select(x => $"{x.Code}: {x.Message}")
@@ -131,11 +135,15 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
                     message.PackageId,
                     message.PackageVersion,
                     message.ValidationId,
-                    errors,
-                    warnings);
+                    errorsForLogs,
+                    warningsForLogs);
 
-                await RejectAsync(validation, message);
-                return;
+                return await RejectAsync(
+                    packageKey,
+                    message,
+                    errorIssues
+                        .Select(x => new ClientSigningVerificationFailure(x.Code.ToString(), x.Message))
+                        .ToArray());
             }
             
             _logger.LogInformation(
@@ -149,7 +157,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
             await _signaturePartsExtractor.ExtractAsync(signedPackageReader, cancellationToken);
 
             // Mark this package as signed.
-            await AcceptAsync(validation, message, PackageSigningStatus.Valid);
+            return await AcceptAsync(packageKey, message, PackageSigningStatus.Valid);
         }
 
         private HashSet<string> GetThumbprints(IEnumerable<Signature> signatures)
@@ -158,26 +166,32 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
                 .Select(x => x.SignerInfo.Certificate.ComputeSHA256Thumbprint()));
         }
 
-        private async Task RejectAsync(ValidatorStatus validation, SignatureValidationMessage message)
+        private async Task<SignatureValidatorResult> RejectAsync(
+            int packageKey,
+            SignatureValidationMessage message,
+            params IValidationIssue[] issues)
         {
             await _packageSigningStateService.SetPackageSigningState(
-                validation.PackageKey,
+                packageKey,
                 message.PackageId,
                 message.PackageVersion,
                 status: PackageSigningStatus.Invalid);
 
-            validation.State = ValidationStatus.Failed;
+            return new SignatureValidatorResult(ValidationStatus.Failed, issues);
         }
 
-        private async Task AcceptAsync(ValidatorStatus validation, SignatureValidationMessage message, PackageSigningStatus status)
+        private async Task<SignatureValidatorResult> AcceptAsync(
+            int packageKey,
+            SignatureValidationMessage message,
+            PackageSigningStatus status)
         {
             await _packageSigningStateService.SetPackageSigningState(
-                validation.PackageKey,
+                packageKey,
                 message.PackageId,
                 message.PackageVersion,
                 status);
 
-            validation.State = ValidationStatus.Succeeded;
+            return new SignatureValidatorResult(ValidationStatus.Succeeded);
         }
     }
 }

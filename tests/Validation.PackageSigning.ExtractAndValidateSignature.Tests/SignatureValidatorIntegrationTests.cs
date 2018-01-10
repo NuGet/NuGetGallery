@@ -29,8 +29,8 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
         private readonly Mock<IEntityRepository<Certificate>> _certificates;
         private readonly IPackageSignatureVerifier _packageSignatureVerifier;
         private readonly ILogger<SignatureValidator> _logger;
+        private readonly int _packageKey;
         private PackageArchiveReader _package;
-        private readonly ValidatorStatus _validation;
         private readonly SignatureValidationMessage _message;
         private readonly CancellationToken _token;
         private readonly SignatureValidator _target;
@@ -53,16 +53,12 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
             _logger = loggerFactory.CreateLogger<SignatureValidator>();
 
             // Initialize data.
-            _validation = new ValidatorStatus
-            {
-                PackageKey = 23,
-                ValidationId = new Guid("8eb5affc-2d0e-4315-9b79-5a194d39ebd1"),
-            };
+            _packageKey = 23;
             _message = new SignatureValidationMessage(
                 "SomePackageId",
                 "1.2.3",
                 new Uri("https://example/validation/somepackageid.1.2.3.nupkg"),
-                _validation.ValidationId);
+                new Guid("8eb5affc-2d0e-4315-9b79-5a194d39ebd1"));
             _token = CancellationToken.None;
 
             // Initialize the subject of testing.
@@ -84,14 +80,14 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
             AllowCertificateThumbprint(thumbprint);
 
             // Act
-            await _target.ValidateAsync(
+            var result = await _target.ValidateAsync(
+                _packageKey,
                 _package,
-                _validation,
                 _message,
                 _token);
 
             // Assert
-            VerifyResult(ValidationStatus.Succeeded, PackageSigningStatus.Valid);
+            VerifyPackageSigningStatus(result, ValidationStatus.Succeeded, PackageSigningStatus.Valid);
         }
 
         [Fact]
@@ -119,14 +115,14 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
             }
 
             // Act
-            await _target.ValidateAsync(
+            var result = await _target.ValidateAsync(
+                _packageKey,
                 _package,
-                _validation,
                 _message,
                 _token);
 
             // Assert
-            VerifyResult(ValidationStatus.Failed, PackageSigningStatus.Invalid);
+            VerifyPackageSigningStatus(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
         }
 
         [Fact]
@@ -155,14 +151,14 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
             }
 
             // Act
-            await _target.ValidateAsync(
+            var result = await _target.ValidateAsync(
+                _packageKey,
                 _package,
-                _validation,
                 _message,
                 _token);
 
             // Assert
-            VerifyResult(ValidationStatus.Failed, PackageSigningStatus.Invalid);
+            VerifyPackageSigningStatus(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
         }
 
         private void AllowCertificateThumbprint(string thumbprint)
@@ -172,15 +168,15 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                 .Returns(new[] { new Certificate { Thumbprint = thumbprint } }.AsQueryable());
         }
 
-        private void VerifyResult(ValidationStatus state, PackageSigningStatus status)
+        private void VerifyPackageSigningStatus(SignatureValidatorResult result, ValidationStatus validationStatus, PackageSigningStatus packageSigningStatus)
         {
-            Assert.Equal(state, _validation.State);
+            Assert.Equal(validationStatus, result.State);
             _packageSigningStateService.Verify(
                 x => x.SetPackageSigningState(
-                    _validation.PackageKey,
+                    _packageKey,
                     _message.PackageId,
                     _message.PackageVersion,
-                    status),
+                    packageSigningStatus),
                 Times.Once);
         }
 

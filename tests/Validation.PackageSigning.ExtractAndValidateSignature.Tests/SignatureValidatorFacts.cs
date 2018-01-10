@@ -14,6 +14,7 @@ using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
 using NuGet.Packaging.Signing;
 using NuGet.Services.Validation;
+using NuGet.Services.Validation.Issues;
 using NuGetGallery;
 using Xunit;
 
@@ -24,7 +25,7 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
         public class ValidateAsync
         {
             private readonly Mock<ISignedPackageReader> _packageMock;
-            private readonly ValidatorStatus _validation;
+            private readonly int _packageKey;
             private readonly SignatureValidationMessage _message;
             private readonly CancellationToken _cancellationToken;
             private readonly Mock<IPackageSigningStateService> _packageSigningStateService;
@@ -42,11 +43,7 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                     .Setup(x => x.IsSignedAsync(It.IsAny<CancellationToken>()))
                     .ReturnsAsync(false);
 
-                _validation = new ValidatorStatus
-                {
-                    PackageKey = 42,
-                    State = ValidationStatus.NotStarted,
-                };
+                _packageKey = 42;
                 _message = new SignatureValidationMessage(
                     "NuGet.Versioning",
                     "4.3.0",
@@ -78,12 +75,12 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                     _logger.Object);
             }
 
-            private void Validate(ValidationStatus validationStatus, PackageSigningStatus packageSigningStatus)
+            private void Validate(SignatureValidatorResult result, ValidationStatus validationStatus, PackageSigningStatus packageSigningStatus)
             {
-                Assert.Equal(validationStatus, _validation.State);
+                Assert.Equal(validationStatus, result.State);
                 _packageSigningStateService.Verify(
                     x => x.SetPackageSigningState(
-                        _validation.PackageKey,
+                        _packageKey,
                         _message.PackageId,
                         _message.PackageVersion,
                         packageSigningStatus),
@@ -120,14 +117,14 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                     TestResources.Leaf1Thumbprint);
 
                 // Act
-                await _target.ValidateAsync(
+                var result = await _target.ValidateAsync(
+                    _packageKey,
                     _packageMock.Object,
-                    _validation,
                     _message,
                     _cancellationToken);
 
                 // Assert
-                Validate(ValidationStatus.Succeeded, PackageSigningStatus.Valid);
+                Validate(result, ValidationStatus.Succeeded, PackageSigningStatus.Valid);
             }
 
             [Fact]
@@ -141,37 +138,23 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                 _verifyResult = new VerifySignaturesResult(valid: false);
 
                 // Act
-                await _target.ValidateAsync(
+                var result = await _target.ValidateAsync(
+                    _packageKey,
                     _packageMock.Object,
-                    _validation,
                     _message,
                     _cancellationToken);
 
                 // Assert
-                Validate(ValidationStatus.Failed, PackageSigningStatus.Invalid);
+                Validate(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
             }
 
             [Fact]
-            public async Task LogsVerificationErrorsAndWarnings()
+            public async Task RejectsPackagesWithVerificationErrors()
             {
                 // Arrange
                 await ConfigureKnownSignedPackage(
                     TestResources.SignedPackageLeaf1Reader,
                     TestResources.Leaf1Thumbprint);
-
-                var messages = new List<string>();
-                _logger
-                    .Setup(x => x.Log(
-                        It.IsAny<Microsoft.Extensions.Logging.LogLevel>(),
-                        It.IsAny<EventId>(),
-                        It.IsAny<object>(),
-                        It.IsAny<Exception>(),
-                        It.IsAny<Func<object, Exception, string>>()))
-                    .Callback<Microsoft.Extensions.Logging.LogLevel, EventId, object, Exception, Func<object, Exception, string>>(
-                        (ll, eid, state, ex, formatter) =>
-                        {
-                            messages.Add(formatter(state, ex));
-                        });
 
                 _verifyResult = new VerifySignaturesResult(
                     valid: false,
@@ -189,24 +172,29 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                                     fatal: false,
                                     code: NuGetLogCode.NU3016,
                                     message: "The package hash uses an unsupported hash algorithm."),
+                                SignatureLog.Issue(
+                                    fatal: true,
+                                    code: NuGetLogCode.NU3000,
+                                    message: "Some other thing happened."),
                             })
                     });
 
                 // Act
-                await _target.ValidateAsync(
+                var result = await _target.ValidateAsync(
+                    _packageKey,
                     _packageMock.Object,
-                    _validation,
                     _message,
                     _cancellationToken);
 
                 // Assert
-                Validate(ValidationStatus.Failed, PackageSigningStatus.Invalid);
-                var message = Assert.Single(messages);
-                Assert.Equal(
-                    $"Signed package {_message.PackageId} {_message.PackageVersion} is blocked for validation " +
-                    $"{_message.ValidationId} due to verify failures. Errors: NU3008: The package integrity check " +
-                    $"failed. Warnings: NU3016: The package hash uses an unsupported hash algorithm.",
-                    message);
+                Validate(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
+                Assert.Equal(2, result.Issues.Count);
+                var issue1 = Assert.IsType<ClientSigningVerificationFailure>(result.Issues[0]);
+                Assert.Equal("NU3008", issue1.ClientCode);
+                Assert.Equal("The package integrity check failed.", issue1.ClientMessage);
+                var issue2 = Assert.IsType<ClientSigningVerificationFailure>(result.Issues[1]);
+                Assert.Equal("NU3000", issue2.ClientCode);
+                Assert.Equal("Some other thing happened.", issue2.ClientMessage);
             }
 
             [Fact]
@@ -226,14 +214,16 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                     .Returns(new[] { new Certificate { Thumbprint = TestResources.Leaf2Thumbprint } }.AsQueryable());
 
                 // Act
-                await _target.ValidateAsync(
+                var result = await _target.ValidateAsync(
+                    _packageKey,
                     _packageMock.Object,
-                    _validation,
                     _message,
                     _cancellationToken);
 
                 // Assert
-                Validate(ValidationStatus.Failed, PackageSigningStatus.Invalid);
+                Validate(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
+                var issue = Assert.Single(result.Issues);
+                Assert.IsType<PackageIsSigned>(issue);
             }
 
             [Fact]
@@ -248,14 +238,15 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                     .ReturnsAsync(new List<Signature>());
 
                 // Act
-                await _target.ValidateAsync(
+                var result = await _target.ValidateAsync(
+                    _packageKey,
                     _packageMock.Object,
-                    _validation,
                     _message,
                     _cancellationToken);
 
                 // Assert
-                Validate(ValidationStatus.Failed, PackageSigningStatus.Invalid);
+                Validate(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
+                Assert.Empty(result.Issues);
             }
 
             [Fact]
@@ -279,14 +270,15 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                         .AsQueryable());
 
                 // Act
-                await _target.ValidateAsync(
+                var result = await _target.ValidateAsync(
+                    _packageKey,
                     _packageMock.Object,
-                    _validation,
                     _message,
                     _cancellationToken);
 
                 // Assert
-                Validate(ValidationStatus.Failed, PackageSigningStatus.Invalid);
+                Validate(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
+                Assert.Empty(result.Issues);
             }
 
             [Fact]
@@ -298,14 +290,15 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                     .ReturnsAsync(false);
 
                 // Act
-                await _target.ValidateAsync(
+                var result = await _target.ValidateAsync(
+                    _packageKey,
                     _packageMock.Object,
-                    _validation,
                     _message,
                     _cancellationToken);
 
                 // Assert
-                Validate(ValidationStatus.Succeeded, PackageSigningStatus.Unsigned);
+                Validate(result, ValidationStatus.Succeeded, PackageSigningStatus.Unsigned);
+                Assert.Empty(result.Issues);
             }
 
             private async Task ConfigureKnownSignedPackage(ISignedPackageReader package, string thumbprint)

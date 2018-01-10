@@ -5,15 +5,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Packaging.Signing;
-using NuGet.Services.Validation;
 
 namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
 {
     public interface ISignatureValidator
     {
-        Task ValidateAsync(
+        Task<SignatureValidatorResult> ValidateAsync(
+            int packageKey,
             ISignedPackageReader signedPackageReader,
-            ValidatorStatus validation,
             SignatureValidationMessage message,
             CancellationToken cancellationToken);
     }

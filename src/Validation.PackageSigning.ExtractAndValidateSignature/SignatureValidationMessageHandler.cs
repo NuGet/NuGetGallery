@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Data.Entity.Infrastructure;
 using System.Diagnostics;
 using System.IO;
@@ -112,7 +113,28 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
             using (var packageStream = await DownloadPackageAsync(message.NupkgUri, cancellationToken))
             using (var package = new PackageArchiveReader(packageStream, leaveStreamOpen: false))
             {
-                await _signatureValidator.ValidateAsync(package, validation, message, cancellationToken);
+                var result = await _signatureValidator.ValidateAsync(
+                    validation.PackageKey,
+                    package,
+                    message,
+                    cancellationToken);
+
+                validation.State = result.State;
+
+                // Save any issues if the resulting state is terminal.
+                if (validation.State == ValidationStatus.Failed
+                    || validation.State == ValidationStatus.Succeeded)
+                {
+                    validation.ValidatorIssues = validation.ValidatorIssues ?? new List<ValidatorIssue>();
+                    foreach (var issue in result.Issues)
+                    {
+                        validation.ValidatorIssues.Add(new ValidatorIssue
+                        {
+                            IssueCode = issue.IssueCode,
+                            Data = issue.Serialize(),
+                        });
+                    }
+                }
             }
 
             // The signature validator should do all of the work to bring this validation to its completion.

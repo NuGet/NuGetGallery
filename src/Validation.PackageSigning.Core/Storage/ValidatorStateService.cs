@@ -4,7 +4,6 @@
 using System;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -41,10 +40,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.Storage
 
         public async Task<ValidatorStatus> GetStatusAsync(IValidationRequest request)
         {
-            var status = await _validationContext
-                                    .ValidatorStatuses
-                                    .Where(s => s.ValidationId == request.ValidationId)
-                                    .FirstOrDefaultAsync();
+            var status = await GetStatusAsync(request.ValidationId);
 
             if (status == null)
             {
@@ -76,6 +72,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.Storage
         {
             return _validationContext
                 .ValidatorStatuses
+                .Include(x => x.ValidatorIssues)
                 .Where(s => s.ValidationId == validationId)
                 .FirstOrDefaultAsync();
         }
@@ -88,11 +85,11 @@ namespace NuGet.Jobs.Validation.PackageSigning.Storage
         public Task<bool> IsRevalidationRequestAsync(int packageKey, Guid validationId)
         {
             return _validationContext
-                        .ValidatorStatuses
-                        .Where(s => s.PackageKey == packageKey)
-                        .Where(s => s.ValidatorName == _validatorName)
-                        .Where(s => s.ValidationId != validationId)
-                        .AnyAsync();
+                .ValidatorStatuses
+                .Where(s => s.PackageKey == packageKey)
+                .Where(s => s.ValidatorName == _validatorName)
+                .Where(s => s.ValidationId != validationId)
+                .AnyAsync();
         }
 
         public async Task<AddStatusResult> AddStatusAsync(ValidatorStatus status)
