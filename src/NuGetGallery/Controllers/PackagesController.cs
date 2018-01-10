@@ -1238,14 +1238,14 @@ namespace NuGetGallery
             if (formData.Edit != null)
             {
                 // Update readme.md file, if modified.
-                var hasReadMe = await _readMeService.SaveReadMeMdIfChanged(package, formData.Edit, Request.ContentEncoding);
-                if (hasReadMe)
+                var readmeChanged = await _readMeService.SaveReadMeMdIfChanged(package, formData.Edit, Request.ContentEncoding);
+                if (readmeChanged)
                 {
                     _telemetryService.TrackPackageReadMeChangeEvent(package, formData.Edit.ReadMe.SourceType, formData.Edit.ReadMeState);
-                }
 
-                // Add an auditing record for the package edit.
-                await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(package, AuditedPackageAction.Edit));
+                    // Add an auditing record for the package edit.
+                    await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(package, AuditedPackageAction.Edit));
+                }
             }
 
             return Json(new
