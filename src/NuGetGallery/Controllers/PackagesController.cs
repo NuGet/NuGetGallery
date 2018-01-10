@@ -1245,7 +1245,6 @@ namespace NuGetGallery
                 }
 
                 // Add an auditing record for the package edit.
-                package.HasReadMe = hasReadMe;
                 await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(package, AuditedPackageAction.Edit));
             }
 

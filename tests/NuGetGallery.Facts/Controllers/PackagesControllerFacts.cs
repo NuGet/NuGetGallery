@@ -127,7 +127,7 @@ namespace NuGetGallery
                 securityPolicyService.Object,
                 reservedNamespaceService.Object,
                 packageUploadService.Object,
-                new ReadMeService(packageFileService.Object),
+                new ReadMeService(packageFileService.Object, entitiesContext.Object),
                 validationService.Object,
                 packageOwnershipManagementService.Object);
 

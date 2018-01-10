@@ -29,12 +29,15 @@ namespace NuGetGallery
         private const string UrlHostRequirement = "raw.githubusercontent.com";
 
         private static readonly TimeSpan UrlTimeout = TimeSpan.FromSeconds(10);
-
-        private IPackageFileService _packageFileService;
+        private readonly IEntitiesContext _entitiesContext;
+        private readonly IPackageFileService _packageFileService;
         
-        public ReadMeService(IPackageFileService packageFileService)
+        public ReadMeService(
+            IPackageFileService packageFileService,
+            IEntitiesContext entitiesContext)
         {
-            _packageFileService = packageFileService;
+            _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
+            _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
         }
 
         /// <summary>
@@ -109,7 +112,7 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="package">Package entity associated with the ReadMe.</param>
         /// <param name="edit">Package version edit readme request.</param>
-        /// <returns>True if the package has a non-empty readme, false otherwise.</returns>
+        /// <returns>True if the package readme changed, otherwise false.</returns>
         public async Task<bool> SaveReadMeMdIfChanged(Package package, EditPackageVersionReadMeRequest edit, Encoding encoding)
         {
             var activeReadMe = package.HasReadMe ?
@@ -125,18 +128,26 @@ namespace NuGetGallery
             {
                 await _packageFileService.SaveReadMeMdFileAsync(package, newReadMe);
                 edit.ReadMeState = PackageEditReadMeState.Changed;
+
+                // Save entity to db.
+                package.HasReadMe = true;
+                await _entitiesContext.SaveChangesAsync();
             }
             else if (!hasReadMe && !string.IsNullOrEmpty(activeReadMe))
             {
                 await _packageFileService.DeleteReadMeMdFileAsync(package);
                 edit.ReadMeState = PackageEditReadMeState.Deleted;
+                
+                // Save entity to db.
+                package.HasReadMe = false;
+                await _entitiesContext.SaveChangesAsync();
             }
             else
             {
                 edit.ReadMeState = PackageEditReadMeState.Unchanged;
             }
 
-            return hasReadMe;
+            return edit.ReadMeState != PackageEditReadMeState.Unchanged;
         }
 
         /// <summary>

@@ -41,7 +41,7 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="package">Package entity associated with the ReadMe.</param>
         /// <param name="edit">Package version edit readme request.</param>
-        /// <returns>True if the package has a non-empty readme, false otherwise.</returns>
+        /// <returns>True if the package readme changed, otherwise false.</returns>
         Task<bool> SaveReadMeMdIfChanged(Package package, EditPackageVersionReadMeRequest edit, Encoding encoding);
     }
 }
