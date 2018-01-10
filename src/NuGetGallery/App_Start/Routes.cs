@@ -305,7 +305,8 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.TransformToOrganizationConfirmation,
                 "account/transform/confirm/{accountNameToTransform}/{token}",
-                new { controller = "Users", action = "ConfirmTransform" });
+                new { controller = "Users", action = "ConfirmTransform" },
+                new RouteExtensions.ObfuscatedMetadata(3, Obfuscator.DefaultTelemetryUserName));
 
             routes.MapRoute(
                 RouteName.ApiKeys,

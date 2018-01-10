@@ -76,7 +76,7 @@ namespace NuGetGallery.Telemetry
             foreach (var route in piiUrlRoutes)
             {
                 var expectedTrue = RouteExtensions.ObfuscatedRouteMap.ContainsKey(route);
-                Assert.True(expectedTrue, $"Route was not added to the obfuscated routeMap.");
+                Assert.True(expectedTrue, $"Route {route} was not added to the obfuscated routeMap.");
             }
         }
 
