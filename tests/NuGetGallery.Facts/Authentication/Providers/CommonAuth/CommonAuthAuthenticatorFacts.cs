@@ -9,7 +9,7 @@ namespace NuGetGallery.Authentication.Providers.CommonAuth
 {
     public class CommonAuthAuthenticatorFacts
     {
-        public class GetUI
+        public class TheGetUIMethod
         {
             [Fact]
             public void GetUIReturnsCorrectValues()
@@ -28,7 +28,7 @@ namespace NuGetGallery.Authentication.Providers.CommonAuth
             }
         }
 
-        public class IsAuthorityForIdentity
+        public class TheIsAuthorityForIdentityMethod
         {
 
             [Fact]
@@ -86,7 +86,7 @@ namespace NuGetGallery.Authentication.Providers.CommonAuth
             }
         }
 
-        public class GetAuthInformaiton
+        public class TheGetAuthInformaitonMethod
         {
             [Fact]
             public void ThrowsForMissingIssuerClaim()

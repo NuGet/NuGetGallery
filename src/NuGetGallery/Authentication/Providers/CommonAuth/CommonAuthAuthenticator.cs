@@ -117,7 +117,7 @@ namespace NuGetGallery.Authentication.Providers.CommonAuth
 
                 // The MSA v2 authentication identifier is returned as 32 character alphanumeric value(padded with 0 and -), 
                 // where as the existing Microsoft account identifiers are 16 character wide.
-                // For e.g old format: 0ae45d63e22e4a60, newer format: 000000-0000-0000-000A-E45D-63E2-2E4A60
+                // For e.g old format: 0ae45d63e22e4a60, newer format: 00000000-0000-0000-0AE4-5D63-E22E4A60
                 // We need to format the values into the older format for backwards compatibility
                 identifier = idClaim.Value.Replace("-", "").Substring(16).ToLowerInvariant();
             }
