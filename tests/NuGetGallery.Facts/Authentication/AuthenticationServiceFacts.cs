@@ -1715,7 +1715,62 @@ namespace NuGetGallery.Authentication
             }
         }
 
-        public class AuthenticateThunk
+        public class TheAuthenticateExternalLoginMethod: TestContainer
+        {
+            [Fact]
+            public async Task GivenAnIdentityWithCredential_ItAuthenticates()
+            {
+                // Arrange
+                var context = Fakes.CreateOwinContext();
+                var testCredential = new Credential("external.MicrosoftAccount", "blarg");
+                testCredential.Identity = "bloog";
+
+                var actualResult = new AuthenticateExternalLoginResult()
+                {
+                    Credential = testCredential,
+                };
+
+                var mock = GetMock<AuthenticationService>();
+                mock.Setup(a => a.ReadExternalLoginCredential(It.IsAny<IOwinContext>()))
+                    .Returns(Task.FromResult(actualResult))
+                    .Verifiable();
+
+                mock.Setup(a => a.Authenticate(testCredential))
+                    .Returns(Task.FromResult(new AuthenticatedUser(new User(), testCredential)))
+                    .Verifiable();
+
+                // Act
+                var result = await mock.Object.AuthenticateExternalLogin(context);
+
+                // Assert
+                mock.VerifyAll();
+                Assert.NotNull(result.Credential);
+                Assert.Equal(testCredential.Type, result.Credential.Type);
+                Assert.Equal(testCredential.Value, result.Credential.Value);
+                Assert.Equal(testCredential.Identity, result.Credential.Identity);
+            }
+
+            [Fact]
+            public async Task GivenAnIdentityWithNoCredentialItReturnsResult()
+            {
+                // Arrange
+                var context = Fakes.CreateOwinContext();
+                var mock = GetMock<AuthenticationService>();
+
+                mock.Setup(a => a.ReadExternalLoginCredential(It.IsAny<IOwinContext>()))
+                    .Returns(Task.FromResult(new AuthenticateExternalLoginResult()))
+                    .Verifiable();
+
+                // Act
+                var result = await mock.Object.AuthenticateExternalLogin(context);
+
+                // Assert
+                mock.VerifyAll();
+                Assert.Null(result.Credential);
+            }
+        }
+
+        private class AuthenticateThunk
         {
             public IIdentity ShimIdentity { get; set; }
             public string[] InvokedAuthTypes { get; private set; }

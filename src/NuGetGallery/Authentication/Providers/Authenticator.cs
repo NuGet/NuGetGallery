@@ -95,10 +95,15 @@ namespace NuGetGallery.Authentication.Providers
             return new HttpUnauthorizedResult();
         }
 
+        /// <summary>
+        /// Override this method to provide confirmation on identity author.
+        /// </summary>
+        /// <param name="claimsIdentity">The claims identity returned by the identity</param>
+        /// <returns>Returns true if this provider is the author for the identity, false otherwise</returns>
         public virtual bool IsAuthorForIdentity(ClaimsIdentity claimsIdentity)
         {
             // If the issuer of the claims identity is same as that of the authentication type then this is the author.
-            Claim firstClaim = claimsIdentity.Claims.FirstOrDefault();
+            Claim firstClaim = claimsIdentity?.Claims?.FirstOrDefault();
             if (firstClaim == null)
             {
                 return false;
@@ -107,6 +112,12 @@ namespace NuGetGallery.Authentication.Providers
             return string.Equals(firstClaim.Issuer, BaseConfig.AuthenticationType, StringComparison.OrdinalIgnoreCase);
         }
 
+        /// <summary>
+        /// The providers will override this method to extract the user information
+        /// from the returned claims by the identity authentication.
+        /// </summary>
+        /// <param name="claimsIdentity">The claims identity returned by the identity</param>
+        /// <returns><see cref="AuthInformation"/></returns>
         public virtual AuthInformation GetAuthInformation(ClaimsIdentity claimsIdentity)
         {
             return new AuthInformation();

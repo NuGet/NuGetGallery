@@ -31,7 +31,7 @@ namespace NuGetGallery.Authentication.Providers.CommonAuth
                 // the auth flow.
                 opts.AuthenticationMode = AuthenticationMode.Passive;
 
-                // Make sure ClientId is configured
+                // Make sure ClientId and ClientSecret is configured
                 if (String.IsNullOrEmpty(ClientId))
                 {
                     throw new ConfigurationErrorsException(String.Format(
