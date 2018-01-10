@@ -69,13 +69,13 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="nugetPackage">A <see cref="PackageArchiveReader"/> instance from which package metadata can be read.</param>
         /// <param name="packageStreamMetadata">The <see cref="PackageStreamMetadata"/> instance providing metadata about the package stream.</param>
-        /// <param name="user">The <see cref="User"/> creating the package.</param>
+        /// <param name="owner">The <see cref="User"/> creating the package.</param>
         /// <param name="commitChanges"><c>True</c> to commit the changes to the data store and notify the indexing service; otherwise <c>false</c>.</param>
         /// <returns>Returns the created <see cref="Package"/> entity.</returns>
         /// <exception cref="InvalidPackageException">
         /// This exception will be thrown when a package metadata property violates a data validation constraint.
         /// </exception>
-        public async Task<Package> CreatePackageAsync(PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool isVerified)
+        public async Task<Package> CreatePackageAsync(PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User owner, User currentUser, bool isVerified)
         {
             PackageMetadata packageMetadata;
             PackageRegistration packageRegistration;
@@ -88,7 +88,7 @@ namespace NuGetGallery
 
                 ValidatePackageTitle(packageMetadata);
 
-                packageRegistration = CreateOrGetPackageRegistration(user, packageMetadata, isVerified);
+                packageRegistration = CreateOrGetPackageRegistration(owner, currentUser, packageMetadata, isVerified);
             }
             catch (Exception exception) when (exception is EntityException || exception is PackagingException)
             {
@@ -96,7 +96,7 @@ namespace NuGetGallery
                 throw new InvalidPackageException(exception.Message, exception);
             }
 
-            var package = CreatePackageFromNuGetPackage(packageRegistration, nugetPackage, packageMetadata, packageStreamMetadata, user);
+            var package = CreatePackageFromNuGetPackage(packageRegistration, nugetPackage, packageMetadata, packageStreamMetadata, currentUser);
             packageRegistration.Packages.Add(package);
             await UpdateIsLatestAsync(packageRegistration, commitChanges: false);
 
@@ -406,7 +406,7 @@ namespace NuGetGallery
                 await _packageRepository.CommitChangesAsync();
             }
         }
-        
+
         public async Task AddPackageOwnerAsync(PackageRegistration package, User newOwner)
         {
             package.Owners.Add(newOwner);
@@ -485,7 +485,7 @@ namespace NuGetGallery
             }
         }
 
-        private PackageRegistration CreateOrGetPackageRegistration(User currentUser, PackageMetadata packageMetadata, bool isVerified)
+        private PackageRegistration CreateOrGetPackageRegistration(User owner, User currentUser, PackageMetadata packageMetadata, bool isVerified)
         {
             var packageRegistration = FindPackageRegistrationById(packageMetadata.Id);
 
@@ -507,7 +507,7 @@ namespace NuGetGallery
                     IsVerified = isVerified
                 };
 
-                packageRegistration.Owners.Add(currentUser);
+                packageRegistration.Owners.Add(owner);
 
                 _packageRegistrationRepository.InsertOnCommit(packageRegistration);
             }
