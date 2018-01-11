@@ -6,43 +6,22 @@
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
-@helper Section(
-    string id,
-    string title,
-    Func<MvcHtmlString, HelperResult> content,
-    bool expanded = true,
-    string expandedIcon = "ChevronDown",
-    string collapsedIcon = "ChevronRight")
-{
-    <h3>
-        <a href="#" role="button" data-toggle="collapse" data-target="#@id-container"
-           aria-expanded="@(expanded ? "true" : "false")" aria-controls="@id-container" id="show-@id-container">
-            <i class="ms-Icon ms-Icon--@(expanded ? expandedIcon : collapsedIcon)"
-               aria-hidden="@(expanded ? "false" : "true")"></i>
-            <span>@title</span>
-        </a>
-    </h3>
-    <div class="panel-collapse collapse @(expanded ? "in" : string.Empty) col-xs-12" id="@id-container">
-        @content(MvcHtmlString.Empty)
-    </div>
-}
-
 <section role="main" class="container main-container page-manage-packages page-package-details">
     <div class="row">
         <div class="col-xs-12">
-                <h1>My Packages</h1>
-                <div class="col-xs-3 text-right form-group pull-right">
-                    <select id="ownerFilter" class="form-control pull-right hidden"
-                            data-bind="options: Owners, value: OwnerFilter, optionsText: 'Username'"></select>
-                </div>
-            @Section("listed", "Published",
+            <h1>My Packages</h1>
+            <div class="col-xs-3 text-right form-group pull-right">
+                <select id="ownerFilter" class="form-control pull-right hidden"
+                        data-bind="options: Owners, value: OwnerFilter, optionsText: 'Username'"></select>
+            </div>
+            @ViewHelpers.Section(this, "listed", "Published",
                 @<text>
                     <div class="row user-package-list">
                         <div data-bind="template: { name: 'manage-packages', data: ListedPackages }"></div>
                     </div>
                 </text>)
 
-            @Section("unlisted", "Unlisted",
+            @ViewHelpers.Section(this, "unlisted", "Unlisted",
                 @<text>
                     <div class="row user-package-list">
                         <div data-bind="template: { name: 'manage-packages', data: UnlistedPackages }"></div>
@@ -56,12 +35,12 @@
         <div class="row">
             <div class="col-xs-12">
                 <h1>My Reserved Namespaces</h1>
-                @Section(
-                    "namespaces",
-                    "Namespaces",
-                    @<text>
-                        @Html.Partial("_ReservedNamespacesList", Model.ReservedNamespaces)
-                    </text>)
+                @ViewHelpers.Section(this,
+                         "namespaces",
+                         "Namespaces",
+                        @<text>
+                            @Html.Partial("_ReservedNamespacesList", Model.ReservedNamespaces)
+                        </text>)
             </div>
         </div>
     }
@@ -73,23 +52,22 @@
                 <h1>My Pending Ownership Requests</h1>
                 @if (Model.OwnerRequests.Incoming.RequestItems.Any())
                 {
-                    @Section(
-                        "requests-incoming",
-                        "Incoming",
-                        @<text>
-                            @Html.Partial("_OwnerRequestsList", Model.OwnerRequests.Incoming)
-                        </text>)
+                    @ViewHelpers.Section(this,
+                             "requests-incoming",
+                             "Incoming",
+                            @<text>
+                                @Html.Partial("_OwnerRequestsList", Model.OwnerRequests.Incoming)
+                            </text>)
                 }
 
                 @if (Model.OwnerRequests.Outgoing.RequestItems.Any())
                 {
-
-                    @Section(
-                        "requests-outgoing",
-                        "Outgoing",
-                        @<text>
-                            @Html.Partial("_OwnerRequestsList", Model.OwnerRequests.Outgoing)
-                        </text>)
+                    @ViewHelpers.Section(this,
+                             "requests-outgoing",
+                             "Outgoing",
+                            @<text>
+                                @Html.Partial("_OwnerRequestsList", Model.OwnerRequests.Outgoing)
+                            </text>)
                 }
             </div>
         </div>
@@ -127,7 +105,7 @@
                     <tr class="manage-package-listing" data-bind="visible: Visible">
                         <td class="align-middle hidden-xs">
                             <img class="package-icon img-responsive" aria-hidden="true" alt=""
-                                    data-bind="attr: { src: PackageIconUrl, onerror: PackageIconUrlFallback }" />
+                                 data-bind="attr: { src: PackageIconUrl, onerror: PackageIconUrlFallback }" />
                         </td>
                         <td class="align-middle package-id">
                             <a title="View Package" data-bind="attr: { href: PackageUrl }">
@@ -234,5 +212,6 @@
                          PackageIconUrlFallback = Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")
                      }));
     </script>
+    @ViewHelpers.SectionsScript(this)
     @Scripts.Render("~/Scripts/gallery/page-manage-packages.min.js")
 }
