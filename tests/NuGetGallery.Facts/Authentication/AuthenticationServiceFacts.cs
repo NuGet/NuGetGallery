@@ -540,26 +540,6 @@ namespace NuGetGallery.Authentication
                 Assert.True(cred.LastUsed == referenceTime);
                 Assert.True(cred.LastUsed.HasValue);
             }
-
-            [Fact]
-            public async Task GivenMatchingExternalCredential_ItCopiesTenantId()
-            {
-                // Arrange
-                var cred = _fakes.User.Credentials.Single(c => c.Type.Contains(CredentialTypes.ExternalPrefix));
-
-                var referenceTime = DateTime.UtcNow;
-                _dateTimeProviderMock.SetupGet(x => x.UtcNow).Returns(referenceTime);
-
-                Assert.False(cred.LastUsed.HasValue);
-
-                // Act
-                // Create a new credential to verify that it's a value-based lookup!
-                var result = await _authenticationService.Authenticate(TestCredentialHelper.CreateExternalCredential(cred.Value, tenantId: "fake-tenant-id"));
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.False(string.IsNullOrEmpty(result.CredentialUsed.TenantId));
-            }
         }
 
         public class TheCreateSessionAsyncMethod : TestContainer
@@ -1662,7 +1642,7 @@ namespace NuGetGallery.Authentication
                 var result = await authService.ReadExternalLoginCredential(context);
 
                 // Assert
-                Assert.Same(authThunk.ShimIdentity, result.ExternalIdentity);
+                Assert.Null(result.ExternalIdentity);
                 Assert.Null(result.Authenticator);
             }
 
@@ -1712,6 +1692,61 @@ namespace NuGetGallery.Authentication
                 Assert.Equal("external.MicrosoftAccount", result.Credential.Type);
                 Assert.Equal("blarg", result.Credential.Value);
                 Assert.Equal("bloog", result.Credential.Identity);
+            }
+        }
+
+        public class TheAuthenticateExternalLoginMethod: TestContainer
+        {
+            [Fact]
+            public async Task GivenAnIdentityWithCredential_ItAuthenticates()
+            {
+                // Arrange
+                var context = Fakes.CreateOwinContext();
+                var testCredential = new Credential("external.MicrosoftAccount", "blarg");
+                testCredential.Identity = "bloog";
+
+                var actualResult = new AuthenticateExternalLoginResult()
+                {
+                    Credential = testCredential,
+                };
+
+                var mock = GetMock<AuthenticationService>();
+                mock.Setup(a => a.ReadExternalLoginCredential(It.IsAny<IOwinContext>()))
+                    .Returns(Task.FromResult(actualResult))
+                    .Verifiable();
+
+                mock.Setup(a => a.Authenticate(testCredential))
+                    .Returns(Task.FromResult(new AuthenticatedUser(new User(), testCredential)))
+                    .Verifiable();
+
+                // Act
+                var result = await mock.Object.AuthenticateExternalLogin(context);
+
+                // Assert
+                mock.VerifyAll();
+                Assert.NotNull(result.Credential);
+                Assert.Equal(testCredential.Type, result.Credential.Type);
+                Assert.Equal(testCredential.Value, result.Credential.Value);
+                Assert.Equal(testCredential.Identity, result.Credential.Identity);
+            }
+
+            [Fact]
+            public async Task GivenAnIdentityWithNoCredentialItReturnsResult()
+            {
+                // Arrange
+                var context = Fakes.CreateOwinContext();
+                var mock = GetMock<AuthenticationService>();
+
+                mock.Setup(a => a.ReadExternalLoginCredential(It.IsAny<IOwinContext>()))
+                    .Returns(Task.FromResult(new AuthenticateExternalLoginResult()))
+                    .Verifiable();
+
+                // Act
+                var result = await mock.Object.AuthenticateExternalLogin(context);
+
+                // Assert
+                mock.VerifyAll();
+                Assert.Null(result.Credential);
             }
         }
 

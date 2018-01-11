@@ -2,10 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin.Security.OpenIdConnect;
+using NuGetGallery.Authentication.Providers.Utils;
 using NuGetGallery.Configuration;
 using Owin;
 
@@ -66,15 +68,9 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectory
             return new ChallengeResult(BaseConfig.AuthenticationType, redirectUrl);
         }
 
-        public override bool TryMapIssuerToAuthenticationType(string issuer, out string authenticationType)
+        public override IdentityInformation GetIdentityInformation(ClaimsIdentity claimsIdentity)
         {
-            if (string.Equals(issuer, Config.Issuer, StringComparison.OrdinalIgnoreCase))
-            {
-                authenticationType = Config.AuthenticationType;
-                return true;
-            }
-
-            return base.TryMapIssuerToAuthenticationType(issuer, out authenticationType);
+            return ClaimsExtentions.GetIdentityInformation(claimsIdentity, DefaultAuthenticationType);
         }
     }
 }

@@ -732,8 +732,12 @@
     <Compile Include="Authentication\NuGetScopes.cs" />
     <Compile Include="Authentication\PasswordResetResult.cs" />
     <Compile Include="Authentication\Providers\AuthenticatorT.cs" />
+    <Compile Include="Authentication\Providers\IdentityInformation.cs" />
+    <Compile Include="Authentication\Providers\AzureActiveDirectoryV2\AzureActiveDirectoryV2Authenticator.cs" />
+    <Compile Include="Authentication\Providers\AzureActiveDirectoryV2\AzureActiveDirectoryV2AuthenticatorConfiguration.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticator.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticatorConfiguration.cs" />
+    <Compile Include="Authentication\Providers\Utils\ClaimsExtentions.cs" />
     <Compile Include="Configuration\IGalleryConfigurationService.cs" />
     <Compile Include="Configuration\IPackageDeleteConfiguration.cs" />
     <Compile Include="Configuration\IServiceBusConfiguration.cs" />
