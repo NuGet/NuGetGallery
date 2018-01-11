@@ -7,15 +7,19 @@ namespace NuGetGallery.Auditing
 {
     public class PackageAuditRecord : AuditRecord<AuditedPackageAction>
     {
-        public string Id { get; }
-        public string Version { get; }
-        public string Hash { get; }
+        public string Id { get; set; }
+        public string Version { get; set; }
+        public string Hash { get; set; }
 
-        public AuditedPackage PackageRecord { get; }
-        public AuditedPackageRegistration RegistrationRecord { get; }
+        public AuditedPackage PackageRecord { get; set; }
+        public AuditedPackageRegistration RegistrationRecord { get; set; }
 
-        public string Reason { get; }
+        public string Reason { get; set; }
 
+        public PackageAuditRecord()
+        {
+
+        }
         public PackageAuditRecord(
             string id, string version, string hash,
             AuditedPackage packageRecord, AuditedPackageRegistration registrationRecord,

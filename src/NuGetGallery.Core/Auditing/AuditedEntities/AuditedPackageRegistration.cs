@@ -5,10 +5,10 @@ namespace NuGetGallery.Auditing.AuditedEntities
 {
     public class AuditedPackageRegistration
     {
-        public string Id { get; private set; }
-        public int DownloadCount { get; private set; }
-        public int Key { get; private set; }
-        public bool IsVerified { get; private set; }
+        public string Id { get;  set; }
+        public int DownloadCount { get;  set; }
+        public int Key { get;  set; }
+        public bool IsVerified { get;  set; }
 
         public static AuditedPackageRegistration CreateFrom(PackageRegistration packageRegistration)
         {

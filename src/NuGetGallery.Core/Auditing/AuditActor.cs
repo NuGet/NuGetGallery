@@ -34,6 +34,11 @@ namespace NuGetGallery.Auditing
 
         public AuditActor OnBehalfOf { get; set; }
 
+        public AuditActor()
+        {
+
+        }
+
         public AuditActor(string machineName, string machineIP, string userName, string authenticationType, string credentialKey, DateTime timeStampUtc)
             : this(machineName, machineIP, userName, authenticationType, credentialKey, timeStampUtc, null) { }
 

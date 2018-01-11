@@ -8,46 +8,46 @@ namespace NuGetGallery.Auditing.AuditedEntities
 {
     public class AuditedPackage
     {
-        public int PackageRegistrationKey { get; private set; }
-        public string Copyright { get; private set; }
-        public DateTime Created { get; private set; }
-        public string Description { get; private set; }
-        public string ReleaseNotes { get; private set; }
-        public int DownloadCount { get; private set; }
-        public string ExternalPackageUrl { get; private set; }
-        public string HashAlgorithm { get; private set; }
-        public string Hash { get; private set; }
-        public string IconUrl { get; private set; }
-        public bool IsLatest { get; private set; }
-        public bool IsLatestStable { get; private set; }
-        public DateTime LastUpdated { get; private set; }
-        public DateTime? LastEdited { get; private set; }
-        public string LicenseUrl { get; private set; }
-        public bool HideLicenseReport { get; private set; }
-        public string Language { get; private set; }
-        public DateTime Published { get; private set; }
-        public long PackageFileSize { get; private set; }
-        public string ProjectUrl { get; private set; }
-        public bool RequiresLicenseAcceptance { get; private set; }
-        public string Summary { get; private set; }
-        public string Tags { get; private set; }
-        public string Title { get; private set; }
-        public string Version { get; private set; }
-        public string NormalizedVersion { get; private set; }
-        public string LicenseNames { get; private set; }
-        public string LicenseReportUrl { get; private set; }
-        public bool Listed { get; private set; }
-        public bool IsPrerelease { get; private set; }
+        public int PackageRegistrationKey { get; set; }
+        public string Copyright { get; set; }
+        public DateTime Created { get; set; }
+        public string Description { get; set; }
+        public string ReleaseNotes { get; set; }
+        public int DownloadCount { get; set; }
+        public string ExternalPackageUrl { get; set; }
+        public string HashAlgorithm { get; set; }
+        public string Hash { get; set; }
+        public string IconUrl { get; set; }
+        public bool IsLatest { get; set; }
+        public bool IsLatestStable { get; set; }
+        public DateTime LastUpdated { get; set; }
+        public DateTime? LastEdited { get; set; }
+        public string LicenseUrl { get; set; }
+        public bool HideLicenseReport { get; set; }
+        public string Language { get; set; }
+        public DateTime Published { get; set; }
+        public long PackageFileSize { get; set; }
+        public string ProjectUrl { get; set; }
+        public bool RequiresLicenseAcceptance { get; set; }
+        public string Summary { get; set; }
+        public string Tags { get; set; }
+        public string Title { get; set; }
+        public string Version { get; set; }
+        public string NormalizedVersion { get; set; }
+        public string LicenseNames { get; set; }
+        public string LicenseReportUrl { get; set; }
+        public bool Listed { get; set; }
+        public bool IsPrerelease { get; set; }
         [Obfuscate(ObfuscationType.Authors)]
-        public string FlattenedAuthors { get; private set; }
-        public string FlattenedDependencies { get; private set; }
-        public int Key { get; private set; }
-        public string MinClientVersion { get; private set; }
+        public string FlattenedAuthors { get; set; }
+        public string FlattenedDependencies { get; set; }
+        public int Key { get; set; }
+        public string MinClientVersion { get; set; }
         [Obfuscate(ObfuscationType.UserKey)]
-        public int? UserKey { get; private set; }
-        public bool Deleted { get; private set; }
-        public bool HasReadMe { get; private set; }
-        public int PackageStatusKey { get; private set; }
+        public int? UserKey { get; set; }
+        public bool Deleted { get; set; }
+        public bool HasReadMe { get; set; }
+        public int PackageStatusKey { get; set; }
 
         public static AuditedPackage CreateFrom(Package package)
         {

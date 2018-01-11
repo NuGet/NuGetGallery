@@ -37,6 +37,11 @@ namespace NuGetGallery.Auditing
             Action = action;
         }
 
+        public AuditRecord()
+        {
+
+        }
+
         public T Action { get; set; }
 
         public override string GetAction()
