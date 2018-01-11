@@ -68,9 +68,9 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectory
             return new ChallengeResult(BaseConfig.AuthenticationType, redirectUrl);
         }
 
-        public override AuthInformation GetAuthInformation(ClaimsIdentity claimsIdentity)
+        public override IdentityInformation GetIdentityInformation(ClaimsIdentity claimsIdentity)
         {
-            return MSAIdentityExtractor.GetAuthInformation(claimsIdentity, DefaultAuthenticationType);
+            return ClaimsExtentions.GetIdentityInformation(claimsIdentity, DefaultAuthenticationType);
         }
     }
 }

@@ -59,7 +59,7 @@ namespace NuGetGallery.Controllers
                 Assert.NotNull(model.SignIn);
                 Assert.NotNull(model.Register);
                 Assert.Equal(3, model.Providers.Count);
-                Assert.Equal("CommonAuth", model.Providers[0].ProviderName);
+                Assert.Equal("AzureActiveDirectoryV2", model.Providers[0].ProviderName);
                 Assert.Equal("AzureActiveDirectory", model.Providers[1].ProviderName);
                 Assert.Equal("MicrosoftAccount", model.Providers[2].ProviderName);
             }

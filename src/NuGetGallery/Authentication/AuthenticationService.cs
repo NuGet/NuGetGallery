@@ -12,7 +12,7 @@ using System.Web.Mvc;
 using Microsoft.Owin;
 using NuGetGallery.Auditing;
 using NuGetGallery.Authentication.Providers;
-using NuGetGallery.Authentication.Providers.CommonAuth;
+using NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure.Authentication;
@@ -220,9 +220,6 @@ namespace NuGetGallery.Authentication
 
                     return null;
                 }
-
-                // store tenant (organization) id, if available
-                matched.TenantId = credential.TenantId;
 
                 // update last used timestamp
                 matched.LastUsed = _dateTimeProvider.UtcNow;
@@ -473,20 +470,20 @@ namespace NuGetGallery.Authentication
         public virtual CredentialViewModel DescribeCredential(Credential credential)
         {
             var kind = GetCredentialKind(credential.Type);
-            Authenticator author = null;
+            Authenticator authenticator = null;
 
             if (kind == CredentialKind.External)
             {
                 if (string.IsNullOrEmpty(credential.TenantId))
                 {
                     string providerName = credential.Type.Split('.')[1];
-                    Authenticators.TryGetValue(providerName, out author);
+                    Authenticators.TryGetValue(providerName, out authenticator);
                 }
                 else
                 {
-                    author = Authenticators
+                    authenticator = Authenticators
                         .Values
-                        .First(provider => provider.Name.Equals(CommonAuthAuthenticator.DefaultAuthenticationType, StringComparison.OrdinalIgnoreCase));
+                        .First(provider => provider.Name.Equals(AzureActiveDirectoryV2Authenticator.DefaultAuthenticationType, StringComparison.OrdinalIgnoreCase));
                 }
             }
 
@@ -499,7 +496,7 @@ namespace NuGetGallery.Authentication
                 Created = credential.Created,
                 Expires = credential.Expires,
                 Kind = kind,
-                AuthUI = author?.GetUI(),
+                AuthUI = authenticator?.GetUI(),
                 // Set the description as the value for legacy API keys
                 Description = credential.Description,
                 Value = kind == CredentialKind.Token && credential.Description == null ? credential.Value : null,
@@ -553,15 +550,9 @@ namespace NuGetGallery.Authentication
             }
 
             var externalIdentity = result.Identity;
-            Authenticator author = null;
-            foreach (var authenticator in Authenticators.Values)
-            {
-                if (authenticator.IsAuthorForIdentity(externalIdentity))
-                {
-                    author = authenticator;
-                    break;
-                }
-            }
+            Authenticator author = Authenticators
+                .Values
+                .FirstOrDefault(a => a.IsProviderForIdentity(externalIdentity));
 
             if (author == null)
             {
@@ -571,8 +562,8 @@ namespace NuGetGallery.Authentication
 
             try
             {
-                var userInfo = author.GetAuthInformation(externalIdentity);
-                var emailSuffix = userInfo.Email == null ? String.Empty : (" <" + userInfo.Email + ">");
+                var userInfo = author.GetIdentityInformation(externalIdentity);
+                var emailSuffix = userInfo.Email == null ? string.Empty : (" <" + userInfo.Email + ">");
                 var identity = userInfo.Name + emailSuffix;
                 return new AuthenticateExternalLoginResult()
                 {

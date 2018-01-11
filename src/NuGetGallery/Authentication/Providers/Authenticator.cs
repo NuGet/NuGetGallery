@@ -100,10 +100,10 @@ namespace NuGetGallery.Authentication.Providers
         /// </summary>
         /// <param name="claimsIdentity">The claims identity returned by the identity</param>
         /// <returns>Returns true if this provider is the author for the identity, false otherwise</returns>
-        public virtual bool IsAuthorForIdentity(ClaimsIdentity claimsIdentity)
+        public virtual bool IsProviderForIdentity(ClaimsIdentity claimsIdentity)
         {
             // If the issuer of the claims identity is same as that of the authentication type then this is the author.
-            Claim firstClaim = claimsIdentity?.Claims?.FirstOrDefault();
+            var firstClaim = claimsIdentity?.Claims?.FirstOrDefault();
             if (firstClaim == null)
             {
                 return false;
@@ -117,10 +117,10 @@ namespace NuGetGallery.Authentication.Providers
         /// from the returned claims by the identity authentication.
         /// </summary>
         /// <param name="claimsIdentity">The claims identity returned by the identity</param>
-        /// <returns><see cref="AuthInformation"/></returns>
-        public virtual AuthInformation GetAuthInformation(ClaimsIdentity claimsIdentity)
+        /// <returns><see cref="IdentityInformation"/></returns>
+        public virtual IdentityInformation GetIdentityInformation(ClaimsIdentity claimsIdentity)
         {
-            return new AuthInformation();
+            return null;
         }
     }
 }

@@ -354,7 +354,7 @@ namespace NuGetGallery
                 var authUI = result.Authenticator.GetUI();
                 try
                 {
-                    var userInfo = result.Authenticator.GetAuthInformation(result.ExternalIdentity);
+                    var userInfo = result.Authenticator.GetIdentityInformation(result.ExternalIdentity);
                     name = userInfo.Name;
                     email = userInfo.Email;
                 }

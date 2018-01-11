@@ -7,16 +7,16 @@ using System.Globalization;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.OpenIdConnect;
 
-namespace NuGetGallery.Authentication.Providers.CommonAuth
+namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
 {
-    public class CommonAuthAuthenticatorConfiguration : AuthenticatorConfiguration
+    public class AzureActiveDirectoryV2AuthenticatorConfiguration : AuthenticatorConfiguration
     {
         public string ClientId { get; set; }
         public string ClientSecret { get; set; }
 
-        public CommonAuthAuthenticatorConfiguration()
+        public AzureActiveDirectoryV2AuthenticatorConfiguration()
         {
-            AuthenticationType = CommonAuthAuthenticator.DefaultAuthenticationType;
+            AuthenticationType = AzureActiveDirectoryV2Authenticator.DefaultAuthenticationType;
         }
 
         public override void ApplyToOwinSecurityOptions(AuthenticationOptions options)
@@ -50,7 +50,7 @@ namespace NuGetGallery.Authentication.Providers.CommonAuth
 
                 opts.ClientId = ClientId;
                 opts.ClientSecret = ClientSecret;
-                opts.Authority = String.Format(CultureInfo.InvariantCulture, CommonAuthAuthenticator.Authority, CommonAuthAuthenticator.V2CommonTenant);
+                opts.Authority = String.Format(CultureInfo.InvariantCulture, AzureActiveDirectoryV2Authenticator.Authority, AzureActiveDirectoryV2Authenticator.V2CommonTenant);
             }
         }
     }

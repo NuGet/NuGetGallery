@@ -6,14 +6,14 @@ using System.Security.Claims;
 
 namespace NuGetGallery.Authentication.Providers.Utils
 {
-    public static class MSAIdentityExtractor
+    public static class ClaimsExtentions
     {
-        public static AuthInformation GetAuthInformation(ClaimsIdentity claimsIdentity, string authType)
+        public static IdentityInformation GetIdentityInformation(ClaimsIdentity claimsIdentity, string authType)
         {
             var identifierClaim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
             if (identifierClaim == null)
             {
-                throw new ArgumentException("External Authentication is missing required claim: " + ClaimTypes.NameIdentifier);
+                throw new ArgumentException($"External Authentication is missing required claim: {ClaimTypes.NameIdentifier}");
             }
 
             var nameClaim = claimsIdentity.FindFirst(ClaimTypes.Name);
@@ -23,7 +23,7 @@ namespace NuGetGallery.Authentication.Providers.Utils
             }
 
             var emailClaim = claimsIdentity.FindFirst(ClaimTypes.Email);
-            return new AuthInformation(identifierClaim.Value, nameClaim.Value, emailClaim?.Value, authType, tenantId: null);
+            return new IdentityInformation(identifierClaim.Value, nameClaim.Value, emailClaim?.Value, authType, tenantId: null);
         }
     }
 }

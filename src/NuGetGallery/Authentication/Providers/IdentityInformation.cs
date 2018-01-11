@@ -3,7 +3,7 @@
 
 namespace NuGetGallery.Authentication.Providers
 {
-    public class AuthInformation
+    public class IdentityInformation
     {
         public string Identifier { get; private set; }
 
@@ -15,9 +15,7 @@ namespace NuGetGallery.Authentication.Providers
 
         public string AuthenticationType { get; private set; }
 
-        public AuthInformation() { }
-
-        public AuthInformation(string identifier, string name, string email, string authenticationType, string tenantId = null)
+        public IdentityInformation(string identifier, string name, string email, string authenticationType, string tenantId = null)
         {
             Identifier = identifier;
             Name = name;

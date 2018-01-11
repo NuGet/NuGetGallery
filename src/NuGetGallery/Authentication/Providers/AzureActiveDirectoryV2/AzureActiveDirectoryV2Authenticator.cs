@@ -9,9 +9,9 @@ using Microsoft.Owin.Security.OpenIdConnect;
 using NuGetGallery.Configuration;
 using Owin;
 
-namespace NuGetGallery.Authentication.Providers.CommonAuth
+namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
 {
-    public class CommonAuthAuthenticator : Authenticator<CommonAuthAuthenticatorConfiguration>
+    public class AzureActiveDirectoryV2Authenticator : Authenticator<AzureActiveDirectoryV2AuthenticatorConfiguration>
     {
         public static class V2Claims
         {
@@ -28,7 +28,7 @@ namespace NuGetGallery.Authentication.Providers.CommonAuth
             public const string AzureActiveDirectory = "AzureActiveDirectory";
         }
 
-        public static readonly string DefaultAuthenticationType = "CommonAuth";
+        public static readonly string DefaultAuthenticationType = "AzureActiveDirectoryV2";
         public static readonly string PersonalMSATenant = "9188040d-6c67-4c5b-b112-36a304b66dad";
         public static readonly string V2CommonTenant = "common";
         public static readonly string Authority = "https://login.microsoftonline.com/{0}/v2.0";
@@ -76,7 +76,7 @@ namespace NuGetGallery.Authentication.Providers.CommonAuth
             return new ChallengeResult(BaseConfig.AuthenticationType, redirectUrl);
         }
 
-        public override bool IsAuthorForIdentity(ClaimsIdentity claimsIdentity)
+        public override bool IsProviderForIdentity(ClaimsIdentity claimsIdentity)
         {
             Claim issuer = claimsIdentity.FindFirst(V2Claims.Issuer);
             Claim tenant = claimsIdentity.FindFirst(V2Claims.TenantId);
@@ -89,11 +89,11 @@ namespace NuGetGallery.Authentication.Providers.CommonAuth
             return string.Equals(issuer.Value, expectedIssuer, StringComparison.OrdinalIgnoreCase);
         }
 
-        public override AuthInformation GetAuthInformation(ClaimsIdentity claimsIdentity)
+        public override IdentityInformation GetIdentityInformation(ClaimsIdentity claimsIdentity)
         {
-            if (!IsAuthorForIdentity(claimsIdentity))
+            if (!IsProviderForIdentity(claimsIdentity))
             {
-                throw new ArgumentException($"The identity is not authored by {nameof(CommonAuthAuthenticator)}");
+                throw new ArgumentException($"The identity is not authored by {nameof(AzureActiveDirectoryV2Authenticator)}");
             }
 
             var tenantClaim = claimsIdentity.FindFirst(V2Claims.TenantId);
@@ -128,18 +128,13 @@ namespace NuGetGallery.Authentication.Providers.CommonAuth
             }
 
             var nameClaim = claimsIdentity.FindFirst(V2Claims.Name);
-            if (nameClaim == null)
-            {
-                throw new ArgumentException($"External Authentication is missing required claim: '{V2Claims.Name}'");
-            }
-
             var emailClaim = claimsIdentity.FindFirst(V2Claims.Email);
             if (emailClaim == null)
             {
                 throw new ArgumentException($"External Authentication is missing required claim: '{V2Claims.Email}'");
             }
 
-            return new AuthInformation(identifier, nameClaim.Value, emailClaim.Value, authenticationType, tenantId);
+            return new IdentityInformation(identifier, nameClaim?.Value, emailClaim.Value, authenticationType, tenantId);
         }
     }
 }
