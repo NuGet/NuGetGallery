@@ -9,11 +9,11 @@
 <section role="main" class="container main-container page-manage-packages page-package-details">
     <div class="row">
         <div class="col-xs-12">
-            <h1>My Packages</h1>
-            <div class="col-xs-3 text-right form-group pull-right">
-                <select id="ownerFilter" class="form-control pull-right hidden"
-                        data-bind="options: Owners, value: OwnerFilter, optionsText: 'Username'"></select>
-            </div>
+                <h1>My Packages</h1>
+                <div class="col-xs-3 text-right form-group pull-right">
+                    <select id="ownerFilter" class="form-control pull-right hidden"
+                            data-bind="options: Owners, value: OwnerFilter, optionsText: 'Username'"></select>
+                </div>
             @ViewHelpers.Section(this, "listed", "Published",
                 @<text>
                     <div class="row user-package-list">
@@ -36,11 +36,11 @@
             <div class="col-xs-12">
                 <h1>My Reserved Namespaces</h1>
                 @ViewHelpers.Section(this,
-                         "namespaces",
-                         "Namespaces",
-                        @<text>
-                            @Html.Partial("_ReservedNamespacesList", Model.ReservedNamespaces)
-                        </text>)
+                    "namespaces",
+                    "Namespaces",
+                    @<text>
+                        @Html.Partial("_ReservedNamespacesList", Model.ReservedNamespaces)
+                    </text>)
             </div>
         </div>
     }
@@ -53,21 +53,21 @@
                 @if (Model.OwnerRequests.Incoming.RequestItems.Any())
                 {
                     @ViewHelpers.Section(this,
-                             "requests-incoming",
-                             "Incoming",
-                            @<text>
-                                @Html.Partial("_OwnerRequestsList", Model.OwnerRequests.Incoming)
-                            </text>)
+                        "requests-incoming",
+                        "Incoming",
+                        @<text>
+                            @Html.Partial("_OwnerRequestsList", Model.OwnerRequests.Incoming)
+                        </text>)
                 }
 
                 @if (Model.OwnerRequests.Outgoing.RequestItems.Any())
                 {
                     @ViewHelpers.Section(this,
-                             "requests-outgoing",
-                             "Outgoing",
-                            @<text>
-                                @Html.Partial("_OwnerRequestsList", Model.OwnerRequests.Outgoing)
-                            </text>)
+                        "requests-outgoing",
+                        "Outgoing",
+                        @<text>
+                            @Html.Partial("_OwnerRequestsList", Model.OwnerRequests.Outgoing)
+                        </text>)
                 }
             </div>
         </div>
@@ -105,7 +105,7 @@
                     <tr class="manage-package-listing" data-bind="visible: Visible">
                         <td class="align-middle hidden-xs">
                             <img class="package-icon img-responsive" aria-hidden="true" alt=""
-                                 data-bind="attr: { src: PackageIconUrl, onerror: PackageIconUrlFallback }" />
+                                    data-bind="attr: { src: PackageIconUrl, onerror: PackageIconUrlFallback }" />
                         </td>
                         <td class="align-middle package-id">
                             <a title="View Package" data-bind="attr: { href: PackageUrl }">

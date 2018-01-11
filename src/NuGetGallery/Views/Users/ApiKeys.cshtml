@@ -21,10 +21,10 @@
             @if (!CurrentUser.Confirmed)
             {
                 @ViewHelpers.AlertWarning(
-                        @<text>
-                            To get an API Key you will need to
-                            <a href="@Url.ConfirmationRequired()">confirm your account</a>.
-                        </text>)
+                    @<text>
+                        To get an API Key you will need to
+                        <a href="@Url.ConfirmationRequired()">confirm your account</a>.
+                    </text>)
             }
             else
             {
@@ -32,34 +32,34 @@
                     <strong>Always keep your API keys a secret!</strong> If one of your keys is accidentally revealed,
                     you can always generate a new one at any time. You can also remove existing API keys if necessary.
                     <br />
-                <p>
-                    <strong>Note:</strong> To push packages to nuget.org you must use <a href="https://www.nuget.org/downloads">nuget.exe v4.1.0 or above</a>,
-                    which implements the required <a href="https://docs.microsoft.com/en-us/nuget/api/nuget-protocols">NuGet protocols</a>.
-                </p>
+                    <p>
+                        <strong>Note:</strong> To push packages to nuget.org you must use <a href="https://www.nuget.org/downloads">nuget.exe v4.1.0 or above</a>,
+                        which implements the required <a href="https://docs.microsoft.com/en-us/nuget/api/nuget-protocols">NuGet protocols</a>.
+                    </p>
                 </p>
 
                 <div data-bind="template: 'error-container'"></div>
 
                 @ViewHelpers.Section(this,
-                         "create",
-                         "Create",
-                        @<text>
-                            <div class="panel panel-default upsert-api-key">
-                                <div class="panel-body"
-                                     data-bind="template: { name: 'upsert-api-key', data: NewApiKey }">
-                                </div>
+                    "create",
+                    "Create",
+                    @<text>
+                        <div class="panel panel-default upsert-api-key">
+                            <div class="panel-body"
+                                    data-bind="template: { name: 'upsert-api-key', data: NewApiKey }">
                             </div>
-                        </text>,
-                         expanded: false,
-                         expandedIcon: "Subtraction",
-                         collapsedIcon: "Add")
+                        </div>
+                    </text>,
+                    expanded: false,
+                    expandedIcon: "Subtraction",
+                    collapsedIcon: "Add")
 
                 @ViewHelpers.Section(this,
-                         "manage",
-                         "Manage",
-                        @<text>
-                            <div data-bind="template: 'manage-api-keys'"></div>
-                        </text>)
+                    "manage",
+                    "Manage",
+                    @<text>
+                        <div data-bind="template: 'manage-api-keys'"></div>
+                    </text>)
             }
         </div>
     </div>
@@ -67,56 +67,55 @@
 
 <script type="text/html" id="error-container">
     <!-- ko if: Error -->
-    @ViewHelpers.AlertDanger(@<text>
-        <span data-bind="html: Error"></span></text>)
+    @ViewHelpers.AlertDanger(@<text><span data-bind="html: Error"></span></text>)
     <!-- /ko -->
 </script>
 
 <script type="text/html" id="manage-api-keys">
     <!-- ko if: ExpiredDescriptions().length > 0 -->
     @ViewHelpers.AlertWarning(
-            @<text>
-                Your API
-                <!-- ko if: ExpiredDescriptions().length === 1 -->
-                key
-                <!-- /ko -->
-                <!-- ko ifnot: ExpiredDescriptions().length === 1 -->
-                keys
-                <!-- /ko -->
-                <!-- ko text: window.nuget.commaJoin(ExpiredDescriptions().map(function(d) { return "'" + d + "'"; } )) --><!-- /ko -->
-                <!-- ko if: ExpiredDescriptions().length === 1 -->
-                has
-                <!-- /ko -->
-                <!-- ko ifnot: ExpiredDescriptions().length === 1 -->
-                have
-                <!-- /ko -->
-                expired.
-            </text>,
-                    isAlertRole: true)
+        @<text>
+            Your API
+            <!-- ko if: ExpiredDescriptions().length === 1 -->
+            key
+            <!-- /ko -->
+            <!-- ko ifnot: ExpiredDescriptions().length === 1 -->
+            keys
+            <!-- /ko -->
+            <!-- ko text: window.nuget.commaJoin(ExpiredDescriptions().map(function(d) { return "'" + d + "'"; } )) --><!-- /ko -->
+            <!-- ko if: ExpiredDescriptions().length === 1 -->
+            has
+            <!-- /ko -->
+            <!-- ko ifnot: ExpiredDescriptions().length === 1 -->
+            have
+            <!-- /ko -->
+            expired.
+        </text>,
+        isAlertRole: true)
     <!-- /ko -->
     <!-- ko if: AnyJustCreated -->
     @ViewHelpers.AlertWarning(
-            @<text>
-                A new API key has been created. Make sure to copy your new API key now using the
-                <b>Copy</b>
-                button below. You will not be able to do so again.
-            </text>,
-                    isAlertRole: true)
+        @<text>
+            A new API key has been created. Make sure to copy your new API key now using the
+            <b>Copy</b>
+            button below. You will not be able to do so again.
+        </text>,
+        isAlertRole: true)
     <!-- /ko -->
     <!-- ko if: AnyJustRegenerated -->
     @ViewHelpers.AlertWarning(
-            @<text>
-                Your API key has been regenerated. Make sure to copy your new API key now using the
-                <b>Copy</b>
-                button below. You will not be able to do so again.
-            </text>,
-                    isAlertRole: true)
+        @<text>
+            Your API key has been regenerated. Make sure to copy your new API key now using the
+            <b>Copy</b>
+            button below. You will not be able to do so again.
+        </text>,
+        isAlertRole: true)
     <!-- /ko -->
     <div data-bind="template: { name: 'api-key-details', foreach: ApiKeys }">
     </div>
     <!-- ko if: ApiKeys().length === 0 -->
     @ViewHelpers.AlertInfo(
-            @<text>You don't have any API keys.</text>)
+        @<text>You don't have any API keys.</text>)
     <!-- /ko -->
 </script>
 
@@ -282,11 +281,11 @@
             <div class="col-sm-7 form-group">
                 <label data-bind="attr: { for: PackageOwnerId,
                                             id: PackageOwnerId() + '-label' }">Package Owner</label>
-                <select class="form-control"
-                        data-bind="attr: { id: PackageOwnerId,
-                                                name: PackageOwnerId,
-                                                'aria-labelledby': PackageOwnerId() + '-label' },
-                                        options: PackageOwners, value: PackageOwner, optionsText: 'Owner'"></select>
+                        <select class="form-control"
+                                data-bind="attr: { id: PackageOwnerId,
+                                                        name: PackageOwnerId,
+                                                        'aria-labelledby': PackageOwnerId() + '-label' },
+                                                options: PackageOwners, value: PackageOwner, optionsText: 'Owner'"></select>
             </div>
         </div>
 
