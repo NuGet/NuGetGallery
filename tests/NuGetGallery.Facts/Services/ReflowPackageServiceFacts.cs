@@ -161,9 +161,11 @@ namespace NuGetGallery
                 Assert.Equal("1.0.0", result.NormalizedVersion);
                 Assert.Equal("Test package", result.Title);
 
+#pragma warning disable 0618
                 Assert.Equal(2, result.Authors.Count);
                 Assert.True(result.Authors.Any(a => a.Name == "authora"));
                 Assert.True(result.Authors.Any(a => a.Name == "authorb"));
+#pragma warning restore 0618
                 Assert.Equal("authora, authorb", result.FlattenedAuthors);
 
                 Assert.Equal(false, result.RequiresLicenseAcceptance);

@@ -457,12 +457,7 @@ namespace NuGetGallery
 
             var model = new DisplayPackageViewModel(package, currentUser, packageHistory);
 
-            var validationIssues = _validationService.GetLatestValidationIssues(package);
-
-            model.ValidationIssues = validationIssues
-                                        .Select(i => i.GetMessage())
-                                        .Distinct()
-                                        .ToList();
+            model.ValidationIssues = _validationService.GetLatestValidationIssues(package);
 
             model.ReadMeHtml = await _readMeService.GetReadMeHtmlAsync(package);
 

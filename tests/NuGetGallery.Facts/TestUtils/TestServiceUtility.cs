@@ -36,10 +36,12 @@ namespace NuGetGallery.TestUtils
                     framework
                 },
                 FlattenedAuthors = "maarten",
+#pragma warning disable 0618
                 Authors = new List<PackageAuthor>
                 {
                     author
                 },
+#pragma warning restore 0618
                 Dependencies = new List<PackageDependency>
                 {
                     dependency

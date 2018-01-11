@@ -648,7 +648,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task GetsAndDeduplicatesValidationIssues()
+            public async Task GetsValidationIssues()
             {
                 // Arrange
                 var packageService = new Mock<IPackageService>();
@@ -682,23 +682,22 @@ namespace NuGetGallery
 
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
 
+                var expectedIssues = new[]
+                {
+                    new TestIssue("This should not be deduplicated by the controller layer"),
+                    new TestIssue("I'm a Teapot"),
+                    new TestIssue("This should not be deduplicated by the controller layer"),
+                };
+
                 validationService.Setup(v => v.GetLatestValidationIssues(It.IsAny<Package>()))
-                    .Returns(new[]
-                    {
-                        new TestIssue("This should be deduplicated"),
-                        new TestIssue("I'm a Teapot"),
-                        new TestIssue("This should be deduplicated"),
-                    });
+                    .Returns(expectedIssues);
 
                 // Act
                 var result = await controller.DisplayPackage("Foo", version: null);
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
-
-                Assert.Equal(2, model.ValidationIssues.Count());
-                Assert.Equal("This should be deduplicated", model.ValidationIssues[0]);
-                Assert.Equal("I'm a Teapot", model.ValidationIssues[1]);
+                Assert.Equal(model.ValidationIssues, expectedIssues);
             }
 
             private class TestIssue : ValidationIssue
@@ -708,8 +707,6 @@ namespace NuGetGallery
                 public TestIssue(string message) => _message = message;
 
                 public override ValidationIssueCode IssueCode => throw new NotImplementedException();
-
-                public override string GetMessage() => _message;
             }
         }
 

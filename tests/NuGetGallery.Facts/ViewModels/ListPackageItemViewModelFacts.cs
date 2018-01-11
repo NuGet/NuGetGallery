@@ -211,7 +211,9 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
             var package = new Package()
             {
                 Version = "1.0.0",
+#pragma warning disable 0618
                 Authors = authors,
+#pragma warning restore 0618
                 FlattenedAuthors = flattenedAuthors
             };
 

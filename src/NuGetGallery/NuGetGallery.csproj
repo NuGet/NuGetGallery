@@ -441,8 +441,8 @@
     <Reference Include="NuGet.Protocol, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Protocol.4.3.0-preview1-2524\lib\net45\NuGet.Protocol.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Services.Contracts, Version=2.7.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.Contracts.2.7.1\lib\net45\NuGet.Services.Contracts.dll</HintPath>
+    <Reference Include="NuGet.Services.Contracts, Version=2.7.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.Contracts.2.7.2\lib\net45\NuGet.Services.Contracts.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Services.KeyVault, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Services.KeyVault.1.0.0.0\lib\net45\NuGet.Services.KeyVault.dll</HintPath>
@@ -460,14 +460,14 @@
       <HintPath>..\..\packages\NuGet.Services.Platform.Client.3.0.29-r-master\lib\portable-net45+wp80+win\NuGet.Services.Platform.Client.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="NuGet.Services.ServiceBus, Version=2.7.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.ServiceBus.2.7.1\lib\net45\NuGet.Services.ServiceBus.dll</HintPath>
+    <Reference Include="NuGet.Services.ServiceBus, Version=2.7.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.ServiceBus.2.7.2\lib\net45\NuGet.Services.ServiceBus.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Services.Validation, Version=2.7.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.Validation.2.7.1\lib\net45\NuGet.Services.Validation.dll</HintPath>
+    <Reference Include="NuGet.Services.Validation, Version=2.7.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.Validation.2.7.2\lib\net45\NuGet.Services.Validation.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Services.Validation.Issues, Version=2.7.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.Validation.Issues.2.7.1\lib\net45\NuGet.Services.Validation.Issues.dll</HintPath>
+    <Reference Include="NuGet.Services.Validation.Issues, Version=2.7.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.Validation.Issues.2.7.2\lib\net45\NuGet.Services.Validation.Issues.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Versioning, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Versioning.4.3.0-preview1-2524\lib\net45\NuGet.Versioning.dll</HintPath>
@@ -2008,6 +2008,7 @@
     <Content Include="Views\Packages\_VerifyMetadata.cshtml" />
     <Content Include="Views\Users\TransformFailed.cshtml" />
     <Content Include="Views\Users\Transform.cshtml" />
+    <Content Include="Views\Packages\_ValidationIssue.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />

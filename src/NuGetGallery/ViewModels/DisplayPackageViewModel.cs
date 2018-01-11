@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NuGet.Services.Validation.Issues;
 using NuGet.Versioning;
 
 namespace NuGetGallery
@@ -52,7 +53,7 @@ namespace NuGetGallery
             DownloadsPerDayLabel = DownloadsPerDay < 1 ? "<1" : DownloadsPerDay.ToNuGetNumberString();
         }
 
-        public IReadOnlyList<string> ValidationIssues { get; set; }
+        public IReadOnlyList<ValidationIssue> ValidationIssues { get; set; }
         public DependencySetsViewModel Dependencies { get; set; }
         public IEnumerable<DisplayPackageViewModel> PackageVersions { get; set; }
         public string Copyright { get; set; }
