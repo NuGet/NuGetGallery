@@ -39,14 +39,14 @@
                 </p>
 
                 <div data-bind="template: 'error-container'"></div>
-
+                
                 @ViewHelpers.Section(this,
                     "create",
                     "Create",
                     @<text>
                         <div class="panel panel-default upsert-api-key">
                             <div class="panel-body"
-                                    data-bind="template: { name: 'upsert-api-key', data: NewApiKey }">
+                                 data-bind="template: { name: 'upsert-api-key', data: NewApiKey }">
                             </div>
                         </div>
                     </text>,
@@ -75,30 +75,30 @@
     <!-- ko if: ExpiredDescriptions().length > 0 -->
     @ViewHelpers.AlertWarning(
         @<text>
-            Your API
-            <!-- ko if: ExpiredDescriptions().length === 1 -->
-            key
-            <!-- /ko -->
-            <!-- ko ifnot: ExpiredDescriptions().length === 1 -->
-            keys
-            <!-- /ko -->
-            <!-- ko text: window.nuget.commaJoin(ExpiredDescriptions().map(function(d) { return "'" + d + "'"; } )) --><!-- /ko -->
-            <!-- ko if: ExpiredDescriptions().length === 1 -->
-            has
-            <!-- /ko -->
-            <!-- ko ifnot: ExpiredDescriptions().length === 1 -->
-            have
-            <!-- /ko -->
-            expired.
+        Your API
+        <!-- ko if: ExpiredDescriptions().length === 1 -->
+        key
+        <!-- /ko -->
+        <!-- ko ifnot: ExpiredDescriptions().length === 1 -->
+        keys
+        <!-- /ko -->
+        <!-- ko text: window.nuget.commaJoin(ExpiredDescriptions().map(function(d) { return "'" + d + "'"; } )) --><!-- /ko -->
+        <!-- ko if: ExpiredDescriptions().length === 1 -->
+        has
+        <!-- /ko -->
+        <!-- ko ifnot: ExpiredDescriptions().length === 1 -->
+        have
+        <!-- /ko -->
+        expired.
         </text>,
         isAlertRole: true)
     <!-- /ko -->
     <!-- ko if: AnyJustCreated -->
     @ViewHelpers.AlertWarning(
         @<text>
-            A new API key has been created. Make sure to copy your new API key now using the
-            <b>Copy</b>
-            button below. You will not be able to do so again.
+        A new API key has been created. Make sure to copy your new API key now using the
+        <b>Copy</b>
+        button below. You will not be able to do so again.
         </text>,
         isAlertRole: true)
     <!-- /ko -->
@@ -281,11 +281,11 @@
             <div class="col-sm-7 form-group">
                 <label data-bind="attr: { for: PackageOwnerId,
                                             id: PackageOwnerId() + '-label' }">Package Owner</label>
-                        <select class="form-control"
-                                data-bind="attr: { id: PackageOwnerId,
-                                                        name: PackageOwnerId,
-                                                        'aria-labelledby': PackageOwnerId() + '-label' },
-                                                options: PackageOwners, value: PackageOwner, optionsText: 'Owner'"></select>
+                    <select class="form-control"
+                            data-bind="attr: { id: PackageOwnerId,
+                                                    name: PackageOwnerId,
+                                                    'aria-labelledby': PackageOwnerId() + '-label' },
+                                            options: PackageOwners, value: PackageOwner, optionsText: 'Owner'"></select>
             </div>
         </div>
 
