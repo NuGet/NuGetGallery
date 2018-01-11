@@ -4,7 +4,6 @@
     $(function () {
         var configureSection = function (prefix) {
             var containerId = prefix + "-container";
-            window.nuget.configureExpanderHeading(containerId);
             $("#cancel-" + prefix).click(function (e) {
                 // Collapse the container.
                 $("#" + containerId).collapse('hide');

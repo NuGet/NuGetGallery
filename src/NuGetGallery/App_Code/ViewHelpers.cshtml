@@ -445,3 +445,90 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
         @html.AntiForgeryToken()
     </form>
 }
+
+@functions
+{
+    public static List<string> GetSections(dynamic viewBag)
+    {
+        var sections = viewBag.Sections as Lazy<List<string>>;
+        return sections == null ? null : sections.Value;
+    }
+
+    public static void AddSection(dynamic viewBag, string id)
+    {
+        var sections = GetSections(viewBag);
+        if (sections != null)
+        {
+            sections.Add(id);
+        }
+    }
+}
+
+@helper SectionsScript(WebViewPage viewPage)
+{
+    var viewSections = GetSections(viewPage.ViewBag);
+    if (viewSections != null)
+    {
+        <script type="text/javascript">
+            var sections = @viewPage.Html.Raw(Json.Encode(viewSections));
+            for (var i in sections) {
+                var containerId = sections[i] + "-container";
+                window.nuget.configureExpanderHeading(containerId);
+            }
+        </script>
+    }
+}
+
+@helper Section(
+        WebViewPage viewPage,
+        string id,
+        string title,
+        Func<MvcHtmlString, HelperResult> content,
+        bool expanded = true,
+        string expandedIcon = "ChevronDown",
+        string collapsedIcon = "ChevronRight")
+{
+    @Section(viewPage,
+        id,
+        @<text>@title</text>,
+        @<text></text>,
+        content,
+        expanded,
+        expandedIcon,
+        collapsedIcon);
+}
+
+@helper Section(
+            WebViewPage viewPage,
+            string id,
+            Func<MvcHtmlString, HelperResult> title,
+            Func<MvcHtmlString, HelperResult> data,
+            Func<MvcHtmlString, HelperResult> content,
+            bool expanded = false,
+            string expandedIcon = "ChevronDown",
+            string collapsedIcon = "ChevronRight")
+{
+    AddSection(viewPage.ViewBag, id);
+
+    <div class="clearfix">
+        <div class="form-section-title">
+            <h2>
+                <a href="#" role="button" data-toggle="collapse" data-target="#@id-container"
+                    aria-expanded="@expanded" aria-controls="@id-container" id="show-@id-container">
+                    <i class="ms-Icon ms-Icon--@(expanded ? expandedIcon : collapsedIcon)"
+                        aria-hidden="@(expanded ? "false" : "true")"></i>
+                    <span>@title(MvcHtmlString.Empty)</span>
+                </a>
+            </h2>
+        </div>
+        <div class="form-section-data">
+            @data(MvcHtmlString.Empty)
+        </div>
+    </div>
+    <div class="panel panel-default panel-collapse collapse @(expanded ? "in" : string.Empty)"
+            aria-expanded="@(expanded ? "true" : "false")" id="@id-container">
+        <div class="panel-body">
+            @content(MvcHtmlString.Empty)
+        </div>
+    </div>
+}

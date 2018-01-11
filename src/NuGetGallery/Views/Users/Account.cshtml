@@ -3,51 +3,6 @@
     ViewBag.Title = "Account Settings";
     ViewBag.MdPageColumns = Constants.ColumnsFormMd;
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
-    ViewBag.Sections = new List<string>();
-}
-
-@functions
-{
-    private static List<string> GetSections(dynamic viewBag)
-    {
-        return (List<string>)viewBag.Sections;
-    }
-
-    public static void AddSection(dynamic viewBag, string id)
-    {
-        GetSections(viewBag).Add(id);
-    }
-}
-
-@helper Section(
-    string id,
-    Func<MvcHtmlString, HelperResult> title,
-    Func<MvcHtmlString, HelperResult> data,
-    Func<MvcHtmlString, HelperResult> content,
-    bool expanded = false)
-{
-    AddSection(ViewBag, id);
-
-    <div class="clearfix">
-        <div class="form-section-title">
-            <h2>
-                <a href="#" role="button" data-toggle="collapse" data-target="#@id-container"
-                   aria-expanded="@expanded" aria-controls="@id-container" id="show-@id-container">
-                    <i class="ms-Icon ms-Icon--@(expanded ? "ChevronDown" : "ChevronRight")" aria-hidden="true"></i>
-                    <span>@title(MvcHtmlString.Empty)</span>
-                </a>
-            </h2>
-        </div>
-        <div class="form-section-data">
-            @data(MvcHtmlString.Empty)
-        </div>
-    </div>
-    <div class="panel panel-default panel-collapse collapse @(expanded ? "in" : string.Empty)"
-         aria-expanded="@(expanded ? "true" : "false")" id="@id-container">
-        <div class="panel-body">
-            @content(MvcHtmlString.Empty)
-        </div>
-    </div>
 }
 
 <section role="main" class="container main-container page-account-settings">
@@ -81,7 +36,6 @@
                 </text>)
             }
 
-
             @if (!CurrentUser.Confirmed)
             {
                 @ViewHelpers.AlertInfo(@<text>
@@ -90,7 +44,7 @@
                 </text>)
             }
 
-            @Section(
+            @ViewHelpers.Section(this,
                 "change-email",
                 @<text>@(Model.HasUnconfirmedEmailAddress ? "Pending Email Address" : "Email Address")</text>,
                 @<text>@Model.CurrentEmailAddress</text>,
@@ -148,7 +102,7 @@
                 </text>,
                 ViewData.ModelState.Keys.Any(x => x.StartsWith("ChangeEmail")))
 
-            @Section(
+            @ViewHelpers.Section(this,
                 "change-notifications",
                 @<text>Email Notifications</text>,
                 @<text>
@@ -208,7 +162,7 @@
             {
                 foreach (var cred in Model.CredentialGroups[CredentialKind.External])
                 {
-                    @Section(
+                    @ViewHelpers.Section(this,
                         "change-credential-" + cred.Key,
                         @<text>@cred.TypeCaption</text>,
                         @<text>@cred.Identity</text>,
@@ -247,7 +201,7 @@
                 }
             }
 
-            @Section(
+            @ViewHelpers.Section(this,
                 "change-password",
                 @<text>Password Login</text>,
                 @<text><em>@(Model.HasPassword ? "(Enabled)" : "(Disabled)")</em></text>,
@@ -314,7 +268,7 @@
                 </text>,
                 ViewData.ModelState.Keys.Any(x => x.StartsWith("ChangePassword")))
 
-            @Section(
+            @ViewHelpers.Section(this,
                 "profile-picture",
                 @<text>Profile Picture @(Model.HasUnconfirmedEmailAddress ? "(preview)" : string.Empty)</text>,
                 @<text>@ViewHelpers.GravatarImage(Model.CurrentEmailAddress, CurrentUser.Username, Constants.GravatarElementSize)</text>,
@@ -336,7 +290,7 @@
 
             @foreach (var curatedFeed in Model.CuratedFeeds)
             {
-                @Section(
+                @ViewHelpers.Section(this,
                     "curated-feed-" + curatedFeed,
                     @<text>Curated Feed</text>,
                     @<text>@curatedFeed</text>,
@@ -359,8 +313,6 @@
 </section>
 
 @section bottomScripts {
-    <script type="text/javascript">
-        var sections = @Html.Raw(Json.Encode(GetSections(ViewBag)));
-    </script>
+    @ViewHelpers.SectionsScript(this);
     @Scripts.Render("~/Scripts/gallery/page-account.min.js")
 }

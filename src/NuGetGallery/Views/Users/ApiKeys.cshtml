@@ -6,27 +6,6 @@
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
-@helper Section(
-    string id,
-    string title,
-    Func<MvcHtmlString, HelperResult> content,
-    bool expanded = true,
-    string expandedIcon = "ChevronDown",
-    string collapsedIcon = "ChevronRight")
-{
-    <h2>
-        <a href="#" role="button" data-toggle="collapse" data-target="#@id-container"
-           aria-expanded="@(expanded ? "true" : "false")" aria-controls="@id-container" id="show-@id-container">
-            <i class="ms-Icon ms-Icon--@(expanded ? expandedIcon : collapsedIcon)"
-               aria-hidden="@(expanded ? "false" : "true")"></i>
-            <span>@title</span>
-        </a>
-    </h2>
-    <div class="panel-collapse collapse @(expanded ? "in" : string.Empty)" id="@id-container">
-        @content(MvcHtmlString.Empty)
-    </div>
-}
-
 <section role="main" class="container main-container page-api-keys">
     <form id="AntiForgeryForm">
         @Html.AntiForgeryToken()
@@ -61,7 +40,7 @@
 
                 <div data-bind="template: 'error-container'"></div>
                 
-                @Section(
+                @ViewHelpers.Section(this,
                     "create",
                     "Create",
                     @<text>
@@ -75,7 +54,7 @@
                     expandedIcon: "Subtraction",
                     collapsedIcon: "Add")
 
-                @Section(
+                @ViewHelpers.Section(this,
                     "manage",
                     "Manage",
                     @<text>
@@ -304,10 +283,9 @@
                                             id: PackageOwnerId() + '-label' }">Package Owner</label>
                     <select class="form-control"
                             data-bind="attr: { id: PackageOwnerId,
-                                                name: PackageOwnerId,
-                                                'aria-labelledby': PackageOwnerId() + '-label' },
-                                        options: PackageOwners, value: PackageOwner, optionsText: 'Owner'">
-                    </select>
+                                                    name: PackageOwnerId,
+                                                    'aria-labelledby': PackageOwnerId() + '-label' },
+                                            options: PackageOwners, value: PackageOwner, optionsText: 'Owner'"></select>
             </div>
         </div>
 
@@ -375,7 +353,7 @@
                 </p>
                 <div class="has-error">
                     <span class="help-block" data-bind="text: SubjectsError"></span>
-                </div>                
+                </div>
                 <div class="has-error">
                     <span class="field-validation-valid help-block"
                           data-valmsg-replace="true"
@@ -397,12 +375,12 @@
                 <div class="form-group">
                     <input type="text" class="form-control" data-val="true"
                            data-val-regex="Invalid glob pattern. See the example glob patterns below for further details."
-                           data-val-regex-pattern="^[\*\w_.-]*$" 
+                           data-val-regex-pattern="^[\*\w_.-]*$"
                            data-bind="textInput: PendingGlobPattern,
                                       attr: { id: GlobPatternId,
                                               name: GlobPatternId,
                                               'aria-labelledby': GlobPatternId() + '-label ' + GlobPatternId() + '-validation-message' },
-                                      enable: SelectPackagesEnabled"  />
+                                      enable: SelectPackagesEnabled" />
                 </div>
                 <div class="form-group">
                     <label>Available Packages</label>
