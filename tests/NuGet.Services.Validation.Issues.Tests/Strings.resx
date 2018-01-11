@@ -123,13 +123,13 @@
   <data name="EmptyJson" xml:space="preserve">
     <value>{}</value>
   </data>
-  <data name="InvalidJson" xml:space="preserve">
-    <value>Hello this is dog</value>
-  </data>
   <data name="ObsoleteTestingIssueJson" xml:space="preserve">
     <value>{"A":"Hello","B":123}</value>
   </data>
   <data name="SignedPackageMustHaveOneSignatureIssueJson" xml:space="preserve">
     <value>{"c":2}</value>
+  </data>
+  <data name="SignedPackageMustHaveOneSignatureIssueJsonInvalidCount" xml:space="preserve">
+    <value>{"c":1}</value>
   </data>
 </root>

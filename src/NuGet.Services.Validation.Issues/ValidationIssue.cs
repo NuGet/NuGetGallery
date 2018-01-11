@@ -35,7 +35,18 @@ namespace NuGet.Services.Validation.Issues
                 return new UnknownIssue();
             }
 
-            return (ValidationIssue)JsonConvert.DeserializeObject(data, deserializationType);
+            try
+            {
+                var issue = JsonConvert.DeserializeObject(data, deserializationType) as ValidationIssue;
+
+                /// <see cref="JsonConvert.DeserializeObject(string, Type)"/> can return null in some cases (for
+                /// example if the input string is empty).
+                return issue ?? new UnknownIssue();
+            }
+            catch (Exception)
+            {
+                return new UnknownIssue();
+            }
         }
 
         /// <summary>

@@ -79,15 +79,6 @@ namespace NuGet.Services.Validation.Issues.Tests {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Hello this is dog.
-        /// </summary>
-        internal static string InvalidJson {
-            get {
-                return ResourceManager.GetString("InvalidJson", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to {&quot;A&quot;:&quot;Hello&quot;,&quot;B&quot;:123}.
         /// </summary>
         internal static string ObsoleteTestingIssueJson {
@@ -102,6 +93,15 @@ namespace NuGet.Services.Validation.Issues.Tests {
         internal static string SignedPackageMustHaveOneSignatureIssueJson {
             get {
                 return ResourceManager.GetString("SignedPackageMustHaveOneSignatureIssueJson", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;c&quot;:1}.
+        /// </summary>
+        internal static string SignedPackageMustHaveOneSignatureIssueJsonInvalidCount {
+            get {
+                return ResourceManager.GetString("SignedPackageMustHaveOneSignatureIssueJsonInvalidCount", resourceCulture);
             }
         }
     }

@@ -21,7 +21,7 @@ namespace NuGet.Services.Validation.Issues
 
         public override ValidationIssueCode IssueCode => ValidationIssueCode.SignedPackageMustHaveOneSignature;
 
-        [JsonProperty("c")]
+        [JsonProperty("c", Required = Required.Always)]
         public int Count { get; }
 
         public override string GetMessage() => string.Format(Strings.SignedPackageMustHaveOneSignatureMessage, Count);

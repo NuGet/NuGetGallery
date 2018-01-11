@@ -20,10 +20,10 @@ namespace NuGet.Services.Validation.Issues
 
         public override ValidationIssueCode IssueCode => ValidationIssueCode.ClientSigningVerificationFailure;
 
-        [JsonProperty("c")]
+        [JsonProperty("c", Required = Required.Always)]
         public string ClientCode { get; }
         
-        [JsonProperty("m")]
+        [JsonProperty("m", Required = Required.Always)]
         public string ClientMessage { get; }
 
         public override string GetMessage() => _codeAndMessage;

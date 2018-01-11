@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using Xunit;
@@ -92,6 +94,76 @@ namespace NuGet.Services.Validation.Issues.Tests
                 Assert.Equal("Package validation failed due to an unknown error.", result.GetMessage());
             }
 
+            [Theory]
+            [MemberData(nameof(InvalidDeserializationData))]
+            public void InvalidDataDeserialization(ValidationIssueCode code, string data)
+            {
+                // Arrange
+                var validationIssue = CreatePackageValidationIssue(code, data);
+
+                // Act
+                var result = ValidationIssue.Deserialize(validationIssue.IssueCode, validationIssue.Data);
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(ValidationIssueCode.Unknown, result.IssueCode);
+                Assert.Equal(Strings.EmptyJson, result.Serialize());
+            }
+
+            private static readonly IReadOnlyList<ValidationIssueCode> CodesWithNoProperties = new[]
+            {
+                ValidationIssueCode.PackageIsSigned,
+                ValidationIssueCode.Unknown,
+            };
+
+            private static readonly IReadOnlyList<ValidationIssueCode> Codes = Enum
+                .GetValues(typeof(ValidationIssueCode))
+                .Cast<ValidationIssueCode>()
+                .Except(new[] { ValidationIssueCode.Unknown })
+                .ToList();
+
+            private static readonly IReadOnlyList<string> DataWithNoProperties = new[]
+            {
+                "{}",
+                "{\"foo\":\"bar\"}", // "foo" is never a valid property name so is therefore ignored.
+            };
+
+            private static readonly IReadOnlyList<string> InvalidData = new[]
+            {
+                null,
+                "",
+                " ",
+                "   \r\n \t ",
+                "Hello this is dog",
+                "[]",
+                "null",
+                "1",
+                "\"foo\"",
+                "2.3",
+            }.Concat(DataWithNoProperties).ToList();
+
+            public static IEnumerable<object[]> InvalidDeserializationData
+            {
+                get
+                {
+                    foreach (var code in Codes)
+                    {
+                        foreach (var data in InvalidData)
+                        {
+                            // Data that represents a JSON object with no properties is valid for validation issues with
+                            // no properties. Therefore, don't emit test data for these cases.
+                            if (DataWithNoProperties.Contains(data)
+                                && CodesWithNoProperties.Contains(code))
+                            {
+                                continue;
+                            }
+
+                            yield return new object[] { code, data };
+                        }
+                    }
+                }
+            }
+
             [Fact]
             public void ObsoleteTestingIssueDeserialization()
             {
@@ -160,12 +232,16 @@ namespace NuGet.Services.Validation.Issues.Tests
             }
 
             [Fact]
-            public void InvalidDeserialization()
+            public void SignedPackageMustHaveOneSignatureDeserializationWhenCountIsInvalid()
             {
-                // Arrange & Act & Assert
-                var validationIssue = CreatePackageValidationIssue(ValidationIssueCode.PackageIsSigned, Strings.InvalidJson);
+                // Arrange
+                var validationIssue = CreatePackageValidationIssue(ValidationIssueCode.SignedPackageMustHaveOneSignature, Strings.SignedPackageMustHaveOneSignatureIssueJsonInvalidCount);
 
-                Assert.Throws<JsonReaderException>(() => ValidationIssue.Deserialize(validationIssue.IssueCode, validationIssue.Data));
+                // Act
+                var result = ValidationIssue.Deserialize(validationIssue.IssueCode, validationIssue.Data);
+
+                // Assert
+                Assert.IsType<UnknownIssue>(result);
             }
 
             private PackageValidationIssue CreatePackageValidationIssue(ValidationIssueCode issueCode, string data)
