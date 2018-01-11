@@ -27,7 +27,5 @@ namespace NuGet.Services.Validation.Issues
 
         [JsonProperty(Required = Required.AllowNull)]
         public int B { get; set; }
-
-        public override string GetMessage() => string.Empty;
     }
 }

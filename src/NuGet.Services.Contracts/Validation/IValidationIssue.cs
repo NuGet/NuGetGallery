@@ -18,11 +18,5 @@ namespace NuGet.Services.Validation
         /// </summary>
         /// <returns>A string containing this error's serialized contents, excluding the error code.</returns>
         string Serialize();
-
-        /// <summary>
-        /// Get a message that describes this issue. Used to display this issue to end users.
-        /// </summary>
-        /// <returns>A well formatted message that describes this error.</returns>
-        string GetMessage();
     }
 }

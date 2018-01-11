@@ -91,7 +91,6 @@ namespace NuGet.Services.Validation.Issues.Tests
                 // Assert
                 Assert.NotNull(result);
                 Assert.Equal(ValidationIssueCode.Unknown, result.IssueCode);
-                Assert.Equal("Package validation failed due to an unknown error.", result.GetMessage());
             }
 
             [Theory]
@@ -212,7 +211,6 @@ namespace NuGet.Services.Validation.Issues.Tests
                 Assert.Equal(ValidationIssueCode.ClientSigningVerificationFailure, result.IssueCode);
                 Assert.Equal("NU3008", result.ClientCode);
                 Assert.Equal("The package integrity check failed.", result.ClientMessage);
-                Assert.Equal("NU3008: The package integrity check failed.", result.GetMessage());
             }
 
             [Fact]
@@ -228,7 +226,6 @@ namespace NuGet.Services.Validation.Issues.Tests
                 Assert.NotNull(result);
                 Assert.Equal(ValidationIssueCode.SignedPackageMustHaveOneSignature, result.IssueCode);
                 Assert.Equal(2, result.Count);
-                Assert.Equal("This signed package was rejected since it has 2 signatures. A signed package must have exactly one signature.", result.GetMessage());
             }
 
             [Fact]

@@ -8,14 +8,11 @@ namespace NuGet.Services.Validation.Issues
 {
     public class ClientSigningVerificationFailure : ValidationIssue
     {
-        private readonly string _codeAndMessage;
-
         [JsonConstructor]
         public ClientSigningVerificationFailure(string clientCode, string clientMessage)
         {
             ClientCode = clientCode ?? throw new ArgumentNullException(nameof(clientCode));
             ClientMessage = clientMessage ?? throw new ArgumentNullException(nameof(clientMessage));
-            _codeAndMessage = $"{ClientCode}: {ClientMessage}";
         }
 
         public override ValidationIssueCode IssueCode => ValidationIssueCode.ClientSigningVerificationFailure;
@@ -25,7 +22,5 @@ namespace NuGet.Services.Validation.Issues
         
         [JsonProperty("m", Required = Required.Always)]
         public string ClientMessage { get; }
-
-        public override string GetMessage() => _codeAndMessage;
     }
 }

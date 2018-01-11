@@ -63,12 +63,6 @@ namespace NuGet.Services.Validation.Issues
         public abstract ValidationIssueCode IssueCode { get; }
 
         /// <summary>
-        /// Get the message that describes this particular issue.
-        /// </summary>
-        /// <returns>A well-formatted error message that describes this issue.</returns>
-        public abstract string GetMessage();
-
-        /// <summary>
         /// Serialize this issue into a string, excluding the issue code.
         /// </summary>
         /// <returns>A serialized version of this validation issue, excluding the issue code.</returns>

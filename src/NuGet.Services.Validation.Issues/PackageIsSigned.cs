@@ -9,7 +9,5 @@ namespace NuGet.Services.Validation.Issues
     public class PackageIsSigned : ValidationIssue
     {
         public override ValidationIssueCode IssueCode => ValidationIssueCode.PackageIsSigned;
-
-        public override string GetMessage() => Strings.PackageIsSignedMessage;
     }
 }

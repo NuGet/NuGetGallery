@@ -9,7 +9,5 @@ namespace NuGet.Services.Validation.Issues
     public class UnknownIssue : ValidationIssue
     {
         public override ValidationIssueCode IssueCode => ValidationIssueCode.Unknown;
-
-        public override string GetMessage() => Strings.UnknownIssueMessage;
     }
 }
