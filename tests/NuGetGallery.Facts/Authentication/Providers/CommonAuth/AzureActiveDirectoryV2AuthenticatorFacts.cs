@@ -14,7 +14,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
             [Fact]
             public void GetUIReturnsCorrectValues()
             {
-                //Arrange
+                // Arrange
                 var authenticator = new AzureActiveDirectoryV2Authenticator();
 
                 //Act
@@ -34,7 +34,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
             [Fact]
             public void MissingIssuerReturnsFalse()
             {
-                //Arrange
+                // Arrange
                 var authenticator = new AzureActiveDirectoryV2Authenticator();
                 var claimsIdentity = new ClaimsIdentity(new[] {
                     TestData.Identifier

@@ -483,7 +483,7 @@ namespace NuGetGallery.Authentication
                 {
                     authenticator = Authenticators
                         .Values
-                        .First(provider => provider.Name.Equals(AzureActiveDirectoryV2Authenticator.DefaultAuthenticationType, StringComparison.OrdinalIgnoreCase));
+                        .FirstOrDefault(provider => provider.Name.Equals(AzureActiveDirectoryV2Authenticator.DefaultAuthenticationType, StringComparison.OrdinalIgnoreCase));
                 }
             }
 
@@ -550,11 +550,11 @@ namespace NuGetGallery.Authentication
             }
 
             var externalIdentity = result.Identity;
-            Authenticator author = Authenticators
+            Authenticator authenticator = Authenticators
                 .Values
                 .FirstOrDefault(a => a.IsProviderForIdentity(externalIdentity));
 
-            if (author == null)
+            if (authenticator == null)
             {
                 _trace.Error($"No authenticator found for identity: {externalIdentity.AuthenticationType}");
                 return new AuthenticateExternalLoginResult();
@@ -562,14 +562,14 @@ namespace NuGetGallery.Authentication
 
             try
             {
-                var userInfo = author.GetIdentityInformation(externalIdentity);
+                var userInfo = authenticator.GetIdentityInformation(externalIdentity);
                 var emailSuffix = userInfo.Email == null ? string.Empty : (" <" + userInfo.Email + ">");
                 var identity = userInfo.Name + emailSuffix;
                 return new AuthenticateExternalLoginResult()
                 {
                     Authentication = null,
                     ExternalIdentity = externalIdentity,
-                    Authenticator = author,
+                    Authenticator = authenticator,
                     Credential = _credentialBuilder.CreateExternalCredential(userInfo.AuthenticationType, userInfo.Identifier, identity, userInfo.TenantId)
                 };
             }
@@ -682,13 +682,13 @@ namespace NuGetGallery.Authentication
 
         private string FormatExternalCredentialType(string externalType)
         {
-            Authenticator author;
-            if (!Authenticators.TryGetValue(externalType, out author))
+            Authenticator authenticator;
+            if (!Authenticators.TryGetValue(externalType, out authenticator))
             {
                 return externalType;
             }
-            var ui = author.GetUI();
-            return ui == null ? author.Name : ui.AccountNoun;
+            var ui = authenticator.GetUI();
+            return ui == null ? authenticator.Name : ui.AccountNoun;
         }
 
         private Credential FindMatchingCredential(Credential credential)

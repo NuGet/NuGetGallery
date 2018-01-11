@@ -23,13 +23,13 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
         {
             base.ApplyToOwinSecurityOptions(options);
 
-            var opts = options as OpenIdConnectAuthenticationOptions;
-            if (opts != null)
+            var openIdOptions = options as OpenIdConnectAuthenticationOptions;
+            if (openIdOptions != null)
             {
                 // Set passive so that a HTTP 401 does not automatically trigger
                 // Azure AD authentication. NuGet uses an explicit challenge to trigger
                 // the auth flow.
-                opts.AuthenticationMode = AuthenticationMode.Passive;
+                openIdOptions.AuthenticationMode = AuthenticationMode.Passive;
 
                 // Make sure ClientId and ClientSecret is configured
                 if (String.IsNullOrEmpty(ClientId))
@@ -48,9 +48,9 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
                         "Auth.CommonAuth.ClientSecret"));
                 }
 
-                opts.ClientId = ClientId;
-                opts.ClientSecret = ClientSecret;
-                opts.Authority = String.Format(CultureInfo.InvariantCulture, AzureActiveDirectoryV2Authenticator.Authority, AzureActiveDirectoryV2Authenticator.V2CommonTenant);
+                openIdOptions.ClientId = ClientId;
+                openIdOptions.ClientSecret = ClientSecret;
+                openIdOptions.Authority = String.Format(CultureInfo.InvariantCulture, AzureActiveDirectoryV2Authenticator.Authority, AzureActiveDirectoryV2Authenticator.V2CommonTenant);
             }
         }
     }
