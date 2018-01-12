@@ -86,23 +86,5 @@ namespace NuGet.Services.Validation.Issues.Tests {
                 return ResourceManager.GetString("ObsoleteTestingIssueJson", resourceCulture);
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to {&quot;c&quot;:2}.
-        /// </summary>
-        internal static string SignedPackageMustHaveOneSignatureIssueJson {
-            get {
-                return ResourceManager.GetString("SignedPackageMustHaveOneSignatureIssueJson", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to {&quot;c&quot;:1}.
-        /// </summary>
-        internal static string SignedPackageMustHaveOneSignatureIssueJsonInvalidCount {
-            get {
-                return ResourceManager.GetString("SignedPackageMustHaveOneSignatureIssueJsonInvalidCount", resourceCulture);
-            }
-        }
     }
 }

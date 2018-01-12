@@ -64,17 +64,6 @@ namespace NuGet.Services.Validation.Issues.Tests
                 // Assert
                 Assert.Equal(Strings.ClientSigningVerificationFailureIssueJson, result);
             }
-
-            [Fact]
-            public void SignedPackageMustHaveOneSignatureSerialization()
-            {
-                // Arrange
-                var signedError = new SignedPackageMustHaveOneSignature(count: 2);
-                var result = signedError.Serialize();
-
-                // Assert
-                Assert.Equal(Strings.SignedPackageMustHaveOneSignatureIssueJson, result);
-            }
         }
 
         public class TheDeserializeMethod
@@ -211,34 +200,6 @@ namespace NuGet.Services.Validation.Issues.Tests
                 Assert.Equal(ValidationIssueCode.ClientSigningVerificationFailure, result.IssueCode);
                 Assert.Equal("NU3008", result.ClientCode);
                 Assert.Equal("The package integrity check failed.", result.ClientMessage);
-            }
-
-            [Fact]
-            public void SignedPackageMustHaveOneSignatureDeserialization()
-            {
-                // Arrange
-                var validationIssue = CreatePackageValidationIssue(ValidationIssueCode.SignedPackageMustHaveOneSignature, Strings.SignedPackageMustHaveOneSignatureIssueJson);
-
-                // Act
-                var result = ValidationIssue.Deserialize(validationIssue.IssueCode, validationIssue.Data) as SignedPackageMustHaveOneSignature;
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal(ValidationIssueCode.SignedPackageMustHaveOneSignature, result.IssueCode);
-                Assert.Equal(2, result.Count);
-            }
-
-            [Fact]
-            public void SignedPackageMustHaveOneSignatureDeserializationWhenCountIsInvalid()
-            {
-                // Arrange
-                var validationIssue = CreatePackageValidationIssue(ValidationIssueCode.SignedPackageMustHaveOneSignature, Strings.SignedPackageMustHaveOneSignatureIssueJsonInvalidCount);
-
-                // Act
-                var result = ValidationIssue.Deserialize(validationIssue.IssueCode, validationIssue.Data);
-
-                // Assert
-                Assert.IsType<UnknownIssue>(result);
             }
 
             private PackageValidationIssue CreatePackageValidationIssue(ValidationIssueCode issueCode, string data)

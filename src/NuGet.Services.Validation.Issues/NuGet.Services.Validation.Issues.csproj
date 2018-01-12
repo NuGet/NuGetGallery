@@ -42,7 +42,6 @@
   <ItemGroup>
     <Compile Include="ObsoleteTestingIssue.cs" />
     <Compile Include="ClientSigningVerificationFailure.cs" />
-    <Compile Include="SignedPackageMustHaveOneSignature.cs" />
     <Compile Include="UnknownIssue.cs" />
     <Compile Include="ValidationIssue.cs" />
     <Compile Include="PackageIsSigned.cs" />

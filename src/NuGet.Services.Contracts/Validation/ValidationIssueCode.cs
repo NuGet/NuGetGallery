@@ -26,11 +26,6 @@ namespace NuGet.Services.Validation
         ClientSigningVerificationFailure = 2,
 
         /// <summary>
-        /// Packages with multiple signatures are blocked.
-        /// </summary>
-        SignedPackageMustHaveOneSignature = 3,
-
-        /// <summary>
         /// Obsolete testing issue - do NOT use this!
         /// </summary>
         [Obsolete("This issue code should only be used for testing")]
