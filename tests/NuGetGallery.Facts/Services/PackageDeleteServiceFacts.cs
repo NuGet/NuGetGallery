@@ -341,8 +341,7 @@ namespace NuGetGallery
 
                 await service.SoftDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty);
                 
-                packageFileService.Verify(x => x.DeleteReadMeMdFileAsync(package, true), Times.Once);
-                packageFileService.Verify(x => x.DeleteReadMeMdFileAsync(package, false), Times.Once);
+                packageFileService.Verify(x => x.DeleteReadMeMdFileAsync(package), Times.Once);
             }
 
             [Fact]
@@ -585,7 +584,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillDeleteReadMeFiles()
+            public async Task WillDeleteReadMeFile()
             {
                 var packageFileService = new Mock<IPackageFileService>();
 
@@ -597,8 +596,7 @@ namespace NuGetGallery
 
                 await service.HardDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty, false);
 
-                packageFileService.Verify(x => x.DeleteReadMeMdFileAsync(package, true), Times.Once);
-                packageFileService.Verify(x => x.DeleteReadMeMdFileAsync(package, false), Times.Once);
+                packageFileService.Verify(x => x.DeleteReadMeMdFileAsync(package), Times.Once);
             }
 
             [Fact]

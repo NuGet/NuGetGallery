@@ -10,11 +10,9 @@ namespace NuGetGallery
             ReadMe = new ReadMeRequest();
         }
 
-        public EditPackageVersionReadMeRequest(PackageEdit pendingMetadata)
+        public EditPackageVersionReadMeRequest(PackageEditReadMeState readMeState)
         {
-            var metadata = pendingMetadata ?? new PackageEdit();
-
-            ReadMeState = metadata.ReadMeState;
+            ReadMeState = readMeState;
 
             ReadMe = new ReadMeRequest();
         }

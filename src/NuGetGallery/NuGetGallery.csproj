@@ -1794,7 +1794,6 @@
     <Compile Include="Services\StatisticsReportResult.cs" />
     <Compile Include="Services\StatusService.cs" />
     <Compile Include="Services\UploadFileService.cs" />
-    <Compile Include="Services\EditPackageService.cs" />
     <Compile Include="ViewModels\AggregateStats.cs" />
     <Compile Include="ViewModels\ContactSupportViewModel.cs" />
     <Compile Include="ViewModels\DeletePackageViewModel.cs" />
