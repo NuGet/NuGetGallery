@@ -78,6 +78,7 @@
     <Compile Include="SmtpConfiguration.cs" />
     <Compile Include="ValidationConfiguration.cs" />
     <Compile Include="ValidationConfigurationItem.cs" />
+    <Compile Include="ValidationFailureBehavior.cs" />
     <Compile Include="Vcs\IPackageCriteria.cs" />
     <Compile Include="Vcs\IPackageCriteriaEvaluator.cs" />
     <Compile Include="Vcs\PackageCriteriaEvaluator.cs" />

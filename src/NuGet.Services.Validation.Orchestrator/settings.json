@@ -4,7 +4,9 @@
       {
         "name": "",
         "failAfter": "1:00:00:00",
-        "requiredValidations": []
+        "requiredValidations": [],
+        "ShouldStart": true,
+        "FailureBehavior": "MustSucceed"
       }
     ],
     "ValidationStorageConnectionString": "",

@@ -16,13 +16,15 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 {
     public class ValidationOutcomeProcessorFacts
     {
-        [Fact]
-        public async Task MarksPackageAsFailedAndSendsEmailOnFailedValidation()
+        [Theory]
+        [InlineData(ValidationFailureBehavior.MustSucceed, PackageStatus.FailedValidation)]
+        [InlineData(ValidationFailureBehavior.AllowedToFail, PackageStatus.Available)]
+        public async Task ProcessesFailedValidationAccordingToFailureBehavior(ValidationFailureBehavior failureBehavior, PackageStatus expectedPackageStatus)
         {
-            AddValidation("validation1", ValidationStatus.Failed);
+            AddValidation("validation1", ValidationStatus.Failed, failureBehavior);
 
             PackageServiceMock
-                .Setup(ps => ps.UpdatePackageStatusAsync(Package, PackageStatus.FailedValidation, true))
+                .Setup(ps => ps.UpdatePackageStatusAsync(Package, expectedPackageStatus, true))
                 .Returns(Task.FromResult(0))
                 .Verifiable();
 
@@ -30,7 +32,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             await processor.ProcessValidationOutcomeAsync(ValidationSet, Package);
 
             PackageServiceMock
-                .Verify(ps => ps.UpdatePackageStatusAsync(Package, PackageStatus.FailedValidation, true), Times.Once());
+                .Verify(ps => ps.UpdatePackageStatusAsync(Package, expectedPackageStatus, true), Times.Once());
             PackageServiceMock
                 .Verify(ps => ps.UpdatePackageStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), It.IsAny<bool>()), Times.Once());
         }
@@ -223,8 +225,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .Returns(Task.FromResult(0))
                 .Verifiable();
 
-            var procecssor = CreateProcessor();
-            var exception = await Assert.ThrowsAsync<Exception>(() => procecssor.ProcessValidationOutcomeAsync(ValidationSet, Package));
+            var processor = CreateProcessor();
+            var exception = await Assert.ThrowsAsync<Exception>(() => processor.ProcessValidationOutcomeAsync(ValidationSet, Package));
 
             PackageFileServiceMock
                 .Verify(pfs => pfs.DeletePackageFileAsync(Package.PackageRegistration.Id, Package.Version), Times.AtLeastOnce());
@@ -391,19 +393,21 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         protected PackageValidationSet ValidationSet { get; }
         protected Package Package { get; }
 
-        private void AddValidation(string validationName, ValidationStatus validationStatus)
+        private void AddValidation(string validationName, ValidationStatus validationStatus, ValidationFailureBehavior failureBehavior = ValidationFailureBehavior.MustSucceed)
         {
             ValidationSet.PackageValidations.Add(new PackageValidation
             {
                 Type = validationName,
                 ValidationStatus = validationStatus,
-                PackageValidationIssues = new List<PackageValidationIssue> { }
+                PackageValidationIssues = new List<PackageValidationIssue> { },
             });
             Configuration.Validations.Add(new ValidationConfigurationItem
             {
                 Name = validationName,
                 FailAfter = TimeSpan.FromDays(1),
-                RequiredValidations = new List<string> { }
+                RequiredValidations = new List<string> { },
+                ShouldStart = true,
+                FailureBehavior = failureBehavior
             });
         }
     }

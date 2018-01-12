@@ -22,9 +22,20 @@ namespace NuGet.Services.Validation.Orchestrator
         public TimeSpan FailAfter { get; set; }
 
         /// <summary>
-        /// List of validation names that must succeed before this validation can run
+        /// List of validation names that must finish before this validation can run
         /// </summary>
         public List<string> RequiredValidations { get; set; }
+
+        /// <summary>
+        /// Specifies whether the validation should be started as part of the package validation process.
+        /// </summary>
+        public bool ShouldStart { get; set; }
+
+        /// <summary>
+        /// Specifies how orchestrator would handle the validation failure.
+        /// See <see cref="ValidationFailureBehavior"/> for more details about specific values.
+        /// </summary>
+        public ValidationFailureBehavior FailureBehavior { get; set; }
 
         public ValidationConfigurationItem()
         {
