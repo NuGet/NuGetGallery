@@ -34,7 +34,7 @@ namespace NuGet.Services.Validation
 
         private const string ValidatorStatusesTable = "ValidatorStatuses";
         private const string ValidatorStatusesPackageKeyIndex = "IX_ValidatorStatuses_PackageKey";
-
+        
         private const string PackageSigningStatesTable = "PackageSigningStates";
         private const string PackageSigningStatesPackageIdPackageVersionIndex = "IX_PackageSigningStates_PackageId_PackageNormalizedVersion";
 
@@ -208,6 +208,17 @@ namespace NuGet.Services.Validation
             modelBuilder.Entity<ValidatorStatus>()
                 .Property(r => r.RowVersion)
                 .IsRowVersion();
+
+            modelBuilder.Entity<ValidatorIssue>()
+                .HasKey(vi => vi.Key);
+
+            modelBuilder.Entity<ValidatorIssue>()
+                .Property(vi => vi.Key)
+                .HasDatabaseGeneratedOption(DatabaseGeneratedOption.Identity);
+
+            modelBuilder.Entity<ValidatorIssue>()
+                .Property(vi => vi.Data)
+                .IsRequired();
 
             RegisterPackageSigningEntities(modelBuilder);
 

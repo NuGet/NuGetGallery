@@ -15,6 +15,7 @@ namespace NuGet.Services.Validation.Issues
         public static readonly IReadOnlyDictionary<ValidationIssueCode, Type> IssueCodeTypes = new Dictionary<ValidationIssueCode, Type>
         {
             { ValidationIssueCode.PackageIsSigned, GetIssueType<PackageIsSigned>() },
+            { ValidationIssueCode.ClientSigningVerificationFailure, GetIssueType<ClientSigningVerificationFailure>() },
 #pragma warning disable 618
             { ValidationIssueCode.ObsoleteTesting, GetIssueType<ObsoleteTestingIssue>() }
 #pragma warning restore 618
@@ -33,7 +34,18 @@ namespace NuGet.Services.Validation.Issues
                 return new UnknownIssue();
             }
 
-            return (ValidationIssue)JsonConvert.DeserializeObject(data, deserializationType);
+            try
+            {
+                var issue = JsonConvert.DeserializeObject(data, deserializationType) as ValidationIssue;
+
+                /// <see cref="JsonConvert.DeserializeObject(string, Type)"/> can return null in some cases (for
+                /// example if the input string is empty).
+                return issue ?? new UnknownIssue();
+            }
+            catch (Exception)
+            {
+                return new UnknownIssue();
+            }
         }
 
         /// <summary>
@@ -48,12 +60,6 @@ namespace NuGet.Services.Validation.Issues
         /// </summary>
         [JsonIgnore]
         public abstract ValidationIssueCode IssueCode { get; }
-
-        /// <summary>
-        /// Get the message that describes this particular issue.
-        /// </summary>
-        /// <returns>A well-formatted error message that describes this issue.</returns>
-        public abstract string GetMessage();
 
         /// <summary>
         /// Serialize this issue into a string, excluding the issue code.

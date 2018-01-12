@@ -61,20 +61,20 @@ namespace NuGet.Services.Validation.Issues.Tests {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {&quot;c&quot;:&quot;NU3008&quot;,&quot;m&quot;:&quot;The package integrity check failed.&quot;}.
+        /// </summary>
+        internal static string ClientSigningVerificationFailureIssueJson {
+            get {
+                return ResourceManager.GetString("ClientSigningVerificationFailureIssueJson", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {}.
         /// </summary>
         internal static string EmptyJson {
             get {
                 return ResourceManager.GetString("EmptyJson", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Hello this is dog.
-        /// </summary>
-        internal static string InvalidJson {
-            get {
-                return ResourceManager.GetString("InvalidJson", resourceCulture);
             }
         }
         

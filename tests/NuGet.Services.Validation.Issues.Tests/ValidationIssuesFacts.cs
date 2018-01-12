@@ -1,7 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.IO;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using Xunit;
@@ -52,6 +53,17 @@ namespace NuGet.Services.Validation.Issues.Tests
                 // Assert
                 Assert.Equal(Strings.EmptyJson, result);
             }
+
+            [Fact]
+            public void ClientSigningVerificationFailureSerialization()
+            {
+                // Arrange
+                var signedError = new ClientSigningVerificationFailure("NU3008", "The package integrity check failed.");
+                var result = signedError.Serialize();
+
+                // Assert
+                Assert.Equal(Strings.ClientSigningVerificationFailureIssueJson, result);
+            }
         }
 
         public class TheDeserializeMethod
@@ -59,22 +71,95 @@ namespace NuGet.Services.Validation.Issues.Tests
             [Fact]
             public void UnknownDeserialization()
             {
-                // Arrange & Act
+                // Arrange
                 var validationIssue = CreatePackageValidationIssue(ValidationIssueCode.Unknown, Strings.EmptyJson);
+
+                // Act
                 var result = ValidationIssue.Deserialize(validationIssue.IssueCode, validationIssue.Data) as UnknownIssue;
 
                 // Assert
                 Assert.NotNull(result);
                 Assert.Equal(ValidationIssueCode.Unknown, result.IssueCode);
-                Assert.Equal("Package validation failed due to an unknown error.", result.GetMessage());
+            }
+
+            [Theory]
+            [MemberData(nameof(InvalidDeserializationData))]
+            public void InvalidDataDeserialization(ValidationIssueCode code, string data)
+            {
+                // Arrange
+                var validationIssue = CreatePackageValidationIssue(code, data);
+
+                // Act
+                var result = ValidationIssue.Deserialize(validationIssue.IssueCode, validationIssue.Data);
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(ValidationIssueCode.Unknown, result.IssueCode);
+                Assert.Equal(Strings.EmptyJson, result.Serialize());
+            }
+
+            private static readonly IReadOnlyList<ValidationIssueCode> CodesWithNoProperties = new[]
+            {
+                ValidationIssueCode.PackageIsSigned,
+                ValidationIssueCode.Unknown,
+            };
+
+            private static readonly IReadOnlyList<ValidationIssueCode> Codes = Enum
+                .GetValues(typeof(ValidationIssueCode))
+                .Cast<ValidationIssueCode>()
+                .Except(new[] { ValidationIssueCode.Unknown })
+                .ToList();
+
+            private static readonly IReadOnlyList<string> DataWithNoProperties = new[]
+            {
+                "{}",
+                "{\"foo\":\"bar\"}", // "foo" is never a valid property name so is therefore ignored.
+            };
+
+            private static readonly IReadOnlyList<string> InvalidData = new[]
+            {
+                null,
+                "",
+                " ",
+                "   \r\n \t ",
+                "Hello this is dog",
+                "[]",
+                "null",
+                "1",
+                "\"foo\"",
+                "2.3",
+            }.Concat(DataWithNoProperties).ToList();
+
+            public static IEnumerable<object[]> InvalidDeserializationData
+            {
+                get
+                {
+                    foreach (var code in Codes)
+                    {
+                        foreach (var data in InvalidData)
+                        {
+                            // Data that represents a JSON object with no properties is valid for validation issues with
+                            // no properties. Therefore, don't emit test data for these cases.
+                            if (DataWithNoProperties.Contains(data)
+                                && CodesWithNoProperties.Contains(code))
+                            {
+                                continue;
+                            }
+
+                            yield return new object[] { code, data };
+                        }
+                    }
+                }
             }
 
             [Fact]
             public void ObsoleteTestingIssueDeserialization()
             {
-                // Arrange & Act
+                // Arrange
 #pragma warning disable 618
                 var validationIssue = CreatePackageValidationIssue(ValidationIssueCode.ObsoleteTesting, Strings.ObsoleteTestingIssueJson);
+
+                // Act
                 var result = ValidationIssue.Deserialize(validationIssue.IssueCode, validationIssue.Data) as ObsoleteTestingIssue;
 #pragma warning restore 618
 
@@ -86,14 +171,35 @@ namespace NuGet.Services.Validation.Issues.Tests
                 Assert.Equal("Hello", result.A);
                 Assert.Equal(123, result.B);
             }
+            
+            [Fact]
+            public void PackageIsSignedDeserialization()
+            {
+                // Arrange
+                var validationIssue = CreatePackageValidationIssue(ValidationIssueCode.PackageIsSigned, Strings.EmptyJson);
+
+                // Act
+                var result = ValidationIssue.Deserialize(validationIssue.IssueCode, validationIssue.Data);
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(ValidationIssueCode.PackageIsSigned, result.IssueCode);
+            }
 
             [Fact]
-            public void InvalidDeserialization()
+            public void ClientSigningVerificationFailureDeserialization()
             {
-                // Arrange & Act & Assert
-                var validationIssue = CreatePackageValidationIssue(ValidationIssueCode.PackageIsSigned, Strings.InvalidJson);
+                // Arrange
+                var validationIssue = CreatePackageValidationIssue(ValidationIssueCode.ClientSigningVerificationFailure, Strings.ClientSigningVerificationFailureIssueJson);
 
-                Assert.Throws<JsonReaderException>(() => ValidationIssue.Deserialize(validationIssue.IssueCode, validationIssue.Data));
+                // Act
+                var result = ValidationIssue.Deserialize(validationIssue.IssueCode, validationIssue.Data) as ClientSigningVerificationFailure;
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(ValidationIssueCode.ClientSigningVerificationFailure, result.IssueCode);
+                Assert.Equal("NU3008", result.ClientCode);
+                Assert.Equal("The package integrity check failed.", result.ClientMessage);
             }
 
             private PackageValidationIssue CreatePackageValidationIssue(ValidationIssueCode issueCode, string data)

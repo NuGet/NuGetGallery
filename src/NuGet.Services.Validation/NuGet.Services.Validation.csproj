@@ -40,6 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Entities\BaseValidationIssue.cs" />
     <Compile Include="Entities\CertificateChainLink.cs" />
     <Compile Include="Entities\EndCertificate.cs" />
     <Compile Include="Entities\EndCertificateStatus.cs" />
@@ -55,6 +56,7 @@
     <Compile Include="Entities\TrustedTimestamp.cs" />
     <Compile Include="Entities\ValidationEntitiesContext.cs" />
     <Compile Include="Entities\PackageValidationIssue.cs" />
+    <Compile Include="Entities\ValidatorIssue.cs" />
     <Compile Include="Entities\ValidatorStatus.cs" />
     <Compile Include="IPackageValidationEnqueuer.cs" />
     <Compile Include="IServiceBusMessageSerializer.cs" />
@@ -70,6 +72,10 @@
     <Compile Include="Migrations\201712060116551_AddPackageValidationIssues.cs" />
     <Compile Include="Migrations\201712060116551_AddPackageValidationIssues.Designer.cs">
       <DependentUpon>201712060116551_AddPackageValidationIssues.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201801092335421_AddValidatorIssues.cs" />
+    <Compile Include="Migrations\201801092335421_AddValidatorIssues.Designer.cs">
+      <DependentUpon>201801092335421_AddValidatorIssues.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\ValidationMigrationsConfiguration.cs" />
     <Compile Include="PackageValidationEnqueuer.cs" />
@@ -104,6 +110,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201712060116551_AddPackageValidationIssues.resx">
       <DependentUpon>201712060116551_AddPackageValidationIssues.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201801092335421_AddValidatorIssues.resx">
+      <DependentUpon>201801092335421_AddValidatorIssues.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
