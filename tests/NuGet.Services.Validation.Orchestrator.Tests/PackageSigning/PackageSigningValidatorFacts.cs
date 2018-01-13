@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
-using NuGet.Services.Validation.Orchestrator;
 using Xunit;
 
 namespace NuGet.Services.Validation.PackageSigning
@@ -44,12 +43,54 @@ namespace NuGet.Services.Validation.PackageSigning
                         PackageKey = PackageKey,
                         ValidatorName = nameof(PackageSigningValidator),
                         State = status,
+                        ValidatorIssues = new List<ValidatorIssue>(),
                     });
 
                 // Act & Assert
                 var actual = await _target.GetResultAsync(_validationRequest.Object);
 
                 Assert.Equal(status, actual.Status);
+            }
+
+            [Fact]
+            public async Task ReturnsValidatorIssues()
+            {
+                // Arrange
+                _validatorStateService
+                    .Setup(x => x.GetStatusAsync(It.IsAny<IValidationRequest>()))
+                    .ReturnsAsync(new ValidatorStatus
+                    {
+                        ValidationId = ValidationId,
+                        PackageKey = PackageKey,
+                        ValidatorName = nameof(PackageSigningValidator),
+                        State = ValidationStatus.Failed,
+                        ValidatorIssues = new List<ValidatorIssue>
+                        {
+                            new ValidatorIssue
+                            {
+                                IssueCode = (ValidationIssueCode)987,
+                                Data = "{}",
+                            },
+                            new ValidatorIssue
+                            {
+                                IssueCode = ValidationIssueCode.ClientSigningVerificationFailure,
+                                Data = "unknown contract",
+                            },
+                        },
+                    });
+
+                // Act
+                var actual = await _target.GetResultAsync(_validationRequest.Object);
+
+                // Assert
+                Assert.Equal(ValidationStatus.Failed, actual.Status);
+                Assert.Equal(2, actual.Issues.Count);
+
+                Assert.Equal((ValidationIssueCode)987, actual.Issues[0].IssueCode);
+                Assert.Equal("{}", actual.Issues[0].Serialize());
+
+                Assert.Equal(ValidationIssueCode.ClientSigningVerificationFailure, actual.Issues[1].IssueCode);
+                Assert.Equal("unknown contract", actual.Issues[1].Serialize());
             }
 
             public static IEnumerable<object[]> PossibleValidationStatuses => possibleValidationStatuses.Select(s => new object[] { s });
@@ -77,6 +118,7 @@ namespace NuGet.Services.Validation.PackageSigning
                          PackageKey = PackageKey,
                          ValidatorName = nameof(PackageSigningValidator),
                          State = status,
+                         ValidatorIssues = new List<ValidatorIssue>(),
                      });
 
                 // Act & Assert
@@ -105,6 +147,7 @@ namespace NuGet.Services.Validation.PackageSigning
                          PackageKey = PackageKey,
                          ValidatorName = nameof(PackageSigningValidator),
                          State = ValidationStatus.NotStarted,
+                         ValidatorIssues = new List<ValidatorIssue>(),
                      });
 
                 _packageSignatureVerifier
@@ -124,7 +167,11 @@ namespace NuGet.Services.Validation.PackageSigning
                     {
                         statePersisted = true;
                     })
-                    .ReturnsAsync(ValidationStatus.Incomplete);
+                    .ReturnsAsync(new ValidatorStatus
+                    {
+                        State = ValidationStatus.Incomplete,
+                        ValidatorIssues = new List<ValidatorIssue>(),
+                    });
 
                 // Act
                 await _target.StartValidationAsync(_validationRequest.Object);

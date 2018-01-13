@@ -67,7 +67,9 @@
     <Compile Include="Messages\SignatureValidationMessageSerializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Storage\SaveStatusResult.cs" />
+    <Compile Include="Storage\SerializedValidationIssue.cs" />
     <Compile Include="Storage\ValidatorStateService.cs" />
+    <Compile Include="Storage\ValidatorStatusExtensions.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

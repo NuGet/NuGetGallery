@@ -58,6 +58,8 @@ namespace NuGet.Services.Validation
                 Assert.Equal(PackageKey, status.PackageKey);
                 Assert.Equal(nameof(AValidator), status.ValidatorName);
                 Assert.Equal(ValidationStatus.NotStarted, status.State);
+                Assert.NotNull(status.ValidatorIssues);
+                Assert.Empty(status.ValidatorIssues);
             }
 
             [Fact]
@@ -440,7 +442,7 @@ namespace NuGet.Services.Validation
                                 && s.State == ValidationStatus.NotStarted)),
                     Times.Once);
 
-                Assert.Equal(ValidationStatus.NotStarted, result);
+                Assert.Equal(ValidationStatus.NotStarted, result.State);
             }
         }
 
@@ -469,9 +471,9 @@ namespace NuGet.Services.Validation
                                             ValidationStatus.Succeeded);
 
                 _validationContext.Verify(c => c.SaveChangesAsync(), Times.Once);
-
-                Assert.Equal(ValidationStatus.Succeeded, result);
+                
                 Assert.Equal(ValidationStatus.Succeeded, existingStatus.State);
+                Assert.Same(existingStatus, result);
             }
         }
 

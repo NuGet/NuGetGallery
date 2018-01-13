@@ -2,10 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
-using NuGet.Services.Validation.Issues;
 
 namespace NuGet.Services.Validation.PackageSigning
 {
@@ -29,25 +29,17 @@ namespace NuGet.Services.Validation.PackageSigning
         {
             var validatorStatus = await _validatorStateService.GetStatusAsync(request);
 
-            if (validatorStatus.State == ValidationStatus.Failed)
-            {
-                // If the validation has failed, assume it is because signed packages are blocked.
-                return ValidationResult.FailedWithIssues(new PackageIsSigned());
-            }
-            else
-            {
-                return new ValidationResult(validatorStatus.State);
-            }
+            return validatorStatus.ToValidationResult();
         }
 
         public async Task<IValidationResult> StartValidationAsync(IValidationRequest request)
         {
-            var status = await StartValidationInternalAsync(request);
+            var validatorStatus = await StartValidationInternalAsync(request);
 
-            return new ValidationResult(status);
+            return validatorStatus.ToValidationResult();
         }
 
-        public async Task<ValidationStatus> StartValidationInternalAsync(IValidationRequest request)
+        private async Task<ValidatorStatus> StartValidationInternalAsync(IValidationRequest request)
         {
             // Check that this is the first validation for this specific request.
             var validatorStatus = await _validatorStateService.GetStatusAsync(request);
@@ -60,7 +52,7 @@ namespace NuGet.Services.Validation.PackageSigning
                     request.PackageId,
                     request.PackageVersion);
 
-                return validatorStatus.State;
+                return validatorStatus;
             }
 
             // Kick off the verification process. Note that the jobs will not verify the package until the

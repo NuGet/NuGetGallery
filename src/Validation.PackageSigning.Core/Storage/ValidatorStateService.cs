@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Linq;
@@ -50,6 +51,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.Storage
                     PackageKey = request.PackageKey,
                     ValidatorName = _validatorName,
                     State = ValidationStatus.NotStarted,
+                    ValidatorIssues = new List<ValidatorIssue>(),
                 };
             }
             else if (status.PackageKey != request.PackageKey)
@@ -136,7 +138,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.Storage
             }
         }
 
-        public async Task<ValidationStatus> TryAddValidatorStatusAsync(IValidationRequest request, ValidatorStatus status, ValidationStatus desiredState)
+        public async Task<ValidatorStatus> TryAddValidatorStatusAsync(IValidationRequest request, ValidatorStatus status, ValidationStatus desiredState)
         {
             status.State = desiredState;
 
@@ -153,17 +155,17 @@ namespace NuGet.Jobs.Validation.PackageSigning.Storage
                     request.PackageId,
                     request.PackageVersion);
 
-                return (await GetStatusAsync(request)).State;
+                return await GetStatusAsync(request);
             }
             else if (result != AddStatusResult.Success)
             {
                 throw new NotSupportedException($"Unknown {nameof(AddStatusResult)}: {result}");
             }
 
-            return desiredState;
+            return status;
         }
 
-        public async Task<ValidationStatus> TryUpdateValidationStatusAsync(IValidationRequest request, ValidatorStatus validatorStatus, ValidationStatus desiredState)
+        public async Task<ValidatorStatus> TryUpdateValidationStatusAsync(IValidationRequest request, ValidatorStatus validatorStatus, ValidationStatus desiredState)
         {
             validatorStatus.State = desiredState;
 
@@ -180,14 +182,14 @@ namespace NuGet.Jobs.Validation.PackageSigning.Storage
                     request.PackageId,
                     request.PackageVersion);
 
-                return (await GetStatusAsync(request)).State;
+                return await GetStatusAsync(request);
             }
             else if (result != SaveStatusResult.Success)
             {
                 throw new NotSupportedException($"Unknown {nameof(SaveStatusResult)}: {result}");
             }
 
-            return desiredState;
+            return validatorStatus;
         }
     }
 }
