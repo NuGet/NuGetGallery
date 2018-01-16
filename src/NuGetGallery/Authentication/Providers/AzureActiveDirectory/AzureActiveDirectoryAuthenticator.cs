@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Mvc;
@@ -61,6 +62,18 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectory
             {
                 ShowOnLoginPage = Config.ShowOnLoginPage
             };
+        }
+
+        public override bool IsProviderForIdentity(ClaimsIdentity claimsIdentity)
+        {
+            // If the issuer of the claims identity is same as that of the issuer for current authenticator then this is the author.
+            var firstClaim = claimsIdentity?.Claims?.FirstOrDefault();
+            if (firstClaim != null && string.Equals(firstClaim.Issuer, Config.Issuer, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            return base.IsProviderForIdentity(claimsIdentity);
         }
 
         public override ActionResult Challenge(string redirectUrl)
