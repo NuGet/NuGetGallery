@@ -32,9 +32,15 @@
                 @using (Html.BeginForm("Transform", "Users"))
                 {
                     @Html.AntiForgeryToken()
-
+                    
                     <div class="row form-group col-md-9 col-md-pull-3 @Html.HasErrorFor(m => m.AdminUsername)">
                         @Html.ShowLabelFor(m => m.AdminUsername)
+                        @ViewHelpers.AlertInfo(
+                            @<text>
+                                Please enter a username for an organization administrator. Note that administrators
+                                have full control over the organization, including the ability to add and remove other members.
+                            </text>)
+
                         @Html.ShowTextBoxFor(m => m.AdminUsername)
                         @Html.ShowValidationMessagesFor(m => m.AdminUsername)
                     </div>

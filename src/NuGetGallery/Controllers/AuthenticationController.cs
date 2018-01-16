@@ -62,10 +62,11 @@ namespace NuGetGallery
         /// Sign In\Register view
         /// </summary>
         [HttpGet]
-        public virtual ActionResult LogOn(string returnUrl)
+        public virtual ActionResult LogOn(string returnUrl, string returnUrlMessage = "")
         {
             // I think it should be obvious why we don't want the current URL to be the return URL here ;)
             ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
+            ViewData[Constants.ReturnUrlMessageViewDataKey] = returnUrlMessage;
 
             if (Request.IsAuthenticated)
             {

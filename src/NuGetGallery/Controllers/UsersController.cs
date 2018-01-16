@@ -155,7 +155,8 @@ namespace NuGetGallery
 
             // prompt for admin sign-on to confirm transformation
             OwinContext.Authentication.SignOut();
-            return Redirect(Url.ConfirmTransformAccount(accountToTransform));
+            return Redirect(Url.LogOnAndConfirmTransformAccount(accountToTransform, String.Format(CultureInfo.CurrentCulture,
+                Strings.TransformAccount_SignInToConfirm, adminUser.Username, accountToTransform.Username)));
         }
 
         [HttpGet]

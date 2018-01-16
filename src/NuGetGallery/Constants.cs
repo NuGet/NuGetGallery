@@ -57,6 +57,7 @@ namespace NuGetGallery
         public const string NuGetCommandLinePackageId = "NuGet.CommandLine";
 
         public static readonly string ReturnUrlViewDataKey = "ReturnUrl";
+        public static readonly string ReturnUrlMessageViewDataKey = "ReturnUrlMessage";
         public const string AbsoluteLatestUrlString = "absoluteLatest";
 
         public const string UrlValidationRegEx = @"(https?):\/\/[^ ""]+$";

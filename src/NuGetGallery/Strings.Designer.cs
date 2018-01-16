@@ -1489,11 +1489,20 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Another tranform request was created on {0} with organization admin &apos;{1}&apos;..
+        ///   Looks up a localized string similar to Another tranform request was created on {0} for administrator &apos;{1}&apos;. Note that a new request will overwrite this..
         /// </summary>
         public static string TransformAccount_RequestExists {
             get {
                 return ResourceManager.GetString("TransformAccount_RequestExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please sign in as administrator &apos;{0}&apos; to finish transforming account &apos;{1}&apos; into an organization..
+        /// </summary>
+        public static string TransformAccount_SignInToConfirm {
+            get {
+                return ResourceManager.GetString("TransformAccount_SignInToConfirm", resourceCulture);
             }
         }
         

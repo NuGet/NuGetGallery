@@ -734,6 +734,9 @@ For more information, please contact '{2}'.</value>
     <value>Administrator account '{0}' has not confirmed their email address.</value>
   </data>
   <data name="TransformAccount_RequestExists" xml:space="preserve">
-    <value>Another tranform request was created on {0} with organization admin '{1}'.</value>
+    <value>Another tranform request was created on {0} for administrator '{1}'. Note that a new request will overwrite this.</value>
+  </data>
+  <data name="TransformAccount_SignInToConfirm" xml:space="preserve">
+    <value>Please sign in as administrator '{0}' to finish transforming account '{1}' into an organization.</value>
   </data>
 </root>
