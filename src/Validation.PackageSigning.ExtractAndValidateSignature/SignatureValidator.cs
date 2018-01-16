@@ -73,36 +73,26 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
             CancellationToken cancellationToken)
         {
             // Block packages that don't have exactly one signature.
-            var packageSignatures = await signedPackageReader.GetSignaturesAsync(cancellationToken);
-            if (packageSignatures.Count != 1)
-            {
-                _logger.LogInformation(
-                    "Signed package {PackageId} {PackageVersion} is blocked for validation {ValidationId} since it has {SignatureCount} signatures.",
-                    message.PackageId,
-                    message.PackageVersion,
-                    message.ValidationId,
-                    packageSignatures.Count);
-
-                return await RejectAsync(packageKey, message);
-            }
+            var packageSignature = await signedPackageReader.GetSignatureAsync(cancellationToken);
 
             // Block packages with any unknown signing certificates.
-            var packageThumbprints = GetThumbprints(packageSignatures);
-            var knownThumbprints = _certificates
+            var packageThumbprint = packageSignature
+                .SignerInfo
+                .Certificate
+                .ComputeSHA256Thumbprint();
+            var isKnownCertificate = _certificates
                 .GetAll()
-                .Where(c => packageThumbprints.Contains(c.Thumbprint))
-                .Select(c => c.Thumbprint)
-                .ToList();
+                .Where(c => packageThumbprint == c.Thumbprint)
+                .Any();
             
-            var unknownThumbprints = packageThumbprints.Except(knownThumbprints);
-            if (unknownThumbprints.Any())
+            if (!isKnownCertificate)
             {
                 _logger.LogInformation(
-                    "Signed package {PackageId} {PackageVersion} is blocked for validation {ValidationId} since it has unknown certificate thumbprints: {UnknownThumbprints}",
+                    "Signed package {PackageId} {PackageVersion} is blocked for validation {ValidationId} since it has an unknown certificate thumbprint: {UnknownThumbprint}",
                     message.PackageId,
                     message.PackageVersion,
                     message.ValidationId,
-                    unknownThumbprints);
+                    packageThumbprint);
 
                 return await RejectAsync(
                     packageKey,
@@ -147,23 +137,17 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
             }
             
             _logger.LogInformation(
-                "Signed package {PackageId} {PackageVersion} for validation {ValidationId} is valid with certificate thumbprints: {PackageThumbprints}",
+                "Signed package {PackageId} {PackageVersion} for validation {ValidationId} is valid with certificate thumbprint: {PackageThumbprint}",
                 message.PackageId,
                 message.PackageVersion,
                 message.ValidationId,
-                packageThumbprints);
+                packageThumbprint);
 
             // Extract all of the signature artifacts and persist them.
             await _signaturePartsExtractor.ExtractAsync(signedPackageReader, cancellationToken);
 
             // Mark this package as signed.
             return await AcceptAsync(packageKey, message, PackageSigningStatus.Valid);
-        }
-
-        private HashSet<string> GetThumbprints(IEnumerable<Signature> signatures)
-        {
-            return new HashSet<string>(signatures
-                .Select(x => x.SignerInfo.Certificate.ComputeSHA256Thumbprint()));
         }
 
         private async Task<SignatureValidatorResult> RejectAsync(

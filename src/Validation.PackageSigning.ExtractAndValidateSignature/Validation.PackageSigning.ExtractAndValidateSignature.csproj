@@ -105,7 +105,7 @@
       <Version>1.1.2</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Packaging">
-      <Version>4.6.0-preview3-4785</Version>
+      <Version>4.6.0-rtm-4822</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Configuration">
       <Version>2.7.2</Version>

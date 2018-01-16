@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography.Pkcs;
@@ -31,27 +30,30 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
         /// </summary>
         private static readonly ExtractedCertificatesThumbprints Leaf1Certificates = new ExtractedCertificatesThumbprints
         {
-            SignatureParentCertificates = new[]
-            {
-                new SubjectAndThumbprint(
-                    "CN=NUGET_DO_NOT_TRUST.root.test.test, OU=Test Organizational Unit Name, O=Test Organization Name, L=Redmond, S=WA, C=US",
-                    TestResources.RootThumbprint),
-                new SubjectAndThumbprint(
-                    "CN=NUGET_DO_NOT_TRUST.intermediate.test.test, OU=Test Organizational Unit Name, O=Test Organization Name, L=Redmond, S=WA, C=US",
-                    "d5949445cde4d80bc0c857dddb8520114a146d73de081a77404b0c17dda6a4b4"),
-            },
             SignatureEndCertificate = new SubjectAndThumbprint(
                 "CN=NUGET_DO_NOT_TRUST.leaf-1.test.test, OU=Test Organizational Unit Name, O=Test Organization Name, L=Redmond, S=WA, C=US",
                 TestResources.Leaf1Thumbprint),
-            TimestampParentCertificates = new[]
+            SignatureParentCertificates = new[]
             {
                 new SubjectAndThumbprint(
-                    "CN=Symantec SHA256 TimeStamping CA, OU=Symantec Trust Network, O=Symantec Corporation, C=US",
-                    "f3516ddcc8afc808788bd8b0e840bda2b5e23c6244252ca3000bb6c87170402a")
+                    "CN=NUGET_DO_NOT_TRUST.intermediate.test.test, OU=Test Organizational Unit Name, O=Test Organization Name, L=Redmond, S=WA, C=US",
+                    "d5949445cde4d80bc0c857dddb8520114a146d73de081a77404b0c17dda6a4b4"),
+                new SubjectAndThumbprint(
+                    "CN=NUGET_DO_NOT_TRUST.root.test.test, OU=Test Organizational Unit Name, O=Test Organization Name, L=Redmond, S=WA, C=US",
+                    TestResources.RootThumbprint),
             },
             TimestampEndCertificate = new SubjectAndThumbprint(
                 "CN=Symantec SHA256 TimeStamping Signer - G2, OU=Symantec Trust Network, O=Symantec Corporation, C=US",
                 "cf7ac17ad047ecd5fdc36822031b12d4ef078b6f2b4c5e6ba41f8ff2cf4bad67"),
+            TimestampParentCertificates = new[]
+            {
+                new SubjectAndThumbprint(
+                    "CN=Symantec SHA256 TimeStamping CA, OU=Symantec Trust Network, O=Symantec Corporation, C=US",
+                    "f3516ddcc8afc808788bd8b0e840bda2b5e23c6244252ca3000bb6c87170402a"),
+                new SubjectAndThumbprint(
+                    "CN=VeriSign Universal Root Certification Authority, OU=\"(c) 2008 VeriSign, Inc. - For authorized use only\", OU=VeriSign Trust Network, O=\"VeriSign, Inc.\", C=US",
+                    "2399561127a57125de8cefea610ddf2fa078b5c8067f4e828290bfb860e84b3c"),
+            },
         };
 
         public class ExtractAsync
@@ -193,8 +195,8 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                     // Assert
                     VerifySavedCertificates(Leaf1Certificates);
                     Assert.Equal(2, _entitiesContext.Object.EndCertificates.Count());
-                    Assert.Equal(3, _entitiesContext.Object.ParentCertificates.Count());
-                    Assert.Equal(3, _entitiesContext.Object.CertificateChainLinks.Count());
+                    Assert.Equal(4, _entitiesContext.Object.ParentCertificates.Count());
+                    Assert.Equal(4, _entitiesContext.Object.CertificateChainLinks.Count());
                 }
             }
 
@@ -243,8 +245,8 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                     // Assert
                     VerifySavedCertificates(Leaf1Certificates);
                     Assert.Equal(2, _entitiesContext.Object.EndCertificates.Count());
-                    Assert.Equal(3, _entitiesContext.Object.ParentCertificates.Count());
-                    Assert.Equal(3, _entitiesContext.Object.CertificateChainLinks.Count());
+                    Assert.Equal(4, _entitiesContext.Object.ParentCertificates.Count());
+                    Assert.Equal(4, _entitiesContext.Object.CertificateChainLinks.Count());
                     Assert.Equal(EndCertificateStatus.Good, existingEndCertificate.Status);
                 }
             }
@@ -256,17 +258,17 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                 using (var package = TestResources.LoadPackage(TestResources.SignedPackageLeaf1))
                 using (var unrelatedPackage = TestResources.LoadPackage(TestResources.SignedPackageLeaf2))
                 {
-                    var originalSignatures = await package.GetSignaturesAsync(_token);
-                    var unrelatedSignatures = await unrelatedPackage.GetSignaturesAsync(_token);
+                    var originalSignature = await package.GetSignatureAsync(_token);
+                    var unrelatedSignature = await unrelatedPackage.GetSignatureAsync(_token);
 
-                    var signature = AddCertificates(originalSignatures[0].SignedCms, unrelatedSignatures[0].SignedCms);
+                    var signature = AddCertificates(originalSignature.SignedCms, unrelatedSignature.SignedCms);
 
                     _packageMock
                         .Setup(x => x.IsSignedAsync(It.IsAny<CancellationToken>()))
                         .ReturnsAsync(true);
                     _packageMock
-                        .Setup(x => x.GetSignaturesAsync(It.IsAny<CancellationToken>()))
-                        .ReturnsAsync(new[] { signature });
+                        .Setup(x => x.GetSignatureAsync(It.IsAny<CancellationToken>()))
+                        .ReturnsAsync(signature);
 
                     // Act
                     await _target.ExtractAsync(_packageMock.Object, _token);
@@ -393,10 +395,10 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
             public SubjectAndThumbprint TimestampEndCertificate { get; set; }
             public IReadOnlyList<SubjectAndThumbprint> Certificates => Enumerable
                 .Empty<SubjectAndThumbprint>()
-                .Concat(SignatureParentCertificates)
                 .Concat(new[] { SignatureEndCertificate })
-                .Concat(TimestampParentCertificates)
+                .Concat(SignatureParentCertificates)
                 .Concat(new[] { TimestampEndCertificate })
+                .Concat(TimestampParentCertificates)
                 .ToList();
         }
     }

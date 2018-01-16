@@ -201,14 +201,14 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
             public async Task RejectsSignedPackagesWithUnknownCertificates()
             {
                 // Arrange
-                var signatures = await TestResources.SignedPackageLeaf1Reader.GetSignaturesAsync(CancellationToken.None);
+                var signature = await TestResources.SignedPackageLeaf1Reader.GetSignatureAsync(CancellationToken.None);
 
                 _packageMock
                     .Setup(x => x.IsSignedAsync(It.IsAny<CancellationToken>()))
                     .ReturnsAsync(true);
                 _packageMock
-                    .Setup(x => x.GetSignaturesAsync(It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(signatures);
+                    .Setup(x => x.GetSignatureAsync(It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(signature);
                 _certificates
                     .Setup(x => x.GetAll())
                     .Returns(new[] { new Certificate { Thumbprint = TestResources.Leaf2Thumbprint } }.AsQueryable());
@@ -224,61 +224,6 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                 Validate(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
                 var issue = Assert.Single(result.Issues);
                 Assert.IsType<PackageIsSigned>(issue);
-            }
-
-            [Fact]
-            public async Task RejectsSignedPackagesWithNoSignatures()
-            {
-                // Arrange
-                _packageMock
-                    .Setup(x => x.IsSignedAsync(It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(true);
-                _packageMock
-                    .Setup(x => x.GetSignaturesAsync(It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(new List<Signature>());
-
-                // Act
-                var result = await _target.ValidateAsync(
-                    _packageKey,
-                    _packageMock.Object,
-                    _message,
-                    _cancellationToken);
-
-                // Assert
-                Validate(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
-                Assert.Empty(result.Issues);
-            }
-
-            [Fact]
-            public async Task RejectsSignedPackagesWithMultipleSignatures()
-            {
-                // Arrange
-                var signatures = (await TestResources.SignedPackageLeaf1Reader.GetSignaturesAsync(CancellationToken.None))
-                    .Concat(await TestResources.SignedPackageLeaf2Reader.GetSignaturesAsync(CancellationToken.None))
-                    .ToList();
-
-                _packageMock
-                    .Setup(x => x.IsSignedAsync(It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(true);
-                _packageMock
-                    .Setup(x => x.GetSignaturesAsync(It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(signatures);
-                _certificates
-                    .Setup(x => x.GetAll())
-                    .Returns(new[] { TestResources.Leaf1Thumbprint, TestResources.Leaf2Thumbprint }
-                        .Select(x => new Certificate { Thumbprint = x })
-                        .AsQueryable());
-
-                // Act
-                var result = await _target.ValidateAsync(
-                    _packageKey,
-                    _packageMock.Object,
-                    _message,
-                    _cancellationToken);
-
-                // Assert
-                Validate(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
-                Assert.Empty(result.Issues);
             }
 
             [Fact]
@@ -303,14 +248,14 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
 
             private async Task ConfigureKnownSignedPackage(ISignedPackageReader package, string thumbprint)
             {
-                var signatures = await package.GetSignaturesAsync(CancellationToken.None);
+                var signature = await package.GetSignatureAsync(CancellationToken.None);
 
                 _packageMock
                     .Setup(x => x.IsSignedAsync(It.IsAny<CancellationToken>()))
                     .ReturnsAsync(true);
                 _packageMock
-                    .Setup(x => x.GetSignaturesAsync(It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(signatures);
+                    .Setup(x => x.GetSignatureAsync(It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(signature);
                 _certificates
                     .Setup(x => x.GetAll())
                     .Returns(new[] { new Certificate { Thumbprint = thumbprint } }.AsQueryable());

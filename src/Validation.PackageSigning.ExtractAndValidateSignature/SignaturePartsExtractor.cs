@@ -5,11 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Security.Cryptography.Pkcs;
 using System.Threading;
 using System.Threading.Tasks;
-using NuGet.Common;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
 using NuGet.Packaging.Signing;
 using NuGet.Services.Validation;
@@ -36,11 +33,11 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
                 throw new ArgumentException("The provided package reader must refer to a signed package.", nameof(signedPackageReader));
             }
 
-            // Read the signatures from the package.
-            var signatures = await signedPackageReader.GetSignaturesAsync(token);
+            // Read the package signature.
+            var signature = await signedPackageReader.GetSignatureAsync(token);
 
             // Extract the certificates found in the package signatures.
-            var extractedCertificates = ExtractCertificates(signatures);
+            var extractedCertificates = ExtractCertificates(signature);
 
             // Save the certificates to blob storage.
             await SaveCertificatesToStoreAsync(extractedCertificates, token);
@@ -49,80 +46,48 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
             await SaveCertificatesToDatabaseAsync(extractedCertificates);
         }
 
-        private ExtractedCertificates ExtractCertificates(IReadOnlyList<Signature> signatures)
+        private ExtractedCertificates ExtractCertificates(Signature signature)
         {
-            if (signatures.Count != 1)
+            if (signature.Timestamps.Count != 1)
             {
-                throw new ArgumentException("There should be exactly one signature.", nameof(signatures));
+                throw new ArgumentException("There should be exactly one timestamp.", nameof(signature));
             }
 
-            if (signatures[0].Timestamps.Count != 1)
+            var signatureCertificates = SignatureUtility
+                .GetPrimarySignatureCertificates(signature);
+            if (signatureCertificates == null || !signatureCertificates.Any())
             {
-                throw new ArgumentException("There should be exactly one timestamp.", nameof(signatures));
+                throw new ArgumentException(
+                    "The provided signature must have at least one primary signing certificate.",
+                    nameof(signature));
             }
 
-            var signatureCertificates = GetCertificates(signatures[0].SignedCms, filter: true).ToList();
-            var signatureEndCertificate = signatureCertificates.Last();
-            var signatureParentCertificates = signatureCertificates.Take(signatureCertificates.Count - 1).ToList();
+            var hashedSignatureCertificates = signatureCertificates
+                .Select(x => new HashedCertificate(x))
+                .ToList();
+            var signatureEndCertificate = hashedSignatureCertificates.First();
+            var signatureParentCertificates = hashedSignatureCertificates.Skip(1).ToList();
 
-            var timestampCertificates = GetCertificates(signatures[0].Timestamps[0].SignedCms, filter: false).ToList();
-            var timestampEndCertificate = timestampCertificates.Last();
-            var timestampParentCertificates = timestampCertificates.Take(timestampCertificates.Count - 1).ToList();
+            var timestampCertificates = SignatureUtility
+                .GetPrimarySignatureTimestampSignatureCertificates(signature);
+            if (timestampCertificates == null || !timestampCertificates.Any())
+            {
+                throw new ArgumentException(
+                    "The provided signature must have at least one timestamp certificate.",
+                    nameof(signature));
+            }
+
+            var hashedTimestampCertificates = timestampCertificates
+                .Select(x => new HashedCertificate(x))
+                .ToList();
+            var timestampEndCertificate = hashedTimestampCertificates.First();
+            var timestampParentCertificates = hashedTimestampCertificates.Skip(1).ToList();
 
             return new ExtractedCertificates(
                 signatureEndCertificate,
                 signatureParentCertificates,
                 timestampEndCertificate,
                 timestampParentCertificates);
-        }
-
-        private IEnumerable<HashedCertificate> GetCertificates(SignedCms signedCms, bool filter)
-        {
-            if (!filter)
-            {
-                foreach (var certificate in signedCms.Certificates)
-                {
-                    yield return new HashedCertificate(certificate);
-                }
-
-                yield break;
-            }
-
-            // Use the signing-certificate-v2 attribute to prune the list of certificates.
-            var signingCertificateV2Attribute = signedCms
-                .SignerInfos[0]
-                .SignedAttributes
-                .FirstOrDefault(Oids.SigningCertificateV2);
-
-            if (signingCertificateV2Attribute == null)
-            {
-                throw new ArgumentException(
-                    $"The first element of {nameof(SignedCms.SignerInfos)} {nameof(SignedCms)} must have a signing certificate attribute.",
-                    nameof(signedCms));
-            }
-            
-            var signingCertificateHashes = new HashSet<Hash>(AttributeUtility
-                .GetESSCertIDv2Entries(signingCertificateV2Attribute)
-                .Select(pair => new Hash(pair.Key, pair.Value)));
-
-            // Try all of the candidate hash algorithms against the set of certificates found in the SignedCMS.
-            var algorithmsToTry = signingCertificateHashes
-                .Select(x => x.AlgorithmName)
-                .Distinct();
-            foreach (var algorithm in algorithmsToTry)
-            {
-                foreach (var certificate in signedCms.Certificates)
-                {
-                    var digest = CryptoHashUtility.ComputeHash(algorithm, certificate.RawData);
-                    var hash = new Hash(algorithm, digest);
-
-                    if (signingCertificateHashes.Contains(hash))
-                    {
-                        // Emit the certificate, hashed with a uniform hashing algorithm.
-                        yield return new HashedCertificate(certificate);
-                    }
-                }
-            }
         }
 
         private async Task SaveCertificatesToDatabaseAsync(ExtractedCertificates extractedCertificates)
@@ -271,10 +236,10 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
         {
             var allCertificates = Enumerable
                 .Empty<HashedCertificate>()
-                .Concat(extractedCertificates.SignatureParentCertificates)
                 .Concat(new[] { extractedCertificates.SignatureEndCertificate })
-                .Concat(extractedCertificates.TimestampParentCertificates)
-                .Concat(new[] { extractedCertificates.TimestampEndCertificate });
+                .Concat(extractedCertificates.SignatureParentCertificates)
+                .Concat(new[] { extractedCertificates.TimestampEndCertificate })
+                .Concat(extractedCertificates.TimestampParentCertificates);
 
             foreach (var certificate in allCertificates)
             {
