@@ -143,7 +143,7 @@ namespace NuGetGallery
             // Ideally shouldn't be necessary?
             if (!PackageIdValidator.IsValidPackageId(id ?? string.Empty))
             {
-                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, "The format of the package ID is invalid");
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, "The format of the package id is invalid");
             }
 
             // if version is non-null, check if it's semantically correct and normalize it.
