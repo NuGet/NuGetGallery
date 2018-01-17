@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json;
 using Xunit;
 
 namespace NuGet.Services.Validation.Issues.Tests
@@ -17,41 +16,49 @@ namespace NuGet.Services.Validation.Issues.Tests
             Assert.True(ValidationIssue.IssueCodeTypes.Values.All(t => t.IsSubclassOf(typeof(ValidationIssue))));
         }
 
+        [Theory]
+        [MemberData(nameof(ConvenienceStaticFieldsHaveTheProperCodesData))]
+        public void ConvenienceStaticFieldsHaveTheProperCodes(ValidationIssueCode code, IValidationIssue issue)
+        {
+            Assert.Equal(code, issue.IssueCode);
+            Assert.IsType<NoDataValidationIssue>(issue);
+        }
+
+        public static IEnumerable<object[]> ConvenienceStaticFieldsHaveTheProperCodesData => IssuesWithNoProperties
+            .Select(x => new object[] { x.Key, x.Value() });
+
         public class TheSerializeMethod
         {
-            [Fact]
-            public void UnknownSerialization()
+            [Theory]
+            [MemberData(nameof(SerializationOfIssuesWithNoPropertiesData))]
+            public void SerializationOfIssuesWithNoProperties(ValidationIssueCode code)
             {
                 // Arrange
-                var unknownIssue = new UnknownIssue();
-                var result = unknownIssue.Serialize();
+                var issue = new NoDataValidationIssue(code);
+
+                // Act
+                var result = issue.Serialize();
 
                 // Assert
                 Assert.Equal(Strings.EmptyJson, result);
             }
+
+            public static IEnumerable<object[]> SerializationOfIssuesWithNoPropertiesData => IssuesWithNoProperties
+                .Select(x => new object[] { x.Key });
 
             [Fact]
             public void ObsoleteTestingIssueSerialization()
             {
                 // Arrange
 #pragma warning disable 618
-                var signedError = new ObsoleteTestingIssue("Hello", 123);
+                var issue = new ObsoleteTestingIssue("Hello", 123);
 #pragma warning restore 618
-                var result = signedError.Serialize();
+
+                // Act
+                var result = issue.Serialize();
 
                 // Assert
                 Assert.Equal(Strings.ObsoleteTestingIssueJson, result);
-            }
-
-            [Fact]
-            public void PackageIsSignedSerialization()
-            {
-                // Arrange
-                var signedError = new PackageIsSigned();
-                var result = signedError.Serialize();
-
-                // Assert
-                Assert.Equal(Strings.EmptyJson, result);
             }
 
             [Fact]
@@ -59,6 +66,8 @@ namespace NuGet.Services.Validation.Issues.Tests
             {
                 // Arrange
                 var signedError = new ClientSigningVerificationFailure("NU3008", "The package integrity check failed.");
+
+                // Act
                 var result = signedError.Serialize();
 
                 // Assert
@@ -68,18 +77,34 @@ namespace NuGet.Services.Validation.Issues.Tests
 
         public class TheDeserializeMethod
         {
-            [Fact]
-            public void UnknownDeserialization()
+            [Theory]
+            [MemberData(nameof(DeserializationOfIssuesWithNoPropertiesData))]
+            public void DeserializationOfIssuesWithNoProperties(ValidationIssueCode code, string data)
             {
                 // Arrange
-                var validationIssue = CreatePackageValidationIssue(ValidationIssueCode.Unknown, Strings.EmptyJson);
+                var validationIssue = CreatePackageValidationIssue(code, Strings.EmptyJson);
 
                 // Act
-                var result = ValidationIssue.Deserialize(validationIssue.IssueCode, validationIssue.Data) as UnknownIssue;
+                var result = ValidationIssue.Deserialize(validationIssue.IssueCode, validationIssue.Data);
 
                 // Assert
                 Assert.NotNull(result);
-                Assert.Equal(ValidationIssueCode.Unknown, result.IssueCode);
+                var issue = Assert.IsType<NoDataValidationIssue>(result);
+                Assert.Equal(code, result.IssueCode);
+            }
+
+            public static IEnumerable<object[]> DeserializationOfIssuesWithNoPropertiesData
+            {
+                get
+                {
+                    foreach (var code in IssuesWithNoProperties.Keys)
+                    {
+                        foreach (var data in InvalidData)
+                        {
+                            yield return new object[] { code, data };
+                        }
+                    }
+                }
             }
 
             [Theory]
@@ -98,24 +123,12 @@ namespace NuGet.Services.Validation.Issues.Tests
                 Assert.Equal(Strings.EmptyJson, result.Serialize());
             }
 
-            private static readonly IReadOnlyList<ValidationIssueCode> CodesWithNoProperties = new[]
-            {
-                ValidationIssueCode.PackageIsSigned,
-                ValidationIssueCode.Unknown,
-            };
-
-            private static readonly IReadOnlyList<ValidationIssueCode> Codes = Enum
+            private static readonly IReadOnlyList<ValidationIssueCode> CodeWithProperties = Enum
                 .GetValues(typeof(ValidationIssueCode))
                 .Cast<ValidationIssueCode>()
-                .Except(new[] { ValidationIssueCode.Unknown })
+                .Except(IssuesWithNoProperties.Keys)
                 .ToList();
-
-            private static readonly IReadOnlyList<string> DataWithNoProperties = new[]
-            {
-                "{}",
-                "{\"foo\":\"bar\"}", // "foo" is never a valid property name so is therefore ignored.
-            };
-
+            
             private static readonly IReadOnlyList<string> InvalidData = new[]
             {
                 null,
@@ -128,24 +141,18 @@ namespace NuGet.Services.Validation.Issues.Tests
                 "1",
                 "\"foo\"",
                 "2.3",
-            }.Concat(DataWithNoProperties).ToList();
+                "{}",
+                "{\"foo\":\"bar\"}", // "foo" is never a valid property name so is therefore ignored.
+            };
 
             public static IEnumerable<object[]> InvalidDeserializationData
             {
                 get
                 {
-                    foreach (var code in Codes)
+                    foreach (var code in CodeWithProperties)
                     {
                         foreach (var data in InvalidData)
                         {
-                            // Data that represents a JSON object with no properties is valid for validation issues with
-                            // no properties. Therefore, don't emit test data for these cases.
-                            if (DataWithNoProperties.Contains(data)
-                                && CodesWithNoProperties.Contains(code))
-                            {
-                                continue;
-                            }
-
                             yield return new object[] { code, data };
                         }
                     }
@@ -170,20 +177,6 @@ namespace NuGet.Services.Validation.Issues.Tests
 #pragma warning restore 618
                 Assert.Equal("Hello", result.A);
                 Assert.Equal(123, result.B);
-            }
-            
-            [Fact]
-            public void PackageIsSignedDeserialization()
-            {
-                // Arrange
-                var validationIssue = CreatePackageValidationIssue(ValidationIssueCode.PackageIsSigned, Strings.EmptyJson);
-
-                // Act
-                var result = ValidationIssue.Deserialize(validationIssue.IssueCode, validationIssue.Data);
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal(ValidationIssueCode.PackageIsSigned, result.IssueCode);
             }
 
             [Fact]
@@ -211,5 +204,13 @@ namespace NuGet.Services.Validation.Issues.Tests
                 };
             }
         }
+
+        public static readonly IDictionary<ValidationIssueCode, Func<IValidationIssue>> IssuesWithNoProperties = new Dictionary<ValidationIssueCode, Func<IValidationIssue>>
+        {
+            { ValidationIssueCode.Unknown, () => ValidationIssue.Unknown },
+            { ValidationIssueCode.PackageIsSigned, () => ValidationIssue.PackageIsSigned },
+            { ValidationIssueCode.PackageIsZip64, () => ValidationIssue.PackageIsZip64 },
+            { ValidationIssueCode.OnlyAuthorSignaturesSupported, () => ValidationIssue.OnlyAuthorSignaturesSupported },
+        };
     }
 }

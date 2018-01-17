@@ -26,6 +26,16 @@ namespace NuGet.Services.Validation
         ClientSigningVerificationFailure = 2,
 
         /// <summary>
+        /// Zip64 packages are not allowed.
+        /// </summary>
+        PackageIsZip64 = 3,
+
+        /// <summary>
+        /// Packages pushed should only have author signatures.
+        /// </summary>
+        OnlyAuthorSignaturesSupported = 4,
+
+        /// <summary>
         /// Obsolete testing issue - do NOT use this!
         /// </summary>
         [Obsolete("This issue code should only be used for testing")]

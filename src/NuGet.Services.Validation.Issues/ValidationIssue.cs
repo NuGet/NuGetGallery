@@ -9,16 +9,31 @@ namespace NuGet.Services.Validation.Issues
 {
     public abstract class ValidationIssue : IValidationIssue
     {
+        public static ValidationIssue Unknown { get; } = new NoDataValidationIssue(ValidationIssueCode.Unknown);
+        public static ValidationIssue PackageIsSigned { get; } = new NoDataValidationIssue(ValidationIssueCode.PackageIsSigned);
+        public static ValidationIssue PackageIsZip64 { get; } = new NoDataValidationIssue(ValidationIssueCode.PackageIsZip64);
+        public static ValidationIssue OnlyAuthorSignaturesSupported { get; } = new NoDataValidationIssue(ValidationIssueCode.OnlyAuthorSignaturesSupported);
+
         /// <summary>
         /// The map of issue codes to the type that represents the issues. The types MUST extend <see cref="ValidationIssue"/>.
         /// </summary>
-        public static readonly IReadOnlyDictionary<ValidationIssueCode, Type> IssueCodeTypes = new Dictionary<ValidationIssueCode, Type>
+        internal static readonly IReadOnlyDictionary<ValidationIssueCode, Type> IssueCodeTypes = new Dictionary<ValidationIssueCode, Type>
         {
-            { ValidationIssueCode.PackageIsSigned, GetIssueType<PackageIsSigned>() },
             { ValidationIssueCode.ClientSigningVerificationFailure, GetIssueType<ClientSigningVerificationFailure>() },
 #pragma warning disable 618
             { ValidationIssueCode.ObsoleteTesting, GetIssueType<ObsoleteTestingIssue>() }
 #pragma warning restore 618
+        };
+
+        /// <summary>
+        /// The set of issue codes that don't need a custom issue type. All of these codes use
+        /// <see cref="NoDataValidationIssue"/> as their concrete type.
+        /// </summary>
+        internal static readonly ISet<ValidationIssueCode> IssueCodesWithNoData = new HashSet<ValidationIssueCode>
+        {
+            ValidationIssueCode.PackageIsSigned,
+            ValidationIssueCode.PackageIsZip64,
+            ValidationIssueCode.OnlyAuthorSignaturesSupported,
         };
 
         /// <summary>
@@ -29,22 +44,27 @@ namespace NuGet.Services.Validation.Issues
         /// <returns>An error object that can be used to display an error message to users.</returns>
         public static ValidationIssue Deserialize(ValidationIssueCode errorCode, string data)
         {
-            if (!IssueCodeTypes.TryGetValue(errorCode, out Type deserializationType))
+            if (IssueCodesWithNoData.Contains(errorCode))
             {
-                return new UnknownIssue();
+                return new NoDataValidationIssue(errorCode);
             }
 
+            if (!IssueCodeTypes.TryGetValue(errorCode, out Type deserializationType))
+            {
+                return Unknown;
+            }
+            
             try
             {
                 var issue = JsonConvert.DeserializeObject(data, deserializationType) as ValidationIssue;
 
                 /// <see cref="JsonConvert.DeserializeObject(string, Type)"/> can return null in some cases (for
                 /// example if the input string is empty).
-                return issue ?? new UnknownIssue();
+                return issue ?? Unknown;
             }
             catch (Exception)
             {
-                return new UnknownIssue();
+                return Unknown;
             }
         }
 

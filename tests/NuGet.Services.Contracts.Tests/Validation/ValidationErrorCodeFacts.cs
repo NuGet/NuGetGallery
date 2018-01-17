@@ -2,26 +2,45 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace NuGet.Services.Validation
 {
     public class ValidationErrorCodeFacts
     {
+        private static readonly Dictionary<int, ValidationIssueCode> Expected = new Dictionary<int, ValidationIssueCode>
+        {
+            { 0, ValidationIssueCode.Unknown },
+            { 1, ValidationIssueCode.PackageIsSigned },
+            { 2, ValidationIssueCode.ClientSigningVerificationFailure },
+            { 3, ValidationIssueCode.PackageIsZip64 },
+            { 4, ValidationIssueCode.OnlyAuthorSignaturesSupported },
+#pragma warning disable 618
+            { 9999, ValidationIssueCode.ObsoleteTesting },
+#pragma warning restore 618
+        };
+
+        public static IEnumerable<object[]> HasUnchangingValuesData => Expected
+            .Select(x => new object[] { x.Key, x.Value });
+
         /// <summary>
         /// This enum is persisted so the integer values must not change.
         /// </summary>
         [Theory]
-        [InlineData(0, ValidationIssueCode.Unknown)]
-        [InlineData(1, ValidationIssueCode.PackageIsSigned)]
-        [InlineData(2, ValidationIssueCode.ClientSigningVerificationFailure)]
-#pragma warning disable 618
-        [InlineData(9999, ValidationIssueCode.ObsoleteTesting)]
-#pragma warning restore 618
+        [MemberData(nameof(HasUnchangingValuesData))]
         public void HasUnchangingValues(int expected, ValidationStatus input)
         {
             Assert.Equal(expected, (int)input);
-            Assert.Equal(4, Enum.GetValues(typeof(ValidationIssueCode)).Length);
+        }
+
+        [Fact]
+        public void HasAllValuesTest()
+        {
+            Assert.Equal(
+                Expected.Select(x => x.Value).OrderBy(x => x),
+                Enum.GetValues(typeof(ValidationIssueCode)).Cast<ValidationIssueCode>().OrderBy(x => x));
         }
     }
 }
