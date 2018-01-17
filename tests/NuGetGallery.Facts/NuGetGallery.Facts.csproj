@@ -401,6 +401,7 @@
     <Compile Include="Authentication\AuthenticationServiceFacts.cs" />
     <Compile Include="Authentication\Providers\CommonAuth\AzureActiveDirectoryV2AuthenticatorFacts.cs" />
     <Compile Include="Authentication\TestCredentialHelper.cs" />
+    <Compile Include="Configuration\ConfigurationServiceFacts.cs" />
     <Compile Include="Controllers\SupportControllerFacts.cs" />
     <Compile Include="Extensions\RouteExtensionsFacts.cs" />
     <Compile Include="Extensions\OrganizationExtensionsFacts.cs" />
