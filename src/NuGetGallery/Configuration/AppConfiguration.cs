@@ -10,6 +10,8 @@ namespace NuGetGallery.Configuration
 {
     public class AppConfiguration : IAppConfiguration
     {
+        private string _ExternalBrandingMessage;
+
         [DefaultValue(Constants.DevelopmentEnvironment)]
         public string Environment { get; set; }
 
@@ -279,7 +281,16 @@ namespace NuGetGallery.Configuration
         /// <summary>
         /// Gets/sets a string that is brand string to display in the footer
         /// </summary>
-        public string ExternalBrandingMessage { get; set; }
+        public string ExternalBrandingMessage {
+            get {
+                return _ExternalBrandingMessage;
+            }
+
+            set
+            {
+                _ExternalBrandingMessage = string.Format(value, DateTime.Now.Year);
+            }
+        }
 
         /// <summary>
         /// Get/Sets a string to a url that details trademarks. If unset, the link will not appear.
