@@ -32,7 +32,7 @@
                 @using (Html.BeginForm("Transform", "Users"))
                 {
                     @Html.AntiForgeryToken()
-                    
+
                     <div class="row form-group col-md-9 col-md-pull-3 @Html.HasErrorFor(m => m.AdminUsername)">
                         @Html.ShowLabelFor(m => m.AdminUsername)
                         @ViewHelpers.AlertInfo(

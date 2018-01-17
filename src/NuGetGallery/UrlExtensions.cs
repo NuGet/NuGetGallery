@@ -338,7 +338,7 @@ namespace NuGetGallery
                 });
         }
 
-        public static string LogOn(this UrlHelper url, string returnUrl, string returnUrlMessage = null, bool relativeUrl = true)
+        public static string LogOn(this UrlHelper url, string returnUrl, bool relativeUrl = true)
         {
             return GetRouteLink(
                 url,
@@ -347,8 +347,7 @@ namespace NuGetGallery
                 routeValues: new RouteValueDictionary
                 {
                     { "action", "LogOn" },
-                    { "returnUrl", returnUrl },
-                    { "returnUrlMessage", returnUrlMessage }
+                    { "returnUrl", returnUrl }
                 });
         }
 
@@ -974,12 +973,6 @@ namespace NuGetGallery
         public static string GenerateApiKey(this UrlHelper url, bool relativeUrl = true)
         {
             return GetActionLink(url, "GenerateApiKey", "Users", relativeUrl);
-        }
-
-        public static string LogOnAndConfirmTransformAccount(this UrlHelper url, User accountToTransform, string logOnMessage, bool relativeUrl = true)
-        {
-            var returnUrl = url.ConfirmTransformAccount(accountToTransform, relativeUrl);
-            return url.LogOn(returnUrl, logOnMessage, relativeUrl);
         }
 
         public static string ConfirmTransformAccount(this UrlHelper url, User accountToTransform, bool relativeUrl = true)

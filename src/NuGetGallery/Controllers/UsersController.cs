@@ -153,10 +153,14 @@ namespace NuGetGallery
             
             await _userService.RequestTransformToOrganizationAccount(accountToTransform, adminUser);
 
-            // prompt for admin sign-on to confirm transformation
+
+            // sign out pending organization and prompt for admin sign in
             OwinContext.Authentication.SignOut();
-            return Redirect(Url.LogOnAndConfirmTransformAccount(accountToTransform, String.Format(CultureInfo.CurrentCulture,
-                Strings.TransformAccount_SignInToConfirm, adminUser.Username, accountToTransform.Username)));
+            
+            TempData[Constants.ReturnUrlMessageViewDataKey] = String.Format(CultureInfo.CurrentCulture,
+                Strings.TransformAccount_SignInToConfirm, adminUser.Username, accountToTransform.Username);
+            var returnUrl = Url.ConfirmTransformAccount(accountToTransform);
+            return Redirect(Url.LogOn(returnUrl));
         }
 
         [HttpGet]
