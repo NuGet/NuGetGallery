@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Web;
 
@@ -7,13 +8,7 @@ namespace NuGetGallery.Authentication
 {
     public class ApiScopeEvaluator : IApiScopeEvaluator
     {
-        private IDictionary<Type, object> _typeToScopeSubjectEvaluator = new Dictionary<Type, object>
-        {
-            { typeof(ActionOnNewPackageContext), new NewPackageScopeSubjectConverter() },
-            { typeof(PackageRegistration), new ExistingPackageScopeSubjectConverter() }
-        };
-
-        private IDictionary<Type, object> TypeToScopeSubjectConverter => _typeToScopeSubjectEvaluator;
+        private TypeConverter Converter = new ScopeSubjectTypeConverter();
 
         private IUserService UserService { get; }
 
@@ -22,24 +17,35 @@ namespace NuGetGallery.Authentication
             UserService = userService;
         }
 
-        public ApiScopeEvaluator(IUserService userService, IDictionary<Type, object> typeToScopeSubjectEvaluator)
+        // Unit test constructor
+        public ApiScopeEvaluator(IUserService userService, TypeConverter converter)
             : this(userService)
         {
-            _typeToScopeSubjectEvaluator = typeToScopeSubjectEvaluator;
+            Converter = converter;
         }
 
         /// <summary>
-        /// Evaluates the current user's scopes against <paramref name="scopeSubject"/> and <paramref name="requestedActions"/>.
+        /// Evaluates the whether or not an action is allowed given a set of <paramref name="scopes"/>, an <paramref name="action"/>, and the <paramref name="requestedActions"/>.
         /// </summary>
+        /// <param name="currentUser">The current user attempting to do the action with the given <paramref name="scopes"/>.</param>
+        /// <param name="scopes">The scopes being evaluated.</param>
+        /// <param name="action">The action that the scopes being evaluated are checked for permission to do.</param>
+        /// <param name="entity">The entity that the scopes being evaluated are checked for permission to <paramref name="action"/> on.</param>
         /// <param name="owner">
         /// The <see cref="User"/> specified by the <see cref="Scope.OwnerKey"/> of the <see cref="Scope"/> that evaluated with <see cref="ApiScopeEvaluationResult.Success"/>.
         /// If no <see cref="Scope"/>s evaluate to <see cref="ApiScopeEvaluationResult.Success"/>, this will be null.
         /// </param>
         /// <returns>A <see cref="ApiScopeEvaluationResult"/> that describes the evaluation of the .</returns>
-        public ApiScopeEvaluationResult Evaluate<TEntity>(User currentUser, IEnumerable<Scope> scopes, IActionRequiringEntityPermissions<TEntity> action, TEntity entity, out User owner, params string[] requestedActions)
+        public ApiScopeEvaluationResult Evaluate<TEntity>(
+            User currentUser,
+            IEnumerable<Scope> scopes,
+            IActionRequiringEntityPermissions<TEntity> action,
+            TEntity entity,
+            out User owner,
+            params string[] requestedActions)
         {
             owner = null;
-            
+
             if (scopes == null || !scopes.Any())
             {
                 // Legacy V1 API key without scopes.
@@ -51,7 +57,7 @@ namespace NuGetGallery.Authentication
 
             foreach (var scope in scopes)
             {
-                if (!scope.AllowsSubject(GetScopeSubjectConverter<TEntity>().ConvertToScopeSubject(entity)))
+                if (!scope.AllowsSubject(ConvertToScopeSubject(entity)))
                 {
                     // Subject (package ID) does not match.
                     failureResult = ChooseFailureResult(failureResult, ApiScopeEvaluationResult.Forbidden);
@@ -100,14 +106,16 @@ namespace NuGetGallery.Authentication
             return new[] { last, next }.Max();
         }
 
-        private IScopeSubjectConverter<T> GetScopeSubjectConverter<T>()
+        private string ConvertToScopeSubject(object value)
         {
-            if (TypeToScopeSubjectConverter.ContainsKey(typeof(T)))
+            var type = value?.GetType() ?? null;
+
+            if (!Converter.CanConvertFrom(type))
             {
-                return TypeToScopeSubjectConverter[typeof(T)] as IScopeSubjectConverter<T>;
+                throw new InvalidCastException($"Cannot convert {type} to a scope subject!");
             }
 
-            throw new ArgumentException($"There is no {nameof(IScopeSubjectConverter<T>)} for type {typeof(T).Name}.");
+            return Converter.ConvertFrom(value) as string;
         }
     }
 }

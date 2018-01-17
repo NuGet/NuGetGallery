@@ -751,7 +751,7 @@ namespace NuGetGallery
             }
         }
 
-        private ApiScopeEvaluationResult EvaluateApiScope<TEntity>(IActionRequiringEntityPermissions<TEntity> action, TEntity entity, out User owner, params string[] requestedActions)
+        private ApiScopeEvaluationResult EvaluateApiScope<TActionEntity>(IActionRequiringEntityPermissions<TActionEntity> action, TActionEntity entity, out User owner, params string[] requestedActions)
         {
             return ApiScopeEvaluator.Evaluate(
                 GetCurrentUser(),
@@ -766,7 +766,7 @@ namespace NuGetGallery
         {
             return EvaluateApiScope(
                 ActionsRequiringPermissions.UploadNewPackageId, 
-                new ActionOnNewPackageContext(id, ReservedNamespaceService), 
+                new ActionOnNewPackageContext(id, ReservedNamespaceService),
                 out owner, 
                 NuGetScopes.PackagePush);
         }

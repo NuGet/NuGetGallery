@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace NuGetGallery.Authentication
 {
@@ -16,6 +17,12 @@ namespace NuGetGallery.Authentication
         /// If no <see cref="Scope"/>s evaluate to <see cref="ApiScopeEvaluationResult.Success"/>, this will be null.
         /// </param>
         /// <returns>A <see cref="ApiScopeEvaluationResult"/> that describes the evaluation of the .</returns>
-        ApiScopeEvaluationResult Evaluate<TEntity>(User currentUser, IEnumerable<Scope> scopes, IActionRequiringEntityPermissions<TEntity> action, TEntity entity, out User owner, params string[] requestedActions);
+        ApiScopeEvaluationResult Evaluate<TEntity>(
+            User currentUser,
+            IEnumerable<Scope> scopes,
+            IActionRequiringEntityPermissions<TEntity> action,
+            TEntity entity,
+            out User owner,
+            params string[] requestedActions);
     }
 }

@@ -3,6 +3,8 @@ using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,53 +14,61 @@ namespace NuGetGallery.Authentication
 {
     public class ApiScopeEvaluatorFacts
     {
-        private class TestableScopeSubjectConverter : IScopeSubjectConverter<TestablePermissionsEntity>
-        {
-            public string Result { get; set; }
-
-            public TestableScopeSubjectConverter(string result)
-            {
-                Result = result;
-            }
-
-            public string ConvertToScopeSubject(TestablePermissionsEntity subject)
-            {
-                return Result;
-            }
-        }
-
         public class TheEvaluateMethod
         {
-            private ApiScopeEvaluator Setup(
-                TestableScopeSubjectConverter testableScopeSubjectConverter = null,
-                IUserService userService = null)
+            private const string DefaultSubject = "a";
+
+            private class TestScopeSubjectConverter : TypeConverter
             {
-                if (testableScopeSubjectConverter == null)
+                private static string _subject;
+
+                public TestScopeSubjectConverter()
+                    : this(DefaultSubject)
                 {
-                    testableScopeSubjectConverter = new TestableScopeSubjectConverter("packageId");
                 }
 
+                public TestScopeSubjectConverter(string subject)
+                {
+                    _subject = subject;
+                }
+
+                public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
+                {
+                    if (_subject != null)
+                    {
+                        return true;
+                    }
+
+                    return false;
+                }
+
+                public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
+                {
+                    return _subject;
+                }
+            }
+
+            private ApiScopeEvaluator Setup(IUserService userService = null, string subject = null)
+            {
                 if (userService == null)
                 {
                     userService = new Mock<IUserService>().Object;
                 }
 
-                var typeToScopeSubjectEvaluator = new Dictionary<Type, object>
-                {
-                    { typeof(TestablePermissionsEntity), testableScopeSubjectConverter }
-                };
-
-                return new ApiScopeEvaluator(userService, typeToScopeSubjectEvaluator);
+                var converter = subject == null ? 
+                    new TestScopeSubjectConverter() : 
+                    new TestScopeSubjectConverter(subject);
+                
+                return new ApiScopeEvaluator(userService, converter);
             }
 
             [Fact]
             public void ReturnsForbiddenWhenSubjectIsNotAllowedByScope()
             {
                 // Arrange
-                var scope = new Scope("a", null);
-                var scopeSubjectConverter = new TestableScopeSubjectConverter("b");
+                var scope = new Scope("notallowed", null);
 
-                var apiScopeEvaluator = Setup(scopeSubjectConverter);
+                var apiScopeEvaluator = Setup();
 
                 // Act
                 var result = apiScopeEvaluator.Evaluate<TestablePermissionsEntity>(null, new[] { scope }, null, null, out var owner, null);
@@ -99,15 +109,14 @@ namespace NuGetGallery.Authentication
                 // Arrange
                 // To guarantee that the scope is evaluated with an all-inclusive subject scope, we must test it on two subjects that are COMPLETELY different.
                 // For example, if subjects "a" and "ab" are approved, the subject scope could be "a*". However, if subjects "a" and "b" are approved, the subject scope must be "*", which is what we expect for no scopes.
-                var aScopeSubject = new TestableScopeSubjectConverter("a");
-                var bScopeSubject = new TestableScopeSubjectConverter("b");
-
-                var aEvaluator = Setup(aScopeSubject);
-                var bEvaluator = Setup(bScopeSubject);
 
                 // Act
-                EvaluatesNoScopesAsAllInclusive(aEvaluator, scopes);
-                EvaluatesNoScopesAsAllInclusive(bEvaluator, scopes);
+                foreach (var subject in new[] { "a", "b" })
+                {
+                    var evaluator = Setup(subject: subject);
+
+                    EvaluatesNoScopesAsAllInclusive(evaluator, scopes);
+                }
             }
 
             private void EvaluatesNoScopesAsAllInclusive(ApiScopeEvaluator evaluator, IEnumerable<Scope> scopes)
@@ -185,9 +194,9 @@ namespace NuGetGallery.Authentication
                 var user = new User("test");
                 var scopes = new[]
                 {
-                    new Scope("a", null),
+                    new Scope(DefaultSubject, null),
                     new Scope(NuGetPackagePattern.AllInclusivePattern, NuGetScopes.All),
-                    new Scope("a", null)
+                    new Scope(DefaultSubject, null)
                 };
 
                 var testableActionMock = new Mock<IActionRequiringEntityPermissions<TestablePermissionsEntity>>();
@@ -215,7 +224,7 @@ namespace NuGetGallery.Authentication
 
                 var scopes = new[]
                 {
-                    new Scope("a", null),
+                    new Scope("wrongsubject", null),
                     new Scope(scopeUser1.Key, NuGetPackagePattern.AllInclusivePattern, NuGetScopes.All),
                     new Scope(scopeUser2.Key, NuGetPackagePattern.AllInclusivePattern, NuGetScopes.All)
                 };
