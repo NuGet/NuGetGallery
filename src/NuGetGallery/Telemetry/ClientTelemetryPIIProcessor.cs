@@ -52,7 +52,15 @@ namespace NuGetGallery
 
         public virtual Route GetCurrentRoute()
         {
-            return RouteTable.Routes.GetRouteData(new HttpContextWrapper(HttpContext.Current)).Route as Route;
+            if(HttpContext.Current!=null)
+            {
+                var routeData = RouteTable.Routes.GetRouteData(new HttpContextWrapper(HttpContext.Current));
+                if (routeData != null)
+                {
+                    return routeData.Route as Route;
+                }
+            }
+            return null;
         }
     }
 }
