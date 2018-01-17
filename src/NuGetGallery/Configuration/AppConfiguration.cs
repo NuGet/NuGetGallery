@@ -279,7 +279,8 @@ namespace NuGetGallery.Configuration
         public string ExternalBrandingUrl { get; set; }
 
         /// <summary>
-        /// Gets/sets a string that is brand string to display in the footer
+        /// Gets/sets a string that is brand string to display in the footer, this also
+        /// accepts a single {0} string format token which is replaced by the UTC year
         /// </summary>
         public string ExternalBrandingMessage {
             get {
