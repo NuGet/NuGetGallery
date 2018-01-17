@@ -3,6 +3,7 @@
 
 using System.IO;
 using NuGet.Packaging;
+using NuGet.Packaging.Signing;
 
 namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
 {
@@ -13,6 +14,7 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
         public const string UnsignedPackage = ResourceNamespace + ".TestUnsigned.1.0.0.nupkg";
         public const string SignedPackageLeaf1 = ResourceNamespace + ".TestSigned.leaf-1.1.0.0.nupkg";
         public const string SignedPackageLeaf2 = ResourceNamespace + ".TestSigned.leaf-2.2.0.0.nupkg";
+        public const string Zip64Package = ResourceNamespace + ".Zip64Package.1.0.0.nupkg";
 
         /// <summary>
         /// This is the SHA-256 thumbprint of the root CA certificate for the signing certificate of <see cref="SignedPackageLeaf1"/>.
@@ -29,8 +31,8 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
         /// </summary>
         public const string Leaf2Thumbprint = "cd177f02cb88f6e6fb6b0dd67d68559b101c3e100fb19ebf4db43d9d082674e1";
 
-        public static PackageArchiveReader SignedPackageLeaf1Reader => LoadPackage(SignedPackageLeaf1);
-        public static PackageArchiveReader SignedPackageLeaf2Reader => LoadPackage(SignedPackageLeaf2);
+        public static SignedPackageArchive SignedPackageLeaf1Reader => LoadPackage(SignedPackageLeaf1);
+        public static SignedPackageArchive SignedPackageLeaf2Reader => LoadPackage(SignedPackageLeaf2);
 
         /// <summary>
         /// Buffer the resource stream into memory so the caller doesn't have to dispose.
@@ -56,7 +58,7 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
             return bufferedStream;
         }
 
-        public static PackageArchiveReader LoadPackage(string resourceName)
+        public static SignedPackageArchive LoadPackage(string resourceName)
         {
             var resourceStream = GetResourceStream(resourceName);
             if (resourceStream == null)
@@ -64,7 +66,7 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                 return null;
             }
 
-            return new PackageArchiveReader(resourceStream);
+            return new SignedPackageArchive(resourceStream, resourceStream);
         }
     }
 }

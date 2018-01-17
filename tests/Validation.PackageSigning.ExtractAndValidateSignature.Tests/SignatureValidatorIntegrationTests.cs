@@ -30,7 +30,7 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
         private readonly IPackageSignatureVerifier _packageSignatureVerifier;
         private readonly ILogger<SignatureValidator> _logger;
         private readonly int _packageKey;
-        private PackageArchiveReader _package;
+        private SignedPackageArchive _package;
         private readonly SignatureValidationMessage _message;
         private readonly CancellationToken _token;
         private readonly SignatureValidator _target;
@@ -106,7 +106,7 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                     writer.WriteLine("These contents were added after the package was signed.");
                 }
 
-                _package = new PackageArchiveReader(packageStream);
+                _package = new SignedPackageArchive(packageStream, packageStream);
             }
             catch
             {
@@ -142,13 +142,30 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                     entryStream.Write(extraBytes, 0, extraBytes.Length);
                 }
 
-                _package = new PackageArchiveReader(packageStream);
+                _package = new SignedPackageArchive(packageStream, packageStream);
             }
             catch
             {
                 packageStream?.Dispose();
                 throw;
             }
+
+            // Act
+            var result = await _target.ValidateAsync(
+                _packageKey,
+                _package,
+                _message,
+                _token);
+
+            // Assert
+            VerifyPackageSigningStatus(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
+        }
+
+        [Fact]
+        public async Task RejectsZip64Packages()
+        {
+            // Arrange
+            _package = TestResources.LoadPackage(TestResources.Zip64Package);
 
             // Act
             var result = await _target.ValidateAsync(

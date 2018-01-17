@@ -69,7 +69,7 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                 _signatureValidator
                     .Setup(x => x.ValidateAsync(
                         It.IsAny<int>(),
-                        It.IsAny<ISignedPackageReader>(),
+                        It.IsAny<ISignedPackage>(),
                         It.IsAny<SignatureValidationMessage>(),
                         It.IsAny<CancellationToken>()))
                     .ReturnsAsync(() => _validatorResult)
@@ -102,7 +102,7 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                 _signatureValidator.Verify(
                     x => x.ValidateAsync(
                         It.IsAny<int>(),
-                        It.IsAny<ISignedPackageReader>(),
+                        It.IsAny<ISignedPackage>(),
                         It.IsAny<SignatureValidationMessage>(),
                         It.IsAny<CancellationToken>()),
                     Times.Never);
@@ -124,7 +124,7 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                 _signatureValidator
                     .Setup(x => x.ValidateAsync(
                         It.IsAny<int>(),
-                        It.IsAny<ISignedPackageReader>(),
+                        It.IsAny<ISignedPackage>(),
                         It.IsAny<SignatureValidationMessage>(),
                         It.IsAny<CancellationToken>()))
                     .ReturnsAsync(_validatorResult)
@@ -193,7 +193,7 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                 _signatureValidator
                     .Setup(x => x.ValidateAsync(
                         It.IsAny<int>(),
-                        It.IsAny<ISignedPackageReader>(),
+                        It.IsAny<ISignedPackage>(),
                         It.IsAny<SignatureValidationMessage>(),
                         It.IsAny<CancellationToken>()))
                     .ReturnsAsync(new SignatureValidatorResult(state, issues));

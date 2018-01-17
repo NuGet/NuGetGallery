@@ -12,7 +12,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
     {
         Task<SignatureValidatorResult> ValidateAsync(
             int packageKey,
-            ISignedPackageReader signedPackageReader,
+            ISignedPackage signedPackage,
             SignatureValidationMessage message,
             CancellationToken cancellationToken);
     }

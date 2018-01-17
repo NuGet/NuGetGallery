@@ -86,5 +86,8 @@
     <EmbeddedResource Include="TestData\TestSigned.leaf-1.1.0.0.nupkg" />
     <EmbeddedResource Include="TestData\TestSigned.leaf-2.2.0.0.nupkg" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TestData\Zip64Package.1.0.0.nupkg" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

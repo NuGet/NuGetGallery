@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
 using NuGet.Packaging;
+using NuGet.Packaging.Signing;
 using NuGet.Services.ServiceBus;
 using NuGet.Services.Validation;
 
@@ -111,7 +112,8 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
 
             // Validate package
             using (var packageStream = await DownloadPackageAsync(message.NupkgUri, cancellationToken))
-            using (var package = new PackageArchiveReader(packageStream, leaveStreamOpen: false))
+            using (var packageWriteStream = new MemoryStream()) // Unused, but to be careful we don't pass the original stream.
+            using (var package = new SignedPackageArchive(packageStream, packageWriteStream))
             {
                 var result = await _signatureValidator.ValidateAsync(
                     validation.PackageKey,

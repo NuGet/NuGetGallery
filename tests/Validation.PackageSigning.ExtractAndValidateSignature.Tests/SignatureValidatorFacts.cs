@@ -24,7 +24,7 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
     {
         public class ValidateAsync
         {
-            private readonly Mock<ISignedPackageReader> _packageMock;
+            private readonly Mock<ISignedPackage> _packageMock;
             private readonly int _packageKey;
             private readonly SignatureValidationMessage _message;
             private readonly CancellationToken _cancellationToken;
@@ -38,7 +38,7 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
 
             public ValidateAsync()
             {
-                _packageMock = new Mock<ISignedPackageReader>();
+                _packageMock = new Mock<ISignedPackage>();
                 _packageMock
                     .Setup(x => x.IsSignedAsync(It.IsAny<CancellationToken>()))
                     .ReturnsAsync(false);
@@ -108,6 +108,32 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                 }
             }
 
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task RejectsZip64Packages(bool isSigned)
+            {
+                // Arrange
+                _packageMock
+                    .Setup(x => x.IsZip64Async(It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(true);
+                _packageMock
+                    .Setup(x => x.IsSignedAsync(It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(isSigned);
+
+                // Act
+                var result = await _target.ValidateAsync(
+                    _packageKey,
+                    _packageMock.Object,
+                    _message,
+                    _cancellationToken);
+
+                // Assert
+                Validate(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
+                var issue = Assert.Single(result.Issues);
+                Assert.Equal(ValidationIssueCode.PackageIsZip64, issue.IssueCode);
+            }
+
             [Fact]
             public async Task AcceptsSignedPackagesWithKnownCertificates()
             {
@@ -125,6 +151,7 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
 
                 // Assert
                 Validate(result, ValidationStatus.Succeeded, PackageSigningStatus.Valid);
+                Assert.Empty(result.Issues);
             }
 
             [Fact]
@@ -146,6 +173,7 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
 
                 // Assert
                 Validate(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
+                Assert.Empty(result.Issues);
             }
 
             [Fact]
@@ -223,7 +251,7 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                 // Assert
                 Validate(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
                 var issue = Assert.Single(result.Issues);
-                Assert.IsType<PackageIsSigned>(issue);
+                Assert.Equal(ValidationIssueCode.PackageIsSigned, issue.IssueCode);
             }
 
             [Fact]

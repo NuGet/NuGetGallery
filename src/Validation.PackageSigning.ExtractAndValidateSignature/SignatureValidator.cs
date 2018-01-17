@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
@@ -41,17 +40,23 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
 
         public async Task<SignatureValidatorResult> ValidateAsync(
             int packageKey,
-            ISignedPackageReader signedPackageReader,
+            ISignedPackage signedPackage,
             SignatureValidationMessage message,
             CancellationToken cancellationToken)
         {
-            if (!await signedPackageReader.IsSignedAsync(cancellationToken))
+            // Reject Zip64 package whether or not they are signed.
+            if (await signedPackage.IsZip64Async(cancellationToken))
+            {
+                return await RejectAsync(packageKey, message, ValidationIssue.PackageIsZip64);
+            }
+
+            if (!await signedPackage.IsSignedAsync(cancellationToken))
             {
                 return await HandleUnsignedPackageAsync(packageKey, message);
             }
             else
             {
-                return await HandleSignedPackageAsync(packageKey, signedPackageReader, message, cancellationToken);
+                return await HandleSignedPackageAsync(packageKey, signedPackage, message, cancellationToken);
             }
         }
         
@@ -97,7 +102,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
                 return await RejectAsync(
                     packageKey,
                     message,
-                    new PackageIsSigned());
+                    ValidationIssue.PackageIsSigned);
             }
 
             // Call the "verify" API, which does the main logic of signature validation.
