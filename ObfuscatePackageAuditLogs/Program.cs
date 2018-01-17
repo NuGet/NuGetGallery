@@ -8,12 +8,12 @@ namespace ObfuscateAuditLogs
     {
         static void Main(string[] args)
         {
-            string conectionStringFrom = CloudConfigurationManager.GetSetting("FromStorageConnectionString");
-            string conectionStringTo = CloudConfigurationManager.GetSetting("ToStorageConnectionString");
-            string runId = "";
-            string containerFrom = "";
-            string containerTo = "";
-            string folder = "";
+            string conectionStringFrom = CloudConfigurationManager.GetSetting("StorageConnectionStringDev");//FromStorageConnectionString
+            string conectionStringTo = CloudConfigurationManager.GetSetting("StorageConnectionStringDev");
+            string runId = "runDev10_5";
+            string containerFrom = "auditing";  //"devsecbakauditing";// "auditing";
+            string containerTo = "auditing"; //"devsecbakauditing";// "auditing";
+            string folder = "package";
             AzureAuditProcessor processor = new AzureAuditProcessor(
                                                     connectionStringFrom: conectionStringFrom,
                                                     containerFrom: containerFrom,
@@ -21,9 +21,9 @@ namespace ObfuscateAuditLogs
                                                     containerTo: containerTo,
                                                     executionRunId: runId);
 
-            processor.MaxDateToUpate = new DateTimeOffset(2018, 1, 8, 12, 0, 0, TimeSpan.Zero);
+            processor.MaxDateToUpate = new DateTimeOffset(2018, 1, 9, 12, 0, 0, TimeSpan.Zero);
             processor.TryProcessFolder(folder, CancellationToken.None);
-
+            //processor.PrintCountOfFilesToBeProccesed(folder);
             //processor.PrintDifferenceBetweenFolders(folder);
         }
     }

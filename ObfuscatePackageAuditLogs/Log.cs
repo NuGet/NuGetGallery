@@ -93,8 +93,7 @@ namespace ObfuscateAuditLogs
                                                         $"(Run,Timestamp,FileName,Status,Message)" +
                                                         $" VALUES('{data.Run}','{data.Timestamp}','{data.Operation}', '{data.LogStatus}', '{data.Message}')";
 
-                        SqlCommand Cmd = new SqlCommand(sqlcmd,
-                                                        connection);
+                        SqlCommand Cmd = new SqlCommand(sqlcmd, connection);
                         int c = await Cmd.ExecuteNonQueryAsync();
                         break;
                     }
@@ -106,10 +105,11 @@ namespace ObfuscateAuditLogs
                             $"{data.LogStatus}, {data.Message}");
 
                         await _bakFileLog.LogAsync(newdata);
+                        retries++;
                     }
                     connection.Close();
+                    if (retries > 0) { Task.Delay(50).Wait(); }
                 }
-                retries++;
             }
         }
     }
