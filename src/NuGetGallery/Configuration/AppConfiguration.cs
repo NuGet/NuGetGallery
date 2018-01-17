@@ -288,7 +288,7 @@ namespace NuGetGallery.Configuration
 
             set
             {
-                _ExternalBrandingMessage = string.Format(value, DateTime.Now.Year);
+                _ExternalBrandingMessage = string.Format(value, DateTime.UtcNow.Year);
             }
         }
 
