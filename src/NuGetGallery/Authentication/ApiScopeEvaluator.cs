@@ -10,7 +10,7 @@ namespace NuGetGallery.Authentication
 {
     public class ApiScopeEvaluator : IApiScopeEvaluator
     {
-        private TypeConverter Converter = new ScopeSubjectTypeConverter();
+        private readonly TypeConverter Converter = new ScopeSubjectTypeConverter();
 
         private IUserService UserService { get; }
 
@@ -19,7 +19,7 @@ namespace NuGetGallery.Authentication
             UserService = userService;
         }
 
-        // Unit test constructor
+        /// Constructor used by unit tests to specify a custom <see cref="TypeConverter"/>.
         public ApiScopeEvaluator(IUserService userService, TypeConverter converter)
             : this(userService)
         {
