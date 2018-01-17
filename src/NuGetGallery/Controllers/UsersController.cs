@@ -109,8 +109,7 @@ namespace NuGetGallery
             string errorReason;
             if (!_userService.CanTransformUserToOrganization(accountToTransform, out errorReason))
             {
-                TempData["TransformError"] = errorReason;
-                return View("TransformFailed");
+                return TransformToOrganizationFailed(errorReason);
             }
 
             var transformRequest = accountToTransform.OrganizationMigrationRequest;
@@ -133,8 +132,7 @@ namespace NuGetGallery
             string errorReason;
             if (!_userService.CanTransformUserToOrganization(accountToTransform, out errorReason))
             {
-                TempData["TransformError"] = errorReason;
-                return View("TransformFailed");
+                return TransformToOrganizationFailed(errorReason);
             }
 
             var adminUser = _userService.FindByUsername(transformViewModel.AdminUsername);
@@ -171,30 +169,28 @@ namespace NuGetGallery
             var adminUser = GetCurrentUser();
             if (!adminUser.Confirmed)
             {
-                TempData["TransformError"] = Strings.TransformAccount_NotConfirmed;
-                return RedirectToAction("ConfirmationRequired");
-            }
-
-            var accountToTransform = _userService.FindByUsername(accountNameToTransform);
-            if (accountToTransform == null)
-            {
-                TempData["TransformError"] = String.Format(CultureInfo.CurrentCulture,
-                    Strings.TransformAccount_OrganizationAccountDoesNotExist, accountNameToTransform);
-                return View("TransformFailed");
+                return TransformToOrganizationFailed(Strings.TransformAccount_NotConfirmed);
             }
 
             string errorReason;
+            var accountToTransform = _userService.FindByUsername(accountNameToTransform);
+            if (accountToTransform == null)
+            {
+                errorReason = String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_OrganizationAccountDoesNotExist, accountNameToTransform);
+                return TransformToOrganizationFailed(errorReason);
+            }
+
             if (!_userService.CanTransformUserToOrganization(accountToTransform, out errorReason))
             {
-                TempData["TransformError"] = errorReason;
-                return View("TransformFailed");
+                return TransformToOrganizationFailed(errorReason);
             }
 
             if (!await _userService.TransformUserToOrganization(accountToTransform, adminUser, token))
             {
-                TempData["TransformError"] = String.Format(CultureInfo.CurrentCulture,
+                errorReason = String.Format(CultureInfo.CurrentCulture,
                     Strings.TransformAccount_Failed, accountNameToTransform);
-                return View("TransformFailed");
+                return TransformToOrganizationFailed(errorReason);
             }
 
             TempData["Message"] = String.Format(CultureInfo.CurrentCulture,
@@ -202,6 +198,11 @@ namespace NuGetGallery
 
             // todo: redirect to ManageOrganization (future work)
             return RedirectToAction("Account");
+        }
+
+        private ActionResult TransformToOrganizationFailed(string errorMessage)
+        {
+            return View("TransformFailed", new TransformAccountFailedViewModel(errorMessage));
         }
 
         [HttpGet]
