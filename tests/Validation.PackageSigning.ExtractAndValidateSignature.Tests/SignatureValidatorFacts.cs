@@ -29,8 +29,10 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
             private readonly SignatureValidationMessage _message;
             private readonly CancellationToken _cancellationToken;
             private readonly Mock<IPackageSigningStateService> _packageSigningStateService;
-            private VerifySignaturesResult _verifyResult;
-            private readonly Mock<IPackageSignatureVerifier> _packageSignatureVerifier;
+            private VerifySignaturesResult _mimialVerifyResult;
+            private readonly Mock<IPackageSignatureVerifier> _mimimalPackageSignatureVerifier;
+            private VerifySignaturesResult _fullVerifyResult;
+            private readonly Mock<IPackageSignatureVerifier> _fullPackageSignatureVerifier;
             private readonly Mock<ISignaturePartsExtractor> _signaturePartsExtractor;
             private readonly Mock<IEntityRepository<Certificate>> _certificates;
             private readonly Mock<ILogger<SignatureValidator>> _logger;
@@ -53,11 +55,17 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
 
                 _packageSigningStateService = new Mock<IPackageSigningStateService>();
 
-                _verifyResult = new VerifySignaturesResult(true);
-                _packageSignatureVerifier = new Mock<IPackageSignatureVerifier>();
-                _packageSignatureVerifier
+                _mimialVerifyResult = new VerifySignaturesResult(true);
+                _mimimalPackageSignatureVerifier = new Mock<IPackageSignatureVerifier>();
+                _mimimalPackageSignatureVerifier
                     .Setup(x => x.VerifySignaturesAsync(It.IsAny<ISignedPackageReader>(), It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(() => _verifyResult);
+                    .ReturnsAsync(() => _mimialVerifyResult);
+
+                _fullVerifyResult = new VerifySignaturesResult(true);
+                _fullPackageSignatureVerifier = new Mock<IPackageSignatureVerifier>();
+                _fullPackageSignatureVerifier
+                    .Setup(x => x.VerifySignaturesAsync(It.IsAny<ISignedPackageReader>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(() => _fullVerifyResult);
 
                 _signaturePartsExtractor = new Mock<ISignaturePartsExtractor>();
                 _certificates = new Mock<IEntityRepository<Certificate>>();
@@ -69,7 +77,8 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
 
                 _target = new SignatureValidator(
                     _packageSigningStateService.Object,
-                    _packageSignatureVerifier.Object,
+                    _mimimalPackageSignatureVerifier.Object,
+                    _fullPackageSignatureVerifier.Object,
                     _signaturePartsExtractor.Object,
                     _certificates.Object,
                     _logger.Object);
@@ -155,14 +164,77 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
             }
 
             [Fact]
-            public async Task RejectsSignedPackagesWithKnownCertificatesButFailedVerifyResult()
+            public async Task RejectsSignedPackagesWithFailedMinimalVerifyResult()
             {
                 // Arrange
                 await ConfigureKnownSignedPackage(
                     TestResources.SignedPackageLeaf1Reader,
                     TestResources.Leaf1Thumbprint);
 
-                _verifyResult = new VerifySignaturesResult(valid: false);
+                _mimialVerifyResult = new VerifySignaturesResult(valid: false);
+
+                // Act
+                var result = await _target.ValidateAsync(
+                    _packageKey,
+                    _packageMock.Object,
+                    _message,
+                    _cancellationToken);
+
+                // Assert
+                Validate(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
+                Assert.Empty(result.Issues);
+                _fullPackageSignatureVerifier.Verify(
+                    x => x.VerifySignaturesAsync(It.IsAny<ISignedPackageReader>(), It.IsAny<CancellationToken>()),
+                    Times.Never);
+            }
+
+            [Fact]
+            public async Task RejectsPackagesWithMimimalVerificationErrors()
+            {
+                // Arrange
+                await ConfigureKnownSignedPackage(
+                    TestResources.SignedPackageLeaf1Reader,
+                    TestResources.Leaf1Thumbprint);
+
+                _mimialVerifyResult = new VerifySignaturesResult(
+                    valid: false,
+                    results: new[]
+                    {
+                        new InvalidSignaturePackageVerificationResult(
+                            SignatureVerificationStatus.Invalid,
+                            new[]
+                            {
+                                SignatureLog.Issue(
+                                    fatal: true,
+                                    code: NuGetLogCode.NU3000,
+                                    message: "The package signature is invalid."),
+                            })
+                    });
+
+                // Act
+                var result = await _target.ValidateAsync(
+                    _packageKey,
+                    _packageMock.Object,
+                    _message,
+                    _cancellationToken);
+
+                // Assert
+                Validate(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
+                Assert.Single(result.Issues);
+                var issue = Assert.IsType<ClientSigningVerificationFailure>(result.Issues[0]);
+                Assert.Equal("NU3000", issue.ClientCode);
+                Assert.Equal("The package signature is invalid.", issue.ClientMessage);
+            }
+
+            [Fact]
+            public async Task RejectsSignedPackagesWithKnownCertificatesButFailedFullVerifyResult()
+            {
+                // Arrange
+                await ConfigureKnownSignedPackage(
+                    TestResources.SignedPackageLeaf1Reader,
+                    TestResources.Leaf1Thumbprint);
+
+                _fullVerifyResult = new VerifySignaturesResult(valid: false);
 
                 // Act
                 var result = await _target.ValidateAsync(
@@ -177,14 +249,14 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
             }
 
             [Fact]
-            public async Task RejectsPackagesWithVerificationErrors()
+            public async Task RejectsPackagesWithFullVerificationErrors()
             {
                 // Arrange
                 await ConfigureKnownSignedPackage(
                     TestResources.SignedPackageLeaf1Reader,
                     TestResources.Leaf1Thumbprint);
 
-                _verifyResult = new VerifySignaturesResult(
+                _fullVerifyResult = new VerifySignaturesResult(
                     valid: false,
                     results: new[]
                     {

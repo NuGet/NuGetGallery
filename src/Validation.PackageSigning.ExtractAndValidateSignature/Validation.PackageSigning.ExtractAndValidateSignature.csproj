@@ -45,6 +45,7 @@
     <Compile Include="HashedCertificate.cs" />
     <Compile Include="ISignaturePartsExtractor.cs" />
     <Compile Include="ISignatureValidator.cs" />
+    <Compile Include="MinimalSignatureVerificationProvider.cs" />
     <Compile Include="PackageSignatureVerifierFactory.cs" />
     <Compile Include="SignaturePartsExtractor.cs" />
     <Compile Include="SignatureValidator.cs" />

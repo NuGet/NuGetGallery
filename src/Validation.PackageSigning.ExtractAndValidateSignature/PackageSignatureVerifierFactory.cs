@@ -10,7 +10,33 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
     /// </summary>
     public static class PackageSignatureVerifierFactory
     {
-        public static IPackageSignatureVerifier Create()
+        /// <summary>
+        /// Initializes a verifier that only verifies the format of the signature. No integrity or trust checks are
+        /// performed.
+        /// </summary>
+        public static IPackageSignatureVerifier CreateMinimal()
+        {
+            var verificationProviders = new[]
+            {
+                new MinimalSignatureVerificationProvider(),
+            };
+
+            var settings = new SignedPackageVerifierSettings(
+                allowUnsigned: true,
+                allowUntrusted: false, // Invalid format of the signature uses this flag to determine success.
+                allowIgnoreTimestamp: true,
+                failWithMultipleTimestamps: false,
+                allowNoTimestamp: true);
+
+            return new PackageSignatureVerifier(
+                verificationProviders,
+                settings);
+        }
+
+        /// <summary>
+        /// Initializes a verifier that performs all integrity and trust checks required by the server.
+        /// </summary>
+        public static IPackageSignatureVerifier CreateFull()
         {
             var verificationProviders = new[]
             {

@@ -19,20 +19,23 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
     public class SignatureValidator : ISignatureValidator
     {
         private readonly IPackageSigningStateService _packageSigningStateService;
-        private readonly IPackageSignatureVerifier _packageSignatureVerifier;
+        private readonly IPackageSignatureVerifier _minimalPackageSignatureVerifier;
+        private readonly IPackageSignatureVerifier _fullPackageSignatureVerifier;
         private readonly ISignaturePartsExtractor _signaturePartsExtractor;
         private readonly IEntityRepository<Certificate> _certificates;
         private readonly ILogger<SignatureValidator> _logger;
 
         public SignatureValidator(
             IPackageSigningStateService packageSigningStateService,
-            IPackageSignatureVerifier packageSignatureVerifier,
+            IPackageSignatureVerifier minimalPackageSignatureVerifier,
+            IPackageSignatureVerifier fullPackageSignatureVerifier,
             ISignaturePartsExtractor signaturePartsExtractor,
             IEntityRepository<Certificate> certificates,
             ILogger<SignatureValidator> logger)
         {
             _packageSigningStateService = packageSigningStateService ?? throw new ArgumentNullException(nameof(packageSigningStateService));
-            _packageSignatureVerifier = packageSignatureVerifier ?? throw new ArgumentNullException(nameof(packageSignatureVerifier));
+            _minimalPackageSignatureVerifier = minimalPackageSignatureVerifier ?? throw new ArgumentNullException(nameof(minimalPackageSignatureVerifier));
+            _fullPackageSignatureVerifier = fullPackageSignatureVerifier ?? throw new ArgumentNullException(nameof(fullPackageSignatureVerifier));
             _signaturePartsExtractor = signaturePartsExtractor ?? throw new ArgumentNullException(nameof(signaturePartsExtractor));
             _certificates = certificates ?? throw new ArgumentNullException(nameof(certificates));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -77,7 +80,20 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
             SignatureValidationMessage message,
             CancellationToken cancellationToken)
         {
-            // Block packages that don't have exactly one signature.
+            // First, detect format errors with a minimal verification. This doesn't even check package integrity. The
+            // minimal verification is expected to swallow any sort of signature format exception.
+            var invalidFormatResult = await GetVerifyResult(
+                _minimalPackageSignatureVerifier,
+                packageKey,
+                signedPackageReader,
+                message,
+                cancellationToken);
+            if (invalidFormatResult != null)
+            {
+                return invalidFormatResult;
+            }
+
+            // We now know we can safely read the signature.
             var packageSignature = await signedPackageReader.GetSignatureAsync(cancellationToken);
 
             // Block packages with any unknown signing certificates.
@@ -89,7 +105,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
                 .GetAll()
                 .Where(c => packageThumbprint == c.Thumbprint)
                 .Any();
-            
+
             if (!isKnownCertificate)
             {
                 _logger.LogInformation(
@@ -105,8 +121,55 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
                     ValidationIssue.PackageIsSigned);
             }
 
+            if (packageSignature.Type != SignatureType.Author)
+            {
+                _logger.LogInformation(
+                    "Signed package {PackageId} {PackageVersion} is blocked for validation {ValidationId} since it has a non-author signature: {SignatureType}",
+                    message.PackageId,
+                    message.PackageVersion,
+                    message.ValidationId,
+                    packageSignature.Type);
+
+                return await RejectAsync(
+                    packageKey,
+                    message,
+                    ValidationIssue.OnlyAuthorSignaturesSupported);
+            }
+
             // Call the "verify" API, which does the main logic of signature validation.
-            var verifyResult = await _packageSignatureVerifier.VerifySignaturesAsync(
+            var failureResult = await GetVerifyResult(
+                _fullPackageSignatureVerifier,
+                packageKey,
+                signedPackageReader,
+                message,
+                cancellationToken);
+            if (failureResult != null)
+            {
+                return failureResult;
+            }
+
+            _logger.LogInformation(
+                "Signed package {PackageId} {PackageVersion} for validation {ValidationId} is valid with certificate thumbprint: {PackageThumbprint}",
+                message.PackageId,
+                message.PackageVersion,
+                message.ValidationId,
+                packageThumbprint);
+
+            // Extract all of the signature artifacts and persist them.
+            await _signaturePartsExtractor.ExtractAsync(signedPackageReader, cancellationToken);
+
+            // Mark this package as signed.
+            return await AcceptAsync(packageKey, message, PackageSigningStatus.Valid);
+        }
+
+        private async Task<SignatureValidatorResult> GetVerifyResult(
+            IPackageSignatureVerifier verifier,
+            int packageKey,
+            ISignedPackageReader signedPackageReader,
+            SignatureValidationMessage message,
+            CancellationToken cancellationToken)
+        {
+            var verifyResult = await verifier.VerifySignaturesAsync(
                 signedPackageReader,
                 cancellationToken);
             if (!verifyResult.Valid)
@@ -140,19 +203,8 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
                         .Select(x => new ClientSigningVerificationFailure(x.Code.ToString(), x.Message))
                         .ToArray());
             }
-            
-            _logger.LogInformation(
-                "Signed package {PackageId} {PackageVersion} for validation {ValidationId} is valid with certificate thumbprint: {PackageThumbprint}",
-                message.PackageId,
-                message.PackageVersion,
-                message.ValidationId,
-                packageThumbprint);
 
-            // Extract all of the signature artifacts and persist them.
-            await _signaturePartsExtractor.ExtractAsync(signedPackageReader, cancellationToken);
-
-            // Mark this package as signed.
-            return await AcceptAsync(packageKey, message, PackageSigningStatus.Valid);
+            return null;
         }
 
         private async Task<SignatureValidatorResult> RejectAsync(

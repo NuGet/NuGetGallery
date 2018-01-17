@@ -184,10 +184,15 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
             services.AddTransient<IBrokeredMessageSerializer<SignatureValidationMessage>, SignatureValidationMessageSerializer>();
             services.AddTransient<IMessageHandler<SignatureValidationMessage>, SignatureValidationMessageHandler>();
             services.AddTransient<IPackageSigningStateService, PackageSigningStateService>();
-            services.AddTransient<ISignatureValidator, SignatureValidator>();
             services.AddTransient<ISignaturePartsExtractor, SignaturePartsExtractor>();
 
-            services.AddTransient(p => PackageSignatureVerifierFactory.Create());
+            services.AddTransient<ISignatureValidator, SignatureValidator>(p => new SignatureValidator(
+                p.GetRequiredService<IPackageSigningStateService>(),
+                PackageSignatureVerifierFactory.CreateMinimal(),
+                PackageSignatureVerifierFactory.CreateFull(),
+                p.GetRequiredService<ISignaturePartsExtractor>(),
+                p.GetRequiredService<IEntityRepository<Certificate>>(),
+                p.GetRequiredService<ILogger<SignatureValidator>>()));
 
             services.AddSingleton(p =>
             {

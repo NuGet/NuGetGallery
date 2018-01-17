@@ -5,15 +5,17 @@ using System;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Security.Cryptography.Pkcs;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
+using NuGet.Common;
 using NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
-using NuGet.Packaging;
 using NuGet.Packaging.Signing;
 using NuGet.Services.Validation;
 using NuGetGallery;
@@ -27,7 +29,8 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
         private readonly Mock<IPackageSigningStateService> _packageSigningStateService;
         private readonly Mock<ISignaturePartsExtractor> _signaturePartsExtractor;
         private readonly Mock<IEntityRepository<Certificate>> _certificates;
-        private readonly IPackageSignatureVerifier _packageSignatureVerifier;
+        private readonly IPackageSignatureVerifier _minimalPackageSignatureVerifier;
+        private readonly IPackageSignatureVerifier _fullPackageSignatureVerifier;
         private readonly ILogger<SignatureValidator> _logger;
         private readonly int _packageKey;
         private SignedPackageArchive _package;
@@ -46,7 +49,8 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
             _certificates = new Mock<IEntityRepository<Certificate>>();
 
             // These dependencies are concrete.
-            _packageSignatureVerifier = PackageSignatureVerifierFactory.Create();
+            _minimalPackageSignatureVerifier = PackageSignatureVerifierFactory.CreateMinimal();
+            _fullPackageSignatureVerifier = PackageSignatureVerifierFactory.CreateFull();
 
             var loggerFactory = new LoggerFactory();
             loggerFactory.AddXunit(output);
@@ -64,7 +68,8 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
             // Initialize the subject of testing.
             _target = new SignatureValidator(
                 _packageSigningStateService.Object,
-                _packageSignatureVerifier,
+                _minimalPackageSignatureVerifier,
+                _fullPackageSignatureVerifier,
                 _signaturePartsExtractor.Object,
                 _certificates.Object,
                 _logger);
@@ -159,6 +164,94 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
 
             // Assert
             VerifyPackageSigningStatus(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
+        }
+
+        [Fact]
+        public async Task RejectsInvalidSignedCms()
+        {
+            // Arrange
+            AllowCertificateThumbprint(TestResources.Leaf1Thumbprint);
+            var packageStream = TestResources.GetResourceStream(TestResources.SignedPackageLeaf1);
+
+            try
+            {
+                using (var zipArchive = new ZipArchive(packageStream, ZipArchiveMode.Update, leaveOpen: true))
+                using (var entryStream = zipArchive.GetEntry(".signature.p7s").Open())
+                {
+                    entryStream.Position = 0;
+                    entryStream.SetLength(0);
+                    var bytes = Encoding.ASCII.GetBytes("This is not a valid signed CMS.");
+                    entryStream.Write(bytes, 0, bytes.Length);
+                }
+
+                _package = new SignedPackageArchive(packageStream, packageStream);
+            }
+            catch
+            {
+                packageStream?.Dispose();
+                throw;
+            }
+
+            // Act
+            var result = await _target.ValidateAsync(
+                _packageKey,
+                _package,
+                _message,
+                _token);
+
+            // Assert
+            VerifyPackageSigningStatus(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
+        }
+
+        [Fact]
+        public async Task RejectsNonAuthorSignature()
+        {
+            // Arrange
+            var packageStream = TestResources.GetResourceStream(TestResources.SignedPackageLeaf1);
+
+            try
+            {
+                using (var zipArchive = new ZipArchive(packageStream, ZipArchiveMode.Update, leaveOpen: true))
+                using (var entryStream = zipArchive.GetEntry(".signature.p7s").Open())
+                using (var certificate = SigningTestUtility.GenerateCertificate(subjectName: null, modifyGenerator: null))
+                {
+                    AllowCertificateThumbprint(certificate.ComputeSHA256Thumbprint());
+
+                    var content = new SignatureContent(
+                        SigningSpecifications.V1,
+                        HashAlgorithmName.SHA256,
+                        hashValue: "hash");
+                    var contentInfo = new ContentInfo(content.GetBytes());
+                    var signedCms = new SignedCms(contentInfo);
+                    var cmsSigner = new CmsSigner(certificate);
+
+                    signedCms.ComputeSignature(cmsSigner);
+                    var bytes = signedCms.Encode();
+
+                    entryStream.Position = 0;
+                    entryStream.SetLength(0);
+                    entryStream.Write(bytes, 0, bytes.Length);
+                }
+
+                _package = new SignedPackageArchive(packageStream, packageStream);
+            }
+            catch
+            {
+                packageStream?.Dispose();
+                throw;
+            }
+
+            // Act
+            var result = await _target.ValidateAsync(
+                _packageKey,
+                _package,
+                _message,
+                _token);
+
+            // Assert
+            VerifyPackageSigningStatus(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
+            var issue = Assert.Single(result.Issues);
+            Assert.Equal(ValidationIssueCode.OnlyAuthorSignaturesSupported, issue.IssueCode);
         }
 
         [Fact]

@@ -39,6 +39,8 @@
     <Compile Include="SignaturePartsExtractorFacts.cs" />
     <Compile Include="SignatureValidatorFacts.cs" />
     <Compile Include="SignatureValidatorIntegrationTests.cs" />
+    <Compile Include="Support\ChainCertificateRequest.cs" />
+    <Compile Include="Support\SigningTestUtility.cs" />
     <Compile Include="Support\TestDbAsyncEnumerable.cs" />
     <Compile Include="Support\TestDbAsyncEnumerator.cs" />
     <Compile Include="Support\TestDbAsyncQueryProvider.cs" />
