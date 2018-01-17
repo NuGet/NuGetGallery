@@ -10,6 +10,8 @@ namespace NuGetGallery.Configuration
 {
     public class AppConfiguration : IAppConfiguration
     {
+        private string _ExternalBrandingMessage;
+
         [DefaultValue(Constants.DevelopmentEnvironment)]
         public string Environment { get; set; }
 
@@ -277,9 +279,19 @@ namespace NuGetGallery.Configuration
         public string ExternalBrandingUrl { get; set; }
 
         /// <summary>
-        /// Gets/sets a string that is brand string to display in the footer
+        /// Gets/sets a string that is brand string to display in the footer, this also
+        /// accepts a single {0} string format token which is replaced by the UTC year
         /// </summary>
-        public string ExternalBrandingMessage { get; set; }
+        public string ExternalBrandingMessage {
+            get {
+                return _ExternalBrandingMessage;
+            }
+
+            set
+            {
+                _ExternalBrandingMessage = string.Format(value, DateTime.UtcNow.Year);
+            }
+        }
 
         /// <summary>
         /// Get/Sets a string to a url that details trademarks. If unset, the link will not appear.
