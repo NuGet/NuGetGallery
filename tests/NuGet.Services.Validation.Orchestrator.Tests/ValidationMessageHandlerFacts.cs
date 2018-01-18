@@ -88,29 +88,6 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             ValidationOutcomeProcessorMock
                 .Verify(vop => vop.ProcessValidationOutcomeAsync(ValidationSet, Package));
         }
-
-        [Fact]
-        public async Task AbandonsMessageProcessingIfShutdownIsInProgress()
-        {
-            var cancellationTokenSource = new CancellationTokenSource();
-            ShutdownNotificationTokenProviderMock
-                .SetupGet(x => x.Token)
-                .Returns(cancellationTokenSource.Token);
-            cancellationTokenSource.Cancel();
-
-            var handler = CreateHandler();
-            var result = await handler.HandleAsync(MessageData);
-
-            Assert.False(result);
-            CorePackageServiceMock
-                .Verify(cps => cps.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()), Times.Never());
-            ValidationSetProviderMock
-                .Verify(vsp => vsp.GetOrCreateValidationSetAsync(It.IsAny<Guid>(), It.IsAny<Package>()), Times.Never());
-            ValidationSetProcessorMock
-                .Verify(vsp => vsp.ProcessValidationsAsync(It.IsAny<PackageValidationSet>(), It.IsAny<Package>()), Times.Never());
-            ValidationOutcomeProcessorMock
-                .Verify(vop => vop.ProcessValidationOutcomeAsync(It.IsAny<PackageValidationSet>(), It.IsAny<Package>()), Times.Never());
-        }
     }
 
     public class ValidationMessageHandlerFactsBase
@@ -119,7 +96,6 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         protected Mock<IValidationSetProvider> ValidationSetProviderMock { get; }
         protected Mock<IValidationSetProcessor> ValidationSetProcessorMock { get; }
         protected Mock<IValidationOutcomeProcessor> ValidationOutcomeProcessorMock { get; }
-        protected Mock<IShutdownNotificationTokenProvider> ShutdownNotificationTokenProviderMock { get; }
         protected Mock<ILogger<ValidationMessageHandler>> LoggerMock { get; }
 
         public ValidationMessageHandlerFactsBase(MockBehavior mockBehavior)
@@ -128,10 +104,6 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             ValidationSetProviderMock = new Mock<IValidationSetProvider>(mockBehavior);
             ValidationSetProcessorMock = new Mock<IValidationSetProcessor>(mockBehavior);
             ValidationOutcomeProcessorMock = new Mock<IValidationOutcomeProcessor>(mockBehavior);
-            ShutdownNotificationTokenProviderMock = new Mock<IShutdownNotificationTokenProvider>(mockBehavior);
-            ShutdownNotificationTokenProviderMock
-                .SetupGet(x => x.Token)
-                .Returns(CancellationToken.None);
             LoggerMock = new Mock<ILogger<ValidationMessageHandler>>(); // we generally don't care about how logger is called, so it's loose all the time
         }
 
@@ -142,7 +114,6 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 ValidationSetProviderMock.Object,
                 ValidationSetProcessorMock.Object,
                 ValidationOutcomeProcessorMock.Object,
-                ShutdownNotificationTokenProviderMock.Object,
                 LoggerMock.Object);
         }
     }
