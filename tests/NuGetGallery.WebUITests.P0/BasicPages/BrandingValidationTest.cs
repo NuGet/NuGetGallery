@@ -45,7 +45,7 @@ namespace NuGetGallery.FunctionalTests.WebUITests.BasicPages
             {
                 if (!String.IsNullOrEmpty(EnvironmentSettings.ExternalBrandingMessage))
                 {
-                    var validationBrandingMessage = AssertAndValidationHelper.GetValidationRuleForFindText(EnvironmentSettings.ExternalBrandingMessage);
+                    var validationBrandingMessage = AssertAndValidationHelper.GetValidationRuleForFindText(string.Format(EnvironmentSettings.ExternalBrandingMessage, DateTime.UtcNow.Year));
                     pageRequest.ValidateResponse += validationBrandingMessage.Validate;
                 }
 
