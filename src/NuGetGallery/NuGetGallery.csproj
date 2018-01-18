@@ -1613,6 +1613,8 @@
     <Compile Include="Services\ReflowPackageService.cs" />
     <Compile Include="Services\TelemetryService.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteUserAccountViewModel.cs" />
+    <Compile Include="ViewModels\ListOrganizationsItemViewModel.cs" />
+    <Compile Include="ViewModels\ListOrganizationsViewModel.cs" />
     <Compile Include="ViewModels\ListPackageOwnerViewModel.cs" />
     <Compile Include="ViewModels\PackageDeleteDecision.cs" />
     <Compile Include="ViewModels\DeleteAccountViewModel.cs" />
@@ -2001,6 +2003,7 @@
     <Content Include="Views\Authentication\SignInNuGetAccount.cshtml" />
     <Content Include="Views\Packages\_VerifyForm.cshtml" />
     <Content Include="Views\Packages\_VerifyMetadata.cshtml" />
+    <Content Include="Views\Users\Organizations.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />

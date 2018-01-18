@@ -728,6 +728,11 @@ namespace NuGetGallery
             return GetActionLink(url, "ApiKeys", "Users", relativeUrl);
         }
 
+        public static string ManageMyOrganizations(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetActionLink(url, "Organizations", "Users", relativeUrl);
+        }
+
         public static string ManageMyPackages(this UrlHelper url, bool relativeUrl = true)
         {
             return GetActionLink(url, "Packages", "Users", relativeUrl);
