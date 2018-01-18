@@ -403,7 +403,6 @@ namespace NuGetGallery
                         // Ensure that the user can push packages for this partialId.
                         var id = nuspec.GetId();
                         var packageRegistration = PackageService.FindPackageRegistrationById(id);
-                        IReadOnlyCollection<ReservedNamespace> userOwnedNamespaces = null;
                         if (packageRegistration == null)
                         {
                             // Check if API key allows pushing a new package id
@@ -414,8 +413,8 @@ namespace NuGetGallery
                             }
 
                             // For a new package id verify that the user is allowed to push to the matching namespaces, if any.
-                            var isPushAllowed = ReservedNamespaceService.IsPushAllowed(id, user, out userOwnedNamespaces);
-                            if (!isPushAllowed)
+                            if (ActionsRequiringPermissions.UploadNewPackageId.CheckPermissionsOnBehalfOfAnyAccount(
+                                user, new ActionOnNewPackageContext(id, ReservedNamespaceService)) != PermissionsCheckResult.Allowed)
                             {
                                 var version = nuspec.GetVersion().ToNormalizedString();
                                 TelemetryService.TrackPackagePushNamespaceConflictEvent(id, version, user, User.Identity);
@@ -475,7 +474,8 @@ namespace NuGetGallery
                             id,
                             packageToPush,
                             packageStreamMetadata,
-                            user);
+                            owner: user,
+                            currentUser: user);
 
                         await AutoCuratePackage.ExecuteAsync(package, packageToPush, commitChanges: false);
 

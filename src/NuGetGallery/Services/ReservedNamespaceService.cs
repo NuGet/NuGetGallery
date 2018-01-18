@@ -364,28 +364,21 @@ namespace NuGetGallery
             }
         }
 
-        public bool IsPushAllowed(string id, User user, out IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces)
-        {
-            // Allow push to a new package ID only if
-            // 1. There is no namespace match for the given ID
-            // 2. Or one of the matching namespace is a shared namespace.
-            // 3. Or the current user is one of the owner of a matching namespace.
-            var matchingNamespaces = GetReservedNamespacesForId(id);
-            var noNamespaceMatches = matchingNamespaces.Count() == 0;
-            var idMatchesSharedNamespace = matchingNamespaces.Any(rn => rn.IsSharedNamespace);
-            userOwnedMatchingNamespaces = matchingNamespaces
-                .Where(rn => rn.Owners.AnySafe(o => o.Username == user.Username))
-                .ToList()
-                .AsReadOnly();
-
-            return noNamespaceMatches || idMatchesSharedNamespace || userOwnedMatchingNamespaces.Any();
-        }
-
         private bool ShouldForceSharedNamespace(string value)
         {
             var liberalMatchingNamespaces = GetReservedNamespacesForId(value);
             return liberalMatchingNamespaces.Any(rn => rn.IsSharedNamespace);
         }
 
+        public bool ShouldMarkNewPackageIdVerified(User account, string id, out IReadOnlyCollection<ReservedNamespace> ownedMatchingReservedNamespaces)
+        {
+            ownedMatchingReservedNamespaces = 
+                GetReservedNamespacesForId(id)
+                    .Where(rn => rn.Owners.AnySafe(o => account.MatchesUser(o)))
+                    .ToList()
+                    .AsReadOnly();
+
+            return ownedMatchingReservedNamespaces.Any();
+        }
     }
 }

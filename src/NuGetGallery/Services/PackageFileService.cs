@@ -19,11 +19,6 @@ namespace NuGetGallery
         /// </summary>
         private const string ReadMeFilePathTemplateActive = "active/{0}/{1}{2}";
 
-        /// <summary>
-        /// Pending (PackageEdit) readme markdown file, formatted as 'pending/{packageId}/{version}.md'
-        /// </summary>
-        private const string ReadMeFilePathTemplatePending = "pending/{0}/{1}{2}";
-
         private readonly IFileStorageService _fileStorageService;
 
         public PackageFileService(IFileStorageService fileStorageService)
@@ -50,7 +45,7 @@ namespace NuGetGallery
             {
                 throw new ArgumentNullException(nameof(package));
             }
-            
+
             if (packageFile == null)
             {
                 throw new ArgumentNullException(nameof(packageFile));
@@ -63,7 +58,7 @@ namespace NuGetGallery
                 throw new ArgumentException(CoreStrings.PackageIsMissingRequiredData, nameof(package));
             }
 
-            var fileName = BuildBackupFileName(package.PackageRegistration.Id, string.IsNullOrEmpty(package.NormalizedVersion) 
+            var fileName = BuildBackupFileName(package.PackageRegistration.Id, string.IsNullOrEmpty(package.NormalizedVersion)
                 ? NuGetVersion.Parse(package.Version).ToNormalizedString() : package.NormalizedVersion, package.Hash);
             return _fileStorageService.SaveFileAsync(CoreConstants.PackageBackupsFolderName, fileName, packageFile);
         }
@@ -72,35 +67,32 @@ namespace NuGetGallery
         /// Deletes the package readme.md file from storage.
         /// </summary>
         /// <param name="package">The package associated with the readme.</param>
-        /// <param name="isPending">True to delete pending blob, false for active.</param>
-        public Task DeleteReadMeMdFileAsync(Package package, bool isPending = false)
+        public Task DeleteReadMeMdFileAsync(Package package)
         {
             if (package == null)
             {
                 throw new ArgumentNullException(nameof(package));
             }
-
-            var format = isPending ?
-                ReadMeFilePathTemplatePending :
-                ReadMeFilePathTemplateActive;
-            var fileName = BuildFileName(package, format, Constants.MarkdownFileExtension);
+            
+            var fileName = BuildFileName(package, ReadMeFilePathTemplateActive, Constants.MarkdownFileExtension);
 
             return _fileStorageService.DeleteFileAsync(CoreConstants.PackageReadMesFolderName, fileName);
         }
 
         /// <summary>
-        /// Saves the (pending) package readme.md file to storage.
+        /// Saves the package readme.md file to storage.
         /// </summary>
         /// <param name="package">The package associated with the readme.</param>
         /// <param name="readMeMd">Markdown content.</param>
-        public async Task SavePendingReadMeMdFileAsync(Package package, string readMeMd)
+        public async Task SaveReadMeMdFileAsync(Package package, string readMeMd)
         {
             if (string.IsNullOrWhiteSpace(readMeMd))
             {
                 throw new ArgumentNullException(nameof(readMeMd));
             }
 
-            var fileName = BuildFileName(package, ReadMeFilePathTemplatePending, Constants.MarkdownFileExtension);
+            var fileName = BuildFileName(package, ReadMeFilePathTemplateActive, Constants.MarkdownFileExtension);
+
             using (var readMeMdStream = new MemoryStream(Encoding.UTF8.GetBytes(readMeMd)))
             {
                 await _fileStorageService.SaveFileAsync(CoreConstants.PackageReadMesFolderName, fileName, readMeMdStream, overwrite: true);
@@ -111,18 +103,14 @@ namespace NuGetGallery
         /// Downloads the readme.md from storage.
         /// </summary>
         /// <param name="package">The package associated with the readme.</param>
-        /// <param name="isPending">True to download the pending blob, false for active.</param>
-        public async Task<string> DownloadReadMeMdFileAsync(Package package, bool isPending = false)
+        public async Task<string> DownloadReadMeMdFileAsync(Package package)
         {
             if (package == null)
             {
                 throw new ArgumentNullException(nameof(package));
             }
-
-            var format = isPending ?
-                ReadMeFilePathTemplatePending :
-                ReadMeFilePathTemplateActive;
-            var fileName = BuildFileName(package, format, Constants.MarkdownFileExtension);
+            
+            var fileName = BuildFileName(package, ReadMeFilePathTemplateActive, Constants.MarkdownFileExtension);
 
             using (var readMeMdStream = await _fileStorageService.GetFileAsync(CoreConstants.PackageReadMesFolderName, fileName))
             {

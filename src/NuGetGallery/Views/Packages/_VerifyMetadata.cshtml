@@ -42,7 +42,7 @@
 </script>
 
 <script type="text/html" id="verify-metadata-template">
-    <div class="collapse in">
+    <div class="collapse in" id="verify-package-section">
         <div data-bind="if: $data">
 
                 <div class="verify-package-field">
@@ -57,6 +57,21 @@
                     <input data-bind="value: $data.Version" type="hidden" name="Version" class="form-control" />
                     <input data-bind="value: $data.OriginalVersion" type="hidden" name="OriginalVersion" class="form-control" />
                 </div>
+
+                <!-- ko if: $data.PossibleOwners -->
+                <div class="verify-package-field form-group editable">
+                    <label for="Owner" class="verify-package-field-heading">Owner</label>
+                    <!-- ko if: $data.PossibleOwners.length > 1 -->
+                    <select aria-required="true" class="form-control" data-val="true" data-val-required="You must select an owner for your package!" name="Owner" data-bind="foreach: $data.PossibleOwners">
+                        <option data-bind="value: $data, text: $data"></option>
+                    </select>
+                    <!-- /ko -->
+                    <!-- ko if: $data.PossibleOwners.length == 1 -->
+                    <p data-bind="text: $data.PossibleOwners[0]"></p>
+                    <input data-bind="value: $data.PossibleOwners[0]" type="hidden" name="Owner" class="form-control" />
+                    <!-- /ko -->
+                </div>
+                <!-- /ko -->
 
                 <div class="verify-package-field">
                     <label class="verify-package-field-heading">Minimum NuGet Client Version</label>

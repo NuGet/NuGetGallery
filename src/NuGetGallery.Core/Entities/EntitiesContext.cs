@@ -79,9 +79,9 @@ namespace NuGetGallery
             ObjectContext.CommandTimeout = seconds;
         }
 
-        public Database GetDatabase()
+        public IDatabase GetDatabase()
         {
-            return Database;
+            return new DatabaseWrapper(Database);
         }
 
 #pragma warning disable 618 // TODO: remove Package.Authors completely once production services definitely no longer need it
@@ -140,17 +140,39 @@ namespace NuGetGallery
             modelBuilder.Entity<Membership>()
                 .HasKey(m => new { m.OrganizationKey, m.MemberKey });
 
+            modelBuilder.Entity<MembershipRequest>()
+                .HasKey(m => new { m.OrganizationKey, m.NewMemberKey });
+
+            modelBuilder.Entity<OrganizationMigrationRequest>()
+                .HasKey(m => m.NewOrganizationKey);
+
             modelBuilder.Entity<User>()
                 .HasMany(u => u.Organizations)
                 .WithRequired(m => m.Member)
                 .HasForeignKey(m => m.MemberKey)
                 .WillCascadeOnDelete(true); // Membership will be deleted with the Member account.
 
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.OrganizationRequests)
+                .WithRequired(m => m.NewMember)
+                .HasForeignKey(m => m.NewMemberKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<User>()
+                .HasOptional(u => u.OrganizationMigrationRequest)
+                .WithRequired(m => m.NewOrganization);
+
             modelBuilder.Entity<Organization>()
                 .HasMany(o => o.Members)
                 .WithRequired(m => m.Organization)
                 .HasForeignKey(m => m.OrganizationKey)
                 .WillCascadeOnDelete(true); // Memberships will be deleted with the Organization account.
+
+            modelBuilder.Entity<Organization>()
+                .HasMany(o => o.MemberRequests)
+                .WithRequired(m => m.Organization)
+                .HasForeignKey(m => m.OrganizationKey)
+                .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<Role>()
                 .HasKey(u => u.Key);

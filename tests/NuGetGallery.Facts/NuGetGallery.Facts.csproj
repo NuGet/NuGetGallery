@@ -28,7 +28,6 @@
     <WarningLevel>4</WarningLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Prefer32Bit>false</Prefer32Bit>
-    <NoWarn>0618</NoWarn>
     <CodeAnalysisRuleSet>ManagedMinimumRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -218,18 +217,21 @@
     <Reference Include="NuGet.Protocol, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Protocol.4.3.0-preview1-2524\lib\net45\NuGet.Protocol.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Services.Contracts, Version=2.4.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.Contracts.2.4.0\lib\net45\NuGet.Services.Contracts.dll</HintPath>
+    <Reference Include="NuGet.Services.Contracts, Version=2.7.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.Contracts.2.7.2\lib\net45\NuGet.Services.Contracts.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Services.KeyVault, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Services.KeyVault.1.0.0.0\lib\net45\NuGet.Services.KeyVault.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="NuGet.Services.ServiceBus, Version=2.4.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.ServiceBus.2.4.0\lib\net45\NuGet.Services.ServiceBus.dll</HintPath>
+    <Reference Include="NuGet.Services.ServiceBus, Version=2.7.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.ServiceBus.2.7.2\lib\net45\NuGet.Services.ServiceBus.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Services.Validation, Version=2.4.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.Validation.2.4.0\lib\net45\NuGet.Services.Validation.dll</HintPath>
+    <Reference Include="NuGet.Services.Validation, Version=2.7.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.Validation.2.7.2\lib\net45\NuGet.Services.Validation.dll</HintPath>
+    </Reference>
+    <Reference Include="NuGet.Services.Validation.Issues, Version=2.7.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.Validation.Issues.2.7.2\lib\net45\NuGet.Services.Validation.Issues.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Versioning, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Versioning.4.3.0-preview1-2524\lib\net45\NuGet.Versioning.dll</HintPath>
@@ -243,6 +245,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\PoliteCaptcha.0.4.0.1\lib\net40\PoliteCaptcha.dll</HintPath>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="RazorEngine, Version=3.10.0.0, Culture=neutral, PublicKeyToken=9ee697374c7e744a, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\RazorEngine.3.10.0\lib\net45\RazorEngine.dll</HintPath>
     </Reference>
     <Reference Include="Recaptcha, Version=1.0.5.0, Culture=neutral, PublicKeyToken=9afc4d65b28c38c2, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -388,14 +393,21 @@
     <Compile Include="App_Start\RuntimeServiceProviderTests.cs" />
     <Compile Include="Areas\Admin\Controllers\DeleteAccountControllerFacts.cs" />
     <Compile Include="Areas\Admin\Controllers\DeleteControllerFacts.cs" />
+    <Compile Include="Areas\Admin\Controllers\LockPackageControllerFacts.cs" />
     <Compile Include="Areas\Admin\Controllers\ReservedNamespaceControllerFacts.cs" />
     <Compile Include="Areas\Admin\Controllers\SecurityPolicyControllerFacts.cs" />
+    <Compile Include="Areas\Admin\HelperFacts.cs" />
     <Compile Include="Areas\Admin\Services\ValidationAdminServiceFacts.cs" />
     <Compile Include="Authentication\AuthenticatorFacts.cs" />
     <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationHandlerFacts.cs" />
     <Compile Include="Authentication\AuthenticationServiceFacts.cs" />
+    <Compile Include="Authentication\Providers\CommonAuth\AzureActiveDirectoryV2AuthenticatorFacts.cs" />
     <Compile Include="Authentication\TestCredentialHelper.cs" />
+    <Compile Include="Configuration\ConfigurationServiceFacts.cs" />
     <Compile Include="Controllers\SupportControllerFacts.cs" />
+    <Compile Include="Extensions\RouteExtensionsFacts.cs" />
+    <Compile Include="Extensions\OrganizationExtensionsFacts.cs" />
+    <Compile Include="Framework\MemberDataHelper.cs" />
     <Compile Include="Infrastructure\Authentication\ApiKeyV4Facts.cs" />
     <Compile Include="Infrastructure\Authentication\V3HasherTests.cs" />
     <Compile Include="AutocompleteServicePackageIdsQueryFacts.cs" />
@@ -427,11 +439,12 @@
     <Compile Include="HttpContextBaseExtensionsFacts.cs" />
     <Compile Include="Infrastructure\Authentication\Base32EncoderTests.cs" />
     <Compile Include="Security\RequireMinProtocolVersionForPushPolicyFacts.cs" />
+    <Compile Include="Services\ActionRequiringEntityPermissionsFacts.cs" />
     <Compile Include="Services\DeleteAccountServiceFacts.cs" />
     <Compile Include="Services\JsonStatisticsServiceFacts.cs" />
     <Compile Include="Services\PackageOwnerRequestServiceFacts.cs" />
     <Compile Include="Services\PackageOwnershipManagementServiceFacts.cs" />
-    <Compile Include="Services\PermissionsServiceFacts.cs" />
+    <Compile Include="Services\PermissionsHelpersFacts.cs" />
     <Compile Include="Services\ReadMeServiceFacts.cs" />
     <Compile Include="Infrastructure\UserAuditRecordFacts.cs" />
     <Compile Include="OData\Filter\ODataFilterFacts.cs" />
@@ -537,9 +550,13 @@
     <Compile Include="ViewModels\PackageViewModelFacts.cs" />
     <Compile Include="ViewModels\PreviousNextPagerViewModelFacts.cs" />
     <Compile Include="ViewModels\UserProfileModelFacts.cs" />
+    <Compile Include="Views\Packages\ValidationIssueFacts.cs" />
     <Compile Include="Views\UrlHelperFacts.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="..\..\src\NuGetGallery\Views\Packages\_ValidationIssue.cshtml">
+      <Link>Views\Packages\_ValidationIssue.cshtml</Link>
+    </EmbeddedResource>
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>

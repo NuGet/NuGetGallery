@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
@@ -13,6 +14,7 @@ using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Authentication;
+using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Authentication;
 using Xunit;
@@ -623,6 +625,95 @@ namespace NuGetGallery
             }
         }
 
+        public class TheApiKeysAction
+            : TestContainer
+        {
+            public static IEnumerable<object[]> CurrentUserIsInPackageOwnersWithPushNew_Data
+            {
+                get
+                {
+                    foreach (var currentUser in 
+                        new[] 
+                        {
+                            TestUtility.FakeUser,
+                            TestUtility.FakeAdminUser,
+                            TestUtility.FakeOrganizationAdmin,
+                            TestUtility.FakeOrganizationCollaborator
+                        })
+                    {
+                        yield return MemberDataHelper.AsData(currentUser);
+                    }
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(CurrentUserIsInPackageOwnersWithPushNew_Data))]
+            public void CurrentUserIsFirstInPackageOwnersWithPushNew(User currentUser)
+            {
+                var model = GetModelForApiKeys(currentUser);
+
+                var firstPackageOwner = model.PackageOwners.First();
+                Assert.True(firstPackageOwner.Owner == currentUser.Username);
+                Assert.True(firstPackageOwner.CanPushNew);
+            }
+            
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public void OrganizationIsInPackageOwnersIfMember(bool isAdmin)
+            {
+                var currentUser = isAdmin ? TestUtility.FakeOrganizationAdmin : TestUtility.FakeOrganizationCollaborator;
+                var organization = TestUtility.FakeOrganization;
+
+                var model = GetModelForApiKeys(currentUser);
+                
+                Assert.Equal(1, model.PackageOwners.Count(o => o.Owner == organization.Username && o.CanPushNew == isAdmin));
+            }
+
+            public static IEnumerable<object[]> OrganizationIsNotInPackageOwnersIfNotMember_Data
+            {
+                get
+                {
+                    foreach (var currentUser in
+                        new[]
+                        {
+                            TestUtility.FakeUser,
+                            TestUtility.FakeAdminUser
+                        })
+                    {
+                        yield return MemberDataHelper.AsData(currentUser);
+                    }
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(OrganizationIsNotInPackageOwnersIfNotMember_Data))]
+            public void OrganizationIsNotInPackageOwnersIfNotMember(User currentUser)
+            {
+                var organization = TestUtility.FakeOrganization;
+
+                var model = GetModelForApiKeys(currentUser);
+
+                Assert.Equal(0, model.PackageOwners.Count(o => o.Owner == organization.Username));
+            }
+
+            private ApiKeyListViewModel GetModelForApiKeys(User currentUser)
+            {
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(currentUser);
+
+                // Act
+                var result = controller.ApiKeys();
+
+                // Assert
+                Assert.IsType<ViewResult>(result);
+                var viewResult = result as ViewResult;
+
+                Assert.IsType<ApiKeyListViewModel>(viewResult.Model);
+                return viewResult.Model as ApiKeyListViewModel;
+            }
+        }
+
         public class TheGenerateApiKeyAction : TestContainer
         {
             [InlineData(null)]
@@ -647,13 +738,42 @@ namespace NuGetGallery
                 Assert.True(string.Compare((string)result.Data, Strings.ApiKeyDescriptionRequired) == 0);
             }
 
-            [Fact]
-            public async Task WhenScopeOwnerDoesNotMatch_ReturnsBadRequest()
+            public static IEnumerable<object[]> WhenScopeOwnerDoesNotMatch_ReturnsBadRequest_Data
+            {
+                get
+                {
+                    foreach (var getCurrentUser in 
+                        new Func<Fakes, User>[] 
+                        {
+                            (fakes) => fakes.User,
+                            (fakes) => fakes.Admin
+                        })
+                    {
+                        yield return new object[]
+                        {
+                            getCurrentUser
+                        };
+                    }
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(WhenScopeOwnerDoesNotMatch_ReturnsBadRequest_Data))]
+            public Task WhenScopeOwnerDoesNotMatch_ReturnsBadRequest(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange 
                 var fakes = new Fakes();
-                var user = fakes.User;
-                var otherUser = fakes.ShaUser;
+                var currentUser = getCurrentUser(fakes);
+                var userInOwnerScope = fakes.ShaUser;
+
+                return WhenScopeOwnerDoesNotMatch_ReturnsBadRequest(currentUser, userInOwnerScope);
+            }
+
+            private async Task WhenScopeOwnerDoesNotMatch_ReturnsBadRequest(User currentUser, User userInOwnerScope)
+            {
+                // Arrange 
+                var user = currentUser;
+                var otherUser = userInOwnerScope;
                 GetMock<IUserService>()
                     .Setup(u => u.FindByUsername(otherUser.Username))
                     .Returns(otherUser);
@@ -2102,10 +2222,10 @@ namespace NuGetGallery
                     .Setup(stub => stub.FindByUsername(userName))
                     .Returns(testUser);
                 GetMock<IPackageService>()
-                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>()))
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))
                     .Returns(userPackages);
                 GetMock<IPackageService>()
-                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>()))
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))
                     .Returns(userPackages);
 
                 // act
@@ -2167,7 +2287,7 @@ namespace NuGetGallery
                     .Setup(stub => stub.FindByUsername(userName))
                     .Returns(testUser);
                 GetMock<IPackageService>()
-                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>()))
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))
                     .Returns(userPackages);
                 GetMock<ISupportRequestService>()
                    .Setup(stub => stub.GetIssues(null, null, null, null))
@@ -2210,7 +2330,7 @@ namespace NuGetGallery
                     .Setup(stub => stub.FindByUsername(userName))
                     .Returns(testUser);
                 GetMock<IPackageService>()
-                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>()))
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))
                     .Returns(userPackages);
                 GetMock<ISupportRequestService>()
                    .Setup(stub => stub.GetIssues(null, null, null, userName))
@@ -2227,6 +2347,236 @@ namespace NuGetGallery
                 Assert.Equal<string>("DeleteRequest", (string)result.RouteValues["action"]);
                 bool tempData = controller.TempData.ContainsKey("RequestFailedMessage");
                 Assert.Equal<bool>(!successOnSentRequest, tempData);
+            }
+        }
+
+        public class TheTransformToOrganizationActionBase : TestContainer
+        {
+            protected UsersController CreateController(string accountToTransform, string canTransformErrorReason = "")
+            {
+                var configurationService = GetConfigurationService();
+                configurationService.Current.OrganizationsEnabledForDomains = new string[] { "example.com" };
+
+                var controller = GetController<UsersController>();
+                var currentUser = new User(accountToTransform) { EmailAddress = $"{accountToTransform}@example.com" };
+                controller.SetCurrentUser(currentUser);
+
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername("OrgAdmin"))
+                    .Returns(new User("OrgAdmin")
+                    {
+                        EmailAddress = "orgadmin@example.com"
+                    });
+
+                GetMock<IUserService>()
+                    .Setup(u => u.CanTransformUserToOrganization(It.IsAny<User>(), out canTransformErrorReason))
+                    .Returns(string.IsNullOrEmpty(canTransformErrorReason));
+
+                GetMock<IUserService>()
+                    .Setup(s => s.RequestTransformToOrganizationAccount(It.IsAny<User>(), It.IsAny<User>()))
+                    .Callback<User, User>((acct, admin) => {
+                        acct.OrganizationMigrationRequest = new OrganizationMigrationRequest()
+                        {
+                            NewOrganization = acct,
+                            AdminUser = admin,
+                            ConfirmationToken = "X",
+                            RequestDate = DateTime.UtcNow
+                        };
+                    })
+                    .Returns(Task.CompletedTask)
+                    .Verifiable();
+
+                return controller;
+            }
+        }
+
+        public class TheGetTransformToOrganizationAction : TheTransformToOrganizationActionBase
+        {
+            [Fact]
+            public void WhenCanTransformReturnsFalse_ShowsError()
+            {
+                // Arrange
+                var accountToTransform = "account";
+                var controller = CreateController(accountToTransform, canTransformErrorReason: "error");
+
+                // Act
+                var result = controller.TransformToOrganization();
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal("error", controller.TempData["TransformError"]);
+            }
+        }
+
+        public class ThePostTransformToOrganizationAction : TheTransformToOrganizationActionBase
+        {
+            [Fact]
+            public async Task WhenCanTransformReturnsFalse_ShowsError()
+            {
+                // Arrange
+                var accountToTransform = "account";
+                var controller = CreateController(accountToTransform, canTransformErrorReason: "error");
+
+                // Act
+                var result = await controller.TransformToOrganization(new TransformAccountViewModel() {
+                    AdminUsername = "OrgAdmin"
+                });
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal("error", controller.TempData["TransformError"]);
+            }
+
+            [Fact]
+            public async Task WhenAdminIsNotFound_ShowsError()
+            {
+                // Arrange
+                var accountToTransform = "account";
+                var controller = CreateController(accountToTransform);
+
+                // Act
+                var result = await controller.TransformToOrganization(new TransformAccountViewModel()
+                {
+                    AdminUsername = "AdminThatDoesNotExist"
+                });
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(1, controller.ModelState["AdminUsername"].Errors.Count);
+                Assert.Equal(
+                    String.Format(CultureInfo.CurrentCulture,
+                        Strings.TransformAccount_AdminAccountDoesNotExist, "AdminThatDoesNotExist"),
+                    controller.ModelState["AdminUsername"].Errors.First().ErrorMessage);
+            }
+
+            [Fact]
+            public async Task WhenValid_CreatesRequestAndRedirects()
+            {
+                // Arrange
+                var accountToTransform = "account";
+                var controller = CreateController(accountToTransform);
+
+                // Act
+                var result = await controller.TransformToOrganization(new TransformAccountViewModel()
+                {
+                    AdminUsername = "OrgAdmin"
+                });
+
+                // Assert
+                Assert.IsType<RedirectResult>(result);
+            }
+        }
+        
+        public class TheConfirmTransformToOrganizationAction : TestContainer
+        {
+            [Fact]
+            public async Task WhenAdminIsNotConfirmed_ShowsError()
+            {
+                // Arrange
+                var controller = GetController<UsersController>();
+                var currentUser = new User() { UnconfirmedEmailAddress = "unconfirmed@example.com" };
+                controller.SetCurrentUser(currentUser);
+
+                // Act
+                var result = await controller.ConfirmTransformToOrganization("account", "token");
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(Strings.TransformAccount_NotConfirmed, controller.TempData["TransformError"]);
+            }
+
+            [Fact]
+            public async Task WhenAccountToTransformIsNotFound_ShowsError()
+            {
+                // Arrange
+                var controller = GetController<UsersController>();
+                var currentUser = new User("OrgAdmin") { EmailAddress = "orgadmin@example.com" };
+                controller.SetCurrentUser(currentUser);
+
+                // Act
+                var result = await controller.ConfirmTransformToOrganization("account", "token");
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(
+                    String.Format(CultureInfo.CurrentCulture, Strings.TransformAccount_OrganizationAccountDoesNotExist, "account"),
+                    controller.TempData["TransformError"]);
+            }
+
+            [Fact]
+            public async Task WhenCanTransformReturnsFalse_ShowsError()
+            {
+                // Arrange
+                var accountToTransform = "account";
+                var controller = CreateController(accountToTransform, canTransformErrorReason: "error");
+
+                // Act
+                var result = await controller.ConfirmTransformToOrganization(accountToTransform, "token");
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal("error", controller.TempData["TransformError"]);
+            }
+
+            [Fact]
+            public async Task WhenUserServiceReturnsFalse_ShowsError()
+            {
+                // Arrange
+                var accountToTransform = "account";
+                var controller = CreateController(accountToTransform, success: false);
+
+                // Act
+                var result = await controller.ConfirmTransformToOrganization(accountToTransform, "token");
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(
+                    String.Format(CultureInfo.CurrentCulture,
+                        Strings.TransformAccount_Failed, "account"),
+                    controller.TempData["TransformError"]);
+            }
+
+            [Fact]
+            public async Task WhenUserServiceReturnsSuccess_Redirects()
+            {
+                // Arrange
+                var accountToTransform = "account";
+                var controller = CreateController(accountToTransform, success: true);
+
+                // Act
+                var result = await controller.ConfirmTransformToOrganization(accountToTransform, "token");
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.False(controller.TempData.ContainsKey("TransformError"));
+            }
+
+            private UsersController CreateController(string accountToTransform, string canTransformErrorReason = "", bool success = true)
+            {
+                // Arrange
+                var configurationService = GetConfigurationService();
+                configurationService.Current.OrganizationsEnabledForDomains = new string[] { "example.com" };
+
+                var controller = GetController<UsersController>();
+                var currentUser = new User("OrgAdmin") { EmailAddress = "orgadmin@example.com" };
+                controller.SetCurrentUser(currentUser);
+
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername(accountToTransform))
+                    .Returns(new User(accountToTransform)
+                    {
+                        EmailAddress = $"{accountToTransform}@example.com"
+                    });
+
+                GetMock<IUserService>()
+                    .Setup(u => u.CanTransformUserToOrganization(It.IsAny<User>(), out canTransformErrorReason))
+                    .Returns(string.IsNullOrEmpty(canTransformErrorReason));
+
+                GetMock<IUserService>()
+                    .Setup(s => s.TransformUserToOrganization(It.IsAny<User>(), It.IsAny<User>(), It.IsAny<string>()))
+                    .Returns(Task.FromResult(success));
+
+                return controller;
             }
         }
     }

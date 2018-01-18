@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web.Mvc;
@@ -94,16 +95,32 @@ namespace NuGetGallery.Authentication.Providers
             return new HttpUnauthorizedResult();
         }
 
-        public virtual bool TryMapIssuerToAuthenticationType(string issuer, out string authenticationType)
+        /// <summary>
+        /// Override this method to provide confirmation on identity author.
+        /// </summary>
+        /// <param name="claimsIdentity">The claims identity returned by the identity</param>
+        /// <returns>Returns true if this provider is the author for the identity, false otherwise</returns>
+        public virtual bool IsProviderForIdentity(ClaimsIdentity claimsIdentity)
         {
-            if (string.Equals(issuer, BaseConfig.AuthenticationType, StringComparison.OrdinalIgnoreCase))
+            // If the issuer of the claims identity is same as that of the authentication type then this is the author.
+            var firstClaim = claimsIdentity?.Claims?.FirstOrDefault();
+            if (firstClaim == null)
             {
-                authenticationType = BaseConfig.AuthenticationType;
-                return true;
+                return false;
             }
 
-            authenticationType = null;
-            return false;
+            return string.Equals(firstClaim.Issuer, BaseConfig.AuthenticationType, StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// The providers will override this method to extract the user information
+        /// from the returned claims by the identity authentication.
+        /// </summary>
+        /// <param name="claimsIdentity">The claims identity returned by the identity</param>
+        /// <returns><see cref="IdentityInformation"/></returns>
+        public virtual IdentityInformation GetIdentityInformation(ClaimsIdentity claimsIdentity)
+        {
+            return null;
         }
     }
 }

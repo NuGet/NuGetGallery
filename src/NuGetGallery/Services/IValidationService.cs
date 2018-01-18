@@ -1,7 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using NuGet.Services.Validation.Issues;
 
 namespace NuGetGallery
 {
@@ -23,5 +25,12 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="package">The package to start validation for.</param>
         Task RevalidateAsync(Package package);
+
+        /// <summary>
+        /// Get the package's validation issues from the latest validation.
+        /// </summary>
+        /// <param name="package">The package whose validation issues should be fetched.</param>
+        /// <returns>The validation issues encountered in the latest validation.</returns>
+        IReadOnlyList<ValidationIssue> GetLatestValidationIssues(Package package);
     }
 }

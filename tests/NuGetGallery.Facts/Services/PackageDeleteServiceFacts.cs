@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 using NuGetGallery.Auditing;
+using NuGetGallery.Configuration;
 using Xunit;
 
 namespace NuGetGallery
@@ -26,7 +27,9 @@ namespace NuGetGallery
             Mock<IIndexingService> indexingService = null,
             Mock<IPackageFileService> packageFileService = null,
             Mock<IAuditingService> auditingService = null,
-            Action<Mock<TestPackageDeleteService>> setup = null)
+            Mock<IPackageDeleteConfiguration> config = null,
+            Action<Mock<TestPackageDeleteService>> setup = null,
+            bool useRealConstructor = false)
         {
             packageRepository = packageRepository ?? new Mock<IEntityRepository<Package>>();
             packageRegistrationRepository = packageRegistrationRepository ?? new Mock<IEntityRepository<PackageRegistration>>();
@@ -34,7 +37,7 @@ namespace NuGetGallery
 
             var dbContext = new Mock<DbContext>();
             entitiesContext = entitiesContext ?? new Mock<IEntitiesContext>();
-            entitiesContext.Setup(m => m.GetDatabase()).Returns(dbContext.Object.Database);
+            entitiesContext.Setup(m => m.GetDatabase()).Returns(new DatabaseWrapper(dbContext.Object.Database));
 
             packageService = packageService ?? new Mock<IPackageService>();
             indexingService = indexingService ?? new Mock<IIndexingService>();
@@ -42,24 +45,43 @@ namespace NuGetGallery
 
             auditingService = auditingService ?? new Mock<IAuditingService>();
 
-            var packageDeleteService = new Mock<TestPackageDeleteService>(
-                packageRepository.Object,
-                packageRegistrationRepository.Object,
-                packageDeletesRepository.Object,
-                entitiesContext.Object,
-                packageService.Object,
-                indexingService.Object,
-                packageFileService.Object,
-                auditingService.Object);
+            config = config ?? new Mock<IPackageDeleteConfiguration>();
 
-            packageDeleteService.CallBase = true;
-
-            if (setup != null)
+            if (useRealConstructor)
             {
-                setup(packageDeleteService);
+                return new PackageDeleteService(
+                    packageRepository.Object,
+                    packageRegistrationRepository.Object,
+                    packageDeletesRepository.Object,
+                    entitiesContext.Object,
+                    packageService.Object,
+                    indexingService.Object,
+                    packageFileService.Object,
+                    auditingService.Object,
+                    config.Object);
             }
+            else
+            {
+                var packageDeleteService = new Mock<TestPackageDeleteService>(
+                    packageRepository.Object,
+                    packageRegistrationRepository.Object,
+                    packageDeletesRepository.Object,
+                    entitiesContext.Object,
+                    packageService.Object,
+                    indexingService.Object,
+                    packageFileService.Object,
+                    auditingService.Object,
+                    config.Object);
 
-            return packageDeleteService.Object;
+                packageDeleteService.CallBase = true;
+
+                if (setup != null)
+                {
+                    setup(packageDeleteService);
+                }
+
+                return packageDeleteService.Object;
+            }
         }
 
         public class TestPackageDeleteService
@@ -67,17 +89,34 @@ namespace NuGetGallery
         {
             public PackageAuditRecord LastAuditRecord { get; set; }
 
-            public TestPackageDeleteService(IEntityRepository<Package> packageRepository, IEntityRepository<PackageRegistration> packageRegistrationRepository, IEntityRepository<PackageDelete> packageDeletesRepository, IEntitiesContext entitiesContext, IPackageService packageService, IIndexingService indexingService, IPackageFileService packageFileService, IAuditingService auditingService)
-                : base(packageRepository, packageRegistrationRepository, packageDeletesRepository, entitiesContext, packageService, indexingService, packageFileService, auditingService)
+            public TestPackageDeleteService(
+                IEntityRepository<Package> packageRepository,
+                IEntityRepository<PackageRegistration> packageRegistrationRepository,
+                IEntityRepository<PackageDelete> packageDeletesRepository,
+                IEntitiesContext entitiesContext,
+                IPackageService packageService,
+                IIndexingService indexingService,
+                IPackageFileService packageFileService,
+                IAuditingService auditingService,
+                IPackageDeleteConfiguration config) : base(
+                    packageRepository,
+                    packageRegistrationRepository,
+                    packageDeletesRepository,
+                    entitiesContext,
+                    packageService,
+                    indexingService,
+                    packageFileService,
+                    auditingService,
+                    config)
             {
             }
 
-            protected override async Task ExecuteSqlCommandAsync(Database database, string sql, params object[] parameters)
+            protected override async Task ExecuteSqlCommandAsync(IDatabase database, string sql, params object[] parameters)
             {
                 await TestExecuteSqlCommandAsync(database, sql, parameters);
             }
 
-            public virtual Task TestExecuteSqlCommandAsync(Database database, string sql, params object[] parameters)
+            public virtual Task TestExecuteSqlCommandAsync(IDatabase database, string sql, params object[] parameters)
             {
                 // do nothing - this method solely exists to make verifying SQL queries possible
                 return Task.FromResult(0);
@@ -87,6 +126,25 @@ namespace NuGetGallery
             {
                 LastAuditRecord = base.CreateAuditRecord(package, packageRegistration, action, reason);
                 return LastAuditRecord;
+            }
+        }
+
+        public class TheConstructor
+        {
+            [Fact]
+            public void RejectsHourLimitWithMaximumDownloadsLessThanStatisticsUpdateFrequencyInHours()
+            {
+                // Arrange
+                var config = new Mock<IPackageDeleteConfiguration>();
+                config.Setup(x => x.StatisticsUpdateFrequencyInHours).Returns(24);
+                config.Setup(x => x.HourLimitWithMaximumDownloads).Returns(23);
+
+                // Act & Assert
+                var exception = Assert.Throws<ArgumentException>(
+                    () => CreateService(config: config, useRealConstructor: true));
+                Assert.Contains(
+                    "StatisticsUpdateFrequencyInHours must be less than HourLimitWithMaximumDownloads.",
+                    exception.Message);
             }
         }
 
@@ -283,8 +341,7 @@ namespace NuGetGallery
 
                 await service.SoftDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty);
                 
-                packageFileService.Verify(x => x.DeleteReadMeMdFileAsync(package, true), Times.Once);
-                packageFileService.Verify(x => x.DeleteReadMeMdFileAsync(package, false), Times.Once);
+                packageFileService.Verify(x => x.DeleteReadMeMdFileAsync(package), Times.Once);
             }
 
             [Fact]
@@ -335,9 +392,9 @@ namespace NuGetGallery
                 var entitiesContext = new Mock<IEntitiesContext>();
                 var service = CreateService(packageRepository: packageRepository, entitiesContext: entitiesContext, setup: svc =>
                 {
-                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<Database>(), "DELETE pa FROM PackageAuthors pa JOIN Packages p ON p.[Key] = pa.PackageKey WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
-                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<Database>(), "DELETE pd FROM PackageDependencies pd JOIN Packages p ON p.[Key] = pd.PackageKey WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
-                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<Database>(), "DELETE pf FROM PackageFrameworks pf JOIN Packages p ON p.[Key] = pf.Package_Key WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
+                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<IDatabase>(), "DELETE pa FROM PackageAuthors pa JOIN Packages p ON p.[Key] = pa.PackageKey WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
+                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<IDatabase>(), "DELETE pd FROM PackageDependencies pd JOIN Packages p ON p.[Key] = pd.PackageKey WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
+                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<IDatabase>(), "DELETE pf FROM PackageFrameworks pf JOIN Packages p ON p.[Key] = pf.Package_Key WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
                 });
                 var packageRegistration = new PackageRegistration();
                 packageRegistration.Packages.Add(new Package { Key = 124, PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests });
@@ -364,11 +421,11 @@ namespace NuGetGallery
                 var entitiesContext = new Mock<IEntitiesContext>();
                 var service = CreateService(packageRepository: packageRepository, entitiesContext: entitiesContext, setup: svc =>
                 {
-                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<Database>(), "DELETE pa FROM PackageAuthors pa JOIN Packages p ON p.[Key] = pa.PackageKey WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
-                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<Database>(), "DELETE pd FROM PackageDependencies pd JOIN Packages p ON p.[Key] = pd.PackageKey WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
-                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<Database>(), "DELETE pf FROM PackageFrameworks pf JOIN Packages p ON p.[Key] = pf.Package_Key WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
+                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<IDatabase>(), "DELETE pa FROM PackageAuthors pa JOIN Packages p ON p.[Key] = pa.PackageKey WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
+                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<IDatabase>(), "DELETE pd FROM PackageDependencies pd JOIN Packages p ON p.[Key] = pd.PackageKey WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
+                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<IDatabase>(), "DELETE pf FROM PackageFrameworks pf JOIN Packages p ON p.[Key] = pf.Package_Key WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
 
-                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<Database>(), PackageDeleteService.DeletePackageRegistrationQuery, It.IsAny<SqlParameter>())).Callback(() => ranDeleteQuery = true).Returns(Task.FromResult(0));
+                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<IDatabase>(), PackageDeleteService.DeletePackageRegistrationQuery, It.IsAny<SqlParameter>())).Callback(() => ranDeleteQuery = true).Returns(Task.FromResult(0));
                 });
                 var packageRegistration = new PackageRegistration();
                 var package = new Package { Key = 123, PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
@@ -395,11 +452,11 @@ namespace NuGetGallery
                 var entitiesContext = new Mock<IEntitiesContext>();
                 var service = CreateService(packageRepository: packageRepository, entitiesContext: entitiesContext, setup: svc =>
                 {
-                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<Database>(), "DELETE pa FROM PackageAuthors pa JOIN Packages p ON p.[Key] = pa.PackageKey WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
-                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<Database>(), "DELETE pd FROM PackageDependencies pd JOIN Packages p ON p.[Key] = pd.PackageKey WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
-                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<Database>(), "DELETE pf FROM PackageFrameworks pf JOIN Packages p ON p.[Key] = pf.Package_Key WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
+                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<IDatabase>(), "DELETE pa FROM PackageAuthors pa JOIN Packages p ON p.[Key] = pa.PackageKey WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
+                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<IDatabase>(), "DELETE pd FROM PackageDependencies pd JOIN Packages p ON p.[Key] = pd.PackageKey WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
+                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<IDatabase>(), "DELETE pf FROM PackageFrameworks pf JOIN Packages p ON p.[Key] = pf.Package_Key WHERE p.[Key] = @key", It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
 
-                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<Database>(), PackageDeleteService.DeletePackageRegistrationQuery, It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
+                    svc.Setup(x => x.TestExecuteSqlCommandAsync(It.IsAny<IDatabase>(), PackageDeleteService.DeletePackageRegistrationQuery, It.IsAny<SqlParameter>())).Returns(Task.FromResult(0)).Verifiable();
                 });
                 var packageRegistration = new PackageRegistration();
                 var package = new Package { Key = 123, PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
@@ -527,7 +584,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillDeleteReadMeFiles()
+            public async Task WillDeleteReadMeFile()
             {
                 var packageFileService = new Mock<IPackageFileService>();
 
@@ -539,8 +596,7 @@ namespace NuGetGallery
 
                 await service.HardDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty, false);
 
-                packageFileService.Verify(x => x.DeleteReadMeMdFileAsync(package, true), Times.Once);
-                packageFileService.Verify(x => x.DeleteReadMeMdFileAsync(package, false), Times.Once);
+                packageFileService.Verify(x => x.DeleteReadMeMdFileAsync(package), Times.Once);
             }
 
             [Fact]

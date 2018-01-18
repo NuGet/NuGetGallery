@@ -69,13 +69,13 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="nugetPackage">A <see cref="PackageArchiveReader"/> instance from which package metadata can be read.</param>
         /// <param name="packageStreamMetadata">The <see cref="PackageStreamMetadata"/> instance providing metadata about the package stream.</param>
-        /// <param name="user">The <see cref="User"/> creating the package.</param>
+        /// <param name="owner">The <see cref="User"/> creating the package.</param>
         /// <param name="commitChanges"><c>True</c> to commit the changes to the data store and notify the indexing service; otherwise <c>false</c>.</param>
         /// <returns>Returns the created <see cref="Package"/> entity.</returns>
         /// <exception cref="InvalidPackageException">
         /// This exception will be thrown when a package metadata property violates a data validation constraint.
         /// </exception>
-        public async Task<Package> CreatePackageAsync(PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool isVerified)
+        public async Task<Package> CreatePackageAsync(PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User owner, User currentUser, bool isVerified)
         {
             PackageMetadata packageMetadata;
             PackageRegistration packageRegistration;
@@ -88,7 +88,7 @@ namespace NuGetGallery
 
                 ValidatePackageTitle(packageMetadata);
 
-                packageRegistration = CreateOrGetPackageRegistration(user, packageMetadata, isVerified);
+                packageRegistration = CreateOrGetPackageRegistration(owner, currentUser, packageMetadata, isVerified);
             }
             catch (Exception exception) when (exception is EntityException || exception is PackagingException)
             {
@@ -96,7 +96,7 @@ namespace NuGetGallery
                 throw new InvalidPackageException(exception.Message, exception);
             }
 
-            var package = CreatePackageFromNuGetPackage(packageRegistration, nugetPackage, packageMetadata, packageStreamMetadata, user);
+            var package = CreatePackageFromNuGetPackage(packageRegistration, nugetPackage, packageMetadata, packageStreamMetadata, currentUser);
             packageRegistration.Packages.Add(package);
             await UpdateIsLatestAsync(packageRegistration, commitChanges: false);
 
@@ -214,7 +214,7 @@ namespace NuGetGallery
         /// <summary>
         /// Find packages by owner, including organization owners that the user belongs to.
         /// </summary>
-        public IEnumerable<Package> FindPackagesByAnyMatchingOwner(User user, bool includeUnlisted)
+        public IEnumerable<Package> FindPackagesByAnyMatchingOwner(User user, bool includeUnlisted, bool includeVersions = false)
         {
             // Like DisplayPackage we should prefer to show you information from the latest stable version,
             // but show you the latest version (potentially latest UNLISTED version) otherwise.
@@ -223,11 +223,16 @@ namespace NuGetGallery
             ownerKeys.Insert(0, user.Key);
 
             var mergedResults = new Dictionary<string, Package>(StringComparer.OrdinalIgnoreCase);
-
-            MergeLatestPackagesByOwner(ownerKeys, includeUnlisted, mergedResults);
-            MergeLatestStablePackagesByOwner(ownerKeys, includeUnlisted, mergedResults);
-
-            return mergedResults.Values;
+            if (includeVersions)
+            {
+                return MergePackagesByOwner(ownerKeys, includeUnlisted);
+            }
+            else
+            {
+                MergeLatestPackagesByOwner(ownerKeys, includeUnlisted, mergedResults);
+                MergeLatestStablePackagesByOwner(ownerKeys, includeUnlisted, mergedResults);
+                return mergedResults.Values;
+            }
         }
 
         /// <summary>
@@ -313,6 +318,44 @@ namespace NuGetGallery
             }
         }
 
+        /// <summary>
+        /// Merge packages by owner, including organization owners that the user belongs to and including versions.
+        /// </summary>
+        private IEnumerable<Package> MergePackagesByOwner(List<int> ownerKeys, bool includeUnlisted)
+        {
+            IQueryable<Package> packageVersions = _packageRepository.GetAll()
+                    .Where(p => p.PackageRegistration.Owners.Any(o => ownerKeys.Contains(o.Key)))
+                    .Include(p => p.PackageRegistration)
+                    .Include(p => p.PackageRegistration.Owners);
+
+            if(!includeUnlisted)
+            {
+                packageVersions = packageVersions.Where(p => p.Listed);
+            }
+            
+            return packageVersions;
+        }
+
+        /// <summary>
+        /// For a package get the list of owners that are not organizations.
+        /// All the resulted user accounts will be distinct.
+        /// </summary>
+        /// <param name="package">The package.</param>
+        /// <returns>The list of package owners.</returns>
+        public IEnumerable<User> GetPackageUserAccountOwners(Package package)
+        {
+            return package.PackageRegistration.Owners
+                .SelectMany((owner) =>
+                {
+                    if (owner is Organization)
+                    {
+                        return OrganizationExtensions.GetUserAccountMembers((Organization)owner);
+                    }
+                    return new List<User> { owner };
+                })
+                .Distinct();
+        }
+
         public IEnumerable<PackageRegistration> FindPackageRegistrationsByOwner(User user)
         {
             return _packageRegistrationRepository.GetAll().Where(p => p.Owners.Any(o => o.Key == user.Key));
@@ -363,7 +406,7 @@ namespace NuGetGallery
                 await _packageRepository.CommitChangesAsync();
             }
         }
-        
+
         public async Task AddPackageOwnerAsync(PackageRegistration package, User newOwner)
         {
             package.Owners.Add(newOwner);
@@ -442,11 +485,11 @@ namespace NuGetGallery
             }
         }
 
-        private PackageRegistration CreateOrGetPackageRegistration(User currentUser, PackageMetadata packageMetadata, bool isVerified)
+        private PackageRegistration CreateOrGetPackageRegistration(User owner, User currentUser, PackageMetadata packageMetadata, bool isVerified)
         {
             var packageRegistration = FindPackageRegistrationById(packageMetadata.Id);
 
-            if (packageRegistration != null && !PermissionsService.IsActionAllowed(packageRegistration, currentUser, PackageActions.UploadNewVersion))
+            if (packageRegistration != null && ActionsRequiringPermissions.EditPackage.CheckPermissions(currentUser, currentUser, packageRegistration) != PermissionsCheckResult.Allowed)
             {
                 throw new EntityException(Strings.PackageIdNotAvailable, packageMetadata.Id);
             }
@@ -464,7 +507,7 @@ namespace NuGetGallery
                     IsVerified = isVerified
                 };
 
-                packageRegistration.Owners.Add(currentUser);
+                packageRegistration.Owners.Add(owner);
 
                 _packageRegistrationRepository.InsertOnCommit(packageRegistration);
             }

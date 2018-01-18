@@ -6,27 +6,6 @@
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
-@helper Section(
-    string id,
-    string title,
-    Func<MvcHtmlString, HelperResult> content,
-    bool expanded = true,
-    string expandedIcon = "ChevronDown",
-    string collapsedIcon = "ChevronRight")
-{
-    <h3>
-        <a href="#" role="button" data-toggle="collapse" data-target="#@id-container"
-           aria-expanded="@(expanded ? "true" : "false")" aria-controls="@id-container" id="show-@id-container">
-            <i class="ms-Icon ms-Icon--@(expanded ? expandedIcon : collapsedIcon)"
-               aria-hidden="@(expanded ? "false" : "true")"></i>
-            <span>@title</span>
-        </a>
-    </h3>
-    <div class="panel-collapse collapse @(expanded ? "in" : string.Empty) col-xs-12" id="@id-container">
-        @content(MvcHtmlString.Empty)
-    </div>
-}
-
 <section role="main" class="container main-container page-manage-packages page-package-details">
     <div class="row">
         <div class="col-xs-12">
@@ -35,14 +14,14 @@
                     <select id="ownerFilter" class="form-control pull-right hidden"
                             data-bind="options: Owners, value: OwnerFilter, optionsText: 'Username'"></select>
                 </div>
-            @Section("listed", "Published",
+            @ViewHelpers.Section(this, "listed", "Published",
                 @<text>
                     <div class="row user-package-list">
                         <div data-bind="template: { name: 'manage-packages', data: ListedPackages }"></div>
                     </div>
                 </text>)
 
-            @Section("unlisted", "Unlisted",
+            @ViewHelpers.Section(this, "unlisted", "Unlisted",
                 @<text>
                     <div class="row user-package-list">
                         <div data-bind="template: { name: 'manage-packages', data: UnlistedPackages }"></div>
@@ -56,7 +35,7 @@
         <div class="row">
             <div class="col-xs-12">
                 <h1>My Reserved Namespaces</h1>
-                @Section(
+                @ViewHelpers.Section(this,
                     "namespaces",
                     "Namespaces",
                     @<text>
@@ -73,7 +52,7 @@
                 <h1>My Pending Ownership Requests</h1>
                 @if (Model.OwnerRequests.Incoming.RequestItems.Any())
                 {
-                    @Section(
+                    @ViewHelpers.Section(this,
                         "requests-incoming",
                         "Incoming",
                         @<text>
@@ -83,8 +62,7 @@
 
                 @if (Model.OwnerRequests.Outgoing.RequestItems.Any())
                 {
-
-                    @Section(
+                    @ViewHelpers.Section(this,
                         "requests-outgoing",
                         "Outgoing",
                         @<text>
@@ -214,9 +192,9 @@
             EditUrl = editUrlTemplate.Resolve(p),
             ManageOwnersUrl = manageOwnersUrlTemplate.Resolve(p),
             DeleteUrl = deleteUrlTemplate.Resolve(p),
-            CanEdit = p.IsActionAllowed(User, PackageActions.Edit),
-            CanManageOwners = p.IsActionAllowed(User, PackageActions.ManagePackageOwners),
-            CanDelete = p.IsActionAllowed(User, PackageActions.Unlist)
+            CanEdit = p.CanEdit,
+            CanManageOwners = p.CanManageOwners,
+            CanDelete = p.CanUnlistOrRelist
         };
     }
 }
@@ -225,11 +203,7 @@
     <script type="text/javascript">
         var initialData = @Html.Raw(JsonConvert.SerializeObject(new
                      {
-                         Owners = Model.Owners.Select(o => new
-                         {
-                             Username = o.Username,
-                             IsOrganization = o is Organization
-                         }),
+                         Owners = Model.Owners,
                          ListedPackages = Model.ListedPackages
                             .Select(p => GetSerializablePackage(p)),
                          UnlistedPackages = Model.UnlistedPackages
@@ -238,5 +212,6 @@
                          PackageIconUrlFallback = Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")
                      }));
     </script>
+    @ViewHelpers.SectionsScript(this)
     @Scripts.Render("~/Scripts/gallery/page-manage-packages.min.js")
 }

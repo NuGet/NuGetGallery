@@ -2,10 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin.Security.OpenIdConnect;
+using NuGetGallery.Authentication.Providers.Utils;
 using NuGetGallery.Configuration;
 using Owin;
 
@@ -61,20 +64,26 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectory
             };
         }
 
+        public override bool IsProviderForIdentity(ClaimsIdentity claimsIdentity)
+        {
+            // If the issuer of the claims identity is same as that of the issuer for current authenticator then this is the author.
+            var firstClaim = claimsIdentity?.Claims?.FirstOrDefault();
+            if (firstClaim != null && string.Equals(firstClaim.Issuer, Config.Issuer, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            return base.IsProviderForIdentity(claimsIdentity);
+        }
+
         public override ActionResult Challenge(string redirectUrl)
         {
             return new ChallengeResult(BaseConfig.AuthenticationType, redirectUrl);
         }
 
-        public override bool TryMapIssuerToAuthenticationType(string issuer, out string authenticationType)
+        public override IdentityInformation GetIdentityInformation(ClaimsIdentity claimsIdentity)
         {
-            if (string.Equals(issuer, Config.Issuer, StringComparison.OrdinalIgnoreCase))
-            {
-                authenticationType = Config.AuthenticationType;
-                return true;
-            }
-
-            return base.TryMapIssuerToAuthenticationType(issuer, out authenticationType);
+            return ClaimsExtentions.GetIdentityInformation(claimsIdentity, DefaultAuthenticationType);
         }
     }
 }

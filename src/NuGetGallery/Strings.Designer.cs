@@ -1408,6 +1408,105 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Administrator account &apos;{0}&apos; does not exist..
+        /// </summary>
+        public static string TransformAccount_AdminAccountDoesNotExist {
+            get {
+                return ResourceManager.GetString("TransformAccount_AdminAccountDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Administrator account &apos;{0}&apos; has not confirmed their email address..
+        /// </summary>
+        public static string TransformAccount_AdminAccountNotConfirmed {
+            get {
+                return ResourceManager.GetString("TransformAccount_AdminAccountNotConfirmed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unexpected error when transforming account &apos;{0}&apos;. Contact support@nuget.org for more details..
+        /// </summary>
+        public static string TransformAccount_Failed {
+            get {
+                return ResourceManager.GetString("TransformAccount_Failed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; should not belong to any organizations..
+        /// </summary>
+        public static string TransformAccount_FailedReasonHasMemberships {
+            get {
+                return ResourceManager.GetString("TransformAccount_FailedReasonHasMemberships", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; is already an organization..
+        /// </summary>
+        public static string TransformAccount_FailedReasonIsOrganization {
+            get {
+                return ResourceManager.GetString("TransformAccount_FailedReasonIsOrganization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; should be a confirmed user..
+        /// </summary>
+        public static string TransformAccount_FailedReasonNotConfirmedUser {
+            get {
+                return ResourceManager.GetString("TransformAccount_FailedReasonNotConfirmedUser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; does not support organizations..
+        /// </summary>
+        public static string TransformAccount_FailedReasonNotInDomainWhitelist {
+            get {
+                return ResourceManager.GetString("TransformAccount_FailedReasonNotInDomainWhitelist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You must confirm the email address for this account in order to complete this request..
+        /// </summary>
+        public static string TransformAccount_NotConfirmed {
+            get {
+                return ResourceManager.GetString("TransformAccount_NotConfirmed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Organization account &apos;{0}&apos; does not exist..
+        /// </summary>
+        public static string TransformAccount_OrganizationAccountDoesNotExist {
+            get {
+                return ResourceManager.GetString("TransformAccount_OrganizationAccountDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Another tranform request was created on {0} with organization admin &apos;{1}&apos;..
+        /// </summary>
+        public static string TransformAccount_RequestExists {
+            get {
+                return ResourceManager.GetString("TransformAccount_RequestExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; was successfully transformed into an organization..
+        /// </summary>
+        public static string TransformAccount_Success {
+            get {
+                return ResourceManager.GetString("TransformAccount_Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to User is not authorized.
         /// </summary>
         public static string Unauthorized {
@@ -1503,6 +1602,24 @@ namespace NuGetGallery {
         public static string UploadPackage_MinClientVersionOutOfRange {
             get {
                 return ResourceManager.GetString("UploadPackage_MinClientVersionOutOfRange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User &apos;{0}&apos; does not have the rights to upload a package with a new ID on behalf of user &apos;{1}&apos;..
+        /// </summary>
+        public static string UploadPackage_NewIdOnBehalfOfUserNotAllowed {
+            get {
+                return ResourceManager.GetString("UploadPackage_NewIdOnBehalfOfUserNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User &apos;{0}&apos; does not have the rights to upload a new version of an existing package on behalf of user &apos;{1}&apos;..
+        /// </summary>
+        public static string UploadPackage_NewVersionOnBehalfOfUserNotAllowed {
+            get {
+                return ResourceManager.GetString("UploadPackage_NewVersionOnBehalfOfUserNotAllowed", resourceCulture);
             }
         }
         
@@ -1615,6 +1732,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to User &apos;{0}&apos; does not have the rights to upload new versions of package &apos;{1}&apos;..
+        /// </summary>
+        public static string VerifyPackage_OwnerInvalid {
+            get {
+                return ResourceManager.GetString("VerifyPackage_OwnerInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Your attempt to verify the package submission failed, because the package file appears to have changed. Please try again..
         /// </summary>
         public static string VerifyPackage_PackageFileModified {
@@ -1638,6 +1764,24 @@ namespace NuGetGallery {
         public static string VerifyPackage_UploadNotFound {
             get {
                 return ResourceManager.GetString("VerifyPackage_UploadNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You do not have permission to upload packages as user &apos;{0}&apos;..
+        /// </summary>
+        public static string VerifyPackage_UserInvalid {
+            get {
+                return ResourceManager.GetString("VerifyPackage_UserInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The user &apos;{0}&apos; doesn&apos;t exist. You cannot upload a package as a user that doesn&apos;t exist..
+        /// </summary>
+        public static string VerifyPackage_UserNonExistent {
+            get {
+                return ResourceManager.GetString("VerifyPackage_UserNonExistent", resourceCulture);
             }
         }
         

@@ -48,7 +48,9 @@ namespace NuGetGallery.TestUtils.Infrastructure
                     NormalizedVersion = "1.0.0",
                     IsPrerelease = false,
                     Listed = true,
+#pragma warning disable 0618
                     Authors = new [] { new PackageAuthor { Name = "Test "} },
+#pragma warning restore 0618
                     FlattenedAuthors = "Test",
                     Description = "Foo",
                     Summary = "Foo",
@@ -61,7 +63,9 @@ namespace NuGetGallery.TestUtils.Infrastructure
                     NormalizedVersion = "1.0.1-a",
                     IsPrerelease = true,
                     Listed = true,
+#pragma warning disable 0618
                     Authors = new [] { new PackageAuthor { Name = "Test "} },
+#pragma warning restore 0618
                     FlattenedAuthors = "Test",
                     Description = "Foo",
                     Summary = "Foo",
@@ -74,7 +78,9 @@ namespace NuGetGallery.TestUtils.Infrastructure
                     NormalizedVersion = "1.0.0",
                     IsPrerelease = false,
                     Listed = true,
+#pragma warning disable 0618
                     Authors = new [] { new PackageAuthor { Name = "Test "} },
+#pragma warning restore 0618
                     FlattenedAuthors = "Test",
                     Description = "Bar",
                     Summary = "Bar",
@@ -87,7 +93,9 @@ namespace NuGetGallery.TestUtils.Infrastructure
                     NormalizedVersion = "2.0.0",
                     IsPrerelease = false,
                     Listed = true,
+#pragma warning disable 0618
                     Authors = new [] { new PackageAuthor { Name = "Test "} },
+#pragma warning restore 0618
                     FlattenedAuthors = "Test",
                     Description = "Bar",
                     Summary = "Bar",
@@ -100,7 +108,9 @@ namespace NuGetGallery.TestUtils.Infrastructure
                     NormalizedVersion = "2.0.1-a",
                     IsPrerelease = true,
                     Listed = true,
+#pragma warning disable 0618
                     Authors = new [] { new PackageAuthor { Name = "Test "} },
+#pragma warning restore 0618
                     FlattenedAuthors = "Test",
                     Description = "Bar",
                     Summary = "Bar",
@@ -113,7 +123,9 @@ namespace NuGetGallery.TestUtils.Infrastructure
                     NormalizedVersion = "2.0.1-b",
                     IsPrerelease = true,
                     Listed = false,
+#pragma warning disable 0618
                     Authors = new [] { new PackageAuthor { Name = "Test "} },
+#pragma warning restore 0618
                     FlattenedAuthors = "Test",
                     Description = "Bar",
                     Summary = "Bar",
@@ -127,7 +139,9 @@ namespace NuGetGallery.TestUtils.Infrastructure
                     IsPrerelease = false,
                     Listed = false,
                     PackageStatusKey = PackageStatus.Deleted, // plot twist: this package is a soft-deleted one
+#pragma warning disable 0618
                     Authors = new [] { new PackageAuthor { Name = "Test "} },
+#pragma warning restore 0618
                     FlattenedAuthors = "Test",
                     Description = "Baz",
                     Summary = "Baz",

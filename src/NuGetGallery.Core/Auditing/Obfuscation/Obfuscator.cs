@@ -9,6 +9,8 @@ namespace NuGetGallery.Auditing
 {
     public static class Obfuscator
     {
+        internal const string ObfuscatedUserName = "ObfuscatedUserName";
+
         /// <summary>
         /// For IPv4 zero the last octet
         /// For IPv6 zero the last 4 sextets

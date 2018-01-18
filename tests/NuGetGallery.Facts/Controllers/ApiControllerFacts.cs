@@ -86,14 +86,13 @@ namespace NuGetGallery
 
             MockSecurityPolicyService.Setup(s => s.EvaluateAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>()))
                 .Returns(Task.FromResult(SecurityPolicyResult.SuccessResult));
-
-            IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace>();
+            
             MockReservedNamespaceService
-                .Setup(r => r.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
-                .Returns(true);
+                .Setup(s => s.GetReservedNamespacesForId(It.IsAny<string>()))
+                .Returns(new ReservedNamespace[0]);
 
-            MockPackageUploadService.Setup(x => x.GeneratePackageAsync(It.IsAny<string>(), It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>()))
-                .Returns((string id, PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user) => {
+            MockPackageUploadService.Setup(x => x.GeneratePackageAsync(It.IsAny<string>(), It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<User>()))
+                .Returns((string id, PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User owner, User currentUser) => {
                     var packageMetadata = PackageMetadata.FromNuspecReader(nugetPackage.GetNuspecReader());
 
                     var package = new Package();
@@ -168,6 +167,7 @@ namespace NuGetGallery
                         It.IsAny<string>(),
                         It.IsAny<PackageArchiveReader>(),
                         It.IsAny<PackageStreamMetadata>(),
+                        It.IsAny<User>(),
                         It.IsAny<User>()))
                     .Returns(Task.FromResult(package));
 
@@ -211,6 +211,7 @@ namespace NuGetGallery
                         It.IsAny<string>(),
                         It.IsAny<PackageArchiveReader>(),
                         It.IsAny<PackageStreamMetadata>(),
+                        It.IsAny<User>(),
                         It.IsAny<User>()))
                     .Returns(Task.FromResult(package));
 
@@ -479,8 +480,8 @@ namespace NuGetGallery
                 testNamespace.Owners.Add(user2);
                 IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace> { testNamespace };
                 controller.MockReservedNamespaceService
-                    .Setup(r => r.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
-                    .Returns(false);
+                    .Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
+                    .Returns(matchingNamespaces);
 
                 // Act
                 var result = await controller.CreatePackagePut();
@@ -511,6 +512,7 @@ namespace NuGetGallery
                         It.IsAny<string>(),
                         It.IsAny<PackageArchiveReader>(),
                         It.IsAny<PackageStreamMetadata>(),
+                        It.IsAny<User>(),
                         It.IsAny<User>()),
                     Times.Once);
             }
@@ -540,8 +542,8 @@ namespace NuGetGallery
                 testNamespace.Owners.Add(user2);
                 IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace> { testNamespace };
                 controller.MockReservedNamespaceService
-                    .Setup(r => r.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
-                    .Returns(true);
+                    .Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
+                    .Returns(matchingNamespaces);
 
                 // Act
                 var result = await controller.CreatePackagePut();
@@ -552,6 +554,7 @@ namespace NuGetGallery
                         It.IsAny<string>(),
                         It.IsAny<PackageArchiveReader>(),
                         It.IsAny<PackageStreamMetadata>(),
+                        It.IsAny<User>(),
                         It.IsAny<User>()));
             }
 
@@ -579,8 +582,8 @@ namespace NuGetGallery
                 testNamespace.Owners.Add(user1);
                 IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace> { testNamespace };
                 controller.MockReservedNamespaceService
-                    .Setup(r => r.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out matchingNamespaces))
-                    .Returns(true);
+                    .Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
+                    .Returns(matchingNamespaces);
 
                 // Act
                 var result = await controller.CreatePackagePut();
@@ -591,6 +594,7 @@ namespace NuGetGallery
                         It.IsAny<string>(),
                         It.IsAny<PackageArchiveReader>(),
                         It.IsAny<PackageStreamMetadata>(),
+                        It.IsAny<User>(),
                         It.IsAny<User>()),
                     Times.Once);
             }
@@ -657,6 +661,7 @@ namespace NuGetGallery
                         It.IsAny<string>(),
                         It.IsAny<PackageArchiveReader>(),
                         It.IsAny<PackageStreamMetadata>(),
+                        user,
                         user),
                     Times.Once);
             }
@@ -688,6 +693,7 @@ namespace NuGetGallery
                         It.IsAny<string>(),
                         It.IsAny<PackageArchiveReader>(),
                         It.IsAny<PackageStreamMetadata>(),
+                        user,
                         user))
                     .ReturnsAsync(package);
 
@@ -702,6 +708,7 @@ namespace NuGetGallery
                             It.IsAny<string>(),
                             It.IsAny<PackageArchiveReader>(),
                             It.IsAny<PackageStreamMetadata>(),
+                            user,
                             user));
                 }
                 else
@@ -711,6 +718,7 @@ namespace NuGetGallery
                             It.IsAny<string>(),
                             It.IsAny<PackageArchiveReader>(),
                             It.IsAny<PackageStreamMetadata>(),
+                            It.IsAny<User>(),
                             It.IsAny<User>()),
                         Times.Never);
 
@@ -756,6 +764,7 @@ namespace NuGetGallery
                         It.IsAny<string>(),
                         It.IsAny<PackageArchiveReader>(),
                         It.IsAny<PackageStreamMetadata>(),
+                        user,
                         user))
                     .ReturnsAsync(package);
 
@@ -770,6 +779,7 @@ namespace NuGetGallery
                             It.IsAny<string>(),
                             It.IsAny<PackageArchiveReader>(),
                             It.IsAny<PackageStreamMetadata>(),
+                            user,
                             user));
                 }
                 else
@@ -779,6 +789,7 @@ namespace NuGetGallery
                             It.IsAny<string>(),
                             It.IsAny<PackageArchiveReader>(),
                             It.IsAny<PackageStreamMetadata>(),
+                            It.IsAny<User>(),
                             It.IsAny<User>()),
                         Times.Never);
 

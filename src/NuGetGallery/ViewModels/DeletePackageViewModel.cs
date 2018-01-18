@@ -11,8 +11,8 @@ namespace NuGetGallery
 {
     public class DeletePackageViewModel : DisplayPackageViewModel
     {
-        public DeletePackageViewModel(Package package, IReadOnlyList<ReportPackageReason> reasons)
-            : base(package, package.PackageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version)))
+        public DeletePackageViewModel(Package package, User currentUser, IReadOnlyList<ReportPackageReason> reasons)
+            : base(package, currentUser, package.PackageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version)))
         {
             DeletePackagesRequest = new DeletePackagesRequest
             {
@@ -26,10 +26,14 @@ namespace NuGetGallery
                 },
                 ReasonChoices = reasons
             };
+
+            IsLocked = package.PackageRegistration.IsLocked;
         }
 
         public SelectList VersionSelectList { get; set; }
 
         public DeletePackagesRequest DeletePackagesRequest { get; set; }
+
+        public bool IsLocked { get; }
     }
 }

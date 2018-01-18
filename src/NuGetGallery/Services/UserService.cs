@@ -3,13 +3,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Entity;
+using System.Data.SqlClient;
+using System.Globalization;
 using System.Linq;
-using Crypto = NuGetGallery.CryptographyService;
-using NuGetGallery.Configuration;
-using NuGetGallery.Auditing;
 using System.Threading.Tasks;
-using NuGetGallery.Migrations;
+using NuGetGallery.Auditing;
+using NuGetGallery.Configuration;
+using Crypto = NuGetGallery.CryptographyService;
 
 namespace NuGetGallery
 {
@@ -19,6 +21,7 @@ namespace NuGetGallery
         public IEntityRepository<User> UserRepository { get; protected set; }
         public IEntityRepository<Credential> CredentialRepository { get; protected set; }
         public IAuditingService Auditing { get; protected set; }
+        public IEntitiesContext EntitiesContext { get; protected set; }
 
         protected UserService() { }
 
@@ -26,13 +29,15 @@ namespace NuGetGallery
             IAppConfiguration config,
             IEntityRepository<User> userRepository,
             IEntityRepository<Credential> credentialRepository,
-            IAuditingService auditing)
+            IAuditingService auditing,
+            IEntitiesContext entitiesContext)
             : this()
         {
             Config = config;
             UserRepository = userRepository;
             CredentialRepository = credentialRepository;
             Auditing = auditing;
+            EntitiesContext = entitiesContext;
         }
 
         public async Task ChangeEmailSubscriptionAsync(User user, bool emailAllowed, bool notifyPackagePushed)
@@ -150,6 +155,62 @@ namespace NuGetGallery
 
             await UserRepository.CommitChangesAsync();
             return true;
+        }
+        
+        public async Task RequestTransformToOrganizationAccount(User accountToTransform, User adminUser)
+        {
+            accountToTransform = accountToTransform ?? throw new ArgumentNullException(nameof(accountToTransform));
+            adminUser = adminUser ?? throw new ArgumentNullException(nameof(adminUser));
+            
+            // create new or update existing request
+            if (accountToTransform.OrganizationMigrationRequest == null)
+            {
+                accountToTransform.OrganizationMigrationRequest = new OrganizationMigrationRequest();
+            };
+
+            accountToTransform.OrganizationMigrationRequest.NewOrganization = accountToTransform;
+            accountToTransform.OrganizationMigrationRequest.AdminUser = adminUser;
+            accountToTransform.OrganizationMigrationRequest.ConfirmationToken = Crypto.GenerateToken();
+            accountToTransform.OrganizationMigrationRequest.RequestDate = DateTime.UtcNow;
+
+            await UserRepository.CommitChangesAsync();
+        }
+
+        public bool CanTransformUserToOrganization(User accountToTransform, out string errorReason)
+        {
+            errorReason = null;
+            var enabledDomains = Config.OrganizationsEnabledForDomains;
+
+            if (!accountToTransform.Confirmed)
+            {
+                errorReason = String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_FailedReasonNotConfirmedUser, accountToTransform.Username);
+            }
+            else if (accountToTransform is Organization)
+            {
+                errorReason = String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_FailedReasonIsOrganization, accountToTransform.Username);
+            }
+            else if (accountToTransform.Organizations.Any() || accountToTransform.OrganizationRequests.Any())
+            {
+                errorReason = String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_FailedReasonHasMemberships, accountToTransform.Username);
+            }
+            else if (enabledDomains == null ||
+                !enabledDomains.Contains(accountToTransform.ToMailAddress().Host, StringComparer.OrdinalIgnoreCase))
+            {
+                errorReason = String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_FailedReasonNotInDomainWhitelist, accountToTransform.Username);
+            }
+
+            return errorReason == null;
+        }
+
+        public async Task<bool> TransformUserToOrganization(User accountToTransform, User adminUser, string token)
+        {
+            // todo: check for tenantId and add organization policy to enforce this (future work, with manage organization)
+
+            return await EntitiesContext.TransformUserToOrganization(accountToTransform, adminUser, token);
         }
     }
 }

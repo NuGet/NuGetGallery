@@ -10,7 +10,7 @@
             this.Owners = packageItem.Owners;
             this.DownloadCount = packageItem.TotalDownloadCount;
             this.LatestVersion = packageItem.LatestVersion;
-            this.PackageIconUrl = (packageItem.PackageIconUrl)
+            this.PackageIconUrl = packageItem.PackageIconUrl
                 ? packageItem.PackageIconUrl
                 : this.PackagesListViewModel.ManagePackagesViewModel.DefaultPackageIconUrl;
             this.PackageUrl = packageItem.PackageUrl;
@@ -47,7 +47,7 @@
             this.ManagePackagesViewModel = managePackagesViewModel;
             this.Type = type;
             this.Packages = $.map(packages, function (data) {
-                return new PackageListItemViewModel(self, data)
+                return new PackageListItemViewModel(self, data);
             });
             this.VisiblePackagesCount = ko.observable();
             this.VisibleDownloadCount = ko.observable();
@@ -87,13 +87,6 @@
         // Set up the data binding.
         var managePackagesViewModel = new ManagePackagesViewModel(initialData);
         ko.applyBindings(managePackagesViewModel, document.body);
-
-        // Configure the expander headings.
-        window.nuget.configureExpanderHeading("listed-container");
-        window.nuget.configureExpanderHeading("unlisted-container");
-        window.nuget.configureExpanderHeading("namespaces-container");
-        window.nuget.configureExpanderHeading("requests-incoming-container");
-        window.nuget.configureExpanderHeading("requests-outgoing-container");
     });
 
 })();

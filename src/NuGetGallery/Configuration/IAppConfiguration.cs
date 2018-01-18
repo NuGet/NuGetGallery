@@ -94,6 +94,11 @@ namespace NuGetGallery.Configuration
         bool BlockingAsynchronousPackageValidationEnabled { get; set; }
 
         /// <summary>
+        /// Whitelist of domains for which the Organizations feature is enabled.
+        /// </summary>
+        string[] OrganizationsEnabledForDomains { get; set; }
+
+        /// <summary>
         /// Gets the URI to the search service
         /// </summary>
         Uri ServiceDiscoveryUri { get; set; }
@@ -268,7 +273,8 @@ namespace NuGetGallery.Configuration
         string ExternalBrandingUrl { get; set; }
 
         /// <summary>
-        /// Gets/sets a string that is brand string to display in the footer
+        /// Gets/sets a string that is brand string to display in the footer, this also
+        /// accepts a single {0} string format token which is replaced by the UTC year
         /// </summary>
         string ExternalBrandingMessage { get; set; }
 
