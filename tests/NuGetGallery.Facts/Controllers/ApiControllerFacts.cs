@@ -8,6 +8,7 @@ using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web;
@@ -31,7 +32,7 @@ namespace NuGetGallery
     internal class TestableApiController
         : ApiController
     {
-        public TestableApiScopeEvaluator TestableApiScopeEvaluator = new TestableApiScopeEvaluator();
+        public Mock<IApiScopeEvaluator> MockApiScopeEvaluator { get; private set; }
         public Mock<IEntitiesContext> MockEntitiesContext { get; private set; }
         public Mock<IPackageService> MockPackageService { get; private set; }
         public Mock<IPackageFileService> MockPackageFileService { get; private set; }
@@ -55,7 +56,7 @@ namespace NuGetGallery
             MockBehavior behavior = MockBehavior.Default)
         {
             SetOwinContextOverride(Fakes.CreateOwinContext());
-            ApiScopeEvaluator = TestableApiScopeEvaluator;
+            ApiScopeEvaluator = (MockApiScopeEvaluator = new Mock<IApiScopeEvaluator>()).Object;
             EntitiesContext = (MockEntitiesContext = new Mock<IEntitiesContext>()).Object;
             PackageService = (MockPackageService = new Mock<IPackageService>(behavior)).Object;
             UserService = (MockUserService = new Mock<IUserService>(behavior)).Object;
@@ -69,8 +70,7 @@ namespace NuGetGallery
             ReservedNamespaceService = (MockReservedNamespaceService = new Mock<IReservedNamespaceService>()).Object;
             PackageUploadService = (MockPackageUploadService = new Mock<IPackageUploadService>()).Object;
 
-            TestableApiScopeEvaluator.Result = ApiScopeEvaluationResult.Success;
-            TestableApiScopeEvaluator.OwnerFactory = () => GetCurrentUser();
+            SetupApiScopeEvaluatorOnAllInputs();
 
             CredentialBuilder = new CredentialBuilder();
 
@@ -118,6 +118,21 @@ namespace NuGetGallery
             TestUtility.SetupHttpContextMockForUrlGeneration(httpContextMock, this);
         }
 
+        private void SetupApiScopeEvaluatorOnAllInputs()
+        {
+            MockApiScopeEvaluator
+                .Setup(x => x.Evaluate(It.IsAny<User>(), It.IsAny<IEnumerable<Scope>>(), It.IsAny<IActionRequiringEntityPermissions<Package>>(), It.IsAny<Package>(), It.IsAny<string[]>()))
+                .Returns(() => new ApiScopeEvaluationResult(true, PermissionsCheckResult.Allowed, GetCurrentUser()));
+
+            MockApiScopeEvaluator
+                .Setup(x => x.Evaluate(It.IsAny<User>(), It.IsAny<IEnumerable<Scope>>(), It.IsAny<IActionRequiringEntityPermissions<PackageRegistration>>(), It.IsAny<PackageRegistration>(), It.IsAny<string[]>()))
+                .Returns(() => new ApiScopeEvaluationResult(true, PermissionsCheckResult.Allowed, GetCurrentUser()));
+
+            MockApiScopeEvaluator
+                .Setup(x => x.Evaluate(It.IsAny<User>(), It.IsAny<IEnumerable<Scope>>(), It.IsAny<IActionRequiringEntityPermissions<ActionOnNewPackageContext>>(), It.IsAny<ActionOnNewPackageContext>(), It.IsAny<string[]>()))
+                .Returns(() => new ApiScopeEvaluationResult(true, PermissionsCheckResult.Allowed, GetCurrentUser()));
+        }
+
         internal void SetupPackageFromInputStream(Stream packageStream)
         {
             PackageFromInputStream = packageStream;
@@ -134,24 +149,23 @@ namespace NuGetGallery
         private static readonly Uri HttpRequestUrl = new Uri("http://nuget.org/api/v2/something");
         private static readonly Uri HttpsRequestUrl = new Uri("https://nuget.org/api/v2/something");
 
-        public static IEnumerable<object[]> VerifyApiKeyScopes_Data(IEnumerable<string> correctActionScopes, IEnumerable<string> incorrectActionScopes)
+        public static IEnumerable<object[]> InvalidScopes_Data
         {
-            foreach (var isOwnerScopeCorrect in new[] { false, true })
+            get
             {
-                foreach (var isSubjectScopeCorrect in new[] { false, true })
+                yield return MemberDataHelper.AsData(new ApiScopeEvaluationResult(false, PermissionsCheckResult.Unknown, null), HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
+
+                foreach (var result in Enum.GetValues(typeof(PermissionsCheckResult)).Cast<PermissionsCheckResult>())
                 {
-                    foreach (var isActionScopeCorrect in new[] { false, true })
+                    if (result == PermissionsCheckResult.Allowed || result == PermissionsCheckResult.Unknown)
                     {
-                        foreach (var allowedAction in isActionScopeCorrect ? correctActionScopes : incorrectActionScopes)
-                        {
-                            yield return new object[]
-                            {
-                                    isOwnerScopeCorrect,
-                                    isSubjectScopeCorrect,
-                                    allowedAction
-                            };
-                        }
+                        continue;
                     }
+
+                    var isReservedNamespaceConflict = result == PermissionsCheckResult.ReservedNamespaceFailure;
+                    var statusCode = isReservedNamespaceConflict ? HttpStatusCode.Conflict : HttpStatusCode.Forbidden;
+                    var description = isReservedNamespaceConflict ? Strings.UploadPackage_IdNamespaceConflict : Strings.ApiKeyNotAuthorized;
+                    yield return MemberDataHelper.AsData(new ApiScopeEvaluationResult(true, result, null), statusCode, description);
                 }
             }
         }
@@ -436,12 +450,17 @@ namespace NuGetGallery
 
                 var owner = new User("owner") { Key = 2 };
 
-                controller.TestableApiScopeEvaluator.OwnerFactory = () => owner;
-                controller.TestableApiScopeEvaluator.Setup<ActionOnNewPackageContext>(
-                    currentUser, 
-                    ActionsRequiringPermissions.UploadNewPackageId, 
-                    (context) => context.PackageId == packageId, 
-                    NuGetScopes.PackagePush);
+                Expression<Func<IApiScopeEvaluator, ApiScopeEvaluationResult>> evaluateApiScope =
+                    x => x.Evaluate(
+                        currentUser,
+                        It.IsAny<IEnumerable<Scope>>(),
+                        ActionsRequiringPermissions.UploadNewPackageId,
+                        It.Is<ActionOnNewPackageContext>((context) => context.PackageId == packageId),
+                        NuGetScopes.PackagePush);
+
+                controller.MockApiScopeEvaluator
+                    .Setup(evaluateApiScope)
+                    .Returns(new ApiScopeEvaluationResult(true, PermissionsCheckResult.Allowed, owner));
 
                 await controller.CreatePackagePut();
 
@@ -453,16 +472,11 @@ namespace NuGetGallery
                         owner,
                         currentUser),
                     Times.Once);
+                
+                controller.MockApiScopeEvaluator.Verify(evaluateApiScope);
             }
 
-            public static IEnumerable<object[]> WillNotCreateAPackageIfScopesInvalid_Data
-            {
-                get
-                {
-                    yield return MemberDataHelper.AsData(ApiScopeEvaluationResult.Forbidden, HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
-                    yield return MemberDataHelper.AsData(ApiScopeEvaluationResult.ConflictReservedNamespace, HttpStatusCode.Conflict, Strings.UploadPackage_IdNamespaceConflict);
-                }
-            }
+            public static IEnumerable<object[]> WillNotCreateAPackageIfScopesInvalid_Data => InvalidScopes_Data;
 
             [Theory]
             [MemberData(nameof(WillNotCreateAPackageIfScopesInvalid_Data))]
@@ -480,12 +494,14 @@ namespace NuGetGallery
                 var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, packageVersion);
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
-                controller.TestableApiScopeEvaluator.Result = scopeEvaluationResult;
-                controller.TestableApiScopeEvaluator.Setup<ActionOnNewPackageContext>(
-                    currentUser,
-                    ActionsRequiringPermissions.UploadNewPackageId,
-                    (context) => context.PackageId == packageId,
-                    NuGetScopes.PackagePush);
+                controller.MockApiScopeEvaluator
+                    .Setup(x => x.Evaluate(
+                        currentUser,
+                        It.IsAny<IEnumerable<Scope>>(),
+                        ActionsRequiringPermissions.UploadNewPackageId,
+                        It.Is<ActionOnNewPackageContext>((context) => context.PackageId == packageId),
+                        NuGetScopes.PackagePush))
+                    .Returns(scopeEvaluationResult);
 
                 // Act
                 var result = await controller.CreatePackagePut();
@@ -542,13 +558,17 @@ namespace NuGetGallery
 
                 var owner = new User("owner") { Key = 2 };
 
-                controller.TestableApiScopeEvaluator.OwnerFactory = () => owner;
-                controller.TestableApiScopeEvaluator.Setup(
-                    currentUser, 
-                    ActionsRequiringPermissions.UploadNewPackageVersion, 
-                    packageRegistration,
-                    NuGetScopes.PackagePushVersion,
-                    NuGetScopes.PackagePush);
+                Expression<Func<IApiScopeEvaluator, ApiScopeEvaluationResult>> evaluateApiScope =
+                    x => x.Evaluate(
+                        currentUser,
+                        It.IsAny<IEnumerable<Scope>>(),
+                        ActionsRequiringPermissions.UploadNewPackageVersion,
+                        packageRegistration,
+                        NuGetScopes.PackagePushVersion, NuGetScopes.PackagePush);
+
+                controller.MockApiScopeEvaluator
+                    .Setup(evaluateApiScope)
+                    .Returns(new ApiScopeEvaluationResult(true, PermissionsCheckResult.Allowed, owner));
 
                 await controller.CreatePackagePut();
 
@@ -560,6 +580,8 @@ namespace NuGetGallery
                         owner,
                         currentUser),
                     Times.Once);
+
+                controller.MockApiScopeEvaluator.Verify(evaluateApiScope);
             }
 
             [Theory]
@@ -588,13 +610,14 @@ namespace NuGetGallery
                 var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, "1.0.42");
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
-                controller.TestableApiScopeEvaluator.Result = scopeEvaluationResult;
-                controller.TestableApiScopeEvaluator.Setup(
-                    currentUser,
-                    ActionsRequiringPermissions.UploadNewPackageVersion,
-                    packageRegistration,
-                    NuGetScopes.PackagePushVersion,
-                    NuGetScopes.PackagePush);
+                controller.MockApiScopeEvaluator
+                    .Setup(x => x.Evaluate(
+                        currentUser,
+                        It.IsAny<IEnumerable<Scope>>(),
+                        ActionsRequiringPermissions.UploadNewPackageVersion,
+                        packageRegistration,
+                        NuGetScopes.PackagePushVersion, NuGetScopes.PackagePush))
+                    .Returns(scopeEvaluationResult);
 
                 // Act
                 var result = await controller.CreatePackagePut();
@@ -748,14 +771,7 @@ namespace NuGetGallery
                 controller.MockPackageService.Verify(x => x.MarkPackageUnlistedAsync(It.IsAny<Package>(), true), Times.Never());
             }
 
-            public static IEnumerable<object[]> WillNotUnlistThePackageIfScopesInvalid_Data
-            {
-                get
-                {
-                    yield return MemberDataHelper.AsData(ApiScopeEvaluationResult.Forbidden, HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
-                    yield return MemberDataHelper.AsData(ApiScopeEvaluationResult.ConflictReservedNamespace, HttpStatusCode.Conflict, Strings.UploadPackage_IdNamespaceConflict);
-                }
-            }
+            public static IEnumerable<object[]> WillNotUnlistThePackageIfScopesInvalid_Data => InvalidScopes_Data;
 
             [Theory]
             [MemberData(nameof(WillNotUnlistThePackageIfScopesInvalid_Data))]
@@ -775,8 +791,14 @@ namespace NuGetGallery
 
                 controller.SetCurrentUser(currentUser);
 
-                controller.TestableApiScopeEvaluator.Setup(currentUser, ActionsRequiringPermissions.UnlistOrRelistPackage, package, NuGetScopes.PackageUnlist);
-                controller.TestableApiScopeEvaluator.Result = evaluationResult;
+                controller.MockApiScopeEvaluator
+                    .Setup(x => x.Evaluate(
+                        currentUser,
+                        It.IsAny<IEnumerable<Scope>>(),
+                        ActionsRequiringPermissions.UnlistOrRelistPackage,
+                        package,
+                        NuGetScopes.PackageUnlist))
+                    .Returns(evaluationResult);
 
                 var result = await controller.DeletePackage("theId", "1.0.42");
 
@@ -805,12 +827,18 @@ namespace NuGetGallery
 
                 controller.SetCurrentUser(currentUser);
 
-                controller.TestableApiScopeEvaluator.Setup(currentUser, ActionsRequiringPermissions.UnlistOrRelistPackage, package, NuGetScopes.PackageUnlist);
-
                 ResultAssert.IsEmpty(await controller.DeletePackage(id, "1.0.42"));
 
                 controller.MockPackageService.Verify(x => x.MarkPackageUnlistedAsync(package, true));
                 controller.MockIndexingService.Verify(i => i.UpdatePackage(package));
+
+                controller.MockApiScopeEvaluator
+                    .Verify(x => x.Evaluate(
+                        currentUser,
+                        It.IsAny<IEnumerable<Scope>>(),
+                        ActionsRequiringPermissions.UnlistOrRelistPackage,
+                        package,
+                        NuGetScopes.PackageUnlist));
             }
 
             [Fact]
@@ -1074,14 +1102,7 @@ namespace NuGetGallery
                 controller.MockPackageService.Verify(x => x.MarkPackageListedAsync(It.IsAny<Package>(), It.IsAny<bool>()), Times.Never());
             }
 
-            public static IEnumerable<object[]> WillListThePackageIfScopesInvalid_Data
-            {
-                get
-                {
-                    yield return MemberDataHelper.AsData(ApiScopeEvaluationResult.Forbidden, HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
-                    yield return MemberDataHelper.AsData(ApiScopeEvaluationResult.ConflictReservedNamespace, HttpStatusCode.Conflict, Strings.UploadPackage_IdNamespaceConflict);
-                }
-            }
+            public static IEnumerable<object[]> WillListThePackageIfScopesInvalid_Data => InvalidScopes_Data;
 
             [Theory]
             [MemberData(nameof(WillListThePackageIfScopesInvalid_Data))]
@@ -1101,8 +1122,14 @@ namespace NuGetGallery
 
                 controller.SetCurrentUser(currentUser);
 
-                controller.TestableApiScopeEvaluator.Setup(currentUser, ActionsRequiringPermissions.UnlistOrRelistPackage, package, NuGetScopes.PackageUnlist);
-                controller.TestableApiScopeEvaluator.Result = evaluationResult;
+                controller.MockApiScopeEvaluator
+                    .Setup(x => x.Evaluate(
+                        currentUser,
+                        It.IsAny<IEnumerable<Scope>>(),
+                        ActionsRequiringPermissions.UnlistOrRelistPackage,
+                        package,
+                        NuGetScopes.PackageUnlist))
+                    .Returns(evaluationResult);
 
                 var result = await controller.PublishPackage("theId", "1.0.42");
 
@@ -1130,13 +1157,19 @@ namespace NuGetGallery
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(package);
 
                 controller.SetCurrentUser(currentUser);
-
-                controller.TestableApiScopeEvaluator.Setup(currentUser, ActionsRequiringPermissions.UnlistOrRelistPackage, package, NuGetScopes.PackageUnlist);
                 
                 ResultAssert.IsEmpty(await controller.PublishPackage("theId", "1.0.42"));
 
                 controller.MockPackageService.Verify(x => x.MarkPackageListedAsync(package, true));
                 controller.MockIndexingService.Verify(i => i.UpdatePackage(package));
+
+                controller.MockApiScopeEvaluator
+                    .Verify(x => x.Evaluate(
+                        currentUser,
+                        It.IsAny<IEnumerable<Scope>>(),
+                        ActionsRequiringPermissions.UnlistOrRelistPackage,
+                        package,
+                        NuGetScopes.PackageUnlist));
             }
 
             [Fact]
@@ -1374,14 +1407,7 @@ namespace NuGetGallery
                     It.IsAny<User>(), controller.OwinContext.Request.User.Identity, 404), Times.Once);
             }
 
-            public static IEnumerable<object[]> Returns403IfScopeDoesNotMatch_Data
-            {
-                get
-                {
-                    yield return MemberDataHelper.AsData(ApiScopeEvaluationResult.Forbidden, HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
-                    yield return MemberDataHelper.AsData(ApiScopeEvaluationResult.ConflictReservedNamespace, HttpStatusCode.Conflict, Strings.UploadPackage_IdNamespaceConflict);
-                }
-            }
+            public static IEnumerable<object[]> Returns403IfScopeDoesNotMatch_Data => InvalidScopes_Data;
 
             public static IEnumerable<object[]> Returns403IfScopeDoesNotMatch_NotVerify_Data
             {
@@ -1413,11 +1439,14 @@ namespace NuGetGallery
                 };
                 var controller = SetupController(credentialType, null, package);
 
-                controller.TestableApiScopeEvaluator.Result = apiScopeEvaluationResult;
-                controller.TestableApiScopeEvaluator.Setup(
-                    expectedAction: ActionsRequiringPermissions.VerifyPackage, 
-                    expectedEntity: package, 
-                    expectedRequestedActions: expectedRequestedActions);
+                controller.MockApiScopeEvaluator
+                    .Setup(x => x.Evaluate(
+                        It.Is<User>(u => u.Key == UserKey),
+                        It.IsAny<IEnumerable<Scope>>(),
+                        ActionsRequiringPermissions.VerifyPackage,
+                        package,
+                        expectedRequestedActions))
+                    .Returns(apiScopeEvaluationResult);
 
                 // Act
                 var result = await controller.VerifyPackageKeyAsync(PackageId, PackageVersion);
@@ -1438,17 +1467,17 @@ namespace NuGetGallery
             [Fact]
             public Task Returns200_VerifyV1()
             {
-                return Returns200(CredentialTypes.ApiKey.VerifyV1, true);
+                return Returns200(CredentialTypes.ApiKey.VerifyV1, true, NuGetScopes.PackageVerify);
             }
 
             [Theory]
             [MemberData(nameof(CredentialTypesExceptVerifyV1_Data))]
             public Task Returns200_NotVerify(string credentialType)
             {
-                return Returns200(credentialType, false);
+                return Returns200(credentialType, false, NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion);
             }
 
-            private async Task Returns200(string credentialType, bool isRemoved)
+            private async Task Returns200(string credentialType, bool isRemoved, params string[] expectedRequestedActions)
             {
                 // Arrange
                 var package = new Package
@@ -1468,6 +1497,14 @@ namespace NuGetGallery
 
                 controller.MockTelemetryService.Verify(x => x.TrackVerifyPackageKeyEvent(PackageId, PackageVersion,
                     It.IsAny<User>(), controller.OwinContext.Request.User.Identity, 200), Times.Once);
+
+                controller.MockApiScopeEvaluator
+                    .Verify(x => x.Evaluate(
+                        It.Is<User>(u => u.Key == UserKey),
+                        It.IsAny<IEnumerable<Scope>>(),
+                        ActionsRequiringPermissions.VerifyPackage,
+                        package,
+                        expectedRequestedActions));
             }
 
             [Fact]

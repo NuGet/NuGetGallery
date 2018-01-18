@@ -3,27 +3,17 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 
 namespace NuGetGallery.Authentication
 {
     public class ApiScopeEvaluator : IApiScopeEvaluator
     {
-        private readonly TypeConverter Converter = new ScopeSubjectTypeConverter();
-
         private IUserService UserService { get; }
 
         public ApiScopeEvaluator(IUserService userService)
         {
             UserService = userService;
-        }
-
-        /// Constructor used by unit tests to specify a custom <see cref="TypeConverter"/>.
-        public ApiScopeEvaluator(IUserService userService, TypeConverter converter)
-            : this(userService)
-        {
-            Converter = converter;
         }
 
         /// <summary>
@@ -38,15 +28,16 @@ namespace NuGetGallery.Authentication
         /// If no <see cref="Scope"/>s evaluate to <see cref="ApiScopeEvaluationResult.Success"/>, this will be null.
         /// </param>
         /// <returns>A <see cref="ApiScopeEvaluationResult"/> that describes the evaluation of the .</returns>
-        public ApiScopeEvaluationResult Evaluate<TEntity>(
+        /// <remarks>This method is internal because it is tested directly.</remarks>
+        internal ApiScopeEvaluationResult Evaluate<TEntity>(
             User currentUser,
             IEnumerable<Scope> scopes,
             IActionRequiringEntityPermissions<TEntity> action,
             TEntity entity,
-            out User owner,
+            Func<TEntity, string> getSubjectFromEntity,
             params string[] requestedActions)
         {
-            owner = null;
+            User ownerInScope = null;
 
             if (scopes == null || !scopes.Any())
             {
@@ -55,69 +46,87 @@ namespace NuGetGallery.Authentication
                 scopes = new[] { new Scope(ownerKey: null, subject: NuGetPackagePattern.AllInclusivePattern, allowedAction: NuGetScopes.All) };
             }
 
-            var failureResult = ApiScopeEvaluationResult.Unknown;
+            var aggregateResult = new ApiScopeEvaluationResult(true, PermissionsCheckResult.Unknown, null);
 
             foreach (var scope in scopes)
             {
-                if (!scope.AllowsSubject(ConvertToScopeSubject(entity)))
+                if (!scope.AllowsSubject(getSubjectFromEntity(entity)))
                 {
                     // Subject (package ID) does not match.
-                    failureResult = ChooseFailureResult(failureResult, ApiScopeEvaluationResult.Forbidden);
+                    aggregateResult = ChooseFailureResult(aggregateResult, new ApiScopeEvaluationResult(false, PermissionsCheckResult.Unknown, null));
                     continue;
                 }
 
                 if (!scope.AllowsActions(requestedActions))
                 {
                     // Action scopes does not match.
-                    failureResult = ChooseFailureResult(failureResult, ApiScopeEvaluationResult.Forbidden);
+                    aggregateResult = ChooseFailureResult(aggregateResult, new ApiScopeEvaluationResult(false, PermissionsCheckResult.Unknown, null));
                     continue;
                 }
 
                 // Get the owner from the scope.
                 // If the scope has no owner, use the current user.
-                var ownerInScope = scope.HasOwnerScope() ? UserService.FindByKey(scope.OwnerKey.Value) : currentUser;
-
-                var isActionAllowed = action.CheckPermissions(currentUser, ownerInScope, entity);
-                if (isActionAllowed != PermissionsCheckResult.Allowed)
+                int ownerInScopeKey = scope.HasOwnerScope() ? scope.OwnerKey.Value : currentUser.Key;
+                if (ownerInScope == null)
                 {
-                    // Current user cannot do the action on behalf of the owner in the scope or owner in the scope is not allowed to do the action.
-                    var currentFailureResult = ApiScopeEvaluationResult.Forbidden;
-                    if (isActionAllowed == PermissionsCheckResult.ReservedNamespaceFailure)
-                    {
-                        currentFailureResult = ApiScopeEvaluationResult.ConflictReservedNamespace;
-                    }
-
-                    failureResult = ChooseFailureResult(failureResult, currentFailureResult);
+                    ownerInScope = UserService.FindByKey(ownerInScopeKey);
+                }
+                
+                if (ownerInScopeKey != ownerInScope.Key)
+                {
+                    // The set of scopes contains multiple owners. This should not be possible.
+                    aggregateResult = ChooseFailureResult(aggregateResult, new ApiScopeEvaluationResult(false, PermissionsCheckResult.Unknown, null));
                     continue;
                 }
 
-                owner = ownerInScope;
-                return ApiScopeEvaluationResult.Success;
+                var isActionAllowed = action.CheckPermissions(currentUser, ownerInScope, entity);
+                var result = new ApiScopeEvaluationResult(true, isActionAllowed, ownerInScope);
+                aggregateResult = ChooseFailureResult(aggregateResult, result);
+                if (isActionAllowed != PermissionsCheckResult.Allowed)
+                {
+                    // Current user cannot do the action on behalf of the owner in the scope or owner in the scope is not allowed to do the action.
+                    continue;
+                }
+
+                return result;
             }
 
-            return failureResult;
+            return aggregateResult;
         }
 
-        /// <summary>
-        /// Determines the <see cref="ApiScopeEvaluationResult"/> to return from <see cref="EvaluateApiScope(IScopeSubject, out User, string[])"/> when no <see cref="Scope"/>s return <see cref="ApiScopeEvaluationResult.Success"/>.
-        /// </summary>
-        /// <param name="last">The result of the <see cref="Scope"/>s that have been evaluated so far.</param>
-        /// <param name="next">The result of the <see cref="Scope"/> that was just evaluated.</param>
-        private ApiScopeEvaluationResult ChooseFailureResult(ApiScopeEvaluationResult last, ApiScopeEvaluationResult next)
+        private ApiScopeEvaluationResult ChooseFailureResult(params ApiScopeEvaluationResult[] results)
         {
-            return new[] { last, next }.Max();
+            return results.Max();
         }
 
-        private string ConvertToScopeSubject(object value)
+        public ApiScopeEvaluationResult Evaluate(
+            User currentUser, 
+            IEnumerable<Scope> scopes, 
+            IActionRequiringEntityPermissions<PackageRegistration> action, 
+            PackageRegistration packageRegistration, 
+            params string[] requestedActions)
         {
-            var type = value?.GetType() ?? null;
+            return Evaluate(currentUser, scopes, action, packageRegistration, (pr) => pr.Id, requestedActions);
+        }
 
-            if (!Converter.CanConvertFrom(type))
-            {
-                throw new InvalidCastException($"Cannot convert {type} to a scope subject!");
-            }
+        public ApiScopeEvaluationResult Evaluate(
+            User currentUser, 
+            IEnumerable<Scope> scopes, 
+            IActionRequiringEntityPermissions<Package> action, 
+            Package package, 
+            params string[] requestedActions)
+        {
+            return Evaluate(currentUser, scopes, action, package, (p) => p.PackageRegistration.Id, requestedActions);
+        }
 
-            return Converter.ConvertFrom(value) as string;
+        public ApiScopeEvaluationResult Evaluate(
+            User currentUser, 
+            IEnumerable<Scope> scopes, 
+            IActionRequiringEntityPermissions<ActionOnNewPackageContext> action, 
+            ActionOnNewPackageContext context, 
+            params string[] requestedActions)
+        {
+            return Evaluate(currentUser, scopes, action, context, (c) => c.PackageId, requestedActions);
         }
     }
 }

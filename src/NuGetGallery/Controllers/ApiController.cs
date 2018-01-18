@@ -307,8 +307,8 @@ namespace NuGetGallery
                 requestedActions = new[] { NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion };
             }
 
-            var apiScopeEvaluationResult = EvaluateApiScope(ActionsRequiringPermissions.VerifyPackage, package, out var owner, requestedActions);
-            if (apiScopeEvaluationResult != ApiScopeEvaluationResult.Success)
+            var apiScopeEvaluationResult = EvaluateApiScope(ActionsRequiringPermissions.VerifyPackage, package, requestedActions);
+            if (!apiScopeEvaluationResult.IsSuccessful())
             {
                 return GetHttpResultFromFailedApiScopeEvaluation(apiScopeEvaluationResult, id, version);
             }
@@ -412,8 +412,9 @@ namespace NuGetGallery
                         if (packageRegistration == null)
                         {
                             // Check if the current user's scopes allow pushing a new package ID
-                            var apiScopeEvaluationResult = EvaluateApiScopeOnNewPackage(id, out owner);
-                            if (apiScopeEvaluationResult != ApiScopeEvaluationResult.Success)
+                            var apiScopeEvaluationResult = EvaluateApiScope(ActionsRequiringPermissions.UploadNewPackageId, new ActionOnNewPackageContext(id, ReservedNamespaceService), NuGetScopes.PackagePush);
+                            owner = apiScopeEvaluationResult.Owner;
+                            if (!apiScopeEvaluationResult.IsSuccessful())
                             {
                                 // User cannot push a new package ID as the current user's scopes does not allow it
                                 return GetHttpResultFromFailedApiScopeEvaluation(apiScopeEvaluationResult, id, version);
@@ -422,8 +423,9 @@ namespace NuGetGallery
                         else
                         {
                             // Check if the current user's scopes allow pushing a new version of an existing package ID
-                            var apiScopeEvaluationResult = EvaluateApiScope(ActionsRequiringPermissions.UploadNewPackageVersion, packageRegistration, out owner, NuGetScopes.PackagePushVersion, NuGetScopes.PackagePush);
-                            if (apiScopeEvaluationResult != ApiScopeEvaluationResult.Success)
+                            var apiScopeEvaluationResult = EvaluateApiScope(ActionsRequiringPermissions.UploadNewPackageVersion, packageRegistration, NuGetScopes.PackagePushVersion, NuGetScopes.PackagePush);
+                            owner = apiScopeEvaluationResult.Owner;
+                            if (!apiScopeEvaluationResult.IsSuccessful())
                             {
                                 // User cannot push a package as the current user's scopes does not allow it
                                 await AuditingService.SaveAuditRecordAsync(
@@ -563,8 +565,8 @@ namespace NuGetGallery
             }
 
             // Check if the current user's scopes allow listing/unlisting the current package ID
-            var apiScopeEvaluationResult = EvaluateApiScope(ActionsRequiringPermissions.UnlistOrRelistPackage, package, out var owner, NuGetScopes.PackageUnlist);
-            if (apiScopeEvaluationResult != ApiScopeEvaluationResult.Success)
+            var apiScopeEvaluationResult = EvaluateApiScope(ActionsRequiringPermissions.UnlistOrRelistPackage, package, NuGetScopes.PackageUnlist);
+            if (!apiScopeEvaluationResult.IsSuccessful())
             {
                 return GetHttpResultFromFailedApiScopeEvaluation(apiScopeEvaluationResult, id, version);
             }
@@ -595,8 +597,8 @@ namespace NuGetGallery
             }
 
             // Check if the current user's scopes allow listing/unlisting the current package ID
-            var apiScopeEvaluationResult = EvaluateApiScope(ActionsRequiringPermissions.UnlistOrRelistPackage, package, out var owner, NuGetScopes.PackageUnlist);
-            if (apiScopeEvaluationResult != ApiScopeEvaluationResult.Success)
+            var apiScopeEvaluationResult = EvaluateApiScope(ActionsRequiringPermissions.UnlistOrRelistPackage, package, NuGetScopes.PackageUnlist);
+            if (!apiScopeEvaluationResult.IsSuccessful())
             {
                 return GetHttpResultFromFailedApiScopeEvaluation(apiScopeEvaluationResult, id, version);
             }
@@ -732,43 +734,50 @@ namespace NuGetGallery
             return GetHttpResultFromFailedApiScopeEvaluation(evaluationResult, id, NuGetVersion.Parse(version));
         }
 
-        private HttpStatusCodeWithBodyResult GetHttpResultFromFailedApiScopeEvaluation(ApiScopeEvaluationResult evaluationResult, string id, NuGetVersion version)
+        private HttpStatusCodeWithBodyResult GetHttpResultFromFailedApiScopeEvaluation(ApiScopeEvaluationResult result, string id, NuGetVersion version)
         {
-            switch (evaluationResult)
+            if (result.IsSuccessful())
             {
-                case ApiScopeEvaluationResult.Success:
-                    throw new ArgumentException($"{nameof(ApiScopeEvaluationResult.Success)} is not a failed evaluation!", nameof(evaluationResult));
-
-                case ApiScopeEvaluationResult.Forbidden:
-                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
-
-                case ApiScopeEvaluationResult.ConflictReservedNamespace:
-                    TelemetryService.TrackPackagePushNamespaceConflictEvent(id, version.ToNormalizedString(), GetCurrentUser(), User.Identity);
-                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict, Strings.UploadPackage_IdNamespaceConflict);
-
-                default:
-                    throw new ArgumentException("Unsupported evaluation result!", nameof(evaluationResult));
+                throw new ArgumentException($"{nameof(result)} is not a failed evaluation!", nameof(result));
             }
+
+            if (result.PermissionsCheckResult == PermissionsCheckResult.ReservedNamespaceFailure)
+            {
+                TelemetryService.TrackPackagePushNamespaceConflictEvent(id, version.ToNormalizedString(), GetCurrentUser(), User.Identity);
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict, Strings.UploadPackage_IdNamespaceConflict);
+            }
+
+            return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
         }
 
-        private ApiScopeEvaluationResult EvaluateApiScope<TActionEntity>(IActionRequiringEntityPermissions<TActionEntity> action, TActionEntity entity, out User owner, params string[] requestedActions)
+        private ApiScopeEvaluationResult EvaluateApiScope(IActionRequiringEntityPermissions<Package> action, Package package, params string[] requestedActions)
         {
             return ApiScopeEvaluator.Evaluate(
                 GetCurrentUser(),
                 User.Identity.GetScopesFromClaim(),
                 action,
-                entity,
-                out owner,
+                package,
                 requestedActions);
         }
 
-        private ApiScopeEvaluationResult EvaluateApiScopeOnNewPackage(string id, out User owner)
+        private ApiScopeEvaluationResult EvaluateApiScope(IActionRequiringEntityPermissions<PackageRegistration> action, PackageRegistration packageRegistration, params string[] requestedActions)
         {
-            return EvaluateApiScope(
-                ActionsRequiringPermissions.UploadNewPackageId, 
-                new ActionOnNewPackageContext(id, ReservedNamespaceService),
-                out owner, 
-                NuGetScopes.PackagePush);
+            return ApiScopeEvaluator.Evaluate(
+                GetCurrentUser(),
+                User.Identity.GetScopesFromClaim(),
+                action,
+                packageRegistration,
+                requestedActions);
+        }
+
+        private ApiScopeEvaluationResult EvaluateApiScope(IActionRequiringEntityPermissions<ActionOnNewPackageContext> action, ActionOnNewPackageContext context, params string[] requestedActions)
+        {
+            return ApiScopeEvaluator.Evaluate(
+                GetCurrentUser(),
+                User.Identity.GetScopesFromClaim(),
+                action,
+                context,
+                requestedActions);
         }
     }
 }

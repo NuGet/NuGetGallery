@@ -1,36 +1,51 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+
 namespace NuGetGallery.Authentication
 {
 
     /// <summary>
     /// The result of evaluating the current user's scopes by using <see cref="ApiScopeEvaluator"/>.
     /// </summary>
-    /// <remarks>
-    /// When an current user's scopes are evaluated and none evaluate with <see cref="Success"/>, 
-    /// the failed result to return is determined by <see cref="ApiScopeEvaluator.ChooseFailureResult(ApiScopeEvaluationResult, ApiScopeEvaluationResult)"/>.
-    /// </remarks>
-    public enum ApiScopeEvaluationResult
+    public class ApiScopeEvaluationResult : IComparable<ApiScopeEvaluationResult>
     {
-        /// <summary>
-        /// An error occurred and scopes were unable to be evaluated.
-        /// </summary>
-        Unknown,
+        public bool ScopesAreValid { get; }
+        public PermissionsCheckResult PermissionsCheckResult { get; }
+        public User Owner { get; }
 
-        /// <summary>
-        /// The scopes evaluated successfully.
-        /// </summary>
-        Success,
+        public ApiScopeEvaluationResult(bool scopesAreValid, PermissionsCheckResult permissionsCheckResult, User owner)
+        {
+            ScopesAreValid = scopesAreValid;
+            PermissionsCheckResult = permissionsCheckResult;
+            Owner = owner;
+        }
 
-        /// <summary>
-        /// The scopes do not match the action being performed.
-        /// </summary>
-        Forbidden,
+        public bool IsSuccessful()
+        {
+            return ScopesAreValid && PermissionsCheckResult == PermissionsCheckResult.Allowed;
+        }
 
-        /// <summary>
-        /// The scopes match the action being performed, but there is a reserved namespace conflict that prevents this action from being successful.
-        /// </summary>
-        ConflictReservedNamespace
+        public int CompareTo(ApiScopeEvaluationResult other)
+        {
+            if (ScopesAreValid == false)
+            {
+                return other.ScopesAreValid == true ? -1 : 0;
+            }
+
+            if (other.ScopesAreValid == false)
+            {
+                return ScopesAreValid == true ? 1 : 0;
+            }
+
+            var permissionsCheckResultDifference = (int)PermissionsCheckResult - (int)other.PermissionsCheckResult;
+            if (permissionsCheckResultDifference == 0)
+            {
+                return (Owner != null ? 1 : 0) + (other.Owner != null ? -1 : 0);
+            }
+
+            return permissionsCheckResultDifference;
+        }
     }
 }
