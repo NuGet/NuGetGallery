@@ -398,6 +398,7 @@
     <Compile Include="Areas\Admin\Controllers\SecurityPolicyControllerFacts.cs" />
     <Compile Include="Areas\Admin\HelperFacts.cs" />
     <Compile Include="Areas\Admin\Services\ValidationAdminServiceFacts.cs" />
+    <Compile Include="Authentication\ApiScopeEvaluationResultFacts.cs" />
     <Compile Include="Authentication\ApiScopeEvaluatorFacts.cs" />
     <Compile Include="Authentication\AuthenticatorFacts.cs" />
     <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationHandlerFacts.cs" />

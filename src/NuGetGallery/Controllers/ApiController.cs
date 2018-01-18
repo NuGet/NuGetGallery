@@ -417,7 +417,7 @@ namespace NuGetGallery
                             if (!apiScopeEvaluationResult.IsSuccessful())
                             {
                                 // User cannot push a new package ID as the current user's scopes does not allow it
-                                return GetHttpResultFromFailedApiScopeEvaluation(apiScopeEvaluationResult, id, version);
+                                return GetHttpResultFromFailedApiScopeEvaluationForPush(apiScopeEvaluationResult, id, version);
                             }
                         }
                         else
@@ -435,7 +435,7 @@ namespace NuGetGallery
                                         attemptedPackage: new AuditedPackageIdentifier(
                                             id, version.ToNormalizedStringSafe())));
 
-                                return GetHttpResultFromFailedApiScopeEvaluation(apiScopeEvaluationResult, id, version);
+                                return GetHttpResultFromFailedApiScopeEvaluationForPush(apiScopeEvaluationResult, id, version);
                             }
 
                             if (packageRegistration.IsLocked)
@@ -736,6 +736,19 @@ namespace NuGetGallery
 
         private HttpStatusCodeWithBodyResult GetHttpResultFromFailedApiScopeEvaluation(ApiScopeEvaluationResult result, string id, NuGetVersion version)
         {
+            return GetHttpResultFromFailedApiScopeEvaluationHelper(result, id, version, HttpStatusCode.Forbidden);
+        }
+
+        /// <remarks>
+        /// Push returns <see cref="HttpStatusCode.Unauthorized"/> instead of <see cref="HttpStatusCode.Forbidden"/> for failures not related to reserved namespaces.
+        /// </remarks>
+        private HttpStatusCodeWithBodyResult GetHttpResultFromFailedApiScopeEvaluationForPush(ApiScopeEvaluationResult result, string id, NuGetVersion version)
+        {
+            return GetHttpResultFromFailedApiScopeEvaluationHelper(result, id, version, HttpStatusCode.Unauthorized);
+        }
+
+        private HttpStatusCodeWithBodyResult GetHttpResultFromFailedApiScopeEvaluationHelper(ApiScopeEvaluationResult result, string id, NuGetVersion version, HttpStatusCode statusCodeOnFailure)
+        {
             if (result.IsSuccessful())
             {
                 throw new ArgumentException($"{nameof(result)} is not a failed evaluation!", nameof(result));
@@ -743,11 +756,12 @@ namespace NuGetGallery
 
             if (result.PermissionsCheckResult == PermissionsCheckResult.ReservedNamespaceFailure)
             {
+                // We return a special error code for reserved namespace failures.
                 TelemetryService.TrackPackagePushNamespaceConflictEvent(id, version.ToNormalizedString(), GetCurrentUser(), User.Identity);
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict, Strings.UploadPackage_IdNamespaceConflict);
             }
 
-            return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
+            return new HttpStatusCodeWithBodyResult(statusCodeOnFailure, Strings.ApiKeyNotAuthorized);
         }
 
         private ApiScopeEvaluationResult EvaluateApiScope(IActionRequiringEntityPermissions<Package> action, Package package, params string[] requestedActions)

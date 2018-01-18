@@ -476,7 +476,14 @@ namespace NuGetGallery
                 controller.MockApiScopeEvaluator.Verify(evaluateApiScope);
             }
 
-            public static IEnumerable<object[]> WillNotCreateAPackageIfScopesInvalid_Data => InvalidScopes_Data;
+            /// <remarks>
+            /// <see cref="ApiController.CreatePackagePut"/> returns <see cref="HttpStatusCode.Unauthorized"/> instead of <see cref="HttpStatusCode.Forbidden"/>.
+            /// </remarks>
+            public static IEnumerable<object[]> WillNotCreateAPackageIfScopesInvalid_Data =>
+                InvalidScopes_Data
+                    .Select(x => x
+                        .Select(y => y is HttpStatusCode status && status == HttpStatusCode.Forbidden ? HttpStatusCode.Unauthorized : y)
+                        .ToArray());
 
             [Theory]
             [MemberData(nameof(WillNotCreateAPackageIfScopesInvalid_Data))]
