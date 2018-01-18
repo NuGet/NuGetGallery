@@ -17,6 +17,8 @@ namespace NuGet.Services.Validation
             { 2, ValidationIssueCode.ClientSigningVerificationFailure },
             { 3, ValidationIssueCode.PackageIsZip64 },
             { 4, ValidationIssueCode.OnlyAuthorSignaturesSupported },
+            { 5, ValidationIssueCode.AuthorAndRepositoryCounterSignaturesNotSupported },
+            { 6, ValidationIssueCode.OnlySignatureFormatVersion1Supported },
 #pragma warning disable 618
             { 9999, ValidationIssueCode.ObsoleteTesting },
 #pragma warning restore 618

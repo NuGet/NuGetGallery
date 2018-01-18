@@ -211,6 +211,8 @@ namespace NuGet.Services.Validation.Issues.Tests
             { ValidationIssueCode.PackageIsSigned, () => ValidationIssue.PackageIsSigned },
             { ValidationIssueCode.PackageIsZip64, () => ValidationIssue.PackageIsZip64 },
             { ValidationIssueCode.OnlyAuthorSignaturesSupported, () => ValidationIssue.OnlyAuthorSignaturesSupported },
+            { ValidationIssueCode.AuthorAndRepositoryCounterSignaturesNotSupported, () => ValidationIssue.AuthorAndRepositoryCounterSignaturesNotSupported },
+            { ValidationIssueCode.OnlySignatureFormatVersion1Supported, () => ValidationIssue.OnlySignatureFormatVersion1Supported },
         };
     }
 }
