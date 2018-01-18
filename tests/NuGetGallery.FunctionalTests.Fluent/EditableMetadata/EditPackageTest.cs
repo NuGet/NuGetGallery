@@ -27,7 +27,7 @@ namespace NuGetGallery.FunctionalTests.Fluent.EditableMetadata
             await UploadPackageIfNecessary(packageName, version);
 
             // Log on using the test account.
-            I.LogOn(EnvironmentSettings.TestAccountName, EnvironmentSettings.TestAccountPassword);
+            I.LogOn(EnvironmentSettings.TestAccountEmail, EnvironmentSettings.TestAccountPassword);
 
             // Navigate to the package's edit page.
             I.Open(string.Format(UrlHelper.EditPageUrl, packageName, version));

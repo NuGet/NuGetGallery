@@ -45,7 +45,12 @@ namespace NuGetGallery.FunctionalTests.WebUITests.UploadAndDownload
             var uploadRequest2 = AssertAndValidationHelper.GetHttpRequestForUrl(UrlHelper.UploadPageUrl);
             yield return uploadRequest2;
 
-            var verifyUploadPostRequest = AssertAndValidationHelper.GetVerifyPackagePostRequestForPackage(this, packageId, "1.0.0", UrlHelper.GetPackagePageUrl(packageId, "1.0.0"), packageId);
+            var verifyUploadPostRequest = AssertAndValidationHelper.GetVerifyPackagePostRequestForPackage(this,
+                packageId,
+                "1.0.0",
+                UrlHelper.GetPackagePageUrl(packageId, "1.0.0"),
+                packageId,
+                EnvironmentSettings.TestAccountName);
             yield return verifyUploadPostRequest;
         }
     }
