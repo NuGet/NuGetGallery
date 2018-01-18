@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Threading.Tasks;
 
 namespace NuGet.Services.ServiceBus
@@ -22,14 +23,15 @@ namespace NuGet.Services.ServiceBus
         void Start();
 
         /// <summary>
-        /// Deregisters the message handler.
+        /// Deregisters the message handler and waits until currently in-flight messages have been handled.
         /// </summary>
         /// <remarks>
         /// There may still be messages in progress after the returned <see cref="Task"/> has completed!
-        /// The <see cref="NumberOfMessagesInProgress"/> property should be polled to determine when all
+        /// The <see cref="NumberOfMessagesInProgress"/> property can be polled to determine when all
         /// messages have been completed.
         /// </remarks>
-        /// <returns>A task that completes when the message handler has been deregistered.</returns>
-        Task StartShutdownAsync();
+        /// <param name="timeout">The maximum amount of time the shutdown may take.</param>
+        /// <returns>A task that completes as true if the shutdown succeeded gracefully.</returns>
+        Task<bool> ShutdownAsync(TimeSpan timeout);
     }
 }
