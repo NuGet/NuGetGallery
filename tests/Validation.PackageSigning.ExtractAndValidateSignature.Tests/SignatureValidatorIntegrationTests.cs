@@ -2,9 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -12,15 +14,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
-using NuGet.Common;
 using NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
 using NuGet.Packaging.Signing;
 using NuGet.Services.Validation;
+using NuGet.Services.Validation.Issues;
 using NuGetGallery;
 using Xunit;
 using Xunit.Abstractions;
+using NuGetHashAlgorithmName = NuGet.Common.HashAlgorithmName;
 
 namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
 {
@@ -29,6 +32,7 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
         private readonly Mock<IPackageSigningStateService> _packageSigningStateService;
         private readonly Mock<ISignaturePartsExtractor> _signaturePartsExtractor;
         private readonly Mock<IEntityRepository<Certificate>> _certificates;
+        private readonly List<string> _trustedThumbprints;
         private readonly IPackageSignatureVerifier _minimalPackageSignatureVerifier;
         private readonly IPackageSignatureVerifier _fullPackageSignatureVerifier;
         private readonly ILogger<SignatureValidator> _logger;
@@ -47,6 +51,10 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
             _signaturePartsExtractor = new Mock<ISignaturePartsExtractor>();
 
             _certificates = new Mock<IEntityRepository<Certificate>>();
+            _trustedThumbprints = new List<string>();
+            _certificates
+                .Setup(x => x.GetAll())
+                .Returns(() => _trustedThumbprints.Select(x => new Certificate { Thumbprint = x }).AsQueryable());
 
             // These dependencies are concrete.
             _minimalPackageSignatureVerifier = PackageSignatureVerifierFactory.CreateMinimal();
@@ -93,6 +101,7 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
 
             // Assert
             VerifyPackageSigningStatus(result, ValidationStatus.Succeeded, PackageSigningStatus.Valid);
+            Assert.Empty(result.Issues);
         }
 
         [Fact]
@@ -128,6 +137,7 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
 
             // Assert
             VerifyPackageSigningStatus(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
+            VerifyNU3008(result);
         }
 
         [Fact]
@@ -164,33 +174,16 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
 
             // Assert
             VerifyPackageSigningStatus(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
+            VerifyNU3008(result);
         }
 
         [Fact]
         public async Task RejectsInvalidSignedCms()
         {
             // Arrange
-            AllowCertificateThumbprint(TestResources.Leaf1Thumbprint);
-            var packageStream = TestResources.GetResourceStream(TestResources.SignedPackageLeaf1);
-
-            try
-            {
-                using (var zipArchive = new ZipArchive(packageStream, ZipArchiveMode.Update, leaveOpen: true))
-                using (var entryStream = zipArchive.GetEntry(".signature.p7s").Open())
-                {
-                    entryStream.Position = 0;
-                    entryStream.SetLength(0);
-                    var bytes = Encoding.ASCII.GetBytes("This is not a valid signed CMS.");
-                    entryStream.Write(bytes, 0, bytes.Length);
-                }
-
-                _package = new SignedPackageArchive(packageStream, packageStream);
-            }
-            catch
-            {
-                packageStream?.Dispose();
-                throw;
-            }
+            SetSignatureFileContent(
+                TestResources.GetResourceStream(TestResources.SignedPackageLeaf1),
+                Encoding.ASCII.GetBytes("This is not a valid signed CMS."));
 
             // Act
             var result = await _target.ValidateAsync(
@@ -201,45 +194,224 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
 
             // Assert
             VerifyPackageSigningStatus(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
+            var issue = Assert.Single(result.Issues);
+            Assert.Equal(ValidationIssueCode.ClientSigningVerificationFailure, issue.IssueCode);
+            var typedIssue = Assert.IsType<ClientSigningVerificationFailure>(issue);
+            Assert.Equal("NU3003", typedIssue.ClientCode);
+            Assert.Equal("The package signature is invalid.", typedIssue.ClientMessage);
+        }
+
+        [Fact]
+        public async Task RejectsMultipleSignatures()
+        {
+            // Arrange
+            SetSignatureContent(
+                TestResources.GetResourceStream(TestResources.SignedPackageLeaf1),
+                configuredSignedCms: signedCms =>
+                {
+                    using (var additionalCertificate = SigningTestUtility.GenerateCertificate(subjectName: null, modifyGenerator: null))
+                    {
+                        AllowCertificateThumbprint(additionalCertificate.ComputeSHA256Thumbprint());
+                        signedCms.ComputeSignature(new CmsSigner(additionalCertificate));
+                    }
+                });
+
+            // Act
+            var result = await _target.ValidateAsync(
+                _packageKey,
+                _package,
+                _message,
+                _token);
+
+            // Assert
+            VerifyPackageSigningStatus(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
+            var issue = Assert.Single(result.Issues);
+            Assert.Equal(ValidationIssueCode.ClientSigningVerificationFailure, issue.IssueCode);
+            var typedIssue = Assert.IsType<ClientSigningVerificationFailure>(issue);
+            Assert.Equal("NU3009", typedIssue.ClientCode);
+            Assert.Equal("The package signature contains multiple primary signatures.", typedIssue.ClientMessage);
+        }
+
+        [Theory]
+        [InlineData(SignatureType.Author)]
+        [InlineData(SignatureType.Repository)]
+        public async Task RejectsAuthorAndRepositoryCounterSignatures(SignatureType counterSignatureType)
+        {
+            // Arrange
+            AllowCertificateThumbprint(TestResources.Leaf1Thumbprint);
+            ModifySignatureContent(
+                TestResources.GetResourceStream(TestResources.SignedPackageLeaf1),
+                configuredSignedCms: signedCms =>
+                {
+                    using (var counterCertificate = SigningTestUtility.GenerateCertificate(subjectName: null, modifyGenerator: null))
+                    {
+                        AllowCertificateThumbprint(counterCertificate.ComputeSHA256Thumbprint());
+
+                        var cmsSigner = new CmsSigner(counterCertificate);
+                        cmsSigner.SignedAttributes.Add(AttributeUtility.CreateCommitmentTypeIndication(counterSignatureType));
+
+                        signedCms.SignerInfos[0].ComputeCounterSignature(cmsSigner);
+                    }
+                });
+
+            // Act
+            var result = await _target.ValidateAsync(
+                _packageKey,
+                _package,
+                _message,
+                _token);
+
+            // Assert
+            VerifyPackageSigningStatus(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
+            var issue = Assert.Single(result.Issues);
+            Assert.Equal(ValidationIssueCode.AuthorAndRepositoryCounterSignaturesNotSupported, issue.IssueCode);
+        }
+
+        [Theory]
+        [InlineData(new[] { SignatureType.Author, SignatureType.Repository })]
+        [InlineData(new[] { SignatureType.Repository, SignatureType.Author })]
+        public async Task RejectsMutuallyExclusiveCounterSignaturesCommitmentTypes(SignatureType[] counterSignatureTypes)
+        {
+            // Arrange
+            AllowCertificateThumbprint(TestResources.Leaf1Thumbprint);
+            ModifySignatureContent(
+                TestResources.GetResourceStream(TestResources.SignedPackageLeaf1),
+                configuredSignedCms: signedCms =>
+                {
+                    using (var counterCertificate = SigningTestUtility.GenerateCertificate(subjectName: null, modifyGenerator: null))
+                    {
+                        AllowCertificateThumbprint(counterCertificate.ComputeSHA256Thumbprint());
+
+                        var cmsSigner = new CmsSigner(counterCertificate);
+                        foreach (var type in counterSignatureTypes)
+                        {
+                            cmsSigner.SignedAttributes.Add(AttributeUtility.CreateCommitmentTypeIndication(type));
+                        }
+
+                        signedCms.SignerInfos[0].ComputeCounterSignature(cmsSigner);
+                    }
+                });
+
+            // Act
+            var result = await _target.ValidateAsync(
+                _packageKey,
+                _package,
+                _message,
+                _token);
+
+            // Assert
+            VerifyPackageSigningStatus(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
+            var issue = Assert.Single(result.Issues);
+            Assert.Equal(ValidationIssueCode.ClientSigningVerificationFailure, issue.IssueCode);
+            var typedIssue = Assert.IsType<ClientSigningVerificationFailure>(issue);
+            Assert.Equal("NU3000", typedIssue.ClientCode);
+            Assert.Equal("The commitment-type-indication attribute contains an invalid combination of values.", typedIssue.ClientMessage);
+        }
+
+        [Theory]
+        [InlineData("MA0GCyqGSIb3DQEJEAYD")] // base64 of ASN.1 encoded "1.2.840.113549.1.9.16.6.3" OID.
+        [InlineData(null)] // No commitment type.
+        public async Task AllowsNonAuthorAndRepositoryCounterSignatures(string commitmentTypeOidBase64)
+        {
+            // Arrange
+            AllowCertificateThumbprint(TestResources.Leaf1Thumbprint);
+            ModifySignatureContent(
+                TestResources.GetResourceStream(TestResources.SignedPackageLeaf1),
+                configuredSignedCms: signedCms =>
+                {
+                    using (var counterCertificate = SigningTestUtility.GenerateCertificate(subjectName: null, modifyGenerator: null))
+                    {
+                        AllowCertificateThumbprint(counterCertificate.ComputeSHA256Thumbprint());
+
+                        var cmsSigner = new CmsSigner(counterCertificate);
+
+                        if (commitmentTypeOidBase64 != null)
+                        {
+                            var value = new AsnEncodedData(
+                                Oids.CommitmentTypeIndication,
+                                Convert.FromBase64String(commitmentTypeOidBase64));
+
+                            var attribute = new CryptographicAttributeObject(
+                                new Oid(Oids.CommitmentTypeIndication),
+                                new AsnEncodedDataCollection(value));
+
+                            cmsSigner.SignedAttributes.Add(attribute);
+                        }
+                        
+                        signedCms.SignerInfos[0].ComputeCounterSignature(cmsSigner);
+                    }
+                });
+
+            // Act
+            var result = await _target.ValidateAsync(
+                _packageKey,
+                _package,
+                _message,
+                _token);
+
+            // Assert
+            VerifyPackageSigningStatus(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
+
+            // This failure type indicates the counter signature validation passed.
+            VerifyNU3008(result);
+        }
+
+        [Fact]
+        public async Task RejectsInvalidSignatureContent()
+        {
+            // Arrange
+            SetSignatureContent(
+                TestResources.GetResourceStream(TestResources.SignedPackageLeaf1),
+                "!!--:::FOO...");
+
+            // Act
+            var result = await _target.ValidateAsync(
+                _packageKey,
+                _package,
+                _message,
+                _token);
+
+            // Assert
+            VerifyPackageSigningStatus(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
+            var issue = Assert.Single(result.Issues);
+            Assert.Equal(ValidationIssueCode.ClientSigningVerificationFailure, issue.IssueCode);
+            var typedIssue = Assert.IsType<ClientSigningVerificationFailure>(issue);
+            Assert.Equal("NU3000", typedIssue.ClientCode);
+            Assert.Equal("The package signature content is invalid.", typedIssue.ClientMessage);
+        }
+
+        [Fact]
+        public async Task RejectInvalidSignatureContentVersion()
+        {
+            // Arrange
+            SetSignatureContent(
+                TestResources.GetResourceStream(TestResources.SignedPackageLeaf1),
+                "Version:2" + Environment.NewLine + Environment.NewLine + "2.16.840.1.101.3.4.2.1-Hash:hash");
+
+            // Act
+            var result = await _target.ValidateAsync(
+                _packageKey,
+                _package,
+                _message,
+                _token);
+
+            // Assert
+            VerifyPackageSigningStatus(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
+            var issue = Assert.Single(result.Issues);
+            Assert.Equal(ValidationIssueCode.OnlySignatureFormatVersion1Supported, issue.IssueCode);
         }
 
         [Fact]
         public async Task RejectsNonAuthorSignature()
         {
             // Arrange
-            var packageStream = TestResources.GetResourceStream(TestResources.SignedPackageLeaf1);
-
-            try
-            {
-                using (var zipArchive = new ZipArchive(packageStream, ZipArchiveMode.Update, leaveOpen: true))
-                using (var entryStream = zipArchive.GetEntry(".signature.p7s").Open())
-                using (var certificate = SigningTestUtility.GenerateCertificate(subjectName: null, modifyGenerator: null))
-                {
-                    AllowCertificateThumbprint(certificate.ComputeSHA256Thumbprint());
-
-                    var content = new SignatureContent(
-                        SigningSpecifications.V1,
-                        HashAlgorithmName.SHA256,
-                        hashValue: "hash");
-                    var contentInfo = new ContentInfo(content.GetBytes());
-                    var signedCms = new SignedCms(contentInfo);
-                    var cmsSigner = new CmsSigner(certificate);
-
-                    signedCms.ComputeSignature(cmsSigner);
-                    var bytes = signedCms.Encode();
-
-                    entryStream.Position = 0;
-                    entryStream.SetLength(0);
-                    entryStream.Write(bytes, 0, bytes.Length);
-                }
-
-                _package = new SignedPackageArchive(packageStream, packageStream);
-            }
-            catch
-            {
-                packageStream?.Dispose();
-                throw;
-            }
+            var content = new SignatureContent(
+                SigningSpecifications.V1,
+                NuGetHashAlgorithmName.SHA256,
+                hashValue: "hash");
+            SetSignatureContent(
+                TestResources.GetResourceStream(TestResources.SignedPackageLeaf1),
+                content.GetBytes());
 
             // Act
             var result = await _target.ValidateAsync(
@@ -269,13 +441,89 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
 
             // Assert
             VerifyPackageSigningStatus(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
+            var issue = Assert.Single(result.Issues);
+            Assert.Equal(ValidationIssueCode.PackageIsZip64, issue.IssueCode);
+        }
+
+        private void SetSignatureFileContent(Stream packageStream, byte[] fileContent)
+        {
+            try
+            {
+                using (var zipArchive = new ZipArchive(packageStream, ZipArchiveMode.Update, leaveOpen: true))
+                using (var entryStream = zipArchive.GetEntry(".signature.p7s").Open())
+                {
+                    entryStream.Position = 0;
+                    entryStream.SetLength(0);
+                    entryStream.Write(fileContent, 0, fileContent.Length);
+                }
+
+                _package = new SignedPackageArchive(packageStream, packageStream);
+            }
+            catch
+            {
+                packageStream?.Dispose();
+                throw;
+            }
+        }
+
+        private void ModifySignatureContent(Stream packageStream, Action<SignedCms> configuredSignedCms = null)
+        {
+            SignedCms signedCms;
+            try
+            {
+                using (var zipArchive = new ZipArchive(packageStream, ZipArchiveMode.Read, leaveOpen: true))
+                using (var entryStream = zipArchive.GetEntry(".signature.p7s").Open())
+                {
+                    var signature = Signature.Load(entryStream);
+                    signedCms = signature.SignedCms;
+                }
+            }
+            catch
+            {
+                packageStream?.Dispose();
+                throw;
+            }
+
+            configuredSignedCms(signedCms);
+
+            SetSignatureFileContent(packageStream, signedCms.Encode());
+        }
+
+        private void SetSignatureContent(Stream packageStream, byte[] signatureContent = null, Action<SignedCms> configuredSignedCms = null)
+        {
+            if (signatureContent == null)
+            {
+                signatureContent = new SignatureContent(
+                    SigningSpecifications.V1,
+                    NuGetHashAlgorithmName.SHA256,
+                    hashValue: "hash").GetBytes();
+            }
+
+            using (var certificate = SigningTestUtility.GenerateCertificate(subjectName: null, modifyGenerator: null))
+            {
+                AllowCertificateThumbprint(certificate.ComputeSHA256Thumbprint());
+
+                var contentInfo = new ContentInfo(signatureContent);
+                var signedCms = new SignedCms(contentInfo);
+
+                signedCms.ComputeSignature(new CmsSigner(certificate));
+
+                configuredSignedCms?.Invoke(signedCms);
+
+                var fileContent = signedCms.Encode();
+
+                SetSignatureFileContent(packageStream, fileContent);
+            }
+        }
+
+        private void SetSignatureContent(Stream packageStream, string signatureContent)
+        {
+            SetSignatureContent(packageStream, signatureContent: Encoding.UTF8.GetBytes(signatureContent));
         }
 
         private void AllowCertificateThumbprint(string thumbprint)
         {
-            _certificates
-                .Setup(x => x.GetAll())
-                .Returns(new[] { new Certificate { Thumbprint = thumbprint } }.AsQueryable());
+            _trustedThumbprints.Add(thumbprint);
         }
 
         private void VerifyPackageSigningStatus(SignatureValidatorResult result, ValidationStatus validationStatus, PackageSigningStatus packageSigningStatus)
@@ -288,6 +536,15 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                     _message.PackageVersion,
                     packageSigningStatus),
                 Times.Once);
+        }
+
+        private static void VerifyNU3008(SignatureValidatorResult result)
+        {
+            var issue = Assert.Single(result.Issues);
+            Assert.Equal(ValidationIssueCode.ClientSigningVerificationFailure, issue.IssueCode);
+            var typedIssue = Assert.IsType<ClientSigningVerificationFailure>(issue);
+            Assert.Equal("NU3008", typedIssue.ClientCode);
+            Assert.Equal("The package integrity check failed.", typedIssue.ClientMessage);
         }
 
         public void Dispose()

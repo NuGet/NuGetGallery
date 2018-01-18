@@ -3,10 +3,13 @@
 
 using System;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using NuGet.Common;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
 using NuGet.Packaging.Signing;
@@ -80,80 +83,122 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
             SignatureValidationMessage message,
             CancellationToken cancellationToken)
         {
-            // First, detect format errors with a minimal verification. This doesn't even check package integrity. The
-            // minimal verification is expected to swallow any sort of signature format exception.
-            var invalidFormatResult = await GetVerifyResult(
-                _minimalPackageSignatureVerifier,
-                packageKey,
-                signedPackageReader,
-                message,
-                cancellationToken);
-            if (invalidFormatResult != null)
+            try
             {
-                return invalidFormatResult;
-            }
+                // First, detect format errors with a minimal verification. This doesn't even check package integrity. The
+                // minimal verification is expected to swallow any sort of signature format exception.
+                var invalidFormatResult = await GetVerifyResult(
+                    _minimalPackageSignatureVerifier,
+                    packageKey,
+                    signedPackageReader,
+                    message,
+                    cancellationToken);
+                if (invalidFormatResult != null)
+                {
+                    return invalidFormatResult;
+                }
 
-            // We now know we can safely read the signature.
-            var packageSignature = await signedPackageReader.GetSignatureAsync(cancellationToken);
+                // We now know we can safely read the signature.
+                var packageSignature = await signedPackageReader.GetSignatureAsync(cancellationToken);
 
-            // Block packages with any unknown signing certificates.
-            var packageThumbprint = packageSignature
-                .SignerInfo
-                .Certificate
-                .ComputeSHA256Thumbprint();
-            var isKnownCertificate = _certificates
-                .GetAll()
-                .Where(c => packageThumbprint == c.Thumbprint)
-                .Any();
+                // Block packages with any unknown signing certificates.
+                var packageThumbprint = packageSignature
+                    .SignerInfo
+                    .Certificate
+                    .ComputeSHA256Thumbprint();
+                var isKnownCertificate = _certificates
+                    .GetAll()
+                    .Any(c => packageThumbprint == c.Thumbprint);
+                if (!isKnownCertificate)
+                {
+                    _logger.LogInformation(
+                        "Signed package {PackageId} {PackageVersion} is blocked for validation {ValidationId} since it has an unknown certificate thumbprint: {UnknownThumbprint}",
+                        message.PackageId,
+                        message.PackageVersion,
+                        message.ValidationId,
+                        packageThumbprint);
 
-            if (!isKnownCertificate)
-            {
+                    return await RejectAsync(
+                        packageKey,
+                        message,
+                        ValidationIssue.PackageIsSigned);
+                }
+
+                // Only reject counter signatures that have the author or repository commitment type. Other types of
+                // counter signatures are not produced by the client but technically just fine.
+                var authorOrRepositoryCounterSignatureCount = packageSignature
+                    .SignerInfo
+                    .CounterSignerInfos
+                    .Cast<SignerInfo>()
+                    .Select(x => x.SignedAttributes.FirstOrDefault(Oids.CommitmentTypeIndication))
+                    .Where(x => x != null)
+                    .Select(x => AttributeUtility.GetCommitmentTypeIndication(x))
+                    .Count(x => x != SignatureType.Unknown);
+                if (authorOrRepositoryCounterSignatureCount > 0)
+                {
+                    _logger.LogInformation(
+                        "Signed package {PackageId} {PackageVersion} is blocked for validation {ValidationId} since it has {AuthorOrRepositorySignatureCount} invalid countersignatures.",
+                        message.PackageId,
+                        message.PackageVersion,
+                        message.ValidationId,
+                        authorOrRepositoryCounterSignatureCount);
+
+                    return await RejectAsync(
+                        packageKey,
+                        message,
+                        ValidationIssue.AuthorAndRepositoryCounterSignaturesNotSupported);
+                }
+
+                if (packageSignature.Type != SignatureType.Author)
+                {
+                    _logger.LogInformation(
+                        "Signed package {PackageId} {PackageVersion} is blocked for validation {ValidationId} since it is not author signed: {SignatureType}",
+                        message.PackageId,
+                        message.PackageVersion,
+                        message.ValidationId,
+                        packageSignature.Type);
+
+                    return await RejectAsync(
+                        packageKey,
+                        message,
+                        ValidationIssue.OnlyAuthorSignaturesSupported);
+                }
+
+                // Call the "verify" API, which does the main logic of signature validation.
+                var failureResult = await GetVerifyResult(
+                    _fullPackageSignatureVerifier,
+                    packageKey,
+                    signedPackageReader,
+                    message,
+                    cancellationToken);
+                if (failureResult != null)
+                {
+                    return failureResult;
+                }
+
                 _logger.LogInformation(
-                    "Signed package {PackageId} {PackageVersion} is blocked for validation {ValidationId} since it has an unknown certificate thumbprint: {UnknownThumbprint}",
+                    "Signed package {PackageId} {PackageVersion} for validation {ValidationId} is valid with certificate thumbprint: {PackageThumbprint}",
                     message.PackageId,
                     message.PackageVersion,
                     message.ValidationId,
                     packageThumbprint);
-
-                return await RejectAsync(
-                    packageKey,
-                    message,
-                    ValidationIssue.PackageIsSigned);
             }
-
-            if (packageSignature.Type != SignatureType.Author)
+            catch (SignatureException ex)
             {
+                EventId eventId = 0;
                 _logger.LogInformation(
-                    "Signed package {PackageId} {PackageVersion} is blocked for validation {ValidationId} since it has a non-author signature: {SignatureType}",
+                    eventId,
+                    ex,
+                    "Signed package {PackageId} {PackageVersion} is blocked for validation {ValidationId} due to an exception during signature validation.",
                     message.PackageId,
                     message.PackageVersion,
-                    message.ValidationId,
-                    packageSignature.Type);
+                    message.ValidationId);
 
                 return await RejectAsync(
                     packageKey,
                     message,
-                    ValidationIssue.OnlyAuthorSignaturesSupported);
+                    new ClientSigningVerificationFailure(ex.Code.ToString(), ex.Message));
             }
-
-            // Call the "verify" API, which does the main logic of signature validation.
-            var failureResult = await GetVerifyResult(
-                _fullPackageSignatureVerifier,
-                packageKey,
-                signedPackageReader,
-                message,
-                cancellationToken);
-            if (failureResult != null)
-            {
-                return failureResult;
-            }
-
-            _logger.LogInformation(
-                "Signed package {PackageId} {PackageVersion} for validation {ValidationId} is valid with certificate thumbprint: {PackageThumbprint}",
-                message.PackageId,
-                message.PackageVersion,
-                message.ValidationId,
-                packageThumbprint);
 
             // Extract all of the signature artifacts and persist them.
             await _signaturePartsExtractor.ExtractAsync(signedPackageReader, cancellationToken);
@@ -196,12 +241,27 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
                     errorsForLogs,
                     warningsForLogs);
 
+                // Treat the "signature format version" error specially. This is because the message provided by the
+                // client does not make sense in the server context.
+                IValidationIssue[] errorValidationIssues;
+                if (errorIssues.Any(x => x.Code == NuGetLogCode.NU3007))
+                {
+                    errorValidationIssues = new[]
+                    {
+                        ValidationIssue.OnlySignatureFormatVersion1Supported,
+                    };
+                }
+                else
+                {
+                    errorValidationIssues = errorIssues
+                        .Select(x => new ClientSigningVerificationFailure(x.Code.ToString(), x.Message))
+                        .ToArray();
+                }
+
                 return await RejectAsync(
                     packageKey,
                     message,
-                    errorIssues
-                        .Select(x => new ClientSigningVerificationFailure(x.Code.ToString(), x.Message))
-                        .ToArray());
+                    errorValidationIssues);
             }
 
             return null;
