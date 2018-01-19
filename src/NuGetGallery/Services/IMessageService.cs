@@ -8,7 +8,7 @@ namespace NuGetGallery
 {
     public interface IMessageService
     {
-        void SendContactOwnersMessage(MailAddress fromAddress, PackageRegistration packageRegistration, string packageUrl, string message, string emailSettingsUrl, bool copyFromAddress);
+        void SendContactOwnersMessage(MailAddress fromAddress, Package package, string packageUrl, string message, string emailSettingsUrl, bool copyFromAddress);
         void ReportAbuse(ReportPackageRequest report);
         void ReportMyPackage(ReportPackageRequest report);
         void SendNewAccountEmail(MailAddress toAddress, string confirmationUrl);

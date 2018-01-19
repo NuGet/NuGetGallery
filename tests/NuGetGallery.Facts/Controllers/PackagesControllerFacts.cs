@@ -1254,57 +1254,229 @@ namespace NuGetGallery
             : TestContainer
         {
             [Fact]
-            public void OnlyShowsOwnersWhoAllowReceivingEmails()
+            public void ReturnsNotFoundIfPackageIsNull()
             {
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration
-                    {
-                        Id = "pkgid",
-                        Owners = new[]
-                            {
-                                new User { Username = "helpful", EmailAllowed = true },
-                                new User { Username = "grinch", EmailAllowed = false },
-                                new User { Username = "helpful2", EmailAllowed = true }
-                            }
-                    }
-                };
+                // arrange
+                var packageId = "pkgid";
+                var packageVersion = "1.0.0";
 
                 var packageService = new Mock<IPackageService>();
-                packageService.Setup(p => p.FindPackageByIdAndVersion("pkgid", null, null, true)).Returns(package);
+                packageService.Setup(p => p.FindPackageByIdAndVersionStrict(packageId, packageVersion)).Returns<Package>(null);
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService);
 
-                var model = (controller.ContactOwners("pkgid") as ViewResult).Model as ContactOwnersViewModel;
+                // act
+                var result = controller.ContactOwners(packageId, packageVersion);
 
+                // assert
+                Assert.IsType<HttpNotFoundResult>(result);
+            }
+
+            [Fact]
+            public void ReturnsNotFoundIfPackageRegistrationIsNull()
+            {
+                // arrange
+                var packageId = "pkgid";
+                var packageVersion = "1.0.0";
+
+                var package = new Package
+                {
+                    PackageRegistration = null,
+                    Version = packageVersion
+                };
+
+                var packageService = new Mock<IPackageService>();
+                packageService.Setup(p => p.FindPackageByIdAndVersionStrict(packageId, packageVersion)).Returns(package);
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService);
+
+                // act
+                var result = controller.ContactOwners(packageId, packageVersion);
+
+                // assert
+                Assert.IsType<HttpNotFoundResult>(result);
+            }
+
+            [Fact]
+            public void SetsModelParametersFromPackage()
+            {
+                // arrange
+                var packageId = "pkgid";
+                var packageVersion = "1.0.0";
+                var projectUrl = "http://someurl/";
+                var allowedUser = "helpful";
+
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = packageId,
+                        Owners = new[]
+                        {
+                            new User { Username = allowedUser, EmailAllowed = true }
+                        }
+                    },
+                    ProjectUrl = projectUrl,
+                    Version = packageVersion
+                };
+
+                var packageService = new Mock<IPackageService>();
+                packageService.Setup(p => p.FindPackageByIdAndVersionStrict(packageId, packageVersion)).Returns(package);
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService);
+
+                // act
+                var model = (controller.ContactOwners(packageId, packageVersion) as ViewResult).Model as ContactOwnersViewModel;
+
+                // assert
+                Assert.Equal(packageId, model.PackageId);
+                Assert.Equal(packageVersion, model.PackageVersion);
+                Assert.Equal(projectUrl, model.ProjectUrl);
+                Assert.Equal(1, model.Owners.Count());
+                Assert.True(model.HasOwners);
+            }
+
+            [Fact]
+            public void SetsModelHasOwnersTrueIfAllOwnersDisallow()
+            {
+                // arrange
+                var packageId = "pkgid";
+                var packageVersion = "1.0.0";
+                var notAllowedUser = "grinch";
+
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = packageId,
+                        Owners = new[]
+                        {
+                            new User { Username = notAllowedUser, EmailAllowed = false }
+                        }
+                    },
+                    Version = packageVersion
+                };
+
+                var packageService = new Mock<IPackageService>();
+                packageService.Setup(p => p.FindPackageByIdAndVersionStrict(packageId, packageVersion)).Returns(package);
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService);
+
+                // act
+                var model = (controller.ContactOwners(packageId, packageVersion) as ViewResult).Model as ContactOwnersViewModel;
+
+                // assert
+                Assert.Empty(model.Owners);
+                Assert.True(model.HasOwners);
+            }
+
+            [Fact]
+            public void SetsModelHasOwnersFalseIfNoOwners()
+            {
+                // arrange
+                var packageId = "pkgid";
+                var packageVersion = "1.0.0";
+
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = packageId,
+                        Owners = new User[] {}
+                    },
+                    Version = packageVersion
+                };
+
+                var packageService = new Mock<IPackageService>();
+                packageService.Setup(p => p.FindPackageByIdAndVersionStrict(packageId, packageVersion)).Returns(package);
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService);
+
+                // act
+                var model = (controller.ContactOwners(packageId, packageVersion) as ViewResult).Model as ContactOwnersViewModel;
+
+                // assert
+                Assert.Empty(model.Owners);
+                Assert.False(model.HasOwners);
+            }
+
+            [Fact]
+            public void OnlyShowsOwnersWhoAllowReceivingEmails()
+            {
+                // arrange
+                var packageId = "pkgid";
+                var packageVersion = "1.0.0";
+                var allowedUser = "helpful";
+                var allowedUser2 = "helpful2";
+                var notAllowedUser = "grinch";
+
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = packageId,
+                        Owners = new[]
+                            {
+                                new User { Username = allowedUser, EmailAllowed = true },
+                                new User { Username = notAllowedUser, EmailAllowed = false },
+                                new User { Username = allowedUser2, EmailAllowed = true }
+                            }
+                    },
+                    Version = packageVersion
+                };
+
+                var packageService = new Mock<IPackageService>();
+                packageService.Setup(p => p.FindPackageByIdAndVersionStrict(packageId, packageVersion)).Returns(package);
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService);
+
+                // act
+                var model = (controller.ContactOwners(packageId, packageVersion) as ViewResult).Model as ContactOwnersViewModel;
+
+                // assert
                 Assert.Equal(2, model.Owners.Count());
-                Assert.Empty(model.Owners.Where(u => u.Username == "grinch"));
+                Assert.Empty(model.Owners.Where(u => u.Username == notAllowedUser));
             }
 
             [Fact]
             public void HtmlEncodesMessageContent()
             {
+                // arrange
+                var packageId = "factory";
+                var packageVersion = "1.0.0";
+                var message = "I like the cut of your jib. It's <b>bold</b>.";
+                var encodedMessage = "I like the cut of your jib. It&#39;s &lt;b&gt;bold&lt;/b&gt;.";
+
                 var sentPackageUrl = string.Empty;
                 var messageService = new Mock<IMessageService>();
                 string sentMessage = null;
                 messageService.Setup(
                     s => s.SendContactOwnersMessage(
                         It.IsAny<MailAddress>(),
-                        It.IsAny<PackageRegistration>(),
+                        It.IsAny<Package>(),
                         It.IsAny<string>(),
                         It.IsAny<string>(),
                         It.IsAny<string>(),
                         false))
-                    .Callback<MailAddress, PackageRegistration, string, string, string, bool>((_, __, packageUrl, msg, ____, _____) =>
+                    .Callback<MailAddress, Package, string, string, string, bool>((_, __, packageUrl, msg, ____, _____) =>
                     {
                         sentPackageUrl = packageUrl;
                         sentMessage = msg;
                     });
-                var package = new PackageRegistration { Id = "factory" };
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration {Id = packageId},
+                    Version = packageVersion
+                };
 
                 var packageService = new Mock<IPackageService>();
-                packageService.Setup(p => p.FindPackageRegistrationById("factory")).Returns(package);
+                packageService.Setup(p => p.FindPackageByIdAndVersionStrict(packageId, packageVersion)).Returns(package);
                 var userService = new Mock<IUserService>();
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -1313,30 +1485,40 @@ namespace NuGetGallery
                 controller.SetCurrentUser(new User { EmailAddress = "montgomery@burns.example.com", Username = "Montgomery" });
                 var model = new ContactOwnersViewModel
                 {
-                    Message = "I like the cut of your jib. It's <b>bold</b>.",
+                    Message = message,
                 };
 
-                var result = controller.ContactOwners("factory", model) as RedirectToRouteResult;
+                // act
+                var result = controller.ContactOwners(packageId, packageVersion, model) as RedirectToRouteResult;
 
-                Assert.Equal("I like the cut of your jib. It&#39;s &lt;b&gt;bold&lt;/b&gt;.", sentMessage);
+                Assert.Equal(encodedMessage, sentMessage);
                 Assert.Equal(controller.Url.Package(package, false), sentPackageUrl);
             }
 
             [Fact]
             public void CallsSendContactOwnersMessageWithUserInfo()
             {
+                // arrange
+                var packageId = "factory";
+                var packageVersion = "1.0.0";
+                var message = "I like the cut of your jib";
+
                 var messageService = new Mock<IMessageService>();
                 messageService.Setup(
                     s => s.SendContactOwnersMessage(
                         It.IsAny<MailAddress>(),
-                        It.IsAny<PackageRegistration>(),
+                        It.IsAny<Package>(),
                         It.IsAny<string>(),
-                        "I like the cut of your jib",
+                        message,
                         It.IsAny<string>(), false));
-                var package = new PackageRegistration { Id = "factory" };
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = packageId },
+                    Version = packageVersion
+                };
 
                 var packageService = new Mock<IPackageService>();
-                packageService.Setup(p => p.FindPackageRegistrationById("factory")).Returns(package);
+                packageService.Setup(p => p.FindPackageByIdAndVersionStrict(packageId, packageVersion)).Returns(package);
                 var userService = new Mock<IUserService>();
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -1345,11 +1527,13 @@ namespace NuGetGallery
                 controller.SetCurrentUser(new User { EmailAddress = "montgomery@burns.example.com", Username = "Montgomery" });
                 var model = new ContactOwnersViewModel
                 {
-                    Message = "I like the cut of your jib",
+                    Message = message,
                 };
 
-                var result = controller.ContactOwners("factory", model) as RedirectToRouteResult;
+                // act
+                var result = controller.ContactOwners(packageId, packageVersion, model) as RedirectToRouteResult;
 
+                // assert
                 Assert.NotNull(result);
             }
         }
