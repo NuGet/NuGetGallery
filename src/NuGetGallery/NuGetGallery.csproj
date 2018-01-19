@@ -741,7 +741,6 @@
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticator.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticatorConfiguration.cs" />
     <Compile Include="Authentication\Providers\Utils\ClaimsExtentions.cs" />
-    <Compile Include="Authentication\ScopeSubjectTypeConverter.cs" />
     <Compile Include="Configuration\IGalleryConfigurationService.cs" />
     <Compile Include="Configuration\IPackageDeleteConfiguration.cs" />
     <Compile Include="Configuration\IServiceBusConfiguration.cs" />

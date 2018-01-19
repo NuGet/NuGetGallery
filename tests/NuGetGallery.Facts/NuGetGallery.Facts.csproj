@@ -404,8 +404,6 @@
     <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationHandlerFacts.cs" />
     <Compile Include="Authentication\AuthenticationServiceFacts.cs" />
     <Compile Include="Authentication\Providers\CommonAuth\AzureActiveDirectoryV2AuthenticatorFacts.cs" />
-    <Compile Include="Authentication\ScopeSubjectConverterFacts.cs" />
-    <Compile Include="Authentication\ScopeSubjectTypeConverterFacts.cs" />
     <Compile Include="Authentication\TestCredentialHelper.cs" />
     <Compile Include="Configuration\ConfigurationServiceFacts.cs" />
     <Compile Include="Controllers\SupportControllerFacts.cs" />

@@ -76,40 +76,22 @@ namespace NuGetGallery.Authentication
                 scopes = new[] { new Scope(ownerKey: null, subject: NuGetPackagePattern.AllInclusivePattern, allowedAction: NuGetScopes.All) };
             }
 
-            bool success = false;
-
             // Check that all scopes provided have the same owner scope.
             var ownerScopes = scopes.Select(s => s.OwnerKey);
-            var firstOwnerScope = ownerScopes.FirstOrDefault();
-            if (ownerScopes.Any(o => o != firstOwnerScope))
+            var ownerScope = ownerScopes.FirstOrDefault();
+            if (ownerScopes.Any(o => o != ownerScope))
             {
                 throw new ArgumentException("All scopes provided must have the same owner scope.");
             }
 
-            foreach (var scope in scopes)
-            {
-                if (!scope.AllowsSubject(getSubjectFromEntity(entity)))
-                {
-                    // Subject (package ID) does not match.
-                    continue;
-                }
+            var matchingScope = scopes
+                .FirstOrDefault(scope => 
+                    scope.AllowsSubject(getSubjectFromEntity(entity)) && 
+                    scope.AllowsActions(requestedActions));
 
-                if (!scope.AllowsActions(requestedActions))
-                {
-                    // Action scopes does not match.
-                    continue;
-                }
+            ownerInScope = ownerScope.HasValue ? _userService.FindByKey(ownerScope.Value) : currentUser;
 
-                // Get the owner from the scope.
-                // If the scope has no owner, use the current user.
-                ownerInScope = scope.HasOwnerScope() ? _userService.FindByKey(scope.OwnerKey.Value) : currentUser;
-
-                // Because all scopes should have the same owner scope, we can now break and perform the ownership verification outside of the loop.
-                success = true;
-                break;
-            }
-
-            if (!success)
+            if (matchingScope == null)
             {
                 return new ApiScopeEvaluationResult(ownerInScope, PermissionsCheckResult.Unknown, scopesAreValid: false);
             }
