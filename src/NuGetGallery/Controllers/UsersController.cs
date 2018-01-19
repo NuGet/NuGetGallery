@@ -348,7 +348,7 @@ namespace NuGetGallery
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> ChangeEmailSubscription(AccountViewModel model)
+        public virtual async Task<ActionResult> ChangeEmailSubscription(UserAccountViewModel model)
         {
             var user = GetCurrentUser();
 
@@ -605,7 +605,7 @@ namespace NuGetGallery
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> ChangeEmail(AccountViewModel model)
+        public virtual async Task<ActionResult> ChangeEmail(UserAccountViewModel model)
         {
             if (!ModelState.IsValidField("ChangeEmail.NewEmail"))
             {
@@ -634,7 +634,7 @@ namespace NuGetGallery
             if (string.Equals(model.ChangeEmail.NewEmail, user.LastSavedEmailAddress, StringComparison.OrdinalIgnoreCase))
             {
                 // email address unchanged - accept
-                return RedirectToAction("Account");
+                return RedirectToAction(actionName: "Account", controllerName: "Users");
             }
 
             try
@@ -659,26 +659,26 @@ namespace NuGetGallery
                 TempData["Message"] = Strings.EmailUpdated;
             }
 
-            return RedirectToAction("Account");
+            return RedirectToAction(actionName: "Account", controllerName: "Users");
         }
 
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> CancelChangeEmail(AccountViewModel model)
+        public virtual async Task<ActionResult> CancelChangeEmail(UserAccountViewModel model)
         {
             var user = GetCurrentUser();
 
             if (string.IsNullOrWhiteSpace(user.UnconfirmedEmailAddress))
             {
-                return RedirectToAction("Account");
+                return RedirectToAction(actionName: "Account", controllerName: "Users");
             }
 
             await _userService.CancelChangeEmailAddress(user);
 
             TempData["Message"] = Strings.CancelEmailAddress;
 
-            return RedirectToAction("Account");
+            return RedirectToAction(actionName: "Account", controllerName: "Users");
         }
 
 
@@ -1086,7 +1086,7 @@ namespace NuGetGallery
                 relativeUrl: false);
             _messageService.SendPasswordResetInstructions(user, resetPasswordUrl, forgotPassword);
 
-            return RedirectToAction("PasswordSent");
+            return RedirectToAction(actionName: "PasswordSent", controllerName: "Users");
         }
     }
 }
