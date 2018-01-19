@@ -74,14 +74,14 @@ namespace NuGetGallery.Authentication
 
         public virtual async Task<PasswordAuthenticationResult> Authenticate(string userNameOrEmail, string password)
         {
-            using (_trace.Activity("Authenticate:" + userNameOrEmail))
+            using (_trace.Activity("Authenticate"))
             {
                 var user = FindByUserNameOrEmail(userNameOrEmail);
 
                 // Check if the user exists
                 if (user == null)
                 {
-                    _trace.Information("No such user: " + userNameOrEmail);
+                    _trace.Information("No such user.");
 
                     await Auditing.SaveAuditRecordAsync(
                         new FailedAuthenticatedOperationAuditRecord(
@@ -92,7 +92,7 @@ namespace NuGetGallery.Authentication
 
                 if (user is Organization)
                 {
-                    _trace.Information($"Cannot authenticate organization account'{userNameOrEmail}'.");
+                    _trace.Information("Cannot authenticate organization account.");
 
                     await Auditing.SaveAuditRecordAsync(
                         new FailedAuthenticatedOperationAuditRecord(
@@ -105,7 +105,7 @@ namespace NuGetGallery.Authentication
 
                 if (IsAccountLocked(user, out remainingMinutes))
                 {
-                    _trace.Information($"Login failed. User account {userNameOrEmail} is locked for the next {remainingMinutes} minutes.");
+                    _trace.Information($"Login failed. User account is locked for the next {remainingMinutes} minutes.");
 
                     return new PasswordAuthenticationResult(PasswordAuthenticationResult.AuthenticationResult.AccountLocked,
                         authenticatedUser: null, lockTimeRemainingMinutes: remainingMinutes);
@@ -115,7 +115,7 @@ namespace NuGetGallery.Authentication
                 Credential matched;
                 if (!ValidatePasswordCredential(user.Credentials, password, out matched))
                 {
-                    _trace.Information($"Password validation failed: {userNameOrEmail}");
+                    _trace.Information("Password validation failed.");
 
                     await UpdateFailedLoginAttempt(user);
 
@@ -141,7 +141,7 @@ namespace NuGetGallery.Authentication
                 await UpdateSuccessfulLoginAttempt(user);
 
                 // Return the result
-                _trace.Verbose("Successfully authenticated '" + user.Username + "' with '" + matched.Type + "' credential");
+                _trace.Verbose("User successfully authenticated with '" + matched.Type + "' credential");
                 return new PasswordAuthenticationResult(PasswordAuthenticationResult.AuthenticationResult.Success, new AuthenticatedUser(user, matched));
             }
         }
@@ -184,7 +184,7 @@ namespace NuGetGallery.Authentication
 
                 if (matched.User is Organization)
                 {
-                    _trace.Information($"Cannot authenticate organization account '{matched.User.Username}'.");
+                    _trace.Information("Cannot authenticate organization account.");
 
                     await Auditing.SaveAuditRecordAsync(
                         new FailedAuthenticatedOperationAuditRecord(null,
@@ -196,7 +196,7 @@ namespace NuGetGallery.Authentication
 
                 if (matched.HasExpired)
                 {
-                    _trace.Verbose("Credential of type '" + matched.Type + "' for user '" + matched.User.Username + "' has expired on " + matched.Expires.Value.ToString("O", CultureInfo.InvariantCulture));
+                    _trace.Verbose("Credential of type '" + matched.Type + "' has expired on " + matched.Expires.Value.ToString("O", CultureInfo.InvariantCulture));
 
                     return null;
                 }
@@ -214,7 +214,6 @@ namespace NuGetGallery.Authentication
 
                     _trace.Verbose(
                         "Credential of type '" + matched.Type
-                        + "' for user '" + matched.User.Username
                         + "' was last used on " + matched.LastUsed.Value.ToString("O", CultureInfo.InvariantCulture)
                         + " and has now expired.");
 
@@ -225,7 +224,7 @@ namespace NuGetGallery.Authentication
                 matched.LastUsed = _dateTimeProvider.UtcNow;
                 await Entities.SaveChangesAsync();
 
-                _trace.Verbose("Successfully authenticated '" + matched.User.Username + "' with '" + matched.Type + "' credential");
+                _trace.Verbose("User successfully authenticated with '" + matched.Type + "' credential");
 
                 return new AuthenticatedUser(matched.User, matched);
             }
@@ -756,7 +755,7 @@ namespace NuGetGallery.Authentication
                 else
                 {
                     // If multiple matches, leave it null to signal no unique email address
-                    _trace.Warning("Multiple user accounts with email address: " + userNameOrEmail + " found: " + String.Join(", ", allMatches.Select(u => u.Username)));
+                    _trace.Warning("Multiple user accounts with a single email address were found. Count: " + String.Join(", ", allMatches.Select(u => u.Username)));
                 }
             }
             return user;
