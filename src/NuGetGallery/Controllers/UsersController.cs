@@ -421,6 +421,17 @@ namespace NuGetGallery
         }
 
         [HttpGet]
+        [Authorize]
+        public virtual ActionResult Organizations()
+        {
+            var currentUser = GetCurrentUser();
+
+            var model = new ManageOrganizationsViewModel(currentUser, _packageService);
+
+            return View(model);
+        }
+
+        [HttpGet]
         public virtual ActionResult ForgotPassword()
         {
             // We don't want Login to have us as a return URL
