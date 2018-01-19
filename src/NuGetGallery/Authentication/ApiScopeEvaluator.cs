@@ -23,7 +23,7 @@ namespace NuGetGallery.Authentication
             PackageRegistration packageRegistration, 
             params string[] requestedActions)
         {
-            return Evaluate(currentUser, scopes, action, packageRegistration, (pr) => pr.Id, requestedActions);
+            return Evaluate(currentUser, scopes, action, packageRegistration, pr => pr.Id, requestedActions);
         }
 
         public ApiScopeEvaluationResult Evaluate(
@@ -33,7 +33,7 @@ namespace NuGetGallery.Authentication
             Package package, 
             params string[] requestedActions)
         {
-            return Evaluate(currentUser, scopes, action, package, (p) => p.PackageRegistration.Id, requestedActions);
+            return Evaluate(currentUser, scopes, action, package, p => p.PackageRegistration.Id, requestedActions);
         }
 
         public ApiScopeEvaluationResult Evaluate(
@@ -43,7 +43,7 @@ namespace NuGetGallery.Authentication
             ActionOnNewPackageContext context, 
             params string[] requestedActions)
         {
-            return Evaluate(currentUser, scopes, action, context, (c) => c.PackageId, requestedActions);
+            return Evaluate(currentUser, scopes, action, context, c => c.PackageId, requestedActions);
         }
 
         /// <summary>
