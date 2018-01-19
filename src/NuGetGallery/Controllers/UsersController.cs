@@ -151,7 +151,6 @@ namespace NuGetGallery
             
             await _userService.RequestTransformToOrganizationAccount(accountToTransform, adminUser);
 
-
             // sign out pending organization and prompt for admin sign in
             OwinContext.Authentication.SignOut();
             

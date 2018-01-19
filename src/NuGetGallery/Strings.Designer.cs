@@ -1489,7 +1489,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Another tranform request was created on {0} for administrator &apos;{1}&apos;. Note that a new request will overwrite this..
+        ///   Looks up a localized string similar to Another tranform request was created on {0} for administrator &apos;{1}&apos;. Note that a new request will overwrite this request..
         /// </summary>
         public static string TransformAccount_RequestExists {
             get {
