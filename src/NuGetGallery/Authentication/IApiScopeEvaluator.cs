@@ -12,10 +12,7 @@ namespace NuGetGallery.Authentication
         /// <param name="scopes">The scopes being evaluated.</param>
         /// <param name="action">The action that the scopes being evaluated are checked for permission to do.</param>
         /// <param name="packageRegistration">The <see cref="PackageRegistration"/> that the scopes being evaluated are checked for permission to <paramref name="action"/> on.</param>
-        /// <param name="owner">
-        /// The <see cref="User"/> specified by the <see cref="Scope.OwnerKey"/> of the <see cref="Scope"/> that evaluated with <see cref="ApiScopeEvaluationResult.Success"/>.
-        /// If no <see cref="Scope"/>s evaluate to <see cref="ApiScopeEvaluationResult.Success"/>, this will be null.
-        /// </param>
+        /// <param name="requestedActions">A list of actions that the scopes must match.</param>
         /// <returns>A <see cref="ApiScopeEvaluationResult"/> that describes the evaluation of the <see cref="Scope"/>s.</returns>
         ApiScopeEvaluationResult Evaluate(
             User currentUser,
@@ -31,10 +28,7 @@ namespace NuGetGallery.Authentication
         /// <param name="scopes">The scopes being evaluated.</param>
         /// <param name="action">The action that the scopes being evaluated are checked for permission to do.</param>
         /// <param name="context">The <see cref="ActionOnNewPackageContext"/> that the scopes being evaluated are checked for permission to <paramref name="action"/> on.</param>
-        /// <param name="owner">
-        /// The <see cref="User"/> specified by the <see cref="Scope.OwnerKey"/> of the <see cref="Scope"/> that evaluated with <see cref="ApiScopeEvaluationResult.Success"/>.
-        /// If no <see cref="Scope"/>s evaluate to <see cref="ApiScopeEvaluationResult.Success"/>, this will be null.
-        /// </param>
+        /// <param name="requestedActions">A list of actions that the scopes must match.</param>
         /// <returns>A <see cref="ApiScopeEvaluationResult"/> that describes the evaluation of the <see cref="Scope"/>s.</returns>
         ApiScopeEvaluationResult Evaluate(
             User currentUser,
