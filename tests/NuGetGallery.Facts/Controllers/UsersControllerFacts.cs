@@ -51,7 +51,7 @@ namespace NuGetGallery
                     .Returns(new[] { new CuratedFeed { Name = "theCuratedFeed" } });
 
                 // act
-                var model = ResultAssert.IsView<UserAccountViewModel>(controller.Account(), viewName: "Account");
+                var model = ResultAssert.IsView<UserAccountViewModel>(controller.Account(), UsersController.Actions.Account);
 
                 // verify
                 Assert.Equal("theCuratedFeed", model.CuratedFeeds.First());
@@ -75,7 +75,7 @@ namespace NuGetGallery
                 var result = controller.Account();
 
                 // Assert
-                var model = ResultAssert.IsView<UserAccountViewModel>(result, viewName: "Account");
+                var model = ResultAssert.IsView<UserAccountViewModel>(result, UsersController.Actions.Account);
                 var descs = model
                     .CredentialGroups
                     .SelectMany(x => x.Value)
@@ -114,7 +114,7 @@ namespace NuGetGallery
                 var result = controller.Account();
 
                 // Assert
-                var model = ResultAssert.IsView<UserAccountViewModel>(result, viewName: "Account");
+                var model = ResultAssert.IsView<UserAccountViewModel>(result, UsersController.Actions.Account);
                 var descs = model
                     .CredentialGroups
                     .SelectMany(x => x.Value)
@@ -190,7 +190,7 @@ namespace NuGetGallery
                     }
                 });
 
-                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
+                ResultAssert.IsRedirectToRoute(result, new { action = UsersController.Actions.Account });
                 GetMock<IUserService>().Verify(u => u.ChangeEmailSubscriptionAsync(user, false, true));
             }
         }
@@ -1351,7 +1351,7 @@ namespace NuGetGallery
                 var result = await controller.ChangePassword(inputModel);
 
                 // Assert
-                var outputModel = ResultAssert.IsView<UserAccountViewModel>(result, viewName: "Account");
+                var outputModel = ResultAssert.IsView<UserAccountViewModel>(result, UsersController.Actions.Account);
                 Assert.Same(inputModel, outputModel);
             }
 
@@ -1384,7 +1384,7 @@ namespace NuGetGallery
                 var result = await controller.ChangePassword(inputModel);
 
                 // Assert
-                var outputModel = ResultAssert.IsView<UserAccountViewModel>(result, viewName: "Account");
+                var outputModel = ResultAssert.IsView<UserAccountViewModel>(result, UsersController.Actions.Account);
                 Assert.Same(inputModel, outputModel);
                 Assert.NotEqual(inputModel.ChangePassword.NewPassword, inputModel.ChangePassword.VerifyPassword);
 
@@ -1425,7 +1425,7 @@ namespace NuGetGallery
                 var result = await controller.ChangePassword(inputModel);
 
                 // Assert
-                var outputModel = ResultAssert.IsView<UserAccountViewModel>(result, viewName: "Account");
+                var outputModel = ResultAssert.IsView<UserAccountViewModel>(result, UsersController.Actions.Account);
                 Assert.Same(inputModel, outputModel);
 
                 var errorMessages = controller
@@ -1471,7 +1471,7 @@ namespace NuGetGallery
                 var result = await controller.ChangePassword(inputModel);
 
                 // Assert
-                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
+                ResultAssert.IsRedirectToRoute(result, new { action = UsersController.Actions.Account });
                 Assert.Equal(Strings.PasswordRemoved, controller.TempData["Message"]);
             }
 
@@ -1502,7 +1502,7 @@ namespace NuGetGallery
                 var result = await controller.ChangePassword(inputModel);
 
                 // Assert
-                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
+                ResultAssert.IsRedirectToRoute(result, new { action = UsersController.Actions.Account });
                 Assert.Equal(Strings.PasswordChanged, controller.TempData["Message"]);
             }
 
@@ -1579,7 +1579,7 @@ namespace NuGetGallery
                 var result = await controller.RemovePassword();
 
                 // Assert
-                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
+                ResultAssert.IsRedirectToRoute(result, new { action = UsersController.Actions.Account });
                 Assert.Equal(Strings.CannotRemoveOnlyLoginCredential, controller.TempData["Message"]);
                 Assert.Equal(1, user.Credentials.Count);
             }
@@ -1598,7 +1598,7 @@ namespace NuGetGallery
                 var result = await controller.RemovePassword();
 
                 // Assert
-                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
+                ResultAssert.IsRedirectToRoute(result, new { action = UsersController.Actions.Account });
                 Assert.Equal(Strings.CredentialNotFound, controller.TempData["Message"]);
                 Assert.Equal(1, user.Credentials.Count);
             }
@@ -1631,7 +1631,7 @@ namespace NuGetGallery
                 var result = await controller.RemovePassword();
 
                 // Assert
-                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
+                ResultAssert.IsRedirectToRoute(result, new { action = UsersController.Actions.Account });
                 GetMock<AuthenticationService>().VerifyAll();
                 GetMock<IMessageService>().VerifyAll();
             }
@@ -1655,7 +1655,7 @@ namespace NuGetGallery
                     credentialKey: null);
 
                 // Assert
-                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
+                ResultAssert.IsRedirectToRoute(result, new { action = UsersController.Actions.Account });
                 Assert.Equal(Strings.CannotRemoveOnlyLoginCredential, controller.TempData["Message"]);
                 Assert.Equal(1, user.Credentials.Count);
             }
@@ -1676,7 +1676,7 @@ namespace NuGetGallery
                     credentialKey: null);
 
                 // Assert
-                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
+                ResultAssert.IsRedirectToRoute(result, new { action = UsersController.Actions.Account });
                 Assert.Equal(Strings.CredentialNotFound, controller.TempData["Message"]);
 
                 Assert.Equal(1, user.Credentials.Count);
@@ -1739,7 +1739,7 @@ namespace NuGetGallery
                     credentialKey: null);
 
                 // Assert
-                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
+                ResultAssert.IsRedirectToRoute(result, new { action = UsersController.Actions.Account });
                 GetMock<AuthenticationService>().VerifyAll();
                 GetMock<IMessageService>().VerifyAll();
             }
@@ -1769,7 +1769,7 @@ namespace NuGetGallery
                         credentialKey: creds[i].Key);
 
                     // Assert
-                    ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
+                    ResultAssert.IsRedirectToRoute(result, new { action = UsersController.Actions.Account });
                     Assert.Equal(Strings.CredentialRemoved, controller.TempData["Message"]);
                     Assert.Equal(creds.Length - i - 1, user.Credentials.Count);
                 }
@@ -2229,7 +2229,7 @@ namespace NuGetGallery
                     .Returns(userPackages);
 
                 // act
-                var model = ResultAssert.IsView<DeleteUserAccountViewModel>(controller.Delete(accountName: userName), viewName: "DeleteUserAccount");
+                var model = ResultAssert.IsView<DeleteUserAccountViewModel>(controller.Delete(accountName: userName), UsersController.Actions.DeleteUserAccount);
 
                 // Assert
                 Assert.Equal(userName, model.AccountName);
