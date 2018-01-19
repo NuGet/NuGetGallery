@@ -741,6 +741,7 @@ namespace NuGetGallery
 
         /// <remarks>
         /// Push returns <see cref="HttpStatusCode.Unauthorized"/> instead of <see cref="HttpStatusCode.Forbidden"/> for failures not related to reserved namespaces.
+        /// This is inconsistent with both the rest of our API and the HTTP standard, but it is an existing behavior that we must support.
         /// </remarks>
         private HttpStatusCodeWithBodyResult GetHttpResultFromFailedApiScopeEvaluationForPush(ApiScopeEvaluationResult result, string id, NuGetVersion version)
         {
