@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Web.Mvc;
 using NuGetGallery.Configuration;
 using NuGetGallery.Cookies;
@@ -53,6 +54,12 @@ namespace NuGetGallery.Views
                 return ctrl.NuGetContext;
             };
         }
+
+        protected override void InitializePage()
+        {
+            base.InitializePage();
+            ViewBag.Sections = new Lazy<List<string>>(() => new List<string>());
+        }
     }
 
     public abstract class NuGetViewBase<T> : WebViewPage<T>
@@ -86,6 +93,12 @@ namespace NuGetGallery.Views
         {
             _nugetContext = new Lazy<NuGetContext>(NuGetViewBase.GetNuGetContextThunk(this));
             _cookieConsentMessage = new Lazy<CookieConsentMessage>(() => NuGetContext.GetCookieConsentMessage(Request));
+        }
+
+        protected override void InitializePage()
+        {
+            base.InitializePage();
+            ViewBag.Sections = new Lazy<List<string>>(() => new List<string>());
         }
     }
 }

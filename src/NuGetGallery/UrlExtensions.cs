@@ -408,7 +408,11 @@ namespace NuGetGallery
 
         public static string LogOff(this UrlHelper url, bool relativeUrl = true)
         {
-            string returnUrl = url.Current();
+            return LogOff(url, url.Current(), relativeUrl);
+        }
+
+        public static string LogOff(this UrlHelper url, string returnUrl, bool relativeUrl = true)
+        {
             // If we're logging off from the Admin Area, don't set a return url
             if (string.Equals(url.RequestContext.RouteData.DataTokens[Area].ToStringOrNull(), AdminAreaRegistration.Name, StringComparison.OrdinalIgnoreCase))
             {
@@ -974,6 +978,20 @@ namespace NuGetGallery
         public static string GenerateApiKey(this UrlHelper url, bool relativeUrl = true)
         {
             return GetActionLink(url, "GenerateApiKey", "Users", relativeUrl);
+        }
+
+        public static string ConfirmTransformAccount(this UrlHelper url, User accountToTransform, bool relativeUrl = true)
+        {
+            return GetActionLink(
+                url,
+                "ConfirmTransform",
+                "Users",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "accountNameToTransform", accountToTransform.Username },
+                    { "token", accountToTransform.OrganizationMigrationRequest.ConfirmationToken }
+                });
         }
 
         private static UriBuilder GetCanonicalUrl(UrlHelper url)

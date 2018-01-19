@@ -349,11 +349,23 @@ namespace NuGetGallery
             else
             {
                 // Gather data for view model
+                string name = null;
+                string email = null;
                 var authUI = result.Authenticator.GetUI();
-                var email = result.ExternalIdentity.GetClaimOrDefault(ClaimTypes.Email);
-                var name = result
-                    .ExternalIdentity
-                    .GetClaimOrDefault(ClaimTypes.Name);
+                try
+                {
+                    var userInfo = result.Authenticator.GetIdentityInformation(result.ExternalIdentity);
+                    name = userInfo.Name;
+                    email = userInfo.Email;
+                }
+                catch (Exception)
+                {
+                    // Consume the exception for now, for backwards compatibility to previous MSA provider.
+                    email = result.ExternalIdentity.GetClaimOrDefault(ClaimTypes.Email);
+                    name = result
+                        .ExternalIdentity 
+                        .GetClaimOrDefault(ClaimTypes.Name);
+                }
 
                 // Check for a user with this email address
                 User existingUser = null;

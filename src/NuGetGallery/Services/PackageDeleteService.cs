@@ -242,7 +242,7 @@ namespace NuGetGallery
             return _auditingService.SaveAuditRecordAsync(auditRecord);
         }
 
-        protected virtual async Task ExecuteSqlCommandAsync(Database database, string sql, params object[] parameters)
+        protected virtual async Task ExecuteSqlCommandAsync(IDatabase database, string sql, params object[] parameters)
         {
             await database.ExecuteSqlCommandAsync(sql, parameters);
         }
@@ -304,21 +304,19 @@ namespace NuGetGallery
                 await _packageFileService.DeletePackageFileAsync(id, version);
                 await _packageFileService.DeleteValidationPackageFileAsync(id, version);
 
-                // Delete any active or pending readme files for this package.
-                await TryDeleteReadMeMdFile(package, false);
-                await TryDeleteReadMeMdFile(package, true);
+                // Delete readme file for this package.
+                await TryDeleteReadMeMdFile(package);
             }
         }
 
         /// <summary>
-        /// Delete package readme.md file, if it exists. Doing a force delete here
-        /// rather than checking the HasReadMe (active) flag or PackageEdits (pending).
+        /// Delete package readme.md file, if it exists.
         /// </summary>
-        private async Task TryDeleteReadMeMdFile(Package package, bool isPending)
+        private async Task TryDeleteReadMeMdFile(Package package)
         {
             try
             {
-                await _packageFileService.DeleteReadMeMdFileAsync(package, isPending: isPending);
+                await _packageFileService.DeleteReadMeMdFileAsync(package);
             }
             catch (StorageException) { }
         }

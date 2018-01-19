@@ -53,23 +53,7 @@ namespace NuGetGallery
             DownloadsPerDayLabel = DownloadsPerDay < 1 ? "<1" : DownloadsPerDay.ToNuGetNumberString();
         }
 
-        public void SetPendingMetadata(PackageEdit pendingMetadata)
-        {
-            if (pendingMetadata.TriedCount < 3)
-            {
-                Authors = pendingMetadata.Authors;
-                Copyright = pendingMetadata.Copyright;
-                Description = pendingMetadata.Description;
-                IconUrl = pendingMetadata.IconUrl;
-                LicenseUrl = pendingMetadata.LicenseUrl;
-                ProjectUrl = pendingMetadata.ProjectUrl;
-                ReleaseNotes = pendingMetadata.ReleaseNotes;
-                Tags = pendingMetadata.Tags.ToStringSafe().Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries);
-                Title = pendingMetadata.Title;
-            }
-        }
-
-        public IReadOnlyList<string> ValidationIssues { get; set; }
+        public IReadOnlyList<ValidationIssue> ValidationIssues { get; set; }
         public DependencySetsViewModel Dependencies { get; set; }
         public IEnumerable<DisplayPackageViewModel> PackageVersions { get; set; }
         public string Copyright { get; set; }

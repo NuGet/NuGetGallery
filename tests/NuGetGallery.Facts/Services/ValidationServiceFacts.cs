@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.Validation;
+using NuGet.Services.Validation.Issues;
 using Xunit;
 
 namespace NuGetGallery
@@ -103,6 +104,129 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public void DeduplicatesValidationIssuesByCodeAndData()
+            {
+                // Arrange
+                _package.Key = 123;
+                _package.PackageStatusKey = PackageStatus.FailedValidation;
+
+                var packageValidationSet = new PackageValidationSet
+                {
+                    PackageKey = 123,
+                    PackageValidations = new[]
+                    {
+                        new PackageValidation
+                        {
+                            ValidationStatus = ValidationStatus.Failed,
+                            PackageValidationIssues = new[]
+                            {
+                                new PackageValidationIssue
+                                {
+                                    Key = 5,
+                                    IssueCode = ValidationIssueCode.Unknown,
+                                    Data = "{}",
+                                },
+                                new PackageValidationIssue // Acceptable PackageIsSigned since unknown properties are ignored.
+                                {
+                                    Key = 1,
+                                    IssueCode = ValidationIssueCode.PackageIsSigned,
+                                    Data = "{\"foo\":\"bar\"}",
+                                },
+                                new PackageValidationIssue
+                                {
+                                    Key = 4,
+                                    IssueCode = ValidationIssueCode.ClientSigningVerificationFailure,
+                                    Data = new ClientSigningVerificationFailure("NU3000", "Please endorse.").Serialize(),
+                                },
+                                new PackageValidationIssue // Duplicate issue since there is another PackageIsSigned.
+                                {
+                                    Key = 2,
+                                    IssueCode = ValidationIssueCode.PackageIsSigned,
+                                    Data = new PackageIsSigned().Serialize(),
+                                },
+                                new PackageValidationIssue
+                                {
+                                    Key = 3,
+                                    IssueCode = ValidationIssueCode.ClientSigningVerificationFailure,
+                                    Data = new ClientSigningVerificationFailure("NU3001", "Different.").Serialize(),
+                                },
+                                new PackageValidationIssue // Duplicate of UnknownIssue since the data is invalid.
+                                {
+                                    Key = 6,
+                                    IssueCode = ValidationIssueCode.ClientSigningVerificationFailure,
+                                    Data = "[]",
+                                },
+                                new PackageValidationIssue // Duplicate of UnknownIssue since the data is invalid.
+                                {
+                                    Key = 7,
+                                    IssueCode = ValidationIssueCode.ClientSigningVerificationFailure,
+                                    Data = "{\"bad\":23}",
+                                },
+                            }
+                        }
+                    }
+                };
+
+                _validationSets
+                    .Setup(x => x.GetAll())
+                    .Returns(new[] { packageValidationSet }.AsQueryable());
+
+                // Act
+                var issues = _target.GetLatestValidationIssues(_package);
+
+                // Assert
+                _validationSets.Verify(x => x.GetAll(), Times.Once);
+
+                Assert.Equal(4, issues.Count);
+
+                Assert.IsType<PackageIsSigned>(issues[0]);
+
+                var issue1 = Assert.IsType<ClientSigningVerificationFailure>(issues[1]);
+                Assert.Equal("NU3001", issue1.ClientCode);
+                Assert.Equal("Different.", issue1.ClientMessage);
+
+                var issue2 = Assert.IsType<ClientSigningVerificationFailure>(issues[2]);
+                Assert.Equal("NU3000", issue2.ClientCode);
+                Assert.Equal("Please endorse.", issue2.ClientMessage);
+
+                var issue3 = Assert.IsType<UnknownIssue>(issues[3]);
+            }
+
+            [Fact]
+            public void ReturnsSingleUnknownIssueIfNoneArePersisted()
+            {
+                // Arrange
+                _package.Key = 123;
+                _package.PackageStatusKey = PackageStatus.FailedValidation;
+
+                var packageValidationSet = new PackageValidationSet
+                {
+                    PackageKey = 123,
+                    PackageValidations = new[]
+                    {
+                        new PackageValidation
+                        {
+                            ValidationStatus = ValidationStatus.Failed,
+                            PackageValidationIssues = new PackageValidationIssue[0],
+                        }
+                    }
+                };
+
+                _validationSets
+                    .Setup(x => x.GetAll())
+                    .Returns(new[] { packageValidationSet }.AsQueryable());
+
+                // Act
+                var issues = _target.GetLatestValidationIssues(_package);
+
+                // Assert
+                _validationSets.Verify(x => x.GetAll(), Times.Once);
+
+                var issue = Assert.Single(issues);
+                Assert.IsType<UnknownIssue>(issue);
+            }
+
+            [Fact]
             public void FetchesValidationIssues()
             {
                 // Arrange
@@ -170,7 +294,7 @@ namespace NuGetGallery
                 _validationSets.Verify(x => x.GetAll(), Times.Once());
 
                 Assert.Equal(1, issues.Count());
-                Assert.Equal(TestData.PackageIsSignedIssueMessage, issues.First().GetMessage());
+                Assert.Equal(ValidationIssueCode.PackageIsSigned, issues.First().IssueCode);
             }
         }
 

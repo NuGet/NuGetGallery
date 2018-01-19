@@ -1,0 +1,29 @@
+﻿@using NuGet.Services.Validation
+@using NuGet.Services.Validation.Issues
+@model ValidationIssue
+
+@switch (Model.IssueCode)
+{
+    case ValidationIssueCode.PackageIsSigned:
+        <text>
+            <b>Package publishing failed.</b> This package could not be published since it is signed. We do not accept
+            signed packages at this moment. To be notified about package signing and more, watch our
+            <a href="https://github.com/nuget/announcements/issues">Announcements</a> page or follow us on
+            <a href="https://twitter.com/nuget">Twitter</a>.
+        </text>
+        break;
+    case ValidationIssueCode.ClientSigningVerificationFailure:
+        {
+            var typedIssue = (ClientSigningVerificationFailure)Model;
+            <text>
+                <b>@typedIssue.ClientCode:</b> @typedIssue.ClientMessage
+            </text>
+        }
+        break;
+    default:
+        <text>
+            <strong>Package publishing failed.</strong> This package could not be published since package validation
+            failed. Please contact <a href="mailto:support@nuget.org">support@nuget.org</a>.
+        </text>
+        break;
+}

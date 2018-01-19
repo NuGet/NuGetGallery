@@ -87,13 +87,6 @@
         // Set up the data binding.
         var managePackagesViewModel = new ManagePackagesViewModel(initialData);
         ko.applyBindings(managePackagesViewModel, document.body);
-
-        // Configure the expander headings.
-        window.nuget.configureExpanderHeading("listed-container");
-        window.nuget.configureExpanderHeading("unlisted-container");
-        window.nuget.configureExpanderHeading("namespaces-container");
-        window.nuget.configureExpanderHeading("requests-incoming-container");
-        window.nuget.configureExpanderHeading("requests-outgoing-container");
     });
 
 })();

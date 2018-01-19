@@ -42,10 +42,11 @@ namespace NuGetGallery
         /// </remarks>
         /// <param name="nugetPackage">The package to be created.</param>
         /// <param name="packageStreamMetadata">The package stream's metadata.</param>
-        /// <param name="user">The owner of the package</param>
+        /// <param name="owner">The owner of the package</param>
+        /// <param name="currentUser">The user that pushed the package on behalf of <paramref name="owner"/></param>
         /// <param name="isVerified">Mark the package registration as verified or not</param>
         /// <returns>The created package entity.</returns>
-        Task<Package> CreatePackageAsync(PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool isVerified);
+        Task<Package> CreatePackageAsync(PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User owner, User currentUser, bool isVerified);
 
         Package EnrichPackageFromNuGetPackage(Package package, PackageArchiveReader packageArchive, PackageMetadata packageMetadata, PackageStreamMetadata packageStreamMetadata, User user);
 

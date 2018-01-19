@@ -171,6 +171,8 @@
     <Compile Include="Entities\Credential.cs" />
     <Compile Include="Entities\CuratedFeed.cs" />
     <Compile Include="Entities\CuratedPackage.cs" />
+    <Compile Include="Entities\DatabaseWrapper.cs" />
+    <Compile Include="Entities\IDatabase.cs" />
     <Compile Include="Entities\Membership.cs" />
     <Compile Include="Entities\Organization.cs" />
     <Compile Include="Entities\AccountDelete.cs" />
@@ -208,6 +210,7 @@
     <Compile Include="Entities\SuspendDbExecutionStrategy.cs" />
     <Compile Include="Entities\UserSecurityPolicy.cs" />
     <Compile Include="Entities\User.cs" />
+    <Compile Include="Extensions\EntitiesContextExtensions.cs" />
     <Compile Include="Extensions\UserExtensionsCore.cs" />
     <Compile Include="ICloudStorageStatusDependency.cs" />
     <Compile Include="Infrastructure\AzureEntityList.cs" />
@@ -267,6 +270,9 @@
       <LastGenOutput>CoreStrings.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Infrastructure\MigrateUserToOrganization.sql" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

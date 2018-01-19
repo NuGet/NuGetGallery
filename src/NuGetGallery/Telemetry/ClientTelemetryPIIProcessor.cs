@@ -2,8 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Web;
+using System.Web.Routing;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
@@ -30,29 +30,34 @@ namespace NuGetGallery
             var requestTelemetryItem = item as RequestTelemetry;
             if(requestTelemetryItem != null)
             {
-                requestTelemetryItem.Url = ObfuscateUri(requestTelemetryItem);
+                var route = GetCurrentRoute();
+                if(route == null)
+                {
+                    return;
+                }
+                // Removes the first /
+                var requestPath = requestTelemetryItem.Url.AbsolutePath.TrimStart('/');
+                var obfuscatedPath = route.ObfuscateUrlPath(requestPath);
+                if(obfuscatedPath != null)
+                {
+                    requestTelemetryItem.Url = new Uri(requestTelemetryItem.Url.ToString().Replace(requestPath, obfuscatedPath));
+                    requestTelemetryItem.Name = requestTelemetryItem.Name.Replace(requestPath, obfuscatedPath);
+                    if(requestTelemetryItem.Context.Operation?.Name != null)
+                    {
+                        requestTelemetryItem.Context.Operation.Name = requestTelemetryItem.Context.Operation.Name.Replace(requestPath, obfuscatedPath);
+                    }
+                }
             }
         }
 
-        private Uri ObfuscateUri(RequestTelemetry telemetryItem)
+        public virtual Route GetCurrentRoute()
         {
-            if(IsPIIOperation(telemetryItem.Context.Operation.Name))
+            if (HttpContext.Current == null)
             {
-                // The new url form will be: https://nuget.org/ObfuscatedUserName
-                return new Uri(Obfuscator.DefaultObfuscatedUrl(telemetryItem.Url));
+                return null;
             }
-            return telemetryItem.Url;
-        }
 
-        protected virtual bool IsPIIOperation(string operationName)
-        {
-            if(string.IsNullOrEmpty(operationName))
-            {
-                return false;
-            }
-            // Remove the verb from the operation name.
-            // An example of operationName : GET Users/Profiles
-            return Obfuscator.ObfuscatedActions.Contains(operationName.Split(' ').Last());
+            return RouteTable.Routes.GetRouteData(new HttpContextWrapper(HttpContext.Current))?.Route as Route;
         }
     }
 }

@@ -192,11 +192,7 @@ namespace NuGetGallery
                 .AsSelf()
                 .As<IDeleteAccountService>()
                 .InstancePerLifetimeScope();
-
-            builder.RegisterType<EditPackageService>()
-                .AsSelf()
-                .InstancePerLifetimeScope();
-
+            
             builder.RegisterType<PackageOwnerRequestService>()
                 .AsSelf()
                 .As<IPackageOwnerRequestService>()

@@ -10,6 +10,8 @@ namespace NuGetGallery
         public const string V2ApiFeed = "V2ApiFeed";
         public const string ApiFeed = "ApiFeed";
         public const string Account = "Account";
+        public const string TransformToOrganization = "TransformToOrganization";
+        public const string TransformToOrganizationConfirmation = "ConfirmTransformToOrganization";
         public const string ApiKeys = "ApiKeys";
         public const string Profile = "Profile";
         public const string DisplayPackage = "package-route";

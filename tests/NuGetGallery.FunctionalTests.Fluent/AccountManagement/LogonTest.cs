@@ -45,7 +45,7 @@ namespace NuGetGallery.FunctionalTests.Fluent.AccountManagement
 
                 I.Click(registerSignIn);
                 I.Expect.Url(x => x.LocalPath.Contains("LogOn"));
-                I.Enter(EnvironmentSettings.TestAccountName).In("#SignIn_UserNameOrEmail");
+                I.Enter(EnvironmentSettings.TestAccountEmail).In("#SignIn_UserNameOrEmail");
                 I.Enter(EnvironmentSettings.TestAccountPassword).In("#SignIn_Password");
                 I.Click("#signin-link");
 

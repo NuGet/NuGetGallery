@@ -26,7 +26,7 @@ namespace NuGetGallery
         {
             var dbContext = new Mock<DbContext>();
             entitiesContext = entitiesContext ?? new Mock<IEntitiesContext>();
-            entitiesContext.Setup(m => m.GetDatabase()).Returns(dbContext.Object.Database);
+            entitiesContext.Setup(m => m.GetDatabase()).Returns(new DatabaseWrapper(dbContext.Object.Database));
             packageService = packageService ?? new Mock<IPackageService>();
             reservedNamespaceService = reservedNamespaceService ?? new Mock<IReservedNamespaceService>();
             packageOwnerRequestService = packageOwnerRequestService ?? new Mock<IPackageOwnerRequestService>();

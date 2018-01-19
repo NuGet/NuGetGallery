@@ -87,7 +87,7 @@ namespace NuGetGallery.FunctionalTests.Helpers
             logonRequestFormPostBody.FormPostParameters.Add("__RequestVerificationToken", test.Context["$HIDDEN1.__RequestVerificationToken"].ToString());
             logonRequestFormPostBody.FormPostParameters.Add("ReturnUrl", "/");
             logonRequestFormPostBody.FormPostParameters.Add("LinkingAccount", "false");
-            logonRequestFormPostBody.FormPostParameters.Add(Constants.UserNameOrEmailFormField, EnvironmentSettings.TestAccountName);
+            logonRequestFormPostBody.FormPostParameters.Add(Constants.UserNameOrEmailFormField, EnvironmentSettings.TestAccountEmail);
             logonRequestFormPostBody.FormPostParameters.Add(Constants.PasswordFormField, EnvironmentSettings.TestAccountPassword);
             logonPostRequest.Body = logonRequestFormPostBody;
 
@@ -117,7 +117,7 @@ namespace NuGetGallery.FunctionalTests.Helpers
         /// Individual WebTests can use this.
         /// </summary>
         /// <returns></returns>
-        public static WebTestRequest GetVerifyPackagePostRequestForPackage(WebTest test, string packageId, string packageVersion,string expectedResponseUrl,string expectedText,int expectedResponseCode = 200)
+        public static WebTestRequest GetVerifyPackagePostRequestForPackage(WebTest test, string packageId, string packageVersion,string expectedResponseUrl,string expectedText, string owner, int expectedResponseCode = 200)
         {
             var verifyUploadPostRequest = new WebTestRequest(UrlHelper.VerifyUploadPageUrl);
             verifyUploadPostRequest.Method = "POST";
@@ -138,6 +138,7 @@ namespace NuGetGallery.FunctionalTests.Helpers
             verifyUploadPostRequestBody.FormPostParameters.Add("Edit.CopyrightText", "Copyright 2013");
             verifyUploadPostRequestBody.FormPostParameters.Add("Edit.Tags", " windows8 ");
             verifyUploadPostRequestBody.FormPostParameters.Add("Edit.ReleaseNotes", "");
+            verifyUploadPostRequestBody.FormPostParameters.Add("Owner", owner);
             verifyUploadPostRequest.Body = verifyUploadPostRequestBody;
 
             var postUploadText = GetValidationRuleForFindText(expectedText);

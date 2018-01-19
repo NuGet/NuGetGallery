@@ -31,7 +31,7 @@ namespace NuGetGallery.FunctionalTests.Fluent.EditableMetadata
             string newPackageLocation = await _packageCreationHelper.CreatePackage(packageName, version);
 
             // Log on using the test account.
-            I.LogOn(EnvironmentSettings.TestAccountName, EnvironmentSettings.TestAccountPassword);
+            I.LogOn(EnvironmentSettings.TestAccountEmail, EnvironmentSettings.TestAccountPassword);
 
             // Navigate to the upload page.
             I.UploadPackageUsingUI(newPackageLocation);
