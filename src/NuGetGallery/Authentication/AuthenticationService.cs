@@ -755,7 +755,7 @@ namespace NuGetGallery.Authentication
                 else
                 {
                     // If multiple matches, leave it null to signal no unique email address
-                    _trace.Warning("Multiple user accounts with a single email address were found. Count: " + String.Join(", ", allMatches.Select(u => u.Username)));
+                    _trace.Warning($"Multiple user accounts with a single email address were found. Count: {allMatches.Count}");
                 }
             }
             return user;
