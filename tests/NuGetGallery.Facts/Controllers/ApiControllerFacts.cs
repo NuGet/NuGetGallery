@@ -122,15 +122,15 @@ namespace NuGetGallery
         {
             MockApiScopeEvaluator
                 .Setup(x => x.Evaluate(It.IsAny<User>(), It.IsAny<IEnumerable<Scope>>(), It.IsAny<IActionRequiringEntityPermissions<Package>>(), It.IsAny<Package>(), It.IsAny<string[]>()))
-                .Returns(() => new ApiScopeEvaluationResult(true, PermissionsCheckResult.Allowed, GetCurrentUser()));
+                .Returns(() => new ApiScopeEvaluationResult(GetCurrentUser(), PermissionsCheckResult.Allowed, scopesAreValid: true));
 
             MockApiScopeEvaluator
                 .Setup(x => x.Evaluate(It.IsAny<User>(), It.IsAny<IEnumerable<Scope>>(), It.IsAny<IActionRequiringEntityPermissions<PackageRegistration>>(), It.IsAny<PackageRegistration>(), It.IsAny<string[]>()))
-                .Returns(() => new ApiScopeEvaluationResult(true, PermissionsCheckResult.Allowed, GetCurrentUser()));
+                .Returns(() => new ApiScopeEvaluationResult(GetCurrentUser(), PermissionsCheckResult.Allowed, scopesAreValid: true));
 
             MockApiScopeEvaluator
                 .Setup(x => x.Evaluate(It.IsAny<User>(), It.IsAny<IEnumerable<Scope>>(), It.IsAny<IActionRequiringEntityPermissions<ActionOnNewPackageContext>>(), It.IsAny<ActionOnNewPackageContext>(), It.IsAny<string[]>()))
-                .Returns(() => new ApiScopeEvaluationResult(true, PermissionsCheckResult.Allowed, GetCurrentUser()));
+                .Returns(() => new ApiScopeEvaluationResult(GetCurrentUser(), PermissionsCheckResult.Allowed, scopesAreValid: true));
         }
 
         internal void SetupPackageFromInputStream(Stream packageStream)
@@ -153,7 +153,7 @@ namespace NuGetGallery
         {
             get
             {
-                yield return MemberDataHelper.AsData(new ApiScopeEvaluationResult(false, PermissionsCheckResult.Unknown, null), HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
+                yield return MemberDataHelper.AsData(new ApiScopeEvaluationResult(null, PermissionsCheckResult.Unknown, scopesAreValid: false), HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
 
                 foreach (var result in Enum.GetValues(typeof(PermissionsCheckResult)).Cast<PermissionsCheckResult>())
                 {
@@ -165,7 +165,7 @@ namespace NuGetGallery
                     var isReservedNamespaceConflict = result == PermissionsCheckResult.ReservedNamespaceFailure;
                     var statusCode = isReservedNamespaceConflict ? HttpStatusCode.Conflict : HttpStatusCode.Forbidden;
                     var description = isReservedNamespaceConflict ? Strings.UploadPackage_IdNamespaceConflict : Strings.ApiKeyNotAuthorized;
-                    yield return MemberDataHelper.AsData(new ApiScopeEvaluationResult(true, result, null), statusCode, description);
+                    yield return MemberDataHelper.AsData(new ApiScopeEvaluationResult(null, result, scopesAreValid: true), statusCode, description);
                 }
             }
         }
@@ -460,7 +460,7 @@ namespace NuGetGallery
 
                 controller.MockApiScopeEvaluator
                     .Setup(evaluateApiScope)
-                    .Returns(new ApiScopeEvaluationResult(true, PermissionsCheckResult.Allowed, owner));
+                    .Returns(new ApiScopeEvaluationResult(owner, PermissionsCheckResult.Allowed, scopesAreValid: true));
 
                 await controller.CreatePackagePut();
 
@@ -575,7 +575,7 @@ namespace NuGetGallery
 
                 controller.MockApiScopeEvaluator
                     .Setup(evaluateApiScope)
-                    .Returns(new ApiScopeEvaluationResult(true, PermissionsCheckResult.Allowed, owner));
+                    .Returns(new ApiScopeEvaluationResult(owner, PermissionsCheckResult.Allowed, scopesAreValid: true));
 
                 await controller.CreatePackagePut();
 

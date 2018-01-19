@@ -9,11 +9,41 @@ namespace NuGetGallery.Authentication
 {
     public class ApiScopeEvaluator : IApiScopeEvaluator
     {
-        private IUserService UserService { get; }
+        private readonly IUserService _userService;
 
         public ApiScopeEvaluator(IUserService userService)
         {
-            UserService = userService;
+            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+        }
+
+        public ApiScopeEvaluationResult Evaluate(
+            User currentUser, 
+            IEnumerable<Scope> scopes, 
+            IActionRequiringEntityPermissions<PackageRegistration> action, 
+            PackageRegistration packageRegistration, 
+            params string[] requestedActions)
+        {
+            return Evaluate(currentUser, scopes, action, packageRegistration, (pr) => pr.Id, requestedActions);
+        }
+
+        public ApiScopeEvaluationResult Evaluate(
+            User currentUser, 
+            IEnumerable<Scope> scopes, 
+            IActionRequiringEntityPermissions<Package> action, 
+            Package package, 
+            params string[] requestedActions)
+        {
+            return Evaluate(currentUser, scopes, action, package, (p) => p.PackageRegistration.Id, requestedActions);
+        }
+
+        public ApiScopeEvaluationResult Evaluate(
+            User currentUser, 
+            IEnumerable<Scope> scopes, 
+            IActionRequiringEntityPermissions<ActionOnNewPackageContext> action, 
+            ActionOnNewPackageContext context, 
+            params string[] requestedActions)
+        {
+            return Evaluate(currentUser, scopes, action, context, (c) => c.PackageId, requestedActions);
         }
 
         /// <summary>
@@ -46,87 +76,46 @@ namespace NuGetGallery.Authentication
                 scopes = new[] { new Scope(ownerKey: null, subject: NuGetPackagePattern.AllInclusivePattern, allowedAction: NuGetScopes.All) };
             }
 
-            var aggregateResult = new ApiScopeEvaluationResult(true, PermissionsCheckResult.Unknown, null);
+            bool success = false;
+
+            // Check that all scopes provided have the same owner scope.
+            var ownerScopes = scopes.Select(s => s.OwnerKey);
+            var firstOwnerScope = ownerScopes.FirstOrDefault();
+            if (ownerScopes.Any(o => o != firstOwnerScope))
+            {
+                throw new ArgumentException("All scopes provided must have the same owner scope.");
+            }
 
             foreach (var scope in scopes)
             {
                 if (!scope.AllowsSubject(getSubjectFromEntity(entity)))
                 {
                     // Subject (package ID) does not match.
-                    aggregateResult = ChooseFailureResult(aggregateResult, new ApiScopeEvaluationResult(false, PermissionsCheckResult.Unknown, null));
                     continue;
                 }
 
                 if (!scope.AllowsActions(requestedActions))
                 {
                     // Action scopes does not match.
-                    aggregateResult = ChooseFailureResult(aggregateResult, new ApiScopeEvaluationResult(false, PermissionsCheckResult.Unknown, null));
                     continue;
                 }
 
                 // Get the owner from the scope.
                 // If the scope has no owner, use the current user.
-                int ownerInScopeKey = scope.HasOwnerScope() ? scope.OwnerKey.Value : currentUser.Key;
-                if (ownerInScope == null)
-                {
-                    ownerInScope = UserService.FindByKey(ownerInScopeKey);
-                }
-                
-                if (ownerInScopeKey != ownerInScope.Key)
-                {
-                    // The set of scopes contains multiple owners. This should not be possible.
-                    aggregateResult = ChooseFailureResult(aggregateResult, new ApiScopeEvaluationResult(false, PermissionsCheckResult.Unknown, null));
-                    continue;
-                }
+                ownerInScope = scope.HasOwnerScope() ? _userService.FindByKey(scope.OwnerKey.Value) : currentUser;
 
-                var isActionAllowed = action.CheckPermissions(currentUser, ownerInScope, entity);
-                var result = new ApiScopeEvaluationResult(true, isActionAllowed, ownerInScope);
-                aggregateResult = ChooseFailureResult(aggregateResult, result);
-                if (isActionAllowed != PermissionsCheckResult.Allowed)
-                {
-                    // Current user cannot do the action on behalf of the owner in the scope or owner in the scope is not allowed to do the action.
-                    continue;
-                }
-
-                return result;
+                // Because all scopes should have the same owner scope, we can now break and perform the ownership verification outside of the loop.
+                success = true;
+                break;
             }
 
-            return aggregateResult;
-        }
-
-        private ApiScopeEvaluationResult ChooseFailureResult(params ApiScopeEvaluationResult[] results)
-        {
-            return results.Max();
-        }
-
-        public ApiScopeEvaluationResult Evaluate(
-            User currentUser, 
-            IEnumerable<Scope> scopes, 
-            IActionRequiringEntityPermissions<PackageRegistration> action, 
-            PackageRegistration packageRegistration, 
-            params string[] requestedActions)
-        {
-            return Evaluate(currentUser, scopes, action, packageRegistration, (pr) => pr.Id, requestedActions);
-        }
-
-        public ApiScopeEvaluationResult Evaluate(
-            User currentUser, 
-            IEnumerable<Scope> scopes, 
-            IActionRequiringEntityPermissions<Package> action, 
-            Package package, 
-            params string[] requestedActions)
-        {
-            return Evaluate(currentUser, scopes, action, package, (p) => p.PackageRegistration.Id, requestedActions);
-        }
-
-        public ApiScopeEvaluationResult Evaluate(
-            User currentUser, 
-            IEnumerable<Scope> scopes, 
-            IActionRequiringEntityPermissions<ActionOnNewPackageContext> action, 
-            ActionOnNewPackageContext context, 
-            params string[] requestedActions)
-        {
-            return Evaluate(currentUser, scopes, action, context, (c) => c.PackageId, requestedActions);
+            if (!success)
+            {
+                return new ApiScopeEvaluationResult(ownerInScope, PermissionsCheckResult.Unknown, scopesAreValid: false);
+            }
+            
+            var isActionAllowed = action.CheckPermissions(currentUser, ownerInScope, entity);
+            return new ApiScopeEvaluationResult(ownerInScope, isActionAllowed, scopesAreValid: true);
         }
     }
 }

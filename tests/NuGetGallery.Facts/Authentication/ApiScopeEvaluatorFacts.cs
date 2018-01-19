@@ -35,16 +35,16 @@ namespace NuGetGallery.Authentication
                 return new ApiScopeEvaluator(mockUserService.Object);
             }
 
-            private void AssertResult(bool scopesAreValid, PermissionsCheckResult permissionsCheckResult, User owner, ApiScopeEvaluationResult result)
+            private void AssertResult(ApiScopeEvaluationResult result, User owner, PermissionsCheckResult permissionsCheckResult, bool scopesAreValid)
             {
-                Assert.Equal(true, result.ScopesAreValid);
+                Assert.Equal(scopesAreValid, result.ScopesAreValid);
                 Assert.Equal(permissionsCheckResult, result.PermissionsCheckResult);
                 Assert.True(owner.MatchesUser(result.Owner));
             }
 
-            private void AssertScopesNotValidResult(ApiScopeEvaluationResult actual)
+            private void AssertScopesNotValidResult(ApiScopeEvaluationResult result)
             {
-                AssertResult(false, PermissionsCheckResult.Unknown, null, actual);
+                AssertResult(result, owner: null, permissionsCheckResult: PermissionsCheckResult.Unknown, scopesAreValid: false);
             }
 
             [Fact]
@@ -98,27 +98,24 @@ namespace NuGetGallery.Authentication
                 // 2 - an all-inclusive action scope
                 // 3 - a "current user" owner scope
 
-                var currentUser = new User { Key = 1 };
-                var mockUserService = new Mock<IUserService>();
-                mockUserService.Setup(x => x.FindByKey(currentUser.Key)).Returns(currentUser);
-
-                var evaluator = Setup(mockUserService);
+                var evaluator = Setup();
 
                 // Act
                 // To guarantee that the scope is evaluated with an all-inclusive subject scope, we must test it on two subjects that are COMPLETELY different.
                 // For example, if subjects "a" and "ab" are approved, the subject scope could be "a*". However, if subjects "a" and "b" are approved, the subject scope must be "*", which is what we expect for no scopes.
                 foreach (var subject in new[] { "a", "b" })
                 {
-                    EvaluatesNoScopesAsAllInclusive(evaluator, currentUser, scopes, subject);
+                    EvaluatesNoScopesAsAllInclusive(evaluator, scopes, subject);
                 }
             }
 
-            private void EvaluatesNoScopesAsAllInclusive(ApiScopeEvaluator evaluator, User currentUser, IEnumerable<Scope> scopes, string subject)
+            private void EvaluatesNoScopesAsAllInclusive(ApiScopeEvaluator evaluator, IEnumerable<Scope> scopes, string subject)
             {
+                var currentUser = new User { Key = 1 };
                 var action = new TestableActionRequiringEntityPermissions(PermissionsRequirement.None, (u, e) => PermissionsCheckResult.Allowed);
                 var result = evaluator.Evaluate(currentUser, scopes, action, null, CreateGetSubjectFromEntity(subject), NuGetScopes.All);
 
-                AssertResult(true, PermissionsCheckResult.Allowed, currentUser, result);
+                AssertResult(result, currentUser, PermissionsCheckResult.Allowed, scopesAreValid: true);
             }
 
             public static IEnumerable<object[]> ReturnsCorrectPermissionsCheckResultWhenSubjectAndActionMatches_Data
@@ -171,7 +168,7 @@ namespace NuGetGallery.Authentication
                 var result = apiScopeEvaluator.Evaluate(user, scopes, testableActionMock.Object, null, DefaultGetSubjectFromEntity, NuGetScopes.All);
 
                 // Assert
-                AssertResult(true, permissionsCheckResult, user, result);
+                AssertResult(result, user, permissionsCheckResult, scopesAreValid: true);
             }
 
             [Fact]
@@ -179,14 +176,13 @@ namespace NuGetGallery.Authentication
             {
                 // Arrange
                 var currentUser = new User("test");
-                var scopeUser1 = new User("scope1") { Key = 1 };
-                var scopeUser2 = new User("scope2") { Key = 2 };
+                var scopeUser = new User("scope1") { Key = 1 };
 
                 var scopes = new[]
                 {
-                    new Scope("wrongsubject", null),
-                    new Scope(scopeUser1.Key, NuGetPackagePattern.AllInclusivePattern, NuGetScopes.All),
-                    new Scope(scopeUser2.Key, NuGetPackagePattern.AllInclusivePattern, NuGetScopes.All)
+                    new Scope(scopeUser.Key, "wrongsubject", "wrongaction"),
+                    new Scope(scopeUser.Key, NuGetPackagePattern.AllInclusivePattern, NuGetScopes.All),
+                    new Scope(scopeUser.Key, NuGetPackagePattern.AllInclusivePattern, NuGetScopes.All)
                 };
 
                 var permissionsCheckResult = PermissionsCheckResult.Allowed;
@@ -196,8 +192,7 @@ namespace NuGetGallery.Authentication
                     .Returns(permissionsCheckResult);
 
                 var mockUserService = new Mock<IUserService>();
-                mockUserService.Setup(u => u.FindByKey(scopeUser1.Key)).Returns(scopeUser1);
-                mockUserService.Setup(u => u.FindByKey(scopeUser2.Key)).Returns(scopeUser2);
+                mockUserService.Setup(u => u.FindByKey(scopeUser.Key)).Returns(scopeUser);
 
                 var apiScopeEvaluator = Setup(mockUserService);
 
@@ -205,7 +200,27 @@ namespace NuGetGallery.Authentication
                 var result = apiScopeEvaluator.Evaluate(currentUser, scopes, testableActionMock.Object, null, DefaultGetSubjectFromEntity, NuGetScopes.All);
 
                 // Assert
-                AssertResult(true, permissionsCheckResult, scopeUser1, result);
+                AssertResult(result, scopeUser, permissionsCheckResult, scopesAreValid: true);
+            }
+
+            [Fact]
+            public void ThrowsIfMultipleOwnerScopes()
+            {
+                // Arrange
+                var scopes = 
+                    new[] { 535, 212, 6534 }
+                        .Select(k => new Scope(k, NuGetPackagePattern.AllInclusivePattern, NuGetScopes.All));
+
+                var permissionsCheckResult = PermissionsCheckResult.Allowed;
+                var testableActionMock = new Mock<IActionRequiringEntityPermissions<TestablePermissionsEntity>>();
+                testableActionMock
+                    .Setup(a => a.CheckPermissions(It.IsAny<User>(), It.IsAny<User>(), It.IsAny<TestablePermissionsEntity>()))
+                    .Returns(permissionsCheckResult);
+
+                var apiScopeEvaluator = Setup();
+
+                // Act/Assert
+                Assert.Throws<ArgumentException>(() => apiScopeEvaluator.Evaluate(null, scopes, testableActionMock.Object, null, DefaultGetSubjectFromEntity, NuGetScopes.All));
             }
         }
     }

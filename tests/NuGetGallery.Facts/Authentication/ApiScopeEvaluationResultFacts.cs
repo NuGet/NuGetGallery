@@ -35,15 +35,10 @@ namespace NuGetGallery.Authentication
             [MemberData(nameof(AllPossible_Data))]
             public void ReturnsExpected(bool scopesAreValid, PermissionsCheckResult result, User owner, bool expectedIsSuccessful)
             {
-                var apiScopeEvaluationResult = new ApiScopeEvaluationResult(scopesAreValid, result, owner);
+                var apiScopeEvaluationResult = new ApiScopeEvaluationResult(owner, result, scopesAreValid);
 
                 Assert.Equal(expectedIsSuccessful, apiScopeEvaluationResult.IsSuccessful());
             }
-        }
-
-        public class TheCompareToMethod
-        {
-
         }
     }
 }
