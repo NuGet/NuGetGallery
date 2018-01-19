@@ -29,16 +29,6 @@ namespace NuGetGallery.Authentication
         public ApiScopeEvaluationResult Evaluate(
             User currentUser, 
             IEnumerable<Scope> scopes, 
-            IActionRequiringEntityPermissions<Package> action, 
-            Package package, 
-            params string[] requestedActions)
-        {
-            return Evaluate(currentUser, scopes, action, package, p => p.PackageRegistration.Id, requestedActions);
-        }
-
-        public ApiScopeEvaluationResult Evaluate(
-            User currentUser, 
-            IEnumerable<Scope> scopes, 
             IActionRequiringEntityPermissions<ActionOnNewPackageContext> action, 
             ActionOnNewPackageContext context, 
             params string[] requestedActions)

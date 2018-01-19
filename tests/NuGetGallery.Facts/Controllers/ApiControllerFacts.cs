@@ -121,10 +121,6 @@ namespace NuGetGallery
         private void SetupApiScopeEvaluatorOnAllInputs()
         {
             MockApiScopeEvaluator
-                .Setup(x => x.Evaluate(It.IsAny<User>(), It.IsAny<IEnumerable<Scope>>(), It.IsAny<IActionRequiringEntityPermissions<Package>>(), It.IsAny<Package>(), It.IsAny<string[]>()))
-                .Returns(() => new ApiScopeEvaluationResult(GetCurrentUser(), PermissionsCheckResult.Allowed, scopesAreValid: true));
-
-            MockApiScopeEvaluator
                 .Setup(x => x.Evaluate(It.IsAny<User>(), It.IsAny<IEnumerable<Scope>>(), It.IsAny<IActionRequiringEntityPermissions<PackageRegistration>>(), It.IsAny<PackageRegistration>(), It.IsAny<string[]>()))
                 .Returns(() => new ApiScopeEvaluationResult(GetCurrentUser(), PermissionsCheckResult.Allowed, scopesAreValid: true));
 
@@ -803,7 +799,7 @@ namespace NuGetGallery
                         currentUser,
                         It.IsAny<IEnumerable<Scope>>(),
                         ActionsRequiringPermissions.UnlistOrRelistPackage,
-                        package,
+                        package.PackageRegistration,
                         NuGetScopes.PackageUnlist))
                     .Returns(evaluationResult);
 
@@ -844,7 +840,7 @@ namespace NuGetGallery
                         currentUser,
                         It.IsAny<IEnumerable<Scope>>(),
                         ActionsRequiringPermissions.UnlistOrRelistPackage,
-                        package,
+                        package.PackageRegistration,
                         NuGetScopes.PackageUnlist));
             }
 
@@ -1134,7 +1130,7 @@ namespace NuGetGallery
                         currentUser,
                         It.IsAny<IEnumerable<Scope>>(),
                         ActionsRequiringPermissions.UnlistOrRelistPackage,
-                        package,
+                        package.PackageRegistration,
                         NuGetScopes.PackageUnlist))
                     .Returns(evaluationResult);
 
@@ -1175,7 +1171,7 @@ namespace NuGetGallery
                         currentUser,
                         It.IsAny<IEnumerable<Scope>>(),
                         ActionsRequiringPermissions.UnlistOrRelistPackage,
-                        package,
+                        package.PackageRegistration,
                         NuGetScopes.PackageUnlist));
             }
 
@@ -1451,7 +1447,7 @@ namespace NuGetGallery
                         It.Is<User>(u => u.Key == UserKey),
                         It.IsAny<IEnumerable<Scope>>(),
                         ActionsRequiringPermissions.VerifyPackage,
-                        package,
+                        package.PackageRegistration,
                         expectedRequestedActions))
                     .Returns(apiScopeEvaluationResult);
 
@@ -1510,7 +1506,7 @@ namespace NuGetGallery
                         It.Is<User>(u => u.Key == UserKey),
                         It.IsAny<IEnumerable<Scope>>(),
                         ActionsRequiringPermissions.VerifyPackage,
-                        package,
+                        package.PackageRegistration,
                         expectedRequestedActions));
             }
 

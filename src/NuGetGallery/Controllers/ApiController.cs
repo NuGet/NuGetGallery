@@ -307,7 +307,7 @@ namespace NuGetGallery
                 requestedActions = new[] { NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion };
             }
 
-            var apiScopeEvaluationResult = EvaluateApiScope(ActionsRequiringPermissions.VerifyPackage, package, requestedActions);
+            var apiScopeEvaluationResult = EvaluateApiScope(ActionsRequiringPermissions.VerifyPackage, package.PackageRegistration, requestedActions);
             if (!apiScopeEvaluationResult.IsSuccessful())
             {
                 return GetHttpResultFromFailedApiScopeEvaluation(apiScopeEvaluationResult, id, version);
@@ -565,7 +565,7 @@ namespace NuGetGallery
             }
 
             // Check if the current user's scopes allow listing/unlisting the current package ID
-            var apiScopeEvaluationResult = EvaluateApiScope(ActionsRequiringPermissions.UnlistOrRelistPackage, package, NuGetScopes.PackageUnlist);
+            var apiScopeEvaluationResult = EvaluateApiScope(ActionsRequiringPermissions.UnlistOrRelistPackage, package.PackageRegistration, NuGetScopes.PackageUnlist);
             if (!apiScopeEvaluationResult.IsSuccessful())
             {
                 return GetHttpResultFromFailedApiScopeEvaluation(apiScopeEvaluationResult, id, version);
@@ -597,7 +597,7 @@ namespace NuGetGallery
             }
 
             // Check if the current user's scopes allow listing/unlisting the current package ID
-            var apiScopeEvaluationResult = EvaluateApiScope(ActionsRequiringPermissions.UnlistOrRelistPackage, package, NuGetScopes.PackageUnlist);
+            var apiScopeEvaluationResult = EvaluateApiScope(ActionsRequiringPermissions.UnlistOrRelistPackage, package.PackageRegistration, NuGetScopes.PackageUnlist);
             if (!apiScopeEvaluationResult.IsSuccessful())
             {
                 return GetHttpResultFromFailedApiScopeEvaluation(apiScopeEvaluationResult, id, version);
@@ -763,16 +763,6 @@ namespace NuGetGallery
             }
 
             return new HttpStatusCodeWithBodyResult(statusCodeOnFailure, Strings.ApiKeyNotAuthorized);
-        }
-
-        private ApiScopeEvaluationResult EvaluateApiScope(IActionRequiringEntityPermissions<Package> action, Package package, params string[] requestedActions)
-        {
-            return ApiScopeEvaluator.Evaluate(
-                GetCurrentUser(),
-                User.Identity.GetScopesFromClaim(),
-                action,
-                package,
-                requestedActions);
         }
 
         private ApiScopeEvaluationResult EvaluateApiScope(IActionRequiringEntityPermissions<PackageRegistration> action, PackageRegistration packageRegistration, params string[] requestedActions)
