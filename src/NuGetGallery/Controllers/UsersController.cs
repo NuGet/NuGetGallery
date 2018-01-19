@@ -326,7 +326,7 @@ namespace NuGetGallery
         {
             var currentUser = GetCurrentUser();
 
-            var model = new ListOrganizationsViewModel(currentUser, _packageService);
+            var model = new ManageOrganizationsViewModel(currentUser, _packageService);
 
             return View(model);
         }

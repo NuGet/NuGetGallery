@@ -1,4 +1,4 @@
-﻿@model ListOrganizationsViewModel
+﻿@model ManageOrganizationsViewModel
 @{
     ViewBag.Title = "Manage My Organizations";
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
@@ -38,7 +38,7 @@
                                     </a>
                                 </td>
                                 <td class="align-middle">
-                                    @(organization.IsAdmin ? "Admin" : "Collaborator")
+                                    @(organization.CurrentUserIsAdmin ? "Admin" : "Collaborator")
                                 </td>
                                 <td class="align-middle text-nowrap">
                                     @organization.MemberCount

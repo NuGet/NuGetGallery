@@ -6,13 +6,13 @@ using System.Linq;
 
 namespace NuGetGallery
 {
-    public class ListOrganizationsViewModel
+    public class ManageOrganizationsViewModel
     {
-        public IEnumerable<ListOrganizationsItemViewModel> Organizations { get; }
+        public IEnumerable<ManageOrganizationsItemViewModel> Organizations { get; }
 
-        public ListOrganizationsViewModel(User currentUser, IPackageService packageService)
+        public ManageOrganizationsViewModel(User currentUser, IPackageService packageService)
         {
-            Organizations = currentUser.Organizations.Select(m => new ListOrganizationsItemViewModel(m, packageService));
+            Organizations = currentUser.Organizations.Select(m => new ManageOrganizationsItemViewModel(m, packageService));
         }
     }
 }
