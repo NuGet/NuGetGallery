@@ -22,21 +22,6 @@ namespace NuGetGallery
     public partial class UsersController
         : AppController
     {
-        public static class Actions
-        {
-            public const string Account = "Account";
-            public const string ConfirmationRequired = "ConfirmationRequired";
-            public const string ConfirmTransform = "ConfirmTransform";
-            public const string DeleteAccount = "DeleteAccount";
-            public const string DeleteUserAccountStatus = "DeleteUserAccountStatus";
-            public const string DeleteRequest = "DeleteRequest";
-            public const string DeleteUserAccount = "DeleteUserAccount";
-            public const string PasswordChanged = "PasswordChanged";
-            public const string PasswordSent = "PasswordSent";
-            public const string Transform = "Transform";
-            public const string TransformFailed = "TransformFailed";
-        }
-
         private readonly ICuratedFeedService _curatedFeedService;
         private readonly IUserService _userService;
         private readonly IMessageService _messageService;
@@ -82,7 +67,7 @@ namespace NuGetGallery
 
         [Authorize]
         [HttpPost]
-        [ActionName(Actions.ConfirmationRequired)]
+        [ActionName("ConfirmationRequired")]
         [ValidateAntiForgeryToken]
         public virtual ActionResult ConfirmationRequiredPost()
         {
@@ -117,7 +102,7 @@ namespace NuGetGallery
 
         [HttpGet]
         [Authorize]
-        [ActionName(Actions.Transform)]
+        [ActionName("Transform")]
         public virtual ActionResult TransformToOrganization()
         {
             var accountToTransform = GetCurrentUser();
@@ -139,7 +124,7 @@ namespace NuGetGallery
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        [ActionName(Actions.Transform)]
+        [ActionName("Transform")]
         public virtual async Task<ActionResult> TransformToOrganization(TransformAccountViewModel transformViewModel)
         {
             var accountToTransform = GetCurrentUser();
@@ -170,7 +155,7 @@ namespace NuGetGallery
 
         [HttpGet]
         [Authorize]
-        [ActionName(Actions.ConfirmTransform)]
+        [ActionName("ConfirmTransform")]
         public virtual async Task<ActionResult> ConfirmTransformToOrganization(string accountNameToTransform, string token)
         {
             var adminUser = GetCurrentUser();
@@ -199,7 +184,7 @@ namespace NuGetGallery
                 Strings.TransformAccount_Success, accountNameToTransform);
 
             // todo: redirect to ManageOrganization (future work)
-            return RedirectToAction(Actions.Account);
+            return RedirectToAction("Account");
         }
 
         private ActionResult TransformToOrganizationFailed(string errorMessage)
@@ -235,7 +220,7 @@ namespace NuGetGallery
                 HasPendingRequests = hasPendingRequest
             };
 
-            return View(Actions.DeleteAccount, model);
+            return View("DeleteAccount", model);
         }
 
         [HttpPost]
@@ -260,11 +245,11 @@ namespace NuGetGallery
             if (!isSupportRequestCreated)
             {
                 TempData["RequestFailedMessage"] = Strings.AccountDelete_CreateSupportRequestFails;
-                return RedirectToAction(Actions.DeleteRequest);
+                return RedirectToAction("DeleteRequest");
             }
             _messageService.SendAccountDeleteNotice(user.ToMailAddress(), user.Username);
 
-            return RedirectToAction(Actions.DeleteRequest);
+            return RedirectToAction("DeleteRequest");
         }
 
         [HttpGet]
@@ -287,7 +272,7 @@ namespace NuGetGallery
                 User = user,
                 AccountName = user.Username,
             };
-            return View(Actions.DeleteUserAccount, model);
+            return View("DeleteUserAccount", model);
         }
 
         [HttpDelete]
@@ -299,7 +284,7 @@ namespace NuGetGallery
             var user = _userService.FindByUsername(model.AccountName);
             if (user == null || user.IsDeleted)
             {
-                return View(Actions.DeleteUserAccountStatus, new DeleteUserAccountStatus()
+                return View("DeleteUserAccountStatus", new DeleteUserAccountStatus()
                 {
                     AccountName = model.AccountName,
                     Description = $"Account {model.AccountName} not found.",
@@ -310,7 +295,7 @@ namespace NuGetGallery
             {
                 var admin = GetCurrentUser();
                 var status = await _deleteAccountService.DeleteGalleryUserAccountAsync(user, admin, model.Signature, model.ShouldUnlist, commitAsTransaction: true);
-                return View(Actions.DeleteUserAccountStatus, status);
+                return View("DeleteUserAccountStatus", status);
             }
         }
 
@@ -374,7 +359,7 @@ namespace NuGetGallery
 
             TempData["Message"] = Strings.EmailPreferencesUpdated;
 
-            return RedirectToAction(Actions.Account);
+            return RedirectToAction("Account");
         }
 
         [HttpGet]
@@ -542,7 +527,7 @@ namespace NuGetGallery
                 _messageService.SendCredentialAddedNotice(credential.User, _authService.DescribeCredential(credential));
             }
 
-            return RedirectToAction(Actions.PasswordChanged);
+            return RedirectToAction("PasswordChanged");
         }
 
         [Authorize]
@@ -649,7 +634,7 @@ namespace NuGetGallery
             if (string.Equals(model.ChangeEmail.NewEmail, user.LastSavedEmailAddress, StringComparison.OrdinalIgnoreCase))
             {
                 // email address unchanged - accept
-                return RedirectToAction(Actions.Account);
+                return RedirectToAction("Account");
             }
 
             try
@@ -674,7 +659,7 @@ namespace NuGetGallery
                 TempData["Message"] = Strings.EmailUpdated;
             }
 
-            return RedirectToAction(Actions.Account);
+            return RedirectToAction("Account");
         }
 
         [HttpPost]
@@ -686,14 +671,14 @@ namespace NuGetGallery
 
             if (string.IsNullOrWhiteSpace(user.UnconfirmedEmailAddress))
             {
-                return RedirectToAction(Actions.Account);
+                return RedirectToAction("Account");
             }
 
             await _userService.CancelChangeEmailAddress(user);
 
             TempData["Message"] = Strings.CancelEmailAddress;
 
-            return RedirectToAction(Actions.Account);
+            return RedirectToAction("Account");
         }
 
 
@@ -744,7 +729,7 @@ namespace NuGetGallery
                 }
 
                 TempData["Message"] = Strings.PasswordChanged;
-                return RedirectToAction(Actions.Account);
+                return RedirectToAction("Account");
             }
         }
 
@@ -1002,7 +987,7 @@ namespace NuGetGallery
             {
                 TempData["Message"] = Strings.CredentialNotFound;
 
-                return RedirectToAction(Actions.Account);
+                return RedirectToAction("Account");
             }
 
             // Count credentials and make sure the user can always login
@@ -1020,7 +1005,7 @@ namespace NuGetGallery
                 TempData["Message"] = message;
             }
 
-            return RedirectToAction(Actions.Account);
+            return RedirectToAction("Account");
         }
 
         private ActionResult AccountView<TAccountViewModel>(TAccountViewModel model = null)
@@ -1057,7 +1042,7 @@ namespace NuGetGallery
             // update model for user accounts
             UpdateUserAccountModel(account, userModel);
            
-            return View(Actions.Account, model);
+            return View("Account", model);
         }
 
         private void UpdateUserAccountModel(User account, UserAccountViewModel model)
@@ -1101,7 +1086,7 @@ namespace NuGetGallery
                 relativeUrl: false);
             _messageService.SendPasswordResetInstructions(user, resetPasswordUrl, forgotPassword);
 
-            return RedirectToAction(Actions.PasswordSent);
+            return RedirectToAction("PasswordSent");
         }
     }
 }
