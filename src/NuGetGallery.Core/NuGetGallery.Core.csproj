@@ -210,6 +210,7 @@
     <Compile Include="Entities\SuspendDbExecutionStrategy.cs" />
     <Compile Include="Entities\UserSecurityPolicy.cs" />
     <Compile Include="Entities\User.cs" />
+    <Compile Include="Extensions\CredentialExtensions.cs" />
     <Compile Include="Extensions\EntitiesContextExtensions.cs" />
     <Compile Include="Extensions\UserExtensionsCore.cs" />
     <Compile Include="ICloudStorageStatusDependency.cs" />

@@ -33,6 +33,7 @@ namespace NuGetGallery
         public string ProviderAccountNoun { get; set; }
         public string AccountName { get; set; }
         public bool FoundExistingUser { get; set; }
+        public bool ExistingUserHasOtherExternalAccounts { get; set; }
     }
 
     public class SignInViewModel

@@ -362,9 +362,7 @@ namespace NuGetGallery
                 {
                     // Consume the exception for now, for backwards compatibility to previous MSA provider.
                     email = result.ExternalIdentity.GetClaimOrDefault(ClaimTypes.Email);
-                    name = result
-                        .ExternalIdentity 
-                        .GetClaimOrDefault(ClaimTypes.Name);
+                    name = result.ExternalIdentity.GetClaimOrDefault(ClaimTypes.Name);
                 }
 
                 // Check for a user with this email address
@@ -378,7 +376,8 @@ namespace NuGetGallery
                 {
                     ProviderAccountNoun = authUI.AccountNoun,
                     AccountName = name,
-                    FoundExistingUser = existingUser != null
+                    FoundExistingUser = existingUser != null,
+                    ExistingUserHasOtherExternalAccounts = existingUser != null && existingUser.Credentials.Any(c => c.IsExternal())
                 };
 
                 var model = new LogOnViewModel
