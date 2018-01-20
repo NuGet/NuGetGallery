@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.IO;
-using NuGet.Packaging;
 using NuGet.Packaging.Signing;
 
 namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
@@ -11,9 +10,9 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
     {
         private const string ResourceNamespace = "Validation.PackageSigning.ExtractAndValidateSignature.Tests.TestData";
 
-        public const string UnsignedPackage = ResourceNamespace + ".TestUnsigned.1.0.0.nupkg";
         public const string SignedPackageLeaf1 = ResourceNamespace + ".TestSigned.leaf-1.1.0.0.nupkg";
         public const string SignedPackageLeaf2 = ResourceNamespace + ".TestSigned.leaf-2.2.0.0.nupkg";
+        public const string UnsignedPackage = ResourceNamespace + ".TestUnsigned.1.0.0.nupkg";
         public const string Zip64Package = ResourceNamespace + ".Zip64Package.1.0.0.nupkg";
 
         /// <summary>

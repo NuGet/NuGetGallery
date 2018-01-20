@@ -38,12 +38,18 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
         /// </summary>
         public static IPackageSignatureVerifier CreateFull()
         {
-            var verificationProviders = new[]
+            var verificationProviders = new ISignatureVerificationProvider[]
             {
                 new IntegrityVerificationProvider(),
+                new SignatureTrustAndValidityVerificationProvider(),
             };
 
-            var settings = SignedPackageVerifierSettings.VerifyCommandDefaultPolicy;
+            var settings = new SignedPackageVerifierSettings(
+                allowUnsigned: false,
+                allowUntrusted: false,
+                allowIgnoreTimestamp: false,
+                failWithMultipleTimestamps: true,
+                allowNoTimestamp: false);
 
             return new PackageSignatureVerifier(
                 verificationProviders,

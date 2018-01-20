@@ -21,14 +21,18 @@ using NuGet.Packaging.Signing;
 using NuGet.Services.Validation;
 using NuGet.Services.Validation.Issues;
 using NuGetGallery;
+using Test.Utility.Signing;
 using Xunit;
 using Xunit.Abstractions;
 using NuGetHashAlgorithmName = NuGet.Common.HashAlgorithmName;
 
 namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
 {
+    [Collection(CertificateIntegrationTestCollection.Name)]
     public class SignatureValidatorIntegrationTests : IDisposable
     {
+        private readonly CertificateIntegrationTestFixture _fixture;
+        private readonly ITestOutputHelper _output;
         private readonly Mock<IPackageSigningStateService> _packageSigningStateService;
         private readonly Mock<ISignaturePartsExtractor> _signaturePartsExtractor;
         private readonly Mock<IEntityRepository<Certificate>> _certificates;
@@ -42,8 +46,11 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
         private readonly CancellationToken _token;
         private readonly SignatureValidator _target;
 
-        public SignatureValidatorIntegrationTests(ITestOutputHelper output)
+        public SignatureValidatorIntegrationTests(CertificateIntegrationTestFixture fixture, ITestOutputHelper output)
         {
+            _fixture = fixture ?? throw new ArgumentNullException(nameof(fixture));
+            _output = output ?? throw new ArgumentNullException(nameof(output));
+
             // These dependencies have their own dependencies on the database or blob storage, which don't have good
             // integration test infrastructure in the jobs yet. Therefore, we'll mock them for now.
             _packageSigningStateService = new Mock<IPackageSigningStateService>();
@@ -83,14 +90,23 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                 _logger);
         }
 
-        [Theory]
-        [InlineData(TestResources.SignedPackageLeaf1, TestResources.Leaf1Thumbprint)]
-        [InlineData(TestResources.SignedPackageLeaf2, TestResources.Leaf2Thumbprint)]
-        public async Task SuccessfullyValidatesLeaves(string resourceName, string thumbprint)
+        public async Task<SignedPackageArchive> GetSignedPackage1Async()
+        {
+            AllowCertificateThumbprint(_fixture.LeafCertificate1Thumbprint);
+            return await _fixture.GetSignedPackage1Async(_output);
+        }
+
+        public async Task<MemoryStream> GetSignedPackageStream1Async()
+        {
+            AllowCertificateThumbprint(_fixture.LeafCertificate1Thumbprint);
+            return await _fixture.GetSignedPackageStream1Async(_output);
+        }
+
+        [Fact]
+        public async Task AcceptsValidSignedPackage()
         {
             // Arrange
-            _package = TestResources.LoadPackage(resourceName);
-            AllowCertificateThumbprint(thumbprint);
+            _package = await GetSignedPackage1Async();
 
             // Act
             var result = await _target.ValidateAsync(
@@ -108,8 +124,7 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
         public async Task RejectsPackageWithAddedFile()
         {
             // Arrange
-            AllowCertificateThumbprint(TestResources.Leaf1Thumbprint);
-            var packageStream = TestResources.GetResourceStream(TestResources.SignedPackageLeaf1);
+            var packageStream = await GetSignedPackageStream1Async();
 
             try
             {
@@ -144,8 +159,7 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
         public async Task RejectsPackageWithModifiedFile()
         {
             // Arrange
-            AllowCertificateThumbprint(TestResources.Leaf1Thumbprint);
-            var packageStream = TestResources.GetResourceStream(TestResources.SignedPackageLeaf1);
+            var packageStream = await GetSignedPackageStream1Async();
 
             try
             {
@@ -238,9 +252,9 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
         public async Task RejectsAuthorAndRepositoryCounterSignatures(SignatureType counterSignatureType)
         {
             // Arrange
-            AllowCertificateThumbprint(TestResources.Leaf1Thumbprint);
+            var packageStream = await GetSignedPackageStream1Async();
             ModifySignatureContent(
-                TestResources.GetResourceStream(TestResources.SignedPackageLeaf1),
+                packageStream,
                 configuredSignedCms: signedCms =>
                 {
                     using (var counterCertificate = SigningTestUtility.GenerateCertificate(subjectName: null, modifyGenerator: null))
@@ -273,9 +287,9 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
         public async Task RejectsMutuallyExclusiveCounterSignaturesCommitmentTypes(SignatureType[] counterSignatureTypes)
         {
             // Arrange
-            AllowCertificateThumbprint(TestResources.Leaf1Thumbprint);
+            var packageStream = await GetSignedPackageStream1Async();
             ModifySignatureContent(
-                TestResources.GetResourceStream(TestResources.SignedPackageLeaf1),
+                packageStream,
                 configuredSignedCms: signedCms =>
                 {
                     using (var counterCertificate = SigningTestUtility.GenerateCertificate(subjectName: null, modifyGenerator: null))
@@ -314,9 +328,9 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
         public async Task AllowsNonAuthorAndRepositoryCounterSignatures(string commitmentTypeOidBase64)
         {
             // Arrange
-            AllowCertificateThumbprint(TestResources.Leaf1Thumbprint);
+            var packageStream = await GetSignedPackageStream1Async();
             ModifySignatureContent(
-                TestResources.GetResourceStream(TestResources.SignedPackageLeaf1),
+                packageStream,
                 configuredSignedCms: signedCms =>
                 {
                     using (var counterCertificate = SigningTestUtility.GenerateCertificate(subjectName: null, modifyGenerator: null))

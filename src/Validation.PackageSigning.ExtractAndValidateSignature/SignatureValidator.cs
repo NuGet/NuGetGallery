@@ -130,10 +130,8 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
                     .SignerInfo
                     .CounterSignerInfos
                     .Cast<SignerInfo>()
-                    .Select(x => x.SignedAttributes.FirstOrDefault(Oids.CommitmentTypeIndication))
-                    .Where(x => x != null)
-                    .Select(x => AttributeUtility.GetCommitmentTypeIndication(x))
-                    .Count(x => x != SignatureType.Unknown);
+                    .Select(x => AttributeUtility.GetSignatureType(x.SignedAttributes))
+                    .Count(signatureType => signatureType != SignatureType.Unknown);
                 if (authorOrRepositoryCounterSignatureCount > 0)
                 {
                     _logger.LogInformation(
