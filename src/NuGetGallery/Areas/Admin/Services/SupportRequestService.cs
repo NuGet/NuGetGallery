@@ -8,6 +8,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGetGallery.Areas.Admin.Models;
+using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
 
 namespace NuGetGallery.Areas.Admin
@@ -19,15 +20,18 @@ namespace NuGetGallery.Areas.Admin
         private readonly PagerDutyClient _pagerDutyClient;
         private readonly string _siteRoot;
         private const string _unassignedAdmin = "unassigned";
+        private IAuditingService _auditingService;
 
         public SupportRequestService(
             ISupportRequestDbContext supportRequestDbContext,
-            IAppConfiguration config)
+            IAppConfiguration config,
+            IAuditingService auditingService)
         {
             _supportRequestDbContext = supportRequestDbContext;
             _siteRoot = config.SiteRoot;
 
             _pagerDutyClient = new PagerDutyClient(config.PagerDutyAccountName, config.PagerDutyAPIKey, config.PagerDutyServiceKey);
+            _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
         }
 
         public IReadOnlyCollection<Models.Admin> GetAllAdmins()
@@ -237,7 +241,10 @@ namespace NuGetGallery.Areas.Admin
                 newIssue.PackageRegistrationKey = package?.PackageRegistrationKey;
 
                 await AddIssueAsync(newIssue);
-
+                await _auditingService.SaveAuditRecordAsync(new DeleteAccountAuditRecord(userName: loggedInUser,
+                    status: DeleteAccountAuditRecord.ActionStatus.Success,
+                    action: AuditedDeleteAccountAction.RequestAccountDeletion,
+                    adminUserName: newIssue.AssignedTo?.GalleryUsername));
                 return newIssue;
             }
             catch (SqlException sqlException)
@@ -250,12 +257,14 @@ namespace NuGetGallery.Areas.Admin
                     packageInfo = $"{package.PackageRegistration.Id} v{package.Version}";
                 }
 
-                var errorMessage = $"Error while submitting support request at {DateTime.UtcNow}. User requesting support = {loggedInUser}. Support reason = {reason ?? "N/A"}. Package info = {packageInfo}";
+                var errorMessage = $"Error while submitting support request at {DateTime.UtcNow}. Support reason = {reason ?? "N/A"}. Package info = {packageInfo}";
 
+                await _auditingService.SaveAuditRecordAsync(new DeleteAccountAuditRecord(userName: loggedInUser, status: DeleteAccountAuditRecord.ActionStatus.Failure, action: AuditedDeleteAccountAction.RequestAccountDeletion));
                 await _pagerDutyClient.TriggerIncidentAsync(errorMessage);
             }
             catch (Exception e) //In case getting data from PagerDuty has failed
             {
+                await _auditingService.SaveAuditRecordAsync(new DeleteAccountAuditRecord(userName: loggedInUser, status: DeleteAccountAuditRecord.ActionStatus.Failure, action: AuditedDeleteAccountAction.RequestAccountDeletion));
                 QuietLog.LogHandledException(e);
             }
 

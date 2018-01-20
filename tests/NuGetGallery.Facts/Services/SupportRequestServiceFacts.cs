@@ -5,10 +5,10 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
-using System.Net.Mail;
 using System.Threading.Tasks;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Models;
+using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
 using Moq;
 using Xunit;
@@ -23,8 +23,9 @@ namespace NuGetGallery.Services
             public async Task DeleteRequestsNullInput()
             {
                 // Arrange
+                var auditing = new Mock<IAuditingService>();
                 TestSupportRequestDbContext supportRequestContext = new TestSupportRequestDbContext();
-                SupportRequestService supportRequestService = new SupportRequestService(supportRequestContext, GetAppConfig());
+                SupportRequestService supportRequestService = new SupportRequestService(supportRequestContext, GetAppConfig(), auditing.Object);
 
                 // Act + Assert
                 await Assert.ThrowsAsync<ArgumentNullException>(() => supportRequestService.DeleteSupportRequestsAsync(null));
@@ -34,6 +35,7 @@ namespace NuGetGallery.Services
             public async Task DeleteRequestsNormalPath()
             {
                 // Arrange
+                var auditing = new Mock<IAuditingService>();
                 string userName = "Joe";
                 string emailAddress = "Joe@coldmail.com";
 
@@ -70,7 +72,7 @@ namespace NuGetGallery.Services
                 supportRequestContext.Issues.Add(JoesOldIssue);
                 supportRequestContext.Issues.Add(randomIssue);
 
-                SupportRequestService supportRequestService = new SupportRequestService(supportRequestContext, GetAppConfig());
+                SupportRequestService supportRequestService = new SupportRequestService(supportRequestContext, GetAppConfig(), auditing.Object);
 
                 // Act
                 await supportRequestService.DeleteSupportRequestsAsync(userName);

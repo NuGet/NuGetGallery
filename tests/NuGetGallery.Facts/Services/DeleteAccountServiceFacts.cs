@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Models;
+using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
 using NuGetGallery.Framework;
 using NuGetGallery.Security;
@@ -233,7 +234,8 @@ namespace NuGetGallery.Services
                     SetupReservedNamespaceService().Object,
                     SetupSecurityPolicyService().Object,
                     new TestableAuthService(),
-                    SetupSupportRequestService().Object);
+                    SetupSupportRequestService().Object,
+                    SetupAuditingService().Object);
             }
 
             private class TestableAuthService : AuthenticationService
@@ -258,7 +260,7 @@ namespace NuGetGallery.Services
             {
                 var mockContext = new Mock<IEntitiesContext>();
                 var dbContext = new Mock<DbContext>();
-                mockContext.Setup(m => m.GetDatabase()).Returns(new DatabaseWrapper(dbContext.Object.Database));
+                mockContext.Setup(m => m.GetDatabase()).Returns(dbContext.Object.Database);
                 return mockContext;
             }
 
@@ -280,6 +282,12 @@ namespace NuGetGallery.Services
                 return securityPolicyService;
             }
 
+            private Mock<IAuditingService> SetupAuditingService()
+            {
+                var auditingService = new Mock<IAuditingService>();
+                return auditingService;
+            }
+
             private Mock<IEntityRepository<AccountDelete>> SetupAccountDeleteRepository()
             {
                 var acountDeleteRepository = new Mock<IEntityRepository<AccountDelete>>();
@@ -299,7 +307,7 @@ namespace NuGetGallery.Services
             private Mock<IPackageService> SetupPackageService()
             {
                 var packageService = new Mock<IPackageService>();
-                packageService.Setup(m => m.FindPackagesByAnyMatchingOwner(_user, true, It.IsAny<bool>())).Returns(_userPackages);
+                packageService.Setup(m => m.FindPackagesByAnyMatchingOwner(_user, true)).Returns(_userPackages);
                 //the .Returns(Task.CompletedTask) to avoid NullRef exception by the Mock infrastructure when invoking async operations
                 packageService.Setup(m => m.MarkPackageUnlistedAsync(It.IsAny<Package>(), true))
                               .Returns(Task.CompletedTask)
