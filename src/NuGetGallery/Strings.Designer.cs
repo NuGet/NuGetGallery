@@ -1417,11 +1417,29 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Administrator account &apos;{0}&apos; must not be an organization..
+        /// </summary>
+        public static string TransformAccount_AdminAccountIsOrganization {
+            get {
+                return ResourceManager.GetString("TransformAccount_AdminAccountIsOrganization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Administrator account &apos;{0}&apos; has not confirmed their email address..
         /// </summary>
         public static string TransformAccount_AdminAccountNotConfirmed {
             get {
                 return ResourceManager.GetString("TransformAccount_AdminAccountNotConfirmed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Administrator account &apos;{0}&apos; must be a different account than the one being transformed..
+        /// </summary>
+        public static string TransformAccount_AdminMustBeDifferentAccount {
+            get {
+                return ResourceManager.GetString("TransformAccount_AdminMustBeDifferentAccount", resourceCulture);
             }
         }
         

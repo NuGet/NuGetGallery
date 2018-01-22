@@ -214,7 +214,33 @@ namespace NuGetGallery
             return errorReason == null;
         }
 
-        public async Task<bool> TransformUserToOrganization(User accountToTransform, User adminUser, string token)
+        public bool CanTransformUserToOrganization(User accountToTransform, User adminUser, out string errorReason)
+        {
+            if (!CanTransformUserToOrganization(accountToTransform, out errorReason))
+            {
+                return false;
+            }
+
+            if (adminUser.MatchesUser(accountToTransform))
+            {
+                errorReason = String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_AdminMustBeDifferentAccount, adminUser.Username);
+            }
+            else if (!adminUser.Confirmed)
+            {
+                errorReason = String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_AdminAccountNotConfirmed, adminUser.Username);
+            }
+            else if (adminUser is Organization)
+            {
+                errorReason = String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_AdminAccountIsOrganization, adminUser.Username);
+            }
+
+            return errorReason == null;
+        }
+
+            public async Task<bool> TransformUserToOrganization(User accountToTransform, User adminUser, string token)
         {
             // todo: check for tenantId and add organization policy to enforce this (future work, with manage organization)
 

@@ -2373,6 +2373,10 @@ namespace NuGetGallery
                     .Returns(string.IsNullOrEmpty(canTransformErrorReason));
 
                 GetMock<IUserService>()
+                    .Setup(u => u.CanTransformUserToOrganization(It.IsAny<User>(), It.IsAny<User>(), out canTransformErrorReason))
+                    .Returns(string.IsNullOrEmpty(canTransformErrorReason));
+
+                GetMock<IUserService>()
                     .Setup(s => s.RequestTransformToOrganizationAccount(It.IsAny<User>(), It.IsAny<User>()))
                     .Callback<User, User>((acct, admin) => {
                         acct.OrganizationMigrationRequest = new OrganizationMigrationRequest()

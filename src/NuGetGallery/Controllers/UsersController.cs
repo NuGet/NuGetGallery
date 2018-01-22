@@ -129,11 +129,6 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> TransformToOrganization(TransformAccountViewModel transformViewModel)
         {
             var accountToTransform = GetCurrentUser();
-            string errorReason;
-            if (!_userService.CanTransformUserToOrganization(accountToTransform, out errorReason))
-            {
-                return TransformToOrganizationFailed(errorReason);
-            }
 
             var adminUser = _userService.FindByUsername(transformViewModel.AdminUsername);
             if (adminUser == null)
@@ -143,12 +138,12 @@ namespace NuGetGallery
                 return View(transformViewModel);
             }
 
-            if (!adminUser.Confirmed)
+            string errorReason;
+            if (!_userService.CanTransformUserToOrganization(accountToTransform, adminUser, out errorReason))
             {
-                ModelState.AddModelError("AdminUsername", Strings.TransformAccount_AdminAccountNotConfirmed);
-                return View(transformViewModel);
+                return TransformToOrganizationFailed(errorReason);
             }
-            
+
             await _userService.RequestTransformToOrganizationAccount(accountToTransform, adminUser);
 
             // sign out pending organization and prompt for admin sign in
