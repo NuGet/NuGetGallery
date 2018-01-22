@@ -23,9 +23,8 @@ namespace NuGetGallery.Services
             public async Task DeleteRequestsNullInput()
             {
                 // Arrange
-                var auditing = new Mock<IAuditingService>();
                 TestSupportRequestDbContext supportRequestContext = new TestSupportRequestDbContext();
-                SupportRequestService supportRequestService = new SupportRequestService(supportRequestContext, GetAppConfig(), auditing.Object);
+                SupportRequestService supportRequestService = new SupportRequestService(supportRequestContext, GetAppConfig());
 
                 // Act + Assert
                 await Assert.ThrowsAsync<ArgumentNullException>(() => supportRequestService.DeleteSupportRequestsAsync(null));
@@ -35,7 +34,6 @@ namespace NuGetGallery.Services
             public async Task DeleteRequestsNormalPath()
             {
                 // Arrange
-                var auditing = new Mock<IAuditingService>();
                 string userName = "Joe";
                 string emailAddress = "Joe@coldmail.com";
 
@@ -72,7 +70,7 @@ namespace NuGetGallery.Services
                 supportRequestContext.Issues.Add(JoesOldIssue);
                 supportRequestContext.Issues.Add(randomIssue);
 
-                SupportRequestService supportRequestService = new SupportRequestService(supportRequestContext, GetAppConfig(), auditing.Object);
+                SupportRequestService supportRequestService = new SupportRequestService(supportRequestContext, GetAppConfig());
 
                 // Act
                 await supportRequestService.DeleteSupportRequestsAsync(userName);

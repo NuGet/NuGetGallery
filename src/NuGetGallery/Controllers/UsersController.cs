@@ -12,6 +12,7 @@ using System.Web.Mvc;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Areas.Admin.ViewModels;
+using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
@@ -32,6 +33,7 @@ namespace NuGetGallery
         private readonly ICredentialBuilder _credentialBuilder;
         private readonly IDeleteAccountService _deleteAccountService;
         private readonly ISupportRequestService _supportRequestService;
+        private IAuditingService _auditingService;
 
         public UsersController(
             ICuratedFeedService feedsQuery,
@@ -43,7 +45,8 @@ namespace NuGetGallery
             AuthenticationService authService,
             ICredentialBuilder credentialBuilder,
             IDeleteAccountService deleteAccountService,
-            ISupportRequestService supportRequestService)
+            ISupportRequestService supportRequestService,
+            IAuditingService auditingService)
         {
             _curatedFeedService = feedsQuery ?? throw new ArgumentNullException(nameof(feedsQuery));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
@@ -55,6 +58,7 @@ namespace NuGetGallery
             _credentialBuilder = credentialBuilder ?? throw new ArgumentNullException(nameof(credentialBuilder));
             _deleteAccountService = deleteAccountService ?? throw new ArgumentNullException(nameof(deleteAccountService));
             _supportRequestService = supportRequestService ?? throw new ArgumentNullException(nameof(supportRequestService));
+            _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
         }
 
         [HttpGet]
@@ -251,11 +255,14 @@ namespace NuGetGallery
             var isSupportRequestCreated = supportRequest != null;
             if (!isSupportRequestCreated)
             {
+                await _auditingService.SaveAuditRecordAsync(new DeleteAccountAuditRecord(userName: user.Username, status: DeleteAccountAuditRecord.ActionStatus.Failure, action: AuditedDeleteAccountAction.RequestAccountDeletion));
                 TempData["RequestFailedMessage"] = Strings.AccountDelete_CreateSupportRequestFails;
                 return RedirectToAction("DeleteRequest");
             }
             _messageService.SendAccountDeleteNotice(user.ToMailAddress(), user.Username);
-           
+            await _auditingService.SaveAuditRecordAsync(new DeleteAccountAuditRecord(userName: user.Username,
+                   status: DeleteAccountAuditRecord.ActionStatus.Success,
+                   action: AuditedDeleteAccountAction.RequestAccountDeletion));
             return RedirectToAction("DeleteRequest");
         }
 
