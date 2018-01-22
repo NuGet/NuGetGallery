@@ -30,6 +30,12 @@ namespace NuGet.Services.Validation
         public EndCertificateStatus Status { get; set; }
 
         /// <summary>
+        /// The use of this end certificate. Today, this is a convenience property implied by
+        /// the presence of <see cref="PackageSignatures"/> or <see cref="TrustedTimestamps"/>.
+        /// </summary>
+        public EndCertificateUse Use { get; set; }
+
+        /// <summary>
         /// The time at which the status was known to be correct, according to the Certificate Authority.
         /// NULL if online verification have never been completed for this certificate.
         /// </summary>

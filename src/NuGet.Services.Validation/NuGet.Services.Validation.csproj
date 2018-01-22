@@ -44,6 +44,7 @@
     <Compile Include="Entities\CertificateChainLink.cs" />
     <Compile Include="Entities\EndCertificate.cs" />
     <Compile Include="Entities\EndCertificateStatus.cs" />
+    <Compile Include="Entities\EndCertificateUse.cs" />
     <Compile Include="Entities\EndCertificateValidation.cs" />
     <Compile Include="Entities\IValidationContext.cs" />
     <Compile Include="Entities\PackageSigningState.cs" />
@@ -76,6 +77,10 @@
     <Compile Include="Migrations\201801092335421_AddValidatorIssues.cs" />
     <Compile Include="Migrations\201801092335421_AddValidatorIssues.Designer.cs">
       <DependentUpon>201801092335421_AddValidatorIssues.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201801222056549_AddEndCertificateUse.cs" />
+    <Compile Include="Migrations\201801222056549_AddEndCertificateUse.Designer.cs">
+      <DependentUpon>201801222056549_AddEndCertificateUse.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\ValidationMigrationsConfiguration.cs" />
     <Compile Include="PackageValidationEnqueuer.cs" />
@@ -113,6 +118,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201801092335421_AddValidatorIssues.resx">
       <DependentUpon>201801092335421_AddValidatorIssues.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201801222056549_AddEndCertificateUse.resx">
+      <DependentUpon>201801222056549_AddEndCertificateUse.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
