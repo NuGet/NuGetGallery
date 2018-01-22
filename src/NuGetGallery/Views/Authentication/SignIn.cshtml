@@ -7,12 +7,17 @@
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 
     var returnUrl = (string)ViewData[Constants.ReturnUrlViewDataKey];
+    var returnUrlMessage = (string)ViewData[Constants.ReturnUrlMessageViewDataKey];
 }
 
 <section role="main" class="container main-container page-sign-in">
     <div class="row">
         <div class="col-xs-12 text-center">
             <h1>Sign in</h1>
+            @if (!string.IsNullOrEmpty(returnUrlMessage))
+            {
+                @ViewHelpers.AlertInfo(@<text>@returnUrlMessage</text>)
+            }
         </div>
     </div>
 

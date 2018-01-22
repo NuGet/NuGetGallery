@@ -67,6 +67,11 @@ namespace NuGetGallery
             // I think it should be obvious why we don't want the current URL to be the return URL here ;)
             ViewData[Constants.ReturnUrlViewDataKey] = returnUrl;
 
+            if (TempData.ContainsKey(Constants.ReturnUrlMessageViewDataKey))
+            {
+                ViewData[Constants.ReturnUrlMessageViewDataKey] = TempData[Constants.ReturnUrlMessageViewDataKey];
+            }
+
             if (Request.IsAuthenticated)
             {
                 return LoggedInRedirect(returnUrl);
