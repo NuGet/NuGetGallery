@@ -274,7 +274,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-      <EmbeddedResource Include="Infrastructure\MigrateUserToOrganization.sql" />
+     <EmbeddedResource Include="Infrastructure\MigrateUserToOrganization.sql" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

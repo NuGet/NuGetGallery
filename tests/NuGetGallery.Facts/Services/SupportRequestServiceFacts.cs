@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Models;
-using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
 using Moq;
 using Xunit;
