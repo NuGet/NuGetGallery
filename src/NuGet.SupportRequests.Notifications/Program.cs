@@ -10,7 +10,7 @@ namespace NuGet.SupportRequests.Notifications
         public static void Main(string[] args)
         {
             var job = new Job();
-            JobRunner.Run(job, args).Wait();
+            JobRunner.Run(job, args).GetAwaiter().GetResult();
         }
     }
 }
