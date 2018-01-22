@@ -32,6 +32,7 @@ namespace NuGetGallery
     public partial class ApiController
         : AppController
     {
+        public IApiScopeEvaluator ApiScopeEvaluator { get; set; }
         public IEntitiesContext EntitiesContext { get; set; }
         public INuGetExeDownloaderService NugetExeDownloaderService { get; set; }
         public IPackageFileService PackageFileService { get; set; }
@@ -59,6 +60,7 @@ namespace NuGetGallery
         }
 
         public ApiController(
+            IApiScopeEvaluator apiScopeEvaluator,
             IEntitiesContext entitiesContext,
             IPackageService packageService,
             IPackageFileService packageFileService,
@@ -79,6 +81,7 @@ namespace NuGetGallery
             IReservedNamespaceService reservedNamespaceService,
             IPackageUploadService packageUploadService)
         {
+            ApiScopeEvaluator = apiScopeEvaluator;
             EntitiesContext = entitiesContext;
             PackageService = packageService;
             PackageFileService = packageFileService;
@@ -102,6 +105,7 @@ namespace NuGetGallery
         }
 
         public ApiController(
+            IApiScopeEvaluator apiScopeEvaluator,
             IEntitiesContext entitiesContext,
             IPackageService packageService,
             IPackageFileService packageFileService,
@@ -122,9 +126,9 @@ namespace NuGetGallery
             ISecurityPolicyService securityPolicies,
             IReservedNamespaceService reservedNamespaceService,
             IPackageUploadService packageUploadService)
-            : this(entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService,
+            : this(apiScopeEvaluator, entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService,
                   indexingService, searchService, autoCuratePackage, statusService, messageService, auditingService,
-                  configurationService, telemetryService, authenticationService, credentialBuilder, securityPolicies, 
+                  configurationService, telemetryService, authenticationService, credentialBuilder, securityPolicies,
                   reservedNamespaceService, packageUploadService)
         {
             StatisticsService = statisticsService;
@@ -292,22 +296,21 @@ namespace NuGetGallery
             // Write an audit record
             await AuditingService.SaveAuditRecordAsync(
                 new PackageAuditRecord(package, AuditedPackageAction.Verify));
-
+            
+            string[] requestedActions;
             if (CredentialTypes.IsPackageVerificationApiKey(credential.Type))
             {
-                // Secure path: verify that verification key matches package scope.
-                if (!HasAnyScopeThatAllows(package.PackageRegistration, NuGetScopes.PackageVerify))
-                {
-                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
-                }
+                requestedActions = new[] { NuGetScopes.PackageVerify };
             }
             else
             {
-                // Insecure path: verify that API key is legacy or matches package scope.
-                if (!HasAnyScopeThatAllows(package.PackageRegistration, NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion))
-                {
-                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
-                }
+                requestedActions = new[] { NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion };
+            }
+
+            var apiScopeEvaluationResult = EvaluateApiScope(ActionsRequiringPermissions.VerifyPackage, package.PackageRegistration, requestedActions);
+            if (!apiScopeEvaluationResult.IsSuccessful())
+            {
+                return GetHttpResultFromFailedApiScopeEvaluation(apiScopeEvaluationResult, id, version);
             }
 
             return null;
@@ -340,7 +343,7 @@ namespace NuGetGallery
             }
 
             // Get the user
-            var user = GetCurrentUser();
+            var currentUser = GetCurrentUser();
 
             using (var packageStream = ReadPackageFromRequest())
             {
@@ -400,42 +403,39 @@ namespace NuGetGallery
                                 nuspec.GetMinClientVersion()));
                         }
 
+                        User owner;
+
                         // Ensure that the user can push packages for this partialId.
                         var id = nuspec.GetId();
+                        var version = nuspec.GetVersion();
                         var packageRegistration = PackageService.FindPackageRegistrationById(id);
                         if (packageRegistration == null)
                         {
-                            // Check if API key allows pushing a new package id
-                            if (!HasAnyScopeThatAllowsPushNew(id))
+                            // Check if the current user's scopes allow pushing a new package ID
+                            var apiScopeEvaluationResult = EvaluateApiScope(ActionsRequiringPermissions.UploadNewPackageId, new ActionOnNewPackageContext(id, ReservedNamespaceService), NuGetScopes.PackagePush);
+                            owner = apiScopeEvaluationResult.Owner;
+                            if (!apiScopeEvaluationResult.IsSuccessful())
                             {
-                                // User cannot push a new package ID as the API key scope does not allow it
-                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Unauthorized, Strings.ApiKeyNotAuthorized);
-                            }
-
-                            // For a new package id verify that the user is allowed to push to the matching namespaces, if any.
-                            if (ActionsRequiringPermissions.UploadNewPackageId.CheckPermissionsOnBehalfOfAnyAccount(
-                                user, new ActionOnNewPackageContext(id, ReservedNamespaceService)) != PermissionsCheckResult.Allowed)
-                            {
-                                var version = nuspec.GetVersion().ToNormalizedString();
-                                TelemetryService.TrackPackagePushNamespaceConflictEvent(id, version, user, User.Identity);
-
-                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict, Strings.UploadPackage_IdNamespaceConflict);
+                                // User cannot push a new package ID as the current user's scopes does not allow it
+                                return GetHttpResultFromFailedApiScopeEvaluationForPush(apiScopeEvaluationResult, id, version);
                             }
                         }
                         else
                         {
-                            // Check if API key allows pushing the current package id
-                            if (!HasAnyScopeThatAllows(packageRegistration, NuGetScopes.PackagePushVersion, NuGetScopes.PackagePush))
+                            // Check if the current user's scopes allow pushing a new version of an existing package ID
+                            var apiScopeEvaluationResult = EvaluateApiScope(ActionsRequiringPermissions.UploadNewPackageVersion, packageRegistration, NuGetScopes.PackagePushVersion, NuGetScopes.PackagePush);
+                            owner = apiScopeEvaluationResult.Owner;
+                            if (!apiScopeEvaluationResult.IsSuccessful())
                             {
+                                // User cannot push a package as the current user's scopes does not allow it
                                 await AuditingService.SaveAuditRecordAsync(
                                     new FailedAuthenticatedOperationAuditRecord(
-                                        user.Username,
+                                        currentUser.Username,
                                         AuditedAuthenticatedOperationAction.PackagePushAttemptByNonOwner,
                                         attemptedPackage: new AuditedPackageIdentifier(
-                                            id, nuspec.GetVersion().ToNormalizedStringSafe())));
+                                            id, version.ToNormalizedStringSafe())));
 
-                                // User cannot push a package as the API key scope does not allow it
-                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Unauthorized, Strings.ApiKeyNotAuthorized);
+                                return GetHttpResultFromFailedApiScopeEvaluationForPush(apiScopeEvaluationResult, id, version);
                             }
 
                             if (packageRegistration.IsLocked)
@@ -446,7 +446,7 @@ namespace NuGetGallery
                             }
 
                             // Check if a particular Id-Version combination already exists. We eventually need to remove this check.
-                            string normalizedVersion = nuspec.GetVersion().ToNormalizedString();
+                            string normalizedVersion = version.ToNormalizedString();
                             bool packageExists =
                                 packageRegistration.Packages.Any(
                                     p => string.Equals(
@@ -474,8 +474,8 @@ namespace NuGetGallery
                             id,
                             packageToPush,
                             packageStreamMetadata,
-                            owner: user,
-                            currentUser: user);
+                            owner,
+                            currentUser);
 
                         await AutoCuratePackage.ExecuteAsync(package, packageToPush, commitChanges: false);
 
@@ -487,7 +487,7 @@ namespace NuGetGallery
                                 package,
                                 uploadStream.AsSeekableStream());
                         }
-                            
+
                         switch (commitResult)
                         {
                             case PackageCommitResult.Success:
@@ -515,7 +515,7 @@ namespace NuGetGallery
                                 Url.AccountSettings(relativeUrl: false));
                         }
 
-                        TelemetryService.TrackPackagePushEvent(package, user, User.Identity);
+                        TelemetryService.TrackPackagePushEvent(package, currentUser, User.Identity);
 
                         if (package.SemVerLevelKey == SemVerLevelKey.SemVer2)
                         {
@@ -564,11 +564,11 @@ namespace NuGetGallery
                     HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
             }
 
-            // Check if API key allows listing/unlisting the current package id
-            var user = GetCurrentUser();
-            if (!HasAnyScopeThatAllows(package.PackageRegistration, NuGetScopes.PackageUnlist))
+            // Check if the current user's scopes allow listing/unlisting the current package ID
+            var apiScopeEvaluationResult = EvaluateApiScope(ActionsRequiringPermissions.UnlistOrRelistPackage, package.PackageRegistration, NuGetScopes.PackageUnlist);
+            if (!apiScopeEvaluationResult.IsSuccessful())
             {
-                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
+                return GetHttpResultFromFailedApiScopeEvaluation(apiScopeEvaluationResult, id, version);
             }
 
             if (package.PackageRegistration.IsLocked)
@@ -596,11 +596,11 @@ namespace NuGetGallery
                     HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
             }
 
-            // Check if API key allows listing/unlisting the current package id
-            User user = GetCurrentUser();
-            if (!HasAnyScopeThatAllows(package.PackageRegistration, NuGetScopes.PackageUnlist))
+            // Check if the current user's scopes allow listing/unlisting the current package ID
+            var apiScopeEvaluationResult = EvaluateApiScope(ActionsRequiringPermissions.UnlistOrRelistPackage, package.PackageRegistration, NuGetScopes.PackageUnlist);
+            if (!apiScopeEvaluationResult.IsSuccessful())
             {
-                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
+                return GetHttpResultFromFailedApiScopeEvaluation(apiScopeEvaluationResult, id, version);
             }
 
             if (package.PackageRegistration.IsLocked)
@@ -729,42 +729,60 @@ namespace NuGetGallery
             return new HttpStatusCodeResult(HttpStatusCode.NotFound);
         }
 
-        private bool HasAnyScopeThatAllows(PackageRegistration package, params string[] requestedActions)
+        private HttpStatusCodeWithBodyResult GetHttpResultFromFailedApiScopeEvaluation(ApiScopeEvaluationResult evaluationResult, string id, string version)
         {
-            var scopes = User.Identity.GetScopesFromClaim();
-            if (scopes != null)
-            {
-                if (!scopes.Any(s => s.AllowsSubject(package.Id) && s.AllowsActions(requestedActions)))
-                {
-                    // Subject (package id) or action scopes do not match.
-                    return false;
-                }
-                
-                if (scopes.Any(s => s.HasOwnerScope()))
-                {
-                    // ApiKeyHandler has already verified that the current user matches the owner scope.
-                    // Do not need to check organization role (IsAdmin) which is covered by the action scope.
-                    return GetCurrentUser().IsOwnerOrMemberOfOrganizationOwner(package);
-                }
-            }
-
-            // Legacy V1 API key (no scopes), or Legacy V2 API key (no owner scope).
-            // Must verify that the current user is the package owner or admin for an organization owner.
-            return GetCurrentUser().IsOwnerOrMemberOfOrganizationOwner(package);
+            return GetHttpResultFromFailedApiScopeEvaluation(evaluationResult, id, NuGetVersion.Parse(version));
         }
 
-        private bool HasAnyScopeThatAllowsPushNew(string packageId)
+        private HttpStatusCodeWithBodyResult GetHttpResultFromFailedApiScopeEvaluation(ApiScopeEvaluationResult result, string id, NuGetVersion version)
         {
-            //  Package owners not populated yet, so only verify the scope subject and action.
-            var scopes = User.Identity.GetScopesFromClaim();
-            if (scopes != null)
+            return GetHttpResultFromFailedApiScopeEvaluationHelper(result, id, version, HttpStatusCode.Forbidden);
+        }
+
+        /// <remarks>
+        /// Push returns <see cref="HttpStatusCode.Unauthorized"/> instead of <see cref="HttpStatusCode.Forbidden"/> for failures not related to reserved namespaces.
+        /// This is inconsistent with both the rest of our API and the HTTP standard, but it is an existing behavior that we must support.
+        /// </remarks>
+        private HttpStatusCodeWithBodyResult GetHttpResultFromFailedApiScopeEvaluationForPush(ApiScopeEvaluationResult result, string id, NuGetVersion version)
+        {
+            return GetHttpResultFromFailedApiScopeEvaluationHelper(result, id, version, HttpStatusCode.Unauthorized);
+        }
+
+        private HttpStatusCodeWithBodyResult GetHttpResultFromFailedApiScopeEvaluationHelper(ApiScopeEvaluationResult result, string id, NuGetVersion version, HttpStatusCode statusCodeOnFailure)
+        {
+            if (result.IsSuccessful())
             {
-                // Return true if scope allows action for subject (package).
-                return scopes.Any(s => s.AllowsActions(NuGetScopes.PackagePush) && s.AllowsSubject(packageId));
+                throw new ArgumentException($"{nameof(result)} is not a failed evaluation!", nameof(result));
             }
 
-            // Legacy V1 API key (no scopes).
-            return true;
+            if (result.PermissionsCheckResult == PermissionsCheckResult.ReservedNamespaceFailure)
+            {
+                // We return a special error code for reserved namespace failures.
+                TelemetryService.TrackPackagePushNamespaceConflictEvent(id, version.ToNormalizedString(), GetCurrentUser(), User.Identity);
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict, Strings.UploadPackage_IdNamespaceConflict);
+            }
+
+            return new HttpStatusCodeWithBodyResult(statusCodeOnFailure, Strings.ApiKeyNotAuthorized);
+        }
+
+        private ApiScopeEvaluationResult EvaluateApiScope(IActionRequiringEntityPermissions<PackageRegistration> action, PackageRegistration packageRegistration, params string[] requestedActions)
+        {
+            return ApiScopeEvaluator.Evaluate(
+                GetCurrentUser(),
+                User.Identity.GetScopesFromClaim(),
+                action,
+                packageRegistration,
+                requestedActions);
+        }
+
+        private ApiScopeEvaluationResult EvaluateApiScope(IActionRequiringEntityPermissions<ActionOnNewPackageContext> action, ActionOnNewPackageContext context, params string[] requestedActions)
+        {
+            return ApiScopeEvaluator.Evaluate(
+                GetCurrentUser(),
+                User.Identity.GetScopesFromClaim(),
+                action,
+                context,
+                requestedActions);
         }
     }
 }

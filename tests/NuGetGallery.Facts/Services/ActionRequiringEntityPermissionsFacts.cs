@@ -11,38 +11,6 @@ namespace NuGetGallery
 {
     public class ActionRequiringEntityPermissionsFacts
     {
-        private class Entity
-        {
-            public IEnumerable<User> Owners { get; }
-
-            public Entity(IEnumerable<User> owners)
-            {
-                Owners = owners;
-            }
-        }
-
-        private class TestableActionRequiringEntityPermissions 
-            : ActionRequiringEntityPermissions<Entity>
-        {
-            private Func<User, Entity, PermissionsCheckResult> _isAllowedOnEntity;
-
-            public TestableActionRequiringEntityPermissions(PermissionsRequirement accountOnBehalfOfPermissionsRequirement, Func<User, Entity, PermissionsCheckResult> isAllowedOnEntity) 
-                : base(accountOnBehalfOfPermissionsRequirement)
-            {
-                _isAllowedOnEntity = isAllowedOnEntity;
-            }
-
-            protected override IEnumerable<User> GetOwners(Entity entity)
-            {
-                return entity != null ? entity.Owners : Enumerable.Empty<User>();
-            }
-
-            protected override PermissionsCheckResult CheckPermissionsForEntity(User account, Entity entity)
-            {
-                return _isAllowedOnEntity(account, entity);
-            }
-        }
-
         public class TheCheckPermissionsMethod
         {
             [Fact]
@@ -60,7 +28,7 @@ namespace NuGetGallery
                 AssertIsAllowed(action, failureToReturn);
             }
             
-            private void AssertIsAllowed(ActionRequiringEntityPermissions<Entity> action, PermissionsCheckResult expectedFailure)
+            private void AssertIsAllowed(IActionRequiringEntityPermissions<TestablePermissionsEntity> action, PermissionsCheckResult expectedFailure)
             {
                 Assert.Equal(expectedFailure, action.CheckPermissions((User)null, null, null));
                 Assert.Equal(expectedFailure, action.CheckPermissions((IPrincipal)null, null, null));
@@ -179,10 +147,10 @@ namespace NuGetGallery
                 Assert.True(accountsAllowedOnBehalfOf.SequenceEqual(expectedAccountsList));
             }
 
-            private void CreateEntityWithOwner(out Entity entity, out User entityOwner)
+            private void CreateEntityWithOwner(out TestablePermissionsEntity entity, out User entityOwner)
             {
                 entityOwner = new User { Key = 2 };
-                entity = new Entity(new[] { entityOwner });
+                entity = new TestablePermissionsEntity(new[] { entityOwner });
             }
 
             private void CreateOrganizationWithUser(out Organization organization, out User user)

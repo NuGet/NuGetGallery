@@ -47,15 +47,21 @@ namespace NuGetGallery.Authentication
             return CreateApiKey(CredentialTypes.ApiKey.V4, apiKey.HashedApiKey, expiration);
         }
 
+        public static Credential WithScopes(this Credential credential, ICollection<Scope> scopes)
+        {
+            credential.Scopes = scopes;
+            return credential;
+        }
+
         public static Credential WithDefaultScopes(this Credential credential)
         {
-            credential.Scopes = new List<Scope>() {
+            var scopes = new[] {
                   new Scope("*", NuGetScopes.PackageUnlist),
                   new Scope("*", NuGetScopes.PackagePush),
                   new Scope("*", NuGetScopes.PackagePushVersion)
             };
 
-            return credential;
+            return credential.WithScopes(scopes);
         }
 
         public static Credential CreateV2VerificationApiKey(Guid apiKey)
