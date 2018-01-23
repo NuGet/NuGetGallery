@@ -1603,13 +1603,13 @@ namespace NuGetGallery
 
             [Theory]
             [MemberData(nameof(NotOwner_Data))]
-            public void Returns401IfNotOwner(User currentUser, User owner)
+            public void Returns403IfNotOwner(User currentUser, User owner)
             {
                 var result = GetDeleteResult(currentUser, owner, out var controller);
                 
                 Assert.IsType<HttpStatusCodeResult>(result);
                 var httpStatusCodeResult = result as HttpStatusCodeResult;
-                Assert.Equal(401, httpStatusCodeResult.StatusCode);
+                Assert.Equal((int)HttpStatusCode.Forbidden, httpStatusCodeResult.StatusCode);
             }
 
             public static IEnumerable<object[]> Owner_Data
@@ -1747,7 +1747,7 @@ namespace NuGetGallery
 
             [Theory]
             [MemberData(nameof(NotOwner_Data))]
-            public async Task Returns401IfNotOwner(User currentUser, User owner)
+            public async Task Returns403IfNotOwner(User currentUser, User owner)
             {
                 // Arrange
                 var package = new Package
@@ -1775,7 +1775,7 @@ namespace NuGetGallery
                 // Assert
                 Assert.IsType<HttpStatusCodeResult>(result);
                 var httpStatusCodeResult = result as HttpStatusCodeResult;
-                Assert.Equal(401, httpStatusCodeResult.StatusCode);
+                Assert.Equal((int)HttpStatusCode.Forbidden, httpStatusCodeResult.StatusCode);
             }
 
             public static IEnumerable<object[]> Owner_Data
@@ -2223,7 +2223,7 @@ namespace NuGetGallery
             
             [Theory]
             [MemberData(nameof(NotOwner_Data))]
-            public async Task Returns401IfNotOwner(User currentUser, User owner)
+            public async Task Returns403IfNotOwner(User currentUser, User owner)
             {
                 // Arrange
                 var package = new Package
@@ -2251,7 +2251,7 @@ namespace NuGetGallery
                 // Assert
                 Assert.IsType<HttpStatusCodeResult>(result);
                 var httpStatusCodeResult = result as HttpStatusCodeResult;
-                Assert.Equal(401, httpStatusCodeResult.StatusCode);
+                Assert.Equal((int)HttpStatusCode.Forbidden, httpStatusCodeResult.StatusCode);
             }
 
             [Theory]
@@ -2439,13 +2439,13 @@ namespace NuGetGallery
 
             [Theory]
             [MemberData(nameof(NotOwner_Data))]
-            public void Returns401IfNotOwner(User currentUser, User owner)
+            public void Returns403IfNotOwner(User currentUser, User owner)
             {
                 var result = GetManagePackageOwnersResult(currentUser, owner);
 
                 Assert.IsType<HttpStatusCodeResult>(result);
                 var httpStatusCodeResult = result as HttpStatusCodeResult;
-                Assert.Equal(401, httpStatusCodeResult.StatusCode);
+                Assert.Equal((int)HttpStatusCode.Forbidden, httpStatusCodeResult.StatusCode);
             }
 
             public static IEnumerable<object[]> Owner_Data
@@ -4950,7 +4950,7 @@ namespace NuGetGallery
 
             [Theory]
             [MemberData(nameof(NotOwner_Data))]
-            public async Task Returns401IfNotOwner(User currentUser, User owner, bool visible)
+            public async Task Returns403IfNotOwner(User currentUser, User owner, bool visible)
             {
                 // Arrange
                 var package = new Package
@@ -4978,7 +4978,7 @@ namespace NuGetGallery
                 // Assert
                 Assert.IsType<HttpStatusCodeResult>(result);
                 var httpStatusCodeResult = result as HttpStatusCodeResult;
-                Assert.Equal(401, httpStatusCodeResult.StatusCode);
+                Assert.Equal((int)HttpStatusCode.Forbidden, httpStatusCodeResult.StatusCode);
             }
 
             public static IEnumerable<object[]> Owner_Data
