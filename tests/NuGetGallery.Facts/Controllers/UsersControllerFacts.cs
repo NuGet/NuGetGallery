@@ -2478,24 +2478,6 @@ namespace NuGetGallery
         public class TheConfirmTransformToOrganizationAction : TestContainer
         {
             [Fact]
-            public async Task WhenAdminIsNotConfirmed_ShowsError()
-            {
-                // Arrange
-                var controller = GetController<UsersController>();
-                var currentUser = new User() { UnconfirmedEmailAddress = "unconfirmed@example.com" };
-                controller.SetCurrentUser(currentUser);
-
-                // Act
-                var result = await controller.ConfirmTransformToOrganization("account", "token") as ViewResult;
-
-                // Assert
-                Assert.NotNull(result);
-
-                var model = result.Model as TransformAccountFailedViewModel;
-                Assert.Equal(Strings.TransformAccount_NotConfirmed, model.ErrorMessage);
-            }
-
-            [Fact]
             public async Task WhenAccountToTransformIsNotFound_ShowsError()
             {
                 // Arrange
@@ -2588,6 +2570,10 @@ namespace NuGetGallery
 
                 GetMock<IUserService>()
                     .Setup(u => u.CanTransformUserToOrganization(It.IsAny<User>(), out canTransformErrorReason))
+                    .Returns(string.IsNullOrEmpty(canTransformErrorReason));
+
+                GetMock<IUserService>()
+                    .Setup(u => u.CanTransformUserToOrganization(It.IsAny<User>(), It.IsAny<User>(), out canTransformErrorReason))
                     .Returns(string.IsNullOrEmpty(canTransformErrorReason));
 
                 GetMock<IUserService>()

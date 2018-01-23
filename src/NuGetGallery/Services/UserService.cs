@@ -201,8 +201,7 @@ namespace NuGetGallery
             }
             else if (accountToTransform.Organizations.Any() || accountToTransform.OrganizationRequests.Any())
             {
-                errorReason = String.Format(CultureInfo.CurrentCulture,
-                    Strings.TransformAccount_FailedReasonHasMemberships, accountToTransform.Username);
+                errorReason = Strings.TransformAccount_FailedReasonHasMemberships;
             }
             else if (enabledDomains == null ||
                 !enabledDomains.Contains(accountToTransform.ToMailAddress().Host, StringComparer.OrdinalIgnoreCase))
@@ -240,7 +239,7 @@ namespace NuGetGallery
             return errorReason == null;
         }
 
-            public async Task<bool> TransformUserToOrganization(User accountToTransform, User adminUser, string token)
+        public async Task<bool> TransformUserToOrganization(User accountToTransform, User adminUser, string token)
         {
             // todo: check for tenantId and add organization policy to enforce this (future work, with manage organization)
 
