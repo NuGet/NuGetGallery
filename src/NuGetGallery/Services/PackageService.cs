@@ -271,7 +271,7 @@ namespace NuGetGallery
 
                 // Like DisplayPackage we should prefer to show you information from the latest stable version,
                 // but show you the latest version (potentially latest UNLISTED version) otherwise.
-                yield return packagesByRegistration.OrderByDescending(p => p.Version).First();
+                yield return packagesByRegistration.OrderByDescending(p => NuGetVersion.Parse(p.Version)).First();
             }
         }
 
