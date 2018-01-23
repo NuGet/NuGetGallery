@@ -4,9 +4,7 @@
     ViewBag.Title = "Manage My Package";
     ViewBag.Tab = "Packages";
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
-
-    var publishedPackagesCount = Model.ListedPackages.Count();
-    var unlistedPackagesCount = Model.UnlistedPackages.Count();
+    
     var namespacesCount = Model.ReservedNamespaces.ReservedNamespaces.Count();
     var ownerRequestsIncomingCount = Model.OwnerRequests.Incoming.RequestItems.Count();
     var ownerRequestsOutgoingCount = Model.OwnerRequests.Outgoing.RequestItems.Count();
@@ -199,22 +197,6 @@
                          DefaultPackageIconUrl = Url.Absolute("~/Content/gallery/img/default-package-icon.svg"),
                          PackageIconUrlFallback = Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")
                      }));
-        JSON.stringifyOnce = function (obj, replacer, space) {
-            var cache = [];
-            var json = JSON.stringify(obj, function (key, value) {
-                if (typeof value === 'object' && value !== null) {
-                    if (cache.indexOf(value) !== -1) {
-                        // circular reference found, discard key
-                        return;
-                    }
-                    // store value in our collection
-                    cache.push(value);
-                }
-                return replacer ? replacer(key, value) : value;
-            }, space);
-            cache = null;
-            return json;
-        };
     </script>
     @ViewHelpers.SectionsScript(this)
     @Scripts.Render("~/Scripts/gallery/page-manage-packages.min.js")
