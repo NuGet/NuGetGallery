@@ -30,6 +30,11 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
         /// </summary>
         public const string Leaf2Thumbprint = "cd177f02cb88f6e6fb6b0dd67d68559b101c3e100fb19ebf4db43d9d082674e1";
 
+        /// <summary>
+        /// This is the SHA-256 thumbprint of the timestamp certificate in <see cref="SignedPackageLeaf1"/>.
+        /// </summary>
+        public const string Leaf1TimestampThumbprint = "cf7ac17ad047ecd5fdc36822031b12d4ef078b6f2b4c5e6ba41f8ff2cf4bad67";
+
         public static SignedPackageArchive SignedPackageLeaf1Reader => LoadPackage(SignedPackageLeaf1);
         public static SignedPackageArchive SignedPackageLeaf2Reader => LoadPackage(SignedPackageLeaf2);
 

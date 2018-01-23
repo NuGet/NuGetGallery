@@ -106,13 +106,13 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                     && packageSigningStatus == PackageSigningStatus.Valid)
                 {
                     _signaturePartsExtractor.Verify(
-                        x => x.ExtractAsync(It.IsAny<ISignedPackageReader>(), It.IsAny<CancellationToken>()),
+                        x => x.ExtractAsync(It.IsAny<int>(), It.IsAny<ISignedPackageReader>(), It.IsAny<CancellationToken>()),
                         Times.Once);
                 }
                 else
                 {
                     _signaturePartsExtractor.Verify(
-                        x => x.ExtractAsync(It.IsAny<ISignedPackageReader>(), It.IsAny<CancellationToken>()),
+                        x => x.ExtractAsync(It.IsAny<int>(), It.IsAny<ISignedPackageReader>(), It.IsAny<CancellationToken>()),
                         Times.Never);
                 }
             }

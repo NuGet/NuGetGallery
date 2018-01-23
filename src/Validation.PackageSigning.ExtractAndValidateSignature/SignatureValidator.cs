@@ -3,7 +3,6 @@
 
 using System;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
@@ -199,7 +198,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
             }
 
             // Extract all of the signature artifacts and persist them.
-            await _signaturePartsExtractor.ExtractAsync(signedPackageReader, cancellationToken);
+            await _signaturePartsExtractor.ExtractAsync(packageKey, signedPackageReader, cancellationToken);
 
             // Mark this package as signed.
             return await AcceptAsync(packageKey, message, PackageSigningStatus.Valid);
