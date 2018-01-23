@@ -44,6 +44,7 @@ namespace NuGet.Services.Validation
         private const string PackageSignaturesStatusIndex = "IX_PackageSignatures_Status";
 
         private const string TrustedTimestampsTable = "TrustedTimestamps";
+        private const string TrustedTimestampsPackageSignatureKeyIndex = "IX_TrustedTimestamps_PackageSignatureKey";
 
         private const string EndCertificatesTable = "EndCertificates";
         private const string EndCertificatesThumbprintIndex = "IX_EndCertificates_Thumbprint";
@@ -279,6 +280,9 @@ namespace NuGet.Services.Validation
                     new IndexAnnotation(new[]
                     {
                         new IndexAttribute(PackageSignaturesPackageKeyIndex)
+                        {
+                            IsUnique = true,
+                        }
                     }));
 
             modelBuilder.Entity<PackageSignature>()
@@ -333,6 +337,19 @@ namespace NuGet.Services.Validation
                 .WithMany(c => c.TrustedTimestamps)
                 .HasForeignKey(s => s.EndCertificateKey)
                 .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<TrustedTimestamp>()
+                .Property(s => s.PackageSignatureKey)
+                .IsRequired()
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(new[]
+                    {
+                        new IndexAttribute(TrustedTimestampsPackageSignatureKeyIndex)
+                        {
+                            IsUnique = true,
+                        }
+                    }));
 
             modelBuilder.Entity<EndCertificate>()
                 .ToTable(EndCertificatesTable, SignatureSchema)

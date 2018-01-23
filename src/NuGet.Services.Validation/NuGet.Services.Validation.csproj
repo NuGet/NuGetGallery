@@ -82,6 +82,10 @@
     <Compile Include="Migrations\201801222056549_AddEndCertificateUse.Designer.cs">
       <DependentUpon>201801222056549_AddEndCertificateUse.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201801232345348_MakeSignatureAndTimestampUniquePerPackage.cs" />
+    <Compile Include="Migrations\201801232345348_MakeSignatureAndTimestampUniquePerPackage.Designer.cs">
+      <DependentUpon>201801232345348_MakeSignatureAndTimestampUniquePerPackage.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\ValidationMigrationsConfiguration.cs" />
     <Compile Include="PackageValidationEnqueuer.cs" />
     <Compile Include="PackageValidationMessageData.cs" />
@@ -121,6 +125,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201801222056549_AddEndCertificateUse.resx">
       <DependentUpon>201801222056549_AddEndCertificateUse.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201801232345348_MakeSignatureAndTimestampUniquePerPackage.resx">
+      <DependentUpon>201801232345348_MakeSignatureAndTimestampUniquePerPackage.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
