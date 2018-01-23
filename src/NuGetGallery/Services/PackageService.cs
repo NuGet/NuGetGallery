@@ -226,11 +226,11 @@ namespace NuGetGallery
             }
             else
             {
-                return GetLatestPackagesForOwners(packages.ToList());
+                return GetLatestPackageForEachRegistration(packages.ToList());
             }
         }
 
-        private IEnumerable<Package> GetLatestPackagesForOwners(IReadOnlyCollection<Package> packages)
+        private IEnumerable<Package> GetLatestPackageForEachRegistration(IReadOnlyCollection<Package> packages)
         {
             // This method uses First() and FirstOrDefault() instead of Single() or SingleOrDefault() to get the latest package, 
             // in case there are multiple latest due to concurrency issue
