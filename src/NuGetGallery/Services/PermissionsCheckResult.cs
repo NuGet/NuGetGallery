@@ -24,12 +24,12 @@ namespace NuGetGallery
         AccountFailure,
 
         /// <summary>
-        /// The current user does not have permissions to perform the action on the <see cref="NuGetGallery.PackageRegistration"/> on behalf of another <see cref="User"/>.
+        /// The current user does not have permissions to perform the action on the <see cref="PackageRegistration"/> on behalf of another <see cref="User"/>.
         /// </summary>
         PackageRegistrationFailure,
 
         /// <summary>
-        /// The current user does not have permissions to perform the action on the <see cref="NuGetGallery.ReservedNamespace"/> on behalf of another <see cref="User"/>.
+        /// The current user does not have permissions to perform the action on the <see cref="ReservedNamespace"/> on behalf of another <see cref="User"/>.
         /// </summary>
         ReservedNamespaceFailure
     }

@@ -911,10 +911,9 @@ namespace NuGetGallery
         [HttpGet]
         [Authorize]
         [RequiresAccountConfirmation("contact package owners")]
-        public virtual ActionResult ContactOwners(string id)
+        public virtual ActionResult ContactOwners(string id, string version)
         {
-            var package = _packageService.FindPackageByIdAndVersion(id, version: null);
-
+            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
             if (package == null || package.PackageRegistration == null)
             {
                 return HttpNotFound();
@@ -923,7 +922,8 @@ namespace NuGetGallery
             bool hasOwners = package.PackageRegistration.Owners.Any();
             var model = new ContactOwnersViewModel
             {
-                PackageId = package.PackageRegistration.Id,
+                PackageId = id,
+                PackageVersion = package.Version,
                 ProjectUrl = package.ProjectUrl,
                 Owners = package.PackageRegistration.Owners.Where(u => u.EmailAllowed),
                 CopySender = true,
@@ -937,17 +937,17 @@ namespace NuGetGallery
         [Authorize]
         [ValidateAntiForgeryToken]
         [RequiresAccountConfirmation("contact package owners")]
-        public virtual ActionResult ContactOwners(string id, ContactOwnersViewModel contactForm)
+        public virtual ActionResult ContactOwners(string id, string version, ContactOwnersViewModel contactForm)
         {
             // Html Encode the message
             contactForm.Message = System.Web.HttpUtility.HtmlEncode(contactForm.Message);
 
             if (!ModelState.IsValid)
             {
-                return ContactOwners(id);
+                return ContactOwners(id, version);
             }
 
-            var package = _packageService.FindPackageRegistrationById(id);
+            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
             if (package == null)
             {
                 return HttpNotFound();
@@ -971,7 +971,7 @@ namespace NuGetGallery
                 routeValues: new
                 {
                     id,
-                    version = (string)null
+                    version
                 });
         }
 

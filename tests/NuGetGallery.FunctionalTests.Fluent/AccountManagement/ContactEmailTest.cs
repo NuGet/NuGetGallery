@@ -65,7 +65,7 @@ namespace NuGetGallery.FunctionalTests.Fluent.AccountManagement
             var subject = string.Empty;
 
             // Contact the package's owners.
-            I.LogOn(EnvironmentSettings.TestAccountName, EnvironmentSettings.TestAccountPassword);
+            I.LogOn(EnvironmentSettings.TestAccountEmail, EnvironmentSettings.TestAccountPassword);
             I.Open(UrlHelper.BaseUrl + "/packages/" + packageName);
             I.Click("a:contains('Contact Owners')");
             I.Enter(GetMessage()).In("#Message");
@@ -100,7 +100,7 @@ namespace NuGetGallery.FunctionalTests.Fluent.AccountManagement
             var subject = string.Empty;
 
             // Contact support.
-            I.LogOn(EnvironmentSettings.TestAccountName, EnvironmentSettings.TestAccountPassword);
+            I.LogOn(EnvironmentSettings.TestAccountEmail, EnvironmentSettings.TestAccountPassword);
             I.Open(UrlHelper.BaseUrl + "/packages/" + packageName);
             I.Click("a:contains('Contact Support')");
             I.Select("Other").From("#Reason");

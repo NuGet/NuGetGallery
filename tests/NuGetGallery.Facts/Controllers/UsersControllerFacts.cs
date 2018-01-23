@@ -2400,11 +2400,13 @@ namespace NuGetGallery
                 var controller = CreateController(accountToTransform, canTransformErrorReason: "error");
 
                 // Act
-                var result = controller.TransformToOrganization();
+                var result = controller.TransformToOrganization() as ViewResult;
 
                 // Assert
                 Assert.NotNull(result);
-                Assert.Equal("error", controller.TempData["TransformError"]);
+
+                var model = result.Model as TransformAccountFailedViewModel;
+                Assert.Equal("error", model.ErrorMessage);
             }
         }
 
@@ -2420,11 +2422,13 @@ namespace NuGetGallery
                 // Act
                 var result = await controller.TransformToOrganization(new TransformAccountViewModel() {
                     AdminUsername = "OrgAdmin"
-                });
+                }) as ViewResult;
 
                 // Assert
                 Assert.NotNull(result);
-                Assert.Equal("error", controller.TempData["TransformError"]);
+
+                var model = result.Model as TransformAccountFailedViewModel;
+                Assert.Equal("error", model.ErrorMessage);
             }
 
             [Fact]
@@ -2478,11 +2482,13 @@ namespace NuGetGallery
                 controller.SetCurrentUser(currentUser);
 
                 // Act
-                var result = await controller.ConfirmTransformToOrganization("account", "token");
+                var result = await controller.ConfirmTransformToOrganization("account", "token") as ViewResult;
 
                 // Assert
                 Assert.NotNull(result);
-                Assert.Equal(Strings.TransformAccount_NotConfirmed, controller.TempData["TransformError"]);
+
+                var model = result.Model as TransformAccountFailedViewModel;
+                Assert.Equal(Strings.TransformAccount_NotConfirmed, model.ErrorMessage);
             }
 
             [Fact]
@@ -2494,13 +2500,15 @@ namespace NuGetGallery
                 controller.SetCurrentUser(currentUser);
 
                 // Act
-                var result = await controller.ConfirmTransformToOrganization("account", "token");
+                var result = await controller.ConfirmTransformToOrganization("account", "token") as ViewResult;
 
                 // Assert
                 Assert.NotNull(result);
+
+                var model = result.Model as TransformAccountFailedViewModel;
                 Assert.Equal(
                     String.Format(CultureInfo.CurrentCulture, Strings.TransformAccount_OrganizationAccountDoesNotExist, "account"),
-                    controller.TempData["TransformError"]);
+                    model.ErrorMessage);
             }
 
             [Fact]
@@ -2511,11 +2519,15 @@ namespace NuGetGallery
                 var controller = CreateController(accountToTransform, canTransformErrorReason: "error");
 
                 // Act
-                var result = await controller.ConfirmTransformToOrganization(accountToTransform, "token");
+                var result = await controller.ConfirmTransformToOrganization(accountToTransform, "token") as ViewResult;
 
                 // Assert
                 Assert.NotNull(result);
-                Assert.Equal("error", controller.TempData["TransformError"]);
+
+                var model = result.Model as TransformAccountFailedViewModel;
+                Assert.Equal(
+                    "error",
+                    model.ErrorMessage);
             }
 
             [Fact]
@@ -2526,14 +2538,16 @@ namespace NuGetGallery
                 var controller = CreateController(accountToTransform, success: false);
 
                 // Act
-                var result = await controller.ConfirmTransformToOrganization(accountToTransform, "token");
+                var result = await controller.ConfirmTransformToOrganization(accountToTransform, "token") as ViewResult;
 
                 // Assert
                 Assert.NotNull(result);
+
+                var model = result.Model as TransformAccountFailedViewModel;
                 Assert.Equal(
                     String.Format(CultureInfo.CurrentCulture,
                         Strings.TransformAccount_Failed, "account"),
-                    controller.TempData["TransformError"]);
+                    model.ErrorMessage);
             }
 
             [Fact]

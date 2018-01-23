@@ -129,17 +129,17 @@ namespace NuGetGallery
             }
         }
 
-        public void SendContactOwnersMessage(MailAddress fromAddress, PackageRegistration packageRegistration, string packageUrl, string message, string emailSettingsUrl, bool copySender)
+        public void SendContactOwnersMessage(MailAddress fromAddress, Package package, string packageUrl, string message, string emailSettingsUrl, bool copySender)
         {
             string subject = "[{0}] Message for owners of the package '{1}'";
-            string body = @"_User {0} &lt;{1}&gt; sends the following message to the owners of Package '[{2}]({3})'._
+            string body = @"_User {0} &lt;{1}&gt; sends the following message to the owners of Package '[{2} {3}]({4})'._
 
-{4}
+{5}
 
 -----------------------------------------------
 <em style=""font-size: 0.8em;"">
-    To stop receiving contact emails as an owner of this package, sign in to the {5} and
-    [change your email notification settings]({6}).
+    To stop receiving contact emails as an owner of this package, sign in to the {6} and
+    [change your email notification settings]({7}).
 </em>";
 
             body = String.Format(
@@ -147,13 +147,14 @@ namespace NuGetGallery
                 body,
                 fromAddress.DisplayName,
                 fromAddress.Address,
-                packageRegistration.Id,
+                package.PackageRegistration.Id,
+                package.Version,
                 packageUrl,
                 message,
                 Config.GalleryOwner.DisplayName,
                 emailSettingsUrl);
 
-            subject = String.Format(CultureInfo.CurrentCulture, subject, Config.GalleryOwner.DisplayName, packageRegistration.Id);
+            subject = String.Format(CultureInfo.CurrentCulture, subject, Config.GalleryOwner.DisplayName, package.PackageRegistration.Id);
 
             using (var mailMessage = new MailMessage())
             {
@@ -162,7 +163,7 @@ namespace NuGetGallery
                 mailMessage.From = Config.GalleryOwner;
                 mailMessage.ReplyToList.Add(fromAddress);
 
-                AddOwnersToMailMessage(packageRegistration, mailMessage);
+                AddOwnersToMailMessage(package.PackageRegistration, mailMessage);
 
                 if (mailMessage.To.Any())
                 {

@@ -30,7 +30,7 @@ namespace NuGetGallery.FunctionalTests.Fluent.PackageManagement
                 await UploadPackageIfNecessary(packageName, "3.0.0-rc");
             }
 
-            I.LogOn(EnvironmentSettings.TestAccountName, EnvironmentSettings.TestAccountPassword);
+            I.LogOn(EnvironmentSettings.TestAccountEmail, EnvironmentSettings.TestAccountPassword);
 
             // List 1.0.0
             I.Open(UrlHelper.BaseUrl + "/packages/" + packageName + "/1.0.0/Delete");
