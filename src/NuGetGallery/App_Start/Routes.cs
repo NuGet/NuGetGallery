@@ -259,6 +259,11 @@ namespace NuGetGallery
                 new { controller = "Users", action = "RemoveCredential" });
 
             routes.MapRoute(
+                RouteName.ChangeExternalCredential,
+                "account/ChangeExternalCredetial/{credentialType}",
+                new { controller = "Users", action = "ChangeExternalCredential" });
+
+            routes.MapRoute(
                 RouteName.PasswordReset,
                 "account/forgotpassword/{username}/{token}",
                 new { controller = "Users", action = "ResetPassword", forgot = true },
@@ -275,7 +280,7 @@ namespace NuGetGallery
                 "account/confirm/{username}/{token}",
                 new { controller = "Users", action = "Confirm" },
                 new RouteExtensions.ObfuscatedMetadata(2, Obfuscator.DefaultTelemetryUserName));
-            
+
             routes.MapRoute(
                 RouteName.ChangeEmailSubscription,
                 "account/subscription/change",

@@ -13,6 +13,7 @@ using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Authentication;
+using NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
 using NuGetGallery.Infrastructure.Authentication;
@@ -775,6 +776,29 @@ namespace NuGetGallery
             }
 
             return await RemoveCredentialInternal(user, cred, Strings.CredentialRemoved);
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public virtual ActionResult ChangeExternalCredential(string credentialType, int? credentialKey)
+        {
+            var user = GetCurrentUser();
+            var cred = user.Credentials.SingleOrDefault(
+                c => string.Equals(c.Type, credentialType, StringComparison.OrdinalIgnoreCase)
+                    && CredentialKeyMatches(credentialKey, c));
+
+            // Check if this user has any external credential, otherwise return bad request/error.
+            // For external credential, check if the type is not an AAD, otherwise return not allowed for now(BLOCKED).
+            // For MSA credential, allow to Link a new credential. Call challenge for auth with AADv2. 
+
+            if (cred == null || cred.Type != "external.MicrosoftAccount")
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.Unsupported);
+            }
+
+            return Redirect(Url.Authenticate(AzureActiveDirectoryV2Authenticator.DefaultAuthenticationType, Url.AccountSettings()));
         }
 
         [HttpPost]

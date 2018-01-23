@@ -65,6 +65,7 @@ namespace NuGetGallery
         public const string ExternalAuthentication = "ExternalAuthentication";
         public const string ExternalAuthenticationCallback = "ExternalAuthenticationCallback";
         public const string RemoveCredential = "RemoveCredential";
+        public const string ChangeExternalCredential = "ChangeExternalCredential";
         public const string RemovePassword = "RemovePassword";
         public const string ConfirmAccount = "ConfirmAccount";
         public const string ChangeEmailSubscription = "ChangeEmailSubscription";

@@ -169,17 +169,18 @@
                         @<text>
                             <p>You can use this @cred.AuthUI.AccountNoun to sign in to @(Config.Current.Brand).</p>
 
-                            @if (Model.SignInCredentialCount > 1)
+@*                            @if (Model.SignInCredentialCount > 1) 
                             {
-                                using (Html.BeginForm("RemoveCredential", "Users", new { credentialType = cred.Type, credentialKey = cred.Key }))
+    *@
+                                @using (Html.BeginForm("ChangeExternalCredential", "Users", new { credentialType = cred.Type, credentialKey = cred.Key }))
                                 {
                                     @Html.AntiForgeryToken()
 
                                     <div class="row form-group">
                                         <div class="col-sm-6">
                                             <button class="btn btn-danger btn-block" type="submit"
-                                                    data-confirm="Are you sure you want to remove your @cred.AuthUI.AccountNoun?">
-                                                Remove @cred.TypeCaption
+                                                    data-confirm="Are you sure you want to change your @cred.AuthUI.AccountNoun? Note: This action will replace all of your external Microsoft account logins with the new login.">
+                                                Change @cred.TypeCaption
                                             </button>
                                         </div>
                                         <div class="col-sm-6">
@@ -189,7 +190,7 @@
                                         </div>
                                     </div>
                                 }
-                            }
+      @*                     }
                             else
                             {
                                 <span>
@@ -197,6 +198,7 @@
                                     such as password login.
                                 </span>
                             }
+    *@
                         </text>)
                 }
             }
