@@ -32,7 +32,7 @@ namespace NuGetGallery
             ProfileUrl = url.User(user, relativeUrl: false);
             ImageUrl = GravatarHelper.Url(user.EmailAddress, size: Constants.GravatarImageSize);
             GrantsCurrentUserAccess = ActionsRequiringPermissions.ManagePackageOwnership.CheckPermissions(currentUser, user, packageRegistration) == PermissionsCheckResult.Allowed;
-            IsCurrentUserAdminOfOrganization = user is Organization && (user as Organization).Members.Where(m => m.IsAdmin).Any();
+            IsCurrentUserAdminOfOrganization = user is Organization org && org.Members.Where(m => m.Member.MatchesUser(currentUser) && m.IsAdmin).Any();
             Pending = isPending;
             IsNamespaceOwner = isNamespaceOwner;
         }
