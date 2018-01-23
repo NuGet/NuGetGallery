@@ -488,12 +488,7 @@ namespace NuGetGallery
         private PackageRegistration CreateOrGetPackageRegistration(User owner, User currentUser, PackageMetadata packageMetadata, bool isVerified)
         {
             var packageRegistration = FindPackageRegistrationById(packageMetadata.Id);
-
-            if (packageRegistration != null && ActionsRequiringPermissions.EditPackage.CheckPermissions(currentUser, currentUser, packageRegistration) != PermissionsCheckResult.Allowed)
-            {
-                throw new EntityException(Strings.PackageIdNotAvailable, packageMetadata.Id);
-            }
-
+            
             if (packageRegistration == null)
             {
                 if (_packageNamingConflictValidator.IdConflictsWithExistingPackageTitle(packageMetadata.Id))

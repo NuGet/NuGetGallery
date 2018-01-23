@@ -3658,16 +3658,20 @@ namespace NuGetGallery
             [MemberData(nameof(WillUploadThePackageWhenIdMatchesOwnedNamespace_Data))]
             public async Task WillUploadThePackageWhenIdMatchesOwnedNamespace(User currentUser, User reservedNamespaceOwner)
             {
+                var packageId = "Random.Package1";
+                var version = "1.0.0";
+
                 var fakeUploadedFile = new Mock<HttpPostedFileBase>();
                 fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
-                var fakeFileStream = TestPackage.CreateTestPackageStream("Random.Package1", "1.0.0");
-                fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
+                var fakeUploadedFileStream = TestPackage.CreateTestPackageStream(packageId, version);
+                fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeUploadedFileStream);
+                var fakeSavedFileStream = TestPackage.CreateTestPackageStream(packageId, version);
 
                 var fakeUploadFileService = new Mock<IUploadFileService>();
                 fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(currentUser.Key)).Returns(Task.FromResult(0));
                 fakeUploadFileService.SetupSequence(x => x.GetUploadFileAsync(currentUser.Key))
                     .Returns(Task.FromResult<Stream>(null))
-                    .Returns(Task.FromResult(fakeFileStream));
+                    .Returns(Task.FromResult(fakeSavedFileStream));
                 fakeUploadFileService.Setup(x => x.SaveUploadFileAsync(currentUser.Key, It.IsAny<Stream>())).Returns(Task.FromResult(0));
                 var fakePackageService = new Mock<IPackageService>();
                 fakePackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns(() => null);
@@ -3681,15 +3685,18 @@ namespace NuGetGallery
                     GetConfigurationService(),
                     uploadFileService: fakeUploadFileService,
                     packageService: fakePackageService,
-                    fakeNuGetPackage: fakeFileStream,
+                    fakeNuGetPackage: fakeSavedFileStream,
                     reservedNamespaceService: fakeReservedNamespaceService);
                 controller.SetCurrentUser(currentUser);
 
-                await controller.UploadPackage(fakeUploadedFile.Object);
+                var result = await controller.UploadPackage(fakeUploadedFile.Object);
 
                 Assert.True(controller.ModelState.IsValid);
-                fakeUploadFileService.Verify(x => x.SaveUploadFileAsync(currentUser.Key, fakeFileStream));
-                fakeFileStream.Dispose();
+                fakeUploadFileService.Verify(x => x.SaveUploadFileAsync(currentUser.Key, fakeUploadedFileStream));
+                fakeUploadedFileStream.Dispose();
+
+                var model = result.Data as VerifyPackageRequest;
+                Assert.Equal(reservedNamespaceOwner.Username, model.PossibleOwners.Single());
             }
 
             public static IEnumerable<object[]> WillShowTheViewWithErrorsWhenThePackageAlreadyExists_Data
@@ -3708,17 +3715,19 @@ namespace NuGetGallery
             public async Task WillUploadThePackageWhenIdMatchesUnownedNamespaceButPackageExists(User currentUser, User existingPackageOwner)
             {
                 var packageId = "Random.Package1";
+                var version = "1.0.0";
 
                 var fakeUploadedFile = new Mock<HttpPostedFileBase>();
                 fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
-                var fakeFileStream = TestPackage.CreateTestPackageStream(packageId, "1.0.0");
-                fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
+                var fakeUploadedFileStream = TestPackage.CreateTestPackageStream(packageId, version);
+                fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeUploadedFileStream);
+                var fakeSavedFileStream = TestPackage.CreateTestPackageStream(packageId, version);
 
                 var fakeUploadFileService = new Mock<IUploadFileService>();
                 fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(currentUser.Key)).Returns(Task.FromResult(0));
                 fakeUploadFileService.SetupSequence(x => x.GetUploadFileAsync(currentUser.Key))
                     .Returns(Task.FromResult<Stream>(null))
-                    .Returns(Task.FromResult(fakeFileStream));
+                    .Returns(Task.FromResult(fakeSavedFileStream));
                 fakeUploadFileService.Setup(x => x.SaveUploadFileAsync(currentUser.Key, It.IsAny<Stream>())).Returns(Task.FromResult(0));
 
                 var fakePackageService = new Mock<IPackageService>();
@@ -3733,15 +3742,18 @@ namespace NuGetGallery
                     GetConfigurationService(),
                     uploadFileService: fakeUploadFileService,
                     packageService: fakePackageService,
-                    fakeNuGetPackage: fakeFileStream,
+                    fakeNuGetPackage: fakeSavedFileStream,
                     reservedNamespaceService: fakeReservedNamespaceService);
                 controller.SetCurrentUser(currentUser);
 
-                await controller.UploadPackage(fakeUploadedFile.Object);
+                var result = await controller.UploadPackage(fakeUploadedFile.Object);
 
                 Assert.True(controller.ModelState.IsValid);
-                fakeUploadFileService.Verify(x => x.SaveUploadFileAsync(currentUser.Key, fakeFileStream));
-                fakeFileStream.Dispose();
+                fakeUploadFileService.Verify(x => x.SaveUploadFileAsync(currentUser.Key, fakeUploadedFileStream));
+                fakeUploadedFileStream.Dispose();
+
+                var model = result.Data as VerifyPackageRequest;
+                Assert.Equal(existingPackageOwner.Username, model.PossibleOwners.Single());
             }
 
             [Theory]
@@ -4284,8 +4296,8 @@ namespace NuGetGallery
                             It.IsAny<string>(),
                             It.IsAny<PackageArchiveReader>(),
                             It.IsAny<PackageStreamMetadata>(),
-                            It.IsAny<User>(),
-                            It.IsAny<User>()), Times.Once);
+                            ownerInForm,
+                            currentUser), Times.Once);
                     }
                     else
                     {

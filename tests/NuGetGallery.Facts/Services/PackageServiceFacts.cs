@@ -358,25 +358,6 @@ namespace NuGetGallery
                 Assert.Same(packageRegistration.Packages.ElementAt(0), package);
             }
 
-            [Fact]
-            private async Task WillThrowIfThePackageRegistrationAlreadyExistsAndTheCurrentUserIsNotAnOwner()
-            {
-                var currentUser = new User();
-                var packageRegistration = new PackageRegistration
-                {
-                    Id = "theId",
-                    Owners = new HashSet<User>()
-                };
-                var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
-                var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
-                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns(packageRegistration); });
-                var nugetPackage = PackageServiceUtility.CreateNuGetPackage();
-
-                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, currentUser, isVerified: false));
-
-                Assert.Equal(String.Format(Strings.PackageIdNotAvailable, "theId"), ex.Message);
-            }
-
             [Theory]
             [InlineData("Microsoft.FooBar", "Microsoft.FooBar")]
             [InlineData("Microsoft.FooBar", "microsoft.foobar")]
