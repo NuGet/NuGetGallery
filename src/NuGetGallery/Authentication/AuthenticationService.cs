@@ -305,6 +305,23 @@ namespace NuGetGallery.Authentication
             return ReplaceCredential(user, credential);
         }
 
+        public virtual async Task<bool> TryReplaceCredential(User user, Credential credential)
+        {
+            if (user == null || credential == null)
+            {
+                return false;
+            }
+
+            if (FindMatchingCredential(credential) != null)
+            {
+                // Existing credential for a registered account
+                return false;
+            }
+
+            await ReplaceCredential(user, credential);
+            return true;
+        }
+
         public virtual async Task ReplaceCredential(User user, Credential credential)
         {
             await ReplaceCredentialInternal(user, credential);
@@ -622,14 +639,18 @@ namespace NuGetGallery.Authentication
                 throw new InvalidOperationException(Strings.OrganizationsCannotCreateCredentials);
             }
 
-            // Find the credentials we're replacing, if any
+            // For replacing external or password credentials, replace all such credentials.
+            var replacePrefixes = new string[] { CredentialTypes.Password.Prefix, CredentialTypes.ExternalPrefix };
+            Func<Credential, bool> replacingPredicate =
+                cred => replacePrefixes
+                    .Any(mp => credential.Type.StartsWith(mp, StringComparison.OrdinalIgnoreCase)
+                        && cred.Type.StartsWith(mp, StringComparison.OrdinalIgnoreCase))
+                    || cred.Type == credential.Type;
+
             var toRemove = user.Credentials
-                .Where(cred =>
-                    // If we're replacing a password credential, remove ALL password credentials
-                    (credential.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase) &&
-                     cred.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase)) ||
-                    cred.Type == credential.Type)
+                .Where(replacingPredicate)
                 .ToList();
+
             foreach (var cred in toRemove)
             {
                 user.Credentials.Remove(cred);

@@ -794,11 +794,11 @@ namespace NuGetGallery
 
             if (cred == null || cred.Type != "external.MicrosoftAccount")
             {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(Strings.Unsupported);
+                TempData["Message"] = Strings.ChangeCredential_NotAllowed;
+                return RedirectToAction("Account");
             }
 
-            return Redirect(Url.Authenticate(AzureActiveDirectoryV2Authenticator.DefaultAuthenticationType, Url.AccountSettings()));
+            return Redirect(Url.AuthenticateExternal(Url.AccountSettings()));
         }
 
         [HttpPost]

@@ -10,6 +10,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGetGallery.Authentication;
+using NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2;
 using NuGetGallery.Filters;
 using NuGetGallery.Infrastructure.Authentication;
 
@@ -319,10 +320,49 @@ namespace NuGetGallery
             return ChallengeAuthentication(returnUrl, provider);
         }
 
+        [ActionName("AuthenticateExternal")]
+        [HttpGet]
+        public virtual ActionResult AuthenticateExternal(string returnUrl)
+        {
+            // TODO: possibly get external auth providers list or options?
+            var externalAuthProvider = AzureActiveDirectoryV2Authenticator.DefaultAuthenticationType;
+            return _authService.Challenge(externalAuthProvider, Url.ChangeExternalCredential(returnUrl));
+        }
+
         [NonAction]
         public ActionResult ChallengeAuthentication(string returnUrl, string provider)
         {
             return _authService.Challenge(provider, Url.LinkExternalAccount(returnUrl));
+        }
+
+        public virtual async Task<ActionResult> ChangeExternalCredential(string returnUrl)
+        {
+            var user = GetCurrentUser();
+            var result = await _authService.ReadExternalLoginCredential(OwinContext);
+            if (result == null)
+            {
+                // Return to account page with error saying authentication failed?
+                TempData["Message"] = Strings.ChangeCredential_FailedToLogin;
+                return SafeRedirect(returnUrl);
+            }
+
+            var newCredential = result.Credential;
+
+            if (newCredential != null)
+            {
+                if (await _authService.TryReplaceCredential(user, newCredential))
+                {
+                    // Authenticate with the new credential after successful replacement
+                    await _authService.Authenticate(newCredential);
+                    TempData["Message"] = Strings.ChangeCredential_Success;
+                }
+                else
+                {
+                    TempData["Message"] = Strings.ChangeCredential_ExistingCredential;
+                }
+            }
+
+            return SafeRedirect(returnUrl);
         }
 
         public virtual async Task<ActionResult> LinkExternalAccount(string returnUrl)

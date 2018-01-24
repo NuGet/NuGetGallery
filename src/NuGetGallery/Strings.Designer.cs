@@ -433,6 +433,42 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You cannot link the Microsoft account that is linked to another account..
+        /// </summary>
+        public static string ChangeCredential_ExistingCredential {
+            get {
+                return ResourceManager.GetString("ChangeCredential_ExistingCredential", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your external account credential expired or you did not allow us access to your account. Try logging in again..
+        /// </summary>
+        public static string ChangeCredential_FailedToLogin {
+            get {
+                return ResourceManager.GetString("ChangeCredential_FailedToLogin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The change of Azure active directory account is not allowed..
+        /// </summary>
+        public static string ChangeCredential_NotAllowed {
+            get {
+                return ResourceManager.GetString("ChangeCredential_NotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully changed the Microsoft account..
+        /// </summary>
+        public static string ChangeCredential_Success {
+            get {
+                return ResourceManager.GetString("ChangeCredential_Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SKIPPED! Package file blob {0} already exists.
         /// </summary>
         public static string CopyExternalPackages_PackageFileBlobAlreadyExists {
