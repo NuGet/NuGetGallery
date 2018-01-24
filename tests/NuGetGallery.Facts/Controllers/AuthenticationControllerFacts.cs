@@ -270,7 +270,7 @@ namespace NuGetGallery.Controllers
                 GetMock<AuthenticationService>().Verify(a => a.CreateSessionAsync(controller.OwinContext, authUser), Times.Never());
                 ResultAssert.IsView(result, viewName: SignInViewNuGetName);
                 Assert.False(controller.ModelState.IsValid);
-                Assert.Equal(Strings.LinkingMultipleExternalAccountsUnsupportedFailure, controller.ModelState[SignInViewName].Errors[0].ErrorMessage);
+                Assert.Equal(Strings.LinkingMultipleExternalAccountsUnsupported, controller.ModelState[SignInViewName].Errors[0].ErrorMessage);
             }
 
             [Fact]
@@ -1116,7 +1116,7 @@ namespace NuGetGallery.Controllers
                 Assert.Equal(
                     string.Format(
                         CultureInfo.CurrentCulture,
-                        Strings.LinkingMultipleExternalAccountsUnsupported,
+                        Strings.AccountIsLinkedToAnotherExternalAccount,
                         existingUser.EmailAddress),
                     model.External.ExistingUserLinkingError);
             }

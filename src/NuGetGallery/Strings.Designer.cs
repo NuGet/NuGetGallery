@@ -124,6 +124,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to We found an account with the email address associated with this external account ({0}), but linked to a different external account..
+        /// </summary>
+        public static string AccountIsLinkedToAnotherExternalAccount {
+            get {
+                return ResourceManager.GetString("AccountIsLinkedToAnotherExternalAccount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The user &apos;{0}&apos; is already an owner or pending owner of the package..
         /// </summary>
         public static string AddOwner_AlreadyOwner {
@@ -747,20 +756,11 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to We found an account with the email address associated with this external account ({0}), but linked to a different external account..
+        ///   Looks up a localized string similar to You cannot link your NuGet.org account to multiple external accounts..
         /// </summary>
         public static string LinkingMultipleExternalAccountsUnsupported {
             get {
                 return ResourceManager.GetString("LinkingMultipleExternalAccountsUnsupported", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to You cannot link your NuGet.org account to multiple external accounts..
-        /// </summary>
-        public static string LinkingMultipleExternalAccountsUnsupportedFailure {
-            get {
-                return ResourceManager.GetString("LinkingMultipleExternalAccountsUnsupportedFailure", resourceCulture);
             }
         }
         
