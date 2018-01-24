@@ -3,6 +3,8 @@
 
 using NuGetGallery.Framework;
 using System;
+using System.Collections.Generic;
+using System.Web.Routing;
 using Xunit;
 
 namespace NuGetGallery
@@ -46,6 +48,26 @@ namespace NuGetGallery
 
                 Assert.DoesNotContain("metadata", fixedUrl);
                 Assert.EndsWith(package.NormalizedVersion, fixedUrl);
+            }
+
+            [Theory]
+            [InlineData("https://nuget.org", true, "/packages/id/1.0.0")]
+            [InlineData("https://nuget.org", false, "https://nuget.org/packages/id/1.0.0")]
+            [InlineData("https://localhost:66", true, "/packages/id/1.0.0")]
+            [InlineData("https://localhost:66", false, "https://localhost:66/packages/id/1.0.0")]
+            public void ReturnsCorrectRouteLink(string siteRoot, bool relativeUrl, string expectedUrl)
+            {
+                // Arrange
+                var configurationService = GetConfigurationService();
+                configurationService.Current.SiteRoot = siteRoot;
+
+                var urlHelper = TestUtility.MockUrlHelper(siteRoot);
+
+                // Act
+                var result = UrlExtensions.Package(urlHelper, "id", "1.0.0", relativeUrl);
+
+                // Assert
+                Assert.Equal(expectedUrl, result);
             }
         }
 
@@ -196,6 +218,75 @@ namespace NuGetGallery
                 var absoluteReturnUrl = UrlExtensions.GetAbsoluteReturnUrl(returnUrl, protocol, hostName);
 
                 Assert.Equal(expectedReturnUrl, absoluteReturnUrl);
+            }
+        }
+
+        public class TheGetActionLinkMethod : TestContainer
+        {
+            public static IEnumerable<object[]> GeneratesTheCorrectActionLink_Data
+            {
+                get
+                {
+                    var routeValueDictionary = new RouteValueDictionary();
+                    routeValueDictionary["a"] = "b";
+
+                    yield return new object[]
+                    {
+                        "https://nuget.org",
+                        "ListPackages",
+                        "Packages",
+                        routeValueDictionary,
+                        true,
+                        "/packages?a=b"
+                    };
+
+                    yield return new object[]
+                    {
+                        "https://localhost:55",
+                        "ListPackages",
+                        "Packages",
+                        routeValueDictionary,
+                        true,
+                        "/packages?a=b"
+                    };
+
+                    yield return new object[]
+                    {
+                        "https://nuget.org",
+                        "ListPackages",
+                        "Packages",
+                        routeValueDictionary,
+                        false,
+                        "https://nuget.org/packages?a=b"
+                    };
+
+                    yield return new object[]
+                    {
+                        "https://localhost:55",
+                        "ListPackages",
+                        "Packages",
+                        routeValueDictionary,
+                        false,
+                        "https://localhost:55/packages?a=b"
+                    };
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(GeneratesTheCorrectActionLink_Data))]
+            public void GeneratesTheCorrectActionLink(string siteRoot, string actionName, string controllerName, RouteValueDictionary routeValues, bool relativeUrl, string expectedActionLink)
+            {
+                // Arrange
+                var configurationService = GetConfigurationService();
+                configurationService.Current.SiteRoot = siteRoot;
+
+                var urlHelper = TestUtility.MockUrlHelper(siteRoot);
+
+                // Act
+                var result = UrlExtensions.GetActionLink(urlHelper, actionName, controllerName, relativeUrl, routeValues);
+
+                // Assert
+                Assert.Equal(expectedActionLink, result);
             }
         }
     }
