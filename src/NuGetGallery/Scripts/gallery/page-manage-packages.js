@@ -35,6 +35,10 @@
             this.CanManageOwners = packageItem.CanManageOwners;
             this.CanDelete = packageItem.CanDelete;
 
+            this.FormattedDownloadCount = ko.pureComputed(function () {
+                return ko.unwrap(this.DownloadCount).toLocaleString();
+            }, this);
+
             this.Visible = ko.observable(true);
 
             this.UpdateVisibility = function (ownerFilter) {

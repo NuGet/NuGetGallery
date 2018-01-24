@@ -949,6 +949,10 @@ img.reserved-indicator-icon {
 .page-manage-packages .panel {
   margin-top: 5px;
 }
+.page-manage-packages .manage-package-listing .ms-Icon {
+  position: relative;
+  top: 2px;
+}
 .page-delete-package h1 {
   margin-bottom: 0;
 }

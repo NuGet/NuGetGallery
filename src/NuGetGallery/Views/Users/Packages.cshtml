@@ -13,14 +13,15 @@
 <section role="main" class="container main-container page-manage-packages">
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
+            
             <div class="clearfix">
-                <div style="float: left">
-                    <h1 style="text-align: right">Manage Packages</h1>
+                <h1 class="pull-left">Manage Packages</h1>
+                <div class="text-center ms-font-xxl">
+                    <span class="form-section-data">
+                        <select id="ownerFilter" class="form-control pull-right hidden"
+                                data-bind="options: Owners, value: OwnerFilter, optionsText: 'Username'"></select>
+                    </span>
                 </div>
-                <span class="form-section-data">
-                    <select id="ownerFilter" class="form-control pull-right hidden"
-                            data-bind="options: Owners, value: OwnerFilter, optionsText: 'Username'"></select>
-                </span>
             </div>
 
             @ViewHelpers.Section(this, "listed", @<text>Published Packages</text>,
@@ -102,12 +103,12 @@
                         </td>
                         <td class="align-middle">
                             <span class="ms-noWrap" data-bind="foreach: Owners">
-                                <i class="ms-Icon ms-Icon--Group" aria-hidden="true" data-bind="visible: IsOrganization" style="vertical-align: -2px"></i>
+                                <i class="ms-Icon ms-Icon--Group" aria-hidden="true" data-bind="visible: IsOrganization"></i>
                                 <a data-bind="attr: { href: ProfileUrl }"><span data-bind="text: Username"></span></a><!-- ko if: ($index() < ($parent.Owners.length - 1)) -->,&nbsp;<!-- /ko -->
                             </span>
                         </td>
                         <td class="align-middle text-nowrap">
-                            <span data-bind="text: ko.unwrap(DownloadCount).toLocaleString()"></span>
+                            <span data-bind="text: FormattedDownloadCount"></span>
                         </td>
                         <td class="align-middle text-nowrap">
                             <span data-bind="text: LatestVersion"></span>
