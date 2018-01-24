@@ -1408,6 +1408,33 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You are a member of one or more organizations. You must leave all organizations before transforming your account..
+        /// </summary>
+        public static string TransformAccount_AccountHasMemberships {
+            get {
+                return ResourceManager.GetString("TransformAccount_AccountHasMemberships", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; is already an organization..
+        /// </summary>
+        public static string TransformAccount_AccountIsAnOrganization {
+            get {
+                return ResourceManager.GetString("TransformAccount_AccountIsAnOrganization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; should be a confirmed user..
+        /// </summary>
+        public static string TransformAccount_AccountNotConfirmed {
+            get {
+                return ResourceManager.GetString("TransformAccount_AccountNotConfirmed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Administrator account &apos;{0}&apos; does not exist..
         /// </summary>
         public static string TransformAccount_AdminAccountDoesNotExist {
@@ -1449,33 +1476,6 @@ namespace NuGetGallery {
         public static string TransformAccount_Failed {
             get {
                 return ResourceManager.GetString("TransformAccount_Failed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to You are a member of one or more organizations. You must leave all organizations before transforming your account..
-        /// </summary>
-        public static string TransformAccount_FailedReasonHasMemberships {
-            get {
-                return ResourceManager.GetString("TransformAccount_FailedReasonHasMemberships", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Account &apos;{0}&apos; is already an organization..
-        /// </summary>
-        public static string TransformAccount_FailedReasonIsOrganization {
-            get {
-                return ResourceManager.GetString("TransformAccount_FailedReasonIsOrganization", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Account &apos;{0}&apos; should be a confirmed user..
-        /// </summary>
-        public static string TransformAccount_FailedReasonNotConfirmedUser {
-            get {
-                return ResourceManager.GetString("TransformAccount_FailedReasonNotConfirmedUser", resourceCulture);
             }
         }
         

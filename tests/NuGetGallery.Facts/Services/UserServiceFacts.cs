@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Data;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -380,7 +379,7 @@ namespace NuGetGallery
                 // Assert
                 Assert.False(result);
                 Assert.Equal(errorReason, String.Format(CultureInfo.CurrentCulture,
-                    Strings.TransformAccount_FailedReasonNotConfirmedUser, unconfirmedUser.Username));
+                    Strings.TransformAccount_AccountNotConfirmed, unconfirmedUser.Username));
             }
 
             [Fact]
@@ -397,7 +396,7 @@ namespace NuGetGallery
                 // Assert
                 Assert.False(result);
                 Assert.Equal(errorReason, String.Format(CultureInfo.CurrentCulture,
-                    Strings.TransformAccount_FailedReasonIsOrganization, fakes.Organization.Username));
+                    Strings.TransformAccount_AccountIsAnOrganization, fakes.Organization.Username));
             }
 
             [Fact]
@@ -414,7 +413,7 @@ namespace NuGetGallery
                 // Assert
                 Assert.False(result);
                 Assert.Equal(errorReason, String.Format(CultureInfo.CurrentCulture,
-                    Strings.TransformAccount_FailedReasonHasMemberships, fakes.OrganizationCollaborator.Username));
+                    Strings.TransformAccount_AccountHasMemberships, fakes.OrganizationCollaborator.Username));
             }
 
             [Fact]

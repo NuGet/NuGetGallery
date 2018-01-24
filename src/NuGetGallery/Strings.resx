@@ -712,16 +712,16 @@ For more information, please contact '{2}'.</value>
   <data name="TransformAccount_Success" xml:space="preserve">
     <value>Account '{0}' was successfully transformed into an organization.</value>
   </data>
-  <data name="TransformAccount_FailedReasonHasMemberships" xml:space="preserve">
+  <data name="TransformAccount_AccountHasMemberships" xml:space="preserve">
     <value>You are a member of one or more organizations. You must leave all organizations before transforming your account.</value>
   </data>
-  <data name="TransformAccount_FailedReasonNotConfirmedUser" xml:space="preserve">
+  <data name="TransformAccount_AccountNotConfirmed" xml:space="preserve">
     <value>Account '{0}' should be a confirmed user.</value>
   </data>
   <data name="TransformAccount_FailedReasonNotInDomainWhitelist" xml:space="preserve">
     <value>Account '{0}' does not support organizations.</value>
   </data>
-  <data name="TransformAccount_FailedReasonIsOrganization" xml:space="preserve">
+  <data name="TransformAccount_AccountIsAnOrganization" xml:space="preserve">
     <value>Account '{0}' is already an organization.</value>
   </data>
   <data name="TransformAccount_AdminAccountDoesNotExist" xml:space="preserve">

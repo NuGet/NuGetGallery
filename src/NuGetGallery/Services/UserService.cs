@@ -192,16 +192,16 @@ namespace NuGetGallery
             if (!accountToTransform.Confirmed)
             {
                 errorReason = String.Format(CultureInfo.CurrentCulture,
-                    Strings.TransformAccount_FailedReasonNotConfirmedUser, accountToTransform.Username);
+                    Strings.TransformAccount_AccountNotConfirmed, accountToTransform.Username);
             }
             else if (accountToTransform is Organization)
             {
                 errorReason = String.Format(CultureInfo.CurrentCulture,
-                    Strings.TransformAccount_FailedReasonIsOrganization, accountToTransform.Username);
+                    Strings.TransformAccount_AccountIsAnOrganization, accountToTransform.Username);
             }
             else if (accountToTransform.Organizations.Any() || accountToTransform.OrganizationRequests.Any())
             {
-                errorReason = Strings.TransformAccount_FailedReasonHasMemberships;
+                errorReason = Strings.TransformAccount_AccountHasMemberships;
             }
             else if (enabledDomains == null ||
                 !enabledDomains.Contains(accountToTransform.ToMailAddress().Host, StringComparer.OrdinalIgnoreCase))

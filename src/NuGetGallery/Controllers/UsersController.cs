@@ -106,8 +106,7 @@ namespace NuGetGallery
         public virtual ActionResult TransformToOrganization()
         {
             var accountToTransform = GetCurrentUser();
-            string errorReason;
-            if (!_userService.CanTransformUserToOrganization(accountToTransform, out errorReason))
+            if (!_userService.CanTransformUserToOrganization(accountToTransform, out var errorReason))
             {
                 return TransformToOrganizationFailed(errorReason);
             }
@@ -137,9 +136,8 @@ namespace NuGetGallery
                     Strings.TransformAccount_AdminAccountDoesNotExist, transformViewModel.AdminUsername));
                 return View(transformViewModel);
             }
-
-            string errorReason;
-            if (!_userService.CanTransformUserToOrganization(accountToTransform, adminUser, out errorReason))
+            
+            if (!_userService.CanTransformUserToOrganization(accountToTransform, adminUser, out var errorReason))
             {
                 return TransformToOrganizationFailed(errorReason);
             }
