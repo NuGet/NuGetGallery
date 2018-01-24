@@ -1049,7 +1049,12 @@ namespace NuGetGallery
 
             if (relativeUrl)
             {
-                return GetRelativeUrl(actionLink, protocol, hostName, url.RequestContext.HttpContext.Request.Url.Port, url.RequestContext.HttpContext.Request.Url.IsDefaultPort);
+                return GetRelativeUrl(
+                    actionLink,
+                    protocol,
+                    hostName,
+                    url.RequestContext.HttpContext.Request.Url.Port,
+                    url.RequestContext.HttpContext.Request.Url.IsDefaultPort);
             }
 
             return actionLink;
@@ -1080,7 +1085,12 @@ namespace NuGetGallery
 
             if (relativeUrl)
             {
-                return GetRelativeUrl(routeLink, protocol, hostName, url.RequestContext.HttpContext.Request.Url.Port, url.RequestContext.HttpContext.Request.Url.IsDefaultPort);
+                return GetRelativeUrl(
+                    routeLink,
+                    protocol,
+                    hostName,
+                    url.RequestContext.HttpContext.Request.Url.Port,
+                    url.RequestContext.HttpContext.Request.Url.IsDefaultPort);
             }
 
             return routeLink;
