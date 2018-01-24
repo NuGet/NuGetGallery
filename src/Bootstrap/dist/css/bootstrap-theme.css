@@ -531,7 +531,7 @@ img.reserved-indicator-icon {
   margin-left: 10px;
   border-left: 1px solid #dbdbdb;
 }
-.page-api-keys .api-key-details-append {
+.page-api-keys .api-key-details:not(:first-child) {
   border-top: 1px solid #dbdbdb;
 }
 .page-blog {

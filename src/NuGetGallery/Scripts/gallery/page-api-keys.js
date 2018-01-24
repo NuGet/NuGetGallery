@@ -101,8 +101,7 @@
                             return owner.Owner.toUpperCase() == data.Owner.toUpperCase()
                         });
                     this.PackageOwner(existingOwner);
-                }
-                else {
+                } else {
                     this.PackageOwner(this.PackageOwners[0]);
                 }
             };
