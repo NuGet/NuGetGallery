@@ -106,8 +106,7 @@ namespace NuGetGallery
         public virtual ActionResult TransformToOrganization()
         {
             var accountToTransform = GetCurrentUser();
-            string errorReason;
-            if (!_userService.CanTransformUserToOrganization(accountToTransform, out errorReason))
+            if (!_userService.CanTransformUserToOrganization(accountToTransform, out var errorReason))
             {
                 return TransformToOrganizationFailed(errorReason);
             }
@@ -115,8 +114,8 @@ namespace NuGetGallery
             var transformRequest = accountToTransform.OrganizationMigrationRequest;
             if (transformRequest != null)
             {
-                TempData["Message"] = String.Format(CultureInfo.CurrentCulture, Strings.TransformAccount_RequestExists,
-                    transformRequest.RequestDate.ToNuGetShortDateString(), transformRequest.AdminUser.Username);
+                TempData["Message"] = String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_RequestExists, transformRequest.AdminUser.Username);
             }
 
             return View(new TransformAccountViewModel());
@@ -129,11 +128,6 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> TransformToOrganization(TransformAccountViewModel transformViewModel)
         {
             var accountToTransform = GetCurrentUser();
-            string errorReason;
-            if (!_userService.CanTransformUserToOrganization(accountToTransform, out errorReason))
-            {
-                return TransformToOrganizationFailed(errorReason);
-            }
 
             var adminUser = _userService.FindByUsername(transformViewModel.AdminUsername);
             if (adminUser == null)
@@ -142,13 +136,12 @@ namespace NuGetGallery
                     Strings.TransformAccount_AdminAccountDoesNotExist, transformViewModel.AdminUsername));
                 return View(transformViewModel);
             }
-
-            if (!adminUser.Confirmed)
-            {
-                ModelState.AddModelError("AdminUsername", Strings.TransformAccount_AdminAccountNotConfirmed);
-                return View(transformViewModel);
-            }
             
+            if (!_userService.CanTransformUserToOrganization(accountToTransform, adminUser, out var errorReason))
+            {
+                return TransformToOrganizationFailed(errorReason);
+            }
+
             await _userService.RequestTransformToOrganizationAccount(accountToTransform, adminUser);
 
             // sign out pending organization and prompt for admin sign in
@@ -166,10 +159,6 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> ConfirmTransformToOrganization(string accountNameToTransform, string token)
         {
             var adminUser = GetCurrentUser();
-            if (!adminUser.Confirmed)
-            {
-                return TransformToOrganizationFailed(Strings.TransformAccount_NotConfirmed);
-            }
 
             string errorReason;
             var accountToTransform = _userService.FindByUsername(accountNameToTransform);
@@ -180,15 +169,14 @@ namespace NuGetGallery
                 return TransformToOrganizationFailed(errorReason);
             }
 
-            if (!_userService.CanTransformUserToOrganization(accountToTransform, out errorReason))
+            if (!_userService.CanTransformUserToOrganization(accountToTransform, adminUser, out errorReason))
             {
                 return TransformToOrganizationFailed(errorReason);
             }
 
             if (!await _userService.TransformUserToOrganization(accountToTransform, adminUser, token))
             {
-                errorReason = String.Format(CultureInfo.CurrentCulture,
-                    Strings.TransformAccount_Failed, accountNameToTransform);
+                errorReason = Strings.TransformAccount_Failed;
                 return TransformToOrganizationFailed(errorReason);
             }
 

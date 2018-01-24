@@ -29,7 +29,9 @@ namespace NuGetGallery
         Task<IDictionary<int, string>> GetEmailAddressesForUserKeysAsync(IReadOnlyCollection<int> distinctUserKeys);
 
         bool CanTransformUserToOrganization(User accountToTransform, out string errorReason);
-        
+
+        bool CanTransformUserToOrganization(User accountToTransform, User adminUser, out string errorReason);
+
         Task RequestTransformToOrganizationAccount(User accountToTransform, User adminUser);
         
         Task<bool> TransformUserToOrganization(User accountToTransform, User adminUser, string token);

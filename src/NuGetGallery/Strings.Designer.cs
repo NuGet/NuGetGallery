@@ -1408,11 +1408,47 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You are a member of one or more organizations. You must leave all organizations before transforming your account..
+        /// </summary>
+        public static string TransformAccount_AccountHasMemberships {
+            get {
+                return ResourceManager.GetString("TransformAccount_AccountHasMemberships", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; is already an organization..
+        /// </summary>
+        public static string TransformAccount_AccountIsAnOrganization {
+            get {
+                return ResourceManager.GetString("TransformAccount_AccountIsAnOrganization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; should be a confirmed user..
+        /// </summary>
+        public static string TransformAccount_AccountNotConfirmed {
+            get {
+                return ResourceManager.GetString("TransformAccount_AccountNotConfirmed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Administrator account &apos;{0}&apos; does not exist..
         /// </summary>
         public static string TransformAccount_AdminAccountDoesNotExist {
             get {
                 return ResourceManager.GetString("TransformAccount_AdminAccountDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Administrator account &apos;{0}&apos; cannot be an organization..
+        /// </summary>
+        public static string TransformAccount_AdminAccountIsOrganization {
+            get {
+                return ResourceManager.GetString("TransformAccount_AdminAccountIsOrganization", resourceCulture);
             }
         }
         
@@ -1426,38 +1462,20 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unexpected error when transforming account &apos;{0}&apos;. Contact support@nuget.org for more details..
+        ///   Looks up a localized string similar to Administrator account &apos;{0}&apos; cannot be the same account as the one being transformed..
+        /// </summary>
+        public static string TransformAccount_AdminMustBeDifferentAccount {
+            get {
+                return ResourceManager.GetString("TransformAccount_AdminMustBeDifferentAccount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An unexpected error occurred while transforming this account. Contact support  for assistance..
         /// </summary>
         public static string TransformAccount_Failed {
             get {
                 return ResourceManager.GetString("TransformAccount_Failed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Account &apos;{0}&apos; should not belong to any organizations..
-        /// </summary>
-        public static string TransformAccount_FailedReasonHasMemberships {
-            get {
-                return ResourceManager.GetString("TransformAccount_FailedReasonHasMemberships", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Account &apos;{0}&apos; is already an organization..
-        /// </summary>
-        public static string TransformAccount_FailedReasonIsOrganization {
-            get {
-                return ResourceManager.GetString("TransformAccount_FailedReasonIsOrganization", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Account &apos;{0}&apos; should be a confirmed user..
-        /// </summary>
-        public static string TransformAccount_FailedReasonNotConfirmedUser {
-            get {
-                return ResourceManager.GetString("TransformAccount_FailedReasonNotConfirmedUser", resourceCulture);
             }
         }
         
@@ -1471,15 +1489,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You must confirm the email address for this account in order to complete this request..
-        /// </summary>
-        public static string TransformAccount_NotConfirmed {
-            get {
-                return ResourceManager.GetString("TransformAccount_NotConfirmed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Organization account &apos;{0}&apos; does not exist..
         /// </summary>
         public static string TransformAccount_OrganizationAccountDoesNotExist {
@@ -1489,7 +1498,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Another tranform request was created on {0} for administrator &apos;{1}&apos;. Note that a new request will overwrite this request..
+        ///   Looks up a localized string similar to A transform request, with account &apos;{0}&apos; as administrator, is in progress. A new request will override any existing request(s)..
         /// </summary>
         public static string TransformAccount_RequestExists {
             get {
