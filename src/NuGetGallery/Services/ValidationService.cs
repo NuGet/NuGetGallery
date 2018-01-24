@@ -75,7 +75,7 @@ namespace NuGetGallery
                 // If the package failed validation, use the generic error message.
                 if (issues == null || !issues.Any())
                 {
-                    issues = new[] { new UnknownIssue() };
+                    issues = new[] { ValidationIssue.Unknown };
                 }
             }
 
