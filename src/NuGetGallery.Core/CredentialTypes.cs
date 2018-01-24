@@ -69,8 +69,9 @@ namespace NuGetGallery
         /// <returns></returns>
         public static bool IsViewSupportedCredential(this Credential credential)
         {
-            return SupportedCredentialTypes.Any(credType => credential.IsType(credType))
-                    || credential.IsType(ExternalPrefix);
+            return 
+                SupportedCredentialTypes.Any(credType => credential.IsType(credType)) || 
+                credential.IsExternal();
         }
 
         public static bool IsScopedApiKey(this Credential credential)

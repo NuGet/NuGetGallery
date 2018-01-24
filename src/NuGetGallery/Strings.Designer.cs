@@ -747,6 +747,33 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to We found an account with the email address associated with this external account ({0}), but linked to a different external account..
+        /// </summary>
+        public static string LinkingMultipleExternalAccountsUnsupported {
+            get {
+                return ResourceManager.GetString("LinkingMultipleExternalAccountsUnsupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You cannot link your NuGet.org account to multiple external accounts..
+        /// </summary>
+        public static string LinkingMultipleExternalAccountsUnsupportedFailure {
+            get {
+                return ResourceManager.GetString("LinkingMultipleExternalAccountsUnsupportedFailure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to We found an organization with the email address associated with this external account ({0}), but organizations cannot be linked to external accounts..
+        /// </summary>
+        public static string LinkingOrganizationUnsupported {
+            get {
+                return ResourceManager.GetString("LinkingOrganizationUnsupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The user &apos;{0}&apos; is already an owner or pending owner of this package..
         /// </summary>
         public static string ManagePackageOwners_AlreadyPending {

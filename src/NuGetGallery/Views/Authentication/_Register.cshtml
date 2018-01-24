@@ -33,7 +33,15 @@
     }
     <div class="form-group @Html.HasErrorFor(m => m.Register.EmailAddress)">
         @Html.ShowLabelFor(m => m.Register.EmailAddress)
-        @Html.ShowEmailBoxFor(m => m.Register.EmailAddress)
+        @if (!string.IsNullOrEmpty(Model.Register.EmailAddress))
+        {
+            @Html.HiddenFor(m => m.Register.EmailAddress)
+            <p>@Model.Register.EmailAddress</p>
+        }
+        else
+        {
+            @Html.ShowEmailBoxFor(m => m.Register.EmailAddress)
+        }
         @Html.ShowValidationMessagesFor(m => m.Register.EmailAddress)
     </div>
     <div class="panel panel-default text-center">

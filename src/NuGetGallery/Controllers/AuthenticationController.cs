@@ -144,18 +144,22 @@ namespace NuGetGallery
                     modelErrorMessage = string.Format(CultureInfo.CurrentCulture, Strings.UserAccountLocked, timeRemaining);
                 }
 
-                ModelState.AddModelError("SignIn", modelErrorMessage);
-
-                return SignInOrExternalLinkView(model, linkingAccount);
+                return SignInFailure(model, linkingAccount, modelErrorMessage);
             }
 
-            var user = authenticationResult.AuthenticatedUser;
+            var authenticatedUser = authenticationResult.AuthenticatedUser;
             
             if (linkingAccount)
             {
+                // Verify account has no other external accounts
+                if (authenticatedUser.User.Credentials.Any(c => c.IsExternal()))
+                {
+                    return SignInFailure(model, linkingAccount, Strings.LinkingMultipleExternalAccountsUnsupportedFailure);
+                }
+
                 // Link with an external account
-                user = await AssociateCredential(user);
-                if (user == null)
+                authenticatedUser = await AssociateCredential(authenticatedUser);
+                if (authenticatedUser == null)
                 {
                     return ExternalLinkExpired();
                 }
@@ -165,14 +169,21 @@ namespace NuGetGallery
             // to require a specific authentication provider, challenge that provider if needed.
             ActionResult challenge;
             if (ShouldChallengeEnforcedProvider(
-                NuGetContext.Config.Current.EnforcedAuthProviderForAdmin, user, returnUrl, out challenge))
+                NuGetContext.Config.Current.EnforcedAuthProviderForAdmin, authenticatedUser, returnUrl, out challenge))
             {
                 return challenge;
             }
 
             // Create session
-            await _authService.CreateSessionAsync(OwinContext, user);
+            await _authService.CreateSessionAsync(OwinContext, authenticatedUser);
             return SafeRedirect(returnUrl);
+        }
+
+        private ActionResult SignInFailure(LogOnViewModel model, bool linkingAccount, string modelErrorMessage)
+        {
+            ModelState.AddModelError("SignIn", modelErrorMessage);
+
+            return SignInOrExternalLinkView(model, linkingAccount);
         }
 
         internal bool ShouldChallengeEnforcedProvider(string enforcedProviders, AuthenticatedUser authenticatedUser, string returnUrl, out ActionResult challenge)
@@ -371,13 +382,37 @@ namespace NuGetGallery
                 {
                     existingUser = _userService.FindByEmailAddress(email);
                 }
+                
+                var existingUserCanBeLinked = true;
+                string existingUserLinkingError = null;
+
+                if (existingUser != null && existingUser.Credentials.Any(c => c.IsExternal()))
+                {
+                    existingUserCanBeLinked = false;
+                    existingUserLinkingError = Strings.LinkingMultipleExternalAccountsUnsupported;
+                }
+
+                if (existingUser is Organization)
+                {
+                    existingUserCanBeLinked = false;
+                    existingUserLinkingError = Strings.LinkingOrganizationUnsupported;
+                }
+
+                if (existingUserLinkingError != null)
+                {
+                    existingUserLinkingError = string.Format(
+                        CultureInfo.CurrentCulture, 
+                        existingUserLinkingError, 
+                        email);
+                }
 
                 var external = new AssociateExternalAccountViewModel()
                 {
                     ProviderAccountNoun = authUI.AccountNoun,
                     AccountName = name,
                     FoundExistingUser = existingUser != null,
-                    ExistingUserHasOtherExternalAccounts = existingUser != null && existingUser.Credentials.Any(c => c.IsExternal())
+                    ExistingUserCanBeLinked = existingUserCanBeLinked,
+                    ExistingUserLinkingError = existingUserLinkingError
                 };
 
                 var model = new LogOnViewModel
