@@ -431,8 +431,7 @@
         <div class="row" data-bind="css: { disabled: !SelectPackagesEnabled() }">
             <div class="col-sm-12">
                 <p>
-                    <span data-bind="text: ko.unwrap(SelectedCount).toLocaleString()"></span> of <span data-bind="text: ko.unwrap(TotalCount).toLocaleString()"></span>
-                    <span data-bind="text: TotalCount == 1 ? 'package' : 'packages'"></span> selected
+                    <span data-bind="text: SelectedCountLabel"></span>
                 </p>
             </div>
         </div>

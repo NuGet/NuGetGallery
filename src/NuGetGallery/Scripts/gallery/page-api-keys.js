@@ -238,6 +238,13 @@
             this.TotalCount = ko.pureComputed(function () {
                 return this.PendingPackages().length;
             }, this);
+            this.SelectedCountLabel = ko.pureComputed(function () {
+                return ko.unwrap(SelectedCount).toLocaleString()
+                    + ' of '
+                    + ko.unwrap(TotalCount).toLocaleString()
+                    + ' package' + (TotalCount == 1 ? '' : 's')
+                    + ' selected';
+            }, this);
 
             // Apply the glob pattern to the package IDs
             this.ApplyPendingGlobPattern = function (newValue) {

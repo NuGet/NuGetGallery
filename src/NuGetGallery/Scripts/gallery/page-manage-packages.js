@@ -9,9 +9,10 @@
 
     function formatPackagesData(packagesCount, downloadsCount) {
         return packagesCount.toLocaleString()
-            + ' packages / '
+            + ' package' + (packagesCount == 1 ? '' : 's')
+            + ' / '
             + downloadsCount.toLocaleString()
-            + ' downloads';
+            + ' download' + (downloadsCount == 1 ? '' : 's');
     }
 
     $(function () {

@@ -4,13 +4,13 @@
     ViewBag.Title = "Manage My Package";
     ViewBag.Tab = "Packages";
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
-    
+
     var namespacesCount = Model.ReservedNamespaces.ReservedNamespaces.Count();
-    var ownerRequestsIncomingCount = Model.OwnerRequests.Incoming.RequestItems.Count();
-    var ownerRequestsOutgoingCount = Model.OwnerRequests.Outgoing.RequestItems.Count();
+    var ownerRequestsReceivedCount = Model.OwnerRequests.Received.RequestItems.Count();
+    var ownerRequestsSentCount = Model.OwnerRequests.Sent.RequestItems.Count();
 }
 
-<section role="main" class="container main-container page-account-settings">
+<section role="main" class="container main-container page-manage-packages">
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             <div class="clearfix">
@@ -53,23 +53,23 @@
                     </text>, expanded: false)
             }
 
-            @if (Model.OwnerRequests.Incoming.RequestItems.Any())
+            @if (Model.OwnerRequests.Received.RequestItems.Any())
             {
-                @ViewHelpers.Section(this, "requests-incoming",
+                @ViewHelpers.Section(this, "requests-received",
                             @<text>Ownership Requests (Received)</text>,
-                            @<text>@Html.Raw(ownerRequestsIncomingCount + " request" + (ownerRequestsIncomingCount == 1 ? "" : "s"))</text>,
+                            @<text>@Html.Raw(ownerRequestsReceivedCount + " request" + (ownerRequestsReceivedCount == 1 ? "" : "s"))</text>,
                             @<text>
-                                @Html.Partial("_OwnerRequestsList", Model.OwnerRequests.Incoming)
+                                @Html.Partial("_OwnerRequestsList", Model.OwnerRequests.Received)
                             </text>, expanded: false)
             }
 
-            @if (Model.OwnerRequests.Outgoing.RequestItems.Any())
+            @if (Model.OwnerRequests.Sent.RequestItems.Any())
             {
-                @ViewHelpers.Section(this, "requests-outgoing",
+                @ViewHelpers.Section(this, "requests-sent",
                             @<text>Ownership Requests (Sent)</text>,
-                            @<text>@Html.Raw(ownerRequestsOutgoingCount + " request" + (ownerRequestsOutgoingCount == 1 ? "" : "s"))</text>,
+                            @<text>@Html.Raw(ownerRequestsSentCount + " request" + (ownerRequestsSentCount == 1 ? "" : "s"))</text>,
                             @<text>
-                                @Html.Partial("_OwnerRequestsList", Model.OwnerRequests.Outgoing)
+                                @Html.Partial("_OwnerRequestsList", Model.OwnerRequests.Sent)
                             </text>, expanded: false)
             }
         </div>

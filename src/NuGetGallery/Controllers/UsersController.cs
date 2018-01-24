@@ -408,10 +408,10 @@ namespace NuGetGallery
                 .Select(p => new ListPackageItemViewModel(p, currentUser)).OrderBy(p => p.Id)
                 .ToList();
 
-            var incoming = _packageOwnerRequestService.GetPackageOwnershipRequests(newOwner: currentUser);
-            var outgoing = _packageOwnerRequestService.GetPackageOwnershipRequests(requestingOwner: currentUser);
+            var received = _packageOwnerRequestService.GetPackageOwnershipRequests(newOwner: currentUser);
+            var sent = _packageOwnerRequestService.GetPackageOwnershipRequests(requestingOwner: currentUser);
 
-            var ownerRequests = new OwnerRequestsViewModel(incoming, outgoing, currentUser, _packageService);
+            var ownerRequests = new OwnerRequestsViewModel(received, sent, currentUser, _packageService);
             var reservedPrefixes = new ReservedNamespaceListViewModel(currentUser.ReservedNamespaces);
 
             var model = new ManagePackagesViewModel
