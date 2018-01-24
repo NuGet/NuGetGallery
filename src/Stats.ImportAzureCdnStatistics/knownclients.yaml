@@ -161,6 +161,10 @@
   - regex: '(Cake NuGet Client)/(\d+)\.(\d+)\.?(\d+)?'
     family_replacement: 'Cake NuGet Client'
 
+  # NuGet Client V3
+  - regex: '(NuGet VS VSIX)/(\d+)\.(\d+)\.?(\d+)?'
+    family_replacement: 'NuGet VS VSIX'
+
   # NuGet - Keep this one at the bottom of this file as a catch-all resolver
   - regex: '(NuGet)/?(\d+)\.(\d+)\.?(\d+)?'
     family_replacement: 'NuGet'
