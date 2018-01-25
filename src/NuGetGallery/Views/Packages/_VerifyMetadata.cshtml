@@ -60,14 +60,19 @@
 
                 <!-- ko if: $data.PossibleOwners -->
                 <div class="verify-package-field form-group editable">
-                    <label for="Owner" class="verify-package-field-heading">Owner</label>
-                    <!-- ko if: $data.PossibleOwners.length > 1 -->
+                    <label for="Owner" class="verify-package-field-heading" data-bind="text: $data.IsNewId ? 'Owner' : 'Owners'">Owner</label>
+                    <!-- ko if: $data.PossibleOwners.length > 1 && $data.IsNewId -->
                     <select aria-required="true" class="form-control" data-val="true" data-val-required="You must select an owner for your package!" name="Owner" data-bind="foreach: $data.PossibleOwners">
                         <option data-bind="value: $data, text: $data"></option>
                     </select>
                     <!-- /ko -->
-                    <!-- ko if: $data.PossibleOwners.length == 1 -->
+                    <!-- ko if: $data.PossibleOwners.length == 1 || !$data.IsNewId -->
+                    <!-- ko if: $data.IsNewId -->
                     <p data-bind="text: $data.PossibleOwners[0]"></p>
+                    <!-- /ko -->
+                    <!-- ko ifnot: $data.IsNewId -->
+                    <p data-bind="text: $data.ExistingOwners"></p>
+                    <!-- /ko -->
                     <input data-bind="value: $data.PossibleOwners[0]" type="hidden" name="Owner" class="form-control" />
                     <!-- /ko -->
                 </div>
