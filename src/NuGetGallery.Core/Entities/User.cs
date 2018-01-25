@@ -65,6 +65,8 @@ namespace NuGetGallery
 
         public bool IsDeleted { get; set; }
 
+        public bool IsPasswordDeprecated { get; set; }
+
         public virtual ICollection<ReservedNamespace> ReservedNamespaces { get; set; }
 
         [DefaultValue(true)]
