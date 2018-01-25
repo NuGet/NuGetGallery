@@ -83,7 +83,10 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectory
 
         public override IdentityInformation GetIdentityInformation(ClaimsIdentity claimsIdentity)
         {
-            return ClaimsExtentions.GetIdentityInformation(claimsIdentity, DefaultAuthenticationType);
+            var identityInfo = ClaimsExtentions.GetIdentityInformation(claimsIdentity, DefaultAuthenticationType);
+            // The claims returned by AzureActiveDirectory have the email as the name claim are missing the email claim.
+            // Copy the object returned by the method but set the email as the name.
+            return new IdentityInformation(identityInfo.Identifier, identityInfo.Name, identityInfo.Name, identityInfo.AuthenticationType, identityInfo.TenantId);
         }
     }
 }

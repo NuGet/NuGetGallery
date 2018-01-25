@@ -1000,7 +1000,7 @@ namespace NuGetGallery
             }
 
             // Count credentials and make sure the user can always login
-            if (!CredentialTypes.IsApiKey(cred.Type) && CountLoginCredentials(user) <= 1)
+            if (!cred.IsApiKey() && CountLoginCredentials(user) <= 1)
             {
                 TempData["Message"] = Strings.CannotRemoveOnlyLoginCredential;
             }

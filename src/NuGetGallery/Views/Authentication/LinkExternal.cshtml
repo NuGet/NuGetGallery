@@ -29,10 +29,7 @@
                     }
                     else
                     {
-                        if (!string.IsNullOrEmpty(Model.External.ExistingUserLinkingError))
-                        {
-                            @Model.External.ExistingUserLinkingError;
-                        }
+                        @Model.External.ExistingUserLinkingError;
 
                         <text>
                         Please <a href="mailto:@Config.Current.GalleryOwner.Address">contact support</a> if you need more assistance.

@@ -382,36 +382,35 @@ namespace NuGetGallery
                 {
                     existingUser = _userService.FindByEmailAddress(email);
                 }
-                
-                var existingUserCanBeLinked = true;
+
+                var foundExistingUser = existingUser != null;
                 string existingUserLinkingError = null;
 
-                if (existingUser != null && existingUser.Credentials.Any(c => c.IsExternal()))
+                if (foundExistingUser)
                 {
-                    existingUserCanBeLinked = false;
-                    existingUserLinkingError = Strings.AccountIsLinkedToAnotherExternalAccount;
-                }
+                    if (existingUser is Organization)
+                    {
+                        existingUserLinkingError = Strings.LinkingOrganizationUnsupported;
+                    }
+                    else if (existingUser.Credentials.Any(c => c.IsExternal()))
+                    {
+                        existingUserLinkingError = Strings.AccountIsLinkedToAnotherExternalAccount;
+                    }
 
-                if (existingUser is Organization)
-                {
-                    existingUserCanBeLinked = false;
-                    existingUserLinkingError = Strings.LinkingOrganizationUnsupported;
-                }
-
-                if (existingUserLinkingError != null)
-                {
-                    existingUserLinkingError = string.Format(
-                        CultureInfo.CurrentCulture, 
-                        existingUserLinkingError, 
-                        email);
+                    if (existingUserLinkingError != null)
+                    {
+                        existingUserLinkingError = string.Format(
+                            CultureInfo.CurrentCulture,
+                            existingUserLinkingError,
+                            email);
+                    }
                 }
 
                 var external = new AssociateExternalAccountViewModel()
                 {
                     ProviderAccountNoun = authUI.AccountNoun,
                     AccountName = name,
-                    FoundExistingUser = existingUser != null,
-                    ExistingUserCanBeLinked = existingUserCanBeLinked,
+                    FoundExistingUser = foundExistingUser,
                     ExistingUserLinkingError = existingUserLinkingError
                 };
 

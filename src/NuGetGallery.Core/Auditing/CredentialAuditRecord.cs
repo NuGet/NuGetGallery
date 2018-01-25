@@ -31,7 +31,7 @@ namespace NuGetGallery.Auditing
             Identity = credential.Identity;
 
             // Track the value for credentials that are definitely revocable (API Key, etc.) and have been removed
-            if (removed && !CredentialTypes.IsPassword(credential.Type))
+            if (removed && !credential.IsPassword())
             {
                 Value = credential.Value;
             }

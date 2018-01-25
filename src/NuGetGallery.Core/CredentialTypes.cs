@@ -28,26 +28,31 @@ namespace NuGetGallery
 
         public const string ExternalPrefix = "external.";
 
-        public static bool IsPassword(string type)
+        public static bool IsPassword(this Credential c)
         {
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            return type.StartsWith(Password.Prefix, StringComparison.OrdinalIgnoreCase);
+            return IsPassword(c.Type);
         }
 
-        public static bool IsApiKey(string type)
+        public static bool IsExternal(this Credential c)
         {
-            return type.StartsWith(ApiKey.Prefix, StringComparison.OrdinalIgnoreCase);
+            return c.IsSubType(ExternalPrefix);
         }
 
-        public static bool IsPackageVerificationApiKey(string type)
+        public static bool IsApiKey(this Credential c)
         {
-            return type.Equals(ApiKey.VerifyV1, StringComparison.OrdinalIgnoreCase);
+            return c.IsSubType(ApiKey.Prefix);
         }
-        
+
+        public static bool IsType(this Credential c, string type)
+        {
+            return IsType(c.Type, type);
+        }
+
+        private static bool IsSubType(this Credential c, string typePrefix)
+        {
+            return IsSubType(c.Type, typePrefix);
+        }
+
         internal static IReadOnlyList<string> SupportedCredentialTypes = new List<string> { Password.Sha1, Password.Pbkdf2, Password.V3, ApiKey.V1, ApiKey.V2, ApiKey.V4 };
 
         /// <summary>
@@ -69,14 +74,49 @@ namespace NuGetGallery
         /// <returns></returns>
         public static bool IsViewSupportedCredential(this Credential credential)
         {
-            return 
-                SupportedCredentialTypes.Any(credType => credential.IsType(credType)) || 
+            return
+                SupportedCredentialTypes.Any(credType => credential.IsType(credType)) ||
                 credential.IsExternal();
         }
 
         public static bool IsScopedApiKey(this Credential credential)
         {
             return IsApiKey(credential.Type) && credential.Scopes != null && credential.Scopes.Any();
+        }
+
+        public static bool IsPassword(string type)
+        {
+            return IsSubType(type, Password.Prefix);
+        }
+
+        public static bool IsApiKey(string type)
+        {
+            return IsSubType(type, ApiKey.Prefix);
+        }
+
+        public static bool IsPackageVerificationApiKey(string type)
+        {
+            return IsSubType(type, ApiKey.VerifyV1);
+        }
+
+        private static bool IsType(string actualType, string expectedType)
+        {
+            if (actualType == null)
+            {
+                throw new ArgumentNullException(nameof(actualType));
+            }
+
+            return actualType.Equals(expectedType, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsSubType(string actualType, string expectedTypePrefix)
+        {
+            if (actualType == null)
+            {
+                throw new ArgumentNullException(nameof(actualType));
+            }
+            
+            return actualType.StartsWith(expectedTypePrefix, StringComparison.OrdinalIgnoreCase);
         }
     }
 }
