@@ -1843,7 +1843,7 @@ namespace NuGetGallery
             return !String.Equals(posted.Replace("\r", ""), package.Replace("\r", ""), StringComparison.Ordinal);
         }
 
-        private HttpStatusCodeResult HttpForbidden()
+        private static HttpStatusCodeResult HttpForbidden()
         {
             return new HttpStatusCodeResult(HttpStatusCode.Forbidden, Strings.Unauthorized);
         }
