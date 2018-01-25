@@ -390,19 +390,17 @@ namespace NuGetGallery
                 {
                     if (existingUser is Organization)
                     {
-                        existingUserLinkingError = Strings.LinkingOrganizationUnsupported;
+                        existingUserLinkingError = string.Format(
+                               CultureInfo.CurrentCulture,
+                               Strings.LinkingOrganizationUnsupported,
+                               email);
                     }
                     else if (existingUser.Credentials.Any(c => c.IsExternal()) && !existingUser.IsAdministrator())
                     {
-                        existingUserLinkingError = Strings.AccountIsLinkedToAnotherExternalAccount;
-                    }
-
-                    if (existingUserLinkingError != null)
-                    {
                         existingUserLinkingError = string.Format(
-                            CultureInfo.CurrentCulture,
-                            existingUserLinkingError,
-                            email);
+                               CultureInfo.CurrentCulture,
+                               Strings.AccountIsLinkedToAnotherExternalAccount,
+                               email);
                     }
                 }
 
