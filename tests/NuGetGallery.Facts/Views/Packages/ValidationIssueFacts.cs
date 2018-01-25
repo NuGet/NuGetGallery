@@ -94,8 +94,12 @@ namespace NuGetGallery.Views.Packages
         {
             get
             {
-                yield return new PackageIsSigned();
+                yield return ValidationIssue.PackageIsSigned;
                 yield return new ClientSigningVerificationFailure("NU3000", "Some signing error.");
+                yield return ValidationIssue.PackageIsZip64;
+                yield return ValidationIssue.OnlyAuthorSignaturesSupported;
+                yield return ValidationIssue.AuthorAndRepositoryCounterSignaturesNotSupported;
+                yield return ValidationIssue.OnlySignatureFormatVersion1Supported;
             }
         }
 
@@ -103,7 +107,7 @@ namespace NuGetGallery.Views.Packages
         {
             get
             {
-                yield return new UnknownIssue();
+                yield return ValidationIssue.Unknown;
 #pragma warning disable 0618
                 yield return new ObsoleteTestingIssue("a", 1);
 #pragma warning restore 0618

@@ -142,7 +142,7 @@ namespace NuGetGallery
                                 {
                                     Key = 2,
                                     IssueCode = ValidationIssueCode.PackageIsSigned,
-                                    Data = new PackageIsSigned().Serialize(),
+                                    Data = ValidationIssue.PackageIsSigned.Serialize(),
                                 },
                                 new PackageValidationIssue
                                 {
@@ -179,7 +179,7 @@ namespace NuGetGallery
 
                 Assert.Equal(4, issues.Count);
 
-                Assert.IsType<PackageIsSigned>(issues[0]);
+                Assert.Equal(ValidationIssueCode.PackageIsSigned, issues[0].IssueCode);
 
                 var issue1 = Assert.IsType<ClientSigningVerificationFailure>(issues[1]);
                 Assert.Equal("NU3001", issue1.ClientCode);
@@ -189,7 +189,7 @@ namespace NuGetGallery
                 Assert.Equal("NU3000", issue2.ClientCode);
                 Assert.Equal("Please endorse.", issue2.ClientMessage);
 
-                var issue3 = Assert.IsType<UnknownIssue>(issues[3]);
+                Assert.Equal(ValidationIssueCode.Unknown, issues[3].IssueCode);
             }
 
             [Fact]
@@ -223,7 +223,7 @@ namespace NuGetGallery
                 _validationSets.Verify(x => x.GetAll(), Times.Once);
 
                 var issue = Assert.Single(issues);
-                Assert.IsType<UnknownIssue>(issue);
+                Assert.Equal(ValidationIssueCode.Unknown, issue.IssueCode);
             }
 
             [Fact]

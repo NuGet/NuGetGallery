@@ -216,123 +216,80 @@ namespace NuGetGallery
         /// </summary>
         public IEnumerable<Package> FindPackagesByAnyMatchingOwner(User user, bool includeUnlisted, bool includeVersions = false)
         {
-            // Like DisplayPackage we should prefer to show you information from the latest stable version,
-            // but show you the latest version (potentially latest UNLISTED version) otherwise.
-            
             var ownerKeys = user.Organizations.Select(org => org.OrganizationKey).ToList();
             ownerKeys.Insert(0, user.Key);
 
-            var mergedResults = new Dictionary<string, Package>(StringComparer.OrdinalIgnoreCase);
+            var packages = GetPackagesForOwners(ownerKeys, includeUnlisted);
             if (includeVersions)
             {
-                return MergePackagesByOwner(ownerKeys, includeUnlisted);
+                return packages;
             }
             else
             {
-                MergeLatestPackagesByOwner(ownerKeys, includeUnlisted, mergedResults);
-                MergeLatestStablePackagesByOwner(ownerKeys, includeUnlisted, mergedResults);
-                return mergedResults.Values;
+                return GetLatestPackageForEachRegistration(packages.ToList());
             }
         }
 
-        /// <summary>
-        /// Merge latest stable packages by owner, including organization owners that the user belongs to.
-        /// </summary>
-        private void MergeLatestStablePackagesByOwner(List<int> ownerKeys, bool includeUnlisted, Dictionary<string, Package> mergedResults)
+        private IEnumerable<Package> GetLatestPackageForEachRegistration(IReadOnlyCollection<Package> packages)
         {
-            IQueryable<Package> latestStablePackageVersions = _packageRepository.GetAll()
-                            .Where(p => p.PackageRegistration.Owners.Any(o => ownerKeys.Contains(o.Key)))
-                            .Where(p => p.IsLatestStable || p.IsLatestStableSemVer2)
-                            .Include(p => p.PackageRegistration)
-                            .Include(p => p.PackageRegistration.Owners);
-
-            foreach (var latestStablePackagesById in latestStablePackageVersions.ToList().GroupBy(p => p.PackageRegistration.Id))
-            {
-                // Use First() instead of Single() to get the latest package, in case there are multiple latest due to concurrency issue
-                // see: https://github.com/NuGet/NuGetGallery/issues/2514
-                Package latestStablePackage;
-                if (includeUnlisted)
-                {
-                    latestStablePackage = latestStablePackagesById.First();
-                }
-                else
-                {
-                    latestStablePackage =
-                        latestStablePackagesById.FirstOrDefault(p => p.IsLatestStableSemVer2)
-                        ?? latestStablePackagesById.FirstOrDefault(p => p.IsLatestStable);
-                }
-
-                mergedResults[latestStablePackage.PackageRegistration.Id] = latestStablePackage;
-            }
-        }
-
-        /// <summary>
-        /// Merge latest packages by owner, including organization owners that the user belongs to.
-        /// </summary>
-        private void MergeLatestPackagesByOwner(List<int> ownerKeys, bool includeUnlisted, Dictionary<string, Package> mergedResults)
-        {
-            IQueryable<Package> latestPackageVersions;
-            if (includeUnlisted)
-            {
-                latestPackageVersions = _packageRegistrationRepository.GetAll()
-                    .Where(pr => pr.Owners.Any(o => ownerKeys.Contains(o.Key)))
-                    .Select(pr => pr.Packages.OrderByDescending(p => p.Version).FirstOrDefault())
-                    .Where(p => p != null)
-                    .Include(p => p.PackageRegistration)
-                    .Include(p => p.PackageRegistration.Owners);
-            }
-            else
-            {
-                latestPackageVersions = _packageRepository.GetAll()
-                    .Where(p => p.PackageRegistration.Owners.Any(o => ownerKeys.Contains(o.Key)))
-                    .Where(p => p.IsLatest || p.IsLatestSemVer2)
-                    .Include(p => p.PackageRegistration)
-                    .Include(p => p.PackageRegistration.Owners);
-            }
-
-            // Use First() instead of Single() to get the latest package, in case there are multiple latest due to concurrency issue
+            // This method uses First() and FirstOrDefault() instead of Single() or SingleOrDefault() to get the latest package, 
+            // in case there are multiple latest due to concurrency issue
             // see: https://github.com/NuGet/NuGetGallery/issues/2514
-            foreach (var latestPackagesById in latestPackageVersions.ToList().GroupBy(p => p.PackageRegistration.Id))
+            foreach (var packagesByRegistration in packages.GroupBy(p => p.PackageRegistration.Id))
             {
-                Package latestPackage;
-                if (includeUnlisted)
+                // Return latest stable SemVer2 version if available
+                var latest = packagesByRegistration.Where(p => p.IsLatestStableSemVer2).FirstOrDefault();
+                if (latest != null)
                 {
-                    latestPackage = latestPackagesById.First();
-                }
-                else
-                {
-                    latestPackage =
-                       latestPackagesById.FirstOrDefault(p => p.IsLatestSemVer2)
-                       ?? latestPackagesById.First(p => p.IsLatest);
+                    yield return latest;
+                    continue;
                 }
 
-                if (mergedResults.ContainsKey(latestPackage.PackageRegistration.Id)
-                    && mergedResults[latestPackage.PackageRegistration.Id].Created < latestPackage.Created)
+                // Return latest stable non-SemVer2 version if available
+                latest = packagesByRegistration.Where(p => p.IsLatestStable).FirstOrDefault();
+                if (latest != null)
                 {
-                    mergedResults[latestPackage.PackageRegistration.Id] = latestPackage;
+                    yield return latest;
+                    continue;
                 }
-                else
+
+                // Return latest pre-release SemVer2 version if available
+                latest = packagesByRegistration.Where(p => p.IsLatestSemVer2).FirstOrDefault();
+                if (latest != null)
                 {
-                    mergedResults.Add(latestPackage.PackageRegistration.Id, latestPackage);
+                    yield return latest;
+                    continue;
                 }
+
+                // Return latest pre-release non-SemVer2 version if available
+                latest = packagesByRegistration.Where(p => p.IsLatest).FirstOrDefault();
+                if (latest != null)
+                {
+                    yield return latest;
+                    continue;
+                }
+
+                // Like DisplayPackage we should prefer to show you information from the latest stable version,
+                // but show you the latest version (potentially latest UNLISTED version) otherwise.
+                yield return packagesByRegistration.OrderByDescending(p => NuGetVersion.Parse(p.Version)).First();
             }
         }
 
         /// <summary>
         /// Merge packages by owner, including organization owners that the user belongs to and including versions.
         /// </summary>
-        private IEnumerable<Package> MergePackagesByOwner(List<int> ownerKeys, bool includeUnlisted)
+        private IEnumerable<Package> GetPackagesForOwners(IReadOnlyCollection<int> ownerKeys, bool includeUnlisted)
         {
             IQueryable<Package> packageVersions = _packageRepository.GetAll()
                     .Where(p => p.PackageRegistration.Owners.Any(o => ownerKeys.Contains(o.Key)))
                     .Include(p => p.PackageRegistration)
                     .Include(p => p.PackageRegistration.Owners);
 
-            if(!includeUnlisted)
+            if (!includeUnlisted)
             {
                 packageVersions = packageVersions.Where(p => p.Listed);
             }
-            
+
             return packageVersions;
         }
 
@@ -488,12 +445,7 @@ namespace NuGetGallery
         private PackageRegistration CreateOrGetPackageRegistration(User owner, User currentUser, PackageMetadata packageMetadata, bool isVerified)
         {
             var packageRegistration = FindPackageRegistrationById(packageMetadata.Id);
-
-            if (packageRegistration != null && ActionsRequiringPermissions.EditPackage.CheckPermissions(currentUser, currentUser, packageRegistration) != PermissionsCheckResult.Allowed)
-            {
-                throw new EntityException(Strings.PackageIdNotAvailable, packageMetadata.Id);
-            }
-
+            
             if (packageRegistration == null)
             {
                 if (_packageNamingConflictValidator.IdConflictsWithExistingPackageTitle(packageMetadata.Id))
