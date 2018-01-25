@@ -211,6 +211,19 @@ namespace NuGetGallery
             return package;
         }
 
+        public IEnumerable<Package> FindPackagesByOwner(User user, bool includeUnlisted, bool includeVersions = false)
+        {
+            var packages = GetPackagesForOwners(new[] { user.Key }, includeUnlisted);
+            if (includeVersions)
+            {
+                return packages;
+            }
+            else
+            {
+                return GetLatestPackageForEachRegistration(packages.ToList());
+            }
+        }
+
         /// <summary>
         /// Find packages by owner, including organization owners that the user belongs to.
         /// </summary>
