@@ -2,20 +2,19 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
 using System.Net;
-using System.Net.Mail;
-using System.Threading.Tasks;
+using System.Linq;
 using System.Web.Mvc;
+using System.Net.Mail;
+using System.Globalization;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using NuGetGallery.Filters;
 using NuGetGallery.Areas.Admin;
+using NuGetGallery.Configuration;
+using NuGetGallery.Authentication;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Areas.Admin.ViewModels;
-using NuGetGallery.Authentication;
-using NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2;
-using NuGetGallery.Configuration;
-using NuGetGallery.Filters;
 using NuGetGallery.Infrastructure.Authentication;
 
 namespace NuGetGallery
@@ -137,7 +136,7 @@ namespace NuGetGallery
                     Strings.TransformAccount_AdminAccountDoesNotExist, transformViewModel.AdminUsername));
                 return View(transformViewModel);
             }
-            
+
             if (!_userService.CanTransformUserToOrganization(accountToTransform, adminUser, out var errorReason))
             {
                 return TransformToOrganizationFailed(errorReason);
@@ -147,7 +146,7 @@ namespace NuGetGallery
 
             // sign out pending organization and prompt for admin sign in
             OwinContext.Authentication.SignOut();
-            
+
             TempData[Constants.ReturnUrlMessageViewDataKey] = String.Format(CultureInfo.CurrentCulture,
                 Strings.TransformAccount_SignInToConfirm, adminUser.Username, accountToTransform.Username);
             var returnUrl = Url.ConfirmTransformAccount(accountToTransform);
@@ -209,7 +208,7 @@ namespace NuGetGallery
                  .Select(p => new ListPackageItemViewModel(p, user))
                  .ToList();
 
-            bool hasPendingRequest = _supportRequestService.GetIssues().Where((issue)=> (issue.UserKey.HasValue && issue.UserKey.Value == user.Key) && 
+            bool hasPendingRequest = _supportRequestService.GetIssues().Where((issue) => (issue.UserKey.HasValue && issue.UserKey.Value == user.Key) &&
                                                                                  string.Equals(issue.IssueTitle, Strings.AccountDelete_SupportRequestTitle) &&
                                                                                  issue.Key != IssueStatusKeys.Resolved).Any();
 
@@ -220,7 +219,7 @@ namespace NuGetGallery
                 AccountName = user.Username,
                 HasPendingRequests = hasPendingRequest
             };
-            
+
             return View("DeleteAccount", model);
         }
 
@@ -249,7 +248,7 @@ namespace NuGetGallery
                 return RedirectToAction("DeleteRequest");
             }
             _messageService.SendAccountDeleteNotice(user.ToMailAddress(), user.Username);
-           
+
             return RedirectToAction("DeleteRequest");
         }
 
@@ -258,13 +257,13 @@ namespace NuGetGallery
         public virtual ActionResult Delete(string accountName)
         {
             var user = _userService.FindByUsername(accountName);
-            if(user == null || user.IsDeleted || (user is Organization))
+            if (user == null || user.IsDeleted || (user is Organization))
             {
                 return HttpNotFound("User not found.");
             }
 
             var listPackageItems = _packageService
-                 .FindPackagesByAnyMatchingOwner(user, includeUnlisted:true)
+                 .FindPackagesByAnyMatchingOwner(user, includeUnlisted: true)
                  .Select(p => new ListPackageItemViewModel(p, user))
                  .ToList();
             var model = new DeleteUserAccountViewModel
@@ -354,8 +353,8 @@ namespace NuGetGallery
             var user = GetCurrentUser();
 
             await _userService.ChangeEmailSubscriptionAsync(
-                user, 
-                model.ChangeNotifications.EmailAllowed, 
+                user,
+                model.ChangeNotifications.EmailAllowed,
                 model.ChangeNotifications.NotifyPackagePushed);
 
             TempData["Message"] = Strings.EmailPreferencesUpdated;
@@ -672,7 +671,7 @@ namespace NuGetGallery
         {
             var user = GetCurrentUser();
 
-            if(string.IsNullOrWhiteSpace(user.UnconfirmedEmailAddress))
+            if (string.IsNullOrWhiteSpace(user.UnconfirmedEmailAddress))
             {
                 return RedirectToAction(actionName: "Account", controllerName: "Users");
             }
@@ -808,7 +807,7 @@ namespace NuGetGallery
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return Json(Strings.Unsupported);
             }
-           
+
             var newCredentialViewModel = await GenerateApiKeyInternal(
                 cred.Description,
                 BuildScopes(cred.Scopes),
@@ -1058,7 +1057,7 @@ namespace NuGetGallery
             model.ChangeNotifications = model.ChangeNotifications ?? new ChangeNotificationsViewModel();
             model.ChangeNotifications.EmailAllowed = user.EmailAllowed;
             model.ChangeNotifications.NotifyPackagePushed = user.NotifyPackagePushed;
-           
+
             return View("Account", model);
         }
 

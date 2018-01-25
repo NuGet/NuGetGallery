@@ -5,18 +5,16 @@ using System;
 using System.Web;
 using System.Linq;
 using System.Web.Mvc;
-using System.Collections.Generic;
-using System.Globalization;
 using System.Net.Mail;
-using System.Security.Claims;
+using System.Globalization;
 using System.Threading.Tasks;
+using System.Security.Claims;
+using System.Collections.Generic;
 using NuGetGallery.Authentication;
-using NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2;
-using NuGetGallery.Filters;
-using NuGetGallery.Infrastructure.Authentication;
-using System.Collections.Specialized;
-using NuGetGallery.Authentication.Providers.MicrosoftAccount;
 using NuGetGallery.Authentication.Providers;
+using NuGetGallery.Infrastructure.Authentication;
+using NuGetGallery.Authentication.Providers.MicrosoftAccount;
+using NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2;
 
 namespace NuGetGallery
 {
@@ -160,7 +158,7 @@ namespace NuGetGallery
             }
 
             var user = authenticationResult.AuthenticatedUser;
-            
+
             if (linkingAccount)
             {
                 // Link with an external account
@@ -192,7 +190,7 @@ namespace NuGetGallery
                 && authenticatedUser.User.IsInRole(Constants.AdminRoleName))
             {
                 // Seems we *need* a specific authentication provider. Check if we logged in using one...
-                var providers = enforcedProviders.Split(new[] {';'}, StringSplitOptions.RemoveEmptyEntries);
+                var providers = enforcedProviders.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
 
                 if (!providers.Any(p => string.Equals(p, authenticatedUser.CredentialUsed.Type, StringComparison.OrdinalIgnoreCase))
                     && !providers.Any(p => string.Equals(CredentialTypes.ExternalPrefix + p, authenticatedUser.CredentialUsed.Type, StringComparison.OrdinalIgnoreCase)))
@@ -215,7 +213,7 @@ namespace NuGetGallery
         {
             return Redirect(Url.LogOnNuGetAccount(returnUrl, relativeUrl: false));
         }
-        
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> Register(LogOnViewModel model, string returnUrl, bool linkingAccount)
@@ -300,7 +298,7 @@ namespace NuGetGallery
         {
             OwinContext.Authentication.SignOut();
 
-            if (!string.IsNullOrEmpty(returnUrl) 
+            if (!string.IsNullOrEmpty(returnUrl)
                 && returnUrl.Contains("account"))
             {
                 returnUrl = null;
@@ -341,7 +339,7 @@ namespace NuGetGallery
             string externalAuthProvider = null;
             if (authPriority.Count() > 0)
             {
-                foreach(string authenticator in authPriority)
+                foreach (string authenticator in authPriority)
                 {
                     if (providers.Any(p => p.ProviderName.Equals(authenticator, StringComparison.OrdinalIgnoreCase)))
                     {
@@ -376,7 +374,7 @@ namespace NuGetGallery
         {
             var user = GetCurrentUser();
             var result = await _authService.ReadExternalLoginCredential(OwinContext);
-            if (result == null)
+            if (result?.Credential == null)
             {
                 TempData["ErrorMessage"] = Strings.ExternalAccountLinkExpired;
                 return SafeRedirect(returnUrl);
@@ -384,18 +382,15 @@ namespace NuGetGallery
 
             var newCredential = result.Credential;
 
-            if (newCredential != null)
+            if (await _authService.TryReplaceCredential(user, newCredential))
             {
-                if (await _authService.TryReplaceCredential(user, newCredential))
-                {
-                    // Authenticate with the new credential after successful replacement
-                    await _authService.Authenticate(newCredential);
-                    TempData["Message"] = Strings.ChangeCredential_Success;
-                }
-                else
-                {
-                    TempData["ErrorMessage"] = string.Format(Strings.ChangeCredential_ExistingCredential, HttpUtility.UrlEncode(newCredential.Identity));
-                }
+                // Authenticate with the new credential after successful replacement
+                await _authService.Authenticate(newCredential);
+                TempData["Message"] = Strings.ChangeCredential_Success;
+            }
+            else
+            {
+                TempData["ErrorMessage"] = string.Format(Strings.ChangeCredential_ExistingCredential, HttpUtility.UrlEncode(newCredential.Identity));
             }
 
             return SafeRedirect(returnUrl);
@@ -444,7 +439,7 @@ namespace NuGetGallery
                     // Consume the exception for now, for backwards compatibility to previous MSA provider.
                     email = result.ExternalIdentity.GetClaimOrDefault(ClaimTypes.Email);
                     name = result
-                        .ExternalIdentity 
+                        .ExternalIdentity
                         .GetClaimOrDefault(ClaimTypes.Name);
                 }
 
@@ -575,7 +570,7 @@ namespace NuGetGallery
         {
             return AuthenticationView("SignInNuGetAccount", existingModel);
         }
-        
+
         private ActionResult LinkExternalView(LogOnViewModel existingModel)
         {
             return AuthenticationView("LinkExternal", existingModel);
