@@ -8,6 +8,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGetGallery.Areas.Admin.Models;
+using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
 
 namespace NuGetGallery.Areas.Admin
@@ -16,18 +17,21 @@ namespace NuGetGallery.Areas.Admin
         : ISupportRequestService
     {
         private readonly ISupportRequestDbContext _supportRequestDbContext;
+        private IAuditingService _auditingService;
         private readonly PagerDutyClient _pagerDutyClient;
         private readonly string _siteRoot;
         private const string _unassignedAdmin = "unassigned";
 
         public SupportRequestService(
             ISupportRequestDbContext supportRequestDbContext,
-            IAppConfiguration config)
+            IAppConfiguration config,
+            IAuditingService auditingService)
         {
             _supportRequestDbContext = supportRequestDbContext;
             _siteRoot = config.SiteRoot;
 
             _pagerDutyClient = new PagerDutyClient(config.PagerDutyAccountName, config.PagerDutyAPIKey, config.PagerDutyServiceKey);
+            _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
         }
 
         public IReadOnlyCollection<Models.Admin> GetAllAdmins()
@@ -258,6 +262,22 @@ namespace NuGetGallery.Areas.Admin
             }
 
             return null;
+        }
+
+        public async Task<bool> TryAddDeleteSupportRequestAsync(User user)
+        {
+            var requestSent = await AddNewSupportRequestAsync(
+                Strings.AccountDelete_SupportRequestTitle,
+                Strings.AccountDelete_SupportRequestTitle,
+                user.EmailAddress,
+                "The user requested to have the account deleted.",
+                user) != null;
+            var status = requestSent ? DeleteAccountAuditRecord.ActionStatus.Success : DeleteAccountAuditRecord.ActionStatus.Failure;
+            await _auditingService.SaveAuditRecordAsync(new DeleteAccountAuditRecord(userName: user.Username,
+                   status: status,
+                   action: AuditedDeleteAccountAction.RequestAccountDeletion));
+
+            return requestSent;
         }
 
         private async Task AddIssueAsync(Issue issue)

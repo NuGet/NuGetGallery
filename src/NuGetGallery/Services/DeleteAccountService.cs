@@ -148,10 +148,6 @@ namespace NuGetGallery
             }
             catch(Exception e)
             {
-                await _auditingService.SaveAuditRecordAsync(new DeleteAccountAuditRecord(userName: userToBeDeleted.Username,
-                    status: DeleteAccountAuditRecord.ActionStatus.Failure,
-                    action: AuditedDeleteAccountAction.DeleteAccount,
-                    adminUserName: admin.Username));
                 QuietLog.LogHandledException(e);
                 return new DeleteUserAccountStatus()
                 {

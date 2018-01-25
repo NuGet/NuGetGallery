@@ -2336,8 +2336,8 @@ namespace NuGetGallery
                    .Setup(stub => stub.GetIssues(null, null, null, userName))
                    .Returns(issues);
                 GetMock<ISupportRequestService>()
-                  .Setup(stub => stub.AddNewSupportRequestAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), testUser, null))
-                  .ReturnsAsync(successOnSentRequest ? new Issue() : (Issue)null);
+                  .Setup(stub => stub.TryAddDeleteSupportRequestAsync(testUser))
+                  .ReturnsAsync(successOnSentRequest);
 
                 // act
                 var result = await controller.RequestAccountDeletion() as RedirectToRouteResult;

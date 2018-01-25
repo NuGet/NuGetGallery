@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Models;
+using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
 using Moq;
 using Xunit;
@@ -22,8 +23,9 @@ namespace NuGetGallery.Services
             public async Task DeleteRequestsNullInput()
             {
                 // Arrange
+                var auditingService = new Mock<IAuditingService>();
                 TestSupportRequestDbContext supportRequestContext = new TestSupportRequestDbContext();
-                SupportRequestService supportRequestService = new SupportRequestService(supportRequestContext, GetAppConfig());
+                SupportRequestService supportRequestService = new SupportRequestService(supportRequestContext, GetAppConfig(), auditingService.Object);
 
                 // Act + Assert
                 await Assert.ThrowsAsync<ArgumentNullException>(() => supportRequestService.DeleteSupportRequestsAsync(null));
@@ -69,7 +71,8 @@ namespace NuGetGallery.Services
                 supportRequestContext.Issues.Add(JoesOldIssue);
                 supportRequestContext.Issues.Add(randomIssue);
 
-                SupportRequestService supportRequestService = new SupportRequestService(supportRequestContext, GetAppConfig());
+                var auditingService = new Mock<IAuditingService>();
+                SupportRequestService supportRequestService = new SupportRequestService(supportRequestContext, GetAppConfig(),auditingService.Object);
 
                 // Act
                 await supportRequestService.DeleteSupportRequestsAsync(userName);
@@ -82,6 +85,36 @@ namespace NuGetGallery.Services
                 Assert.NotNull(deleteRequestIssue);
                 Assert.Null(deleteRequestIssue.CreatedBy);
                 Assert.Null(deleteRequestIssue.HistoryEntries.ElementAt(0).EditedBy);
+            }
+
+            [Fact]
+            public async Task DeleteAccountRequestWillAudit()
+            {
+                // Arrange
+                var auditingService = new FakeAuditingService();
+                TestSupportRequestDbContext supportRequestContext = new TestSupportRequestDbContext();
+                SupportRequestService supportRequestService = new SupportRequestService(supportRequestContext, GetAppConfig(), auditingService);
+                User user = new User("testUser");
+
+                // Act
+                await supportRequestService.TryAddDeleteSupportRequestAsync(user);
+
+                // Assert
+                Assert.Equal(1, auditingService.Records.Count);
+                var deleteRecord = auditingService.Records[0] as DeleteAccountAuditRecord;
+                Assert.True(deleteRecord != null);
+                Assert.Equal(DeleteAccountAuditRecord.ActionStatus.Success, deleteRecord.Status);
+            }
+        }
+
+        internal class FakeAuditingService : IAuditingService
+        {
+            public List<AuditRecord> Records = new List<AuditRecord>();
+
+            public Task SaveAuditRecordAsync(AuditRecord record)
+            {
+                Records.Add(record);
+                return Task.FromResult(true);
             }
         }
 

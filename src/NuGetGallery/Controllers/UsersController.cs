@@ -12,7 +12,6 @@ using System.Web.Mvc;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Areas.Admin.ViewModels;
-using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
@@ -33,7 +32,6 @@ namespace NuGetGallery
         private readonly ICredentialBuilder _credentialBuilder;
         private readonly IDeleteAccountService _deleteAccountService;
         private readonly ISupportRequestService _supportRequestService;
-        private IAuditingService _auditingService;
 
         public UsersController(
             ICuratedFeedService feedsQuery,
@@ -45,8 +43,7 @@ namespace NuGetGallery
             AuthenticationService authService,
             ICredentialBuilder credentialBuilder,
             IDeleteAccountService deleteAccountService,
-            ISupportRequestService supportRequestService,
-            IAuditingService auditingService)
+            ISupportRequestService supportRequestService)
         {
             _curatedFeedService = feedsQuery ?? throw new ArgumentNullException(nameof(feedsQuery));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
@@ -58,7 +55,6 @@ namespace NuGetGallery
             _credentialBuilder = credentialBuilder ?? throw new ArgumentNullException(nameof(credentialBuilder));
             _deleteAccountService = deleteAccountService ?? throw new ArgumentNullException(nameof(deleteAccountService));
             _supportRequestService = supportRequestService ?? throw new ArgumentNullException(nameof(supportRequestService));
-            _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
         }
 
         [HttpGet]
@@ -246,23 +242,13 @@ namespace NuGetGallery
                 return HttpNotFound("User not found.");
             }
 
-            var supportRequest = await _supportRequestService.AddNewSupportRequestAsync(
-                Strings.AccountDelete_SupportRequestTitle,
-                Strings.AccountDelete_SupportRequestTitle,
-                user.EmailAddress,
-                "The user requested to have the account deleted.",
-                user);
-            var isSupportRequestCreated = supportRequest != null;
+            var isSupportRequestCreated = await _supportRequestService.TryAddDeleteSupportRequestAsync(user);
             if (!isSupportRequestCreated)
             {
-                await _auditingService.SaveAuditRecordAsync(new DeleteAccountAuditRecord(userName: user.Username, status: DeleteAccountAuditRecord.ActionStatus.Failure, action: AuditedDeleteAccountAction.RequestAccountDeletion));
                 TempData["RequestFailedMessage"] = Strings.AccountDelete_CreateSupportRequestFails;
                 return RedirectToAction("DeleteRequest");
             }
             _messageService.SendAccountDeleteNotice(user.ToMailAddress(), user.Username);
-            await _auditingService.SaveAuditRecordAsync(new DeleteAccountAuditRecord(userName: user.Username,
-                   status: DeleteAccountAuditRecord.ActionStatus.Success,
-                   action: AuditedDeleteAccountAction.RequestAccountDeletion));
             return RedirectToAction("DeleteRequest");
         }
 
