@@ -243,12 +243,58 @@ namespace NuGetGallery.Controllers
                 GetMock<AuthenticationService>().VerifyAll();
             }
 
-            public async Task WhenAttemptingToLinkExternalToAccountWithExistingExternals_RejectsLinking()
+            public async Task WhenAttemptingToLinkExternalToExistingAccountWithNoExternalAccounts_AllowsLinking()
             {
                 // Arrange
                 var authUser = new AuthenticatedUser(
                     new User("theUsername") { EmailAddress = "confirmed@example.com" },
-                    new Credential() { Type = CredentialTypes.ExternalPrefix + "foo" });
+                    new Credential() { Type = "foo" });
+
+                var authResult =
+                    new PasswordAuthenticationResult(PasswordAuthenticationResult.AuthenticationResult.Success, authUser);
+
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.Authenticate("confirmed@example.com", "thePassword"))
+                    .CompletesWith(authResult);
+
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.ReadExternalLoginCredential(It.IsAny<OwinContext>()))
+                    .Returns(Task.FromResult(new AuthenticateExternalLoginResult { ExternalIdentity = new ClaimsIdentity() }));
+
+                var controller = GetController<AuthenticationController>();
+
+                // Act
+                var result = await controller.SignIn(
+                    new LogOnViewModel(
+                        new SignInViewModel(
+                            "confirmed@example.com",
+                            "thePassword")),
+                    "theReturnUrl", linkingAccount: true);
+
+                // Assert
+                GetMock<AuthenticationService>()
+                    .Verify(x => x.AddCredential(It.IsAny<User>(), It.IsAny<Credential>()));
+
+                GetMock<AuthenticationService>()
+                    .Verify(x => x.CreateSessionAsync(controller.OwinContext, authUser));
+
+                GetMock<IMessageService>()
+                    .Verify(x => x.SendCredentialAddedNotice(It.IsAny<User>(), It.IsAny<CredentialViewModel>()));
+            }
+
+            public async Task WhenAttemptingToLinkExternalToAccountWithExistingExternals_RejectsLinking()
+            {
+                // Arrange
+                var user = new User("theUsername")
+                {
+                    EmailAddress = "confirmed@example.com",
+                    Credentials = new[] { new Credential { Type = CredentialTypes.ExternalPrefix + "Foo" } }
+                };
+
+                var authUser = new AuthenticatedUser(
+                    user,
+                    new Credential() { Type = "Foo" });
+
                 var authResult =
                     new PasswordAuthenticationResult(PasswordAuthenticationResult.AuthenticationResult.Success, authUser);
 
@@ -270,6 +316,59 @@ namespace NuGetGallery.Controllers
                 ResultAssert.IsView(result, viewName: SignInViewNuGetName);
                 Assert.False(controller.ModelState.IsValid);
                 Assert.Equal(Strings.LinkingMultipleExternalAccountsUnsupported, controller.ModelState[SignInViewName].Errors[0].ErrorMessage);
+            }
+
+            public async Task WhenAttemptingToLinkExternalToAdminUserWithExistingExternals_AllowsLinking()
+            {
+                // Arrange
+                var user = new User("theUsername")
+                {
+                    EmailAddress = "confirmed@example.com",
+                    Credentials = new[] { new Credential { Type = CredentialTypes.ExternalPrefix + "Foo" } },
+                    Roles = new[] { new Role { Name = Constants.AdminRoleName } }
+                };
+
+                var authUser = new AuthenticatedUser(
+                    user,
+                    new Credential() { Type = CredentialTypes.ExternalPrefix + "foo" });
+
+                var authResult =
+                    new PasswordAuthenticationResult(PasswordAuthenticationResult.AuthenticationResult.Success, authUser);
+
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.Authenticate("confirmed@example.com", "thePassword"))
+                    .CompletesWith(authResult);
+
+                var externalCredential = new Credential { Type = "externalcred" };
+
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.ReadExternalLoginCredential(It.IsAny<OwinContext>()))
+                    .Returns(Task.FromResult(new AuthenticateExternalLoginResult { Credential = externalCredential, ExternalIdentity = new ClaimsIdentity() }));
+
+                var credentialViewModel = new CredentialViewModel();
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.DescribeCredential(externalCredential))
+                    .Returns(credentialViewModel);
+
+                var controller = GetController<AuthenticationController>();
+
+                // Act
+                var result = await controller.SignIn(
+                    new LogOnViewModel(
+                        new SignInViewModel(
+                            "confirmed@example.com",
+                            "thePassword")),
+                    "theReturnUrl", linkingAccount: true);
+
+                // Assert
+                GetMock<AuthenticationService>()
+                    .Verify(x => x.AddCredential(authUser.User, externalCredential));
+
+                GetMock<AuthenticationService>()
+                    .Verify(x => x.CreateSessionAsync(controller.OwinContext, authUser));
+
+                GetMock<IMessageService>()
+                    .Verify(x => x.SendCredentialAddedNotice(authUser.User, credentialViewModel));
             }
 
             [Fact]
@@ -1118,6 +1217,56 @@ namespace NuGetGallery.Controllers
                         Strings.AccountIsLinkedToAnotherExternalAccount,
                         existingUser.EmailAddress),
                     model.External.ExistingUserLinkingError);
+            }
+
+            [Fact]
+            public async Task GivenNoLinkButEmailMatchingLocalAdminUserWithExistingExternal_ItAcceptsLinking()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+
+                var existingUser = new User("existingUser")
+                {
+                    EmailAddress = "existing@example.com",
+                    Credentials = new[] { new Credential(CredentialTypes.ExternalPrefix + "foo", "externalloginvalue") },
+                    Roles = new[] { new Role { Name = Constants.AdminRoleName } }
+                };
+
+                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
+                var msAuther = new MicrosoftAccountAuthenticator();
+                var msaUI = msAuther.GetUI();
+                var authUser = new AuthenticatedUser(
+                    fakes.CreateUser("test", cred),
+                    cred);
+
+                GetMock<AuthenticationService>(); // Force a mock to be created
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByEmailAddress(existingUser.EmailAddress))
+                    .Returns(existingUser);
+
+                var controller = GetController<AuthenticationController>();
+
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.AuthenticateExternalLogin(controller.OwinContext))
+                    .CompletesWith(new AuthenticateExternalLoginResult()
+                    {
+                        ExternalIdentity = new ClaimsIdentity(new[] {
+                            new Claim(ClaimTypes.Email, existingUser.EmailAddress)
+                        }),
+                        Authenticator = msAuther
+                    });
+
+                // Act
+                var result = await controller.LinkExternalAccount("theReturnUrl");
+
+                // Assert
+                var model = ResultAssert.IsView<LogOnViewModel>(result, viewName: LinkExternalViewName);
+                Assert.Equal(msaUI.AccountNoun, model.External.ProviderAccountNoun);
+                Assert.Null(model.External.AccountName);
+                Assert.True(model.External.FoundExistingUser);
+                Assert.True(model.External.ExistingUserCanBeLinked);
+                Assert.Equal(existingUser.EmailAddress, model.SignIn.UserNameOrEmail);
+                Assert.Equal(existingUser.EmailAddress, model.Register.EmailAddress);
             }
         }
 

@@ -152,7 +152,7 @@ namespace NuGetGallery
             if (linkingAccount)
             {
                 // Verify account has no other external accounts
-                if (authenticatedUser.User.Credentials.Any(c => c.IsExternal()))
+                if (authenticatedUser.User.Credentials.Any(c => c.IsExternal()) && !authenticatedUser.User.IsAdministrator())
                 {
                     return SignInFailure(model, linkingAccount, Strings.LinkingMultipleExternalAccountsUnsupported);
                 }
@@ -392,7 +392,7 @@ namespace NuGetGallery
                     {
                         existingUserLinkingError = Strings.LinkingOrganizationUnsupported;
                     }
-                    else if (existingUser.Credentials.Any(c => c.IsExternal()))
+                    else if (existingUser.Credentials.Any(c => c.IsExternal()) && !existingUser.IsAdministrator())
                     {
                         existingUserLinkingError = Strings.AccountIsLinkedToAnotherExternalAccount;
                     }
