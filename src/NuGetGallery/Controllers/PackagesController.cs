@@ -988,7 +988,7 @@ namespace NuGetGallery
 
             if (ActionsRequiringPermissions.ManagePackageOwnership.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
             {
-                return new HttpStatusCodeResult(401, "Unauthorized");
+                return HttpForbidden();
             }
 
             var model = new ManagePackageOwnersViewModel(package, GetCurrentUser());
@@ -1008,7 +1008,7 @@ namespace NuGetGallery
             }
             if (ActionsRequiringPermissions.UnlistOrRelistPackage.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
             {
-                return new HttpStatusCodeResult(401, "Unauthorized");
+                return HttpForbidden();
             }
 
             var model = new DeletePackageViewModel(package, GetCurrentUser(), ReportMyPackageReasons);
@@ -1463,7 +1463,7 @@ namespace NuGetGallery
 
             if (ActionsRequiringPermissions.EditPackage.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
             {
-                return new HttpStatusCodeResult(401, "Unauthorized");
+                return HttpForbidden();
             }
 
             if (package.PackageRegistration.IsLocked)
@@ -1787,7 +1787,7 @@ namespace NuGetGallery
             }
             if (ActionsRequiringPermissions.EditPackage.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
             {
-                return new HttpStatusCodeResult(401, "Unauthorized");
+                return HttpForbidden();
             }
 
             await _packageService.SetLicenseReportVisibilityAsync(package, visible);
@@ -1842,6 +1842,11 @@ namespace NuGetGallery
             // Compare non-empty strings
             // Ignore those pesky '\r' characters which screw up comparisons.
             return !String.Equals(posted.Replace("\r", ""), package.Replace("\r", ""), StringComparison.Ordinal);
+        }
+
+        private static HttpStatusCodeResult HttpForbidden()
+        {
+            return new HttpStatusCodeResult(HttpStatusCode.Forbidden, Strings.Unauthorized);
         }
     }
 }

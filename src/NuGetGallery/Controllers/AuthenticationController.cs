@@ -10,7 +10,6 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGetGallery.Authentication;
-using NuGetGallery.Filters;
 using NuGetGallery.Infrastructure.Authentication;
 
 namespace NuGetGallery
