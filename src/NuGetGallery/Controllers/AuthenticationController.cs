@@ -14,6 +14,9 @@ using NuGetGallery.Authentication;
 using NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2;
 using NuGetGallery.Filters;
 using NuGetGallery.Infrastructure.Authentication;
+using System.Collections.Specialized;
+using NuGetGallery.Authentication.Providers.MicrosoftAccount;
+using NuGetGallery.Authentication.Providers;
 
 namespace NuGetGallery
 {
@@ -310,7 +313,7 @@ namespace NuGetGallery
         [HttpGet]
         public virtual ActionResult AuthenticateGet(string returnUrl, string provider)
         {
-            return ChallengeAuthentication(returnUrl, provider);
+            return AuthenticateAndLinkExternal(returnUrl, provider);
         }
 
         [ActionName("Authenticate")]
@@ -318,22 +321,55 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual ActionResult AuthenticatePost(string returnUrl, string provider)
         {
-            return ChallengeAuthentication(returnUrl, provider);
+            return AuthenticateAndLinkExternal(returnUrl, provider);
         }
 
         [ActionName("AuthenticateExternal")]
         [HttpGet]
         public virtual ActionResult AuthenticateExternal(string returnUrl)
         {
-            // TODO: possibly get external auth providers list or options?
-            var externalAuthProvider = AzureActiveDirectoryV2Authenticator.DefaultAuthenticationType;
-            return _authService.Challenge(externalAuthProvider, Url.ChangeExternalCredential(returnUrl));
+            // Get list of all enabled providers
+            var providers = GetProviders();
+
+            // Prioritize the external authentication mechanism. 
+            // This is for backwards compatibility with MicrosoftAccount provider. 
+            var authPriority = new string[] {
+                Authenticator.GetName(typeof(AzureActiveDirectoryV2Authenticator)),
+                Authenticator.GetName(typeof(MicrosoftAccountAuthenticator))
+            };
+
+            string externalAuthProvider = null;
+            if (authPriority.Count() > 0)
+            {
+                foreach(string authenticator in authPriority)
+                {
+                    if (providers.Any(p => p.ProviderName.Equals(authenticator, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        externalAuthProvider = authenticator;
+                        break;
+                    }
+                }
+            }
+
+            if (externalAuthProvider == null)
+            {
+                TempData["Message"] = Strings.ChangeCredential_ProviderNotFound;
+                return Redirect(returnUrl);
+            }
+
+            return ChallengeAuthentication(Url.ChangeExternalCredential(returnUrl), externalAuthProvider);
+        }
+
+        [NonAction]
+        public ActionResult AuthenticateAndLinkExternal(string returnUrl, string provider)
+        {
+            return ChallengeAuthentication(Url.LinkExternalAccount(returnUrl), provider);
         }
 
         [NonAction]
         public ActionResult ChallengeAuthentication(string returnUrl, string provider)
         {
-            return _authService.Challenge(provider, Url.LinkExternalAccount(returnUrl));
+            return _authService.Challenge(provider, returnUrl);
         }
 
         public virtual async Task<ActionResult> ChangeExternalCredential(string returnUrl)

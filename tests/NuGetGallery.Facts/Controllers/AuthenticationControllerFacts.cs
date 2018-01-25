@@ -734,7 +734,7 @@ namespace NuGetGallery.Controllers
                 var controller = GetController<AuthenticationController>();
                 
                 // Act
-                var result = controller.ChallengeAuthentication(returnUrl, "MicrosoftAccount");
+                var result = controller.AuthenticateAndLinkExternal(returnUrl, "MicrosoftAccount");
 
                 // Assert
                 ResultAssert.IsChallengeResult(result, "MicrosoftAccount", "/users/account/authenticate/return?ReturnUrl=" + HttpUtility.UrlEncode(returnUrl));

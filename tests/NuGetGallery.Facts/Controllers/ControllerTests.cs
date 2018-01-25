@@ -59,6 +59,7 @@ namespace NuGetGallery.Controllers
                 new AntiForgeryTokenException(typeof(ApiController), nameof(ApiController.CreatePackageVerificationKeyAsync)),
                 new AntiForgeryTokenException(typeof(ApiController), nameof(ApiController.DeletePackage)),
                 new AntiForgeryTokenException(typeof(ApiController), nameof(ApiController.PublishPackage)),
+                new AntiForgeryTokenException(typeof(AuthenticationController), nameof(AuthenticationController.AuthenticateAndLinkExternal)),
                 new AntiForgeryTokenException(typeof(AuthenticationController), nameof(AuthenticationController.ChallengeAuthentication))
             };
 

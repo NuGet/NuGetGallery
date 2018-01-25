@@ -451,6 +451,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No valid external provider found for authentication.
+        /// </summary>
+        public static string ChangeCredential_ProviderNotFound {
+            get {
+                return ResourceManager.GetString("ChangeCredential_ProviderNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Successfully changed the Microsoft account..
         /// </summary>
         public static string ChangeCredential_Success {

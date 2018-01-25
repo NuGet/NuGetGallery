@@ -751,4 +751,7 @@ For more information, please contact '{2}'.</value>
   <data name="PasswordLoginDeprecated" xml:space="preserve">
     <value>The password login has been deprecated. You must use Microsoft account to sign in. </value>
   </data>
+  <data name="ChangeCredential_ProviderNotFound" xml:space="preserve">
+    <value>No valid external provider found for authentication</value>
+  </data>
 </root>
