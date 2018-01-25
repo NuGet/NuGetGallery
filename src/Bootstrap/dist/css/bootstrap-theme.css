@@ -514,7 +514,6 @@ img.reserved-indicator-icon {
 }
 .page-api-keys .api-key-details {
   padding: 20px 0;
-  border-bottom: 1px solid #dbdbdb;
 }
 .page-api-keys .api-key-details .ms-Icon {
   position: relative;
@@ -531,6 +530,9 @@ img.reserved-indicator-icon {
   padding-left: 10px;
   margin-left: 10px;
   border-left: 1px solid #dbdbdb;
+}
+.page-api-keys .api-key-details:not(:first-child) {
+  border-top: 1px solid #dbdbdb;
 }
 .page-blog {
   margin-top: 33px;
