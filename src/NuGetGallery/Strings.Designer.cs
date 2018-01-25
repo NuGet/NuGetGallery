@@ -433,20 +433,11 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You cannot link the Microsoft account that is linked to another account..
+        ///   Looks up a localized string similar to Failed to update the Microsoft account with &apos;{0}&apos; as it is already linked to another NuGet account..
         /// </summary>
         public static string ChangeCredential_ExistingCredential {
             get {
                 return ResourceManager.GetString("ChangeCredential_ExistingCredential", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Your external account credential expired or you did not allow us access to your account. Try logging in again..
-        /// </summary>
-        public static string ChangeCredential_FailedToLogin {
-            get {
-                return ResourceManager.GetString("ChangeCredential_FailedToLogin", resourceCulture);
             }
         }
         
@@ -729,7 +720,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Your external account credential expired or you did not allow us access to your account. Try logging in again..
+        ///   Looks up a localized string similar to Your account credential expired or you did not allow us access to your account. Try logging in again..
         /// </summary>
         public static string ExternalAccountLinkExpired {
             get {
@@ -1076,6 +1067,15 @@ namespace NuGetGallery {
         public static string PasswordDoesNotMatch {
             get {
                 return ResourceManager.GetString("PasswordDoesNotMatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The password login has been deprecated. You must use Microsoft account to sign in. .
+        /// </summary>
+        public static string PasswordLoginDeprecated {
+            get {
+                return ResourceManager.GetString("PasswordLoginDeprecated", resourceCulture);
             }
         }
         

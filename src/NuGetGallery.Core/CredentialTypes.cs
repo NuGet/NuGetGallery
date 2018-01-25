@@ -27,6 +27,8 @@ namespace NuGetGallery
         }
 
         public const string ExternalPrefix = "external.";
+        public const string MicrosoftAccount = "MicrosoftAccount";
+        public const string AzureActiveDirectoryAccount = "AzureActiveDirectory";
 
         public static bool IsPassword(string type)
         {
@@ -36,6 +38,26 @@ namespace NuGetGallery
             }
 
             return type.StartsWith(Password.Prefix, StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static bool IsMicrosoftAccount(string type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            return type.Equals(ExternalPrefix + MicrosoftAccount, StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static bool IsAzureActiveDirectoryAccount(string type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            return type.Equals(ExternalPrefix + AzureActiveDirectoryAccount, StringComparison.OrdinalIgnoreCase);
         }
 
         public static bool IsApiKey(string type)

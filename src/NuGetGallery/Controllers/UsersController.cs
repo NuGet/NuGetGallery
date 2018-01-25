@@ -788,13 +788,11 @@ namespace NuGetGallery
                 c => string.Equals(c.Type, credentialType, StringComparison.OrdinalIgnoreCase)
                     && CredentialKeyMatches(credentialKey, c));
 
-            // Check if this user has any external credential, otherwise return bad request/error.
-            // For external credential, check if the type is not an AAD, otherwise return not allowed for now(BLOCKED).
-            // For MSA credential, allow to Link a new credential. Call challenge for auth with AADv2. 
+            var userHasAADCredential = user.Credentials.Any(c => CredentialTypes.IsAzureActiveDirectoryAccount(c.Type));
 
-            if (cred == null || cred.Type != "external.MicrosoftAccount")
+            if (cred == null || userHasAADCredential)
             {
-                TempData["Message"] = Strings.ChangeCredential_NotAllowed;
+                TempData["WarningMessage"] = Strings.ChangeCredential_NotAllowed;
                 return RedirectToAction("Account");
             }
 

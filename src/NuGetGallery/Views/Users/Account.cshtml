@@ -8,6 +8,16 @@
 <section role="main" class="container main-container page-account-settings">
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
+            @if (TempData.ContainsKey("WarningMessage"))
+            {
+                @ViewHelpers.AlertWarning(@<text>@((string)TempData["WarningMessage"])</text>);
+            }
+
+            @if (TempData.ContainsKey("ErrorMessage"))
+            {
+                @ViewHelpers.AlertDanger(@<text>@((string)TempData["ErrorMessage"])</text>);
+            }
+
             <h1 class="text-center">Account Settings</h1>
             <div class="text-center ms-font-xxl">
                 <a href="@Url.User(CurrentUser)">@CurrentUser.Username</a>
@@ -166,12 +176,9 @@
                         "change-credential-" + cred.Key,
                         @<text>@cred.TypeCaption</text>,
                         @<text>@cred.Identity</text>,
-                        @<text>
-                            <p>You can use this @cred.AuthUI.AccountNoun to sign in to @(Config.Current.Brand).</p>
-
-@*                            @if (Model.SignInCredentialCount > 1) 
-                            {
-    *@
+                            @<text>
+                                <p>You can use this account to sign in to @(Config.Current.Brand).</p>
+                            
                                 @using (Html.BeginForm("ChangeExternalCredential", "Users", new { credentialType = cred.Type, credentialKey = cred.Key }))
                                 {
                                     @Html.AntiForgeryToken()
@@ -179,8 +186,8 @@
                                     <div class="row form-group">
                                         <div class="col-sm-6">
                                             <button class="btn btn-danger btn-block" type="submit"
-                                                    data-confirm="Are you sure you want to change your @cred.AuthUI.AccountNoun? Note: This action will replace all of your external Microsoft account logins with the new login.">
-                                                Change @cred.TypeCaption
+                                                    data-confirm="This action will replace all of your linked accounts with the new login account. Are you sure you want to change your login account?">
+                                                Change Account
                                             </button>
                                         </div>
                                         <div class="col-sm-6">
@@ -190,16 +197,7 @@
                                         </div>
                                     </div>
                                 }
-      @*                     }
-                            else
-                            {
-                                <span>
-                                    To remove this credential, you must enable at least one other form of authentication,
-                                    such as password login.
-                                </span>
-                            }
-    *@
-                        </text>)
+                            </text>)
                 }
             }
 

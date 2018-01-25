@@ -205,7 +205,7 @@
     <value>Unknown authentication provider: '{0}'</value>
   </data>
   <data name="ExternalAccountLinkExpired" xml:space="preserve">
-    <value>Your external account credential expired or you did not allow us access to your account. Try logging in again.</value>
+    <value>Your account credential expired or you did not allow us access to your account. Try logging in again.</value>
   </data>
   <data name="MicrosoftAccount_AccountNoun" xml:space="preserve">
     <value>Microsoft account</value>
@@ -740,15 +740,15 @@ For more information, please contact '{2}'.</value>
     <value>Please sign in as administrator '{0}' to finish transforming account '{1}' into an organization.</value>
   </data>
   <data name="ChangeCredential_ExistingCredential" xml:space="preserve">
-    <value>You cannot link the Microsoft account that is linked to another account.</value>
-  </data>
-  <data name="ChangeCredential_FailedToLogin" xml:space="preserve">
-    <value>Your external account credential expired or you did not allow us access to your account. Try logging in again.</value>
+    <value>Failed to update the Microsoft account with '{0}' as it is already linked to another NuGet account.</value>
   </data>
   <data name="ChangeCredential_NotAllowed" xml:space="preserve">
     <value>The change of Azure active directory account is not allowed.</value>
   </data>
   <data name="ChangeCredential_Success" xml:space="preserve">
     <value>Successfully changed the Microsoft account.</value>
+  </data>
+  <data name="PasswordLoginDeprecated" xml:space="preserve">
+    <value>The password login has been deprecated. You must use Microsoft account to sign in. </value>
   </data>
 </root>

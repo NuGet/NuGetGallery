@@ -2,13 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Web;
+using System.Linq;
+using System.Web.Mvc;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Net.Mail;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using System.Web.Mvc;
 using NuGetGallery.Authentication;
 using NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2;
 using NuGetGallery.Filters;
@@ -341,8 +342,7 @@ namespace NuGetGallery
             var result = await _authService.ReadExternalLoginCredential(OwinContext);
             if (result == null)
             {
-                // Return to account page with error saying authentication failed?
-                TempData["Message"] = Strings.ChangeCredential_FailedToLogin;
+                TempData["ErrorMessage"] = Strings.ExternalAccountLinkExpired;
                 return SafeRedirect(returnUrl);
             }
 
@@ -358,7 +358,7 @@ namespace NuGetGallery
                 }
                 else
                 {
-                    TempData["Message"] = Strings.ChangeCredential_ExistingCredential;
+                    TempData["ErrorMessage"] = string.Format(Strings.ChangeCredential_ExistingCredential, HttpUtility.UrlEncode(newCredential.Identity));
                 }
             }
 
