@@ -235,13 +235,7 @@ namespace NuGetGallery
                 return HttpNotFound("User not found.");
             }
 
-            var supportRequest = await _supportRequestService.AddNewSupportRequestAsync(
-                Strings.AccountDelete_SupportRequestTitle,
-                Strings.AccountDelete_SupportRequestTitle,
-                user.EmailAddress,
-                "The user requested to have the account deleted.",
-                user);
-            var isSupportRequestCreated = supportRequest != null;
+            var isSupportRequestCreated = await _supportRequestService.TryAddDeleteSupportRequestAsync(user);
             if (!isSupportRequestCreated)
             {
                 TempData["RequestFailedMessage"] = Strings.AccountDelete_CreateSupportRequestFails;
