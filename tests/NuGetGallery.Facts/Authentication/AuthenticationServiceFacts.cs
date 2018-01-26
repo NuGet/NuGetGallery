@@ -333,6 +333,7 @@ namespace NuGetGallery.Authentication
             [Theory]
             [InlineData(CredentialTypes.ApiKey.V1)]
             [InlineData(CredentialTypes.ApiKey.V2)]
+            [InlineData(CredentialTypes.ApiKey.V3)]
             [InlineData(CredentialTypes.ApiKey.V4)]
             [InlineData(CredentialTypes.ApiKey.VerifyV1)]
             public async Task GivenMatchingApiKeyCredential_ItReturnsTheUserAndMatchingCredential(string apiKeyType)
@@ -341,9 +342,10 @@ namespace NuGetGallery.Authentication
                 var cred = _fakes.User.Credentials.Single(
                     c => string.Equals(c.Type, apiKeyType, StringComparison.OrdinalIgnoreCase));
 
+                string plaintextValue = GetPlaintextApiKey(apiKeyType, cred);
+
                 // Act
-                // Create a new credential to verify that it's a value-based lookup!
-                var result = await _authenticationService.Authenticate(cred.Value);
+                var result = await _authenticationService.Authenticate(plaintextValue);
 
                 // Assert
                 Assert.NotNull(result);
@@ -354,6 +356,7 @@ namespace NuGetGallery.Authentication
             [Theory]
             [InlineData(CredentialTypes.ApiKey.V1)]
             [InlineData(CredentialTypes.ApiKey.V2)]
+            [InlineData(CredentialTypes.ApiKey.V3)]
             [InlineData(CredentialTypes.ApiKey.V4)]
             [InlineData(CredentialTypes.ApiKey.VerifyV1)]
             public async Task GivenMatchingApiKeyCredential_ItWritesCredentialLastUsed(string apiKeyType)
@@ -367,11 +370,10 @@ namespace NuGetGallery.Authentication
 
                 Assert.False(cred.LastUsed.HasValue);
 
+                string plaintextValue = GetPlaintextApiKey(apiKeyType, cred);
+
                 // Act
-                // Create a new credential to verify that it's a value-based lookup!
-                var result =
-                    await
-                        _authenticationService.Authenticate(cred.Value);
+                var result = await _authenticationService.Authenticate(plaintextValue);
 
                 // Assert
                 Assert.NotNull(result);
@@ -382,6 +384,7 @@ namespace NuGetGallery.Authentication
             [Theory]
             [InlineData(CredentialTypes.ApiKey.V1)]
             [InlineData(CredentialTypes.ApiKey.V2)]
+            [InlineData(CredentialTypes.ApiKey.V3)]
             [InlineData(CredentialTypes.ApiKey.V4)]
             [InlineData(CredentialTypes.ApiKey.VerifyV1)]
             public async Task GivenExpiredMatchingApiKeyCredential_ItReturnsNull(string apiKeyType)
@@ -392,9 +395,10 @@ namespace NuGetGallery.Authentication
 
                 cred.Expires = DateTime.UtcNow.AddDays(-1);
 
+                string plaintextValue = GetPlaintextApiKey(apiKeyType, cred);
+
                 // Act
-                // Create a new credential to verify that it's a value-based lookup!
-                var result = await _authenticationService.Authenticate(cred.Value);
+                var result = await _authenticationService.Authenticate(plaintextValue);
 
                 // Assert
                 Assert.Null(result);
@@ -403,6 +407,7 @@ namespace NuGetGallery.Authentication
             [Theory]
             [InlineData(CredentialTypes.ApiKey.V1, true)]
             [InlineData(CredentialTypes.ApiKey.V2, false)]
+            [InlineData(CredentialTypes.ApiKey.V3, false)] 
             [InlineData(CredentialTypes.ApiKey.V4, false)]
             public async Task GivenMatchingApiKeyCredentialThatWasLastUsedTooLongAgo_ItReturnsNullAndExpiresTheApiKeyAndWritesAuditRecord(string apiKeyType, bool shouldExpire)
             {
@@ -416,7 +421,7 @@ namespace NuGetGallery.Authentication
                 cred.LastUsed = DateTime.UtcNow.AddDays(-20);
 
                 var service = Get<AuthenticationService>();
-                var plaintextValue = apiKeyType == CredentialTypes.ApiKey.V4 ? _fakes.ApiKeyV4PlaintextValue : cred.Value;
+                string plaintextValue = GetPlaintextApiKey(apiKeyType, cred);
 
                 // Act
                 var result = await service.Authenticate(plaintextValue);
@@ -441,9 +446,39 @@ namespace NuGetGallery.Authentication
                 }
             }
 
+            [Fact]
+            public async Task GivenMatchingV3ApiKeyWithNoScopesThatWasLastUsedTooLongAgo_ItReturnsNullAndExpiresTheApiKeyAndWritesAuditRecord()
+            {
+                // Arrange
+                var configurationService = GetConfigurationService();
+                configurationService.Current.ExpirationInDaysForApiKeyV1 = 10;
+
+                var cred = _fakes.User.Credentials.Single(c => string.Equals(c.Type, CredentialTypes.ApiKey.V3, StringComparison.OrdinalIgnoreCase));
+                
+                // Clear the scopes list, to simulate a V3 ApiKey that was generated from a V1 ApiKey
+                cred.Scopes = new List<Scope>();
+
+                // credential was last used < allowed last used
+                cred.LastUsed = DateTime.UtcNow.AddDays(-20);
+
+                var service = Get<AuthenticationService>();
+                string plaintextValue = _fakes.ApiKeyV3PlaintextValue;
+
+                // Act
+                var result = await service.Authenticate(plaintextValue);
+
+                // Assert
+                Assert.Null(result);
+                Assert.True(cred.HasExpired);
+                Assert.True(service.Auditing.WroteRecord<UserAuditRecord>(ar =>
+                    ar.Action == AuditedUserAction.ExpireCredential &&
+                    ar.Username == _fakes.User.Username));
+            }
+
             [Theory]
             [InlineData(CredentialTypes.ApiKey.V1)]
             [InlineData(CredentialTypes.ApiKey.V2)]
+            [InlineData(CredentialTypes.ApiKey.V3)]
             [InlineData(CredentialTypes.ApiKey.V4)]
             public async Task GivenMultipleMatchingCredentials_ItThrows(string apiKeyType)
             {
@@ -457,7 +492,7 @@ namespace NuGetGallery.Authentication
                 creds.Add(cred1);
                 creds.Add(cred2);
 
-                var plaintextValue = apiKeyType == CredentialTypes.ApiKey.V4 ? _fakes.ApiKeyV4PlaintextValue : cred1.Value;
+                var plaintextValue = GetPlaintextApiKey(apiKeyType, cred1);
 
                 // Act
                 var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () => await _authenticationService.Authenticate(plaintextValue));
@@ -484,6 +519,25 @@ namespace NuGetGallery.Authentication
                 Assert.True(_authenticationService.Auditing.WroteRecord<FailedAuthenticatedOperationAuditRecord>(ar =>
                     ar.Action == AuditedAuthenticatedOperationAction.FailedLoginNoSuchUser &&
                     string.IsNullOrEmpty(ar.UsernameOrEmail)));
+            }
+
+            private string GetPlaintextApiKey(string apiKeyType, Credential cred)
+            {
+                string plaintextValue;
+                if (apiKeyType == CredentialTypes.ApiKey.V3)
+                {
+                    plaintextValue = _fakes.ApiKeyV3PlaintextValue;
+                }
+                else if (apiKeyType == CredentialTypes.ApiKey.V4)
+                {
+                    plaintextValue = _fakes.ApiKeyV4PlaintextValue;
+                }
+                else
+                {
+                    plaintextValue = cred.Value;
+                }
+
+                return plaintextValue;
             }
         }
 
