@@ -1623,6 +1623,11 @@
     <Compile Include="Areas\Admin\ViewModels\DeleteUserAccountViewModel.cs" />
     <Compile Include="ViewModels\ListOrganizationsItemViewModel.cs" />
     <Compile Include="ViewModels\ListOrganizationsViewModel.cs" />
+    <Compile Include="ViewModels\ChangeEmailViewModel.cs" />
+    <Compile Include="ViewModels\ChangeNotificationsViewModel.cs" />
+    <Compile Include="ViewModels\ChangePasswordViewModel.cs" />
+    <Compile Include="ViewModels\CredentialKind.cs" />
+    <Compile Include="ViewModels\CredentialViewModel.cs" />
     <Compile Include="ViewModels\ListPackageOwnerViewModel.cs" />
     <Compile Include="ViewModels\PackageDeleteDecision.cs" />
     <Compile Include="ViewModels\DeleteAccountViewModel.cs" />
@@ -1646,6 +1651,7 @@
     <Compile Include="ViewModels\ThirdPartyPackageManagerViewModel.cs" />
     <Compile Include="ViewModels\TransformAccountFailedViewModel.cs" />
     <Compile Include="ViewModels\TransformAccountViewModel.cs" />
+    <Compile Include="ViewModels\UserAccountViewModel.cs" />
     <Compile Include="WebApi\PlainTextResult.cs" />
     <Compile Include="WebApi\QueryResult.cs" />
     <Compile Include="WebApi\QueryResultDefaults.cs" />

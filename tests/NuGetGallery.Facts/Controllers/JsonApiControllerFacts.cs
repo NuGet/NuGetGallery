@@ -956,6 +956,44 @@ namespace NuGetGallery.Controllers
                     // Assert
                     Assert.IsType(typeof(HttpUnauthorizedResult), result);
                 }
+
+                public void ReturnsExpectedDataAsOwner()
+                {
+                    var fakes = Get<Fakes>();
+                    var currentUser = fakes.Owner;
+                    var result = InvokeAsUser(currentUser);
+
+                    Assert.True(result.Any(m => ModelMatchesUser(m, fakes.Owner, grantsCurrentUserAccess: true, isCurrentUserIsAdminOfOrganization: false)));
+                    Assert.True(result.Any(m => ModelMatchesUser(m, fakes.OrganizationOwner, grantsCurrentUserAccess: false, isCurrentUserIsAdminOfOrganization: false)));
+                }
+
+                public void ReturnsExpectedDataAsOrganizationAdmin()
+                {
+                    var fakes = Get<Fakes>();
+                    var currentUser = fakes.Owner;
+                    var result = InvokeAsUser(currentUser);
+
+                    Assert.True(result.Any(m => ModelMatchesUser(m, fakes.Owner, grantsCurrentUserAccess: false, isCurrentUserIsAdminOfOrganization: false)));
+                    Assert.True(result.Any(m => ModelMatchesUser(m, fakes.OrganizationOwner, grantsCurrentUserAccess: true, isCurrentUserIsAdminOfOrganization: true)));
+                }
+
+                private IEnumerable<PackageOwnersResultViewModel> InvokeAsUser(User currentUser)
+                {
+                    var controller = GetController<JsonApiController>();
+                    controller.SetCurrentUser(currentUser);
+                    
+                    var result = controller.GetPackageOwners("fakeId", "2.0.0");
+                    return ((JsonResult)result).Data as IEnumerable<PackageOwnersResultViewModel>;
+                }
+
+                private bool ModelMatchesUser(PackageOwnersResultViewModel model, User user, bool grantsCurrentUserAccess, bool isCurrentUserIsAdminOfOrganization)
+                {
+                    return 
+                        user.Username == model.Name &&
+                        user.EmailAddress == model.EmailAddress &&
+                        grantsCurrentUserAccess == model.GrantsCurrentUserAccess &&
+                        isCurrentUserIsAdminOfOrganization == model.IsCurrentUserAdminOfOrganization;
+                }
             }
 
             private static Func<Fakes, User> _getFakesNull = (Fakes fakes) => null;

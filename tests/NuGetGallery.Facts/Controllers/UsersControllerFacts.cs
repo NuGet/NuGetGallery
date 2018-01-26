@@ -51,7 +51,7 @@ namespace NuGetGallery
                     .Returns(new[] { new CuratedFeed { Name = "theCuratedFeed" } });
 
                 // act
-                var model = ResultAssert.IsView<AccountViewModel>(controller.Account(), viewName: "Account");
+                var model = ResultAssert.IsView<UserAccountViewModel>(controller.Account(), viewName: "Account");
 
                 // verify
                 Assert.Equal("theCuratedFeed", model.CuratedFeeds.First());
@@ -75,7 +75,7 @@ namespace NuGetGallery
                 var result = controller.Account();
 
                 // Assert
-                var model = ResultAssert.IsView<AccountViewModel>(result, viewName: "Account");
+                var model = ResultAssert.IsView<UserAccountViewModel>(result, viewName: "Account");
                 var descs = model
                     .CredentialGroups
                     .SelectMany(x => x.Value)
@@ -114,7 +114,7 @@ namespace NuGetGallery
                 var result = controller.Account();
 
                 // Assert
-                var model = ResultAssert.IsView<AccountViewModel>(result, viewName: "Account");
+                var model = ResultAssert.IsView<UserAccountViewModel>(result, viewName: "Account");
                 var descs = model
                     .CredentialGroups
                     .SelectMany(x => x.Value)
@@ -181,9 +181,9 @@ namespace NuGetGallery
                     .Setup(u => u.ChangeEmailSubscriptionAsync(user, false, true))
                     .Returns(Task.CompletedTask);
 
-                var result = await controller.ChangeEmailSubscription(new AccountViewModel
+                var result = await controller.ChangeEmailSubscription(new UserAccountViewModel
                 {
-                    ChangeNotifications =
+                    ChangeNotifications = new ChangeNotificationsViewModel
                     {
                         EmailAllowed = false,
                         NotifyPackagePushed = true
@@ -1163,7 +1163,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(user);
 
                 var result = await controller.ChangeEmail(
-                    new AccountViewModel()
+                    new UserAccountViewModel()
                     {
                         ChangeEmail = new ChangeEmailViewModel
                         {
@@ -1199,7 +1199,7 @@ namespace NuGetGallery
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
-                var model = new AccountViewModel()
+                var model = new UserAccountViewModel()
                 {
                     ChangeEmail = new ChangeEmailViewModel
                     {
@@ -1235,7 +1235,7 @@ namespace NuGetGallery
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
-                var model = new AccountViewModel()
+                var model = new UserAccountViewModel()
                 {
                     ChangeEmail = new ChangeEmailViewModel
                     {
@@ -1272,7 +1272,7 @@ namespace NuGetGallery
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
-                var model = new AccountViewModel()
+                var model = new UserAccountViewModel()
                 {
                     ChangeEmail = new ChangeEmailViewModel
                     {
@@ -1309,7 +1309,7 @@ namespace NuGetGallery
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
-                var model = new AccountViewModel
+                var model = new UserAccountViewModel
                 {
                     ChangeEmail = new ChangeEmailViewModel
                     {
@@ -1321,7 +1321,7 @@ namespace NuGetGallery
                 var result = await controller.ChangeEmail(model);
 
                 Assert.IsType<ViewResult>(result);
-                Assert.IsType<AccountViewModel>(((ViewResult)result).Model);
+                Assert.IsType<UserAccountViewModel>(((ViewResult)result).Model);
             }
         }
 
@@ -1333,9 +1333,9 @@ namespace NuGetGallery
                 // Arrange
                 var controller = GetController<UsersController>();
                 controller.ModelState.AddModelError("ChangePassword.blarg", "test");
-                var inputModel = new AccountViewModel
+                var inputModel = new UserAccountViewModel
                 {
-                    ChangePassword =
+                    ChangePassword = new ChangePasswordViewModel
                     {
                         EnablePasswordLogin = true,
                     }
@@ -1351,7 +1351,7 @@ namespace NuGetGallery
                 var result = await controller.ChangePassword(inputModel);
 
                 // Assert
-                var outputModel = ResultAssert.IsView<AccountViewModel>(result, viewName: "Account");
+                var outputModel = ResultAssert.IsView<UserAccountViewModel>(result, viewName: "Account");
                 Assert.Same(inputModel, outputModel);
             }
 
@@ -1369,7 +1369,7 @@ namespace NuGetGallery
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
-                var inputModel = new AccountViewModel()
+                var inputModel = new UserAccountViewModel()
                 {
                     ChangePassword = new ChangePasswordViewModel()
                     {
@@ -1384,7 +1384,7 @@ namespace NuGetGallery
                 var result = await controller.ChangePassword(inputModel);
 
                 // Assert
-                var outputModel = ResultAssert.IsView<AccountViewModel>(result, viewName: "Account");
+                var outputModel = ResultAssert.IsView<UserAccountViewModel>(result, viewName: "Account");
                 Assert.Same(inputModel, outputModel);
                 Assert.NotEqual(inputModel.ChangePassword.NewPassword, inputModel.ChangePassword.VerifyPassword);
 
@@ -1410,7 +1410,7 @@ namespace NuGetGallery
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
-                var inputModel = new AccountViewModel()
+                var inputModel = new UserAccountViewModel()
                 {
                     ChangePassword = new ChangePasswordViewModel()
                     {
@@ -1425,7 +1425,7 @@ namespace NuGetGallery
                 var result = await controller.ChangePassword(inputModel);
 
                 // Assert
-                var outputModel = ResultAssert.IsView<AccountViewModel>(result, viewName: "Account");
+                var outputModel = ResultAssert.IsView<UserAccountViewModel>(result, viewName: "Account");
                 Assert.Same(inputModel, outputModel);
 
                 var errorMessages = controller
@@ -1459,7 +1459,7 @@ namespace NuGetGallery
 
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
-                var inputModel = new AccountViewModel()
+                var inputModel = new UserAccountViewModel()
                 {
                     ChangePassword = new ChangePasswordViewModel()
                     {
@@ -1487,7 +1487,7 @@ namespace NuGetGallery
                     .CompletesWith(true);
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
-                var inputModel = new AccountViewModel()
+                var inputModel = new UserAccountViewModel()
                 {
                     ChangePassword = new ChangePasswordViewModel()
                     {
@@ -1529,7 +1529,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(user);
 
                 // Act
-                await controller.ChangePassword(new AccountViewModel());
+                await controller.ChangePassword(new UserAccountViewModel());
 
                 // Assert
                 Assert.Equal(TestUtility.GallerySiteRootHttps + "account/setpassword/test/t0k3n", actualConfirmUrl);
@@ -1551,7 +1551,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(user);
 
                 // Act
-                await controller.ChangePassword(new AccountViewModel());
+                await controller.ChangePassword(new UserAccountViewModel());
 
                 // Assert
                 var errorMessages = controller
