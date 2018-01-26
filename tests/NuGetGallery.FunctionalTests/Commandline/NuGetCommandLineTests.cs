@@ -49,7 +49,7 @@ namespace NuGetGallery.FunctionalTests.Commandline
         }
 
         [Fact]
-        [Description("Creates a test package and pushes it to the server using Nuget.exe")]
+        [Description("Creates a test package with a new ID and pushes it to the server using Nuget.exe")]
         [Priority(0)]
         [Category("P0Tests")]
         public async Task UploadPackageWithNuGetCommandLineTest()
@@ -58,10 +58,19 @@ namespace NuGetGallery.FunctionalTests.Commandline
         }
 
         [Fact]
-        [Description("Creates a test package and pushes it to the server using Nuget.exe as an organization admin")]
+        [Description("Creates a test package with a new ID and pushes it to the server using Nuget.exe as an organization admin")]
         [Priority(0)]
         [Category("P0Tests")]
-        public async Task UploadAndUnlistPackageAsOrganizationAdminWithNuGetCommandLineTest()
+        public async Task UploadAndUnlistNewPackageAsOrganizationAdminWithNuGetCommandLineTest()
+        {
+            await _clientSdkHelper.UploadNewPackageAndVerify(packageId: DateTime.Now.Ticks.ToString(), apiKey: EnvironmentSettings.TestOrganizationAdminAccountApiKey);
+        }
+
+        [Fact]
+        [Description("Creates a new version of an existing test package and pushes it to the server using Nuget.exe as an organization admin")]
+        [Priority(0)]
+        [Category("P0Tests")]
+        public async Task UploadAndUnlistNewVersionOfPackageAsOrganizationAdminWithNuGetCommandLineTest()
         {
             var id = EnvironmentSettings.TestOrganizationAdminAccountPackageId;
             var version = UploadHelper.GetUniquePackageVersion();
@@ -71,10 +80,10 @@ namespace NuGetGallery.FunctionalTests.Commandline
         }
 
         [Fact]
-        [Description("Creates a test package and pushes it to the server using Nuget.exe as an organization admin")]
+        [Description("Creates a new version of an existing test package and pushes it to the server using Nuget.exe as an organization admin")]
         [Priority(0)]
         [Category("P0Tests")]
-        public async Task UploadAndUnlistPackageAsOrganizationCollaboratorWithNuGetCommandLineTest()
+        public async Task UploadAndUnlistNewVersionOfPackageAsOrganizationCollaboratorWithNuGetCommandLineTest()
         {
             var id = EnvironmentSettings.TestOrganizationCollaboratorAccountPackageId;
             var version = UploadHelper.GetUniquePackageVersion();
