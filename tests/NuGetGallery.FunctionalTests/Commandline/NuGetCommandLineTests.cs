@@ -5,6 +5,7 @@ using System;
 using System.ComponentModel;
 using System.IO;
 using System.Threading.Tasks;
+using NuGetGallery.FunctionalTests.Helpers;
 using NuGetGallery.FunctionalTests.XunitExtensions;
 using Xunit;
 using Xunit.Abstractions;
@@ -54,6 +55,24 @@ namespace NuGetGallery.FunctionalTests.Commandline
         public async Task UploadPackageWithNuGetCommandLineTest()
         {
             await _clientSdkHelper.UploadNewPackageAndVerify(DateTime.Now.Ticks.ToString());
+        }
+
+        [Fact]
+        [Description("Creates a test package and pushes it to the server using Nuget.exe as an organization admin")]
+        [Priority(0)]
+        [Category("P0Tests")]
+        public async Task UploadPackageAsOrganizationAdminWithNuGetCommandLineTest()
+        {
+            await _clientSdkHelper.UploadNewPackageAndVerify(packageId: EnvironmentSettings.TestOrganizationAdminAccountPackageId, version: UploadHelper.GetUniquePackageVersion(), apiKey: EnvironmentSettings.TestOrganizationAdminAccountApiKey);
+        }
+
+        [Fact]
+        [Description("Creates a test package and pushes it to the server using Nuget.exe as an organization admin")]
+        [Priority(0)]
+        [Category("P0Tests")]
+        public async Task UploadPackageAsOrganizationCollaboratorWithNuGetCommandLineTest()
+        {
+            await _clientSdkHelper.UploadNewPackageAndVerify(packageId: EnvironmentSettings.TestOrganizationCollaboratorAccountPackageId, version: UploadHelper.GetUniquePackageVersion(), apiKey: EnvironmentSettings.TestOrganizationCollaboratorAccountApiKey);
         }
 
         [Fact]

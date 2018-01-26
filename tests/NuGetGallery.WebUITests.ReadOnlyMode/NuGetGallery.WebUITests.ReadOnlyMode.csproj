@@ -49,9 +49,6 @@
     </CodeAnalysisDependentAssemblyPaths>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\NuGetGallery.WebUITests.P0\AssertAndValidationHelper.cs">
-      <Link>AssertAndValidationHelper.cs</Link>
-    </Compile>
     <Compile Include="..\NuGetGallery.WebUITests.P0\BasicPages\HomePageValidationTest.cs">
       <Link>BasicPages\HomePageValidationTest.cs</Link>
     </Compile>

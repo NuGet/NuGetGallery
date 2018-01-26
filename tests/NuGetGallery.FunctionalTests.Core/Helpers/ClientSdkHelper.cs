@@ -150,28 +150,23 @@ namespace NuGetGallery.FunctionalTests
         /// Creates a package with the specified Id and Version and uploads it and checks if the upload has succeeded.
         /// Throws if the upload fails or cannot be verified in the source.
         /// </summary>
-        public async Task UploadNewPackageAndVerify(string packageId, string version = "1.0.0", string minClientVersion = null, string title = null, string tags = null, string description = null, string licenseUrl = null, string dependencies = null)
+        public async Task UploadNewPackageAndVerify(string packageId, string version = "1.0.0", string minClientVersion = null, string title = null, string tags = null, string description = null, string licenseUrl = null, string dependencies = null, string apiKey = null)
         {
-            await UploadNewPackage(packageId, version, minClientVersion, title, tags, description, licenseUrl, dependencies);
+            await UploadNewPackage(packageId, version, minClientVersion, title, tags, description, licenseUrl, dependencies, apiKey);
 
             await VerifyPackageExistsInV2AndV3Async(packageId, version);
         }
 
-        public async Task UploadNewPackage(string packageId, string version = "1.0.0", string minClientVersion = null,
+        public async Task UploadNewPackage(string packageId, string version, string minClientVersion = null,
             string title = null, string tags = null, string description = null, string licenseUrl = null,
             string dependencies = null, string apiKey = null)
         {
-            if (string.IsNullOrEmpty(packageId))
-            {
-                packageId = DateTime.Now.Ticks.ToString();
-            }
-
             WriteLine("Uploading new package '{0}', version '{1}'", packageId, version);
 
             var packageCreationHelper = new PackageCreationHelper(TestOutputHelper);
             var packageFullPath = await packageCreationHelper.CreatePackage(packageId, version, minClientVersion, title, tags, description, licenseUrl, dependencies);
 
-            await UploadExistingPackage(packageFullPath);
+            await UploadExistingPackage(packageFullPath, apiKey);
 
             // Delete package from local disk once it gets uploaded
             CleanCreatedPackage(packageFullPath);
