@@ -640,7 +640,11 @@ namespace NuGetGallery.Authentication
             }
 
             // For replacing external or password credentials, replace all such credentials.
-            var replacePrefixes = new string[] { CredentialTypes.Password.Prefix, CredentialTypes.ExternalPrefix };
+            var replacePrefixes = new string[] {
+                CredentialTypes.Password.Prefix,
+                CredentialTypes.ExternalPrefix
+            };
+
             Func<Credential, bool> replacingPredicate =
                 cred => replacePrefixes
                     .Any(mp => credential.Type.StartsWith(mp, StringComparison.OrdinalIgnoreCase)
