@@ -741,6 +741,112 @@ namespace NuGetGallery.Controllers
             }
         }
 
+        public class TheLinkOrChangeExternalCredentialAction : TestContainer
+        {
+            [Fact]
+            public async Task GivenExpiredExternalAuth_ItSafeRedirectsToReturnUrlWithExternalAuthExpiredMessage()
+            {
+                // Arrange
+                GetMock<AuthenticationService>(); // Force a mock to be created
+                var controller = GetController<AuthenticationController>();
+                var serviceMock = GetMock<AuthenticationService>();
+                serviceMock
+                    .Setup(x => x.ReadExternalLoginCredential(controller.OwinContext))
+                    .CompletesWith(new AuthenticateExternalLoginResult());
+
+                // Act
+                var result = await controller.LinkOrChangeExternalCredential("theReturnUrl");
+
+                // Assert
+                ResultAssert.IsSafeRedirectTo(result, expectedUrl: "theReturnUrl");
+                Assert.Equal(Strings.ExternalAccountLinkExpired, controller.TempData["ErrorMessage"]);
+            }
+
+            [Fact]
+            public async Task GivenExistingCredential_ItSafeRedirectsToReturnUrlWithErrorMessage()
+            {
+                // Arrange
+                GetMock<AuthenticationService>(); // Force a mock to be created
+                var controller = GetController<AuthenticationController>();
+                var identity = "Bloog";
+                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", identity);
+                var serviceMock = GetMock<AuthenticationService>();
+                serviceMock
+                    .Setup(x => x.ReadExternalLoginCredential(controller.OwinContext))
+                    .CompletesWith(new AuthenticateExternalLoginResult()
+                    {
+                        ExternalIdentity = new ClaimsIdentity(),
+                        Authentication = null,
+                        Credential = cred
+                    });
+
+                serviceMock
+                    .Setup(x => x.TryReplaceCredential(It.IsAny<User>(), It.IsAny<Credential>()))
+                    .CompletesWith(false);
+
+                // Act
+                var result = await controller.LinkOrChangeExternalCredential("theReturnUrl");
+
+                // Assert
+                ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
+                Assert.Equal(string.Format(Strings.ChangeCredential_ExistingCredential, identity), controller.TempData["ErrorMessage"]);
+            }
+
+            [Fact]
+            public async Task GivenNewCredential_ItSuccessfullyReplacesExternalCredentialsAndRemovesPasswordCredential()
+            {
+                // Arrange
+                GetMock<AuthenticationService>(); // Force a mock to be created
+                var controller = GetController<AuthenticationController>();
+                var identity = "Bloog";
+                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", identity);
+                var passwordCred = new Credential("password.v3", "bloopbloop");
+                var fakes = Get<Fakes>();
+                var user = fakes.CreateUser("test", cred, passwordCred);
+                controller.SetCurrentUser(user);
+                var authUser = new AuthenticatedUser(
+                    user, cred);
+                var serviceMock = GetMock<AuthenticationService>();
+                serviceMock
+                    .Setup(x => x.ReadExternalLoginCredential(controller.OwinContext))
+                    .CompletesWith(new AuthenticateExternalLoginResult()
+                    {
+                        ExternalIdentity = new ClaimsIdentity(),
+                        Authentication = null,
+                        Credential = cred
+                    })
+                    .Verifiable();
+
+                serviceMock
+                    .Setup(x => x.TryReplaceCredential(It.IsAny<User>(), It.IsAny<Credential>()))
+                    .CompletesWith(true)
+                    .Verifiable();
+
+                serviceMock
+                    .Setup(x => x.Authenticate(It.IsAny<Credential>()))
+                    .CompletesWith(authUser)
+                    .Verifiable();
+
+                serviceMock
+                    .Setup(x => x.CreateSessionAsync(It.IsAny<IOwinContext>(), authUser))
+                    .Completes()
+                    .Verifiable();
+
+                serviceMock
+                    .Setup(x => x.RemoveCredential(user, passwordCred))
+                    .Completes()
+                    .Verifiable();
+
+                // Act
+                var result = await controller.LinkOrChangeExternalCredential("theReturnUrl");
+
+                // Assert
+                ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
+                Assert.Equal(Strings.ChangeCredential_Success, controller.TempData["Message"]);
+                serviceMock.VerifyAll();
+            }
+        }
+
         public class TheLinkExternalAccountAction : TestContainer
         {
             [Fact]

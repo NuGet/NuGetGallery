@@ -713,9 +713,9 @@ namespace NuGetGallery
                 });
         }
 
-        public static string ChangeOrLinkExternalCredential(this UrlHelper url, string returnUrl, bool relativeUrl = true)
+        public static string LinkOrChangeExternalCredential(this UrlHelper url, string returnUrl, bool relativeUrl = true)
         {
-            return GetAuthenticationRoutes(url, "ChangeOrLinkExternalCredential", returnUrl, relativeUrl);
+            return GetAuthenticationRoutes(url, "LinkOrChangeExternalCredential", returnUrl, relativeUrl);
         }
 
         public static string LinkExternalAccount(this UrlHelper url, string returnUrl, bool relativeUrl = true)
