@@ -8,19 +8,20 @@ using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet.Packaging;
 using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
+using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
@@ -31,6 +32,7 @@ namespace NuGetGallery
     internal class TestableApiController
         : ApiController
     {
+        public Mock<IApiScopeEvaluator> MockApiScopeEvaluator { get; private set; }
         public Mock<IEntitiesContext> MockEntitiesContext { get; private set; }
         public Mock<IPackageService> MockPackageService { get; private set; }
         public Mock<IPackageFileService> MockPackageFileService { get; private set; }
@@ -54,6 +56,7 @@ namespace NuGetGallery
             MockBehavior behavior = MockBehavior.Default)
         {
             SetOwinContextOverride(Fakes.CreateOwinContext());
+            ApiScopeEvaluator = (MockApiScopeEvaluator = new Mock<IApiScopeEvaluator>()).Object;
             EntitiesContext = (MockEntitiesContext = new Mock<IEntitiesContext>()).Object;
             PackageService = (MockPackageService = new Mock<IPackageService>(behavior)).Object;
             UserService = (MockUserService = new Mock<IUserService>(behavior)).Object;
@@ -66,6 +69,8 @@ namespace NuGetGallery
             SecurityPolicyService = (MockSecurityPolicyService = new Mock<ISecurityPolicyService>()).Object;
             ReservedNamespaceService = (MockReservedNamespaceService = new Mock<IReservedNamespaceService>()).Object;
             PackageUploadService = (MockPackageUploadService = new Mock<IPackageUploadService>()).Object;
+
+            SetupApiScopeEvaluatorOnAllInputs();
 
             CredentialBuilder = new CredentialBuilder();
 
@@ -113,6 +118,17 @@ namespace NuGetGallery
             TestUtility.SetupHttpContextMockForUrlGeneration(httpContextMock, this);
         }
 
+        private void SetupApiScopeEvaluatorOnAllInputs()
+        {
+            MockApiScopeEvaluator
+                .Setup(x => x.Evaluate(It.IsAny<User>(), It.IsAny<IEnumerable<Scope>>(), It.IsAny<IActionRequiringEntityPermissions<PackageRegistration>>(), It.IsAny<PackageRegistration>(), It.IsAny<string[]>()))
+                .Returns(() => new ApiScopeEvaluationResult(GetCurrentUser(), PermissionsCheckResult.Allowed, scopesAreValid: true));
+
+            MockApiScopeEvaluator
+                .Setup(x => x.Evaluate(It.IsAny<User>(), It.IsAny<IEnumerable<Scope>>(), It.IsAny<IActionRequiringEntityPermissions<ActionOnNewPackageContext>>(), It.IsAny<ActionOnNewPackageContext>(), It.IsAny<string[]>()))
+                .Returns(() => new ApiScopeEvaluationResult(GetCurrentUser(), PermissionsCheckResult.Allowed, scopesAreValid: true));
+        }
+
         internal void SetupPackageFromInputStream(Stream packageStream)
         {
             PackageFromInputStream = packageStream;
@@ -128,6 +144,27 @@ namespace NuGetGallery
     {
         private static readonly Uri HttpRequestUrl = new Uri("http://nuget.org/api/v2/something");
         private static readonly Uri HttpsRequestUrl = new Uri("https://nuget.org/api/v2/something");
+
+        public static IEnumerable<object[]> InvalidScopes_Data
+        {
+            get
+            {
+                yield return MemberDataHelper.AsData(new ApiScopeEvaluationResult(null, PermissionsCheckResult.Unknown, scopesAreValid: false), HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
+
+                foreach (var result in Enum.GetValues(typeof(PermissionsCheckResult)).Cast<PermissionsCheckResult>())
+                {
+                    if (result == PermissionsCheckResult.Allowed || result == PermissionsCheckResult.Unknown)
+                    {
+                        continue;
+                    }
+
+                    var isReservedNamespaceConflict = result == PermissionsCheckResult.ReservedNamespaceFailure;
+                    var statusCode = isReservedNamespaceConflict ? HttpStatusCode.Conflict : HttpStatusCode.Forbidden;
+                    var description = isReservedNamespaceConflict ? Strings.UploadPackage_IdNamespaceConflict : Strings.ApiKeyNotAuthorized;
+                    yield return MemberDataHelper.AsData(new ApiScopeEvaluationResult(null, result, scopesAreValid: true), statusCode, description);
+                }
+            }
+        }
 
         public class TheCreatePackageAction
             : TestContainer
@@ -308,51 +345,24 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillWriteAnAuditRecordIfUserIsNotPackageOwner()
-            {
-                // Arrange
-                var user = new User { EmailAddress = "confirmed@email.com" };
-                var packageRegistration = new PackageRegistration();
-                packageRegistration.Id = "theId";
-                var package = new Package();
-                package.PackageRegistration = packageRegistration;
-                package.Version = "1.0.42";
-                packageRegistration.Packages.Add(package);
-
-                var controller = new TestableApiController(GetConfigurationService());
-                controller.SetCurrentUser(user);
-                controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
-                    .Returns(packageRegistration);
-
-                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
-                controller.SetupPackageFromInputStream(nuGetPackage);
-
-                // Act
-                await controller.CreatePackagePut();
-
-                // Assert
-                Assert.True(controller.AuditingService.WroteRecord<FailedAuthenticatedOperationAuditRecord>(ar =>
-                    ar.Action == AuditedAuthenticatedOperationAction.PackagePushAttemptByNonOwner
-                    && ar.AttemptedPackage.Id == package.PackageRegistration.Id
-                    && ar.AttemptedPackage.Version == package.Version));
-            }
-
-            [Fact]
             public async Task WillReturnConflictIfAPackageWithTheIdAndSameNormalizedVersionAlreadyExists()
             {
-                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.042");
+                var id = "theId";
+                var version = "1.0.42";
+                var nuGetPackage = TestPackage.CreateTestPackageStream(id, version);
 
                 var user = new User() { EmailAddress = "confirmed@email.com" };
 
                 var packageRegistration = new PackageRegistration
                 {
-                    Packages = new List<Package> { new Package { Version = "01.00.42", NormalizedVersion = "1.0.42" } },
+                    Id = id,
+                    Packages = new List<Package> { new Package { Version = version, NormalizedVersion = version } },
                     Owners = new List<User> { user }
                 };
 
                 var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(new User());
-                controller.MockPackageService.Setup(x => x.FindPackageRegistrationById("theId")).Returns(packageRegistration);
+                controller.MockPackageService.Setup(x => x.FindPackageRegistrationById(id)).Returns(packageRegistration);
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
                 // Act
@@ -362,39 +372,7 @@ namespace NuGetGallery
                 ResultAssert.IsStatusCode(
                     result,
                     HttpStatusCode.Conflict,
-                    String.Format(Strings.PackageExistsAndCannotBeModified, "theId", "1.0.42"));
-            }
-
-            [Fact]
-            public async Task WillReturnUnauthorizedIfAPackageWithTheIdExistsBelongingToAnotherUser()
-            {
-                // Arrange
-                var user = new User { EmailAddress = "confirmed@email.com" };
-                var packageId = "theId";
-                var packageRegistration = new PackageRegistration();
-                packageRegistration.Id = packageId;
-                var package = new Package();
-                package.PackageRegistration = packageRegistration;
-                package.Version = "1.0.42";
-                packageRegistration.Packages.Add(package);
-
-                var controller = new TestableApiController(GetConfigurationService());
-                controller.SetCurrentUser(user);
-                controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
-                    .Returns(packageRegistration);
-
-                var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, "1.0.42");
-                controller.SetCurrentUser(new User());
-                controller.SetupPackageFromInputStream(nuGetPackage);
-
-                // Act
-                var result = await controller.CreatePackagePut();
-
-                // Assert
-                ResultAssert.IsStatusCode(
-                    result,
-                    HttpStatusCode.Unauthorized,
-                    String.Format(Strings.ApiKeyNotAuthorized, packageId));
+                    String.Format(Strings.PackageExistsAndCannotBeModified, id, version));
             }
 
             [Fact]
@@ -456,54 +434,29 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillReturnConflictIfAPackageWithTheIdMatchesNonOwnedNamespace()
+            public async Task WillCreateAPackageWithNewRegistration()
             {
-                // Arrange
-                var user1 = new User { Key = 1, Username = "random1" };
-                var user2 = new User { Key = 2, Username = "random2" };
-                var packageId = "Random.Extention.Package1";
-                var packageRegistration = new PackageRegistration();
-                packageRegistration.Id = packageId;
-                var package = new Package();
-                package.PackageRegistration = packageRegistration;
-                package.Version = "1.0.0";
-                packageRegistration.Packages.Add(package);
+                var packageId = "theId";
+                var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, "1.0.42");
 
+                var currentUser = new User("currentUser") { Key = 1, EmailAddress = "confirmed@email.com" };
                 var controller = new TestableApiController(GetConfigurationService());
-                controller.SetCurrentUser(user1);
-                controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
-                    .Returns(() => null);
-
-                var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, "1.0.0");
+                controller.SetCurrentUser(currentUser);
                 controller.SetupPackageFromInputStream(nuGetPackage);
-                var testNamespace = new ReservedNamespace("random.", isSharedNamespace: false, isPrefix: true);
-                testNamespace.Owners.Add(user2);
-                IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace> { testNamespace };
-                controller.MockReservedNamespaceService
-                    .Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
-                    .Returns(matchingNamespaces);
 
-                // Act
-                var result = await controller.CreatePackagePut();
+                var owner = new User("owner") { Key = 2 };
 
-                // Assert
-                ResultAssert.IsStatusCode(
-                    result,
-                    HttpStatusCode.Conflict,
-                    String.Format(Strings.UploadPackage_IdNamespaceConflict));
+                Expression<Func<IApiScopeEvaluator, ApiScopeEvaluationResult>> evaluateApiScope =
+                    x => x.Evaluate(
+                        currentUser,
+                        It.IsAny<IEnumerable<Scope>>(),
+                        ActionsRequiringPermissions.UploadNewPackageId,
+                        It.Is<ActionOnNewPackageContext>((context) => context.PackageId == packageId),
+                        NuGetScopes.PackagePush);
 
-                controller.MockTelemetryService.Verify(x => x.TrackPackagePushNamespaceConflictEvent(packageRegistration.Id, package.Version, user1, controller.OwinContext.Request.User.Identity), Times.Once);
-            }
-
-            [Fact]
-            public async Task WillCreateAPackageFromTheNuGetPackage()
-            {
-                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
-
-                var user = new User() { EmailAddress = "confirmed@email.com" };
-                var controller = new TestableApiController(GetConfigurationService());
-                controller.SetCurrentUser(user);
-                controller.SetupPackageFromInputStream(nuGetPackage);
+                controller.MockApiScopeEvaluator
+                    .Setup(evaluateApiScope)
+                    .Returns(new ApiScopeEvaluationResult(owner, PermissionsCheckResult.Allowed, scopesAreValid: true));
 
                 await controller.CreatePackagePut();
 
@@ -512,83 +465,66 @@ namespace NuGetGallery
                         It.IsAny<string>(),
                         It.IsAny<PackageArchiveReader>(),
                         It.IsAny<PackageStreamMetadata>(),
-                        It.IsAny<User>(),
-                        It.IsAny<User>()),
+                        owner,
+                        currentUser),
                     Times.Once);
+                
+                controller.MockApiScopeEvaluator.Verify(evaluateApiScope);
             }
 
-            [Fact]
-            public async Task WillCreatePackageIfIdMatchesSharedNamespace()
+            /// <remarks>
+            /// <see cref="ApiController.CreatePackagePut"/> returns <see cref="HttpStatusCode.Unauthorized"/> instead of <see cref="HttpStatusCode.Forbidden"/>.
+            /// </remarks>
+            public static IEnumerable<object[]> WillNotCreateAPackageIfScopesInvalid_Data =>
+                InvalidScopes_Data
+                    .Select(x => x
+                        .Select(y => y is HttpStatusCode status && status == HttpStatusCode.Forbidden ? HttpStatusCode.Unauthorized : y)
+                        .ToArray());
+
+            [Theory]
+            [MemberData(nameof(WillNotCreateAPackageIfScopesInvalid_Data))]
+            public async Task WillNotCreateAPackageIfScopesInvalidWithNewRegistration(ApiScopeEvaluationResult scopeEvaluationResult, HttpStatusCode expectedStatusCode, string description)
             {
                 // Arrange
-                var user1 = new User { Key = 1, Username = "random1" };
-                var user2 = new User { Key = 2, Username = "random2" };
-                var packageId = "Random.Extention.Package1";
-                var packageRegistration = new PackageRegistration();
-                packageRegistration.Id = packageId;
-                var package = new Package();
-                package.PackageRegistration = packageRegistration;
-                package.Version = "1.0.0";
-                packageRegistration.Packages.Add(package);
-
                 var controller = new TestableApiController(GetConfigurationService());
-                controller.SetCurrentUser(user1);
-                controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
-                    .Returns(() => null);
 
-                var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, "1.0.0");
+                var fakes = Get<Fakes>();
+                var currentUser = fakes.User;
+                controller.SetCurrentUser(currentUser);
+
+                var packageId = "theId";
+                var packageVersion = "1.0.42";
+                var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, packageVersion);
                 controller.SetupPackageFromInputStream(nuGetPackage);
-                var testNamespace = new ReservedNamespace("random.", isSharedNamespace: true, isPrefix: true);
-                testNamespace.Owners.Add(user2);
-                IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace> { testNamespace };
-                controller.MockReservedNamespaceService
-                    .Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
-                    .Returns(matchingNamespaces);
+
+                controller.MockApiScopeEvaluator
+                    .Setup(x => x.Evaluate(
+                        currentUser,
+                        It.IsAny<IEnumerable<Scope>>(),
+                        ActionsRequiringPermissions.UploadNewPackageId,
+                        It.Is<ActionOnNewPackageContext>((context) => context.PackageId == packageId),
+                        NuGetScopes.PackagePush))
+                    .Returns(scopeEvaluationResult);
 
                 // Act
                 var result = await controller.CreatePackagePut();
 
                 // Assert
-                controller.MockPackageUploadService.Verify(
-                    x => x.GeneratePackageAsync(
-                        It.IsAny<string>(),
-                        It.IsAny<PackageArchiveReader>(),
-                        It.IsAny<PackageStreamMetadata>(),
-                        It.IsAny<User>(),
-                        It.IsAny<User>()));
-            }
+                ResultAssert.IsStatusCode(
+                    result,
+                    expectedStatusCode,
+                    description);
 
-            [Fact]
-            public async Task WillCreatePackageIfIdMatchesAnOwnedNamespace()
-            {
-                // Arrange
-                var user1 = new User { Key = 1, Username = "random1" };
-                var packageId = "Random.Extention.Package1";
-                var packageRegistration = new PackageRegistration();
-                packageRegistration.Id = packageId;
-                var package = new Package();
-                package.PackageRegistration = packageRegistration;
-                package.Version = "1.0.0";
-                packageRegistration.Packages.Add(package);
+                controller.AuditingService.WroteRecord<FailedAuthenticatedOperationAuditRecord>(
+                    (record) =>
+                    {
+                        return 
+                            record.UsernameOrEmail == currentUser.Username && 
+                            record.Action == AuditedAuthenticatedOperationAction.PackagePushAttemptByNonOwner && 
+                            record.AttemptedPackage.Id == packageId &&
+                            record.AttemptedPackage.Version == packageVersion;
+                    });
 
-                var controller = new TestableApiController(GetConfigurationService());
-                controller.SetCurrentUser(user1);
-                controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
-                    .Returns(() => null);
-
-                var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, "1.0.0");
-                controller.SetupPackageFromInputStream(nuGetPackage);
-                var testNamespace = new ReservedNamespace("random.", isSharedNamespace: false, isPrefix: true);
-                testNamespace.Owners.Add(user1);
-                IReadOnlyCollection<ReservedNamespace> matchingNamespaces = new List<ReservedNamespace> { testNamespace };
-                controller.MockReservedNamespaceService
-                    .Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
-                    .Returns(matchingNamespaces);
-
-                // Act
-                var result = await controller.CreatePackagePut();
-
-                // Assert
                 controller.MockPackageUploadService.Verify(
                     x => x.GeneratePackageAsync(
                         It.IsAny<string>(),
@@ -596,7 +532,113 @@ namespace NuGetGallery
                         It.IsAny<PackageStreamMetadata>(),
                         It.IsAny<User>(),
                         It.IsAny<User>()),
+                    Times.Never);
+            }
+
+            [Fact]
+            public async Task WillCreateAPackageWithExistingRegistration()
+            {
+                var packageId = "theId";
+                var packageRegistration = new PackageRegistration { Id = packageId };
+                packageRegistration.Id = packageId;
+                var package = new Package
+                {
+                    PackageRegistration = packageRegistration,
+                    Version = "1.0.42"
+                };
+                packageRegistration.Packages.Add(package);
+
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
+                    .Returns(packageRegistration);
+
+                var fakes = Get<Fakes>();
+                var currentUser = fakes.User;
+                controller.SetCurrentUser(currentUser);
+
+                var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, "1.0.42");
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                var owner = new User("owner") { Key = 2 };
+
+                Expression<Func<IApiScopeEvaluator, ApiScopeEvaluationResult>> evaluateApiScope =
+                    x => x.Evaluate(
+                        currentUser,
+                        It.IsAny<IEnumerable<Scope>>(),
+                        ActionsRequiringPermissions.UploadNewPackageVersion,
+                        packageRegistration,
+                        NuGetScopes.PackagePushVersion, NuGetScopes.PackagePush);
+
+                controller.MockApiScopeEvaluator
+                    .Setup(evaluateApiScope)
+                    .Returns(new ApiScopeEvaluationResult(owner, PermissionsCheckResult.Allowed, scopesAreValid: true));
+
+                await controller.CreatePackagePut();
+
+                controller.MockPackageUploadService.Verify(
+                    x => x.GeneratePackageAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<PackageArchiveReader>(),
+                        It.IsAny<PackageStreamMetadata>(),
+                        owner,
+                        currentUser),
                     Times.Once);
+
+                controller.MockApiScopeEvaluator.Verify(evaluateApiScope);
+            }
+
+            [Theory]
+            [MemberData(nameof(WillNotCreateAPackageIfScopesInvalid_Data))]
+            public async Task WillNotCreateAPackageIfScopesInvalidWithExistingRegistration(ApiScopeEvaluationResult scopeEvaluationResult, HttpStatusCode expectedStatusCode, string description)
+            {
+                // Arrange
+                var packageId = "theId";
+                var packageRegistration = new PackageRegistration { Id = packageId };
+                packageRegistration.Id = packageId;
+                var package = new Package
+                {
+                    PackageRegistration = packageRegistration,
+                    Version = "1.0.42"
+                };
+                packageRegistration.Packages.Add(package);
+
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
+                    .Returns(packageRegistration);
+
+                var fakes = Get<Fakes>();
+                var currentUser = fakes.User;
+                controller.SetCurrentUser(currentUser);
+
+                var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, "1.0.42");
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                controller.MockApiScopeEvaluator
+                    .Setup(x => x.Evaluate(
+                        currentUser,
+                        It.IsAny<IEnumerable<Scope>>(),
+                        ActionsRequiringPermissions.UploadNewPackageVersion,
+                        packageRegistration,
+                        NuGetScopes.PackagePushVersion, NuGetScopes.PackagePush))
+                    .Returns(scopeEvaluationResult);
+
+                // Act
+                var result = await controller.CreatePackagePut();
+
+                // Assert
+                ResultAssert.IsStatusCode(
+                    result,
+                    expectedStatusCode,
+                    description);
+
+                controller.MockPackageUploadService.Verify(
+                    x => x.GeneratePackageAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<PackageArchiveReader>(),
+                        It.IsAny<PackageStreamMetadata>(),
+                        It.IsAny<User>(),
+                        It.IsAny<User>()),
+                    Times.Never);
             }
 
             [Fact]
@@ -666,140 +708,6 @@ namespace NuGetGallery
                     Times.Once);
             }
 
-            [InlineData("[{\"a\":\"package:push\", \"s\":\"theId\"}]", true)]
-            [InlineData("[{\"a\":\"package:push\", \"s\":\"*\"}]", true)]
-            [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"theId\"}]", false)]
-            [InlineData("[{\"a\":\"package:push\", \"s\":\"cbd\"}]", false)]
-            [Theory]
-            public async Task WillVerifyScopesForNewPackageId(string apiKeyScopes, bool isPushAllowed)
-            {
-                // Arrange
-                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
-
-                var user = new User { EmailAddress = "confirmed@email.com", Username = "username" };
-
-                var package = new Package();
-                package.PackageRegistration = new PackageRegistration();
-                package.Version = "1.0.42";
-
-                var credential = TestCredentialHelper.CreateV4ApiKey(expiration: null, plaintextApiKey: out string plaintextApiKey);
-                credential.Scopes = JsonConvert.DeserializeObject<List<Scope>>(apiKeyScopes);
-
-                var controller = new TestableApiController(GetConfigurationService());
-                controller.SetCurrentUser(user, credential);
-                controller.SetupPackageFromInputStream(nuGetPackage);
-                controller.MockPackageUploadService
-                    .Setup(x => x.GeneratePackageAsync(
-                        It.IsAny<string>(),
-                        It.IsAny<PackageArchiveReader>(),
-                        It.IsAny<PackageStreamMetadata>(),
-                        user,
-                        user))
-                    .ReturnsAsync(package);
-
-                // Act
-                var result = await controller.CreatePackagePut();
-
-                // Assert
-                if (isPushAllowed)
-                {
-                    controller.MockPackageUploadService.Verify(
-                        x => x.GeneratePackageAsync(
-                            It.IsAny<string>(),
-                            It.IsAny<PackageArchiveReader>(),
-                            It.IsAny<PackageStreamMetadata>(),
-                            user,
-                            user));
-                }
-                else
-                {
-                    controller.MockPackageUploadService.Verify(
-                        x => x.GeneratePackageAsync(
-                            It.IsAny<string>(),
-                            It.IsAny<PackageArchiveReader>(),
-                            It.IsAny<PackageStreamMetadata>(),
-                            It.IsAny<User>(),
-                            It.IsAny<User>()),
-                        Times.Never);
-
-                    ResultAssert.IsStatusCode(
-                        result,
-                        HttpStatusCode.Unauthorized,
-                        Strings.ApiKeyNotAuthorized);
-                }
-            }
-
-            [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"differentid\"}]", false)]
-            [InlineData("[{\"a\":\"package:push\", \"s\":\"theId\"}]", true)]
-            [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"theId\"}]", true)]
-            [Theory]
-            public async Task WillVerifyScopesForExistingPackageId(string apiKeyScopes, bool isPushAllowed)
-            {
-                // Arrange
-                const string packageId = "theId";
-
-                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
-
-                var user = new User { EmailAddress = "confirmed@email.com", Username = "username", Key = 1 };
-
-                var credential = TestCredentialHelper.CreateV4ApiKey(expiration: null, plaintextApiKey: out string plaintextApiKey);
-                credential.Scopes = JsonConvert.DeserializeObject<List<Scope>>(apiKeyScopes);
-
-                var controller = new TestableApiController(GetConfigurationService());
-                controller.SetCurrentUser(user, credential);
-                controller.SetupPackageFromInputStream(nuGetPackage);
-
-                var packageRegistration = new PackageRegistration();
-                packageRegistration.Id = packageId;
-                packageRegistration.Owners.Add(user);
-
-                var package = new Package();
-                package.PackageRegistration = packageRegistration;
-                package.Version = "1.0.42";
-
-                controller.MockPackageService.Setup(x => x.FindPackageRegistrationById(packageId))
-                    .Returns(packageRegistration);
-                controller.MockPackageUploadService
-                    .Setup(x => x.GeneratePackageAsync(
-                        It.IsAny<string>(),
-                        It.IsAny<PackageArchiveReader>(),
-                        It.IsAny<PackageStreamMetadata>(),
-                        user,
-                        user))
-                    .ReturnsAsync(package);
-
-                // Act
-                var result = await controller.CreatePackagePut();
-
-                // Assert
-                if (isPushAllowed)
-                {
-                    controller.MockPackageUploadService.Verify(
-                        x => x.GeneratePackageAsync(
-                            It.IsAny<string>(),
-                            It.IsAny<PackageArchiveReader>(),
-                            It.IsAny<PackageStreamMetadata>(),
-                            user,
-                            user));
-                }
-                else
-                {
-                    controller.MockPackageUploadService.Verify(
-                        x => x.GeneratePackageAsync(
-                            It.IsAny<string>(),
-                            It.IsAny<PackageArchiveReader>(),
-                            It.IsAny<PackageStreamMetadata>(),
-                            It.IsAny<User>(),
-                            It.IsAny<User>()),
-                        Times.Never);
-
-                    ResultAssert.IsStatusCode(
-                        result,
-                        HttpStatusCode.Unauthorized,
-                        Strings.ApiKeyNotAuthorized);
-                }
-            }
-
             [Fact]
             public async Task WillSendPackagePushEvent()
             {
@@ -866,85 +774,74 @@ namespace NuGetGallery
                 controller.MockPackageService.Verify(x => x.MarkPackageUnlistedAsync(It.IsAny<Package>(), true), Times.Never());
             }
 
-            [Fact]
-            public async Task WillNotDeleteThePackageIfApiKeyDoesNotBelongToAnOwner()
+            public static IEnumerable<object[]> WillNotUnlistThePackageIfScopesInvalid_Data => InvalidScopes_Data;
+
+            [Theory]
+            [MemberData(nameof(WillNotUnlistThePackageIfScopesInvalid_Data))]
+            public async Task WillNotUnlistThePackageIfScopesInvalid(ApiScopeEvaluationResult evaluationResult, HttpStatusCode expectedStatusCode, string description)
             {
-                var notOwner = new User { Key = 1 };
+                var fakes = Get<Fakes>();
+                var currentUser = fakes.User;
+
+                var id = "theId";
                 var package = new Package
                 {
-                    PackageRegistration = new PackageRegistration { Owners = new[] { new User() } }
+                    PackageRegistration = new PackageRegistration { Id = id }
                 };
 
                 var controller = new TestableApiController(GetConfigurationService());
-                controller.SetCurrentUser(notOwner);
-                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict("theId", "1.0.42")).Returns(package);
+                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(package);
+
+                controller.SetCurrentUser(currentUser);
+
+                controller.MockApiScopeEvaluator
+                    .Setup(x => x.Evaluate(
+                        currentUser,
+                        It.IsAny<IEnumerable<Scope>>(),
+                        ActionsRequiringPermissions.UnlistOrRelistPackage,
+                        package.PackageRegistration,
+                        NuGetScopes.PackageUnlist))
+                    .Returns(evaluationResult);
 
                 var result = await controller.DeletePackage("theId", "1.0.42");
 
-                Assert.IsType<HttpStatusCodeWithBodyResult>(result);
-                var statusCodeResult = (HttpStatusCodeWithBodyResult)result;
-                Assert.Equal(string.Format(Strings.ApiKeyNotAuthorized, "delete"), statusCodeResult.StatusDescription);
+                ResultAssert.IsStatusCode(
+                    result,
+                    expectedStatusCode,
+                    description);
 
                 controller.MockPackageService.Verify(x => x.MarkPackageUnlistedAsync(package, true), Times.Never());
             }
 
-            [InlineData("[{\"a\":\"all\", \"s\":\"*\"}]", true)]
-            [InlineData("[{\"a\":\"package:unlist\", \"s\":\"theId\"}]", true)]
-            [InlineData("[{\"a\":\"package:push\", \"s\":\"theId\"}]", false)]
-            [Theory]
-            public async Task WillVerifyApiKeyScopeBeforeDelete(string apiKeyScope, bool isDeleteAllowed)
-            {
-                var owner = new User { Key = 1, Username = "owner" };
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration {
-                        Id = "theId",
-                        Owners = new[] { owner }
-                    }
-                };
-
-                var credential = TestCredentialHelper.CreateV4ApiKey(expiration: null, plaintextApiKey: out string plaintextApiKey);
-                credential.Scopes = JsonConvert.DeserializeObject<List<Scope>>(apiKeyScope);
-
-                var controller = new TestableApiController(GetConfigurationService());
-                controller.SetCurrentUser(owner, credential);
-                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict("theId", "1.0.42"))
-                    .Returns(package);
-
-                var result = await controller.DeletePackage("theId", "1.0.42");
-
-                if (!isDeleteAllowed)
-                {
-                    Assert.IsType<HttpStatusCodeWithBodyResult>(result);
-                    var statusCodeResult = (HttpStatusCodeWithBodyResult)result;
-                    Assert.Equal(string.Format(Strings.ApiKeyNotAuthorized, "delete"),
-                        statusCodeResult.StatusDescription);
-
-                    controller.MockPackageService.Verify(x => x.MarkPackageUnlistedAsync(package, true), Times.Never());
-                }
-                else
-                {
-                    controller.MockPackageService.Verify(x => x.MarkPackageUnlistedAsync(package, true));
-                    controller.MockIndexingService.Verify(i => i.UpdatePackage(package));
-                }
-            }
-
             [Fact]
-            public async Task WillUnlistThePackageIfApiKeyBelongsToAnOwner()
+            public async Task WillUnlistThePackage()
             {
-                var owner = new User { Key = 1 };
+                var fakes = Get<Fakes>();
+                var currentUser = fakes.User;
+                
+                var id = "theId";
                 var package = new Package
                 {
-                    PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner } }
+                    PackageRegistration = new PackageRegistration { Id = id }
                 };
+
                 var controller = new TestableApiController(GetConfigurationService());
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(package);
-                controller.SetCurrentUser(owner);
 
-                ResultAssert.IsEmpty(await controller.DeletePackage("theId", "1.0.42"));
+                controller.SetCurrentUser(currentUser);
+
+                ResultAssert.IsEmpty(await controller.DeletePackage(id, "1.0.42"));
 
                 controller.MockPackageService.Verify(x => x.MarkPackageUnlistedAsync(package, true));
                 controller.MockIndexingService.Verify(i => i.UpdatePackage(package));
+
+                controller.MockApiScopeEvaluator
+                    .Verify(x => x.Evaluate(
+                        currentUser,
+                        It.IsAny<IEnumerable<Scope>>(),
+                        ActionsRequiringPermissions.UnlistOrRelistPackage,
+                        package.PackageRegistration,
+                        NuGetScopes.PackageUnlist));
             }
 
             [Fact]
@@ -1208,53 +1105,74 @@ namespace NuGetGallery
                 controller.MockPackageService.Verify(x => x.MarkPackageListedAsync(It.IsAny<Package>(), It.IsAny<bool>()), Times.Never());
             }
 
-            [Fact]
-            public async Task WillNotListThePackageIfApiKeyDoesNotBelongToAnOwner()
+            public static IEnumerable<object[]> WillListThePackageIfScopesInvalid_Data => InvalidScopes_Data;
+
+            [Theory]
+            [MemberData(nameof(WillListThePackageIfScopesInvalid_Data))]
+            public async Task WillListThePackageIfScopesInvalid(ApiScopeEvaluationResult evaluationResult, HttpStatusCode expectedStatusCode, string description)
             {
-                // Arrange
-                var owner = new User { Key = 1 };
+                var fakes = Get<Fakes>();
+                var currentUser = fakes.User;
+
+                var id = "theId";
                 var package = new Package
                 {
-                    PackageRegistration = new PackageRegistration { Owners = new[] { new User() } }
-                };
-
-                var controller = new TestableApiController(GetConfigurationService());
-                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict("theId", "1.0.42")).Returns(package);
-                controller.SetCurrentUser(owner);
-
-                // Act
-                var result = await controller.PublishPackage("theId", "1.0.42");
-
-                // Assert
-                ResultAssert.IsStatusCode(
-                    result,
-                    HttpStatusCode.Forbidden,
-                    String.Format(Strings.ApiKeyNotAuthorized, "publish"));
-
-                controller.MockPackageService.Verify(x => x.MarkPackageListedAsync(package, It.IsAny<bool>()), Times.Never());
-            }
-
-            [Fact]
-            public async Task WillListThePackageIfUserIsAnOwner()
-            {
-                // Arrange
-                var owner = new User { Key = 1 };
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration { Owners = new[] { new User(), owner } }
+                    PackageRegistration = new PackageRegistration { Id = id }
                 };
 
                 var controller = new TestableApiController(GetConfigurationService());
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(package);
-                controller.SetCurrentUser(owner);
 
-                // Act
+                controller.SetCurrentUser(currentUser);
+
+                controller.MockApiScopeEvaluator
+                    .Setup(x => x.Evaluate(
+                        currentUser,
+                        It.IsAny<IEnumerable<Scope>>(),
+                        ActionsRequiringPermissions.UnlistOrRelistPackage,
+                        package.PackageRegistration,
+                        NuGetScopes.PackageUnlist))
+                    .Returns(evaluationResult);
+
                 var result = await controller.PublishPackage("theId", "1.0.42");
 
-                // Assert
-                ResultAssert.IsEmpty(result);
-                controller.MockPackageService.Verify(x => x.MarkPackageListedAsync(package, It.IsAny<bool>()));
+                ResultAssert.IsStatusCode(
+                    result,
+                    expectedStatusCode,
+                    description);
+
+                controller.MockPackageService.Verify(x => x.MarkPackageListedAsync(package, true), Times.Never());
+            }
+
+            [Fact]
+            public async Task WillListThePackage()
+            {
+                var fakes = Get<Fakes>();
+                var currentUser = fakes.User;
+
+                var id = "theId";
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = id }
+                };
+
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(package);
+
+                controller.SetCurrentUser(currentUser);
+                
+                ResultAssert.IsEmpty(await controller.PublishPackage("theId", "1.0.42"));
+
+                controller.MockPackageService.Verify(x => x.MarkPackageListedAsync(package, true));
                 controller.MockIndexingService.Verify(i => i.UpdatePackage(package));
+
+                controller.MockApiScopeEvaluator
+                    .Verify(x => x.Evaluate(
+                        currentUser,
+                        It.IsAny<IEnumerable<Scope>>(),
+                        ActionsRequiringPermissions.UnlistOrRelistPackage,
+                        package.PackageRegistration,
+                        NuGetScopes.PackageUnlist));
             }
 
             [Fact]
@@ -1297,16 +1215,22 @@ namespace NuGetGallery
 
         public class PackageVerificationKeyContainer : TestContainer
         {
-            internal TestableApiController SetupController(string keyType, string scopes, Package package, bool isOwner = true)
-            {
-                var fakes = Get<Fakes>();
-                var user = fakes.User;
-                var credential = user.Credentials.First(c => c.Type == keyType);
+            public static int UserKey = 1234;
+            public static string Username = "testuser";
+            public static string PackageId = "foo";
+            public static string PackageVersion = "1.0.0";
 
-                if (!string.IsNullOrWhiteSpace(scopes))
+            internal TestableApiController SetupController(string keyType, Scope scope, Package package, bool isOwner = true)
+            {
+                var credential = new Credential(keyType, string.Empty, TimeSpan.FromDays(1));
+                if (scope != null)
                 {
-                    credential.Scopes = JsonConvert.DeserializeObject<List<Scope>>(scopes);
+                    credential.Scopes.Add(scope);
                 }
+
+                var user = Get<Fakes>().CreateUser(Username);
+                user.Key = UserKey;
+                user.Credentials.Add(credential);
 
                 if (package != null && isOwner)
                 {
@@ -1325,11 +1249,15 @@ namespace NuGetGallery
                     .Callback<User, Credential>((u, c) => u.Credentials.Remove(c))
                     .Returns(Task.CompletedTask);
 
-                var id = package?.PackageRegistration?.Id ?? "foo";
-                var version = package?.Version ?? "1.0.0";
+                var id = package?.PackageRegistration?.Id ?? PackageId;
+                var version = package?.Version ?? PackageVersion;
                 controller.MockPackageService
                     .Setup(s => s.FindPackageByIdAndVersion(id, version, SemVerLevelKey.SemVer2, true))
                     .Returns(package);
+
+                controller.MockUserService
+                    .Setup(x => x.FindByKey(user.Key))
+                    .Returns(user);
 
                 controller.SetCurrentUser(user, credential);
 
@@ -1343,44 +1271,56 @@ namespace NuGetGallery
             [Fact]
             public async Task WhenApiKeyHasNoScope_TempKeyHasScopeWithNoOwner()
             {
-                var tempScope = await InvokeAsync("");
+                var tempScope = await InvokeAsync(null);
 
                 Assert.Null(tempScope.OwnerKey);
-                Assert.Equal("foo", tempScope.Subject);
+                Assert.Equal(PackageId, tempScope.Subject);
+                Assert.Equal(NuGetScopes.PackageVerify, tempScope.AllowedAction);
+            }
+
+            public static IEnumerable<object[]> TempKeyHasScopeWithNoOwner_Data
+            {
+                get
+                {
+                    foreach (var allowedAction in new[] { NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion })
+                    {
+                        yield return new object[]
+                        {
+                            allowedAction
+                        };
+                    }
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(TempKeyHasScopeWithNoOwner_Data))]
+            public async Task WhenApiKeyHasNoOwnerScope_TempKeyHasScopeWithNoOwner(string allowedAction)
+            {
+                var tempScope = await InvokeAsync(new Scope() { OwnerKey = null, Subject = PackageId, AllowedAction = allowedAction });
+
+                Assert.Null(tempScope.OwnerKey);
+                Assert.Equal(PackageId, tempScope.Subject);
                 Assert.Equal(NuGetScopes.PackageVerify, tempScope.AllowedAction);
             }
 
             [Theory]
-            [InlineData("[{\"a\":\"package:push\", \"s\":\"foo\"}]")]
-            [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"foo\"}]")]
-            public async Task WhenApiKeyHasNoOwnerScope_TempKeyHasScopeWithNoOwner(string scope)
+            [MemberData(nameof(TempKeyHasScopeWithNoOwner_Data))]
+            public async Task WhenApiKeyHasOwnerScope_TempKeyHasSameOwner(string allowedAction)
             {
-                var tempScope = await InvokeAsync(scope);
-
-                Assert.Null(tempScope.OwnerKey);
-                Assert.Equal("foo", tempScope.Subject);
-                Assert.Equal(NuGetScopes.PackageVerify, tempScope.AllowedAction);
-            }
-
-            [Theory]
-            [InlineData("[{\"o\": \"1234\", \"a\":\"package:push\", \"s\":\"foo\"}]")]
-            [InlineData("[{\"o\": \"1234\", \"a\":\"package:pushversion\", \"s\":\"foo\"}]")]
-            public async Task WhenApiKeyHasOwnerScope_TempKeyHasSameOwner(string scope)
-            {
-                var tempScope = await InvokeAsync(scope);
+                var tempScope = await InvokeAsync(new Scope() { OwnerKey = 1234, Subject = PackageId, AllowedAction = allowedAction });
 
                 Assert.Equal(1234, tempScope.OwnerKey);
-                Assert.Equal("foo", tempScope.Subject);
+                Assert.Equal(PackageId, tempScope.Subject);
                 Assert.Equal(NuGetScopes.PackageVerify, tempScope.AllowedAction);
             }
 
-            private async Task<Scope> InvokeAsync(string scope)
+            private async Task<Scope> InvokeAsync(Scope scope)
             {
                 // Arrange
                 var controller = SetupController(CredentialTypes.ApiKey.V4, scope, package: null);
 
                 // Act
-                var jsonResult = await controller.CreatePackageVerificationKeyAsync("foo", "1.0.0") as JsonResult;
+                var jsonResult = await controller.CreatePackageVerificationKeyAsync(PackageId, PackageVersion) as JsonResult;
 
                 // Assert - the response
                 dynamic json = jsonResult?.Data;
@@ -1395,9 +1335,9 @@ namespace NuGetGallery
                 // Assert - the invocations
                 controller.MockAuthenticationService.Verify(s => s.AddCredential(It.IsAny<User>(), It.IsAny<Credential>()), Times.Once);
 
-                controller.MockTelemetryService.Verify(x => x.TrackCreatePackageVerificationKeyEvent("foo", "1.0.0",
+                controller.MockTelemetryService.Verify(x => x.TrackCreatePackageVerificationKeyEvent(PackageId, PackageVersion,
                     It.IsAny<User>(), controller.OwinContext.Request.User.Identity), Times.Once);
-                
+
                 // Assert - the temp key
                 var user = controller.GetCurrentUser();
                 var tempKey = user.Credentials.Last();
@@ -1410,250 +1350,179 @@ namespace NuGetGallery
         public class TheVerifyPackageKeyAsyncAction
             : PackageVerificationKeyContainer
         {
-            [Fact]
-            public async Task VerifyPackageKeyAsync_Returns400IfSecurityPolicyFails()
+            private static IEnumerable<string> AllCredentialTypes = new[]
+            {
+                CredentialTypes.ApiKey.V1,
+                CredentialTypes.ApiKey.V2,
+                CredentialTypes.ApiKey.V4,
+                CredentialTypes.ApiKey.VerifyV1
+            };
+
+            private static IEnumerable<string> CredentialTypesExceptVerifyV1 =
+                AllCredentialTypes
+                    .Except(new[] { CredentialTypes.ApiKey.VerifyV1 });
+
+            public static IEnumerable<object[]> AllCredentialTypes_Data =>
+                AllCredentialTypes
+                    .Select(t => MemberDataHelper.AsData(t));
+
+            public static IEnumerable<object[]> CredentialTypesExceptVerifyV1_Data =>
+                CredentialTypesExceptVerifyV1
+                    .Select(t => MemberDataHelper.AsData(t));
+
+            [Theory]
+            [MemberData(nameof(AllCredentialTypes_Data))]
+            public async Task Returns400IfSecurityPolicyFails(string credentialType)
             {
                 // Arrange
-                var controller = SetupController(CredentialTypes.ApiKey.V4, "", package: null);
+                var errorResult = "A";
+                var controller = SetupController(credentialType, null, package: null);
                 controller.MockSecurityPolicyService.Setup(s => s.EvaluateAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>()))
-                    .Returns(Task.FromResult(SecurityPolicyResult.CreateErrorResult("A")));
+                    .Returns(Task.FromResult(SecurityPolicyResult.CreateErrorResult(errorResult)));
 
                 // Act
-                var result = await controller.VerifyPackageKeyAsync("foo", "1.0.0");
+                var result = await controller.VerifyPackageKeyAsync(PackageId, PackageVersion);
 
                 // Assert
-                ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest, "A");
+                ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest, errorResult);
             }
 
             [Theory]
-            [InlineData(CredentialTypes.ApiKey.V1, "")]
-            [InlineData(CredentialTypes.ApiKey.V2, "[{\"a\":\"package:push\", \"s\":\"foo\"}]")]
-            [InlineData(CredentialTypes.ApiKey.V4, "[{\"a\":\"package:pushversion\", \"s\":\"foo\"}]")]
-            public async Task VerifyPackageKeyAsync_Returns404IfPackageDoesNotExist_ApiKey(string apiKeyType, string scope)
+            [MemberData(nameof(AllCredentialTypes_Data))]
+            public async Task Returns404IfPackageDoesNotExist(string credentialType)
             {
                 // Arrange
-                var controller = SetupController(apiKeyType, scope, package: null);
+                var controller = SetupController(credentialType, null, package: null);
 
                 // Act
-                var result = await controller.VerifyPackageKeyAsync("foo", "1.0.0");
+                var result = await controller.VerifyPackageKeyAsync(PackageId, PackageVersion);
 
                 // Assert
                 ResultAssert.IsStatusCode(
                     result,
                     HttpStatusCode.NotFound,
-                    String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, "foo", "1.0.0"));
+                    String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, PackageId, PackageVersion));
 
-                controller.MockAuthenticationService.Verify(s => s.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()), Times.Never);
+                controller.MockAuthenticationService.Verify(s => s.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()),
+                    CredentialTypes.IsPackageVerificationApiKey(credentialType) ? Times.Once() : Times.Never());
 
-                controller.MockTelemetryService.Verify(x => x.TrackVerifyPackageKeyEvent("foo", "1.0.0",
+                controller.MockTelemetryService.Verify(x => x.TrackVerifyPackageKeyEvent(PackageId, PackageVersion,
                     It.IsAny<User>(), controller.OwinContext.Request.User.Identity, 404), Times.Once);
             }
 
-            [Theory]
-            [InlineData("[{\"a\":\"package:verify\", \"s\":\"foo\"}]")]
-            public async Task VerifyPackageKeyAsync_Returns404IfPackageDoesNotExist_ApiKeyVerifyV1(string scope)
+            public static IEnumerable<object[]> Returns403IfScopeDoesNotMatch_Data => InvalidScopes_Data;
+
+            public static IEnumerable<object[]> Returns403IfScopeDoesNotMatch_NotVerify_Data
             {
-                // Arrange
-                var controller = SetupController(CredentialTypes.ApiKey.VerifyV1, scope, package: null);
+                get
+                {
+                    var notVerifyData = CredentialTypesExceptVerifyV1.Select(t => new object[] { t, new[] { NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion } });
+                    return MemberDataHelper.Combine(notVerifyData, Returns403IfScopeDoesNotMatch_Data);
+                }
+            }
 
-                // Act
-                var result = await controller.VerifyPackageKeyAsync("foo", "1.0.0");
-
-                // Assert
-                ResultAssert.IsStatusCode(
-                    result,
-                    HttpStatusCode.NotFound,
-                    String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, "foo", "1.0.0"));
-
-                controller.MockAuthenticationService.Verify(s => s.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()), Times.Once);
-
-                controller.MockTelemetryService.Verify(x => x.TrackVerifyPackageKeyEvent("foo", "1.0.0",
-                    It.IsAny<User>(), controller.OwinContext.Request.User.Identity, 404), Times.Once);
+            public static IEnumerable<object[]> Returns403IfScopeDoesNotMatch_Verify_Data
+            {
+                get
+                {
+                    return MemberDataHelper.Combine(new[] { new object[] { CredentialTypes.ApiKey.VerifyV1, new[] { NuGetScopes.PackageVerify } } }, Returns403IfScopeDoesNotMatch_Data);
+                }
             }
 
             [Theory]
-            [InlineData(CredentialTypes.ApiKey.V1, "")]
-            [InlineData(CredentialTypes.ApiKey.V2, "[{\"a\":\"package:push\", \"s\":\"foo\"}]")]
-            [InlineData(CredentialTypes.ApiKey.V4, "[{\"a\":\"package:pushversion\", \"s\":\"foo\"}]")]
-            public async Task VerifyPackageKeyAsync_Returns403IfUserIsNotAnOwner_ApiKey(string apiKeyType, string scope)
+            [MemberData(nameof(Returns403IfScopeDoesNotMatch_NotVerify_Data))]
+            [MemberData(nameof(Returns403IfScopeDoesNotMatch_Verify_Data))]
+            public async Task Returns403IfScopeDoesNotMatch(string credentialType, string[] expectedRequestedActions, ApiScopeEvaluationResult apiScopeEvaluationResult, HttpStatusCode expectedStatusCode, string description)
             {
                 // Arrange
                 var package = new Package
                 {
-                    PackageRegistration = new PackageRegistration() { Id = "foo" },
-                    Version = "1.0.0"
+                    PackageRegistration = new PackageRegistration() { Id = PackageId },
+                    Version = PackageVersion
                 };
-                var controller = SetupController(apiKeyType, scope, package, isOwner: false);
+                var controller = SetupController(credentialType, null, package);
+
+                controller.MockApiScopeEvaluator
+                    .Setup(x => x.Evaluate(
+                        It.Is<User>(u => u.Key == UserKey),
+                        It.IsAny<IEnumerable<Scope>>(),
+                        ActionsRequiringPermissions.VerifyPackage,
+                        package.PackageRegistration,
+                        expectedRequestedActions))
+                    .Returns(apiScopeEvaluationResult);
 
                 // Act
-                var result = await controller.VerifyPackageKeyAsync("foo", "1.0.0");
+                var result = await controller.VerifyPackageKeyAsync(PackageId, PackageVersion);
 
                 // Assert
                 ResultAssert.IsStatusCode(
                     result,
-                    HttpStatusCode.Forbidden,
-                    Strings.ApiKeyNotAuthorized);
+                    expectedStatusCode,
+                    description);
 
-                controller.MockAuthenticationService.Verify(s => s.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()), Times.Never);
+                controller.MockAuthenticationService.Verify(s => s.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()),
+                    CredentialTypes.IsPackageVerificationApiKey(credentialType) ? Times.Once() : Times.Never());
 
-                controller.MockTelemetryService.Verify(x => x.TrackVerifyPackageKeyEvent("foo", "1.0.0",
-                    It.IsAny<User>(), controller.OwinContext.Request.User.Identity, 403), Times.Once);
+                controller.MockTelemetryService.Verify(x => x.TrackVerifyPackageKeyEvent(PackageId, PackageVersion,
+                    It.IsAny<User>(), controller.OwinContext.Request.User.Identity, (int)expectedStatusCode), Times.Once);
+            }
+            
+            [Fact]
+            public Task Returns200_VerifyV1()
+            {
+                return Returns200(CredentialTypes.ApiKey.VerifyV1, true, NuGetScopes.PackageVerify);
             }
 
             [Theory]
-            [InlineData("[{\"a\":\"package:verify\", \"s\":\"foo\"}]")]
-            public async Task VerifyPackageKeyAsync_Returns403IfUserIsNotAnOwner_ApiKeyVerifyV1(string scope)
+            [MemberData(nameof(CredentialTypesExceptVerifyV1_Data))]
+            public Task Returns200_NotVerify(string credentialType)
+            {
+                return Returns200(credentialType, false, NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion);
+            }
+
+            private async Task Returns200(string credentialType, bool isRemoved, params string[] expectedRequestedActions)
             {
                 // Arrange
                 var package = new Package
                 {
-                    PackageRegistration = new PackageRegistration() { Id = "foo" },
-                    Version = "1.0.0"
+                    PackageRegistration = new PackageRegistration() { Id = PackageId },
+                    Version = PackageVersion
                 };
-                var controller = SetupController(CredentialTypes.ApiKey.VerifyV1, scope, package, isOwner: false);
+                var controller = SetupController(credentialType, null, package);
 
                 // Act
-                var result = await controller.VerifyPackageKeyAsync("foo", "1.0.0");
-
-                // Assert
-                ResultAssert.IsStatusCode(
-                    result,
-                    HttpStatusCode.Forbidden,
-                    Strings.ApiKeyNotAuthorized);
-
-                controller.MockAuthenticationService.Verify(s => s.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()), Times.Once);
-
-                controller.MockTelemetryService.Verify(x => x.TrackVerifyPackageKeyEvent("foo", "1.0.0",
-                    It.IsAny<User>(), controller.OwinContext.Request.User.Identity, 403), Times.Once);
-            }
-
-            [Theory]
-            // action mismatch
-            [InlineData(CredentialTypes.ApiKey.V2, "[{\"a\":\"package:unlist\", \"s\":\"foo\"}]")]
-            [InlineData(CredentialTypes.ApiKey.V4, "[{\"a\":\"package:verify\", \"s\":\"foo\"}]")]
-            // subject mismatch
-            [InlineData(CredentialTypes.ApiKey.V2, "[{\"a\":\"package:push\", \"s\":\"notfoo\"}]")]
-            [InlineData(CredentialTypes.ApiKey.V4, "[{\"a\":\"package:pushversion\", \"s\":\"notfoo\"}]")]
-            public async Task VerifyPackageKeyAsync_Returns403IfScopeDoesNotMatch_ApiKey(string apiKeyType, string scope)
-            {
-                // Arrange
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration() { Id = "foo" },
-                    Version = "1.0.0"
-                };
-                var controller = SetupController(apiKeyType, scope, package);
-
-                // Act
-                var result = await controller.VerifyPackageKeyAsync("foo", "1.0.0");
-
-                // Assert
-                ResultAssert.IsStatusCode(
-                    result,
-                    HttpStatusCode.Forbidden,
-                    Strings.ApiKeyNotAuthorized);
-
-                controller.MockAuthenticationService.Verify(s => s.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()), Times.Never);
-
-                controller.MockTelemetryService.Verify(x => x.TrackVerifyPackageKeyEvent("foo", "1.0.0",
-                    It.IsAny<User>(), controller.OwinContext.Request.User.Identity, 403), Times.Once);
-            }
-
-            [Theory]
-            // action mismatch
-            [InlineData("[{\"a\":\"package:push\", \"s\":\"foo\"}]")]
-            [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"foo\"}]")]
-            [InlineData("[{\"a\":\"package:unlist\", \"s\":\"foo\"}]")]
-            // subject mismatch
-            [InlineData("[{\"a\":\"package:verify\", \"s\":\"notfoo\"}]")]
-            public async Task VerifyPackageKeyAsync_Returns403IfScopeDoesNotMatch_ApiKeyVerifyV1(string scope)
-            {
-                // Arrange
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration() { Id = "foo" },
-                    Version = "1.0.0"
-                };
-                var controller = SetupController(CredentialTypes.ApiKey.VerifyV1, scope, package);
-
-                // Act
-                var result = await controller.VerifyPackageKeyAsync("foo", "1.0.0");
-
-                // Assert
-                ResultAssert.IsStatusCode(
-                    result,
-                    HttpStatusCode.Forbidden,
-                    Strings.ApiKeyNotAuthorized);
-
-                controller.MockAuthenticationService.Verify(s => s.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()), Times.Once);
-
-                controller.MockTelemetryService.Verify(x => x.TrackVerifyPackageKeyEvent("foo", "1.0.0",
-                    It.IsAny<User>(), controller.OwinContext.Request.User.Identity, 403), Times.Once);
-            }
-
-            [Theory]
-            [InlineData(CredentialTypes.ApiKey.V1, "")]
-            [InlineData(CredentialTypes.ApiKey.V2, "[{\"a\":\"package:push\", \"s\":\"foo\"}]")]
-            [InlineData(CredentialTypes.ApiKey.V4, "[{\"a\":\"package:pushversion\", \"s\":\"foo\"}]")]
-            public async Task VerifyPackageKeyAsync_Returns200IfApiKeyWithPushCapability_ApiKey(string apiKeyType, string scope)
-            {
-                // Arrange
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration() { Id = "foo" },
-                    Version = "1.0.0"
-                };
-                var controller = SetupController(apiKeyType, scope, package);
-
-                // Act
-                var result = await controller.VerifyPackageKeyAsync("foo", "1.0.0");
+                var result = await controller.VerifyPackageKeyAsync(PackageId, PackageVersion);
 
                 // Assert
                 ResultAssert.IsEmpty(result);
 
-                controller.MockAuthenticationService.Verify(s => s.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()), Times.Never);
+                controller.MockAuthenticationService.Verify(s => s.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()), isRemoved ? Times.Once() : Times.Never());
 
-                controller.MockTelemetryService.Verify(x => x.TrackVerifyPackageKeyEvent("foo", "1.0.0",
+                controller.MockTelemetryService.Verify(x => x.TrackVerifyPackageKeyEvent(PackageId, PackageVersion,
                     It.IsAny<User>(), controller.OwinContext.Request.User.Identity, 200), Times.Once);
-            }
 
-            [Theory]
-            [InlineData("[{\"a\":\"package:verify\", \"s\":\"foo\"}]")]
-            public async Task VerifyPackageKeyAsync_Returns200IfPackageVerifyKey_ApiKeyVerifyV1(string scope)
-            {
-                // Arrange
-                var package = new Package
-                {
-                    PackageRegistration = new PackageRegistration() { Id = "foo" },
-                    Version = "1.0.0"
-                };
-                var controller = SetupController(CredentialTypes.ApiKey.VerifyV1, scope, package);
-
-                // Act
-                var result = await controller.VerifyPackageKeyAsync("foo", "1.0.0");
-
-                // Assert
-                ResultAssert.IsEmpty(result);
-
-                controller.MockAuthenticationService.Verify(s => s.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()), Times.Once);
-
-                controller.MockTelemetryService.Verify(x => x.TrackVerifyPackageKeyEvent("foo", "1.0.0",
-                    It.IsAny<User>(), controller.OwinContext.Request.User.Identity, 200), Times.Once);
+                controller.MockApiScopeEvaluator
+                    .Verify(x => x.Evaluate(
+                        It.Is<User>(u => u.Key == UserKey),
+                        It.IsAny<IEnumerable<Scope>>(),
+                        ActionsRequiringPermissions.VerifyPackage,
+                        package.PackageRegistration,
+                        expectedRequestedActions));
             }
 
             [Fact]
-            public async Task VerifyPackageKeyAsync_WritesAuditRecord()
+            public async Task WritesAuditRecord()
             {
                 // Arrange
                 var package = new Package
                 {
-                    PackageRegistration = new PackageRegistration() { Id = "foo" },
-                    Version = "1.0.0"
+                    PackageRegistration = new PackageRegistration() { Id = PackageId },
+                    Version = PackageVersion
                 };
-                var controller = SetupController(CredentialTypes.ApiKey.V4, "", package);
+                var controller = SetupController(CredentialTypes.ApiKey.V4, null, package);
 
                 // Act
-                var result = await controller.VerifyPackageKeyAsync("foo", "1.0.0");
+                var result = await controller.VerifyPackageKeyAsync(PackageId, PackageVersion);
 
                 // Assert
                 Assert.True(controller.AuditingService.WroteRecord<PackageAuditRecord>(ar =>
@@ -1732,9 +1601,9 @@ namespace NuGetGallery
 
                 ActionResult actionResult = await controller.GetStatsDownloads(null);
 
-                HttpStatusCodeResult httpStatusResult = (HttpStatusCodeResult)actionResult;
-
-                Assert.True(httpStatusResult.StatusCode == (int)HttpStatusCode.NotFound, "unexpected StatusCode");
+                ResultAssert.IsStatusCode(
+                    actionResult,
+                    HttpStatusCode.NotFound);
             }
 
             [Fact]

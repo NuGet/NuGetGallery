@@ -1,6 +1,20 @@
 ﻿(function () {
     'use strict';
-    
+
+    function showInitialPackagesData(dataSelector, packagesList) {
+        var downloadsCount = 0;
+        $.each(packagesList, function () { downloadsCount += this.TotalDownloadCount });
+        $(dataSelector).text(formatPackagesData(packagesList.length, downloadsCount));
+    }
+
+    function formatPackagesData(packagesCount, downloadsCount) {
+        return packagesCount.toLocaleString()
+            + ' package' + (packagesCount == 1 ? '' : 's')
+            + ' / '
+            + downloadsCount.toLocaleString()
+            + ' download' + (downloadsCount == 1 ? '' : 's');
+    }
+
     $(function () {
         function PackageListItemViewModel(packagesListViewModel, packageItem) {
             var self = this;
@@ -20,6 +34,10 @@
             this.CanEdit = packageItem.CanEdit;
             this.CanManageOwners = packageItem.CanManageOwners;
             this.CanDelete = packageItem.CanDelete;
+
+            this.FormattedDownloadCount = ko.pureComputed(function () {
+                return ko.unwrap(this.DownloadCount).toLocaleString();
+            }, this);
 
             this.Visible = ko.observable(true);
 
@@ -51,6 +69,11 @@
             });
             this.VisiblePackagesCount = ko.observable();
             this.VisibleDownloadCount = ko.observable();
+            this.VisiblePackagesHeading = ko.pureComputed(function () {
+                return formatPackagesData(
+                    ko.unwrap(self.VisiblePackagesCount()),
+                    ko.unwrap(self.VisibleDownloadCount()));
+            }, this);
 
             this.ManagePackagesViewModel.OwnerFilter.subscribe(function (newOwner) {
                 var packagesCount = 0;
@@ -83,6 +106,10 @@
             this.ListedPackages = new PackagesListViewModel(this, "published", initialData.ListedPackages);
             this.UnlistedPackages = new PackagesListViewModel(this, "unlisted", initialData.UnlistedPackages);
         }
+
+        // Immediately load initial expander data
+        showInitialPackagesData("#listed-data", initialData.ListedPackages);
+        showInitialPackagesData("#unlisted-data", initialData.UnlistedPackages);
 
         // Set up the data binding.
         var managePackagesViewModel = new ManagePackagesViewModel(initialData);

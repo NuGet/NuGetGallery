@@ -14,7 +14,8 @@ WHERE NewOrganizationKey = @organizationKey
 	AND AdminUserKey = @adminKey
 	AND ConfirmationToken = @token
 
-IF @requestCount > 0
+IF @requestCount <= 0 RETURN
+
 BEGIN TRANSACTION
 BEGIN TRY
 	-- Change to Organization account with single admin membership

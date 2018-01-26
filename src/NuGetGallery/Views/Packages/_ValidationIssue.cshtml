@@ -20,6 +20,26 @@
             </text>
         }
         break;
+    case ValidationIssueCode.PackageIsZip64:
+        <text>
+            Zip64 packages are not supported.
+        </text>
+        break;
+    case ValidationIssueCode.OnlyAuthorSignaturesSupported:
+        <text>
+            Signed packages must only have an author signature. Other signature types are not supported.
+        </text>
+        break;
+    case ValidationIssueCode.AuthorAndRepositoryCounterSignaturesNotSupported:
+        <text>
+            Author countersignatures and repository countersignatures are not supported.
+        </text>
+        break;
+    case ValidationIssueCode.OnlySignatureFormatVersion1Supported:
+        <text>
+            <b>NU3007:</b> Package signatures must have format version 1.
+        </text>
+        break;
     default:
         <text>
             <strong>Package publishing failed.</strong> This package could not be published since package validation

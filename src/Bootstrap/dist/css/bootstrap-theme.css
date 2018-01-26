@@ -514,7 +514,6 @@ img.reserved-indicator-icon {
 }
 .page-api-keys .api-key-details {
   padding: 20px 0;
-  border-bottom: 1px solid #dbdbdb;
 }
 .page-api-keys .api-key-details .ms-Icon {
   position: relative;
@@ -531,6 +530,9 @@ img.reserved-indicator-icon {
   padding-left: 10px;
   margin-left: 10px;
   border-left: 1px solid #dbdbdb;
+}
+.page-api-keys .api-key-details:not(:first-child) {
+  border-top: 1px solid #dbdbdb;
 }
 .page-blog {
   margin-top: 33px;
@@ -921,6 +923,37 @@ img.reserved-indicator-icon {
 }
 .page-manage-owners .current-owner .remove-owner-disabled .icon-link:hover span {
   text-decoration: none;
+}
+.page-manage-packages h1 {
+  margin-bottom: 0;
+}
+.page-manage-packages h2 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+.page-manage-packages .form-section-title {
+  margin-top: 40px;
+}
+@media (min-width: 768px) {
+  .page-manage-packages .form-section-title {
+    float: left;
+    text-align: right;
+  }
+}
+@media (min-width: 768px) {
+  .page-manage-packages .form-section-data {
+    float: right;
+    margin-top: 40px;
+    line-height: 3;
+    text-align: right;
+  }
+}
+.page-manage-packages .panel {
+  margin-top: 5px;
+}
+.page-manage-packages .manage-package-listing .ms-Icon {
+  position: relative;
+  top: 2px;
 }
 .page-delete-package h1 {
   margin-bottom: 0;
