@@ -23,6 +23,7 @@ namespace NuGetGallery
 
         public const int GravatarElementSize = 32;
         public const int GravatarImageSize = GravatarElementSize * 2;
+        public const int GravatarImageSizeLarge = 332;
 
         /// <summary>
         /// Parameters for calculating account lockout period after 
@@ -56,6 +57,7 @@ namespace NuGetGallery
         public const string NuGetCommandLinePackageId = "NuGet.CommandLine";
 
         public static readonly string ReturnUrlViewDataKey = "ReturnUrl";
+        public static readonly string ReturnUrlMessageViewDataKey = "ReturnUrlMessage";
         public const string AbsoluteLatestUrlString = "absoluteLatest";
 
         public const string UrlValidationRegEx = @"(https?):\/\/[^ ""]+$";

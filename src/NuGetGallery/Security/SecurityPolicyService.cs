@@ -130,7 +130,7 @@ namespace NuGetGallery.Security
                     if (!result.Success)
                     {
                         Diagnostics.Information(
-                        $"Security policy from subscription '{foundPolicies.First().Subscription}' - '{handler.Name}' failed for user '{user.Username}' with error '{result.ErrorMessage}'.");
+                        $"Security policy from subscription '{foundPolicies.First().Subscription}' - '{handler.Name}' failed with error '{result.ErrorMessage}'.");
 
                         return result;
                     }
@@ -228,7 +228,7 @@ namespace NuGetGallery.Security
 
             if (IsSubscribed(user, subscription))
             {
-                Diagnostics.Information($"User '{user.Username}' is already subscribed to '{subscription.SubscriptionName}'.");
+                Diagnostics.Information($"User is already subscribed to '{subscription.SubscriptionName}'.");
 
                 return false;
             }
@@ -246,7 +246,7 @@ namespace NuGetGallery.Security
 
                 await EntitiesContext.SaveChangesAsync();
 
-                Diagnostics.Information($"User '{user.Username}' is now subscribed to '{subscription.SubscriptionName}'.");
+                Diagnostics.Information($"User is now subscribed to '{subscription.SubscriptionName}'.");
 
                 return true;
             }
@@ -302,11 +302,11 @@ namespace NuGetGallery.Security
 
                 await EntitiesContext.SaveChangesAsync();
 
-                Diagnostics.Information($"User '{user.Username}' is now unsubscribed from '{subscription.SubscriptionName}'.");
+                Diagnostics.Information($"User is now unsubscribed from '{subscription.SubscriptionName}'.");
             }
             else
             {
-                Diagnostics.Information($"User '{user.Username}' is already unsubscribed from '{subscription.SubscriptionName}'.");
+                Diagnostics.Information($"User is already unsubscribed from '{subscription.SubscriptionName}'.");
             }
         }
 

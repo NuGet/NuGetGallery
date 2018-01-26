@@ -89,7 +89,7 @@ namespace NuGetGallery.Security
             }
             await Task.WhenAll(expireTasks);
             
-            _diagnostics.Information($"Expiring {pushKeys.Count()} keys with push capability for user '{context.User.Username}'.");
+            _diagnostics.Information($"Expiring {pushKeys.Count()} keys with push capability.");
         }
         
         public Task OnUnsubscribeAsync(UserSecurityPolicySubscriptionContext context)

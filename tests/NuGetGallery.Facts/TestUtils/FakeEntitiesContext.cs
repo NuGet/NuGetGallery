@@ -166,7 +166,7 @@ namespace NuGetGallery
             throw new NotSupportedException();
         }
 
-        public Database GetDatabase()
+        public IDatabase GetDatabase()
         {
             throw new NotSupportedException();
         }

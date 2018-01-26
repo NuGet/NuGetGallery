@@ -58,9 +58,10 @@ namespace NuGetGallery.Controllers
                 var model = ResultAssert.IsView<LogOnViewModel>(result, viewName: SignInViewName);
                 Assert.NotNull(model.SignIn);
                 Assert.NotNull(model.Register);
-                Assert.Equal(2, model.Providers.Count);
-                Assert.Equal("AzureActiveDirectory", model.Providers[0].ProviderName);
-                Assert.Equal("MicrosoftAccount", model.Providers[1].ProviderName);
+                Assert.Equal(3, model.Providers.Count);
+                Assert.Equal("AzureActiveDirectoryV2", model.Providers[0].ProviderName);
+                Assert.Equal("AzureActiveDirectory", model.Providers[1].ProviderName);
+                Assert.Equal("MicrosoftAccount", model.Providers[2].ProviderName);
             }
         }
 

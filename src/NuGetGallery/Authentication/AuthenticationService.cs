@@ -12,6 +12,7 @@ using System.Web.Mvc;
 using Microsoft.Owin;
 using NuGetGallery.Auditing;
 using NuGetGallery.Authentication.Providers;
+using NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure.Authentication;
@@ -22,8 +23,6 @@ namespace NuGetGallery.Authentication
 {
     public class AuthenticationService
     {
-        private const string tenantIdClaimType = "http://schemas.microsoft.com/identity/claims/tenantid";
-
         private Dictionary<string, Func<string, string>> _credentialFormatters;
         private readonly IDiagnosticsSource _trace;
         private readonly IAppConfiguration _config;
@@ -75,15 +74,15 @@ namespace NuGetGallery.Authentication
 
         public virtual async Task<PasswordAuthenticationResult> Authenticate(string userNameOrEmail, string password)
         {
-            using (_trace.Activity("Authenticate:" + userNameOrEmail))
+            using (_trace.Activity("Authenticate"))
             {
                 var user = FindByUserNameOrEmail(userNameOrEmail);
 
                 // Check if the user exists
                 if (user == null)
                 {
-                    _trace.Information("No such user: " + userNameOrEmail);
-                    
+                    _trace.Information("No such user.");
+
                     await Auditing.SaveAuditRecordAsync(
                         new FailedAuthenticatedOperationAuditRecord(
                             userNameOrEmail, AuditedAuthenticatedOperationAction.FailedLoginNoSuchUser));
@@ -93,7 +92,7 @@ namespace NuGetGallery.Authentication
 
                 if (user is Organization)
                 {
-                    _trace.Information($"Cannot authenticate organization account'{userNameOrEmail}'.");
+                    _trace.Information("Cannot authenticate organization account.");
 
                     await Auditing.SaveAuditRecordAsync(
                         new FailedAuthenticatedOperationAuditRecord(
@@ -106,7 +105,7 @@ namespace NuGetGallery.Authentication
 
                 if (IsAccountLocked(user, out remainingMinutes))
                 {
-                    _trace.Information($"Login failed. User account {userNameOrEmail} is locked for the next {remainingMinutes} minutes.");
+                    _trace.Information($"Login failed. User account is locked for the next {remainingMinutes} minutes.");
 
                     return new PasswordAuthenticationResult(PasswordAuthenticationResult.AuthenticationResult.AccountLocked,
                         authenticatedUser: null, lockTimeRemainingMinutes: remainingMinutes);
@@ -116,7 +115,7 @@ namespace NuGetGallery.Authentication
                 Credential matched;
                 if (!ValidatePasswordCredential(user.Credentials, password, out matched))
                 {
-                    _trace.Information($"Password validation failed: {userNameOrEmail}");
+                    _trace.Information("Password validation failed.");
 
                     await UpdateFailedLoginAttempt(user);
 
@@ -142,7 +141,7 @@ namespace NuGetGallery.Authentication
                 await UpdateSuccessfulLoginAttempt(user);
 
                 // Return the result
-                _trace.Verbose("Successfully authenticated '" + user.Username + "' with '" + matched.Type + "' credential");
+                _trace.Verbose("User successfully authenticated with '" + matched.Type + "' credential");
                 return new PasswordAuthenticationResult(PasswordAuthenticationResult.AuthenticationResult.Success, new AuthenticatedUser(user, matched));
             }
         }
@@ -185,7 +184,7 @@ namespace NuGetGallery.Authentication
 
                 if (matched.User is Organization)
                 {
-                    _trace.Information($"Cannot authenticate organization account '{matched.User.Username}'.");
+                    _trace.Information("Cannot authenticate organization account.");
 
                     await Auditing.SaveAuditRecordAsync(
                         new FailedAuthenticatedOperationAuditRecord(null,
@@ -197,7 +196,7 @@ namespace NuGetGallery.Authentication
 
                 if (matched.HasExpired)
                 {
-                    _trace.Verbose("Credential of type '" + matched.Type + "' for user '" + matched.User.Username + "' has expired on " + matched.Expires.Value.ToString("O", CultureInfo.InvariantCulture));
+                    _trace.Verbose("Credential of type '" + matched.Type + "' has expired on " + matched.Expires.Value.ToString("O", CultureInfo.InvariantCulture));
 
                     return null;
                 }
@@ -215,21 +214,17 @@ namespace NuGetGallery.Authentication
 
                     _trace.Verbose(
                         "Credential of type '" + matched.Type
-                        + "' for user '" + matched.User.Username
                         + "' was last used on " + matched.LastUsed.Value.ToString("O", CultureInfo.InvariantCulture)
                         + " and has now expired.");
 
                     return null;
                 }
 
-                // store tenant (organization) id, if available
-                matched.TenantId = credential.TenantId;
-
                 // update last used timestamp
                 matched.LastUsed = _dateTimeProvider.UtcNow;
                 await Entities.SaveChangesAsync();
 
-                _trace.Verbose("Successfully authenticated '" + matched.User.Username + "' with '" + matched.Type + "' credential");
+                _trace.Verbose("User successfully authenticated with '" + matched.Type + "' credential");
 
                 return new AuthenticatedUser(matched.User, matched);
             }
@@ -243,7 +238,7 @@ namespace NuGetGallery.Authentication
             // Issue the session token and clean up the external token if present
             owinContext.Authentication.SignIn(identity);
             owinContext.Authentication.SignOut(AuthenticationTypes.External);
-            
+
             // Write an audit record
             await Auditing.SaveAuditRecordAsync(
                 new UserAuditRecord(user.User, AuditedUserAction.Login, user.CredentialUsed));
@@ -459,7 +454,7 @@ namespace NuGetGallery.Authentication
 
         public virtual async Task AddCredential(User user, Credential credential)
         {
-            if  (user is Organization)
+            if (user is Organization)
             {
                 throw new InvalidOperationException(Strings.OrganizationsCannotCreateCredentials);
             }
@@ -474,12 +469,21 @@ namespace NuGetGallery.Authentication
         public virtual CredentialViewModel DescribeCredential(Credential credential)
         {
             var kind = GetCredentialKind(credential.Type);
-            Authenticator auther = null;
+            Authenticator authenticator = null;
 
             if (kind == CredentialKind.External)
             {
-                string providerName = credential.Type.Split('.')[1];
-                Authenticators.TryGetValue(providerName, out auther);
+                if (string.IsNullOrEmpty(credential.TenantId))
+                {
+                    string providerName = credential.Type.Split('.')[1];
+                    Authenticators.TryGetValue(providerName, out authenticator);
+                }
+                else
+                {
+                    authenticator = Authenticators
+                        .Values
+                        .FirstOrDefault(provider => provider.Name.Equals(AzureActiveDirectoryV2Authenticator.DefaultAuthenticationType, StringComparison.OrdinalIgnoreCase));
+                }
             }
 
             var credentialViewModel = new CredentialViewModel
@@ -491,9 +495,9 @@ namespace NuGetGallery.Authentication
                 Created = credential.Created,
                 Expires = credential.Expires,
                 Kind = kind,
-                AuthUI = auther?.GetUI(),
+                AuthUI = authenticator?.GetUI(),
                 // Set the description as the value for legacy API keys
-                Description = credential.Description, 
+                Description = credential.Description,
                 Value = kind == CredentialKind.Token && credential.Description == null ? credential.Value : null,
                 Scopes = credential.Scopes.Select(s => new ScopeViewModel(
                         s.Owner?.Username ?? credential.User.Username,
@@ -538,51 +542,41 @@ namespace NuGetGallery.Authentication
         public virtual async Task<AuthenticateExternalLoginResult> ReadExternalLoginCredential(IOwinContext context)
         {
             var result = await context.Authentication.AuthenticateAsync(AuthenticationTypes.External);
-            if (result == null)
+            if (result?.Identity?.Claims == null)
             {
                 _trace.Information("No external login found.");
                 return new AuthenticateExternalLoginResult();
             }
-            var idClaim = result.Identity.FindFirst(ClaimTypes.NameIdentifier);
-            if (idClaim == null)
+
+            var externalIdentity = result.Identity;
+            Authenticator authenticator = Authenticators
+                .Values
+                .FirstOrDefault(a => a.IsProviderForIdentity(externalIdentity));
+
+            if (authenticator == null)
             {
-                _trace.Error("External Authentication is missing required claim: " + ClaimTypes.NameIdentifier);
+                _trace.Error($"No authenticator found for identity: {externalIdentity.AuthenticationType}");
                 return new AuthenticateExternalLoginResult();
             }
 
-            var nameClaim = result.Identity.FindFirst(ClaimTypes.Name);
-            if (nameClaim == null)
+            try
             {
-                _trace.Error("External Authentication is missing required claim: " + ClaimTypes.Name);
-                return new AuthenticateExternalLoginResult();
-            }
-
-            var emailClaim = result.Identity.FindFirst(ClaimTypes.Email);
-            string emailSuffix = emailClaim == null ? String.Empty : (" <" + emailClaim.Value + ">");
-
-            var tenantIdClaim = result.Identity.FindFirst(tenantIdClaimType);
-
-            Authenticator auther;
-            string authenticationType = idClaim.Issuer;
-            if (!Authenticators.TryGetValue(idClaim.Issuer, out auther))
-            {
-                foreach (var authenticator in Authenticators.Values)
+                var userInfo = authenticator.GetIdentityInformation(externalIdentity);
+                var emailSuffix = userInfo.Email == null ? string.Empty : (" <" + userInfo.Email + ">");
+                var identity = userInfo.Name + emailSuffix;
+                return new AuthenticateExternalLoginResult()
                 {
-                    if (authenticator.TryMapIssuerToAuthenticationType(idClaim.Issuer, out authenticationType))
-                    {
-                        auther = authenticator;
-                        break;
-                    }
-                }
+                    Authentication = null,
+                    ExternalIdentity = externalIdentity,
+                    Authenticator = authenticator,
+                    Credential = _credentialBuilder.CreateExternalCredential(userInfo.AuthenticationType, userInfo.Identifier, identity, userInfo.TenantId)
+                };
             }
-
-            return new AuthenticateExternalLoginResult()
+            catch (Exception ex)
             {
-                Authentication = null,
-                ExternalIdentity = result.Identity,
-                Authenticator = auther,
-                Credential = _credentialBuilder.CreateExternalCredential(authenticationType, idClaim.Value, nameClaim.Value + emailSuffix, tenantIdClaim?.Value)
-            };
+                _trace.Error(ex.Message);
+                return new AuthenticateExternalLoginResult();
+            }
         }
 
         public virtual async Task<AuthenticateExternalLoginResult> AuthenticateExternalLogin(IOwinContext context)
@@ -687,13 +681,13 @@ namespace NuGetGallery.Authentication
 
         private string FormatExternalCredentialType(string externalType)
         {
-            Authenticator auther;
-            if (!Authenticators.TryGetValue(externalType, out auther))
+            Authenticator authenticator;
+            if (!Authenticators.TryGetValue(externalType, out authenticator))
             {
                 return externalType;
             }
-            var ui = auther.GetUI();
-            return ui == null ? auther.Name : ui.AccountNoun;
+            var ui = authenticator.GetUI();
+            return ui == null ? authenticator.Name : ui.AccountNoun;
         }
 
         private Credential FindMatchingCredential(Credential credential)
@@ -761,7 +755,7 @@ namespace NuGetGallery.Authentication
                 else
                 {
                     // If multiple matches, leave it null to signal no unique email address
-                    _trace.Warning("Multiple user accounts with email address: " + userNameOrEmail + " found: " + String.Join(", ", allMatches.Select(u => u.Username)));
+                    _trace.Warning($"Multiple user accounts with a single email address were found. Count: {allMatches.Count}");
                 }
             }
             return user;
@@ -803,7 +797,7 @@ namespace NuGetGallery.Authentication
 
         private DateTime CalculateAccountUnlockTime(int failedLoginCount, DateTime lastFailedLogin)
         {
-            int lockoutPeriodInMinutes = (int)Math.Pow(AccountLockoutMultiplierInMinutes, (int) ((double)failedLoginCount/AllowedLoginAttempts) - 1);
+            int lockoutPeriodInMinutes = (int)Math.Pow(AccountLockoutMultiplierInMinutes, (int)((double)failedLoginCount / AllowedLoginAttempts) - 1);
 
             return lastFailedLogin + TimeSpan.FromMinutes(lockoutPeriodInMinutes);
         }

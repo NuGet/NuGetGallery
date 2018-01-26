@@ -55,7 +55,7 @@ namespace NuGetGallery.FunctionalTests.Fluent.BasicPages
             I.Expect.Count(0).Of("#enableDisableLicenseReportButton");
 
             // Log on and check again.
-            I.LogOn(EnvironmentSettings.TestAccountName, EnvironmentSettings.TestAccountPassword);
+            I.LogOn(EnvironmentSettings.TestAccountEmail, EnvironmentSettings.TestAccountPassword);
             I.Open((UrlHelper.BaseUrl + @"packages/NuGetGallery.FunctionalTests.Fluent.LicenseReportUITest.MIT/1.0.0"));
             I.Expect.Count(1).Of("div.block");
             I.Expect.Text("License details").In("h3.block-title");
@@ -83,7 +83,7 @@ namespace NuGetGallery.FunctionalTests.Fluent.BasicPages
             I.Expect.Count(0).Of("#enableDisableLicenseReportButton");
 
             // Log on and turn reports on again.
-            I.LogOn(EnvironmentSettings.TestAccountName, EnvironmentSettings.TestAccountPassword);
+            I.LogOn(EnvironmentSettings.TestAccountEmail, EnvironmentSettings.TestAccountPassword);
             I.Open((UrlHelper.BaseUrl + @"packages/NuGetGallery.FunctionalTests.Fluent.LicenseReportUITest.MIT/1.0.0"));
             I.Click("#enableDisableLicenseReportButton");
             I.Expect.Value("Diable").In("#enableDisableLicenseReportButton");

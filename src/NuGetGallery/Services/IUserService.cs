@@ -18,6 +18,8 @@ namespace NuGetGallery
 
         User FindByUsername(string username);
 
+        User FindByKey(int key);
+
         Task<bool> ConfirmEmailAddress(User user, string token);
 
         Task ChangeEmailAddress(User user, string newEmailAddress);
@@ -25,5 +27,13 @@ namespace NuGetGallery
         Task CancelChangeEmailAddress(User user);
 
         Task<IDictionary<int, string>> GetEmailAddressesForUserKeysAsync(IReadOnlyCollection<int> distinctUserKeys);
+
+        bool CanTransformUserToOrganization(User accountToTransform, out string errorReason);
+
+        bool CanTransformUserToOrganization(User accountToTransform, User adminUser, out string errorReason);
+
+        Task RequestTransformToOrganizationAccount(User accountToTransform, User adminUser);
+        
+        Task<bool> TransformUserToOrganization(User accountToTransform, User adminUser, string token);
     }
 }

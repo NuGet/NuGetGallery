@@ -61,12 +61,23 @@ namespace NuGetGallery
         {
             get
             {
-                var organization = Owners.FirstOrDefault() as Organization;
+                var userAccountOwners = Owners.Where(o => !(o is Organization)).Distinct().ToList();
+                if (userAccountOwners.Count() > 1)
+                {
+                    return false;
+                }
 
-                return Owners.Count == 1 &&
-                    // A package has a single owner if its last owner is a user account or is an organization account
-                    // that has a single member.
-                    (organization == null || organization.Members.Count == 1);
+                var organizationAccountOwners = Owners.Where(o => o is Organization).ToList();
+                foreach(var o in organizationAccountOwners)
+                {
+                    userAccountOwners = userAccountOwners.Union(OrganizationExtensions.GetUserAccountMembers((Organization)o)).ToList();
+                    if(userAccountOwners.Count() > 1)
+                    {
+                        return false;
+                    }
+                }
+
+                return userAccountOwners.Any();
             }
         }
 

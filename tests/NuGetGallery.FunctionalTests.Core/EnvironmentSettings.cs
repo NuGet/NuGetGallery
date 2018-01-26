@@ -20,6 +20,7 @@ namespace NuGetGallery.FunctionalTests
         private static string _externalPrivacyPolicyUrl;
         private static string _externalTermsOfUseUrl;
         private static string _externalTrademarksUrl;
+        private static string _testAccountEmail;
         private static string _testAccountName;
         private static string _testAccountPassword;
         private static string _testAccountApiKey;
@@ -205,6 +206,21 @@ namespace NuGetGallery.FunctionalTests
                     _externalTrademarksUrl = Environment.GetEnvironmentVariable("ExternalTrademarksUrl");
                 }
                 return _externalTrademarksUrl;
+            }
+        }
+
+        /// <summary>
+        /// The test nuget account name to be used for functional tests.
+        /// </summary>
+        public static string TestAccountEmail
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_testAccountEmail))
+                {
+                    _testAccountEmail = Environment.GetEnvironmentVariable("TestAccountEmail");
+                }
+                return _testAccountEmail;
             }
         }
 

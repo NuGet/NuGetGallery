@@ -29,21 +29,19 @@ namespace NuGetGallery
         /// Deletes the package readme.md file from storage.
         /// </summary>
         /// <param name="package">The package associated with the readme.</param>
-        /// <param name="isPending">True to delete pending blob, false for active.</param>
-        Task DeleteReadMeMdFileAsync(Package package, bool isPending = false);
+        Task DeleteReadMeMdFileAsync(Package package);
 
         /// <summary>
         /// Saves the (pending) package readme.md file to storage.
         /// </summary>
         /// <param name="package">The package associated with the readme.</param>
         /// <param name="readMeMd">Markdown content.</param>
-        Task SavePendingReadMeMdFileAsync(Package package, string readMeMd);
+        Task SaveReadMeMdFileAsync(Package package, string readMeMd);
 
         /// <summary>
         /// Downloads the readme.md from storage.
         /// </summary>
         /// <param name="package">The package associated with the readme.</param>
-        /// <param name="isPending">True to download the pending blob, false for active.</param>
-        Task<string> DownloadReadMeMdFileAsync(Package package, bool isPending = false);
+        Task<string> DownloadReadMeMdFileAsync(Package package);
     }
 }

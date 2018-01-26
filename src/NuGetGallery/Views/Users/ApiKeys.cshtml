@@ -6,27 +6,6 @@
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
-@helper Section(
-    string id,
-    string title,
-    Func<MvcHtmlString, HelperResult> content,
-    bool expanded = true,
-    string expandedIcon = "ChevronDown",
-    string collapsedIcon = "ChevronRight")
-{
-    <h2>
-        <a href="#" role="button" data-toggle="collapse" data-target="#@id-container"
-           aria-expanded="@(expanded ? "true" : "false")" aria-controls="@id-container" id="show-@id-container">
-            <i class="ms-Icon ms-Icon--@(expanded ? expandedIcon : collapsedIcon)"
-               aria-hidden="@(expanded ? "false" : "true")"></i>
-            <span>@title</span>
-        </a>
-    </h2>
-    <div class="panel-collapse collapse @(expanded ? "in" : string.Empty)" id="@id-container">
-        @content(MvcHtmlString.Empty)
-    </div>
-}
-
 <section role="main" class="container main-container page-api-keys">
     <form id="AntiForgeryForm">
         @Html.AntiForgeryToken()
@@ -61,21 +40,19 @@
 
                 <div data-bind="template: 'error-container'"></div>
                 
-                @Section(
+                @ViewHelpers.Section(this,
                     "create",
                     "Create",
                     @<text>
-                        <div class="panel panel-default upsert-api-key">
-                            <div class="panel-body"
-                                 data-bind="template: { name: 'upsert-api-key', data: NewApiKey }">
-                            </div>
+                        <div class="upsert-api-key">
+                            <div class="panel-body" data-bind="template: { name: 'upsert-api-key', data: NewApiKey }"></div>
                         </div>
                     </text>,
                     expanded: false,
                     expandedIcon: "Subtraction",
                     collapsedIcon: "Add")
 
-                @Section(
+                @ViewHelpers.Section(this,
                     "manage",
                     "Manage",
                     @<text>
@@ -126,9 +103,9 @@
     <!-- ko if: AnyJustRegenerated -->
     @ViewHelpers.AlertWarning(
         @<text>
-            Your API key has been regenerated. Make sure to copy your new API key now using the
-            <b>Copy</b>
-            button below. You will not be able to do so again.
+        Your API key has been regenerated. Make sure to copy your new API key now using the
+        <b>Copy</b>
+        button below. You will not be able to do so again.
         </text>,
         isAlertRole: true)
     <!-- /ko -->
@@ -238,6 +215,7 @@
                 </ul>
             </div>
         </div>
+
         <div class="upsert-api-key">
             <div class="panel panel-default panel-collapse collapse"
                  data-bind="attr: { id: EditContainerId() },
@@ -304,10 +282,9 @@
                                             id: PackageOwnerId() + '-label' }">Package Owner</label>
                     <select class="form-control"
                             data-bind="attr: { id: PackageOwnerId,
-                                                name: PackageOwnerId,
-                                                'aria-labelledby': PackageOwnerId() + '-label' },
-                                        options: PackageOwners, value: PackageOwner, optionsText: 'Owner'">
-                    </select>
+                                                    name: PackageOwnerId,
+                                                    'aria-labelledby': PackageOwnerId() + '-label' },
+                                            options: PackageOwners, value: PackageOwner, optionsText: 'Owner'"></select>
             </div>
         </div>
 
@@ -375,7 +352,7 @@
                 </p>
                 <div class="has-error">
                     <span class="help-block" data-bind="text: SubjectsError"></span>
-                </div>                
+                </div>
                 <div class="has-error">
                     <span class="field-validation-valid help-block"
                           data-valmsg-replace="true"
@@ -397,12 +374,12 @@
                 <div class="form-group">
                     <input type="text" class="form-control" data-val="true"
                            data-val-regex="Invalid glob pattern. See the example glob patterns below for further details."
-                           data-val-regex-pattern="^[\*\w_.-]*$" 
+                           data-val-regex-pattern="^[\*\w_.-]*$"
                            data-bind="textInput: PendingGlobPattern,
                                       attr: { id: GlobPatternId,
                                               name: GlobPatternId,
                                               'aria-labelledby': GlobPatternId() + '-label ' + GlobPatternId() + '-validation-message' },
-                                      enable: SelectPackagesEnabled"  />
+                                      enable: SelectPackagesEnabled" />
                 </div>
                 <div class="form-group">
                     <label>Available Packages</label>
@@ -453,8 +430,7 @@
         <div class="row" data-bind="css: { disabled: !SelectPackagesEnabled() }">
             <div class="col-sm-12">
                 <p>
-                    <span data-bind="text: SelectedCount"></span> of <span data-bind="text: TotalCount"></span>
-                    <span data-bind="text: TotalCount > 1 ? 'packages' : 'package'"></span> selected
+                    <span data-bind="text: SelectedCountLabel"></span>
                 </p>
             </div>
         </div>

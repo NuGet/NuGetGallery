@@ -157,18 +157,12 @@
 
             @if (Model.FailedValidation)
             {
-                @ViewHelpers.AlertDanger(
-                    @<text>
-                        <strong>Package publishing failed.</strong> This package could not be published since package
-                        validation failed. Please contact <a href="mailto:support@nuget.org">support@nuget.org</a>.
-                    </text>
-                )
-
                 foreach (var issue in Model.ValidationIssues)
                 {
                     @ViewHelpers.AlertDanger(
-                        @<text>@Html.Raw(issue)</text>
-                    )
+                        @<text>
+                            @Html.Partial("_ValidationIssue", issue)
+                        </text>)
                 }
             }
 
@@ -523,7 +517,7 @@
                 }
                 <li>
                     <i class="ms-Icon ms-Icon--Mail" aria-hidden="true"></i>
-                    <a href="@Url.ContactOwners(Model.Id)" title="Ask the package owners a question">Contact owners</a>
+                    <a href="@Url.ContactOwners(Model.Id, Model.Version)" title="Ask the package owners a question">Contact owners</a>
                 </li>
                 @if (Model.CanReportAsOwner)
                 {

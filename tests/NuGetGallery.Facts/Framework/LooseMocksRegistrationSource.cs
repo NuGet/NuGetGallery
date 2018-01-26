@@ -16,7 +16,9 @@ namespace NuGetGallery.Framework
         : IRegistrationSource
     {
         private readonly bool _onlyInterfaces;
+#pragma warning disable 0618
         private readonly MockFactory _repository;
+#pragma warning restore 0618
         private readonly MethodInfo _createMethod;
         private readonly MethodInfo _createWithArgsMethod;
 
