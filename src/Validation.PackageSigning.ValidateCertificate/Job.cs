@@ -48,11 +48,6 @@ namespace Validation.PackageSigning.ValidateCertificate
         private static readonly TimeSpan MaxShutdownTime = TimeSpan.FromMinutes(1);
 
         /// <summary>
-        /// How quickly the shutdown task should check its status.
-        /// </summary>
-        private static readonly TimeSpan ShutdownPollTime = TimeSpan.FromSeconds(1);
-
-        /// <summary>
         /// The configured service provider, used to instiate the services this job depends on.
         /// </summary>
         private IServiceProvider _serviceProvider;
@@ -72,33 +67,12 @@ namespace Validation.PackageSigning.ValidateCertificate
 
             // Wait a day, and then shutdown this process so that it is restarted.
             await Task.Delay(TimeSpan.FromDays(1));
-            await ShutdownAsync(processor);
-        }
-
-        private async Task ShutdownAsync(ISubscriptionProcessor<CertificateValidationMessage> processor)
-        {
-            await processor.StartShutdownAsync();
-
-            // Wait until all certificate validations complete, or, the maximum shutdown time is reached.
-            var stopwatch = Stopwatch.StartNew();
-
-            while (processor.NumberOfMessagesInProgress > 0)
+            
+            if (!await processor.ShutdownAsync(MaxShutdownTime))
             {
-                await Task.Delay(ShutdownPollTime);
-
-                Logger.LogInformation(
-                    "{NumberOfMessagesInProgress} certificate validations in progress after {TimeElapsed} seconds of graceful shutdown",
-                    processor.NumberOfMessagesInProgress,
-                    stopwatch.Elapsed.TotalSeconds);
-
-                if (stopwatch.Elapsed >= MaxShutdownTime)
-                {
-                    Logger.LogWarning(
-                        "Forcefully shutting down even though there are {NumberOfMessagesInProgress} certificate validations in progress",
-                        processor.NumberOfMessagesInProgress);
-
-                    return;
-                }
+                Logger.LogWarning(
+                    "Failed to gracefully shutdown Service Bus subscription processor. {MessagesInProgress} messages left",
+                    processor.NumberOfMessagesInProgress);
             }
         }
 

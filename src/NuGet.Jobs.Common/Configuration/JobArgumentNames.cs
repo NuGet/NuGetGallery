@@ -59,13 +59,7 @@ namespace NuGet.Jobs
         public const string RetryCount = "RetryCount";
         public const string MaxManifestSize = "MaxManifestSize";
         public const string OutputDirectory = "OutputDirectory";
-
-        //Arguments specific to HandlePackageEdits
-        public const string SourceStorage = "SourceStorage";
-        public const string BackupStorage = "BackupStorage";
-        public const string BackupContainerName = "BackupContainerName";
-        public const string ReadMeContainerName = "ReadMeContainerName";
-
+        
         //Arguments specific to UpdateLicenseReports
         public const string LicenseReportService = "LicenseReportService";
         public const string LicenseReportUser = "LicenseReportUser";

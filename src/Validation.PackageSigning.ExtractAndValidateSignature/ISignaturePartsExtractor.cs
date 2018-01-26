@@ -17,8 +17,9 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
         /// Extracts and persists artifacts from the provided signed package.
         /// </summary>
         /// <exception cref="ArgumentException">Thrown if the provided package is not signed.</exception>
+        /// <param name="packageKey">The key of the package in the gallery database.</param>
         /// <param name="signedPackageReader">The reader of the signed package.</param>
         /// <param name="token">The cancellation token.</param>
-        Task ExtractAsync(ISignedPackageReader signedPackageReader, CancellationToken token);
+        Task ExtractAsync(int packageKey, ISignedPackageReader signedPackageReader, CancellationToken token);
     }
 }

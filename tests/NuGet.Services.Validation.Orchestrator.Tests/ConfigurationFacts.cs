@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Linq;
 using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
@@ -406,7 +407,71 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             var ex = Record.Exception(() => Validate(configuration));
 
+            Assert.NotNull(ex);
             Assert.Contains("loop", ex.Message, StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static IEnumerable<object[]> FailureBehaviorSettingsCombinations
+            => from numIntermediateValidations in Enumerable.Range(1, 10)
+               from intermediateValidationsFailureBehavior in (ValidationFailureBehavior[])Enum.GetValues(typeof(ValidationFailureBehavior))
+               from lastValidationFailureBehavior in (ValidationFailureBehavior[])Enum.GetValues(typeof(ValidationFailureBehavior))
+               select new object[] { lastValidationFailureBehavior, numIntermediateValidations, intermediateValidationsFailureBehavior };
+
+        [Theory]
+        [MemberData(nameof(FailureBehaviorSettingsCombinations))]
+        public void ConfigurationValidatorDetectsRequiredValidationsThatHasNoChanceToRun(ValidationFailureBehavior lastValidationFailureBehavior, int numIntermediateValidations, ValidationFailureBehavior intermediateValidationsFailureBehavior)
+        {
+            // If validation that must succeed depends on validation that is not going to be started
+            // that validation would have no chance to run, failing all the validations.
+            // So we need to detect such situations early
+
+            const string firstValidationName = "FirstValidation";
+            const string lastValidationName = "LastValidation";
+            var configuration = new ValidationConfiguration
+            {
+                Validations = new List<ValidationConfigurationItem>
+                {
+                    new ValidationConfigurationItem
+                    {
+                        Name = firstValidationName,
+                        FailAfter = TimeSpan.FromHours(1),
+                        RequiredValidations = new List<string>(),
+                        ShouldStart = false
+                    }
+                }
+            };
+
+            var previousValidationName = firstValidationName;
+            foreach (var intermediateValidationIndex in Enumerable.Range(1, numIntermediateValidations))
+            {
+                var intermediateValidationName = $"Validation{intermediateValidationIndex}";
+                configuration.Validations.Add(new ValidationConfigurationItem
+                {
+                    Name = intermediateValidationName,
+                    FailAfter = TimeSpan.FromHours(1),
+                    RequiredValidations = new List<string> { previousValidationName },
+                    ShouldStart = true,
+                    FailureBehavior = intermediateValidationsFailureBehavior
+                });
+                previousValidationName = intermediateValidationName;
+            }
+
+            configuration.Validations.Add(new ValidationConfigurationItem
+            {
+                Name = lastValidationName,
+                FailAfter = TimeSpan.FromHours(1),
+                RequiredValidations = new List<string> { previousValidationName },
+                ShouldStart = true,
+                FailureBehavior = lastValidationFailureBehavior
+            });
+
+            configuration.Validations.Reverse();
+
+            var ex = Record.Exception(() => Validate(configuration));
+
+            Assert.NotNull(ex);
+            Assert.Contains(firstValidationName, ex.Message);
+            Assert.Contains("cannot be run", ex.Message, StringComparison.OrdinalIgnoreCase);
         }
 
         private static void Validate(ValidationConfiguration configuration)

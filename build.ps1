@@ -141,7 +141,6 @@ Invoke-BuildStep 'Creating artifacts' {
             "src/Gallery.Maintenance/Gallery.Maintenance.nuspec", `
             "src/ArchivePackages/ArchivePackages.csproj", `
             "src/Search.GenerateAuxiliaryData/Search.GenerateAuxiliaryData.csproj", `
-            "src/HandlePackageEdits/HandlePackageEdits.csproj", `
             "src/Stats.RollUpDownloadFacts/Stats.RollUpDownloadFacts.csproj", `
             "src/Validation.Callback.Vcs/Validation.Callback.Vcs.csproj", `
             "src/Validation.Callback.Vcs/Validation.Callback.Vcs.WebApp.nuspec", `

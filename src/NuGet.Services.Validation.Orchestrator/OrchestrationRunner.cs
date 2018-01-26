@@ -21,19 +21,16 @@ namespace NuGet.Services.Validation.Orchestrator
 
         private readonly ISubscriptionProcessor<PackageValidationMessageData> _subscriptionProcessor;
         private readonly OrchestrationRunnerConfiguration _configuration;
-        private readonly IShutdownNotificationProvider _shutdownNotificationProvider;
         private readonly ILogger<OrchestrationRunner> _logger;
 
         public OrchestrationRunner(
             ISubscriptionProcessor<PackageValidationMessageData> subscriptionProcessor,
             IOptionsSnapshot<OrchestrationRunnerConfiguration> configurationAccessor,
-            IShutdownNotificationProvider shutdownNotificationProvider,
             ILogger<OrchestrationRunner> logger)
         {
             _subscriptionProcessor = subscriptionProcessor  ?? throw new ArgumentNullException(nameof(subscriptionProcessor));
             configurationAccessor = configurationAccessor ?? throw new ArgumentNullException(nameof(configurationAccessor));
             _configuration = configurationAccessor.Value ?? throw new ArgumentException("Value property cannot be null", nameof(configurationAccessor));
-            _shutdownNotificationProvider = shutdownNotificationProvider ?? throw new ArgumentNullException(nameof(shutdownNotificationProvider));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -45,25 +42,14 @@ namespace NuGet.Services.Validation.Orchestrator
             await Task.Delay(_configuration.ProcessRecycleInterval);
 
             _logger.LogInformation("Recycling the process...");
-            _shutdownNotificationProvider.NotifyShutdownInitiated();
-            var shutdownTask = _subscriptionProcessor.StartShutdownAsync();
-            // make sure we don't block on waiting shutdownTask to finish
-            if (await Task.WhenAny(shutdownTask, Task.Delay(_configuration.ShutdownWaitInterval)) != shutdownTask )
+
+            if (await _subscriptionProcessor.ShutdownAsync(_configuration.ShutdownWaitInterval))
             {
-                _logger.LogWarning("Failed to wait for shutdown initiation task to finish. Waited for {ShutdownWaitInterval}. Will proceed with task termination",
-                    _configuration.ShutdownWaitInterval);
+                _logger.LogInformation("Gracefully shutdown the Service Bus subscription processor");
             }
-
-            DateTimeOffset waitStart = DateTimeOffset.Now;
-
-            while (DateTimeOffset.Now - waitStart < _configuration.ShutdownWaitInterval)
+            else
             {
-                if (_subscriptionProcessor.NumberOfMessagesInProgress <= 0)
-                {
-                    break;
-                }
-
-                await Task.Delay(ShutdownLoopSleepTime);
+                _logger.LogWarning("Service Bus subscription processor did not shutdown gracefully");
             }
 
             int numStillRunning = _subscriptionProcessor.NumberOfMessagesInProgress;

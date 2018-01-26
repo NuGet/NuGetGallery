@@ -15,7 +15,6 @@ namespace NuGet.Services.Validation.Orchestrator
         private readonly IValidationSetProvider _validationSetProvider;
         private readonly IValidationSetProcessor _validationSetProcessor;
         private readonly IValidationOutcomeProcessor _validationOutcomeProcessor;
-        private readonly IShutdownNotificationTokenProvider _shutdownNotificationTokenProvider;
         private readonly ILogger<ValidationMessageHandler> _logger;
 
         public ValidationMessageHandler(
@@ -23,29 +22,17 @@ namespace NuGet.Services.Validation.Orchestrator
             IValidationSetProvider validationSetProvider,
             IValidationSetProcessor validationSetProcessor,
             IValidationOutcomeProcessor validationOutcomeProcessor,
-            IShutdownNotificationTokenProvider shutdownNotificationTokenProvider,
             ILogger<ValidationMessageHandler> logger)
         {
             _galleryPackageService = galleryPackageService ?? throw new ArgumentNullException(nameof(galleryPackageService));
             _validationSetProvider = validationSetProvider ?? throw new ArgumentNullException(nameof(validationSetProvider));
             _validationSetProcessor = validationSetProcessor ?? throw new ArgumentNullException(nameof(validationSetProcessor));
             _validationOutcomeProcessor = validationOutcomeProcessor ?? throw new ArgumentNullException(nameof(validationOutcomeProcessor));
-            _shutdownNotificationTokenProvider = shutdownNotificationTokenProvider ?? throw new ArgumentNullException(nameof(shutdownNotificationTokenProvider));
-            if (shutdownNotificationTokenProvider.Token == null)
-            {
-                throw new ArgumentException($"{nameof(shutdownNotificationTokenProvider.Token)} property cannot be null", nameof(shutdownNotificationTokenProvider));
-            }
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<bool> HandleAsync(PackageValidationMessageData message)
         {
-            if (_shutdownNotificationTokenProvider.Token.IsCancellationRequested)
-            {
-                _logger.LogInformation("Service shutdown was requested, will not process new message");
-                return false;
-            }
-
             var package = _galleryPackageService.FindPackageByIdAndVersionStrict(message.PackageId, message.PackageVersion);
 
             if (package == null)

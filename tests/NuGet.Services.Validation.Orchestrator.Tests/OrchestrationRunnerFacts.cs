@@ -31,13 +31,13 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .Callback(() => startCalled = true);
 
             SubscriptionProcessorMock
-                .Setup(o => o.StartShutdownAsync())
+                .Setup(o => o.ShutdownAsync(It.IsAny<TimeSpan>()))
                 .Callback(() => Assert.True(startCalled))
-                .Returns(Task.FromResult(0));
+                .Returns(Task.FromResult(true));
             var runner = CreateRunner();
             await runner.RunOrchestrationAsync();
 
-            SubscriptionProcessorMock.Verify(o => o.StartShutdownAsync(), Times.Once());
+            SubscriptionProcessorMock.Verify(o => o.ShutdownAsync(It.IsAny<TimeSpan>()), Times.Once());
         }
 
         [Fact(Skip = "Flaky test. Won't run it as part of CI.")]
@@ -54,43 +54,6 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             await runner.RunOrchestrationAsync();
 
             SubscriptionProcessorMock.Verify(o => o.NumberOfMessagesInProgress, Times.AtLeast(3));
-        }
-
-        [Fact]
-        public async Task SendsShutdownNotificationAfterRunningValidations()
-        {
-            bool startedProcessing = false;
-            SubscriptionProcessorMock
-                .Setup(sp => sp.Start())
-                .Callback(() => startedProcessing = true);
-
-            ShutdownNotificationProviderMock
-                .Setup(snp => snp.NotifyShutdownInitiated())
-                .Callback(() => Assert.True(startedProcessing));
-
-            var runner = CreateRunner();
-            await runner.RunOrchestrationAsync();
-
-            ShutdownNotificationProviderMock
-                .Verify(snp => snp.NotifyShutdownInitiated());
-        }
-
-        [Fact(Skip = "Time based test, will not run in CI")]
-        public async Task DoesNotBlockOnWaitingForSubscriptionProcessorToInitiateShutdown()
-        {
-            SubscriptionProcessorMock
-                .Setup(sp => sp.StartShutdownAsync())
-                .Returns(Task.Delay(TimeSpan.FromDays(1))); // veeeery long shutdown
-
-            var runner = CreateRunner();
-            var orchestrationTask = runner.RunOrchestrationAsync();
-            var delayTask = Task.Delay(TimeSpan.FromSeconds(5));
-
-            var didNotWait = await Task.WhenAny(orchestrationTask, delayTask) == orchestrationTask;
-
-            Assert.True(didNotWait);
-            SubscriptionProcessorMock
-                .Verify(sp => sp.StartShutdownAsync(), Times.AtLeastOnce());
         }
 
         private Mock<IOptionsSnapshot<OrchestrationRunnerConfiguration>> SetupOptionsAccessorMock(
@@ -112,20 +75,17 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             => new OrchestrationRunner(
                 SubscriptionProcessorMock.Object,
                 OrchestrationRunnerConfigurationAccessorMock.Object,
-                ShutdownNotificationProviderMock.Object,
                 LoggerMock.Object);
 
         public OrchestrationRunnerFacts()
         {
             SubscriptionProcessorMock = new Mock<ISubscriptionProcessor<PackageValidationMessageData>>();
             LoggerMock = new Mock<ILogger<OrchestrationRunner>>();
-            ShutdownNotificationProviderMock = new Mock<IShutdownNotificationProvider>();
             SetupOptionsAccessorMock(TimeSpan.Zero, TimeSpan.Zero);
         }
 
         private Mock<ISubscriptionProcessor<PackageValidationMessageData>> SubscriptionProcessorMock { get; }
         private Mock<ILogger<OrchestrationRunner>> LoggerMock { get; }
-        private Mock<IShutdownNotificationProvider> ShutdownNotificationProviderMock { get; }
         private Mock<IOptionsSnapshot<OrchestrationRunnerConfiguration>> OrchestrationRunnerConfigurationAccessorMock { get; set;  }
     }
 }

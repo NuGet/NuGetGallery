@@ -145,6 +145,11 @@ namespace NuGet.Services.Validation.Orchestrator
                         continue;
                     }
 
+                    if (!validationConfiguration.ShouldStart)
+                    {
+                        continue;
+                    }
+
                     bool prerequisitesAreMet = ArePrerequisitesMet(packageValidation, validationSet);
                     if (!prerequisitesAreMet)
                     {

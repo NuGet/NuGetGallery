@@ -54,23 +54,24 @@ namespace NuGet.Services.Validation.PackageCertificates
         {
             var status = await GetStatusAsync(request);
 
-            return new ValidationResult(status);
+            return status.ToValidationResult();
         }
 
-        private async Task<ValidationStatus> GetStatusAsync(IValidationRequest request)
+        private async Task<ValidatorStatus> GetStatusAsync(IValidationRequest request)
         {
             // Look up this validator's state in the database.
             var status = await _validatorStateService.GetStatusAsync(request);
 
             if (status.State != ValidationStatus.Incomplete)
             {
-                return status.State;
+                return status;
             }
 
             // Wait until ALL certificate validations kicked off by this validation request have finished.
             if (!await AllCertificateValidationsAreFinishedAsync(request))
             {
-                return ValidationStatus.Incomplete;
+                // We know this status is incomplete.
+                return status;
             }
 
             // All of the requested certificate validations have finished. Fail the validation if any
@@ -116,10 +117,12 @@ namespace NuGet.Services.Validation.PackageCertificates
 
         public async Task<IValidationResult> StartValidationAsync(IValidationRequest request)
         {
-            return new ValidationResult(await StartValidationInternalAsync(request));
+            var validatorStatus = await StartValidationInternalAsync(request);
+
+            return validatorStatus.ToValidationResult();
         }
 
-        private async Task<ValidationStatus> StartValidationInternalAsync(IValidationRequest request)
+        private async Task<ValidatorStatus> StartValidationInternalAsync(IValidationRequest request)
         {
             var status = await _validatorStateService.GetStatusAsync(request);
 
@@ -131,7 +134,7 @@ namespace NuGet.Services.Validation.PackageCertificates
                     request.PackageId,
                     request.PackageVersion);
 
-                return status.State;
+                return status;
             }
 
             var package = await FindPackageSigningStateAsync(request);

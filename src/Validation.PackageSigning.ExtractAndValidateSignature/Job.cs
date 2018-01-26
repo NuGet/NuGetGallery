@@ -20,6 +20,7 @@ using NuGet.Jobs.Configuration;
 using NuGet.Jobs.Validation.PackageSigning.Configuration;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
+using NuGet.Packaging.Signing;
 using NuGet.Services.Configuration;
 using NuGet.Services.KeyVault;
 using NuGet.Services.ServiceBus;
@@ -54,11 +55,6 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
         private static readonly TimeSpan KeyVaultSecretCachingTimeout = TimeSpan.FromDays(1);
 
         /// <summary>
-        /// How quickly the shutdown task should check its status.
-        /// </summary>
-        private static readonly TimeSpan ShutdownPollTime = TimeSpan.FromSeconds(1);
-
-        /// <summary>
         /// The maximum amount of time that graceful shutdown can take before the job will
         /// forcefully end itself.
         /// </summary>
@@ -86,33 +82,12 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
 
             // Wait a day, and then shutdown this process so that it is restarted.
             await Task.Delay(TimeSpan.FromDays(1));
-            await ShutdownAsync(processor);
-        }
-
-        private async Task ShutdownAsync(ISubscriptionProcessor<SignatureValidationMessage> processor)
-        {
-            await processor.StartShutdownAsync();
-
-            // Wait until all signature validations complete, or, the maximum shutdown time is reached.
-            var stopwatch = Stopwatch.StartNew();
-
-            while (processor.NumberOfMessagesInProgress > 0)
+            
+            if (!await processor.ShutdownAsync(MaxShutdownTime))
             {
-                await Task.Delay(ShutdownPollTime);
-
-                Logger.LogInformation(
-                    "{NumberOfMessagesInProgress} signature validations in progress after {TimeElapsed} seconds of graceful shutdown",
-                    processor.NumberOfMessagesInProgress,
-                    stopwatch.Elapsed.Seconds);
-
-                if (stopwatch.Elapsed >= MaxShutdownTime)
-                {
-                    Logger.LogWarning(
-                        "Forcefully shutting down even though there are {NumberOfMessagesInProgress} signature validations in progress",
-                        processor.NumberOfMessagesInProgress);
-
-                    return;
-                }
+                Logger.LogWarning(
+                    "Failed to gracefully shutdown Service Bus subscription processor. {MessagesInProgress} messages left",
+                    processor.NumberOfMessagesInProgress);
             }
         }
 
@@ -183,8 +158,15 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
             services.AddTransient<IBrokeredMessageSerializer<SignatureValidationMessage>, SignatureValidationMessageSerializer>();
             services.AddTransient<IMessageHandler<SignatureValidationMessage>, SignatureValidationMessageHandler>();
             services.AddTransient<IPackageSigningStateService, PackageSigningStateService>();
-            services.AddTransient<ISignatureValidator, SignatureValidator>();
             services.AddTransient<ISignaturePartsExtractor, SignaturePartsExtractor>();
+
+            services.AddTransient<ISignatureValidator, SignatureValidator>(p => new SignatureValidator(
+                p.GetRequiredService<IPackageSigningStateService>(),
+                PackageSignatureVerifierFactory.CreateMinimal(),
+                PackageSignatureVerifierFactory.CreateFull(),
+                p.GetRequiredService<ISignaturePartsExtractor>(),
+                p.GetRequiredService<IEntityRepository<Certificate>>(),
+                p.GetRequiredService<ILogger<SignatureValidator>>()));
 
             services.AddSingleton(p =>
             {

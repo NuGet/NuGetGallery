@@ -33,6 +33,48 @@ namespace NuGet.Services.Validation.PackageSigning
                            .Select(s => new object[] { s });
             }
 
+            [Fact]
+            public async Task ReturnsValidatorIssues()
+            {
+                // Arrange
+                _validationContext.Mock(validatorStatuses: new[]
+                {
+                    new ValidatorStatus
+                    {
+                        ValidationId = ValidationId,
+                        PackageKey = PackageKey,
+                        ValidatorName = nameof(PackageCertificatesValidator),
+                        State = ValidationStatus.Failed,
+                        ValidatorIssues = new List<ValidatorIssue>
+                        {
+                            new ValidatorIssue
+                            {
+                                IssueCode = (ValidationIssueCode)987,
+                                Data = "{}",
+                            },
+                            new ValidatorIssue
+                            {
+                                IssueCode = ValidationIssueCode.ClientSigningVerificationFailure,
+                                Data = "unknown contract",
+                            },
+                        },
+                    }
+                });
+
+                // Act
+                var actual = await _target.GetResultAsync(_validationRequest.Object);
+
+                // Assert
+                Assert.Equal(ValidationStatus.Failed, actual.Status);
+                Assert.Equal(2, actual.Issues.Count);
+
+                Assert.Equal((ValidationIssueCode)987, actual.Issues[0].IssueCode);
+                Assert.Equal("{}", actual.Issues[0].Serialize());
+
+                Assert.Equal(ValidationIssueCode.ClientSigningVerificationFailure, actual.Issues[1].IssueCode);
+                Assert.Equal("unknown contract", actual.Issues[1].Serialize());
+            }
+
             [Theory]
             [MemberData(nameof(ReturnsPersistedStatusIfNotIncompleteData))]
             public async Task ReturnsPersistedStatusIfNotIncomplete(ValidationStatus status)
@@ -46,6 +88,7 @@ namespace NuGet.Services.Validation.PackageSigning
                         PackageKey = PackageKey,
                         ValidatorName = nameof(PackageCertificatesValidator),
                         State = status,
+                        ValidatorIssues = new List<ValidatorIssue>(),
                     }
                 });
 
@@ -156,6 +199,7 @@ namespace NuGet.Services.Validation.PackageSigning
                             ValidatorName = nameof(PackageCertificatesValidator),
                             PackageKey = PackageKey,
                             State = ValidationStatus.Incomplete,
+                            ValidatorIssues = new List<ValidatorIssue>(),
                         }
                     },
                     packageSigningStates: new PackageSigningState[]
@@ -237,6 +281,7 @@ namespace NuGet.Services.Validation.PackageSigning
                     ValidatorName = nameof(PackageCertificatesValidator),
                     PackageKey = PackageKey,
                     State = ValidationStatus.Incomplete,
+                    ValidatorIssues = new List<ValidatorIssue>(),
                 };
 
                 var packageSigningState = new PackageSigningState
@@ -378,6 +423,7 @@ namespace NuGet.Services.Validation.PackageSigning
                     ValidatorName = nameof(PackageCertificatesValidator),
                     PackageKey = PackageKey,
                     State = ValidationStatus.Incomplete,
+                    ValidatorIssues = new List<ValidatorIssue>(),
                 };
 
                 var packageSigningState = new PackageSigningState
@@ -437,6 +483,7 @@ namespace NuGet.Services.Validation.PackageSigning
                         PackageKey = PackageKey,
                         ValidatorName = nameof(PackageCertificatesValidator),
                         State = status,
+                            ValidatorIssues = new List<ValidatorIssue>(),
                     }
                 });
 
@@ -458,6 +505,7 @@ namespace NuGet.Services.Validation.PackageSigning
                     PackageKey = PackageKey,
                     ValidatorName = nameof(PackageCertificatesValidator),
                     State = ValidationStatus.NotStarted,
+                    ValidatorIssues = new List<ValidatorIssue>(),
                 };
 
                 var packageSigningState = new PackageSigningState
@@ -493,6 +541,7 @@ namespace NuGet.Services.Validation.PackageSigning
                     ValidatorName = nameof(PackageCertificatesValidator),
                     PackageKey = PackageKey,
                     State = ValidationStatus.NotStarted,
+                    ValidatorIssues = new List<ValidatorIssue>(),
                 };
 
                 var packageSigningState = new PackageSigningState
@@ -557,6 +606,7 @@ namespace NuGet.Services.Validation.PackageSigning
                     ValidatorName = nameof(PackageCertificatesValidator),
                     PackageKey = PackageKey,
                     State = ValidationStatus.NotStarted,
+                    ValidatorIssues = new List<ValidatorIssue>(),
                 };
 
                 var packageSigningState = new PackageSigningState
@@ -673,6 +723,7 @@ namespace NuGet.Services.Validation.PackageSigning
                     ValidatorName = nameof(PackageCertificatesValidator),
                     PackageKey = PackageKey,
                     State = ValidationStatus.NotStarted,
+                    ValidatorIssues = new List<ValidatorIssue>(),
                 };
 
                 var packageSigningState = new PackageSigningState
@@ -763,6 +814,7 @@ namespace NuGet.Services.Validation.PackageSigning
                     ValidatorName = nameof(PackageCertificatesValidator),
                     PackageKey = PackageKey,
                     State = ValidationStatus.NotStarted,
+                    ValidatorIssues = new List<ValidatorIssue>(),
                 };
 
                 var packageSigningState = new PackageSigningState
@@ -852,6 +904,7 @@ namespace NuGet.Services.Validation.PackageSigning
                     ValidatorName = nameof(PackageCertificatesValidator),
                     PackageKey = PackageKey,
                     State = ValidationStatus.NotStarted,
+                    ValidatorIssues = new List<ValidatorIssue>(),
                 };
 
                 var otherValidatorStatus = new ValidatorStatus
@@ -860,6 +913,7 @@ namespace NuGet.Services.Validation.PackageSigning
                     ValidatorName = nameof(PackageCertificatesValidator),
                     PackageKey = PackageKey,
                     State = ValidationStatus.Succeeded,
+                    ValidatorIssues = new List<ValidatorIssue>(),
                 };
 
                 var packageSigningState = new PackageSigningState
@@ -1033,6 +1087,7 @@ namespace NuGet.Services.Validation.PackageSigning
                     ValidatorName = nameof(PackageCertificatesValidator),
                     PackageKey = PackageKey,
                     State = ValidationStatus.NotStarted,
+                    ValidatorIssues = new List<ValidatorIssue>(),
                 };
 
                 var packageSigningState = new PackageSigningState

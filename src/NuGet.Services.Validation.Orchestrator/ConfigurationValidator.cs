@@ -40,6 +40,8 @@ namespace NuGet.Services.Validation.Orchestrator
             CheckUnknownPrerequisites(_configuration);
 
             CheckPrerequisitesLoops(_configuration);
+
+            CheckForUnrunnableRequiredValidations(_configuration);
         }
 
         private static void CheckValidationsNumber(List<ValidationConfigurationItem> validations)
@@ -98,6 +100,32 @@ namespace NuGet.Services.Validation.Orchestrator
             foreach (var validationName in validations.Keys)
             {
                 ValidationDepthFirstSearch(validationName, new HashSet<string>(), globalVisitedValidations, validations);
+            }
+        }
+
+        private static void CheckForUnrunnableRequiredValidations(ValidationConfiguration configuration)
+        {
+            // checks for the case when validation that must run depends on a validation that 
+            // is configured not to run
+            // we'll just walk up the dependency chain of each runnable validation and look for 
+            // not runnable validations
+
+            var validations = configuration.Validations.ToDictionary(v => v.Name);
+            var runnableValidations = configuration.Validations.Where(v => v.ShouldStart);
+
+            foreach (var validation in runnableValidations)
+            {
+                var checkQueue = new Queue<string>(validation.RequiredValidations);
+                while (checkQueue.Any())
+                {
+                    var requiredValidationName = checkQueue.Dequeue();
+                    var requiredValidation = validations[requiredValidationName];
+                    if (!requiredValidation.ShouldStart)
+                    {
+                        throw new ConfigurationErrorsException($"Runnable validation {validation.Name} cannot be run because it requires non-runnable validation {requiredValidationName} to complete before it can be started.");
+                    }
+                    requiredValidation.RequiredValidations.ForEach(checkQueue.Enqueue);
+                }
             }
         }
 

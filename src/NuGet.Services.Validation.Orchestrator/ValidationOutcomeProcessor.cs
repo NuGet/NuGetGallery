@@ -45,13 +45,23 @@ namespace NuGet.Services.Validation.Orchestrator
 
         public async Task ProcessValidationOutcomeAsync(PackageValidationSet validationSet, Package package)
         {
-            if (AnyValidationFailed(validationSet))
+            var validations = _validationConfiguration.Validations.ToDictionary(v => v.Name);
+            ValidationConfigurationItem GetValidationConfigurationItem(string validationName)
+            {
+                if (validations.TryGetValue(validationName, out ValidationConfigurationItem validationConfigurationItem))
+                {
+                    return validationConfigurationItem;
+                }
+                return null;
+            }
+
+            if (AnyValidationFailed(validationSet, GetValidationConfigurationItem))
             {
                 _logger.LogWarning("Some validations failed for package {PackageId} {PackageVersion}, validation set {ValidationSetId}: {FailedValidations}",
                     package.PackageRegistration.Id,
                     package.NormalizedVersion,
                     validationSet.ValidationTrackingId,
-                    GetFailedValidations(validationSet));
+                    GetFailedValidations(validationSet, GetValidationConfigurationItem));
 
                 if (package.PackageStatusKey != PackageStatus.Available)
                 {
@@ -85,7 +95,7 @@ namespace NuGet.Services.Validation.Orchestrator
                         validationSet.ValidationTrackingId);
                 }
             }
-            else if (AllValidationsSucceeded(validationSet))
+            else if (AllValidationsSucceeded(validationSet, GetValidationConfigurationItem))
             {
                 _logger.LogInformation("All validations are complete for the package {PackageId} {PackageVersion}, validation set {ValidationSetId}",
                     package.PackageRegistration.Id,
@@ -157,19 +167,31 @@ namespace NuGet.Services.Validation.Orchestrator
             await _packageFileService.DeleteValidationPackageFileAsync(package.PackageRegistration.Id, package.Version);
         }
 
-        private bool AllValidationsSucceeded(PackageValidationSet packageValidationSet)
+        private bool AllValidationsSucceeded(
+            PackageValidationSet packageValidationSet,
+            Func<string, ValidationConfigurationItem> getValidationConfigurationItem)
         {
-            return packageValidationSet.PackageValidations.All(pv => pv.ValidationStatus == ValidationStatus.Succeeded);
+            return packageValidationSet
+                .PackageValidations
+                .All(pv => pv.ValidationStatus == ValidationStatus.Succeeded
+                    || getValidationConfigurationItem(pv.Type)?.FailureBehavior == ValidationFailureBehavior.AllowedToFail);
         }
 
-        private IEnumerable<PackageValidation> GetFailedValidations(PackageValidationSet packageValidationSet)
+        private IEnumerable<PackageValidation> GetFailedValidations(
+            PackageValidationSet packageValidationSet,
+            Func<string, ValidationConfigurationItem> getValidationConfigurationItem)
         {
-            return packageValidationSet.PackageValidations.Where(v => v.ValidationStatus == ValidationStatus.Failed);
+            return packageValidationSet
+                .PackageValidations
+                .Where(v => v.ValidationStatus == ValidationStatus.Failed
+                    && getValidationConfigurationItem(v.Type)?.FailureBehavior == ValidationFailureBehavior.MustSucceed);
         }
 
-        private bool AnyValidationFailed(PackageValidationSet packageValidationSet)
+        private bool AnyValidationFailed(
+            PackageValidationSet packageValidationSet,
+            Func<string, ValidationConfigurationItem> getValidationConfigurationItem)
         {
-            return GetFailedValidations(packageValidationSet).Any();
+            return GetFailedValidations(packageValidationSet, getValidationConfigurationItem).Any();
         }
     }
 }

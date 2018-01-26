@@ -9,34 +9,36 @@ using System.Threading.Tasks;
 
 namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
 {
-    internal class DbAsyncQueryProviderMock
-        : IDbAsyncQueryProvider
+    /// <summary>
+    /// Source: https://msdn.microsoft.com/en-us/data/dn314429
+    /// </summary>
+    internal class TestDbAsyncQueryProvider<TEntity> : IDbAsyncQueryProvider
     {
-        private readonly IQueryable _queryable;
+        private readonly IQueryProvider _inner;
 
-        public DbAsyncQueryProviderMock(IQueryable queryable)
+        internal TestDbAsyncQueryProvider(IQueryProvider inner)
         {
-            _queryable = queryable;
+            _inner = inner;
         }
 
         public IQueryable CreateQuery(Expression expression)
         {
-            return _queryable.Provider.CreateQuery(expression);
+            return new TestDbAsyncEnumerable<TEntity>(expression);
         }
 
         public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
         {
-            return _queryable.Provider.CreateQuery<TElement>(expression);
+            return new TestDbAsyncEnumerable<TElement>(expression);
         }
 
         public object Execute(Expression expression)
         {
-            return _queryable.Provider.Execute(expression);
+            return _inner.Execute(expression);
         }
 
         public TResult Execute<TResult>(Expression expression)
         {
-            return _queryable.Provider.Execute<TResult>(expression);
+            return _inner.Execute<TResult>(expression);
         }
 
         public Task<object> ExecuteAsync(Expression expression, CancellationToken cancellationToken)
