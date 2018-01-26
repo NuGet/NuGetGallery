@@ -26,7 +26,7 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
         private const string BouncyCastleCollection = "Collection";
 
         private static readonly DateTime Leaf1TimestampValue = DateTime
-            .Parse("2018-01-16T20:31:09.0000000Z")
+            .Parse("2018-01-26T22:08:31.0000000Z")
             .ToUniversalTime();
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
             {
                 new SubjectAndThumbprint(
                     "CN=NUGET_DO_NOT_TRUST.intermediate.test.test, OU=Test Organizational Unit Name, O=Test Organization Name, L=Redmond, S=WA, C=US",
-                    "d5949445cde4d80bc0c857dddb8520114a146d73de081a77404b0c17dda6a4b4"),
+                    "7358e4597696b1d02e7aa2b3cf30a7cf154f2c8ff0710fd0dc3ace17e3784054"),
                 new SubjectAndThumbprint(
                     "CN=NUGET_DO_NOT_TRUST.root.test.test, OU=Test Organizational Unit Name, O=Test Organization Name, L=Redmond, S=WA, C=US",
                     TestResources.RootThumbprint),

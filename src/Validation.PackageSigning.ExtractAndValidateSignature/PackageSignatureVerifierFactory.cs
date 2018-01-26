@@ -25,8 +25,9 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
                 allowUnsigned: true,
                 allowUntrusted: false, // Invalid format of the signature uses this flag to determine success.
                 allowIgnoreTimestamp: true,
-                failWithMultipleTimestamps: false,
-                allowNoTimestamp: true);
+                allowMultipleTimestamps: true,
+                allowNoTimestamp: true,
+                allowUnknownRevocation: true);
 
             return new PackageSignatureVerifier(
                 verificationProviders,
@@ -48,8 +49,9 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
                 allowUnsigned: false,
                 allowUntrusted: false,
                 allowIgnoreTimestamp: false,
-                failWithMultipleTimestamps: true,
-                allowNoTimestamp: false);
+                allowMultipleTimestamps: false,
+                allowNoTimestamp: false,
+                allowUnknownRevocation: true);
 
             return new PackageSignatureVerifier(
                 verificationProviders,

@@ -20,6 +20,9 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
 {
     public class SignatureValidator : ISignatureValidator
     {
+        private const string FormatVerificationName = "format verification";
+        private const string SignatureVerificationName = "signature integrity and trust verification";
+
         private readonly IPackageSigningStateService _packageSigningStateService;
         private readonly IPackageSignatureVerifier _minimalPackageSignatureVerifier;
         private readonly IPackageSignatureVerifier _fullPackageSignatureVerifier;
@@ -87,6 +90,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
                 // First, detect format errors with a minimal verification. This doesn't even check package integrity. The
                 // minimal verification is expected to swallow any sort of signature format exception.
                 var invalidFormatResult = await GetVerifyResult(
+                    FormatVerificationName,
                     _minimalPackageSignatureVerifier,
                     packageKey,
                     signedPackageReader,
@@ -163,6 +167,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
 
                 // Call the "verify" API, which does the main logic of signature validation.
                 var failureResult = await GetVerifyResult(
+                    SignatureVerificationName,
                     _fullPackageSignatureVerifier,
                     packageKey,
                     signedPackageReader,
@@ -205,6 +210,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
         }
 
         private async Task<SignatureValidatorResult> GetVerifyResult(
+            string verificationName,
             IPackageSignatureVerifier verifier,
             int packageKey,
             ISignedPackageReader signedPackageReader,
@@ -214,26 +220,27 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
             var verifyResult = await verifier.VerifySignaturesAsync(
                 signedPackageReader,
                 cancellationToken);
+
+            var errorIssues = verifyResult
+                .Results
+                .SelectMany(x => x.GetErrorIssues())
+                .ToList();
+            var warningsForLogs = verifyResult
+                .Results
+                .SelectMany(x => x.GetWarningIssues())
+                .Select(x => $"{x.Code}: {x.Message}")
+                .ToList();
+            var errorsForLogs = errorIssues
+                .Select(x => $"{x.Code}: {x.Message}")
+                .ToList();
+
             if (!verifyResult.Valid)
             {
-                var errorIssues = verifyResult
-                    .Results
-                    .SelectMany(x => x.GetErrorIssues())
-                    .ToList();
-
-                var errorsForLogs = errorIssues
-                    .Select(x => $"{x.Code}: {x.Message}")
-                    .ToList();
-                var warningsForLogs = verifyResult
-                    .Results
-                    .SelectMany(x => x.GetWarningIssues())
-                    .Select(x => $"{x.Code}: {x.Message}")
-                    .ToList();
-
                 _logger.LogInformation(
-                    "Signed package {PackageId} {PackageVersion} is blocked for validation {ValidationId} due to verify failures. Errors: {Errors} Warnings: {Warnings}",
+                    "Signed package {PackageId} {PackageVersion} is blocked during {VerificationName} for validation {ValidationId} . Errors: [{Errors}] Warnings: [{Warnings}]",
                     message.PackageId,
                     message.PackageVersion,
+                    verificationName,
                     message.ValidationId,
                     errorsForLogs,
                     warningsForLogs);
@@ -260,8 +267,19 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
                     message,
                     errorValidationIssues);
             }
+            else
+            {
+                _logger.LogInformation(
+                   "Signed package {PackageId} {PackageVersion} passed {VerificationName} for validation {ValidationId}. Errors: [{Errors}] Warnings: [{Warnings}]",
+                   message.PackageId,
+                   message.PackageVersion,
+                   verificationName,
+                   message.ValidationId,
+                   errorsForLogs,
+                   warningsForLogs);
 
-            return null;
+                return null;
+            }
         }
 
         private async Task<SignatureValidatorResult> RejectAsync(
