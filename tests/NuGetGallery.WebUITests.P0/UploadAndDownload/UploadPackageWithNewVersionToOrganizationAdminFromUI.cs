@@ -8,7 +8,7 @@ using System.Collections.Generic;
 namespace NuGetGallery.FunctionalTests.WebUITests.UploadAndDownload
 {
     /// <summary>
-    /// Uploads a new version of an existing package owned by an organization as one of its admins using Gallery UI.
+    /// Uploads a new version of an existing package owned by an organization as one of its admins.
     /// </summary>
     public class UploadPackageWithNewVersionToOrganizationAdminFromUI : WebTest
     {

@@ -9,8 +9,7 @@ using NuGetGallery.FunctionalTests.Helpers;
 namespace NuGetGallery.FunctionalTests.WebUITests.UploadAndDownload
 {
     /// <summary>
-    /// Uploads a new test package using Gallery UI. Validates that logon prompt appears to upload and checks that the package's home page opens post upload.
-    /// priority : p0
+    /// Uploads a package with a new ID as an organization admin.
     /// </summary>
     public class UploadPackageWithNewIdToOrganizationFromUI : WebTest
     {

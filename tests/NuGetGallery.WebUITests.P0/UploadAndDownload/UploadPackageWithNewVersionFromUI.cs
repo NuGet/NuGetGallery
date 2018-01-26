@@ -8,7 +8,7 @@ using NuGetGallery.FunctionalTests.Helpers;
 namespace NuGetGallery.FunctionalTests.WebUITests.UploadAndDownload
 {
     /// <summary>
-    /// Uploads a new version of an existing package using Gallery UI.
+    /// Uploads a new version of an existing package.
     /// </summary>
     public class UploadPackageWithNewVersionFromUI : WebTest
     {
