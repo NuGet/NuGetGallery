@@ -731,15 +731,15 @@ namespace NuGetGallery
         private static string GetAuthenticationRoutes(this UrlHelper url, string action, string returnUrl, bool relativeUrl = true)
         {
             return GetActionLink(
-               url,
-               action,
-               "Authentication",
-               relativeUrl,
-               routeValues: new RouteValueDictionary
-               {
+                url,
+                action,
+                "Authentication",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
                     { "ReturnUrl", returnUrl }
-               },
-               interceptReturnUrl: false);
+                },
+                interceptReturnUrl: false);
         }
 
         public static string ManageMyApiKeys(this UrlHelper url, bool relativeUrl = true)

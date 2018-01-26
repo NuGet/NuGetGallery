@@ -760,6 +760,79 @@ namespace NuGetGallery.Authentication
             }
         }
 
+        public class TheTryReplaceCredentialMethod : TestContainer
+        {
+            [Fact]
+            public async Task ReturnsFalseForInvalidUser()
+            {
+                // Arrange
+                var service = Get<AuthenticationService>();
+
+                // Act
+                var result = await service.TryReplaceCredential(user: null, credential: new Credential());
+
+                // Assert
+                Assert.False(result);
+            }
+
+            [Fact]
+            public async Task ReturnsFalseForInvalidCredential()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var user = fakes.CreateUser("foo");
+                var service = Get<AuthenticationService>();
+
+                // Act
+                var result = await service.TryReplaceCredential(user, credential: null);
+
+                // Assert
+                Assert.False(result);
+            }
+
+            [Fact]
+            public async Task ReturnsFalseForExistingMatchingCredential()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var credentialBuilder = new CredentialBuilder();
+                var cred1 = credentialBuilder.CreateExternalCredential("MicrosoftAccount", "value1", "name1 <email1>", "TEST_TENANT1");
+                var user = fakes.CreateUser("foo", cred1);
+                var service = Get<AuthenticationService>();
+                service.Entities.Users.Add(user);
+                service.Entities.Credentials.Add(cred1);
+
+                // Act
+                var result = await service.TryReplaceCredential(user, cred1);
+
+                // Assert
+                Assert.False(result);
+            }
+
+            [Fact]
+            public async Task ReturnsTrueForSuccessfulReplacingExistingCredential()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var credentialBuilder = new CredentialBuilder();
+                var cred1 = credentialBuilder.CreateExternalCredential("MicrosoftAccount", "value1", "name1 <email1>", "TEST_TENANT1");
+                var cred2 = credentialBuilder.CreateExternalCredential("MicrosoftAccount", "value2", "name1 <email2>", "TEST_TENANT1");
+                var user = fakes.CreateUser("foo", cred1);
+                var service = Get<AuthenticationService>();
+                service.Entities.Users.Add(user);
+                service.Entities.Credentials.Add(cred1);
+
+                // Act
+                var result = await service.TryReplaceCredential(user, cred2);
+
+                // Assert
+                Assert.True(result);
+                Assert.Equal(new[] { cred2 }, user.Credentials.ToArray());
+                Assert.DoesNotContain(cred1, service.Entities.Credentials);
+                service.Entities.VerifyCommitChanges();
+            }
+        }
+
         public class TheReplaceCredentialMethod : TestContainer
         {
             [Fact]
@@ -826,6 +899,30 @@ namespace NuGetGallery.Authentication
                 // Assert
                 Assert.Equal(new[] { frozenCred, newCred }, user.Credentials.ToArray());
                 Assert.DoesNotContain(existingCred, service.Entities.Credentials);
+                service.Entities.VerifyCommitChanges();
+            }
+
+            [Fact]
+            public async Task ReplacesAllExternalCredentialsForUser()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var credentialBuilder = new CredentialBuilder();
+                var passwordCred = new Credential("password.v3", "password123");
+                var cred1 = credentialBuilder.CreateExternalCredential("MicrosoftAccount", "value1", "name1 <email1>", "TEST_TENANT1");
+                var cred2 = credentialBuilder.CreateExternalCredential("AzureAccount", "value2", "name2 <email2>", "TEST_TENANT2");
+                var newCred = credentialBuilder.CreateExternalCredential("MicrosoftAccount", "value3", "name1 <email2>", "TEST_TENANT2");
+                var user = fakes.CreateUser("foo", cred1, cred2, passwordCred);
+                var service = Get<AuthenticationService>();
+                service.Entities.Users.Add(user);
+
+                // Act
+                await service.ReplaceCredential(user, newCred);
+
+                // Assert
+                Assert.Equal(new[] { passwordCred, newCred }, user.Credentials.ToArray());
+                Assert.DoesNotContain(cred1, service.Entities.Credentials);
+                Assert.DoesNotContain(cred2, service.Entities.Credentials);
                 service.Entities.VerifyCommitChanges();
             }
 

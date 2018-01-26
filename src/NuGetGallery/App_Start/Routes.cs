@@ -259,11 +259,6 @@ namespace NuGetGallery
                 new { controller = "Users", action = "RemoveCredential" });
 
             routes.MapRoute(
-                RouteName.ChangeExternalCredential,
-                "account/ChangeExternalCredetial/{credentialType}",
-                new { controller = "Users", action = "ChangeExternalCredential" });
-
-            routes.MapRoute(
                 RouteName.PasswordReset,
                 "account/forgotpassword/{username}/{token}",
                 new { controller = "Users", action = "ResetPassword", forgot = true },
