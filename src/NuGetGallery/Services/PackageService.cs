@@ -211,6 +211,15 @@ namespace NuGetGallery
             return package;
         }
 
+        public IEnumerable<Package> FindPackagesByOwner(User user, bool includeUnlisted, bool includeVersions = false)
+        {
+            var packages = GetPackagesForOwners(new[] { user.Key }, includeUnlisted);
+
+            return includeVersions
+                ? packages
+                : GetLatestPackageForEachRegistration(packages.ToList());
+        }
+
         /// <summary>
         /// Find packages by owner, including organization owners that the user belongs to.
         /// </summary>
@@ -220,14 +229,10 @@ namespace NuGetGallery
             ownerKeys.Insert(0, user.Key);
 
             var packages = GetPackagesForOwners(ownerKeys, includeUnlisted);
-            if (includeVersions)
-            {
-                return packages;
-            }
-            else
-            {
-                return GetLatestPackageForEachRegistration(packages.ToList());
-            }
+
+            return includeVersions
+                ? packages
+                : GetLatestPackageForEachRegistration(packages.ToList());
         }
 
         private IEnumerable<Package> GetLatestPackageForEachRegistration(IReadOnlyCollection<Package> packages)
