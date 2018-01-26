@@ -10,18 +10,30 @@ namespace NuGetGallery.FunctionalTests.Helpers
 {
     public static class UploadHelper
     {
+        /// <summary>
+        /// Helper class for defining the properties of a test package to be uploaded.
+        /// </summary>
         public class PackageToUpload
         {
+            /// <summary>
+            /// The ID of the package to upload.
+            /// </summary>
             public string Id { get; }
 
+            /// <summary>
+            /// The version of the package to upload.
+            /// </summary>
             public string Version { get; }
             
+            /// <summary>
+            /// The username of the user that will be specified as the owner of the package in the verification form.
+            /// </summary>
             public string Owner { get; }
 
             public PackageToUpload(string id = null, string version = null, string owner = null)
             {
                 Owner = owner ?? EnvironmentSettings.TestAccountName;
-                Id = id ?? GetUploadedPackageName(Owner);
+                Id = id ?? GetUniquePackageId(Owner);
                 Version = version ?? GetUniquePackageVersion();
             }
 
@@ -33,22 +45,34 @@ namespace NuGetGallery.FunctionalTests.Helpers
             }
         }
 
-        public static string GetUploadedPackageName(string owner)
+        /// <summary>
+        /// Gets a unique ID for a package to upload.
+        /// </summary>
+        public static string GetUniquePackageId(string owner)
         {
             return $"UploadPackageFromUI.{owner}.{DateTimeOffset.UtcNow.Ticks}";
         }
 
+        /// <summary>
+        /// Gets a unique version for a package to upload.
+        /// </summary>
         public static string GetUniquePackageVersion()
         {
             var ticks = DateTimeOffset.UtcNow.Ticks;
-            return $"{(ticks / 1000000) % 100}.{(ticks / 10000) % 100}.{(ticks / 100) % 100}";
+            return $"{(ticks / 1000000) % 100}.{(ticks / 10000) % 100}.{(ticks / 100) % 100}-at{ticks}";
         }
 
+        /// <summary>
+        /// Uploads a new test package using Gallery UI. Validates that logon prompt appears to upload and checks that the package's home page opens post upload.
+        /// </summary>
         public static IEnumerator<WebTestRequest> UploadPackage(WebTest test, string owner)
         {
             return UploadPackages(test, new PackageToUpload(owner: owner));
         }
 
+        /// <summary>
+        /// Uploads a set of test packages using Gallery UI. Validates that logon prompt appears to upload and checks that the package's home page opens post upload.
+        /// </summary>
         public static IEnumerator<WebTestRequest> UploadPackages(WebTest test, params PackageToUpload[] packages)
         {
             return UploadPackages(test, packages.Select(p => new PackageToUploadInternal(p)));
@@ -72,7 +96,7 @@ namespace NuGetGallery.FunctionalTests.Helpers
                     .Concat(packagesToUpload.SelectMany(p => UploadPackageAfterLogin(test, p)))
                     .GetEnumerator();
         }
-
+        
         private static IEnumerable<WebTestRequest> Login(WebTest test)
         {
             var defaultExtractionRule = AssertAndValidationHelper.GetDefaultExtractHiddenFields();
