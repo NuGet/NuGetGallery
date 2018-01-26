@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Data;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -380,7 +379,7 @@ namespace NuGetGallery
                 // Assert
                 Assert.False(result);
                 Assert.Equal(errorReason, String.Format(CultureInfo.CurrentCulture,
-                    Strings.TransformAccount_FailedReasonNotConfirmedUser, unconfirmedUser.Username));
+                    Strings.TransformAccount_AccountNotConfirmed, unconfirmedUser.Username));
             }
 
             [Fact]
@@ -397,7 +396,7 @@ namespace NuGetGallery
                 // Assert
                 Assert.False(result);
                 Assert.Equal(errorReason, String.Format(CultureInfo.CurrentCulture,
-                    Strings.TransformAccount_FailedReasonIsOrganization, fakes.Organization.Username));
+                    Strings.TransformAccount_AccountIsAnOrganization, fakes.Organization.Username));
             }
 
             [Fact]
@@ -414,7 +413,7 @@ namespace NuGetGallery
                 // Assert
                 Assert.False(result);
                 Assert.Equal(errorReason, String.Format(CultureInfo.CurrentCulture,
-                    Strings.TransformAccount_FailedReasonHasMemberships, fakes.OrganizationCollaborator.Username));
+                    Strings.TransformAccount_AccountHasMemberships, fakes.OrganizationCollaborator.Username));
             }
 
             [Fact]
@@ -449,6 +448,64 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.True(result);
+            }
+        }
+
+        public class TheCanTransformToOrganizationWithAdminMethod
+        {
+            [Fact]
+            public void WhenAdminMatchesAccountToTransform_ReturnsFalse()
+            {
+                // Arrange
+                var service = new TestableUserService();
+                service.MockConfig.SetupGet(c => c.OrganizationsEnabledForDomains).Returns(new[] { "example.com" });
+                var fakes = new Fakes();
+
+                // Act
+                string errorReason;
+                var result = service.CanTransformUserToOrganization(fakes.User, fakes.User, out errorReason);
+
+                // Assert
+                Assert.False(result);
+                Assert.Equal(errorReason, String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_AdminMustBeDifferentAccount, fakes.User.Username));
+            }
+
+            [Fact]
+            public void WhenAdminIsNotConfirmed_ReturnsFalse()
+            {
+                // Arrange
+                var service = new TestableUserService();
+                service.MockConfig.SetupGet(c => c.OrganizationsEnabledForDomains).Returns(new[] { "example.com" });
+                var fakes = new Fakes();
+                var unconfirmedUser = new User() { UnconfirmedEmailAddress = "unconfirmed@example.com" };
+
+                // Act
+                string errorReason;
+                var result = service.CanTransformUserToOrganization(fakes.User, unconfirmedUser, out errorReason);
+
+                // Assert
+                Assert.False(result);
+                Assert.Equal(errorReason, String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_AdminAccountNotConfirmed, unconfirmedUser.Username));
+            }
+
+            [Fact]
+            public void WhenAdminIsOrganization_ReturnsFalse()
+            {
+                // Arrange
+                var service = new TestableUserService();
+                service.MockConfig.SetupGet(c => c.OrganizationsEnabledForDomains).Returns(new[] { "example.com" });
+                var fakes = new Fakes();
+
+                // Act
+                string errorReason;
+                var result = service.CanTransformUserToOrganization(fakes.User, fakes.Organization, out errorReason);
+
+                // Assert
+                Assert.False(result);
+                Assert.Equal(errorReason, String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_AdminAccountIsOrganization, fakes.Organization.Username));
             }
         }
 

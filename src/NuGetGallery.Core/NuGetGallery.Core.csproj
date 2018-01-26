@@ -125,6 +125,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Auditing\AggregateAuditingService.cs" />
+    <Compile Include="Auditing\AuditedDeleteAccountAction.cs" />
     <Compile Include="Auditing\Obfuscation\ObfuscateAttribute.cs" />
     <Compile Include="Auditing\Obfuscation\ObfuscationType.cs" />
     <Compile Include="Auditing\Obfuscation\ObfuscatorJsonConverter.cs" />
@@ -141,6 +142,7 @@
     <Compile Include="Auditing\AuditRecord.cs" />
     <Compile Include="Auditing\FailedAuthenticatedOperationAuditRecord.cs" />
     <Compile Include="Auditing\Obfuscation\Obfuscator.cs" />
+    <Compile Include="Auditing\DeleteAccountAuditRecord.cs" />
     <Compile Include="Auditing\ReservedNamespaceAuditRecord.cs" />
     <Compile Include="Auditing\UserSecurityPolicyAuditRecord.cs" />
     <Compile Include="Auditing\FileSystemAuditingService.cs" />

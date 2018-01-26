@@ -53,5 +53,6 @@ namespace NuGetGallery.Areas.Admin
         Task UpdateAdminAsync(int adminId, string galleryUsername, string pagerDutyUsername);
         Task AddAdminAsync(string galleryUsername, string pagerDutyUsername);
         Task DeleteSupportRequestsAsync(string createdBy);
+        Task<bool> TryAddDeleteSupportRequestAsync(User user);
     }
 }
