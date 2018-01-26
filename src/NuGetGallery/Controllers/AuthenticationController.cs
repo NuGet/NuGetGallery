@@ -355,7 +355,7 @@ namespace NuGetGallery
                 return Redirect(returnUrl);
             }
 
-            return ChallengeAuthentication(Url.ChangeExternalCredential(returnUrl), externalAuthProvider);
+            return ChallengeAuthentication(Url.ChangeOrLinkExternalCredential(returnUrl), externalAuthProvider);
         }
 
         [NonAction]
@@ -370,7 +370,7 @@ namespace NuGetGallery
             return _authService.Challenge(provider, returnUrl);
         }
 
-        public virtual async Task<ActionResult> ChangeExternalCredential(string returnUrl)
+        public virtual async Task<ActionResult> ChangeOrLinkExternalCredential(string returnUrl)
         {
             var user = GetCurrentUser();
             var result = await _authService.ReadExternalLoginCredential(OwinContext);
@@ -386,6 +386,16 @@ namespace NuGetGallery
             {
                 // Authenticate with the new credential after successful replacement
                 await _authService.Authenticate(newCredential);
+
+                // Remove the password credential after linking to external account.
+                var passwordCred = user.Credentials.SingleOrDefault(
+                    c => c.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase));
+
+                if (passwordCred != null)
+                {
+                    await _authService.RemoveCredential(user, passwordCred);
+                }
+
                 TempData["Message"] = Strings.ChangeCredential_Success;
             }
             else

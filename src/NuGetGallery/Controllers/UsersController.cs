@@ -768,16 +768,12 @@ namespace NuGetGallery
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public virtual ActionResult ChangeExternalCredential(string credentialType, int? credentialKey)
+        public virtual ActionResult LinkOrChangeExternalCredential()
         {
             var user = GetCurrentUser();
-            var cred = user.Credentials.SingleOrDefault(
-                c => string.Equals(c.Type, credentialType, StringComparison.OrdinalIgnoreCase)
-                    && CredentialKeyMatches(credentialKey, c));
-
             var userHasAADCredential = user.Credentials.Any(c => CredentialTypes.IsAzureActiveDirectoryAccount(c.Type));
 
-            if (cred == null || userHasAADCredential)
+            if (userHasAADCredential)
             {
                 TempData["WarningMessage"] = Strings.ChangeCredential_NotAllowed;
                 return RedirectToAction("Account");
