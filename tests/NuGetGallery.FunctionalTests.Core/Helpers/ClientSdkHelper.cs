@@ -186,9 +186,9 @@ namespace NuGetGallery.FunctionalTests
         /// Unlists a package with the specified Id and Version and checks if the unlist has succeeded.
         /// Throws if the unlist fails or cannot be verified in the source.
         /// </summary>
-        public async Task UnlistPackageAndVerify(string packageId, string version = "1.0.0")
+        public async Task UnlistPackageAndVerify(string packageId, string version = "1.0.0", string apiKey = null)
         {
-            await UnlistPackage(packageId, version);
+            await UnlistPackage(packageId, version, apiKey);
 
             await VerifyPackageExistsInV2AndV3Async(packageId, version);
         }

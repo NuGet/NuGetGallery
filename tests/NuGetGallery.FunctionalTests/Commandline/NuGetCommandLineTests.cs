@@ -61,18 +61,26 @@ namespace NuGetGallery.FunctionalTests.Commandline
         [Description("Creates a test package and pushes it to the server using Nuget.exe as an organization admin")]
         [Priority(0)]
         [Category("P0Tests")]
-        public async Task UploadPackageAsOrganizationAdminWithNuGetCommandLineTest()
+        public async Task UploadAndUnlistPackageAsOrganizationAdminWithNuGetCommandLineTest()
         {
-            await _clientSdkHelper.UploadNewPackageAndVerify(packageId: EnvironmentSettings.TestOrganizationAdminAccountPackageId, version: UploadHelper.GetUniquePackageVersion(), apiKey: EnvironmentSettings.TestOrganizationAdminAccountApiKey);
+            var id = EnvironmentSettings.TestOrganizationAdminAccountPackageId;
+            var version = UploadHelper.GetUniquePackageVersion();
+            var apiKey = EnvironmentSettings.TestOrganizationAdminAccountApiKey;
+            await _clientSdkHelper.UploadNewPackageAndVerify(id, version, apiKey: apiKey);
+            await _clientSdkHelper.UnlistPackageAndVerify(id, version, apiKey);
         }
 
         [Fact]
         [Description("Creates a test package and pushes it to the server using Nuget.exe as an organization admin")]
         [Priority(0)]
         [Category("P0Tests")]
-        public async Task UploadPackageAsOrganizationCollaboratorWithNuGetCommandLineTest()
+        public async Task UploadAndUnlistPackageAsOrganizationCollaboratorWithNuGetCommandLineTest()
         {
-            await _clientSdkHelper.UploadNewPackageAndVerify(packageId: EnvironmentSettings.TestOrganizationCollaboratorAccountPackageId, version: UploadHelper.GetUniquePackageVersion(), apiKey: EnvironmentSettings.TestOrganizationCollaboratorAccountApiKey);
+            var id = EnvironmentSettings.TestOrganizationCollaboratorAccountPackageId;
+            var version = UploadHelper.GetUniquePackageVersion();
+            var apiKey = EnvironmentSettings.TestOrganizationCollaboratorAccountApiKey;
+            await _clientSdkHelper.UploadNewPackageAndVerify(id, version, apiKey: apiKey);
+            await _clientSdkHelper.UnlistPackageAndVerify(id, version, apiKey);
         }
 
         [Fact]
