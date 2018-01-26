@@ -10,27 +10,27 @@ namespace NuGetGallery.Auditing
             Failure
         }
 
-        public string UserName;
+        public string Username;
 
-        public string AdminUserName;
+        public string AdminUsername;
 
         public ActionStatus Status;
 
-        public DeleteAccountAuditRecord(string userName, ActionStatus status, AuditedDeleteAccountAction action)
-            : this(userName, status, action, adminUserName: string.Empty)
+        public DeleteAccountAuditRecord(string username, ActionStatus status, AuditedDeleteAccountAction action)
+            : this(username, status, action, adminUsername: string.Empty)
         {}
 
-        public DeleteAccountAuditRecord(string userName, ActionStatus status, AuditedDeleteAccountAction action, string adminUserName)
+        public DeleteAccountAuditRecord(string username, ActionStatus status, AuditedDeleteAccountAction action, string adminUsername)
             : base(action)
         {
-            UserName = userName;
-            AdminUserName = adminUserName;
+            Username = username;
+            AdminUsername = adminUsername;
             Status = status;
         }
 
         public override string GetPath()
         {
-            return UserName.ToLowerInvariant();
+            return Username.ToLowerInvariant();
         }
     }
 }

@@ -273,7 +273,7 @@ namespace NuGetGallery.Areas.Admin
                 "The user requested to have the account deleted.",
                 user) != null;
             var status = requestSent ? DeleteAccountAuditRecord.ActionStatus.Success : DeleteAccountAuditRecord.ActionStatus.Failure;
-            await _auditingService.SaveAuditRecordAsync(new DeleteAccountAuditRecord(userName: user.Username,
+            await _auditingService.SaveAuditRecordAsync(new DeleteAccountAuditRecord(username: user.Username,
                    status: status,
                    action: AuditedDeleteAccountAction.RequestAccountDeletion));
 

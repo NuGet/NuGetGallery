@@ -24,7 +24,7 @@ namespace NuGetGallery
         private readonly AuthenticationService _authService;
         private readonly IEntityRepository<User> _userRepository;
         private readonly ISupportRequestService _supportRequestService;
-        private IAuditingService _auditingService { get; }
+        private readonly IAuditingService _auditingService;
 
         public DeleteAccountService(IEntityRepository<AccountDelete> accountDeleteRepository,
                                     IEntityRepository<User> userRepository,
@@ -133,10 +133,10 @@ namespace NuGetGallery
                 {
                     await DeleteGalleryUserAccountImplAsync(userToBeDeleted, admin, signature, unlistOrphanPackages);
                 }
-                await _auditingService.SaveAuditRecordAsync(new DeleteAccountAuditRecord(userName: userToBeDeleted.Username,
+                await _auditingService.SaveAuditRecordAsync(new DeleteAccountAuditRecord(username: userToBeDeleted.Username,
                     status: DeleteAccountAuditRecord.ActionStatus.Success,
                     action: AuditedDeleteAccountAction.DeleteAccount,
-                    adminUserName: admin.Username));
+                    adminUsername: admin.Username));
                 return new DeleteUserAccountStatus()
                 {
                     Success = true,
