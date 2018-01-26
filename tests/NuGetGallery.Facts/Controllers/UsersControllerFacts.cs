@@ -1208,7 +1208,7 @@ namespace NuGetGallery
                     .Returns(owner);
 
                 GetMock<IPackageService>()
-                    .Setup(x => x.FindPackagesByAnyMatchingOwner(owner, false, false))
+                    .Setup(x => x.FindPackagesByOwner(owner, false, false))
                     .Returns(new[] { package });
 
                 var controller = GetController<UsersController>();
@@ -1262,7 +1262,7 @@ namespace NuGetGallery
                     .Returns(owner);
 
                 GetMock<IPackageService>()
-                    .Setup(x => x.FindPackagesByAnyMatchingOwner(owner, false, false))
+                    .Setup(x => x.FindPackagesByOwner(owner, false, false))
                     .Returns(new[] { package1, package2 });
 
                 var controller = GetController<UsersController>();
