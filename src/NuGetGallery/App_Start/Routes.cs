@@ -275,7 +275,7 @@ namespace NuGetGallery
                 "account/confirm/{username}/{token}",
                 new { controller = "Users", action = "Confirm" },
                 new RouteExtensions.ObfuscatedMetadata(2, Obfuscator.DefaultTelemetryUserName));
-
+            
             routes.MapRoute(
                 RouteName.ChangeEmailSubscription,
                 "account/subscription/change",
