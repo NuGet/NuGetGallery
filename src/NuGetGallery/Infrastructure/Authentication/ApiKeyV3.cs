@@ -39,7 +39,7 @@ namespace NuGetGallery.Infrastructure.Authentication
         /// </summary>
         public static ApiKeyV3 CreateFromV1V2ApiKey(string plaintextApiKey)
         {
-            // Since V1/V2/V3 have the same formar (Guid), we can use the same parse method
+            // Since V1/V2/V3 have the same format (Guid), we can use the same parse method
             if (!TryParse(plaintextApiKey, out ApiKeyV3 apiKeyV3))
             {
                 throw new ArgumentException("Invalid format for ApiKey V1/V2");
