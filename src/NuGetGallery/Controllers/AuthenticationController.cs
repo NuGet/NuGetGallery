@@ -193,7 +193,7 @@ namespace NuGetGallery
                 var providers = enforcedProviders.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
 
                 if (!providers.Any(p => string.Equals(p, authenticatedUser.CredentialUsed.Type, StringComparison.OrdinalIgnoreCase))
-                    && !providers.Any(p => string.Equals(CredentialTypes.ExternalPrefix + p, authenticatedUser.CredentialUsed.Type, StringComparison.OrdinalIgnoreCase)))
+                    && !providers.Any(p => string.Equals(CredentialTypes.External.Prefix + p, authenticatedUser.CredentialUsed.Type, StringComparison.OrdinalIgnoreCase)))
                 {
                     // Challenge authentication using the first required authentication provider
                     challenge = _authService.Challenge(
@@ -329,25 +329,16 @@ namespace NuGetGallery
             // Get list of all enabled providers
             var providers = GetProviders();
 
-            // Prioritize the external authentication mechanism. 
+            // Prioritize the external authentication mechanism. Select one provider to
+            // authenticate for linking when multiple external providers are enabled.
             // This is for backwards compatibility with MicrosoftAccount provider. 
             var authPriority = new string[] {
                 Authenticator.GetName(typeof(AzureActiveDirectoryV2Authenticator)),
                 Authenticator.GetName(typeof(MicrosoftAccountAuthenticator))
             };
 
-            string externalAuthProvider = null;
-            if (authPriority.Count() > 0)
-            {
-                foreach (string authenticator in authPriority)
-                {
-                    if (providers.Any(p => p.ProviderName.Equals(authenticator, StringComparison.OrdinalIgnoreCase)))
-                    {
-                        externalAuthProvider = authenticator;
-                        break;
-                    }
-                }
-            }
+            string externalAuthProvider = authPriority
+                .FirstOrDefault(authenticator => providers.Any(p => p.ProviderName.Equals(authenticator, StringComparison.OrdinalIgnoreCase)));
 
             if (externalAuthProvider == null)
             {
@@ -382,26 +373,35 @@ namespace NuGetGallery
 
             var newCredential = result.Credential;
 
-            if (await _authService.TryReplaceCredential(user, newCredential))
+            try
             {
-                // Authenticate with the new credential after successful replacement
-                var authenticatedUser = await _authService.Authenticate(newCredential);
-                await _authService.CreateSessionAsync(OwinContext, authenticatedUser);
-
-                // Remove the password credential after linking to external account.
-                var passwordCred = user.Credentials.SingleOrDefault(
-                    c => c.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase));
-
-                if (passwordCred != null)
+                if (await _authService.TryReplaceCredential(user, newCredential))
                 {
-                    await _authService.RemoveCredential(user, passwordCred);
-                }
+                    // Authenticate with the new credential after successful replacement
+                    var authenticatedUser = await _authService.Authenticate(newCredential);
+                    await _authService.CreateSessionAsync(OwinContext, authenticatedUser);
 
-                TempData["Message"] = Strings.ChangeCredential_Success;
+                    // Remove the password credential after linking to external account.
+                    var passwordCred = user.Credentials.SingleOrDefault(
+                        c => c.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase));
+
+                    if (passwordCred != null)
+                    {
+                        await _authService.RemoveCredential(user, passwordCred);
+                    }
+
+                    TempData["Message"] = Strings.ChangeCredential_Success;
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = string.Format(Strings.ChangeCredential_ExistingCredential, HttpUtility.UrlEncode(newCredential.Identity));
+                }
             }
-            else
+            catch (InvalidOperationException ex)
             {
-                TempData["ErrorMessage"] = string.Format(Strings.ChangeCredential_ExistingCredential, HttpUtility.UrlEncode(newCredential.Identity));
+                // TryReplaceCredential could throw InvalidOperationException if the user is an Organization.
+                // We shouldn't get into this situation ideally. Just being thorough.
+                TempData["ErrorMessage"] = ex.Message;
             }
 
             return SafeRedirect(returnUrl);

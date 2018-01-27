@@ -302,6 +302,7 @@ namespace NuGetGallery.Authentication
             {
                 throw new InvalidOperationException(Strings.UserNotFound);
             }
+
             return ReplaceCredential(user, credential);
         }
 
@@ -642,7 +643,7 @@ namespace NuGetGallery.Authentication
             // For replacing external or password credentials, replace all such credentials.
             var replacePrefixes = new string[] {
                 CredentialTypes.Password.Prefix,
-                CredentialTypes.ExternalPrefix
+                CredentialTypes.External.Prefix
             };
 
             Func<Credential, bool> replacingPredicate =

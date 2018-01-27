@@ -26,9 +26,12 @@ namespace NuGetGallery
             public const string VerifyV1 = Prefix + "verify.v1";
         }
 
-        public const string ExternalPrefix = "external.";
-        public const string MicrosoftAccount = "MicrosoftAccount";
-        public const string AzureActiveDirectoryAccount = "AzureActiveDirectory";
+        public static class External
+        {
+            public const string Prefix = "external.";
+            public const string MicrosoftAccount = Prefix + "MicrosoftAccount";
+            public const string AzureActiveDirectoryAccount = Prefix + "AzureActiveDirectory";
+        }
 
         public static bool IsPassword(string type)
         {
@@ -42,22 +45,12 @@ namespace NuGetGallery
 
         public static bool IsMicrosoftAccount(string type)
         {
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            return type.Equals(ExternalPrefix + MicrosoftAccount, StringComparison.OrdinalIgnoreCase);
+            return type.Equals(External.MicrosoftAccount, StringComparison.OrdinalIgnoreCase);
         }
 
         public static bool IsAzureActiveDirectoryAccount(string type)
         {
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            return type.Equals(ExternalPrefix + AzureActiveDirectoryAccount, StringComparison.OrdinalIgnoreCase);
+            return type.Equals(External.AzureActiveDirectoryAccount, StringComparison.OrdinalIgnoreCase);
         }
 
         public static bool IsApiKey(string type)
@@ -92,7 +85,7 @@ namespace NuGetGallery
         public static bool IsViewSupportedCredential(this Credential credential)
         {
             return SupportedCredentialTypes.Any(credType => string.Compare(credential.Type, credType, StringComparison.OrdinalIgnoreCase) == 0)
-                    || credential.Type.StartsWith(ExternalPrefix, StringComparison.OrdinalIgnoreCase);
+                    || credential.Type.StartsWith(External.Prefix, StringComparison.OrdinalIgnoreCase);
         }
 
         public static bool IsScopedApiKey(this Credential credential)

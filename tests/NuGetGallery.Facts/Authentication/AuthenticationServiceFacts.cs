@@ -524,7 +524,7 @@ namespace NuGetGallery.Authentication
             public async Task GivenMatchingCredential_ItWritesCredentialLastUsed()
             {
                 // Arrange
-                var cred = _fakes.User.Credentials.Single(c => c.Type.Contains(CredentialTypes.ExternalPrefix));
+                var cred = _fakes.User.Credentials.Single(c => c.Type.Contains(CredentialTypes.External.Prefix));
 
                 var referenceTime = DateTime.UtcNow;
                 _dateTimeProviderMock.SetupGet(x => x.UtcNow).Returns(referenceTime);

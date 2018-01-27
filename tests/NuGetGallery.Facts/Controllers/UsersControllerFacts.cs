@@ -1453,7 +1453,7 @@ namespace NuGetGallery
                     .Setup(m => 
                                 m.SendCredentialRemovedNotice(
                                     user,
-                                    It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.ExternalPrefix + "MicrosoftAccount")))
+                                    It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.External.MicrosoftAccount)))
                     .Verifiable();
 
                 var controller = GetController<UsersController>();
@@ -1671,7 +1671,7 @@ namespace NuGetGallery
 
                 // Act
                 var result = await controller.RemoveCredential(
-                    credentialType: CredentialTypes.ExternalPrefix + "MicrosoftAccount",
+                    credentialType: CredentialTypes.External.MicrosoftAccount,
                     credentialKey: null);
 
                 // Assert
@@ -1726,7 +1726,7 @@ namespace NuGetGallery
                     .Setup(m => 
                                 m.SendCredentialRemovedNotice(
                                     user,
-                                    It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.ExternalPrefix + "MicrosoftAccount")))
+                                    It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.External.MicrosoftAccount)))
                     .Verifiable();
 
                 var controller = GetController<UsersController>();
