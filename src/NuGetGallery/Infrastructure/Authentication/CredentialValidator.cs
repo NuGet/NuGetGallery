@@ -51,19 +51,24 @@ namespace NuGetGallery.Infrastructure.Authentication
 
                     results = results.Where(credential =>
                     {
-                        // This is a V1/V2 ApiKey or a Verify ApiKey. Makes sure type is correct.
-                        if (credential.Value == providedApiKey)
+                        switch (credential.Type)
                         {
-                            return credential.Type == CredentialTypes.ApiKey.V1 ||
-                                   credential.Type == CredentialTypes.ApiKey.V2 ||
-                                   credential.Type == CredentialTypes.ApiKey.VerifyV1;
-                        }
-                        else if (credential.Type == CredentialTypes.ApiKey.V3)
-                        {
-                            return v3ApiKey.Verify(credential.Value);
-                        }
+                            case CredentialTypes.ApiKey.V1:
+                            case CredentialTypes.ApiKey.V2:
+                            case CredentialTypes.ApiKey.VerifyV1:
+                                {
+                                    return credential.Value == providedApiKey;
+                                }
+                            case CredentialTypes.ApiKey.V3:
+                                {
+                                    return v3ApiKey.Verify(credential.Value);
+                                }
 
-                        return false;
+                            default:
+                                {
+                                    return false;
+                                }
+                        }
                     }).ToList();
                 }
             }
