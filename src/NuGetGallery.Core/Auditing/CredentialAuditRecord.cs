@@ -31,10 +31,19 @@ namespace NuGetGallery.Auditing
             Identity = credential.Identity;
 
             // Track the value for credentials that are definitely revocable (API Key, etc.) and have been removed
-            if (removed && !credential.IsPassword())
+            if (removed)
             {
-                Value = credential.Value;
+                if (Type == null)
+                {
+                    throw new ArgumentNullException(nameof(credential.Type));
+                }
+
+                if (!credential.IsPassword())
+                {
+                    Value = credential.Value;
+                }
             }
+
             Created = credential.Created;
             Expires = credential.Expires;
             LastUsed = credential.LastUsed;
