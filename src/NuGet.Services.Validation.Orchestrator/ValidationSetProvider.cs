@@ -30,12 +30,21 @@ namespace NuGet.Services.Validation.Orchestrator
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<PackageValidationSet> GetOrCreateValidationSetAsync(Guid validationTrackingId, Package package)
+        public async Task<PackageValidationSet> TryGetOrCreateValidationSetAsync(Guid validationTrackingId, Package package)
         {
             var validationSet = await _validationStorageService.GetValidationSetAsync(validationTrackingId);
 
             if (validationSet == null)
             {
+                var shouldSkip = await _validationStorageService.OtherRecentValidationSetForPackageExists(
+                    package.PackageRegistration.Id,
+                    package.NormalizedVersion,
+                    _validationConfiguration.NewValidationRequestDeduplicationWindow,
+                    validationTrackingId);
+                if (shouldSkip)
+                {
+                    return null;
+                }
                 validationSet = await CreateValidationSet(validationTrackingId, package);
             }
             else

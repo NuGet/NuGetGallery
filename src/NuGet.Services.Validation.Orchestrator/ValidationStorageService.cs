@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
@@ -99,6 +100,21 @@ namespace NuGet.Services.Validation.Orchestrator
             packageValidation.ValidationStatus = validationResult.Status;
             packageValidation.ValidationStatusTimestamp = DateTime.UtcNow;
             await _validationContext.SaveChangesAsync();
+        }
+
+        public async Task<bool> OtherRecentValidationSetForPackageExists(
+            string packageId,
+            string normalizedVersion,
+            TimeSpan recentDuration,
+            Guid currentValidationSetTrackingId)
+        {
+            var cutoffTimestamp = DateTime.UtcNow - recentDuration;
+            return await _validationContext
+                .PackageValidationSets
+                .AnyAsync(pvs => pvs.PackageId == packageId
+                    && pvs.PackageNormalizedVersion == normalizedVersion
+                    && pvs.Created > cutoffTimestamp
+                    && pvs.ValidationTrackingId != currentValidationSetTrackingId);
         }
 
         private void AddValidationIssues(PackageValidation packageValidation, IReadOnlyList<IValidationIssue> validationIssues)

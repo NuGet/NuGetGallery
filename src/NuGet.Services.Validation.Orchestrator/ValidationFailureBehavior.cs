@@ -4,7 +4,7 @@
 namespace NuGet.Services.Validation.Orchestrator
 {
     /// <summary>
-    /// Options for orchestrator for how to handle valiation failure
+    /// Options for orchestrator for how to handle validation failure
     /// </summary>
     public enum ValidationFailureBehavior
     {
