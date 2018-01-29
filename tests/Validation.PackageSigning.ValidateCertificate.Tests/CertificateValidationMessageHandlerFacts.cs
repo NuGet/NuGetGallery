@@ -28,7 +28,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                 // Arrange
                 _certificateValidationService
                     .Setup(s => s.FindCertificateValidationAsync(It.IsAny<CertificateValidationMessage>()))
-                    .ReturnsAsync(null);
+                    .ReturnsAsync((EndCertificateValidation)null);
 
                 // Act & Assert
                 Assert.False(await _target.HandleAsync(_message));

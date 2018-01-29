@@ -41,7 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="moq">
-      <Version>4.5.23</Version>
+      <Version>4.7.145</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

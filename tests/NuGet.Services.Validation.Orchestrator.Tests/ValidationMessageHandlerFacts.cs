@@ -50,7 +50,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             ValidationSetProviderMock
                 .Setup(vsp => vsp.TryGetOrCreateValidationSetAsync(messageData.ValidationTrackingId, package))
-                .ReturnsAsync(null)
+                .ReturnsAsync((PackageValidationSet)null)
                 .Verifiable();
 
             var handler = CreateHandler();

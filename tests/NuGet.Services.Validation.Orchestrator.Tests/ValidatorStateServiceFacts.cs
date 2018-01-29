@@ -393,7 +393,7 @@ namespace NuGet.Services.Validation
                     ValidationId = ValidationId,
                     PackageKey = PackageKey,
                     ValidatorName = nameof(AValidator),
-                    State = ValidationStatus.NotStarted,
+                    State = status,
                 };
 
                 _validationContext.Mock();

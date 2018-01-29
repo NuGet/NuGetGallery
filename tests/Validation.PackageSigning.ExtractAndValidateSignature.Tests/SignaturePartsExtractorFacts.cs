@@ -17,6 +17,7 @@ using NuGet.Packaging.Signing;
 using NuGet.Services.Validation;
 using Org.BouncyCastle.Cms;
 using Org.BouncyCastle.X509.Store;
+using Validation.PackageSigning.Core.Tests.Support;
 using Xunit;
 
 namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests

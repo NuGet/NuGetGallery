@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using NuGet.Services.Validation.Orchestrator.Telemetry;
 using NuGetGallery;
 
 namespace NuGet.Services.Validation.Orchestrator
@@ -14,11 +15,13 @@ namespace NuGet.Services.Validation.Orchestrator
     {
         private readonly IValidationStorageService _validationStorageService;
         private readonly ValidationConfiguration _validationConfiguration;
+        private readonly ITelemetryService _telemetryService;
         private readonly ILogger<ValidationSetProvider> _logger;
 
         public ValidationSetProvider(
             IValidationStorageService validationStorageService,
             IOptionsSnapshot<ValidationConfiguration> validationConfigurationAccessor,
+            ITelemetryService telemetryService,
             ILogger<ValidationSetProvider> logger)
         {
             _validationStorageService = validationStorageService ?? throw new ArgumentNullException(nameof(validationStorageService));
@@ -27,6 +30,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 throw new ArgumentNullException(nameof(validationConfigurationAccessor));
             }
             _validationConfiguration = validationConfigurationAccessor.Value ?? throw new ArgumentException($"The Value property cannot be null", nameof(validationConfigurationAccessor));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -37,8 +41,7 @@ namespace NuGet.Services.Validation.Orchestrator
             if (validationSet == null)
             {
                 var shouldSkip = await _validationStorageService.OtherRecentValidationSetForPackageExists(
-                    package.PackageRegistration.Id,
-                    package.NormalizedVersion,
+                    package.Key,
                     _validationConfiguration.NewValidationRequestDeduplicationWindow,
                     validationTrackingId);
                 if (shouldSkip)
@@ -95,7 +98,18 @@ namespace NuGet.Services.Validation.Orchestrator
                 packageValidations.Add(packageValidation);
             }
 
-            return await _validationStorageService.CreateValidationSetAsync(validationSet);
+            var persistedValidationSet = await _validationStorageService.CreateValidationSetAsync(validationSet);
+
+            // Only track the validation set creation time when this is the first validation set to be created for that
+            // package. There will be more than one validation set when an admin has requested a manual revalidation.
+            // This can happen much later than when the package was created so the duration is less interesting in that
+            // case.
+            if (await _validationStorageService.GetValidationSetCountAsync(package.Key) == 1)
+            {
+                _telemetryService.TrackDurationToValidationSetCreation(now - package.Created);
+            }
+
+            return persistedValidationSet;
         }
     }
 }

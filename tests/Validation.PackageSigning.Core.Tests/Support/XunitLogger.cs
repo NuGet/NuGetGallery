@@ -7,47 +7,6 @@ using Xunit.Abstractions;
 
 namespace Microsoft.Extensions.Logging
 {
-    public static class XunitLoggerFactoryExtensions
-    {
-        public static ILoggerFactory AddXunit(this ILoggerFactory loggerFactory, ITestOutputHelper output)
-        {
-            loggerFactory.AddProvider(new XunitLoggerProvider(output));
-            return loggerFactory;
-        }
-
-        public static ILoggerFactory AddXunit(this ILoggerFactory loggerFactory, ITestOutputHelper output, LogLevel minLevel)
-        {
-            loggerFactory.AddProvider(new XunitLoggerProvider(output, minLevel));
-            return loggerFactory;
-        }
-    }
-
-    public class XunitLoggerProvider : ILoggerProvider
-    {
-        private readonly ITestOutputHelper _output;
-        private readonly LogLevel _minLevel;
-
-        public XunitLoggerProvider(ITestOutputHelper output)
-            : this(output, LogLevel.Trace)
-        {
-        }
-
-        public XunitLoggerProvider(ITestOutputHelper output, LogLevel minLevel)
-        {
-            _output = output;
-            _minLevel = minLevel;
-        }
-
-        public ILogger CreateLogger(string categoryName)
-        {
-            return new XunitLogger(_output, categoryName, _minLevel);
-        }
-
-        public void Dispose()
-        {
-        }
-    }
-
     public class XunitLogger : ILogger
     {
         private static readonly char[] NewLineChars = new[] { '\r', '\n' };

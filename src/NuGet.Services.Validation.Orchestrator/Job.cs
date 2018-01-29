@@ -23,6 +23,7 @@ using NuGet.Jobs.Validation.PackageSigning.Storage;
 using NuGet.Services.Configuration;
 using NuGet.Services.KeyVault;
 using NuGet.Services.ServiceBus;
+using NuGet.Services.Validation.Orchestrator.Telemetry;
 using NuGet.Services.Validation.PackageCertificates;
 using NuGet.Services.Validation.PackageSigning;
 using NuGet.Services.Validation.Vcs;
@@ -207,6 +208,7 @@ namespace NuGet.Services.Validation.Orchestrator
             services.AddTransient<ICoreMessageServiceConfiguration, CoreMessageServiceConfiguration>();
             services.AddTransient<ICoreMessageService, CoreMessageService>();
             services.AddTransient<IMessageService, MessageService>();
+            services.AddTransient<ITelemetryService, TelemetryService>();
         }
 
         private static IServiceProvider CreateProvider(IServiceCollection services)

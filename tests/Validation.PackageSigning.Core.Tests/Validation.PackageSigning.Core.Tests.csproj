@@ -38,6 +38,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Storage\CertificateStoreTests.cs" />
     <Compile Include="Storage\ValidatorStatusExtensionsFacts.cs" />
+    <Compile Include="Support\DbSetMockFactory.cs" />
+    <Compile Include="Support\TestDbAsyncEnumerable.cs" />
+    <Compile Include="Support\TestDbAsyncEnumerator.cs" />
+    <Compile Include="Support\TestDbAsyncQueryProvider.cs" />
+    <Compile Include="Support\XunitLogger.cs" />
+    <Compile Include="Support\XunitLoggerFactoryExtensions.cs" />
+    <Compile Include="Support\XunitLoggerProvider.cs" />
     <Compile Include="TestData\TestResources.cs" />
   </ItemGroup>
   <ItemGroup>
