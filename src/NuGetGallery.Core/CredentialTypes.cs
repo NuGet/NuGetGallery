@@ -30,27 +30,22 @@ namespace NuGetGallery
 
         public static bool IsPassword(this Credential c)
         {
-            return IsPassword(c.Type);
+            return c?.Type?.StartsWith(Password.Prefix, StringComparison.OrdinalIgnoreCase) ?? false;
         }
 
         public static bool IsExternal(this Credential c)
         {
-            return c.IsSubType(ExternalPrefix);
+            return c?.Type?.StartsWith(ExternalPrefix, StringComparison.OrdinalIgnoreCase) ?? false;
         }
 
         public static bool IsApiKey(this Credential c)
         {
-            return c.IsSubType(ApiKey.Prefix);
+            return c?.Type?.StartsWith(ApiKey.Prefix, StringComparison.OrdinalIgnoreCase) ?? false;
         }
 
         public static bool IsType(this Credential c, string type)
         {
-            return IsType(c.Type, type);
-        }
-
-        private static bool IsSubType(this Credential c, string typePrefix)
-        {
-            return IsSubType(c.Type, typePrefix);
+            return c?.Type?.Equals(type, StringComparison.OrdinalIgnoreCase) ?? false;
         }
 
         internal static IReadOnlyList<string> SupportedCredentialTypes = new List<string> { Password.Sha1, Password.Pbkdf2, Password.V3, ApiKey.V1, ApiKey.V2, ApiKey.V4 };
@@ -86,37 +81,17 @@ namespace NuGetGallery
 
         public static bool IsPassword(string type)
         {
-            return IsSubType(type, Password.Prefix);
+            return type?.StartsWith(Password.Prefix, StringComparison.OrdinalIgnoreCase) ?? false;
         }
 
         public static bool IsApiKey(string type)
         {
-            return IsSubType(type, ApiKey.Prefix);
+            return type?.StartsWith(ApiKey.Prefix, StringComparison.OrdinalIgnoreCase) ?? false;
         }
 
         public static bool IsPackageVerificationApiKey(string type)
         {
-            return IsSubType(type, ApiKey.VerifyV1);
-        }
-
-        private static bool IsType(string actualType, string expectedType)
-        {
-            if (actualType == null)
-            {
-                throw new ArgumentNullException(nameof(actualType));
-            }
-
-            return actualType.Equals(expectedType, StringComparison.OrdinalIgnoreCase);
-        }
-
-        private static bool IsSubType(string actualType, string expectedTypePrefix)
-        {
-            if (actualType == null)
-            {
-                throw new ArgumentNullException(nameof(actualType));
-            }
-            
-            return actualType.StartsWith(expectedTypePrefix, StringComparison.OrdinalIgnoreCase);
+            return type?.Equals(ApiKey.VerifyV1, StringComparison.OrdinalIgnoreCase) ?? false;
         }
     }
 }
