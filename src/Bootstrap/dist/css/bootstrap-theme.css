@@ -756,6 +756,10 @@ img.reserved-indicator-icon {
   margin-bottom: 20px;
   font-size: 1.25em;
 }
+.page-forgot-password .deprecate-alert {
+  padding: 0;
+  margin-top: -15px;
+}
 .page-forgot-password .forgot-form {
   margin-top: 20px;
 }

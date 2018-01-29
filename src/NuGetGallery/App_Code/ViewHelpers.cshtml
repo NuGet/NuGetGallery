@@ -101,6 +101,15 @@
         )
 }
 
+@helper AlertPasswordDeprecation()
+{
+    @AlertWarning(
+    @<text>
+        NuGet.org password login is being deprecated. Please link Microsoft account to your NuGet.org account to login into NuGet gallery.
+    </text>
+    )
+}
+
 @helper AlertPackageVerifyRecommendation()
 {
     @AlertWarning(

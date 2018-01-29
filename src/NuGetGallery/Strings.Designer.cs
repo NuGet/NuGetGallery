@@ -621,6 +621,7 @@ namespace NuGetGallery {
         ///
         ///[{0}]({0})
         ///
+        ///Note that the password login is being deprecated. You should link Microsoft account to your NuGet.org account after resetting the password.
         ///Thanks,
         ///The {1} Team.
         /// </summary>
