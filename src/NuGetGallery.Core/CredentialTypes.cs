@@ -29,36 +29,36 @@ namespace NuGetGallery
 
         public const string ExternalPrefix = "external.";
 
-        public static bool IsPassword(string type)
+        public static bool IsPassword(this Credential c)
         {
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            return type.StartsWith(Password.Prefix, StringComparison.OrdinalIgnoreCase);
+            return c?.Type?.StartsWith(Password.Prefix, StringComparison.OrdinalIgnoreCase) ?? false;
         }
 
-        public static bool IsApiKey(string type)
+        public static bool IsExternal(this Credential c)
         {
-            return type.StartsWith(ApiKey.Prefix, StringComparison.OrdinalIgnoreCase);
+            return c?.Type?.StartsWith(ExternalPrefix, StringComparison.OrdinalIgnoreCase) ?? false;
         }
 
-        public static bool IsPackageVerificationApiKey(string type)
+        public static bool IsApiKey(this Credential c)
         {
-            return type.Equals(ApiKey.VerifyV1, StringComparison.OrdinalIgnoreCase);
+            return c?.Type?.StartsWith(ApiKey.Prefix, StringComparison.OrdinalIgnoreCase) ?? false;
         }
-        
+
+        public static bool IsType(this Credential c, string type)
+        {
+            return c?.Type?.Equals(type, StringComparison.OrdinalIgnoreCase) ?? false;
+        }
+      
         internal static IReadOnlyList<string> SupportedCredentialTypes = new List<string>
-            {
-                Password.Sha1,
-                Password.Pbkdf2,
-                Password.V3,
-                ApiKey.V1,
-                ApiKey.V2,
-                ApiKey.V3,
-                ApiKey.V4
-            };
+        {
+            Password.Sha1,
+            Password.Pbkdf2,
+            Password.V3,
+            ApiKey.V1,
+            ApiKey.V2,
+            ApiKey.V3,
+            ApiKey.V4
+        };
 
         /// <summary>
         /// Determines whether a credential is supported (internal or from the UI). For forward compatibility,
@@ -79,13 +79,29 @@ namespace NuGetGallery
         /// <returns></returns>
         public static bool IsViewSupportedCredential(this Credential credential)
         {
-            return SupportedCredentialTypes.Any(credType => string.Compare(credential.Type, credType, StringComparison.OrdinalIgnoreCase) == 0)
-                    || credential.Type.StartsWith(ExternalPrefix, StringComparison.OrdinalIgnoreCase);
+            return
+                SupportedCredentialTypes.Any(credType => credential.IsType(credType)) ||
+                credential.IsExternal();
         }
 
         public static bool IsScopedApiKey(this Credential credential)
         {
             return IsApiKey(credential.Type) && credential.Scopes != null && credential.Scopes.Any();
+        }
+
+        public static bool IsPassword(string type)
+        {
+            return type?.StartsWith(Password.Prefix, StringComparison.OrdinalIgnoreCase) ?? false;
+        }
+
+        public static bool IsApiKey(string type)
+        {
+            return type?.StartsWith(ApiKey.Prefix, StringComparison.OrdinalIgnoreCase) ?? false;
+        }
+
+        public static bool IsPackageVerificationApiKey(string type)
+        {
+            return type?.Equals(ApiKey.VerifyV1, StringComparison.OrdinalIgnoreCase) ?? false;
         }
     }
 }

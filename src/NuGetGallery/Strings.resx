@@ -746,4 +746,8 @@ For more information, please contact '{2}'.</value>
   <data name="TransformAccount_AdminMustBeDifferentAccount" xml:space="preserve">
     <value>Administrator account '{0}' cannot be the same account as the one being transformed.</value>
   </data>
+  <data name="AccountIsLinkedToAnotherExternalAccount" xml:space="preserve">
+    <value>The account with the email {0} is linked to another Microsoft account.
+If you wish to update the linked Microsoft account you can do so from the account settings page.</value>
+  </data>
 </root>

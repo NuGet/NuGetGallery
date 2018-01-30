@@ -124,6 +124,16 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The account with the email {0} is linked to another Microsoft account.
+        ///If you wish to update the linked Microsoft account you can do so from the account settings page..
+        /// </summary>
+        public static string AccountIsLinkedToAnotherExternalAccount {
+            get {
+                return ResourceManager.GetString("AccountIsLinkedToAnotherExternalAccount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The user &apos;{0}&apos; is already an owner or pending owner of the package..
         /// </summary>
         public static string AddOwner_AlreadyOwner {

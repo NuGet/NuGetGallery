@@ -10,19 +10,24 @@ namespace NuGetGallery.Authentication.Providers.Utils
     {
         public static IdentityInformation GetIdentityInformation(ClaimsIdentity claimsIdentity, string authType)
         {
-            var identifierClaim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+            return GetIdentityInformation(claimsIdentity, authType, ClaimTypes.NameIdentifier, ClaimTypes.Name, ClaimTypes.Email);
+        }
+
+        public static IdentityInformation GetIdentityInformation(ClaimsIdentity claimsIdentity, string authType, string nameIdentifierClaimType, string nameClaimType, string emailClaimType)
+        {
+            var identifierClaim = claimsIdentity.FindFirst(nameIdentifierClaimType);
             if (identifierClaim == null)
             {
-                throw new ArgumentException($"External Authentication is missing required claim: {ClaimTypes.NameIdentifier}");
+                throw new ArgumentException($"External Authentication is missing required claim: {nameIdentifierClaimType}");
             }
 
-            var nameClaim = claimsIdentity.FindFirst(ClaimTypes.Name);
+            var nameClaim = claimsIdentity.FindFirst(nameClaimType);
             if (nameClaim == null)
             {
-                throw new ArgumentException($"External Authentication is missing required claim: {ClaimTypes.Name}");
+                throw new ArgumentException($"External Authentication is missing required claim: {nameClaimType}");
             }
 
-            var emailClaim = claimsIdentity.FindFirst(ClaimTypes.Email);
+            var emailClaim = claimsIdentity.FindFirst(emailClaimType);
             return new IdentityInformation(identifierClaim.Value, nameClaim.Value, emailClaim?.Value, authType, tenantId: null);
         }
     }
