@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.WindowsAzure.ServiceRuntime;
@@ -37,7 +38,7 @@ namespace NuGetGallery
                     }
 
                     // Check again in a second.
-                    Thread.Sleep(1000);
+                    Thread.Sleep(TimeSpan.FromSeconds(1));
                 }
             }
         }
