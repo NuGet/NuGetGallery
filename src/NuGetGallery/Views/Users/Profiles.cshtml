@@ -18,7 +18,7 @@
                     <div class="value">@Model.TotalPackageDownloadCount.ToNuGetNumberString()</div>
                     <div class="description">Total @(Model.TotalPackageDownloadCount == 1 ? "download" : "downloads") of packages</div>
                 </div>
-                @if (User.IsAdministrator())
+                @if (User.IsAdministrator() && !Model.UserIsOrganization)
                 {
                     <div class="statistic">
                         <div class="value">

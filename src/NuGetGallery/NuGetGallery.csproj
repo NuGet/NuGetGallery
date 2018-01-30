@@ -441,8 +441,8 @@
     <Reference Include="NuGet.Protocol, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Protocol.4.3.0-preview1-2524\lib\net45\NuGet.Protocol.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Services.Contracts, Version=2.7.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.Contracts.2.7.2\lib\net45\NuGet.Services.Contracts.dll</HintPath>
+    <Reference Include="NuGet.Services.Contracts, Version=2.10.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.Contracts.2.10.0\lib\net45\NuGet.Services.Contracts.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Services.KeyVault, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Services.KeyVault.1.0.0.0\lib\net45\NuGet.Services.KeyVault.dll</HintPath>
@@ -460,14 +460,14 @@
       <HintPath>..\..\packages\NuGet.Services.Platform.Client.3.0.29-r-master\lib\portable-net45+wp80+win\NuGet.Services.Platform.Client.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="NuGet.Services.ServiceBus, Version=2.7.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.ServiceBus.2.7.2\lib\net45\NuGet.Services.ServiceBus.dll</HintPath>
+    <Reference Include="NuGet.Services.ServiceBus, Version=2.10.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.ServiceBus.2.10.0\lib\net45\NuGet.Services.ServiceBus.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Services.Validation, Version=2.7.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.Validation.2.7.2\lib\net45\NuGet.Services.Validation.dll</HintPath>
+    <Reference Include="NuGet.Services.Validation, Version=2.10.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.Validation.2.10.0\lib\net45\NuGet.Services.Validation.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Services.Validation.Issues, Version=2.7.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.Validation.Issues.2.7.2\lib\net45\NuGet.Services.Validation.Issues.dll</HintPath>
+    <Reference Include="NuGet.Services.Validation.Issues, Version=2.10.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.Validation.Issues.2.10.0\lib\net45\NuGet.Services.Validation.Issues.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Versioning, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Versioning.4.3.0-preview1-2524\lib\net45\NuGet.Versioning.dll</HintPath>
@@ -725,8 +725,11 @@
     <Compile Include="Areas\Admin\ViewModels\SupportRequestAdminViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\SupportRequestsViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\SupportRequestViewModel.cs" />
+    <Compile Include="Authentication\ApiScopeEvaluationResult.cs" />
+    <Compile Include="Authentication\ApiScopeEvaluator.cs" />
     <Compile Include="Authentication\AuthenticateExternalLoginResult.cs" />
     <Compile Include="Authentication\FeedOnlyModeException.cs" />
+    <Compile Include="Authentication\IApiScopeEvaluator.cs" />
     <Compile Include="Authentication\NuGetPackagePattern.cs" />
     <Compile Include="Authentication\PasswordAuthenticationResult.cs" />
     <Compile Include="Authentication\NuGetScopes.cs" />
@@ -797,6 +800,7 @@
     <Compile Include="Helpers\PermissionsHelpers.cs" />
     <Compile Include="Helpers\RegexEx.cs" />
     <Compile Include="Helpers\RouteUrlTemplate.cs" />
+    <Compile Include="Infrastructure\Authentication\ApiKeyV3.cs" />
     <Compile Include="Infrastructure\Authentication\ApiKeyV4.cs" />
     <Compile Include="Infrastructure\Authentication\Base32Encoder.cs" />
     <Compile Include="Migrations\201711082145351_AddAccountDelete.cs" />
@@ -1052,6 +1056,7 @@
     <Compile Include="Diagnostics\DiagnosticsServiceExtensions.cs" />
     <Compile Include="Diagnostics\DiagnosticsSourceExtensions.cs" />
     <Compile Include="Configuration\StorageType.cs" />
+    <Compile Include="WebRole.cs" />
     <Content Include="bin\NuGetGallery.dll.config">
       <SubType>Designer</SubType>
     </Content>
@@ -1620,6 +1625,11 @@
     <Compile Include="Areas\Admin\ViewModels\DeleteUserAccountViewModel.cs" />
     <Compile Include="ViewModels\ListOrganizationsItemViewModel.cs" />
     <Compile Include="ViewModels\ListOrganizationsViewModel.cs" />
+    <Compile Include="ViewModels\ChangeEmailViewModel.cs" />
+    <Compile Include="ViewModels\ChangeNotificationsViewModel.cs" />
+    <Compile Include="ViewModels\ChangePasswordViewModel.cs" />
+    <Compile Include="ViewModels\CredentialKind.cs" />
+    <Compile Include="ViewModels\CredentialViewModel.cs" />
     <Compile Include="ViewModels\ListPackageOwnerViewModel.cs" />
     <Compile Include="ViewModels\PackageDeleteDecision.cs" />
     <Compile Include="ViewModels\DeleteAccountViewModel.cs" />
@@ -1641,7 +1651,9 @@
     <Compile Include="ViewModels\ScopeViewModel.cs" />
     <Compile Include="ViewModels\PackageListSearchViewModel.cs" />
     <Compile Include="ViewModels\ThirdPartyPackageManagerViewModel.cs" />
+    <Compile Include="ViewModels\TransformAccountFailedViewModel.cs" />
     <Compile Include="ViewModels\TransformAccountViewModel.cs" />
+    <Compile Include="ViewModels\UserAccountViewModel.cs" />
     <Compile Include="WebApi\PlainTextResult.cs" />
     <Compile Include="WebApi\QueryResult.cs" />
     <Compile Include="WebApi\QueryResultDefaults.cs" />

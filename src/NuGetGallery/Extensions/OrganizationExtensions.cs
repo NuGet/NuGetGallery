@@ -8,6 +8,11 @@ namespace NuGetGallery
 {
     public static class OrganizationExtensions
     {
+        public static Membership GetMembershipOfUser(this Organization organization, User member)
+        {
+            return organization.Members.FirstOrDefault(m => m.Member.MatchesUser(member));
+        }
+
         /// <summary>
         /// Returns all the user accounts that are members of an organization.
         /// If the organization has nested organizations their members will be returned as well.

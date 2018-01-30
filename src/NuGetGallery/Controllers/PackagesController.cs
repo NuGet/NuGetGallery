@@ -323,7 +323,7 @@ namespace NuGetGallery
                 // For a new package id verify if the user is allowed to use it.
                 if (existingPackageRegistration == null &&
                     ActionsRequiringPermissions.UploadNewPackageId.CheckPermissionsOnBehalfOfAnyAccount(
-                        currentUser, new ActionOnNewPackageContext(id, _reservedNamespaceService)) != PermissionsCheckResult.Allowed)
+                        currentUser, new ActionOnNewPackageContext(id, _reservedNamespaceService), out accountsAllowedOnBehalfOf) != PermissionsCheckResult.Allowed)
                 {
                     ModelState.AddModelError(
                         string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict));
@@ -337,7 +337,8 @@ namespace NuGetGallery
                 // For existing package id verify if it is owned by the current user
                 if (existingPackageRegistration != null)
                 {
-                    if (ActionsRequiringPermissions.UploadNewPackageVersion.CheckPermissionsOnBehalfOfAnyAccount(currentUser, existingPackageRegistration) != PermissionsCheckResult.Allowed)
+                    if (ActionsRequiringPermissions.UploadNewPackageVersion.CheckPermissionsOnBehalfOfAnyAccount(
+                        currentUser, existingPackageRegistration, out accountsAllowedOnBehalfOf) != PermissionsCheckResult.Allowed)
                     {
                         ModelState.AddModelError(
                           string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, existingPackageRegistration.Id));
@@ -987,7 +988,7 @@ namespace NuGetGallery
 
             if (ActionsRequiringPermissions.ManagePackageOwnership.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
             {
-                return new HttpStatusCodeResult(401, "Unauthorized");
+                return HttpForbidden();
             }
 
             var model = new ManagePackageOwnersViewModel(package, GetCurrentUser());
@@ -1007,7 +1008,7 @@ namespace NuGetGallery
             }
             if (ActionsRequiringPermissions.UnlistOrRelistPackage.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
             {
-                return new HttpStatusCodeResult(401, "Unauthorized");
+                return HttpForbidden();
             }
 
             var model = new DeletePackageViewModel(package, GetCurrentUser(), ReportMyPackageReasons);
@@ -1462,7 +1463,7 @@ namespace NuGetGallery
 
             if (ActionsRequiringPermissions.EditPackage.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
             {
-                return new HttpStatusCodeResult(401, "Unauthorized");
+                return HttpForbidden();
             }
 
             if (package.PackageRegistration.IsLocked)
@@ -1786,7 +1787,7 @@ namespace NuGetGallery
             }
             if (ActionsRequiringPermissions.EditPackage.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
             {
-                return new HttpStatusCodeResult(401, "Unauthorized");
+                return HttpForbidden();
             }
 
             await _packageService.SetLicenseReportVisibilityAsync(package, visible);
@@ -1841,6 +1842,11 @@ namespace NuGetGallery
             // Compare non-empty strings
             // Ignore those pesky '\r' characters which screw up comparisons.
             return !String.Equals(posted.Replace("\r", ""), package.Replace("\r", ""), StringComparison.Ordinal);
+        }
+
+        private static HttpStatusCodeResult HttpForbidden()
+        {
+            return new HttpStatusCodeResult(HttpStatusCode.Forbidden, Strings.Unauthorized);
         }
     }
 }

@@ -22,6 +22,7 @@ namespace NuGetGallery
             public const string Prefix = "apikey.";
             public const string V1 = Prefix + "v1";
             public const string V2 = Prefix + "v2";
+            public const string V3 = Prefix + "v3";
             public const string V4 = Prefix + "v4";
             public const string VerifyV1 = Prefix + "verify.v1";
         }
@@ -47,8 +48,17 @@ namespace NuGetGallery
         {
             return c?.Type?.Equals(type, StringComparison.OrdinalIgnoreCase) ?? false;
         }
-
-        internal static IReadOnlyList<string> SupportedCredentialTypes = new List<string> { Password.Sha1, Password.Pbkdf2, Password.V3, ApiKey.V1, ApiKey.V2, ApiKey.V4 };
+      
+        internal static IReadOnlyList<string> SupportedCredentialTypes = new List<string>
+        {
+            Password.Sha1,
+            Password.Pbkdf2,
+            Password.V3,
+            ApiKey.V1,
+            ApiKey.V2,
+            ApiKey.V3,
+            ApiKey.V4
+        };
 
         /// <summary>
         /// Determines whether a credential is supported (internal or from the UI). For forward compatibility,

@@ -51,7 +51,7 @@ namespace NuGetGallery
                     .Returns(new[] { new CuratedFeed { Name = "theCuratedFeed" } });
 
                 // act
-                var model = ResultAssert.IsView<AccountViewModel>(controller.Account(), viewName: "Account");
+                var model = ResultAssert.IsView<UserAccountViewModel>(controller.Account(), viewName: "Account");
 
                 // verify
                 Assert.Equal("theCuratedFeed", model.CuratedFeeds.First());
@@ -75,7 +75,7 @@ namespace NuGetGallery
                 var result = controller.Account();
 
                 // Assert
-                var model = ResultAssert.IsView<AccountViewModel>(result, viewName: "Account");
+                var model = ResultAssert.IsView<UserAccountViewModel>(result, viewName: "Account");
                 var descs = model
                     .CredentialGroups
                     .SelectMany(x => x.Value)
@@ -114,7 +114,7 @@ namespace NuGetGallery
                 var result = controller.Account();
 
                 // Assert
-                var model = ResultAssert.IsView<AccountViewModel>(result, viewName: "Account");
+                var model = ResultAssert.IsView<UserAccountViewModel>(result, viewName: "Account");
                 var descs = model
                     .CredentialGroups
                     .SelectMany(x => x.Value)
@@ -181,9 +181,9 @@ namespace NuGetGallery
                     .Setup(u => u.ChangeEmailSubscriptionAsync(user, false, true))
                     .Returns(Task.CompletedTask);
 
-                var result = await controller.ChangeEmailSubscription(new AccountViewModel
+                var result = await controller.ChangeEmailSubscription(new UserAccountViewModel
                 {
-                    ChangeNotifications =
+                    ChangeNotifications = new ChangeNotificationsViewModel
                     {
                         EmailAllowed = false,
                         NotifyPackagePushed = true
@@ -1137,6 +1137,188 @@ namespace NuGetGallery
             }
         }
 
+        public class TheProfilesAction : TestContainer
+        {
+            public static IEnumerable<object[]> Returns404ForMissingOrDeletedUser_Data
+            {
+                get
+                {
+                    yield return MemberDataHelper.AsData((User)null);
+                    yield return MemberDataHelper.AsData(new User("test") { IsDeleted = true });
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(Returns404ForMissingOrDeletedUser_Data))]
+            public void Returns404ForMissingOrDeletedUser(User user)
+            {
+                // Arrange
+                var username = "test";
+
+                GetMock<IUserService>()
+                    .Setup(x => x.FindByUsername(username))
+                    .Returns(user);
+
+                var controller = GetController<UsersController>();
+
+                // Act
+                var result = controller.Profiles(username);
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.NotFound);
+            }
+
+            public static IEnumerable<object[]> PossibleOwnershipScenarios_Data
+            {
+                get
+                {
+                    yield return MemberDataHelper.AsData(null, TestUtility.FakeUser);
+                    yield return MemberDataHelper.AsData(TestUtility.FakeUser, new User("randomUser") { Key = 5535 });
+                    yield return MemberDataHelper.AsData(TestUtility.FakeUser, TestUtility.FakeUser);
+                    yield return MemberDataHelper.AsData(TestUtility.FakeAdminUser, TestUtility.FakeUser);
+                    yield return MemberDataHelper.AsData(TestUtility.FakeAdminUser, TestUtility.FakeOrganization);
+                    yield return MemberDataHelper.AsData(TestUtility.FakeOrganizationAdmin, TestUtility.FakeOrganization);
+                    yield return MemberDataHelper.AsData(TestUtility.FakeOrganizationCollaborator, TestUtility.FakeOrganization);
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(PossibleOwnershipScenarios_Data))]
+            public void ReturnsSinglePackageAsExpected(User currentUser, User owner)
+            {
+                // Arrange
+                var username = "test";
+                
+                var package = new Package
+                {
+                    Version = "1.1.1",
+
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "package",
+                        Owners = new[] { owner },
+                        DownloadCount = 150
+                    },
+
+                    DownloadCount = 100
+                };
+
+                GetMock<IUserService>()
+                    .Setup(x => x.FindByUsername(username))
+                    .Returns(owner);
+
+                GetMock<IPackageService>()
+                    .Setup(x => x.FindPackagesByOwner(owner, false, false))
+                    .Returns(new[] { package });
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(currentUser);
+
+                // Act
+                var result = controller.Profiles(username);
+
+                // Assert
+                var model = ResultAssert.IsView<UserProfileModel>(result);
+                AssertUserProfileModel(model, currentUser, owner, package);
+            }
+
+            [Theory]
+            [MemberData(nameof(PossibleOwnershipScenarios_Data))]
+            public void SortsPackagesByDownloadCount(User currentUser, User owner)
+            {
+                // Arrange
+                var username = "test";
+
+                var package1 = new Package
+                {
+                    Version = "1.1.1",
+
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "package",
+                        Owners = new[] { owner },
+                        DownloadCount = 150
+                    },
+
+                    DownloadCount = 100
+                };
+
+                var package2 = new Package
+                {
+                    Version = "1.32.1",
+
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "otherPackage",
+                        Owners = new[] { owner },
+                        DownloadCount = 200
+                    },
+
+                    DownloadCount = 150
+                };
+
+                GetMock<IUserService>()
+                    .Setup(x => x.FindByUsername(username))
+                    .Returns(owner);
+
+                GetMock<IPackageService>()
+                    .Setup(x => x.FindPackagesByOwner(owner, false, false))
+                    .Returns(new[] { package1, package2 });
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(currentUser);
+
+                // Act
+                var result = controller.Profiles(username);
+
+                // Assert
+                var model = ResultAssert.IsView<UserProfileModel>(result);
+                AssertUserProfileModel(model, currentUser, owner, package2, package1);
+            }
+
+            private void AssertUserProfileModel(UserProfileModel model, User currentUser, User owner, params Package[] orderedPackages)
+            {
+                Assert.Equal(owner, model.User);
+                Assert.Equal(owner.EmailAddress, model.EmailAddress);
+                Assert.Equal(owner.Username, model.Username);
+                Assert.Equal(orderedPackages.Count(), model.TotalPackages);
+                Assert.Equal(orderedPackages.Sum(p => p.PackageRegistration.DownloadCount), model.TotalPackageDownloadCount);
+
+                var orderedPackagesIndex = 0;
+                foreach (var package in model.AllPackages)
+                {
+                    AssertListPackageItemViewModel(package, currentUser, orderedPackages[orderedPackagesIndex++]);
+                }
+            }
+
+            private void AssertListPackageItemViewModel(
+                ListPackageItemViewModel packageModel,
+                User currentUser,
+                Package package)
+            {
+                Assert.Equal(package.PackageRegistration.Id, packageModel.Id);
+                Assert.Equal(package.Version, packageModel.Version);
+                Assert.Equal(package.PackageRegistration.DownloadCount, packageModel.DownloadCount);
+
+                AssertListPackageItemViewModelPermissions(packageModel, p => p.CanDisplayPrivateMetadata, currentUser, package, ActionsRequiringPermissions.DisplayPrivatePackageMetadata);
+                AssertListPackageItemViewModelPermissions(packageModel, p => p.CanEdit, currentUser, package, ActionsRequiringPermissions.EditPackage);
+                AssertListPackageItemViewModelPermissions(packageModel, p => p.CanUnlistOrRelist, currentUser, package, ActionsRequiringPermissions.UnlistOrRelistPackage);
+                AssertListPackageItemViewModelPermissions(packageModel, p => p.CanManageOwners, currentUser, package, ActionsRequiringPermissions.ManagePackageOwnership);
+                AssertListPackageItemViewModelPermissions(packageModel, p => p.CanReportAsOwner, currentUser, package, ActionsRequiringPermissions.ReportPackageAsOwner);
+            }
+
+            private void AssertListPackageItemViewModelPermissions(
+                ListPackageItemViewModel packageModel,
+                Func<ListPackageItemViewModel, bool> getPermissionsField,
+                User currentUser,
+                Package package,
+                IActionRequiringEntityPermissions<Package> action)
+            {
+                var expectedPermissions = action.CheckPermissionsOnBehalfOfAnyAccount(currentUser, package) == PermissionsCheckResult.Allowed;
+                Assert.Equal(expectedPermissions, getPermissionsField(packageModel));
+            }
+        }
+
         public class TheChangeEmailAction : TestContainer
         {
             [Fact]
@@ -1163,7 +1345,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(user);
 
                 var result = await controller.ChangeEmail(
-                    new AccountViewModel()
+                    new UserAccountViewModel()
                     {
                         ChangeEmail = new ChangeEmailViewModel
                         {
@@ -1199,7 +1381,7 @@ namespace NuGetGallery
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
-                var model = new AccountViewModel()
+                var model = new UserAccountViewModel()
                 {
                     ChangeEmail = new ChangeEmailViewModel
                     {
@@ -1235,7 +1417,7 @@ namespace NuGetGallery
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
-                var model = new AccountViewModel()
+                var model = new UserAccountViewModel()
                 {
                     ChangeEmail = new ChangeEmailViewModel
                     {
@@ -1272,7 +1454,7 @@ namespace NuGetGallery
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
-                var model = new AccountViewModel()
+                var model = new UserAccountViewModel()
                 {
                     ChangeEmail = new ChangeEmailViewModel
                     {
@@ -1309,7 +1491,7 @@ namespace NuGetGallery
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
-                var model = new AccountViewModel
+                var model = new UserAccountViewModel
                 {
                     ChangeEmail = new ChangeEmailViewModel
                     {
@@ -1321,7 +1503,7 @@ namespace NuGetGallery
                 var result = await controller.ChangeEmail(model);
 
                 Assert.IsType<ViewResult>(result);
-                Assert.IsType<AccountViewModel>(((ViewResult)result).Model);
+                Assert.IsType<UserAccountViewModel>(((ViewResult)result).Model);
             }
         }
 
@@ -1333,9 +1515,9 @@ namespace NuGetGallery
                 // Arrange
                 var controller = GetController<UsersController>();
                 controller.ModelState.AddModelError("ChangePassword.blarg", "test");
-                var inputModel = new AccountViewModel
+                var inputModel = new UserAccountViewModel
                 {
-                    ChangePassword =
+                    ChangePassword = new ChangePasswordViewModel
                     {
                         EnablePasswordLogin = true,
                     }
@@ -1351,7 +1533,7 @@ namespace NuGetGallery
                 var result = await controller.ChangePassword(inputModel);
 
                 // Assert
-                var outputModel = ResultAssert.IsView<AccountViewModel>(result, viewName: "Account");
+                var outputModel = ResultAssert.IsView<UserAccountViewModel>(result, viewName: "Account");
                 Assert.Same(inputModel, outputModel);
             }
 
@@ -1369,7 +1551,7 @@ namespace NuGetGallery
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
-                var inputModel = new AccountViewModel()
+                var inputModel = new UserAccountViewModel()
                 {
                     ChangePassword = new ChangePasswordViewModel()
                     {
@@ -1384,7 +1566,7 @@ namespace NuGetGallery
                 var result = await controller.ChangePassword(inputModel);
 
                 // Assert
-                var outputModel = ResultAssert.IsView<AccountViewModel>(result, viewName: "Account");
+                var outputModel = ResultAssert.IsView<UserAccountViewModel>(result, viewName: "Account");
                 Assert.Same(inputModel, outputModel);
                 Assert.NotEqual(inputModel.ChangePassword.NewPassword, inputModel.ChangePassword.VerifyPassword);
 
@@ -1410,7 +1592,7 @@ namespace NuGetGallery
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
-                var inputModel = new AccountViewModel()
+                var inputModel = new UserAccountViewModel()
                 {
                     ChangePassword = new ChangePasswordViewModel()
                     {
@@ -1425,7 +1607,7 @@ namespace NuGetGallery
                 var result = await controller.ChangePassword(inputModel);
 
                 // Assert
-                var outputModel = ResultAssert.IsView<AccountViewModel>(result, viewName: "Account");
+                var outputModel = ResultAssert.IsView<UserAccountViewModel>(result, viewName: "Account");
                 Assert.Same(inputModel, outputModel);
 
                 var errorMessages = controller
@@ -1459,7 +1641,7 @@ namespace NuGetGallery
 
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
-                var inputModel = new AccountViewModel()
+                var inputModel = new UserAccountViewModel()
                 {
                     ChangePassword = new ChangePasswordViewModel()
                     {
@@ -1487,7 +1669,7 @@ namespace NuGetGallery
                     .CompletesWith(true);
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
-                var inputModel = new AccountViewModel()
+                var inputModel = new UserAccountViewModel()
                 {
                     ChangePassword = new ChangePasswordViewModel()
                     {
@@ -1529,7 +1711,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(user);
 
                 // Act
-                await controller.ChangePassword(new AccountViewModel());
+                await controller.ChangePassword(new UserAccountViewModel());
 
                 // Assert
                 Assert.Equal(TestUtility.GallerySiteRootHttps + "account/setpassword/test/t0k3n", actualConfirmUrl);
@@ -1551,7 +1733,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(user);
 
                 // Act
-                await controller.ChangePassword(new AccountViewModel());
+                await controller.ChangePassword(new UserAccountViewModel());
 
                 // Assert
                 var errorMessages = controller
@@ -2336,8 +2518,8 @@ namespace NuGetGallery
                    .Setup(stub => stub.GetIssues(null, null, null, userName))
                    .Returns(issues);
                 GetMock<ISupportRequestService>()
-                  .Setup(stub => stub.AddNewSupportRequestAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), testUser, null))
-                  .ReturnsAsync(successOnSentRequest ? new Issue() : (Issue)null);
+                  .Setup(stub => stub.TryAddDeleteSupportRequestAsync(testUser))
+                  .ReturnsAsync(successOnSentRequest);
 
                 // act
                 var result = await controller.RequestAccountDeletion() as RedirectToRouteResult;
@@ -2373,6 +2555,10 @@ namespace NuGetGallery
                     .Returns(string.IsNullOrEmpty(canTransformErrorReason));
 
                 GetMock<IUserService>()
+                    .Setup(u => u.CanTransformUserToOrganization(It.IsAny<User>(), It.IsAny<User>(), out canTransformErrorReason))
+                    .Returns(string.IsNullOrEmpty(canTransformErrorReason));
+
+                GetMock<IUserService>()
                     .Setup(s => s.RequestTransformToOrganizationAccount(It.IsAny<User>(), It.IsAny<User>()))
                     .Callback<User, User>((acct, admin) => {
                         acct.OrganizationMigrationRequest = new OrganizationMigrationRequest()
@@ -2400,11 +2586,13 @@ namespace NuGetGallery
                 var controller = CreateController(accountToTransform, canTransformErrorReason: "error");
 
                 // Act
-                var result = controller.TransformToOrganization();
+                var result = controller.TransformToOrganization() as ViewResult;
 
                 // Assert
                 Assert.NotNull(result);
-                Assert.Equal("error", controller.TempData["TransformError"]);
+
+                var model = result.Model as TransformAccountFailedViewModel;
+                Assert.Equal("error", model.ErrorMessage);
             }
         }
 
@@ -2420,11 +2608,13 @@ namespace NuGetGallery
                 // Act
                 var result = await controller.TransformToOrganization(new TransformAccountViewModel() {
                     AdminUsername = "OrgAdmin"
-                });
+                }) as ViewResult;
 
                 // Assert
                 Assert.NotNull(result);
-                Assert.Equal("error", controller.TempData["TransformError"]);
+
+                var model = result.Model as TransformAccountFailedViewModel;
+                Assert.Equal("error", model.ErrorMessage);
             }
 
             [Fact]
@@ -2470,22 +2660,6 @@ namespace NuGetGallery
         public class TheConfirmTransformToOrganizationAction : TestContainer
         {
             [Fact]
-            public async Task WhenAdminIsNotConfirmed_ShowsError()
-            {
-                // Arrange
-                var controller = GetController<UsersController>();
-                var currentUser = new User() { UnconfirmedEmailAddress = "unconfirmed@example.com" };
-                controller.SetCurrentUser(currentUser);
-
-                // Act
-                var result = await controller.ConfirmTransformToOrganization("account", "token");
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal(Strings.TransformAccount_NotConfirmed, controller.TempData["TransformError"]);
-            }
-
-            [Fact]
             public async Task WhenAccountToTransformIsNotFound_ShowsError()
             {
                 // Arrange
@@ -2494,13 +2668,15 @@ namespace NuGetGallery
                 controller.SetCurrentUser(currentUser);
 
                 // Act
-                var result = await controller.ConfirmTransformToOrganization("account", "token");
+                var result = await controller.ConfirmTransformToOrganization("account", "token") as ViewResult;
 
                 // Assert
                 Assert.NotNull(result);
+
+                var model = result.Model as TransformAccountFailedViewModel;
                 Assert.Equal(
                     String.Format(CultureInfo.CurrentCulture, Strings.TransformAccount_OrganizationAccountDoesNotExist, "account"),
-                    controller.TempData["TransformError"]);
+                    model.ErrorMessage);
             }
 
             [Fact]
@@ -2511,11 +2687,15 @@ namespace NuGetGallery
                 var controller = CreateController(accountToTransform, canTransformErrorReason: "error");
 
                 // Act
-                var result = await controller.ConfirmTransformToOrganization(accountToTransform, "token");
+                var result = await controller.ConfirmTransformToOrganization(accountToTransform, "token") as ViewResult;
 
                 // Assert
                 Assert.NotNull(result);
-                Assert.Equal("error", controller.TempData["TransformError"]);
+
+                var model = result.Model as TransformAccountFailedViewModel;
+                Assert.Equal(
+                    "error",
+                    model.ErrorMessage);
             }
 
             [Fact]
@@ -2526,14 +2706,16 @@ namespace NuGetGallery
                 var controller = CreateController(accountToTransform, success: false);
 
                 // Act
-                var result = await controller.ConfirmTransformToOrganization(accountToTransform, "token");
+                var result = await controller.ConfirmTransformToOrganization(accountToTransform, "token") as ViewResult;
 
                 // Assert
                 Assert.NotNull(result);
+
+                var model = result.Model as TransformAccountFailedViewModel;
                 Assert.Equal(
                     String.Format(CultureInfo.CurrentCulture,
                         Strings.TransformAccount_Failed, "account"),
-                    controller.TempData["TransformError"]);
+                    model.ErrorMessage);
             }
 
             [Fact]
@@ -2570,6 +2752,10 @@ namespace NuGetGallery
 
                 GetMock<IUserService>()
                     .Setup(u => u.CanTransformUserToOrganization(It.IsAny<User>(), out canTransformErrorReason))
+                    .Returns(string.IsNullOrEmpty(canTransformErrorReason));
+
+                GetMock<IUserService>()
+                    .Setup(u => u.CanTransformUserToOrganization(It.IsAny<User>(), It.IsAny<User>(), out canTransformErrorReason))
                     .Returns(string.IsNullOrEmpty(canTransformErrorReason));
 
                 GetMock<IUserService>()

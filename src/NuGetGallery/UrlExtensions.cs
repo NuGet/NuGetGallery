@@ -1049,10 +1049,27 @@ namespace NuGetGallery
 
             if (relativeUrl)
             {
-                return actionLink.Replace($"{protocol}://{hostName}", string.Empty);
+                return GetRelativeUrl(
+                    actionLink,
+                    protocol,
+                    hostName,
+                    url.RequestContext.HttpContext.Request.Url.Port,
+                    url.RequestContext.HttpContext.Request.Url.IsDefaultPort);
             }
 
             return actionLink;
+        }
+
+        private static string GetRelativeUrl(string link, string protocol, string hostName, int port, bool isDefaultPort)
+        {
+            if (!isDefaultPort)
+            {
+                return link.Replace($"{protocol}://{hostName}:{port}", string.Empty);
+            }
+            else
+            {
+                return link.Replace($"{protocol}://{hostName}", string.Empty);
+            }
         }
 
         private static string GetRouteLink(
@@ -1068,7 +1085,12 @@ namespace NuGetGallery
 
             if (relativeUrl)
             {
-                return routeLink.Replace($"{protocol}://{hostName}", string.Empty);
+                return GetRelativeUrl(
+                    routeLink,
+                    protocol,
+                    hostName,
+                    url.RequestContext.HttpContext.Request.Url.Port,
+                    url.RequestContext.HttpContext.Request.Url.IsDefaultPort);
             }
 
             return routeLink;
