@@ -196,27 +196,27 @@ namespace NuGetGallery
         [Authorize]
         public virtual ActionResult DeleteRequest()
         {
-            var user = GetCurrentUser();
+            var currentUser = GetCurrentUser();
 
-            if (user == null || user.IsDeleted)
+            if (currentUser == null || currentUser.IsDeleted)
             {
                 return HttpNotFound("User not found.");
             }
 
             var listPackageItems = _packageService
-                 .FindPackagesByAnyMatchingOwner(user, includeUnlisted: true)
-                 .Select(p => new ListPackageItemViewModel(p, user))
+                 .FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: true)
+                 .Select(p => new ListPackageItemViewModel(p, currentUser))
                  .ToList();
 
-            bool hasPendingRequest = _supportRequestService.GetIssues().Where((issue) => (issue.UserKey.HasValue && issue.UserKey.Value == user.Key) &&
+            bool hasPendingRequest = _supportRequestService.GetIssues().Where((issue) => (issue.UserKey.HasValue && issue.UserKey.Value == currentUser.Key) && 
                                                                                  string.Equals(issue.IssueTitle, Strings.AccountDelete_SupportRequestTitle) &&
                                                                                  issue.Key != IssueStatusKeys.Resolved).Any();
 
             var model = new DeleteAccountViewModel()
             {
                 Packages = listPackageItems,
-                User = user,
-                AccountName = user.Username,
+                User = currentUser,
+                AccountName = currentUser.Username,
                 HasPendingRequests = hasPendingRequest
             };
 
@@ -235,13 +235,7 @@ namespace NuGetGallery
                 return HttpNotFound("User not found.");
             }
 
-            var supportRequest = await _supportRequestService.AddNewSupportRequestAsync(
-                Strings.AccountDelete_SupportRequestTitle,
-                Strings.AccountDelete_SupportRequestTitle,
-                user.EmailAddress,
-                "The user requested to have the account deleted.",
-                user);
-            var isSupportRequestCreated = supportRequest != null;
+            var isSupportRequestCreated = await _supportRequestService.TryAddDeleteSupportRequestAsync(user);
             if (!isSupportRequestCreated)
             {
                 TempData["RequestFailedMessage"] = Strings.AccountDelete_CreateSupportRequestFails;
@@ -256,6 +250,7 @@ namespace NuGetGallery
         [Authorize(Roles = "Admins")]
         public virtual ActionResult Delete(string accountName)
         {
+            var currentUser = GetCurrentUser();
             var user = _userService.FindByUsername(accountName);
             if (user == null || user.IsDeleted || (user is Organization))
             {
@@ -264,7 +259,7 @@ namespace NuGetGallery
 
             var listPackageItems = _packageService
                  .FindPackagesByAnyMatchingOwner(user, includeUnlisted: true)
-                 .Select(p => new ListPackageItemViewModel(p, user))
+                 .Select(p => new ListPackageItemViewModel(p, currentUser))
                  .ToList();
             var model = new DeleteUserAccountViewModel
             {
@@ -584,15 +579,16 @@ namespace NuGetGallery
         [HttpGet]
         public virtual ActionResult Profiles(string username, int page = 1)
         {
+            var currentUser = GetCurrentUser();
             var user = _userService.FindByUsername(username);
             if (user == null || user.IsDeleted)
             {
                 return HttpNotFound();
             }
 
-            var packages = _packageService.FindPackagesByAnyMatchingOwner(user, includeUnlisted: false)
+            var packages = _packageService.FindPackagesByOwner(user, includeUnlisted: false)
                 .OrderByDescending(p => p.PackageRegistration.DownloadCount)
-                .Select(p => new ListPackageItemViewModel(p, user)
+                .Select(p => new ListPackageItemViewModel(p, currentUser)
                 {
                     DownloadCount = p.PackageRegistration.DownloadCount
                 }).ToList();
