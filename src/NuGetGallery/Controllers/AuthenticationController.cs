@@ -158,18 +158,26 @@ namespace NuGetGallery
                     modelErrorMessage = string.Format(CultureInfo.CurrentCulture, Strings.UserAccountLocked, timeRemaining);
                 }
 
-                ModelState.AddModelError("SignIn", modelErrorMessage);
-
-                return SignInOrExternalLinkView(model, linkingAccount);
+                return SignInFailure(model, linkingAccount, modelErrorMessage);
             }
 
-            var user = authenticationResult.AuthenticatedUser;
-
+            var authenticatedUser = authenticationResult.AuthenticatedUser;
+            
             if (linkingAccount)
             {
+                // Verify account has no other external accounts
+                if (authenticatedUser.User.Credentials.Any(c => c.IsExternal()) && !authenticatedUser.User.IsAdministrator())
+                {
+                    var message = string.Format(
+                           CultureInfo.CurrentCulture,
+                           Strings.AccountIsLinkedToAnotherExternalAccount,
+                           authenticatedUser.User.EmailAddress);
+                    return SignInFailure(model, linkingAccount, message);
+                }
+
                 // Link with an external account
-                user = await AssociateCredential(user);
-                if (user == null)
+                authenticatedUser = await AssociateCredential(authenticatedUser);
+                if (authenticatedUser == null)
                 {
                     return ExternalLinkExpired();
                 }
@@ -179,14 +187,21 @@ namespace NuGetGallery
             // to require a specific authentication provider, challenge that provider if needed.
             ActionResult challenge;
             if (ShouldChallengeEnforcedProvider(
-                NuGetContext.Config.Current.EnforcedAuthProviderForAdmin, user, returnUrl, out challenge))
+                NuGetContext.Config.Current.EnforcedAuthProviderForAdmin, authenticatedUser, returnUrl, out challenge))
             {
                 return challenge;
             }
 
             // Create session
-            await _authService.CreateSessionAsync(OwinContext, user);
+            await _authService.CreateSessionAsync(OwinContext, authenticatedUser);
             return SafeRedirect(returnUrl);
+        }
+
+        private ActionResult SignInFailure(LogOnViewModel model, bool linkingAccount, string modelErrorMessage)
+        {
+            ModelState.AddModelError("SignIn", modelErrorMessage);
+
+            return SignInOrExternalLinkView(model, linkingAccount);
         }
 
         internal bool ShouldChallengeEnforcedProvider(string enforcedProviders, AuthenticatedUser authenticatedUser, string returnUrl, out ActionResult challenge)
@@ -447,9 +462,7 @@ namespace NuGetGallery
                 {
                     // Consume the exception for now, for backwards compatibility to previous MSA provider.
                     email = result.ExternalIdentity.GetClaimOrDefault(ClaimTypes.Email);
-                    name = result
-                        .ExternalIdentity
-                        .GetClaimOrDefault(ClaimTypes.Name);
+                    name = result.ExternalIdentity.GetClaimOrDefault(ClaimTypes.Name);
                 }
 
                 // Check for a user with this email address
@@ -459,11 +472,27 @@ namespace NuGetGallery
                     existingUser = _userService.FindByEmailAddress(email);
                 }
 
+                var foundExistingUser = existingUser != null;
+                var existingUserLinkingError = AssociateExternalAccountViewModel.ExistingUserLinkingErrorType.None;
+
+                if (foundExistingUser)
+                {
+                    if (existingUser is Organization)
+                    {
+                        existingUserLinkingError = AssociateExternalAccountViewModel.ExistingUserLinkingErrorType.AccountIsOrganization;
+                    }
+                    else if (existingUser.Credentials.Any(c => c.IsExternal()) && !existingUser.IsAdministrator())
+                    {
+                        existingUserLinkingError = AssociateExternalAccountViewModel.ExistingUserLinkingErrorType.AccountIsAlreadyLinked;
+                    }
+                }
+
                 var external = new AssociateExternalAccountViewModel()
                 {
                     ProviderAccountNoun = authUI.AccountNoun,
                     AccountName = name,
-                    FoundExistingUser = existingUser != null
+                    FoundExistingUser = foundExistingUser,
+                    ExistingUserLinkingError = existingUserLinkingError
                 };
 
                 var model = new LogOnViewModel

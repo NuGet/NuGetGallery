@@ -128,7 +128,7 @@ namespace NuGetGallery.Authentication
 
                 var passwordCredentials = user
                     .Credentials
-                    .Where(c => CredentialTypes.IsPassword(c.Type))
+                    .Where(c => c.IsPassword())
                     .ToList();
 
                 if (passwordCredentials.Count > 1 ||
@@ -160,7 +160,7 @@ namespace NuGetGallery.Authentication
 
         private async Task<AuthenticatedUser> AuthenticateInternal(Func<Credential, Credential> matchCredential, Credential credential)
         {
-            if (credential.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase))
+            if (credential.IsPassword())
             {
                 // Password credentials cannot be used this way.
                 throw new ArgumentException(Strings.PasswordCredentialsCannotBeUsedHere, nameof(credential));
@@ -201,7 +201,7 @@ namespace NuGetGallery.Authentication
                     return null;
                 }
 
-                if (CredentialTypes.IsApiKey(matched.Type) &&
+                if (matched.IsApiKey() &&
                     !matched.IsScopedApiKey() &&
                     !matched.HasBeenUsedInLastDays(_config.ExpirationInDaysForApiKeyV1))
                 {
@@ -649,20 +649,20 @@ namespace NuGetGallery.Authentication
                 throw new InvalidOperationException(Strings.OrganizationsCannotCreateCredentials);
             }
 
-            // For replacing external or password credentials, replace all such credentials.
-            var replacePrefixes = new string[] {
-                CredentialTypes.Password.Prefix,
-                CredentialTypes.External.Prefix
-            };
-
-            var replaceCredPefix = replacePrefixes
-                .Where(rp => credential.Type.StartsWith(rp, StringComparison.OrdinalIgnoreCase))
-                .FirstOrDefault();
+            string replaceCredPrefix = null;
+            if (credential.IsPassword())
+            {
+                replaceCredPrefix = CredentialTypes.Password.Prefix;
+            }
+            else if (credential.IsExternal())
+            {
+                replaceCredPrefix = CredentialTypes.External.Prefix;
+            }
 
             Func<Credential, bool> replacingPredicate;
-            if (!string.IsNullOrEmpty(replaceCredPefix))
+            if (!string.IsNullOrEmpty(replaceCredPrefix))
             {
-                 replacingPredicate = cred => cred.Type.StartsWith(replaceCredPefix, StringComparison.OrdinalIgnoreCase);
+                 replacingPredicate = cred => cred.Type.StartsWith(replaceCredPrefix, StringComparison.OrdinalIgnoreCase);
             }
             else
             {
