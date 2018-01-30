@@ -31,7 +31,7 @@ namespace NuGetGallery.Infrastructure.Authentication
 
         public IList<Credential> GetValidCredentialsForApiKey(IQueryable<Credential> allCredentials, string providedApiKey)
         {
-            List<Credential> results;
+            var results = new List<Credential>();
 
             if (ApiKeyV4.TryParse(providedApiKey, out ApiKeyV4 apiKeyV4))
             {
@@ -43,8 +43,34 @@ namespace NuGetGallery.Infrastructure.Authentication
             }
             else
             {
-                results = allCredentials.Where(c => c.Type.StartsWith(CredentialTypes.ApiKey.Prefix) &&
-                                                        c.Value == providedApiKey).ToList();
+                // Try to authenticate as APIKey V1/V2/V3/Verify
+                if (ApiKeyV3.TryParse(providedApiKey, out var v3ApiKey))
+                {
+                    results = allCredentials.Where(c => c.Type.StartsWith(CredentialTypes.ApiKey.Prefix) &&
+                                                        (c.Value == providedApiKey || c.Value.StartsWith(v3ApiKey.IdPart))).ToList();
+
+                    results = results.Where(credential =>
+                    {
+                        switch (credential.Type)
+                        {
+                            case CredentialTypes.ApiKey.V1:
+                            case CredentialTypes.ApiKey.V2:
+                            case CredentialTypes.ApiKey.VerifyV1:
+                                {
+                                    return credential.Value == providedApiKey;
+                                }
+                            case CredentialTypes.ApiKey.V3:
+                                {
+                                    return v3ApiKey.Verify(credential.Value);
+                                }
+
+                            default:
+                                {
+                                    return false;
+                                }
+                        }
+                    }).ToList();
+                }
             }
 
             return results;

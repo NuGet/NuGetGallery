@@ -5,10 +5,10 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Transactions;
-using NuGetGallery.Authentication;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.ViewModels;
+using NuGetGallery.Auditing;
+using NuGetGallery.Authentication;
 using NuGetGallery.Security;
 
 namespace NuGetGallery
@@ -24,6 +24,7 @@ namespace NuGetGallery
         private readonly AuthenticationService _authService;
         private readonly IEntityRepository<User> _userRepository;
         private readonly ISupportRequestService _supportRequestService;
+        private readonly IAuditingService _auditingService;
 
         public DeleteAccountService(IEntityRepository<AccountDelete> accountDeleteRepository,
                                     IEntityRepository<User> userRepository,
@@ -33,7 +34,8 @@ namespace NuGetGallery
                                     IReservedNamespaceService reservedNamespaceService,
                                     ISecurityPolicyService securityPolicyService,
                                     AuthenticationService authService,
-                                    ISupportRequestService supportRequestService
+                                    ISupportRequestService supportRequestService,
+                                    IAuditingService auditingService
             )
         {
             _accountDeleteRepository = accountDeleteRepository ?? throw new ArgumentNullException(nameof(accountDeleteRepository));
@@ -45,6 +47,7 @@ namespace NuGetGallery
             _securityPolicyService = securityPolicyService ?? throw new ArgumentNullException(nameof(securityPolicyService));
             _authService = authService ?? throw new ArgumentNullException(nameof(authService));
             _supportRequestService = supportRequestService ?? throw new ArgumentNullException(nameof(supportRequestService));
+            _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
         }
 
         /// <summary>
@@ -130,6 +133,10 @@ namespace NuGetGallery
                 {
                     await DeleteGalleryUserAccountImplAsync(userToBeDeleted, admin, signature, unlistOrphanPackages);
                 }
+                await _auditingService.SaveAuditRecordAsync(new DeleteAccountAuditRecord(username: userToBeDeleted.Username,
+                    status: DeleteAccountAuditRecord.ActionStatus.Success,
+                    action: AuditedDeleteAccountAction.DeleteAccount,
+                    adminUsername: admin.Username));
                 return new DeleteUserAccountStatus()
                 {
                     Success = true,

@@ -1136,6 +1136,188 @@ namespace NuGetGallery
             }
         }
 
+        public class TheProfilesAction : TestContainer
+        {
+            public static IEnumerable<object[]> Returns404ForMissingOrDeletedUser_Data
+            {
+                get
+                {
+                    yield return MemberDataHelper.AsData((User)null);
+                    yield return MemberDataHelper.AsData(new User("test") { IsDeleted = true });
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(Returns404ForMissingOrDeletedUser_Data))]
+            public void Returns404ForMissingOrDeletedUser(User user)
+            {
+                // Arrange
+                var username = "test";
+
+                GetMock<IUserService>()
+                    .Setup(x => x.FindByUsername(username))
+                    .Returns(user);
+
+                var controller = GetController<UsersController>();
+
+                // Act
+                var result = controller.Profiles(username);
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.NotFound);
+            }
+
+            public static IEnumerable<object[]> PossibleOwnershipScenarios_Data
+            {
+                get
+                {
+                    yield return MemberDataHelper.AsData(null, TestUtility.FakeUser);
+                    yield return MemberDataHelper.AsData(TestUtility.FakeUser, new User("randomUser") { Key = 5535 });
+                    yield return MemberDataHelper.AsData(TestUtility.FakeUser, TestUtility.FakeUser);
+                    yield return MemberDataHelper.AsData(TestUtility.FakeAdminUser, TestUtility.FakeUser);
+                    yield return MemberDataHelper.AsData(TestUtility.FakeAdminUser, TestUtility.FakeOrganization);
+                    yield return MemberDataHelper.AsData(TestUtility.FakeOrganizationAdmin, TestUtility.FakeOrganization);
+                    yield return MemberDataHelper.AsData(TestUtility.FakeOrganizationCollaborator, TestUtility.FakeOrganization);
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(PossibleOwnershipScenarios_Data))]
+            public void ReturnsSinglePackageAsExpected(User currentUser, User owner)
+            {
+                // Arrange
+                var username = "test";
+                
+                var package = new Package
+                {
+                    Version = "1.1.1",
+
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "package",
+                        Owners = new[] { owner },
+                        DownloadCount = 150
+                    },
+
+                    DownloadCount = 100
+                };
+
+                GetMock<IUserService>()
+                    .Setup(x => x.FindByUsername(username))
+                    .Returns(owner);
+
+                GetMock<IPackageService>()
+                    .Setup(x => x.FindPackagesByOwner(owner, false, false))
+                    .Returns(new[] { package });
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(currentUser);
+
+                // Act
+                var result = controller.Profiles(username);
+
+                // Assert
+                var model = ResultAssert.IsView<UserProfileModel>(result);
+                AssertUserProfileModel(model, currentUser, owner, package);
+            }
+
+            [Theory]
+            [MemberData(nameof(PossibleOwnershipScenarios_Data))]
+            public void SortsPackagesByDownloadCount(User currentUser, User owner)
+            {
+                // Arrange
+                var username = "test";
+
+                var package1 = new Package
+                {
+                    Version = "1.1.1",
+
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "package",
+                        Owners = new[] { owner },
+                        DownloadCount = 150
+                    },
+
+                    DownloadCount = 100
+                };
+
+                var package2 = new Package
+                {
+                    Version = "1.32.1",
+
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "otherPackage",
+                        Owners = new[] { owner },
+                        DownloadCount = 200
+                    },
+
+                    DownloadCount = 150
+                };
+
+                GetMock<IUserService>()
+                    .Setup(x => x.FindByUsername(username))
+                    .Returns(owner);
+
+                GetMock<IPackageService>()
+                    .Setup(x => x.FindPackagesByOwner(owner, false, false))
+                    .Returns(new[] { package1, package2 });
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(currentUser);
+
+                // Act
+                var result = controller.Profiles(username);
+
+                // Assert
+                var model = ResultAssert.IsView<UserProfileModel>(result);
+                AssertUserProfileModel(model, currentUser, owner, package2, package1);
+            }
+
+            private void AssertUserProfileModel(UserProfileModel model, User currentUser, User owner, params Package[] orderedPackages)
+            {
+                Assert.Equal(owner, model.User);
+                Assert.Equal(owner.EmailAddress, model.EmailAddress);
+                Assert.Equal(owner.Username, model.Username);
+                Assert.Equal(orderedPackages.Count(), model.TotalPackages);
+                Assert.Equal(orderedPackages.Sum(p => p.PackageRegistration.DownloadCount), model.TotalPackageDownloadCount);
+
+                var orderedPackagesIndex = 0;
+                foreach (var package in model.AllPackages)
+                {
+                    AssertListPackageItemViewModel(package, currentUser, orderedPackages[orderedPackagesIndex++]);
+                }
+            }
+
+            private void AssertListPackageItemViewModel(
+                ListPackageItemViewModel packageModel,
+                User currentUser,
+                Package package)
+            {
+                Assert.Equal(package.PackageRegistration.Id, packageModel.Id);
+                Assert.Equal(package.Version, packageModel.Version);
+                Assert.Equal(package.PackageRegistration.DownloadCount, packageModel.DownloadCount);
+
+                AssertListPackageItemViewModelPermissions(packageModel, p => p.CanDisplayPrivateMetadata, currentUser, package, ActionsRequiringPermissions.DisplayPrivatePackageMetadata);
+                AssertListPackageItemViewModelPermissions(packageModel, p => p.CanEdit, currentUser, package, ActionsRequiringPermissions.EditPackage);
+                AssertListPackageItemViewModelPermissions(packageModel, p => p.CanUnlistOrRelist, currentUser, package, ActionsRequiringPermissions.UnlistOrRelistPackage);
+                AssertListPackageItemViewModelPermissions(packageModel, p => p.CanManageOwners, currentUser, package, ActionsRequiringPermissions.ManagePackageOwnership);
+                AssertListPackageItemViewModelPermissions(packageModel, p => p.CanReportAsOwner, currentUser, package, ActionsRequiringPermissions.ReportPackageAsOwner);
+            }
+
+            private void AssertListPackageItemViewModelPermissions(
+                ListPackageItemViewModel packageModel,
+                Func<ListPackageItemViewModel, bool> getPermissionsField,
+                User currentUser,
+                Package package,
+                IActionRequiringEntityPermissions<Package> action)
+            {
+                var expectedPermissions = action.CheckPermissionsOnBehalfOfAnyAccount(currentUser, package) == PermissionsCheckResult.Allowed;
+                Assert.Equal(expectedPermissions, getPermissionsField(packageModel));
+            }
+        }
+
         public class TheChangeEmailAction : TestContainer
         {
             [Fact]
@@ -2376,8 +2558,8 @@ namespace NuGetGallery
                    .Setup(stub => stub.GetIssues(null, null, null, userName))
                    .Returns(issues);
                 GetMock<ISupportRequestService>()
-                  .Setup(stub => stub.AddNewSupportRequestAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), testUser, null))
-                  .ReturnsAsync(successOnSentRequest ? new Issue() : (Issue)null);
+                  .Setup(stub => stub.TryAddDeleteSupportRequestAsync(testUser))
+                  .ReturnsAsync(successOnSentRequest);
 
                 // act
                 var result = await controller.RequestAccountDeletion() as RedirectToRouteResult;
