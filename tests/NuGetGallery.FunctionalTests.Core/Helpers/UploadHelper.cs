@@ -59,21 +59,13 @@ namespace NuGetGallery.FunctionalTests.Helpers
         public static string GetUniquePackageVersion()
         {
             var ticks = DateTimeOffset.UtcNow.Ticks;
-            return $"{(ticks / 1000000) % 100}.{(ticks / 10000) % 100}.{(ticks / 100) % 100}-at{ticks}";
-        }
-
-        /// <summary>
-        /// Uploads a new test package using Gallery UI. Validates that logon prompt appears to upload and checks that the package's home page opens post upload.
-        /// </summary>
-        public static IEnumerator<WebTestRequest> UploadPackage(WebTest test, string owner)
-        {
-            return UploadPackages(test, new PackageToUpload(owner: owner));
+            return $"1.0.0-v{ticks}";
         }
 
         /// <summary>
         /// Uploads a set of test packages using Gallery UI. Validates that logon prompt appears to upload and checks that the package's home page opens post upload.
         /// </summary>
-        public static IEnumerator<WebTestRequest> UploadPackages(WebTest test, params PackageToUpload[] packages)
+        public static IEnumerator<WebTestRequest> UploadPackages(WebTest test, IEnumerable<PackageToUpload> packages)
         {
             return UploadPackages(test, packages.Select(p => new PackageToUploadInternal(p)));
         }
@@ -93,7 +85,7 @@ namespace NuGetGallery.FunctionalTests.Helpers
         {
             return 
                 Login(test)
-                    .Concat(packagesToUpload.SelectMany(p => UploadPackageAfterLogin(test, p)))
+                    .Concat(packagesToUpload.SelectMany(p => UploadPackage(test, p)))
                     .GetEnumerator();
         }
         
@@ -109,7 +101,7 @@ namespace NuGetGallery.FunctionalTests.Helpers
             yield return logonPost;
         }
 
-        private static IEnumerable<WebTestRequest> UploadPackageAfterLogin(WebTest test, PackageToUploadInternal packageToUpload)
+        private static IEnumerable<WebTestRequest> UploadPackage(WebTest test, PackageToUploadInternal packageToUpload)
         {
             var uploadRequest = AssertAndValidationHelper.GetHttpRequestForUrl(UrlHelper.UploadPageUrl);
             yield return uploadRequest;

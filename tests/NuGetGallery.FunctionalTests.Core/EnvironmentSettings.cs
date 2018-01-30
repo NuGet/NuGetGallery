@@ -28,10 +28,8 @@ namespace NuGetGallery.FunctionalTests
         private static string _testAccountApiKey_PushPackage;
         private static string _testAccountApiKey_PushVersion;
         private static string _testOrganizationAdminAccountName;
-        private static string _testOrganizationAdminAccountPackageId;
         private static string _testOrganizationAdminAccountApiKey;
         private static string _testOrganizationCollaboratorAccountName;
-        private static string _testOrganizationCollaboratorAccountPackageId;
         private static string _testOrganizationCollaboratorAccountApiKey;
         private static string _testEmailServerHost;
         private static List<string> _trustedHttpsCertificates;
@@ -348,21 +346,6 @@ namespace NuGetGallery.FunctionalTests
         }
 
         /// <summary>
-        /// The ID of the package owned by the test nuget organization that <see cref="TestAccountName"/> is an admin of.
-        /// </summary>
-        public static string TestOrganizationAdminAccountPackageId
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(_testOrganizationAdminAccountPackageId))
-                {
-                    _testOrganizationAdminAccountPackageId = Environment.GetEnvironmentVariable("TestOrganizationAdminAccountPackageId");
-                }
-                return _testOrganizationAdminAccountPackageId;
-            }
-        }
-
-        /// <summary>
         /// An API key for the test account scoped to <see cref="TestOrganizationAdminAccountName"/>.
         /// </summary>
         public static string TestOrganizationAdminAccountApiKey
@@ -389,21 +372,6 @@ namespace NuGetGallery.FunctionalTests
                     _testOrganizationCollaboratorAccountName = Environment.GetEnvironmentVariable("TestOrganizationCollaboratorAccountName");
                 }
                 return _testOrganizationCollaboratorAccountName;
-            }
-        }
-
-        /// <summary>
-        /// The ID of the package owned by the test nuget organization that <see cref="TestAccountName"/> is a collaborator of.
-        /// </summary>
-        public static string TestOrganizationCollaboratorAccountPackageId
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(_testOrganizationCollaboratorAccountPackageId))
-                {
-                    _testOrganizationCollaboratorAccountPackageId = Environment.GetEnvironmentVariable("TestOrganizationCollaboratorAccountPackageId");
-                }
-                return _testOrganizationCollaboratorAccountPackageId;
             }
         }
 

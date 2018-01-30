@@ -1,14 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using NuGet;
+using NuGet.Versioning;
 using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using NuGet;
-using NuGet.Versioning;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -152,12 +151,12 @@ namespace NuGetGallery.FunctionalTests
         /// </summary>
         public async Task UploadNewPackageAndVerify(string packageId, string version = "1.0.0", string minClientVersion = null, string title = null, string tags = null, string description = null, string licenseUrl = null, string dependencies = null, string apiKey = null)
         {
-            await UploadNewPackage(packageId, version, minClientVersion, title, tags, description, licenseUrl, dependencies, apiKey);
+            await UploadNewPackage(packageId, version, true, minClientVersion, title, tags, description, licenseUrl, dependencies, apiKey);
 
             await VerifyPackageExistsInV2AndV3Async(packageId, version);
         }
 
-        public async Task UploadNewPackage(string packageId, string version, string minClientVersion = null,
+        public async Task UploadNewPackage(string packageId, string version = "1.0.0", bool success = true, string minClientVersion = null,
             string title = null, string tags = null, string description = null, string licenseUrl = null,
             string dependencies = null, string apiKey = null)
         {
@@ -166,20 +165,29 @@ namespace NuGetGallery.FunctionalTests
             var packageCreationHelper = new PackageCreationHelper(TestOutputHelper);
             var packageFullPath = await packageCreationHelper.CreatePackage(packageId, version, minClientVersion, title, tags, description, licenseUrl, dependencies);
 
-            await UploadExistingPackage(packageFullPath, apiKey);
+            try
+            {
+                var commandlineHelper = new CommandlineHelper(TestOutputHelper);
+                var processResult = await commandlineHelper.UploadPackageAsync(packageFullPath, UrlHelper.V2FeedPushSourceUrl, apiKey);
 
-            // Delete package from local disk once it gets uploaded
-            CleanCreatedPackage(packageFullPath);
-        }
-
-        public async Task UploadExistingPackage(string packageFullPath, string apiKey = null)
-        {
-            var commandlineHelper = new CommandlineHelper(TestOutputHelper);
-            var processResult = await commandlineHelper.UploadPackageAsync(packageFullPath, UrlHelper.V2FeedPushSourceUrl, apiKey);
-
-            Assert.True(processResult.ExitCode == 0,
-                "The package upload via Nuget.exe did not succeed properly. Check the logs to see the process error and output stream.  Exit Code: " +
-                processResult.ExitCode + ". Error message: \"" + processResult.StandardError + "\"");
+                if (success)
+                {
+                    Assert.True(processResult.ExitCode == 0,
+                        "The package upload via Nuget.exe did not succeed properly. Check the logs to see the process error and output stream.  Exit Code: " +
+                        processResult.ExitCode + ". Error message: \"" + processResult.StandardError + "\"");
+                }
+                else
+                {
+                    Assert.False(processResult.ExitCode == 0,
+                        "The package upload via Nuget.exe succeeded but was expected to fail. Check the logs to see the process error and output stream.  Exit Code: " +
+                        processResult.ExitCode + ". Error message: \"" + processResult.StandardError + "\"");
+                }
+            }
+            finally
+            {
+                // Delete package from local disk once it gets uploaded
+                CleanCreatedPackage(packageFullPath);
+            }
         }
 
         /// <summary>
@@ -188,12 +196,12 @@ namespace NuGetGallery.FunctionalTests
         /// </summary>
         public async Task UnlistPackageAndVerify(string packageId, string version = "1.0.0", string apiKey = null)
         {
-            await UnlistPackage(packageId, version, apiKey);
+            await UnlistPackage(packageId, version, apiKey: apiKey);
 
             await VerifyPackageExistsInV2AndV3Async(packageId, version);
         }
 
-        public async Task UnlistPackage(string packageId, string version = "1.0.0", string apiKey = null)
+        public async Task UnlistPackage(string packageId, string version = "1.0.0", bool success = true, string apiKey = null)
         {
             if (string.IsNullOrEmpty(packageId))
             {
@@ -205,9 +213,18 @@ namespace NuGetGallery.FunctionalTests
             var commandlineHelper = new CommandlineHelper(TestOutputHelper);
             var processResult = await commandlineHelper.DeletePackageAsync(packageId, version, UrlHelper.V2FeedPushSourceUrl, apiKey);
 
-            Assert.True(processResult.ExitCode == 0,
-                "The package unlist via Nuget.exe did not succeed properly. Check the logs to see the process error and output stream.  Exit Code: " +
-                processResult.ExitCode + ". Error message: \"" + processResult.StandardError + "\"");
+            if (success)
+            {
+                Assert.True(processResult.ExitCode == 0,
+                    "The package unlist via Nuget.exe did not succeed properly. Check the logs to see the process error and output stream.  Exit Code: " +
+                    processResult.ExitCode + ". Error message: \"" + processResult.StandardError + "\"");
+            }
+            else
+            {
+                Assert.False(processResult.ExitCode == 0,
+                    "The package unlist via Nuget.exe succeeded but was expected to fail. Check the logs to see the process error and output stream.  Exit Code: " +
+                    processResult.ExitCode + ". Error message: \"" + processResult.StandardError + "\"");
+            }
         }
 
         /// <summary>
