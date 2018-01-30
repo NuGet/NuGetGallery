@@ -60,7 +60,7 @@
 
                 <!-- ko if: $data.PossibleOwners -->
                 <div class="verify-package-field form-group editable">
-                    <label for="Owner" class="verify-package-field-heading" data-bind="text: $data.IsNewId ? 'Owner' : 'Owners'">Owner</label>
+                    <label for="Owner" class="verify-package-field-heading" data-bind="text: $data.IsNewId ? 'Owner' : 'Owners'"></label>
                     <!-- ko if: $data.PossibleOwners.length > 1 && $data.IsNewId -->
                     <select aria-required="true" class="form-control" data-val="true" data-val-required="You must select an owner for your package!" name="Owner" data-bind="foreach: $data.PossibleOwners">
                         <option data-bind="value: $data, text: $data"></option>
