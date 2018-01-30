@@ -17,6 +17,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectory
     public class AzureActiveDirectoryAuthenticator : Authenticator<AzureActiveDirectoryAuthenticatorConfiguration>
     {
         public static readonly string DefaultAuthenticationType = "AzureActiveDirectory";
+        public static readonly string ClaimTypeName = "name";
 
         protected override void AttachToOwinApp(IGalleryConfigurationService config, IAppBuilder app)
         {
@@ -83,7 +84,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectory
 
         public override IdentityInformation GetIdentityInformation(ClaimsIdentity claimsIdentity)
         {
-            return ClaimsExtentions.GetIdentityInformation(claimsIdentity, DefaultAuthenticationType);
+            return ClaimsExtentions.GetIdentityInformation(claimsIdentity, DefaultAuthenticationType, ClaimTypes.NameIdentifier, ClaimTypeName, ClaimTypes.Name);
         }
     }
 }
