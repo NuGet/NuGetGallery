@@ -49,32 +49,39 @@ namespace NuGetGallery.FunctionalTests.Commandline
         }
 
         [Fact]
-        [Description("Creates a test package with a new ID and pushes it to the server using Nuget.exe")]
+        [Description("Tests upload and unlist scenarios as self")]
         [Priority(0)]
         [Category("P0Tests")]
-        public async Task UploadPackageWithNuGetCommandLineTest()
+        public async Task UploadAndUnlistPackagesAsSelfWithNuGetCommandLineTest()
         {
-            await _clientSdkHelper.UploadNewPackageAndVerify(DateTime.Now.Ticks.ToString());
+            // Can push new package ID as self
+            var id = UploadHelper.GetUniquePackageId("UploadAndUnlistPackagesAsSelf");
+            await _clientSdkHelper.UploadNewPackageAndVerify(id, "1.0.0");
+
+            // Can push new version of an existing package as self
+            await _clientSdkHelper.UploadNewPackageAndVerify(id, "2.0.0");
+
+            // Can unlist versions of an existing package as self
+            await _clientSdkHelper.UnlistPackageAndVerify(id, "2.0.0");
         }
 
         [Fact]
         [Description("Tests upload and unlist scenarios as an organization admin")]
         [Priority(0)]
         [Category("P0Tests")]
-        public async Task UploadAndUnlistPackagesAsAsOrganizationAdminWithNuGetCommandLineTest()
+        public async Task UploadAndUnlistPackagesAsOrganizationAdminWithNuGetCommandLineTest()
         {
             var apiKey = EnvironmentSettings.TestOrganizationAdminAccountApiKey;
 
             // Can push new package ID as organization
-            await _clientSdkHelper.UploadNewPackageAndVerify(DateTime.Now.Ticks.ToString(), apiKey: apiKey);
+            var id = UploadHelper.GetUniquePackageId("UploadAndUnlistPackagesAsOrganizationAdmin");
+            await _clientSdkHelper.UploadNewPackageAndVerify(id, "1.0.0", apiKey: apiKey);
 
             // Can push new version of an existing package as organization
-            var id = Constants.TestOrganizationAdminPackageId;
-            var version = UploadHelper.GetUniquePackageVersion();
-            await _clientSdkHelper.UploadNewPackageAndVerify(id, version, apiKey: apiKey);
+            await _clientSdkHelper.UploadNewPackageAndVerify(id, "2.0.0", apiKey: apiKey);
 
             // Can unlist versions of an existing package as organization
-            await _clientSdkHelper.UnlistPackageAndVerify(id, version, apiKey);
+            await _clientSdkHelper.UnlistPackageAndVerify(id, "2.0.0", apiKey);
         }
 
         [Fact]
@@ -86,7 +93,10 @@ namespace NuGetGallery.FunctionalTests.Commandline
             var apiKey = EnvironmentSettings.TestOrganizationCollaboratorAccountApiKey;
 
             // Cannot push new package ID as organization
-            await _clientSdkHelper.UploadNewPackage(DateTime.Now.Ticks.ToString(), success: false, apiKey: apiKey);
+            await _clientSdkHelper.UploadNewPackage(
+                UploadHelper.GetUniquePackageId("UploadAndUnlistPackagesAsOrganizationCollaborator"), 
+                success: false, 
+                apiKey: apiKey);
 
             // Can push new version of an existing package as organization
             var id = Constants.TestOrganizationCollaboratorPackageId;
@@ -101,13 +111,13 @@ namespace NuGetGallery.FunctionalTests.Commandline
         [Description("Uses scoped API keys to push and unlist packages using Nuget.exe")]
         [Priority(0)]
         [Category("P0Tests")]
-        public async Task VerifyScopedApiKeys()
+        public async Task VerifyScopedApiKeysWithNuGetCommandLineTest()
         {
             // Arrange
             var packageCreationHelper = new PackageCreationHelper(TestOutputHelper);
             var commandlineHelper = new CommandlineHelper(TestOutputHelper);
 
-            var packageId = "ScopedApiKeysTest_" + DateTime.Now.Ticks;
+            var packageId = UploadHelper.GetUniquePackageId("VerifyScopedApiKeys");
             var version1 = "1.0.0";
             var version2= "2.0.0";
 

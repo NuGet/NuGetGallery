@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using Microsoft.VisualStudio.TestTools.WebTesting;
 using NuGetGallery.FunctionalTests.Helpers;
 
 namespace NuGetGallery.FunctionalTests.WebUITests.UploadAndDownload
@@ -10,16 +9,19 @@ namespace NuGetGallery.FunctionalTests.WebUITests.UploadAndDownload
     /// <summary>
     /// Tests uploading a package from the UI as an organization admin.
     /// </summary>
-    public class UploadPackageToOrganizationFromUI : UploadPackageFromUI
+    public class UploadPackageToOrganizationAsAdminFromUI : UploadPackageFromUI
     {
+        private static string Owner = EnvironmentSettings.TestOrganizationAdminAccountName;
+
+        private string _id = UploadHelper.GetUniquePackageId(nameof(UploadPackageToOrganizationAsAdminFromUI));
+
         public override IEnumerable<UploadHelper.PackageToUpload> PackagesToUpload => new[]
         {
-            new UploadHelper.PackageToUpload(
-                owner: EnvironmentSettings.TestOrganizationAdminAccountName),
-
-            new UploadHelper.PackageToUpload(
-                id: Constants.TestOrganizationAdminPackageId, 
-                owner: EnvironmentSettings.TestOrganizationAdminAccountName)
+            // Upload new registration
+            new UploadHelper.PackageToUpload(id: _id, version: "1.0.0", owner: Owner),
+            
+            // Upload new version of existing registration
+            new UploadHelper.PackageToUpload(id: _id, version: "2.0.0", owner: Owner)
         };
     }
 }

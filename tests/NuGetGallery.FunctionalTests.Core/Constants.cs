@@ -33,7 +33,6 @@ namespace NuGetGallery.FunctionalTests
         public const string ContactOwnersText = "Your message has been sent to the owners of";
         public const string UnListedPackageText = "This package is unlisted and hidden from package listings";
         public const string TestPackageId = "BaseTestPackage";
-        public const string TestOrganizationAdminPackageId = "BaseTestOrganizationAdminPackage";
         public const string TestOrganizationCollaboratorPackageId = "BaseTestOrganizationCollaboratorPackage";
         public const string ReadOnlyModeError = "Error 503 - Read-only Mode";
         public const string UploadFailureMessage = "The package upload via Nuget.exe didnt succeed properly. Check the logs to see the process error and output stream";

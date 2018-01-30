@@ -11,10 +11,15 @@ namespace NuGetGallery.FunctionalTests.WebUITests.UploadAndDownload
     /// </summary>
     public class UploadPackageToSelfFromUI : UploadPackageFromUI
     {
+        private string _id = UploadHelper.GetUniquePackageId(nameof(UploadPackageToSelfFromUI));
+
         public override IEnumerable<UploadHelper.PackageToUpload> PackagesToUpload => new[]
         {
-            new UploadHelper.PackageToUpload(version: "1.0.0"),
-            new UploadHelper.PackageToUpload(version: "2.0.0")
+            // Upload new registration
+            new UploadHelper.PackageToUpload(_id, version: "1.0.0"),
+            
+            // Upload new version of existing registration
+            new UploadHelper.PackageToUpload(_id, version: "2.0.0")
         };
     }
 }

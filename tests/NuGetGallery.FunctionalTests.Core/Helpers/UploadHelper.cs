@@ -30,11 +30,11 @@ namespace NuGetGallery.FunctionalTests.Helpers
             /// </summary>
             public string Owner { get; }
 
-            public PackageToUpload(string id = null, string version = null, string owner = null)
+            public PackageToUpload(string id, string version = null, string owner = null)
             {
-                Owner = owner ?? EnvironmentSettings.TestAccountName;
-                Id = id ?? GetUniquePackageId(Owner);
+                Id = id;
                 Version = version ?? GetUniquePackageVersion();
+                Owner = owner ?? EnvironmentSettings.TestAccountName;
             }
 
             protected PackageToUpload(PackageToUpload package)
@@ -48,9 +48,14 @@ namespace NuGetGallery.FunctionalTests.Helpers
         /// <summary>
         /// Gets a unique ID for a package to upload.
         /// </summary>
-        public static string GetUniquePackageId(string owner)
+        public static string GetUniquePackageId(string test)
         {
-            return $"UploadPackageFromUI.{owner}.{DateTimeOffset.UtcNow.Ticks}";
+            if (test == null)
+            {
+                test = "UploadPackageFromUI";
+            }
+
+            return $"{test}_{DateTimeOffset.UtcNow.Ticks}";
         }
 
         /// <summary>

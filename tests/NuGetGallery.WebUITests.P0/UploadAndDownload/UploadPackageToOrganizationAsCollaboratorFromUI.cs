@@ -13,6 +13,7 @@ namespace NuGetGallery.FunctionalTests.WebUITests.UploadAndDownload
     {
         public override IEnumerable<UploadHelper.PackageToUpload> PackagesToUpload => new[]
         {
+            // Upload new version of existing registration
             new UploadHelper.PackageToUpload(
                     id: Constants.TestOrganizationCollaboratorPackageId,
                     owner: EnvironmentSettings.TestOrganizationCollaboratorAccountName)
