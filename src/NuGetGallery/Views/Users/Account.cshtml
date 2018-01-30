@@ -8,16 +8,6 @@
 <section role="main" class="container main-container page-account-settings">
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
-            @if (TempData.ContainsKey("WarningMessage"))
-            {
-                @ViewHelpers.AlertWarning(@<text>@((string)TempData["WarningMessage"])</text>);
-            }
-
-            @if (TempData.ContainsKey("ErrorMessage"))
-            {
-                @ViewHelpers.AlertDanger(@<text>@((string)TempData["ErrorMessage"])</text>);
-            }
-
             <h1 class="text-center">Account Settings</h1>
             <div class="text-center ms-font-xxl">
                 <a href="@Url.User(CurrentUser)">@CurrentUser.Username</a>

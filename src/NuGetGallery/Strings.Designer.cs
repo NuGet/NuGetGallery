@@ -433,11 +433,11 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to update the Microsoft account with &apos;{0}&apos; as it is already linked to another NuGet account..
+        ///   Looks up a localized string similar to Failed to update the Microsoft account with &apos;{0}&apos;. This could happen if it is already linked to another NuGet account. Contact support for more information..
         /// </summary>
-        public static string ChangeCredential_ExistingCredential {
+        public static string ChangeCredential_Failed {
             get {
-                return ResourceManager.GetString("ChangeCredential_ExistingCredential", resourceCulture);
+                return ResourceManager.GetString("ChangeCredential_Failed", resourceCulture);
             }
         }
         

@@ -789,7 +789,7 @@ namespace NuGetGallery.Controllers
 
                 // Assert
                 ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
-                Assert.Equal(string.Format(Strings.ChangeCredential_ExistingCredential, identity), controller.TempData["ErrorMessage"]);
+                Assert.Equal(string.Format(Strings.ChangeCredential_Failed, identity), controller.TempData["ErrorMessage"]);
             }
 
             [Fact]
