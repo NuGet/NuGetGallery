@@ -1012,6 +1012,10 @@ img.reserved-indicator-icon {
 .page-reset-password .reset-form {
   margin-top: 80px;
 }
+.page-sign-in .deprecate-alert {
+  padding: 0;
+  margin-top: -15px;
+}
 .page-sign-in .provider-button {
   font-size: 16px;
   line-height: 2em;
