@@ -21,7 +21,7 @@
 
     <div class="form-group @Html.HasErrorFor(m => m.SignIn.UserNameOrEmail)">
         @Html.ShowLabelFor(m => m.SignIn.UserNameOrEmail)
-        @if (!string.IsNullOrEmpty(Model.SignIn.UserNameOrEmail))
+        @if (Model.External != null && !string.IsNullOrEmpty(Model.SignIn.UserNameOrEmail))
         {
             @Html.HiddenFor(m => m.SignIn.UserNameOrEmail)
             <p>@Model.SignIn.UserNameOrEmail</p>

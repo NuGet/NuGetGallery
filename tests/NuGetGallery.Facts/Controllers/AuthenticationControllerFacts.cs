@@ -315,7 +315,7 @@ namespace NuGetGallery.Controllers
                 GetMock<AuthenticationService>().Verify(a => a.CreateSessionAsync(controller.OwinContext, authUser), Times.Never());
                 ResultAssert.IsView(result, viewName: SignInViewNuGetName);
                 Assert.False(controller.ModelState.IsValid);
-                Assert.Equal(Strings.LinkingMultipleExternalAccountsUnsupported, controller.ModelState[SignInViewName].Errors[0].ErrorMessage);
+                Assert.Equal(Strings.AccountIsLinkedToAnotherExternalAccount, controller.ModelState[SignInViewName].Errors[0].ErrorMessage);
             }
 
             public async Task WhenAttemptingToLinkExternalToAdminUserWithExistingExternals_AllowsLinking()
@@ -1158,12 +1158,7 @@ namespace NuGetGallery.Controllers
                 Assert.Null(model.External.AccountName);
                 Assert.True(model.External.FoundExistingUser);
                 Assert.False(model.External.ExistingUserCanBeLinked);
-                Assert.Equal(
-                    string.Format(
-                        CultureInfo.CurrentCulture,
-                        Strings.LinkingOrganizationUnsupported,
-                        existingOrganization.EmailAddress),
-                    model.External.ExistingUserLinkingError);
+                Assert.Equal(AssociateExternalAccountViewModel.ExistingUserLinkingErrorType.AccountIsOrganization, model.External.ExistingUserLinkingError);
             }
 
             [Fact]
@@ -1211,12 +1206,7 @@ namespace NuGetGallery.Controllers
                 Assert.Null(model.External.AccountName);
                 Assert.True(model.External.FoundExistingUser);
                 Assert.False(model.External.ExistingUserCanBeLinked);
-                Assert.Equal(
-                    string.Format(
-                        CultureInfo.CurrentCulture,
-                        Strings.AccountIsLinkedToAnotherExternalAccount,
-                        existingUser.EmailAddress),
-                    model.External.ExistingUserLinkingError);
+                Assert.Equal(AssociateExternalAccountViewModel.ExistingUserLinkingErrorType.AccountIsAlreadyLinked, model.External.ExistingUserLinkingError);
             }
 
             [Fact]

@@ -154,7 +154,11 @@ namespace NuGetGallery
                 // Verify account has no other external accounts
                 if (authenticatedUser.User.Credentials.Any(c => c.IsExternal()) && !authenticatedUser.User.IsAdministrator())
                 {
-                    return SignInFailure(model, linkingAccount, Strings.LinkingMultipleExternalAccountsUnsupported);
+                    var message = string.Format(
+                           CultureInfo.CurrentCulture,
+                           Strings.AccountIsLinkedToAnotherExternalAccount,
+                           authenticatedUser.User.EmailAddress);
+                    return SignInFailure(model, linkingAccount, message);
                 }
 
                 // Link with an external account
@@ -384,23 +388,17 @@ namespace NuGetGallery
                 }
 
                 var foundExistingUser = existingUser != null;
-                string existingUserLinkingError = null;
+                var existingUserLinkingError = AssociateExternalAccountViewModel.ExistingUserLinkingErrorType.None;
 
                 if (foundExistingUser)
                 {
                     if (existingUser is Organization)
                     {
-                        existingUserLinkingError = string.Format(
-                               CultureInfo.CurrentCulture,
-                               Strings.LinkingOrganizationUnsupported,
-                               email);
+                        existingUserLinkingError = AssociateExternalAccountViewModel.ExistingUserLinkingErrorType.AccountIsOrganization;
                     }
                     else if (existingUser.Credentials.Any(c => c.IsExternal()) && !existingUser.IsAdministrator())
                     {
-                        existingUserLinkingError = string.Format(
-                               CultureInfo.CurrentCulture,
-                               Strings.AccountIsLinkedToAnotherExternalAccount,
-                               email);
+                        existingUserLinkingError = AssociateExternalAccountViewModel.ExistingUserLinkingErrorType.AccountIsAlreadyLinked;
                     }
                 }
 

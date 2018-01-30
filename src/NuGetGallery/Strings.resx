@@ -737,12 +737,7 @@ For more information, please contact '{2}'.</value>
     <value>Another tranform request was created on {0} with organization admin '{1}'.</value>
   </data>
   <data name="AccountIsLinkedToAnotherExternalAccount" xml:space="preserve">
-    <value>We found an account with the email address associated with this external account ({0}), but linked to a different external account.</value>
-  </data>
-  <data name="LinkingMultipleExternalAccountsUnsupported" xml:space="preserve">
-    <value>You cannot link your NuGet.org account to multiple external accounts.</value>
-  </data>
-  <data name="LinkingOrganizationUnsupported" xml:space="preserve">
-    <value>We found an organization with the email address associated with this external account ({0}), but organizations cannot be linked to external accounts.</value>
+    <value>The account with the email {0} is linked to another Microsoft account.
+If you wish to update the linked Microsoft account you can do so from the account settings page.</value>
   </data>
 </root>

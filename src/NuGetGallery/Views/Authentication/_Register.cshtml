@@ -33,7 +33,7 @@
     }
     <div class="form-group @Html.HasErrorFor(m => m.Register.EmailAddress)">
         @Html.ShowLabelFor(m => m.Register.EmailAddress)
-        @if (!string.IsNullOrEmpty(Model.Register.EmailAddress))
+        @if (Model.External != null && !string.IsNullOrEmpty(Model.Register.EmailAddress))
         {
             @Html.HiddenFor(m => m.Register.EmailAddress)
             <p>@Model.Register.EmailAddress</p>

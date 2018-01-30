@@ -124,7 +124,8 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to We found an account with the email address associated with this external account ({0}), but linked to a different external account..
+        ///   Looks up a localized string similar to The account with the email {0} is linked to another Microsoft account.
+        ///If you wish to update the linked Microsoft account you can do so from the account settings page..
         /// </summary>
         public static string AccountIsLinkedToAnotherExternalAccount {
             get {
@@ -752,24 +753,6 @@ namespace NuGetGallery {
         public static string JobLogBlobNameInvalid {
             get {
                 return ResourceManager.GetString("JobLogBlobNameInvalid", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to You cannot link your NuGet.org account to multiple external accounts..
-        /// </summary>
-        public static string LinkingMultipleExternalAccountsUnsupported {
-            get {
-                return ResourceManager.GetString("LinkingMultipleExternalAccountsUnsupported", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to We found an organization with the email address associated with this external account ({0}), but organizations cannot be linked to external accounts..
-        /// </summary>
-        public static string LinkingOrganizationUnsupported {
-            get {
-                return ResourceManager.GetString("LinkingOrganizationUnsupported", resourceCulture);
             }
         }
         

@@ -2,8 +2,8 @@
 @{
     ViewBag.Title = "Sign In";
     ViewBag.Tab = "Sign in";
-    ViewBag.SmPageColumns = Constants.ColumnsAuthenticationSm;
-    ViewBag.MdPageColumns = Constants.ColumnsAuthenticationMd;
+    ViewBag.SmPageColumns = Constants.ColumnsWideAuthenticationSm;
+    ViewBag.MdPageColumns = Constants.ColumnsWideAuthenticationMd;
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
@@ -15,37 +15,60 @@
     </div>
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
-            <p class="text-center">
-                @if (Model.External.FoundExistingUser)
+            @if (Model.External.FoundExistingUser)
+            {
+                if (Model.External.ExistingUserCanBeLinked)
                 {
-                    if (Model.External.ExistingUserCanBeLinked)
-                    {
-                        <text>
+                    <p class="text-center">
                         We found an account with this email address. Sign in with your password to link with this Microsoft account.
                         Please <a href="mailto:@Config.Current.GalleryOwner.Address">contact support</a> if you need more assistance.
-                        </text>
+                    </p>
 
-                        @Html.Partial("_SignIn", Model);
-                    }
-                    else
-                    {
-                        @Model.External.ExistingUserLinkingError;
-
-                        <text>
-                        Please <a href="mailto:@Config.Current.GalleryOwner.Address">contact support</a> if you need more assistance.
-                        </text>
-                    }
+                    @Html.Partial("_SignIn", Model);
                 }
                 else
                 {
-                    <text>
-                    Looks like we don't have an account with this email address (@Model.SignIn.UserNameOrEmail) in our records.
-                    Please provide a username so that we can create an account for you!
-                    </text>
+                    switch (Model.External.ExistingUserLinkingError)
+                    {
+                        case AssociateExternalAccountViewModel.ExistingUserLinkingErrorType.AccountIsAlreadyLinked:
+                            <p class="text-center">
+                                The account with the email @Model.SignIn.UserNameOrEmail is linked to another Microsoft account.
+                            </p>
+                            <p class="text-center">
+                                If you wish to update the linked Microsoft account you can do so from the account settings page.
+                            </p>
+                            break;
+                        case AssociateExternalAccountViewModel.ExistingUserLinkingErrorType.AccountIsOrganization:
+                            <p class="text-center">
+                                The email @Model.SignIn.UserNameOrEmail is linked to an organization.
+                            </p>
+                            <p class="text-center">
+                                If you wish to manage the organization account, you must sign in as one of its admins.
+                            </p>
+                            break;
+                        default:
+                            <p class="text-center">
+                                An unknown error occurred.
+                            </p>
+                            break;
+                    }
 
-                    @Html.Partial("_Register", Model);
+                    <p class="text-center">
+                        Please <a href="mailto:@Config.Current.GalleryOwner.Address">contact support</a> if you need more assistance.
+                    </p>
                 }
-            </p>
+            }
+            else
+            {
+                <p class="text-center">
+                    Looks like we don't have an account with this email address (@Model.SignIn.UserNameOrEmail) in our records.
+                </p>
+                <p class="text-center">
+                    Please provide a username so that we can create an account for you!
+                </p>
+
+                @Html.Partial("_Register", Model);
+            }
         </div>
     </div>
 </section>
