@@ -406,6 +406,18 @@ namespace NuGetGallery
             return GetActionLink(url, "ConfirmationRequired", "Users", relativeUrl);
         }
 
+        public static string OrganizationConfirmationRequired(this UrlHelper url, string accountName, bool relativeUrl = true)
+        {
+            return GetActionLink(url,
+                "ConfirmationRequired",
+                "Organizations",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "accountName", accountName }
+                });
+        }
+
         public static string LogOff(this UrlHelper url, bool relativeUrl = true)
         {
             return LogOff(url, url.Current(), relativeUrl);
@@ -750,6 +762,18 @@ namespace NuGetGallery
         public static string ManageMyOrganizations(this UrlHelper url, bool relativeUrl = true)
         {
             return GetActionLink(url, "Organizations", "Users", relativeUrl);
+        }
+
+        public static string ManageMyOrganization(this UrlHelper url, string accountName, bool relativeUrl = true)
+        {
+            return GetActionLink(url,
+                "ManageOrganization",
+                "Organizations",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "accountName", accountName }
+                });
         }
 
         public static string ManageMyPackages(this UrlHelper url, bool relativeUrl = true)

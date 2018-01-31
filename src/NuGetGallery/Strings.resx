@@ -291,13 +291,13 @@ The {1} Team</value>
     <value>The '{0}' authentication provider is disabled and cannot be used to authenticate
 </value>
   </data>
-  <data name="EmailPreferencesUpdated" xml:space="preserve">
-    <value>Your email preferences have been updated</value>
+  <data name="UserEmailPreferencesUpdated" xml:space="preserve">
+    <value>Your email preferences have been updated.</value>
   </data>
-  <data name="EmailUpdated" xml:space="preserve">
+  <data name="UserEmailUpdated" xml:space="preserve">
     <value>Your new email address was saved!</value>
   </data>
-  <data name="EmailUpdated_ConfirmationRequired" xml:space="preserve">
+  <data name="UserEmailUpdatedWithConfirmationRequired" xml:space="preserve">
     <value>Your email address has been changed! We sent a confirmation email to verify your new email. When you confirm the new email address, it will take effect and we will forget the old one.</value>
   </data>
   <data name="UploadPackage_MinClientVersionOutOfRange" xml:space="preserve">
@@ -306,7 +306,7 @@ The {1} Team</value>
   <data name="DefaultUserSafeExceptionMessage" xml:space="preserve">
     <value>An unexpected error occurred. Contact support for assistance.</value>
   </data>
-  <data name="CancelEmailAddress" xml:space="preserve">
+  <data name="UserEmailUpdateCancelled" xml:space="preserve">
     <value>You canceled your email address change request.</value>
   </data>
   <data name="UploadPackage_InvalidPackage" xml:space="preserve">
@@ -764,5 +764,23 @@ If you wish to update the linked Microsoft account you can do so from the accoun
   </data>
   <data name="ChangeCredential_ProviderNotFound" xml:space="preserve">
     <value>No valid external provider found for authentication</value>
+  </data>
+  <data name="OrganizationEmailConfirmed" xml:space="preserve">
+    <value>You have successfully confirmed the organization email address.</value>
+  </data>
+  <data name="OrganizationEmailPreferencesUpdated" xml:space="preserve">
+    <value>The organization email preferences have been updated.</value>
+  </data>
+  <data name="OrganizationEmailUpdateCancelled" xml:space="preserve">
+    <value>You canceled your organization email address change request.</value>
+  </data>
+  <data name="OrganizationEmailUpdated" xml:space="preserve">
+    <value>The new organization email address was saved!</value>
+  </data>
+  <data name="OrganizationEmailUpdatedWithConfirmationRequired" xml:space="preserve">
+    <value>The organization email address has been changed! We sent a confirmation email to verify the new email. When the new email address is confirmed, it will take effect and we will forget the old one.</value>
+  </data>
+  <data name="UserEmailConfirmed" xml:space="preserve">
+    <value>You have successfully confirmed your email address!</value>
   </data>
 </root>

@@ -416,15 +416,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You canceled your email address change request..
-        /// </summary>
-        public static string CancelEmailAddress {
-            get {
-                return ResourceManager.GetString("CancelEmailAddress", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Enqueuing unavailable: the gallery is currently in read only mode, with limited service. Please try again later..
         /// </summary>
         public static string CannotEnqueueDueToReadOnly {
@@ -597,15 +588,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Your email preferences have been updated.
-        /// </summary>
-        public static string EmailPreferencesUpdated {
-            get {
-                return ResourceManager.GetString("EmailPreferencesUpdated", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to API key &apos;{0}&apos; was added to your account and can now be used. If you did not request this change, please reply to this email to contact support..
         /// </summary>
         public static string Emails_ApiKeyAdded_Body {
@@ -712,24 +694,6 @@ namespace NuGetGallery {
         public static string Emails_SetPassword_Subject {
             get {
                 return ResourceManager.GetString("Emails_SetPassword_Subject", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Your new email address was saved!.
-        /// </summary>
-        public static string EmailUpdated {
-            get {
-                return ResourceManager.GetString("EmailUpdated", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Your email address has been changed! We sent a confirmation email to verify your new email. When you confirm the new email address, it will take effect and we will forget the old one..
-        /// </summary>
-        public static string EmailUpdated_ConfirmationRequired {
-            get {
-                return ResourceManager.GetString("EmailUpdated_ConfirmationRequired", resourceCulture);
             }
         }
         
@@ -955,6 +919,51 @@ namespace NuGetGallery {
         public static string NuGetPackagePropertyTooLong {
             get {
                 return ResourceManager.GetString("NuGetPackagePropertyTooLong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You have successfully confirmed the organization email address..
+        /// </summary>
+        public static string OrganizationEmailConfirmed {
+            get {
+                return ResourceManager.GetString("OrganizationEmailConfirmed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The organization email preferences have been updated..
+        /// </summary>
+        public static string OrganizationEmailPreferencesUpdated {
+            get {
+                return ResourceManager.GetString("OrganizationEmailPreferencesUpdated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You canceled your organization email address change request..
+        /// </summary>
+        public static string OrganizationEmailUpdateCancelled {
+            get {
+                return ResourceManager.GetString("OrganizationEmailUpdateCancelled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The new organization email address was saved!.
+        /// </summary>
+        public static string OrganizationEmailUpdated {
+            get {
+                return ResourceManager.GetString("OrganizationEmailUpdated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The organization email address has been changed! We sent a confirmation email to verify the new email. When the new email address is confirmed, it will take effect and we will forget the old one..
+        /// </summary>
+        public static string OrganizationEmailUpdatedWithConfirmationRequired {
+            get {
+                return ResourceManager.GetString("OrganizationEmailUpdatedWithConfirmationRequired", resourceCulture);
             }
         }
         
@@ -1715,6 +1724,51 @@ namespace NuGetGallery {
         public static string UserAccountLocked {
             get {
                 return ResourceManager.GetString("UserAccountLocked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You have successfully confirmed your email address!.
+        /// </summary>
+        public static string UserEmailConfirmed {
+            get {
+                return ResourceManager.GetString("UserEmailConfirmed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your email preferences have been updated..
+        /// </summary>
+        public static string UserEmailPreferencesUpdated {
+            get {
+                return ResourceManager.GetString("UserEmailPreferencesUpdated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You canceled your email address change request..
+        /// </summary>
+        public static string UserEmailUpdateCancelled {
+            get {
+                return ResourceManager.GetString("UserEmailUpdateCancelled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your new email address was saved!.
+        /// </summary>
+        public static string UserEmailUpdated {
+            get {
+                return ResourceManager.GetString("UserEmailUpdated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your email address has been changed! We sent a confirmation email to verify your new email. When you confirm the new email address, it will take effect and we will forget the old one..
+        /// </summary>
+        public static string UserEmailUpdatedWithConfirmationRequired {
+            get {
+                return ResourceManager.GetString("UserEmailUpdatedWithConfirmationRequired", resourceCulture);
             }
         }
         
