@@ -22,6 +22,7 @@ using NuGet.Services.Validation;
 using NuGet.Services.Validation.Issues;
 using NuGetGallery;
 using Test.Utility.Signing;
+using Validation.PackageSigning.ExtractAndValidateSignature.Tests.Support;
 using Xunit;
 using Xunit.Abstractions;
 using NuGetHashAlgorithmName = NuGet.Common.HashAlgorithmName;
@@ -92,13 +93,13 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
 
         public async Task<SignedPackageArchive> GetSignedPackage1Async()
         {
-            AllowCertificateThumbprint(_fixture.LeafCertificate1Thumbprint);
+            AllowCertificateThumbprint(await _fixture.GetSigningCertificateThumbprintAsync());
             return await _fixture.GetSignedPackage1Async(_output);
         }
 
         public async Task<MemoryStream> GetSignedPackageStream1Async()
         {
-            AllowCertificateThumbprint(_fixture.LeafCertificate1Thumbprint);
+            AllowCertificateThumbprint(await _fixture.GetSigningCertificateThumbprintAsync());
             return await _fixture.GetSignedPackageStream1Async(_output);
         }
 
@@ -136,31 +137,43 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
 
             // Assert
             VerifyPackageSigningStatus(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
-            Assert.NotEmpty(result.Issues);
-            var clientIssues = result
-                .Issues
-                .OfType<ClientSigningVerificationFailure>()
-                .Where(x => x.ClientCode == "NU3021")
-                .ToList();
-            var untrustedIssue = Assert.Single(clientIssues);
+            var issue = Assert.Single(result.Issues);
+            var clientIssue = Assert.IsType<ClientSigningVerificationFailure>(issue);
+            Assert.Equal("NU3021", clientIssue.ClientCode);
             Assert.Equal(
                 "A certificate chain processed, but terminated in a root certificate which is not trusted by the trust provider.",
-                untrustedIssue.ClientMessage);
+                clientIssue.ClientMessage);
         }
 
         [Fact]
-        public async Task AcceptsTrustedCertificateWithUnavailableRevocation()
+        public async Task RejectsUntrustedTimestampingCertificate()
         {
             // Arrange
-            using (var trustedTestCert = new TrustedTestCert<X509Certificate2>(
-                await TestResources.GetTestRootCertificateAsync(),
-                x => x,
-                StoreName.Root,
-                StoreLocation.LocalMachine,
-                maximumValidityPeriod: TimeSpan.MaxValue))
+            var testServer = await _fixture.GetTestServerAsync();
+            var untrustedRootCa = CertificateAuthority.Create(testServer.Url);
+            var untrustedRootCertficate = new X509Certificate2(untrustedRootCa.Certificate.GetEncoded());
+            var timestampService = TimestampService.Create(untrustedRootCa);
+            using (testServer.RegisterDefaultResponders(timestampService))
             {
-                _package = TestResources.SignedPackageLeaf1Reader;
-                AllowCertificateThumbprint(TestResources.Leaf1Thumbprint);
+                byte[] packageBytes;
+                using (var temporaryTrust = new TrustedTestCert<X509Certificate2>(
+                    untrustedRootCertficate,
+                    x => x,
+                    StoreName.Root,
+                    StoreLocation.LocalMachine))
+                {
+                    packageBytes = await _fixture.GenerateSignedPackageBytesAsync(
+                        TestResources.SignedPackageLeaf1,
+                        await _fixture.GetSigningCertificateAsync(),
+                        timestampService.Url,
+                        _output);
+                }
+
+                AllowCertificateThumbprint(await _fixture.GetSigningCertificateThumbprintAsync());
+
+                _package = new SignedPackageArchive(
+                    new MemoryStream(packageBytes),
+                    new MemoryStream());
 
                 // Act
                 var result = await _target.ValidateAsync(
@@ -170,8 +183,123 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                     _token);
 
                 // Assert
+                VerifyPackageSigningStatus(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
+                var issue = Assert.Single(result.Issues);
+                var clientIssue = Assert.IsType<ClientSigningVerificationFailure>(issue);
+                Assert.Equal("NU3028", clientIssue.ClientCode);
+                Assert.Equal(
+                    "A certificate chain processed, but terminated in a root certificate which is not trusted by the trust provider.",
+                    clientIssue.ClientMessage);
+            }
+        }
+
+        [Fact]
+        public async Task AcceptsTrustedTimestampingCertificateWithUnavailableRevocation()
+        {
+            // Arrange
+            var testServer = await _fixture.GetTestServerAsync();
+            var trustedRootCa = CertificateAuthority.Create(testServer.Url);
+            var trustedRootCertficate = new X509Certificate2(trustedRootCa.Certificate.GetEncoded());
+            var timestampService = TimestampService.Create(trustedRootCa);
+            using (var trust = new TrustedTestCert<X509Certificate2>(
+                trustedRootCertficate,
+                x => x,
+                StoreName.Root,
+                StoreLocation.LocalMachine))
+            {
+                byte[] packageBytes;
+                using (testServer.RegisterDefaultResponders(timestampService))
+                {
+                    packageBytes = await _fixture.GenerateSignedPackageBytesAsync(
+                        TestResources.SignedPackageLeaf1,
+                        await _fixture.GetSigningCertificateAsync(),
+                        timestampService.Url,
+                        _output);
+                }
+
+                // Wait one second for the OCSP response cached by the operating system during signing to get stale.
+                // This can be mitigated by leaving the OCSP unavailable during signing once this work item is done:
+                // https://github.com/NuGet/Home/issues/6508
+                await Task.Delay(TimeSpan.FromSeconds(1));
+
+                AllowCertificateThumbprint(await _fixture.GetSigningCertificateThumbprintAsync());
+
+                _package = new SignedPackageArchive(
+                    new MemoryStream(packageBytes),
+                    new MemoryStream());
+
+                SignatureValidatorResult result;
+                using (testServer.RegisterResponders(timestampService, addOcsp: false))
+                {
+                    // Act
+                    result = await _target.ValidateAsync(
+                       _packageKey,
+                       _package,
+                       _message,
+                       _token);
+                }
+
+                // Assert
                 VerifyPackageSigningStatus(result, ValidationStatus.Succeeded, PackageSigningStatus.Valid);
                 Assert.Empty(result.Issues);
+
+                var allMessages = string.Join(Environment.NewLine, _logger.Messages);
+                Assert.Contains("NU3028: The revocation function was unable to check revocation because the revocation server was offline.", allMessages);
+                Assert.Contains("NU3028: The revocation function was unable to check revocation for the certificate.", allMessages);
+            }
+        }
+
+        [Fact]
+        public async Task AcceptsTrustedSigningCertificateWithUnavailableRevocation()
+        {
+            // Arrange
+            var testServer = await _fixture.GetTestServerAsync();
+            var rootCa = CertificateAuthority.Create(testServer.Url);
+            var intermediateCa = rootCa.CreateIntermediateCertificateAuthority();
+            var rootCertificate = new X509Certificate2(rootCa.Certificate.GetEncoded());
+            var signingCertificate = _fixture.CreateSigningCertificate(intermediateCa);
+            using (var trust = new TrustedTestCert<X509Certificate2>(
+                rootCertificate,
+                x => x,
+                StoreName.Root,
+                StoreLocation.LocalMachine))
+            {
+                byte[] packageBytes;
+                using (testServer.RegisterResponders(intermediateCa))
+                {
+                    packageBytes = await _fixture.GenerateSignedPackageBytesAsync(
+                        TestResources.SignedPackageLeaf1,
+                        signingCertificate,
+                        await _fixture.GetTimestampServiceUrlAsync(),
+                        _output);
+                }
+
+                // Wait one second for the OCSP response cached by the operating system during signing to get stale.
+                // This can be mitigated by leaving the OCSP unavailable during signing once this work item is done:
+                // https://github.com/NuGet/Home/issues/6508
+                await Task.Delay(TimeSpan.FromSeconds(1));
+
+                AllowCertificateThumbprint(signingCertificate.ComputeSHA256Thumbprint());
+
+                _package = new SignedPackageArchive(
+                    new MemoryStream(packageBytes),
+                    new MemoryStream());
+
+                SignatureValidatorResult result;
+                using (testServer.RegisterResponders(intermediateCa, addOcsp: false))
+                {
+                    // Act
+                    result = await _target.ValidateAsync(
+                       _packageKey,
+                       _package,
+                       _message,
+                       _token);
+                }
+
+                // Assert
+                VerifyPackageSigningStatus(result, ValidationStatus.Succeeded, PackageSigningStatus.Valid);
+                Assert.Empty(result.Issues);
+
                 var allMessages = string.Join(Environment.NewLine, _logger.Messages);
                 Assert.Contains("NU3018: The revocation function was unable to check revocation because the revocation server was offline.", allMessages);
                 Assert.Contains("NU3018: The revocation function was unable to check revocation for the certificate.", allMessages);

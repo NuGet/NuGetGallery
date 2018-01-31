@@ -35,6 +35,7 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Support\ExtensionMethods.cs" />
     <Compile Include="Support\RecordingLogger.cs" />
     <Compile Include="Support\CertificateIntegrationTestCollection.cs" />
     <Compile Include="Support\CertificateIntegrationTestFixture.cs" />
@@ -60,7 +61,7 @@
       <Version>1.8.1.3</Version>
     </PackageReference>
     <PackageReference Include="Test.Utility">
-      <Version>4.7.0-preview1-4883</Version>
+      <Version>4.7.0-preview1-4886</Version>
     </PackageReference>
     <PackageReference Include="xunit">
       <Version>2.3.1</Version>
