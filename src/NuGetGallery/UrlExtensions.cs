@@ -111,8 +111,8 @@ namespace NuGetGallery
         public static string StatisticsPackageDownloadsDetail(this UrlHelper url, string id, string version, bool relativeUrl = true)
         {
             var result = GetRouteLink(
-                url, 
-                RouteName.StatisticsPackageDownloadsDetail, 
+                url,
+                RouteName.StatisticsPackageDownloadsDetail,
                 relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
@@ -200,8 +200,8 @@ namespace NuGetGallery
         public static string CuratedFeed(this UrlHelper url, string curatedFeedName, bool relativeUrl = true)
         {
             return GetRouteLink(
-                url, 
-                RouteName.CuratedFeed, 
+                url,
+                RouteName.CuratedFeed,
                 relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
@@ -438,8 +438,8 @@ namespace NuGetGallery
         public static string Search(this UrlHelper url, string searchTerm, bool relativeUrl = true)
         {
             return GetRouteLink(
-                url, 
-                RouteName.ListPackages, 
+                url,
+                RouteName.ListPackages,
                 relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
@@ -668,7 +668,7 @@ namespace NuGetGallery
             bool relativeUrl = true)
         {
             return GetActionLink(url,
-                nameof(UsersController.Delete), 
+                nameof(UsersController.Delete),
                 "Users",
                 relativeUrl,
                 routeValues: new RouteValueDictionary
@@ -713,11 +713,26 @@ namespace NuGetGallery
                 });
         }
 
+        public static string LinkOrChangeExternalCredential(this UrlHelper url, string returnUrl, bool relativeUrl = true)
+        {
+            return GetAuthenticationRoutes(url, "LinkOrChangeExternalCredential", returnUrl, relativeUrl);
+        }
+
         public static string LinkExternalAccount(this UrlHelper url, string returnUrl, bool relativeUrl = true)
+        {
+            return GetAuthenticationRoutes(url, "LinkExternalAccount", returnUrl, relativeUrl);
+        }
+
+        public static string AuthenticateExternal(this UrlHelper url, string returnUrl, bool relativeUrl = true)
+        {
+            return GetAuthenticationRoutes(url, "AuthenticateExternal", returnUrl, relativeUrl);
+        }
+
+        private static string GetAuthenticationRoutes(this UrlHelper url, string action, string returnUrl, bool relativeUrl = true)
         {
             return GetActionLink(
                 url,
-                "LinkExternalAccount",
+                action,
                 "Authentication",
                 relativeUrl,
                 routeValues: new RouteValueDictionary
@@ -1036,7 +1051,7 @@ namespace NuGetGallery
             {
                 routeValues[Area] = area;
             }
-            
+
             if (interceptReturnUrl && routeValues != null && routeValues.ContainsKey("ReturnUrl"))
             {
                 routeValues["ReturnUrl"] = GetAbsoluteReturnUrl(
@@ -1104,7 +1119,7 @@ namespace NuGetGallery
             // Ensure return URL is always pointing to the configured siteroot
             // to avoid MVC routing to use the deployment host name instead of the configured one.
             // This is important when deployed behind a proxy, such as APIM.
-            if (returnUrl != null 
+            if (returnUrl != null
                 && Uri.TryCreate(returnUrl, UriKind.RelativeOrAbsolute, out var returnUri))
             {
                 if (!returnUri.IsAbsoluteUri)

@@ -56,6 +56,7 @@ namespace NuGetGallery
             {
                 return dictionary;
             }
+
             foreach (var key in cookie.Values.AllKeys)
             {
                 // As the index setter on HttpCookie does not guard against null keys,
@@ -66,8 +67,9 @@ namespace NuGetGallery
                     continue;
                 }
 
-                dictionary[key] = cookie[key];
+                dictionary[key] = HttpUtility.UrlDecode(cookie[key]);
             }
+
             cookie.Expires = DateTime.MinValue;
             cookie.Value = String.Empty;
             if (CookieHasTempData)

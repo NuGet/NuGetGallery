@@ -443,6 +443,42 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to update the Microsoft account with &apos;{0}&apos;. This could happen if it is already linked to another NuGet account. Contact support for more information..
+        /// </summary>
+        public static string ChangeCredential_Failed {
+            get {
+                return ResourceManager.GetString("ChangeCredential_Failed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The change of Azure active directory account is not allowed..
+        /// </summary>
+        public static string ChangeCredential_NotAllowed {
+            get {
+                return ResourceManager.GetString("ChangeCredential_NotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No valid external provider found for authentication.
+        /// </summary>
+        public static string ChangeCredential_ProviderNotFound {
+            get {
+                return ResourceManager.GetString("ChangeCredential_ProviderNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully changed the Microsoft account..
+        /// </summary>
+        public static string ChangeCredential_Success {
+            get {
+                return ResourceManager.GetString("ChangeCredential_Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SKIPPED! Package file blob {0} already exists.
         /// </summary>
         public static string CopyExternalPackages_PackageFileBlobAlreadyExists {
@@ -707,7 +743,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Your external account credential expired or you did not allow us access to your account. Try logging in again..
+        ///   Looks up a localized string similar to Your account credential expired or you did not allow us access to your account. Try logging in again..
         /// </summary>
         public static string ExternalAccountLinkExpired {
             get {
@@ -1054,6 +1090,15 @@ namespace NuGetGallery {
         public static string PasswordDoesNotMatch {
             get {
                 return ResourceManager.GetString("PasswordDoesNotMatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The password login has been deprecated. You must use Microsoft account to sign in. .
+        /// </summary>
+        public static string PasswordLoginDeprecated {
+            get {
+                return ResourceManager.GetString("PasswordLoginDeprecated", resourceCulture);
             }
         }
         

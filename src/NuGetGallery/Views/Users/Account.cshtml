@@ -164,22 +164,20 @@
                 {
                     @ViewHelpers.Section(this,
                         "change-credential-" + cred.Key,
-                        @<text>@cred.TypeCaption</text>,
-                        @<text>@cred.Identity</text>,
-                        @<text>
-                            <p>You can use this @cred.AuthUI.AccountNoun to sign in to @(Config.Current.Brand).</p>
-
-                            @if (Model.SignInCredentialCount > 1)
-                            {
-                                using (Html.BeginForm("RemoveCredential", "Users", new { credentialType = cred.Type, credentialKey = cred.Key }))
+                        @<text>Login Account</text>,
+                        @<text>@cred.TypeCaption (@cred.Identity)</text>,
+                            @<text>
+                                <p>You can use this account to sign in to @(Config.Current.Brand).</p>
+                            
+                                @using (Html.BeginForm("LinkOrChangeExternalCredential", "Users"))
                                 {
                                     @Html.AntiForgeryToken()
 
                                     <div class="row form-group">
                                         <div class="col-sm-6">
                                             <button class="btn btn-danger btn-block" type="submit"
-                                                    data-confirm="Are you sure you want to remove your @cred.AuthUI.AccountNoun?">
-                                                Remove @cred.TypeCaption
+                                                    data-confirm="This action will replace all of your linked accounts and password login with the new login account. Are you sure you want to change your login account?">
+                                                Change Account
                                             </button>
                                         </div>
                                         <div class="col-sm-6">
@@ -189,84 +187,110 @@
                                         </div>
                                     </div>
                                 }
-                            }
-                            else
-                            {
-                                <span>
-                                    To remove this credential, you must enable at least one other form of authentication,
-                                    such as password login.
-                                </span>
-                            }
-                        </text>)
+                            </text>)
                 }
             }
+            else
+            {
+                @ViewHelpers.Section(this,
+                    "create-external-credential",
+                    @<text>Login Account</text>,
+                    @<text>Microsoft account</text>,
+                        @<text>
+                            <p>Please link your Microsoft account to sign in to @(Config.Current.Brand).</p>
 
-            @ViewHelpers.Section(this,
-                "change-password",
-                @<text>Password Login</text>,
-                @<text><em>@(Model.HasPassword ? "(Enabled)" : "(Disabled)")</em></text>,
-                @<text>
-                    @if (CurrentUser.Confirmed)
-                    {
-                        using (Html.BeginForm("ChangePassword", "Users"))
+                            @using (Html.BeginForm("LinkOrChangeExternalCredential", "Users"))
+                            {
+                                @Html.AntiForgeryToken()
+
+                                <div class="row form-group">
+                                    <div class="col-sm-6">
+                                        <button class="btn btn-danger btn-block" type="submit"
+                                                data-confirm="This action will replace your password login with the new Microsoft login account. Are you sure you want to change your login account?">
+                                            Link Microsoft Account
+                                        </button>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <a href="#" role="button" class="btn btn-default btn-block" id="cancel-create-external-credential">
+                                            Cancel
+                                        </a>
+                                    </div>
+                                </div>
+                            }
+                        </text>)
+            }
+
+            @if (Model.HasPassword)
+            {
+                @ViewHelpers.Section(this,
+                    "change-password",
+                    @<text>Password Login</text>,
+                    @<text><em>@(Model.HasPassword ? "(Enabled)" : "(Disabled)")</em></text>,
+                    @<text>
+                        @if (CurrentUser.Confirmed)
                         {
-                            @Html.AntiForgeryToken()
-                            @Html.ShowValidationMessagesFor(m => m.ChangePassword)
+                            using (Html.BeginForm("ChangePassword", "Users"))
+                            {
+                                @Html.AntiForgeryToken()
+                                @Html.ShowValidationMessagesFor(m => m.ChangePassword)
 
-                            if (Model.SignInCredentialCount > 1)
-                            {
-                                <div class="form-group @Html.HasErrorFor(m => m.ChangePassword.EnablePasswordLogin)">
-                                    @Html.ShowCheckboxFor(m => m.ChangePassword.EnablePasswordLogin)
-                                    @Html.ShowLabelFor(m => m.ChangePassword.EnablePasswordLogin)
-                                    @Html.ShowValidationMessagesFor(m => m.ChangePassword.EnablePasswordLogin)
-                                </div>
-                            }
-                            else
-                            {
-                                @Html.HiddenFor(m => m.ChangePassword.EnablePasswordLogin);
-                            }
+                                if (Model.SignInCredentialCount > 1)
+                                {
+                                    <div class="form-group @Html.HasErrorFor(m => m.ChangePassword.EnablePasswordLogin)">
+                                        @Html.ShowCheckboxFor(m => m.ChangePassword.EnablePasswordLogin)
+                                        @Html.ShowLabelFor(m => m.ChangePassword.EnablePasswordLogin)
+                                        @Html.ShowValidationMessagesFor(m => m.ChangePassword.EnablePasswordLogin)
+                                    </div>
+                                }
+                                else
+                                {
+                                    @Html.HiddenFor(m => m.ChangePassword.EnablePasswordLogin);
+                                }
 
-                            if (Model.HasPassword)
-                            {
-                                <div class="form-group @Html.HasErrorFor(m => m.ChangePassword.OldPassword)">
-                                    @Html.ShowLabelFor(m => m.ChangePassword.OldPassword)
-                                    @Html.ShowPasswordFor(m => m.ChangePassword.OldPassword)
-                                    @Html.ShowValidationMessagesFor(m => m.ChangePassword.OldPassword)
-                                </div>
-                                <div class="form-group @Html.HasErrorFor(m => m.ChangePassword.NewPassword)">
-                                    @Html.ShowLabelFor(m => m.ChangePassword.NewPassword)
-                                    @Html.ShowPasswordFor(m => m.ChangePassword.NewPassword)
-                                    @Html.ShowValidationMessagesFor(m => m.ChangePassword.NewPassword)
-                                </div>
-                                <div class="form-group @Html.HasErrorFor(m => m.ChangePassword.VerifyPassword)">
-                                    @Html.ShowLabelFor(m => m.ChangePassword.VerifyPassword)
-                                    @Html.ShowPasswordFor(m => m.ChangePassword.VerifyPassword)
-                                    @Html.ShowValidationMessagesFor(m => m.ChangePassword.VerifyPassword)
-                                </div>
-                            }
-                            else
-                            {
-                                <p>To enable password login, an email will be sent to '@(CurrentUser.EmailAddress ?? CurrentUser.UnconfirmedEmailAddress)'.</p>
-                            }
+                                if (Model.HasPassword)
+                                {
+                                    <p>Password login is being deprecated. Please use link Microsoft account in the 'Login Account' section above to sign in to @(Config.Current.Brand).</p>
 
-                            <div class="row form-group">
-                                <div class="col-sm-6">
-                                    <input type="submit" class="btn btn-primary form-control" value="@(Model.HasPassword ? "Save" : "Enable Password Login")" />
+                                    <div class="form-group @Html.HasErrorFor(m => m.ChangePassword.OldPassword)">
+                                        @Html.ShowLabelFor(m => m.ChangePassword.OldPassword)
+                                        @Html.ShowPasswordFor(m => m.ChangePassword.OldPassword)
+                                        @Html.ShowValidationMessagesFor(m => m.ChangePassword.OldPassword)
+                                    </div>
+                                    <div class="form-group @Html.HasErrorFor(m => m.ChangePassword.NewPassword)">
+                                        @Html.ShowLabelFor(m => m.ChangePassword.NewPassword)
+                                        @Html.ShowPasswordFor(m => m.ChangePassword.NewPassword)
+                                        @Html.ShowValidationMessagesFor(m => m.ChangePassword.NewPassword)
+                                    </div>
+                                    <div class="form-group @Html.HasErrorFor(m => m.ChangePassword.VerifyPassword)">
+                                        @Html.ShowLabelFor(m => m.ChangePassword.VerifyPassword)
+                                        @Html.ShowPasswordFor(m => m.ChangePassword.VerifyPassword)
+                                        @Html.ShowValidationMessagesFor(m => m.ChangePassword.VerifyPassword)
+                                    </div>
+                                }
+                                else
+                                {
+                                    <p>To enable password login, an email will be sent to '@(CurrentUser.EmailAddress ?? CurrentUser.UnconfirmedEmailAddress)'.</p>
+                                }
+
+                                <div class="row form-group">
+                                    <div class="col-sm-6">
+                                        <input type="submit" class="btn btn-primary form-control" value="@(Model.HasPassword ? "Save" : "Enable Password Login")" />
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <a href="#" role="button" class="btn btn-default form-control" id="cancel-change-password">
+                                            Cancel
+                                        </a>
+                                    </div>
                                 </div>
-                                <div class="col-sm-6">
-                                    <a href="#" role="button" class="btn btn-default form-control" id="cancel-change-password">
-                                        Cancel
-                                    </a>
-                                </div>
-                            </div>
+                            }
                         }
-                    }
-                    else
-                    {
-                        <p>To enable password login, please <a href="@Url.ConfirmationRequired()">confirm</a> your account.</p>
-                    }
-                </text>,
-                ViewData.ModelState.Keys.Any(x => x.StartsWith("ChangePassword")))
+                        else
+                        {
+                            <p>To enable password login, please <a href="@Url.ConfirmationRequired()">confirm</a> your account.</p>
+                        }
+                    </text>,
+                    ViewData.ModelState.Keys.Any(x => x.StartsWith("ChangePassword")))
+            }
 
             @ViewHelpers.Section(this,
                 "profile-picture",

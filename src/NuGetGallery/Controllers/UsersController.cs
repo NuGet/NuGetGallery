@@ -2,13 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
 using System.Net;
-using System.Net.Mail;
-using System.Threading.Tasks;
+using System.Linq;
 using System.Web.Mvc;
+using System.Net.Mail;
+using System.Globalization;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Areas.Admin.ViewModels;
@@ -136,7 +136,7 @@ namespace NuGetGallery
                     Strings.TransformAccount_AdminAccountDoesNotExist, transformViewModel.AdminUsername));
                 return View(transformViewModel);
             }
-            
+
             if (!_userService.CanTransformUserToOrganization(accountToTransform, adminUser, out var errorReason))
             {
                 return TransformToOrganizationFailed(errorReason);
@@ -146,7 +146,7 @@ namespace NuGetGallery
 
             // sign out pending organization and prompt for admin sign in
             OwinContext.Authentication.SignOut();
-            
+
             TempData[Constants.ReturnUrlMessageViewDataKey] = String.Format(CultureInfo.CurrentCulture,
                 Strings.TransformAccount_SignInToConfirm, adminUser.Username, accountToTransform.Username);
             var returnUrl = Url.ConfirmTransformAccount(accountToTransform);
@@ -762,6 +762,23 @@ namespace NuGetGallery
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
+        public virtual ActionResult LinkOrChangeExternalCredential()
+        {
+            var user = GetCurrentUser();
+            var userHasAADCredential = user.Credentials.Any(c => CredentialTypes.IsAzureActiveDirectoryAccount(c.Type));
+
+            if (userHasAADCredential)
+            {
+                TempData["WarningMessage"] = Strings.ChangeCredential_NotAllowed;
+                return RedirectToAction("Account");
+            }
+
+            return Redirect(Url.AuthenticateExternal(Url.AccountSettings()));
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
         public virtual async Task<JsonResult> RegenerateCredential(string credentialType, int? credentialKey)
         {
             var user = GetCurrentUser();
@@ -1070,7 +1087,7 @@ namespace NuGetGallery
         {
             return user.Credentials.Count(c =>
                 c.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase) ||
-                c.Type.StartsWith(CredentialTypes.ExternalPrefix, StringComparison.OrdinalIgnoreCase));
+                c.Type.StartsWith(CredentialTypes.External.Prefix, StringComparison.OrdinalIgnoreCase));
         }
 
         private ActionResult SendPasswordResetEmail(User user, bool forgotPassword)

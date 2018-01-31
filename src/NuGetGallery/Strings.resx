@@ -205,7 +205,7 @@
     <value>Unknown authentication provider: '{0}'</value>
   </data>
   <data name="ExternalAccountLinkExpired" xml:space="preserve">
-    <value>Your external account credential expired or you did not allow us access to your account. Try logging in again.</value>
+    <value>Your account credential expired or you did not allow us access to your account. Try logging in again.</value>
   </data>
   <data name="MicrosoftAccount_AccountNoun" xml:space="preserve">
     <value>Microsoft account</value>
@@ -749,5 +749,20 @@ For more information, please contact '{2}'.</value>
   <data name="AccountIsLinkedToAnotherExternalAccount" xml:space="preserve">
     <value>The account with the email {0} is linked to another Microsoft account.
 If you wish to update the linked Microsoft account you can do so from the account settings page.</value>
+  </data>
+  <data name="ChangeCredential_Failed" xml:space="preserve">
+    <value>Failed to update the Microsoft account with '{0}'. This could happen if it is already linked to another NuGet account. Contact support for more information.</value>
+  </data>
+  <data name="ChangeCredential_NotAllowed" xml:space="preserve">
+    <value>The change of Azure active directory account is not allowed.</value>
+  </data>
+  <data name="ChangeCredential_Success" xml:space="preserve">
+    <value>Successfully changed the Microsoft account.</value>
+  </data>
+  <data name="PasswordLoginDeprecated" xml:space="preserve">
+    <value>The password login has been deprecated. You must use Microsoft account to sign in. </value>
+  </data>
+  <data name="ChangeCredential_ProviderNotFound" xml:space="preserve">
+    <value>No valid external provider found for authentication</value>
   </data>
 </root>

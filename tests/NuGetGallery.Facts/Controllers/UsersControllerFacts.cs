@@ -14,7 +14,6 @@ using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Authentication;
-using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Authentication;
 using Xunit;
@@ -1636,7 +1635,7 @@ namespace NuGetGallery
                     .Setup(m => 
                                 m.SendCredentialRemovedNotice(
                                     user,
-                                    It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.ExternalPrefix + "MicrosoftAccount")))
+                                    It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.External.MicrosoftAccount)))
                     .Verifiable();
 
                 var controller = GetController<UsersController>();
@@ -1854,7 +1853,7 @@ namespace NuGetGallery
 
                 // Act
                 var result = await controller.RemoveCredential(
-                    credentialType: CredentialTypes.ExternalPrefix + "MicrosoftAccount",
+                    credentialType: CredentialTypes.External.MicrosoftAccount,
                     credentialKey: null);
 
                 // Assert
@@ -1909,7 +1908,7 @@ namespace NuGetGallery
                     .Setup(m => 
                                 m.SendCredentialRemovedNotice(
                                     user,
-                                    It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.ExternalPrefix + "MicrosoftAccount")))
+                                    It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.External.MicrosoftAccount)))
                     .Verifiable();
 
                 var controller = GetController<UsersController>();
@@ -1955,6 +1954,47 @@ namespace NuGetGallery
                     Assert.Equal(Strings.CredentialRemoved, controller.TempData["Message"]);
                     Assert.Equal(creds.Length - i - 1, user.Credentials.Count);
                 }
+            }
+        }
+
+        public class TheLinkOrChangeCredentialAction : TestContainer
+        {
+            [Fact]
+            public void ForAADLinkedAccount_ErrorIsReturned()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var aadCred = new CredentialBuilder().CreateExternalCredential("AzureActiveDirectory", "blorg", "bloog");
+                var passwordCred = new Credential("password.v3", "random");
+                var msftCred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "bloom", "filter");
+                var user = fakes.CreateUser("test", aadCred, passwordCred, msftCred);
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = controller.LinkOrChangeExternalCredential();
+
+                // Assert
+                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
+                Assert.Equal(Strings.ChangeCredential_NotAllowed, controller.TempData["WarningMessage"]);
+            }
+
+            [Fact]
+            public void ForNonAADLinkedAccount_RedirectsToAuthenticateExternalLogin()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var passwordCred = new Credential("password.v3", "random");
+                var msftCred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "bloom", "filter");
+                var user = fakes.CreateUser("test", passwordCred, msftCred);
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = controller.LinkOrChangeExternalCredential();
+
+                // Assert
+                Assert.IsType<RedirectResult>(result);
             }
         }
 
