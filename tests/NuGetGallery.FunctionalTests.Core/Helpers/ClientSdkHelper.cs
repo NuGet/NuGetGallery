@@ -1,13 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using NuGet;
-using NuGet.Versioning;
 using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using NuGet;
+using NuGet.Versioning;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -151,14 +151,14 @@ namespace NuGetGallery.FunctionalTests
         /// </summary>
         public async Task UploadNewPackageAndVerify(string packageId, string version = "1.0.0", string minClientVersion = null, string title = null, string tags = null, string description = null, string licenseUrl = null, string dependencies = null, string apiKey = null)
         {
-            await UploadNewPackage(packageId, version, true, minClientVersion, title, tags, description, licenseUrl, dependencies, apiKey);
+            await UploadNewPackage(packageId, version, minClientVersion, title, tags, description, licenseUrl, dependencies, apiKey);
 
             await VerifyPackageExistsInV2AndV3Async(packageId, version);
         }
 
-        public async Task UploadNewPackage(string packageId, string version = "1.0.0", bool success = true, string minClientVersion = null,
+        public async Task UploadNewPackage(string packageId, string version = "1.0.0", string minClientVersion = null,
             string title = null, string tags = null, string description = null, string licenseUrl = null,
-            string dependencies = null, string apiKey = null)
+            string dependencies = null, string apiKey = null, bool success = true)
         {
             WriteLine("Uploading new package '{0}', version '{1}'", packageId, version);
 
@@ -196,12 +196,12 @@ namespace NuGetGallery.FunctionalTests
         /// </summary>
         public async Task UnlistPackageAndVerify(string packageId, string version = "1.0.0", string apiKey = null)
         {
-            await UnlistPackage(packageId, version, apiKey: apiKey);
+            await UnlistPackage(packageId, version, apiKey);
 
             await VerifyPackageExistsInV2AndV3Async(packageId, version);
         }
 
-        public async Task UnlistPackage(string packageId, string version = "1.0.0", bool success = true, string apiKey = null)
+        public async Task UnlistPackage(string packageId, string version = "1.0.0", string apiKey = null, bool success = true)
         {
             if (string.IsNullOrEmpty(packageId))
             {
