@@ -9,8 +9,6 @@ namespace NuGetGallery
     {
         public ChangePasswordViewModel ChangePassword { get; set; }
 
-        public int ExpirationInDaysForApiKeyV1 { get; set; }
-
         public IDictionary<CredentialKind, List<CredentialViewModel>> CredentialGroups { get; set; }
 
         public int SignInCredentialCount { get; set; }

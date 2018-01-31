@@ -7,6 +7,18 @@ namespace NuGetGallery
 {
     public abstract class AccountViewModel
     {
+        public User Account { get; set; }
+
+        public bool IsOrganization
+        {
+            get
+            {
+                return Account is Organization;
+            }
+        }
+
+        public string AccountName { get; set; }
+
         public IList<string> CuratedFeeds { get; set; }
 
         public ChangeEmailViewModel ChangeEmail { get; set; }

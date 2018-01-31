@@ -21,41 +21,22 @@ using Xunit;
 namespace NuGetGallery
 {
     public class UsersControllerFacts
+        : AccountsControllerFacts<UsersController, User, UserAccountViewModel>
     {
         public static readonly int CredentialKey = 123;
-
-        public class TheAccountAction : TestContainer
+        
+        public class TheAccountAction : TheAccountBaseAction
         {
-            [Fact]
-            public void WillGetCuratedFeedsManagedByTheCurrentUser()
+            protected override ActionResult InvokeAccount(UsersController controller)
             {
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(new User { Key = 42 });
-
-                // act
-                controller.Account();
-
-                // verify
-                GetMock<ICuratedFeedService>()
-                    .Verify(query => query.GetFeedsForManager(42));
+                return controller.Account();
             }
 
-            [Fact]
-            public void WillReturnTheAccountViewModelWithTheCuratedFeeds()
+            protected override User GetCurrentUser(UsersController controller)
             {
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(new User { Key = 42 });
-                GetMock<ICuratedFeedService>()
-                    .Setup(stub => stub.GetFeedsForManager(42))
-                    .Returns(new[] { new CuratedFeed { Name = "theCuratedFeed" } });
-
-                // act
-                var model = ResultAssert.IsView<UserAccountViewModel>(controller.Account(), viewName: "Account");
-
-                // verify
-                Assert.Equal("theCuratedFeed", model.CuratedFeeds.First());
+                return GetAccount(controller);
             }
-
+            
             [Fact]
             public void LoadsDescriptionsOfCredentialsInToViewModel()
             {
@@ -84,7 +65,6 @@ namespace NuGetGallery
                 Assert.Equal(Strings.CredentialType_ApiKey, descs[CredentialKind.Token].TypeCaption);
                 Assert.Equal(Strings.MicrosoftAccount_AccountNoun, descs[CredentialKind.External].TypeCaption);
             }
-
 
             [Fact]
             public void FiltersOutUnsupportedCredentialsInToViewModel()
@@ -128,70 +108,90 @@ namespace NuGetGallery
             }
         }
 
-        public class TheConfirmationRequiredAction : TestContainer
+        public class TheCancelChangeEmailAction : TheCancelChangeEmailBaseAction
         {
-            [Fact]
-            public void WillSendNewUserEmailWhenPosted()
+            protected override User GetCurrentUser(UsersController controller)
             {
+                return GetAccount(controller);
+            }
+
+            // Note general account tests are in the base class. User-specific tests are below.
+        }
+
+        public class TheChangeEmailAction : TheChangeEmailBaseAction
+        {
+            protected override User GetCurrentUser(UsersController controller)
+            {
+                return GetAccount(controller);
+            }
+
+            // Note general account tests are in the base class. User-specific tests are below.
+
+            [Fact]
+            public async Task WhenPasswordValidationFailsErrorIsReturned()
+            {
+                // Arrange
                 var user = new User
                 {
                     Username = "theUsername",
-                    UnconfirmedEmailAddress = "to@example.com",
-                    EmailConfirmationToken = "confirmation"
+                    EmailAddress = "test@example.com",
+                    Credentials = new[] { new Credential(CredentialTypes.Password.V3, "abc") }
                 };
 
-                string sentConfirmationUrl = null;
-                MailAddress sentToAddress = null;
-
-                GetMock<IMessageService>()
-                    .Setup(m => m.SendNewAccountEmail(It.IsAny<MailAddress>(), It.IsAny<string>()))
-                    .Callback<MailAddress, string>((to, url) =>
-                    {
-                        sentToAddress = to;
-                        sentConfirmationUrl = url;
-                    });
+                Credential credential;
+                GetMock<AuthenticationService>()
+                    .Setup(u => u.ValidatePasswordCredential(It.IsAny<IEnumerable<Credential>>(), It.IsAny<string>(), out credential))
+                    .Returns(false);
 
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
-                controller.ConfirmationRequiredPost();
+                var model = new UserAccountViewModel
+                {
+                    ChangeEmail = new ChangeEmailViewModel
+                    {
+                        NewEmail = "new@example.com",
+                        Password = "password"
+                    }
+                };
 
-                // We use a catch-all route for unit tests so we can see the parameters
-                // are passed correctly.
-                Assert.Equal(TestUtility.GallerySiteRootHttps + "account/confirm/theUsername/confirmation", sentConfirmationUrl);
-                Assert.Equal("to@example.com", sentToAddress.Address);
+                // Act
+                var result = await controller.ChangeEmail(model);
+
+                // Assert
+                Assert.IsType<ViewResult>(result);
+                Assert.IsType<UserAccountViewModel>(((ViewResult)result).Model);
             }
         }
 
-        public class TheChangeEmailSubscriptionAction : TestContainer
+        public class TheConfirmationRequiredAction : TheConfirmationRequiredBaseAction
         {
-            [Fact]
-            public async Task UpdatesEmailAllowedSetting()
+            protected override User GetCurrentUser(UsersController controller)
             {
-                var user = new User("aUsername")
-                {
-                    EmailAddress = "test@example.com",
-                    EmailAllowed = true
-                };
-
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(user);
-                GetMock<IUserService>()
-                    .Setup(u => u.ChangeEmailSubscriptionAsync(user, false, true))
-                    .Returns(Task.CompletedTask);
-
-                var result = await controller.ChangeEmailSubscription(new UserAccountViewModel
-                {
-                    ChangeNotifications = new ChangeNotificationsViewModel
-                    {
-                        EmailAllowed = false,
-                        NotifyPackagePushed = true
-                    }
-                });
-
-                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
-                GetMock<IUserService>().Verify(u => u.ChangeEmailSubscriptionAsync(user, false, true));
+                return GetAccount(controller);
             }
+
+            // Note general account tests are in the base class. User-specific tests are below.
+        }
+
+        public class TheConfirmationRequiredPostAction : TheConfirmationRequiredPostBaseAction
+        {
+            protected override User GetCurrentUser(UsersController controller)
+            {
+                return GetAccount(controller);
+            }
+
+            // Note general account tests are in the base class. User-specific tests are below.
+        }
+
+        public class TheChangeEmailSubscriptionAction : TheChangeEmailSubscriptionBaseAction
+        {
+            protected override User GetCurrentUser(UsersController controller)
+            {
+                return GetAccount(controller);
+            }
+
+            // Note general account tests are in the base class. User-specific tests are below.
         }
 
         public class TheThanksAction : TestContainer
@@ -445,183 +445,15 @@ namespace NuGetGallery
                 Assert.Equal(forgot, viewResult.ViewBag.ForgotPassword);
             }
         }
-
-        public class TheConfirmAction : TestContainer
+        
+        public class TheConfirmAction : TheConfirmBaseAction
         {
-            [Fact]
-            public async Task ConfirmsTheUser()
+            protected override User GetCurrentUser(UsersController controller)
             {
-                var user = new User
-                {
-                    Username = "aUsername",
-                    UnconfirmedEmailAddress = "old@example.com",
-                    EmailConfirmationToken = "aToken",
-                };
-
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(user);
-
-                // Have to set this up first because it needs to return a task.
-                GetMock<IUserService>()
-                    .Setup(u => u.ConfirmEmailAddress(user, "aToken"))
-                    .CompletesWith(true);
-
-                var result = await controller.Confirm("aUsername", "aToken");
-
-                GetMock<IUserService>()
-                    .Verify(u => u.ConfirmEmailAddress(user, "aToken"));
+                return GetAccount(controller);
             }
 
-            [Fact]
-            public async Task ShowsAnErrorForWrongUsername()
-            {
-                var user = new User
-                {
-                    Username = "aUsername",
-                    UnconfirmedEmailAddress = "old@example.com",
-                    EmailConfirmationToken = "aToken",
-                };
-
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(user);
-
-                var result = await controller.Confirm("wrongUsername", "aToken");
-
-                var model = ResultAssert.IsView<ConfirmationViewModel>(result);
-                Assert.False(model.SuccessfulConfirmation);
-                Assert.True(model.WrongUsername);
-            }
-
-            [Fact]
-            public async Task ShowsAnErrorForWrongToken()
-            {
-                var user = new User
-                {
-                    Username = "aUsername",
-                    UnconfirmedEmailAddress = "old@example.com",
-                    EmailConfirmationToken = "aToken",
-                };
-
-                GetMock<IUserService>()
-                    .Setup(u => u.ConfirmEmailAddress(user, It.IsAny<string>()))
-                    .CompletesWith(false);
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(user);
-
-                var result = await controller.Confirm("aUsername", "wrongToken");
-
-                var model = ResultAssert.IsView<ConfirmationViewModel>(result);
-                Assert.False(model.SuccessfulConfirmation);
-            }
-
-            [Fact]
-            public async Task ShowsAnErrorForConflictingEmailAddress()
-            {
-                var user = new User
-                {
-                    Username = "aUsername",
-                    UnconfirmedEmailAddress = "old@example.com",
-                    EmailConfirmationToken = "aToken",
-                };
-
-                GetMock<IUserService>()
-                    .Setup(u => u.ConfirmEmailAddress(user, It.IsAny<string>()))
-                    .Throws(new EntityException("msg"));
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(user);
-
-                var result = await controller.Confirm("aUsername", "aToken");
-
-                var model = ResultAssert.IsView<ConfirmationViewModel>(result);
-                Assert.False(model.SuccessfulConfirmation);
-                Assert.True(model.DuplicateEmailAddress);
-            }
-
-            [Fact]
-            public async Task SendsAccountChangedNoticeWhenConfirmingChangedEmail()
-            {
-                var user = new User
-                {
-                    Username = "username",
-                    EmailAddress = "old@example.com",
-                    UnconfirmedEmailAddress = "new@example.com",
-                    EmailConfirmationToken = "the-token"
-                };
-
-                GetMock<IUserService>()
-                          .Setup(u => u.ConfirmEmailAddress(user, "the-token"))
-                          .CompletesWith(true);
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(user);
-
-                var result = await controller.Confirm("username", "the-token");
-
-                var model = ResultAssert.IsView<ConfirmationViewModel>(result);
-                Assert.True(model.SuccessfulConfirmation);
-                Assert.False(model.ConfirmingNewAccount);
-                GetMock<IMessageService>()
-                          .Verify(m => m.SendEmailChangeNoticeToPreviousEmailAddress(user, "old@example.com"));
-            }
-
-            [Fact]
-            public async Task DoesntSendAccountChangedEmailsWhenNoOldConfirmedAddress()
-            {
-                var user = new User
-                {
-                    Username = "username",
-                    EmailAddress = null,
-                    UnconfirmedEmailAddress = "new@example.com",
-                    EmailConfirmationToken = "the-token"
-                };
-
-                GetMock<IUserService>()
-                          .Setup(u => u.ConfirmEmailAddress(user, "the-token"))
-                          .CompletesWith(true);
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(user);
-
-                // act:
-                var result = await controller.Confirm("username", "the-token");
-
-                // verify:
-                var model = ResultAssert.IsView<ConfirmationViewModel>(result);
-                Assert.True(model.SuccessfulConfirmation);
-                Assert.True(model.ConfirmingNewAccount);
-                GetMock<IMessageService>()
-                          .Verify(m => m.SendEmailChangeConfirmationNotice(It.IsAny<MailAddress>(), It.IsAny<string>()), Times.Never());
-                GetMock<IMessageService>()
-                          .Verify(m => m.SendEmailChangeNoticeToPreviousEmailAddress(It.IsAny<User>(), It.IsAny<string>()), Times.Never());
-            }
-
-            [Fact]
-            public async Task DoesntSendAccountChangedEmailsIfConfirmationTokenDoesntMatch()
-            {
-                var user = new User
-                {
-                    Username = "username",
-                    EmailAddress = "old@example.com",
-                    UnconfirmedEmailAddress = "new@example.com",
-                    EmailConfirmationToken = "the-token"
-                };
-
-                GetMock<IUserService>()
-                    .Setup(u => u.ConfirmEmailAddress(user, "faketoken"))
-                    .CompletesWith(false);
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(user);
-
-                // act:
-                var result = await controller.Confirm("username", "faketoken");
-
-                // verify:
-                var model = ResultAssert.IsView<ConfirmationViewModel>(result);
-                Assert.False(model.SuccessfulConfirmation);
-                Assert.False(model.ConfirmingNewAccount);
-                GetMock<IMessageService>()
-                    .Verify(m => m.SendEmailChangeConfirmationNotice(It.IsAny<MailAddress>(), It.IsAny<string>()), Times.Never());
-                GetMock<IMessageService>()
-                  .Verify(m => m.SendEmailChangeNoticeToPreviousEmailAddress(It.IsAny<User>(), It.IsAny<string>()), Times.Never());
-            }
+            // Note general account tests are in the base class. User-specific tests are below.
         }
 
         public class TheApiKeysAction
@@ -1315,194 +1147,6 @@ namespace NuGetGallery
             {
                 var expectedPermissions = action.CheckPermissionsOnBehalfOfAnyAccount(currentUser, package) == PermissionsCheckResult.Allowed;
                 Assert.Equal(expectedPermissions, getPermissionsField(packageModel));
-            }
-        }
-
-        public class TheChangeEmailAction : TestContainer
-        {
-            [Fact]
-            public async Task DoesNotLetYouUseSomeoneElsesConfirmedEmailAddress()
-            {
-                var user = new User
-                {
-                    Username = "theUsername",
-                    EmailAddress = "old@example.com",
-                    Key = 1,
-                };
-
-                var authResult =
-                    new PasswordAuthenticationResult(PasswordAuthenticationResult.AuthenticationResult.Success,
-                                                    new AuthenticatedUser(user, new Credential()));
-
-                GetMock<AuthenticationService>()
-                    .Setup(u => u.Authenticate(It.IsAny<string>(), It.IsAny<string>()))
-                    .CompletesWith(authResult);
-                GetMock<IUserService>()
-                    .Setup(u => u.ChangeEmailAddress(user, "new@example.com"))
-                    .Throws(new EntityException("msg"));
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(user);
-
-                var result = await controller.ChangeEmail(
-                    new UserAccountViewModel()
-                    {
-                        ChangeEmail = new ChangeEmailViewModel
-                        {
-                            NewEmail = "new@example.com"
-                        }
-                    });
-                Assert.False(controller.ModelState.IsValid);
-                Assert.Equal("msg", controller.ModelState["ChangeEmail.NewEmail"].Errors[0].ErrorMessage);
-            }
-
-            [Fact]
-            public async Task SendsEmailChangeConfirmationNoticeWhenChangingAConfirmedEmailAddress()
-            {
-                var user = new User
-                {
-                    Username = "theUsername",
-                    EmailAddress = "test@example.com",
-                    EmailAllowed = true
-                };
-
-                var authResult =
-                    new PasswordAuthenticationResult(
-                        PasswordAuthenticationResult.AuthenticationResult.Success,
-                        new AuthenticatedUser(user, new Credential()));
-
-                GetMock<AuthenticationService>()
-                    .Setup(u => u.Authenticate("theUsername", "password"))
-                    .CompletesWith(authResult);
-                GetMock<IUserService>()
-                    .Setup(u => u.ChangeEmailAddress(user, "new@example.com"))
-                    .Callback(() => user.UpdateEmailAddress("new@example.com", () => "token"))
-                    .Completes();
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(user);
-
-                var model = new UserAccountViewModel()
-                {
-                    ChangeEmail = new ChangeEmailViewModel
-                    {
-                        NewEmail = "new@example.com",
-                        Password = "password"
-                    }
-                };
-
-                var result = await controller.ChangeEmail(model);
-
-                GetMock<IMessageService>()
-                    .Verify(m => m.SendEmailChangeConfirmationNotice(It.IsAny<MailAddress>(), It.IsAny<string>()));
-            }
-
-            [Fact]
-            public async Task DoesNotSendEmailChangeConfirmationNoticeWhenAddressDoesntChange()
-            {
-                var user = new User
-                {
-                    EmailAddress = "old@example.com",
-                    Username = "aUsername",
-                };
-
-                var authResult =
-                    new PasswordAuthenticationResult(PasswordAuthenticationResult.AuthenticationResult.Success, new AuthenticatedUser(user, new Credential()));
-
-                GetMock<AuthenticationService>()
-                    .Setup(u => u.Authenticate("aUsername", "password"))
-                    .CompletesWith(authResult);
-                GetMock<IUserService>()
-                    .Setup(u => u.ChangeEmailAddress(It.IsAny<User>(), It.IsAny<string>()))
-                    .Callback(() => user.UpdateEmailAddress("old@example.com", () => "new-token"));
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(user);
-
-                var model = new UserAccountViewModel()
-                {
-                    ChangeEmail = new ChangeEmailViewModel
-                    {
-                        NewEmail = "old@example.com",
-                        Password = "password"
-                    }
-                };
-
-                await controller.ChangeEmail(model);
-
-                GetMock<IUserService>()
-                    .Verify(u => u.ChangeEmailAddress(user, "old@example.com"), Times.Never());
-                GetMock<IMessageService>()
-                    .Verify(m => m.SendEmailChangeConfirmationNotice(It.IsAny<MailAddress>(), It.IsAny<string>()), Times.Never());
-            }
-
-            [Fact]
-            public async Task DoesNotSendEmailChangeConfirmationNoticeWhenUserWasNotConfirmed()
-            {
-                var user = new User
-                {
-                    Username = "aUsername",
-                    UnconfirmedEmailAddress = "old@example.com",
-                };
-
-                GetMock<AuthenticationService>()
-                    .Setup(u => u.Authenticate("aUsername", "password"))
-                    .CompletesWith(new PasswordAuthenticationResult(
-                        PasswordAuthenticationResult.AuthenticationResult.Success, new AuthenticatedUser(user, new Credential())));
-                GetMock<IUserService>()
-                    .Setup(u => u.ChangeEmailAddress(It.IsAny<User>(), It.IsAny<string>()))
-                    .Callback(() => user.UpdateEmailAddress("new@example.com", () => "new-token"))
-                    .Completes();
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(user);
-
-                var model = new UserAccountViewModel()
-                {
-                    ChangeEmail = new ChangeEmailViewModel
-                    {
-                        NewEmail = "new@example.com",
-                        Password = "password"
-                    }
-                };
-
-                await controller.ChangeEmail(model);
-
-                Assert.Equal("Your new email address was saved!", controller.TempData["Message"]);
-                GetMock<IUserService>()
-                    .Verify(u => u.ChangeEmailAddress(user, "new@example.com"));
-                GetMock<IMessageService>()
-                    .Verify(m => m.SendEmailChangeConfirmationNotice(It.IsAny<MailAddress>(), It.IsAny<string>()), Times.Never());
-            }
-
-            [Fact]
-            public async Task WhenPasswordValidationFailsErrorIsReturned()
-            {
-                // Arrange
-                var user = new User
-                {
-                    Username = "theUsername",
-                    EmailAddress = "test@example.com",
-                    Credentials = new[] { new Credential(CredentialTypes.Password.V3, "abc") }
-                };
-
-                Credential credential;
-                GetMock<AuthenticationService>()
-                    .Setup(u => u.ValidatePasswordCredential(It.IsAny<IEnumerable<Credential>>(), It.IsAny<string>(), out credential))
-                    .Returns(false);
-
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(user);
-
-                var model = new UserAccountViewModel
-                {
-                    ChangeEmail = new ChangeEmailViewModel
-                    {
-                        NewEmail = "new@example.com",
-                        Password = "password"
-                    }
-                };
-
-                var result = await controller.ChangeEmail(model);
-
-                Assert.IsType<ViewResult>(result);
-                Assert.IsType<UserAccountViewModel>(((ViewResult)result).Model);
             }
         }
 
