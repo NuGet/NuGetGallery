@@ -4,8 +4,11 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using NuGet.Services.Validation.Issues;
+using NuGet.Services.Validation.Orchestrator.Telemetry;
 
 namespace NuGet.Services.Validation.Orchestrator
 {
@@ -14,12 +17,17 @@ namespace NuGet.Services.Validation.Orchestrator
     /// </summary>
     public class ValidationStorageService : IValidationStorageService
     {
-        private readonly ValidationEntitiesContext _validationContext;
+        private readonly IValidationEntitiesContext _validationContext;
+        private readonly ITelemetryService _telemetryService;
         private readonly ILogger<ValidationStorageService> _logger;
 
-        public ValidationStorageService(ValidationEntitiesContext validationContext, ILogger<ValidationStorageService> logger)
+        public ValidationStorageService(
+            IValidationEntitiesContext validationContext,
+            ITelemetryService telemetryService,
+            ILogger<ValidationStorageService> logger)
         {
             _validationContext = validationContext ?? throw new ArgumentNullException(nameof(validationContext));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -78,6 +86,8 @@ namespace NuGet.Services.Validation.Orchestrator
             packageValidation.ValidationStatusTimestamp = now;
             packageValidation.Started = now;
             await _validationContext.SaveChangesAsync();
+
+            TrackValidationStatus(packageValidation);
         }
 
         public async Task UpdateValidationStatusAsync(PackageValidation packageValidation, IValidationResult validationResult)
@@ -89,16 +99,80 @@ namespace NuGet.Services.Validation.Orchestrator
                 packageValidation.PackageValidationSet.PackageId,
                 packageValidation.PackageValidationSet.PackageNormalizedVersion,
                 validationResult.Status);
+
             if (packageValidation.ValidationStatus == validationResult.Status)
             {
                 return;
             }
+
+            var previousValidationStatus = packageValidation.ValidationStatus;
 
             AddValidationIssues(packageValidation, validationResult.Issues);
 
             packageValidation.ValidationStatus = validationResult.Status;
             packageValidation.ValidationStatusTimestamp = DateTime.UtcNow;
             await _validationContext.SaveChangesAsync();
+
+            TrackValidationStatus(packageValidation);
+        }
+
+        private void TrackValidationStatus(PackageValidation packageValidation)
+        {
+            if (packageValidation.ValidationStatus != ValidationStatus.Failed
+                && packageValidation.ValidationStatus != ValidationStatus.Succeeded)
+            {
+                return;
+            }
+
+            var isSuccess = packageValidation.ValidationStatus == ValidationStatus.Succeeded;
+
+            TimeSpan validatorDuration = TimeSpan.Zero;
+            if (packageValidation.Started.HasValue)
+            {
+                validatorDuration = packageValidation.ValidationStatusTimestamp - packageValidation.Started.Value;
+            }
+
+            _telemetryService.TrackValidatorDuration(
+               validatorDuration,
+               packageValidation.Type,
+               isSuccess);
+
+            _telemetryService.TrackValidationIssueCount(
+                packageValidation.PackageValidationIssues.Count,
+                packageValidation.Type,
+                isSuccess);
+
+            foreach (var issue in packageValidation?.PackageValidationIssues ?? Enumerable.Empty<PackageValidationIssue>())
+            {
+                _telemetryService.TrackValidationIssue(packageValidation.Type, issue.IssueCode);
+
+                var deserializedIssue = ValidationIssue.Deserialize(issue.IssueCode, issue.Data);
+                if (issue.IssueCode == ValidationIssueCode.ClientSigningVerificationFailure
+                    && deserializedIssue is ClientSigningVerificationFailure typedIssue)
+                {
+                    _telemetryService.TrackClientValidationIssue(packageValidation.Type, typedIssue.ClientCode);
+                }
+            }
+        }
+
+        public async Task<bool> OtherRecentValidationSetForPackageExists(
+            int packageKey,
+            TimeSpan recentDuration,
+            Guid currentValidationSetTrackingId)
+        {
+            var cutoffTimestamp = DateTime.UtcNow - recentDuration;
+            return await _validationContext
+                .PackageValidationSets
+                .AnyAsync(pvs => pvs.PackageKey == packageKey
+                    && pvs.Created > cutoffTimestamp
+                    && pvs.ValidationTrackingId != currentValidationSetTrackingId);
+        }
+
+        public async Task<int> GetValidationSetCountAsync(int packageKey)
+        {
+            return await _validationContext
+                .PackageValidationSets
+                .CountAsync(x => x.PackageKey == packageKey);
         }
 
         private void AddValidationIssues(PackageValidation packageValidation, IReadOnlyList<IValidationIssue> validationIssues)

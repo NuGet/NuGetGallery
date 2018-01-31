@@ -46,7 +46,16 @@ namespace NuGet.Services.Validation.Orchestrator
 
             using (_logger.BeginScope("Handling message for {PackageId} {PackageVersion} validation set {ValidationSetId}", message.PackageId, message.PackageVersion, message.ValidationTrackingId))
             {
-                var validationSet = await _validationSetProvider.GetOrCreateValidationSetAsync(message.ValidationTrackingId, package);
+                var validationSet = await _validationSetProvider.TryGetOrCreateValidationSetAsync(message.ValidationTrackingId, package);
+
+                if (validationSet == null)
+                {
+                    _logger.LogInformation("The validation request for {PackageId} {PackageVersion} validation set {ValidationSetId} is a duplicate. Discarding.",
+                        message.PackageId,
+                        message.PackageVersion,
+                        message.ValidationTrackingId);
+                    return true;
+                }
 
                 await _validationSetProcessor.ProcessValidationsAsync(validationSet, package);
                 await _validationOutcomeProcessor.ProcessValidationOutcomeAsync(validationSet, package);

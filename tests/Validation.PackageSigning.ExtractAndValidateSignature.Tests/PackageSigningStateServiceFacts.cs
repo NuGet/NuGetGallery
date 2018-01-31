@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
 using NuGet.Services.Validation;
+using Validation.PackageSigning.Core.Tests.Support;
 using Xunit;
 using Xunit.Abstractions;
 

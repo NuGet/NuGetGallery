@@ -35,6 +35,34 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             CorePackageServiceMock.Verify(ps => ps.FindPackageByIdAndVersionStrict(messageData.PackageId, messageData.PackageVersion), Times.Once());
         }
+
+        [Fact]
+        public async Task DropsMessageOnDuplicateValidationRequest()
+        {
+            var messageData = new PackageValidationMessageData("packageId", "1.2.3", Guid.NewGuid());
+            var validationConfiguration = new ValidationConfiguration();
+            var package = new Package();
+
+            CorePackageServiceMock
+                .Setup(ps => ps.FindPackageByIdAndVersionStrict(messageData.PackageId, messageData.PackageVersion))
+                .Returns(package)
+                .Verifiable();
+
+            ValidationSetProviderMock
+                .Setup(vsp => vsp.TryGetOrCreateValidationSetAsync(messageData.ValidationTrackingId, package))
+                .ReturnsAsync((PackageValidationSet)null)
+                .Verifiable();
+
+            var handler = CreateHandler();
+
+            var result = await handler.HandleAsync(messageData);
+
+            Assert.True(result);
+            CorePackageServiceMock
+                .Verify(ps => ps.FindPackageByIdAndVersionStrict(messageData.PackageId, messageData.PackageVersion), Times.Once());
+            ValidationSetProviderMock
+                .Verify(vsp => vsp.TryGetOrCreateValidationSetAsync(messageData.ValidationTrackingId, package), Times.Once());
+        }
     }
 
     public class ValidationMessageHandlerLooseFacts : ValidationMessageHandlerFactsBase
@@ -55,7 +83,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .Returns(Package);
 
             ValidationSetProviderMock
-                .Setup(vsp => vsp.GetOrCreateValidationSetAsync(MessageData.ValidationTrackingId, Package))
+                .Setup(vsp => vsp.TryGetOrCreateValidationSetAsync(MessageData.ValidationTrackingId, Package))
                 .ReturnsAsync(ValidationSet);
         }
 
@@ -66,7 +94,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             await handler.HandleAsync(MessageData);
 
             ValidationSetProviderMock
-                .Verify(vsp => vsp.GetOrCreateValidationSetAsync(MessageData.ValidationTrackingId, Package));
+                .Verify(vsp => vsp.TryGetOrCreateValidationSetAsync(MessageData.ValidationTrackingId, Package));
         }
 
         [Fact]

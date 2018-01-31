@@ -7,12 +7,12 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
+namespace Validation.PackageSigning.Core.Tests.Support
 {
     /// <summary>
     /// Source: https://msdn.microsoft.com/en-us/data/dn314429
     /// </summary>
-    internal class TestDbAsyncQueryProvider<TEntity> : IDbAsyncQueryProvider
+    public class TestDbAsyncQueryProvider<TEntity> : IDbAsyncQueryProvider
     {
         private readonly IQueryProvider _inner;
 

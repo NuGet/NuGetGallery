@@ -26,6 +26,13 @@ namespace NuGet.Services.Validation.Orchestrator
         Task<PackageValidationSet> GetValidationSetAsync(Guid validationTrackingId);
 
         /// <summary>
+        /// Gets the number of validation sets that the provided package key has.
+        /// </summary>
+        /// <param name="packageKey">The package key.</param>
+        /// <returns>The count.</returns>
+        Task<int> GetValidationSetCountAsync(int packageKey);
+
+        /// <summary>
         /// Updates the passed <see cref="PackageValidation"/> with the validation result's status,
         /// updates the <see cref="PackageValidation.ValidationStatusTimestamp"/> to current timestamp,
         /// and persists changes in the storage. The result's status cannot be <see cref="ValidationStatus.NotStarted"/>
@@ -50,5 +57,20 @@ namespace NuGet.Services.Validation.Orchestrator
         /// <param name="validationResult">The result of the validation.</param>
         /// <returns>Task object tracking the async operation status.</returns>
         Task UpdateValidationStatusAsync(PackageValidation packageValidation, IValidationResult validationResult);
+
+        /// <summary>
+        /// Checks whether a validation set was created within the time range specified
+        /// by <paramref name="recentDuration"/> argument with tracking id that is different
+        /// from the supplied as a <paramref name="currentValidationSetTrackingId"/> argument.
+        /// </summary>
+        /// <param name="packageId">Package ID for which recent validation sets are to be looked up.</param>
+        /// <param name="normalizedVersion">Normalized version of the package.</param>
+        /// <param name="recentDuration">Max amount of time to look back.</param>
+        /// <param name="currentValidationSetTrackingId">Validation set tracking for the currently processed request.</param>
+        /// <returns>True if validation set exists, false otherwise.</returns>
+        Task<bool> OtherRecentValidationSetForPackageExists(
+            int packageKey,
+            TimeSpan recentDuration,
+            Guid currentValidationSetTrackingId);
     }
 }

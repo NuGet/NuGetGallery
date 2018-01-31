@@ -6,12 +6,12 @@ using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
+namespace Validation.PackageSigning.Core.Tests.Support
 {
     /// <summary>
     /// Source: https://msdn.microsoft.com/en-us/data/dn314429
     /// </summary>
-    internal class TestDbAsyncEnumerable<T> : EnumerableQuery<T>, IDbAsyncEnumerable<T>, IQueryable<T>
+    public class TestDbAsyncEnumerable<T> : EnumerableQuery<T>, IDbAsyncEnumerable<T>, IQueryable<T>
     {
         public TestDbAsyncEnumerable(IEnumerable<T> enumerable) : base(enumerable)
         {

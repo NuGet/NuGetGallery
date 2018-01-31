@@ -7,8 +7,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using NuGet.Services.Validation.Orchestrator.Telemetry;
 using NuGetGallery;
-using NuGetGallery.Services;
 
 namespace NuGet.Services.Validation.Orchestrator
 {
@@ -19,6 +19,7 @@ namespace NuGet.Services.Validation.Orchestrator
         private readonly IPackageValidationEnqueuer _validationEnqueuer;
         private readonly ValidationConfiguration _validationConfiguration;
         private readonly IMessageService _messageService;
+        private readonly ITelemetryService _telemetryService;
         private readonly ILogger<ValidationOutcomeProcessor> _logger;
 
         public ValidationOutcomeProcessor(
@@ -27,6 +28,7 @@ namespace NuGet.Services.Validation.Orchestrator
             IPackageValidationEnqueuer validationEnqueuer,
             IOptionsSnapshot<ValidationConfiguration> validationConfigurationAccessor,
             IMessageService messageService,
+            ITelemetryService telemetryService,
             ILogger<ValidationOutcomeProcessor> logger)
         {
             _galleryPackageService = galleryPackageService ?? throw new ArgumentNullException(nameof(galleryPackageService));
@@ -40,6 +42,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 ?? throw new ArgumentException($"The {nameof(validationConfigurationAccessor)}.Value property cannot be null",
                     nameof(validationConfigurationAccessor));
             _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -63,9 +66,14 @@ namespace NuGet.Services.Validation.Orchestrator
                     validationSet.ValidationTrackingId,
                     GetFailedValidations(validationSet, GetValidationConfigurationItem));
 
-                if (package.PackageStatusKey != PackageStatus.Available)
+                // The only way we can move to the failed validation state is if the package is currently in the
+                // validating state. This has a beneficial side effect of only sending a failed validation email to the
+                // customer when the package first moves to the failed validation state. If an admin comes along and
+                // revalidates the package and the package fails validation again, we don't want another email going
+                // out since that would be noisy for the customer.                
+                if (package.PackageStatusKey == PackageStatus.Validating)
                 {
-                    await _galleryPackageService.UpdatePackageStatusAsync(package, PackageStatus.FailedValidation);
+                    await UpdatePackageStatusAsync(package, PackageStatus.FailedValidation);
 
                     var issuesExistAndAllPackageSigned = validationSet
                         .PackageValidations
@@ -85,15 +93,18 @@ namespace NuGet.Services.Validation.Orchestrator
                 }
                 else
                 {
-                    // The case when validation fails while PackageStatus is Available is the case of 
+                    // The case when validation fails while PackageStatus not validating is the case of 
                     // manual revalidation. In this case we don't want to take package down automatically
-                    // and let the person who requested revalidation to decide how to proceed. User will be
+                    // and let the person who requested revalidation to decide how to proceed. Ops will be
                     // alerted by failed validation monitoring.
-                    _logger.LogInformation("Package {PackageId} {PackageVersion} was available when validation set {ValidationSetId} failed. Will not mark it as failed",
+                    _logger.LogInformation("Package {PackageId} {PackageVersion} was {PackageStatus} when validation set {ValidationSetId} failed. Will not mark it as failed.",
                         package.PackageRegistration.Id,
                         package.NormalizedVersion,
+                        package.PackageStatusKey,
                         validationSet.ValidationTrackingId);
                 }
+
+                TrackTotalValidationDuration(validationSet, isSuccess: false);
             }
             else if (AllValidationsSucceeded(validationSet, GetValidationConfigurationItem))
             {
@@ -116,6 +127,8 @@ namespace NuGet.Services.Validation.Orchestrator
                     package.PackageRegistration.Id,
                     package.NormalizedVersion,
                     validationSet.ValidationTrackingId);
+
+                TrackTotalValidationDuration(validationSet, isSuccess: true);
             }
             else
             {
@@ -124,6 +137,13 @@ namespace NuGet.Services.Validation.Orchestrator
                 var messageData = new PackageValidationMessageData(package.PackageRegistration.Id, package.Version, validationSet.ValidationTrackingId);
                 await _validationEnqueuer.StartValidationAsync(messageData, DateTimeOffset.UtcNow + _validationConfiguration.ValidationMessageRecheckPeriod);
             }
+        }
+
+        private void TrackTotalValidationDuration(PackageValidationSet validationSet, bool isSuccess)
+        {
+            _telemetryService.TrackTotalValidationDuration(
+                DateTime.UtcNow - validationSet.Created,
+                isSuccess);
         }
 
         private async Task MoveFileToPublicStorageAndMarkPackageAsAvailable(PackageValidationSet validationSet, Package package)
@@ -142,7 +162,9 @@ namespace NuGet.Services.Validation.Orchestrator
                     package.NormalizedVersion,
                     validationSet.ValidationTrackingId,
                     PackageStatus.Available);
-                await _galleryPackageService.UpdatePackageStatusAsync(package, PackageStatus.Available, commitChanges: true);
+
+                await UpdatePackageStatusAsync(package, PackageStatus.Available);
+
                 _messageService.SendPackagePublishedMessage(package);
             }
             catch (Exception e)
@@ -192,6 +214,18 @@ namespace NuGet.Services.Validation.Orchestrator
             Func<string, ValidationConfigurationItem> getValidationConfigurationItem)
         {
             return GetFailedValidations(packageValidationSet, getValidationConfigurationItem).Any();
+        }
+
+        private async Task UpdatePackageStatusAsync(Package package, PackageStatus toStatus)
+        {
+            var fromStatus = package.PackageStatusKey;
+
+            await _galleryPackageService.UpdatePackageStatusAsync(package, toStatus, commitChanges: true);
+
+            if (fromStatus != toStatus)
+            {
+                _telemetryService.TrackPackageStatusChange(fromStatus, toStatus);
+            }
         }
     }
 }

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using NuGet.Services.Validation.Orchestrator.Telemetry;
 using NuGetGallery;
 
 namespace NuGet.Services.Validation.Orchestrator
@@ -18,6 +19,7 @@ namespace NuGet.Services.Validation.Orchestrator
         private readonly IValidationStorageService _validationStorageService;
         private readonly ValidationConfiguration _validationConfiguration;
         private readonly ICorePackageFileService _packageFileService;
+        private readonly ITelemetryService _telemetryService;
         private readonly ILogger<ValidationSetProcessor> _logger;
 
         public ValidationSetProcessor(
@@ -25,6 +27,7 @@ namespace NuGet.Services.Validation.Orchestrator
             IValidationStorageService validationStorageService,
             IOptionsSnapshot<ValidationConfiguration> validationConfigurationAccessor,
             ICorePackageFileService packageFileService,
+            ITelemetryService telemetryService,
             ILogger<ValidationSetProcessor> logger)
         {
             _validatorProvider = validatorProvider ?? throw new ArgumentNullException(nameof(validatorProvider));
@@ -35,6 +38,7 @@ namespace NuGet.Services.Validation.Orchestrator
             }
             _validationConfiguration = validationConfigurationAccessor.Value ?? throw new ArgumentException($"The Value property cannot be null", nameof(validationConfigurationAccessor));
             _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -195,6 +199,8 @@ namespace NuGet.Services.Validation.Orchestrator
                     else
                     {
                         await _validationStorageService.MarkValidationStartedAsync(packageValidation, validationResult);
+
+                        _telemetryService.TrackValidatorStarted(packageValidation.Type);
                     }
 
                     tryMoreValidations = tryMoreValidations || validationResult.Status == ValidationStatus.Succeeded;
@@ -232,6 +238,9 @@ namespace NuGet.Services.Validation.Orchestrator
                     packageValidation.PackageValidationSet.PackageNormalizedVersion,
                     validationConfiguration.FailAfter);
                 await _validationStorageService.UpdateValidationStatusAsync(packageValidation, ValidationResult.Failed);
+
+                _telemetryService.TrackValidatorTimeout(packageValidation.Type);
+
                 return;
             }
         }

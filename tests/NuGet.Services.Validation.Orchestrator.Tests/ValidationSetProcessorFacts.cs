@@ -4,12 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Services.Validation.Issues;
+using NuGet.Services.Validation.Orchestrator.Telemetry;
 using NuGetGallery;
 using Xunit;
 
@@ -20,7 +20,6 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         public StrictStorageFacts()
             : base(validationStorageMockBehavior: MockBehavior.Strict)
         {
-
         }
 
         [Fact]
@@ -82,14 +81,20 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             if (expectStorageUpdate)
             {
                 ValidationStorageMock.Verify(
-                    vs => vs.MarkValidationStartedAsync(validation, It.Is<ValidationResult>(r => r.Status == startStatus)), Times.Once());
+                    vs => vs.MarkValidationStartedAsync(validation, It.Is<ValidationResult>(r => r.Status == startStatus)), Times.Once);
                 ValidationStorageMock.Verify(
-                    vs => vs.MarkValidationStartedAsync(It.IsAny<PackageValidation>(), It.IsAny<ValidationResult>()), Times.Once());
+                    vs => vs.MarkValidationStartedAsync(It.IsAny<PackageValidation>(), It.IsAny<ValidationResult>()), Times.Once);
+                TelemetryServiceMock.Verify(
+                    ts => ts.TrackValidatorStarted(validationName), Times.Once);
+                TelemetryServiceMock.Verify(
+                    ts => ts.TrackValidatorStarted(It.IsAny<string>()), Times.Once);
             }
             else
             {
                 ValidationStorageMock.Verify(
-                    vs => vs.MarkValidationStartedAsync(It.IsAny<PackageValidation>(), It.IsAny<ValidationResult>()), Times.Never());
+                    vs => vs.MarkValidationStartedAsync(It.IsAny<PackageValidation>(), It.IsAny<ValidationResult>()), Times.Never);
+                TelemetryServiceMock.Verify(
+                    ts => ts.TrackValidatorStarted(It.IsAny<string>()), Times.Never);
             }
         }
 
@@ -260,6 +265,42 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     Times.Once());
         }
 
+        [Fact]
+        public async Task UsesFailAfterConfigurationToTreatLongImcompleteAsFailed()
+        {
+            UseDefaultValidatorProvider();
+            var failAfter = TimeSpan.FromDays(1);
+            var validator = AddValidation("validation1", failAfter, validationStatus: ValidationStatus.Incomplete);
+            var validation = ValidationSet.PackageValidations.First();
+            validation.Started = DateTime.UtcNow - failAfter.Add(TimeSpan.FromSeconds(1));
+
+            var validationResult = new ValidationResult(ValidationStatus.Incomplete);
+
+            validator
+                .Setup(v => v.GetResultAsync(It.IsAny<IValidationRequest>()))
+                .ReturnsAsync(validationResult)
+                .Verifiable();
+
+            ValidationStorageMock
+                .Setup(vs => vs.UpdateValidationStatusAsync(
+                                validation,
+                                It.Is<IValidationResult>(r => r.Status == ValidationStatus.Failed)))
+                .Returns(Task.FromResult(0));
+
+            var processor = CreateProcessor();
+            await processor.ProcessValidationsAsync(ValidationSet, Package);
+
+            ValidationStorageMock
+                .Verify(vs => vs.UpdateValidationStatusAsync(
+                                validation,
+                                It.Is<IValidationResult>(r => r.Status == ValidationStatus.Failed)),
+                    Times.Once);
+            TelemetryServiceMock
+                .Verify(ts => ts.TrackValidatorTimeout(validation.Type), Times.Once);
+            TelemetryServiceMock
+                .Verify(ts => ts.TrackValidatorTimeout(It.IsAny<string>()), Times.Once);
+        }
+
         [Theory]
         [InlineData(true, false, PublicContainerName)]
         [InlineData(false, true, ValidationContainerName)]
@@ -331,6 +372,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         protected Mock<IOptionsSnapshot<ValidationConfiguration>> ConfigurationAccessorMock { get; }
         protected Mock<ICorePackageFileService> PackageFileServiceMock { get; }
         protected Mock<ILogger<ValidationSetProcessor>> LoggerMock { get; }
+        public Mock<ITelemetryService> TelemetryServiceMock { get; }
         protected ValidationConfiguration Configuration { get; }
         protected Package Package { get; }
         protected PackageValidationSet ValidationSet { get; }
@@ -341,6 +383,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             MockBehavior validationStorageMockBehavior = MockBehavior.Default,
             MockBehavior configurationAccessorMockBehavior = MockBehavior.Default,
             MockBehavior packageFileServiceMockBehavior = MockBehavior.Default,
+            MockBehavior telemetryServiceMockBehavior = MockBehavior.Default,
             MockBehavior loggerMockBehavior = MockBehavior.Default)
         {
             ValidatorProviderMock = new Mock<IValidatorProvider>(validatorProviderMockBehavior);
@@ -348,6 +391,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             ConfigurationAccessorMock = new Mock<IOptionsSnapshot<ValidationConfiguration>>(configurationAccessorMockBehavior);
             PackageFileServiceMock = new Mock<ICorePackageFileService>(packageFileServiceMockBehavior);
             LoggerMock = new Mock<ILogger<ValidationSetProcessor>>(loggerMockBehavior);
+            TelemetryServiceMock = new Mock<ITelemetryService>(telemetryServiceMockBehavior);
             Configuration = new ValidationConfiguration
             {
                 Validations = new List<ValidationConfigurationItem>
@@ -400,6 +444,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 ValidationStorageMock.Object,
                 ConfigurationAccessorMock.Object,
                 PackageFileServiceMock.Object,
+                TelemetryServiceMock.Object,
                 LoggerMock.Object);
 
         protected PackageValidation AddValidationToSet(

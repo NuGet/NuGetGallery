@@ -53,6 +53,7 @@
     <Compile Include="ValidationProviderFacts.cs" />
     <Compile Include="ValidationSetProcessorFacts.cs" />
     <Compile Include="ValidationSetProviderFacts.cs" />
+    <Compile Include="ValidationStorageServiceFacts.cs" />
     <Compile Include="ValidatorStateServiceFacts.cs" />
     <Compile Include="Vcs\PackageCriteriaEvaluatorFacts.cs" />
     <Compile Include="Vcs\VcsValidatorFacts.cs" />
@@ -65,7 +66,7 @@
       <Version>1.1.2</Version>
     </PackageReference>
     <PackageReference Include="moq">
-      <Version>4.5.23</Version>
+      <Version>4.7.145</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation.Issues">
       <Version>2.12.0</Version>
@@ -74,10 +75,10 @@
       <Version>4.3.3</Version>
     </PackageReference>
     <PackageReference Include="xunit">
-      <Version>2.1.0</Version>
+      <Version>2.3.1</Version>
     </PackageReference>
     <PackageReference Include="xunit.runner.visualstudio">
-      <Version>2.1.0</Version>
+      <Version>2.3.1</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
@@ -92,6 +93,10 @@
     <ProjectReference Include="..\..\src\Validation.PackageSigning.Core\Validation.PackageSigning.Core.csproj">
       <Project>{91C060DA-736F-4DA9-A57F-CB3AC0E6CB10}</Project>
       <Name>Validation.PackageSigning.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Validation.PackageSigning.Core.Tests\Validation.PackageSigning.Core.Tests.csproj">
+      <Project>{b4b7564a-965b-447b-927f-6749e2c08880}</Project>
+      <Name>Validation.PackageSigning.Core.Tests</Name>
     </ProjectReference>
     <ProjectReference Include="..\Validation.PackageSigning.Helpers\Validation.PackageSigning.Helpers.csproj">
       <Project>{2c5be067-adfd-49e3-ba9f-13a74436e5db}</Project>

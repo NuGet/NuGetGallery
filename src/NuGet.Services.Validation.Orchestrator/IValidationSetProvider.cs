@@ -17,7 +17,10 @@ namespace NuGet.Services.Validation.Orchestrator
         /// </summary>
         /// <param name="validationTrackingId">Validation tracking id</param>
         /// <param name="package">Package details from Gallery DB</param>
-        /// <returns><see cref="PackageValidationSet"/> object with information about requested <paramref name="validationTrackingId"/></returns>
-        Task<PackageValidationSet> GetOrCreateValidationSetAsync(Guid validationTrackingId, Package package);
+        /// <returns><see cref="PackageValidationSet"/> object with information about
+        /// requested <paramref name="validationTrackingId"/>. Null if no further processing
+        /// should be made (e.g. duplicate validation request was detected).
+        /// </returns>
+        Task<PackageValidationSet> TryGetOrCreateValidationSetAsync(Guid validationTrackingId, Package package);
     }
 }

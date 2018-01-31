@@ -1,7 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.IO;
+using System.Linq;
+using System.Security.Cryptography.X509Certificates;
+using System.Threading;
+using System.Threading.Tasks;
 using NuGet.Packaging.Signing;
 
 namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
@@ -9,6 +14,15 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
     public static class TestResources
     {
         private const string ResourceNamespace = "Validation.PackageSigning.ExtractAndValidateSignature.Tests.TestData";
+        private static readonly Lazy<Task<byte[]>> _lazyTestRootCertificate = new Lazy<Task<byte[]>>(async () =>
+        {
+            using (var package = SignedPackageLeaf1Reader)
+            {
+                var signature = await package.GetSignatureAsync(CancellationToken.None);
+                var certificates = SignatureUtility.GetPrimarySignatureCertificates(signature);
+                return certificates.Last().RawData;
+            }
+        });
 
         public const string SignedPackageLeaf1 = ResourceNamespace + ".TestSigned.leaf-1.1.0.0.nupkg";
         public const string SignedPackageLeaf2 = ResourceNamespace + ".TestSigned.leaf-2.2.0.0.nupkg";
@@ -18,17 +32,17 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
         /// <summary>
         /// This is the SHA-256 thumbprint of the root CA certificate for the signing certificate of <see cref="SignedPackageLeaf1"/>.
         /// </summary>
-        public const string RootThumbprint = "0e829fa17cfd9be513a41d9f205320f7d035f48d6c4cc7acbaa95f1744c1d6bb";
+        public const string RootThumbprint = "557276839c961df211cf267b318d880568676efa41e8b62d9bb38752c1d6214d";
 
         /// <summary>
         /// This is the SHA-256 thumbprint of the signing certificate in <see cref="SignedPackageLeaf1"/>.
         /// </summary>
-        public const string Leaf1Thumbprint = "56a23ed7c0ef80bd0269d4a3b41e3e2830243a9fc85594b6c311e27423df6023";
+        public const string Leaf1Thumbprint = "4456d5d38709876dcd20ef3d7ba98bfd79fcaee91141d153a55f10841ef909c6";
 
         /// <summary>
         /// This is the SHA-256 thumbprint of the signing certificate in <see cref="SignedPackageLeaf2"/>.
         /// </summary>
-        public const string Leaf2Thumbprint = "cd177f02cb88f6e6fb6b0dd67d68559b101c3e100fb19ebf4db43d9d082674e1";
+        public const string Leaf2Thumbprint = "a8cc70dbbd8bc61410231805b690cca7c5a8d07553c1c49b299a6aabaeb7ff9a";
 
         /// <summary>
         /// This is the SHA-256 thumbprint of the timestamp certificate in <see cref="SignedPackageLeaf1"/>.
@@ -37,6 +51,12 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
 
         public static SignedPackageArchive SignedPackageLeaf1Reader => LoadPackage(SignedPackageLeaf1);
         public static SignedPackageArchive SignedPackageLeaf2Reader => LoadPackage(SignedPackageLeaf2);
+
+        public static async Task<X509Certificate2> GetTestRootCertificateAsync()
+        {
+            var bytes = await _lazyTestRootCertificate.Value;
+            return new X509Certificate2((byte[])bytes.Clone());
+        }
 
         /// <summary>
         /// Buffer the resource stream into memory so the caller doesn't have to dispose.

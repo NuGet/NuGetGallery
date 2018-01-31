@@ -111,6 +111,13 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
         
         private static async Task<byte[]> GenerateSignedPackageBytesAsync(string resourceName, TrustedTestCert<TestCertificate> certificate, ITestOutputHelper output)
         {
+            if (string.IsNullOrWhiteSpace(_testTimestampServer))
+            {
+                Assert.False(
+                    string.IsNullOrWhiteSpace(_testTimestampServer),
+                    "You must set a TIMESTAMP_SERVER_URL environment variable to an accessible timestamping authority URL.");
+            }
+
             var testLogger = new TestLogger(output);
             var timestampProvider = new Rfc3161TimestampProvider(new Uri(_testTimestampServer));
             var signatureProvider = new X509SignatureProvider(timestampProvider);
@@ -125,7 +132,7 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                 signatureProvider,
                 x =>
                 {
-                    var request = new SignPackageRequest(certificate.TrustedCert, HashAlgorithmName.SHA256);
+                    var request = new AuthorSignPackageRequest(certificate.TrustedCert, HashAlgorithmName.SHA256);
                     return x.SignAsync(request, testLogger, CancellationToken.None);
                 });
 

@@ -6,12 +6,12 @@ using System.Data.Entity.Infrastructure;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
+namespace Validation.PackageSigning.Core.Tests.Support
 {
     /// <summary>
     /// Source: https://msdn.microsoft.com/en-us/data/dn314429
     /// </summary>
-    internal class TestDbAsyncEnumerator<T> : IDbAsyncEnumerator<T>
+    public class TestDbAsyncEnumerator<T> : IDbAsyncEnumerator<T>
     {
         private readonly IEnumerator<T> _inner;
 

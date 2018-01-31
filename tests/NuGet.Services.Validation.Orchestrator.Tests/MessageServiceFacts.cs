@@ -52,13 +52,13 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         private static IEnumerable<string> InvalidValuesToTest => new string[] { null, "", " " };
         private const string ValidValue = "123";
         private const string ValidSettingsUrl = "https://example.com";
-        public static IEnumerable<string[]> EmailConfigurationPropertyValuesCombinations =>
+        public static IEnumerable<object[]> EmailConfigurationPropertyValuesCombinations =>
             (from invalidValue in InvalidValuesToTest
             select new [] 
             {
-                new string[] { invalidValue,   ValidValue, ValidSettingsUrl, "PackageUrlTemplate" },
-                new string[] {   ValidValue, invalidValue, ValidSettingsUrl, "PackageSupportTemplate" },
-                new string[] {   ValidValue,   ValidValue,     invalidValue, "EmailSettingsUrl" }
+                new object[] { invalidValue,   ValidValue, ValidSettingsUrl, "PackageUrlTemplate" },
+                new object[] {   ValidValue, invalidValue, ValidSettingsUrl, "PackageSupportTemplate" },
+                new object[] {   ValidValue,   ValidValue,     invalidValue, "EmailSettingsUrl" }
             }).SelectMany(x => x);
 
         [Theory]

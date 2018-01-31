@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
+using NuGet.Services.Validation.Orchestrator.Telemetry;
 using NuGetGallery;
 using Xunit;
 
@@ -168,24 +169,54 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .Verify(pfs => pfs.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()), Times.Never());
         }
 
-        [Fact]
-        public async Task MarksPackageAsAvailableOnSuccess()
+        [Theory]
+        [InlineData(ValidationStatus.Failed, PackageStatus.Validating, PackageStatus.FailedValidation)]
+        [InlineData(ValidationStatus.Failed, PackageStatus.Available, PackageStatus.Available)]
+        [InlineData(ValidationStatus.Failed, PackageStatus.FailedValidation, PackageStatus.FailedValidation)]
+        [InlineData(ValidationStatus.Succeeded, PackageStatus.Validating, PackageStatus.Available)]
+        [InlineData(ValidationStatus.Succeeded, PackageStatus.Available, PackageStatus.Available)]
+        [InlineData(ValidationStatus.Succeeded, PackageStatus.FailedValidation, PackageStatus.Available)]
+        public async Task MarksPackageStatusBasedOnValidatorResults(ValidationStatus validation, PackageStatus fromStatus, PackageStatus toStatus)
         {
-            AddValidation("validation1", ValidationStatus.Succeeded);
-            Package.PackageStatusKey = PackageStatus.Validating;
+            AddValidation("validation1", validation);
+            Package.PackageStatusKey = fromStatus;
 
             PackageServiceMock
-                .Setup(ps => ps.UpdatePackageStatusAsync(Package, PackageStatus.Available, true))
+                .Setup(ps => ps.UpdatePackageStatusAsync(Package, toStatus, true))
                 .Returns(Task.FromResult(0))
                 .Verifiable();
 
-            var processor = CreateProcessor();
-            await processor.ProcessValidationOutcomeAsync(ValidationSet, Package);
+            TimeSpan duration = default(TimeSpan);
+            TelemetryServiceMock
+                .Setup(ts => ts.TrackTotalValidationDuration(It.IsAny<TimeSpan>(), It.IsAny<bool>()))
+                .Callback<TimeSpan, bool>((t, _) => duration = t);
 
-            PackageServiceMock
-                .Verify(ps => ps.UpdatePackageStatusAsync(Package, PackageStatus.Available, true), Times.Once());
-            PackageServiceMock
-                .Verify(ps => ps.UpdatePackageStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), It.IsAny<bool>()), Times.Once());
+            var processor = CreateProcessor();
+
+            var before = DateTime.UtcNow;
+            await processor.ProcessValidationOutcomeAsync(ValidationSet, Package);
+            var after = DateTime.UtcNow;
+            
+            if (fromStatus != toStatus)
+            {
+                PackageServiceMock
+                    .Verify(ps => ps.UpdatePackageStatusAsync(Package, toStatus, true), Times.Once);
+                PackageServiceMock
+                    .Verify(ps => ps.UpdatePackageStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), It.IsAny<bool>()), Times.Once);
+                TelemetryServiceMock
+                    .Verify(ts => ts.TrackPackageStatusChange(fromStatus, toStatus), Times.Once);
+            }
+            else
+            {
+                PackageServiceMock
+                    .Verify(ps => ps.UpdatePackageStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), It.IsAny<bool>()), Times.Never);
+                TelemetryServiceMock
+                    .Verify(ts => ts.TrackPackageStatusChange(It.IsAny<PackageStatus>(), It.IsAny<PackageStatus>()), Times.Never);
+            }
+
+            TelemetryServiceMock
+                .Verify(ts => ts.TrackTotalValidationDuration(It.IsAny<TimeSpan>(), It.IsAny<bool>()), Times.Once());
+            Assert.InRange(duration, before - ValidationSet.Created, after - ValidationSet.Created);
         }
 
         [Fact]
@@ -346,6 +377,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             ValidationEnqueuerMock = new Mock<IPackageValidationEnqueuer>();
             ConfigurationAccessorMock = new Mock<IOptionsSnapshot<ValidationConfiguration>>();
             MessageServiceMock = new Mock<IMessageService>();
+            TelemetryServiceMock = new Mock<ITelemetryService>();
             LoggerMock = new Mock<ILogger<ValidationOutcomeProcessor>>();
 
             Configuration = new ValidationConfiguration();
@@ -365,6 +397,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             ValidationSet.PackageId = Package.PackageRegistration.Id;
             ValidationSet.PackageNormalizedVersion = Package.NormalizedVersion;
             ValidationSet.ValidationTrackingId = Guid.NewGuid();
+            ValidationSet.Created = new DateTime(2017, 1, 1, 8, 30, 0, DateTimeKind.Utc);
 
             ConfigurationAccessorMock
                 .SetupGet(ca => ca.Value)
@@ -379,8 +412,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 ValidationEnqueuerMock.Object,
                 ConfigurationAccessorMock.Object,
                 MessageServiceMock.Object,
-                LoggerMock.Object
-                );
+                TelemetryServiceMock.Object,
+                LoggerMock.Object);
         }
 
         protected Mock<ICorePackageService> PackageServiceMock { get; }
@@ -388,6 +421,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         protected Mock<IPackageValidationEnqueuer> ValidationEnqueuerMock { get; }
         protected Mock<IOptionsSnapshot<ValidationConfiguration>> ConfigurationAccessorMock { get; }
         protected Mock<IMessageService> MessageServiceMock { get; }
+        public Mock<ITelemetryService> TelemetryServiceMock { get; }
         protected Mock<ILogger<ValidationOutcomeProcessor>> LoggerMock { get; }
         protected ValidationConfiguration Configuration { get; }
         protected PackageValidationSet ValidationSet { get; }

@@ -10,6 +10,7 @@ using AnglicanGeek.MarkdownMailer;
 using Autofac;
 using Autofac.Core;
 using Autofac.Extensions.DependencyInjection;
+using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -22,7 +23,9 @@ using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
 using NuGet.Services.Configuration;
 using NuGet.Services.KeyVault;
+using NuGet.Services.Logging;
 using NuGet.Services.ServiceBus;
+using NuGet.Services.Validation.Orchestrator.Telemetry;
 using NuGet.Services.Validation.PackageCertificates;
 using NuGet.Services.Validation.PackageSigning;
 using NuGet.Services.Validation.Vcs;
@@ -207,6 +210,8 @@ namespace NuGet.Services.Validation.Orchestrator
             services.AddTransient<ICoreMessageServiceConfiguration, CoreMessageServiceConfiguration>();
             services.AddTransient<ICoreMessageService, CoreMessageService>();
             services.AddTransient<IMessageService, MessageService>();
+            services.AddTransient<ITelemetryService, TelemetryService>();
+            services.AddSingleton(new TelemetryClient());
         }
 
         private static IServiceProvider CreateProvider(IServiceCollection services)

@@ -39,7 +39,7 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
         private readonly List<string> _trustedThumbprints;
         private readonly IPackageSignatureVerifier _minimalPackageSignatureVerifier;
         private readonly IPackageSignatureVerifier _fullPackageSignatureVerifier;
-        private readonly ILogger<SignatureValidator> _logger;
+        private readonly RecordingLogger<SignatureValidator> _logger;
         private readonly int _packageKey;
         private SignedPackageArchive _package;
         private readonly SignatureValidationMessage _message;
@@ -69,7 +69,7 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
 
             var loggerFactory = new LoggerFactory();
             loggerFactory.AddXunit(output);
-            _logger = loggerFactory.CreateLogger<SignatureValidator>();
+            _logger = new RecordingLogger<SignatureValidator>(loggerFactory.CreateLogger<SignatureValidator>());
 
             // Initialize data.
             _packageKey = 23;
@@ -118,6 +118,64 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
             // Assert
             VerifyPackageSigningStatus(result, ValidationStatus.Succeeded, PackageSigningStatus.Valid);
             Assert.Empty(result.Issues);
+        }
+
+        [Fact]
+        public async Task RejectsUntrustedSigningCertificate()
+        {
+            // Arrange
+            AllowCertificateThumbprint(TestResources.Leaf1Thumbprint);
+            _package = TestResources.SignedPackageLeaf1Reader;
+
+            // Act
+            var result = await _target.ValidateAsync(
+                _packageKey,
+                _package,
+                _message,
+                _token);
+
+            // Assert
+            VerifyPackageSigningStatus(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
+            Assert.NotEmpty(result.Issues);
+            var clientIssues = result
+                .Issues
+                .OfType<ClientSigningVerificationFailure>()
+                .Where(x => x.ClientCode == "NU3021")
+                .ToList();
+            var untrustedIssue = Assert.Single(clientIssues);
+            Assert.Equal(
+                "A certificate chain processed, but terminated in a root certificate which is not trusted by the trust provider.",
+                untrustedIssue.ClientMessage);
+        }
+
+        [Fact]
+        public async Task AcceptsTrustedCertificateWithUnavailableRevocation()
+        {
+            // Arrange
+            using (var trustedTestCert = new TrustedTestCert<X509Certificate2>(
+                await TestResources.GetTestRootCertificateAsync(),
+                x => x,
+                StoreName.Root,
+                StoreLocation.LocalMachine,
+                maximumValidityPeriod: TimeSpan.MaxValue))
+            {
+                _package = TestResources.SignedPackageLeaf1Reader;
+                AllowCertificateThumbprint(TestResources.Leaf1Thumbprint);
+
+                // Act
+                var result = await _target.ValidateAsync(
+                    _packageKey,
+                    _package,
+                    _message,
+                    _token);
+
+                // Assert
+                VerifyPackageSigningStatus(result, ValidationStatus.Succeeded, PackageSigningStatus.Valid);
+                Assert.Empty(result.Issues);
+                var allMessages = string.Join(Environment.NewLine, _logger.Messages);
+                Assert.Contains("NU3018: The revocation function was unable to check revocation because the revocation server was offline.", allMessages);
+                Assert.Contains("NU3018: The revocation function was unable to check revocation for the certificate.", allMessages);
+            }
         }
 
         [Fact]

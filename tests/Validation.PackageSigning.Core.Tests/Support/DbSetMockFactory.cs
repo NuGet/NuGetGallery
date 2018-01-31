@@ -6,11 +6,11 @@ using System.Data.Entity;
 using System.Linq;
 using Moq;
 
-namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
+namespace Validation.PackageSigning.Core.Tests.Support
 {
-    internal static class DbSetMockFactory
+    public static class DbSetMockFactory
     {
-        internal static IDbSet<T> Create<T>(params T[] sourceList) where T : class
+        public static IDbSet<T> Create<T>(params T[] sourceList) where T : class
         {
             var list = new List<T>(sourceList);
 
