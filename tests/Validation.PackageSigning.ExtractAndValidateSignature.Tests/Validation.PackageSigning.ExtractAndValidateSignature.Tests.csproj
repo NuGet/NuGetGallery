@@ -60,7 +60,7 @@
       <Version>1.8.1.3</Version>
     </PackageReference>
     <PackageReference Include="Test.Utility">
-      <Version>4.7.0-preview1-4870</Version>
+      <Version>4.7.0-preview1-4883</Version>
     </PackageReference>
     <PackageReference Include="xunit">
       <Version>2.3.1</Version>

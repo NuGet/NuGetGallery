@@ -22,7 +22,11 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
     /// </summary>
     public class CertificateIntegrationTestFixture : IDisposable
     {
-        private static readonly string _testTimestampServer = Environment.GetEnvironmentVariable("TIMESTAMP_SERVER_URL");
+        private readonly Lazy<Task<SigningTestServer>> _testServer;
+        private readonly Lazy<Task<CertificateAuthority>> _defaultTrustedCertificateAuthority;
+        private readonly Lazy<Task<TimestampService>> _defaultTrustedTimestampService;
+        private TrustedTestCert<X509Certificate2> _trustedTimestampRoot;
+        private readonly DisposableList _responders;
 
         private readonly SemaphoreSlim _lock = new SemaphoreSlim(1);
         private byte[] _signedPackageBytes1;
@@ -37,10 +41,16 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                 .Generate(SigningTestUtility.CertificateModificationGeneratorForCodeSigningEkuCert)
                 .WithPrivateKeyAndTrust(StoreName.Root, StoreLocation.LocalMachine);
             LeafCertificate1Thumbprint = LeafCertificate1.TrustedCert.ComputeSHA256Thumbprint();
+
+            _testServer = new Lazy<Task<SigningTestServer>>(SigningTestServer.CreateAsync);
+            _defaultTrustedCertificateAuthority = new Lazy<Task<CertificateAuthority>>(CreateDefaultTrustedCertificateAuthorityAsync);
+            _defaultTrustedTimestampService = new Lazy<Task<TimestampService>>(CreateDefaultTrustedTimestampServiceAsync);
+            _responders = new DisposableList();
         }
 
         public TrustedTestCert<TestCertificate> LeafCertificate1 { get; }
         public string LeafCertificate1Thumbprint { get; }
+
         public Task<SignedPackageArchive> GetSignedPackage1Async(ITestOutputHelper output) => GetSignedPackageAsync(
             new Reference<byte[]>(
                 () => _signedPackageBytes1,
@@ -59,6 +69,51 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
         public void Dispose()
         {
             LeafCertificate1?.Dispose();
+
+            _trustedTimestampRoot?.Dispose();
+            _responders.Dispose();
+
+            if (_testServer.IsValueCreated)
+            {
+                _testServer.Value.Result.Dispose();
+            }
+        }
+
+        private async Task<CertificateAuthority> CreateDefaultTrustedCertificateAuthorityAsync()
+        {
+            var testServer = await _testServer.Value;
+            var rootCa = CertificateAuthority.Create(testServer.Url);
+            var intermediateCa = rootCa.CreateIntermediateCertificateAuthority();
+            var rootCertificate = new X509Certificate2(rootCa.Certificate.GetEncoded());
+
+            _trustedTimestampRoot = new TrustedTestCert<X509Certificate2>(
+                rootCertificate,
+                certificate => certificate,
+                StoreName.Root,
+                StoreLocation.LocalMachine);
+
+            var ca = intermediateCa;
+
+            while (ca != null)
+            {
+                _responders.Add(testServer.RegisterResponder(ca));
+                _responders.Add(testServer.RegisterResponder(ca.OcspResponder));
+
+                ca = ca.Parent;
+            }
+
+            return intermediateCa;
+        }
+
+        private async Task<TimestampService> CreateDefaultTrustedTimestampServiceAsync()
+        {
+            var testServer = await _testServer.Value;
+            var ca = await _defaultTrustedCertificateAuthority.Value;
+            var timestampService = TimestampService.Create(ca);
+
+            _responders.Add(testServer.RegisterResponder(timestampService));
+
+            return timestampService;
         }
 
         /// <summary>
@@ -109,17 +164,12 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                 new MemoryStream());
         }
         
-        private static async Task<byte[]> GenerateSignedPackageBytesAsync(string resourceName, TrustedTestCert<TestCertificate> certificate, ITestOutputHelper output)
+        private async Task<byte[]> GenerateSignedPackageBytesAsync(string resourceName, TrustedTestCert<TestCertificate> certificate, ITestOutputHelper output)
         {
-            if (string.IsNullOrWhiteSpace(_testTimestampServer))
-            {
-                Assert.False(
-                    string.IsNullOrWhiteSpace(_testTimestampServer),
-                    "You must set a TIMESTAMP_SERVER_URL environment variable to an accessible timestamping authority URL.");
-            }
+            var timestampService = await _defaultTrustedTimestampService.Value;
 
             var testLogger = new TestLogger(output);
-            var timestampProvider = new Rfc3161TimestampProvider(new Uri(_testTimestampServer));
+            var timestampProvider = new Rfc3161TimestampProvider(timestampService.Url);
             var signatureProvider = new X509SignatureProvider(timestampProvider);
 
             var unsignedBytes = await OperateOnSignerAsync(
