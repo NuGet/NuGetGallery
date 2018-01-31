@@ -9,12 +9,12 @@ using System.Net.Mail;
 using System.Globalization;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using NuGetGallery.Filters;
 using NuGetGallery.Areas.Admin;
-using NuGetGallery.Configuration;
-using NuGetGallery.Authentication;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Areas.Admin.ViewModels;
+using NuGetGallery.Authentication;
+using NuGetGallery.Configuration;
+using NuGetGallery.Filters;
 using NuGetGallery.Infrastructure.Authentication;
 
 namespace NuGetGallery

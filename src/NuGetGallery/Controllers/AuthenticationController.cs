@@ -12,9 +12,9 @@ using System.Security.Claims;
 using System.Collections.Generic;
 using NuGetGallery.Authentication;
 using NuGetGallery.Authentication.Providers;
-using NuGetGallery.Infrastructure.Authentication;
-using NuGetGallery.Authentication.Providers.MicrosoftAccount;
 using NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2;
+using NuGetGallery.Authentication.Providers.MicrosoftAccount;
+using NuGetGallery.Infrastructure.Authentication;
 
 namespace NuGetGallery
 {
@@ -401,8 +401,7 @@ namespace NuGetGallery
                 await _authService.CreateSessionAsync(OwinContext, authenticatedUser);
 
                 // Remove the password credential after linking to external account.
-                var passwordCred = user.Credentials.SingleOrDefault(
-                    c => c.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase));
+                var passwordCred = user.Credentials.SingleOrDefault(c => c.IsPassword());
 
                 if (passwordCred != null)
                 {

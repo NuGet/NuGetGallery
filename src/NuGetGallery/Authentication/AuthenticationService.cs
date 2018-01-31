@@ -313,6 +313,7 @@ namespace NuGetGallery.Authentication
                 return false;
             }
 
+            // Check user credentials for existing cred for optimization to avoid expensive DB query
             if (UserHasCredential(user, credential) || FindMatchingCredential(credential) != null)
             {
                 // Existing credential for a registered account
