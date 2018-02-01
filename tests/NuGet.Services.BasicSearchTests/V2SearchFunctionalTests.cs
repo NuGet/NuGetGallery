@@ -13,7 +13,7 @@ using Xunit;
 
 namespace NuGet.Services.BasicSearchTests
 {
-    public class V2SearchSkipFunctionalTests
+    public class V2SearchFunctionalTests
     {
         [Fact]
         public async Task CanReturnEmptyResult()
@@ -37,7 +37,47 @@ namespace NuGet.Services.BasicSearchTests
             }
         }
 
-        [Fact(Skip = "The old V2 search service always includes prerelease versions, even if the parameter is set to false.")]
+        [Fact]
+        public async Task TreatsFirstIdTermAsExactMatch()
+        {
+            // Arrange
+            var packages = new[]
+            {
+                new PackageVersion("WebGrease", "1.6.0")
+            };
+
+            using (var app = await StartedWebApp.StartAsync(packages))
+            {
+                // Act
+                var partialIdResponse = await app.Client.GetAsync(new V2SearchBuilder
+                {
+                    Query = "version:1.6.0 id:Web",
+                    Prerelease = true,
+                }.RequestUri);
+                var partialId = await partialIdResponse.Content.ReadAsAsync<V2SearchResult>();
+
+                var wrongExactIdResponse = await app.Client.GetAsync(new V2SearchBuilder
+                {
+                    Query = "id:Web version:1.6.0",
+                    Prerelease = true,
+                }.RequestUri);
+                var wrongExactId = await wrongExactIdResponse.Content.ReadAsAsync<V2SearchResult>();
+
+                var correctExactIdResponse = await app.Client.GetAsync(new V2SearchBuilder
+                {
+                    Query = "id:WebGrease version:1.6.0",
+                    Prerelease = true,
+                }.RequestUri);
+                var correctExactId = await correctExactIdResponse.Content.ReadAsAsync<V2SearchResult>();
+
+                // Assert
+                Assert.Equal("1.6.0", partialId.GetPackageVersion("WebGrease"));
+                Assert.False(wrongExactId.ContainsPackage("WebGrease"));
+                Assert.Equal("1.6.0", correctExactId.GetPackageVersion("WebGrease"));
+            }
+        }
+
+        [Fact]
         public async Task SupportsPrereleaseParameter()
         {
             // Arrange
@@ -51,7 +91,7 @@ namespace NuGet.Services.BasicSearchTests
 
             using (var app = await StartedWebApp.StartAsync(packages))
             {
-                string query = "Id:angularjs Id:Antlr Id:WebGrease";
+                string query = "angularjs Antlr WebGrease";
 
                 // Act
                 var withPrereleaseResponse = await app.Client.GetAsync(new V2SearchBuilder { Query = query, Prerelease = true }.RequestUri);
@@ -68,6 +108,38 @@ namespace NuGet.Services.BasicSearchTests
                 Assert.False(withoutPrerelease.ContainsPackage("angularjs"));              // the only version available is prerelease and is therefore excluded
                 Assert.Equal("3.1.3.42154", withoutPrerelease.GetPackageVersion("Antlr")); // this is the latest non-release version
                 Assert.Equal("1.6.0", withoutPrerelease.GetPackageVersion("WebGrease"));   // the only version available is non-prerelease
+            }
+        }
+
+        [Fact]
+        public async Task SupportsCaseInsensitiveVersionSearch()
+        {
+            // Arrange
+            var packages = new[]
+            {
+                new PackageVersion("angularjs", "1.2.0-RC1"),
+            };
+
+            using (var app = await StartedWebApp.StartAsync(packages))
+            {
+                // Act
+                var mismatchedCaseResponse = await app.Client.GetAsync(new V2SearchBuilder
+                {
+                    Query = "packageid:angularjs version:1.2.0-rc1",
+                    Prerelease = true,
+                }.RequestUri);
+                var mismatchedCase = await mismatchedCaseResponse.Content.ReadAsAsync<V2SearchResult>();
+
+                var matchingCaseResponse = await app.Client.GetAsync(new V2SearchBuilder
+                {
+                    Query = "packageid:angularjs version:1.2.0-RC1",
+                    Prerelease = true,
+                }.RequestUri);
+                var matchingCase = await matchingCaseResponse.Content.ReadAsAsync<V2SearchResult>();
+
+                // Assert
+                Assert.Equal("1.2.0-RC1", mismatchedCase.GetPackageVersion("angularjs"));
+                Assert.Equal("1.2.0-RC1", matchingCase.GetPackageVersion("angularjs"));
             }
         }
 

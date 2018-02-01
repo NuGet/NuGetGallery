@@ -166,7 +166,12 @@ namespace NuGet.Indexing
 
         private static void VersionClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values, Occur occur)
         {
-            query.Add(ConstructClauseQuery(analyzer, LuceneConstants.NormalizedVersionPropertyName, values), occur);
+            query.Add(
+                ConstructClauseQuery(
+                    analyzer,
+                    LuceneConstants.CaseInsensitiveNormalizedVersionPropertyName,
+                    values),
+                occur);
         }
 
         private static void TitleClause(BooleanQuery query, Analyzer analyzer, IEnumerable<string> values, Occur occur)
