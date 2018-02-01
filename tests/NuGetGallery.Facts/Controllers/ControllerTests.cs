@@ -126,7 +126,6 @@ namespace NuGetGallery.Controllers
                 .SelectMany(t => t.GetMethods(BindingFlags.Instance | BindingFlags.DeclaredOnly | BindingFlags.Public))
                 // Filter out compiler generated methods.
                 .Where(m => !m.GetCustomAttributes(typeof(CompilerGeneratedAttribute), true).Any())
-                // Filter out methods that only support verbs that are exceptions.
                 // Filter out exceptions.
                 .Where(m =>
                 {
