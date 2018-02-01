@@ -298,6 +298,18 @@ namespace NuGetGallery
                 new { controller = "Users", action = "Account" });
 
             routes.MapRoute(
+                RouteName.OrganizationAccount,
+                "organization/{accountName}/{action}",
+                new { controller = "Organizations", action = "Account" },
+                new RouteExtensions.ObfuscatedMetadata(1, Obfuscator.DefaultTelemetryUserName));
+
+            routes.MapRoute(
+                RouteName.ChangeOrganizationEmailSubscription,
+                "organization/{accountName}/subscription/change",
+                new { controller = "Organizations", action = "ChangeEmailSubscription" },
+                new RouteExtensions.ObfuscatedMetadata(1, Obfuscator.DefaultTelemetryUserName));
+
+            routes.MapRoute(
                 RouteName.TransformToOrganization,
                 "account/transform",
                 new { controller = "Users", action = "Transform" });

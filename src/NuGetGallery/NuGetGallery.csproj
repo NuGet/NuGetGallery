@@ -751,7 +751,9 @@
     <Compile Include="Configuration\SecretReader\SecretReaderFactory.cs" />
     <Compile Include="Configuration\ServiceBusConfiguration.cs" />
     <Compile Include="Configuration\StringArrayConverter.cs" />
+    <Compile Include="Controllers\AccountsController.cs" />
     <Compile Include="Controllers\NuGetContext.cs" />
+    <Compile Include="Controllers\OrganizationsController.cs" />
     <Compile Include="Diagnostics\ElmahHandleErrorAttribute.cs" />
     <Compile Include="Extensions\DateTimeExtensions.cs" />
     <Compile Include="Controllers\ODataV1FeedController.cs" />
@@ -800,6 +802,7 @@
     <Compile Include="Helpers\PermissionsHelpers.cs" />
     <Compile Include="Helpers\RegexEx.cs" />
     <Compile Include="Helpers\RouteUrlTemplate.cs" />
+    <Compile Include="Infrastructure\Authentication\ApiKeyV3.cs" />
     <Compile Include="Infrastructure\Authentication\ApiKeyV4.cs" />
     <Compile Include="Infrastructure\Authentication\Base32Encoder.cs" />
     <Compile Include="Migrations\201711082145351_AddAccountDelete.cs" />
@@ -1055,6 +1058,7 @@
     <Compile Include="Diagnostics\DiagnosticsServiceExtensions.cs" />
     <Compile Include="Diagnostics\DiagnosticsSourceExtensions.cs" />
     <Compile Include="Configuration\StorageType.cs" />
+    <Compile Include="WebRole.cs" />
     <Content Include="bin\NuGetGallery.dll.config">
       <SubType>Designer</SubType>
     </Content>
@@ -1629,6 +1633,8 @@
     <Compile Include="ViewModels\CredentialKind.cs" />
     <Compile Include="ViewModels\CredentialViewModel.cs" />
     <Compile Include="ViewModels\ListPackageOwnerViewModel.cs" />
+    <Compile Include="ViewModels\OrganizationAccountViewModel.cs" />
+    <Compile Include="ViewModels\OrganizationMemberViewModel.cs" />
     <Compile Include="ViewModels\PackageDeleteDecision.cs" />
     <Compile Include="ViewModels\DeleteAccountViewModel.cs" />
     <Compile Include="ViewModels\ApiKeyOwnerViewModel.cs" />
@@ -1864,7 +1870,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.*.cs" />
     <Compile Include="RequestModels\SubmitPackageRequest.cs" />
-    <Compile Include="RouteNames.cs" />
+    <Compile Include="RouteName.cs" />
     <Compile Include="UrlExtensions.cs" />
     <Compile Include="App_Start\VersionRouteConstraint.cs" />
     <Compile Include="ViewModels\DisplayPackageViewModel.cs" />
@@ -2005,7 +2011,6 @@
     <Content Include="Views\Authentication\LinkExternal.cshtml" />
     <Content Include="Views\Authentication\_SignIn.cshtml" />
     <Content Include="Views\Authentication\_Register.cshtml" />
-    <Content Include="Views\Users\_ConfirmationResendForm.cshtml" />
     <Content Include="Views\Shared\_PackageHeading.cshtml" />
     <Content Include="Views\Packages\_ImportReadMe.cshtml" />
     <Content Include="Views\Packages\_SubmitPackage.cshtml" />
@@ -2022,6 +2027,16 @@
     <Content Include="Views\Users\TransformFailed.cshtml" />
     <Content Include="Views\Users\Transform.cshtml" />
     <Content Include="Views\Packages\_ValidationIssue.cshtml" />
+    <Content Include="Views\Organizations\ManageOrganization.cshtml" />
+    <Content Include="Views\Shared\_ConfirmationResendForm.cshtml" />
+    <Content Include="Views\Shared\_AccountCuratedFeeds.cshtml" />
+    <Content Include="Views\Shared\_AccountProfilePicture.cshtml" />
+    <Content Include="Views\Shared\_AccountChangeEmail.cshtml" />
+    <Content Include="Views\Shared\_AccountChangeNotifications.cshtml" />
+    <Content Include="Views\Users\_UserAccountChangePassword.cshtml" />
+    <Content Include="Views\Users\_UserAccountChangeExternalCredential.cshtml" />
+    <Content Include="Views\Shared\_AccountConfirmationNotices.cshtml" />
+    <Content Include="Views\Users\_UserAccountLinkExternalCredential.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />
@@ -2171,7 +2186,7 @@
     <Content Include="api\Web.config" />
     <Compile Include="Infrastructure\Lucene\LuceneSearchService.cs" />
     <Content Include="Views\CuratedPackages\CreateCuratedPackageForm.cshtml" />
-    <Content Include="Views\Users\ConfirmationRequired.cshtml" />
+    <Content Include="Views\Shared\ConfirmationRequired.cshtml" />
     <Content Include="Views\Pages\Contact.cshtml" />
     <Content Include="Scripts\jquery-1.11.0.min.map" />
   </ItemGroup>

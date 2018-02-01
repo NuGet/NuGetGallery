@@ -201,7 +201,7 @@ namespace NuGetGallery
                         accountsAllowedOnBehalfOf = new[] { currentUser };
                     }
 
-                    var verifyRequest = new VerifyPackageRequest(packageMetadata, accountsAllowedOnBehalfOf);
+                    var verifyRequest = new VerifyPackageRequest(packageMetadata, accountsAllowedOnBehalfOf, existingPackageRegistration);
 
                     model.InProgressUpload = verifyRequest;
                 }
@@ -238,6 +238,7 @@ namespace NuGetGallery
                 return Json(400, new[] { Strings.UploadFileMustBeNuGetPackage });
             }
 
+            PackageRegistration existingPackageRegistration;
             // If the current user cannot upload the package on behalf of any of the existing owners, show the current user as the only possible owner in the upload form.
             // If the current user doesn't have the rights to upload the package, the package upload will be rejected by submitting the form.
             // Related: https://github.com/NuGet/NuGetGallery/issues/5043
@@ -319,7 +320,7 @@ namespace NuGetGallery
                 }
 
                 var id = nuspec.GetId();
-                var existingPackageRegistration = _packageService.FindPackageRegistrationById(id);
+                existingPackageRegistration = _packageService.FindPackageRegistrationById(id);
                 // For a new package id verify if the user is allowed to use it.
                 if (existingPackageRegistration == null &&
                     ActionsRequiringPermissions.UploadNewPackageId.CheckPermissionsOnBehalfOfAnyAccount(
@@ -416,7 +417,7 @@ namespace NuGetGallery
                 }
             }
 
-            var model = new VerifyPackageRequest(packageMetadata, accountsAllowedOnBehalfOf);
+            var model = new VerifyPackageRequest(packageMetadata, accountsAllowedOnBehalfOf, existingPackageRegistration);
 
             return Json(model);
         }

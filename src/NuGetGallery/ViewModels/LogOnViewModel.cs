@@ -33,6 +33,15 @@ namespace NuGetGallery
         public string ProviderAccountNoun { get; set; }
         public string AccountName { get; set; }
         public bool FoundExistingUser { get; set; }
+        public bool ExistingUserCanBeLinked => ExistingUserLinkingError == ExistingUserLinkingErrorType.None;
+        public ExistingUserLinkingErrorType ExistingUserLinkingError { get; set; }
+
+        public enum ExistingUserLinkingErrorType
+        {
+            None = (int)default(ExistingUserLinkingErrorType),
+            AccountIsOrganization,
+            AccountIsAlreadyLinked
+        }
     }
 
     public class SignInViewModel

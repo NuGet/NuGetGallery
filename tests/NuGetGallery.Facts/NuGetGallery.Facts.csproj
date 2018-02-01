@@ -406,10 +406,13 @@
     <Compile Include="Authentication\Providers\CommonAuth\AzureActiveDirectoryV2AuthenticatorFacts.cs" />
     <Compile Include="Authentication\TestCredentialHelper.cs" />
     <Compile Include="Configuration\ConfigurationServiceFacts.cs" />
+    <Compile Include="Controllers\AccountsControllerFacts.cs" />
+    <Compile Include="Controllers\OrganizationsControllerFacts.cs" />
     <Compile Include="Controllers\SupportControllerFacts.cs" />
     <Compile Include="Extensions\RouteExtensionsFacts.cs" />
     <Compile Include="Extensions\OrganizationExtensionsFacts.cs" />
     <Compile Include="Framework\MemberDataHelper.cs" />
+    <Compile Include="Infrastructure\Authentication\ApiKeyV3Facts.cs" />
     <Compile Include="Infrastructure\Authentication\ApiKeyV4Facts.cs" />
     <Compile Include="Infrastructure\Authentication\V3HasherTests.cs" />
     <Compile Include="AutocompleteServicePackageIdsQueryFacts.cs" />

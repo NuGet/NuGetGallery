@@ -124,6 +124,16 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The account with the email {0} is linked to another Microsoft account.
+        ///If you wish to update the linked Microsoft account you can do so from the account settings page..
+        /// </summary>
+        public static string AccountIsLinkedToAnotherExternalAccount {
+            get {
+                return ResourceManager.GetString("AccountIsLinkedToAnotherExternalAccount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The user &apos;{0}&apos; is already an owner or pending owner of the package..
         /// </summary>
         public static string AddOwner_AlreadyOwner {
@@ -406,15 +416,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You canceled your email address change request..
-        /// </summary>
-        public static string CancelEmailAddress {
-            get {
-                return ResourceManager.GetString("CancelEmailAddress", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Enqueuing unavailable: the gallery is currently in read only mode, with limited service. Please try again later..
         /// </summary>
         public static string CannotEnqueueDueToReadOnly {
@@ -429,6 +430,42 @@ namespace NuGetGallery {
         public static string CannotRemoveOnlyLoginCredential {
             get {
                 return ResourceManager.GetString("CannotRemoveOnlyLoginCredential", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to update the Microsoft account with &apos;{0}&apos;. This could happen if it is already linked to another NuGet account. Contact support for more information..
+        /// </summary>
+        public static string ChangeCredential_Failed {
+            get {
+                return ResourceManager.GetString("ChangeCredential_Failed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The change of Azure active directory account is not allowed..
+        /// </summary>
+        public static string ChangeCredential_NotAllowed {
+            get {
+                return ResourceManager.GetString("ChangeCredential_NotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No valid external provider found for authentication.
+        /// </summary>
+        public static string ChangeCredential_ProviderNotFound {
+            get {
+                return ResourceManager.GetString("ChangeCredential_ProviderNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully changed the Microsoft account..
+        /// </summary>
+        public static string ChangeCredential_Success {
+            get {
+                return ResourceManager.GetString("ChangeCredential_Success", resourceCulture);
             }
         }
         
@@ -551,15 +588,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Your email preferences have been updated.
-        /// </summary>
-        public static string EmailPreferencesUpdated {
-            get {
-                return ResourceManager.GetString("EmailPreferencesUpdated", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to API key &apos;{0}&apos; was added to your account and can now be used. If you did not request this change, please reply to this email to contact support..
         /// </summary>
         public static string Emails_ApiKeyAdded_Body {
@@ -621,6 +649,8 @@ namespace NuGetGallery {
         ///
         ///[{0}]({0})
         ///
+        ///Note that NuGet.org password login is being deprecated. Please use Microsoft account to sign into {1}.
+        ///
         ///Thanks,
         ///The {1} Team.
         /// </summary>
@@ -647,6 +677,8 @@ namespace NuGetGallery {
         ///
         ///[{0}]({0})
         ///
+        ///Note that NuGet.org password login is being deprecated. Please use Microsoft account to sign into {1}.
+        ///
         ///Thanks,
         ///The {1} Team.
         /// </summary>
@@ -666,24 +698,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Your new email address was saved!.
-        /// </summary>
-        public static string EmailUpdated {
-            get {
-                return ResourceManager.GetString("EmailUpdated", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Your email address has been changed! We sent a confirmation email to verify your new email. When you confirm the new email address, it will take effect and we will forget the old one..
-        /// </summary>
-        public static string EmailUpdated_ConfirmationRequired {
-            get {
-                return ResourceManager.GetString("EmailUpdated_ConfirmationRequired", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Error in sending mail : {0}.
         /// </summary>
         public static string ErrorInSendingMail {
@@ -693,7 +707,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Your external account credential expired or you did not allow us access to your account. Try logging in again..
+        ///   Looks up a localized string similar to Your account credential expired or you did not allow us access to your account. Try logging in again..
         /// </summary>
         public static string ExternalAccountLinkExpired {
             get {
@@ -909,6 +923,51 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You have successfully confirmed the organization email address..
+        /// </summary>
+        public static string OrganizationEmailConfirmed {
+            get {
+                return ResourceManager.GetString("OrganizationEmailConfirmed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The organization email preferences have been updated..
+        /// </summary>
+        public static string OrganizationEmailPreferencesUpdated {
+            get {
+                return ResourceManager.GetString("OrganizationEmailPreferencesUpdated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You canceled your organization email address change request..
+        /// </summary>
+        public static string OrganizationEmailUpdateCancelled {
+            get {
+                return ResourceManager.GetString("OrganizationEmailUpdateCancelled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The new organization email address was saved!.
+        /// </summary>
+        public static string OrganizationEmailUpdated {
+            get {
+                return ResourceManager.GetString("OrganizationEmailUpdated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The organization email address has been changed! We sent a confirmation email to verify the new email. When the new email address is confirmed, it will take effect and we will forget the old one..
+        /// </summary>
+        public static string OrganizationEmailUpdatedWithConfirmationRequired {
+            get {
+                return ResourceManager.GetString("OrganizationEmailUpdatedWithConfirmationRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Organization accounts cannot create credentials..
         /// </summary>
         public static string OrganizationsCannotCreateCredentials {
@@ -1040,6 +1099,15 @@ namespace NuGetGallery {
         public static string PasswordDoesNotMatch {
             get {
                 return ResourceManager.GetString("PasswordDoesNotMatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The password login has been deprecated. You must use Microsoft account to sign in. .
+        /// </summary>
+        public static string PasswordLoginDeprecated {
+            get {
+                return ResourceManager.GetString("PasswordLoginDeprecated", resourceCulture);
             }
         }
         
@@ -1656,6 +1724,51 @@ namespace NuGetGallery {
         public static string UserAccountLocked {
             get {
                 return ResourceManager.GetString("UserAccountLocked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You have successfully confirmed your email address!.
+        /// </summary>
+        public static string UserEmailConfirmed {
+            get {
+                return ResourceManager.GetString("UserEmailConfirmed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your email preferences have been updated..
+        /// </summary>
+        public static string UserEmailPreferencesUpdated {
+            get {
+                return ResourceManager.GetString("UserEmailPreferencesUpdated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You canceled your email address change request..
+        /// </summary>
+        public static string UserEmailUpdateCancelled {
+            get {
+                return ResourceManager.GetString("UserEmailUpdateCancelled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your new email address was saved!.
+        /// </summary>
+        public static string UserEmailUpdated {
+            get {
+                return ResourceManager.GetString("UserEmailUpdated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your email address has been changed! We sent a confirmation email to verify your new email. When you confirm the new email address, it will take effect and we will forget the old one..
+        /// </summary>
+        public static string UserEmailUpdatedWithConfirmationRequired {
+            get {
+                return ResourceManager.GetString("UserEmailUpdatedWithConfirmationRequired", resourceCulture);
             }
         }
         

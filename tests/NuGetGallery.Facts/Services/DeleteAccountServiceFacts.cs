@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Models;
+using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
 using NuGetGallery.Framework;
 using NuGetGallery.Security;
@@ -160,6 +161,9 @@ namespace NuGetGallery.Services
                 Assert.Equal<int>(1, testableService.DeletedAccounts.Count());
                 Assert.Equal<string>(signature, testableService.DeletedAccounts.ElementAt(0).Signature);
                 Assert.Equal<int>(1, testableService.SupportRequests.Count);
+                Assert.Equal(1, testableService.AuditService.Records.Count);
+                var deleteRecord = testableService.AuditService.Records[0] as DeleteAccountAuditRecord;
+                Assert.True(deleteRecord != null);
             }
 
             private static User CreateTestData(ref PackageRegistration registration)
@@ -194,6 +198,7 @@ namespace NuGetGallery.Services
 
             public List<AccountDelete> DeletedAccounts = new List<AccountDelete>();
             public List<Issue> SupportRequests = new List<Issue>();
+            public FakeAuditingService AuditService;
 
             public DeleteAccountTestService(User user, PackageRegistration userPackagesRegistration)
             {
@@ -221,6 +226,8 @@ namespace NuGetGallery.Services
                     IssueStatusId = IssueStatusKeys.New,
                     HistoryEntries = new List<History>() { new History() { EditedBy = $"{user.Username}_second", IssueId = 2, Key = 2, IssueStatusId = IssueStatusKeys.New } }
                 });
+
+                AuditService = new FakeAuditingService();
             }
 
             public DeleteAccountService GetDeleteAccountService()
@@ -233,7 +240,19 @@ namespace NuGetGallery.Services
                     SetupReservedNamespaceService().Object,
                     SetupSecurityPolicyService().Object,
                     new TestableAuthService(),
-                    SetupSupportRequestService().Object);
+                    SetupSupportRequestService().Object,
+                    AuditService);
+            }
+
+            public class FakeAuditingService : IAuditingService
+            {
+                public List<AuditRecord> Records = new List<AuditRecord>();
+
+                public Task SaveAuditRecordAsync(AuditRecord record)
+                {
+                    Records.Add(record);
+                    return Task.FromResult(true);
+                }
             }
 
             private class TestableAuthService : AuthenticationService

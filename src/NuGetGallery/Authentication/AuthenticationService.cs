@@ -128,7 +128,7 @@ namespace NuGetGallery.Authentication
 
                 var passwordCredentials = user
                     .Credentials
-                    .Where(c => CredentialTypes.IsPassword(c.Type))
+                    .Where(c => c.IsPassword())
                     .ToList();
 
                 if (passwordCredentials.Count > 1 ||
@@ -160,7 +160,7 @@ namespace NuGetGallery.Authentication
 
         private async Task<AuthenticatedUser> AuthenticateInternal(Func<Credential, Credential> matchCredential, Credential credential)
         {
-            if (credential.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase))
+            if (credential.IsPassword())
             {
                 // Password credentials cannot be used this way.
                 throw new ArgumentException(Strings.PasswordCredentialsCannotBeUsedHere, nameof(credential));
@@ -201,7 +201,7 @@ namespace NuGetGallery.Authentication
                     return null;
                 }
 
-                if (CredentialTypes.IsApiKey(matched.Type) &&
+                if (matched.IsApiKey() &&
                     !matched.IsScopedApiKey() &&
                     !matched.HasBeenUsedInLastDays(_config.ExpirationInDaysForApiKeyV1))
                 {
@@ -302,7 +302,35 @@ namespace NuGetGallery.Authentication
             {
                 throw new InvalidOperationException(Strings.UserNotFound);
             }
+
             return ReplaceCredential(user, credential);
+        }
+
+        public virtual async Task<bool> TryReplaceCredential(User user, Credential credential)
+        {
+            if (user == null || credential == null)
+            {
+                return false;
+            }
+
+            // Check user credentials for existing cred for optimization to avoid expensive DB query
+            if (UserHasCredential(user, credential) || FindMatchingCredential(credential) != null)
+            {
+                // Existing credential for a registered account
+                return false;
+            }
+
+            try
+            {
+                await ReplaceCredential(user, credential);
+                return true;
+            }
+            catch (InvalidOperationException)
+            {
+                // ReplaceCredential could throw InvalidOperationException if the user is an Organization.
+                // We shouldn't get into this situation ideally. Just being thorough.
+                return false;
+            }
         }
 
         public virtual async Task ReplaceCredential(User user, Credential credential)
@@ -622,14 +650,30 @@ namespace NuGetGallery.Authentication
                 throw new InvalidOperationException(Strings.OrganizationsCannotCreateCredentials);
             }
 
-            // Find the credentials we're replacing, if any
+            string replaceCredPrefix = null;
+            if (credential.IsPassword())
+            {
+                replaceCredPrefix = CredentialTypes.Password.Prefix;
+            }
+            else if (credential.IsExternal())
+            {
+                replaceCredPrefix = CredentialTypes.External.Prefix;
+            }
+
+            Func<Credential, bool> replacingPredicate;
+            if (!string.IsNullOrEmpty(replaceCredPrefix))
+            {
+                 replacingPredicate = cred => cred.Type.StartsWith(replaceCredPrefix, StringComparison.OrdinalIgnoreCase);
+            }
+            else
+            {
+                replacingPredicate = cred => cred.Type.Equals(credential.Type, StringComparison.OrdinalIgnoreCase);
+            }
+
             var toRemove = user.Credentials
-                .Where(cred =>
-                    // If we're replacing a password credential, remove ALL password credentials
-                    (credential.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase) &&
-                     cred.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase)) ||
-                    cred.Type == credential.Type)
+                .Where(replacingPredicate) 
                 .ToList();
+
             foreach (var cred in toRemove)
             {
                 user.Credentials.Remove(cred);
@@ -646,6 +690,13 @@ namespace NuGetGallery.Authentication
 
             await Auditing.SaveAuditRecordAsync(new UserAuditRecord(
                 user, AuditedUserAction.AddCredential, credential));
+        }
+
+        private static bool UserHasCredential(User user, Credential credential)
+        {
+            return user.Credentials.Any(cred =>
+                cred.Type.Equals(credential.Type, StringComparison.OrdinalIgnoreCase)
+                && cred.Value == credential.Value);
         }
 
         private static CredentialKind GetCredentialKind(string type)

@@ -65,7 +65,7 @@ namespace NuGetGallery.Infrastructure.Authentication
 
         public Credential CreateExternalCredential(string issuer, string value, string identity, string tenantId = null)
         {
-            return new Credential(CredentialTypes.ExternalPrefix + issuer, value)
+            return new Credential(CredentialTypes.External.Prefix + issuer, value)
             {
                 Identity = identity,
                 TenantId = tenantId

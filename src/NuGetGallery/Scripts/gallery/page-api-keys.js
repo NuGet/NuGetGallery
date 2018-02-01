@@ -249,10 +249,10 @@
                 return this.PendingPackages().length;
             }, this);
             this.SelectedCountLabel = ko.pureComputed(function () {
-                return ko.unwrap(SelectedCount).toLocaleString()
+                return ko.unwrap(this.SelectedCount).toLocaleString()
                     + ' of '
-                    + ko.unwrap(TotalCount).toLocaleString()
-                    + ' package' + (TotalCount == 1 ? '' : 's')
+                    + ko.unwrap(this.TotalCount).toLocaleString()
+                    + ' package' + (this.TotalCount == 1 ? '' : 's')
                     + ' selected';
             }, this);
 
