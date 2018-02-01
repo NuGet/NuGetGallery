@@ -5,13 +5,31 @@ namespace NuGetGallery.Authentication
 {
     public static class NuGetClaims
     {
-        // Normally public consts are bad, but here we can't change the claim URL without messing
-        // things up, so we should encourage that by using a const.
-        public const string ApiKey = "https://claims.nuget.org/apikey";
+        private const string ClaimsDomain = "https://claims.nuget.org/";
 
-        public const string Scope = "https://claims.nuget.org/scope";
+        /// <summary>
+        /// The claim url for the claim that stores the value of the <see cref="CredentialTypes.ApiKey"/> that was used to authenticate the request.
+        /// </summary>
+        public const string ApiKey = ClaimsDomain + "apikey";
 
-        // Allows identifying the credential that was used by his DB key.
-        public const string CredentialKey = "https://claims.nuget.org/credentialkey";
+        /// <summary>
+        /// The claim url for the claim that stores the serialized set of <see cref="NuGetGallery.Scope"/>s that the current <see cref="CredentialTypes.ApiKey"/> has access to.
+        /// </summary>
+        public const string Scope = ClaimsDomain + "scope";
+        
+        /// <summary>
+        /// The claim url for the claim that stores the <see cref="Credential.Key"/> of the <see cref="Credential"/> used to authenticate the request.
+        /// </summary>
+        public const string CredentialKey = ClaimsDomain + "credentialkey";
+
+        /// <summary>
+        /// The claim url for the claim that stores whether or not the user is authenticated with a discontinued <see cref="CredentialTypes.Password"/>.
+        /// </summary>
+        public const string DiscontinuedPassword = ClaimsDomain + "discontinuedpassword";
+
+        /// <summary>
+        /// The value of <see cref="DiscontinuedPassword"/> when the user is authenticated with a discontinued <see cref="CredentialTypes.Password"/>.
+        /// </summary>
+        public const string DiscontinuedPasswordValue = "true";
     }
 }

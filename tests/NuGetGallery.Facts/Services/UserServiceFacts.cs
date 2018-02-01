@@ -451,6 +451,40 @@ namespace NuGetGallery
             }
         }
 
+        public class TheIsOrganizationsEnabledForAccountMethod
+        {
+
+            [Fact]
+            public void WhenAccountIsNotInWhitelist_ReturnsFalse()
+            {
+                // Arrange
+                var service = new TestableUserService();
+                service.MockConfig.SetupGet(c => c.OrganizationsEnabledForDomains).Returns(new[] { "notexample.com" });
+                var fakes = new Fakes();
+
+                // Act
+                var result = service.IsOrganizationsEnabledForAccount(fakes.User);
+
+                // Assert
+                Assert.False(result);
+            }
+
+            [Fact]
+            public void WhenAccountIsInWhitelist_ReturnsTrue()
+            {
+                // Arrange
+                var service = new TestableUserService();
+                service.MockConfig.SetupGet(c => c.OrganizationsEnabledForDomains).Returns(new[] { "example.com" });
+                var fakes = new Fakes();
+
+                // Act
+                var result = service.IsOrganizationsEnabledForAccount(fakes.User);
+
+                // Assert
+                Assert.True(result);
+            }
+        }
+
         public class TheCanTransformToOrganizationWithAdminMethod
         {
             [Fact]

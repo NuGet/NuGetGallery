@@ -30,6 +30,8 @@ namespace NuGetGallery
 
         bool CanTransformUserToOrganization(User accountToTransform, out string errorReason);
 
+        bool IsOrganizationsEnabledForAccount(User account);
+
         bool CanTransformUserToOrganization(User accountToTransform, User adminUser, out string errorReason);
 
         Task RequestTransformToOrganizationAccount(User accountToTransform, User adminUser);

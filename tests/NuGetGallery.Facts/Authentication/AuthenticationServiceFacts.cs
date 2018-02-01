@@ -1,6 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Microsoft.Owin;
+using Moq;
+using NuGetGallery.Auditing;
+using NuGetGallery.Authentication.Providers;
+using NuGetGallery.Authentication.Providers.MicrosoftAccount;
+using NuGetGallery.Framework;
+using NuGetGallery.Infrastructure.Authentication;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -9,13 +16,6 @@ using System.Security.Claims;
 using System.Security.Principal;
 using System.Threading.Tasks;
 using System.Web.Mvc;
-using Microsoft.Owin;
-using Moq;
-using NuGetGallery.Auditing;
-using NuGetGallery.Authentication.Providers;
-using NuGetGallery.Authentication.Providers.MicrosoftAccount;
-using NuGetGallery.Framework;
-using NuGetGallery.Infrastructure.Authentication;
 using Xunit;
 
 namespace NuGetGallery.Authentication
@@ -598,31 +598,55 @@ namespace NuGetGallery.Authentication
 
         public class TheCreateSessionAsyncMethod : TestContainer
         {
-            [Fact]
-            public async Task GivenAUser_ItCreatesAnOwinAuthenticationTicketForTheUser()
+            public static IEnumerable<object[]> GivenAUser_ItCreatesAnOwinAuthenticationTicketForTheUser_Data
+            {
+                get
+                {
+                    foreach (var areOrganizationsEnabledForUser in new[] { false, true })
+                    {
+                        // External credentials
+                        yield return MemberDataHelper.AsData(TestCredentialHelper.CreateExternalCredential("abc", "tenant"), areOrganizationsEnabledForUser);
+
+                        // Password credentials
+                        yield return MemberDataHelper.AsData(TestCredentialHelper.CreatePbkdf2Password("password"), areOrganizationsEnabledForUser);
+                        yield return MemberDataHelper.AsData(TestCredentialHelper.CreateSha1Password("password"), areOrganizationsEnabledForUser);
+
+                        // API key credentials
+                        yield return MemberDataHelper.AsData(TestCredentialHelper.CreateV1ApiKey(Guid.Parse("17ec7614-6a73-41ac-9370-02a0718320de"), null), areOrganizationsEnabledForUser);
+                        yield return MemberDataHelper.AsData(TestCredentialHelper.CreateV2ApiKey(Guid.Parse("84947119-db79-4d42-b28a-c74531d5bce2"), null), areOrganizationsEnabledForUser);
+                        yield return MemberDataHelper.AsData(TestCredentialHelper.CreateV2VerificationApiKey(Guid.Parse("45e83582-7ada-48f6-a9ce-33d3073d6bb7")), areOrganizationsEnabledForUser);
+                        yield return MemberDataHelper.AsData(TestCredentialHelper.CreateV3ApiKey(Guid.Parse("a5e6f4fd-c60e-4903-9aad-edc860113f38"), null), areOrganizationsEnabledForUser);
+                        yield return MemberDataHelper.AsData(TestCredentialHelper.CreateV4ApiKey(null, out var v4ApiKey), areOrganizationsEnabledForUser);
+                    }
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(GivenAUser_ItCreatesAnOwinAuthenticationTicketForTheUser_Data))]
+            public async Task GivenAUser_ItCreatesAnOwinAuthenticationTicketForTheUser(Credential credential, bool areOrganizationsEnabledForUser)
             {
                 // Arrange
-                var service = Get<AuthenticationService>();
-                var fakes = Get<Fakes>();
+                var user = new User("testUser") { Credentials = new[] { credential } };
                 var context = Fakes.CreateOwinContext();
 
-                var passwordCred = fakes.Admin.Credentials.SingleOrDefault(
-                    c => string.Equals(c.Type, CredentialTypes.Password.Pbkdf2, StringComparison.OrdinalIgnoreCase));
+                var authUser = new AuthenticatedUser(user, credential);
 
-                var authUser = new AuthenticatedUser(fakes.Admin, passwordCred);
+                GetMock<IUserService>()
+                    .Setup(x => x.IsOrganizationsEnabledForAccount(user))
+                    .Returns(areOrganizationsEnabledForUser);
 
                 // Act
-                await service.CreateSessionAsync(context, authUser);
+                await Get<AuthenticationService>().CreateSessionAsync(context, authUser);
 
                 // Assert
                 var principal = context.Authentication.AuthenticationResponseGrant.Principal;
                 var id = principal.Identity;
                 Assert.NotNull(principal);
                 Assert.NotNull(id);
-                Assert.Equal(fakes.Admin.Username, id.Name);
-                Assert.Equal(fakes.Admin.Username, principal.GetClaimOrDefault(ClaimTypes.NameIdentifier));
+                Assert.Equal(user.Username, id.Name);
+                Assert.Equal(user.Username, principal.GetClaimOrDefault(ClaimTypes.NameIdentifier));
+                Assert.Equal(credential.IsPassword() && areOrganizationsEnabledForUser, string.Equals(NuGetClaims.DiscontinuedPasswordValue, principal.GetClaimOrDefault(NuGetClaims.DiscontinuedPassword)));
                 Assert.Equal(AuthenticationTypes.LocalUser, id.AuthenticationType);
-                Assert.True(principal.IsInRole(Constants.AdminRoleName));
             }
 
             [Fact]
