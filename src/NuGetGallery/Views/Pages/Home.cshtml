@@ -6,6 +6,55 @@
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
+@if (Config.Current.GalleryOwner != null)
+{
+    @TransformToOrgOrLinkAADScript()
+}
+
+@helper TransformToOrgOrLinkAADScript()
+{
+    <script src="~/Scripts/jquery-1.11.0.min.js"></script>
+    <script src="~/Scripts/gallery/bootstrap.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("#transformOrLinkPopUp").modal({
+                show: true
+            });
+        });
+
+        $(document).on('keydown', function (e) {
+            e.preventDefault();
+        });
+
+        $(this).focus();
+    </script>
+    <div id="transformOrLinkPopUp" class="modal fade modal-container"data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-box">
+            <div class="modal-title">
+                <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
+                <span class="title-text">Sign-in using NuGet.org is discontinued</span>
+            </div>
+            <div class="modal-body">
+                <div class="tag-node">
+                    <span>Sign in using your Microsoft corporate account</span>
+                </div>
+                <div class="row signin-node">
+                    <a role="button" style="font-size: 16px" class="btn btn-default btn-block provider-button" href="@Url.AuthenticateExternal("/account")">
+                        <img height="24" width="24" alt="" aria-hidden="true"
+                                src="@Href("~/Content/gallery/img/microsoft-account.svg")"
+                                @(!string.IsNullOrEmpty("~/Content/gallery/img/microsoft-account-24x24.png") ? (IHtmlString)ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/microsoft-account-24x24.png")) : new HtmlString(string.Empty)) />
+                        Sign in with Microsoft
+                    </a>
+                </div>
+                <p>If this is not an individual account and is based on a team or group email address</p>
+                <div class="transform-node">
+                    <a href="">Transform this account to an organization on NuGet.org</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 <section role="main" class="page-home">
     <div class="jumbotron text-center">
         <div class="container">
@@ -20,7 +69,7 @@
                         @Html.Partial("_SearchBar")
                     </form>
                 </div>
-            </div>            
+            </div>
         </div>
         <div class="circuit-board hidden-xs" role="img" data-bind="attr: { 'aria-label': label }">
             <div class="circuit-board-label circuit-board-pd triangle">
@@ -45,7 +94,7 @@
         <div class="row">
             <h1>What is NuGet?</h1>
             <p>
-                NuGet is the package manager for .NET. The NuGet client tools provide the ability to produce and consume packages. 
+                NuGet is the package manager for .NET. The NuGet client tools provide the ability to produce and consume packages.
                 The NuGet Gallery is the central package repository used by all package authors and consumers.
             </p>
         </div>

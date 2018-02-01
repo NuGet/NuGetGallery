@@ -343,49 +343,6 @@
 @* In Azure, we want the Instance ID. The Machine Name is total garbage *@
 }
 
-
-@helper TransformToOrgOrLinkAADScript()
-{
-    <script src="~/Scripts/jquery-1.11.0.min.js"></script>
-    <script src="~/Scripts/gallery/bootstrap.js"></script>
-    <script type="text/javascript">
-        $(document).ready(function () {
-            $("#transformOrLinkPopUp").modal({
-                show: true
-            });
-        });
-
-        $(document).on('keydown', function (e) {
-            e.preventDefault();
-        });
-
-        $(this).focus();
-    </script>
-     <div id="transformOrLinkPopUp" class="modal fade" style="display: flex; align-items: center" data-backdrop="static" data-keyboard="false">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title">Link or Transform account</h4>
-                </div>
-                <div class="modal-body">
-                    <p>Awesome modal dialog</p>
-                    <p>
-
-
-                        adfasd
-
-
-                        asdfasd
-
-
-                        lot more
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-}
-
 @helper AnalyticsScript()
 {
     var config = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
