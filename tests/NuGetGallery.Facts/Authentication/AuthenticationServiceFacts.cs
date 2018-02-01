@@ -1,13 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.Owin;
-using Moq;
-using NuGetGallery.Auditing;
-using NuGetGallery.Authentication.Providers;
-using NuGetGallery.Authentication.Providers.MicrosoftAccount;
-using NuGetGallery.Framework;
-using NuGetGallery.Infrastructure.Authentication;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -16,6 +9,13 @@ using System.Security.Claims;
 using System.Security.Principal;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using Microsoft.Owin;
+using Moq;
+using NuGetGallery.Auditing;
+using NuGetGallery.Authentication.Providers;
+using NuGetGallery.Authentication.Providers.MicrosoftAccount;
+using NuGetGallery.Framework;
+using NuGetGallery.Infrastructure.Authentication;
 using Xunit;
 
 namespace NuGetGallery.Authentication
