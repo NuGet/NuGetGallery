@@ -5,10 +5,11 @@ using System.Linq;
 using System.Web.Mvc;
 using System.Data.Entity;
 using System.Threading.Tasks;
+using NuGetGallery.Filters;
 
 namespace NuGetGallery
 {
-    [Authorize]
+    [BlockDiscontinuedPasswordAuthorize]
     public partial class CuratedPackagesController
         : AppController
     {

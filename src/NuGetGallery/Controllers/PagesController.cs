@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using NuGetGallery.Areas.Admin;
+using NuGetGallery.Filters;
 
 namespace NuGetGallery
 {
@@ -62,7 +63,7 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [Authorize]
+        [BlockDiscontinuedPasswordAuthorize]
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> Contact(ContactSupportViewModel contactForm)
         {

@@ -9,12 +9,12 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using NuGetGallery.Configuration;
-using NuGetGallery.Helpers;
+using NuGetGallery.Filters;
 using NuGetGallery.Security;
 
 namespace NuGetGallery
 {
-    [Authorize]
+    [BlockDiscontinuedPasswordAuthorize]
     public partial class JsonApiController
         : AppController
     {
