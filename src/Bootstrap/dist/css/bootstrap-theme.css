@@ -74,7 +74,7 @@ body h3 {
           align-items: center;
 }
 .modal-container .modal-box {
-  width: 33%;
+  padding: 0;
   overflow: hidden;
   background-color: white;
   border-radius: 8px;
@@ -98,11 +98,7 @@ body h3 {
   background-color: #f9e29d;
 }
 .modal-container .modal-box .modal-body .signin-node {
-  padding-top: 50px;
-  padding-bottom: 50px;
-  margin-top: 15px;
-  margin-right: 25%;
-  margin-left: 25%;
+  padding: 15% 25%;
   text-align: center;
 }
 .modal-container .modal-box .modal-body .transform-node {
