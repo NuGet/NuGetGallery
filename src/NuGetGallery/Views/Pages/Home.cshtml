@@ -1,4 +1,5 @@
-﻿@{
+﻿@model GalleryHomeViewModel
+@{
     ViewBag.Title = "Home";
     ViewBag.ShowSearchInNavbar = false;
     ViewBag.AutofocusSearch = true;
@@ -6,7 +7,7 @@
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
-@if (Config.Current.GalleryOwner != null)
+@if (Model.ShowTransformModal)
 {
     @TransformToOrgOrLinkAADScript()
 }
@@ -48,7 +49,7 @@
                 </div>
                 <p>If this is not an individual account and is based on a team or group email address</p>
                 <div class="transform-node">
-                    <a href="">Transform this account to an organization on NuGet.org</a>
+                    <a href="@Url.TransformAccount()">Transform this account to an organization on NuGet.org</a>
                 </div>
             </div>
         </div>

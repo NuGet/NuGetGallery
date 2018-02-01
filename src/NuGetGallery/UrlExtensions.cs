@@ -1020,6 +1020,11 @@ namespace NuGetGallery
             return GetActionLink(url, "GenerateApiKey", "Users", relativeUrl);
         }
 
+        public static string TransformAccount(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetActionLink(url, "Transform", "Users", relativeUrl);
+        }
+
         public static string ConfirmTransformAccount(this UrlHelper url, User accountToTransform, bool relativeUrl = true)
         {
             return GetActionLink(
