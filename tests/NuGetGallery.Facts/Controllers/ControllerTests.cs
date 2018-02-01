@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -60,6 +63,7 @@ namespace NuGetGallery.Controllers
                 new ControllerActionRuleException(typeof(ApiController), nameof(ApiController.CreatePackageVerificationKeyAsync)),
                 new ControllerActionRuleException(typeof(ApiController), nameof(ApiController.DeletePackage)),
                 new ControllerActionRuleException(typeof(ApiController), nameof(ApiController.PublishPackage)),
+                new ControllerActionRuleException(typeof(AuthenticationController), nameof(AuthenticationController.AuthenticateAndLinkExternal)),
                 new ControllerActionRuleException(typeof(AuthenticationController), nameof(AuthenticationController.ChallengeAuthentication))
             };
 
