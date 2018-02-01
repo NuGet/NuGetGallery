@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Security.Cryptography.X509Certificates;
 using NuGet.Services.Validation;
 
 namespace Validation.PackageSigning.ValidateCertificate
@@ -13,39 +14,26 @@ namespace Validation.PackageSigning.ValidateCertificate
     public class CertificateVerificationResult
     {
         /// <summary>
-        /// Create a new non-revoked certificate verification result.
+        /// The status of the end <see cref="X509Certificate2"/>.
         /// </summary>
-        /// <param name="status">The status of the <see cref="X509Certificate2"/></param>
-        /// <param name="revocationTime">The time of </param>
-        public CertificateVerificationResult(EndCertificateStatus status)
-        {
-            if (status == EndCertificateStatus.Revoked)
-            {
-                throw new ArgumentException("Provide a revocation date for a revoked certificate result.", nameof(status));
-            }
-
-            Status = status;
-        }
+        public EndCertificateStatus Status { get; set; }
 
         /// <summary>
-        /// Create a new revoked certificate verification result.
+        /// The flattened flags for the <see cref="X509Certificate2"/> and its entire chain.
         /// </summary>
-        /// <param name="revocationTime">The start of the certificate's invalidity period.</param>
-        public CertificateVerificationResult(DateTime revocationTime)
-        {
-            Status = EndCertificateStatus.Revoked;
-            RevocationTime = revocationTime;
-        }
+        public X509ChainStatusFlags StatusFlags { get; set; }
 
         /// <summary>
-        /// The status of the <see cref="X509Certificate2"/>.
+        /// The time that the end <see cref="X509Certificate2"/>'s status was last updated, according to the
+        /// Certificate Authority. If <see cref="Status"/> is <see cref="EndCertificateStatus.Revoked"/>
+        /// or <see cref="EndCertificateStatus.Unknown"/>, this will have a value of <c>null</c>.
         /// </summary>
-        public EndCertificateStatus Status { get; }
+        public DateTime? StatusUpdateTime { get; set; }
 
         /// <summary>
-        /// The time at which the <see cref="X509Certificate2"/> was revoked. Null unless
-        /// <see cref="Status"/> is <see cref="CertificateStatus.Revoked"/>.
+        /// The time at which the end <see cref="X509Certificate2"/> was revoked. If <see cref="Status"/>
+        /// is not <see cref="CertificateStatus.Revoked"/>, this will have a value of <c>null</c>.
         /// </summary>
-        public DateTime? RevocationTime { get; }
+        public DateTime? RevocationTime { get; set; }
     }
 }

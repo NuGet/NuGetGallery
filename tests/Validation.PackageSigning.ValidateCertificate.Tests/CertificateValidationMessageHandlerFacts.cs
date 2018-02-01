@@ -105,11 +105,11 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
 
             public static IEnumerable<object[]> MessageIsConsumedIfValidationEndsGracefullyData()
             {
-                yield return new[] { new CertificateVerificationResult(EndCertificateStatus.Good) };
+                yield return new[] { new CertificateVerificationResult() { Status = EndCertificateStatus.Good } };
 
-                yield return new[] { new CertificateVerificationResult(EndCertificateStatus.Invalid) };
+                yield return new[] { new CertificateVerificationResult() { Status = EndCertificateStatus.Invalid } };
 
-                yield return new[] { new CertificateVerificationResult(revocationTime: DateTime.UtcNow) };
+                yield return new[] { new CertificateVerificationResult() { Status = EndCertificateStatus.Revoked, RevocationTime = DateTime.UtcNow } };
             }
 
             [Theory]
@@ -182,7 +182,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
 
                 _certificateValidationService
                     .Setup(s => s.VerifyAsync(It.IsAny<X509Certificate2>()))
-                    .ReturnsAsync(new CertificateVerificationResult(EndCertificateStatus.Unknown));
+                    .ReturnsAsync(new CertificateVerificationResult() { Status = EndCertificateStatus.Unknown });
 
                 _certificateValidationService
                     .Setup(
