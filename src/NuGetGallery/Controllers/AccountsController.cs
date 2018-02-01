@@ -8,6 +8,7 @@ using System.Net.Mail;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGetGallery.Authentication;
+using NuGetGallery.Filters;
 
 namespace NuGetGallery
 {
@@ -53,7 +54,7 @@ namespace NuGetGallery
         protected internal abstract ViewMessages Messages { get; }
 
         [HttpGet]
-        [Authorize]
+        [BlockDiscontinuedPasswordAuthorize]
         public virtual ActionResult ConfirmationRequired(string accountName = null)
         {
             var account = GetAccount(accountName);
@@ -69,7 +70,7 @@ namespace NuGetGallery
             return View(model);
         }
 
-        [Authorize]
+        [BlockDiscontinuedPasswordAuthorize]
         [HttpPost]
         [ActionName("ConfirmationRequired")]
         [ValidateAntiForgeryToken]
@@ -105,7 +106,7 @@ namespace NuGetGallery
             return View(model);
         }
 
-        [Authorize]
+        [BlockDiscontinuedPasswordAuthorize]
         public virtual async Task<ActionResult> Confirm(string username, string token)
         {
             // We don't want Login to go to this page as a return URL
@@ -158,7 +159,7 @@ namespace NuGetGallery
             return View(model);
         }
 
-        [Authorize]
+        [BlockDiscontinuedPasswordAuthorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> ChangeEmailSubscription(TAccountViewModel model)
@@ -183,7 +184,7 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [Authorize]
+        [BlockDiscontinuedPasswordAuthorize]
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> ChangeEmail(TAccountViewModel model)
         {
@@ -249,7 +250,7 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [Authorize]
+        [BlockDiscontinuedPasswordAuthorize]
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> CancelChangeEmail(TAccountViewModel model)
         {

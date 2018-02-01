@@ -4,6 +4,7 @@
 using System.Linq;
 using System.Web.Mvc;
 using NuGetGallery.Authentication;
+using NuGetGallery.Filters;
 
 namespace NuGetGallery
 {
@@ -31,7 +32,7 @@ namespace NuGetGallery
         };
 
         [HttpGet]
-        [Authorize]
+        [BlockDiscontinuedPasswordAuthorize]
         public virtual ActionResult ManageOrganization(string accountName)
         {
             var account = GetAccount(accountName);

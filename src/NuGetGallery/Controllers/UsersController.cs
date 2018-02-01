@@ -79,7 +79,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [Authorize]
+        [BlockDiscontinuedPasswordAuthorize]
         [ActionName("Transform")]
         public virtual ActionResult TransformToOrganization()
         {
@@ -102,7 +102,7 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [Authorize]
+        [BlockDiscontinuedPasswordAuthorize]
         [ValidateAntiForgeryToken]
         [ActionName("Transform")]
         public virtual async Task<ActionResult> TransformToOrganization(TransformAccountViewModel transformViewModel)
@@ -134,7 +134,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [Authorize]
+        [BlockDiscontinuedPasswordAuthorize]
         [ActionName("ConfirmTransform")]
         public virtual async Task<ActionResult> ConfirmTransformToOrganization(string accountNameToTransform, string token)
         {
@@ -608,7 +608,7 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [Authorize]
+        [BlockDiscontinuedPasswordAuthorize]
         [ValidateAntiForgeryToken]
         public virtual async Task<JsonResult> RegenerateCredential(string credentialType, int? credentialKey)
         {
