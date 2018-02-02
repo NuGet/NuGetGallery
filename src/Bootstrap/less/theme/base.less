@@ -75,6 +75,13 @@ body {
   }
 }
 
+.modal-backdrop.in
+{
+    opacity:0.8 !important;
+    position:fixed;// This makes it cover the entire scrollable page, not just browser height
+    height:100%;
+}
+
 .modal-container {
   align-items: center; 
   display: flex; 
@@ -84,6 +91,7 @@ body {
     border-radius: 8px; 
     background-color: white; 
     overflow: hidden;
+    margin-left: 37.5%;
     padding: 0px;
 
     .modal-title {
@@ -101,15 +109,20 @@ body {
 
       .tag-node {
         background-color: #F9E29D;
-        padding-bottom: 16px; 
-        padding: 10px; 
+        padding: 13px; 
         margin: -15px; 
         text-align: left;
       }
 
       .signin-node {
-        padding: 15% 25%;
+        padding: 15% 15%;
         text-align: center;
+        margin-top: 16px;
+
+        .provider-button {
+          font-size: 16px;
+          line-height: 2em;
+        }
       }
 
       .transform-node {

@@ -725,9 +725,14 @@ namespace NuGetGallery
                 });
         }
 
-        public static string LinkOrChangeExternalCredential(this UrlHelper url, string returnUrl, bool relativeUrl = true)
+        public static string LinkOrChangeExternalCredential(this UrlHelper url, string returnUrl, bool allowAnyEmailLinking = true, bool relativeUrl = true)
         {
-            return GetAuthenticationRoutes(url, "LinkOrChangeExternalCredential", returnUrl, relativeUrl);
+            return GetAuthenticationRoutes(url, "LinkOrChangeExternalCredential", returnUrl, allowAnyEmailLinking, relativeUrl);
+        }
+
+        public static string AuthenticateExternal(this UrlHelper url, string returnUrl, bool allowAnyEmailLinking = true, bool relativeUrl = true)
+        {
+            return GetAuthenticationRoutes(url, "AuthenticateExternal", returnUrl, allowAnyEmailLinking, relativeUrl);
         }
 
         public static string LinkExternalAccount(this UrlHelper url, string returnUrl, bool relativeUrl = true)
@@ -735,9 +740,19 @@ namespace NuGetGallery
             return GetAuthenticationRoutes(url, "LinkExternalAccount", returnUrl, relativeUrl);
         }
 
-        public static string AuthenticateExternal(this UrlHelper url, string returnUrl, bool relativeUrl = true)
+        private static string GetAuthenticationRoutes(this UrlHelper url, string action, string returnUrl, bool allowAnyEmailLinking, bool relativeUrl = true)
         {
-            return GetAuthenticationRoutes(url, "AuthenticateExternal", returnUrl, relativeUrl);
+            return GetActionLink(
+                url,
+                action,
+                "Authentication",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "ReturnUrl", returnUrl },
+                    { "allowAnyEmailLinking", allowAnyEmailLinking }
+                },
+                interceptReturnUrl: false);
         }
 
         private static string GetAuthenticationRoutes(this UrlHelper url, string action, string returnUrl, bool relativeUrl = true)

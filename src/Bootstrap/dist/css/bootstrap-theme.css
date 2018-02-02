@@ -61,6 +61,11 @@ body h3 {
 .main-container .page-subheading {
   color: #777;
 }
+.modal-backdrop.in {
+  position: fixed;
+  height: 100%;
+  opacity: .8 !important;
+}
 .modal-container {
   display: -webkit-box;
   display: -webkit-flex;
@@ -75,6 +80,7 @@ body h3 {
 }
 .modal-container .modal-box {
   padding: 0;
+  margin-left: 37.5%;
   overflow: hidden;
   background-color: white;
   border-radius: 8px;
@@ -91,15 +97,19 @@ body h3 {
   padding: 15px;
 }
 .modal-container .modal-box .modal-body .tag-node {
-  padding: 10px;
-  padding-bottom: 16px;
+  padding: 13px;
   margin: -15px;
   text-align: left;
   background-color: #f9e29d;
 }
 .modal-container .modal-box .modal-body .signin-node {
-  padding: 15% 25%;
+  padding: 15% 15%;
+  margin-top: 16px;
   text-align: center;
+}
+.modal-container .modal-box .modal-body .signin-node .provider-button {
+  font-size: 16px;
+  line-height: 2em;
 }
 .modal-container .modal-box .modal-body .transform-node {
   margin-bottom: 10px;
