@@ -394,8 +394,8 @@ namespace NuGetGallery
 
             if (!allowAnyEmailLinking)
             {
-                var userInformation = result.Authenticator.GetIdentityInformation(result.ExternalIdentity);
-                if (!user.EmailAddress.Equals(userInformation.Email, StringComparison.OrdinalIgnoreCase))
+                var userInformation = result.Authenticator?.GetIdentityInformation(result.ExternalIdentity);
+                if (userInformation == null || !user.EmailAddress.Equals(userInformation.Email, StringComparison.OrdinalIgnoreCase))
                 {
                     TempData["ErrorMessage"] = string.Format(Strings.ChangeCredential_EmailAddressMismatched, user.EmailAddress);
                     return SafeRedirect(returnUrl);
