@@ -536,6 +536,12 @@ namespace NuGetGallery
 
             await _authService.AddCredential(user.User, result.Credential);
 
+            var passwordCredential = user.User.Credentials.SingleOrDefault(c => c.IsPassword());
+            if (passwordCredential != null)
+            {
+                await _authService.RemoveCredential(user.User, passwordCredential);
+            }
+
             // Notify the user of the change
             _messageService.SendCredentialAddedNotice(user.User, _authService.DescribeCredential(result.Credential));
 
