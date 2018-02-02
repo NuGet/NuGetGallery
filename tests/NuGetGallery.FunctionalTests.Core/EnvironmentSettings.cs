@@ -27,6 +27,10 @@ namespace NuGetGallery.FunctionalTests
         private static string _testAccountApiKey_Unlist;
         private static string _testAccountApiKey_PushPackage;
         private static string _testAccountApiKey_PushVersion;
+        private static string _testOrganizationAdminAccountName;
+        private static string _testOrganizationAdminAccountApiKey;
+        private static string _testOrganizationCollaboratorAccountName;
+        private static string _testOrganizationCollaboratorAccountApiKey;
         private static string _testEmailServerHost;
         private static List<string> _trustedHttpsCertificates;
         private static bool? _defaultSecurityPoliciesEnforced;
@@ -323,6 +327,66 @@ namespace NuGetGallery.FunctionalTests
                     _testEmailServerHost = Environment.GetEnvironmentVariable("TestEmailServerHost");
                 }
                 return _testEmailServerHost;
+            }
+        }
+
+        /// <summary>
+        /// The name of the test nuget organization that <see cref="TestAccountName"/> is an admin of.
+        /// </summary>
+        public static string TestOrganizationAdminAccountName
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_testOrganizationAdminAccountName))
+                {
+                    _testOrganizationAdminAccountName = Environment.GetEnvironmentVariable("TestOrganizationAdminAccountName");
+                }
+                return _testOrganizationAdminAccountName;
+            }
+        }
+
+        /// <summary>
+        /// An API key for the test account scoped to <see cref="TestOrganizationAdminAccountName"/>.
+        /// </summary>
+        public static string TestOrganizationAdminAccountApiKey
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_testOrganizationAdminAccountApiKey))
+                {
+                    _testOrganizationAdminAccountApiKey = Environment.GetEnvironmentVariable("TestOrganizationAdminAccountApiKey");
+                }
+                return _testOrganizationAdminAccountApiKey;
+            }
+        }
+
+        /// <summary>
+        /// The name of the test nuget organization that <see cref="TestAccountName"/> is a collaborator of.
+        /// </summary>
+        public static string TestOrganizationCollaboratorAccountName
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_testOrganizationCollaboratorAccountName))
+                {
+                    _testOrganizationCollaboratorAccountName = Environment.GetEnvironmentVariable("TestOrganizationCollaboratorAccountName");
+                }
+                return _testOrganizationCollaboratorAccountName;
+            }
+        }
+
+        /// <summary>
+        /// An API key for the test account scoped to <see cref="TestOrganizationCollaboratorAccountName"/>.
+        /// </summary>
+        public static string TestOrganizationCollaboratorAccountApiKey
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_testOrganizationCollaboratorAccountApiKey))
+                {
+                    _testOrganizationCollaboratorAccountApiKey = Environment.GetEnvironmentVariable("TestOrganizationCollaboratorAccountApiKey");
+                }
+                return _testOrganizationCollaboratorAccountApiKey;
             }
         }
 
