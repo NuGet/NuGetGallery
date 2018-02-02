@@ -31,6 +31,8 @@ namespace NuGetGallery
     public partial class ApiController
         : AppController
     {
+        private const string NuGetExeUrl = "https://dist.nuget.org/win-x86-commandline/v2.8.6/nuget.exe";
+
         public IApiScopeEvaluator ApiScopeEvaluator { get; set; }
         public IEntitiesContext EntitiesContext { get; set; }
         public INuGetExeDownloaderService NugetExeDownloaderService { get; set; }
@@ -204,10 +206,9 @@ namespace NuGetGallery
 
         [HttpGet]
         [ActionName("GetNuGetExeApi")]
-        [OutputCache(VaryByParam = "none", Location = OutputCacheLocation.ServerAndClient, Duration = 600)]
-        public virtual Task<ActionResult> GetNuGetExe()
+        public virtual ActionResult GetNuGetExe()
         {
-            return NugetExeDownloaderService.CreateNuGetExeDownloadActionResultAsync(HttpContext.Request.Url);
+            return new RedirectResult(NuGetExeUrl, permanent: false);
         }
 
         [HttpGet]
