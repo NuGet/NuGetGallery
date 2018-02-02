@@ -102,6 +102,10 @@ body h3 {
   text-align: left;
   background-color: #f9e29d;
 }
+.modal-container .modal-box .modal-body .error-message {
+  margin-right: -15px;
+  margin-left: -15px;
+}
 .modal-container .modal-box .modal-body .signin-node {
   padding: 15% 15%;
   margin-top: 16px;

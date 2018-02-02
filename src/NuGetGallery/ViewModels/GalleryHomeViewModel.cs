@@ -13,7 +13,7 @@ namespace NuGetGallery
 
         public GalleryHomeViewModel()
         {
-            ShowTransformModal = true;
+            ShowTransformModal = false;
         }
     }
 }
