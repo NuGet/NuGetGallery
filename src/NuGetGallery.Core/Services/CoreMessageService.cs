@@ -125,6 +125,42 @@ namespace NuGetGallery.Services
             }
         }
 
+        public void SendValidationTakingTooLongNotice(Package package, string packageUrl, string packageSupportUrl)
+        {
+            string subject = "[{0}] Package validation taking too long - {1} {2}";
+            string body = @"The package [{1} {2}]({3}) validation is taking unusually long time. Our engineers were notified of the issue and are investigating.";
+
+            body = string.Format(
+                CultureInfo.CurrentCulture,
+                body,
+                CoreConfiguration.GalleryOwner.DisplayName,
+                package.PackageRegistration.Id,
+                package.Version,
+                packageUrl);
+
+            subject = string.Format(
+                CultureInfo.CurrentCulture,
+                subject, 
+                CoreConfiguration.GalleryOwner.DisplayName,
+                package.PackageRegistration.Id,
+                package.Version);
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = CoreConfiguration.GalleryNoReplyAddress;
+
+                AddAllOwnersToMailMessage(package.PackageRegistration, mailMessage);
+
+                if (mailMessage.To.Any())
+                {
+                    SendMessage(mailMessage, copySender: false);
+                }
+            }
+        }
+
+
         protected static void AddAllOwnersToMailMessage(PackageRegistration packageRegistration, MailMessage mailMessage)
         {
             foreach (var owner in packageRegistration.Owners)
