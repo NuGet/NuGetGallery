@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Logging;
 
@@ -98,6 +99,9 @@ namespace NuGet.Jobs
             {
                 _logger.LogError("Job runner threw an exception: {Exception}", ex);
             }
+
+            Trace.Close();
+            TelemetryConfiguration.Active.TelemetryChannel.Flush();
         }
 
         private static ILoggerFactory ConfigureLogging(JobBase job)
