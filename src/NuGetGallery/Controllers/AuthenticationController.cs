@@ -401,7 +401,7 @@ namespace NuGetGallery
                 await _authService.CreateSessionAsync(OwinContext, authenticatedUser);
 
                 // Remove the password credential after linking to external account.
-                var passwordCred = user.Credentials.SingleOrDefault(c => c.IsPassword());
+                var passwordCred = user.GetPassword();
 
                 if (passwordCred != null)
                 {
@@ -536,7 +536,7 @@ namespace NuGetGallery
 
             await _authService.AddCredential(user.User, result.Credential);
 
-            var passwordCredential = user.User.Credentials.SingleOrDefault(c => c.IsPassword());
+            var passwordCredential = user.User.GetPassword();
             if (passwordCredential != null)
             {
                 await _authService.RemoveCredential(user.User, passwordCredential);
