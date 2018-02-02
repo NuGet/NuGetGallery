@@ -9,7 +9,7 @@ using NuGetGallery.Filters;
 
 namespace NuGetGallery
 {
-    [BlockDiscontinuedPasswordAuthorize]
+    [UiAuthorize]
     public partial class CuratedPackagesController
         : AppController
     {

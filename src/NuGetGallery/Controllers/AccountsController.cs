@@ -54,7 +54,7 @@ namespace NuGetGallery
         protected internal abstract ViewMessages Messages { get; }
 
         [HttpGet]
-        [BlockDiscontinuedPasswordAuthorize]
+        [UiAuthorize]
         public virtual ActionResult ConfirmationRequired(string accountName = null)
         {
             var account = GetAccount(accountName);
@@ -70,7 +70,7 @@ namespace NuGetGallery
             return View(model);
         }
 
-        [BlockDiscontinuedPasswordAuthorize]
+        [UiAuthorize]
         [HttpPost]
         [ActionName("ConfirmationRequired")]
         [ValidateAntiForgeryToken]
@@ -106,7 +106,7 @@ namespace NuGetGallery
             return View(model);
         }
 
-        [BlockDiscontinuedPasswordAuthorize]
+        [UiAuthorize]
         public virtual async Task<ActionResult> Confirm(string username, string token)
         {
             // We don't want Login to go to this page as a return URL
@@ -159,7 +159,7 @@ namespace NuGetGallery
             return View(model);
         }
 
-        [BlockDiscontinuedPasswordAuthorize]
+        [UiAuthorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> ChangeEmailSubscription(TAccountViewModel model)
@@ -184,7 +184,7 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [BlockDiscontinuedPasswordAuthorize]
+        [UiAuthorize]
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> ChangeEmail(TAccountViewModel model)
         {
@@ -250,7 +250,7 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [BlockDiscontinuedPasswordAuthorize]
+        [UiAuthorize]
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> CancelChangeEmail(TAccountViewModel model)
         {

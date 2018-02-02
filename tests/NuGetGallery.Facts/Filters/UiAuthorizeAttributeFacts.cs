@@ -3,19 +3,17 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Security.Claims;
 using System.Web;
 using System.Web.Mvc;
 using Moq;
 using NuGetGallery.Authentication;
 using NuGetGallery.Framework;
-using NuGetGallery.Security;
 using Xunit;
 
 namespace NuGetGallery.Filters
 {
-    public class BlockDiscontinuedPasswordAuthorizeAttributeFacts
+    public class UiAuthorizeAttributeFacts
     {
         public class TheOnAuthorizationMethod
         {
@@ -26,24 +24,36 @@ namespace NuGetGallery.Filters
                 AuthenticationTypes.External
             };
 
+            public static IEnumerable<object[]> AllowsDiscontinuedPassword_Data
+            {
+                get
+                {
+                    yield return MemberDataHelper.AsData(false);
+                    yield return MemberDataHelper.AsData(true);
+                }
+            }
+
             public static IEnumerable<object[]> FailsForUnauthenticatedUser_Data
             {
                 get
                 {
-                    foreach (var authType in AuthTypes)
+                    foreach (var allowsDiscontinuedPassword in new[] { false, true })
                     {
-                        yield return MemberDataHelper.AsData(BuildClaimsIdentity(authType, authenticated: false, hasDiscontinuedPasswordClaim: false).Object);
-                        yield return MemberDataHelper.AsData(BuildClaimsIdentity(authType, authenticated: false, hasDiscontinuedPasswordClaim: true).Object);
+                        foreach (var authType in AuthTypes)
+                        {
+                            yield return MemberDataHelper.AsData(allowsDiscontinuedPassword, BuildClaimsIdentity(authType, authenticated: false, hasDiscontinuedPasswordClaim: false).Object);
+                            yield return MemberDataHelper.AsData(allowsDiscontinuedPassword, BuildClaimsIdentity(authType, authenticated: false, hasDiscontinuedPasswordClaim: true).Object);
+                        }
                     }
                 }
             }
 
             [Theory]
             [MemberData(nameof(FailsForUnauthenticatedUser_Data))]
-            public void FailsForUnauthenticatedUser(ClaimsIdentity identity)
+            public void FailsForUnauthenticatedUser(bool allowsDiscontinuedPassword, ClaimsIdentity identity)
             {
                 var context = BuildAuthorizationContext(identity).Object;
-                var attribute = new BlockDiscontinuedPasswordAuthorizeAttribute();
+                var attribute = new UiAuthorizeAttribute(allowsDiscontinuedPassword);
 
                 // Act
                 attribute.OnAuthorization(context);
@@ -52,14 +62,20 @@ namespace NuGetGallery.Filters
                 Assert.IsType<HttpUnauthorizedResult>(context.Result);
             }
 
-            public static IEnumerable<object[]> SucceedsForAuthenticatedUserWithoutDiscontinuedPassword_Data => AuthTypes.Select(t => MemberDataHelper.AsData(t));
+            public static IEnumerable<object[]> SucceedsForAuthenticatedUserWithoutDiscontinuedPassword_Data => 
+                MemberDataHelper
+                    .Combine(
+                        AllowsDiscontinuedPassword_Data, 
+                        AuthTypes.Select(t => MemberDataHelper.AsData(t, false)))
+                    .Concat(
+                        AuthTypes.Select(t => MemberDataHelper.AsData(true, t, true)));
 
             [Theory]
             [MemberData(nameof(SucceedsForAuthenticatedUserWithoutDiscontinuedPassword_Data))]
-            public void SucceedsForAuthenticatedUserWithoutDiscontinuedPassword(string authType)
+            public void SucceedsForAuthenticatedUserWithoutDiscontinuedPassword(bool allowsDiscontinuedPassword, string authType, bool hasDiscontinuedPasswordClaim)
             {
-                var context = BuildAuthorizationContext(BuildClaimsIdentity(authType, authenticated: true, hasDiscontinuedPasswordClaim: false).Object).Object;
-                var attribute = new BlockDiscontinuedPasswordAuthorizeAttribute();
+                var context = BuildAuthorizationContext(BuildClaimsIdentity(authType, authenticated: true, hasDiscontinuedPasswordClaim: hasDiscontinuedPasswordClaim).Object).Object;
+                var attribute = new UiAuthorizeAttribute(allowsDiscontinuedPassword);
 
                 // Act
                 attribute.OnAuthorization(context);
@@ -72,7 +88,7 @@ namespace NuGetGallery.Filters
             public void RedirectsToHomepageForAuthenticatedUserWithDiscontinuedPassword()
             {
                 var context = BuildAuthorizationContext(BuildClaimsIdentity(AuthenticationTypes.LocalUser, authenticated: true, hasDiscontinuedPasswordClaim: true).Object).Object;
-                var attribute = new BlockDiscontinuedPasswordAuthorizeAttribute();
+                var attribute = new UiAuthorizeAttribute();
 
                 // Act
                 attribute.OnAuthorization(context);

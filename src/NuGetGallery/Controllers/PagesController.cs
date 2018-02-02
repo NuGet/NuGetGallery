@@ -63,7 +63,7 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [BlockDiscontinuedPasswordAuthorize]
+        [UiAuthorize]
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> Contact(ContactSupportViewModel contactForm)
         {

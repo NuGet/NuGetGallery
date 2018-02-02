@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using NuGetGallery.Filters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -94,12 +95,12 @@ namespace NuGetGallery.Controllers
         }
 
         [Fact]
-        public void AllActionsHaveBlockDiscontinuedPasswordAuthorizeAttribute()
+        public void AllActionsHaveUiAuthorizeAttribute()
         {
             // Arrange
             
             // These actions are allowed to continue to support a discontinued password login.
-            var exceptions = new ControllerActionRuleException[]
+            var expectedActionsSupportingDiscontinuedPasswordLogin = new ControllerActionRuleException[]
             {
                 new ControllerActionRuleException(typeof(UsersController), nameof(UsersController.TransformToOrganization)),
                 new ControllerActionRuleException(typeof(UsersController), nameof(UsersController.ConfirmTransformToOrganization)),
@@ -108,16 +109,29 @@ namespace NuGetGallery.Controllers
             // Act
             var assembly = Assembly.GetAssembly(typeof(AppController));
 
-            var actions = GetAllActions(exceptions);
+            var actions = GetAllActions();
 
             // Assert
-            var actionsWithAuthorizeAttribute = actions
+            
+            // No actions should have the base authorize attribute!
+            var actionsWithBaseAuthorizeAttribute = actions
                 .Where(m => m.GetCustomAttributes().Any(a => a.GetType() == typeof(AuthorizeAttribute)));
 
-            Assert.Empty(actionsWithAuthorizeAttribute);
+            Assert.Empty(actionsWithBaseAuthorizeAttribute);
+
+            // Only certain actions should support discontinued password login
+            var actionsSupportingDiscontinuedPasswordLogin = actions
+                .Where(m => m.GetCustomAttributes().Any(a => a is UiAuthorizeAttribute && ((UiAuthorizeAttribute)a).AllowDiscontinuedPassword))
+                .Select(m => new ControllerActionRuleException(m))
+                .Distinct();
+
+            Assert.Equal(expectedActionsSupportingDiscontinuedPasswordLogin.Count(), actionsSupportingDiscontinuedPasswordLogin.Count());
+
+            Assert.Empty(actionsSupportingDiscontinuedPasswordLogin
+                .Except(expectedActionsSupportingDiscontinuedPasswordLogin));
         }
 
-        private IEnumerable<MethodInfo> GetAllActions(IEnumerable<ControllerActionRuleException> exceptions)
+        private IEnumerable<MethodInfo> GetAllActions(IEnumerable<ControllerActionRuleException> exceptions = null)
         {
             return Assembly.GetAssembly(typeof(AppController)).GetTypes()
                 // Get all types that are controllers.
@@ -130,7 +144,7 @@ namespace NuGetGallery.Controllers
                 .Where(m =>
                 {
                     var possibleException = new ControllerActionRuleException(m);
-                    return !exceptions.Any(a => a.Equals(possibleException));
+                    return !exceptions?.Any(a => a.Equals(possibleException)) ?? true;
                 });
         }
     }

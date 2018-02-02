@@ -11,17 +11,21 @@ using AuthorizationContext = System.Web.Mvc.AuthorizationContext;
 
 namespace NuGetGallery.Filters
 {
-    public sealed class BlockDiscontinuedPasswordAuthorizeAttribute : AuthorizeAttribute
+    public sealed class UiAuthorizeAttribute : AuthorizeAttribute
     {
+        public bool AllowDiscontinuedPassword { get; }
         
-        public BlockDiscontinuedPasswordAuthorizeAttribute()
-        {}
+        public UiAuthorizeAttribute(bool allowDiscontinuedPassword = false)
+        {
+            AllowDiscontinuedPassword = allowDiscontinuedPassword;
+        }
 
         public override void OnAuthorization(AuthorizationContext filterContext)
         {
             // If a password credential was used, and the user has a discontinued password claim, redirect them to the homepage.
             var identity = filterContext.HttpContext.User.Identity as ClaimsIdentity;
-            if (identity != null && 
+            if (!AllowDiscontinuedPassword &&
+                identity != null && 
                 identity.IsAuthenticated && 
                 identity.AuthenticationType == AuthenticationTypes.LocalUser)
             {

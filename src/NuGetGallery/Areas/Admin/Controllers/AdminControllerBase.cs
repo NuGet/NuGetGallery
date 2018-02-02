@@ -5,7 +5,7 @@ using NuGetGallery.Filters;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
-    [BlockDiscontinuedPasswordAuthorize(Roles="Admins")]
+    [UiAuthorize(Roles="Admins")]
     public class AdminControllerBase : AppController
     {
     }
