@@ -40,6 +40,83 @@ namespace NuGetGallery
             EntitiesContext = entitiesContext;
         }
 
+        public async Task<Membership> AddOrUpdateMemberAsync(Organization organization, string memberName, bool isAdmin)
+        {
+            organization = organization ?? throw new ArgumentNullException(nameof(organization));
+            if (string.IsNullOrEmpty(memberName))
+            {
+                throw new ArgumentException(Strings.OrganizationMemberNameIsRequired, nameof(memberName));
+            }
+
+            var membership = organization.Members
+                .Where(m => m.Member.Username.Equals(memberName, StringComparison.OrdinalIgnoreCase))
+                .SingleOrDefault();
+
+            // add new membership
+            if (membership == null)
+            {
+                var member = FindByUsername(memberName);
+                if (member == null)
+                {
+                    throw new EntityException(string.Format(CultureInfo.CurrentCulture,
+                        Strings.UpdateMember_MemberNotFound, memberName));
+                }
+
+                membership = new Membership()
+                {
+                    Member = member,
+                    IsAdmin = isAdmin
+                };
+                organization.Members.Add(membership);
+
+                await EntitiesContext.SaveChangesAsync();
+            }
+            // update existing membership
+            else if (membership.IsAdmin != isAdmin)
+            {
+                // block removal of last admin
+                if (membership.IsAdmin && organization.Members.Count(m => m.IsAdmin) == 1)
+                {
+                    throw new EntityException(string.Format(CultureInfo.CurrentCulture,
+                        Strings.UpdateMember_CannotEditLastAdmin, memberName));
+                }
+
+                membership.IsAdmin = isAdmin;
+                await EntitiesContext.SaveChangesAsync();
+            }
+
+            return membership;
+        }
+
+        public async Task DeleteMemberAsync(Organization organization, string memberName)
+        {
+            organization = organization ?? throw new ArgumentNullException(nameof(organization));
+            if (string.IsNullOrEmpty(memberName))
+            {
+                throw new ArgumentException(Strings.OrganizationMemberNameIsRequired, nameof(memberName));
+            }
+            
+            var match = organization.Members
+                .Where(m => m.Member.Username.Equals(memberName, StringComparison.OrdinalIgnoreCase))
+                .SingleOrDefault();
+
+            if (match == null)
+            {
+                throw new EntityException(string.Format(CultureInfo.CurrentCulture,
+                    Strings.UpdateMember_MemberNotFound, memberName));
+            }
+
+            // block removal of last admin
+            if (match.IsAdmin && organization.Members.Count(m => m.IsAdmin) == 1)
+            {
+                throw new EntityException(string.Format(CultureInfo.CurrentCulture,
+                    Strings.DeleteMember_CannotDeleteLastAdmin, memberName));
+            }
+
+            organization.Members.Remove(match);
+            await EntitiesContext.SaveChangesAsync();
+        }
+
         public async Task ChangeEmailSubscriptionAsync(User user, bool emailAllowed, bool notifyPackagePushed)
         {
             if (user == null)

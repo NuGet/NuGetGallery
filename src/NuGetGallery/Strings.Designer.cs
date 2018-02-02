@@ -569,6 +569,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Organization member &apos;{0}&apos; is the last admin and cannot be deleted..
+        /// </summary>
+        public static string DeleteMember_CannotDeleteLastAdmin {
+            get {
+                return ResourceManager.GetString("DeleteMember_CannotDeleteLastAdmin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Organization member was deleted..
+        /// </summary>
+        public static string DeleteMember_Success {
+            get {
+                return ResourceManager.GetString("DeleteMember_Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Owner(s) &apos;{0}&apos; require(s) that all co-owners use client version {1} or higher to push all of their packages. For more information, contact {2}.
         ///.
         /// </summary>
@@ -964,6 +982,15 @@ namespace NuGetGallery {
         public static string OrganizationEmailUpdatedWithConfirmationRequired {
             get {
                 return ResourceManager.GetString("OrganizationEmailUpdatedWithConfirmationRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Member name is required..
+        /// </summary>
+        public static string OrganizationMemberNameIsRequired {
+            get {
+                return ResourceManager.GetString("OrganizationMemberNameIsRequired", resourceCulture);
             }
         }
         
@@ -1616,6 +1643,24 @@ namespace NuGetGallery {
         public static string Unsupported {
             get {
                 return ResourceManager.GetString("Unsupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Organization member &apos;{0}&apos; is the last admin and cannot be changed..
+        /// </summary>
+        public static string UpdateMember_CannotEditLastAdmin {
+            get {
+                return ResourceManager.GetString("UpdateMember_CannotEditLastAdmin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Organization member &apos;{0}&apos; was not found..
+        /// </summary>
+        public static string UpdateMember_MemberNotFound {
+            get {
+                return ResourceManager.GetString("UpdateMember_MemberNotFound", resourceCulture);
             }
         }
         
