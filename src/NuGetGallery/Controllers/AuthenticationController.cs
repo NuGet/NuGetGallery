@@ -345,7 +345,7 @@ namespace NuGetGallery
 
         [ActionName("AuthenticateExternal")]
         [HttpGet]
-        public virtual ActionResult AuthenticateExternal(string returnUrl, bool allowAnyEmailLinking = true)
+        public virtual ActionResult AuthenticateExternal(string returnUrl)
         {
             // Get list of all enabled providers
             var providers = GetProviders();
@@ -361,7 +361,7 @@ namespace NuGetGallery
                 return Redirect(returnUrl);
             }
 
-            return ChallengeAuthentication(Url.LinkOrChangeExternalCredential(returnUrl, allowAnyEmailLinking), externalAuthProvider);
+            return ChallengeAuthentication(Url.LinkOrChangeExternalCredential(returnUrl), externalAuthProvider);
         }
 
         [NonAction]
@@ -382,7 +382,7 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="returnUrl">The url to return upon credential replacement</param>
         /// <returns><see cref="ActionResult"/> for returnUrl</returns>
-        public virtual async Task<ActionResult> LinkOrChangeExternalCredential(string returnUrl, bool allowAnyEmailLinking = true)
+        public virtual async Task<ActionResult> LinkOrChangeExternalCredential(string returnUrl)
         {
             var user = GetCurrentUser();
             var result = await _authService.ReadExternalLoginCredential(OwinContext);
@@ -392,17 +392,8 @@ namespace NuGetGallery
                 return SafeRedirect(returnUrl);
             }
 
-            if (!allowAnyEmailLinking)
-            {
-                var userInformation = result.Authenticator?.GetIdentityInformation(result.ExternalIdentity);
-                if (userInformation == null || !user.EmailAddress.Equals(userInformation.Email, StringComparison.OrdinalIgnoreCase))
-                {
-                    TempData["ErrorMessage"] = string.Format(Strings.ChangeCredential_EmailAddressMismatched, user.EmailAddress);
-                    return SafeRedirect(returnUrl);
-                }
-            }
-
             var newCredential = result.Credential;
+
             if (await _authService.TryReplaceCredential(user, newCredential))
             {
                 // Authenticate with the new credential after successful replacement

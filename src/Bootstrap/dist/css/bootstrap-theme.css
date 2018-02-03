@@ -61,64 +61,6 @@ body h3 {
 .main-container .page-subheading {
   color: #777;
 }
-.modal-backdrop.in {
-  position: fixed;
-  height: 100%;
-  opacity: .8 !important;
-}
-.modal-container {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display:         flex;
-  overflow: hidden;
-
-  -webkit-box-align: center;
-  -webkit-align-items: center;
-  -ms-flex-align: center;
-          align-items: center;
-}
-.modal-container .modal-box {
-  padding: 0;
-  margin-left: 37.5%;
-  overflow: hidden;
-  background-color: white;
-  border-radius: 8px;
-}
-.modal-container .modal-box .modal-title {
-  padding: 15px;
-  color: white;
-  background-color: #4181b8;
-}
-.modal-container .modal-box .modal-title .title-text {
-  vertical-align: top;
-}
-.modal-container .modal-box .modal-body {
-  padding: 15px;
-}
-.modal-container .modal-box .modal-body .tag-node {
-  padding: 13px;
-  margin: -15px;
-  text-align: left;
-  background-color: #f9e29d;
-}
-.modal-container .modal-box .modal-body .error-message {
-  margin-right: -15px;
-  margin-left: -15px;
-}
-.modal-container .modal-box .modal-body .signin-node {
-  padding: 15% 15%;
-  margin-top: 16px;
-  text-align: center;
-}
-.modal-container .modal-box .modal-body .signin-node .provider-button {
-  font-size: 16px;
-  line-height: 2em;
-}
-.modal-container .modal-box .modal-body .transform-node {
-  margin-bottom: 10px;
-  text-align: center;
-}
 .navbar-logo {
   margin: 8px 20px 0 0;
 }
@@ -332,6 +274,64 @@ img.reserved-indicator-icon {
   height: 2em;
   line-height: 2em;
   color: #e3ebf1;
+}
+.modal-backdrop.in {
+  position: fixed;
+  height: 100%;
+  opacity: .8 !important;
+}
+.modal-container {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display:         flex;
+  overflow: hidden;
+
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
+          align-items: center;
+}
+.modal-container .modal-box {
+  padding: 0;
+  margin-left: 37.5%;
+  overflow: hidden;
+  background-color: white;
+  border-radius: 8px;
+}
+.modal-container .modal-box .modal-title {
+  padding: 15px;
+  color: white;
+  background-color: #4181b8;
+}
+.modal-container .modal-box .modal-title .title-text {
+  vertical-align: top;
+}
+.modal-container .modal-box .modal-body {
+  padding: 15px;
+}
+.modal-container .modal-box .modal-body .tag-node {
+  padding: 13px;
+  margin: -15px;
+  text-align: left;
+  background-color: #f9e29d;
+}
+.modal-container .modal-box .modal-body .error-message {
+  margin-right: -15px;
+  margin-left: -15px;
+}
+.modal-container .modal-box .modal-body .signin-node {
+  padding: 15% 15%;
+  margin-top: 16px;
+  text-align: center;
+}
+.modal-container .modal-box .modal-body .signin-node .provider-button {
+  font-size: 16px;
+  line-height: 2em;
+}
+.modal-container .modal-box .modal-body .transform-node {
+  margin-bottom: 10px;
+  text-align: center;
 }
 #edit-metadata-form-container .loading:after {
   display: inline-block;

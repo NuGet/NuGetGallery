@@ -16,8 +16,6 @@ using NuGetGallery.Authentication.Providers.AzureActiveDirectory;
 using NuGetGallery.Authentication.Providers.MicrosoftAccount;
 using NuGetGallery.Infrastructure.Authentication;
 using Xunit;
-using NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2;
-using NuGetGallery.Authentication.Providers;
 
 namespace NuGetGallery.Controllers
 {
@@ -920,109 +918,6 @@ namespace NuGetGallery.Controllers
                 // Assert
                 ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
                 Assert.Equal(string.Format(Strings.ChangeCredential_Failed, identity), controller.TempData["ErrorMessage"]);
-            }
-
-            [Fact]
-            public async Task GivenDisallowAnyEmailLinking_ItSafeRedirectsToReturnUrlWithErrorMessageForWrongEmail()
-            {
-                // Arrange
-                GetMock<AuthenticationService>(); // Force a mock to be created
-                var controller = GetController<AuthenticationController>();
-                var identity = "Bloog";
-                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", identity);
-                var serviceMock = GetMock<AuthenticationService>();
-                var email = "user1@someaddress.com";
-                var user = new User()
-                {
-                    EmailAddress = email,
-                    Username = "user1"
-                };
-
-                controller.SetCurrentUser(user);
-                var authenticatorMock = GetMock<AzureActiveDirectoryV2Authenticator>();
-                var claimsIdentity = new ClaimsIdentity();
-
-                authenticatorMock
-                    .Setup(x => x.GetIdentityInformation(claimsIdentity))
-                    .Returns(new IdentityInformation("", "", "user2@someaddress.com", ""));
-
-                serviceMock
-                    .Setup(x => x.ReadExternalLoginCredential(controller.OwinContext))
-                    .CompletesWith(new AuthenticateExternalLoginResult()
-                    {
-                        ExternalIdentity = claimsIdentity,
-                        Authentication = null,
-                        Authenticator = authenticatorMock.Object,
-                        Credential = cred
-                    });
-
-                // Act
-                var result = await controller.LinkOrChangeExternalCredential("theReturnUrl", allowAnyEmailLinking: false);
-
-                // Assert
-                ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
-                Assert.Equal(string.Format(Strings.ChangeCredential_EmailAddressMismatched, email), controller.TempData["ErrorMessage"]);
-            }
-
-            [Fact]
-            public async Task GivenDisallowAnyEmailLinking_CompletesSuccessfullyForSameEmail()
-            {
-                // Arrange
-                GetMock<AuthenticationService>(); // Force a mock to be created
-                var controller = GetController<AuthenticationController>();
-                var identity = "Bloog";
-                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", identity);
-                var serviceMock = GetMock<AuthenticationService>();
-                var email = "user1@someaddress.com";
-                var user = new User()
-                {
-                    EmailAddress = email,
-                    Username = "user1"
-                };
-
-                controller.SetCurrentUser(user);
-                var authenticatorMock = GetMock<AzureActiveDirectoryV2Authenticator>();
-                var claimsIdentity = new ClaimsIdentity();
-
-                authenticatorMock
-                    .Setup(x => x.GetIdentityInformation(claimsIdentity))
-                    .Returns(new IdentityInformation("", "", email, ""));
-
-                var authUser = new AuthenticatedUser(user, cred);
-                serviceMock
-                    .Setup(x => x.ReadExternalLoginCredential(controller.OwinContext))
-                    .CompletesWith(new AuthenticateExternalLoginResult()
-                    {
-                        ExternalIdentity = claimsIdentity,
-                        Authentication = null,
-                        Authenticator = authenticatorMock.Object,
-                        Credential = cred
-                    })
-                    .Verifiable();
-
-                serviceMock
-                    .Setup(x => x.TryReplaceCredential(It.IsAny<User>(), It.IsAny<Credential>()))
-                    .CompletesWith(true)
-                    .Verifiable();
-
-                serviceMock
-                    .Setup(x => x.Authenticate(It.IsAny<Credential>()))
-                    .CompletesWith(authUser)
-                    .Verifiable();
-
-                serviceMock
-                    .Setup(x => x.CreateSessionAsync(It.IsAny<IOwinContext>(), authUser))
-                    .Completes()
-                    .Verifiable();
-
-                // Act
-                var result = await controller.LinkOrChangeExternalCredential("theReturnUrl", allowAnyEmailLinking: false);
-
-                // Assert
-                ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
-                Assert.Equal(Strings.ChangeCredential_Success, controller.TempData["Message"]);
-                serviceMock.VerifyAll();
-                authenticatorMock.VerifyAll();
             }
 
             [Fact]

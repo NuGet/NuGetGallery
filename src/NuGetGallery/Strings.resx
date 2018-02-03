@@ -783,7 +783,4 @@ If you wish to update the linked Microsoft account you can do so from the accoun
   <data name="UserEmailConfirmed" xml:space="preserve">
     <value>You have successfully confirmed your email address!</value>
   </data>
-  <data name="ChangeCredential_EmailAddressMismatched" xml:space="preserve">
-    <value>Email address mismatched. Please use external authentication with the '{0}' email address.</value>
-  </data>
 </root>

@@ -434,15 +434,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Email address mismatched. Please use external authentication with the &apos;{0}&apos; email address..
-        /// </summary>
-        public static string ChangeCredential_EmailAddressMismatched {
-            get {
-                return ResourceManager.GetString("ChangeCredential_EmailAddressMismatched", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Failed to update the Microsoft account with &apos;{0}&apos;. This could happen if it is already linked to another NuGet account. Contact support for more information..
         /// </summary>
         public static string ChangeCredential_Failed {
