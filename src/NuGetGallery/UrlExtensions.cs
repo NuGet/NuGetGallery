@@ -730,14 +730,14 @@ namespace NuGetGallery
             return GetAuthenticationRoutes(url, "LinkOrChangeExternalCredential", returnUrl, relativeUrl);
         }
 
-        public static string AuthenticateExternal(this UrlHelper url, string returnUrl, bool relativeUrl = true)
-        {
-            return GetAuthenticationRoutes(url, "AuthenticateExternal", returnUrl, relativeUrl);
-        }
-
         public static string LinkExternalAccount(this UrlHelper url, string returnUrl, bool relativeUrl = true)
         {
             return GetAuthenticationRoutes(url, "LinkExternalAccount", returnUrl, relativeUrl);
+        }
+
+        public static string AuthenticateExternal(this UrlHelper url, string returnUrl, bool relativeUrl = true)
+        {
+            return GetAuthenticationRoutes(url, "AuthenticateExternal", returnUrl, relativeUrl);
         }
 
         private static string GetAuthenticationRoutes(this UrlHelper url, string action, string returnUrl, bool relativeUrl = true)
