@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.TestTools.WebTesting.Rules;
 
 namespace NuGetGallery.FunctionalTests.Helpers
 {
-    public class AssertAndValidationHelper
+    public static class AssertAndValidationHelper
     {
         public static ValidationRuleFindText GetValidationRuleForFindText(string findText, bool passIfTextFound = true)
         {
@@ -117,7 +117,7 @@ namespace NuGetGallery.FunctionalTests.Helpers
         /// Individual WebTests can use this.
         /// </summary>
         /// <returns></returns>
-        public static WebTestRequest GetVerifyPackagePostRequestForPackage(WebTest test, string packageId, string packageVersion,string expectedResponseUrl,string expectedText, string owner, int expectedResponseCode = 200)
+        public static WebTestRequest GetVerifyPackagePostRequestForPackage(WebTest test, string packageId, string packageVersion, string expectedResponseUrl, string expectedText, string owner, int expectedResponseCode = 200)
         {
             var verifyUploadPostRequest = new WebTestRequest(UrlHelper.VerifyUploadPageUrl);
             verifyUploadPostRequest.Method = "POST";
