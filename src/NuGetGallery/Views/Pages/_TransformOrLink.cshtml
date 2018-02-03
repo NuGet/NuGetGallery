@@ -13,12 +13,6 @@
         <div class="tag-node">
             <span>Sign in using your Microsoft corporate account</span>
         </div>
-        @if (TempData.ContainsKey("ErrorMessage"))
-        {
-            <div class="error-message">
-                @ViewHelpers.AlertDanger(@<text>@((string)TempData["ErrorMessage"])</text>)
-            </div>
-        }
         <div class="row signin-node">
             <a role="button" 
                class="btn btn-default btn-block provider-button" 

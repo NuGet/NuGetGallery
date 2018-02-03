@@ -9,27 +9,9 @@
 
 @if (Model.ShowTransformModal)
 {
-    @TransformToOrgOrLinkMSAScript()
-}
-
-@helper TransformToOrgOrLinkMSAScript()
-{
-    <script src="~/Scripts/jquery-1.11.0.min.js"></script>
-    <script src="~/Scripts/gallery/bootstrap.js"></script>
     <script type="text/javascript">
-        $(document).on('keydown', function (e) {
-            e.preventDefault();
-        });
-
-        $(document).on('ready', function (e) {
-            $("#popUpModal").modal({
-                show: true
-            });
-        })
-
-        $(this).focus();
+        window.showModal = true;
     </script>
-    
     <div id="popUpModal" class="modal fade modal-container" data-backdrop="static" data-keyboard="false">
         @Html.Partial("_TransformOrLink")
     </div>

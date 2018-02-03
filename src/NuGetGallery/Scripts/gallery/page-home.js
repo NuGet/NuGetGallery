@@ -21,6 +21,18 @@ $(function () {
             stats.uniquePackages() + ' unique package' + (stats.uniquePackages() != 1 ? 's' : '') + '.';
     });
 
+    function showModal() {
+        $(document).on('keydown', function (e) {
+            e.preventDefault();
+        });
+
+        $(document).on('ready', function (e) {
+            $("#popUpModal").modal({
+                show: true
+            });
+        })
+    };
+
     function updateStats() {
         $.get('/stats/totals')
             .done(function (data) {
@@ -63,4 +75,7 @@ $(function () {
 
     ko.applyBindings(stats);
     updateStats();
+    if (window.showModal) {
+        showModal();
+    }
 });
