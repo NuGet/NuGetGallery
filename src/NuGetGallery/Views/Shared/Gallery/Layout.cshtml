@@ -7,10 +7,11 @@
     @RenderSection("SocialMeta", required: false)
     @RenderSection("Meta", required: false)
 
-    <title>
+    <title>     
         @(Config.Current.Brand)
         @(String.IsNullOrWhiteSpace(ViewBag.Title) ? "" : "| " + ViewBag.Title)
     </title>
+
     <link href="@Url.Content("~/favicon.ico")" rel="shortcut icon" type="image/x-icon" />
     <link title="NuGet.org" type="application/opensearchdescription+xml" href="@Url.Content("~/opensearch.xml")" rel="search">
 
@@ -33,7 +34,7 @@
 <body>
     @Html.Partial("Gallery/Header")
     <div id="skippedToContent">
-        @RenderBody()
+    @RenderBody()
     </div>
     @Html.Partial("Gallery/Footer")
     @Scripts.Render("~/Scripts/gallery/site.min.js")
