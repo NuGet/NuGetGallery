@@ -141,7 +141,6 @@
     <Compile Include="Auditing\ScopeAuditRecordTests.cs" />
     <Compile Include="Auditing\UserAuditRecordTests.cs" />
     <Compile Include="Cookies\CookieComplianceServiceBaseFacts.cs" />
-    <Compile Include="Entities\PackageEditFacts.cs" />
     <Compile Include="Entities\PackageFacts.cs" />
     <Compile Include="Entities\UserFacts.cs" />
     <Compile Include="Entities\UserSecurityPolicyFacts.cs" />
