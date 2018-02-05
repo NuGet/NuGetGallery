@@ -48,6 +48,10 @@ namespace NuGetGallery.Framework
                     TestCredentialHelper.CreateExternalCredential("abc")
                 }
             };
+            foreach (var c in User.Credentials)
+            {
+                c.User = User;
+            }
 
             ApiKeyV4PlaintextValue = apiKeyV4PlaintextValue;
 

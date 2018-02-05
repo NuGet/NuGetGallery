@@ -2,14 +2,18 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Globalization;
+using System.Web;
 using System.Linq;
-using System.Net.Mail;
-using System.Security.Claims;
-using System.Threading.Tasks;
 using System.Web.Mvc;
+using System.Net.Mail;
+using System.Globalization;
+using System.Threading.Tasks;
+using System.Security.Claims;
+using System.Collections.Generic;
 using NuGetGallery.Authentication;
+using NuGetGallery.Authentication.Providers;
+using NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2;
+using NuGetGallery.Authentication.Providers.MicrosoftAccount;
 using NuGetGallery.Infrastructure.Authentication;
 
 namespace NuGetGallery
@@ -24,6 +28,12 @@ namespace NuGetGallery
         private readonly IMessageService _messageService;
 
         private readonly ICredentialBuilder _credentialBuilder;
+
+        // Prioritize the external authentication mechanism.
+        private readonly static string[] ExternalAuthenticationPriority = new string[] {
+            Authenticator.GetName(typeof(AzureActiveDirectoryV2Authenticator)),
+            Authenticator.GetName(typeof(MicrosoftAccountAuthenticator))
+        };
 
         public AuthenticationController(
             AuthenticationService authService,
@@ -201,10 +211,10 @@ namespace NuGetGallery
                 && authenticatedUser.User.IsInRole(Constants.AdminRoleName))
             {
                 // Seems we *need* a specific authentication provider. Check if we logged in using one...
-                var providers = enforcedProviders.Split(new[] {';'}, StringSplitOptions.RemoveEmptyEntries);
+                var providers = enforcedProviders.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
 
                 if (!providers.Any(p => string.Equals(p, authenticatedUser.CredentialUsed.Type, StringComparison.OrdinalIgnoreCase))
-                    && !providers.Any(p => string.Equals(CredentialTypes.ExternalPrefix + p, authenticatedUser.CredentialUsed.Type, StringComparison.OrdinalIgnoreCase)))
+                    && !providers.Any(p => string.Equals(CredentialTypes.External.Prefix + p, authenticatedUser.CredentialUsed.Type, StringComparison.OrdinalIgnoreCase)))
                 {
                     // Challenge authentication using the first required authentication provider
                     challenge = _authService.Challenge(
@@ -224,7 +234,7 @@ namespace NuGetGallery
         {
             return Redirect(Url.LogOnNuGetAccount(returnUrl, relativeUrl: false));
         }
-        
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> Register(LogOnViewModel model, string returnUrl, bool linkingAccount)
@@ -309,7 +319,7 @@ namespace NuGetGallery
         {
             OwinContext.Authentication.SignOut();
 
-            if (!string.IsNullOrEmpty(returnUrl) 
+            if (!string.IsNullOrEmpty(returnUrl)
                 && returnUrl.Contains("account"))
             {
                 returnUrl = null;
@@ -322,7 +332,7 @@ namespace NuGetGallery
         [HttpGet]
         public virtual ActionResult AuthenticateGet(string returnUrl, string provider)
         {
-            return ChallengeAuthentication(returnUrl, provider);
+            return AuthenticateAndLinkExternal(returnUrl, provider);
         }
 
         [ActionName("Authenticate")]
@@ -330,13 +340,83 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual ActionResult AuthenticatePost(string returnUrl, string provider)
         {
-            return ChallengeAuthentication(returnUrl, provider);
+            return AuthenticateAndLinkExternal(returnUrl, provider);
+        }
+
+        [ActionName("AuthenticateExternal")]
+        [HttpGet]
+        public virtual ActionResult AuthenticateExternal(string returnUrl)
+        {
+            // Get list of all enabled providers
+            var providers = GetProviders();
+
+            // Select one provider to authenticate for linking when multiple external providers are enabled.
+            // This is for backwards compatibility with MicrosoftAccount provider. 
+            string externalAuthProvider = ExternalAuthenticationPriority
+                .FirstOrDefault(authenticator => providers.Any(p => p.ProviderName.Equals(authenticator, StringComparison.OrdinalIgnoreCase)));
+
+            if (externalAuthProvider == null)
+            {
+                TempData["Message"] = Strings.ChangeCredential_ProviderNotFound;
+                return Redirect(returnUrl);
+            }
+
+            return ChallengeAuthentication(Url.LinkOrChangeExternalCredential(returnUrl), externalAuthProvider);
+        }
+
+        [NonAction]
+        public ActionResult AuthenticateAndLinkExternal(string returnUrl, string provider)
+        {
+            return ChallengeAuthentication(Url.LinkExternalAccount(returnUrl), provider);
         }
 
         [NonAction]
         public ActionResult ChallengeAuthentication(string returnUrl, string provider)
         {
-            return _authService.Challenge(provider, Url.LinkExternalAccount(returnUrl));
+            return _authService.Challenge(provider, returnUrl);
+        }
+
+        /// <summary>
+        /// This is the challenge response action for linking or replacing external credentials
+        /// after external authentication.
+        /// </summary>
+        /// <param name="returnUrl">The url to return upon credential replacement</param>
+        /// <returns><see cref="ActionResult"/> for returnUrl</returns>
+        public virtual async Task<ActionResult> LinkOrChangeExternalCredential(string returnUrl)
+        {
+            var user = GetCurrentUser();
+            var result = await _authService.ReadExternalLoginCredential(OwinContext);
+            if (result?.Credential == null)
+            {
+                TempData["ErrorMessage"] = Strings.ExternalAccountLinkExpired;
+                return SafeRedirect(returnUrl);
+            }
+
+            var newCredential = result.Credential;
+
+            if (await _authService.TryReplaceCredential(user, newCredential))
+            {
+                // Authenticate with the new credential after successful replacement
+                var authenticatedUser = await _authService.Authenticate(newCredential);
+                await _authService.CreateSessionAsync(OwinContext, authenticatedUser);
+
+                // Remove the password credential after linking to external account.
+                var passwordCred = user.Credentials.SingleOrDefault(c => c.IsPassword());
+
+                if (passwordCred != null)
+                {
+                    await _authService.RemoveCredential(user, passwordCred);
+                }
+
+                TempData["Message"] = Strings.ChangeCredential_Success;
+            }
+            else
+            {
+                // The identity value contains cookie non-compliant characters like `<, >`(eg: John Doe <john@doe.com>), hence these need to be encoded
+                TempData["ErrorMessage"] = string.Format(Strings.ChangeCredential_Failed, HttpUtility.UrlEncode(newCredential.Identity));
+            }
+
+            return SafeRedirect(returnUrl);
         }
 
         public virtual async Task<ActionResult> LinkExternalAccount(string returnUrl)
@@ -527,7 +607,7 @@ namespace NuGetGallery
         {
             return AuthenticationView("SignInNuGetAccount", existingModel);
         }
-        
+
         private ActionResult LinkExternalView(LogOnViewModel existingModel)
         {
             return AuthenticationView("LinkExternal", existingModel);

@@ -1,0 +1,30 @@
+﻿@model ConfirmationViewModel
+@{
+    var controllerName = Model.IsOrganization ? "Organizations" : "Users";
+
+    if (Model.IsOrganization)
+    {
+        ViewBag.AccountLink = Url.ManageMyOrganization(Model.AccountName);
+        ViewBag.AccountLinkText = "Change your organization email";
+    }
+    else
+    {
+        ViewBag.AccountLink = Url.AccountSettings();
+        ViewBag.AccountLinkText = "Change your email";
+    }
+}
+
+@using (Html.BeginForm("ConfirmationRequired", controllerName))
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-group">
+        <input type="submit" class="btn btn-primary form-control" value="Resend Confirmation Email" />
+    </div>
+}
+<p class="text-center">
+    Is @Model.UnconfirmedEmailAddress incorrect?
+    <span class="ms-noWrap">
+        <a href="@ViewBag.AccountLink">@ViewBag.AccountLinkText</a>
+    </span>
+</p>

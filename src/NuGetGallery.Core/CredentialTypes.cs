@@ -27,7 +27,12 @@ namespace NuGetGallery
             public const string VerifyV1 = Prefix + "verify.v1";
         }
 
-        public const string ExternalPrefix = "external.";
+        public static class External
+        {
+            public const string Prefix = "external.";
+            public const string MicrosoftAccount = Prefix + "MicrosoftAccount";
+            public const string AzureActiveDirectoryAccount = Prefix + "AzureActiveDirectory";
+        }
 
         public static bool IsPassword(this Credential c)
         {
@@ -36,7 +41,7 @@ namespace NuGetGallery
 
         public static bool IsExternal(this Credential c)
         {
-            return c?.Type?.StartsWith(ExternalPrefix, StringComparison.OrdinalIgnoreCase) ?? false;
+            return c?.Type?.StartsWith(External.Prefix, StringComparison.OrdinalIgnoreCase) ?? false;
         }
 
         public static bool IsApiKey(this Credential c)
@@ -97,6 +102,15 @@ namespace NuGetGallery
         public static bool IsApiKey(string type)
         {
             return type?.StartsWith(ApiKey.Prefix, StringComparison.OrdinalIgnoreCase) ?? false;
+        }
+        public static bool IsMicrosoftAccount(string type)
+        {
+            return type?.Equals(External.MicrosoftAccount, StringComparison.OrdinalIgnoreCase) ?? false;
+        }
+
+        public static bool IsAzureActiveDirectoryAccount(string type)
+        {
+            return type?.Equals(External.AzureActiveDirectoryAccount, StringComparison.OrdinalIgnoreCase) ?? false;
         }
 
         public static bool IsPackageVerificationApiKey(string type)

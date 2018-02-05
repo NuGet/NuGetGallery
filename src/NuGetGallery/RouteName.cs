@@ -5,11 +5,9 @@ namespace NuGetGallery
 {
     public static class RouteName
     {
-        public const string V2ApiCuratedFeed = "V2ApiCuratedFeed";
-        public const string V1ApiFeed = "V1ApiFeed";
-        public const string V2ApiFeed = "V2ApiFeed";
-        public const string ApiFeed = "ApiFeed";
         public const string Account = "Account";
+        public const string OrganizationAccount = "ManageOrganization";
+        public const string ChangeOrganizationEmailSubscription = "ChangeOrganizationEmailSubscription";
         public const string TransformToOrganization = "TransformToOrganization";
         public const string TransformToOrganizationConfirmation = "ConfirmTransformToOrganization";
         public const string ApiKeys = "ApiKeys";
@@ -25,8 +23,6 @@ namespace NuGetGallery
         public const string UploadPackage = "UploadPackage";
         public const string UploadPackageProgress = "UploadPackageProgress";
         public const string PackageVersionAction = "PackageVersionAction";
-        public const string PackageFilePathAction = "PackageFilePathAction";
-        public const string PackageFileContentsAction = "PackageFileContentsAction";
         public const string PackageOwnerConfirmation = "PackageOwnerConfirmation";
         public const string PackageOwnerRejection = "PackageOwnerRejection";
         public const string PackageOwnerCancellation = "PackageOwnerCancellation";
@@ -34,7 +30,6 @@ namespace NuGetGallery
         public const string PushPackageApi = "PushPackageApi";
         public const string PublishPackageApi = "PublishPackageApi";
         public const string DeletePackageApi = "DeletePackageApi";
-        public const string UserAction = "UserAction";
         public const string PasswordReset = "PasswordReset";
         public const string PasswordSet = "PasswordSet";
         public const string NewSubmission = "NewSubmission";
@@ -60,7 +55,6 @@ namespace NuGetGallery
         public const string LegacyRegister2 = "LegacyRegister2";
         public const string PackageEnableLicenseReport = "EnableLicenseReport";
         public const string PackageDisableLicenseReport = "DisableLicenseReport";
-        public const string OwinRoute = "OwinRoute";
         public const string Pages = "Pages";
         public const string ExternalAuthentication = "ExternalAuthentication";
         public const string ExternalAuthenticationCallback = "ExternalAuthenticationCallback";

@@ -288,7 +288,7 @@ namespace NuGetGallery.Controllers
                 var user = new User("theUsername")
                 {
                     EmailAddress = "confirmed@example.com",
-                    Credentials = new[] { new Credential { Type = CredentialTypes.ExternalPrefix + "Foo" } }
+                    Credentials = new[] { new Credential { Type = CredentialTypes.External.Prefix + "Foo" } }
                 };
 
                 var authUser = new AuthenticatedUser(
@@ -324,13 +324,13 @@ namespace NuGetGallery.Controllers
                 var user = new User("theUsername")
                 {
                     EmailAddress = "confirmed@example.com",
-                    Credentials = new[] { new Credential { Type = CredentialTypes.ExternalPrefix + "Foo" } },
+                    Credentials = new[] { new Credential { Type = CredentialTypes.External.Prefix + "Foo" } },
                     Roles = new[] { new Role { Name = Constants.AdminRoleName } }
                 };
 
                 var authUser = new AuthenticatedUser(
                     user,
-                    new Credential() { Type = CredentialTypes.ExternalPrefix + "foo" });
+                    new Credential() { Type = CredentialTypes.External.Prefix + "foo" });
 
                 var authResult =
                     new PasswordAuthenticationResult(PasswordAuthenticationResult.AuthenticationResult.Success, authUser);
@@ -426,7 +426,7 @@ namespace NuGetGallery.Controllers
                     .Verifiable();
                 GetMock<IMessageService>()
                     .Setup(x => x.SendCredentialAddedNotice(authUser.User, 
-                                                            It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.ExternalPrefix + "MicrosoftAccount")))
+                                                            It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.External.MicrosoftAccount)))
                     .Verifiable();
 
                 var controller = GetController<AuthenticationController>();
@@ -495,7 +495,7 @@ namespace NuGetGallery.Controllers
 
                 GetMock<IMessageService>()
                     .Setup(x => x.SendCredentialAddedNotice(authUser.User,
-                                                            It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.ExternalPrefix + providerUsedForLogin)))
+                                                            It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.External.Prefix + providerUsedForLogin)))
                     .Verifiable();
 
                 EnableAllAuthenticators(Get<AuthenticationService>());
@@ -862,10 +862,116 @@ namespace NuGetGallery.Controllers
                 var controller = GetController<AuthenticationController>();
                 
                 // Act
-                var result = controller.ChallengeAuthentication(returnUrl, "MicrosoftAccount");
+                var result = controller.AuthenticateAndLinkExternal(returnUrl, "MicrosoftAccount");
 
                 // Assert
                 ResultAssert.IsChallengeResult(result, "MicrosoftAccount", "/users/account/authenticate/return?ReturnUrl=" + HttpUtility.UrlEncode(returnUrl));
+            }
+        }
+
+        public class TheLinkOrChangeExternalCredentialAction : TestContainer
+        {
+            [Fact]
+            public async Task GivenExpiredExternalAuth_ItSafeRedirectsToReturnUrlWithExternalAuthExpiredMessage()
+            {
+                // Arrange
+                GetMock<AuthenticationService>(); // Force a mock to be created
+                var controller = GetController<AuthenticationController>();
+                var serviceMock = GetMock<AuthenticationService>();
+                serviceMock
+                    .Setup(x => x.ReadExternalLoginCredential(controller.OwinContext))
+                    .CompletesWith(new AuthenticateExternalLoginResult());
+
+                // Act
+                var result = await controller.LinkOrChangeExternalCredential("theReturnUrl");
+
+                // Assert
+                ResultAssert.IsSafeRedirectTo(result, expectedUrl: "theReturnUrl");
+                Assert.Equal(Strings.ExternalAccountLinkExpired, controller.TempData["ErrorMessage"]);
+            }
+
+            [Fact]
+            public async Task GivenExistingCredential_ItSafeRedirectsToReturnUrlWithErrorMessage()
+            {
+                // Arrange
+                GetMock<AuthenticationService>(); // Force a mock to be created
+                var controller = GetController<AuthenticationController>();
+                var identity = "Bloog";
+                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", identity);
+                var serviceMock = GetMock<AuthenticationService>();
+                serviceMock
+                    .Setup(x => x.ReadExternalLoginCredential(controller.OwinContext))
+                    .CompletesWith(new AuthenticateExternalLoginResult()
+                    {
+                        ExternalIdentity = new ClaimsIdentity(),
+                        Authentication = null,
+                        Credential = cred
+                    });
+
+                serviceMock
+                    .Setup(x => x.TryReplaceCredential(It.IsAny<User>(), It.IsAny<Credential>()))
+                    .CompletesWith(false);
+
+                // Act
+                var result = await controller.LinkOrChangeExternalCredential("theReturnUrl");
+
+                // Assert
+                ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
+                Assert.Equal(string.Format(Strings.ChangeCredential_Failed, identity), controller.TempData["ErrorMessage"]);
+            }
+
+            [Fact]
+            public async Task GivenNewCredential_ItSuccessfullyReplacesExternalCredentialsAndRemovesPasswordCredential()
+            {
+                // Arrange
+                GetMock<AuthenticationService>(); // Force a mock to be created
+                var controller = GetController<AuthenticationController>();
+                var identity = "Bloog";
+                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", identity);
+                var passwordCred = new Credential("password.v3", "bloopbloop");
+                var fakes = Get<Fakes>();
+                var user = fakes.CreateUser("test", cred, passwordCred);
+                controller.SetCurrentUser(user);
+                var authUser = new AuthenticatedUser(
+                    user, cred);
+                var serviceMock = GetMock<AuthenticationService>();
+                serviceMock
+                    .Setup(x => x.ReadExternalLoginCredential(controller.OwinContext))
+                    .CompletesWith(new AuthenticateExternalLoginResult()
+                    {
+                        ExternalIdentity = new ClaimsIdentity(),
+                        Authentication = null,
+                        Credential = cred
+                    })
+                    .Verifiable();
+
+                serviceMock
+                    .Setup(x => x.TryReplaceCredential(It.IsAny<User>(), It.IsAny<Credential>()))
+                    .CompletesWith(true)
+                    .Verifiable();
+
+                serviceMock
+                    .Setup(x => x.Authenticate(It.IsAny<Credential>()))
+                    .CompletesWith(authUser)
+                    .Verifiable();
+
+                serviceMock
+                    .Setup(x => x.CreateSessionAsync(It.IsAny<IOwinContext>(), authUser))
+                    .Completes()
+                    .Verifiable();
+
+                serviceMock
+                    .Setup(x => x.RemoveCredential(user, passwordCred))
+                    .Completes()
+                    .Verifiable();
+
+                // Act
+                var result = await controller.LinkOrChangeExternalCredential("theReturnUrl");
+
+                // Assert
+                ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
+                Assert.Equal(Strings.ChangeCredential_Success, controller.TempData["Message"]);
+                serviceMock.VerifyAll();
             }
         }
 
@@ -1170,7 +1276,7 @@ namespace NuGetGallery.Controllers
                 var existingUser = new User("existingUser")
                 {
                     EmailAddress = "existing@example.com",
-                    Credentials = new[] { new Credential(CredentialTypes.ExternalPrefix + "foo", "externalloginvalue") }
+                    Credentials = new[] { new Credential(CredentialTypes.External.Prefix + "foo", "externalloginvalue") }
                 };
 
                 var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
@@ -1218,7 +1324,7 @@ namespace NuGetGallery.Controllers
                 var existingUser = new User("existingUser")
                 {
                     EmailAddress = "existing@example.com",
-                    Credentials = new[] { new Credential(CredentialTypes.ExternalPrefix + "foo", "externalloginvalue") },
+                    Credentials = new[] { new Credential(CredentialTypes.External.Prefix + "foo", "externalloginvalue") },
                     Roles = new[] { new Role { Name = Constants.AdminRoleName } }
                 };
 

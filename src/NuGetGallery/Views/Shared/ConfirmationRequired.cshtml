@@ -1,10 +1,26 @@
 ﻿@model ConfirmationViewModel
 @{
-    var titleString = Model.ConfirmingNewAccount ? "Account" : "Email";
-    ViewBag.Title = "Confirm Your " + titleString;
+    ViewBag.Title = "Confirm Your "
+        + (Model.IsOrganization ? "Organization " : "")
+        + (Model.ConfirmingNewAccount ? "Account" : "Email");
     ViewBag.SmPageColumns = Constants.ColumnsAuthenticationSm;
     ViewBag.MdPageColumns = Constants.ColumnsAuthenticationMd;
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
+
+    if (Model.IsOrganization)
+    {
+        ViewBag.AlreadyConfirmedMessage = "Your organization email address has already been confirmed.";
+        ViewBag.ConfirmationSentMessage = "A confirmation link was sent to your organization ({0}) when the "
+            + (Model.ConfirmingNewAccount ? "account was created " : "email was changed")
+            + ". Please click on that link to verify your organization email address.";
+    }
+    else
+    {
+        ViewBag.AlreadyConfirmedMessage = "Your email address has already been confirmed.";
+        ViewBag.ConfirmationSentMessage = "A confirmation link was sent to you ({0}) when you "
+            + (Model.ConfirmingNewAccount ? "created your account" : "changed your email")
+            + ". Please click on that link to verify your email address.";
+    }
 }
 
 <section role="main" class="container main-container">
@@ -16,7 +32,7 @@
             }
             else
             {
-                <h1 class="text-center">Confirm Your @(Model.ConfirmingNewAccount ? "Account" : "Email")</h1>
+                <h1 class="text-center">@ViewBag.Title</h1>
             }
         </div>
     </div>
@@ -37,15 +53,11 @@
 
                 if (Model.AlreadyConfirmed)
                 {
-                    <p class="text-center">
-                        Your email address has already been confirmed.
-                    </p>
+                    <p class="text-center">@ViewBag.AlreadyConfirmedMessage</p>
                 }
                 else
                 {
-                    <p class="text-center">
-                        A confirmation link was sent to you (@Model.UnconfirmedEmailAddress) when you @(Model.ConfirmingNewAccount ? "created your account" : "changed your email"). Please click on that link to verify your email address.
-                    </p>
+                    <p class="text-center">@string.Format(ViewBag.ConfirmationSentMessage, Model.UnconfirmedEmailAddress)</p>
                     <p class="text-center">
                         If you cannot find this email (be sure to check your spam folder), you can resend the confirmation email.
                     </p>
