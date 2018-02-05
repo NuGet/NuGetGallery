@@ -23,7 +23,10 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                 // raise a warning. The revocation time should not matter.
                 var revocationTime = nullRevocationTime ? (DateTime?)null : DateTime.Now;
                 var certificate = new EndCertificate { Use = EndCertificateUse.Timestamping };
-                var result = new CertificateVerificationResult { RevocationTime = revocationTime };
+                var result = new CertificateVerificationResult(
+                                    status: EndCertificateStatus.Revoked,
+                                    statusFlags: X509ChainStatusFlags.Revoked,
+                                    revocationTime: revocationTime);
 
                 var signatureAtIngestion = new PackageSignature { Status = PackageSignatureStatus.Unknown };
                 var signatureAtGracePeriod = new PackageSignature { Status = PackageSignatureStatus.InGracePeriod };
@@ -42,11 +45,10 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
             {
                 var certificate = new EndCertificate { Use = EndCertificateUse.CodeSigning };
 
-                var result = new CertificateVerificationResult
-                {
-                    Status = EndCertificateStatus.Revoked,
-                    RevocationTime = null
-                };
+                var result = new CertificateVerificationResult(
+                                    status: EndCertificateStatus.Revoked,
+                                    statusFlags: X509ChainStatusFlags.Revoked,
+                                    revocationTime: null);
 
                 var signatureAtIngestion = new PackageSignature { Status = PackageSignatureStatus.Unknown };
                 var signatureAtGracePeriod = new PackageSignature { Status = PackageSignatureStatus.InGracePeriod };
@@ -74,11 +76,10 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                 var certificate = new EndCertificate { Use = EndCertificateUse.CodeSigning };
                 var timestamp = new TrustedTimestamp { Value = revocationTime + signatureTimeDeltaToRevocationTime };
 
-                var result = new CertificateVerificationResult
-                {
-                    Status = EndCertificateStatus.Revoked,
-                    RevocationTime = revocationTime
-                };
+                var result = new CertificateVerificationResult(
+                                    status: EndCertificateStatus.Revoked,
+                                    statusFlags: X509ChainStatusFlags.Revoked,
+                                    revocationTime: revocationTime);
 
                 var signatureAtIngestion = new PackageSignature { Status = PackageSignatureStatus.Unknown };
                 var signatureAtGracePeriod = new PackageSignature { Status = PackageSignatureStatus.InGracePeriod };
@@ -118,25 +119,6 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
         public class MakeDeciderForInvalidatedCertificate : FactsBase
         {
             [Theory]
-            [InlineData(X509ChainStatusFlags.NoError)]
-            [InlineData(X509ChainStatusFlags.OfflineRevocation)]
-            [InlineData(X509ChainStatusFlags.RevocationStatusUnknown)]
-            public void ThrowsIfStatusIsOfflineOrUnknown(X509ChainStatusFlags flags)
-            {
-                // Arrange
-                var certificate = new EndCertificate();
-
-                var result = new CertificateVerificationResult
-                {
-                    Status = EndCertificateStatus.Invalid,
-                    StatusFlags = flags
-                };
-
-                // Act & Assert
-                Assert.Throws<ArgumentException>(() => _target.MakeDeciderForInvalidatedCertificate(certificate, result));
-            }
-
-            [Theory]
             [MemberData(nameof(InvalidCertificateInvalidatesSignaturesData))]
             public void InvalidCertificateInvalidatesSignatures(
                 EndCertificateUse use,
@@ -148,11 +130,9 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                 // Arrange
                 var certificate = new EndCertificate { Use = use };
 
-                var result = new CertificateVerificationResult
-                {
-                    Status = EndCertificateStatus.Invalid,
-                    StatusFlags = flags,
-                };
+                var result = new CertificateVerificationResult(
+                                    status: EndCertificateStatus.Invalid,
+                                    statusFlags: flags);
 
                 var signatureAtIngestion = new PackageSignature { Status = PackageSignatureStatus.Unknown };
                 var signatureAtGracePeriod = new PackageSignature { Status = PackageSignatureStatus.InGracePeriod };

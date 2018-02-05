@@ -81,7 +81,9 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
             public async Task GoodResultUpdatesCertificateValidation()
             {
                 // Arrange
-                var verificationResult = new CertificateVerificationResult() { Status = EndCertificateStatus.Good };
+                var verificationResult = new CertificateVerificationResult(
+                                                status: EndCertificateStatus.Good,
+                                                statusFlags: X509ChainStatusFlags.NoError);
 
                 // Act & Assert
                 var result = await _target.TrySaveResultAsync(_certificateValidation1, verificationResult);
@@ -98,11 +100,9 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
             {
                 // Arrange - Invalidate a certificate that is depended on by "signature1"'s certificate.
                 // This should result in "signature1" being invalidated.
-                var verificationResult = new CertificateVerificationResult()
-                {
-                    Status = EndCertificateStatus.Invalid,
-                    StatusFlags = X509ChainStatusFlags.ExplicitDistrust
-                };
+                var verificationResult = new CertificateVerificationResult(
+                                                status: EndCertificateStatus.Invalid,
+                                                statusFlags: X509ChainStatusFlags.ExplicitDistrust);
 
                 var signingState = new PackageSigningState { SigningStatus = PackageSigningStatus.Valid };
                 var signature1 = new PackageSignature { Key = 123, Status = PackageSignatureStatus.Valid };
@@ -157,7 +157,10 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                 // is a signature that doesn't depend on the certificate.
                 var revocationTime = DateTime.UtcNow;
 
-                var verificationResult = new CertificateVerificationResult() { Status = EndCertificateStatus.Revoked, RevocationTime = revocationTime };
+                var verificationResult = new CertificateVerificationResult(
+                                                status: EndCertificateStatus.Revoked,
+                                                statusFlags: X509ChainStatusFlags.Revoked,
+                                                revocationTime: revocationTime);
 
                 var signingState = new PackageSigningState { SigningStatus = PackageSigningStatus.Valid };
                 var signature1 = new PackageSignature { Key = 12, Status = PackageSignatureStatus.Valid };
@@ -220,7 +223,9 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
             public async Task UnknownResultUpdatesCertificateValidation()
             {
                 // Arrange - Create a signature whose certificate and trusted timestamp depends on "_certificateValidation1".
-                var verificationResult = new CertificateVerificationResult() { Status = EndCertificateStatus.Unknown };
+                var verificationResult = new CertificateVerificationResult(
+                                                status: EndCertificateStatus.Unknown,
+                                                statusFlags: X509ChainStatusFlags.RevocationStatusUnknown);
 
                 var signature = new PackageSignature { Status = PackageSignatureStatus.Valid };
                 var timestamp = new TrustedTimestamp { Value = DateTime.UtcNow };
@@ -248,7 +253,9 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
             public async Task UnknownResultAlertsIfReachesMaxFailureThreshold()
             {
                 // Arrange - Create a signature whose certificate and trusted timestamp depends on "_certificateValidation1".
-                var verificationResult = new CertificateVerificationResult() { Status = EndCertificateStatus.Unknown };
+                var verificationResult = new CertificateVerificationResult(
+                                                status: EndCertificateStatus.Unknown,
+                                                statusFlags: X509ChainStatusFlags.RevocationStatusUnknown);
 
                 var signature = new PackageSignature { Status = PackageSignatureStatus.Valid };
                 var timestamp = new TrustedTimestamp { Value = DateTime.UtcNow };

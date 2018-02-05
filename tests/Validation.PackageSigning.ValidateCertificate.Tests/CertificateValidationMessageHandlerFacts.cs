@@ -105,11 +105,27 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
 
             public static IEnumerable<object[]> MessageIsConsumedIfValidationEndsGracefullyData()
             {
-                yield return new[] { new CertificateVerificationResult() { Status = EndCertificateStatus.Good } };
+                yield return new[]
+                {
+                    new CertificateVerificationResult(
+                        status: EndCertificateStatus.Good,
+                        statusFlags: X509ChainStatusFlags.NoError)
+                };
 
-                yield return new[] { new CertificateVerificationResult() { Status = EndCertificateStatus.Invalid } };
+                yield return new[]
+                {
+                    new CertificateVerificationResult(
+                        status: EndCertificateStatus.Invalid,
+                        statusFlags: X509ChainStatusFlags.ExplicitDistrust)
+                };
 
-                yield return new[] { new CertificateVerificationResult() { Status = EndCertificateStatus.Revoked, RevocationTime = DateTime.UtcNow } };
+                yield return new[]
+                {
+                    new CertificateVerificationResult(
+                        status: EndCertificateStatus.Revoked,
+                        statusFlags: X509ChainStatusFlags.Revoked,
+                        revocationTime: DateTime.UtcNow)
+                };
             }
 
             [Theory]
@@ -176,13 +192,17 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                     }
                 };
 
+                var certificateVerificationResult = new CertificateVerificationResult(
+                                            status: EndCertificateStatus.Unknown,
+                                            statusFlags: X509ChainStatusFlags.RevocationStatusUnknown);
+
                 _certificateValidationService
                     .Setup(s => s.FindCertificateValidationAsync(It.IsAny<CertificateValidationMessage>()))
                     .ReturnsAsync(certificateValidation);
 
                 _certificateValidationService
                     .Setup(s => s.VerifyAsync(It.IsAny<X509Certificate2>()))
-                    .ReturnsAsync(new CertificateVerificationResult() { Status = EndCertificateStatus.Unknown });
+                    .ReturnsAsync(certificateVerificationResult);
 
                 _certificateValidationService
                     .Setup(
