@@ -1111,10 +1111,11 @@ namespace NuGetGallery
                 Assert.Equal("yung@example.com", message.To[0].Address);
                 Assert.Equal("flynt@example.com", message.To[1].Address);
                 Assert.Equal(TestGalleryNoReplyAddress, message.From);
-                Assert.Contains($"[Joe Shmoe] Package validation taking too long - {packageRegistration.Id} {nugetVersion.ToNormalizedString()}", message.Subject);
+                Assert.Contains($"[Joe Shmoe] Package validation taking longer than expected - {packageRegistration.Id} {nugetVersion.ToNormalizedString()}", message.Subject);
                 Assert.Contains(
-                    $"The package [{packageRegistration.Id} {nugetVersion.ToFullString()}]({packageUrl}) validation is taking " +
-                    $"unusually long time. Our engineers were notified of the issue and are investigating.", message.Body);
+                    $"It is taking longer than expected for your package [{packageRegistration.Id} {nugetVersion.ToFullString()}]({packageUrl}) to get published.\n\n" +
+                    $"We are looking into it and there is no action on you at this time. We’ll send you an email notification when your package has been published.\n\n" +
+                    $"Thank you for your patience.\n\nNuGet Team", message.Body);
             }
 
             public static IEnumerable<object[]> EmailSettingsCombinations
