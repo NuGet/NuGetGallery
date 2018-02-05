@@ -8,7 +8,9 @@ namespace NuGetGallery
 {
     public interface IUserService
     {
-        Task<Membership> AddOrUpdateMemberAsync(Organization organization, string memberName, bool isAdmin);
+        Task<Membership> AddMemberAsync(Organization organization, string memberName, bool isAdmin);
+
+        Task<Membership> UpdateMemberAsync(Organization organization, string memberName, bool isAdmin);
 
         Task DeleteMemberAsync(Organization organization, string memberName);
 

@@ -16,7 +16,7 @@ namespace NuGetGallery
 {
     public class UserServiceFacts
     {
-        public class TheAddOrUpdateMemberAsyncMethod
+        public class TheAddMemberAsyncMethod
         {
             [Fact]
             public async Task WhenOrganizationIsNull_ThrowsException()
@@ -27,27 +27,12 @@ namespace NuGetGallery
                 // Act & Assert
                 await Assert.ThrowsAsync<ArgumentNullException>(async () =>
                 {
-                    await service.AddOrUpdateMemberAsync(null, "member", false);
-                });
-            }
-
-            [Theory]
-            [InlineData("")]
-            [InlineData(null)]
-            public async Task WhenMemberNameIsMissing_ThrowsException(string memberName)
-            {
-                // Arrange
-                var service = new TestableUserService();
-
-                // Act & Assert
-                await Assert.ThrowsAsync<ArgumentException>(async () =>
-                {
-                    await service.AddOrUpdateMemberAsync(new Organization(), memberName, false);
+                    await service.AddMemberAsync(null, "member", false);
                 });
             }
 
             [Fact]
-            public async Task WhenMatchAndRemovingLastAdmin_ThrowsEntityException()
+            public async Task WhenMemberExists_ThrowsEntityException()
             {
                 // Arrange
                 var fakes = new Fakes();
@@ -56,35 +41,14 @@ namespace NuGetGallery
                 // Act & Assert
                 await Assert.ThrowsAsync<EntityException>(async () =>
                 {
-                    await service.AddOrUpdateMemberAsync(fakes.Organization, fakes.OrganizationAdmin.Username, false);
+                    await service.AddMemberAsync(fakes.Organization, fakes.OrganizationCollaborator.Username, false);
                 });
 
                 service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
             }
 
             [Fact]
-            public async Task WhenMatchAndNotRemovingLastAdmin_ReturnsSuccess()
-            {
-                // Arrange
-                var fakes = new Fakes();
-                var service = new TestableUserService();
-                foreach (var m in fakes.Organization.Members)
-                {
-                    m.IsAdmin = true;
-                }
-
-                // Act
-                var result = await service.AddOrUpdateMemberAsync(fakes.Organization, fakes.OrganizationAdmin.Username, false);
-
-                // Assert
-                Assert.Equal(false, result.IsAdmin);
-                Assert.Equal(fakes.OrganizationAdmin, result.Member);
-
-                service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Once);
-            }
-
-            [Fact]
-            public async Task WhenNotMatchAndUserNotFound_ThrowsEntityException()
+            public async Task WhenUserNotFound_ThrowsEntityException()
             {
                 // Arrange
                 var fakes = new Fakes();
@@ -93,7 +57,7 @@ namespace NuGetGallery
                 // Act & Assert
                 await Assert.ThrowsAsync<EntityException>(async () =>
                 {
-                    await service.AddOrUpdateMemberAsync(fakes.Organization, "notAUser", false);
+                    await service.AddMemberAsync(fakes.Organization, "notAUser", false);
                 });
 
                 service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
@@ -102,7 +66,7 @@ namespace NuGetGallery
             [Theory]
             [InlineData(true)]
             [InlineData(false)]
-            public async Task WhenNotMatchAndUserFound_CreatesMembership(bool isAdmin)
+            public async Task WhenUserFound_CreatesMembership(bool isAdmin)
             {
                 // Arrange
                 var fakes = new Fakes();
@@ -114,7 +78,7 @@ namespace NuGetGallery
                     }.AsQueryable());
 
                 // Act
-                var result = await service.AddOrUpdateMemberAsync(fakes.Organization, fakes.User.Username, isAdmin);
+                var result = await service.AddMemberAsync(fakes.Organization, fakes.User.Username, isAdmin);
                 Assert.Equal(isAdmin, result.IsAdmin);
                 Assert.Equal(fakes.User, result.Member);
 
@@ -134,21 +98,6 @@ namespace NuGetGallery
                 await Assert.ThrowsAsync<ArgumentNullException>(async () =>
                 {
                     await service.DeleteMemberAsync(null, "member");
-                });
-            }
-
-            [Theory]
-            [InlineData("")]
-            [InlineData(null)]
-            public async Task WhenMemberNameIsMissing_ThrowsException(string memberName)
-            {
-                // Arrange
-                var service = new TestableUserService();
-
-                // Act & Assert
-                await Assert.ThrowsAsync<ArgumentException>(async () =>
-                {
-                    await service.DeleteMemberAsync(new Organization(), memberName);
                 });
             }
             
@@ -211,6 +160,75 @@ namespace NuGetGallery
                 await service.DeleteMemberAsync(fakes.Organization, fakes.OrganizationCollaborator.Username);
 
                 // Assert
+                service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Once);
+            }
+        }
+
+        public class TheUpdateMemberAsyncMethod
+        {
+            [Fact]
+            public async Task WhenOrganizationIsNull_ThrowsException()
+            {
+                // Arrange
+                var service = new TestableUserService();
+
+                // Act & Assert
+                await Assert.ThrowsAsync<ArgumentNullException>(async () =>
+                {
+                    await service.UpdateMemberAsync(null, "member", false);
+                });
+            }
+
+            [Fact]
+            public async Task WhenMemberNotFound_ThrowsEntityException()
+            {
+                // Arrange
+                var fakes = new Fakes();
+                var service = new TestableUserService();
+
+                // Act & Assert
+                await Assert.ThrowsAsync<EntityException>(async () =>
+                {
+                    await service.UpdateMemberAsync(fakes.Organization, fakes.User.Username, false);
+                });
+
+                service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
+            }
+
+            [Fact]
+            public async Task WhenRemovingLastAdmin_ThrowsEntityException()
+            {
+                // Arrange
+                var fakes = new Fakes();
+                var service = new TestableUserService();
+
+                // Act & Assert
+                await Assert.ThrowsAsync<EntityException>(async () =>
+                {
+                    await service.UpdateMemberAsync(fakes.Organization, fakes.OrganizationAdmin.Username, false);
+                });
+
+                service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
+            }
+
+            [Fact]
+            public async Task WhenNotRemovingLastAdmin_ReturnsSuccess()
+            {
+                // Arrange
+                var fakes = new Fakes();
+                var service = new TestableUserService();
+                foreach (var m in fakes.Organization.Members)
+                {
+                    m.IsAdmin = true;
+                }
+
+                // Act
+                var result = await service.UpdateMemberAsync(fakes.Organization, fakes.OrganizationAdmin.Username, false);
+
+                // Assert
+                Assert.Equal(false, result.IsAdmin);
+                Assert.Equal(fakes.OrganizationAdmin, result.Member);
+
                 service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Once);
             }
         }

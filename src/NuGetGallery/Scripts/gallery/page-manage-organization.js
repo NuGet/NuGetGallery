@@ -61,7 +61,7 @@
 
                 // Send the request.
                 $.ajax({
-                    url: self.OrganizationViewModel.AddOrUpdateMemberUrl,
+                    url: self.OrganizationViewModel.UpdateMemberUrl,
                     type: 'POST',
                     dataType: 'json',
                     data: data,
@@ -85,7 +85,8 @@
             var self = this;
 
             this.AccountName = initialData.AccountName;
-            this.AddOrUpdateMemberUrl = initialData.AddOrUpdateMemberUrl;
+            this.AddMemberUrl = initialData.AddMemberUrl;
+            this.UpdateMemberUrl = initialData.UpdateMemberUrl;
             this.DeleteMemberUrl = initialData.DeleteMemberUrl;
             this.ProfileUrlTemplate = initialData.ProfileUrlTemplate;
 
@@ -140,7 +141,7 @@
 
                 // Send the request.
                 $.ajax({
-                    url: self.AddOrUpdateMemberUrl,
+                    url: self.AddMemberUrl,
                     type: 'POST',
                     dataType: 'json',
                     data: data,

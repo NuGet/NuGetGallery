@@ -47,7 +47,8 @@
                 IsCurrentUser = m.Username.Equals(CurrentUser.Username, StringComparison.OrdinalIgnoreCase),
                 GravatarUrl = m.GravatarUrl
             }),
-            AddOrUpdateMemberUrl = Url.AddOrUpdateOrganizationMember(Model.AccountName),
+            AddMemberUrl = Url.AddOrganizationMember(Model.AccountName),
+            UpdateMemberUrl = Url.UpdateOrganizationMember(Model.AccountName),
             DeleteMemberUrl = Url.DeleteOrganizationMember(Model.AccountName),
             ProfileUrlTemplate = Url.UserTemplate().LinkTemplate
         }));

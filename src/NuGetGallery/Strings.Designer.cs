@@ -134,6 +134,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to User &apos;{0}&apos; is already a member of this organization..
+        /// </summary>
+        public static string AddMember_AlreadyAMember {
+            get {
+                return ResourceManager.GetString("AddMember_AlreadyAMember", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User &apos;{0}&apos; does not exist. .
+        /// </summary>
+        public static string AddMember_UserNotFound {
+            get {
+                return ResourceManager.GetString("AddMember_UserNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The user &apos;{0}&apos; is already an owner or pending owner of the package..
         /// </summary>
         public static string AddOwner_AlreadyOwner {
@@ -1649,18 +1667,18 @@ namespace NuGetGallery {
         /// <summary>
         ///   Looks up a localized string similar to Organization member &apos;{0}&apos; is the last admin and cannot be changed..
         /// </summary>
-        public static string UpdateMember_CannotEditLastAdmin {
+        public static string UpdateOrDeleteMember_CannotRemoveLastAdmin {
             get {
-                return ResourceManager.GetString("UpdateMember_CannotEditLastAdmin", resourceCulture);
+                return ResourceManager.GetString("UpdateOrDeleteMember_CannotRemoveLastAdmin", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Organization member &apos;{0}&apos; was not found..
         /// </summary>
-        public static string UpdateMember_MemberNotFound {
+        public static string UpdateOrDeleteMember_MemberNotFound {
             get {
-                return ResourceManager.GetString("UpdateMember_MemberNotFound", resourceCulture);
+                return ResourceManager.GetString("UpdateOrDeleteMember_MemberNotFound", resourceCulture);
             }
         }
         

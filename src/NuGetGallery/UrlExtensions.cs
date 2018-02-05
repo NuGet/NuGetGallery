@@ -776,10 +776,22 @@ namespace NuGetGallery
                 });
         }
 
-        public static string AddOrUpdateOrganizationMember(this UrlHelper url, string accountName, bool relativeUrl = true)
+        public static string AddOrganizationMember(this UrlHelper url, string accountName, bool relativeUrl = true)
         {
             return GetActionLink(url,
-                "AddOrUpdateMember",
+                "AddMember",
+                "Organizations",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "accountName", accountName }
+                });
+        }
+
+        public static string UpdateOrganizationMember(this UrlHelper url, string accountName, bool relativeUrl = true)
+        {
+            return GetActionLink(url,
+                "UpdateMember",
                 "Organizations",
                 relativeUrl,
                 routeValues: new RouteValueDictionary

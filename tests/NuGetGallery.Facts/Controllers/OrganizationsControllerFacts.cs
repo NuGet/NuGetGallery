@@ -312,7 +312,7 @@ namespace NuGetGallery
             }
         }
 
-        public class TheAddOrUpdateMemberAction : AccountsControllerTestContainer
+        public class TheAddMemberAction : AccountsControllerTestContainer
         {
             private const string defaultMemberName = "member";
 
@@ -330,14 +330,14 @@ namespace NuGetGallery
                 controller.SetCurrentUser(Fakes.OrganizationCollaborator);
 
                 // Act
-                var result = await InvokeAddOrUpdateMember(controller, account);
+                var result = await InvokeAddMember(controller, account);
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.Forbidden, controller.Response.StatusCode);
                 Assert.IsType<JsonResult>(result);
                 Assert.Equal(Strings.Unauthorized, ((JsonResult)result).Data);
 
-                GetMock<IUserService>().Verify(s => s.AddOrUpdateMemberAsync(It.IsAny<Organization>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
+                GetMock<IUserService>().Verify(s => s.AddMemberAsync(It.IsAny<Organization>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
             }
 
             [Fact]
@@ -349,14 +349,14 @@ namespace NuGetGallery
                 controller.SetCurrentUser(Fakes.User);
 
                 // Act
-                var result = await InvokeAddOrUpdateMember(controller, account);
+                var result = await InvokeAddMember(controller, account);
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.Forbidden, controller.Response.StatusCode);
                 Assert.IsType<JsonResult>(result);
                 Assert.Equal(Strings.Unauthorized, ((JsonResult)result).Data);
 
-                GetMock<IUserService>().Verify(s => s.AddOrUpdateMemberAsync(It.IsAny<Organization>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
+                GetMock<IUserService>().Verify(s => s.AddMemberAsync(It.IsAny<Organization>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
             }
 
             [Theory]
@@ -369,7 +369,7 @@ namespace NuGetGallery
                 var account = GetAccount(controller);
 
                 // Act
-                var result = await InvokeAddOrUpdateMember(controller, account, isAdmin: isAdmin,
+                var result = await InvokeAddMember(controller, account, isAdmin: isAdmin,
                     exception: new EntityException("error"));
 
                 // Assert
@@ -377,20 +377,20 @@ namespace NuGetGallery
                 Assert.IsType<JsonResult>(result);
                 Assert.Equal("error", ((JsonResult)result).Data);
 
-                GetMock<IUserService>().Verify(s => s.AddOrUpdateMemberAsync(account, defaultMemberName, isAdmin), Times.Once);
+                GetMock<IUserService>().Verify(s => s.AddMemberAsync(account, defaultMemberName, isAdmin), Times.Once);
             }
 
             [Theory]
             [InlineData(true)]
             [InlineData(false)]
-            public async Task WhenSuccess_ReturnsSuccess(bool isAdmin)
+            public async Task WhenMembershipCreated_ReturnsSuccess(bool isAdmin)
             {
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
 
                 // Act
-                var result = await InvokeAddOrUpdateMember(controller, account, isAdmin: isAdmin);
+                var result = await InvokeAddMember(controller, account, isAdmin: isAdmin);
 
                 // Assert
                 Assert.Equal(0, controller.Response.StatusCode);
@@ -400,10 +400,10 @@ namespace NuGetGallery
                 Assert.Equal(defaultMemberName, data.Username);
                 Assert.Equal(isAdmin, data.IsAdmin);
 
-                GetMock<IUserService>().Verify(s => s.AddOrUpdateMemberAsync(account, defaultMemberName, isAdmin), Times.Once);
+                GetMock<IUserService>().Verify(s => s.AddMemberAsync(account, defaultMemberName, isAdmin), Times.Once);
             }
 
-            private Task<JsonResult> InvokeAddOrUpdateMember(
+            private Task<JsonResult> InvokeAddMember(
                 OrganizationsController controller,
                 Organization account,
                 string memberName = defaultMemberName,
@@ -416,7 +416,7 @@ namespace NuGetGallery
                 var userService = GetMock<IUserService>();
                 userService.Setup(u => u.FindByUsername(account.Username))
                     .Returns(account as User);
-                var setup = userService.Setup(u => u.AddOrUpdateMemberAsync(It.IsAny<Organization>(), memberName, isAdmin));
+                var setup = userService.Setup(u => u.AddMemberAsync(It.IsAny<Organization>(), memberName, isAdmin));
                 if (exception != null)
                 {
                     setup.Throws(exception);
@@ -433,7 +433,132 @@ namespace NuGetGallery
                 }
 
                 // Act
-                return controller.AddOrUpdateMember(account.Username, memberName, isAdmin);
+                return controller.AddMember(account.Username, memberName, isAdmin);
+            }
+        }
+
+        public class TheUpdateMemberAction : AccountsControllerTestContainer
+        {
+            private const string defaultMemberName = "member";
+
+            protected override User GetCurrentUser(OrganizationsController controller)
+            {
+                return controller.GetCurrentUser() ?? Fakes.OrganizationAdmin;
+            }
+
+            [Fact]
+            public async Task WhenUserIsCollaborator_ReturnsNonSuccess()
+            {
+                // Arrange
+                var controller = GetController();
+                var account = GetAccount(controller);
+                controller.SetCurrentUser(Fakes.OrganizationCollaborator);
+
+                // Act
+                var result = await InvokeUpdateMember(controller, account);
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.Forbidden, controller.Response.StatusCode);
+                Assert.IsType<JsonResult>(result);
+                Assert.Equal(Strings.Unauthorized, ((JsonResult)result).Data);
+
+                GetMock<IUserService>().Verify(s => s.UpdateMemberAsync(It.IsAny<Organization>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
+            }
+
+            [Fact]
+            public async Task WhenUserIsNotMember_ReturnsNonSuccess()
+            {
+                // Arrange
+                var controller = GetController();
+                var account = GetAccount(controller);
+                controller.SetCurrentUser(Fakes.User);
+
+                // Act
+                var result = await InvokeUpdateMember(controller, account);
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.Forbidden, controller.Response.StatusCode);
+                Assert.IsType<JsonResult>(result);
+                Assert.Equal(Strings.Unauthorized, ((JsonResult)result).Data);
+
+                GetMock<IUserService>().Verify(s => s.UpdateMemberAsync(It.IsAny<Organization>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task WhenEntityException_ReturnsNonSuccess(bool isAdmin)
+            {
+                // Arrange
+                var controller = GetController();
+                var account = GetAccount(controller);
+
+                // Act
+                var result = await InvokeUpdateMember(controller, account, isAdmin: isAdmin,
+                    exception: new EntityException("error"));
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+                Assert.IsType<JsonResult>(result);
+                Assert.Equal("error", ((JsonResult)result).Data);
+
+                GetMock<IUserService>().Verify(s => s.UpdateMemberAsync(account, defaultMemberName, isAdmin), Times.Once);
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task WhenMembershipCreated_ReturnsSuccess(bool isAdmin)
+            {
+                // Arrange
+                var controller = GetController();
+                var account = GetAccount(controller);
+
+                // Act
+                var result = await InvokeUpdateMember(controller, account, isAdmin: isAdmin);
+
+                // Assert
+                Assert.Equal(0, controller.Response.StatusCode);
+                Assert.IsType<JsonResult>(result);
+
+                dynamic data = ((JsonResult)result).Data;
+                Assert.Equal(defaultMemberName, data.Username);
+                Assert.Equal(isAdmin, data.IsAdmin);
+
+                GetMock<IUserService>().Verify(s => s.UpdateMemberAsync(account, defaultMemberName, isAdmin), Times.Once);
+            }
+
+            private Task<JsonResult> InvokeUpdateMember(
+                OrganizationsController controller,
+                Organization account,
+                string memberName = defaultMemberName,
+                bool isAdmin = false,
+                EntityException exception = null)
+            {
+                // Arrange
+                controller.SetCurrentUser(GetCurrentUser(controller));
+
+                var userService = GetMock<IUserService>();
+                userService.Setup(u => u.FindByUsername(account.Username))
+                    .Returns(account as User);
+                var setup = userService.Setup(u => u.UpdateMemberAsync(It.IsAny<Organization>(), memberName, isAdmin));
+                if (exception != null)
+                {
+                    setup.Throws(exception);
+                }
+                else
+                {
+                    var membership = new Membership
+                    {
+                        Organization = account,
+                        Member = new User(memberName),
+                        IsAdmin = isAdmin
+                    };
+                    setup.Returns(Task.FromResult(membership)).Verifiable();
+                }
+
+                // Act
+                return controller.UpdateMember(account.Username, memberName, isAdmin);
             }
         }
 
