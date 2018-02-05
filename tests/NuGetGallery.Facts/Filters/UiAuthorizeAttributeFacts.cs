@@ -13,18 +13,18 @@ using Xunit;
 
 namespace NuGetGallery.Filters
 {
-    public class UiAuthorizeAttributeFacts
+    public class UIAuthorizeAttributeFacts
     {
         public class TheOnAuthorizationMethod
         {
-            private static IEnumerable<string> AuthTypes = new[] 
+            private static IEnumerable<string> AuthTypes = new[]
             {
                 AuthenticationTypes.LocalUser,
                 AuthenticationTypes.ApiKey,
                 AuthenticationTypes.External
             };
 
-            public static IEnumerable<object[]> AllowsDiscontinuedPassword_Data
+            public static IEnumerable<object[]> AllowsDiscontinuedLogins_Data
             {
                 get
                 {
@@ -37,12 +37,12 @@ namespace NuGetGallery.Filters
             {
                 get
                 {
-                    foreach (var allowsDiscontinuedPassword in new[] { false, true })
+                    foreach (var allowsDiscontinuedLogin in new[] { false, true })
                     {
                         foreach (var authType in AuthTypes)
                         {
-                            yield return MemberDataHelper.AsData(allowsDiscontinuedPassword, BuildClaimsIdentity(authType, authenticated: false, hasDiscontinuedPasswordClaim: false).Object);
-                            yield return MemberDataHelper.AsData(allowsDiscontinuedPassword, BuildClaimsIdentity(authType, authenticated: false, hasDiscontinuedPasswordClaim: true).Object);
+                            yield return MemberDataHelper.AsData(allowsDiscontinuedLogin, BuildClaimsIdentity(authType, authenticated: false, hasDiscontinuedLoginClaim: false).Object);
+                            yield return MemberDataHelper.AsData(allowsDiscontinuedLogin, BuildClaimsIdentity(authType, authenticated: false, hasDiscontinuedLoginClaim: true).Object);
                         }
                     }
                 }
@@ -50,10 +50,10 @@ namespace NuGetGallery.Filters
 
             [Theory]
             [MemberData(nameof(FailsForUnauthenticatedUser_Data))]
-            public void FailsForUnauthenticatedUser(bool allowsDiscontinuedPassword, ClaimsIdentity identity)
+            public void FailsForUnauthenticatedUser(bool allowsDiscontinuedLogin, ClaimsIdentity identity)
             {
                 var context = BuildAuthorizationContext(identity).Object;
-                var attribute = new UiAuthorizeAttribute(allowsDiscontinuedPassword);
+                var attribute = new UIAuthorizeAttribute(allowsDiscontinuedLogin);
 
                 // Act
                 attribute.OnAuthorization(context);
@@ -62,20 +62,20 @@ namespace NuGetGallery.Filters
                 Assert.IsType<HttpUnauthorizedResult>(context.Result);
             }
 
-            public static IEnumerable<object[]> SucceedsForAuthenticatedUserWithoutDiscontinuedPassword_Data => 
+            public static IEnumerable<object[]> SucceedsForAuthenticatedUserWithoutDiscontinuedLogin_Data =>
                 MemberDataHelper
                     .Combine(
-                        AllowsDiscontinuedPassword_Data, 
+                        AllowsDiscontinuedLogins_Data,
                         AuthTypes.Select(t => MemberDataHelper.AsData(t, false)))
                     .Concat(
                         AuthTypes.Select(t => MemberDataHelper.AsData(true, t, true)));
 
             [Theory]
-            [MemberData(nameof(SucceedsForAuthenticatedUserWithoutDiscontinuedPassword_Data))]
-            public void SucceedsForAuthenticatedUserWithoutDiscontinuedPassword(bool allowsDiscontinuedPassword, string authType, bool hasDiscontinuedPasswordClaim)
+            [MemberData(nameof(SucceedsForAuthenticatedUserWithoutDiscontinuedLogin_Data))]
+            public void SucceedsForAuthenticatedUserWithoutDiscontinuedLogin(bool allowsDiscontinuedLogin, string authType, bool hasDiscontinuedLoginClaim)
             {
-                var context = BuildAuthorizationContext(BuildClaimsIdentity(authType, authenticated: true, hasDiscontinuedPasswordClaim: hasDiscontinuedPasswordClaim).Object).Object;
-                var attribute = new UiAuthorizeAttribute(allowsDiscontinuedPassword);
+                var context = BuildAuthorizationContext(BuildClaimsIdentity(authType, authenticated: true, hasDiscontinuedLoginClaim: hasDiscontinuedLoginClaim).Object).Object;
+                var attribute = new UIAuthorizeAttribute(allowsDiscontinuedLogin);
 
                 // Act
                 attribute.OnAuthorization(context);
@@ -84,11 +84,14 @@ namespace NuGetGallery.Filters
                 Assert.Null(context.Result);
             }
 
-            [Fact]
-            public void RedirectsToHomepageForAuthenticatedUserWithDiscontinuedPassword()
+            public IEnumerable<object[]> RedirectsToHomepageForAuthenticatedUserWithDiscontinuedLogin_Data => AuthTypes.Select(t => MemberDataHelper.AsData(t));
+
+            [Theory]
+            [MemberData(nameof(RedirectsToHomepageForAuthenticatedUserWithDiscontinuedLogin_Data))]
+            public void RedirectsToHomepageForAuthenticatedUserWithDiscontinuedLogin(string authType)
             {
-                var context = BuildAuthorizationContext(BuildClaimsIdentity(AuthenticationTypes.LocalUser, authenticated: true, hasDiscontinuedPasswordClaim: true).Object).Object;
-                var attribute = new UiAuthorizeAttribute();
+                var context = BuildAuthorizationContext(BuildClaimsIdentity(AuthenticationTypes.LocalUser, authenticated: true, hasDiscontinuedLoginClaim: true).Object).Object;
+                var attribute = new UIAuthorizeAttribute();
 
                 // Act
                 attribute.OnAuthorization(context);
@@ -100,13 +103,13 @@ namespace NuGetGallery.Filters
                 Assert.True(redirectResult.RouteValues.Contains(new KeyValuePair<string, object>("action", "Home")));
             }
 
-            private static Mock<ClaimsIdentity> BuildClaimsIdentity(string authType, bool authenticated, bool hasDiscontinuedPasswordClaim)
+            private static Mock<ClaimsIdentity> BuildClaimsIdentity(string authType, bool authenticated, bool hasDiscontinuedLoginClaim)
             {
                 var mockIdentity = new Mock<ClaimsIdentity>();
 
                 mockIdentity.SetupGet(i => i.Claims).Returns(
-                    hasDiscontinuedPasswordClaim ? 
-                        new[] { new Claim(NuGetClaims.DiscontinuedPassword, NuGetClaims.DiscontinuedPasswordValue) } : 
+                    hasDiscontinuedLoginClaim ? 
+                        new[] { new Claim(NuGetClaims.DiscontinuedLogin, NuGetClaims.DiscontinuedLoginValue) } : 
                         new Claim[0]);
                 mockIdentity.SetupGet(i => i.IsAuthenticated).Returns(authenticated);
                 mockIdentity.SetupGet(i => i.AuthenticationType).Returns(authType);

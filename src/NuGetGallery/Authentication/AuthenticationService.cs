@@ -236,7 +236,7 @@ namespace NuGetGallery.Authentication
         public virtual async Task CreateSessionAsync(IOwinContext owinContext, AuthenticatedUser user)
         {
             // Create a claims identity for the session
-            ClaimsIdentity identity = CreateIdentity(user.User, AuthenticationTypes.LocalUser, GetPasswordDiscontinuedClaims(user));
+            ClaimsIdentity identity = CreateIdentity(user.User, AuthenticationTypes.LocalUser, GetDiscontinuedLoginClaims(user));
 
             // Issue the session token and clean up the external token if present
             owinContext.Authentication.SignIn(identity);
@@ -247,10 +247,10 @@ namespace NuGetGallery.Authentication
                 new UserAuditRecord(user.User, AuditedUserAction.Login, user.CredentialUsed));
         }
 
-        private Claim[] GetPasswordDiscontinuedClaims(AuthenticatedUser user)
+        private Claim[] GetDiscontinuedLoginClaims(AuthenticatedUser user)
         {
             return user.CredentialUsed.IsPassword() && _userService.IsOrganizationsEnabledForAccount(user.User) ?
-                new[] { new Claim(NuGetClaims.DiscontinuedPassword, NuGetClaims.DiscontinuedPasswordValue) } :
+                new[] { new Claim(NuGetClaims.DiscontinuedLogin, NuGetClaims.DiscontinuedLoginValue) } :
                 new Claim[0];
         }
 

@@ -645,7 +645,7 @@ namespace NuGetGallery.Authentication
                 Assert.NotNull(id);
                 Assert.Equal(user.Username, id.Name);
                 Assert.Equal(user.Username, principal.GetClaimOrDefault(ClaimTypes.NameIdentifier));
-                Assert.Equal(credential.IsPassword() && areOrganizationsEnabledForUser, string.Equals(NuGetClaims.DiscontinuedPasswordValue, principal.GetClaimOrDefault(NuGetClaims.DiscontinuedPassword)));
+                Assert.Equal(credential.IsPassword() && areOrganizationsEnabledForUser, string.Equals(NuGetClaims.DiscontinuedLoginValue, principal.GetClaimOrDefault(NuGetClaims.DiscontinuedLogin)));
                 Assert.Equal(AuthenticationTypes.LocalUser, id.AuthenticationType);
             }
 

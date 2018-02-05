@@ -9,7 +9,7 @@ using NuGetGallery.OData;
 
 namespace NuGetGallery
 {
-    [UiAuthorize]
+    [UIAuthorize]
     public partial class CuratedFeedsController : AppController
     {
         public ICuratedFeedService CuratedFeedService { get; protected set; }

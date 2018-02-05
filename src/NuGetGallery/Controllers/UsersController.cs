@@ -72,14 +72,14 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [UiAuthorize]
+        [UIAuthorize]
         public virtual ActionResult Account()
         {
             return AccountView(GetCurrentUser());
         }
 
         [HttpGet]
-        [UiAuthorize(true)]
+        [UIAuthorize(true)]
         [ActionName("Transform")]
         public virtual ActionResult TransformToOrganization()
         {
@@ -102,7 +102,7 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [UiAuthorize(true)]
+        [UIAuthorize(true)]
         [ValidateAntiForgeryToken]
         [ActionName("Transform")]
         public virtual async Task<ActionResult> TransformToOrganization(TransformAccountViewModel transformViewModel)
@@ -134,7 +134,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [UiAuthorize(true)]
+        [UIAuthorize(true)]
         [ActionName("ConfirmTransform")]
         public virtual async Task<ActionResult> ConfirmTransformToOrganization(string accountNameToTransform, string token)
         {
@@ -172,7 +172,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [UiAuthorize]
+        [UIAuthorize]
         public virtual ActionResult DeleteRequest()
         {
             var currentUser = GetCurrentUser();
@@ -203,7 +203,7 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [UiAuthorize]
+        [UIAuthorize]
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> RequestAccountDeletion()
         {
@@ -226,7 +226,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [UiAuthorize(Roles = "Admins")]
+        [UIAuthorize(Roles = "Admins")]
         public virtual ActionResult Delete(string accountName)
         {
             var currentUser = GetCurrentUser();
@@ -250,7 +250,7 @@ namespace NuGetGallery
         }
 
         [HttpDelete]
-        [UiAuthorize(Roles = "Admins")]
+        [UIAuthorize(Roles = "Admins")]
         [RequiresAccountConfirmation("Delete account")]
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> Delete(DeleteUserAccountViewModel model)
@@ -274,7 +274,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [UiAuthorize]
+        [UIAuthorize]
         public virtual ActionResult ApiKeys()
         {
             var user = GetCurrentUser();
@@ -320,7 +320,7 @@ namespace NuGetGallery
         }
         
         [HttpGet]
-        [UiAuthorize]
+        [UIAuthorize]
         public virtual ActionResult Thanks()
         {
             // No need to redirect here after someone logs in...
@@ -330,7 +330,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [UiAuthorize]
+        [UIAuthorize]
         public virtual ActionResult Packages()
         {
             var currentUser = GetCurrentUser();
@@ -371,7 +371,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [UiAuthorize]
+        [UIAuthorize]
         public virtual ActionResult Organizations()
         {
             var currentUser = GetCurrentUser();
@@ -510,7 +510,7 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [UiAuthorize]
+        [UIAuthorize]
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> ChangePassword(UserAccountViewModel model)
         {
@@ -561,7 +561,7 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [UiAuthorize]
+        [UIAuthorize]
         [ValidateAntiForgeryToken]
         public virtual Task<ActionResult> RemovePassword()
         {
@@ -573,7 +573,7 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [UiAuthorize]
+        [UIAuthorize]
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> RemoveCredential(string credentialType, int? credentialKey)
         {
@@ -591,7 +591,7 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [UiAuthorize]
+        [UIAuthorize]
         [ValidateAntiForgeryToken]
         public virtual ActionResult LinkOrChangeExternalCredential()
         {
@@ -608,7 +608,7 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [UiAuthorize]
+        [UIAuthorize]
         [ValidateAntiForgeryToken]
         public virtual async Task<JsonResult> RegenerateCredential(string credentialType, int? credentialKey)
         {
@@ -651,7 +651,7 @@ namespace NuGetGallery
             return View();
         }
 
-        [UiAuthorize]
+        [UIAuthorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public virtual async Task<JsonResult> GenerateApiKey(string description, string owner, string[] scopes = null, string[] subjects = null, int? expirationInDays = null)
@@ -702,7 +702,7 @@ namespace NuGetGallery
             return Json(new ApiKeyViewModel(newCredentialViewModel));
         }
 
-        [UiAuthorize]
+        [UIAuthorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public virtual async Task<JsonResult> EditCredential(string credentialType, int? credentialKey, string[] subjects)

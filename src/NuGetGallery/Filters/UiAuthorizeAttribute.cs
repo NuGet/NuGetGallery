@@ -11,26 +11,25 @@ using AuthorizationContext = System.Web.Mvc.AuthorizationContext;
 
 namespace NuGetGallery.Filters
 {
-    public sealed class UiAuthorizeAttribute : AuthorizeAttribute
+    public sealed class UIAuthorizeAttribute : AuthorizeAttribute
     {
-        public bool AllowDiscontinuedPassword { get; }
+        public bool AllowDiscontinuedLogins { get; }
         
-        public UiAuthorizeAttribute(bool allowDiscontinuedPassword = false)
+        public UIAuthorizeAttribute(bool allowDiscontinuedLogins = false)
         {
-            AllowDiscontinuedPassword = allowDiscontinuedPassword;
+            AllowDiscontinuedLogins = allowDiscontinuedLogins;
         }
 
         public override void OnAuthorization(AuthorizationContext filterContext)
         {
             // If a password credential was used, and the user has a discontinued password claim, redirect them to the homepage.
             var identity = filterContext.HttpContext.User.Identity as ClaimsIdentity;
-            if (!AllowDiscontinuedPassword &&
+            if (!AllowDiscontinuedLogins &&
                 identity != null && 
-                identity.IsAuthenticated && 
-                identity.AuthenticationType == AuthenticationTypes.LocalUser)
+                identity.IsAuthenticated)
             {
-                var discontinuedPasswordClaim = identity.GetClaimOrDefault(NuGetClaims.DiscontinuedPassword);
-                if (NuGetClaims.DiscontinuedPasswordValue.Equals(discontinuedPasswordClaim, StringComparison.OrdinalIgnoreCase))
+                var discontinuedLoginClaim = identity.GetClaimOrDefault(NuGetClaims.DiscontinuedLogin);
+                if (NuGetClaims.DiscontinuedLoginValue.Equals(discontinuedLoginClaim, StringComparison.OrdinalIgnoreCase))
                 {
                     filterContext.Result = new RedirectToRouteResult(
                         new RouteValueDictionary(

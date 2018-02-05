@@ -14,7 +14,7 @@ using NuGetGallery.Security;
 
 namespace NuGetGallery
 {
-    [UiAuthorize]
+    [UIAuthorize]
     public partial class JsonApiController
         : AppController
     {

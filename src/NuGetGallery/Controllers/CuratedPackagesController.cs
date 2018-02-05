@@ -9,7 +9,7 @@ using NuGetGallery.Filters;
 
 namespace NuGetGallery
 {
-    [UiAuthorize]
+    [UIAuthorize]
     public partial class CuratedPackagesController
         : AppController
     {

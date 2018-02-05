@@ -5,7 +5,7 @@ using NuGetGallery.Filters;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
-    [UiAuthorize(Roles="Admins")]
+    [UIAuthorize(Roles="Admins")]
     public class AdminControllerBase : AppController
     {
     }

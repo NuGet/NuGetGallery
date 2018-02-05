@@ -95,12 +95,12 @@ namespace NuGetGallery.Controllers
         }
 
         [Fact]
-        public void AllActionsHaveUiAuthorizeAttribute()
+        public void AllActionsHaveUIAuthorizeAttribute()
         {
             // Arrange
             
-            // These actions are allowed to continue to support a discontinued password login.
-            var expectedActionsSupportingDiscontinuedPasswordLogin = new ControllerActionRuleException[]
+            // These actions are allowed to continue to support a discontinued login.
+            var expectedActionsSupportingDiscontinuedLogins = new ControllerActionRuleException[]
             {
                 new ControllerActionRuleException(typeof(UsersController), nameof(UsersController.TransformToOrganization)),
                 new ControllerActionRuleException(typeof(UsersController), nameof(UsersController.ConfirmTransformToOrganization)),
@@ -120,15 +120,15 @@ namespace NuGetGallery.Controllers
             Assert.Empty(actionsWithBaseAuthorizeAttribute);
 
             // Only certain actions should support discontinued password login
-            var actionsSupportingDiscontinuedPasswordLogin = actions
-                .Where(m => m.GetCustomAttributes().Any(a => a is UiAuthorizeAttribute && ((UiAuthorizeAttribute)a).AllowDiscontinuedPassword))
+            var actionsSupportingDiscontinuedLogins = actions
+                .Where(m => m.GetCustomAttributes().Any(a => a is UIAuthorizeAttribute && ((UIAuthorizeAttribute)a).AllowDiscontinuedLogins))
                 .Select(m => new ControllerActionRuleException(m))
                 .Distinct();
 
-            Assert.Equal(expectedActionsSupportingDiscontinuedPasswordLogin.Count(), actionsSupportingDiscontinuedPasswordLogin.Count());
+            Assert.Equal(expectedActionsSupportingDiscontinuedLogins.Count(), actionsSupportingDiscontinuedLogins.Count());
 
-            Assert.Empty(actionsSupportingDiscontinuedPasswordLogin
-                .Except(expectedActionsSupportingDiscontinuedPasswordLogin));
+            Assert.Empty(actionsSupportingDiscontinuedLogins
+                .Except(expectedActionsSupportingDiscontinuedLogins));
         }
 
         private IEnumerable<MethodInfo> GetAllActions(IEnumerable<ControllerActionRuleException> exceptions = null)

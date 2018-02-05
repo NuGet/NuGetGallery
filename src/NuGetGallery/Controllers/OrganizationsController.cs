@@ -32,7 +32,7 @@ namespace NuGetGallery
         };
 
         [HttpGet]
-        [UiAuthorize]
+        [UIAuthorize]
         public virtual ActionResult ManageOrganization(string accountName)
         {
             var account = GetAccount(accountName);
