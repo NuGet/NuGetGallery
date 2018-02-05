@@ -55,6 +55,7 @@
     <Compile Include="Entities\PackageValidationSet.cs" />
     <Compile Include="Entities\ParentCertificate.cs" />
     <Compile Include="Entities\TrustedTimestamp.cs" />
+    <Compile Include="Entities\TrustedTimestampStatus.cs" />
     <Compile Include="Entities\ValidationEntitiesContext.cs" />
     <Compile Include="Entities\PackageValidationIssue.cs" />
     <Compile Include="Entities\ValidatorIssue.cs" />
@@ -85,6 +86,10 @@
     <Compile Include="Migrations\201801232345348_MakeSignatureAndTimestampUniquePerPackage.cs" />
     <Compile Include="Migrations\201801232345348_MakeSignatureAndTimestampUniquePerPackage.Designer.cs">
       <DependentUpon>201801232345348_MakeSignatureAndTimestampUniquePerPackage.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201802052051419_AddTrustedTimestampStatus.cs" />
+    <Compile Include="Migrations\201802052051419_AddTrustedTimestampStatus.Designer.cs">
+      <DependentUpon>201802052051419_AddTrustedTimestampStatus.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\ValidationMigrationsConfiguration.cs" />
     <Compile Include="PackageValidationEnqueuer.cs" />
@@ -128,6 +133,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201801232345348_MakeSignatureAndTimestampUniquePerPackage.resx">
       <DependentUpon>201801232345348_MakeSignatureAndTimestampUniquePerPackage.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201802052051419_AddTrustedTimestampStatus.resx">
+      <DependentUpon>201802052051419_AddTrustedTimestampStatus.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

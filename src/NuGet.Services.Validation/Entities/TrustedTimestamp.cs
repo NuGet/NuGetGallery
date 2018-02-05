@@ -31,6 +31,11 @@ namespace NuGet.Services.Validation
         public DateTime Value { get; set; }
 
         /// <summary>
+        /// The last known status for this timestamp. This may be stale.
+        /// </summary>
+        public TrustedTimestampStatus Status { get; set; }
+
+        /// <summary>
         /// The <see cref="PackageSignature"/> that depends on this trusted timestamp. If this
         /// timestamp's <see cref="EndCertificate"/> is revoked, the signatures MUST be invalidated.
         /// </summary>
