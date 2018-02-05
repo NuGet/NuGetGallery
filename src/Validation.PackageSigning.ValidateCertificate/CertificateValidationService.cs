@@ -24,6 +24,8 @@ namespace Validation.PackageSigning.ValidateCertificate
         private readonly ILogger<CertificateValidationService> _logger;
         private readonly int _maximumValidationFailures;
 
+        private readonly SignatureDeciderFactory _signatureDeciderFactory;
+
         public CertificateValidationService(
             IValidationEntitiesContext context,
             ITelemetryService telemetryService,
@@ -35,6 +37,8 @@ namespace Validation.PackageSigning.ValidateCertificate
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             _maximumValidationFailures = maximumValidationFailures;
+
+            _signatureDeciderFactory = new SignatureDeciderFactory();
         }
 
         public Task<EndCertificateValidation> FindCertificateValidationAsync(CertificateValidationMessage message)
@@ -67,7 +71,7 @@ namespace Validation.PackageSigning.ValidateCertificate
                 switch (result.Status)
                 {
                     case EndCertificateStatus.Good:
-                        await SaveGoodCertificateStatusAsync(validation);
+                        await SaveGoodCertificateStatusAsync(validation, result);
                         break;
 
                     case EndCertificateStatus.Unknown:
@@ -75,11 +79,11 @@ namespace Validation.PackageSigning.ValidateCertificate
                         break;
 
                     case EndCertificateStatus.Invalid:
-                        await SaveInvalidCertificateStatusAsync(validation);
+                        await SaveInvalidCertificateStatusAsync(validation, result);
                         break;
 
                     case EndCertificateStatus.Revoked:
-                        await SaveRevokedCertificateStatusAsync(validation, result.RevocationTime.Value);
+                        await SaveRevokedCertificateStatusAsync(validation, result);
                         break;
 
                     default:
@@ -108,11 +112,10 @@ namespace Validation.PackageSigning.ValidateCertificate
             }
         }
 
-        private Task SaveGoodCertificateStatusAsync(EndCertificateValidation validation)
+        private Task SaveGoodCertificateStatusAsync(EndCertificateValidation validation, CertificateVerificationResult result)
         {
-            // TODO: StatusUpdateTime and NextStatusUpdateTime!
             validation.EndCertificate.Status = EndCertificateStatus.Good;
-            validation.EndCertificate.StatusUpdateTime = null;
+            validation.EndCertificate.StatusUpdateTime = result.StatusUpdateTime;
             validation.EndCertificate.NextStatusUpdateTime = null;
             validation.EndCertificate.LastVerificationTime = DateTime.UtcNow;
             validation.EndCertificate.RevocationTime = null;
@@ -150,29 +153,14 @@ namespace Validation.PackageSigning.ValidateCertificate
             return _context.SaveChangesAsync();
         }
 
-        private Task SaveInvalidCertificateStatusAsync(EndCertificateValidation validation)
+        private Task SaveInvalidCertificateStatusAsync(EndCertificateValidation validation, CertificateVerificationResult result)
         {
-            void InvalidateSignature(PackageSignature signature)
-            {
-                if (signature.Status != PackageSignatureStatus.InGracePeriod)
-                {
-                    _logger.LogWarning(
-                        "Signature {SignatureKey} SHOULD be invalidated by NuGet Admin due to invalid certificate {CertificateThumbprint}. Firing alert...",
-                        signature.Key,
-                        validation.EndCertificate.Thumbprint);
-
-                    _telemetryService.TrackPackageSignatureShouldBeInvalidatedEvent(signature);
-                }
-
-                signature.Status = PackageSignatureStatus.Invalid;
-                signature.PackageSigningState.SigningStatus = PackageSigningStatus.Invalid;
-            }
+            var invalidationDecider = _signatureDeciderFactory.MakeDeciderForInvalidatedCertificate(validation.EndCertificate, result);
 
             void InvalidateCertificate()
             {
-                // TODO: StatusUpdateTime and NextStatusUpdateTime!
                 validation.EndCertificate.Status = EndCertificateStatus.Invalid;
-                validation.EndCertificate.StatusUpdateTime = null;
+                validation.EndCertificate.StatusUpdateTime = result.StatusUpdateTime;
                 validation.EndCertificate.NextStatusUpdateTime = null;
                 validation.EndCertificate.LastVerificationTime = DateTime.UtcNow;
                 validation.EndCertificate.RevocationTime = null;
@@ -181,97 +169,45 @@ namespace Validation.PackageSigning.ValidateCertificate
                 validation.Status = EndCertificateStatus.Invalid;
             }
 
-            return InvalidateDependentSignaturesAsync(
+            return ProcessDependentSignaturesAsync(
                         validation.EndCertificate,
-                        InvalidateSignature,
-                        onAllSignaturesInvalidated: InvalidateCertificate);
+                        invalidationDecider,
+                        onAllSignaturesHandled: InvalidateCertificate);
         }
 
-        private Task SaveRevokedCertificateStatusAsync(EndCertificateValidation validation, DateTime revocationTime)
+        private Task SaveRevokedCertificateStatusAsync(EndCertificateValidation validation, CertificateVerificationResult result)
         {
-            void InvalidateSignature(PackageSignature signature)
-            {
-                // A revoked certificate does not necessarily invalidate a dependent signature. Skip signatures
-                // that should NOT be invalidated.
-                if (!RevokedCertificateInvalidatesSignature(validation.EndCertificate, signature, revocationTime))
-                {
-                    return;
-                }
-
-                if (signature.Status != PackageSignatureStatus.InGracePeriod)
-                {
-                    _logger.LogWarning(
-                        "Signature {SignatureKey} SHOULD be invalidated by NuGet Admin due to revoked certificate {CertificateThumbprint}. Firing alert...",
-                        signature.Key,
-                        validation.EndCertificate.Thumbprint);
-
-                    _telemetryService.TrackPackageSignatureShouldBeInvalidatedEvent(signature);
-                }
-
-                signature.Status = PackageSignatureStatus.Invalid;
-                signature.PackageSigningState.SigningStatus = PackageSigningStatus.Invalid;
-            }
+            var invalidationDecider = _signatureDeciderFactory.MakeDeciderForRevokedCertificate(validation.EndCertificate, result);
 
             void RevokeCertificate()
             {
                 validation.EndCertificate.Status = EndCertificateStatus.Revoked;
-                validation.EndCertificate.StatusUpdateTime = null;
+                validation.EndCertificate.StatusUpdateTime = result.StatusUpdateTime;
                 validation.EndCertificate.NextStatusUpdateTime = null;
                 validation.EndCertificate.LastVerificationTime = DateTime.UtcNow;
-                validation.EndCertificate.RevocationTime = revocationTime.ToUniversalTime();
+                validation.EndCertificate.RevocationTime = result.RevocationTime;
                 validation.EndCertificate.ValidationFailures = 0;
 
                 validation.Status = EndCertificateStatus.Revoked;
             }
 
-            return InvalidateDependentSignaturesAsync(
+            return ProcessDependentSignaturesAsync(
                         validation.EndCertificate,
-                        InvalidateSignature,
-                        onAllSignaturesInvalidated: RevokeCertificate);
+                        invalidationDecider,
+                        onAllSignaturesHandled: RevokeCertificate);
         }
 
         /// <summary>
-        /// Determines whether a certificate that will be revoked will invalidate the signature.
+        /// The helper that processes how a certificate's status change affects its dependent signatures.
         /// </summary>
-        /// <param name="certificate">The certificate that will be revoked.</param>
-        /// <param name="signature">The signature that may be invalidated.</param>
-        /// <param name="revocationTime">The time at which the certificate was revoked.</param>
-        /// <returns>Whether the signature should be invalidated.</returns>
-        private bool RevokedCertificateInvalidatesSignature(
-            EndCertificate certificate,
-            PackageSignature signature,
-            DateTime revocationTime)
-        {
-            // The signature may depend on a certificate in one of two ways: either the signature itself was signed with
-            // the certificate, or, the trusted timestamp authority used the certificate to sign its timestamp. Note that
-            // it is "possible" that both the signature and the trusted timestamp depend on the certificate.
-            if (signature.EndCertificate.Thumbprint == certificate.Thumbprint)
-            {
-                // The signature was signed using the certificate. Ensure that none of the trusted timestamps indicate
-                // that the signature was created after the certificate's invalidity date begins.
-                if (!signature.TrustedTimestamps.Any() ||
-                    signature.TrustedTimestamps.Any(t => revocationTime <= t.Value))
-                {
-                    return true;
-                }
-            }
-
-            // If any of the signature's trusted timestamps depend on the revoked certificate,
-            // the signature should be revoked.
-            return signature.TrustedTimestamps.Any(t => t.EndCertificate == certificate);
-        }
-
-        /// <summary>
-        /// The helper method used to invalidate the signatures that depend on the given certificate.
-        /// </summary>
-        /// <param name="certificate">The certificate whose dependent signatures should be invalidated.</param>
-        /// <param name="invalidateSignature">The action called to invalidate a dependent signature.</param>
-        /// <param name="onAllSignaturesInvalidated">The action that will be called once all dependent signatures have been invalidated.</param>
+        /// <param name="certificate">The certificate whose dependent signatures should be processed.</param>
+        /// <param name="signatureDecider">The delegate that decides how a dependent signature should be handled.</param>
+        /// <param name="onAllSignaturesHandled">The action that will be called once all dependent signatures have been processed.</param>
         /// <returns></returns>
-        public async Task InvalidateDependentSignaturesAsync(
+        private async Task ProcessDependentSignaturesAsync(
             EndCertificate certificate,
-            Action<PackageSignature> invalidateSignature,
-            Action onAllSignaturesInvalidated)
+            SignatureDecider signatureDecider,
+            Action onAllSignaturesHandled)
         {
             // A single certificate may be dependend on by many signatures. To ensure sanity, only up
             // to "MaxSignatureUpdatesPerTransaction" signatures will be invalidated at a time.
@@ -284,7 +220,7 @@ namespace Validation.PackageSigning.ValidateCertificate
                 if (page > 0)
                 {
                     _logger.LogInformation(
-                        "Persisting {Signatures} signature invalidations for certificate {CertificateThumbprint} (page {Page})",
+                        "Persisting {Signatures} dependent signature updates for certificate {CertificateThumbprint} (page {Page})",
                         signatures.Count,
                         certificate.Thumbprint,
                         page);
@@ -294,33 +230,35 @@ namespace Validation.PackageSigning.ValidateCertificate
                 }
 
                 _logger.LogInformation(
-                    "Finding more signatures to invalidate for certificate {CertificateThumbprint}... (page {Page})",
+                    "Finding more dependent signatures to update for certificate {CertificateThumbprint}... (page {Page})",
                     certificate.Thumbprint,
                     page);
 
                 signatures = await FindSignaturesAsync(certificate, page);
 
                 _logger.LogInformation(
-                    "Invalidating {Signatures} signatures for certificate {CertificateThumbprint}... (page {Page})",
+                    "Updating {Signatures} signatures for certificate {CertificateThumbprint}... (page {Page})",
                     signatures.Count,
                     certificate.Thumbprint,
                     page);
 
                 foreach (var signature in signatures)
                 {
-                    invalidateSignature(signature);
+                    var decision = signatureDecider(signature);
+
+                    HandleSignatureDecision(signature, decision);
                 }
             }
             while (signatures.Count == MaxSignatureUpdatesPerTransaction);
 
             // All signatures have been invalidated. Do any necessary finalizations, and persist the results.
             _logger.LogInformation(
-                "Finalizing {Signatures} signature invalidations for certificate {CertificateThumbprint} (total pages: {Pages})",
+                "Finalizing {Signatures} dependent signature updates for certificate {CertificateThumbprint} (total pages: {Pages})",
                 signatures.Count,
                 certificate.Thumbprint,
                 page + 1);
 
-            onAllSignaturesInvalidated();
+            onAllSignaturesHandled();
 
             await _context.SaveChangesAsync();
         }
@@ -336,17 +274,67 @@ namespace Validation.PackageSigning.ValidateCertificate
         {
             // A signature may depend on a certificate in one of two ways: the signature itself may have been signed using
             // the certificate, or, one of the signature's trusted timestamps may have been signed using the certificate.
-            return _context
-                        .PackageSignatures
-                        .Where(s =>
-                            s.EndCertificate.Thumbprint == certificate.Thumbprint ||
-                            s.TrustedTimestamps.Any(t => t.EndCertificate.Thumbprint == certificate.Thumbprint))
+            IQueryable<PackageSignature> packageSignatures;
+
+            switch (certificate.Use)
+            {
+                case EndCertificateUse.CodeSigning:
+                    packageSignatures = _context.PackageSignatures
+                                                .Where(s => s.EndCertificate.Thumbprint == certificate.Thumbprint);
+                    break;
+
+                case EndCertificateUse.Timestamping:
+                    packageSignatures = _context.PackageSignatures
+                                                .Where(s => s.TrustedTimestamps.Any(t => t.EndCertificate.Thumbprint == certificate.Thumbprint));
+
+                    break;
+
+                default:
+                    throw new InvalidOperationException($"Unknown {nameof(EndCertificateUse)}: {certificate.Use}");
+            }
+
+            return packageSignatures
                         .Include(s => s.TrustedTimestamps)
                         .Include(s => s.PackageSigningState)
                         .OrderBy(s => s.Key)
                         .Skip(page * MaxSignatureUpdatesPerTransaction)
                         .Take(MaxSignatureUpdatesPerTransaction)
                         .ToListAsync();
+        }
+
+
+        /// <summary>
+        /// Handle the decision on how to update the signature.
+        /// </summary>
+        /// <param name="signature">The signature that should be updated.</param>
+        /// <param name="decision"></param>
+        private void HandleSignatureDecision(
+            PackageSignature signature,
+            SignatureDecision decision)
+        {
+            // TODO: Log all the necessary information to investigate the signature decision.
+            switch (decision)
+            {
+                case SignatureDecision.Ignore:
+                    break;
+
+                case SignatureDecision.Warn:
+                    signature.Status = PackageSignatureStatus.Invalid;
+                    signature.PackageSigningState.SigningStatus = PackageSigningStatus.Invalid;
+
+                    _telemetryService.TrackPackageSignatureMayBeInvalidatedEvent(signature);
+                    break;
+
+                case SignatureDecision.Reject:
+                    signature.Status = PackageSignatureStatus.Invalid;
+                    signature.PackageSigningState.SigningStatus = PackageSigningStatus.Invalid;
+
+                    _telemetryService.TrackPackageSignatureShouldBeInvalidatedEvent(signature);
+                    break;
+
+                default:
+                    throw new InvalidOperationException($"Unknown signature decision: {decision}");
+            }
         }
     }
 }

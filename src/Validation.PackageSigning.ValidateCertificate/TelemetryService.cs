@@ -8,6 +8,12 @@ namespace Validation.PackageSigning.ValidateCertificate
 {
     public class TelemetryService : ITelemetryService
     {
+        public void TrackPackageSignatureMayBeInvalidatedEvent(PackageSignature signature)
+        {
+            // TODO
+            throw new NotImplementedException();
+        }
+
         public void TrackPackageSignatureShouldBeInvalidatedEvent(PackageSignature signature)
         {
             // TODO
