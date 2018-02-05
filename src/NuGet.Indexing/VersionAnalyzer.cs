@@ -21,7 +21,7 @@ namespace NuGet.Indexing
 
             if (!_caseSensitive)
             {
-                stream = new LowerCaseFilter(stream);
+                stream = new LowerInvariantFilter(stream);
             }
 
             return stream;
