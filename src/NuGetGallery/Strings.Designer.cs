@@ -143,6 +143,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to User &apos;{0}&apos; has not confirmed their email..
+        /// </summary>
+        public static string AddMember_UserNotConfirmed {
+            get {
+                return ResourceManager.GetString("AddMember_UserNotConfirmed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to User &apos;{0}&apos; does not exist. .
         /// </summary>
         public static string AddMember_UserNotFound {

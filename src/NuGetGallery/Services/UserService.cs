@@ -58,6 +58,12 @@ namespace NuGetGallery
                     Strings.AddMember_UserNotFound, memberName));
             }
 
+            if (!member.Confirmed)
+            {
+                throw new EntityException(string.Format(CultureInfo.CurrentCulture,
+                    Strings.AddMember_UserNotConfirmed, memberName));
+            }
+
             membership = new Membership()
             {
                 Member = member,

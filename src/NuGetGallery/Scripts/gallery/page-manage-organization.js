@@ -15,14 +15,26 @@
             this.Username = member.Username;
             this.EmailAddress = member.EmailAddress;
             this.IsAdmin = ko.observable(member.IsAdmin);
-            this.RoleName = ko.pureComputed(function () {
-                return self.IsAdmin() ? "Administrator" : "Collaborator"
+            this.SelectedRole = ko.pureComputed({
+                read: function () {
+                    return self.IsAdmin()
+                        ? self.OrganizationViewModel.RoleNames()[0]
+                        : self.OrganizationViewModel.RoleNames()[1]
+                },
+                write: function (value) {
+                    this.IsAdmin(value == self.OrganizationViewModel.RoleNames()[0])
+                },
+                owner: this
             });
             this.IsCurrentUser = member.IsCurrentUser;
             this.ProfileUrl = parent.ProfileUrlTemplate.replace('{username}', this.Username);
             this.GravatarUrl = member.GravatarUrl;
 
             this.DeleteMember = function () {
+                if (!window.nuget.confirmEvent("Are you sure you want to delete member '" + self.Username + "'?")) {
+                    return;
+                }
+
                 // Build the request.
                 var data = {
                     accountName: self.OrganizationViewModel.AccountName,
@@ -55,7 +67,7 @@
                 var data = {
                     accountName: self.OrganizationViewModel.AccountName,
                     memberName: self.Username,
-                    isAdmin: !self.IsAdmin()
+                    isAdmin: self.IsAdmin()
                 };
                 addAntiForgeryToken(data);
 
@@ -67,7 +79,6 @@
                     data: data,
                     success: function () {
                         parent.Error(null);
-                        self.IsAdmin(!self.IsAdmin());
                         parent.UpdateMemberCounts();
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
@@ -130,12 +141,15 @@
                 self.UpdateMemberCounts();
             });
 
+            this.RoleNames = ko.observableArray(["Administrator", "Collaborator"]);
+
+            this.AddMemberRole = ko.observable();
             this.AddMember = function () {
                 // Build the request.
                 var data = {
                     accountName: self.AccountName,
                     memberName: self.NewMemberUsername(),
-                    isAdmin: false
+                    isAdmin: self.AddMemberRole() == self.RoleNames()[0]
                 };
                 addAntiForgeryToken(data);
 
