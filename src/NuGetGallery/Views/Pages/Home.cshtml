@@ -1,9 +1,20 @@
-﻿@{
+﻿@model GalleryHomeViewModel
+@{
     ViewBag.Title = "Home";
     ViewBag.ShowSearchInNavbar = false;
     ViewBag.AutofocusSearch = true;
     ViewBag.HasJumbotron = true;
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
+}
+
+@if (Model.ShowTransformModal)
+{
+    <script type="text/javascript">
+        window.showModal = true;
+    </script>
+    <div id="popUpModal" class="modal fade modal-container" data-backdrop="static" data-keyboard="false">
+        @Html.Partial("_TransformOrLink")
+    </div>
 }
 
 <section role="main" class="page-home">
@@ -20,7 +31,7 @@
                         @Html.Partial("_SearchBar")
                     </form>
                 </div>
-            </div>            
+            </div>
         </div>
         <div class="circuit-board hidden-xs" role="img" data-bind="attr: { 'aria-label': label }">
             <div class="circuit-board-label circuit-board-pd triangle">
@@ -45,7 +56,7 @@
         <div class="row">
             <h1>What is NuGet?</h1>
             <p>
-                NuGet is the package manager for .NET. The NuGet client tools provide the ability to produce and consume packages. 
+                NuGet is the package manager for .NET. The NuGet client tools provide the ability to produce and consume packages.
                 The NuGet Gallery is the central package repository used by all package authors and consumers.
             </p>
         </div>

@@ -1062,6 +1062,7 @@
     <Compile Include="Diagnostics\DiagnosticsServiceExtensions.cs" />
     <Compile Include="Diagnostics\DiagnosticsSourceExtensions.cs" />
     <Compile Include="Configuration\StorageType.cs" />
+    <Compile Include="ViewModels\GalleryHomeViewModel.cs" />
     <Compile Include="WebRole.cs" />
     <Content Include="bin\NuGetGallery.dll.config">
       <SubType>Designer</SubType>
@@ -2044,6 +2045,7 @@
     <Content Include="Views\Users\_UserAccountChangeExternalCredential.cshtml" />
     <Content Include="Views\Shared\_AccountConfirmationNotices.cshtml" />
     <Content Include="Views\Users\_UserAccountLinkExternalCredential.cshtml" />
+    <Content Include="Views\Pages\_TransformOrLink.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />
