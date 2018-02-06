@@ -20,6 +20,14 @@ namespace NuGetGallery
         }
 
         /// <summary>
+        /// Get the user's <see cref="Credential"/> with a type of <see cref="CredentialTypes.Password"/>.
+        /// </summary>
+        public static Credential GetPasswordCredential(this User user)
+        {
+            return user.Credentials.SingleOrDefault(c => c.IsPassword());
+        }
+
+        /// <summary>
         /// Get the current API key credential, if available.
         /// </summary>
         public static Credential GetCurrentApiKeyCredential(this User user, IIdentity identity)

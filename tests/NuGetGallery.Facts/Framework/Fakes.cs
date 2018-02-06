@@ -104,7 +104,7 @@ namespace NuGetGallery.Framework
             {
                 Key = key++,
                 EmailAddress = "confirmed3@example.com",
-                Credentials = new List<Credential> { TestCredentialHelper.CreatePbkdf2Password(Password)},
+                Credentials = new List<Credential> { TestCredentialHelper.CreatePbkdf2Password(Password) },
                 Roles = new List<Role> {new Role {Name = Constants.AdminRoleName}}
             };
 
@@ -283,7 +283,7 @@ namespace NuGetGallery.Framework
                 IsAdmin = true
             };
             admin.Organizations.Add(adminMembership);
-            Organization.Members.Add(adminMembership);
+            organization.Members.Add(adminMembership);
 
             collaborator = new User("testOrganizationCollaborator" + suffix)
             {
@@ -302,7 +302,7 @@ namespace NuGetGallery.Framework
                 IsAdmin = false
             };
             collaborator.Organizations.Add(collaboratorMembership);
-            Organization.Members.Add(collaboratorMembership);
+            organization.Members.Add(collaboratorMembership);
 
             organization.Members = admin.Organizations.Concat(collaborator.Organizations).ToList();
         }

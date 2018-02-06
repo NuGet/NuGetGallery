@@ -797,6 +797,7 @@
     <Compile Include="Extensions\ScopeExtensions.cs" />
     <Compile Include="Extensions\UserExtensions.cs" />
     <Compile Include="Filters\ApiScopeRequiredAttribute.cs" />
+    <Compile Include="Filters\UIAuthorizeAttribute.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Helpers\GravatarHelper.cs" />
     <Compile Include="Helpers\PermissionsHelpers.cs" />
@@ -2046,6 +2047,7 @@
     <Content Include="Views\Shared\_AccountConfirmationNotices.cshtml" />
     <Content Include="Views\Users\_UserAccountLinkExternalCredential.cshtml" />
     <Content Include="Views\Pages\_TransformOrLink.cshtml" />
+    <Content Include="Views\Organizations\_OrganizationAccountManageMembers.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />
