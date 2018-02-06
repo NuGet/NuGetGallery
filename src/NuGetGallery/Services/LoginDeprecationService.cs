@@ -53,11 +53,6 @@ namespace NuGetGallery
 
             public bool IsPasswordLoginDiscontinuedForUser(User user)
             {
-                if (!user.Confirmed)
-                {
-                    return false;
-                }
-
                 var email = user.ToMailAddress();
                 return DiscontinuedForDomains.Contains(email.Host, StringComparer.OrdinalIgnoreCase) && 
                     !ExceptionsForEmailAddresses.Contains(email.Address);
