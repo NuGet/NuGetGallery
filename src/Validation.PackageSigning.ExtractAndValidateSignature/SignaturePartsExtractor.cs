@@ -225,6 +225,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
                     PackageSignatureKey = packageSignature.Key,
                     EndCertificate = thumbprintToEndCertificate[timestampEndCertificate.Thumbprint],
                     Value = value,
+                    Status = TrustedTimestampStatus.Valid,
                 };
                 trustedTimestamp.EndCertificateKey = trustedTimestamp.EndCertificate.Key;
                 packageSignature.TrustedTimestamps.Add(trustedTimestamp);
