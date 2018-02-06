@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGetGallery.Authentication;
 using NuGetGallery.Filters;
@@ -38,6 +40,81 @@ namespace NuGetGallery
             var account = GetAccount(accountName);
 
             return AccountView(account);
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<JsonResult> AddMember(string accountName, string memberName, bool isAdmin)
+        {
+            var account = GetAccount(accountName);
+
+            if (account == null
+                || ActionsRequiringPermissions.ManageAccount.CheckPermissions(GetCurrentUser(), account)
+                    != PermissionsCheckResult.Allowed)
+            {
+                return Json((int)HttpStatusCode.Forbidden, Strings.Unauthorized);
+            }
+
+            try
+            {
+                var membership = await UserService.AddMemberAsync(account, memberName, isAdmin);
+                return Json(new OrganizationMemberViewModel(membership));
+            }
+            catch (EntityException e)
+            {
+                return Json((int)HttpStatusCode.BadRequest, e.Message);
+            }
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<JsonResult> UpdateMember(string accountName, string memberName, bool isAdmin)
+        {
+            var account = GetAccount(accountName);
+
+            if (account == null
+                || ActionsRequiringPermissions.ManageAccount.CheckPermissions(GetCurrentUser(), account)
+                    != PermissionsCheckResult.Allowed)
+            {
+                return Json((int)HttpStatusCode.Forbidden, Strings.Unauthorized);
+            }
+
+            try
+            {
+                var membership = await UserService.UpdateMemberAsync(account, memberName, isAdmin);
+                return Json(new OrganizationMemberViewModel(membership));
+            }
+            catch (EntityException e)
+            {
+                return Json((int)HttpStatusCode.BadRequest, e.Message);
+            }
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<JsonResult> DeleteMember(string accountName, string memberName)
+        {
+            var account = GetAccount(accountName);
+
+            if (account == null
+                || ActionsRequiringPermissions.ManageAccount.CheckPermissions(GetCurrentUser(), account)
+                    != PermissionsCheckResult.Allowed)
+            {
+                return Json((int)HttpStatusCode.Forbidden, Strings.Unauthorized);
+            }
+
+            try
+            {
+                await UserService.DeleteMemberAsync(account, memberName);
+                return Json(Strings.DeleteMember_Success);
+            }
+            catch (EntityException e)
+            {
+                return Json((int)HttpStatusCode.BadRequest, e.Message);
+            }
         }
 
         protected override void UpdateAccountViewModel(Organization account, OrganizationAccountViewModel model)

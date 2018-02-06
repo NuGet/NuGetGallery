@@ -783,4 +783,28 @@ If you wish to update the linked Microsoft account you can do so from the accoun
   <data name="UserEmailConfirmed" xml:space="preserve">
     <value>You have successfully confirmed your email address!</value>
   </data>
+  <data name="DeleteMember_CannotDeleteLastAdmin" xml:space="preserve">
+    <value>Organization member '{0}' is the last admin and cannot be deleted.</value>
+  </data>
+  <data name="UpdateOrDeleteMember_CannotRemoveLastAdmin" xml:space="preserve">
+    <value>Organization member '{0}' is the last admin and cannot be changed.</value>
+  </data>
+  <data name="UpdateOrDeleteMember_MemberNotFound" xml:space="preserve">
+    <value>Organization member '{0}' was not found.</value>
+  </data>
+  <data name="DeleteMember_Success" xml:space="preserve">
+    <value>Organization member was deleted.</value>
+  </data>
+  <data name="OrganizationMemberNameIsRequired" xml:space="preserve">
+    <value>Member name is required.</value>
+  </data>
+  <data name="AddMember_AlreadyAMember" xml:space="preserve">
+    <value>User '{0}' is already a member of this organization.</value>
+  </data>
+  <data name="AddMember_UserNotFound" xml:space="preserve">
+    <value>User '{0}' does not exist. </value>
+  </data>
+  <data name="AddMember_UserNotConfirmed" xml:space="preserve">
+    <value>User '{0}' has not confirmed their email.</value>
+  </data>
 </root>

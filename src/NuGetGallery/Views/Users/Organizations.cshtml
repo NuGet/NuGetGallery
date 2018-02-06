@@ -47,9 +47,12 @@
                                     @organization.PackagesCount
                                 </td>
                                 <td class="text-right align-middle package-controls">
-                                    <a class="btn" href="@Url.ManageMyOrganization(organization.Username)" title="Edit Organization" aria-label="@("Edit Organization " + organization.Username)">
-                                        <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
-                                    </a>
+                                    @if (organization.CurrentUserIsAdmin)
+                                    {
+                                        <a class="btn" href="@Url.ManageMyOrganization(organization.Username)" title="Edit Organization" aria-label="@("Edit Organization " + organization.Username)">
+                                            <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
+                                        </a>
+                                    }
                                 </td>
                             </tr>
                         </tbody>
