@@ -79,7 +79,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [UIAuthorize(true)]
+        [UIAuthorize(allowDiscontinuedLogins: true)]
         [ActionName("Transform")]
         public virtual ActionResult TransformToOrganization()
         {
@@ -102,7 +102,7 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [UIAuthorize(true)]
+        [UIAuthorize(allowDiscontinuedLogins: true)]
         [ValidateAntiForgeryToken]
         [ActionName("Transform")]
         public virtual async Task<ActionResult> TransformToOrganization(TransformAccountViewModel transformViewModel)
@@ -134,7 +134,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [UIAuthorize(true)]
+        [UIAuthorize(allowDiscontinuedLogins: true)]
         [ActionName("ConfirmTransform")]
         public virtual async Task<ActionResult> ConfirmTransformToOrganization(string accountNameToTransform, string token)
         {

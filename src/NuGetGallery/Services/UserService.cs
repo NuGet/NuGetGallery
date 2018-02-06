@@ -202,7 +202,7 @@ namespace NuGetGallery
             {
                 errorReason = Strings.TransformAccount_AccountHasMemberships;
             }
-            else if (!IsOrganizationsEnabledForAccount(accountToTransform))
+            else if (!AreOrganizationsEnabledForAccount(accountToTransform))
             {
                 errorReason = String.Format(CultureInfo.CurrentCulture,
                     Strings.TransformAccount_FailedReasonNotInDomainWhitelist, accountToTransform.Username);
@@ -211,7 +211,7 @@ namespace NuGetGallery
             return errorReason == null;
         }
 
-        public bool IsOrganizationsEnabledForAccount(User account)
+        public bool AreOrganizationsEnabledForAccount(User account)
         {
             var enabledDomains = Config.OrganizationsEnabledForDomains;
             return enabledDomains != null && 

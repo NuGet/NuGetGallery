@@ -249,7 +249,7 @@ namespace NuGetGallery.Authentication
 
         private Claim[] GetDiscontinuedLoginClaims(AuthenticatedUser user)
         {
-            return user.CredentialUsed.IsPassword() && _userService.IsOrganizationsEnabledForAccount(user.User) ?
+            return user.CredentialUsed.IsPassword() && _userService.AreOrganizationsEnabledForAccount(user.User) ?
                 new[] { new Claim(NuGetClaims.DiscontinuedLogin, NuGetClaims.DiscontinuedLoginValue) } :
                 new Claim[0];
         }

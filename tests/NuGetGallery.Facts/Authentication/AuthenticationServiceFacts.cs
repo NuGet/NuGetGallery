@@ -632,7 +632,7 @@ namespace NuGetGallery.Authentication
                 var authUser = new AuthenticatedUser(user, credential);
 
                 GetMock<IUserService>()
-                    .Setup(x => x.IsOrganizationsEnabledForAccount(user))
+                    .Setup(x => x.AreOrganizationsEnabledForAccount(user))
                     .Returns(areOrganizationsEnabledForUser);
 
                 // Act

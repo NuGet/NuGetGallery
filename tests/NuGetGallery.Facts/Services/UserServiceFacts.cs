@@ -463,7 +463,7 @@ namespace NuGetGallery
                 var fakes = new Fakes();
 
                 // Act
-                var result = service.IsOrganizationsEnabledForAccount(fakes.User);
+                var result = service.AreOrganizationsEnabledForAccount(fakes.User);
 
                 // Assert
                 Assert.False(result);
@@ -478,7 +478,7 @@ namespace NuGetGallery
                 var fakes = new Fakes();
 
                 // Act
-                var result = service.IsOrganizationsEnabledForAccount(fakes.User);
+                var result = service.AreOrganizationsEnabledForAccount(fakes.User);
 
                 // Assert
                 Assert.True(result);
