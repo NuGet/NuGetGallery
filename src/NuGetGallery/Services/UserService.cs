@@ -279,7 +279,6 @@ namespace NuGetGallery
         public bool CanTransformUserToOrganization(User accountToTransform, out string errorReason)
         {
             errorReason = null;
-            var enabledDomains = Config.OrganizationsEnabledForDomains;
 
             if (!accountToTransform.Confirmed)
             {
@@ -295,14 +294,20 @@ namespace NuGetGallery
             {
                 errorReason = Strings.TransformAccount_AccountHasMemberships;
             }
-            else if (enabledDomains == null ||
-                !enabledDomains.Contains(accountToTransform.ToMailAddress().Host, StringComparer.OrdinalIgnoreCase))
+            else if (!AreOrganizationsEnabledForAccount(accountToTransform))
             {
                 errorReason = String.Format(CultureInfo.CurrentCulture,
                     Strings.TransformAccount_FailedReasonNotInDomainWhitelist, accountToTransform.Username);
             }
 
             return errorReason == null;
+        }
+
+        public bool AreOrganizationsEnabledForAccount(User account)
+        {
+            var enabledDomains = Config.OrganizationsEnabledForDomains;
+            return enabledDomains != null && 
+                enabledDomains.Contains(account.ToMailAddress().Host, StringComparer.OrdinalIgnoreCase);
         }
 
         public bool CanTransformUserToOrganization(User accountToTransform, User adminUser, out string errorReason)
