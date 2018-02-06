@@ -84,7 +84,7 @@ namespace NuGetGallery.Filters
                 Assert.Null(context.Result);
             }
 
-            public IEnumerable<object[]> RedirectsToHomepageForAuthenticatedUserWithDiscontinuedLogin_Data => AuthTypes.Select(t => MemberDataHelper.AsData(t));
+            public static IEnumerable<object[]> RedirectsToHomepageForAuthenticatedUserWithDiscontinuedLogin_Data => AuthTypes.Select(t => MemberDataHelper.AsData(t));
 
             [Theory]
             [MemberData(nameof(RedirectsToHomepageForAuthenticatedUserWithDiscontinuedLogin_Data))]
