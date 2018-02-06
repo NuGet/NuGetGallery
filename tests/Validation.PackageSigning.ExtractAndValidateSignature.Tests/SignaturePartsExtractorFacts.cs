@@ -638,6 +638,7 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                 Assert.Equal(expected.TimestampEndCertificate.Thumbprint, trustedTimestamp.EndCertificate.Thumbprint);
                 Assert.Same(timestampEndCertificate, trustedTimestamp.EndCertificate);
                 Assert.Equal(timestampValue, trustedTimestamp.Value);
+                Assert.Equal(TrustedTimestampStatus.Valid, trustedTimestamp.Status);
             }
         }
 
