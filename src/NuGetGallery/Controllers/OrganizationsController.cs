@@ -43,7 +43,7 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [Authorize]
+        [UIAuthorize]
         [ValidateAntiForgeryToken]
         public async Task<JsonResult> AddMember(string accountName, string memberName, bool isAdmin)
         {
@@ -68,7 +68,7 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [Authorize]
+        [UIAuthorize]
         [ValidateAntiForgeryToken]
         public async Task<JsonResult> UpdateMember(string accountName, string memberName, bool isAdmin)
         {
@@ -93,7 +93,7 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [Authorize]
+        [UIAuthorize]
         [ValidateAntiForgeryToken]
         public async Task<JsonResult> DeleteMember(string accountName, string memberName)
         {
