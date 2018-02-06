@@ -8,6 +8,12 @@ namespace NuGetGallery
 {
     public interface IUserService
     {
+        Task<Membership> AddMemberAsync(Organization organization, string memberName, bool isAdmin);
+
+        Task<Membership> UpdateMemberAsync(Organization organization, string memberName, bool isAdmin);
+
+        Task DeleteMemberAsync(Organization organization, string memberName);
+
         Task ChangeEmailSubscriptionAsync(User user, bool emailAllowed, bool notifyPackagePushed);
 
         User FindByEmailAddress(string emailAddress);
@@ -29,6 +35,8 @@ namespace NuGetGallery
         Task<IDictionary<int, string>> GetEmailAddressesForUserKeysAsync(IReadOnlyCollection<int> distinctUserKeys);
 
         bool CanTransformUserToOrganization(User accountToTransform, out string errorReason);
+
+        bool AreOrganizationsEnabledForAccount(User account);
 
         bool CanTransformUserToOrganization(User accountToTransform, User adminUser, out string errorReason);
 

@@ -230,6 +230,10 @@ namespace NuGetGallery
             var accountScriptBundle = new ScriptBundle("~/Scripts/gallery/page-account.min.js")
                 .Include("~/Scripts/gallery/page-account.js");
             BundleTable.Bundles.Add(accountScriptBundle);
+
+            var manageOrganizationScriptBundle = new ScriptBundle("~/Scripts/gallery/page-manage-organization.min.js")
+                .Include("~/Scripts/gallery/page-manage-organization.js");
+            BundleTable.Bundles.Add(manageOrganizationScriptBundle);
         }
 
         private static void AppPostStart(IAppConfiguration configuration)

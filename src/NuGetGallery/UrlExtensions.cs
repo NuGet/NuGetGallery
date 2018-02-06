@@ -776,6 +776,42 @@ namespace NuGetGallery
                 });
         }
 
+        public static string AddOrganizationMember(this UrlHelper url, string accountName, bool relativeUrl = true)
+        {
+            return GetActionLink(url,
+                "AddMember",
+                "Organizations",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "accountName", accountName }
+                });
+        }
+
+        public static string UpdateOrganizationMember(this UrlHelper url, string accountName, bool relativeUrl = true)
+        {
+            return GetActionLink(url,
+                "UpdateMember",
+                "Organizations",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "accountName", accountName }
+                });
+        }
+
+        public static string DeleteOrganizationMember(this UrlHelper url, string accountName, bool relativeUrl = true)
+        {
+            return GetActionLink(url,
+                "DeleteMember",
+                "Organizations",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "accountName", accountName }
+                });
+        }
+
         public static string ManageMyPackages(this UrlHelper url, bool relativeUrl = true)
         {
             return GetActionLink(url, "Packages", "Users", relativeUrl);
@@ -1018,6 +1054,11 @@ namespace NuGetGallery
         public static string GenerateApiKey(this UrlHelper url, bool relativeUrl = true)
         {
             return GetActionLink(url, "GenerateApiKey", "Users", relativeUrl);
+        }
+
+        public static string TransformAccount(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetActionLink(url, "Transform", "Users", relativeUrl);
         }
 
         public static string ConfirmTransformAccount(this UrlHelper url, User accountToTransform, bool relativeUrl = true)
