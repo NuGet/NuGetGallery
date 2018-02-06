@@ -18,6 +18,8 @@ namespace NuGetGallery
         public const int ColumnsWideAuthenticationSm = 8;
         public const int ColumnsWideAuthenticationMd = 6;
         public const int ColumnsFormMd = 10;
+        public const int ColumnsModalSm = 3;
+        public const int ColumnsModalMd = 3;
 
         public const int VisibleVersions = 5;
 

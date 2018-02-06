@@ -243,22 +243,7 @@ namespace NuGetGallery
                 .HasMany<PackageType>(p => p.PackageTypes)
                 .WithRequired(pt => pt.Package)
                 .HasForeignKey(pt => pt.PackageKey);
-
-            modelBuilder.Entity<PackageEdit>()
-                .HasKey(pm => pm.Key);
-
-            modelBuilder.Entity<PackageEdit>()
-                .HasRequired(pm => pm.User)
-                .WithMany()
-                .HasForeignKey(pm => pm.UserKey)
-                .WillCascadeOnDelete(false);
-
-            modelBuilder.Entity<PackageEdit>()
-                .HasRequired<Package>(pm => pm.Package)
-                .WithMany(p => p.PackageEdits)
-                .HasForeignKey(pm => pm.PackageKey)
-                .WillCascadeOnDelete(true); // Pending PackageEdits get deleted with their package, since hey, there's no way to apply them without the package anyway.
-
+            
             modelBuilder.Entity<PackageHistory>()
                 .HasKey(pm => pm.Key);
 

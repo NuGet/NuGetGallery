@@ -100,7 +100,7 @@ namespace NuGetGallery
 
         public virtual ActionResult Home()
         {
-            return View();
+            return View(new GalleryHomeViewModel());
         }
 
         [HttpGet]
