@@ -134,6 +134,33 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to User &apos;{0}&apos; is already a member of this organization..
+        /// </summary>
+        public static string AddMember_AlreadyAMember {
+            get {
+                return ResourceManager.GetString("AddMember_AlreadyAMember", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User &apos;{0}&apos; has not confirmed their email..
+        /// </summary>
+        public static string AddMember_UserNotConfirmed {
+            get {
+                return ResourceManager.GetString("AddMember_UserNotConfirmed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User &apos;{0}&apos; does not exist. .
+        /// </summary>
+        public static string AddMember_UserNotFound {
+            get {
+                return ResourceManager.GetString("AddMember_UserNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The user &apos;{0}&apos; is already an owner or pending owner of the package..
         /// </summary>
         public static string AddOwner_AlreadyOwner {
@@ -569,6 +596,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Organization member &apos;{0}&apos; is the last admin and cannot be deleted..
+        /// </summary>
+        public static string DeleteMember_CannotDeleteLastAdmin {
+            get {
+                return ResourceManager.GetString("DeleteMember_CannotDeleteLastAdmin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Organization member was deleted..
+        /// </summary>
+        public static string DeleteMember_Success {
+            get {
+                return ResourceManager.GetString("DeleteMember_Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Owner(s) &apos;{0}&apos; require(s) that all co-owners use client version {1} or higher to push all of their packages. For more information, contact {2}.
         ///.
         /// </summary>
@@ -964,6 +1009,15 @@ namespace NuGetGallery {
         public static string OrganizationEmailUpdatedWithConfirmationRequired {
             get {
                 return ResourceManager.GetString("OrganizationEmailUpdatedWithConfirmationRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Member name is required..
+        /// </summary>
+        public static string OrganizationMemberNameIsRequired {
+            get {
+                return ResourceManager.GetString("OrganizationMemberNameIsRequired", resourceCulture);
             }
         }
         
@@ -1616,6 +1670,24 @@ namespace NuGetGallery {
         public static string Unsupported {
             get {
                 return ResourceManager.GetString("Unsupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Organization member &apos;{0}&apos; is the last admin and cannot be changed..
+        /// </summary>
+        public static string UpdateOrDeleteMember_CannotRemoveLastAdmin {
+            get {
+                return ResourceManager.GetString("UpdateOrDeleteMember_CannotRemoveLastAdmin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Organization member &apos;{0}&apos; was not found..
+        /// </summary>
+        public static string UpdateOrDeleteMember_MemberNotFound {
+            get {
+                return ResourceManager.GetString("UpdateOrDeleteMember_MemberNotFound", resourceCulture);
             }
         }
         
