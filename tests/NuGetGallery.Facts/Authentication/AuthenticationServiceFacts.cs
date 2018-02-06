@@ -598,42 +598,21 @@ namespace NuGetGallery.Authentication
 
         public class TheCreateSessionAsyncMethod : TestContainer
         {
-            public static IEnumerable<object[]> GivenAUser_ItCreatesAnOwinAuthenticationTicketForTheUser_Data
-            {
-                get
-                {
-                    foreach (var areOrganizationsEnabledForUser in new[] { false, true })
-                    {
-                        // External credentials
-                        yield return MemberDataHelper.AsData(TestCredentialHelper.CreateExternalCredential("abc", "tenant"), areOrganizationsEnabledForUser);
-
-                        // Password credentials
-                        yield return MemberDataHelper.AsData(TestCredentialHelper.CreatePbkdf2Password("password"), areOrganizationsEnabledForUser);
-                        yield return MemberDataHelper.AsData(TestCredentialHelper.CreateSha1Password("password"), areOrganizationsEnabledForUser);
-
-                        // API key credentials
-                        yield return MemberDataHelper.AsData(TestCredentialHelper.CreateV1ApiKey(Guid.Parse("17ec7614-6a73-41ac-9370-02a0718320de"), null), areOrganizationsEnabledForUser);
-                        yield return MemberDataHelper.AsData(TestCredentialHelper.CreateV2ApiKey(Guid.Parse("84947119-db79-4d42-b28a-c74531d5bce2"), null), areOrganizationsEnabledForUser);
-                        yield return MemberDataHelper.AsData(TestCredentialHelper.CreateV2VerificationApiKey(Guid.Parse("45e83582-7ada-48f6-a9ce-33d3073d6bb7")), areOrganizationsEnabledForUser);
-                        yield return MemberDataHelper.AsData(TestCredentialHelper.CreateV3ApiKey(Guid.Parse("a5e6f4fd-c60e-4903-9aad-edc860113f38"), null), areOrganizationsEnabledForUser);
-                        yield return MemberDataHelper.AsData(TestCredentialHelper.CreateV4ApiKey(null, out var v4ApiKey), areOrganizationsEnabledForUser);
-                    }
-                }
-            }
-
             [Theory]
-            [MemberData(nameof(GivenAUser_ItCreatesAnOwinAuthenticationTicketForTheUser_Data))]
-            public async Task GivenAUser_ItCreatesAnOwinAuthenticationTicketForTheUser(Credential credential, bool areOrganizationsEnabledForUser)
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task GivenAUser_ItCreatesAnOwinAuthenticationTicketForTheUser(bool isDiscontinuedLogin)
             {
                 // Arrange
+                var credential = new Credential("type", "value");
                 var user = new User("testUser") { Credentials = new[] { credential } };
                 var context = Fakes.CreateOwinContext();
 
                 var authUser = new AuthenticatedUser(user, credential);
 
-                GetMock<IUserService>()
-                    .Setup(x => x.AreOrganizationsEnabledForAccount(user))
-                    .Returns(areOrganizationsEnabledForUser);
+                GetMock<ILoginDeprecationService>()
+                    .Setup(x => x.IsLoginDiscontinuedAsync(authUser))
+                    .Returns(Task.FromResult(isDiscontinuedLogin));
 
                 // Act
                 await Get<AuthenticationService>().CreateSessionAsync(context, authUser);
@@ -645,7 +624,7 @@ namespace NuGetGallery.Authentication
                 Assert.NotNull(id);
                 Assert.Equal(user.Username, id.Name);
                 Assert.Equal(user.Username, principal.GetClaimOrDefault(ClaimTypes.NameIdentifier));
-                Assert.Equal(credential.IsPassword() && areOrganizationsEnabledForUser, string.Equals(NuGetClaims.DiscontinuedLoginValue, principal.GetClaimOrDefault(NuGetClaims.DiscontinuedLogin)));
+                Assert.Equal(isDiscontinuedLogin, string.Equals(NuGetClaims.DiscontinuedLoginValue, principal.GetClaimOrDefault(NuGetClaims.DiscontinuedLogin)));
                 Assert.Equal(AuthenticationTypes.LocalUser, id.AuthenticationType);
             }
 

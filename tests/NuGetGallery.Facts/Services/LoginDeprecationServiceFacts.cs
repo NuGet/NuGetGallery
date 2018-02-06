@@ -17,7 +17,9 @@ namespace NuGetGallery.Services
     {
         public class TheIsLoginDiscontinuedAsyncMethod : TestContainer
         {
+            private const string _incorrectDomain = "notExample.com";
             private const string _domain = "example.com";
+            private const string _incorrectEmail = "fake@notExample.com";
             private const string _email = "test@example.com";
 
             public static IEnumerable<object[]> CredentialPasswordTypes
@@ -90,8 +92,8 @@ namespace NuGetGallery.Services
                 var user = new User("test") { EmailAddress = _email, Credentials = new[] { credential } };
                 var authUser = new AuthenticatedUser(user, credential);
 
-                var domains = isOnDomainList ? new[] { _domain } : new string[0];
-                var exceptions = isOnExceptionList ? new[] { _email } : new string[0];
+                var domains = isOnDomainList ? new[] { _domain } : new[] { _incorrectDomain };
+                var exceptions = isOnExceptionList ? new[] { _email } : new[] { _incorrectEmail };
 
                 var config = new LoginDeprecationService.PasswordLoginDiscontinuationConfiguration(domains, exceptions);
                 var configString = JsonConvert.SerializeObject(config);

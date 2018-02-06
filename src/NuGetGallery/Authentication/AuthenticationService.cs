@@ -29,8 +29,8 @@ namespace NuGetGallery.Authentication
         private readonly ICredentialBuilder _credentialBuilder;
         private readonly ICredentialValidator _credentialValidator;
         private readonly IDateTimeProvider _dateTimeProvider;
+        private readonly ILoginDeprecationService _loginDeprecationService;
         private readonly ITelemetryService _telemetryService;
-        private readonly IUserService _userService;
 
         /// <summary>
         /// This ctor is used for test only.
@@ -46,7 +46,7 @@ namespace NuGetGallery.Authentication
             IEntitiesContext entities, IAppConfiguration config, IDiagnosticsService diagnostics,
             IAuditingService auditing, IEnumerable<Authenticator> providers, ICredentialBuilder credentialBuilder,
             ICredentialValidator credentialValidator, IDateTimeProvider dateTimeProvider, ITelemetryService telemetryService,
-            IUserService userService)
+            ILoginDeprecationService loginDeprecationService)
         {
             InitCredentialFormatters();
 
@@ -59,7 +59,7 @@ namespace NuGetGallery.Authentication
             _credentialValidator = credentialValidator ?? throw new ArgumentNullException(nameof(credentialValidator));
             _dateTimeProvider = dateTimeProvider ?? throw new ArgumentNullException(nameof(dateTimeProvider));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
-            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+            _loginDeprecationService = loginDeprecationService ?? throw new ArgumentNullException(nameof(loginDeprecationService));
         }
 
         public IEntitiesContext Entities { get; private set; }
@@ -236,7 +236,7 @@ namespace NuGetGallery.Authentication
         public virtual async Task CreateSessionAsync(IOwinContext owinContext, AuthenticatedUser user)
         {
             // Create a claims identity for the session
-            ClaimsIdentity identity = CreateIdentity(user.User, AuthenticationTypes.LocalUser, GetDiscontinuedLoginClaims(user));
+            ClaimsIdentity identity = CreateIdentity(user.User, AuthenticationTypes.LocalUser, await GetDiscontinuedLoginClaims(user));
 
             // Issue the session token and clean up the external token if present
             owinContext.Authentication.SignIn(identity);
@@ -247,9 +247,9 @@ namespace NuGetGallery.Authentication
                 new UserAuditRecord(user.User, AuditedUserAction.Login, user.CredentialUsed));
         }
 
-        private Claim[] GetDiscontinuedLoginClaims(AuthenticatedUser user)
+        private async Task<Claim[]> GetDiscontinuedLoginClaims(AuthenticatedUser user)
         {
-            return user.CredentialUsed.IsPassword() && _userService.AreOrganizationsEnabledForAccount(user.User) ?
+            return await _loginDeprecationService.IsLoginDiscontinuedAsync(user) ?
                 new[] { new Claim(NuGetClaims.DiscontinuedLogin, NuGetClaims.DiscontinuedLoginValue) } :
                 new Claim[0];
         }
