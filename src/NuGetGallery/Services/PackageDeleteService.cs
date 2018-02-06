@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
@@ -42,6 +41,8 @@ namespace NuGetGallery
         private readonly IPackageFileService _packageFileService;
         private readonly IAuditingService _auditingService;
         private readonly IPackageDeleteConfiguration _config;
+        private readonly IStatisticsService _statisticsService;
+        private readonly ITelemetryService _telemetryService;
 
         public PackageDeleteService(
             IEntityRepository<Package> packageRepository,
@@ -52,17 +53,21 @@ namespace NuGetGallery
             IIndexingService indexingService,
             IPackageFileService packageFileService,
             IAuditingService auditingService,
-            IPackageDeleteConfiguration config)
+            IPackageDeleteConfiguration config,
+            IStatisticsService statisticsService,
+            ITelemetryService telemetryService)
         {
-            _packageRepository = packageRepository;
-            _packageRegistrationRepository = packageRegistrationRepository;
-            _packageDeletesRepository = packageDeletesRepository;
-            _entitiesContext = entitiesContext;
-            _packageService = packageService;
-            _indexingService = indexingService;
-            _packageFileService = packageFileService;
-            _auditingService = auditingService;
-            _config = config;
+            _packageRepository = packageRepository ?? throw new ArgumentNullException(nameof(packageRepository));
+            _packageRegistrationRepository = packageRegistrationRepository ?? throw new ArgumentNullException(nameof(packageRegistrationRepository));
+            _packageDeletesRepository = packageDeletesRepository ?? throw new ArgumentNullException(nameof(packageDeletesRepository));
+            _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
+            _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
+            _indexingService = indexingService ?? throw new ArgumentNullException(nameof(indexingService));
+            _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
+            _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
+            _config = config ?? throw new ArgumentNullException(nameof(config));
+            _statisticsService = statisticsService ?? throw new ArgumentNullException(nameof(statisticsService));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
 
             if (config.HourLimitWithMaximumDownloads.HasValue
                 && config.StatisticsUpdateFrequencyInHours.HasValue
@@ -74,16 +79,153 @@ namespace NuGetGallery
             }
         }
 
-        public Task<bool> CanPackageBeDeletedByUserAsync(Package package)
+        public async Task<bool> CanPackageBeDeletedByUserAsync(
+            Package package,
+            ReportPackageReason? reportPackageReason,
+            PackageDeleteDecision? packageDeleteDecision)
         {
-            if (package.PackageStatusKey == PackageStatus.Deleted)
+            if (!_config.AllowUsersToDeletePackages)
             {
-                return Task.FromResult(false);
+                return false;
             }
 
-            // For now, don't allow user's to delete their packages.
-            // https://github.com/NuGet/Engineering/issues/921
-            return Task.FromResult(false);
+            var details = await GetUserPackageDeleteEvent(package, reportPackageReason, packageDeleteDecision);
+
+            if (package.PackageStatusKey == PackageStatus.Deleted)
+            {
+                return IsAccepted(details, UserPackageDeleteOutcome.AlreadyDeleted);
+            }
+            else if (package.PackageRegistration.IsLocked)
+            {
+                return IsAccepted(details, UserPackageDeleteOutcome.LockedRegistration);
+            }
+            // Handle the "early" delete case, where the package version download count is not considered but total
+            // download count on the entire ID (all versions) is considered.
+            else if (_config.StatisticsUpdateFrequencyInHours.HasValue
+                && details.SinceCreated < TimeSpan.FromHours(_config.StatisticsUpdateFrequencyInHours.Value))
+            {
+                if (_config.MaximumDownloadsForPackageId.HasValue)
+                {
+                    // Do not allow a delete of a package version if the package registration record has too many downloads.
+                    if (details.IdDatabaseDownloads > _config.MaximumDownloadsForPackageId.Value)
+                    {
+                        return IsAccepted(details, UserPackageDeleteOutcome.TooManyIdDatabaseDownloads);
+                    }
+
+                    // Do not allow a delete of a package version if the package ID report has too many downloads.
+                    if (details.IdReportDownloads > _config.MaximumDownloadsForPackageId.Value)
+                    {
+                        return IsAccepted(details, UserPackageDeleteOutcome.TooManyIdReportDownloads);
+                    }
+                }
+
+                return IsAccepted(details, UserPackageDeleteOutcome.Accepted);
+            }
+            // Handle the "late" delete case, where package version download count is considered.
+            else if (_config.HourLimitWithMaximumDownloads.HasValue
+                && details.SinceCreated < TimeSpan.FromHours(_config.HourLimitWithMaximumDownloads.Value))
+            {
+                if (_config.MaximumDownloadsForPackageVersion.HasValue)
+                {
+                    // Do not allow the delete if the statistics are stale.
+                    if (await AreStatisticsStaleAsync())
+                    {
+                        return IsAccepted(details, UserPackageDeleteOutcome.StaleStatistics);
+                    }
+
+                    // Do not allow a delete of a package version if the package record has too many downloads.
+                    if (details.VersionDatabaseDownloads > _config.MaximumDownloadsForPackageVersion.Value)
+                    {
+                        return IsAccepted(details, UserPackageDeleteOutcome.TooManyVersionDatabaseDownloads);
+                    }
+
+                    // Do not allow a delete of a package version if the package report has too many downloads.
+                    if (details.VersionReportDownloads > _config.MaximumDownloadsForPackageVersion.Value)
+                    {
+                        return IsAccepted(details, UserPackageDeleteOutcome.TooManyVersionReportDownloads);
+                    }
+                }
+
+                return IsAccepted(details, UserPackageDeleteOutcome.Accepted);
+            }
+            // If no time ranges are configured, allow downloads any time.
+            else if (_config.HourLimitWithMaximumDownloads.HasValue
+                || _config.StatisticsUpdateFrequencyInHours.HasValue)
+            {
+                return IsAccepted(details,  UserPackageDeleteOutcome.TooLate);
+            }
+            
+            return IsAccepted(details, UserPackageDeleteOutcome.Accepted);
+        }
+        
+        private bool IsAccepted(UserPackageDeleteEvent details, UserPackageDeleteOutcome outcome)
+        {
+            // Only report telemetry if a reason has been specified. 
+            if (details.ReportPackageReason.HasValue)
+            {
+                _telemetryService.TrackUserPackageDeleteChecked(details, outcome);
+            }
+
+            return outcome == UserPackageDeleteOutcome.Accepted;
+        }
+
+        private async Task<UserPackageDeleteEvent> GetUserPackageDeleteEvent(
+            Package package,
+            ReportPackageReason? reportPackageReason,
+            PackageDeleteDecision? packageDeleteDecision)
+        {
+            var sinceCreated = DateTime.UtcNow - package.Created;
+
+            var report = await _statisticsService.GetPackageDownloadsByVersion(package.PackageRegistration.Id);
+
+            var idReportDownloads = report?
+                .Facts
+                .Sum(x => x.Amount) ?? 0;
+
+            var versionReportDownloads = report?
+                .Facts
+                .Where(x => HasVersion(x, package.NormalizedVersion))
+                .Sum(x => x.Amount) ?? 0;
+
+            var details = new UserPackageDeleteEvent(
+                sinceCreated,
+                package.Key,
+                package.PackageRegistration.Id,
+                package.NormalizedVersion,
+                package.PackageRegistration.DownloadCount,
+                idReportDownloads,
+                package.DownloadCount,
+                versionReportDownloads,
+                reportPackageReason,
+                packageDeleteDecision);
+
+            return details;
+        }
+
+        private bool HasVersion(StatisticsFact fact, string version)
+        {
+            return fact != null
+                && fact.Dimensions.TryGetValue("Version", out string actualVersion)
+                && StringComparer.OrdinalIgnoreCase.Equals(version, actualVersion);
+        }
+
+        private async Task<bool> AreStatisticsStaleAsync()
+        {
+            await _statisticsService.Refresh();
+
+            var lastUpdated = _statisticsService.LastUpdatedUtc;
+            if (!lastUpdated.HasValue)
+            {
+                return true;
+            }
+
+            var sinceUpdated = DateTime.UtcNow - lastUpdated.Value;
+            if (sinceUpdated > TimeSpan.FromHours(_config.StatisticsUpdateFrequencyInHours.Value))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public async Task SoftDeletePackagesAsync(IEnumerable<Package> packages, User deletedBy, string reason, string signature)
