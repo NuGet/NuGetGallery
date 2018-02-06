@@ -125,13 +125,12 @@ namespace NuGetGallery.Services
             }
         }
 
-        public void SendValidationTakingTooLongNotice(Package package, string packageUrl, string packageSupportUrl)
+        public void SendValidationTakingTooLongNotice(Package package, string packageUrl)
         {
             string subject = "[{0}] Package validation taking longer than expected - {1} {2}";
             string body = "It is taking longer than expected for your package [{1} {2}]({3}) to get published.\n\n" +
                 "We are looking into it and there is no action on you at this time. We’ll send you an email notification when your package has been published.\n\n" +
-                "Thank you for your patience.\n\n" +
-                "NuGet Team";
+                "Thank you for your patience.";
 
             body = string.Format(
                 CultureInfo.CurrentCulture,

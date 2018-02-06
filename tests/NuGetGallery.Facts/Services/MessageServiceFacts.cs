@@ -1102,8 +1102,7 @@ namespace NuGetGallery
                 // Act
                 var messageService = TestableMessageService.Create(GetConfigurationService());
                 var packageUrl = $"https://localhost/packages/{packageRegistration.Id}/{nugetVersion.ToNormalizedString()}";
-                var supportUrl = $"https://localhost/packages/{packageRegistration.Id}/{nugetVersion.ToNormalizedString()}/ReportMyPackage";
-                messageService.SendValidationTakingTooLongNotice(package, packageUrl, supportUrl);
+                messageService.SendValidationTakingTooLongNotice(package, packageUrl);
 
                 // Assert
                 var message = messageService.MockMailSender.Sent.Last();
@@ -1115,7 +1114,7 @@ namespace NuGetGallery
                 Assert.Contains(
                     $"It is taking longer than expected for your package [{packageRegistration.Id} {nugetVersion.ToFullString()}]({packageUrl}) to get published.\n\n" +
                     $"We are looking into it and there is no action on you at this time. We’ll send you an email notification when your package has been published.\n\n" +
-                    $"Thank you for your patience.\n\nNuGet Team", message.Body);
+                    $"Thank you for your patience.", message.Body);
             }
 
             public static IEnumerable<object[]> EmailSettingsCombinations
@@ -1148,7 +1147,7 @@ namespace NuGetGallery
 
                 // Act
                 var messageService = TestableMessageService.Create(GetConfigurationService());
-                messageService.SendValidationTakingTooLongNotice(package, "http://dummy1", "http://dummy2");
+                messageService.SendValidationTakingTooLongNotice(package, "http://dummy1");
 
                 // Assert
                 var message = messageService.MockMailSender.Sent.Last();
