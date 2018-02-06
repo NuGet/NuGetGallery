@@ -810,4 +810,10 @@ If you wish to update the linked Microsoft account you can do so from the accoun
   <data name="ChangeCredential_SuccessDifferentEmail" xml:space="preserve">
     <value>Successfully linked the Microsoft account ({0}). Note that the email address associated with the new linked Microsoft account is different than the NuGet.org account email ({1}).</value>
   </data>
+  <data name="AddMember_UserDoesNotMeetOrganizationPolicy" xml:space="preserve">
+    <value>User '{0}' has not linked their account to an AAD credential matching this organization.</value>
+  </data>
+  <data name="TransformAccount_AdminAccountDoesNotHaveTenant" xml:space="preserve">
+    <value>Administrator account '{0}' is not linked to an AAD credential with an organization tenant.</value>
+  </data>
 </root>

@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
-using NuGet.Versioning;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
@@ -83,20 +82,16 @@ namespace NuGetGallery.Security
         /// <summary>
         /// Look up and evaluation of security policies for the specified action.
         /// </summary>
-        public async Task<SecurityPolicyResult> EvaluateAsync(SecurityPolicyAction action, HttpContextBase httpContext)
+        public async Task<SecurityPolicyResult> EvaluateUserPoliciesAsync(
+            SecurityPolicyAction action,
+            HttpContextBase httpContext = null)
         {
-            if (httpContext == null)
-            {
-                throw new ArgumentNullException(nameof(httpContext));
-            }
-
             // Evaluate default policies
             if (Configuration.EnforceDefaultSecurityPolicies)
             {
                 var defaultPolicies = DefaultSubscription.Policies;
 
-                var result = await EvaluateInternalAsync(defaultPolicies, httpContext, action, auditSuccess: false);
-                
+                var result = await EvaluateUserPoliciesInternalAsync(action, httpContext, defaultPolicies, auditSuccess: false);
                 if (!result.Success)
                 {
                     return result;
@@ -104,11 +99,40 @@ namespace NuGetGallery.Security
             }
 
             // Evaluate user specific policies
-            var user = httpContext.GetCurrentUser();
-            return await EvaluateInternalAsync(user.SecurityPolicies, httpContext, action, auditSuccess: true);
+            return await EvaluateUserPoliciesInternalAsync(action, httpContext, auditSuccess: true);
         }
 
-        private async Task<SecurityPolicyResult> EvaluateInternalAsync(IEnumerable<UserSecurityPolicy> policies, HttpContextBase httpContext, SecurityPolicyAction action, bool auditSuccess)
+        /// <summary>
+        ///  Look up and evaluation of organization security policies for the specified action.
+        /// </summary>
+        public Task<SecurityPolicyResult> EvaluateOrganizationPoliciesAsync(
+            SecurityPolicyAction action,
+            Organization organization,
+            User account)
+        {
+            return EvaluateInternalAsync(action, organization.SecurityPolicies, organization, account, auditSuccess: true);
+        }
+
+        private Task<SecurityPolicyResult> EvaluateUserPoliciesInternalAsync(
+            SecurityPolicyAction action,
+            HttpContextBase httpContext,
+            IEnumerable<UserSecurityPolicy> policies = null,
+            bool auditSuccess = true)
+        {
+            httpContext = httpContext ?? throw new ArgumentNullException(nameof(httpContext));
+
+            var account = httpContext.GetCurrentUser();
+            policies = policies ?? account.SecurityPolicies;
+            return EvaluateInternalAsync(action, policies, account, account, httpContext, auditSuccess);
+        }
+
+        private async Task<SecurityPolicyResult> EvaluateInternalAsync(
+            SecurityPolicyAction action,
+            IEnumerable<UserSecurityPolicy> policies,
+            User sourceAccount,
+            User targetAccount,
+            HttpContextBase httpContext = null,
+            bool auditSuccess = true)
         {
             var relevantHandlers = UserHandlers.Where(h => h.Action == action).ToList();
 
@@ -118,13 +142,13 @@ namespace NuGetGallery.Security
 
                 if (foundPolicies.Any())
                 {
-                    var user = httpContext.GetCurrentUser();
-                    var result = handler.Evaluate(new UserSecurityPolicyEvaluationContext(httpContext, foundPolicies));
+                    var context = new UserSecurityPolicyEvaluationContext(foundPolicies, sourceAccount, targetAccount, httpContext);
+                    var result = handler.Evaluate(context);
 
                     if (auditSuccess || !result.Success)
                     {
                         await Auditing.SaveAuditRecordAsync(new UserSecurityPolicyAuditRecord(
-                        user.Username, GetAuditAction(action), foundPolicies, result.Success, result.ErrorMessage));
+                        context.TargetAccount.Username, GetAuditAction(action), foundPolicies, result.Success, result.ErrorMessage));
                     }
 
                     if (!result.Success)
@@ -148,6 +172,8 @@ namespace NuGetGallery.Security
                     return AuditedSecurityPolicyAction.Create;
                 case SecurityPolicyAction.PackageVerify:
                     return AuditedSecurityPolicyAction.Verify;
+                case SecurityPolicyAction.JoinOrganization:
+                    return AuditedSecurityPolicyAction.JoinOrganization;
                 default:
                     throw new NotSupportedException($"Policy action '{nameof(policyAction)}' is not supported");
             }
@@ -326,6 +352,7 @@ namespace NuGetGallery.Security
             yield return new RequireMinClientVersionForPushPolicy();
             yield return new RequirePackageVerifyScopePolicy();
             yield return new RequireMinProtocolVersionForPushPolicy();
+            yield return new RequireOrganizationTenantPolicy();
         }
    }
 }

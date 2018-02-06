@@ -143,6 +143,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to User &apos;{0}&apos; has not linked their account to an AAD credential matching this organization..
+        /// </summary>
+        public static string AddMember_UserDoesNotMeetOrganizationPolicy {
+            get {
+                return ResourceManager.GetString("AddMember_UserDoesNotMeetOrganizationPolicy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to User &apos;{0}&apos; has not confirmed their email..
         /// </summary>
         public static string AddMember_UserNotConfirmed {
@@ -1571,6 +1580,15 @@ namespace NuGetGallery {
         public static string TransformAccount_AdminAccountDoesNotExist {
             get {
                 return ResourceManager.GetString("TransformAccount_AdminAccountDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Administrator account &apos;{0}&apos; is not linked to an AAD credential with an organization tenant..
+        /// </summary>
+        public static string TransformAccount_AdminAccountDoesNotHaveTenant {
+            get {
+                return ResourceManager.GetString("TransformAccount_AdminAccountDoesNotHaveTenant", resourceCulture);
             }
         }
         

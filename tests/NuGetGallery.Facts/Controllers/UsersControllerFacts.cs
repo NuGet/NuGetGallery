@@ -2296,9 +2296,8 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.NotNull(result);
-
-                var model = result.Model as TransformAccountFailedViewModel;
-                Assert.Equal("error", model.ErrorMessage);
+                Assert.Equal(1, controller.ModelState["AdminUsername"].Errors.Count);
+                Assert.Equal("error", controller.ModelState["AdminUsername"].Errors.First().ErrorMessage);
             }
 
             [Fact]

@@ -12,20 +12,71 @@ namespace NuGetGallery.Security
     /// </summary>
     public class UserSecurityPolicyEvaluationContext
     {
+        private Lazy<HttpContextBase> _httpContext;
+        private User _sourceAccount;
+        private User _targetAccount;
+
         /// <summary>
         /// Current http context.
         /// </summary>
-        public HttpContextBase HttpContext { get; }
+        public HttpContextBase HttpContext
+        {
+            get
+            {
+                return _httpContext.Value;
+            }
+        }
+
+        /// <summary>
+        /// Account under policy evaluation.
+        /// </summary>
+        public User CurrentUser
+        {
+            get
+            {
+                return HttpContext.GetCurrentUser();
+            }
+        }
+
+        /// <summary>
+        /// Account under policy evaluation.
+        /// </summary>
+        public User SourceAccount
+        {
+            get
+            {
+                return _sourceAccount ?? CurrentUser;
+            }
+        }
+
+        /// <summary>
+        /// Account under policy evaluation.
+        /// </summary>
+        public User TargetAccount
+        {
+            get
+            {
+                return _targetAccount ?? CurrentUser;
+            }
+        }
 
         /// <summary>
         /// Security policy entity.
         /// </summary>
         public IEnumerable<UserSecurityPolicy> Policies { get; }
 
-        public UserSecurityPolicyEvaluationContext(HttpContextBase httpContext, IEnumerable<UserSecurityPolicy> policies)
+        public UserSecurityPolicyEvaluationContext(IEnumerable<UserSecurityPolicy> policies, HttpContextBase httpContext)
         {
-            HttpContext = httpContext ?? throw new ArgumentNullException(nameof(httpContext));
             Policies = policies ?? throw new ArgumentNullException(nameof(policies));
+
+            _httpContext = new Lazy<HttpContextBase>(() => httpContext ?? new HttpContextWrapper(System.Web.HttpContext.Current));
+        }
+
+        public UserSecurityPolicyEvaluationContext(IEnumerable<UserSecurityPolicy> policies, User sourceAccount, User targetAccount, HttpContextBase httpContext = null)
+            : this(policies, httpContext)
+        {
+            _sourceAccount = sourceAccount;
+            _targetAccount = targetAccount;
         }
     }
 }
