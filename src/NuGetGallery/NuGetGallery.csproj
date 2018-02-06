@@ -797,6 +797,7 @@
     <Compile Include="Extensions\ScopeExtensions.cs" />
     <Compile Include="Extensions\UserExtensions.cs" />
     <Compile Include="Filters\ApiScopeRequiredAttribute.cs" />
+    <Compile Include="Filters\UIAuthorizeAttribute.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Helpers\GravatarHelper.cs" />
     <Compile Include="Helpers\PermissionsHelpers.cs" />
@@ -820,6 +821,10 @@
     <Compile Include="Migrations\201712211850074_MembershipRequests.cs" />
     <Compile Include="Migrations\201712211850074_MembershipRequests.Designer.cs">
       <DependentUpon>201712211850074_MembershipRequests.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201801101337052_RemovePackageEdits.cs" />
+    <Compile Include="Migrations\201801101337052_RemovePackageEdits.Designer.cs">
+      <DependentUpon>201801101337052_RemovePackageEdits.cs</DependentUpon>
     </Compile>
     <Compile Include="RequestModels\DeleteAccountRequest.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.cs" />
@@ -1058,6 +1063,7 @@
     <Compile Include="Diagnostics\DiagnosticsServiceExtensions.cs" />
     <Compile Include="Diagnostics\DiagnosticsSourceExtensions.cs" />
     <Compile Include="Configuration\StorageType.cs" />
+    <Compile Include="ViewModels\GalleryHomeViewModel.cs" />
     <Compile Include="WebRole.cs" />
     <Content Include="bin\NuGetGallery.dll.config">
       <SubType>Designer</SubType>
@@ -1954,6 +1960,9 @@
     <EmbeddedResource Include="Migrations\201712211850074_MembershipRequests.resx">
       <DependentUpon>201712211850074_MembershipRequests.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201801101337052_RemovePackageEdits.resx">
+      <DependentUpon>201801101337052_RemovePackageEdits.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2getupdates.json" />
@@ -2037,6 +2046,8 @@
     <Content Include="Views\Users\_UserAccountChangeExternalCredential.cshtml" />
     <Content Include="Views\Shared\_AccountConfirmationNotices.cshtml" />
     <Content Include="Views\Users\_UserAccountLinkExternalCredential.cshtml" />
+    <Content Include="Views\Pages\_TransformOrLink.cshtml" />
+    <Content Include="Views\Organizations\_OrganizationAccountManageMembers.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />
