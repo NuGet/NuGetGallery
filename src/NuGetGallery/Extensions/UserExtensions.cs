@@ -22,7 +22,7 @@ namespace NuGetGallery
         /// <summary>
         /// Get the user's <see cref="Credential"/> with a type of <see cref="CredentialTypes.Password"/>.
         /// </summary>
-        public static Credential GetPassword(this User user)
+        public static Credential GetPasswordCredential(this User user)
         {
             return user.Credentials.SingleOrDefault(c => c.IsPassword());
         }
