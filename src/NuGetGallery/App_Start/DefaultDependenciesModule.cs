@@ -253,6 +253,11 @@ namespace NuGetGallery
             builder.RegisterType<RequireSecurePushForCoOwnersPolicy>()
                 .SingleInstance();
 
+            builder.RegisterType<LoginDeprecationService>()
+                .AsSelf()
+                .As<ILoginDeprecationService>()
+                .InstancePerLifetimeScope();
+
             var mailSenderThunk = new Lazy<IMailSender>(
                 () =>
                 {

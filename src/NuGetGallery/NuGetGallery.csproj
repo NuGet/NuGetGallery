@@ -847,7 +847,9 @@
     <Compile Include="Services\IActionRequiringEntityPermissions.cs" />
     <Compile Include="Services\IDeleteAccountService.cs" />
     <Compile Include="Services\IFileStorageService.cs" />
+    <Compile Include="Services\ILoginDeprecationService.cs" />
     <Compile Include="Services\ImmediatePackageValidator.cs" />
+    <Compile Include="Services\LoginDeprecationService.cs" />
     <Compile Include="Services\PackageOwnershipManagementService.cs" />
     <Compile Include="Services\IPackageOwnershipManagementService.cs" />
     <Compile Include="Services\IPackageValidationInitiator.cs" />
