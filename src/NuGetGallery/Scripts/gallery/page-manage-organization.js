@@ -143,7 +143,7 @@
 
             this.RoleNames = ko.observableArray(["Administrator", "Collaborator"]);
 
-            this.AddMemberRole = ko.observable();
+            this.AddMemberRole = ko.observable(this.RoleNames()[1]);
             this.AddMember = function () {
                 // Build the request.
                 var data = {
