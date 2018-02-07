@@ -18,11 +18,14 @@ namespace NuGetGallery
         public const int ColumnsWideAuthenticationSm = 8;
         public const int ColumnsWideAuthenticationMd = 6;
         public const int ColumnsFormMd = 10;
+        public const int ColumnsModalSm = 3;
+        public const int ColumnsModalMd = 3;
 
         public const int VisibleVersions = 5;
 
         public const int GravatarElementSize = 32;
         public const int GravatarImageSize = GravatarElementSize * 2;
+        public const int GravatarImageSizeLarge = 332;
 
         /// <summary>
         /// Parameters for calculating account lockout period after 
@@ -56,6 +59,7 @@ namespace NuGetGallery
         public const string NuGetCommandLinePackageId = "NuGet.CommandLine";
 
         public static readonly string ReturnUrlViewDataKey = "ReturnUrl";
+        public static readonly string ReturnUrlMessageViewDataKey = "ReturnUrlMessage";
         public const string AbsoluteLatestUrlString = "absoluteLatest";
 
         public const string UrlValidationRegEx = @"(https?):\/\/[^ ""]+$";

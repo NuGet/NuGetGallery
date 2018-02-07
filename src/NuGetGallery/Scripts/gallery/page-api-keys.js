@@ -92,7 +92,18 @@
                 this.Scopes(data.Scopes || []);
                 this.Packages(data.Packages || []);
                 this.GlobPattern(data.GlobPattern || "");
-                this._SetPackageSelection(this.Packages())
+                this._SetPackageSelection(this.Packages());
+
+                if (this.Owner()) {
+                    var existingOwner = ko.utils.arrayFirst(
+                        this.PackageOwners,
+                        function (owner) {
+                            return owner.Owner.toUpperCase() == data.Owner.toUpperCase()
+                        });
+                    this.PackageOwner(existingOwner);
+                } else {
+                    this.PackageOwner(this.PackageOwners[0]);
+                }
             };
             this.Key = ko.observable();
             this.Type = ko.observable();
@@ -105,7 +116,6 @@
             this.Scopes = ko.observableArray();
             this.Packages = ko.observableArray();
             this.GlobPattern = ko.observable();
-            this._UpdateData(data);
 
             // Properties used for the form
             this.PendingDescription = ko.observable();
@@ -238,6 +248,13 @@
             this.TotalCount = ko.pureComputed(function () {
                 return this.PendingPackages().length;
             }, this);
+            this.SelectedCountLabel = ko.pureComputed(function () {
+                return ko.unwrap(this.SelectedCount).toLocaleString()
+                    + ' of '
+                    + ko.unwrap(this.TotalCount).toLocaleString()
+                    + ' package' + (this.TotalCount == 1 ? '' : 's')
+                    + ' selected';
+            }, this);
 
             // Apply the glob pattern to the package IDs
             this.ApplyPendingGlobPattern = function (newValue) {
@@ -263,11 +280,17 @@
                 });
                 self.PendingPackages(self.packageViewModels);
                 self.ApplyPendingGlobPattern(self.PendingGlobPattern());
+
+                // reset form validation error
+                self.ScopesError(null);
+                self.SubjectsError(null);
             });
+
+            // Update data only after PackageOwner subscription is fully enabled.
+            this._UpdateData(data);
 
             // Default owner to self to initialize the pending data.
             this.PendingGlobPattern(this.GlobPattern());
-            this.PackageOwner(this.PackageOwners[0]);
 
             // Apply validation to the scopes and subjects
             this.PendingScopes.subscribe(function (newValue) {
@@ -329,7 +352,6 @@
 
                 // Reset the field values.
                 self.PendingDescription(self.Description());
-                self.PackageOwner($("#" + self.PackageOwnerId() + " option:first-child").val());
                 self.ExpiresIn($("#" + self.ExpiresInId() + " option:last-child").val());
                 self.PushEnabled(false);
                 self.PushScope(initialData.PackagePushScope);

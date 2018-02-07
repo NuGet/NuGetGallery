@@ -15,7 +15,7 @@ namespace NuGetGallery
     {
         public class TheHasReadMeSourceMethod
         {
-            internal ReadMeService ReadMeService = new ReadMeService(new Mock<IPackageFileService>().Object);
+            internal ReadMeService ReadMeService = new ReadMeService(new Mock<IPackageFileService>().Object, new Mock<IEntitiesContext>().Object);
 
             [Fact]
             public void WhenRequestIsNull_ReturnsFalse()
@@ -106,11 +106,11 @@ namespace NuGetGallery
             public async Task WhenReadMeDoesNotExistReturnsNull()
             {
                 // Arrange
-                var readMeService = new ReadMeService(new Mock<IPackageFileService>().Object);
+                var readMeService = new ReadMeService(new Mock<IPackageFileService>().Object, new Mock<IEntitiesContext>().Object);
                 var package = new Package() { HasReadMe = false };
 
                 // Act & Assert
-                Assert.Null(await readMeService.GetReadMeHtmlAsync(package, isPending: false));
+                Assert.Null(await readMeService.GetReadMeHtmlAsync(package));
             }
 
             private static string StripNewLines(string text)

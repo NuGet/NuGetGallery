@@ -33,7 +33,15 @@
     }
     <div class="form-group @Html.HasErrorFor(m => m.Register.EmailAddress)">
         @Html.ShowLabelFor(m => m.Register.EmailAddress)
-        @Html.ShowEmailBoxFor(m => m.Register.EmailAddress)
+        @if (Model.External != null && !string.IsNullOrEmpty(Model.Register.EmailAddress))
+        {
+            @Html.HiddenFor(m => m.Register.EmailAddress)
+            <p>@Model.Register.EmailAddress</p>
+        }
+        else
+        {
+            @Html.ShowEmailBoxFor(m => m.Register.EmailAddress)
+        }
         @Html.ShowValidationMessagesFor(m => m.Register.EmailAddress)
     </div>
     <div class="panel panel-default text-center">
@@ -42,21 +50,7 @@
             <a href="@Url.Terms()">Terms of Use</a> and <a href="@Url.Privacy()">Privacy Policy</a>.
         </div>
     </div>
-    if (Model.External != null)
-    {
-        <div class="form-group row">
-            <div class="col-sm-6">
-                <input type="submit" class="btn btn-primary form-control" value="Register" />
-            </div>
-            <div class="col-sm-6">
-                <input type="reset" class="btn btn-default form-control" value="Cancel" id="cancel-register" />
-            </div>
-        </div>
-    }
-    else
-    {
-        <div class="form-group">
-            <input type="submit" class="btn btn-primary form-control" value="Register" />
-        </div>
-    }
+    <div class="form-group">
+        <input type="submit" class="btn btn-primary form-control" value="Register" />
+    </div>
 }

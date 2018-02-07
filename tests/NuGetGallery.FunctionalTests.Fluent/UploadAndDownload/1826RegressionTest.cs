@@ -39,7 +39,7 @@ namespace NuGetGallery.FunctionalTests.Fluent.UploadAndDownload
             ");
 
             // Log on using the test account.
-            I.LogOn(EnvironmentSettings.TestAccountName, EnvironmentSettings.TestAccountPassword);
+            I.LogOn(EnvironmentSettings.TestAccountEmail, EnvironmentSettings.TestAccountPassword);
 
             // Navigate to the upload page and upload the package.
             I.UploadPackageUsingUI(newPackageLocation);

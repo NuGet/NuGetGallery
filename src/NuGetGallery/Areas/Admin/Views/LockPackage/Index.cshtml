@@ -1,0 +1,82 @@
+﻿@model LockPackageViewModel
+@{
+    ViewBag.Title = "Package Locking";
+}
+
+<section>
+    <h2>Package Locking</h2>
+
+    <form method="get" action="@Url.Action(actionName: "Search")">
+        <p>
+            <textarea name="query" placeholder="Search for package ids..." autocomplete="off" autofocus style="width: 100%" rows="5">@Model.Query</textarea>
+        </p>
+        <p>
+            <input type="submit" value="Search" />
+        </p>
+    </form>
+
+    @if (Model.HasQuery && !Model.HasResults)
+    {
+        <p>No results found.</p>
+    }
+    else if (!Model.HasQuery)
+    {
+        <p>To search for multiple packages use a separate line for each Package Id.</p>
+    }
+
+    @if (Model.PackageLockStates != null && Model.PackageLockStates.Any())
+    {
+        using (Html.BeginForm("Update", "LockPackage", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            @Html.HiddenFor(model => model.Query)
+            <div>
+                <h3>Results</h3>
+                <br />
+                <button type="button" onclick="selectall()">Select All</button>
+                <button type="button" onclick="deselectall()">Deselect All</button>
+                <p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Is Locked?</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @for (int i = 0; i < Model.PackageLockStates.Count; i++)
+                        {
+                            <tr>
+                                <td>@Html.DisplayTextFor(model => model.PackageLockStates[i].Id)</td>
+                                @Html.HiddenFor(model => model.PackageLockStates[i].Id)
+                                <td>@Html.CheckBoxFor(model => model.PackageLockStates[i].IsLocked, new { @class = "islockedcheckbox" })</td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </p>
+                <p>
+                    <input type="submit" value="Apply" />
+                </p>
+            </div>
+        }
+    }
+
+</section>
+
+@section BottomScripts {
+    @Scripts.Render("~/Scripts/gallery/site.min.js")
+    <script>
+        function selectall() {
+            $('.islockedcheckbox:checkbox').each(function () {
+                $(this).prop('checked', true);
+            })
+        }
+
+        function deselectall() {
+            $('.islockedcheckbox:checkbox').each(function () {
+                $(this).prop('checked', false);
+            })
+        }
+    </script>
+}

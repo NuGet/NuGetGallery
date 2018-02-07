@@ -6,6 +6,7 @@ using System.Linq;
 using System.Security.Claims;
 using NuGetGallery.Authentication;
 using NuGetGallery.Framework;
+using NuGetGallery.Infrastructure.Authentication;
 using Xunit;
 
 namespace NuGetGallery.Extensions

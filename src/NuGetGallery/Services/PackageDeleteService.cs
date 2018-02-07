@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Versioning;
 using NuGetGallery.Auditing;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
@@ -40,6 +41,7 @@ namespace NuGetGallery
         private readonly IIndexingService _indexingService;
         private readonly IPackageFileService _packageFileService;
         private readonly IAuditingService _auditingService;
+        private readonly IPackageDeleteConfiguration _config;
 
         public PackageDeleteService(
             IEntityRepository<Package> packageRepository,
@@ -49,7 +51,8 @@ namespace NuGetGallery
             IPackageService packageService,
             IIndexingService indexingService,
             IPackageFileService packageFileService,
-            IAuditingService auditingService)
+            IAuditingService auditingService,
+            IPackageDeleteConfiguration config)
         {
             _packageRepository = packageRepository;
             _packageRegistrationRepository = packageRegistrationRepository;
@@ -59,10 +62,25 @@ namespace NuGetGallery
             _indexingService = indexingService;
             _packageFileService = packageFileService;
             _auditingService = auditingService;
+            _config = config;
+
+            if (config.HourLimitWithMaximumDownloads.HasValue
+                && config.StatisticsUpdateFrequencyInHours.HasValue
+                && config.HourLimitWithMaximumDownloads.Value <= config.StatisticsUpdateFrequencyInHours.Value)
+            {
+                throw new ArgumentException($"{nameof(_config.StatisticsUpdateFrequencyInHours)} must be less than " +
+                    $"{nameof(_config.HourLimitWithMaximumDownloads)}.",
+                    nameof(config));
+            }
         }
 
         public Task<bool> CanPackageBeDeletedByUserAsync(Package package)
         {
+            if (package.PackageStatusKey == PackageStatus.Deleted)
+            {
+                return Task.FromResult(false);
+            }
+
             // For now, don't allow user's to delete their packages.
             // https://github.com/NuGet/Engineering/issues/921
             return Task.FromResult(false);
@@ -224,7 +242,7 @@ namespace NuGetGallery
             return _auditingService.SaveAuditRecordAsync(auditRecord);
         }
 
-        protected virtual async Task ExecuteSqlCommandAsync(Database database, string sql, params object[] parameters)
+        protected virtual async Task ExecuteSqlCommandAsync(IDatabase database, string sql, params object[] parameters)
         {
             await database.ExecuteSqlCommandAsync(sql, parameters);
         }
@@ -286,21 +304,19 @@ namespace NuGetGallery
                 await _packageFileService.DeletePackageFileAsync(id, version);
                 await _packageFileService.DeleteValidationPackageFileAsync(id, version);
 
-                // Delete any active or pending readme files for this package.
-                await TryDeleteReadMeMdFile(package, false);
-                await TryDeleteReadMeMdFile(package, true);
+                // Delete readme file for this package.
+                await TryDeleteReadMeMdFile(package);
             }
         }
 
         /// <summary>
-        /// Delete package readme.md file, if it exists. Doing a force delete here
-        /// rather than checking the HasReadMe (active) flag or PackageEdits (pending).
+        /// Delete package readme.md file, if it exists.
         /// </summary>
-        private async Task TryDeleteReadMeMdFile(Package package, bool isPending)
+        private async Task TryDeleteReadMeMdFile(Package package)
         {
             try
             {
-                await _packageFileService.DeleteReadMeMdFileAsync(package, isPending: isPending);
+                await _packageFileService.DeleteReadMeMdFileAsync(package);
             }
             catch (StorageException) { }
         }

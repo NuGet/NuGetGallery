@@ -36,10 +36,12 @@ namespace NuGetGallery.TestUtils
                     framework
                 },
                 FlattenedAuthors = "maarten",
+#pragma warning disable 0618
                 Authors = new List<PackageAuthor>
                 {
                     author
                 },
+#pragma warning restore 0618
                 Dependencies = new List<PackageDependency>
                 {
                     dependency
@@ -133,16 +135,22 @@ namespace NuGetGallery.TestUtils
         public Mock<IAppConfiguration> MockConfig { get; protected set; }
         public Mock<IEntityRepository<User>> MockUserRepository { get; protected set; }
         public Mock<IEntityRepository<Credential>> MockCredentialRepository { get; protected set; }
+        public Mock<IEntitiesContext> MockEntitiesContext { get; protected set; }
+        public Mock<IDatabase> MockDatabase { get; protected set; }
 
         public TestableUserService()
         {
             Config = (MockConfig = new Mock<IAppConfiguration>()).Object;
             UserRepository = (MockUserRepository = new Mock<IEntityRepository<User>>()).Object;
             CredentialRepository = (MockCredentialRepository = new Mock<IEntityRepository<Credential>>()).Object;
+            EntitiesContext = (MockEntitiesContext = new Mock<IEntitiesContext>()).Object;
             Auditing = new TestAuditingService();
 
             // Set ConfirmEmailAddress to a default of true
             MockConfig.Setup(c => c.ConfirmEmailAddresses).Returns(true);
+
+            MockDatabase = new Mock<IDatabase>();
+            MockEntitiesContext.Setup(c => c.GetDatabase()).Returns(MockDatabase.Object);
         }
     }
 
@@ -254,7 +262,8 @@ namespace NuGetGallery.TestUtils
         {
             var mockContext = new Mock<IEntitiesContext>();
             var dbContext = new Mock<DbContext>();
-            mockContext.Setup(m => m.GetDatabase()).Returns(dbContext.Object.Database);
+            mockContext.Setup(m => m.GetDatabase())
+                .Returns(new DatabaseWrapper(dbContext.Object.Database));
 
             return mockContext;
         }

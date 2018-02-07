@@ -157,12 +157,13 @@
 
             @if (Model.FailedValidation)
             {
-                @ViewHelpers.AlertDanger(
-                    @<text>
-                        <strong>Package publishing failed.</strong> This package could not be published since package
-                        validation failed. Please contact <a href="mailto:support@nuget.org">support@nuget.org</a>.
-                    </text>
-                )
+                foreach (var issue in Model.ValidationIssues)
+                {
+                    @ViewHelpers.AlertDanger(
+                        @<text>
+                            @Html.Partial("_ValidationIssue", issue)
+                        </text>)
+                }
             }
 
             @if (Model.Deleted)
@@ -211,7 +212,7 @@
 
             @if (!Model.Listed && Model.Available)
             {
-                if (Model.IsActionAllowed(User, PackageActions.DisplayPrivatePackage))
+                if (Model.CanDisplayPrivateMetadata)
                 {
                     @ViewHelpers.AlertWarning(
                         @<text>
@@ -300,7 +301,7 @@
 
                 if (Model.Dependencies.DependencySets == null)
                 {
-                    if (Model.IsActionAllowed(User, PackageActions.DisplayPrivatePackage))
+                    if (Model.CanDisplayPrivateMetadata)
                     {
                         <h2>Dependencies</h2>
                         <p>
@@ -377,7 +378,7 @@
                             <th>Version</th>
                             <th>Downloads</th>
                             <th>Last updated</th>
-                            @if (Model.IsActionAllowed(User, PackageActions.DisplayPrivatePackage))
+                            @if (Model.CanDisplayPrivateMetadata)
                             {
                                 <th>Status</th>
                             }
@@ -394,7 +395,7 @@
                         @foreach (var packageVersion in Model.PackageVersions)
                         {
                             if ((packageVersion.Available && packageVersion.Listed)
-                                || (!packageVersion.Deleted && Model.IsActionAllowed(User, PackageActions.DisplayPrivatePackage)))
+                                || (!packageVersion.Deleted && Model.CanDisplayPrivateMetadata))
                             {
                                 rowCount++;
                                 @VersionListDivider(rowCount, versionsExpanded)
@@ -425,7 +426,7 @@
                                     <td>
                                         <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetShortDateString()</span>
                                     </td>
-                                    @if (packageVersion.IsActionAllowed(User, PackageActions.DisplayPrivatePackage))
+                                    @if (packageVersion.CanDisplayPrivateMetadata)
                                     {
                                         var packageStatusSummary = packageVersion.PackageStatusSummary;
 
@@ -445,7 +446,7 @@
                                     }
                                 </tr>
                             }
-                            else if (packageVersion.Deleted && packageVersion.IsActionAllowed(User, PackageActions.DisplayPrivatePackage))
+                            else if (packageVersion.Deleted && packageVersion.CanDisplayPrivateMetadata)
                             {
                                 rowCount++;
                                 @VersionListDivider(rowCount, versionsExpanded)
@@ -516,9 +517,9 @@
                 }
                 <li>
                     <i class="ms-Icon ms-Icon--Mail" aria-hidden="true"></i>
-                    <a href="@Url.ContactOwners(Model.Id)" title="Ask the package owners a question">Contact owners</a>
+                    <a href="@Url.ContactOwners(Model.Id, Model.Version)" title="Ask the package owners a question">Contact owners</a>
                 </li>
-                @if (Model.IsActionAllowed(User, PackageActions.ReportMyPackage))
+                @if (Model.CanReportAsOwner)
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--Help" aria-hidden="true"></i>
@@ -549,21 +550,21 @@
                     </li>
                 }
 
-                @if ((Model.Available || Model.Validating) && Model.IsActionAllowed(User, PackageActions.Edit))
+                @if ((Model.Available || Model.Validating) && Model.CanEdit)
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
                         <a href="@Url.EditPackage(Model.Id, Model.Version)">Edit package</a>
                     </li>
                 }
-                @if (Model.IsActionAllowed(User, PackageActions.ManagePackageOwners))
+                @if (Model.CanManageOwners)
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--People" aria-hidden="true"></i>
                         <a href="@Url.ManagePackageOwners(Model)">Manage owners</a>
                     </li>
                 }
-                @if (!Model.Deleted && Model.IsActionAllowed(User, PackageActions.Unlist))
+                @if (!Model.Deleted && Model.CanUnlistOrRelist)
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>

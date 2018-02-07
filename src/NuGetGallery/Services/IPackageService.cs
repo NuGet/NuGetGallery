@@ -29,8 +29,13 @@ namespace NuGetGallery
         Package FindPackageByIdAndVersion(string id, string version, int? semVerLevelKey = null, bool allowPrerelease = true);
 
         Package FindAbsoluteLatestPackageById(string id, int? semVerLevelKey);
-        IEnumerable<Package> FindPackagesByAnyMatchingOwner(User user, bool includeUnlisted);
+
+        IEnumerable<Package> FindPackagesByOwner(User user, bool includeUnlisted, bool includeVersions = false);
+
+        IEnumerable<Package> FindPackagesByAnyMatchingOwner(User user, bool includeUnlisted, bool includeVersions = false);
+
         IEnumerable<PackageRegistration> FindPackageRegistrationsByOwner(User user);
+
         IEnumerable<Package> FindDependentPackages(Package package);
 
         /// <summary>
@@ -42,10 +47,11 @@ namespace NuGetGallery
         /// </remarks>
         /// <param name="nugetPackage">The package to be created.</param>
         /// <param name="packageStreamMetadata">The package stream's metadata.</param>
-        /// <param name="user">The owner of the package</param>
+        /// <param name="owner">The owner of the package</param>
+        /// <param name="currentUser">The user that pushed the package on behalf of <paramref name="owner"/></param>
         /// <param name="isVerified">Mark the package registration as verified or not</param>
         /// <returns>The created package entity.</returns>
-        Task<Package> CreatePackageAsync(PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool isVerified);
+        Task<Package> CreatePackageAsync(PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User owner, User currentUser, bool isVerified);
 
         Package EnrichPackageFromNuGetPackage(Package package, PackageArchiveReader packageArchive, PackageMetadata packageMetadata, PackageStreamMetadata packageStreamMetadata, User user);
 
@@ -72,5 +78,12 @@ namespace NuGetGallery
         Task IncrementDownloadCountAsync(string id, string version, bool commitChanges = true);
 
         Task UpdatePackageVerifiedStatusAsync(IReadOnlyCollection<PackageRegistration> package, bool isVerified);
+
+        /// <summary>
+        /// For a package get the list of owners that are not organizations.
+        /// </summary>
+        /// <param name="package">The package.</param>
+        /// <returns>The list of package owners that are not organizations.</returns>
+        IEnumerable<User> GetPackageUserAccountOwners(Package package);
     }
 }

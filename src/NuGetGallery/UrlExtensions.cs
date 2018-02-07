@@ -111,8 +111,8 @@ namespace NuGetGallery
         public static string StatisticsPackageDownloadsDetail(this UrlHelper url, string id, string version, bool relativeUrl = true)
         {
             var result = GetRouteLink(
-                url, 
-                RouteName.StatisticsPackageDownloadsDetail, 
+                url,
+                RouteName.StatisticsPackageDownloadsDetail,
                 relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
@@ -200,8 +200,8 @@ namespace NuGetGallery
         public static string CuratedFeed(this UrlHelper url, string curatedFeedName, bool relativeUrl = true)
         {
             return GetRouteLink(
-                url, 
-                RouteName.CuratedFeed, 
+                url,
+                RouteName.CuratedFeed,
                 relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
@@ -406,9 +406,25 @@ namespace NuGetGallery
             return GetActionLink(url, "ConfirmationRequired", "Users", relativeUrl);
         }
 
+        public static string OrganizationConfirmationRequired(this UrlHelper url, string accountName, bool relativeUrl = true)
+        {
+            return GetActionLink(url,
+                "ConfirmationRequired",
+                "Organizations",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "accountName", accountName }
+                });
+        }
+
         public static string LogOff(this UrlHelper url, bool relativeUrl = true)
         {
-            string returnUrl = url.Current();
+            return LogOff(url, url.Current(), relativeUrl);
+        }
+
+        public static string LogOff(this UrlHelper url, string returnUrl, bool relativeUrl = true)
+        {
             // If we're logging off from the Admin Area, don't set a return url
             if (string.Equals(url.RequestContext.RouteData.DataTokens[Area].ToStringOrNull(), AdminAreaRegistration.Name, StringComparison.OrdinalIgnoreCase))
             {
@@ -434,8 +450,8 @@ namespace NuGetGallery
         public static string Search(this UrlHelper url, string searchTerm, bool relativeUrl = true)
         {
             return GetRouteLink(
-                url, 
-                RouteName.ListPackages, 
+                url,
+                RouteName.ListPackages,
                 relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
@@ -664,7 +680,7 @@ namespace NuGetGallery
             bool relativeUrl = true)
         {
             return GetActionLink(url,
-                nameof(UsersController.Delete), 
+                nameof(UsersController.Delete),
                 "Users",
                 relativeUrl,
                 routeValues: new RouteValueDictionary
@@ -709,11 +725,26 @@ namespace NuGetGallery
                 });
         }
 
+        public static string LinkOrChangeExternalCredential(this UrlHelper url, string returnUrl, bool relativeUrl = true)
+        {
+            return GetAuthenticationRoutes(url, "LinkOrChangeExternalCredential", returnUrl, relativeUrl);
+        }
+
         public static string LinkExternalAccount(this UrlHelper url, string returnUrl, bool relativeUrl = true)
+        {
+            return GetAuthenticationRoutes(url, "LinkExternalAccount", returnUrl, relativeUrl);
+        }
+
+        public static string AuthenticateExternal(this UrlHelper url, string returnUrl, bool relativeUrl = true)
+        {
+            return GetAuthenticationRoutes(url, "AuthenticateExternal", returnUrl, relativeUrl);
+        }
+
+        private static string GetAuthenticationRoutes(this UrlHelper url, string action, string returnUrl, bool relativeUrl = true)
         {
             return GetActionLink(
                 url,
-                "LinkExternalAccount",
+                action,
                 "Authentication",
                 relativeUrl,
                 routeValues: new RouteValueDictionary
@@ -726,6 +757,59 @@ namespace NuGetGallery
         public static string ManageMyApiKeys(this UrlHelper url, bool relativeUrl = true)
         {
             return GetActionLink(url, "ApiKeys", "Users", relativeUrl);
+        }
+
+        public static string ManageMyOrganizations(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetActionLink(url, "Organizations", "Users", relativeUrl);
+        }
+
+        public static string ManageMyOrganization(this UrlHelper url, string accountName, bool relativeUrl = true)
+        {
+            return GetActionLink(url,
+                "ManageOrganization",
+                "Organizations",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "accountName", accountName }
+                });
+        }
+
+        public static string AddOrganizationMember(this UrlHelper url, string accountName, bool relativeUrl = true)
+        {
+            return GetActionLink(url,
+                "AddMember",
+                "Organizations",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "accountName", accountName }
+                });
+        }
+
+        public static string UpdateOrganizationMember(this UrlHelper url, string accountName, bool relativeUrl = true)
+        {
+            return GetActionLink(url,
+                "UpdateMember",
+                "Organizations",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "accountName", accountName }
+                });
+        }
+
+        public static string DeleteOrganizationMember(this UrlHelper url, string accountName, bool relativeUrl = true)
+        {
+            return GetActionLink(url,
+                "DeleteMember",
+                "Organizations",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "accountName", accountName }
+                });
         }
 
         public static string ManageMyPackages(this UrlHelper url, bool relativeUrl = true)
@@ -884,7 +968,7 @@ namespace NuGetGallery
             return GetActionLink(url, "Contact", "Pages", relativeUrl);
         }
 
-        public static string ContactOwners(this UrlHelper url, string id, bool relativeUrl = true)
+        public static string ContactOwners(this UrlHelper url, string id, string version, bool relativeUrl = true)
         {
             return GetActionLink(
                 url,
@@ -893,7 +977,8 @@ namespace NuGetGallery
                 relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
-                    { "id", id }
+                    { "id", id },
+                    { "version", version }
                 });
         }
 
@@ -971,6 +1056,25 @@ namespace NuGetGallery
             return GetActionLink(url, "GenerateApiKey", "Users", relativeUrl);
         }
 
+        public static string TransformAccount(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetActionLink(url, "Transform", "Users", relativeUrl);
+        }
+
+        public static string ConfirmTransformAccount(this UrlHelper url, User accountToTransform, bool relativeUrl = true)
+        {
+            return GetActionLink(
+                url,
+                "ConfirmTransform",
+                "Users",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "accountNameToTransform", accountToTransform.Username },
+                    { "token", accountToTransform.OrganizationMigrationRequest.ConfirmationToken }
+                });
+        }
+
         private static UriBuilder GetCanonicalUrl(UrlHelper url)
         {
             var builder = new UriBuilder(url.RequestContext.HttpContext.Request.Url);
@@ -1012,7 +1116,7 @@ namespace NuGetGallery
             {
                 routeValues[Area] = area;
             }
-            
+
             if (interceptReturnUrl && routeValues != null && routeValues.ContainsKey("ReturnUrl"))
             {
                 routeValues["ReturnUrl"] = GetAbsoluteReturnUrl(
@@ -1025,10 +1129,27 @@ namespace NuGetGallery
 
             if (relativeUrl)
             {
-                return actionLink.Replace($"{protocol}://{hostName}", string.Empty);
+                return GetRelativeUrl(
+                    actionLink,
+                    protocol,
+                    hostName,
+                    url.RequestContext.HttpContext.Request.Url.Port,
+                    url.RequestContext.HttpContext.Request.Url.IsDefaultPort);
             }
 
             return actionLink;
+        }
+
+        private static string GetRelativeUrl(string link, string protocol, string hostName, int port, bool isDefaultPort)
+        {
+            if (!isDefaultPort)
+            {
+                return link.Replace($"{protocol}://{hostName}:{port}", string.Empty);
+            }
+            else
+            {
+                return link.Replace($"{protocol}://{hostName}", string.Empty);
+            }
         }
 
         private static string GetRouteLink(
@@ -1044,7 +1165,12 @@ namespace NuGetGallery
 
             if (relativeUrl)
             {
-                return routeLink.Replace($"{protocol}://{hostName}", string.Empty);
+                return GetRelativeUrl(
+                    routeLink,
+                    protocol,
+                    hostName,
+                    url.RequestContext.HttpContext.Request.Url.Port,
+                    url.RequestContext.HttpContext.Request.Url.IsDefaultPort);
             }
 
             return routeLink;
@@ -1058,7 +1184,7 @@ namespace NuGetGallery
             // Ensure return URL is always pointing to the configured siteroot
             // to avoid MVC routing to use the deployment host name instead of the configured one.
             // This is important when deployed behind a proxy, such as APIM.
-            if (returnUrl != null 
+            if (returnUrl != null
                 && Uri.TryCreate(returnUrl, UriKind.RelativeOrAbsolute, out var returnUri))
             {
                 if (!returnUri.IsAbsoluteUri)

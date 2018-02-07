@@ -66,7 +66,7 @@ namespace NuGetGallery.Security
         public async Task OnSubscribeAsync(UserSecurityPolicySubscriptionContext context)
         {
             var pushKeys = context.User.Credentials.Where(c =>
-                CredentialTypes.IsApiKey(c.Type) &&
+                c.IsApiKey() &&
                 (
                     c.Scopes.Count == 0 ||
                     c.Scopes.Any(s =>
@@ -89,7 +89,7 @@ namespace NuGetGallery.Security
             }
             await Task.WhenAll(expireTasks);
             
-            _diagnostics.Information($"Expiring {pushKeys.Count()} keys with push capability for user '{context.User.Username}'.");
+            _diagnostics.Information($"Expiring {pushKeys.Count()} keys with push capability.");
         }
         
         public Task OnUnsubscribeAsync(UserSecurityPolicySubscriptionContext context)

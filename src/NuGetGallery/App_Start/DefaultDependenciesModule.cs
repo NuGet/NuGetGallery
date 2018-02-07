@@ -23,6 +23,7 @@ using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Areas.Admin.Services;
 using NuGetGallery.Auditing;
+using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Configuration.SecretReader;
 using NuGetGallery.Cookies;
@@ -71,6 +72,9 @@ namespace NuGetGallery
             builder.Register(c => configuration.Features)
                .AsSelf()
                .As<FeatureConfiguration>();
+
+            builder.Register(c => configuration.PackageDelete)
+                .As<IPackageDeleteConfiguration>();
 
             builder.RegisterType<TelemetryService>().As<ITelemetryService>().SingleInstance();
             builder.RegisterType<CredentialBuilder>().As<ICredentialBuilder>().SingleInstance();
@@ -189,11 +193,7 @@ namespace NuGetGallery
                 .AsSelf()
                 .As<IDeleteAccountService>()
                 .InstancePerLifetimeScope();
-
-            builder.RegisterType<EditPackageService>()
-                .AsSelf()
-                .InstancePerLifetimeScope();
-
+            
             builder.RegisterType<PackageOwnerRequestService>()
                 .AsSelf()
                 .As<IPackageOwnerRequestService>()
@@ -240,6 +240,11 @@ namespace NuGetGallery
             builder.RegisterType<ReadMeService>()
                 .AsSelf()
                 .As<IReadMeService>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<ApiScopeEvaluator>()
+                .AsSelf()
+                .As<IApiScopeEvaluator>()
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<SecurePushSubscription>()

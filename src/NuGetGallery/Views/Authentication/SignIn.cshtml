@@ -5,9 +5,21 @@
     ViewBag.SmPageColumns = Constants.ColumnsAuthenticationSm;
     ViewBag.MdPageColumns = Constants.ColumnsAuthenticationMd;
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
+
+    var returnUrl = (string)ViewData[Constants.ReturnUrlViewDataKey];
+    var returnUrlMessage = (string)ViewData[Constants.ReturnUrlMessageViewDataKey];
 }
 
 <section role="main" class="container main-container page-sign-in">
+    @if (!string.IsNullOrEmpty(returnUrlMessage))
+    {
+        <div class="row">
+            <div class="col-xs-12 text-center">
+                @ViewHelpers.AlertInfo(@<text>@returnUrlMessage</text>)
+            </div>
+        </div>
+    }
+
     <div class="row">
         <div class="col-xs-12 text-center">
             <h1>Sign in</h1>
@@ -19,7 +31,7 @@
         <div class="row">
             <div class="@ViewHelpers.GetColumnClasses(ViewBag) text-center">
                 <a role="button" class="btn btn-default btn-block provider-button"
-                   href="@Url.Authenticate(provider.ProviderName, (string)ViewData[Constants.ReturnUrlViewDataKey])">
+                   href="@Url.Authenticate(provider.ProviderName, returnUrl)">
                     @if (!string.IsNullOrEmpty(@provider.UI.IconImagePath))
                     {
                         <img height="24" width="24" alt="" aria-hidden="true"
@@ -32,14 +44,14 @@
         </div>
         <div class="row text-center create-provider-account">
             No Account?
-            <a href="@Url.Authenticate(provider.ProviderName, (string)ViewData[Constants.ReturnUrlViewDataKey])">Create one!</a>
+            <a href="@Url.Authenticate(provider.ProviderName, returnUrl)">Create one!</a>
         </div>
     }
 
     <div class="row nuget-signin">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag) text-center">
             <p class="text-center">
-                <a href="@Url.LogOnNuGetAccount()">Sign in using NuGet.org account</a>
+                <a href="@Url.LogOnNuGetAccount(returnUrl)">Sign in using NuGet.org account</a>
             </p>
         </div>
     </div>

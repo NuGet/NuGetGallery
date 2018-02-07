@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Security.Claims;
 using System.Text;
@@ -22,6 +23,12 @@ namespace NuGetGallery
         /// </summary>
         public static void SetOwinContextCurrentUser(this AppController self, User user, Credential credential = null)
         {
+            if (user == null)
+            {
+                self.OwinContext.Request.User = null;
+                return;
+            }
+
             ClaimsIdentity identity = null;
 
             if (credential != null)
@@ -34,8 +41,14 @@ namespace NuGetGallery
             }
             else
             {
-                identity = new ClaimsIdentity(
-                    new[] { new Claim(ClaimTypes.Name, string.IsNullOrEmpty(user.Username) ? "theUserName" : user.Username) });
+                if (string.IsNullOrEmpty(user.Username))
+                {
+                    user.Username = "theUsername";
+                }
+
+                identity = AuthenticationService.CreateIdentity(
+                    user,
+                    AuthenticationTypes.External);
             }
 
             var principal = new ClaimsPrincipal(identity);
@@ -47,10 +60,32 @@ namespace NuGetGallery
             self.OwinContext.Request.User = principal;
         }
 
+        public static void SetCurrentUser(this AppController self, User user, ICollection<Scope> scopes)
+        {
+            var credential =
+                TestCredentialHelper
+                    .CreateV4ApiKey(expiration: null, plaintextApiKey: out var plaintextApiKey)
+                    .WithScopes(scopes);
+
+            self.SetCurrentUser(user, credential);
+        }
+
         public static void SetCurrentUser(this AppController self, User user, Credential credential = null)
         {
-            SetOwinContextCurrentUser(self, user, credential);
-            self.OwinContext.Environment[Constants.CurrentUserOwinEnvironmentKey] = user;
+            self.SetOwinContextCurrentUser(user, credential);
+            self.SetCurrentUserOwinEnvironmentKey(user);
+        }
+
+        private static void SetCurrentUserOwinEnvironmentKey(this AppController self, User user)
+        {
+            if (user != null)
+            {
+                self.OwinContext.Environment[Constants.CurrentUserOwinEnvironmentKey] = user;
+            }
+            else
+            {
+                self.OwinContext.Environment.Remove(Constants.CurrentUserOwinEnvironmentKey);
+            }
         }
 
         public static async Task<byte[]> CaptureBody(this IOwinResponse self, Func<Task> captureWithin)

@@ -37,21 +37,22 @@ namespace NuGetGallery
             string id,
             PackageArchiveReader nugetPackage,
             PackageStreamMetadata packageStreamMetadata,
-            User user)
+            User owner,
+            User currentUser)
         {
-            var isPushAllowed = _reservedNamespaceService.IsPushAllowed(id, user, out IReadOnlyCollection<ReservedNamespace> userOwnedNamespaces);
-            var shouldMarkIdVerified = isPushAllowed && userOwnedNamespaces != null && userOwnedNamespaces.Any();
+            var shouldMarkIdVerified = _reservedNamespaceService.ShouldMarkNewPackageIdVerified(owner, id, out var ownedMatchingReservedNamespaces);
 
             var package = await _packageService.CreatePackageAsync(
                 nugetPackage,
                 packageStreamMetadata,
-                user,
+                owner,
+                currentUser,
                 isVerified: shouldMarkIdVerified);
 
             if (shouldMarkIdVerified)
             {
                 // Add all relevant package registrations to the applicable namespaces
-                foreach (var rn in userOwnedNamespaces)
+                foreach (var rn in ownedMatchingReservedNamespaces)
                 {
                     _reservedNamespaceService.AddPackageRegistrationToNamespace(
                         rn.Value,

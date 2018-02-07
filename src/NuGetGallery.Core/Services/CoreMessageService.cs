@@ -125,6 +125,44 @@ namespace NuGetGallery.Services
             }
         }
 
+        public void SendValidationTakingTooLongNotice(Package package, string packageUrl)
+        {
+            string subject = "[{0}] Package validation taking longer than expected - {1} {2}";
+            string body = "It is taking longer than expected for your package [{1} {2}]({3}) to get published.\n\n" +
+                "We are looking into it and there is no action on you at this time. We’ll send you an email notification when your package has been published.\n\n" +
+                "Thank you for your patience.";
+
+            body = string.Format(
+                CultureInfo.CurrentCulture,
+                body,
+                CoreConfiguration.GalleryOwner.DisplayName,
+                package.PackageRegistration.Id,
+                package.Version,
+                packageUrl);
+
+            subject = string.Format(
+                CultureInfo.CurrentCulture,
+                subject, 
+                CoreConfiguration.GalleryOwner.DisplayName,
+                package.PackageRegistration.Id,
+                package.Version);
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = CoreConfiguration.GalleryNoReplyAddress;
+
+                AddAllOwnersToMailMessage(package.PackageRegistration, mailMessage);
+
+                if (mailMessage.To.Any())
+                {
+                    SendMessage(mailMessage, copySender: false);
+                }
+            }
+        }
+
+
         protected static void AddAllOwnersToMailMessage(PackageRegistration packageRegistration, MailMessage mailMessage)
         {
             foreach (var owner in packageRegistration.Owners)

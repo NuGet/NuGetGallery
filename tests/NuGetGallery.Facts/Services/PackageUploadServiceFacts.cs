@@ -33,8 +33,8 @@ namespace NuGetGallery
 
             packageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
             packageService.Setup(x => x
-                .CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>()))
-                .Returns((PackageArchiveReader packageArchiveReader, PackageStreamMetadata packageStreamMetadata, User user, bool isVerified) =>
+                .CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<User>(), It.IsAny<bool>()))
+                .Returns((PackageArchiveReader packageArchiveReader, PackageStreamMetadata packageStreamMetadata, User owner, User currentUser, bool isVerified) =>
                 {
                     var packageMetadata = PackageMetadata.FromNuspecReader(packageArchiveReader.GetNuspecReader());
 
@@ -50,10 +50,9 @@ namespace NuGetGallery
             {
                 reservedNamespaceService = new Mock<IReservedNamespaceService>();
 
-                IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces = new List<ReservedNamespace>();
                 reservedNamespaceService
-                    .Setup(s => s.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out userOwnedMatchingNamespaces))
-                    .Returns(true);
+                    .Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
+                    .Returns(new ReservedNamespace[0]);
             }
 
             if (validationService == null)
@@ -76,17 +75,19 @@ namespace NuGetGallery
             [Fact]
             public async Task WillCallCreatePackageAsyncCorrectly()
             {
+                var key = 0;
                 var packageService = new Mock<IPackageService>();
                 packageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
 
                 var id = "Microsoft.Aspnet.Mvc";
                 var packageUploadService = CreateService(packageService);
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(id: id);
-                var currentUser = new User();
+                var owner = new User { Key = key++, Username = "owner" };
+                var currentUser = new User { Key = key++, Username = "user" };
 
-                var package = await packageUploadService.GeneratePackageAsync(id, nugetPackage.Object, new PackageStreamMetadata(), currentUser);
+                var package = await packageUploadService.GeneratePackageAsync(id, nugetPackage.Object, new PackageStreamMetadata(), owner, currentUser);
 
-                packageService.Verify(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>()), Times.Once);
+                packageService.Verify(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), owner, currentUser, false), Times.Once);
                 Assert.False(package.PackageRegistration.IsVerified);
             }
 
@@ -110,13 +111,17 @@ namespace NuGetGallery
 
                 var reservedNamespaceService = new Mock<IReservedNamespaceService>();
                 IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces = matchingNamepsaces;
-                reservedNamespaceService.Setup(s => s.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out userOwnedMatchingNamespaces))
+                reservedNamespaceService.Setup(s => s.ShouldMarkNewPackageIdVerified(It.IsAny<User>(), It.IsAny<string>(), out userOwnedMatchingNamespaces))
                     .Returns(shouldMarkIdVerified);
+
+                reservedNamespaceService
+                    .Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
+                    .Returns(testNamespaces.ToList().AsReadOnly());
 
                 var packageUploadService = CreateService(reservedNamespaceService: reservedNamespaceService);
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(id: id);
 
-                var package = await packageUploadService.GeneratePackageAsync(id, nugetPackage.Object, new PackageStreamMetadata(), firstUser);
+                var package = await packageUploadService.GeneratePackageAsync(id, nugetPackage.Object, new PackageStreamMetadata(), firstUser, firstUser);
 
                 Assert.Equal(shouldMarkIdVerified, package.PackageRegistration.IsVerified);
             }
@@ -138,13 +143,18 @@ namespace NuGetGallery
 
                 var reservedNamespaceService = new Mock<IReservedNamespaceService>();
                 IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces = new List<ReservedNamespace>();
-                reservedNamespaceService.Setup(s => s.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out userOwnedMatchingNamespaces))
-                    .Returns(true);
+                reservedNamespaceService
+                    .Setup(s => s.ShouldMarkNewPackageIdVerified(It.IsAny<User>(), It.IsAny<string>(), out userOwnedMatchingNamespaces))
+                    .Returns(false);
+
+                reservedNamespaceService
+                    .Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
+                    .Returns(testNamespaces.ToList().AsReadOnly());
 
                 var packageUploadService = CreateService(reservedNamespaceService: reservedNamespaceService);
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(id: id);
 
-                var package = await packageUploadService.GeneratePackageAsync(id, nugetPackage.Object, new PackageStreamMetadata(), lastUser);
+                var package = await packageUploadService.GeneratePackageAsync(id, nugetPackage.Object, new PackageStreamMetadata(), lastUser, lastUser);
 
                 Assert.False(package.PackageRegistration.IsVerified);
             }
@@ -164,7 +174,7 @@ namespace NuGetGallery
                 .Concat(new[] { (PackageStatus)(-1) })
                 .Where(s => !SupportedPackageStatuses.Any(o => s.Equals(o[0])))
                 .Select(s => new object[] { s });
-            
+
             [Theory]
             [MemberData(nameof(SupportedPackageStatuses))]
             public async Task CommitsAfterSavingSupportedPackageStatuses(PackageStatus packageStatus)

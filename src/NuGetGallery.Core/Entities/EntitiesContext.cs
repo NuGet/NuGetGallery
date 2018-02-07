@@ -79,9 +79,9 @@ namespace NuGetGallery
             ObjectContext.CommandTimeout = seconds;
         }
 
-        public Database GetDatabase()
+        public IDatabase GetDatabase()
         {
-            return Database;
+            return new DatabaseWrapper(Database);
         }
 
 #pragma warning disable 618 // TODO: remove Package.Authors completely once production services definitely no longer need it
@@ -140,17 +140,39 @@ namespace NuGetGallery
             modelBuilder.Entity<Membership>()
                 .HasKey(m => new { m.OrganizationKey, m.MemberKey });
 
+            modelBuilder.Entity<MembershipRequest>()
+                .HasKey(m => new { m.OrganizationKey, m.NewMemberKey });
+
+            modelBuilder.Entity<OrganizationMigrationRequest>()
+                .HasKey(m => m.NewOrganizationKey);
+
             modelBuilder.Entity<User>()
                 .HasMany(u => u.Organizations)
                 .WithRequired(m => m.Member)
                 .HasForeignKey(m => m.MemberKey)
                 .WillCascadeOnDelete(true); // Membership will be deleted with the Member account.
 
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.OrganizationRequests)
+                .WithRequired(m => m.NewMember)
+                .HasForeignKey(m => m.NewMemberKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<User>()
+                .HasOptional(u => u.OrganizationMigrationRequest)
+                .WithRequired(m => m.NewOrganization);
+
             modelBuilder.Entity<Organization>()
                 .HasMany(o => o.Members)
                 .WithRequired(m => m.Organization)
                 .HasForeignKey(m => m.OrganizationKey)
                 .WillCascadeOnDelete(true); // Memberships will be deleted with the Organization account.
+
+            modelBuilder.Entity<Organization>()
+                .HasMany(o => o.MemberRequests)
+                .WithRequired(m => m.Organization)
+                .HasForeignKey(m => m.OrganizationKey)
+                .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<Role>()
                 .HasKey(u => u.Key);
@@ -221,22 +243,7 @@ namespace NuGetGallery
                 .HasMany<PackageType>(p => p.PackageTypes)
                 .WithRequired(pt => pt.Package)
                 .HasForeignKey(pt => pt.PackageKey);
-
-            modelBuilder.Entity<PackageEdit>()
-                .HasKey(pm => pm.Key);
-
-            modelBuilder.Entity<PackageEdit>()
-                .HasRequired(pm => pm.User)
-                .WithMany()
-                .HasForeignKey(pm => pm.UserKey)
-                .WillCascadeOnDelete(false);
-
-            modelBuilder.Entity<PackageEdit>()
-                .HasRequired<Package>(pm => pm.Package)
-                .WithMany(p => p.PackageEdits)
-                .HasForeignKey(pm => pm.PackageKey)
-                .WillCascadeOnDelete(true); // Pending PackageEdits get deleted with their package, since hey, there's no way to apply them without the package anyway.
-
+            
             modelBuilder.Entity<PackageHistory>()
                 .HasKey(pm => pm.Key);
 

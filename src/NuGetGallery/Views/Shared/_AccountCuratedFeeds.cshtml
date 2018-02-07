@@ -1,0 +1,22 @@
+﻿@model AccountViewModel
+
+@foreach (var curatedFeed in Model.CuratedFeeds)
+{
+    @ViewHelpers.Section(this,
+        "curated-feed-" + curatedFeed,
+        @<text>Curated Feed</text>,
+        @<text>@curatedFeed</text>,
+        @<text>
+            <div class="row form-group">
+                <div class="col-sm-6">
+                    <a role="button" href="@Url.CuratedFeed(curatedFeed)"
+                        class="btn btn-primary form-control">Manage</a>
+                </div>
+                <div class="col-sm-6">
+                    <a href="#" role="button" class="btn btn-default form-control" id="cancel-curated-feed-@curatedFeed">
+                        Cancel
+                    </a>
+                </div>
+            </div>
+        </text>)
+}

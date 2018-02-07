@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using NuGetGallery.Areas.Admin;
+using NuGetGallery.Filters;
 
 namespace NuGetGallery
 {
@@ -62,7 +63,7 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [Authorize]
+        [UIAuthorize]
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> Contact(ContactSupportViewModel contactForm)
         {
@@ -99,7 +100,7 @@ namespace NuGetGallery
 
         public virtual ActionResult Home()
         {
-            return View();
+            return View(new GalleryHomeViewModel());
         }
 
         [HttpGet]

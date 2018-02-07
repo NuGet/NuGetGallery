@@ -67,7 +67,6 @@
 
   .api-key-details {
     padding: @section-padding;
-    border-bottom: @section-border;
 
     .ms-Icon {
       position: relative;
@@ -88,5 +87,10 @@
         border-left: 1px solid @gray-lighter;
       }
     }
+  }
+  
+  .api-key-details:not(:first-child)
+  {
+    border-top: @section-border;
   }
 }

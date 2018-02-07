@@ -4,114 +4,81 @@
     ViewBag.Title = "Manage My Package";
     ViewBag.Tab = "Packages";
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
+
+    var namespacesCount = Model.ReservedNamespaces.ReservedNamespaces.Count();
+    var ownerRequestsReceivedCount = Model.OwnerRequests.Received.RequestItems.Count();
+    var ownerRequestsSentCount = Model.OwnerRequests.Sent.RequestItems.Count();
 }
 
-@helper Section(
-    string id,
-    string title,
-    Func<MvcHtmlString, HelperResult> content,
-    bool expanded = true,
-    string expandedIcon = "ChevronDown",
-    string collapsedIcon = "ChevronRight")
-{
-    <h3>
-        <a href="#" role="button" data-toggle="collapse" data-target="#@id-container"
-           aria-expanded="@(expanded ? "true" : "false")" aria-controls="@id-container" id="show-@id-container">
-            <i class="ms-Icon ms-Icon--@(expanded ? expandedIcon : collapsedIcon)"
-               aria-hidden="@(expanded ? "false" : "true")"></i>
-            <span>@title</span>
-        </a>
-    </h3>
-    <div class="panel-collapse collapse @(expanded ? "in" : string.Empty) col-xs-12" id="@id-container">
-        @content(MvcHtmlString.Empty)
-    </div>
-}
-
-<section role="main" class="container main-container page-manage-packages page-package-details">
+<section role="main" class="container main-container page-manage-packages">
     <div class="row">
-        <div class="col-xs-12">
-                <h1>My Packages</h1>
-                <div class="col-xs-3 text-right form-group pull-right">
-                    <select id="ownerFilter" class="form-control pull-right hidden"
-                            data-bind="options: Owners, value: OwnerFilter, optionsText: 'Username'"></select>
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
+            
+            <div class="clearfix">
+                <h1 class="pull-left">Manage Packages</h1>
+                <div class="text-center ms-font-xxl">
+                    <span class="form-section-data">
+                        <select id="ownerFilter" class="form-control pull-right hidden"
+                                data-bind="options: Owners, value: OwnerFilter, optionsText: 'Username'"></select>
+                    </span>
                 </div>
-            @Section("listed", "Published",
+            </div>
+
+            @ViewHelpers.Section(this, "listed", @<text>Published Packages</text>,
+                @<text>
+                    <span id="listed-data" data-bind="text: ListedPackages.VisiblePackagesHeading()"></span>
+                </text>,
                 @<text>
                     <div class="row user-package-list">
                         <div data-bind="template: { name: 'manage-packages', data: ListedPackages }"></div>
                     </div>
-                </text>)
+                </text>, expanded: false)
 
-            @Section("unlisted", "Unlisted",
+            @ViewHelpers.Section(this, "unlisted", @<text>Unlisted Packages</text>,
+                @<text>
+                    <span id="unlisted-data" data-bind="text: UnlistedPackages.VisiblePackagesHeading()"></span>
+                </text>,
                 @<text>
                     <div class="row user-package-list">
                         <div data-bind="template: { name: 'manage-packages', data: UnlistedPackages }"></div>
                     </div>
-                </text>)
-        </div>
-    </div>
+                </text>, expanded: false)
 
-    @if (Model.ReservedNamespaces.ReservedNamespaces.Any())
-    {
-        <div class="row">
-            <div class="col-xs-12">
-                <h1>My Reserved Namespaces</h1>
-                @Section(
-                    "namespaces",
-                    "Namespaces",
+            @if (namespacesCount > 0)
+            {
+                @ViewHelpers.Section(this, "namespaces",
+                            @<text>Reserved Namespaces</text>,
+                        @<text>@Html.Raw(namespacesCount + " namespace" + (namespacesCount == 1 ? "" : "s"))</text>,
                     @<text>
                         @Html.Partial("_ReservedNamespacesList", Model.ReservedNamespaces)
-                    </text>)
-            </div>
+                    </text>, expanded: false)
+            }
+
+            @if (Model.OwnerRequests.Received.RequestItems.Any())
+            {
+                @ViewHelpers.Section(this, "requests-received",
+                            @<text>Ownership Requests (Received)</text>,
+                            @<text>@Html.Raw(ownerRequestsReceivedCount + " request" + (ownerRequestsReceivedCount == 1 ? "" : "s"))</text>,
+                            @<text>
+                                @Html.Partial("_OwnerRequestsList", Model.OwnerRequests.Received)
+                            </text>, expanded: false)
+            }
+
+            @if (Model.OwnerRequests.Sent.RequestItems.Any())
+            {
+                @ViewHelpers.Section(this, "requests-sent",
+                            @<text>Ownership Requests (Sent)</text>,
+                            @<text>@Html.Raw(ownerRequestsSentCount + " request" + (ownerRequestsSentCount == 1 ? "" : "s"))</text>,
+                            @<text>
+                                @Html.Partial("_OwnerRequestsList", Model.OwnerRequests.Sent)
+                            </text>, expanded: false)
+            }
         </div>
-    }
-
-    @if (Model.OwnerRequests.Incoming.RequestItems.Any() || Model.OwnerRequests.Outgoing.RequestItems.Any())
-    {
-        <div class="row">
-            <div class="col-xs-12">
-                <h1>My Pending Ownership Requests</h1>
-                @if (Model.OwnerRequests.Incoming.RequestItems.Any())
-                {
-                    @Section(
-                        "requests-incoming",
-                        "Incoming",
-                        @<text>
-                            @Html.Partial("_OwnerRequestsList", Model.OwnerRequests.Incoming)
-                        </text>)
-                }
-
-                @if (Model.OwnerRequests.Outgoing.RequestItems.Any())
-                {
-
-                    @Section(
-                        "requests-outgoing",
-                        "Outgoing",
-                        @<text>
-                            @Html.Partial("_OwnerRequestsList", Model.OwnerRequests.Outgoing)
-                        </text>)
-                }
-            </div>
-        </div>
-    }
 </section>
 
 <script type="text/html" id="manage-packages">
     <div class="col-md-12">
         <div class="panel-collapse collapse in" aria-expanded="true">
-            <p>
-                You have
-                <b>
-                    <span data-bind="text: VisiblePackagesCount"></span>
-                    <span data-bind="text: Type"></span>
-                    <span data-bind="text: VisiblePackagesCount() === 1 ? 'package' : 'packages'"></span>
-                </b>
-                with a total of
-                <b>
-                    <span data-bind="text: VisibleDownloadCount"></span>
-                    <span data-bind="text: VisibleDownloadCount() === 1 ? 'download' : 'downloads'"></span>
-                </b>
-            </p>
             <table class="table">
                 <thead>
                     <tr class="manage-package-headings">
@@ -127,7 +94,7 @@
                     <tr class="manage-package-listing" data-bind="visible: Visible">
                         <td class="align-middle hidden-xs">
                             <img class="package-icon img-responsive" aria-hidden="true" alt=""
-                                    data-bind="attr: { src: PackageIconUrl, onerror: PackageIconUrlFallback }" />
+                                 data-bind="attr: { src: PackageIconUrl, onerror: PackageIconUrlFallback }" />
                         </td>
                         <td class="align-middle package-id">
                             <a title="View Package" data-bind="attr: { href: PackageUrl }">
@@ -137,13 +104,11 @@
                         <td class="align-middle">
                             <span class="ms-noWrap" data-bind="foreach: Owners">
                                 <i class="ms-Icon ms-Icon--Group" aria-hidden="true" data-bind="visible: IsOrganization"></i>
-                                <a data-bind="attr: { href: ProfileUrl }">
-                                    <span data-bind="text: Username"></span>
-                                </a>
+                                <a data-bind="attr: { href: ProfileUrl }"><span data-bind="text: Username"></span></a><!-- ko if: ($index() < ($parent.Owners.length - 1)) -->,&nbsp;<!-- /ko -->
                             </span>
                         </td>
                         <td class="align-middle text-nowrap">
-                            <span data-bind="text: DownloadCount"></span>
+                            <span data-bind="text: FormattedDownloadCount"></span>
                         </td>
                         <td class="align-middle text-nowrap">
                             <span data-bind="text: LatestVersion"></span>
@@ -214,9 +179,9 @@
             EditUrl = editUrlTemplate.Resolve(p),
             ManageOwnersUrl = manageOwnersUrlTemplate.Resolve(p),
             DeleteUrl = deleteUrlTemplate.Resolve(p),
-            CanEdit = p.IsActionAllowed(User, PackageActions.Edit),
-            CanManageOwners = p.IsActionAllowed(User, PackageActions.ManagePackageOwners),
-            CanDelete = p.IsActionAllowed(User, PackageActions.Unlist)
+            CanEdit = p.CanEdit,
+            CanManageOwners = p.CanManageOwners,
+            CanDelete = p.CanUnlistOrRelist
         };
     }
 }
@@ -225,11 +190,7 @@
     <script type="text/javascript">
         var initialData = @Html.Raw(JsonConvert.SerializeObject(new
                      {
-                         Owners = Model.Owners.Select(o => new
-                         {
-                             Username = o.Username,
-                             IsOrganization = o is Organization
-                         }),
+                         Owners = Model.Owners,
                          ListedPackages = Model.ListedPackages
                             .Select(p => GetSerializablePackage(p)),
                          UnlistedPackages = Model.UnlistedPackages
@@ -238,5 +199,6 @@
                          PackageIconUrlFallback = Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")
                      }));
     </script>
+    @ViewHelpers.SectionsScript(this)
     @Scripts.Render("~/Scripts/gallery/page-manage-packages.min.js")
 }

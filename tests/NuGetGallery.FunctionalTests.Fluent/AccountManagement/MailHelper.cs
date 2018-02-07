@@ -140,9 +140,9 @@ namespace NuGetGallery.FunctionalTests.Fluent.AccountManagement
         {
             // Connect to the IMAP server.
             MailMessage message;
-            WriteLine(EnvironmentSettings.TestAccountName);
+            WriteLine(EnvironmentSettings.TestAccountEmail);
             WriteLine(EnvironmentSettings.TestAccountPassword);
-            using (var ic = new ImapClient(EnvironmentSettings.TestEmailServerHost, EnvironmentSettings.TestAccountName, EnvironmentSettings.TestAccountPassword, AuthMethods.Login, 993, true))
+            using (var ic = new ImapClient(EnvironmentSettings.TestEmailServerHost, EnvironmentSettings.TestAccountEmail, EnvironmentSettings.TestAccountPassword, AuthMethods.Login, 993, true))
             {
                 // Select folder and get the last mail.
                 ic.SelectMailbox(folderName);

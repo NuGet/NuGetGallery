@@ -3,9 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
-using System.Net.Mail;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGetGallery.Areas.Admin;
@@ -19,19 +19,15 @@ using NuGetGallery.Infrastructure.Authentication;
 namespace NuGetGallery
 {
     public partial class UsersController
-        : AppController
+        : AccountsController<User, UserAccountViewModel>
     {
-        private readonly ICuratedFeedService _curatedFeedService;
-        private readonly IUserService _userService;
-        private readonly IMessageService _messageService;
         private readonly IPackageService _packageService;
         private readonly IPackageOwnerRequestService _packageOwnerRequestService;
         private readonly IAppConfiguration _config;
-        private readonly AuthenticationService _authService;
         private readonly ICredentialBuilder _credentialBuilder;
         private readonly IDeleteAccountService _deleteAccountService;
         private readonly ISupportRequestService _supportRequestService;
-
+        
         public UsersController(
             ICuratedFeedService feedsQuery,
             IUserService userService,
@@ -43,95 +39,171 @@ namespace NuGetGallery
             ICredentialBuilder credentialBuilder,
             IDeleteAccountService deleteAccountService,
             ISupportRequestService supportRequestService)
+            : base(authService, feedsQuery, messageService, userService)
         {
-            _curatedFeedService = feedsQuery ?? throw new ArgumentNullException(nameof(feedsQuery));
-            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _packageOwnerRequestService = packageOwnerRequestService ?? throw new ArgumentNullException(nameof(packageOwnerRequestService));
-            _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
             _config = config ?? throw new ArgumentNullException(nameof(config));
-            _authService = authService ?? throw new ArgumentNullException(nameof(authService));
             _credentialBuilder = credentialBuilder ?? throw new ArgumentNullException(nameof(credentialBuilder));
             _deleteAccountService = deleteAccountService ?? throw new ArgumentNullException(nameof(deleteAccountService));
             _supportRequestService = supportRequestService ?? throw new ArgumentNullException(nameof(supportRequestService));
         }
+        
+        public override string AccountAction => nameof(Account);
 
-        [HttpGet]
-        [Authorize]
-        public virtual ActionResult ConfirmationRequired()
+        protected internal override ViewMessages Messages => new ViewMessages
         {
-            var model = new ConfirmationViewModel(GetCurrentUser());
-            return View(model);
-        }
+            EmailConfirmed = Strings.UserEmailConfirmed,
+            EmailPreferencesUpdated = Strings.UserEmailPreferencesUpdated,
+            EmailUpdateCancelled = Strings.UserEmailUpdateCancelled,
+            EmailUpdated = Strings.UserEmailUpdated,
+            EmailUpdatedWithConfirmationRequired = Strings.UserEmailUpdatedWithConfirmationRequired
+        };
 
-        [Authorize]
-        [HttpPost]
-        [ActionName("ConfirmationRequired")]
-        [ValidateAntiForgeryToken]
-        public virtual ActionResult ConfirmationRequiredPost()
+        protected override User GetAccount(string accountName)
         {
-            User user = GetCurrentUser();
-            var confirmationUrl = Url.ConfirmEmail(user.Username, user.EmailConfirmationToken, relativeUrl: false);
-
-            var alreadyConfirmed = user.UnconfirmedEmailAddress == null;
-
-            ConfirmationViewModel model;
-            if (!alreadyConfirmed)
+            var currentUser = GetCurrentUser();
+            if (string.IsNullOrEmpty(accountName) ||
+                currentUser.Username.Equals(accountName, StringComparison.InvariantCultureIgnoreCase))
             {
-                _messageService.SendNewAccountEmail(new MailAddress(user.UnconfirmedEmailAddress, user.Username), confirmationUrl);
-
-                model = new ConfirmationViewModel(user)
-                {
-                    SentEmail = true
-                };
+                return currentUser;
             }
-            else
-            {
-                model = new ConfirmationViewModel(user);
-            }
-            return View(model);
+            return null;
         }
 
         [HttpGet]
-        [Authorize]
+        [UIAuthorize]
         public virtual ActionResult Account()
         {
-            return AccountView(new AccountViewModel());
+            return AccountView(GetCurrentUser());
         }
 
         [HttpGet]
-        [Authorize]
+        [UIAuthorize(allowDiscontinuedLogins: true)]
+        [ActionName("Transform")]
+        public virtual ActionResult TransformToOrganization()
+        {
+            var accountToTransform = GetCurrentUser();
+            
+            string errorReason;
+            if (!UserService.CanTransformUserToOrganization(accountToTransform, out errorReason))
+            {
+                return TransformToOrganizationFailed(errorReason);
+            }
+
+            var transformRequest = accountToTransform.OrganizationMigrationRequest;
+            if (transformRequest != null)
+            {
+                TempData["Message"] = String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_RequestExists, transformRequest.AdminUser.Username);
+            }
+
+            return View(new TransformAccountViewModel());
+        }
+
+        [HttpPost]
+        [UIAuthorize(allowDiscontinuedLogins: true)]
+        [ValidateAntiForgeryToken]
+        [ActionName("Transform")]
+        public virtual async Task<ActionResult> TransformToOrganization(TransformAccountViewModel transformViewModel)
+        {
+            var accountToTransform = GetCurrentUser();
+
+            var adminUser = UserService.FindByUsername(transformViewModel.AdminUsername);
+            if (adminUser == null)
+            {
+                ModelState.AddModelError("AdminUsername", String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_AdminAccountDoesNotExist, transformViewModel.AdminUsername));
+                return View(transformViewModel);
+            }
+            
+            if (!UserService.CanTransformUserToOrganization(accountToTransform, adminUser, out var errorReason))
+            {
+                return TransformToOrganizationFailed(errorReason);
+            }
+
+            await UserService.RequestTransformToOrganizationAccount(accountToTransform, adminUser);
+
+            // sign out pending organization and prompt for admin sign in
+            OwinContext.Authentication.SignOut();
+
+            TempData[Constants.ReturnUrlMessageViewDataKey] = String.Format(CultureInfo.CurrentCulture,
+                Strings.TransformAccount_SignInToConfirm, adminUser.Username, accountToTransform.Username);
+            var returnUrl = Url.ConfirmTransformAccount(accountToTransform);
+            return Redirect(Url.LogOn(returnUrl));
+        }
+
+        [HttpGet]
+        [UIAuthorize(allowDiscontinuedLogins: true)]
+        [ActionName("ConfirmTransform")]
+        public virtual async Task<ActionResult> ConfirmTransformToOrganization(string accountNameToTransform, string token)
+        {
+            var adminUser = GetCurrentUser();
+
+            string errorReason;
+            var accountToTransform = UserService.FindByUsername(accountNameToTransform);
+            if (accountToTransform == null)
+            {
+                errorReason = String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_OrganizationAccountDoesNotExist, accountNameToTransform);
+                return TransformToOrganizationFailed(errorReason);
+            }
+
+            if (!UserService.CanTransformUserToOrganization(accountToTransform, out errorReason))
+            {
+                return TransformToOrganizationFailed(errorReason);
+            }
+
+            if (!await UserService.TransformUserToOrganization(accountToTransform, adminUser, token))
+            {
+                errorReason = Strings.TransformAccount_Failed;
+                return TransformToOrganizationFailed(errorReason);
+            }
+
+            TempData["Message"] = String.Format(CultureInfo.CurrentCulture,
+                Strings.TransformAccount_Success, accountNameToTransform);
+
+            return RedirectToRoute(RouteName.OrganizationAccount);
+        }
+
+        private ActionResult TransformToOrganizationFailed(string errorMessage)
+        {
+            return View("TransformFailed", new TransformAccountFailedViewModel(errorMessage));
+        }
+
+        [HttpGet]
+        [UIAuthorize]
         public virtual ActionResult DeleteRequest()
         {
-            var user = GetCurrentUser();
+            var currentUser = GetCurrentUser();
 
-            if (user == null || user.IsDeleted)
+            if (currentUser == null || currentUser.IsDeleted)
             {
                 return HttpNotFound("User not found.");
             }
 
             var listPackageItems = _packageService
-                 .FindPackagesByAnyMatchingOwner(user, includeUnlisted: true)
-                 .Select(p => new ListPackageItemViewModel(p))
+                 .FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: true)
+                 .Select(p => new ListPackageItemViewModel(p, currentUser))
                  .ToList();
 
-            bool hasPendingRequest = _supportRequestService.GetIssues().Where((issue)=> (issue.UserKey.HasValue && issue.UserKey.Value == user.Key) && 
+            bool hasPendingRequest = _supportRequestService.GetIssues().Where((issue) => (issue.UserKey.HasValue && issue.UserKey.Value == currentUser.Key) && 
                                                                                  string.Equals(issue.IssueTitle, Strings.AccountDelete_SupportRequestTitle) &&
                                                                                  issue.Key != IssueStatusKeys.Resolved).Any();
 
             var model = new DeleteAccountViewModel()
             {
                 Packages = listPackageItems,
-                User = user,
-                AccountName = user.Username,
+                User = currentUser,
+                AccountName = currentUser.Username,
                 HasPendingRequests = hasPendingRequest
             };
-            
+
             return View("DeleteAccount", model);
         }
 
         [HttpPost]
-        [Authorize]
+        [UIAuthorize]
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> RequestAccountDeletion()
         {
@@ -142,36 +214,31 @@ namespace NuGetGallery
                 return HttpNotFound("User not found.");
             }
 
-            var supportRequest = await _supportRequestService.AddNewSupportRequestAsync(
-                Strings.AccountDelete_SupportRequestTitle,
-                Strings.AccountDelete_SupportRequestTitle,
-                user.EmailAddress,
-                "The user requested to have the account deleted.",
-                user);
-            var isSupportRequestCreated = supportRequest != null;
+            var isSupportRequestCreated = await _supportRequestService.TryAddDeleteSupportRequestAsync(user);
             if (!isSupportRequestCreated)
             {
                 TempData["RequestFailedMessage"] = Strings.AccountDelete_CreateSupportRequestFails;
                 return RedirectToAction("DeleteRequest");
             }
-            _messageService.SendAccountDeleteNotice(user.ToMailAddress(), user.Username);
-           
+            MessageService.SendAccountDeleteNotice(user.ToMailAddress(), user.Username);
+
             return RedirectToAction("DeleteRequest");
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admins")]
+        [UIAuthorize(Roles = "Admins")]
         public virtual ActionResult Delete(string accountName)
         {
-            var user = _userService.FindByUsername(accountName);
-            if(user == null || user.IsDeleted || (user is Organization))
+            var currentUser = GetCurrentUser();
+            var user = UserService.FindByUsername(accountName);
+            if (user == null || user.IsDeleted || (user is Organization))
             {
                 return HttpNotFound("User not found.");
             }
 
             var listPackageItems = _packageService
-                 .FindPackagesByAnyMatchingOwner(user, includeUnlisted:true)
-                 .Select(p => new ListPackageItemViewModel(p))
+                 .FindPackagesByAnyMatchingOwner(user, includeUnlisted: true)
+                 .Select(p => new ListPackageItemViewModel(p, currentUser))
                  .ToList();
             var model = new DeleteUserAccountViewModel
             {
@@ -183,12 +250,12 @@ namespace NuGetGallery
         }
 
         [HttpDelete]
-        [Authorize(Roles = "Admins")]
+        [UIAuthorize(Roles = "Admins")]
         [RequiresAccountConfirmation("Delete account")]
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> Delete(DeleteUserAccountViewModel model)
         {
-            var user = _userService.FindByUsername(model.AccountName);
+            var user = UserService.FindByUsername(model.AccountName);
             if (user == null || user.IsDeleted)
             {
                 return View("DeleteUserAccountStatus", new DeleteUserAccountStatus()
@@ -207,7 +274,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [Authorize]
+        [UIAuthorize]
         public virtual ActionResult ApiKeys()
         {
             var user = GetCurrentUser();
@@ -251,26 +318,9 @@ namespace NuGetGallery
                                 .OrderBy(i => i)
                                 .ToList());
         }
-
-        [Authorize]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> ChangeEmailSubscription(AccountViewModel model)
-        {
-            var user = GetCurrentUser();
-
-            await _userService.ChangeEmailSubscriptionAsync(
-                user, 
-                model.ChangeNotifications.EmailAllowed, 
-                model.ChangeNotifications.NotifyPackagePushed);
-
-            TempData["Message"] = Strings.EmailPreferencesUpdated;
-
-            return RedirectToAction("Account");
-        }
-
+        
         [HttpGet]
-        [Authorize]
+        [UIAuthorize]
         public virtual ActionResult Thanks()
         {
             // No need to redirect here after someone logs in...
@@ -280,46 +330,34 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [Authorize]
+        [UIAuthorize]
         public virtual ActionResult Packages()
         {
-            var user = GetCurrentUser();
+            var currentUser = GetCurrentUser();
 
             var owners = new List<ListPackageOwnerViewModel> {
                 new ListPackageOwnerViewModel
                 {
                     Username = "All packages"
                 },
-                new ListPackageOwnerViewModel(user)
-                {
-                    CanManagePackageOwners = PermissionsService.IsActionAllowed(
-                        account: user,
-                        currentUser: user,
-                        action: PackageActions.ManagePackageOwners)
-                }
-            }.Concat(user.Organizations.Select(o => new ListPackageOwnerViewModel(o.Organization)
-            {
-                CanManagePackageOwners = PermissionsService.IsActionAllowed(
-                    account: o.Organization,
-                    currentUser: user,
-                    action: PackageActions.ManagePackageOwners)
-            }));
+                new ListPackageOwnerViewModel(currentUser)
+            }.Concat(currentUser.Organizations.Select(o => new ListPackageOwnerViewModel(o.Organization)));
 
-            var packages = _packageService.FindPackagesByAnyMatchingOwner(user, includeUnlisted: true);
+            var packages = _packageService.FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: true);
             var listedPackages = packages
                 .Where(p => p.Listed)
-                .Select(p => new ListPackageItemViewModel(p)).OrderBy(p => p.Id)
+                .Select(p => new ListPackageItemViewModel(p, currentUser)).OrderBy(p => p.Id)
                 .ToList();
             var unlistedPackages = packages
                 .Where(p => !p.Listed)
-                .Select(p => new ListPackageItemViewModel(p)).OrderBy(p => p.Id)
+                .Select(p => new ListPackageItemViewModel(p, currentUser)).OrderBy(p => p.Id)
                 .ToList();
 
-            var incoming = _packageOwnerRequestService.GetPackageOwnershipRequests(newOwner: user);
-            var outgoing = _packageOwnerRequestService.GetPackageOwnershipRequests(requestingOwner: user);
+            var received = _packageOwnerRequestService.GetPackageOwnershipRequests(newOwner: currentUser);
+            var sent = _packageOwnerRequestService.GetPackageOwnershipRequests(requestingOwner: currentUser);
 
-            var ownerRequests = new OwnerRequestsViewModel(incoming, outgoing, user, _packageService);
-            var reservedPrefixes = new ReservedNamespaceListViewModel(user.ReservedNamespaces);
+            var ownerRequests = new OwnerRequestsViewModel(received, sent, currentUser, _packageService);
+            var reservedPrefixes = new ReservedNamespaceListViewModel(currentUser.ReservedNamespaces);
 
             var model = new ManagePackagesViewModel
             {
@@ -329,6 +367,17 @@ namespace NuGetGallery
                 OwnerRequests = ownerRequests,
                 ReservedNamespaces = reservedPrefixes
             };
+            return View(model);
+        }
+
+        [HttpGet]
+        [UIAuthorize]
+        public virtual ActionResult Organizations()
+        {
+            var currentUser = GetCurrentUser();
+
+            var model = new ManageOrganizationsViewModel(currentUser, _packageService);
+
             return View(model);
         }
 
@@ -352,7 +401,7 @@ namespace NuGetGallery
 
             if (ModelState.IsValid)
             {
-                var result = await _authService.GeneratePasswordResetToken(model.Email, Constants.PasswordResetTokenExpirationHours * 60);
+                var result = await AuthenticationService.GeneratePasswordResetToken(model.Email, Constants.PasswordResetTokenExpirationHours * 60);
                 switch (result.Type)
                 {
                     case PasswordResetResultType.UserNotConfirmed:
@@ -413,7 +462,7 @@ namespace NuGetGallery
             Credential credential = null;
             try
             {
-                credential = await _authService.ResetPasswordWithToken(username, token, model.NewPassword);
+                credential = await AuthenticationService.ResetPasswordWithToken(username, token, model.NewPassword);
             }
             catch (InvalidOperationException ex)
             {
@@ -432,77 +481,25 @@ namespace NuGetGallery
             if (credential != null && !forgot)
             {
                 // Setting a password, so notify the user
-                _messageService.SendCredentialAddedNotice(credential.User, _authService.DescribeCredential(credential));
+                MessageService.SendCredentialAddedNotice(credential.User, AuthenticationService.DescribeCredential(credential));
             }
 
-            return RedirectToAction(
-                actionName: "PasswordChanged",
-                controllerName: "Users");
+            return RedirectToAction("PasswordChanged");
         }
-
-        [Authorize]
-        public virtual async Task<ActionResult> Confirm(string username, string token)
-        {
-            // We don't want Login to go to this page as a return URL
-            // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
-            ViewData[Constants.ReturnUrlViewDataKey] = null;
-
-            var user = GetCurrentUser();
-
-            if (!String.Equals(username, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
-            {
-                return View(new ConfirmationViewModel(user)
-                {
-                    WrongUsername = true,
-                    SuccessfulConfirmation = false,
-                });
-            }
-
-            string existingEmail = user.EmailAddress;
-            var model = new ConfirmationViewModel(user);
-
-            if (!model.AlreadyConfirmed)
-            {
-                try
-                {
-                    model.SuccessfulConfirmation = await _userService.ConfirmEmailAddress(user, token);
-                }
-                catch (EntityException)
-                {
-                    model.SuccessfulConfirmation = false;
-                    model.DuplicateEmailAddress = true;
-                }
-
-                // SuccessfulConfirmation is required so that the confirm Action isn't a way to spam people.
-                // Change notice not required for new accounts.
-                if (model.SuccessfulConfirmation && !model.ConfirmingNewAccount)
-                {
-                    _messageService.SendEmailChangeNoticeToPreviousEmailAddress(user, existingEmail);
-
-                    string returnUrl = HttpContext.GetConfirmationReturnUrl();
-                    if (!String.IsNullOrEmpty(returnUrl))
-                    {
-                        TempData["Message"] = "You have successfully confirmed your email address!";
-                        return SafeRedirect(returnUrl);
-                    }
-                }
-            }
-
-            return View(model);
-        }
-
+        
         [HttpGet]
         public virtual ActionResult Profiles(string username, int page = 1)
         {
-            var user = _userService.FindByUsername(username);
+            var currentUser = GetCurrentUser();
+            var user = UserService.FindByUsername(username);
             if (user == null || user.IsDeleted)
             {
                 return HttpNotFound();
             }
 
-            var packages = _packageService.FindPackagesByAnyMatchingOwner(user, includeUnlisted: false)
+            var packages = _packageService.FindPackagesByOwner(user, includeUnlisted: false)
                 .OrderByDescending(p => p.PackageRegistration.DownloadCount)
-                .Select(p => new ListPackageItemViewModel(p)
+                .Select(p => new ListPackageItemViewModel(p, currentUser)
                 {
                     DownloadCount = p.PackageRegistration.DownloadCount
                 }).ToList();
@@ -513,89 +510,9 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [Authorize]
+        [UIAuthorize]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> ChangeEmail(AccountViewModel model)
-        {
-            if (!ModelState.IsValidField("ChangeEmail.NewEmail"))
-            {
-                return AccountView(model);
-            }
-
-            var user = GetCurrentUser();
-            if (user.HasPassword())
-            {
-                if (!ModelState.IsValidField("ChangeEmail.Password"))
-                {
-                    return AccountView(model);
-                }
-
-                Credential _;
-
-                if (!_authService.ValidatePasswordCredential(user.Credentials, model.ChangeEmail.Password, out _))
-                {
-                    ModelState.AddModelError("ChangeEmail.Password", Strings.CurrentPasswordIncorrect);
-                    return AccountView(model);
-                }
-            }
-
-            // No password? We can't do any additional verification...
-
-            if (string.Equals(model.ChangeEmail.NewEmail, user.LastSavedEmailAddress, StringComparison.OrdinalIgnoreCase))
-            {
-                // email address unchanged - accept
-                return RedirectToAction(actionName: "Account", controllerName: "Users");
-            }
-
-            try
-            {
-                await _userService.ChangeEmailAddress(user, model.ChangeEmail.NewEmail);
-            }
-            catch (EntityException e)
-            {
-                ModelState.AddModelError("ChangeEmail.NewEmail", e.Message);
-                return AccountView(model);
-            }
-
-            if (user.Confirmed)
-            {
-                var confirmationUrl = Url.ConfirmEmail(user.Username, user.EmailConfirmationToken, relativeUrl: false);
-                _messageService.SendEmailChangeConfirmationNotice(new MailAddress(user.UnconfirmedEmailAddress, user.Username), confirmationUrl);
-
-                TempData["Message"] = Strings.EmailUpdated_ConfirmationRequired;
-            }
-            else
-            {
-                TempData["Message"] = Strings.EmailUpdated;
-            }
-
-            return RedirectToAction(actionName: "Account", controllerName: "Users");
-        }
-
-        [HttpPost]
-        [Authorize]
-        [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> CancelChangeEmail(AccountViewModel model)
-        {
-            var user = GetCurrentUser();
-
-            if(string.IsNullOrWhiteSpace(user.UnconfirmedEmailAddress))
-            {
-                return RedirectToAction(actionName: "Account", controllerName: "Users");
-            }
-
-            await _userService.CancelChangeEmailAddress(user);
-
-            TempData["Message"] = Strings.CancelEmailAddress;
-
-            return RedirectToAction(actionName: "Account", controllerName: "Users");
-        }
-
-
-        [HttpPost]
-        [Authorize]
-        [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> ChangePassword(AccountViewModel model)
+        public virtual async Task<ActionResult> ChangePassword(UserAccountViewModel model)
         {
             var user = GetCurrentUser();
 
@@ -605,11 +522,11 @@ namespace NuGetGallery
             if (oldPassword == null)
             {
                 // User is requesting a password set email
-                var resetResultType = await _authService.GeneratePasswordResetToken(user, Constants.PasswordResetTokenExpirationHours * 60);
+                var resetResultType = await AuthenticationService.GeneratePasswordResetToken(user, Constants.PasswordResetTokenExpirationHours * 60);
                 if (resetResultType == PasswordResetResultType.UserNotConfirmed)
                 {
                     ModelState.AddModelError("ChangePassword", Strings.UserIsNotYetConfirmed);
-                    return AccountView(model);
+                    return AccountView(user, model);
                 }
 
                 return SendPasswordResetEmail(user, forgotPassword: false);
@@ -623,19 +540,19 @@ namespace NuGetGallery
 
                 if (!ModelState.IsValidField("ChangePassword"))
                 {
-                    return AccountView(model);
+                    return AccountView(user, model);
                 }
 
                 if (model.ChangePassword.NewPassword != model.ChangePassword.VerifyPassword)
                 {
                     ModelState.AddModelError("ChangePassword.VerifyPassword", Strings.PasswordDoesNotMatch);
-                    return AccountView(model);
+                    return AccountView(user, model);
                 }
 
-                if (!await _authService.ChangePassword(user, model.ChangePassword.OldPassword, model.ChangePassword.NewPassword))
+                if (!await AuthenticationService.ChangePassword(user, model.ChangePassword.OldPassword, model.ChangePassword.NewPassword))
                 {
                     ModelState.AddModelError("ChangePassword.OldPassword", Strings.CurrentPasswordIncorrect);
-                    return AccountView(model);
+                    return AccountView(user, model);
                 }
 
                 TempData["Message"] = Strings.PasswordChanged;
@@ -644,7 +561,7 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [Authorize]
+        [UIAuthorize]
         [ValidateAntiForgeryToken]
         public virtual Task<ActionResult> RemovePassword()
         {
@@ -656,7 +573,7 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [Authorize]
+        [UIAuthorize]
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> RemoveCredential(string credentialType, int? credentialKey)
         {
@@ -674,7 +591,24 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [Authorize]
+        [UIAuthorize]
+        [ValidateAntiForgeryToken]
+        public virtual ActionResult LinkOrChangeExternalCredential()
+        {
+            var user = GetCurrentUser();
+            var userHasAADCredential = user.Credentials.Any(c => CredentialTypes.IsAzureActiveDirectoryAccount(c.Type));
+
+            if (userHasAADCredential)
+            {
+                TempData["WarningMessage"] = Strings.ChangeCredential_NotAllowed;
+                return RedirectToAction("Account");
+            }
+
+            return Redirect(Url.AuthenticateExternal(Url.AccountSettings()));
+        }
+
+        [HttpPost]
+        [UIAuthorize]
         [ValidateAntiForgeryToken]
         public virtual async Task<JsonResult> RegenerateCredential(string credentialType, int? credentialKey)
         {
@@ -694,14 +628,14 @@ namespace NuGetGallery
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return Json(Strings.Unsupported);
             }
-           
+
             var newCredentialViewModel = await GenerateApiKeyInternal(
                 cred.Description,
                 BuildScopes(cred.Scopes),
                 cred.ExpirationTicks.HasValue
                     ? new TimeSpan(cred.ExpirationTicks.Value) : new TimeSpan?());
 
-            await _authService.RemoveCredential(user, cred);
+            await AuthenticationService.RemoveCredential(user, cred);
 
             return Json(new ApiKeyViewModel(newCredentialViewModel));
         }
@@ -717,7 +651,7 @@ namespace NuGetGallery
             return View();
         }
 
-        [Authorize]
+        [UIAuthorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public virtual async Task<JsonResult> GenerateApiKey(string description, string owner, string[] scopes = null, string[] subjects = null, int? expirationInDays = null)
@@ -734,7 +668,7 @@ namespace NuGetGallery
             }
 
             // Get the owner scope
-            User scopeOwner = _userService.FindByUsername(owner);
+            User scopeOwner = UserService.FindByUsername(owner);
             if (scopeOwner == null)
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
@@ -763,12 +697,12 @@ namespace NuGetGallery
 
             var newCredentialViewModel = await GenerateApiKeyInternal(description, resolvedScopes, expiration);
 
-            _messageService.SendCredentialAddedNotice(GetCurrentUser(), newCredentialViewModel);
+            MessageService.SendCredentialAddedNotice(GetCurrentUser(), newCredentialViewModel);
 
             return Json(new ApiKeyViewModel(newCredentialViewModel));
         }
 
-        [Authorize]
+        [UIAuthorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public virtual async Task<JsonResult> EditCredential(string credentialType, int? credentialKey, string[] subjects)
@@ -794,9 +728,9 @@ namespace NuGetGallery
             var scopes = cred.Scopes.Select(x => x.AllowedAction).Distinct().ToArray();
             var newScopes = BuildScopes(scopeOwner, scopes, subjects);
 
-            await _authService.EditCredentialScopes(user, cred, newScopes);
+            await AuthenticationService.EditCredentialScopes(user, cred, newScopes);
 
-            var credentialViewModel = _authService.DescribeCredential(cred);
+            var credentialViewModel = AuthenticationService.DescribeCredential(cred);
 
             return Json(new ApiKeyViewModel(credentialViewModel));
         }
@@ -810,9 +744,9 @@ namespace NuGetGallery
             newCredential.Description = description;
             newCredential.Scopes = scopes;
 
-            await _authService.AddCredential(user, newCredential);
+            await AuthenticationService.AddCredential(user, newCredential);
 
-            var credentialViewModel = _authService.DescribeCredential(newCredential);
+            var credentialViewModel = AuthenticationService.DescribeCredential(newCredential);
             credentialViewModel.Value = plaintextApiKey;
 
             return credentialViewModel;
@@ -883,10 +817,10 @@ namespace NuGetGallery
                 return Json(Strings.CredentialNotFound);
             }
 
-            await _authService.RemoveCredential(user, cred);
+            await AuthenticationService.RemoveCredential(user, cred);
 
             // Notify the user of the change
-            _messageService.SendCredentialRemovedNotice(user, _authService.DescribeCredential(cred));
+            MessageService.SendCredentialRemovedNotice(user, AuthenticationService.DescribeCredential(cred));
 
             return Json(Strings.CredentialRemoved);
         }
@@ -901,16 +835,16 @@ namespace NuGetGallery
             }
 
             // Count credentials and make sure the user can always login
-            if (!CredentialTypes.IsApiKey(cred.Type) && CountLoginCredentials(user) <= 1)
+            if (!cred.IsApiKey() && CountLoginCredentials(user) <= 1)
             {
                 TempData["Message"] = Strings.CannotRemoveOnlyLoginCredential;
             }
             else
             {
-                await _authService.RemoveCredential(user, cred);
+                await AuthenticationService.RemoveCredential(user, cred);
 
                 // Notify the user of the change
-                _messageService.SendCredentialRemovedNotice(user, _authService.DescribeCredential(cred));
+                MessageService.SendCredentialRemovedNotice(user, AuthenticationService.DescribeCredential(cred));
 
                 TempData["Message"] = message;
             }
@@ -918,34 +852,18 @@ namespace NuGetGallery
             return RedirectToAction("Account");
         }
 
-        private ActionResult AccountView(AccountViewModel model)
+        protected override void UpdateAccountViewModel(User account, UserAccountViewModel model)
         {
-            var user = GetCurrentUser();
+            base.UpdateAccountViewModel(account, model);
 
-            model.CuratedFeeds = _curatedFeedService
-                .GetFeedsForManager(user.Key)
-                .Select(f => f.Name)
-                .ToList();
-            model.CredentialGroups = GetCredentialGroups(user);
+            model.CredentialGroups = GetCredentialGroups(account);
             model.SignInCredentialCount = model
                 .CredentialGroups
                 .Where(p => p.Key == CredentialKind.Password || p.Key == CredentialKind.External)
                 .Sum(p => p.Value.Count);
 
-            model.ExpirationInDaysForApiKeyV1 = _config.ExpirationInDaysForApiKeyV1;
-            model.HasPassword = model.CredentialGroups.ContainsKey(CredentialKind.Password);
-            model.CurrentEmailAddress = user.UnconfirmedEmailAddress ?? user.EmailAddress;
-            model.HasConfirmedEmailAddress = !string.IsNullOrEmpty(user.EmailAddress);
-            model.HasUnconfirmedEmailAddress = !string.IsNullOrEmpty(user.UnconfirmedEmailAddress);
-
             model.ChangePassword = model.ChangePassword ?? new ChangePasswordViewModel();
             model.ChangePassword.EnablePasswordLogin = model.HasPassword;
-
-            model.ChangeNotifications = model.ChangeNotifications ?? new ChangeNotificationsViewModel();
-            model.ChangeNotifications.EmailAllowed = user.EmailAllowed;
-            model.ChangeNotifications.NotifyPackagePushed = user.NotifyPackagePushed;
-           
-            return View("Account", model);
         }
 
         private Dictionary<CredentialKind, List<CredentialViewModel>> GetCredentialGroups(User user)
@@ -955,7 +873,7 @@ namespace NuGetGallery
                 .Where(CredentialTypes.IsViewSupportedCredential)
                 .OrderByDescending(c => c.Created)
                 .ThenBy(c => c.Description)
-                .Select(_authService.DescribeCredential)
+                .Select(AuthenticationService.DescribeCredential)
                 .GroupBy(c => c.Kind)
                 .ToDictionary(g => g.Key, g => g.ToList());
         }
@@ -964,7 +882,7 @@ namespace NuGetGallery
         {
             return user.Credentials.Count(c =>
                 c.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase) ||
-                c.Type.StartsWith(CredentialTypes.ExternalPrefix, StringComparison.OrdinalIgnoreCase));
+                c.Type.StartsWith(CredentialTypes.External.Prefix, StringComparison.OrdinalIgnoreCase));
         }
 
         private ActionResult SendPasswordResetEmail(User user, bool forgotPassword)
@@ -974,7 +892,7 @@ namespace NuGetGallery
                 user.PasswordResetToken,
                 forgotPassword,
                 relativeUrl: false);
-            _messageService.SendPasswordResetInstructions(user, resetPasswordUrl, forgotPassword);
+            MessageService.SendPasswordResetInstructions(user, resetPasswordUrl, forgotPassword);
 
             return RedirectToAction(actionName: "PasswordSent", controllerName: "Users");
         }

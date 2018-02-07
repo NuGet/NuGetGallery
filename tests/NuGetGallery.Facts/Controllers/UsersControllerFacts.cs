@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
@@ -20,41 +21,22 @@ using Xunit;
 namespace NuGetGallery
 {
     public class UsersControllerFacts
+        : AccountsControllerFacts<UsersController, User, UserAccountViewModel>
     {
         public static readonly int CredentialKey = 123;
-
-        public class TheAccountAction : TestContainer
+        
+        public class TheAccountAction : TheAccountBaseAction
         {
-            [Fact]
-            public void WillGetCuratedFeedsManagedByTheCurrentUser()
+            protected override ActionResult InvokeAccount(UsersController controller)
             {
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(new User { Key = 42 });
-
-                // act
-                controller.Account();
-
-                // verify
-                GetMock<ICuratedFeedService>()
-                    .Verify(query => query.GetFeedsForManager(42));
+                return controller.Account();
             }
 
-            [Fact]
-            public void WillReturnTheAccountViewModelWithTheCuratedFeeds()
+            protected override User GetCurrentUser(UsersController controller)
             {
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(new User { Key = 42 });
-                GetMock<ICuratedFeedService>()
-                    .Setup(stub => stub.GetFeedsForManager(42))
-                    .Returns(new[] { new CuratedFeed { Name = "theCuratedFeed" } });
-
-                // act
-                var model = ResultAssert.IsView<AccountViewModel>(controller.Account(), viewName: "Account");
-
-                // verify
-                Assert.Equal("theCuratedFeed", model.CuratedFeeds.First());
+                return GetAccount(controller);
             }
-
+            
             [Fact]
             public void LoadsDescriptionsOfCredentialsInToViewModel()
             {
@@ -73,7 +55,7 @@ namespace NuGetGallery
                 var result = controller.Account();
 
                 // Assert
-                var model = ResultAssert.IsView<AccountViewModel>(result, viewName: "Account");
+                var model = ResultAssert.IsView<UserAccountViewModel>(result, viewName: "Account");
                 var descs = model
                     .CredentialGroups
                     .SelectMany(x => x.Value)
@@ -83,7 +65,6 @@ namespace NuGetGallery
                 Assert.Equal(Strings.CredentialType_ApiKey, descs[CredentialKind.Token].TypeCaption);
                 Assert.Equal(Strings.MicrosoftAccount_AccountNoun, descs[CredentialKind.External].TypeCaption);
             }
-
 
             [Fact]
             public void FiltersOutUnsupportedCredentialsInToViewModel()
@@ -112,7 +93,7 @@ namespace NuGetGallery
                 var result = controller.Account();
 
                 // Assert
-                var model = ResultAssert.IsView<AccountViewModel>(result, viewName: "Account");
+                var model = ResultAssert.IsView<UserAccountViewModel>(result, viewName: "Account");
                 var descs = model
                     .CredentialGroups
                     .SelectMany(x => x.Value)
@@ -127,70 +108,90 @@ namespace NuGetGallery
             }
         }
 
-        public class TheConfirmationRequiredAction : TestContainer
+        public class TheCancelChangeEmailAction : TheCancelChangeEmailBaseAction
         {
-            [Fact]
-            public void WillSendNewUserEmailWhenPosted()
+            protected override User GetCurrentUser(UsersController controller)
             {
+                return GetAccount(controller);
+            }
+
+            // Note general account tests are in the base class. User-specific tests are below.
+        }
+
+        public class TheChangeEmailAction : TheChangeEmailBaseAction
+        {
+            protected override User GetCurrentUser(UsersController controller)
+            {
+                return GetAccount(controller);
+            }
+
+            // Note general account tests are in the base class. User-specific tests are below.
+
+            [Fact]
+            public async Task WhenPasswordValidationFailsErrorIsReturned()
+            {
+                // Arrange
                 var user = new User
                 {
                     Username = "theUsername",
-                    UnconfirmedEmailAddress = "to@example.com",
-                    EmailConfirmationToken = "confirmation"
+                    EmailAddress = "test@example.com",
+                    Credentials = new[] { new Credential(CredentialTypes.Password.V3, "abc") }
                 };
 
-                string sentConfirmationUrl = null;
-                MailAddress sentToAddress = null;
-
-                GetMock<IMessageService>()
-                    .Setup(m => m.SendNewAccountEmail(It.IsAny<MailAddress>(), It.IsAny<string>()))
-                    .Callback<MailAddress, string>((to, url) =>
-                    {
-                        sentToAddress = to;
-                        sentConfirmationUrl = url;
-                    });
+                Credential credential;
+                GetMock<AuthenticationService>()
+                    .Setup(u => u.ValidatePasswordCredential(It.IsAny<IEnumerable<Credential>>(), It.IsAny<string>(), out credential))
+                    .Returns(false);
 
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
-                controller.ConfirmationRequiredPost();
+                var model = new UserAccountViewModel
+                {
+                    ChangeEmail = new ChangeEmailViewModel
+                    {
+                        NewEmail = "new@example.com",
+                        Password = "password"
+                    }
+                };
 
-                // We use a catch-all route for unit tests so we can see the parameters
-                // are passed correctly.
-                Assert.Equal(TestUtility.GallerySiteRootHttps + "account/confirm/theUsername/confirmation", sentConfirmationUrl);
-                Assert.Equal("to@example.com", sentToAddress.Address);
+                // Act
+                var result = await controller.ChangeEmail(model);
+
+                // Assert
+                Assert.IsType<ViewResult>(result);
+                Assert.IsType<UserAccountViewModel>(((ViewResult)result).Model);
             }
         }
 
-        public class TheChangeEmailSubscriptionAction : TestContainer
+        public class TheConfirmationRequiredAction : TheConfirmationRequiredBaseAction
         {
-            [Fact]
-            public async Task UpdatesEmailAllowedSetting()
+            protected override User GetCurrentUser(UsersController controller)
             {
-                var user = new User("aUsername")
-                {
-                    EmailAddress = "test@example.com",
-                    EmailAllowed = true
-                };
-
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(user);
-                GetMock<IUserService>()
-                    .Setup(u => u.ChangeEmailSubscriptionAsync(user, false, true))
-                    .Returns(Task.CompletedTask);
-
-                var result = await controller.ChangeEmailSubscription(new AccountViewModel
-                {
-                    ChangeNotifications =
-                    {
-                        EmailAllowed = false,
-                        NotifyPackagePushed = true
-                    }
-                });
-
-                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
-                GetMock<IUserService>().Verify(u => u.ChangeEmailSubscriptionAsync(user, false, true));
+                return GetAccount(controller);
             }
+
+            // Note general account tests are in the base class. User-specific tests are below.
+        }
+
+        public class TheConfirmationRequiredPostAction : TheConfirmationRequiredPostBaseAction
+        {
+            protected override User GetCurrentUser(UsersController controller)
+            {
+                return GetAccount(controller);
+            }
+
+            // Note general account tests are in the base class. User-specific tests are below.
+        }
+
+        public class TheChangeEmailSubscriptionAction : TheChangeEmailSubscriptionBaseAction
+        {
+            protected override User GetCurrentUser(UsersController controller)
+            {
+                return GetAccount(controller);
+            }
+
+            // Note general account tests are in the base class. User-specific tests are below.
         }
 
         public class TheThanksAction : TestContainer
@@ -444,182 +445,103 @@ namespace NuGetGallery
                 Assert.Equal(forgot, viewResult.ViewBag.ForgotPassword);
             }
         }
-
-        public class TheConfirmAction : TestContainer
+        
+        public class TheConfirmAction : TheConfirmBaseAction
         {
-            [Fact]
-            public async Task ConfirmsTheUser()
+            protected override User GetCurrentUser(UsersController controller)
             {
-                var user = new User
-                {
-                    Username = "aUsername",
-                    UnconfirmedEmailAddress = "old@example.com",
-                    EmailConfirmationToken = "aToken",
-                };
-
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(user);
-
-                // Have to set this up first because it needs to return a task.
-                GetMock<IUserService>()
-                    .Setup(u => u.ConfirmEmailAddress(user, "aToken"))
-                    .CompletesWith(true);
-
-                var result = await controller.Confirm("aUsername", "aToken");
-
-                GetMock<IUserService>()
-                    .Verify(u => u.ConfirmEmailAddress(user, "aToken"));
+                return GetAccount(controller);
             }
 
-            [Fact]
-            public async Task ShowsAnErrorForWrongUsername()
+            // Note general account tests are in the base class. User-specific tests are below.
+        }
+
+        public class TheApiKeysAction
+            : TestContainer
+        {
+            public static IEnumerable<object[]> CurrentUserIsInPackageOwnersWithPushNew_Data
             {
-                var user = new User
+                get
                 {
-                    Username = "aUsername",
-                    UnconfirmedEmailAddress = "old@example.com",
-                    EmailConfirmationToken = "aToken",
-                };
-
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(user);
-
-                var result = await controller.Confirm("wrongUsername", "aToken");
-
-                var model = ResultAssert.IsView<ConfirmationViewModel>(result);
-                Assert.False(model.SuccessfulConfirmation);
-                Assert.True(model.WrongUsername);
+                    foreach (var currentUser in 
+                        new[] 
+                        {
+                            TestUtility.FakeUser,
+                            TestUtility.FakeAdminUser,
+                            TestUtility.FakeOrganizationAdmin,
+                            TestUtility.FakeOrganizationCollaborator
+                        })
+                    {
+                        yield return MemberDataHelper.AsData(currentUser);
+                    }
+                }
             }
 
-            [Fact]
-            public async Task ShowsAnErrorForWrongToken()
+            [Theory]
+            [MemberData(nameof(CurrentUserIsInPackageOwnersWithPushNew_Data))]
+            public void CurrentUserIsFirstInPackageOwnersWithPushNew(User currentUser)
             {
-                var user = new User
-                {
-                    Username = "aUsername",
-                    UnconfirmedEmailAddress = "old@example.com",
-                    EmailConfirmationToken = "aToken",
-                };
+                var model = GetModelForApiKeys(currentUser);
 
-                GetMock<IUserService>()
-                    .Setup(u => u.ConfirmEmailAddress(user, It.IsAny<string>()))
-                    .CompletesWith(false);
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(user);
+                var firstPackageOwner = model.PackageOwners.First();
+                Assert.True(firstPackageOwner.Owner == currentUser.Username);
+                Assert.True(firstPackageOwner.CanPushNew);
+            }
+            
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public void OrganizationIsInPackageOwnersIfMember(bool isAdmin)
+            {
+                var currentUser = isAdmin ? TestUtility.FakeOrganizationAdmin : TestUtility.FakeOrganizationCollaborator;
+                var organization = TestUtility.FakeOrganization;
 
-                var result = await controller.Confirm("aUsername", "wrongToken");
-
-                var model = ResultAssert.IsView<ConfirmationViewModel>(result);
-                Assert.False(model.SuccessfulConfirmation);
+                var model = GetModelForApiKeys(currentUser);
+                
+                Assert.Equal(1, model.PackageOwners.Count(o => o.Owner == organization.Username && o.CanPushNew == isAdmin));
             }
 
-            [Fact]
-            public async Task ShowsAnErrorForConflictingEmailAddress()
+            public static IEnumerable<object[]> OrganizationIsNotInPackageOwnersIfNotMember_Data
             {
-                var user = new User
+                get
                 {
-                    Username = "aUsername",
-                    UnconfirmedEmailAddress = "old@example.com",
-                    EmailConfirmationToken = "aToken",
-                };
-
-                GetMock<IUserService>()
-                    .Setup(u => u.ConfirmEmailAddress(user, It.IsAny<string>()))
-                    .Throws(new EntityException("msg"));
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(user);
-
-                var result = await controller.Confirm("aUsername", "aToken");
-
-                var model = ResultAssert.IsView<ConfirmationViewModel>(result);
-                Assert.False(model.SuccessfulConfirmation);
-                Assert.True(model.DuplicateEmailAddress);
+                    foreach (var currentUser in
+                        new[]
+                        {
+                            TestUtility.FakeUser,
+                            TestUtility.FakeAdminUser
+                        })
+                    {
+                        yield return MemberDataHelper.AsData(currentUser);
+                    }
+                }
             }
 
-            [Fact]
-            public async Task SendsAccountChangedNoticeWhenConfirmingChangedEmail()
+            [Theory]
+            [MemberData(nameof(OrganizationIsNotInPackageOwnersIfNotMember_Data))]
+            public void OrganizationIsNotInPackageOwnersIfNotMember(User currentUser)
             {
-                var user = new User
-                {
-                    Username = "username",
-                    EmailAddress = "old@example.com",
-                    UnconfirmedEmailAddress = "new@example.com",
-                    EmailConfirmationToken = "the-token"
-                };
+                var organization = TestUtility.FakeOrganization;
 
-                GetMock<IUserService>()
-                          .Setup(u => u.ConfirmEmailAddress(user, "the-token"))
-                          .CompletesWith(true);
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(user);
+                var model = GetModelForApiKeys(currentUser);
 
-                var result = await controller.Confirm("username", "the-token");
-
-                var model = ResultAssert.IsView<ConfirmationViewModel>(result);
-                Assert.True(model.SuccessfulConfirmation);
-                Assert.False(model.ConfirmingNewAccount);
-                GetMock<IMessageService>()
-                          .Verify(m => m.SendEmailChangeNoticeToPreviousEmailAddress(user, "old@example.com"));
+                Assert.Equal(0, model.PackageOwners.Count(o => o.Owner == organization.Username));
             }
 
-            [Fact]
-            public async Task DoesntSendAccountChangedEmailsWhenNoOldConfirmedAddress()
+            private ApiKeyListViewModel GetModelForApiKeys(User currentUser)
             {
-                var user = new User
-                {
-                    Username = "username",
-                    EmailAddress = null,
-                    UnconfirmedEmailAddress = "new@example.com",
-                    EmailConfirmationToken = "the-token"
-                };
-
-                GetMock<IUserService>()
-                          .Setup(u => u.ConfirmEmailAddress(user, "the-token"))
-                          .CompletesWith(true);
                 var controller = GetController<UsersController>();
-                controller.SetCurrentUser(user);
+                controller.SetCurrentUser(currentUser);
 
-                // act:
-                var result = await controller.Confirm("username", "the-token");
+                // Act
+                var result = controller.ApiKeys();
 
-                // verify:
-                var model = ResultAssert.IsView<ConfirmationViewModel>(result);
-                Assert.True(model.SuccessfulConfirmation);
-                Assert.True(model.ConfirmingNewAccount);
-                GetMock<IMessageService>()
-                          .Verify(m => m.SendEmailChangeConfirmationNotice(It.IsAny<MailAddress>(), It.IsAny<string>()), Times.Never());
-                GetMock<IMessageService>()
-                          .Verify(m => m.SendEmailChangeNoticeToPreviousEmailAddress(It.IsAny<User>(), It.IsAny<string>()), Times.Never());
-            }
+                // Assert
+                Assert.IsType<ViewResult>(result);
+                var viewResult = result as ViewResult;
 
-            [Fact]
-            public async Task DoesntSendAccountChangedEmailsIfConfirmationTokenDoesntMatch()
-            {
-                var user = new User
-                {
-                    Username = "username",
-                    EmailAddress = "old@example.com",
-                    UnconfirmedEmailAddress = "new@example.com",
-                    EmailConfirmationToken = "the-token"
-                };
-
-                GetMock<IUserService>()
-                    .Setup(u => u.ConfirmEmailAddress(user, "faketoken"))
-                    .CompletesWith(false);
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(user);
-
-                // act:
-                var result = await controller.Confirm("username", "faketoken");
-
-                // verify:
-                var model = ResultAssert.IsView<ConfirmationViewModel>(result);
-                Assert.False(model.SuccessfulConfirmation);
-                Assert.False(model.ConfirmingNewAccount);
-                GetMock<IMessageService>()
-                    .Verify(m => m.SendEmailChangeConfirmationNotice(It.IsAny<MailAddress>(), It.IsAny<string>()), Times.Never());
-                GetMock<IMessageService>()
-                  .Verify(m => m.SendEmailChangeNoticeToPreviousEmailAddress(It.IsAny<User>(), It.IsAny<string>()), Times.Never());
+                Assert.IsType<ApiKeyListViewModel>(viewResult.Model);
+                return viewResult.Model as ApiKeyListViewModel;
             }
         }
 
@@ -647,13 +569,42 @@ namespace NuGetGallery
                 Assert.True(string.Compare((string)result.Data, Strings.ApiKeyDescriptionRequired) == 0);
             }
 
-            [Fact]
-            public async Task WhenScopeOwnerDoesNotMatch_ReturnsBadRequest()
+            public static IEnumerable<object[]> WhenScopeOwnerDoesNotMatch_ReturnsBadRequest_Data
+            {
+                get
+                {
+                    foreach (var getCurrentUser in 
+                        new Func<Fakes, User>[] 
+                        {
+                            (fakes) => fakes.User,
+                            (fakes) => fakes.Admin
+                        })
+                    {
+                        yield return new object[]
+                        {
+                            getCurrentUser
+                        };
+                    }
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(WhenScopeOwnerDoesNotMatch_ReturnsBadRequest_Data))]
+            public Task WhenScopeOwnerDoesNotMatch_ReturnsBadRequest(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange 
                 var fakes = new Fakes();
-                var user = fakes.User;
-                var otherUser = fakes.ShaUser;
+                var currentUser = getCurrentUser(fakes);
+                var userInOwnerScope = fakes.ShaUser;
+
+                return WhenScopeOwnerDoesNotMatch_ReturnsBadRequest(currentUser, userInOwnerScope);
+            }
+
+            private async Task WhenScopeOwnerDoesNotMatch_ReturnsBadRequest(User currentUser, User userInOwnerScope)
+            {
+                // Arrange 
+                var user = currentUser;
+                var otherUser = userInOwnerScope;
                 GetMock<IUserService>()
                     .Setup(u => u.FindByUsername(otherUser.Username))
                     .Returns(otherUser);
@@ -1017,191 +968,185 @@ namespace NuGetGallery
             }
         }
 
-        public class TheChangeEmailAction : TestContainer
+        public class TheProfilesAction : TestContainer
         {
-            [Fact]
-            public async Task DoesNotLetYouUseSomeoneElsesConfirmedEmailAddress()
+            public static IEnumerable<object[]> Returns404ForMissingOrDeletedUser_Data
             {
-                var user = new User
+                get
                 {
-                    Username = "theUsername",
-                    EmailAddress = "old@example.com",
-                    Key = 1,
-                };
-
-                var authResult =
-                    new PasswordAuthenticationResult(PasswordAuthenticationResult.AuthenticationResult.Success,
-                                                    new AuthenticatedUser(user, new Credential()));
-
-                GetMock<AuthenticationService>()
-                    .Setup(u => u.Authenticate(It.IsAny<string>(), It.IsAny<string>()))
-                    .CompletesWith(authResult);
-                GetMock<IUserService>()
-                    .Setup(u => u.ChangeEmailAddress(user, "new@example.com"))
-                    .Throws(new EntityException("msg"));
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(user);
-
-                var result = await controller.ChangeEmail(
-                    new AccountViewModel()
-                    {
-                        ChangeEmail = new ChangeEmailViewModel
-                        {
-                            NewEmail = "new@example.com"
-                        }
-                    });
-                Assert.False(controller.ModelState.IsValid);
-                Assert.Equal("msg", controller.ModelState["ChangeEmail.NewEmail"].Errors[0].ErrorMessage);
+                    yield return MemberDataHelper.AsData((User)null);
+                    yield return MemberDataHelper.AsData(new User("test") { IsDeleted = true });
+                }
             }
 
-            [Fact]
-            public async Task SendsEmailChangeConfirmationNoticeWhenChangingAConfirmedEmailAddress()
-            {
-                var user = new User
-                {
-                    Username = "theUsername",
-                    EmailAddress = "test@example.com",
-                    EmailAllowed = true
-                };
-
-                var authResult =
-                    new PasswordAuthenticationResult(
-                        PasswordAuthenticationResult.AuthenticationResult.Success,
-                        new AuthenticatedUser(user, new Credential()));
-
-                GetMock<AuthenticationService>()
-                    .Setup(u => u.Authenticate("theUsername", "password"))
-                    .CompletesWith(authResult);
-                GetMock<IUserService>()
-                    .Setup(u => u.ChangeEmailAddress(user, "new@example.com"))
-                    .Callback(() => user.UpdateEmailAddress("new@example.com", () => "token"))
-                    .Completes();
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(user);
-
-                var model = new AccountViewModel()
-                {
-                    ChangeEmail = new ChangeEmailViewModel
-                    {
-                        NewEmail = "new@example.com",
-                        Password = "password"
-                    }
-                };
-
-                var result = await controller.ChangeEmail(model);
-
-                GetMock<IMessageService>()
-                    .Verify(m => m.SendEmailChangeConfirmationNotice(It.IsAny<MailAddress>(), It.IsAny<string>()));
-            }
-
-            [Fact]
-            public async Task DoesNotSendEmailChangeConfirmationNoticeWhenAddressDoesntChange()
-            {
-                var user = new User
-                {
-                    EmailAddress = "old@example.com",
-                    Username = "aUsername",
-                };
-
-                var authResult =
-                    new PasswordAuthenticationResult(PasswordAuthenticationResult.AuthenticationResult.Success, new AuthenticatedUser(user, new Credential()));
-
-                GetMock<AuthenticationService>()
-                    .Setup(u => u.Authenticate("aUsername", "password"))
-                    .CompletesWith(authResult);
-                GetMock<IUserService>()
-                    .Setup(u => u.ChangeEmailAddress(It.IsAny<User>(), It.IsAny<string>()))
-                    .Callback(() => user.UpdateEmailAddress("old@example.com", () => "new-token"));
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(user);
-
-                var model = new AccountViewModel()
-                {
-                    ChangeEmail = new ChangeEmailViewModel
-                    {
-                        NewEmail = "old@example.com",
-                        Password = "password"
-                    }
-                };
-
-                await controller.ChangeEmail(model);
-
-                GetMock<IUserService>()
-                    .Verify(u => u.ChangeEmailAddress(user, "old@example.com"), Times.Never());
-                GetMock<IMessageService>()
-                    .Verify(m => m.SendEmailChangeConfirmationNotice(It.IsAny<MailAddress>(), It.IsAny<string>()), Times.Never());
-            }
-
-            [Fact]
-            public async Task DoesNotSendEmailChangeConfirmationNoticeWhenUserWasNotConfirmed()
-            {
-                var user = new User
-                {
-                    Username = "aUsername",
-                    UnconfirmedEmailAddress = "old@example.com",
-                };
-
-                GetMock<AuthenticationService>()
-                    .Setup(u => u.Authenticate("aUsername", "password"))
-                    .CompletesWith(new PasswordAuthenticationResult(
-                        PasswordAuthenticationResult.AuthenticationResult.Success, new AuthenticatedUser(user, new Credential())));
-                GetMock<IUserService>()
-                    .Setup(u => u.ChangeEmailAddress(It.IsAny<User>(), It.IsAny<string>()))
-                    .Callback(() => user.UpdateEmailAddress("new@example.com", () => "new-token"))
-                    .Completes();
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(user);
-
-                var model = new AccountViewModel()
-                {
-                    ChangeEmail = new ChangeEmailViewModel
-                    {
-                        NewEmail = "new@example.com",
-                        Password = "password"
-                    }
-                };
-
-                await controller.ChangeEmail(model);
-
-                Assert.Equal("Your new email address was saved!", controller.TempData["Message"]);
-                GetMock<IUserService>()
-                    .Verify(u => u.ChangeEmailAddress(user, "new@example.com"));
-                GetMock<IMessageService>()
-                    .Verify(m => m.SendEmailChangeConfirmationNotice(It.IsAny<MailAddress>(), It.IsAny<string>()), Times.Never());
-            }
-
-            [Fact]
-            public async Task WhenPasswordValidationFailsErrorIsReturned()
+            [Theory]
+            [MemberData(nameof(Returns404ForMissingOrDeletedUser_Data))]
+            public void Returns404ForMissingOrDeletedUser(User user)
             {
                 // Arrange
-                var user = new User
-                {
-                    Username = "theUsername",
-                    EmailAddress = "test@example.com",
-                    Credentials = new[] { new Credential(CredentialTypes.Password.V3, "abc") }
-                };
+                var username = "test";
 
-                Credential credential;
-                GetMock<AuthenticationService>()
-                    .Setup(u => u.ValidatePasswordCredential(It.IsAny<IEnumerable<Credential>>(), It.IsAny<string>(), out credential))
-                    .Returns(false);
+                GetMock<IUserService>()
+                    .Setup(x => x.FindByUsername(username))
+                    .Returns(user);
 
                 var controller = GetController<UsersController>();
-                controller.SetCurrentUser(user);
 
-                var model = new AccountViewModel
+                // Act
+                var result = controller.Profiles(username);
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.NotFound);
+            }
+
+            public static IEnumerable<object[]> PossibleOwnershipScenarios_Data
+            {
+                get
                 {
-                    ChangeEmail = new ChangeEmailViewModel
+                    yield return MemberDataHelper.AsData(null, TestUtility.FakeUser);
+                    yield return MemberDataHelper.AsData(TestUtility.FakeUser, new User("randomUser") { Key = 5535 });
+                    yield return MemberDataHelper.AsData(TestUtility.FakeUser, TestUtility.FakeUser);
+                    yield return MemberDataHelper.AsData(TestUtility.FakeAdminUser, TestUtility.FakeUser);
+                    yield return MemberDataHelper.AsData(TestUtility.FakeAdminUser, TestUtility.FakeOrganization);
+                    yield return MemberDataHelper.AsData(TestUtility.FakeOrganizationAdmin, TestUtility.FakeOrganization);
+                    yield return MemberDataHelper.AsData(TestUtility.FakeOrganizationCollaborator, TestUtility.FakeOrganization);
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(PossibleOwnershipScenarios_Data))]
+            public void ReturnsSinglePackageAsExpected(User currentUser, User owner)
+            {
+                // Arrange
+                var username = "test";
+                
+                var package = new Package
+                {
+                    Version = "1.1.1",
+
+                    PackageRegistration = new PackageRegistration
                     {
-                        NewEmail = "new@example.com",
-                        Password = "password"
-                    }
+                        Id = "package",
+                        Owners = new[] { owner },
+                        DownloadCount = 150
+                    },
+
+                    DownloadCount = 100
                 };
 
-                var result = await controller.ChangeEmail(model);
+                GetMock<IUserService>()
+                    .Setup(x => x.FindByUsername(username))
+                    .Returns(owner);
 
-                Assert.IsType<ViewResult>(result);
-                Assert.IsType<AccountViewModel>(((ViewResult)result).Model);
+                GetMock<IPackageService>()
+                    .Setup(x => x.FindPackagesByOwner(owner, false, false))
+                    .Returns(new[] { package });
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(currentUser);
+
+                // Act
+                var result = controller.Profiles(username);
+
+                // Assert
+                var model = ResultAssert.IsView<UserProfileModel>(result);
+                AssertUserProfileModel(model, currentUser, owner, package);
+            }
+
+            [Theory]
+            [MemberData(nameof(PossibleOwnershipScenarios_Data))]
+            public void SortsPackagesByDownloadCount(User currentUser, User owner)
+            {
+                // Arrange
+                var username = "test";
+
+                var package1 = new Package
+                {
+                    Version = "1.1.1",
+
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "package",
+                        Owners = new[] { owner },
+                        DownloadCount = 150
+                    },
+
+                    DownloadCount = 100
+                };
+
+                var package2 = new Package
+                {
+                    Version = "1.32.1",
+
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "otherPackage",
+                        Owners = new[] { owner },
+                        DownloadCount = 200
+                    },
+
+                    DownloadCount = 150
+                };
+
+                GetMock<IUserService>()
+                    .Setup(x => x.FindByUsername(username))
+                    .Returns(owner);
+
+                GetMock<IPackageService>()
+                    .Setup(x => x.FindPackagesByOwner(owner, false, false))
+                    .Returns(new[] { package1, package2 });
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(currentUser);
+
+                // Act
+                var result = controller.Profiles(username);
+
+                // Assert
+                var model = ResultAssert.IsView<UserProfileModel>(result);
+                AssertUserProfileModel(model, currentUser, owner, package2, package1);
+            }
+
+            private void AssertUserProfileModel(UserProfileModel model, User currentUser, User owner, params Package[] orderedPackages)
+            {
+                Assert.Equal(owner, model.User);
+                Assert.Equal(owner.EmailAddress, model.EmailAddress);
+                Assert.Equal(owner.Username, model.Username);
+                Assert.Equal(orderedPackages.Count(), model.TotalPackages);
+                Assert.Equal(orderedPackages.Sum(p => p.PackageRegistration.DownloadCount), model.TotalPackageDownloadCount);
+
+                var orderedPackagesIndex = 0;
+                foreach (var package in model.AllPackages)
+                {
+                    AssertListPackageItemViewModel(package, currentUser, orderedPackages[orderedPackagesIndex++]);
+                }
+            }
+
+            private void AssertListPackageItemViewModel(
+                ListPackageItemViewModel packageModel,
+                User currentUser,
+                Package package)
+            {
+                Assert.Equal(package.PackageRegistration.Id, packageModel.Id);
+                Assert.Equal(package.Version, packageModel.Version);
+                Assert.Equal(package.PackageRegistration.DownloadCount, packageModel.DownloadCount);
+
+                AssertListPackageItemViewModelPermissions(packageModel, p => p.CanDisplayPrivateMetadata, currentUser, package, ActionsRequiringPermissions.DisplayPrivatePackageMetadata);
+                AssertListPackageItemViewModelPermissions(packageModel, p => p.CanEdit, currentUser, package, ActionsRequiringPermissions.EditPackage);
+                AssertListPackageItemViewModelPermissions(packageModel, p => p.CanUnlistOrRelist, currentUser, package, ActionsRequiringPermissions.UnlistOrRelistPackage);
+                AssertListPackageItemViewModelPermissions(packageModel, p => p.CanManageOwners, currentUser, package, ActionsRequiringPermissions.ManagePackageOwnership);
+                AssertListPackageItemViewModelPermissions(packageModel, p => p.CanReportAsOwner, currentUser, package, ActionsRequiringPermissions.ReportPackageAsOwner);
+            }
+
+            private void AssertListPackageItemViewModelPermissions(
+                ListPackageItemViewModel packageModel,
+                Func<ListPackageItemViewModel, bool> getPermissionsField,
+                User currentUser,
+                Package package,
+                IActionRequiringEntityPermissions<Package> action)
+            {
+                var expectedPermissions = action.CheckPermissionsOnBehalfOfAnyAccount(currentUser, package) == PermissionsCheckResult.Allowed;
+                Assert.Equal(expectedPermissions, getPermissionsField(packageModel));
             }
         }
 
@@ -1213,9 +1158,9 @@ namespace NuGetGallery
                 // Arrange
                 var controller = GetController<UsersController>();
                 controller.ModelState.AddModelError("ChangePassword.blarg", "test");
-                var inputModel = new AccountViewModel
+                var inputModel = new UserAccountViewModel
                 {
-                    ChangePassword =
+                    ChangePassword = new ChangePasswordViewModel
                     {
                         EnablePasswordLogin = true,
                     }
@@ -1231,7 +1176,7 @@ namespace NuGetGallery
                 var result = await controller.ChangePassword(inputModel);
 
                 // Assert
-                var outputModel = ResultAssert.IsView<AccountViewModel>(result, viewName: "Account");
+                var outputModel = ResultAssert.IsView<UserAccountViewModel>(result, viewName: "Account");
                 Assert.Same(inputModel, outputModel);
             }
 
@@ -1249,7 +1194,7 @@ namespace NuGetGallery
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
-                var inputModel = new AccountViewModel()
+                var inputModel = new UserAccountViewModel()
                 {
                     ChangePassword = new ChangePasswordViewModel()
                     {
@@ -1264,7 +1209,7 @@ namespace NuGetGallery
                 var result = await controller.ChangePassword(inputModel);
 
                 // Assert
-                var outputModel = ResultAssert.IsView<AccountViewModel>(result, viewName: "Account");
+                var outputModel = ResultAssert.IsView<UserAccountViewModel>(result, viewName: "Account");
                 Assert.Same(inputModel, outputModel);
                 Assert.NotEqual(inputModel.ChangePassword.NewPassword, inputModel.ChangePassword.VerifyPassword);
 
@@ -1290,7 +1235,7 @@ namespace NuGetGallery
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
-                var inputModel = new AccountViewModel()
+                var inputModel = new UserAccountViewModel()
                 {
                     ChangePassword = new ChangePasswordViewModel()
                     {
@@ -1305,7 +1250,7 @@ namespace NuGetGallery
                 var result = await controller.ChangePassword(inputModel);
 
                 // Assert
-                var outputModel = ResultAssert.IsView<AccountViewModel>(result, viewName: "Account");
+                var outputModel = ResultAssert.IsView<UserAccountViewModel>(result, viewName: "Account");
                 Assert.Same(inputModel, outputModel);
 
                 var errorMessages = controller
@@ -1334,12 +1279,12 @@ namespace NuGetGallery
                     .Setup(m => 
                                 m.SendCredentialRemovedNotice(
                                     user,
-                                    It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.ExternalPrefix + "MicrosoftAccount")))
+                                    It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.External.MicrosoftAccount)))
                     .Verifiable();
 
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
-                var inputModel = new AccountViewModel()
+                var inputModel = new UserAccountViewModel()
                 {
                     ChangePassword = new ChangePasswordViewModel()
                     {
@@ -1367,7 +1312,7 @@ namespace NuGetGallery
                     .CompletesWith(true);
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
-                var inputModel = new AccountViewModel()
+                var inputModel = new UserAccountViewModel()
                 {
                     ChangePassword = new ChangePasswordViewModel()
                     {
@@ -1409,7 +1354,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(user);
 
                 // Act
-                await controller.ChangePassword(new AccountViewModel());
+                await controller.ChangePassword(new UserAccountViewModel());
 
                 // Assert
                 Assert.Equal(TestUtility.GallerySiteRootHttps + "account/setpassword/test/t0k3n", actualConfirmUrl);
@@ -1431,7 +1376,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(user);
 
                 // Act
-                await controller.ChangePassword(new AccountViewModel());
+                await controller.ChangePassword(new UserAccountViewModel());
 
                 // Assert
                 var errorMessages = controller
@@ -1552,7 +1497,7 @@ namespace NuGetGallery
 
                 // Act
                 var result = await controller.RemoveCredential(
-                    credentialType: CredentialTypes.ExternalPrefix + "MicrosoftAccount",
+                    credentialType: CredentialTypes.External.MicrosoftAccount,
                     credentialKey: null);
 
                 // Assert
@@ -1607,7 +1552,7 @@ namespace NuGetGallery
                     .Setup(m => 
                                 m.SendCredentialRemovedNotice(
                                     user,
-                                    It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.ExternalPrefix + "MicrosoftAccount")))
+                                    It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.External.MicrosoftAccount)))
                     .Verifiable();
 
                 var controller = GetController<UsersController>();
@@ -1653,6 +1598,47 @@ namespace NuGetGallery
                     Assert.Equal(Strings.CredentialRemoved, controller.TempData["Message"]);
                     Assert.Equal(creds.Length - i - 1, user.Credentials.Count);
                 }
+            }
+        }
+
+        public class TheLinkOrChangeCredentialAction : TestContainer
+        {
+            [Fact]
+            public void ForAADLinkedAccount_ErrorIsReturned()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var aadCred = new CredentialBuilder().CreateExternalCredential("AzureActiveDirectory", "blorg", "bloog");
+                var passwordCred = new Credential("password.v3", "random");
+                var msftCred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "bloom", "filter");
+                var user = fakes.CreateUser("test", aadCred, passwordCred, msftCred);
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = controller.LinkOrChangeExternalCredential();
+
+                // Assert
+                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
+                Assert.Equal(Strings.ChangeCredential_NotAllowed, controller.TempData["WarningMessage"]);
+            }
+
+            [Fact]
+            public void ForNonAADLinkedAccount_RedirectsToAuthenticateExternalLogin()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var passwordCred = new Credential("password.v3", "random");
+                var msftCred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "bloom", "filter");
+                var user = fakes.CreateUser("test", passwordCred, msftCred);
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = controller.LinkOrChangeExternalCredential();
+
+                // Assert
+                Assert.IsType<RedirectResult>(result);
             }
         }
 
@@ -2102,10 +2088,10 @@ namespace NuGetGallery
                     .Setup(stub => stub.FindByUsername(userName))
                     .Returns(testUser);
                 GetMock<IPackageService>()
-                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>()))
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))
                     .Returns(userPackages);
                 GetMock<IPackageService>()
-                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>()))
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))
                     .Returns(userPackages);
 
                 // act
@@ -2167,7 +2153,7 @@ namespace NuGetGallery
                     .Setup(stub => stub.FindByUsername(userName))
                     .Returns(testUser);
                 GetMock<IPackageService>()
-                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>()))
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))
                     .Returns(userPackages);
                 GetMock<ISupportRequestService>()
                    .Setup(stub => stub.GetIssues(null, null, null, null))
@@ -2210,14 +2196,14 @@ namespace NuGetGallery
                     .Setup(stub => stub.FindByUsername(userName))
                     .Returns(testUser);
                 GetMock<IPackageService>()
-                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>()))
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))
                     .Returns(userPackages);
                 GetMock<ISupportRequestService>()
                    .Setup(stub => stub.GetIssues(null, null, null, userName))
                    .Returns(issues);
                 GetMock<ISupportRequestService>()
-                  .Setup(stub => stub.AddNewSupportRequestAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), testUser, null))
-                  .ReturnsAsync(successOnSentRequest ? new Issue() : (Issue)null);
+                  .Setup(stub => stub.TryAddDeleteSupportRequestAsync(testUser))
+                  .ReturnsAsync(successOnSentRequest);
 
                 // act
                 var result = await controller.RequestAccountDeletion() as RedirectToRouteResult;
@@ -2227,6 +2213,240 @@ namespace NuGetGallery
                 Assert.Equal<string>("DeleteRequest", (string)result.RouteValues["action"]);
                 bool tempData = controller.TempData.ContainsKey("RequestFailedMessage");
                 Assert.Equal<bool>(!successOnSentRequest, tempData);
+            }
+        }
+
+        public class TheTransformToOrganizationActionBase : TestContainer
+        {
+            protected UsersController CreateController(string accountToTransform, string canTransformErrorReason = "")
+            {
+                var configurationService = GetConfigurationService();
+                configurationService.Current.OrganizationsEnabledForDomains = new string[] { "example.com" };
+
+                var controller = GetController<UsersController>();
+                var currentUser = new User(accountToTransform) { EmailAddress = $"{accountToTransform}@example.com" };
+                controller.SetCurrentUser(currentUser);
+
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername("OrgAdmin"))
+                    .Returns(new User("OrgAdmin")
+                    {
+                        EmailAddress = "orgadmin@example.com"
+                    });
+
+                GetMock<IUserService>()
+                    .Setup(u => u.CanTransformUserToOrganization(It.IsAny<User>(), out canTransformErrorReason))
+                    .Returns(string.IsNullOrEmpty(canTransformErrorReason));
+
+                GetMock<IUserService>()
+                    .Setup(u => u.CanTransformUserToOrganization(It.IsAny<User>(), It.IsAny<User>(), out canTransformErrorReason))
+                    .Returns(string.IsNullOrEmpty(canTransformErrorReason));
+
+                GetMock<IUserService>()
+                    .Setup(s => s.RequestTransformToOrganizationAccount(It.IsAny<User>(), It.IsAny<User>()))
+                    .Callback<User, User>((acct, admin) => {
+                        acct.OrganizationMigrationRequest = new OrganizationMigrationRequest()
+                        {
+                            NewOrganization = acct,
+                            AdminUser = admin,
+                            ConfirmationToken = "X",
+                            RequestDate = DateTime.UtcNow
+                        };
+                    })
+                    .Returns(Task.CompletedTask)
+                    .Verifiable();
+
+                return controller;
+            }
+        }
+
+        public class TheGetTransformToOrganizationAction : TheTransformToOrganizationActionBase
+        {
+            [Fact]
+            public void WhenCanTransformReturnsFalse_ShowsError()
+            {
+                // Arrange
+                var accountToTransform = "account";
+                var controller = CreateController(accountToTransform, canTransformErrorReason: "error");
+
+                // Act
+                var result = controller.TransformToOrganization() as ViewResult;
+
+                // Assert
+                Assert.NotNull(result);
+
+                var model = result.Model as TransformAccountFailedViewModel;
+                Assert.Equal("error", model.ErrorMessage);
+            }
+        }
+
+        public class ThePostTransformToOrganizationAction : TheTransformToOrganizationActionBase
+        {
+            [Fact]
+            public async Task WhenCanTransformReturnsFalse_ShowsError()
+            {
+                // Arrange
+                var accountToTransform = "account";
+                var controller = CreateController(accountToTransform, canTransformErrorReason: "error");
+
+                // Act
+                var result = await controller.TransformToOrganization(new TransformAccountViewModel() {
+                    AdminUsername = "OrgAdmin"
+                }) as ViewResult;
+
+                // Assert
+                Assert.NotNull(result);
+
+                var model = result.Model as TransformAccountFailedViewModel;
+                Assert.Equal("error", model.ErrorMessage);
+            }
+
+            [Fact]
+            public async Task WhenAdminIsNotFound_ShowsError()
+            {
+                // Arrange
+                var accountToTransform = "account";
+                var controller = CreateController(accountToTransform);
+
+                // Act
+                var result = await controller.TransformToOrganization(new TransformAccountViewModel()
+                {
+                    AdminUsername = "AdminThatDoesNotExist"
+                });
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(1, controller.ModelState["AdminUsername"].Errors.Count);
+                Assert.Equal(
+                    String.Format(CultureInfo.CurrentCulture,
+                        Strings.TransformAccount_AdminAccountDoesNotExist, "AdminThatDoesNotExist"),
+                    controller.ModelState["AdminUsername"].Errors.First().ErrorMessage);
+            }
+
+            [Fact]
+            public async Task WhenValid_CreatesRequestAndRedirects()
+            {
+                // Arrange
+                var accountToTransform = "account";
+                var controller = CreateController(accountToTransform);
+
+                // Act
+                var result = await controller.TransformToOrganization(new TransformAccountViewModel()
+                {
+                    AdminUsername = "OrgAdmin"
+                });
+
+                // Assert
+                Assert.IsType<RedirectResult>(result);
+            }
+        }
+        
+        public class TheConfirmTransformToOrganizationAction : TestContainer
+        {
+            [Fact]
+            public async Task WhenAccountToTransformIsNotFound_ShowsError()
+            {
+                // Arrange
+                var controller = GetController<UsersController>();
+                var currentUser = new User("OrgAdmin") { EmailAddress = "orgadmin@example.com" };
+                controller.SetCurrentUser(currentUser);
+
+                // Act
+                var result = await controller.ConfirmTransformToOrganization("account", "token") as ViewResult;
+
+                // Assert
+                Assert.NotNull(result);
+
+                var model = result.Model as TransformAccountFailedViewModel;
+                Assert.Equal(
+                    String.Format(CultureInfo.CurrentCulture, Strings.TransformAccount_OrganizationAccountDoesNotExist, "account"),
+                    model.ErrorMessage);
+            }
+
+            [Fact]
+            public async Task WhenCanTransformReturnsFalse_ShowsError()
+            {
+                // Arrange
+                var accountToTransform = "account";
+                var controller = CreateController(accountToTransform, canTransformErrorReason: "error");
+
+                // Act
+                var result = await controller.ConfirmTransformToOrganization(accountToTransform, "token") as ViewResult;
+
+                // Assert
+                Assert.NotNull(result);
+
+                var model = result.Model as TransformAccountFailedViewModel;
+                Assert.Equal(
+                    "error",
+                    model.ErrorMessage);
+            }
+
+            [Fact]
+            public async Task WhenUserServiceReturnsFalse_ShowsError()
+            {
+                // Arrange
+                var accountToTransform = "account";
+                var controller = CreateController(accountToTransform, success: false);
+
+                // Act
+                var result = await controller.ConfirmTransformToOrganization(accountToTransform, "token") as ViewResult;
+
+                // Assert
+                Assert.NotNull(result);
+
+                var model = result.Model as TransformAccountFailedViewModel;
+                Assert.Equal(
+                    String.Format(CultureInfo.CurrentCulture,
+                        Strings.TransformAccount_Failed, "account"),
+                    model.ErrorMessage);
+            }
+
+            [Fact]
+            public async Task WhenUserServiceReturnsSuccess_Redirects()
+            {
+                // Arrange
+                var accountToTransform = "account";
+                var controller = CreateController(accountToTransform, success: true);
+
+                // Act
+                var result = await controller.ConfirmTransformToOrganization(accountToTransform, "token");
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.False(controller.TempData.ContainsKey("TransformError"));
+            }
+
+            private UsersController CreateController(string accountToTransform, string canTransformErrorReason = "", bool success = true)
+            {
+                // Arrange
+                var configurationService = GetConfigurationService();
+                configurationService.Current.OrganizationsEnabledForDomains = new string[] { "example.com" };
+
+                var controller = GetController<UsersController>();
+                var currentUser = new User("OrgAdmin") { EmailAddress = "orgadmin@example.com" };
+                controller.SetCurrentUser(currentUser);
+
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername(accountToTransform))
+                    .Returns(new User(accountToTransform)
+                    {
+                        EmailAddress = $"{accountToTransform}@example.com"
+                    });
+
+                GetMock<IUserService>()
+                    .Setup(u => u.CanTransformUserToOrganization(It.IsAny<User>(), out canTransformErrorReason))
+                    .Returns(string.IsNullOrEmpty(canTransformErrorReason));
+
+                GetMock<IUserService>()
+                    .Setup(u => u.CanTransformUserToOrganization(It.IsAny<User>(), It.IsAny<User>(), out canTransformErrorReason))
+                    .Returns(string.IsNullOrEmpty(canTransformErrorReason));
+
+                GetMock<IUserService>()
+                    .Setup(s => s.TransformUserToOrganization(It.IsAny<User>(), It.IsAny<User>(), It.IsAny<string>()))
+                    .Returns(Task.FromResult(success));
+
+                return controller;
             }
         }
     }

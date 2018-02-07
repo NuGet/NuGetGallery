@@ -1,0 +1,14 @@
+﻿@model TransformAccountFailedViewModel
+@{
+    ViewBag.Title = "Transform Account";
+    ViewBag.MdPageColumns = Constants.ColumnsFormMd;
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
+}
+
+<section role="main" class="container main-container page-account-transform-failed">
+    <div class="row col-sm-8">
+        <h1>Failed to transform to an organization</h1>
+        <hr />
+        <div>@Model.ErrorMessage</div>
+    </div>
+</section>

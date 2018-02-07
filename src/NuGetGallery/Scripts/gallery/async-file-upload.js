@@ -263,7 +263,7 @@ var AsyncFileUploadManager = new function () {
             $("#verify-collapser-container").removeClass("hidden");
             $("#submit-collapser-container").removeClass("hidden");
 
-            window.nuget.configureExpanderHeading("verify-package-form");
+            window.nuget.configureExpanderHeading("verify-package-section");
             window.nuget.configureExpanderHeading("submit-package-form");
         }
 

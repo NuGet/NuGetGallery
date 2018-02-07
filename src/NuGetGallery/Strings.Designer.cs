@@ -124,6 +124,43 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The account with the email {0} is linked to another Microsoft account.
+        ///If you wish to update the linked Microsoft account you can do so from the account settings page..
+        /// </summary>
+        public static string AccountIsLinkedToAnotherExternalAccount {
+            get {
+                return ResourceManager.GetString("AccountIsLinkedToAnotherExternalAccount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User &apos;{0}&apos; is already a member of this organization..
+        /// </summary>
+        public static string AddMember_AlreadyAMember {
+            get {
+                return ResourceManager.GetString("AddMember_AlreadyAMember", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User &apos;{0}&apos; has not confirmed their email..
+        /// </summary>
+        public static string AddMember_UserNotConfirmed {
+            get {
+                return ResourceManager.GetString("AddMember_UserNotConfirmed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User &apos;{0}&apos; does not exist. .
+        /// </summary>
+        public static string AddMember_UserNotFound {
+            get {
+                return ResourceManager.GetString("AddMember_UserNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The user &apos;{0}&apos; is already an owner or pending owner of the package..
         /// </summary>
         public static string AddOwner_AlreadyOwner {
@@ -406,15 +443,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You canceled your email address change request..
-        /// </summary>
-        public static string CancelEmailAddress {
-            get {
-                return ResourceManager.GetString("CancelEmailAddress", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Enqueuing unavailable: the gallery is currently in read only mode, with limited service. Please try again later..
         /// </summary>
         public static string CannotEnqueueDueToReadOnly {
@@ -429,6 +457,42 @@ namespace NuGetGallery {
         public static string CannotRemoveOnlyLoginCredential {
             get {
                 return ResourceManager.GetString("CannotRemoveOnlyLoginCredential", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to update the Microsoft account with &apos;{0}&apos;. This could happen if it is already linked to another NuGet account. Contact support for more information..
+        /// </summary>
+        public static string ChangeCredential_Failed {
+            get {
+                return ResourceManager.GetString("ChangeCredential_Failed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The change of Azure active directory account is not allowed..
+        /// </summary>
+        public static string ChangeCredential_NotAllowed {
+            get {
+                return ResourceManager.GetString("ChangeCredential_NotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No valid external provider found for authentication.
+        /// </summary>
+        public static string ChangeCredential_ProviderNotFound {
+            get {
+                return ResourceManager.GetString("ChangeCredential_ProviderNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully changed the Microsoft account..
+        /// </summary>
+        public static string ChangeCredential_Success {
+            get {
+                return ResourceManager.GetString("ChangeCredential_Success", resourceCulture);
             }
         }
         
@@ -532,6 +596,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Organization member &apos;{0}&apos; is the last admin and cannot be deleted..
+        /// </summary>
+        public static string DeleteMember_CannotDeleteLastAdmin {
+            get {
+                return ResourceManager.GetString("DeleteMember_CannotDeleteLastAdmin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Organization member was deleted..
+        /// </summary>
+        public static string DeleteMember_Success {
+            get {
+                return ResourceManager.GetString("DeleteMember_Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Owner(s) &apos;{0}&apos; require(s) that all co-owners use client version {1} or higher to push all of their packages. For more information, contact {2}.
         ///.
         /// </summary>
@@ -547,15 +629,6 @@ namespace NuGetGallery {
         public static string EmailAddressBeingUsed {
             get {
                 return ResourceManager.GetString("EmailAddressBeingUsed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Your email preferences have been updated.
-        /// </summary>
-        public static string EmailPreferencesUpdated {
-            get {
-                return ResourceManager.GetString("EmailPreferencesUpdated", resourceCulture);
             }
         }
         
@@ -621,6 +694,8 @@ namespace NuGetGallery {
         ///
         ///[{0}]({0})
         ///
+        ///Note that NuGet.org password login is being deprecated. Please use Microsoft account to sign into {1}.
+        ///
         ///Thanks,
         ///The {1} Team.
         /// </summary>
@@ -647,6 +722,8 @@ namespace NuGetGallery {
         ///
         ///[{0}]({0})
         ///
+        ///Note that NuGet.org password login is being deprecated. Please use Microsoft account to sign into {1}.
+        ///
         ///Thanks,
         ///The {1} Team.
         /// </summary>
@@ -666,24 +743,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Your new email address was saved!.
-        /// </summary>
-        public static string EmailUpdated {
-            get {
-                return ResourceManager.GetString("EmailUpdated", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Your email address has been changed! We sent a confirmation email to verify your new email. When you confirm the new email address, it will take effect and we will forget the old one..
-        /// </summary>
-        public static string EmailUpdated_ConfirmationRequired {
-            get {
-                return ResourceManager.GetString("EmailUpdated_ConfirmationRequired", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Error in sending mail : {0}.
         /// </summary>
         public static string ErrorInSendingMail {
@@ -693,7 +752,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Your external account credential expired or you did not allow us access to your account. Try logging in again..
+        ///   Looks up a localized string similar to Your account credential expired or you did not allow us access to your account. Try logging in again..
         /// </summary>
         public static string ExternalAccountLinkExpired {
             get {
@@ -909,6 +968,60 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You have successfully confirmed the organization email address..
+        /// </summary>
+        public static string OrganizationEmailConfirmed {
+            get {
+                return ResourceManager.GetString("OrganizationEmailConfirmed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The organization email preferences have been updated..
+        /// </summary>
+        public static string OrganizationEmailPreferencesUpdated {
+            get {
+                return ResourceManager.GetString("OrganizationEmailPreferencesUpdated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You canceled your organization email address change request..
+        /// </summary>
+        public static string OrganizationEmailUpdateCancelled {
+            get {
+                return ResourceManager.GetString("OrganizationEmailUpdateCancelled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The new organization email address was saved!.
+        /// </summary>
+        public static string OrganizationEmailUpdated {
+            get {
+                return ResourceManager.GetString("OrganizationEmailUpdated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The organization email address has been changed! We sent a confirmation email to verify the new email. When the new email address is confirmed, it will take effect and we will forget the old one..
+        /// </summary>
+        public static string OrganizationEmailUpdatedWithConfirmationRequired {
+            get {
+                return ResourceManager.GetString("OrganizationEmailUpdatedWithConfirmationRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Member name is required..
+        /// </summary>
+        public static string OrganizationMemberNameIsRequired {
+            get {
+                return ResourceManager.GetString("OrganizationMemberNameIsRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Organization accounts cannot create credentials..
         /// </summary>
         public static string OrganizationsCannotCreateCredentials {
@@ -1040,6 +1153,15 @@ namespace NuGetGallery {
         public static string PasswordDoesNotMatch {
             get {
                 return ResourceManager.GetString("PasswordDoesNotMatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The password login has been deprecated. You must use Microsoft account to sign in. .
+        /// </summary>
+        public static string PasswordLoginDeprecated {
+            get {
+                return ResourceManager.GetString("PasswordLoginDeprecated", resourceCulture);
             }
         }
         
@@ -1408,6 +1530,123 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You are a member of one or more organizations. You must leave all organizations before transforming your account..
+        /// </summary>
+        public static string TransformAccount_AccountHasMemberships {
+            get {
+                return ResourceManager.GetString("TransformAccount_AccountHasMemberships", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; is already an organization..
+        /// </summary>
+        public static string TransformAccount_AccountIsAnOrganization {
+            get {
+                return ResourceManager.GetString("TransformAccount_AccountIsAnOrganization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; should be a confirmed user..
+        /// </summary>
+        public static string TransformAccount_AccountNotConfirmed {
+            get {
+                return ResourceManager.GetString("TransformAccount_AccountNotConfirmed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Administrator account &apos;{0}&apos; does not exist..
+        /// </summary>
+        public static string TransformAccount_AdminAccountDoesNotExist {
+            get {
+                return ResourceManager.GetString("TransformAccount_AdminAccountDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Administrator account &apos;{0}&apos; cannot be an organization..
+        /// </summary>
+        public static string TransformAccount_AdminAccountIsOrganization {
+            get {
+                return ResourceManager.GetString("TransformAccount_AdminAccountIsOrganization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Administrator account &apos;{0}&apos; has not confirmed their email address..
+        /// </summary>
+        public static string TransformAccount_AdminAccountNotConfirmed {
+            get {
+                return ResourceManager.GetString("TransformAccount_AdminAccountNotConfirmed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Administrator account &apos;{0}&apos; cannot be the same account as the one being transformed..
+        /// </summary>
+        public static string TransformAccount_AdminMustBeDifferentAccount {
+            get {
+                return ResourceManager.GetString("TransformAccount_AdminMustBeDifferentAccount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An unexpected error occurred while transforming this account. Contact support  for assistance..
+        /// </summary>
+        public static string TransformAccount_Failed {
+            get {
+                return ResourceManager.GetString("TransformAccount_Failed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; does not support organizations..
+        /// </summary>
+        public static string TransformAccount_FailedReasonNotInDomainWhitelist {
+            get {
+                return ResourceManager.GetString("TransformAccount_FailedReasonNotInDomainWhitelist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Organization account &apos;{0}&apos; does not exist..
+        /// </summary>
+        public static string TransformAccount_OrganizationAccountDoesNotExist {
+            get {
+                return ResourceManager.GetString("TransformAccount_OrganizationAccountDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A transform request, with account &apos;{0}&apos; as administrator, is in progress. A new request will override any existing request(s)..
+        /// </summary>
+        public static string TransformAccount_RequestExists {
+            get {
+                return ResourceManager.GetString("TransformAccount_RequestExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please sign in as administrator &apos;{0}&apos; to finish transforming account &apos;{1}&apos; into an organization..
+        /// </summary>
+        public static string TransformAccount_SignInToConfirm {
+            get {
+                return ResourceManager.GetString("TransformAccount_SignInToConfirm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; was successfully transformed into an organization..
+        /// </summary>
+        public static string TransformAccount_Success {
+            get {
+                return ResourceManager.GetString("TransformAccount_Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to User is not authorized.
         /// </summary>
         public static string Unauthorized {
@@ -1431,6 +1670,24 @@ namespace NuGetGallery {
         public static string Unsupported {
             get {
                 return ResourceManager.GetString("Unsupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Organization member &apos;{0}&apos; is the last admin and cannot be changed..
+        /// </summary>
+        public static string UpdateOrDeleteMember_CannotRemoveLastAdmin {
+            get {
+                return ResourceManager.GetString("UpdateOrDeleteMember_CannotRemoveLastAdmin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Organization member &apos;{0}&apos; was not found..
+        /// </summary>
+        public static string UpdateOrDeleteMember_MemberNotFound {
+            get {
+                return ResourceManager.GetString("UpdateOrDeleteMember_MemberNotFound", resourceCulture);
             }
         }
         
@@ -1507,6 +1764,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to User &apos;{0}&apos; does not have the rights to upload a package with a new ID on behalf of user &apos;{1}&apos;..
+        /// </summary>
+        public static string UploadPackage_NewIdOnBehalfOfUserNotAllowed {
+            get {
+                return ResourceManager.GetString("UploadPackage_NewIdOnBehalfOfUserNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User &apos;{0}&apos; does not have the rights to upload a new version of an existing package on behalf of user &apos;{1}&apos;..
+        /// </summary>
+        public static string UploadPackage_NewVersionOnBehalfOfUserNotAllowed {
+            get {
+                return ResourceManager.GetString("UploadPackage_NewVersionOnBehalfOfUserNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot upload file because an upload is already in progress..
         /// </summary>
         public static string UploadPackage_UploadInProgress {
@@ -1521,6 +1796,51 @@ namespace NuGetGallery {
         public static string UserAccountLocked {
             get {
                 return ResourceManager.GetString("UserAccountLocked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You have successfully confirmed your email address!.
+        /// </summary>
+        public static string UserEmailConfirmed {
+            get {
+                return ResourceManager.GetString("UserEmailConfirmed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your email preferences have been updated..
+        /// </summary>
+        public static string UserEmailPreferencesUpdated {
+            get {
+                return ResourceManager.GetString("UserEmailPreferencesUpdated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You canceled your email address change request..
+        /// </summary>
+        public static string UserEmailUpdateCancelled {
+            get {
+                return ResourceManager.GetString("UserEmailUpdateCancelled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your new email address was saved!.
+        /// </summary>
+        public static string UserEmailUpdated {
+            get {
+                return ResourceManager.GetString("UserEmailUpdated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your email address has been changed! We sent a confirmation email to verify your new email. When you confirm the new email address, it will take effect and we will forget the old one..
+        /// </summary>
+        public static string UserEmailUpdatedWithConfirmationRequired {
+            get {
+                return ResourceManager.GetString("UserEmailUpdatedWithConfirmationRequired", resourceCulture);
             }
         }
         
@@ -1615,6 +1935,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to User &apos;{0}&apos; does not have the rights to upload new versions of package &apos;{1}&apos;..
+        /// </summary>
+        public static string VerifyPackage_OwnerInvalid {
+            get {
+                return ResourceManager.GetString("VerifyPackage_OwnerInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Your attempt to verify the package submission failed, because the package file appears to have changed. Please try again..
         /// </summary>
         public static string VerifyPackage_PackageFileModified {
@@ -1638,6 +1967,24 @@ namespace NuGetGallery {
         public static string VerifyPackage_UploadNotFound {
             get {
                 return ResourceManager.GetString("VerifyPackage_UploadNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You do not have permission to upload packages as user &apos;{0}&apos;..
+        /// </summary>
+        public static string VerifyPackage_UserInvalid {
+            get {
+                return ResourceManager.GetString("VerifyPackage_UserInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The user &apos;{0}&apos; doesn&apos;t exist. You cannot upload a package as a user that doesn&apos;t exist..
+        /// </summary>
+        public static string VerifyPackage_UserNonExistent {
+            get {
+                return ResourceManager.GetString("VerifyPackage_UserNonExistent", resourceCulture);
             }
         }
         

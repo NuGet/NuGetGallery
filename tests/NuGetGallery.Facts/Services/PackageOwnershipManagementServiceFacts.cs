@@ -26,7 +26,7 @@ namespace NuGetGallery
         {
             var dbContext = new Mock<DbContext>();
             entitiesContext = entitiesContext ?? new Mock<IEntitiesContext>();
-            entitiesContext.Setup(m => m.GetDatabase()).Returns(dbContext.Object.Database);
+            entitiesContext.Setup(m => m.GetDatabase()).Returns(new DatabaseWrapper(dbContext.Object.Database));
             packageService = packageService ?? new Mock<IPackageService>();
             reservedNamespaceService = reservedNamespaceService ?? new Mock<IReservedNamespaceService>();
             packageOwnerRequestService = packageOwnerRequestService ?? new Mock<IPackageOwnerRequestService>();
@@ -297,7 +297,7 @@ namespace NuGetGallery
             public async Task RemovingOneNamespaceOwnerDoesNotRemoveVerifiedFlag()
             {
                 var existingOwner1 = new User { Key = 100, Username = "microsoft" };
-                var existingOwner2 = new User { Key = 100, Username = "aspnet" };
+                var existingOwner2 = new User { Key = 101, Username = "aspnet" };
                 var existingNamespace = new ReservedNamespace { Value = "microsoft.aspnet.", IsSharedNamespace = false, IsPrefix = true, Owners = new HashSet<User> { existingOwner1, existingOwner2 } };
                 var package = new PackageRegistration { Key = 2, Id = "Microsoft.Aspnet.Package1", IsVerified = true, Owners = new List<User> { existingOwner1, existingOwner2 } };
                 existingOwner1.ReservedNamespaces.Add(existingNamespace);
@@ -321,7 +321,7 @@ namespace NuGetGallery
             public async Task RemovingNonNamespaceOwnerDoesNotRemoveVerifiedFlag()
             {
                 var existingOwner1 = new User { Key = 100, Username = "microsoft" };
-                var existingOwner2 = new User { Key = 100, Username = "aspnet" };
+                var existingOwner2 = new User { Key = 101, Username = "aspnet" };
                 var existingNamespace = new ReservedNamespace("microsoft.aspnet.", isSharedNamespace: false, isPrefix: true);
                 var package = new PackageRegistration { Key = 2, Id = "Microsoft.Aspnet.Package1", IsVerified = true, Owners = new List<User> { existingOwner1, existingOwner2 } };
                 existingOwner1.ReservedNamespaces.Add(existingNamespace);
@@ -346,7 +346,7 @@ namespace NuGetGallery
             {
                 var package = new PackageRegistration { Key = 2, Id = "Microsoft.Aspnet.Package1", IsVerified = true };
                 var existingOwner1 = new User { Key = 100, Username = "microsoft" };
-                var existingOwner2 = new User { Key = 100, Username = "aspnet" };
+                var existingOwner2 = new User { Key = 101, Username = "aspnet" };
                 var existingNamespace1 = new ReservedNamespace("microsoft.aspnet.", isSharedNamespace: false, isPrefix: true);
                 var existingNamespace2 = new ReservedNamespace("microsoft.", isSharedNamespace: false, isPrefix: true);
                 existingOwner1.ReservedNamespaces.Add(existingNamespace1);
@@ -401,7 +401,7 @@ namespace NuGetGallery
             public async Task NormalOwnerCannotRemoveNamespaceOwner()
             {
                 var namespaceOwner = new User { Key = 100, Username = "microsoft" };
-                var nonNamespaceOwner = new User { Key = 100, Username = "aspnet" };
+                var nonNamespaceOwner = new User { Key = 101, Username = "aspnet" };
                 var package = new PackageRegistration { Key = 2, Id = "Microsoft.Aspnet.Package1", IsVerified = true, Owners = new List<User> { namespaceOwner, nonNamespaceOwner } };
                 var existingNamespace1 = new ReservedNamespace("microsoft.aspnet.", isSharedNamespace: false, isPrefix: true);
                 namespaceOwner.ReservedNamespaces.Add(existingNamespace1);
@@ -421,8 +421,8 @@ namespace NuGetGallery
             public async Task NonNamespaceOwnerCanRemoveOtherSimilarOwners()
             {
                 var existingOwner1 = new User { Key = 100, Username = "owner1" };
-                var existingOwner2 = new User { Key = 100, Username = "owner2" };
-                var existingOwner3 = new User { Key = 100, Username = "owner3" };
+                var existingOwner2 = new User { Key = 101, Username = "owner2" };
+                var existingOwner3 = new User { Key = 102, Username = "owner3" };
                 var package = new PackageRegistration { Key = 2, Id = "Microsoft.Aspnet.Package1", IsVerified = true, Owners = new List<User> { existingOwner1, existingOwner2, existingOwner3} };
                 var existingNamespace1 = new ReservedNamespace("microsoft.aspnet.", isSharedNamespace: false, isPrefix: true);
                 existingOwner3.ReservedNamespaces.Add(existingNamespace1);
