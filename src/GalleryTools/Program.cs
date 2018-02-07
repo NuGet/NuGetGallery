@@ -47,68 +47,70 @@ namespace GalleryTools
 
         private static async Task Hash(string connectionString, bool whatIf)
         {
-            IEntitiesContext context = new EntitiesContext(connectionString, readOnly: whatIf);
-            var allCredentials = (IQueryable<Credential>)context.Set<Credential>();
+            using (var context = new EntitiesContext(connectionString, readOnly: whatIf))
+            {
+                var allCredentials = (IQueryable<Credential>)context.Set<Credential>();
 
-            // Get all V1/V2 credentials that are active: 
-            // V1 credentials that have no expiration date, but were used in the last year
-            // V1/V2 credentials that have a future expiration date
+                // Get all V1/V2 credentials that are active: 
+                // V1 credentials that have no expiration date, but were used in the last year
+                // V1/V2 credentials that have a future expiration date
 
-            var validLastUsed = DateTime.UtcNow - TimeSpan.FromDays(365);
-            Expression<Func<Credential, bool>> predicate = x => (x.Type == CredentialTypes.ApiKey.V1 || x.Type == CredentialTypes.ApiKey.V2)/* &&
+                var validLastUsed = DateTime.UtcNow - TimeSpan.FromDays(365);
+                Expression<Func<Credential, bool>> predicate = x => (x.Type == CredentialTypes.ApiKey.V1 || x.Type == CredentialTypes.ApiKey.V2)/* &&
                                                                 ((x.Expires == null && x.LastUsed != null && x.LastUsed > validLastUsed) ||
                                                                 (x.Expires != null && x.Expires > DateTime.UtcNow))*/;
 
-            var activeCredentialsCount = allCredentials.Count(predicate);
+                var activeCredentialsCount = allCredentials.Count(predicate);
 
-            Console.WriteLine($"Found {activeCredentialsCount} active V1/V2 ApiKeys.");
+                Console.WriteLine($"Found {activeCredentialsCount} active V1/V2 ApiKeys.");
 
-            IList<Credential> batch;
-            int batchNumber = 1;
-            bool failures = false;
+                IList<Credential> batch;
+                int batchNumber = 1;
+                bool failures = false;
 
-            do
-            {
-                batch = allCredentials.Where(predicate).Take(BatchSize).ToList();
-
-                if (batch.Count > 0)
+                do
                 {
-                    Console.WriteLine($"Hashing batch {batchNumber}/{Math.Ceiling((double)activeCredentialsCount / (double)BatchSize)}. Batch size: {batch.Count}...");
+                    batch = allCredentials.Where(predicate).Take(BatchSize).ToList();
 
-                    foreach (var v1v2ApiKey in batch)
+                    if (batch.Count > 0)
                     {
-                        ApiKeyV3 hashedApiKey = null;
+                        Console.WriteLine($"Hashing batch {batchNumber}/{Math.Ceiling((double)activeCredentialsCount / (double)BatchSize)}. Batch size: {batch.Count}...");
 
-                        try
+                        foreach (var v1v2ApiKey in batch)
                         {
-                            hashedApiKey = ApiKeyV3.CreateFromV1V2ApiKey(v1v2ApiKey.Value);
+                            ApiKeyV3 hashedApiKey = null;
 
-                            v1v2ApiKey.Type = CredentialTypes.ApiKey.V3;
-                            v1v2ApiKey.Value = hashedApiKey.HashedApiKey;
+                            try
+                            {
+                                hashedApiKey = ApiKeyV3.CreateFromV1V2ApiKey(v1v2ApiKey.Value);
+
+                                v1v2ApiKey.Type = CredentialTypes.ApiKey.V3;
+                                v1v2ApiKey.Value = hashedApiKey.HashedApiKey;
+                            }
+                            catch (ArgumentException e)
+                            {
+                                failures = true;
+                                Console.WriteLine($"Failed to hash key: {v1v2ApiKey.Key} Type: {v1v2ApiKey.Type} Old value: {v1v2ApiKey.Value}. Reason: {e}");
+                            }
                         }
-                        catch (ArgumentException e)
+
+                        if (batch.Count > 0 && !failures && !whatIf)
                         {
-                            failures = true;
-                            Console.WriteLine($"Failed to hash key: {v1v2ApiKey.Key} Type: {v1v2ApiKey.Type} Old value: {v1v2ApiKey.Value}. Reason: {e}");
+                            var stopwatch = Stopwatch.StartNew();
+                            Console.WriteLine($"Saving batch {batchNumber} to DB...");
+                            await context.SaveChangesAsync();
+                            Console.WriteLine($"Saved changes to DB. Took: {stopwatch.Elapsed.TotalSeconds} seconds");
                         }
-                    }
+                        else
+                        {
+                            Console.WriteLine("Skipping DB save.");
+                        }
 
-                    if (batch.Count > 0 && !failures && !whatIf)
-                    {
-                        var stopwatch = Stopwatch.StartNew();
-                        Console.WriteLine($"Saving batch {batchNumber} to DB...");
-                        await context.SaveChangesAsync();
-                        Console.WriteLine($"Saved changes to DB. Took: {stopwatch.Elapsed.TotalSeconds} seconds");
+                        batchNumber++;
                     }
-                    else
-                    {
-                        Console.WriteLine("Skipping DB save.");
-                    }
-
-                    batchNumber++;
                 }
+                while (batch.Count > 0);
             }
-            while (batch.Count > 0);
         }
     }
 }
