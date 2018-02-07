@@ -1,21 +1,16 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Moq;
-using Newtonsoft.Json;
 using NuGetGallery.Authentication;
 using NuGetGallery.Framework;
-using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Web;
 using Xunit;
 
 namespace NuGetGallery.Services
 {
-    public class LoginDeprecationServiceFacts
+    public class LoginDiscontinuationAndMigrationConfigurationFacts
     {
-        public class TheIsLoginDiscontinuedAsyncMethod : TestContainer
+        public class TheIsLoginDiscontinuedMethod : TestContainer
         {
             private const string _incorrectDomain = "notExample.com";
             private const string _domain = "example.com";
@@ -35,23 +30,23 @@ namespace NuGetGallery.Services
 
             [Theory]
             [MemberData(nameof(CredentialPasswordTypes))]
-            public Task IfPasswordLoginAndUserIsOnListReturnsTrue(string credentialPasswordType)
+            public void IfPasswordLoginAndUserIsOnListReturnsTrue(string credentialPasswordType)
             {
-                return Test(credentialPasswordType, isOnDomainList: true, isOnExceptionList: false, expectedResult: true);
+                TestIsLoginDiscontinued(credentialPasswordType, isOnDomainList: true, isOnExceptionList: false, expectedResult: true);
             }
 
             [Theory]
             [MemberData(nameof(CredentialPasswordTypes))]
-            public Task IfPasswordLoginAndUserIsNotOnListReturnsFalse(string credentialPasswordType)
+            public void IfPasswordLoginAndUserIsNotOnListReturnsFalse(string credentialPasswordType)
             {
-                return Test(credentialPasswordType, isOnDomainList: false, isOnExceptionList: false, expectedResult: false);
+                TestIsLoginDiscontinued(credentialPasswordType, isOnDomainList: false, isOnExceptionList: false, expectedResult: false);
             }
 
             [Theory]
             [MemberData(nameof(CredentialPasswordTypes))]
-            public Task IfPasswordLoginAndUserIsOnListWithExceptionReturnsFalse(string credentialPasswordType)
+            public void IfPasswordLoginAndUserIsOnListWithExceptionReturnsFalse(string credentialPasswordType)
             {
-                return Test(credentialPasswordType, isOnDomainList: true, isOnExceptionList: true, expectedResult: false);
+                TestIsLoginDiscontinued(credentialPasswordType, isOnDomainList: true, isOnExceptionList: true, expectedResult: false);
             }
 
             public static IEnumerable<object[]> IfNotPasswordLoginReturnsFalse_Data
@@ -80,12 +75,12 @@ namespace NuGetGallery.Services
 
             [Theory]
             [MemberData(nameof(IfNotPasswordLoginReturnsFalse_Data))]
-            public Task IfNotPasswordLoginReturnsFalse(string credentialType, bool isOnDomainList, bool isOnExceptionList)
+            public void IfNotPasswordLoginReturnsFalse(string credentialType, bool isOnDomainList, bool isOnExceptionList)
             {
-                return Test(credentialType, isOnDomainList, isOnExceptionList, expectedResult: false);
+                TestIsLoginDiscontinued(credentialType, isOnDomainList, isOnExceptionList, expectedResult: false);
             }
 
-            private async Task Test(string credentialType, bool isOnDomainList, bool isOnExceptionList, bool expectedResult)
+            private void TestIsLoginDiscontinued(string credentialType, bool isOnDomainList, bool isOnExceptionList, bool expectedResult)
             {
                 // Arrange
                 var credential = new Credential(credentialType, "value");
@@ -95,15 +90,10 @@ namespace NuGetGallery.Services
                 var domains = isOnDomainList ? new[] { _domain } : new[] { _incorrectDomain };
                 var exceptions = isOnExceptionList ? new[] { _email } : new[] { _incorrectEmail };
 
-                var config = new LoginDeprecationService.PasswordLoginDiscontinuationConfiguration(domains, exceptions);
-                var configString = JsonConvert.SerializeObject(config);
-
-                GetMock<IContentService>()
-                    .Setup(x => x.GetContentItemAsync(Constants.ContentNames.PasswordLoginDiscontinuationConfiguration, It.IsAny<TimeSpan>()))
-                    .Returns(Task.FromResult<IHtmlString>(new HtmlString(configString)));
+                var config = new LoginDiscontinuationAndMigrationConfiguration(domains, exceptions);
 
                 // Act
-                var result = await Get<LoginDeprecationService>().IsLoginDiscontinuedAsync(authUser);
+                var result = config.IsLoginDiscontinued(authUser);
 
                 // Assert
                 Assert.Equal(expectedResult, result);

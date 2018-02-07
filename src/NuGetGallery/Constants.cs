@@ -84,7 +84,7 @@ namespace NuGetGallery
             public static readonly string TermsOfUse = "Terms-Of-Use";
             public static readonly string PrivacyPolicy = "Privacy-Policy";
             public static readonly string Team = "Team";
-            public static readonly string PasswordLoginDiscontinuationConfiguration = "Password-Login-Discontinuation-Configuration";
+            public static readonly string LoginDiscontinuationAndMigrationConfiguration = "Login-Discontinuation-Configuration";
         }
 
         public static class StatisticsDimensions

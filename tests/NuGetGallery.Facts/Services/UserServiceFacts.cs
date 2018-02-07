@@ -638,17 +638,26 @@ namespace NuGetGallery
             {
                 // Arrange
                 var service = new TestableUserService();
-                service.MockConfig.SetupGet(c => c.OrganizationsEnabledForDomains).Returns(new[] { "notexample.com" });
                 var fakes = new Fakes();
+                var user = fakes.User;
+
+                var passwordConfigMock = new Mock<ILoginDiscontinuationAndMigrationConfiguration>();
+                passwordConfigMock
+                    .Setup(x => x.AreOrganizationsSupportedForUser(user))
+                    .Returns(false);
+
+                service.MockConfigObjectService
+                    .Setup(x => x.LoginDiscontinuationAndMigrationConfiguration)
+                    .Returns(passwordConfigMock.Object);
 
                 // Act
                 string errorReason;
-                var result = service.CanTransformUserToOrganization(fakes.User, out errorReason);
+                var result = service.CanTransformUserToOrganization(user, out errorReason);
 
                 // Assert
                 Assert.False(result);
                 Assert.Equal(errorReason, String.Format(CultureInfo.CurrentCulture,
-                    Strings.TransformAccount_FailedReasonNotInDomainWhitelist, fakes.User.Username));
+                    Strings.TransformAccount_FailedReasonNotInDomainWhitelist, user.Username));
             }
 
             [Fact]
@@ -656,46 +665,21 @@ namespace NuGetGallery
             {
                 // Arrange
                 var service = new TestableUserService();
-                service.MockConfig.SetupGet(c => c.OrganizationsEnabledForDomains).Returns(new[] { "example.com" });
                 var fakes = new Fakes();
+                var user = fakes.User;
+
+                var passwordConfigMock = new Mock<ILoginDiscontinuationAndMigrationConfiguration>();
+                passwordConfigMock
+                    .Setup(x => x.AreOrganizationsSupportedForUser(user))
+                    .Returns(true);
+
+                service.MockConfigObjectService
+                    .Setup(x => x.LoginDiscontinuationAndMigrationConfiguration)
+                    .Returns(passwordConfigMock.Object);
 
                 // Act
                 string errorReason;
-                var result = service.CanTransformUserToOrganization(fakes.User, out errorReason);
-
-                // Assert
-                Assert.True(result);
-            }
-        }
-
-        public class TheIsOrganizationsEnabledForAccountMethod
-        {
-
-            [Fact]
-            public void WhenAccountIsNotInWhitelist_ReturnsFalse()
-            {
-                // Arrange
-                var service = new TestableUserService();
-                service.MockConfig.SetupGet(c => c.OrganizationsEnabledForDomains).Returns(new[] { "notexample.com" });
-                var fakes = new Fakes();
-
-                // Act
-                var result = service.AreOrganizationsEnabledForAccount(fakes.User);
-
-                // Assert
-                Assert.False(result);
-            }
-
-            [Fact]
-            public void WhenAccountIsInWhitelist_ReturnsTrue()
-            {
-                // Arrange
-                var service = new TestableUserService();
-                service.MockConfig.SetupGet(c => c.OrganizationsEnabledForDomains).Returns(new[] { "example.com" });
-                var fakes = new Fakes();
-
-                // Act
-                var result = service.AreOrganizationsEnabledForAccount(fakes.User);
+                var result = service.CanTransformUserToOrganization(user, out errorReason);
 
                 // Assert
                 Assert.True(result);
@@ -709,17 +693,26 @@ namespace NuGetGallery
             {
                 // Arrange
                 var service = new TestableUserService();
-                service.MockConfig.SetupGet(c => c.OrganizationsEnabledForDomains).Returns(new[] { "example.com" });
                 var fakes = new Fakes();
+                var user = fakes.User;
+
+                var passwordConfigMock = new Mock<ILoginDiscontinuationAndMigrationConfiguration>();
+                passwordConfigMock
+                    .Setup(x => x.AreOrganizationsSupportedForUser(user))
+                    .Returns(true);
+
+                service.MockConfigObjectService
+                    .Setup(x => x.LoginDiscontinuationAndMigrationConfiguration)
+                    .Returns(passwordConfigMock.Object);
 
                 // Act
                 string errorReason;
-                var result = service.CanTransformUserToOrganization(fakes.User, fakes.User, out errorReason);
+                var result = service.CanTransformUserToOrganization(user, user, out errorReason);
 
                 // Assert
                 Assert.False(result);
                 Assert.Equal(errorReason, String.Format(CultureInfo.CurrentCulture,
-                    Strings.TransformAccount_AdminMustBeDifferentAccount, fakes.User.Username));
+                    Strings.TransformAccount_AdminMustBeDifferentAccount, user.Username));
             }
 
             [Fact]
@@ -727,13 +720,22 @@ namespace NuGetGallery
             {
                 // Arrange
                 var service = new TestableUserService();
-                service.MockConfig.SetupGet(c => c.OrganizationsEnabledForDomains).Returns(new[] { "example.com" });
                 var fakes = new Fakes();
                 var unconfirmedUser = new User() { UnconfirmedEmailAddress = "unconfirmed@example.com" };
+                var user = fakes.User;
+
+                var passwordConfigMock = new Mock<ILoginDiscontinuationAndMigrationConfiguration>();
+                passwordConfigMock
+                    .Setup(x => x.AreOrganizationsSupportedForUser(user))
+                    .Returns(true);
+
+                service.MockConfigObjectService
+                    .Setup(x => x.LoginDiscontinuationAndMigrationConfiguration)
+                    .Returns(passwordConfigMock.Object);
 
                 // Act
                 string errorReason;
-                var result = service.CanTransformUserToOrganization(fakes.User, unconfirmedUser, out errorReason);
+                var result = service.CanTransformUserToOrganization(user, unconfirmedUser, out errorReason);
 
                 // Assert
                 Assert.False(result);
@@ -746,17 +748,27 @@ namespace NuGetGallery
             {
                 // Arrange
                 var service = new TestableUserService();
-                service.MockConfig.SetupGet(c => c.OrganizationsEnabledForDomains).Returns(new[] { "example.com" });
                 var fakes = new Fakes();
+                var user = fakes.User;
+                var organization = fakes.Organization;
+
+                var passwordConfigMock = new Mock<ILoginDiscontinuationAndMigrationConfiguration>();
+                passwordConfigMock
+                    .Setup(x => x.AreOrganizationsSupportedForUser(user))
+                    .Returns(true);
+
+                service.MockConfigObjectService
+                    .Setup(x => x.LoginDiscontinuationAndMigrationConfiguration)
+                    .Returns(passwordConfigMock.Object);
 
                 // Act
                 string errorReason;
-                var result = service.CanTransformUserToOrganization(fakes.User, fakes.Organization, out errorReason);
+                var result = service.CanTransformUserToOrganization(user, organization, out errorReason);
 
                 // Assert
                 Assert.False(result);
                 Assert.Equal(errorReason, String.Format(CultureInfo.CurrentCulture,
-                    Strings.TransformAccount_AdminAccountIsOrganization, fakes.Organization.Username));
+                    Strings.TransformAccount_AdminAccountIsOrganization, organization.Username));
             }
         }
 

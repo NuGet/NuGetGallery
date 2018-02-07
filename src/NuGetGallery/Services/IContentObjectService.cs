@@ -6,8 +6,10 @@ using NuGetGallery.Authentication;
 
 namespace NuGetGallery
 {
-    public interface ILoginDeprecationService
+    public interface IContentObjectService
     {
-        Task<bool> IsLoginDiscontinuedAsync(AuthenticatedUser authenticatedUser);
+        ILoginDiscontinuationAndMigrationConfiguration LoginDiscontinuationAndMigrationConfiguration { get; }
+
+        Task Refresh();
     }
 }

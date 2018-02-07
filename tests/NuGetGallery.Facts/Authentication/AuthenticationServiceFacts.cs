@@ -610,9 +610,14 @@ namespace NuGetGallery.Authentication
 
                 var authUser = new AuthenticatedUser(user, credential);
 
-                GetMock<ILoginDeprecationService>()
-                    .Setup(x => x.IsLoginDiscontinuedAsync(authUser))
-                    .Returns(Task.FromResult(isDiscontinuedLogin));
+                var passwordConfigMock = new Mock<ILoginDiscontinuationAndMigrationConfiguration>();
+                passwordConfigMock
+                    .Setup(x => x.IsLoginDiscontinued(authUser))
+                    .Returns(isDiscontinuedLogin);
+
+                GetMock<IContentObjectService>()
+                    .Setup(x => x.LoginDiscontinuationAndMigrationConfiguration)
+                    .Returns(passwordConfigMock.Object);
 
                 // Act
                 await Get<AuthenticationService>().CreateSessionAsync(context, authUser);
@@ -631,8 +636,7 @@ namespace NuGetGallery.Authentication
             [Fact]
             public async Task WritesAnAuditRecord()
             {
-                // Arrange
-                var service = Get<AuthenticationService>();
+                // Arrange                
                 var fakes = Get<Fakes>();
                 var context = Fakes.CreateOwinContext();
 
@@ -640,6 +644,17 @@ namespace NuGetGallery.Authentication
                     c => string.Equals(c.Type, CredentialTypes.Password.Pbkdf2, StringComparison.OrdinalIgnoreCase));
 
                 var authenticatedUser = new AuthenticatedUser(fakes.Admin, credential);
+
+                var passwordConfigMock = new Mock<ILoginDiscontinuationAndMigrationConfiguration>();
+                passwordConfigMock
+                    .Setup(x => x.IsLoginDiscontinued(authenticatedUser))
+                    .Returns(false);
+
+                GetMock<IContentObjectService>()
+                    .Setup(x => x.LoginDiscontinuationAndMigrationConfiguration)
+                    .Returns(passwordConfigMock.Object);
+
+                var service = Get<AuthenticationService>();
 
                 // Act
                 await service.CreateSessionAsync(context, authenticatedUser);

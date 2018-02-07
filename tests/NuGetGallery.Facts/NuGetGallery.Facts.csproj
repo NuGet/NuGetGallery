@@ -448,9 +448,10 @@
     <Compile Include="Services\ActionRequiringEntityPermissionsFacts.cs" />
     <Compile Include="Services\DeleteAccountServiceFacts.cs" />
     <Compile Include="Services\JsonStatisticsServiceFacts.cs" />
-    <Compile Include="Services\LoginDeprecationServiceFacts.cs" />
+    <Compile Include="Services\ContentObjectServiceFacts.cs" />
     <Compile Include="Services\PackageOwnerRequestServiceFacts.cs" />
     <Compile Include="Services\PackageOwnershipManagementServiceFacts.cs" />
+    <Compile Include="Services\LoginDiscontinuationAndMigrationConfigurationFacts.cs" />
     <Compile Include="Services\PermissionsHelpersFacts.cs" />
     <Compile Include="Services\ReadMeServiceFacts.cs" />
     <Compile Include="Infrastructure\UserAuditRecordFacts.cs" />

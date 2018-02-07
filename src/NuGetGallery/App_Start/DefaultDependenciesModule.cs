@@ -252,11 +252,12 @@ namespace NuGetGallery
 
             builder.RegisterType<RequireSecurePushForCoOwnersPolicy>()
                 .SingleInstance();
-
-            builder.RegisterType<LoginDeprecationService>()
+            
+            builder.RegisterType<ContentObjectService>()
                 .AsSelf()
-                .As<ILoginDeprecationService>()
-                .InstancePerLifetimeScope();
+                .As<IContentObjectService>()
+                .SingleInstance();
+            HostingEnvironment.QueueBackgroundWorkItem(async cancellationToken => await DependencyResolver.Current.GetService<IContentObjectService>().Refresh());
 
             var mailSenderThunk = new Lazy<IMailSender>(
                 () =>

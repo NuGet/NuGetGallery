@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
-using System.Data.SqlClient;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -22,6 +21,7 @@ namespace NuGetGallery
         public IEntityRepository<Credential> CredentialRepository { get; protected set; }
         public IAuditingService Auditing { get; protected set; }
         public IEntitiesContext EntitiesContext { get; protected set; }
+        public IContentObjectService ContentObjectService { get; protected set; }
 
         protected UserService() { }
 
@@ -30,7 +30,8 @@ namespace NuGetGallery
             IEntityRepository<User> userRepository,
             IEntityRepository<Credential> credentialRepository,
             IAuditingService auditing,
-            IEntitiesContext entitiesContext)
+            IEntitiesContext entitiesContext,
+            IContentObjectService loginDeprecationService)
             : this()
         {
             Config = config;
@@ -38,6 +39,7 @@ namespace NuGetGallery
             CredentialRepository = credentialRepository;
             Auditing = auditing;
             EntitiesContext = entitiesContext;
+            ContentObjectService = loginDeprecationService;
         }
 
         public async Task<Membership> AddMemberAsync(Organization organization, string memberName, bool isAdmin)
@@ -294,20 +296,13 @@ namespace NuGetGallery
             {
                 errorReason = Strings.TransformAccount_AccountHasMemberships;
             }
-            else if (!AreOrganizationsEnabledForAccount(accountToTransform))
+            else if (!ContentObjectService.LoginDiscontinuationAndMigrationConfiguration.AreOrganizationsSupportedForUser(accountToTransform))
             {
                 errorReason = String.Format(CultureInfo.CurrentCulture,
                     Strings.TransformAccount_FailedReasonNotInDomainWhitelist, accountToTransform.Username);
             }
 
             return errorReason == null;
-        }
-
-        public bool AreOrganizationsEnabledForAccount(User account)
-        {
-            var enabledDomains = Config.OrganizationsEnabledForDomains;
-            return enabledDomains != null && 
-                enabledDomains.Contains(account.ToMailAddress().Host, StringComparer.OrdinalIgnoreCase);
         }
 
         public bool CanTransformUserToOrganization(User accountToTransform, User adminUser, out string errorReason)

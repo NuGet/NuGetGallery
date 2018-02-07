@@ -29,7 +29,7 @@ namespace NuGetGallery.Authentication
         private readonly ICredentialBuilder _credentialBuilder;
         private readonly ICredentialValidator _credentialValidator;
         private readonly IDateTimeProvider _dateTimeProvider;
-        private readonly ILoginDeprecationService _loginDeprecationService;
+        private readonly IContentObjectService _contentObjectService;
         private readonly ITelemetryService _telemetryService;
 
         /// <summary>
@@ -46,7 +46,7 @@ namespace NuGetGallery.Authentication
             IEntitiesContext entities, IAppConfiguration config, IDiagnosticsService diagnostics,
             IAuditingService auditing, IEnumerable<Authenticator> providers, ICredentialBuilder credentialBuilder,
             ICredentialValidator credentialValidator, IDateTimeProvider dateTimeProvider, ITelemetryService telemetryService,
-            ILoginDeprecationService loginDeprecationService)
+            IContentObjectService contentObjectService)
         {
             InitCredentialFormatters();
 
@@ -59,7 +59,7 @@ namespace NuGetGallery.Authentication
             _credentialValidator = credentialValidator ?? throw new ArgumentNullException(nameof(credentialValidator));
             _dateTimeProvider = dateTimeProvider ?? throw new ArgumentNullException(nameof(dateTimeProvider));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
-            _loginDeprecationService = loginDeprecationService ?? throw new ArgumentNullException(nameof(loginDeprecationService));
+            _contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
         }
 
         public IEntitiesContext Entities { get; private set; }
@@ -249,7 +249,9 @@ namespace NuGetGallery.Authentication
 
         private async Task<Claim[]> GetDiscontinuedLoginClaims(AuthenticatedUser user)
         {
-            return await _loginDeprecationService.IsLoginDiscontinuedAsync(user) ?
+            await _contentObjectService.Refresh();
+
+            return _contentObjectService.LoginDiscontinuationAndMigrationConfiguration.IsLoginDiscontinued(user) ?
                 new[] { new Claim(NuGetClaims.DiscontinuedLogin, NuGetClaims.DiscontinuedLoginValue) } :
                 new Claim[0];
         }

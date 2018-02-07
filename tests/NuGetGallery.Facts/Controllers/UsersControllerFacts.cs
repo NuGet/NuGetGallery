@@ -2221,7 +2221,6 @@ namespace NuGetGallery
             protected UsersController CreateController(string accountToTransform, string canTransformErrorReason = "")
             {
                 var configurationService = GetConfigurationService();
-                configurationService.Current.OrganizationsEnabledForDomains = new string[] { "example.com" };
 
                 var controller = GetController<UsersController>();
                 var currentUser = new User(accountToTransform) { EmailAddress = $"{accountToTransform}@example.com" };
@@ -2421,7 +2420,6 @@ namespace NuGetGallery
             {
                 // Arrange
                 var configurationService = GetConfigurationService();
-                configurationService.Current.OrganizationsEnabledForDomains = new string[] { "example.com" };
 
                 var controller = GetController<UsersController>();
                 var currentUser = new User("OrgAdmin") { EmailAddress = "orgadmin@example.com" };
