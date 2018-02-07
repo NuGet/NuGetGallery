@@ -98,9 +98,9 @@ namespace NuGetGallery
             return View();
         }
 
-        public virtual ActionResult Home()
+        public virtual ActionResult Home(bool showTransformModal = false)
         {
-            return View(new GalleryHomeViewModel());
+            return View(new GalleryHomeViewModel(showTransformModal));
         }
 
         [HttpGet]

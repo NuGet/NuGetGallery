@@ -14,7 +14,7 @@ namespace NuGetGallery.Filters
     public sealed class UIAuthorizeAttribute : AuthorizeAttribute
     {
         public bool AllowDiscontinuedLogins { get; }
-        
+
         public UIAuthorizeAttribute(bool allowDiscontinuedLogins = false)
         {
             AllowDiscontinuedLogins = allowDiscontinuedLogins;
@@ -22,10 +22,10 @@ namespace NuGetGallery.Filters
 
         public override void OnAuthorization(AuthorizationContext filterContext)
         {
-            // If a password credential was used, and the user has a discontinued password claim, redirect them to the homepage.
+            // If a password credential was used, and the user has a discontinued password claim, redirect them to the homepage with modal dialog
             var identity = filterContext.HttpContext.User.Identity as ClaimsIdentity;
             if (!AllowDiscontinuedLogins &&
-                identity != null && 
+                identity != null &&
                 identity.IsAuthenticated)
             {
                 var discontinuedLoginClaim = identity.GetClaimOrDefault(NuGetClaims.DiscontinuedLogin);
@@ -36,7 +36,8 @@ namespace NuGetGallery.Filters
                             new
                             {
                                 controller = "Pages",
-                                action = "Home"
+                                action = "Home",
+                                showTransformModal = true
                             }));
                 }
             }
