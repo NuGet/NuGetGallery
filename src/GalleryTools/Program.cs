@@ -94,7 +94,7 @@ namespace GalleryTools
                             }
                         }
 
-                        if (batch.Count > 0 && !failures && !whatIf)
+                        if (!failures && !whatIf)
                         {
                             var stopwatch = Stopwatch.StartNew();
                             Console.WriteLine($"Saving batch {batchNumber} to DB...");
