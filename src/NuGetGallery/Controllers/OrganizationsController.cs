@@ -6,6 +6,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGetGallery.Authentication;
+using NuGetGallery.Filters;
 
 namespace NuGetGallery
 {
@@ -33,7 +34,7 @@ namespace NuGetGallery
         };
 
         [HttpGet]
-        [Authorize]
+        [UIAuthorize]
         public virtual ActionResult ManageOrganization(string accountName)
         {
             var account = GetAccount(accountName);
@@ -42,7 +43,7 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [Authorize]
+        [UIAuthorize]
         [ValidateAntiForgeryToken]
         public async Task<JsonResult> AddMember(string accountName, string memberName, bool isAdmin)
         {
@@ -67,7 +68,7 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [Authorize]
+        [UIAuthorize]
         [ValidateAntiForgeryToken]
         public async Task<JsonResult> UpdateMember(string accountName, string memberName, bool isAdmin)
         {
@@ -92,7 +93,7 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [Authorize]
+        [UIAuthorize]
         [ValidateAntiForgeryToken]
         public async Task<JsonResult> DeleteMember(string accountName, string memberName)
         {

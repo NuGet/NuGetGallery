@@ -243,11 +243,14 @@ namespace NuGetGallery.Controllers
                 GetMock<AuthenticationService>().VerifyAll();
             }
 
-            public async Task WhenAttemptingToLinkExternalToExistingAccountWithNoExternalAccounts_AllowsLinking()
+            public async Task WhenAttemptingToLinkExternalToExistingAccountWithNoExternalAccounts_AllowsLinkingAndRemovesPassword()
             {
                 // Arrange
+                var passwordCredential = new Credential(CredentialTypes.Password.Prefix, "thePassword");
+                var user = new User("theUsername") { EmailAddress = "confirmed@example.com", Credentials = new[] { passwordCredential } };
+
                 var authUser = new AuthenticatedUser(
-                    new User("theUsername") { EmailAddress = "confirmed@example.com" },
+                    user,
                     new Credential() { Type = "foo" });
 
                 var authResult =
@@ -277,6 +280,9 @@ namespace NuGetGallery.Controllers
 
                 GetMock<AuthenticationService>()
                     .Verify(x => x.CreateSessionAsync(controller.OwinContext, authUser));
+
+                GetMock<AuthenticationService>()
+                    .Verify(x => x.RemoveCredential(user, passwordCredential));
 
                 GetMock<IMessageService>()
                     .Verify(x => x.SendCredentialAddedNotice(It.IsAny<User>(), It.IsAny<CredentialViewModel>()));
