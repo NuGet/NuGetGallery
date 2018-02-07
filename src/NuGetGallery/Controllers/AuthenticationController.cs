@@ -345,15 +345,9 @@ namespace NuGetGallery
 
         [ActionName("AuthenticateExternal")]
         [HttpGet]
-        public virtual ActionResult AuthenticateExternal(string returnUrl)
+        public virtual ActionResult AuthenticateExternal(string returnUrl, bool isTransform)
         {
-            // Get list of all enabled providers
-            var providers = GetProviders();
-
-            // Select one provider to authenticate for linking when multiple external providers are enabled.
-            // This is for backwards compatibility with MicrosoftAccount provider. 
-            string externalAuthProvider = ExternalAuthenticationPriority
-                .FirstOrDefault(authenticator => providers.Any(p => p.ProviderName.Equals(authenticator, StringComparison.OrdinalIgnoreCase)));
+            string externalAuthProvider = GetExternalProvider();
 
             if (externalAuthProvider == null)
             {
@@ -361,7 +355,7 @@ namespace NuGetGallery
                 return Redirect(returnUrl);
             }
 
-            return ChallengeAuthentication(Url.LinkOrChangeExternalCredential(returnUrl), externalAuthProvider);
+            return ChallengeAuthentication(Url.LinkOrChangeExternalCredential(returnUrl, isTransform), externalAuthProvider);
         }
 
         [NonAction]
@@ -381,8 +375,9 @@ namespace NuGetGallery
         /// after external authentication.
         /// </summary>
         /// <param name="returnUrl">The url to return upon credential replacement</param>
+        /// <param name="isTransform">Set to true if this is a transform route for authentication</param>
         /// <returns><see cref="ActionResult"/> for returnUrl</returns>
-        public virtual async Task<ActionResult> LinkOrChangeExternalCredential(string returnUrl)
+        public virtual async Task<ActionResult> LinkOrChangeExternalCredential(string returnUrl, bool isTransform)
         {
             var user = GetCurrentUser();
             var result = await _authService.ReadExternalLoginCredential(OwinContext);
@@ -393,8 +388,27 @@ namespace NuGetGallery
             }
 
             var newCredential = result.Credential;
+            var ignoreCredentialReplacement = false;
+            if (isTransform)
+            {
+                // Check if the user already has the linked external account, allow the user to login with this credential.
+                if (UserHasCredential(user, newCredential))
+                {
+                    ignoreCredentialReplacement = true;
+                }
+                else
+                {
+                    // Check if the email address used in authentication is the same as that of the user email address
+                    var userInformation = result.Authenticator?.GetIdentityInformation(result.ExternalIdentity);
+                    if (userInformation != null && !userInformation.Email.Equals(user.EmailAddress, StringComparison.OrdinalIgnoreCase))
+                    {
+                        TempData["ErrorMessage"] = string.Format(Strings.ChangeCredential_ExternalEmailMismatched, user.EmailAddress);
+                        return SafeRedirect(returnUrl);
+                    }
+                }
+            }
 
-            if (await _authService.TryReplaceCredential(user, newCredential))
+            if (ignoreCredentialReplacement || await _authService.TryReplaceCredential(user, newCredential))
             {
                 // Authenticate with the new credential after successful replacement
                 var authenticatedUser = await _authService.Authenticate(newCredential);
@@ -402,13 +416,12 @@ namespace NuGetGallery
 
                 // Remove the password credential after linking to external account.
                 var passwordCred = user.GetPasswordCredential();
-
                 if (passwordCred != null)
                 {
                     await _authService.RemoveCredential(user, passwordCred);
                 }
 
-                TempData["Message"] = Strings.ChangeCredential_Success;
+                TempData["Message"] = isTransform ? Strings.ChangeCredential_ExternalLinkingSuccess : Strings.ChangeCredential_Success;
             }
             else
             {
@@ -559,6 +572,24 @@ namespace NuGetGallery
                         ProviderName = p.Name,
                         UI = ui
                     }).ToList();
+        }
+
+        private string GetExternalProvider()
+        {
+            // Get list of all enabled providers
+            var providers = GetProviders();
+
+            // Select one provider to authenticate for linking when multiple external providers are enabled.
+            // This is for backwards compatibility with MicrosoftAccount provider. 
+            return ExternalAuthenticationPriority
+                .FirstOrDefault(authenticator => providers.Any(p => p.ProviderName.Equals(authenticator, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        private static bool UserHasCredential(User user, Credential credential)
+        {
+            return user.Credentials.Any(cred =>
+                cred.Type.Equals(credential.Type, StringComparison.OrdinalIgnoreCase)
+                && cred.Value == credential.Value);
         }
 
         private ActionResult ExternalLinkExpired()

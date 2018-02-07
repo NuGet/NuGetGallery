@@ -461,6 +461,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Please sign in with a Microsoft account that is linked with the email &apos;{0}&apos;.
+        /// </summary>
+        public static string ChangeCredential_ExternalEmailMismatched {
+            get {
+                return ResourceManager.GetString("ChangeCredential_ExternalEmailMismatched", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully linked the Microsoft account..
+        /// </summary>
+        public static string ChangeCredential_ExternalLinkingSuccess {
+            get {
+                return ResourceManager.GetString("ChangeCredential_ExternalLinkingSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to update the Microsoft account with &apos;{0}&apos;. This could happen if it is already linked to another NuGet account. Contact support for more information..
         /// </summary>
         public static string ChangeCredential_Failed {

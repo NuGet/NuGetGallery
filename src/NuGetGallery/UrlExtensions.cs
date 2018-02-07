@@ -725,9 +725,19 @@ namespace NuGetGallery
                 });
         }
 
-        public static string LinkOrChangeExternalCredential(this UrlHelper url, string returnUrl, bool relativeUrl = true)
+        public static string LinkOrChangeExternalCredential(this UrlHelper url, string returnUrl, bool isTransform = false, bool relativeUrl = true)
         {
-            return GetAuthenticationRoutes(url, "LinkOrChangeExternalCredential", returnUrl, relativeUrl);
+            return GetActionLink(
+                url,
+                "LinkOrChangeExternalCredential",
+                "Authentication",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "ReturnUrl", returnUrl },
+                    { "IsTransform", isTransform }
+                },
+                interceptReturnUrl: false);
         }
 
         public static string LinkExternalAccount(this UrlHelper url, string returnUrl, bool relativeUrl = true)
@@ -735,9 +745,19 @@ namespace NuGetGallery
             return GetAuthenticationRoutes(url, "LinkExternalAccount", returnUrl, relativeUrl);
         }
 
-        public static string AuthenticateExternal(this UrlHelper url, string returnUrl, bool relativeUrl = true)
+        public static string AuthenticateExternal(this UrlHelper url, string returnUrl, bool isTransform = false, bool relativeUrl = true)
         {
-            return GetAuthenticationRoutes(url, "AuthenticateExternal", returnUrl, relativeUrl);
+            return GetActionLink(
+                url,
+                "AuthenticateExternal",
+                "Authentication",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "ReturnUrl", returnUrl },
+                    { "IsTransform", isTransform }
+                },
+                interceptReturnUrl: false);
         }
 
         private static string GetAuthenticationRoutes(this UrlHelper url, string action, string returnUrl, bool relativeUrl = true)

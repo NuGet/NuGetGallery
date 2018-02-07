@@ -889,7 +889,7 @@ namespace NuGetGallery.Controllers
                     .CompletesWith(new AuthenticateExternalLoginResult());
 
                 // Act
-                var result = await controller.LinkOrChangeExternalCredential("theReturnUrl");
+                var result = await controller.LinkOrChangeExternalCredential("theReturnUrl", isTransform: false);
 
                 // Assert
                 ResultAssert.IsSafeRedirectTo(result, expectedUrl: "theReturnUrl");
@@ -919,7 +919,7 @@ namespace NuGetGallery.Controllers
                     .CompletesWith(false);
 
                 // Act
-                var result = await controller.LinkOrChangeExternalCredential("theReturnUrl");
+                var result = await controller.LinkOrChangeExternalCredential("theReturnUrl", isTransform: false);
 
                 // Assert
                 ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
@@ -972,7 +972,7 @@ namespace NuGetGallery.Controllers
                     .Verifiable();
 
                 // Act
-                var result = await controller.LinkOrChangeExternalCredential("theReturnUrl");
+                var result = await controller.LinkOrChangeExternalCredential("theReturnUrl", isTransform: false);
 
                 // Assert
                 ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");

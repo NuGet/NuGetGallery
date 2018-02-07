@@ -807,4 +807,10 @@ If you wish to update the linked Microsoft account you can do so from the accoun
   <data name="AddMember_UserNotConfirmed" xml:space="preserve">
     <value>User '{0}' has not confirmed their email.</value>
   </data>
+  <data name="ChangeCredential_ExternalEmailMismatched" xml:space="preserve">
+    <value>Please sign in with a Microsoft account that is linked with the email '{0}'</value>
+  </data>
+  <data name="ChangeCredential_ExternalLinkingSuccess" xml:space="preserve">
+    <value>Successfully linked the Microsoft account.</value>
+  </data>
 </root>
