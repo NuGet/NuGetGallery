@@ -56,8 +56,7 @@ namespace Validation.PackageSigning.ValidateCertificate
                 throw new ArgumentException($"Result must have a status of {nameof(EndCertificateStatus.Invalid)}", nameof(result));
             }
 
-            if (result.StatusFlags == X509ChainStatusFlags.NoError ||
-                (result.StatusFlags & (X509ChainStatusFlags.OfflineRevocation | X509ChainStatusFlags.RevocationStatusUnknown)) != 0)
+            if (result.StatusFlags == X509ChainStatusFlags.NoError)
             {
                 throw new ArgumentException($"Invalid flags on invalid verification result: {result.StatusFlags}!", nameof(result));
             }

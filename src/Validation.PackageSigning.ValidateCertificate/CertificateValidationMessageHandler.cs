@@ -96,6 +96,8 @@ namespace Validation.PackageSigning.ValidateCertificate
             }
 
             // Download and verify the certificate.
+            // TODO: Download all parent certificates and pass them to verification "VerifyAsync",
+            // will be done as part of: https://github.com/nuget/engineering/issues/787
             var certificate = await _certificateStore.LoadAsync(validation.EndCertificate.Thumbprint, CancellationToken.None);
             var result = await _certificateValidationService.VerifyAsync(certificate);
 

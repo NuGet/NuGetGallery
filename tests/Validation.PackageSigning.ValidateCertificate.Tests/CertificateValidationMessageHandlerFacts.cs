@@ -193,8 +193,8 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                 };
 
                 var certificateVerificationResult = new CertificateVerificationResult(
-                                            status: EndCertificateStatus.Unknown,
-                                            statusFlags: X509ChainStatusFlags.RevocationStatusUnknown);
+                                                            status: EndCertificateStatus.Unknown,
+                                                            statusFlags: X509ChainStatusFlags.RevocationStatusUnknown);
 
                 _certificateValidationService
                     .Setup(s => s.FindCertificateValidationAsync(It.IsAny<CertificateValidationMessage>()))
@@ -218,7 +218,11 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                 Assert.Equal(validationFailuresStart + 1, certificateValidation.EndCertificate.ValidationFailures);
 
                 _certificateValidationService
-                    .Verify(s => s.TrySaveResultAsync(It.IsAny<EndCertificateValidation>(), It.IsAny<CertificateVerificationResult>()), Times.Once);
+                    .Verify(
+                        s => s.TrySaveResultAsync(
+                                    It.IsAny<EndCertificateValidation>(),
+                                    It.IsAny<CertificateVerificationResult>()),
+                        Times.Once);
 
                 return result;
             }

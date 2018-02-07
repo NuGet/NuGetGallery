@@ -11,6 +11,7 @@
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -44,6 +45,10 @@
   <ItemGroup>
     <Compile Include="SignatureDeciderFactory.cs" />
     <Compile Include="SignatureDecision.cs" />
+    <Compile Include="CertificateVerificationException.cs" />
+    <Compile Include="OnlineCertificateVerifier.cs" />
+    <Compile Include="ICertificateVerifier.cs" />
+    <Compile Include="Primitives.cs" />
     <Compile Include="TelemetryService.cs" />
     <Compile Include="CertificateValidationMessageHandler.cs" />
     <Compile Include="CertificateValidationService.cs" />

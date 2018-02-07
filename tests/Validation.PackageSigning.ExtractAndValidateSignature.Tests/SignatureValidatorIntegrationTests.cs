@@ -249,7 +249,7 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Appears to be flaky")]
         public async Task AcceptsTrustedSigningCertificateWithUnavailableRevocation()
         {
             // Arrange
