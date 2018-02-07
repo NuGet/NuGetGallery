@@ -56,9 +56,9 @@ namespace GalleryTools
                 // V1/V2 credentials that have a future expiration date
 
                 var validLastUsed = DateTime.UtcNow - TimeSpan.FromDays(365);
-                Expression<Func<Credential, bool>> predicate = x => (x.Type == CredentialTypes.ApiKey.V1 || x.Type == CredentialTypes.ApiKey.V2)/* &&
+                Expression<Func<Credential, bool>> predicate = x => (x.Type == CredentialTypes.ApiKey.V1 || x.Type == CredentialTypes.ApiKey.V2) &&
                                                                 ((x.Expires == null && x.LastUsed != null && x.LastUsed > validLastUsed) ||
-                                                                (x.Expires != null && x.Expires > DateTime.UtcNow))*/;
+                                                                (x.Expires != null && x.Expires > DateTime.UtcNow));
 
                 var activeCredentialsCount = allCredentials.Count(predicate);
 
