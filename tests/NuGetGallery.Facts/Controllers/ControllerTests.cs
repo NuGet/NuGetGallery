@@ -1,4 +1,9 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using NuGetGallery.Filters;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -9,25 +14,25 @@ namespace NuGetGallery.Controllers
 {
     public class ControllerTests
     {
-        private class AntiForgeryTokenException : IEquatable<AntiForgeryTokenException>
+        private class ControllerActionRuleException : IEquatable<ControllerActionRuleException>
         {
             public Type Controller { get; private set; }
 
             public string Name { get; private set; }
 
-            public AntiForgeryTokenException(Type controller, string name)
+            public ControllerActionRuleException(Type controller, string name)
             {
                 Controller = controller;
                 Name = name;
             }
 
-            public AntiForgeryTokenException(MethodInfo method)
+            public ControllerActionRuleException(MethodInfo method)
             {
                 Controller = method.DeclaringType;
                 Name = method.Name;
             }
             
-            public bool Equals(AntiForgeryTokenException other)
+            public bool Equals(ControllerActionRuleException other)
             {
                 return other != null && other.Controller == Controller && other.Name == Name;
             }
@@ -52,27 +57,21 @@ namespace NuGetGallery.Controllers
 
             // These actions cannot have the AntiForgery token attribute.
             // For example: API methods intended to be called by clients.
-            var actionExceptions = new AntiForgeryTokenException[]
+            var exceptions = new ControllerActionRuleException[]
             {
-                new AntiForgeryTokenException(typeof(ApiController), nameof(ApiController.CreatePackagePut)),
-                new AntiForgeryTokenException(typeof(ApiController), nameof(ApiController.CreatePackagePost)),
-                new AntiForgeryTokenException(typeof(ApiController), nameof(ApiController.CreatePackageVerificationKeyAsync)),
-                new AntiForgeryTokenException(typeof(ApiController), nameof(ApiController.DeletePackage)),
-                new AntiForgeryTokenException(typeof(ApiController), nameof(ApiController.PublishPackage)),
-                new AntiForgeryTokenException(typeof(AuthenticationController), nameof(AuthenticationController.AuthenticateAndLinkExternal)),
-                new AntiForgeryTokenException(typeof(AuthenticationController), nameof(AuthenticationController.ChallengeAuthentication))
+                new ControllerActionRuleException(typeof(ApiController), nameof(ApiController.CreatePackagePut)),
+                new ControllerActionRuleException(typeof(ApiController), nameof(ApiController.CreatePackagePost)),
+                new ControllerActionRuleException(typeof(ApiController), nameof(ApiController.CreatePackageVerificationKeyAsync)),
+                new ControllerActionRuleException(typeof(ApiController), nameof(ApiController.DeletePackage)),
+                new ControllerActionRuleException(typeof(ApiController), nameof(ApiController.PublishPackage)),
+                new ControllerActionRuleException(typeof(AuthenticationController), nameof(AuthenticationController.AuthenticateAndLinkExternal)),
+                new ControllerActionRuleException(typeof(AuthenticationController), nameof(AuthenticationController.ChallengeAuthentication))
             };
 
             // Act
             var assembly = Assembly.GetAssembly(typeof(AppController));
 
-            var actions = assembly.GetTypes()
-                // Get all types that are controllers.
-                .Where(t => typeof(Controller).IsAssignableFrom(t))
-                // Get all public methods of those types.
-                .SelectMany(t => t.GetMethods(BindingFlags.Instance | BindingFlags.DeclaredOnly | BindingFlags.Public))
-                // Filter out compiler generated methods.
-                .Where(m => !m.GetCustomAttributes(typeof(CompilerGeneratedAttribute), true).Any())
+            var actions = GetAllActions(exceptions)
                 // Filter out methods that only support verbs that are exceptions.
                 .Where(m =>
                 {
@@ -86,20 +85,67 @@ namespace NuGetGallery.Controllers
                             (a.GetType() == typeof(AcceptVerbsAttribute) &&
                                 (a as AcceptVerbsAttribute).Verbs.All(v =>
                                     verbExceptions.Any(ve => v.Equals(ve.ToString(), StringComparison.InvariantCultureIgnoreCase))))));
-                })
-                // Filter out exceptions.
-                .Where(m =>
-                 {
-                     var possibleException = new AntiForgeryTokenException(m);
-                     return !actionExceptions.Any(a => a.Equals(possibleException));
-                 });
+                });
 
             // Assert
             var actionsMissingAntiForgeryToken = actions
-                .Where(m => !(m.GetCustomAttributes()
-                    .Any(a => a.GetType() == typeof(ValidateAntiForgeryTokenAttribute))));
-            
+                .Where(m => !(m.GetCustomAttributes().Any(a => a.GetType() == typeof(ValidateAntiForgeryTokenAttribute))));
+
             Assert.Empty(actionsMissingAntiForgeryToken);
+        }
+
+        [Fact]
+        public void AllActionsHaveUIAuthorizeAttribute()
+        {
+            // Arrange
+            
+            // These actions are allowed to continue to support a discontinued login.
+            var expectedActionsSupportingDiscontinuedLogins = new ControllerActionRuleException[]
+            {
+                new ControllerActionRuleException(typeof(UsersController), nameof(UsersController.TransformToOrganization)),
+                new ControllerActionRuleException(typeof(UsersController), nameof(UsersController.ConfirmTransformToOrganization)),
+            };
+
+            // Act
+            var assembly = Assembly.GetAssembly(typeof(AppController));
+
+            var actions = GetAllActions();
+
+            // Assert
+            
+            // No actions should have the base authorize attribute!
+            var actionsWithBaseAuthorizeAttribute = actions
+                .Where(m => m.GetCustomAttributes().Any(a => a.GetType() == typeof(AuthorizeAttribute)));
+
+            Assert.Empty(actionsWithBaseAuthorizeAttribute);
+
+            // Only certain actions should support discontinued password login
+            var actionsSupportingDiscontinuedLogins = actions
+                .Where(m => m.GetCustomAttributes().Any(a => a is UIAuthorizeAttribute && ((UIAuthorizeAttribute)a).AllowDiscontinuedLogins))
+                .Select(m => new ControllerActionRuleException(m))
+                .Distinct();
+
+            Assert.Equal(expectedActionsSupportingDiscontinuedLogins.Count(), actionsSupportingDiscontinuedLogins.Count());
+
+            Assert.Empty(actionsSupportingDiscontinuedLogins
+                .Except(expectedActionsSupportingDiscontinuedLogins));
+        }
+
+        private IEnumerable<MethodInfo> GetAllActions(IEnumerable<ControllerActionRuleException> exceptions = null)
+        {
+            return Assembly.GetAssembly(typeof(AppController)).GetTypes()
+                // Get all types that are controllers.
+                .Where(t => typeof(Controller).IsAssignableFrom(t))
+                // Get all public methods of those types.
+                .SelectMany(t => t.GetMethods(BindingFlags.Instance | BindingFlags.DeclaredOnly | BindingFlags.Public))
+                // Filter out compiler generated methods.
+                .Where(m => !m.GetCustomAttributes(typeof(CompilerGeneratedAttribute), true).Any())
+                // Filter out exceptions.
+                .Where(m =>
+                {
+                    var possibleException = new ControllerActionRuleException(m);
+                    return !exceptions?.Any(a => a.Equals(possibleException)) ?? true;
+                });
         }
     }
 }
