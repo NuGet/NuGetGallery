@@ -11,16 +11,16 @@ namespace NuGetGallery
 {
     public class LoginDiscontinuationAndMigrationConfiguration : ILoginDiscontinuationAndMigrationConfiguration
     {
-        public IEnumerable<string> DiscontinuedForDomains { get; }
-        public IEnumerable<string> ExceptionsForEmailAddresses { get; }
+        public HashSet<string> DiscontinuedForDomains { get; }
+        public HashSet<string> ExceptionsForEmailAddresses { get; }
 
         [JsonConstructor]
         public LoginDiscontinuationAndMigrationConfiguration(
             IEnumerable<string> discontinuedForDomains,
             IEnumerable<string> exceptionsForEmailAddresses)
         {
-            DiscontinuedForDomains = discontinuedForDomains;
-            ExceptionsForEmailAddresses = exceptionsForEmailAddresses;
+            DiscontinuedForDomains = new HashSet<string>(discontinuedForDomains);
+            ExceptionsForEmailAddresses = new HashSet<string>(exceptionsForEmailAddresses);
         }
 
         public bool IsLoginDiscontinued(AuthenticatedUser authUser)
