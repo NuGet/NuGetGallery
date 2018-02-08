@@ -1445,28 +1445,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 1. All co-owners must use client version {0} or higher to push all of their packages.
-        ///2. All existing push API keys for co-owners new to this policy will expire in {1} days..
-        /// </summary>
-        public static string SecurePushPolicyDescriptions {
-            get {
-                return ResourceManager.GetString("SecurePushPolicyDescriptions", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &lt;ol&gt;
-        ///&lt;li&gt;All co-owners must use client version {0} or higher to push all of their packages.&lt;/li&gt;
-        ///&lt;li&gt;All existing push API keys for co-owners new to this policy will expire in {1} days.&lt;/li&gt;
-        ///&lt;/ol&gt;.
-        /// </summary>
-        public static string SecurePushPolicyDescriptionsHtml {
-            get {
-                return ResourceManager.GetString("SecurePushPolicyDescriptionsHtml", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to A package verification key is required to push symbols. Please contact support@nuget.org to get more details..
         /// </summary>
         public static string SecurityPolicy_RequireApiKeyWithPackageVerifyScope {
