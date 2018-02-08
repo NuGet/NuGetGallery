@@ -195,17 +195,6 @@ namespace NuGetGallery
 
             // Create session
             await _authService.CreateSessionAsync(OwinContext, authenticatedUser);
-
-            if (returnUrl != Url.Home())
-            {
-                // Redirect to home page for discontinued logins.
-                var identity = OwinContext.Authentication?.User?.Identity as ClaimsIdentity;
-                if (ClaimsExtentions.HasDiscontinuedLoginCLaims(identity))
-                {
-                    return SafeRedirect(Url.Home());
-                }
-            }
-
             return SafeRedirect(returnUrl);
         }
 
