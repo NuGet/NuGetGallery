@@ -22,9 +22,9 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectory
         {
             // Fetch site root from configuration
             var siteRoot = config.Current.SiteRoot.TrimEnd('/') + "/";
-            
+
             // We *always* require SSL for Azure Active Directory
-            if (siteRoot.StartsWith("http://", StringComparison.OrdinalIgnoreCase)) 
+            if (siteRoot.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
             {
                 siteRoot = siteRoot.Replace("http://", "https://");
             }
@@ -45,14 +45,14 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectory
                         }
 
                         return Task.FromResult(0);
-                    } 
+                    }
                 }
             };
             Config.ApplyToOwinSecurityOptions(options);
 
             app.UseOpenIdConnectAuthentication(options);
         }
-        
+
         public override AuthenticatorUI GetUI()
         {
             return new AuthenticatorUI(
@@ -83,7 +83,12 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectory
 
         public override IdentityInformation GetIdentityInformation(ClaimsIdentity claimsIdentity)
         {
-            return ClaimsExtensions.GetIdentityInformation(claimsIdentity, DefaultAuthenticationType, ClaimTypes.NameIdentifier, ClaimTypeName, ClaimTypes.Name);
+            return ClaimsExtensions.GetIdentityInformation(
+                claimsIdentity,
+                DefaultAuthenticationType,
+                ClaimTypes.NameIdentifier,
+                ClaimTypeName,
+                ClaimTypes.Name);
         }
     }
 }
