@@ -506,11 +506,20 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Successfully changed the Microsoft account..
+        ///   Looks up a localized string similar to Successfully linked the Microsoft account({0})..
         /// </summary>
         public static string ChangeCredential_Success {
             get {
                 return ResourceManager.GetString("ChangeCredential_Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully linked the Microsoft account ({0}). Note that the email address associated with the new linked Microsoft account is different than the NuGet.org account email ({1})..
+        /// </summary>
+        public static string ChangeCredential_SuccessDifferentEmail {
+            get {
+                return ResourceManager.GetString("ChangeCredential_SuccessDifferentEmail", resourceCulture);
             }
         }
         

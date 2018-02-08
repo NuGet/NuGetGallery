@@ -307,6 +307,13 @@ img.reserved-indicator-icon {
 .modal-container .modal-box .modal-title .title-text {
   vertical-align: top;
 }
+.modal-container .modal-box .modal-title .dismiss-button {
+  float: right;
+  padding: 0;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+}
 .modal-container .modal-box .modal-body {
   padding: 15px;
 }

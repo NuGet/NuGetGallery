@@ -348,7 +348,6 @@ namespace NuGetGallery
         public virtual ActionResult AuthenticateExternal(string returnUrl, bool isTransform)
         {
             string externalAuthProvider = GetExternalProvider();
-
             if (externalAuthProvider == null)
             {
                 TempData["Message"] = Strings.ChangeCredential_ProviderNotFound;
@@ -388,26 +387,14 @@ namespace NuGetGallery
             }
 
             var newCredential = result.Credential;
-            var ignoreCredentialReplacement = false;
-            if (isTransform)
-            {
-                // Check if the user already has the linked external account, allow the user to login with this credential.
-                if (UserHasCredential(user, newCredential))
-                {
-                    ignoreCredentialReplacement = true;
-                }
-                else
-                {
-                    // Check if the email address used in authentication is the same as that of the user email address
-                    var userInformation = result.Authenticator?.GetIdentityInformation(result.ExternalIdentity);
-                    if (userInformation != null && !userInformation.Email.Equals(user.EmailAddress, StringComparison.OrdinalIgnoreCase))
-                    {
-                        TempData["ErrorMessage"] = string.Format(Strings.ChangeCredential_ExternalEmailMismatched, user.EmailAddress);
-                        return SafeRedirect(returnUrl);
-                    }
-                }
-            }
+            var newEmailAddress = result.Authenticator?
+                .GetIdentityInformation(result.ExternalIdentity)?
+                .Email;
+            var linkingDifferentEmailAddress = newEmailAddress != null 
+                && !newEmailAddress.Equals(user.EmailAddress, StringComparison.OrdinalIgnoreCase);
 
+            // For transform flow, check if the user already has the linked external account credential, allow the user to login with this credential.
+            var ignoreCredentialReplacement = isTransform && UserHasCredential(user, newCredential);
             if (ignoreCredentialReplacement || await _authService.TryReplaceCredential(user, newCredential))
             {
                 // Authenticate with the new credential after successful replacement
@@ -421,7 +408,9 @@ namespace NuGetGallery
                     await _authService.RemoveCredential(user, passwordCred);
                 }
 
-                TempData["Message"] = isTransform ? Strings.ChangeCredential_ExternalLinkingSuccess : Strings.ChangeCredential_Success;
+                TempData["Message"] = linkingDifferentEmailAddress
+                    ? string.Format(Strings.ChangeCredential_SuccessDifferentEmail, newEmailAddress, user.EmailAddress)
+                    : string.Format(Strings.ChangeCredential_Success, newEmailAddress);
             }
             else
             {
