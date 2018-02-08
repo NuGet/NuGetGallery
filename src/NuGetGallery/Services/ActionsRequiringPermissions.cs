@@ -83,7 +83,7 @@ namespace NuGetGallery
         /// <summary>
         /// The action of handling package ownership requests for a user to become an owner of a package.
         /// </summary>
-        public static ActionRequiringAccountPermissions HandlePackageOwnershipRequest = 
+        public static ActionRequiringAccountPermissions HandlePackageOwnershipRequest =
             new ActionRequiringAccountPermissions(
                 accountPermissionsRequirement: RequireOwnerOrOrganizationAdmin);
 

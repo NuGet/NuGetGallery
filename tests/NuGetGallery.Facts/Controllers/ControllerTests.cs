@@ -105,9 +105,10 @@ namespace NuGetGallery.Controllers
                 new ControllerActionRuleException(typeof(AccountsController<,>), nameof(UsersController.Confirm)),
                 new ControllerActionRuleException(typeof(AccountsController<,>), nameof(UsersController.ConfirmationRequired)),
                 new ControllerActionRuleException(typeof(AccountsController<,>), nameof(UsersController.ConfirmationRequiredPost)),
+                new ControllerActionRuleException(typeof(UsersController), nameof(UsersController.Thanks)),
                 new ControllerActionRuleException(typeof(UsersController), nameof(UsersController.TransformToOrganization)),
                 new ControllerActionRuleException(typeof(UsersController), nameof(UsersController.ConfirmTransformToOrganization)),
-                new ControllerActionRuleException(typeof(UsersController), nameof(UsersController.Thanks)),
+                new ControllerActionRuleException(typeof(UsersController), nameof(UsersController.RejectTransformToOrganization)),
             };
 
             // Act

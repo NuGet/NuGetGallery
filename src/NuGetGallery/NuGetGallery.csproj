@@ -1071,6 +1071,7 @@
     <Compile Include="Telemetry\UserPackageDeleteEvent.cs" />
     <Compile Include="Telemetry\UserPackageDeleteOutcome.cs" />
     <Compile Include="ViewModels\GalleryHomeViewModel.cs" />
+    <Compile Include="ViewModels\HandleOrganizationMembershipRequestModel.cs" />
     <Compile Include="WebRole.cs" />
     <Content Include="bin\NuGetGallery.dll.config">
       <SubType>Designer</SubType>
@@ -2054,6 +2055,7 @@
     <Content Include="Views\Pages\_TransformOrLink.cshtml" />
     <Content Include="Views\Organizations\_OrganizationAccountManageMembers.cshtml" />
     <Content Include="Views\Shared\_AutocompleteTemplate.cshtml" />
+    <Content Include="Views\Organizations\HandleOrganizationMembershipRequest.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />

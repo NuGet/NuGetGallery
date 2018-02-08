@@ -50,6 +50,7 @@
                 GravatarUrl = m.GravatarUrl
             }),
             AddMemberUrl = Url.AddOrganizationMember(Model.AccountName),
+            CancelMemberRequestUrl = Url.CancelOrganizationMembershipRequest(Model.AccountName),
             UpdateMemberUrl = Url.UpdateOrganizationMember(Model.AccountName),
             DeleteMemberUrl = Url.DeleteOrganizationMember(Model.AccountName),
             ProfileUrlTemplate = Url.UserTemplate().LinkTemplate

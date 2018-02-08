@@ -1310,6 +1310,417 @@ namespace NuGetGallery
             }
         }
 
+        public class TheSendOrganizationTransformRequestMethod
+            : TestContainer
+        {
+            [Fact]
+            public void WillSendEmailIfEmailAllowed()
+            {
+                // Arrange
+                var accountToTransform = new User("bumblebee") { EmailAddress = "bumblebee@transformers.com" };
+                var adminUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com", EmailAllowed = true };
+                var profileUrl = "www.profile.com";
+                var confirmationUrl = "www.confirm.com";
+                var rejectionUrl = "www.rejection.com";
+
+                var messageService = TestableMessageService.Create(GetConfigurationService());
+
+                // Act
+                messageService.SendOrganizationTransformRequest(accountToTransform, adminUser, profileUrl, confirmationUrl, rejectionUrl);
+
+                // Assert
+                var message = messageService.MockMailSender.Sent.Last();
+
+                Assert.Equal(adminUser.EmailAddress, message.To[0].Address);
+                Assert.Equal(accountToTransform.EmailAddress, message.ReplyToList[0].Address);
+                Assert.Equal(TestGalleryNoReplyAddress, message.From);
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] The user '{accountToTransform.Username}' is transforming into an organization and would like you to be its admin.", message.Subject);
+                Assert.Contains($"The user '{accountToTransform.Username}' is transforming into an organization and would like you to be its admin.", message.Body);
+                Assert.Contains($"[{profileUrl}]({profileUrl})", message.Body);
+                Assert.Contains($"[{confirmationUrl}]({confirmationUrl})", message.Body);
+                Assert.Contains($"[{rejectionUrl}]({rejectionUrl})", message.Body);
+            }
+
+            [Fact]
+            public void WillNotSendEmailIfEmailNotAllowed()
+            {
+                // Arrange
+                var accountToTransform = new User("bumblebee") { EmailAddress = "bumblebee@transformers.com" };
+                var adminUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com", EmailAllowed = false };
+                var profileUrl = "www.profile.com";
+                var confirmationUrl = "www.confirm.com";
+                var rejectionUrl = "www.rejection.com";
+
+                var messageService = TestableMessageService.Create(GetConfigurationService());
+
+                // Act
+                messageService.SendOrganizationTransformRequest(accountToTransform, adminUser, profileUrl, confirmationUrl, rejectionUrl);
+
+                // Assert
+                Assert.Empty(messageService.MockMailSender.Sent);
+            }
+        }
+
+        public class TheSendOrganizationTransformRequestAcceptedNoticeMethod
+            : TestContainer
+        {
+            [Fact]
+            public void WillSendEmailIfEmailAllowed()
+            {
+                // Arrange
+                var accountToTransform = new User("bumblebee") { EmailAddress = "bumblebee@transformers.com", EmailAllowed = true };
+                var adminUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com" };
+
+                var messageService = TestableMessageService.Create(GetConfigurationService());
+
+                // Act
+                messageService.SendOrganizationTransformRequestAcceptedNotice(accountToTransform, adminUser);
+
+                // Assert
+                var message = messageService.MockMailSender.Sent.Last();
+
+                Assert.Equal(accountToTransform.EmailAddress, message.To[0].Address);
+                Assert.Equal(adminUser.EmailAddress, message.ReplyToList[0].Address);
+                Assert.Equal(TestGalleryNoReplyAddress, message.From);
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] The user '{adminUser.Username}' has accepted your request for them to be the admin of your transformed account.", message.Subject);
+                Assert.Contains($"The user '{adminUser.Username}' has accepted your request for them to be the admin of your transformed account.", message.Body);
+            }
+
+            [Fact]
+            public void WillNotSendEmailIfEmailNotAllowed()
+            {
+                // Arrange
+                var accountToTransform = new User("bumblebee") { EmailAddress = "bumblebee@transformers.com", EmailAllowed = false };
+                var adminUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com" };
+
+                var messageService = TestableMessageService.Create(GetConfigurationService());
+
+                // Act
+                messageService.SendOrganizationTransformRequestAcceptedNotice(accountToTransform, adminUser);
+
+                // Assert
+                Assert.Empty(messageService.MockMailSender.Sent);
+            }
+        }
+
+        public class TheSendOrganizationTransformRequestRejectedNoticeMethod
+            : TestContainer
+        {
+            [Fact]
+            public void WillSendEmailIfEmailAllowed()
+            {
+                // Arrange
+                var accountToTransform = new User("bumblebee") { EmailAddress = "bumblebee@transformers.com", EmailAllowed = true };
+                var adminUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com" };
+
+                var messageService = TestableMessageService.Create(GetConfigurationService());
+
+                // Act
+                messageService.SendOrganizationTransformRequestRejectedNotice(accountToTransform, adminUser);
+
+                // Assert
+                var message = messageService.MockMailSender.Sent.Last();
+
+                Assert.Equal(accountToTransform.EmailAddress, message.To[0].Address);
+                Assert.Equal(adminUser.EmailAddress, message.ReplyToList[0].Address);
+                Assert.Equal(TestGalleryNoReplyAddress, message.From);
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] The user '{adminUser.Username}' has rejected your request for them to be the admin of your transformed account.", message.Subject);
+                Assert.Contains($"The user '{adminUser.Username}' has rejected your request for them to be the admin of your transformed account.", message.Body);
+            }
+
+            [Fact]
+            public void WillNotSendEmailIfEmailNotAllowed()
+            {
+                // Arrange
+                var accountToTransform = new User("bumblebee") { EmailAddress = "bumblebee@transformers.com", EmailAllowed = false };
+                var adminUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com" };
+
+                var messageService = TestableMessageService.Create(GetConfigurationService());
+
+                // Act
+                messageService.SendOrganizationTransformRequestRejectedNotice(accountToTransform, adminUser);
+
+                // Assert
+                Assert.Empty(messageService.MockMailSender.Sent);
+            }
+        }
+
+        public class TheSendOrganizationTransformRequestCancelledNoticeMethod
+            : TestContainer
+        {
+            [Fact]
+            public void WillSendEmailIfEmailAllowed()
+            {
+                // Arrange
+                var accountToTransform = new User("bumblebee") { EmailAddress = "bumblebee@transformers.com" };
+                var adminUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com", EmailAllowed = true };
+
+                var messageService = TestableMessageService.Create(GetConfigurationService());
+
+                // Act
+                messageService.SendOrganizationTransformRequestCancelledNotice(accountToTransform, adminUser);
+
+                // Assert
+                var message = messageService.MockMailSender.Sent.Last();
+
+                Assert.Equal(adminUser.EmailAddress, message.To[0].Address);
+                Assert.Equal(accountToTransform.EmailAddress, message.ReplyToList[0].Address);
+                Assert.Equal(TestGalleryNoReplyAddress, message.From);
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] The user '{accountToTransform.Username}' has cancelled their request for you to be the admin of their transformed account.", message.Subject);
+                Assert.Contains($"The user '{accountToTransform.Username}' has cancelled their request for you to be the admin of their transformed account.", message.Body);
+            }
+
+            [Fact]
+            public void WillNotSendEmailIfEmailNotAllowed()
+            {
+                // Arrange
+                var accountToTransform = new User("bumblebee") { EmailAddress = "bumblebee@transformers.com" };
+                var adminUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com", EmailAllowed = false };
+
+                var messageService = TestableMessageService.Create(GetConfigurationService());
+
+                // Act
+                messageService.SendOrganizationTransformRequestCancelledNotice(accountToTransform, adminUser);
+
+                // Assert
+                Assert.Empty(messageService.MockMailSender.Sent);
+            }
+        }
+
+        public class TheSendOrganizationMembershipRequestMethod
+            : TestContainer
+        {
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void WillSendEmailIfEmailAllowed(bool isAdmin)
+            {
+                // Arrange
+                var organization = new Organization("transformers") { EmailAddress = "transformers@transformers.com" };
+                var adminUser = new User("bumblebee") { EmailAddress = "bumblebee@transformers.com" };
+                var newUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com", EmailAllowed = true };
+                var profileUrl = "www.profile.com";
+                var confirmationUrl = "www.confirm.com";
+                var rejectionUrl = "www.rejection.com";
+
+                var messageService = TestableMessageService.Create(GetConfigurationService());
+
+                // Act
+                messageService.SendOrganizationMembershipRequest(organization, newUser, adminUser, isAdmin, profileUrl, confirmationUrl, rejectionUrl);
+
+                // Assert
+                var message = messageService.MockMailSender.Sent.Last();
+
+                Assert.Equal(newUser.EmailAddress, message.To[0].Address);
+                Assert.Equal(organization.EmailAddress, message.ReplyToList[0].Address);
+                Assert.Equal(adminUser.EmailAddress, message.ReplyToList[1].Address);
+                Assert.Equal(TestGalleryNoReplyAddress, message.From);
+                var membershipLevel = isAdmin ? "an admin" : "a collaborator";
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] The user '{adminUser.Username}' would like you to become {membershipLevel} of their organization, '{organization.Username}'.", message.Subject);
+                Assert.Contains($"The user '{adminUser.Username}' would like you to become {membershipLevel} of their organization, '{organization.Username}'.", message.Body);
+                Assert.Contains($"[{profileUrl}]({profileUrl})", message.Body);
+                Assert.Contains($"[{confirmationUrl}]({confirmationUrl})", message.Body);
+                Assert.Contains($"[{rejectionUrl}]({rejectionUrl})", message.Body);
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void WillNotSendEmailIfEmailNotAllowed(bool isAdmin)
+            {
+                // Arrange
+                var organization = new Organization("transformers") { EmailAddress = "transformers@transformers.com" };
+                var adminUser = new User("bumblebee") { EmailAddress = "bumblebee@transformers.com" };
+                var newUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com", EmailAllowed = false };
+                var profileUrl = "www.profile.com";
+                var confirmationUrl = "www.confirm.com";
+                var rejectionUrl = "www.rejection.com";
+
+                var messageService = TestableMessageService.Create(GetConfigurationService());
+
+                // Act
+                messageService.SendOrganizationMembershipRequest(organization, newUser, adminUser, isAdmin, profileUrl, confirmationUrl, rejectionUrl);
+
+                // Assert
+                Assert.Empty(messageService.MockMailSender.Sent);
+            }
+        }
+
+        public class TheSendOrganizationMembershipRequestRejectedNoticeMethod
+            : TestContainer
+        {
+            [Fact]
+            public void WillSendEmailIfEmailAllowed()
+            {
+                // Arrange
+                var organization = new Organization("transformers") { EmailAddress = "transformers@transformers.com", EmailAllowed = true };
+                var pendingUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com" };
+
+                var messageService = TestableMessageService.Create(GetConfigurationService());
+
+                // Act
+                messageService.SendOrganizationMembershipRequestRejectedNotice(organization, pendingUser);
+
+                // Assert
+                var message = messageService.MockMailSender.Sent.Last();
+
+                Assert.Equal(organization.EmailAddress, message.To[0].Address);
+                Assert.Equal(pendingUser.EmailAddress, message.ReplyToList[0].Address);
+                Assert.Equal(TestGalleryNoReplyAddress, message.From);
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] The user '{pendingUser.Username}' has rejected your request for them to become a member of your organization.", message.Subject);
+                Assert.Contains($"The user '{pendingUser.Username}' has rejected your request for them to become a member of your organization.", message.Body);
+            }
+
+            [Fact]
+            public void WillNotSendEmailIfEmailNotAllowed()
+            {
+                // Arrange
+                var organization = new Organization("transformers") { EmailAddress = "transformers@transformers.com", EmailAllowed = false };
+                var pendingUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com" };
+
+                var messageService = TestableMessageService.Create(GetConfigurationService());
+
+                // Act
+                messageService.SendOrganizationMembershipRequestRejectedNotice(organization, pendingUser);
+
+                // Assert
+                Assert.Empty(messageService.MockMailSender.Sent);
+            }
+        }
+
+        public class TheSendOrganizationMembershipRequestCancelledNoticeMethod
+            : TestContainer
+        {
+            [Fact]
+            public void WillSendEmailIfEmailAllowed()
+            {
+                // Arrange
+                var organization = new Organization("transformers") { EmailAddress = "transformers@transformers.com" };
+                var pendingUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com", EmailAllowed = true };
+
+                var messageService = TestableMessageService.Create(GetConfigurationService());
+
+                // Act
+                messageService.SendOrganizationMembershipRequestCancelledNotice(organization, pendingUser);
+
+                // Assert
+                var message = messageService.MockMailSender.Sent.Last();
+
+                Assert.Equal(pendingUser.EmailAddress, message.To[0].Address);
+                Assert.Equal(organization.EmailAddress, message.ReplyToList[0].Address);
+                Assert.Equal(TestGalleryNoReplyAddress, message.From);
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] The request for you to become a member of '{organization.Username}' has been cancelled.", message.Subject);
+                Assert.Contains($"The request for you to become a member of '{organization.Username}' has been cancelled.", message.Body);
+            }
+
+            [Fact]
+            public void WillNotSendEmailIfEmailNotAllowed()
+            {
+                // Arrange
+                var accountToTransform = new Organization("transformers") { EmailAddress = "transformers@transformers.com" };
+                var pendingUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com", EmailAllowed = false };
+
+                var messageService = TestableMessageService.Create(GetConfigurationService());
+
+                // Act
+                messageService.SendOrganizationMembershipRequestCancelledNotice(accountToTransform, pendingUser);
+
+                // Assert
+                Assert.Empty(messageService.MockMailSender.Sent);
+            }
+        }
+
+        public class TheSendOrganizationMemberUpdatedNoticeMethod
+            : TestContainer
+        {
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void WillSendEmailIfEmailAllowed(bool isAdmin)
+            {
+                // Arrange
+                var organization = new Organization("transformers") { EmailAddress = "transformers@transformers.com", EmailAllowed = true };
+                var member = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com" };
+                var membership = new Membership { Organization = organization, Member = member, IsAdmin = isAdmin };
+
+                var messageService = TestableMessageService.Create(GetConfigurationService());
+
+                // Act
+                messageService.SendOrganizationMemberUpdatedNotice(organization, membership);
+
+                // Assert
+                var message = messageService.MockMailSender.Sent.Last();
+
+                Assert.Equal(organization.EmailAddress, message.To[0].Address);
+                Assert.Equal(member.EmailAddress, message.ReplyToList[0].Address);
+                Assert.Equal(TestGalleryNoReplyAddress, message.From);
+                var membershipLevel = isAdmin ? "an admin" : "a collaborator";
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] The user '{member.Username}' is now {membershipLevel} of organization '{organization.Username}'.", message.Subject);
+                Assert.Contains($"The user '{member.Username}' is now {membershipLevel} of organization '{organization.Username}'.", message.Body);
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void WillNotSendEmailIfEmailNotAllowed(bool isAdmin)
+            {
+                // Arrange
+                var organization = new Organization("transformers") { EmailAddress = "transformers@transformers.com", EmailAllowed = false };
+                var member = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com" };
+                var membership = new Membership { Organization = organization, Member = member, IsAdmin = isAdmin };
+
+                var messageService = TestableMessageService.Create(GetConfigurationService());
+
+                // Act
+                messageService.SendOrganizationMemberUpdatedNotice(organization, membership);
+
+                // Assert
+                Assert.Empty(messageService.MockMailSender.Sent);
+            }
+        }
+
+        public class TheSendOrganizationMemberRemovedNoticeMethod
+            : TestContainer
+        {
+            [Fact]
+            public void WillSendEmailIfEmailAllowed()
+            {
+                // Arrange
+                var organization = new Organization("transformers") { EmailAddress = "transformers@transformers.com", EmailAllowed = true };
+                var removedUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com" };
+
+                var messageService = TestableMessageService.Create(GetConfigurationService());
+
+                // Act
+                messageService.SendOrganizationMemberRemovedNotice(organization, removedUser);
+
+                // Assert
+                var message = messageService.MockMailSender.Sent.Last();
+
+                Assert.Equal(organization.EmailAddress, message.To[0].Address);
+                Assert.Equal(removedUser.EmailAddress, message.ReplyToList[0].Address);
+                Assert.Equal(TestGalleryNoReplyAddress, message.From);
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] The user '{removedUser.Username}' is no longer a member of organization '{organization.Username}'.", message.Subject);
+                Assert.Contains($"The user '{removedUser.Username}' is no longer a member of organization '{organization.Username}'.", message.Body);
+            }
+
+            [Fact]
+            public void WillNotSendEmailIfEmailNotAllowed()
+            {
+                // Arrange
+                var organization = new Organization("transformers") { EmailAddress = "transformers@transformers.com", EmailAllowed = false };
+                var member = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com" };
+
+                var messageService = TestableMessageService.Create(GetConfigurationService());
+
+                // Act
+                messageService.SendOrganizationMemberRemovedNotice(organization, member);
+
+                // Assert
+                Assert.Empty(messageService.MockMailSender.Sent);
+            }
+        }
+
         public class TestableMessageService 
             : MessageService
         {
