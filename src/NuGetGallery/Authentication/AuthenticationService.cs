@@ -332,16 +332,7 @@ namespace NuGetGallery.Authentication
 
             try
             {
-                if (user.IsAdministrator())
-                {
-                    // For administrators add the credential do not replace until we aggregate AAD providers for admins
-                    await AddCredential(user, credential);
-                }
-                else
-                {
-                    await ReplaceCredential(user, credential);
-                }
-
+                await ReplaceCredential(user, credential);
                 return true;
             }
             catch (InvalidOperationException)

@@ -194,7 +194,6 @@ namespace NuGetGallery
 
             // Create session
             await _authService.CreateSessionAsync(OwinContext, authenticatedUser);
-
             return SafeRedirect(returnUrl);
         }
 
