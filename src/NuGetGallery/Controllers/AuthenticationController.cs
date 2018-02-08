@@ -15,7 +15,6 @@ using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2;
 using NuGetGallery.Authentication.Providers.MicrosoftAccount;
 using NuGetGallery.Infrastructure.Authentication;
-using NuGetGallery.Authentication.Providers.Utils;
 
 namespace NuGetGallery
 {
@@ -347,7 +346,7 @@ namespace NuGetGallery
 
         [ActionName("AuthenticateExternal")]
         [HttpGet]
-        public virtual ActionResult AuthenticateExternal(string returnUrl, bool isTransform)
+        public virtual ActionResult AuthenticateExternal(string returnUrl)
         {
             string externalAuthProvider = GetExternalProvider();
             if (externalAuthProvider == null)
@@ -356,7 +355,7 @@ namespace NuGetGallery
                 return Redirect(returnUrl);
             }
 
-            return ChallengeAuthentication(Url.LinkOrChangeExternalCredential(returnUrl, isTransform), externalAuthProvider);
+            return ChallengeAuthentication(Url.LinkOrChangeExternalCredential(returnUrl), externalAuthProvider);
         }
 
         [NonAction]
@@ -376,9 +375,8 @@ namespace NuGetGallery
         /// after external authentication.
         /// </summary>
         /// <param name="returnUrl">The url to return upon credential replacement</param>
-        /// <param name="isTransform">Set to true if this is a transform route for authentication</param>
         /// <returns><see cref="ActionResult"/> for returnUrl</returns>
-        public virtual async Task<ActionResult> LinkOrChangeExternalCredential(string returnUrl, bool isTransform)
+        public virtual async Task<ActionResult> LinkOrChangeExternalCredential(string returnUrl)
         {
             var user = GetCurrentUser();
             var result = await _authService.ReadExternalLoginCredential(OwinContext);
@@ -389,10 +387,7 @@ namespace NuGetGallery
             }
 
             var newCredential = result.Credential;
-
-            // For transform flow, check if the user already has the linked external account credential, allow the user to login with this credential.
-            var ignoreCredentialReplacement = isTransform && UserHasCredential(user, newCredential);
-            if (ignoreCredentialReplacement || await _authService.TryReplaceCredential(user, newCredential))
+            if (await _authService.TryReplaceCredential(user, newCredential))
             {
                 // Authenticate with the new credential after successful replacement
                 var authenticatedUser = await _authService.Authenticate(newCredential);
@@ -580,13 +575,6 @@ namespace NuGetGallery
                 .FirstOrDefault(authenticator => providers.Any(p => p.ProviderName.Equals(authenticator, StringComparison.OrdinalIgnoreCase)));
         }
 
-        private static bool UserHasCredential(User user, Credential credential)
-        {
-            return user.Credentials.Any(cred =>
-                cred.Type.Equals(credential.Type, StringComparison.OrdinalIgnoreCase)
-                && cred.Value == credential.Value);
-        }
-
         private string GetEmailAddressFromExternalLoginResult(AuthenticateExternalLoginResult result, out string errorReason)
         {
             try
@@ -595,7 +583,7 @@ namespace NuGetGallery
                 errorReason = null;
                 return userInformation.Email;
             }
-            catch (Exception ex)
+            catch (ArgumentException ex)
             {
                 errorReason = ex.Message;
                 return null;

@@ -3,10 +3,12 @@
 
 using System;
 using System.Security.Claims;
+using NuGetGallery.Authentication;
+using NuGetGallery.Authentication.Providers;
 
-namespace NuGetGallery.Authentication.Providers.Utils
+namespace NuGetGallery
 {
-    public static class ClaimsExtentions
+    public static class ClaimsExtensions
     {
         public static IdentityInformation GetIdentityInformation(ClaimsIdentity claimsIdentity, string authType)
         {

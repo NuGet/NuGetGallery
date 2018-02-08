@@ -19,7 +19,7 @@
         <div class="row signin-node">
             <a role="button" 
                class="btn btn-default btn-block provider-button" 
-               href="@Url.AuthenticateExternal("/", isTransform: true)">
+               href="@Url.AuthenticateExternal("/")">
                 <img height="24" width="24" alt="" aria-hidden="true"
                      src="@Href("~/Content/gallery/img/microsoft-account.svg")"
                      @(!string.IsNullOrEmpty("~/Content/gallery/img/microsoft-account-24x24.png") ? (IHtmlString)ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/microsoft-account-24x24.png")) : new HtmlString(string.Empty)) />

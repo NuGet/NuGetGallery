@@ -604,7 +604,7 @@ namespace NuGetGallery
                 return RedirectToAction("Account");
             }
 
-            return Redirect(Url.AuthenticateExternal(Url.AccountSettings(), isTransform: false));
+            return Redirect(Url.AuthenticateExternal(Url.AccountSettings()));
         }
 
         [HttpPost]

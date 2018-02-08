@@ -725,22 +725,22 @@ namespace NuGetGallery
                 });
         }
 
-        public static string LinkOrChangeExternalCredential(this UrlHelper url, string returnUrl, bool isTransform = false, bool relativeUrl = true)
+        public static string LinkOrChangeExternalCredential(this UrlHelper url, string returnUrl, bool relativeUrl = true)
         {
-            return GetAuthenticationRoutes(url, "LinkOrChangeExternalCredential", returnUrl, isTransform, relativeUrl);
+            return GetAuthenticationRoute(url, "LinkOrChangeExternalCredential", returnUrl, relativeUrl);
         }
 
         public static string LinkExternalAccount(this UrlHelper url, string returnUrl, bool relativeUrl = true)
         {
-            return GetAuthenticationRoutes(url, "LinkExternalAccount", returnUrl, relativeUrl);
+            return GetAuthenticationRoute(url, "LinkExternalAccount", returnUrl, relativeUrl);
         }
 
-        public static string AuthenticateExternal(this UrlHelper url, string returnUrl, bool isTransform = false, bool relativeUrl = true)
+        public static string AuthenticateExternal(this UrlHelper url, string returnUrl, bool relativeUrl = true)
         {
-            return GetAuthenticationRoutes(url, "AuthenticateExternal", returnUrl, isTransform, relativeUrl);
+            return GetAuthenticationRoute(url, "AuthenticateExternal", returnUrl, relativeUrl);
         }
 
-        private static string GetAuthenticationRoutes(this UrlHelper url, string action, string returnUrl, bool relativeUrl = true)
+        private static string GetAuthenticationRoute(this UrlHelper url, string action, string returnUrl, bool relativeUrl = true)
         {
             return GetActionLink(
                 url,
@@ -750,21 +750,6 @@ namespace NuGetGallery
                 routeValues: new RouteValueDictionary
                 {
                     { "ReturnUrl", returnUrl }
-                },
-                interceptReturnUrl: false);
-        }
-
-        private static string GetAuthenticationRoutes(this UrlHelper url, string action, string returnUrl, bool isTransform = false, bool relativeUrl = true)
-        {
-            return GetActionLink(
-                url,
-                action,
-                "Authentication",
-                relativeUrl,
-                routeValues: new RouteValueDictionary
-                {
-                    { "ReturnUrl", returnUrl },
-                    { "IsTransform", isTransform }
                 },
                 interceptReturnUrl: false);
         }

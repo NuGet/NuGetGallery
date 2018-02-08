@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.Owin.Security.OpenIdConnect;
-using NuGetGallery.Authentication.Providers.Utils;
 using NuGetGallery.Configuration;
 using Owin;
 
@@ -84,7 +83,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectory
 
         public override IdentityInformation GetIdentityInformation(ClaimsIdentity claimsIdentity)
         {
-            return ClaimsExtentions.GetIdentityInformation(claimsIdentity, DefaultAuthenticationType, ClaimTypes.NameIdentifier, ClaimTypeName, ClaimTypes.Name);
+            return ClaimsExtensions.GetIdentityInformation(claimsIdentity, DefaultAuthenticationType, ClaimTypes.NameIdentifier, ClaimTypeName, ClaimTypes.Name);
         }
     }
 }

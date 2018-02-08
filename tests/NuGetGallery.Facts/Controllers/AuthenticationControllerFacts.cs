@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Globalization;
 using System.Net.Mail;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -12,11 +11,11 @@ using Microsoft.Owin;
 using Moq;
 using NuGetGallery.Framework;
 using NuGetGallery.Authentication;
+using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Authentication.Providers.AzureActiveDirectory;
 using NuGetGallery.Authentication.Providers.MicrosoftAccount;
 using NuGetGallery.Infrastructure.Authentication;
 using Xunit;
-using NuGetGallery.Authentication.Providers;
 
 namespace NuGetGallery.Controllers
 {
@@ -890,7 +889,7 @@ namespace NuGetGallery.Controllers
                     .CompletesWith(new AuthenticateExternalLoginResult());
 
                 // Act
-                var result = await controller.LinkOrChangeExternalCredential("theReturnUrl", isTransform: false);
+                var result = await controller.LinkOrChangeExternalCredential("theReturnUrl");
 
                 // Assert
                 ResultAssert.IsSafeRedirectTo(result, expectedUrl: "theReturnUrl");
@@ -920,7 +919,7 @@ namespace NuGetGallery.Controllers
                     .CompletesWith(false);
 
                 // Act
-                var result = await controller.LinkOrChangeExternalCredential("theReturnUrl", isTransform: false);
+                var result = await controller.LinkOrChangeExternalCredential("theReturnUrl");
 
                 // Assert
                 ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
@@ -980,7 +979,7 @@ namespace NuGetGallery.Controllers
                     .Verifiable();
 
                 // Act
-                var result = await controller.LinkOrChangeExternalCredential("theReturnUrl", isTransform: false);
+                var result = await controller.LinkOrChangeExternalCredential("theReturnUrl");
 
                 // Assert
                 ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
