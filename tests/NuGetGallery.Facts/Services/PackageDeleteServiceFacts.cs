@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.SqlClient;
 using System.IO;
@@ -28,6 +29,8 @@ namespace NuGetGallery
             Mock<IPackageFileService> packageFileService = null,
             Mock<IAuditingService> auditingService = null,
             Mock<IPackageDeleteConfiguration> config = null,
+            Mock<IStatisticsService> statisticsService = null,
+            Mock<ITelemetryService> telemetryService = null,
             Action<Mock<TestPackageDeleteService>> setup = null,
             bool useRealConstructor = false)
         {
@@ -47,6 +50,10 @@ namespace NuGetGallery
 
             config = config ?? new Mock<IPackageDeleteConfiguration>();
 
+            statisticsService = statisticsService ?? new Mock<IStatisticsService>();
+
+            telemetryService = telemetryService ?? new Mock<ITelemetryService>();
+
             if (useRealConstructor)
             {
                 return new PackageDeleteService(
@@ -58,7 +65,9 @@ namespace NuGetGallery
                     indexingService.Object,
                     packageFileService.Object,
                     auditingService.Object,
-                    config.Object);
+                    config.Object,
+                    statisticsService.Object,
+                    telemetryService.Object);
             }
             else
             {
@@ -71,7 +80,9 @@ namespace NuGetGallery
                     indexingService.Object,
                     packageFileService.Object,
                     auditingService.Object,
-                    config.Object);
+                    config.Object,
+                    statisticsService.Object,
+                    telemetryService.Object);
 
                 packageDeleteService.CallBase = true;
 
@@ -98,7 +109,9 @@ namespace NuGetGallery
                 IIndexingService indexingService,
                 IPackageFileService packageFileService,
                 IAuditingService auditingService,
-                IPackageDeleteConfiguration config) : base(
+                IPackageDeleteConfiguration config,
+                IStatisticsService statisticsService,
+                ITelemetryService telemetryService) : base(
                     packageRepository,
                     packageRegistrationRepository,
                     packageDeletesRepository,
@@ -107,7 +120,9 @@ namespace NuGetGallery
                     indexingService,
                     packageFileService,
                     auditingService,
-                    config)
+                    config,
+                    statisticsService,
+                    telemetryService)
             {
             }
 
@@ -145,6 +160,326 @@ namespace NuGetGallery
                 Assert.Contains(
                     "StatisticsUpdateFrequencyInHours must be less than HourLimitWithMaximumDownloads.",
                     exception.Message);
+            }
+        }
+
+        public class TheCanPackageBeDeletedByUserAsyncMethod
+        {
+            private readonly Package _package;
+            private ReportPackageReason? _reason;
+            private PackageDeleteDecision? _decision;
+            private readonly StatisticsPackagesReport _packageReport;
+            private readonly Mock<IPackageDeleteConfiguration> _config;
+            private readonly Mock<IStatisticsService> _statisticsService;
+            private readonly Mock<ITelemetryService> _telemetryService;
+            private readonly IPackageDeleteService _target;
+
+            public TheCanPackageBeDeletedByUserAsyncMethod()
+            {
+                _package = new Package
+                {
+                    PackageStatusKey = PackageStatus.Available,
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "NuGet.Versioning",
+                        DownloadCount = 0,
+                        IsLocked = false,
+                    },
+                    NormalizedVersion = "4.5.0",
+                    DownloadCount = 0,
+                    Created = DateTime.UtcNow,
+                };
+                _reason = ReportPackageReason.ReleasedInPublicByAccident;
+                _decision = PackageDeleteDecision.DeletePackage;
+                _packageReport = new StatisticsPackagesReport
+                {
+                    Facts = new List<StatisticsFact>()
+                    {
+                        MakeFact("4.5.0", 0),
+                    },
+                };
+
+                _config = new Mock<IPackageDeleteConfiguration>();
+                _config.Setup(x => x.AllowUsersToDeletePackages).Returns(true);
+                _config.Setup(x => x.MaximumDownloadsForPackageId).Returns(125000);
+                _config.Setup(x => x.StatisticsUpdateFrequencyInHours).Returns(24);
+                _config.Setup(x => x.HourLimitWithMaximumDownloads).Returns(72);
+                _config.Setup(x => x.MaximumDownloadsForPackageVersion).Returns(100);
+
+                _statisticsService = new Mock<IStatisticsService>();
+                _statisticsService.Setup(x => x.LastUpdatedUtc).Returns(DateTime.UtcNow);
+                _statisticsService
+                    .Setup(x => x.GetPackageDownloadsByVersion(It.IsAny<string>()))
+                    .ReturnsAsync(() => _packageReport);
+
+                _telemetryService = new Mock<ITelemetryService>();
+
+                _target = CreateService(
+                    config: _config,
+                    statisticsService: _statisticsService,
+                    telemetryService: _telemetryService);
+            }
+
+            [Fact]
+            public async Task AllowsTheDeleteWhenAllChecksPass()
+            {
+                var actual = await _target.CanPackageBeDeletedByUserAsync(_package, _reason, _decision);
+
+                Assert.True(actual, "The delete should have been allowed.");
+                VerifyOutcome(UserPackageDeleteOutcome.Accepted);
+            }
+
+            [Fact]
+            public async Task AllowsTheDeleteWhenMaximumIdDownloadsAreNotConfigured()
+            {
+                _package.PackageRegistration.DownloadCount = 125001;
+                _config.Setup(x => x.MaximumDownloadsForPackageId).Returns((int?)null);
+
+                var actual = await _target.CanPackageBeDeletedByUserAsync(_package, _reason, _decision);
+
+                Assert.True(actual, "The delete should have been allowed.");
+                VerifyOutcome(UserPackageDeleteOutcome.Accepted);
+            }
+
+            [Fact]
+            public async Task AllowsTheDeleteWhenMaximumVersionDownloadsAreNotConfigured()
+            {
+                _package.Created = DateTime.UtcNow.AddHours(-25);
+                _package.DownloadCount = 101;
+                _config.Setup(x => x.MaximumDownloadsForPackageVersion).Returns((int?)null);
+
+                var actual = await _target.CanPackageBeDeletedByUserAsync(_package, _reason, _decision);
+
+                Assert.True(actual, "The delete should have been allowed.");
+                VerifyOutcome(UserPackageDeleteOutcome.Accepted);
+            }
+
+            [Fact]
+            public async Task AllowDeletesWhenTheIdReportDoesNotHaveTooManyDownloadsButStatisticsAreStale()
+            {
+                MakeStatisticsStale();
+                _packageReport.Facts.Add(MakeFact("3.3.0", 124000));
+                _packageReport.Facts.Add(MakeFact("3.4.0", 999));
+
+                var actual = await _target.CanPackageBeDeletedByUserAsync(_package, _reason, _decision);
+
+                Assert.True(actual, "The delete should have been allowed.");
+                VerifyOutcome(UserPackageDeleteOutcome.Accepted);
+            }
+
+            [Fact]
+            public async Task AllowsDeletesWhenTimeRangesAreNotDefined()
+            {
+                _package.Created = DateTime.UtcNow.AddHours(-73);
+                _config.Setup(x => x.HourLimitWithMaximumDownloads).Returns((int?)null);
+                _config.Setup(x => x.StatisticsUpdateFrequencyInHours).Returns((int?)null);
+
+                var actual = await _target.CanPackageBeDeletedByUserAsync(_package, _reason, _decision);
+
+                Assert.True(actual, "The delete should have been allowed.");
+                VerifyOutcome(UserPackageDeleteOutcome.Accepted);
+            }
+
+            [Fact]
+            public async Task AllowsDeleteWhenCreatedAfterEarlyTimeRangeAndIdDownloadsAreLowEnough()
+            {
+                _package.Created = DateTime.UtcNow.AddHours(-25);
+
+                var actual = await _target.CanPackageBeDeletedByUserAsync(_package, _reason, _decision);
+
+                Assert.True(actual, "The delete should have been allowed.");
+                VerifyOutcome(UserPackageDeleteOutcome.Accepted);
+            }
+
+            [Fact]
+            public async Task DoesNotAllowDeleteWhenCreatedAfterEarlyTimeRangeAndLateIsUndefined()
+            {
+                _package.Created = DateTime.UtcNow.AddHours(-25);
+                _config.Setup(x => x.HourLimitWithMaximumDownloads).Returns((int?)null);
+
+                var actual = await _target.CanPackageBeDeletedByUserAsync(_package, _reason, _decision);
+
+                Assert.False(actual, "Deletes should not be allowed if the late time range is not defined.");
+                VerifyOutcome(UserPackageDeleteOutcome.TooLate);
+            }
+
+            [Fact]
+            public async Task DoesNotAllowDeleteWhenCreatedAfterLateTimeRangeAndEarlyIsUndefined()
+            {
+                _package.Created = DateTime.UtcNow.AddHours(-73);
+                _config.Setup(x => x.StatisticsUpdateFrequencyInHours).Returns((int?)null);
+
+                var actual = await _target.CanPackageBeDeletedByUserAsync(_package, _reason, _decision);
+
+                Assert.False(actual, "Deletes should not be allowed even if the early time range is not defined.");
+                VerifyOutcome(UserPackageDeleteOutcome.TooLate);
+            }
+
+            [Fact]
+            public async Task DoesNotAllowDeleteWhenCreatedAfterLateTimeRange()
+            {
+                _package.Created = DateTime.UtcNow.AddHours(-73);
+
+                var actual = await _target.CanPackageBeDeletedByUserAsync(_package, _reason, _decision);
+
+                Assert.False(actual, "Deletes should not be allowed after the late time range.");
+                VerifyOutcome(UserPackageDeleteOutcome.TooLate);
+            }
+
+            [Fact]
+            public async Task DoesNotAllowDeletesOnDeletedPackages()
+            {
+                _package.PackageStatusKey = PackageStatus.Deleted;
+
+                var actual = await _target.CanPackageBeDeletedByUserAsync(_package, _reason, _decision);
+
+                Assert.False(actual, "Deletes should not be allowed on a deleted package.");
+                VerifyOutcome(UserPackageDeleteOutcome.AlreadyDeleted);
+            }
+
+            [Fact]
+            public async Task DoesNotAllowDeletesWhenTheIdIsLocked()
+            {
+                _package.PackageRegistration.IsLocked = true;
+
+                var actual = await _target.CanPackageBeDeletedByUserAsync(_package, _reason, _decision);
+
+                Assert.False(actual, "Deletes should not be allowed when the package is locked.");
+                VerifyOutcome(UserPackageDeleteOutcome.LockedRegistration);
+            }
+
+            [Fact]
+            public async Task DoesNotAllowDeletesWhenTheFeatureIsDisabled()
+            {
+                _config.Setup(x => x.AllowUsersToDeletePackages).Returns(false);
+
+                var actual = await _target.CanPackageBeDeletedByUserAsync(_package, _reason, _decision);
+
+                Assert.False(actual, "Deletes should not be allowed when the feature is disabled.");
+                _telemetryService.Verify(
+                    x => x.TrackUserPackageDeleteChecked(It.IsAny<UserPackageDeleteEvent>(), It.IsAny<UserPackageDeleteOutcome>()),
+                    Times.Never);
+            }
+
+            [Fact]
+            public async Task DoesNotAllowDeletesWhenTheStatisticsAreStale()
+            {
+                MakeStatisticsStale();
+                _package.Created = DateTime.UtcNow.AddHours(-25);
+
+                var actual = await _target.CanPackageBeDeletedByUserAsync(_package, _reason, _decision);
+
+                Assert.False(actual, "Deletes should not be allowed when statistics are stale.");
+                VerifyOutcome(UserPackageDeleteOutcome.StaleStatistics);
+            }
+
+            [Fact]
+            public async Task DoesNotAllowDeletesWhenTheStatisticsUpdateTimeIsNull()
+            {
+                _package.Created = DateTime.UtcNow.AddHours(-25);
+                _statisticsService.Setup(x => x.LastUpdatedUtc).Returns((DateTime?)null);
+
+                var actual = await _target.CanPackageBeDeletedByUserAsync(_package, _reason, _decision);
+
+                Assert.False(actual, "Deletes should not be allowed when statistics are stale.");
+                VerifyOutcome(UserPackageDeleteOutcome.StaleStatistics);
+            }
+
+            [Fact]
+            public async Task DoesNotAllowDeletesWhenTheIdHasTooManyDownloads()
+            {
+                _package.PackageRegistration.DownloadCount = 125001;
+
+                var actual = await _target.CanPackageBeDeletedByUserAsync(_package, _reason, _decision);
+
+                Assert.False(actual, "Deletes should not be allowed when the ID has too many downloads.");
+                VerifyOutcome(UserPackageDeleteOutcome.TooManyIdDatabaseDownloads);
+            }
+
+            [Fact]
+            public async Task DoesNotAllowDeletesWhenTheIdReportHasTooManyDownloads()
+            {
+                _packageReport.Facts.Add(MakeFact("3.3.0", 124000));
+                _packageReport.Facts.Add(MakeFact("3.4.0", 1001));
+
+                var actual = await _target.CanPackageBeDeletedByUserAsync(_package, _reason, _decision);
+
+                Assert.False(actual, "Deletes should not be allowed when the ID report has too many downloads.");
+                VerifyOutcome(UserPackageDeleteOutcome.TooManyIdReportDownloads);
+            }
+
+            [Fact]
+            public async Task DoesNotAllowDeletesWhenTheVersionTooManyDownloads()
+            {
+                _package.Created = DateTime.UtcNow.AddHours(-25);
+                _package.DownloadCount = 101;
+
+                var actual = await _target.CanPackageBeDeletedByUserAsync(_package, _reason, _decision);
+
+                Assert.False(actual, "Deletes should not be allowed when the version has too many downloads.");
+                VerifyOutcome(UserPackageDeleteOutcome.TooManyVersionDatabaseDownloads);
+            }
+
+            [Fact]
+            public async Task DoesNotAllowDeletesWhenTheVersionReportTooManyDownloads()
+            {
+                _package.Created = DateTime.UtcNow.AddHours(-25);
+                _packageReport.Facts.Add(MakeFact("4.5.0", 50));
+                _packageReport.Facts.Add(MakeFact("4.5.0", 51));
+
+                var actual = await _target.CanPackageBeDeletedByUserAsync(_package, _reason, _decision);
+
+                Assert.False(actual, "Deletes should not be allowed when the version report has too many downloads.");
+                VerifyOutcome(UserPackageDeleteOutcome.TooManyVersionReportDownloads);
+            }
+
+            [Fact]
+            public async Task DoesNotEmitTelemetryIfReasonIsNull()
+            {
+                _reason = null;
+
+                await _target.CanPackageBeDeletedByUserAsync(_package, _reason, _decision);
+
+                _telemetryService.Verify(
+                    x => x.TrackUserPackageDeleteChecked(It.IsAny<UserPackageDeleteEvent>(), It.IsAny<UserPackageDeleteOutcome>()),
+                    Times.Never);
+            }
+
+            [Fact]
+            public async Task EmitsTelemetryEvenIfDecisionIsNull()
+            {
+                _decision = null;
+
+                await _target.CanPackageBeDeletedByUserAsync(_package, _reason, _decision);
+
+                _telemetryService.Verify(
+                    x => x.TrackUserPackageDeleteChecked(It.IsAny<UserPackageDeleteEvent>(), It.IsAny<UserPackageDeleteOutcome>()),
+                    Times.Once);
+            }
+
+            private void VerifyOutcome(UserPackageDeleteOutcome outcome)
+            {
+                _telemetryService.Verify(
+                    x => x.TrackUserPackageDeleteChecked(It.IsAny<UserPackageDeleteEvent>(), outcome),
+                    Times.Once);
+                _telemetryService.Verify(
+                    x => x.TrackUserPackageDeleteChecked(It.IsAny<UserPackageDeleteEvent>(), It.IsAny<UserPackageDeleteOutcome>()),
+                    Times.Once);
+            }
+
+            private static StatisticsFact MakeFact(string version, int downloads)
+            {
+                return new StatisticsFact(
+                    new Dictionary<string, string>
+                    {
+                        { "Version", version },
+                    },
+                    downloads);
+            }
+
+            private void MakeStatisticsStale()
+            {
+                _statisticsService.Setup(x => x.LastUpdatedUtc).Returns(DateTime.UtcNow.AddHours(-25));
             }
         }
 

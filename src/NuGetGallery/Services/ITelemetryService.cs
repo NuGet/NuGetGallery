@@ -26,6 +26,16 @@ namespace NuGetGallery
         void TrackNewCredentialCreated(User user, Credential credential);
 
         /// <summary>
+        /// A telemetry event emitted when the service checks whether a user package delete is allowed.
+        /// </summary>
+        void TrackUserPackageDeleteChecked(UserPackageDeleteEvent details, UserPackageDeleteOutcome outcome);
+
+        /// <summary>
+        /// A telemetry event emitted when a user package delete is executed.
+        /// </summary>
+        void TrackUserPackageDeleteExecuted(int packageKey, string packageId, string packageVersion, ReportPackageReason reason, bool success);
+
+        /// <summary>
         /// Create a trace for an exception. These are informational for support requests.
         /// </summary>
         void TraceException(Exception exception);
