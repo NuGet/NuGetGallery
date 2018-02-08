@@ -1,0 +1,28 @@
+﻿<div id="autocomplete-results-container" class="text-left"></div>
+
+<script type="text/html" id="autocomplete-results-row">
+    <!-- ko if: $data -->
+    <!-- ko if: $data.data -->
+    <div class="col-sm-4 autocomplete-row-id">
+        <a data-bind="attr: { id: $data.data[0].id + '-column', href: '/packages/' + $data.data[0].id, title: $data.data[0].id }, text: $data.data[0].id" tabindex="-1"></a>
+    </div>
+    <div class="col-sm-8 autocomplete-row-description">
+        <span data-bind="text: $data.data[0].description"></span>
+    </div>
+    <!-- /ko -->
+    <!-- ko ifnot: $data.data -->
+    <div class="col-sm-12 autocomplete-row-id">
+        <a data-bind="attr: { id: $data + '-column', href: '/packages/' + $data, title: $data  }, text: $data" tabindex="-1"></a>
+    </div>
+    <!-- /ko -->
+    <!-- /ko -->
+</script>
+
+<script type="text/html" id="autocomplete-results-template">
+    <div data-bind="foreach: $data.data">
+        <a data-bind="attr: { id: $data + '-column', href: '/packages/' + $data, title: $data }">
+            <div data-bind="attr:{ id: 'autocomplete-container-' + $data }">
+            </div>
+        </a>
+    </div>
+</script>
