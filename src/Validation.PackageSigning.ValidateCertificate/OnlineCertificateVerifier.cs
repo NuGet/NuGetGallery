@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -44,17 +45,17 @@ namespace Validation.PackageSigning.ValidateCertificate
             return VerifyCertificate(certificate, extraCertificates, applicationPolicy: null);
         }
 
-        public CertificateVerificationResult VerifyCodeSigningCertificate(X509Certificate2 certificate, X509Certificate2[] extraCertificates)
+        public CertificateVerificationResult VerifyCodeSigningCertificate(X509Certificate2 certificate, IReadOnlyList<X509Certificate2> extraCertificates)
         {
             return VerifyCertificate(certificate, extraCertificates, applicationPolicy: new Oid(CodeSigningEku));
         }
 
-        public CertificateVerificationResult VerifyTimestampingCertificate(X509Certificate2 certificate, X509Certificate2[] extraCertificates)
+        public CertificateVerificationResult VerifyTimestampingCertificate(X509Certificate2 certificate, IReadOnlyList<X509Certificate2> extraCertificates)
         {
             return VerifyCertificate(certificate, extraCertificates, applicationPolicy: new Oid(TimeStampingEku));
         }
 
-        private CertificateVerificationResult VerifyCertificate(X509Certificate2 certificate, X509Certificate2[] extraCertificates, Oid applicationPolicy)
+        private CertificateVerificationResult VerifyCertificate(X509Certificate2 certificate, IReadOnlyList<X509Certificate2> extraCertificates, Oid applicationPolicy)
         {
             X509Chain chain = null;
 
@@ -63,7 +64,7 @@ namespace Validation.PackageSigning.ValidateCertificate
                 chain = new X509Chain();
 
                 // Allow the chain to use whatever additional extra certificates were provided.
-                chain.ChainPolicy.ExtraStore.AddRange(extraCertificates);
+                chain.ChainPolicy.ExtraStore.AddRange(extraCertificates.ToArray());
 
                 if (applicationPolicy != null)
                 {

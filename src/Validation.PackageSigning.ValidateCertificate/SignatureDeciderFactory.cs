@@ -62,7 +62,7 @@ namespace Validation.PackageSigning.ValidateCertificate
             }
 
             // If a certificate used for the primary signature is revoked, all dependent signatures should be invalidated.
-            // Note that in this case the revoked certificate is a parent of the end certificate - NOT the end certificate.
+            // NOTE: It is assumed that the revoked certificate is an ancestor certificate, but this may not be strictly true.
             if (certificate.Use == EndCertificateUse.CodeSigning && (result.StatusFlags & X509ChainStatusFlags.Revoked) != 0)
             {
                 return RejectAllSignaturesDecider;
@@ -97,16 +97,27 @@ namespace Validation.PackageSigning.ValidateCertificate
 
             return (PackageSignature signature) =>
             {
+                // Ensure that the signature has only one trusted timestamp. This is just a sanity check as the extract
+                // and validate job should enforce this.
+                if (signature.TrustedTimestamps.Count() != 1)
+                {
+                    throw new InvalidOperationException($"Signature {signature.Key} has multiple trusted timestamps");
+                }
+
                 // The revoked code signing certificate invalidates signatures with no valid timestamps.
-                // TODO: This should skip trusted timestamps with invalid/revoked certs. This requires:
-                //          * Getting trusted timestamps' certificates and their statuses.
-                if (!signature.TrustedTimestamps.Any())
+                if (signature.TrustedTimestamps.All(t => t.Status == TrustedTimestampStatus.Invalid))
                 {
                     return SignatureDecision.Reject;
                 }
 
                 // The revoked code signing certificate invalidates signatures with at least one trusted
-                // timestamp before the revocation date.
+                // timestamp after the revocation date. Note that this MUST use ALL timestamps, even ones that
+                // are now invalid. Why? Say that a signed package "Test" has two or more trusted timestamps.
+                // If "Test"'s codesigning certificate is revoked at a date before the latest trusted timestamp
+                // but after the earliest trusted timestamp, "Test" should be rejected. However, if invalidated
+                // timestamps were not considered here, an attacker that controls the Time Stamping Authority could
+                // try to hide the package's rejection by revoking all timestamps issued after the codesigning's
+                // revocation date.
                 if (signature.TrustedTimestamps.Any(t => revocationTime.Value <= t.Value))
                 {
                     return SignatureDecision.Reject;

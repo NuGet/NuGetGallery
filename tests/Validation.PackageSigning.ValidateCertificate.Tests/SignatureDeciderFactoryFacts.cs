@@ -62,6 +62,135 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                 Assert.Equal(SignatureDecision.Reject, decider(signatureAfterGracePeriod));
             }
 
+            [Fact]
+            public void RevokedCodeSigningCertificateThrowsIfThereIsARevocationDateAndNoTrustedTimestamps()
+            {
+                var certificate = new EndCertificate { Use = EndCertificateUse.CodeSigning };
+
+                var result = new CertificateVerificationResult(
+                                    status: EndCertificateStatus.Revoked,
+                                    statusFlags: X509ChainStatusFlags.Revoked,
+                                    revocationTime: DateTime.UtcNow);
+
+                var signatureAtIngestion = new PackageSignature
+                {
+                    Status = PackageSignatureStatus.Unknown,
+                    TrustedTimestamps = new TrustedTimestamp[0],
+                };
+
+                var signatureAtGracePeriod = new PackageSignature
+                {
+                    Status = PackageSignatureStatus.InGracePeriod,
+                    TrustedTimestamps = new TrustedTimestamp[0],
+                };
+
+                var signatureAfterGracePeriod = new PackageSignature
+                {
+                    Status = PackageSignatureStatus.Valid,
+                    TrustedTimestamps = new TrustedTimestamp[0],
+                };
+
+                // Act & Assert
+                var decider = _target.MakeDeciderForRevokedCertificate(certificate, result);
+
+                Assert.Throws<InvalidOperationException>(() => decider(signatureAtIngestion));
+                Assert.Throws<InvalidOperationException>(() => decider(signatureAtGracePeriod));
+                Assert.Throws<InvalidOperationException>(() => decider(signatureAfterGracePeriod));
+            }
+
+            [Fact]
+            public void RevokedCodeSigningCertificateThrowsIfThereIsARevocationDateAndMultipleTrustedTimestamps()
+            {
+                var certificate = new EndCertificate { Use = EndCertificateUse.CodeSigning };
+
+                var result = new CertificateVerificationResult(
+                                    status: EndCertificateStatus.Revoked,
+                                    statusFlags: X509ChainStatusFlags.Revoked,
+                                    revocationTime: DateTime.UtcNow);
+
+                var signatureAtIngestion = new PackageSignature
+                {
+                    Status = PackageSignatureStatus.Unknown,
+                    TrustedTimestamps = new TrustedTimestamp[]
+                    {
+                        new TrustedTimestamp(),
+                        new TrustedTimestamp(),
+                    }
+                };
+
+                var signatureAtGracePeriod = new PackageSignature
+                {
+                    Status = PackageSignatureStatus.InGracePeriod,
+                    TrustedTimestamps = new TrustedTimestamp[]
+                    {
+                        new TrustedTimestamp(),
+                        new TrustedTimestamp(),
+                    }
+                };
+
+                var signatureAfterGracePeriod = new PackageSignature
+                {
+                    Status = PackageSignatureStatus.Valid,
+                    TrustedTimestamps = new TrustedTimestamp[]
+                    {
+                        new TrustedTimestamp(),
+                        new TrustedTimestamp(),
+                    }
+                };
+
+                // Act & Assert
+                var decider = _target.MakeDeciderForRevokedCertificate(certificate, result);
+
+                Assert.Throws<InvalidOperationException>(() => decider(signatureAtIngestion));
+                Assert.Throws<InvalidOperationException>(() => decider(signatureAtGracePeriod));
+                Assert.Throws<InvalidOperationException>(() => decider(signatureAfterGracePeriod));
+            }
+
+            [Fact]
+            public void RevokedCodeSigningCertificateRejectsAllSignaturesIfTimestampIsAlreadyInvalid()
+            {
+                var certificate = new EndCertificate { Use = EndCertificateUse.CodeSigning };
+
+                var result = new CertificateVerificationResult(
+                                    status: EndCertificateStatus.Revoked,
+                                    statusFlags: X509ChainStatusFlags.Revoked,
+                                    revocationTime: DateTime.UtcNow);
+
+                var signatureAtIngestion = new PackageSignature
+                {
+                    Status = PackageSignatureStatus.Unknown,
+                    TrustedTimestamps = new TrustedTimestamp[]
+                    {
+                        new TrustedTimestamp { Status = TrustedTimestampStatus.Invalid }
+                    }
+                };
+
+                var signatureAtGracePeriod = new PackageSignature
+                {
+                    Status = PackageSignatureStatus.InGracePeriod,
+                    TrustedTimestamps = new TrustedTimestamp[]
+                    {
+                        new TrustedTimestamp { Status = TrustedTimestampStatus.Invalid }
+                    }
+                };
+
+                var signatureAfterGracePeriod = new PackageSignature
+                {
+                    Status = PackageSignatureStatus.Valid,
+                    TrustedTimestamps = new TrustedTimestamp[]
+                    {
+                        new TrustedTimestamp { Status = TrustedTimestampStatus.Invalid }
+                    }
+                };
+
+                // Act & Assert
+                var decider = _target.MakeDeciderForRevokedCertificate(certificate, result);
+
+                Assert.Equal(SignatureDecision.Reject, decider(signatureAtIngestion));
+                Assert.Equal(SignatureDecision.Reject, decider(signatureAtGracePeriod));
+                Assert.Equal(SignatureDecision.Reject, decider(signatureAfterGracePeriod));
+            }
+
             [Theory]
             [MemberData(nameof(RevokedCodeSigningCertificateWithRevocationDateInvalidatesSignaturesData))]
             public void RevokedCodeSigningCertificateWithRevocationDateInvalidatesSignatures(
@@ -74,7 +203,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                 // be rejected.
                 var revocationTime = DateTime.UtcNow;
                 var certificate = new EndCertificate { Use = EndCertificateUse.CodeSigning };
-                var timestamp = new TrustedTimestamp { Value = revocationTime + signatureTimeDeltaToRevocationTime };
+                var timestamp = new TrustedTimestamp { Value = revocationTime + signatureTimeDeltaToRevocationTime, Status = TrustedTimestampStatus.Valid };
 
                 var result = new CertificateVerificationResult(
                                     status: EndCertificateStatus.Revoked,

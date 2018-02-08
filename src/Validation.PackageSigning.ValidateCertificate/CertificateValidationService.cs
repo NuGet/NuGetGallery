@@ -43,17 +43,13 @@ namespace Validation.PackageSigning.ValidateCertificate
 
         public Task<EndCertificateValidation> FindCertificateValidationAsync(CertificateValidationMessage message)
         {
+            // Fetch the validation, the end certificate that this validation is for, and all of the parent
+            // certificates that the end certificate depends on.
             return _context
                         .CertificateValidations
                         .Where(v => v.ValidationId == message.ValidationId && v.EndCertificateKey == message.CertificateKey)
-                        .Include(v => v.EndCertificate)
+                        .Include(v => v.EndCertificate.CertificateChainLinks.Select(l => l.ParentCertificate))
                         .FirstOrDefaultAsync();
-        }
-
-        public Task<CertificateVerificationResult> VerifyAsync(X509Certificate2 certificate)
-        {
-            // TODO: This will be implemented in a separate change!
-            throw new NotImplementedException();
         }
 
         public async Task<bool> TrySaveResultAsync(EndCertificateValidation validation, CertificateVerificationResult result)
@@ -171,6 +167,7 @@ namespace Validation.PackageSigning.ValidateCertificate
 
             return ProcessDependentSignaturesAsync(
                         validation.EndCertificate,
+                        result,
                         invalidationDecider,
                         onAllSignaturesHandled: InvalidateCertificate);
         }
@@ -193,6 +190,7 @@ namespace Validation.PackageSigning.ValidateCertificate
 
             return ProcessDependentSignaturesAsync(
                         validation.EndCertificate,
+                        result,
                         invalidationDecider,
                         onAllSignaturesHandled: RevokeCertificate);
         }
@@ -201,11 +199,13 @@ namespace Validation.PackageSigning.ValidateCertificate
         /// The helper that processes how a certificate's status change affects its dependent signatures.
         /// </summary>
         /// <param name="certificate">The certificate whose dependent signatures should be processed.</param>
+        /// <param name="certificateVerificationResult">The result of the certificate's verification.</param>
         /// <param name="signatureDecider">The delegate that decides how a dependent signature should be handled.</param>
         /// <param name="onAllSignaturesHandled">The action that will be called once all dependent signatures have been processed.</param>
         /// <returns></returns>
         private async Task ProcessDependentSignaturesAsync(
             EndCertificate certificate,
+            CertificateVerificationResult certificateVerificationResult,
             SignatureDecider signatureDecider,
             Action onAllSignaturesHandled)
         {
@@ -246,7 +246,7 @@ namespace Validation.PackageSigning.ValidateCertificate
                 {
                     var decision = signatureDecider(signature);
 
-                    HandleSignatureDecision(signature, decision);
+                    HandleSignatureDecision(signature, decision, certificate, certificateVerificationResult);
                 }
             }
             while (signatures.Count == MaxSignatureUpdatesPerTransaction);
@@ -294,7 +294,7 @@ namespace Validation.PackageSigning.ValidateCertificate
             }
 
             return packageSignatures
-                        .Include(s => s.TrustedTimestamps)
+                        .Include(s => s.TrustedTimestamps.Select(t => t.EndCertificate))
                         .Include(s => s.PackageSigningState)
                         .OrderBy(s => s.Key)
                         .Skip(page * MaxSignatureUpdatesPerTransaction)
@@ -307,33 +307,72 @@ namespace Validation.PackageSigning.ValidateCertificate
         /// Handle the decision on how to update the signature.
         /// </summary>
         /// <param name="signature">The signature that should be updated.</param>
-        /// <param name="decision"></param>
+        /// <param name="decision">How the signature should be updated.</param>
+        /// <param name="certificate">The certificate that signature depends on that changed the signature's state.</param>
+        /// <param name="certificateVerificationResult">The certificate verification that changed the signature's state.</param>
         private void HandleSignatureDecision(
             PackageSignature signature,
-            SignatureDecision decision)
+            SignatureDecision decision,
+            EndCertificate certificate,
+            CertificateVerificationResult certificateVerificationResult)
         {
-            // TODO: Log all the necessary information to investigate the signature decision.
             switch (decision)
             {
                 case SignatureDecision.Ignore:
+                    _logger.LogInformation(
+                        "Signature {SignatureKey} is not affected by certificate verification result: {CertificateVerificationResult}",
+                        signature.Key,
+                        certificateVerificationResult);
                     break;
 
                 case SignatureDecision.Warn:
-                    signature.Status = PackageSignatureStatus.Invalid;
-                    signature.PackageSigningState.SigningStatus = PackageSigningStatus.Invalid;
+                    _logger.LogWarning(
+                        "Invalidating signature {SignatureKey} due to certificate verification result: {CertificateVerificationResult}",
+                        signature.Key,
+                        certificateVerificationResult);
+
+                    InvalidateSignature(signature, certificate);
 
                     _telemetryService.TrackPackageSignatureMayBeInvalidatedEvent(signature);
+
                     break;
 
                 case SignatureDecision.Reject:
-                    signature.Status = PackageSignatureStatus.Invalid;
-                    signature.PackageSigningState.SigningStatus = PackageSigningStatus.Invalid;
+                    _logger.LogWarning(
+                        "Rejecting signature {SignatureKey} due to certificate verification result: {CertificateVerificationResult}",
+                        signature.Key,
+                        certificateVerificationResult);
+
+                    InvalidateSignature(signature, certificate);
 
                     _telemetryService.TrackPackageSignatureShouldBeInvalidatedEvent(signature);
                     break;
 
                 default:
-                    throw new InvalidOperationException($"Unknown signature decision: {decision}");
+                    throw new InvalidOperationException(
+                        $"Unknown signature decision '{decision}' for certificate verification result: {certificateVerificationResult}");
+            }
+        }
+
+        private void InvalidateSignature(PackageSignature signature, EndCertificate certificate)
+        {
+            signature.Status = PackageSignatureStatus.Invalid;
+            signature.PackageSigningState.SigningStatus = PackageSigningStatus.Invalid;
+
+            if (certificate.Use == EndCertificateUse.Timestamping)
+            {
+                var affectedTimestamps = signature.TrustedTimestamps
+                                                  .Where(t => t.EndCertificate.Thumbprint == certificate.Thumbprint);
+
+                foreach (var timestamp in affectedTimestamps)
+                {
+                    _logger.LogWarning(
+                        "Invalidating timestamp {TimestampKey} due to invalid certificate {CertificateKey}",
+                        signature.Key,
+                        certificate.Key);
+
+                    timestamp.Status = TrustedTimestampStatus.Invalid;
+                }
             }
         }
     }
