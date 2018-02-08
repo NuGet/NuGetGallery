@@ -1,9 +1,10 @@
 ﻿@model AccountViewModel
 @{
+    var parent = (WebViewPage)TempData["Parent"];
     var controllerName = Model.IsOrganization ? "Organizations" : "Users";
 }
 
-@ViewHelpers.Section(this,
+@ViewHelpers.Section(parent,
          "change-email",
         @<text>@(Model.HasUnconfirmedEmailAddress ? "Pending Email Address" : "Email Address")</text>,
         @<text>@Model.CurrentEmailAddress</text>,
