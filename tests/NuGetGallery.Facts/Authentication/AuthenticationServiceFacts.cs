@@ -610,13 +610,13 @@ namespace NuGetGallery.Authentication
 
                 var authUser = new AuthenticatedUser(user, credential);
 
-                var passwordConfigMock = new Mock<ILoginDiscontinuationAndMigrationConfiguration>();
+                var passwordConfigMock = new Mock<ILoginDiscontinuationConfiguration>();
                 passwordConfigMock
                     .Setup(x => x.IsLoginDiscontinued(authUser))
                     .Returns(isDiscontinuedLogin);
 
                 GetMock<IContentObjectService>()
-                    .Setup(x => x.LoginDiscontinuationAndMigrationConfiguration)
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
                     .Returns(passwordConfigMock.Object);
 
                 // Act
@@ -645,13 +645,13 @@ namespace NuGetGallery.Authentication
 
                 var authenticatedUser = new AuthenticatedUser(fakes.Admin, credential);
 
-                var passwordConfigMock = new Mock<ILoginDiscontinuationAndMigrationConfiguration>();
+                var passwordConfigMock = new Mock<ILoginDiscontinuationConfiguration>();
                 passwordConfigMock
                     .Setup(x => x.IsLoginDiscontinued(authenticatedUser))
                     .Returns(false);
 
                 GetMock<IContentObjectService>()
-                    .Setup(x => x.LoginDiscontinuationAndMigrationConfiguration)
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
                     .Returns(passwordConfigMock.Object);
 
                 var service = Get<AuthenticationService>();

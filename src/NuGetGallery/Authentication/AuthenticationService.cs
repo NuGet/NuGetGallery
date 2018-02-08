@@ -251,7 +251,7 @@ namespace NuGetGallery.Authentication
         {
             await _contentObjectService.Refresh();
 
-            return _contentObjectService.LoginDiscontinuationAndMigrationConfiguration.IsLoginDiscontinued(user) ?
+            return _contentObjectService.LoginDiscontinuationConfiguration.IsLoginDiscontinued(user) ?
                 new[] { new Claim(NuGetClaims.DiscontinuedLogin, NuGetClaims.DiscontinuedLoginValue) } :
                 new Claim[0];
         }

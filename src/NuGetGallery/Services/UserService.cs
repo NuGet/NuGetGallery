@@ -296,7 +296,7 @@ namespace NuGetGallery
             {
                 errorReason = Strings.TransformAccount_AccountHasMemberships;
             }
-            else if (!ContentObjectService.LoginDiscontinuationAndMigrationConfiguration.AreOrganizationsSupportedForUser(accountToTransform))
+            else if (!ContentObjectService.LoginDiscontinuationConfiguration.AreOrganizationsSupportedForUser(accountToTransform))
             {
                 errorReason = String.Format(CultureInfo.CurrentCulture,
                     Strings.TransformAccount_FailedReasonNotInDomainWhitelist, accountToTransform.Username);

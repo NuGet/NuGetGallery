@@ -641,13 +641,13 @@ namespace NuGetGallery
                 var fakes = new Fakes();
                 var user = fakes.User;
 
-                var passwordConfigMock = new Mock<ILoginDiscontinuationAndMigrationConfiguration>();
+                var passwordConfigMock = new Mock<ILoginDiscontinuationConfiguration>();
                 passwordConfigMock
                     .Setup(x => x.AreOrganizationsSupportedForUser(user))
                     .Returns(false);
 
                 service.MockConfigObjectService
-                    .Setup(x => x.LoginDiscontinuationAndMigrationConfiguration)
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
                     .Returns(passwordConfigMock.Object);
 
                 // Act
@@ -668,13 +668,13 @@ namespace NuGetGallery
                 var fakes = new Fakes();
                 var user = fakes.User;
 
-                var passwordConfigMock = new Mock<ILoginDiscontinuationAndMigrationConfiguration>();
+                var passwordConfigMock = new Mock<ILoginDiscontinuationConfiguration>();
                 passwordConfigMock
                     .Setup(x => x.AreOrganizationsSupportedForUser(user))
                     .Returns(true);
 
                 service.MockConfigObjectService
-                    .Setup(x => x.LoginDiscontinuationAndMigrationConfiguration)
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
                     .Returns(passwordConfigMock.Object);
 
                 // Act
@@ -696,13 +696,13 @@ namespace NuGetGallery
                 var fakes = new Fakes();
                 var user = fakes.User;
 
-                var passwordConfigMock = new Mock<ILoginDiscontinuationAndMigrationConfiguration>();
+                var passwordConfigMock = new Mock<ILoginDiscontinuationConfiguration>();
                 passwordConfigMock
                     .Setup(x => x.AreOrganizationsSupportedForUser(user))
                     .Returns(true);
 
                 service.MockConfigObjectService
-                    .Setup(x => x.LoginDiscontinuationAndMigrationConfiguration)
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
                     .Returns(passwordConfigMock.Object);
 
                 // Act
@@ -724,13 +724,13 @@ namespace NuGetGallery
                 var unconfirmedUser = new User() { UnconfirmedEmailAddress = "unconfirmed@example.com" };
                 var user = fakes.User;
 
-                var passwordConfigMock = new Mock<ILoginDiscontinuationAndMigrationConfiguration>();
+                var passwordConfigMock = new Mock<ILoginDiscontinuationConfiguration>();
                 passwordConfigMock
                     .Setup(x => x.AreOrganizationsSupportedForUser(user))
                     .Returns(true);
 
                 service.MockConfigObjectService
-                    .Setup(x => x.LoginDiscontinuationAndMigrationConfiguration)
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
                     .Returns(passwordConfigMock.Object);
 
                 // Act
@@ -752,13 +752,13 @@ namespace NuGetGallery
                 var user = fakes.User;
                 var organization = fakes.Organization;
 
-                var passwordConfigMock = new Mock<ILoginDiscontinuationAndMigrationConfiguration>();
+                var passwordConfigMock = new Mock<ILoginDiscontinuationConfiguration>();
                 passwordConfigMock
                     .Setup(x => x.AreOrganizationsSupportedForUser(user))
                     .Returns(true);
 
                 service.MockConfigObjectService
-                    .Setup(x => x.LoginDiscontinuationAndMigrationConfiguration)
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
                     .Returns(passwordConfigMock.Object);
 
                 // Act

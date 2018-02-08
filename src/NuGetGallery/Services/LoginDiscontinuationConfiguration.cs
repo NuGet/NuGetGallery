@@ -9,14 +9,14 @@ using NuGetGallery.Authentication;
 
 namespace NuGetGallery
 {
-    public class LoginDiscontinuationAndMigrationConfiguration : ILoginDiscontinuationAndMigrationConfiguration
+    public class LoginDiscontinuationConfiguration : ILoginDiscontinuationConfiguration
     {
         public HashSet<string> DiscontinuedForEmailAddresses { get; }
         public HashSet<string> DiscontinuedForDomains { get; }
         public HashSet<string> ExceptionsForEmailAddresses { get; }
 
         [JsonConstructor]
-        public LoginDiscontinuationAndMigrationConfiguration(
+        public LoginDiscontinuationConfiguration(
             IEnumerable<string> discontinuedForEmailAddresses,
             IEnumerable<string> discontinuedForDomains,
             IEnumerable<string> exceptionsForEmailAddresses)
@@ -44,7 +44,7 @@ namespace NuGetGallery
         }
     }
 
-    public interface ILoginDiscontinuationAndMigrationConfiguration
+    public interface ILoginDiscontinuationConfiguration
     {
         bool IsLoginDiscontinued(AuthenticatedUser authUser);
         bool AreOrganizationsSupportedForUser(User user);

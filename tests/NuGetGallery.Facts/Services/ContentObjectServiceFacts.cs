@@ -21,7 +21,7 @@ namespace NuGetGallery.Services
             {
                 var service = new ContentObjectService(new Mock<IContentService>().Object);
 
-                var loginDiscontinuationAndMigrationConfiguration = service.LoginDiscontinuationAndMigrationConfiguration as LoginDiscontinuationAndMigrationConfiguration;
+                var loginDiscontinuationAndMigrationConfiguration = service.LoginDiscontinuationConfiguration as LoginDiscontinuationConfiguration;
                 Assert.Empty(loginDiscontinuationAndMigrationConfiguration.DiscontinuedForDomains);
                 Assert.Empty(loginDiscontinuationAndMigrationConfiguration.ExceptionsForEmailAddresses);
             }
@@ -33,18 +33,18 @@ namespace NuGetGallery.Services
                 var domains = new[] { "example.com" };
                 var exceptions = new[] { "exception@example.com" };
 
-                var config = new LoginDiscontinuationAndMigrationConfiguration(emails, domains, exceptions);
+                var config = new LoginDiscontinuationConfiguration(emails, domains, exceptions);
                 var configString = JsonConvert.SerializeObject(config);
 
                 GetMock<IContentService>()
-                    .Setup(x => x.GetContentItemAsync(Constants.ContentNames.LoginDiscontinuationAndMigrationConfiguration, It.IsAny<TimeSpan>()))
+                    .Setup(x => x.GetContentItemAsync(Constants.ContentNames.LoginDiscontinuationConfiguration, It.IsAny<TimeSpan>()))
                     .Returns(Task.FromResult<IHtmlString>(new HtmlString(configString)));
 
                 var service = GetService<ContentObjectService>();
 
                 // Act
                 await service.Refresh();
-                var loginDiscontinuationAndMigrationConfiguration = service.LoginDiscontinuationAndMigrationConfiguration as LoginDiscontinuationAndMigrationConfiguration;
+                var loginDiscontinuationAndMigrationConfiguration = service.LoginDiscontinuationConfiguration as LoginDiscontinuationConfiguration;
 
                 // Assert
                 Assert.True(loginDiscontinuationAndMigrationConfiguration.DiscontinuedForEmailAddresses.SequenceEqual(emails));

@@ -933,7 +933,7 @@
     <Compile Include="Services\PackageUploadService.cs" />
     <Compile Include="Services\IReservedNamespaceService.cs" />
     <Compile Include="Services\IPackageUploadService.cs" />
-    <Compile Include="Services\LoginDiscontinuationAndMigrationConfiguration.cs" />
+    <Compile Include="Services\LoginDiscontinuationConfiguration.cs" />
     <Compile Include="Services\PermissionsCheckResult.cs" />
     <Compile Include="Services\PermissionsRequirement.cs" />
     <Compile Include="Services\ReservedNamespaceService.cs" />

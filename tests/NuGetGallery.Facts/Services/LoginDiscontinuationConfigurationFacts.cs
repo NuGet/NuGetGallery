@@ -8,7 +8,7 @@ using Xunit;
 
 namespace NuGetGallery.Services
 {
-    public class LoginDiscontinuationAndMigrationConfigurationFacts
+    public class LoginDiscontinuationConfigurationFacts
     {
         public class TheIsLoginDiscontinuedMethod : TestContainer
         {
@@ -94,7 +94,7 @@ namespace NuGetGallery.Services
                 var domains = isOnDomainList ? new[] { _domain } : new[] { _incorrectDomain };
                 var exceptions = isOnExceptionList ? new[] { _email } : new[] { _incorrectException };
 
-                var config = new LoginDiscontinuationAndMigrationConfiguration(emails, domains, exceptions);
+                var config = new LoginDiscontinuationConfiguration(emails, domains, exceptions);
 
                 // Act
                 var result = config.IsLoginDiscontinued(authUser);
