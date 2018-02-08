@@ -38,7 +38,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Storage\CertificateStoreTests.cs" />
     <Compile Include="Storage\ValidatorStatusExtensionsFacts.cs" />
+    <Compile Include="Support\CertificateIntegrationTestFixture.cs" />
     <Compile Include="Support\DbSetMockFactory.cs" />
+    <Compile Include="Support\ExtensionMethods.cs" />
     <Compile Include="Support\TestDbAsyncEnumerable.cs" />
     <Compile Include="Support\TestDbAsyncEnumerator.cs" />
     <Compile Include="Support\TestDbAsyncQueryProvider.cs" />
@@ -56,6 +58,12 @@
   <ItemGroup>
     <PackageReference Include="Moq">
       <Version>4.7.145</Version>
+    </PackageReference>
+    <PackageReference Include="Portable.BouncyCastle">
+      <Version>1.8.1.3</Version>
+    </PackageReference>
+    <PackageReference Include="Test.Utility">
+      <Version>4.7.0-preview1-4886</Version>
     </PackageReference>
     <PackageReference Include="xunit">
       <Version>2.3.1</Version>
