@@ -199,7 +199,7 @@ namespace NuGetGallery
             if (returnUrl != Url.Home())
             {
                 // Redirect to home page for discontinued logins.
-                var identity = OwinContext.Authentication.User.Identity as ClaimsIdentity;
+                var identity = OwinContext.Authentication?.User?.Identity as ClaimsIdentity;
                 if (ClaimsExtentions.HasDiscontinuedLoginCLaims(identity))
                 {
                     return SafeRedirect(Url.Home());
