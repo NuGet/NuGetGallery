@@ -3,8 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.ServiceModel;
 using Microsoft.ApplicationInsights;
 using NuGet.Services.Search.Client;
 

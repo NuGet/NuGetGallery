@@ -27,7 +27,9 @@ namespace NuGetGallery.Configuration
         /// regardless of the number of downloads. Since the download counts for packages are not updated immediately,
         /// there is a window of time when a new package won't have any recorded downloads. Note that
         /// <see cref="AllowUsersToDeletePackages"/> and <see cref="MaximumDownloadsForPackageVersion"/> take
-        /// precedence over this option.
+        /// precedence over this option. The jobs that imply this value are the Stats.CreateAzureCdnWarehouseReports and
+        /// Stats.AggregateCdnDownloadsInGallery jobs. Note that this configuration value may be higher than the actual
+        /// update frequency. This is the more like the maximum expected update frequency.
         /// </summary>
         int? StatisticsUpdateFrequencyInHours { get; }
 
