@@ -1,5 +1,6 @@
 ﻿@model AccountViewModel
 @{
+    var parent = (WebViewPage)TempData["Parent"];
     var controllerName = Model.IsOrganization ? "Organizations" : "Users";
 
     ViewBag.NotifyPackagePushedEnabled = "Receiving package push notifications";
@@ -44,7 +45,7 @@
     }
 }
 
-@ViewHelpers.Section(this,
+@ViewHelpers.Section(parent,
          "change-notifications",
         @<text>Email Notifications</text>,
         @<text>

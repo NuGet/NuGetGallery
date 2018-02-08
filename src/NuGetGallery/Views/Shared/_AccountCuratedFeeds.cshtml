@@ -1,8 +1,11 @@
 ﻿@model AccountViewModel
+@{
+    var parent = (WebViewPage)TempData["Parent"];
+}
 
 @foreach (var curatedFeed in Model.CuratedFeeds)
 {
-    @ViewHelpers.Section(this,
+    @ViewHelpers.Section(parent,
         "curated-feed-" + curatedFeed,
         @<text>Curated Feed</text>,
         @<text>@curatedFeed</text>,
