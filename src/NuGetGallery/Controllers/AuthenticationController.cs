@@ -195,6 +195,7 @@ namespace NuGetGallery
 
             // Create session
             await _authService.CreateSessionAsync(OwinContext, authenticatedUser);
+
             return SafeRedirect(returnUrl);
         }
 
@@ -388,11 +389,6 @@ namespace NuGetGallery
             }
 
             var newCredential = result.Credential;
-            var newEmailAddress = result.Authenticator?
-                .GetIdentityInformation(result.ExternalIdentity)?
-                .Email;
-            var linkingDifferentEmailAddress = newEmailAddress != null 
-                && !newEmailAddress.Equals(user.EmailAddress, StringComparison.OrdinalIgnoreCase);
 
             // For transform flow, check if the user already has the linked external account credential, allow the user to login with this credential.
             var ignoreCredentialReplacement = isTransform && UserHasCredential(user, newCredential);
@@ -409,6 +405,15 @@ namespace NuGetGallery
                     await _authService.RemoveCredential(user, passwordCred);
                 }
 
+                // Get email address of the new credential for updating success message
+                var newEmailAddress = GetEmailAddressFromExternalLoginResult(result, out string errorReason);
+                if (!string.IsNullOrEmpty(errorReason))
+                {
+                    TempData["ErrorMessage"] = errorReason;
+                    return SafeRedirect(returnUrl);
+                }
+
+                var linkingDifferentEmailAddress = !newEmailAddress.Equals(user.EmailAddress, StringComparison.OrdinalIgnoreCase);
                 TempData["Message"] = linkingDifferentEmailAddress
                     ? string.Format(Strings.ChangeCredential_SuccessDifferentEmail, newEmailAddress, user.EmailAddress)
                     : string.Format(Strings.ChangeCredential_Success, newEmailAddress);
@@ -580,6 +585,21 @@ namespace NuGetGallery
             return user.Credentials.Any(cred =>
                 cred.Type.Equals(credential.Type, StringComparison.OrdinalIgnoreCase)
                 && cred.Value == credential.Value);
+        }
+
+        private string GetEmailAddressFromExternalLoginResult(AuthenticateExternalLoginResult result, out string errorReason)
+        {
+            try
+            {
+                var userInformation = result.Authenticator?.GetIdentityInformation(result.ExternalIdentity);
+                errorReason = null;
+                return userInformation.Email;
+            }
+            catch (Exception ex)
+            {
+                errorReason = ex.Message;
+                return null;
+            }
         }
 
         private ActionResult ExternalLinkExpired()

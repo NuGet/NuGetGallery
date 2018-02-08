@@ -103,7 +103,7 @@ namespace NuGetGallery
 
         public virtual ActionResult Home()
         {
-            var identity = OwinContext.Authentication.User.Identity as ClaimsIdentity;
+            var identity = OwinContext.Authentication?.User?.Identity as ClaimsIdentity;
             var showTransformModal = ClaimsExtentions.HasDiscontinuedLoginCLaims(identity);
             return View(new GalleryHomeViewModel(showTransformModal));
         }
