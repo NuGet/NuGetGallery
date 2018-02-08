@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
-using NuGet.Versioning;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
@@ -29,23 +28,16 @@ namespace NuGetGallery.Security
 
         protected IAppConfiguration Configuration { get; set; }
 
-        protected SecurePushSubscription SecurePush { get; set; }
-
         protected IUserSecurityPolicySubscription DefaultSubscription { get; set; }
-
-        protected RequireSecurePushForCoOwnersPolicy SecurePushForCoOwners { get; set; }
 
         protected SecurityPolicyService()
         {
         }
 
-        public SecurityPolicyService(IEntitiesContext entitiesContext, IAuditingService auditing, IDiagnosticsService diagnostics, IAppConfiguration configuration,
-            SecurePushSubscription securePush = null, RequireSecurePushForCoOwnersPolicy securePushForCoOwners = null)
+        public SecurityPolicyService(IEntitiesContext entitiesContext, IAuditingService auditing, IDiagnosticsService diagnostics, IAppConfiguration configuration)
         {
             EntitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             Auditing = auditing ?? throw new ArgumentNullException(nameof(auditing));
-            SecurePush = securePush;
-            SecurePushForCoOwners = securePushForCoOwners;
 
             if (diagnostics == null)
             {
@@ -75,8 +67,7 @@ namespace NuGetGallery.Security
         {
             get
             {
-                yield return SecurePush;
-                yield return SecurePushForCoOwners;
+                return new List<IUserSecurityPolicySubscription>();
             }
         }
 
@@ -323,7 +314,6 @@ namespace NuGetGallery.Security
         /// </summary>
         private static IEnumerable<UserSecurityPolicyHandler> CreateUserHandlers()
         {
-            yield return new RequireMinClientVersionForPushPolicy();
             yield return new RequirePackageVerifyScopePolicy();
             yield return new RequireMinProtocolVersionForPushPolicy();
         }
