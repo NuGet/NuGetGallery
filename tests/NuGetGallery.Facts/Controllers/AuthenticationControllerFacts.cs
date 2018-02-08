@@ -16,6 +16,7 @@ using NuGetGallery.Authentication.Providers.AzureActiveDirectory;
 using NuGetGallery.Authentication.Providers.MicrosoftAccount;
 using NuGetGallery.Infrastructure.Authentication;
 using Xunit;
+using NuGetGallery.Authentication.Providers;
 
 namespace NuGetGallery.Controllers
 {
@@ -935,8 +936,14 @@ namespace NuGetGallery.Controllers
                 var identity = "Bloog";
                 var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", identity);
                 var passwordCred = new Credential("password.v3", "bloopbloop");
+                var email = "bloog@blorg.com";
+                var externalAuthenticator = GetMock<Authenticator>();
+                externalAuthenticator
+                    .Setup(x => x.GetIdentityInformation(It.IsAny<ClaimsIdentity>()))
+                    .Returns(new IdentityInformation("", "", email, ""));
                 var fakes = Get<Fakes>();
                 var user = fakes.CreateUser("test", cred, passwordCred);
+                user.EmailAddress = email;
                 controller.SetCurrentUser(user);
                 var authUser = new AuthenticatedUser(
                     user, cred);
@@ -947,6 +954,7 @@ namespace NuGetGallery.Controllers
                     {
                         ExternalIdentity = new ClaimsIdentity(),
                         Authentication = null,
+                        Authenticator = externalAuthenticator.Object,
                         Credential = cred
                     })
                     .Verifiable();
@@ -976,7 +984,7 @@ namespace NuGetGallery.Controllers
 
                 // Assert
                 ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
-                Assert.Equal(Strings.ChangeCredential_Success, controller.TempData["Message"]);
+                Assert.Equal(string.Format(Strings.ChangeCredential_Success, email), controller.TempData["Message"]);
                 serviceMock.VerifyAll();
             }
         }

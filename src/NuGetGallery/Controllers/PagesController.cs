@@ -11,6 +11,9 @@ using System.Web;
 using System.Web.Mvc;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Filters;
+using System.Security.Claims;
+using NuGetGallery.Authentication;
+using NuGetGallery.Authentication.Providers.Utils;
 
 namespace NuGetGallery
 {
@@ -98,8 +101,10 @@ namespace NuGetGallery
             return View();
         }
 
-        public virtual ActionResult Home(bool showTransformModal = false)
+        public virtual ActionResult Home()
         {
+            var identity = OwinContext.Authentication.User.Identity as ClaimsIdentity;
+            var showTransformModal = ClaimsExtentions.HasDiscontinuedLoginCLaims(identity);
             return View(new GalleryHomeViewModel(showTransformModal));
         }
 

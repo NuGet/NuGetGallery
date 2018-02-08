@@ -1,12 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
-using System.Security.Claims;
 using System.Web.Mvc;
 using System.Web.Routing;
-using NuGetGallery.Authentication;
-using AuthenticationTypes = NuGetGallery.Authentication.AuthenticationTypes;
+using System.Security.Claims;
+using NuGetGallery.Authentication.Providers.Utils;
 using AuthorizationContext = System.Web.Mvc.AuthorizationContext;
 
 namespace NuGetGallery.Filters
@@ -24,22 +22,15 @@ namespace NuGetGallery.Filters
         {
             // If a password credential was used, and the user has a discontinued password claim, redirect them to the homepage with modal dialog
             var identity = filterContext.HttpContext.User.Identity as ClaimsIdentity;
-            if (!AllowDiscontinuedLogins &&
-                identity != null &&
-                identity.IsAuthenticated)
+            if (!AllowDiscontinuedLogins && ClaimsExtentions.HasDiscontinuedLoginCLaims(identity))
             {
-                var discontinuedLoginClaim = identity.GetClaimOrDefault(NuGetClaims.DiscontinuedLogin);
-                if (NuGetClaims.DiscontinuedLoginValue.Equals(discontinuedLoginClaim, StringComparison.OrdinalIgnoreCase))
-                {
-                    filterContext.Result = new RedirectToRouteResult(
-                        new RouteValueDictionary(
-                            new
-                            {
-                                controller = "Pages",
-                                action = "Home",
-                                showTransformModal = true
-                            }));
-                }
+                filterContext.Result = new RedirectToRouteResult(
+                    new RouteValueDictionary(
+                        new
+                        {
+                            controller = "Pages",
+                            action = "Home"
+                        }));
             }
 
             base.OnAuthorization(filterContext);

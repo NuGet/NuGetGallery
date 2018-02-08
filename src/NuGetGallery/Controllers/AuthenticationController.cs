@@ -15,6 +15,7 @@ using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2;
 using NuGetGallery.Authentication.Providers.MicrosoftAccount;
 using NuGetGallery.Infrastructure.Authentication;
+using NuGetGallery.Authentication.Providers.Utils;
 
 namespace NuGetGallery
 {
@@ -194,6 +195,17 @@ namespace NuGetGallery
 
             // Create session
             await _authService.CreateSessionAsync(OwinContext, authenticatedUser);
+
+            if (returnUrl != Url.Home())
+            {
+                // Redirect to home page for discontinued logins.
+                var identity = OwinContext.Authentication.User.Identity as ClaimsIdentity;
+                if (ClaimsExtentions.HasDiscontinuedLoginCLaims(identity))
+                {
+                    return SafeRedirect(Url.Home());
+                }
+            }
+
             return SafeRedirect(returnUrl);
         }
 

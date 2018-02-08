@@ -30,5 +30,17 @@ namespace NuGetGallery.Authentication.Providers.Utils
             var emailClaim = claimsIdentity.FindFirst(emailClaimType);
             return new IdentityInformation(identifierClaim.Value, nameClaim.Value, emailClaim?.Value, authType, tenantId: null);
         }
+
+        public static bool HasDiscontinuedLoginCLaims(ClaimsIdentity identity)
+        {
+            if (identity == null || !identity.IsAuthenticated)
+            {
+                return false;
+            }
+
+            var discontinuedLoginClaim = identity.GetClaimOrDefault(NuGetClaims.DiscontinuedLogin);
+            return !string.IsNullOrWhiteSpace(discontinuedLoginClaim)
+                && NuGetClaims.DiscontinuedLoginValue.Equals(discontinuedLoginClaim, StringComparison.OrdinalIgnoreCase);
+        }
     }
 }
