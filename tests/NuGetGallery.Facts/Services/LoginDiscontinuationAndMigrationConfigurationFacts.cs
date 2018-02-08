@@ -12,41 +12,41 @@ namespace NuGetGallery.Services
     {
         public class TheIsLoginDiscontinuedMethod : TestContainer
         {
+            private const string _incorrectEmail = "incorrect@notExample.com";
             private const string _incorrectDomain = "notExample.com";
             private const string _domain = "example.com";
-            private const string _incorrectEmail = "fake@notExample.com";
+            private const string _incorrectException = "fake@notExample.com";
             private const string _email = "test@example.com";
 
-            public static IEnumerable<object[]> CredentialPasswordTypes
+            public static IEnumerable<object[]> IfPasswordLoginReturnsTrueIfOnWhitelists_Data
             {
                 get
                 {
-                    foreach (var credentialPasswordType in new[] { CredentialTypes.Password.Pbkdf2, CredentialTypes.Password.Sha1, CredentialTypes.Password.V3 })
+                    foreach (var credentialPasswordType in new[] {
+                        CredentialTypes.Password.Pbkdf2,
+                        CredentialTypes.Password.Sha1,
+                        CredentialTypes.Password.V3 })
                     {
-                        yield return MemberDataHelper.AsData(credentialPasswordType);
+                        foreach (var isOnWhiteList in new[] { true, false })
+                        {
+                            foreach (var isOnDomainList in new[] { true, false })
+                            {
+                                foreach (var isOnExceptionList in new[] { true, false })
+                                {
+                                    yield return MemberDataHelper.AsData(credentialPasswordType, isOnWhiteList, isOnDomainList, isOnExceptionList);
+                                }
+                            }
+                        }
                     }
                 }
             }
 
             [Theory]
-            [MemberData(nameof(CredentialPasswordTypes))]
-            public void IfPasswordLoginAndUserIsOnListReturnsTrue(string credentialPasswordType)
+            [MemberData(nameof(IfPasswordLoginReturnsTrueIfOnWhitelists_Data))]
+            public void IfPasswordLoginReturnsTrueIfOnWhitelists(string credentialPasswordType, bool isOnWhiteList, bool isOnDomainList, bool isOnExceptionList)
             {
-                TestIsLoginDiscontinued(credentialPasswordType, isOnDomainList: true, isOnExceptionList: false, expectedResult: true);
-            }
-
-            [Theory]
-            [MemberData(nameof(CredentialPasswordTypes))]
-            public void IfPasswordLoginAndUserIsNotOnListReturnsFalse(string credentialPasswordType)
-            {
-                TestIsLoginDiscontinued(credentialPasswordType, isOnDomainList: false, isOnExceptionList: false, expectedResult: false);
-            }
-
-            [Theory]
-            [MemberData(nameof(CredentialPasswordTypes))]
-            public void IfPasswordLoginAndUserIsOnListWithExceptionReturnsFalse(string credentialPasswordType)
-            {
-                TestIsLoginDiscontinued(credentialPasswordType, isOnDomainList: true, isOnExceptionList: true, expectedResult: false);
+                TestIsLoginDiscontinued(credentialPasswordType, isOnWhiteList, isOnDomainList, isOnExceptionList, 
+                    expectedResult: (isOnWhiteList || isOnDomainList) && !isOnExceptionList);
             }
 
             public static IEnumerable<object[]> IfNotPasswordLoginReturnsFalse_Data
@@ -62,11 +62,14 @@ namespace NuGetGallery.Services
                         CredentialTypes.External.MicrosoftAccount,
                         CredentialTypes.External.AzureActiveDirectoryAccount })
                     {
-                        foreach (var isOnDomainList in new[] { true, false })
+                        foreach (var isOnWhiteList in new[] { true, false })
                         {
-                            foreach (var isOnExceptionList in new[] { true, false })
+                            foreach (var isOnDomainList in new[] { true, false })
                             {
-                                yield return MemberDataHelper.AsData(credentialType, isOnDomainList, isOnExceptionList);
+                                foreach (var isOnExceptionList in new[] { true, false })
+                                {
+                                    yield return MemberDataHelper.AsData(credentialType, isOnWhiteList, isOnDomainList, isOnExceptionList);
+                                }
                             }
                         }
                     }
@@ -75,22 +78,23 @@ namespace NuGetGallery.Services
 
             [Theory]
             [MemberData(nameof(IfNotPasswordLoginReturnsFalse_Data))]
-            public void IfNotPasswordLoginReturnsFalse(string credentialType, bool isOnDomainList, bool isOnExceptionList)
+            public void IfNotPasswordLoginReturnsFalse(string credentialType, bool isOnWhiteList, bool isOnDomainList, bool isOnExceptionList)
             {
-                TestIsLoginDiscontinued(credentialType, isOnDomainList, isOnExceptionList, expectedResult: false);
+                TestIsLoginDiscontinued(credentialType, isOnWhiteList, isOnDomainList, isOnExceptionList, expectedResult: false);
             }
 
-            private void TestIsLoginDiscontinued(string credentialType, bool isOnDomainList, bool isOnExceptionList, bool expectedResult)
+            private void TestIsLoginDiscontinued(string credentialType, bool isOnWhiteList, bool isOnDomainList, bool isOnExceptionList, bool expectedResult)
             {
                 // Arrange
                 var credential = new Credential(credentialType, "value");
                 var user = new User("test") { EmailAddress = _email, Credentials = new[] { credential } };
                 var authUser = new AuthenticatedUser(user, credential);
 
+                var emails = isOnWhiteList ? new[] { _email } : new[] { _incorrectEmail };
                 var domains = isOnDomainList ? new[] { _domain } : new[] { _incorrectDomain };
-                var exceptions = isOnExceptionList ? new[] { _email } : new[] { _incorrectEmail };
+                var exceptions = isOnExceptionList ? new[] { _email } : new[] { _incorrectException };
 
-                var config = new LoginDiscontinuationAndMigrationConfiguration(domains, exceptions);
+                var config = new LoginDiscontinuationAndMigrationConfiguration(emails, domains, exceptions);
 
                 // Act
                 var result = config.IsLoginDiscontinued(authUser);

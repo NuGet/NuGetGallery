@@ -11,14 +11,17 @@ namespace NuGetGallery
 {
     public class LoginDiscontinuationAndMigrationConfiguration : ILoginDiscontinuationAndMigrationConfiguration
     {
+        public HashSet<string> DiscontinuedForEmailAddresses { get; }
         public HashSet<string> DiscontinuedForDomains { get; }
         public HashSet<string> ExceptionsForEmailAddresses { get; }
 
         [JsonConstructor]
         public LoginDiscontinuationAndMigrationConfiguration(
+            IEnumerable<string> discontinuedForEmailAddresses,
             IEnumerable<string> discontinuedForDomains,
             IEnumerable<string> exceptionsForEmailAddresses)
         {
+            DiscontinuedForEmailAddresses = new HashSet<string>(discontinuedForEmailAddresses);
             DiscontinuedForDomains = new HashSet<string>(discontinuedForDomains);
             ExceptionsForEmailAddresses = new HashSet<string>(exceptionsForEmailAddresses);
         }
@@ -35,7 +38,9 @@ namespace NuGetGallery
         public bool AreOrganizationsSupportedForUser(User user)
         {
             var email = user.ToMailAddress();
-            return DiscontinuedForDomains.Contains(email.Host, StringComparer.OrdinalIgnoreCase);
+            return
+                DiscontinuedForEmailAddresses.Contains(email.Address) ||
+                DiscontinuedForDomains.Contains(email.Host, StringComparer.OrdinalIgnoreCase);
         }
     }
 

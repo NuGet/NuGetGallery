@@ -1,8 +1,11 @@
 {
-    "DiscontinuedForDomains": [
-        "cannotUsePassword.com"
-    ],
-    "ExceptionsForEmailAddresses": [
-        "exception@cannotUsePassword.com"
-    ]
+  "DiscontinuedForEmailAddresses": [
+    "cannotUsePassword@canUsePassword.com"
+  ],
+  "DiscontinuedForDomains": [
+    "cannotUsePassword.com"
+  ],
+  "ExceptionsForEmailAddresses": [
+    "exception@cannotUsePassword.com"
+  ]
 }

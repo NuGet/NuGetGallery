@@ -16,14 +16,17 @@ namespace NuGetGallery
         {
             _contentService = contentService;
 
-            LoginDiscontinuationAndMigrationConfiguration = new LoginDiscontinuationAndMigrationConfiguration(Enumerable.Empty<string>(), Enumerable.Empty<string>());
+            LoginDiscontinuationAndMigrationConfiguration = 
+                new LoginDiscontinuationAndMigrationConfiguration(
+                    Enumerable.Empty<string>(), Enumerable.Empty<string>(), Enumerable.Empty<string>());
         }
 
         public ILoginDiscontinuationAndMigrationConfiguration LoginDiscontinuationAndMigrationConfiguration { get; set; }
 
         public async Task Refresh()
         {
-            LoginDiscontinuationAndMigrationConfiguration = await Refresh<LoginDiscontinuationAndMigrationConfiguration>(Constants.ContentNames.LoginDiscontinuationAndMigrationConfiguration);
+            LoginDiscontinuationAndMigrationConfiguration = 
+                await Refresh<LoginDiscontinuationAndMigrationConfiguration>(Constants.ContentNames.LoginDiscontinuationAndMigrationConfiguration);
         }
 
         private async Task<T> Refresh<T>(string contentName) 

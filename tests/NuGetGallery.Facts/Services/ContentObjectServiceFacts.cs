@@ -29,10 +29,11 @@ namespace NuGetGallery.Services
             public async Task RefreshRefreshesObject()
             {
                 // Arrange
+                var emails = new[] { "discontinued@different.com" };
                 var domains = new[] { "example.com" };
-                var exceptions = new[] { "test@example.com" };
+                var exceptions = new[] { "exception@example.com" };
 
-                var config = new LoginDiscontinuationAndMigrationConfiguration(domains, exceptions);
+                var config = new LoginDiscontinuationAndMigrationConfiguration(emails, domains, exceptions);
                 var configString = JsonConvert.SerializeObject(config);
 
                 GetMock<IContentService>()
@@ -46,6 +47,7 @@ namespace NuGetGallery.Services
                 var loginDiscontinuationAndMigrationConfiguration = service.LoginDiscontinuationAndMigrationConfiguration as LoginDiscontinuationAndMigrationConfiguration;
 
                 // Assert
+                Assert.True(loginDiscontinuationAndMigrationConfiguration.DiscontinuedForEmailAddresses.SequenceEqual(emails));
                 Assert.True(loginDiscontinuationAndMigrationConfiguration.DiscontinuedForDomains.SequenceEqual(domains));
                 Assert.True(loginDiscontinuationAndMigrationConfiguration.ExceptionsForEmailAddresses.SequenceEqual(exceptions));
             }
