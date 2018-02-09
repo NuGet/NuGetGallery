@@ -33,6 +33,9 @@ body h3 {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+#autocomplete-results-container .autocomplete-row-description :focus {
+  text-decoration: none;
+}
 #autocomplete-results-container .autocomplete-row-id {
   overflow: hidden;
   text-overflow: ellipsis;
