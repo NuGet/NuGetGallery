@@ -50,7 +50,7 @@ namespace NuGetGallery.Security
                         tenantId: userTenantId));
                 }
 
-                foreach (var policy in RequireOrganizationTenantPolicy.Create(fakes.Organization.Key, TenantId).Policies)
+                foreach (var policy in RequireOrganizationTenantPolicy.Create(TenantId).Policies)
                 {
                     fakes.Organization.SecurityPolicies.Add(policy);
                 }

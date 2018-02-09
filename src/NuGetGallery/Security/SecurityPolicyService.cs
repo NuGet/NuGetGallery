@@ -80,11 +80,17 @@ namespace NuGetGallery.Security
         }
 
         /// <summary>
-        /// Look up and evaluation of security policies for the specified action.
+        /// Evaluate user security policies for the specified action.
+        /// Note that http context is required here, as previous user security policies have required it
+        /// in order to get he current user and request details. This API is not currently used since
+        /// previous user policies were removed from the Gallery.
         /// </summary>
+        /// <param name="action">Gallery action to evaluate.</param>
+        /// <param name="httpContext">Current http context.</param>
+        /// <returns></returns>
         public async Task<SecurityPolicyResult> EvaluateUserPoliciesAsync(
             SecurityPolicyAction action,
-            HttpContextBase httpContext = null)
+            HttpContextBase httpContext)
         {
             // Evaluate default policies
             if (Configuration.EnforceDefaultSecurityPolicies)
@@ -102,17 +108,6 @@ namespace NuGetGallery.Security
             return await EvaluateUserPoliciesInternalAsync(action, httpContext, auditSuccess: true);
         }
 
-        /// <summary>
-        ///  Look up and evaluation of organization security policies for the specified action.
-        /// </summary>
-        public Task<SecurityPolicyResult> EvaluateOrganizationPoliciesAsync(
-            SecurityPolicyAction action,
-            Organization organization,
-            User account)
-        {
-            return EvaluateInternalAsync(action, organization.SecurityPolicies, organization, account, auditSuccess: true);
-        }
-
         private Task<SecurityPolicyResult> EvaluateUserPoliciesInternalAsync(
             SecurityPolicyAction action,
             HttpContextBase httpContext,
@@ -124,6 +119,23 @@ namespace NuGetGallery.Security
             var account = httpContext.GetCurrentUser();
             policies = policies ?? account.SecurityPolicies;
             return EvaluateInternalAsync(action, policies, account, account, httpContext, auditSuccess);
+        }
+
+        /// <summary>
+        /// Evaluate organization security policies for the specified action.
+        /// Note that the policy source (organization) and policy target (member) accounts are required in
+        /// order to look up and evaluate policies against the relevant accounts.
+        /// </summary>
+        /// <param name="action">Gallery action to evaluate.</param>
+        /// <param name="organization">Organization (policy source) account.</param>
+        /// <param name="account">Member, current or future, (policy target) account.</param>
+        /// <returns></returns>
+        public Task<SecurityPolicyResult> EvaluateOrganizationPoliciesAsync(
+            SecurityPolicyAction action,
+            Organization organization,
+            User account)
+        {
+            return EvaluateInternalAsync(action, organization.SecurityPolicies, organization, account, auditSuccess: true);
         }
 
         private async Task<SecurityPolicyResult> EvaluateInternalAsync(

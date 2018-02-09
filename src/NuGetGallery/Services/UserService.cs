@@ -350,7 +350,7 @@ namespace NuGetGallery
             }
             else
             {
-                var tenantId = adminUser.Credentials.GetOrganizationCredential()?.TenantId;
+                var tenantId = adminUser.Credentials.GetAzureActiveDirectoryCredential()?.TenantId;
                 if (string.IsNullOrWhiteSpace(tenantId))
                 {
                     errorReason = String.Format(CultureInfo.CurrentCulture,
@@ -363,13 +363,13 @@ namespace NuGetGallery
 
         public async Task<bool> TransformUserToOrganization(User accountToTransform, User adminUser, string token)
         {
-            var tenantId = adminUser.Credentials.GetOrganizationCredential()?.TenantId;
+            var tenantId = adminUser.Credentials.GetAzureActiveDirectoryCredential()?.TenantId;
             if (string.IsNullOrWhiteSpace(tenantId))
             {
                 return false;
             }
 
-            var tenantPolicy = RequireOrganizationTenantPolicy.Create(accountToTransform.Key, tenantId);
+            var tenantPolicy = RequireOrganizationTenantPolicy.Create(tenantId);
             if (!await SecurityPolicyService.SubscribeAsync(accountToTransform, tenantPolicy))
             {
                 return false;

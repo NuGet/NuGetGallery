@@ -21,9 +21,6 @@ namespace NuGetGallery.Security
 
         public class State
         {
-            [JsonProperty("o")]
-            public int OrganizationKey { get; set; }
-
             [JsonProperty("t")]
             public string Tenant { get; set; }
         }
@@ -39,11 +36,10 @@ namespace NuGetGallery.Security
             Policies = policies;
         }
 
-        public static IUserSecurityPolicySubscription Create(int organizationKey, string tenantId)
+        public static IUserSecurityPolicySubscription Create(string tenantId)
         {
             var value = JsonConvert.SerializeObject(new State()
             {
-                OrganizationKey = organizationKey,
                 Tenant = tenantId
             });
 
@@ -76,7 +72,7 @@ namespace NuGetGallery.Security
 
             var state = GetPolicyState(context);
             var targetAccount = context.TargetAccount;
-            var targetCredential = targetAccount.Credentials.GetOrganizationCredential();
+            var targetCredential = targetAccount.Credentials.GetAzureActiveDirectoryCredential();
 
             if (targetCredential == null
                 || !targetCredential.TenantId.Equals(state.Tenant, StringComparison.OrdinalIgnoreCase))

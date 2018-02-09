@@ -118,7 +118,7 @@ namespace NuGetGallery
             return type?.Equals(ApiKey.VerifyV1, StringComparison.OrdinalIgnoreCase) ?? false;
         }
 
-        public static Credential GetOrganizationCredential(this ICollection<Credential> credentials)
+        public static Credential GetAzureActiveDirectoryCredential(this ICollection<Credential> credentials)
         {
             return credentials.SingleOrDefault(c => IsAzureActiveDirectoryAccount(c.Type));
         }
