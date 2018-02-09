@@ -523,9 +523,9 @@ namespace NuGetGallery
                 new { controller = "Api", action = "PackageVersions" });
 
             routes.MapRoute(
-                "v2PackageDetails",
-                "api/v2/package-details",
-                new { controller = "Api", action = "PackageDetails" });
+                "v2Query",
+                "api/v2/query",
+                new { controller = "Api", action = "Query" });
 
             routes.MapRoute(
                 RouteName.StatisticsDownloadsApi,

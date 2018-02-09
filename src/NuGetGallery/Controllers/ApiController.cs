@@ -687,16 +687,12 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [ActionName("PackageDetails")]
-        public virtual async Task<ActionResult> GetPackageDetails(
-            string searchString,
-            string version = null,
-            string semVerLevel = null)
+        [ActionName("Query")]
+        public virtual async Task<ActionResult> Query(string q)
         {
             var queryFilter = new SearchFilter(SearchFilter.ODataSearchContext);
-            queryFilter.SemVerLevel = semVerLevel;
-            queryFilter.SearchTerm = searchString;
-            queryFilter.SortOrder = NuGet.Services.Search.Models.SortOrder.Relevance;
+            queryFilter.SemVerLevel = SemVerLevelKey.SemVerLevel2;
+            queryFilter.SearchTerm = q;
             var results = await SearchService.Search(queryFilter);
 
             return new JsonResult

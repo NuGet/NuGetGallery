@@ -138,12 +138,12 @@
     }
 
     function setupAllAuxData(idList) {
-        var requestUrl = "/api/v2/package-details?searchString=";
+        var requestUrl = "/api/v2/query?q=";
         for (var i = 0; i < idList.length; i++) {
             var tempId = idList[i];
             var searchData = _resultsCache[safeId(tempId)];
             if (typeof searchData() == "string") {
-                requestUrl += "packageId:" + idList[i] + " ";
+                requestUrl += "packageid:" + idList[i] + " ";
             }
 
             appendAuxData(idList[i]);
@@ -159,7 +159,11 @@
                     var dataBlock = dataList[i];
                     var someId = dataBlock.PackageRegistration.Id;
 
-                    _resultsCache[safeId(someId)](dataBlock);
+                    if (_resultsCache[safeId(someId)]) {
+                        _resultsCache[safeId(someId)](dataBlock);
+                    } else {
+                        _resultsCache[safeId(someId)] = ko.observable(dataBlock);
+                    }
                 }
             }
         });
