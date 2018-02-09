@@ -74,6 +74,9 @@
                 $("#autocomplete-results-container").focus();
                 e.preventDefault();
             }
+            else if (e.keyCode === 9) {
+                removeOldAutocompleteResults();
+            }
         })
     }
 
