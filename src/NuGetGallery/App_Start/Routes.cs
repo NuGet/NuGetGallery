@@ -523,6 +523,11 @@ namespace NuGetGallery
                 new { controller = "Api", action = "PackageVersions" });
 
             routes.MapRoute(
+                "v2PackageDetails",
+                "api/v2/package-details",
+                new { controller = "Api", action = "PackageDetails" });
+
+            routes.MapRoute(
                 RouteName.StatisticsDownloadsApi,
                 "api/v2/stats/downloads/last6weeks",
                 defaults: new { controller = "Api", action = "StatisticsDownloadsApi" },
