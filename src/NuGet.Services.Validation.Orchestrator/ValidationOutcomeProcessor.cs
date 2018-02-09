@@ -122,6 +122,20 @@ namespace NuGet.Services.Validation.Orchestrator
                         package.PackageRegistration.Id,
                         package.NormalizedVersion,
                         validationSet.ValidationTrackingId);
+
+                    if (!await _packageFileService.DoesPackageFileExistAsync(package))
+                    {
+                        var validationPackageAvailable = await _packageFileService.DoesValidationPackageFileExistAsync(package);
+
+                        _logger.LogWarning("Package {PackageId} {PackageVersion} is marked as available, but does not exist " +
+                            "in public container. Does package exist in validation container: {ExistsInValidation}",
+                            package.PackageRegistration.Id,
+                            package.NormalizedVersion,
+                            validationPackageAvailable);
+
+                        // report missing package, don't try to fix up anything. This shouldn't happen and needs an investigation.
+                        TrackMissingNupkgForAvailablePackage(validationSet);
+                    }
                 }
                 _logger.LogInformation("Done processing {PackageId} {PackageVersion} {ValidationSetId}",
                     package.PackageRegistration.Id,
@@ -137,6 +151,14 @@ namespace NuGet.Services.Validation.Orchestrator
                 var messageData = new PackageValidationMessageData(package.PackageRegistration.Id, package.Version, validationSet.ValidationTrackingId);
                 await _validationEnqueuer.StartValidationAsync(messageData, DateTimeOffset.UtcNow + _validationConfiguration.ValidationMessageRecheckPeriod);
             }
+        }
+
+        private void TrackMissingNupkgForAvailablePackage(PackageValidationSet validationSet)
+        {
+            _telemetryService.TrackMissingNupkgForAvailablePackage(
+                validationSet.PackageId,
+                validationSet.PackageNormalizedVersion,
+                validationSet.ValidationTrackingId.ToString());
         }
 
         private void TrackTotalValidationDuration(PackageValidationSet validationSet, bool isSuccess)
@@ -155,17 +177,15 @@ namespace NuGet.Services.Validation.Orchestrator
             var packageStream = await _packageFileService.DownloadValidationPackageFileAsync(package);
             await _packageFileService.SavePackageFileAsync(package, packageStream);
 
+            _logger.LogInformation("Marking package {PackageId} {PackageVersion}, validation set {ValidationSetId} as {PackageStatus} in DB",
+                package.PackageRegistration.Id,
+                package.NormalizedVersion,
+                validationSet.ValidationTrackingId,
+                PackageStatus.Available);
+
             try
             {
-                _logger.LogInformation("Marking package {PackageId} {PackageVersion}, validation set {ValidationSetId} as {PackageStatus} in DB",
-                    package.PackageRegistration.Id,
-                    package.NormalizedVersion,
-                    validationSet.ValidationTrackingId,
-                    PackageStatus.Available);
-
                 await UpdatePackageStatusAsync(package, PackageStatus.Available);
-
-                _messageService.SendPackagePublishedMessage(package);
             }
             catch (Exception e)
             {
@@ -181,6 +201,8 @@ namespace NuGet.Services.Validation.Orchestrator
 
                 throw;
             }
+
+            _messageService.SendPackagePublishedMessage(package);
 
             _logger.LogInformation("Deleting from the source for package {PackageId} {PackageVersion}, validation set {ValidationSetId}",
                 package.PackageRegistration.Id,

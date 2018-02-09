@@ -78,5 +78,11 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
         /// <param name="validatorType">The validator type (name) the produced the issue.</param>
         /// <param name="clientCode">The client code.</param>
         void TrackClientValidationIssue(string validatorType, string clientCode);
+
+        /// <summary>
+        /// A metric for the case when orchestrator sees a package marked as available, but the blob is missing
+        /// in the public container.
+        /// </summary>
+        void TrackMissingNupkgForAvailablePackage(string packageId, string normalizedVersion, string validationTrackingId);
     }
 }
