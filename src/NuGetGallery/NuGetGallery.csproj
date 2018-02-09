@@ -849,7 +849,9 @@
     <Compile Include="Services\IActionRequiringEntityPermissions.cs" />
     <Compile Include="Services\IDeleteAccountService.cs" />
     <Compile Include="Services\IFileStorageService.cs" />
+    <Compile Include="Services\IContentObjectService.cs" />
     <Compile Include="Services\ImmediatePackageValidator.cs" />
+    <Compile Include="Services\ContentObjectService.cs" />
     <Compile Include="Services\PackageOwnershipManagementService.cs" />
     <Compile Include="Services\IPackageOwnershipManagementService.cs" />
     <Compile Include="Services\IPackageValidationInitiator.cs" />
@@ -933,6 +935,7 @@
     <Compile Include="Services\PackageUploadService.cs" />
     <Compile Include="Services\IReservedNamespaceService.cs" />
     <Compile Include="Services\IPackageUploadService.cs" />
+    <Compile Include="Services\LoginDiscontinuationConfiguration.cs" />
     <Compile Include="Services\PermissionsCheckResult.cs" />
     <Compile Include="Services\PermissionsRequirement.cs" />
     <Compile Include="Services\ReservedNamespaceService.cs" />
@@ -1981,6 +1984,7 @@
     <Content Include="Areas\Admin\Views\Delete\_ReflowBulk.cshtml" />
     <Content Include="Areas\Admin\Views\Delete\_ReflowBulkConfirm.cshtml" />
     <Content Include="Areas\Admin\Views\LockPackage\Index.cshtml" />
+    <Content Include="App_Data\Files\Content\Login-Discontinuation-Configuration.json" />
     <None Include="Scripts\jquery-1.11.0.intellisense.js" />
     <Content Include="Scripts\jquery-1.11.0.js" />
     <Content Include="Scripts\jquery-1.11.0.min.js" />

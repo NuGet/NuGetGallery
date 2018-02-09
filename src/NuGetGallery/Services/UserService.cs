@@ -26,6 +26,7 @@ namespace NuGetGallery
         public IAuditingService Auditing { get; protected set; }
 
         public IEntitiesContext EntitiesContext { get; protected set; }
+        public IContentObjectService ContentObjectService { get; protected set; }
 
         public ISecurityPolicyService SecurityPolicyService { get; set; }
 
@@ -37,6 +38,7 @@ namespace NuGetGallery
             IEntityRepository<Credential> credentialRepository,
             IAuditingService auditing,
             IEntitiesContext entitiesContext,
+            IContentObjectService contentObjectService,
             ISecurityPolicyService securityPolicyService)
             : this()
         {
@@ -45,6 +47,7 @@ namespace NuGetGallery
             CredentialRepository = credentialRepository;
             Auditing = auditing;
             EntitiesContext = entitiesContext;
+            ContentObjectService = contentObjectService;
             SecurityPolicyService = securityPolicyService;
         }
 
@@ -310,20 +313,13 @@ namespace NuGetGallery
             {
                 errorReason = Strings.TransformAccount_AccountHasMemberships;
             }
-            else if (!AreOrganizationsEnabledForAccount(accountToTransform))
+            else if (!ContentObjectService.LoginDiscontinuationConfiguration.AreOrganizationsSupportedForUser(accountToTransform))
             {
                 errorReason = String.Format(CultureInfo.CurrentCulture,
                     Strings.TransformAccount_FailedReasonNotInDomainWhitelist, accountToTransform.Username);
             }
 
             return errorReason == null;
-        }
-
-        public bool AreOrganizationsEnabledForAccount(User account)
-        {
-            var enabledDomains = Config.OrganizationsEnabledForDomains;
-            return enabledDomains != null && 
-                enabledDomains.Contains(account.ToMailAddress().Host, StringComparer.OrdinalIgnoreCase);
         }
 
         public bool CanTransformUserToOrganization(User accountToTransform, User adminUser, out string errorReason)

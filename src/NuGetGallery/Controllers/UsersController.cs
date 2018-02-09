@@ -321,7 +321,7 @@ namespace NuGetGallery
         }
         
         [HttpGet]
-        [UIAuthorize]
+        [UIAuthorize(allowDiscontinuedLogins: true)]
         public virtual ActionResult Thanks()
         {
             // No need to redirect here after someone logs in...
