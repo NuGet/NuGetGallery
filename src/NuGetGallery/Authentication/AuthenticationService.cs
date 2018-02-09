@@ -324,7 +324,7 @@ namespace NuGetGallery.Authentication
             }
 
             // Check user credentials for existing cred for optimization to avoid expensive DB query
-            if (UserHasCredential(user, credential) || FindMatchingCredential(credential) != null)
+            if (!user.HasCredential(credential) && FindMatchingCredential(credential) != null)
             {
                 // Existing credential for a registered account
                 return false;
@@ -698,13 +698,6 @@ namespace NuGetGallery.Authentication
 
             await Auditing.SaveAuditRecordAsync(new UserAuditRecord(
                 user, AuditedUserAction.AddCredential, credential));
-        }
-
-        private static bool UserHasCredential(User user, Credential credential)
-        {
-            return user.Credentials.Any(cred =>
-                cred.Type.Equals(credential.Type, StringComparison.OrdinalIgnoreCase)
-                && cred.Value == credential.Value);
         }
 
         private static CredentialKind GetCredentialKind(string type)

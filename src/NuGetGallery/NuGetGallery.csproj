@@ -740,7 +740,7 @@
     <Compile Include="Authentication\Providers\AzureActiveDirectoryV2\AzureActiveDirectoryV2AuthenticatorConfiguration.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticator.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticatorConfiguration.cs" />
-    <Compile Include="Authentication\Providers\Utils\ClaimsExtentions.cs" />
+    <Compile Include="Extensions\ClaimsExtensions.cs" />
     <Compile Include="Configuration\IGalleryConfigurationService.cs" />
     <Compile Include="Configuration\IPackageDeleteConfiguration.cs" />
     <Compile Include="Configuration\IServiceBusConfiguration.cs" />
@@ -795,6 +795,7 @@
     <Compile Include="Extensions\PrincipalExtensions.cs" />
     <Compile Include="Extensions\RouteExtensions.cs" />
     <Compile Include="Extensions\ScopeExtensions.cs" />
+    <Compile Include="Extensions\CredentialExtensions.cs" />
     <Compile Include="Extensions\UserExtensions.cs" />
     <Compile Include="Filters\ApiScopeRequiredAttribute.cs" />
     <Compile Include="Filters\UIAuthorizeAttribute.cs" />
