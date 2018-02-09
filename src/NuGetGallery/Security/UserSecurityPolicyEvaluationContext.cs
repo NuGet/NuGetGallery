@@ -12,20 +12,85 @@ namespace NuGetGallery.Security
     /// </summary>
     public class UserSecurityPolicyEvaluationContext
     {
-        /// <summary>
-        /// Current http context.
-        /// </summary>
-        public HttpContextBase HttpContext { get; }
+        private Lazy<HttpContextBase> _httpContext;
+        private User _sourceAccount;
+        private User _targetAccount;
 
         /// <summary>
-        /// Security policy entity.
+        /// Current http context. This has been required for some user security policies in order
+        /// to get the current user and/or current request details.
+        /// </summary>
+        public HttpContextBase HttpContext
+        {
+            get
+            {
+                return _httpContext.Value;
+            }
+        }
+
+        /// <summary>
+        /// Current user.
+        /// </summary>
+        public User CurrentUser
+        {
+            get
+            {
+                return HttpContext.GetCurrentUser();
+            }
+        }
+
+        /// <summary>
+        /// Account where the security policy came from.
+        /// </summary>
+        public User SourceAccount
+        {
+            get
+            {
+                return _sourceAccount ?? CurrentUser;
+            }
+        }
+
+        /// <summary>
+        /// Account under policy evaluation.
+        /// </summary>
+        public User TargetAccount
+        {
+            get
+            {
+                return _targetAccount ?? CurrentUser;
+            }
+        }
+
+        /// <summary>
+        /// Security policies to be evaluated.
         /// </summary>
         public IEnumerable<UserSecurityPolicy> Policies { get; }
 
-        public UserSecurityPolicyEvaluationContext(HttpContextBase httpContext, IEnumerable<UserSecurityPolicy> policies)
+        /// <summary>
+        /// Create a policy (user) context, which uses the httpContext.
+        /// </summary>
+        public UserSecurityPolicyEvaluationContext(
+            IEnumerable<UserSecurityPolicy> policies,
+            HttpContextBase httpContext)
         {
-            HttpContext = httpContext ?? throw new ArgumentNullException(nameof(httpContext));
             Policies = policies ?? throw new ArgumentNullException(nameof(policies));
+
+            _httpContext = new Lazy<HttpContextBase>(() => httpContext
+                ?? new HttpContextWrapper(System.Web.HttpContext.Current));
+        }
+
+        /// <summary>
+        /// Create a policy (organization) context, which requires the source (organization) and target (member) accounts for context.
+        /// </summary>
+        public UserSecurityPolicyEvaluationContext(
+            IEnumerable<UserSecurityPolicy> policies,
+            User sourceAccount,
+            User targetAccount,
+            HttpContextBase httpContext = null)
+            : this(policies, httpContext)
+        {
+            _sourceAccount = sourceAccount;
+            _targetAccount = targetAccount;
         }
     }
 }

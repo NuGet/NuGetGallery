@@ -2221,7 +2221,6 @@ namespace NuGetGallery
             protected UsersController CreateController(string accountToTransform, string canTransformErrorReason = "")
             {
                 var configurationService = GetConfigurationService();
-                configurationService.Current.OrganizationsEnabledForDomains = new string[] { "example.com" };
 
                 var controller = GetController<UsersController>();
                 var currentUser = new User(accountToTransform) { EmailAddress = $"{accountToTransform}@example.com" };
@@ -2296,9 +2295,8 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.NotNull(result);
-
-                var model = result.Model as TransformAccountFailedViewModel;
-                Assert.Equal("error", model.ErrorMessage);
+                Assert.Equal(1, controller.ModelState["AdminUsername"].Errors.Count);
+                Assert.Equal("error", controller.ModelState["AdminUsername"].Errors.First().ErrorMessage);
             }
 
             [Fact]
@@ -2421,7 +2419,6 @@ namespace NuGetGallery
             {
                 // Arrange
                 var configurationService = GetConfigurationService();
-                configurationService.Current.OrganizationsEnabledForDomains = new string[] { "example.com" };
 
                 var controller = GetController<UsersController>();
                 var currentUser = new User("OrgAdmin") { EmailAddress = "orgadmin@example.com" };

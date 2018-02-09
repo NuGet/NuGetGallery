@@ -54,7 +54,7 @@ namespace NuGetGallery
         protected internal abstract ViewMessages Messages { get; }
 
         [HttpGet]
-        [UIAuthorize]
+        [UIAuthorize(allowDiscontinuedLogins: true)]
         public virtual ActionResult ConfirmationRequired(string accountName = null)
         {
             var account = GetAccount(accountName);
@@ -70,7 +70,7 @@ namespace NuGetGallery
             return View(model);
         }
 
-        [UIAuthorize]
+        [UIAuthorize(allowDiscontinuedLogins: true)]
         [HttpPost]
         [ActionName("ConfirmationRequired")]
         [ValidateAntiForgeryToken]
@@ -106,7 +106,7 @@ namespace NuGetGallery
             return View(model);
         }
 
-        [UIAuthorize]
+        [UIAuthorize(allowDiscontinuedLogins: true)]
         public virtual async Task<ActionResult> Confirm(string username, string token)
         {
             // We don't want Login to go to this page as a return URL

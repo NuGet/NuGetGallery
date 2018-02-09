@@ -69,6 +69,11 @@ namespace NuGetGallery
             return self?.Key == user?.Key;
         }
 
+        public static bool HasCredential(this User user, Credential credential)
+        {
+            return user.Credentials.Any(cred => cred.Matches(credential));
+        }
+
         /// <summary>
         /// Determine if the current user matches the owner scope of the current credential.
         /// There is a match if the owner scope is self or an organization to which the user

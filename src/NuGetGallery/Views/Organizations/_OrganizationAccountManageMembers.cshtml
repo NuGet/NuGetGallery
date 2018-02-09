@@ -1,9 +1,9 @@
 ﻿@model OrganizationAccountViewModel
 @{
-    Layout = null;
+    var parent = (WebViewPage)TempData["Parent"];
 }
 
-@ViewHelpers.Section(this, "manage-members",
+@ViewHelpers.Section(parent, "manage-members",
     @<text>Members</text>,
     @<text>
         <div data-bind="text: MembersLabel"></div>

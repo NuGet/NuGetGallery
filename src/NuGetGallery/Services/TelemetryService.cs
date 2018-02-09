@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Security.Principal;
 using System.Web;
-using Elmah;
 using NuGetGallery.Authentication;
 using NuGetGallery.Diagnostics;
 
@@ -23,6 +22,8 @@ namespace NuGetGallery
             public const string PackagePushNamespaceConflict = "PackagePushNamespaceConflict";
             public const string NewUserRegistration = "NewUserRegistration";
             public const string CredentialAdded = "CredentialAdded";
+            public const string UserPackageDeleteCheckedAfterHours = "UserPackageDeleteCheckedAfterHours";
+            public const string UserPackageDeleteExecuted = "UserPackageDeleteExecuted";
         }
 
         private IDiagnosticsSource _diagnosticsSource;
@@ -55,6 +56,19 @@ namespace NuGetGallery
         // Package ReadMe properties
         public const string ReadMeSourceType = "ReadMeSourceType";
         public const string ReadMeState = "ReadMeState";
+
+        // User package delete checked properties
+        public const string Outcome = "Outcome";
+        public const string PackageKey = "PackageKey";
+        public const string IdDatabaseDownloads = "IdDatabaseDownloads";
+        public const string IdReportDownloads = "IdReportDownloads";
+        public const string VersionDatabaseDownloads = "VersionDatabaseDownloads";
+        public const string VersionReportDownloads = "VersionReportDownloads";
+        public const string ReportPackageReason = "ReportPackageReason";
+        public const string PackageDeleteDecision = "PackageDeleteDecision";
+
+        // User package delete executed properties
+        public const string Success = "Success";
 
         public TelemetryService(IDiagnosticsService diagnosticsService, ITelemetryClient telemetryClient = null)
         {
@@ -250,6 +264,50 @@ namespace NuGetGallery
             });
         }
 
+        public void TrackUserPackageDeleteChecked(UserPackageDeleteEvent details, UserPackageDeleteOutcome outcome)
+        {
+            if (details == null)
+            {
+                throw new ArgumentNullException(nameof(details));
+            }
+
+            var hours = details.SinceCreated.TotalHours;
+
+            TrackMetric(Events.UserPackageDeleteCheckedAfterHours, hours, properties => {
+                properties.Add(Outcome, outcome.ToString());
+                properties.Add(PackageKey, details.PackageKey.ToString());
+                properties.Add(PackageId, details.PackageId);
+                properties.Add(PackageVersion, details.PackageVersion);
+                properties.Add(IdDatabaseDownloads, details.IdDatabaseDownloads.ToString());
+                properties.Add(IdReportDownloads, details.IdReportDownloads.ToString());
+                properties.Add(VersionDatabaseDownloads, details.VersionDatabaseDownloads.ToString());
+                properties.Add(VersionReportDownloads, details.VersionReportDownloads.ToString());
+                properties.Add(ReportPackageReason, details.ReportPackageReason?.ToString());
+                properties.Add(PackageDeleteDecision, details.PackageDeleteDecision?.ToString());
+            });
+        }
+
+        public void TrackUserPackageDeleteExecuted(int packageKey, string packageId, string packageVersion, ReportPackageReason reason, bool success)
+        {
+            if (packageId == null)
+            {
+                throw new ArgumentNullException(nameof(packageId));
+            }
+
+            if (packageVersion == null)
+            {
+                throw new ArgumentNullException(nameof(packageVersion));
+            }
+
+            TrackMetric(Events.UserPackageDeleteExecuted, 1, properties => {
+                properties.Add(PackageKey, packageKey.ToString());
+                properties.Add(PackageId, packageId);
+                properties.Add(PackageVersion, packageVersion);
+                properties.Add(ReportPackageReason, reason.ToString());
+                properties.Add(Success, success.ToString());
+            });
+        }
+
         protected virtual void TrackEvent(string eventName, Action<Dictionary<string, string>> addProperties)
         {
             var telemetryProperties = new Dictionary<string, string>();
@@ -257,6 +315,15 @@ namespace NuGetGallery
             addProperties(telemetryProperties);
 
             _telemetryClient.TrackEvent(eventName, telemetryProperties, metrics: null);
+        }
+
+        protected virtual void TrackMetric(string metricName, double value, Action<Dictionary<string, string>> addProperties)
+        {
+            var telemetryProperties = new Dictionary<string, string>();
+
+            addProperties(telemetryProperties);
+
+            _telemetryClient.TrackMetric(metricName, value, telemetryProperties);
         }
 
         public void TrackException(Exception exception, Action<Dictionary<string, string>> addProperties)

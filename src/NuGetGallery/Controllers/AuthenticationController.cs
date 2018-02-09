@@ -347,14 +347,7 @@ namespace NuGetGallery
         [HttpGet]
         public virtual ActionResult AuthenticateExternal(string returnUrl)
         {
-            // Get list of all enabled providers
-            var providers = GetProviders();
-
-            // Select one provider to authenticate for linking when multiple external providers are enabled.
-            // This is for backwards compatibility with MicrosoftAccount provider. 
-            string externalAuthProvider = ExternalAuthenticationPriority
-                .FirstOrDefault(authenticator => providers.Any(p => p.ProviderName.Equals(authenticator, StringComparison.OrdinalIgnoreCase)));
-
+            string externalAuthProvider = GetExternalProvider();
             if (externalAuthProvider == null)
             {
                 TempData["Message"] = Strings.ChangeCredential_ProviderNotFound;
@@ -393,7 +386,6 @@ namespace NuGetGallery
             }
 
             var newCredential = result.Credential;
-
             if (await _authService.TryReplaceCredential(user, newCredential))
             {
                 // Authenticate with the new credential after successful replacement
@@ -402,13 +394,23 @@ namespace NuGetGallery
 
                 // Remove the password credential after linking to external account.
                 var passwordCred = user.GetPasswordCredential();
-
                 if (passwordCred != null)
                 {
                     await _authService.RemoveCredential(user, passwordCred);
                 }
 
-                TempData["Message"] = Strings.ChangeCredential_Success;
+                // Get email address of the new credential for updating success message
+                var newEmailAddress = GetEmailAddressFromExternalLoginResult(result, out string errorReason);
+                if (!string.IsNullOrEmpty(errorReason))
+                {
+                    TempData["ErrorMessage"] = errorReason;
+                    return SafeRedirect(returnUrl);
+                }
+
+                var linkingDifferentEmailAddress = !newEmailAddress.Equals(user.EmailAddress, StringComparison.OrdinalIgnoreCase);
+                TempData["Message"] = linkingDifferentEmailAddress
+                    ? string.Format(Strings.ChangeCredential_SuccessDifferentEmail, newEmailAddress, user.EmailAddress)
+                    : string.Format(Strings.ChangeCredential_Success, newEmailAddress);
             }
             else
             {
@@ -559,6 +561,32 @@ namespace NuGetGallery
                         ProviderName = p.Name,
                         UI = ui
                     }).ToList();
+        }
+
+        private string GetExternalProvider()
+        {
+            // Get list of all enabled providers
+            var providers = GetProviders();
+
+            // Select one provider to authenticate for linking when multiple external providers are enabled.
+            // This is for backwards compatibility with MicrosoftAccount provider. 
+            return ExternalAuthenticationPriority
+                .FirstOrDefault(authenticator => providers.Any(p => p.ProviderName.Equals(authenticator, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        private string GetEmailAddressFromExternalLoginResult(AuthenticateExternalLoginResult result, out string errorReason)
+        {
+            try
+            {
+                var userInformation = result.Authenticator?.GetIdentityInformation(result.ExternalIdentity);
+                errorReason = null;
+                return userInformation.Email;
+            }
+            catch (ArgumentException ex)
+            {
+                errorReason = ex.Message;
+                return null;
+            }
         }
 
         private ActionResult ExternalLinkExpired()

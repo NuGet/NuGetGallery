@@ -727,20 +727,20 @@ namespace NuGetGallery
 
         public static string LinkOrChangeExternalCredential(this UrlHelper url, string returnUrl, bool relativeUrl = true)
         {
-            return GetAuthenticationRoutes(url, "LinkOrChangeExternalCredential", returnUrl, relativeUrl);
+            return GetAuthenticationRoute(url, "LinkOrChangeExternalCredential", returnUrl, relativeUrl);
         }
 
         public static string LinkExternalAccount(this UrlHelper url, string returnUrl, bool relativeUrl = true)
         {
-            return GetAuthenticationRoutes(url, "LinkExternalAccount", returnUrl, relativeUrl);
+            return GetAuthenticationRoute(url, "LinkExternalAccount", returnUrl, relativeUrl);
         }
 
         public static string AuthenticateExternal(this UrlHelper url, string returnUrl, bool relativeUrl = true)
         {
-            return GetAuthenticationRoutes(url, "AuthenticateExternal", returnUrl, relativeUrl);
+            return GetAuthenticationRoute(url, "AuthenticateExternal", returnUrl, relativeUrl);
         }
 
-        private static string GetAuthenticationRoutes(this UrlHelper url, string action, string returnUrl, bool relativeUrl = true)
+        private static string GetAuthenticationRoute(this UrlHelper url, string action, string returnUrl, bool relativeUrl = true)
         {
             return GetActionLink(
                 url,
@@ -1063,10 +1063,9 @@ namespace NuGetGallery
 
         public static string ConfirmTransformAccount(this UrlHelper url, User accountToTransform, bool relativeUrl = true)
         {
-            return GetActionLink(
+            return GetRouteLink(
                 url,
-                "ConfirmTransform",
-                "Users",
+                RouteName.TransformToOrganizationConfirmation,
                 relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
