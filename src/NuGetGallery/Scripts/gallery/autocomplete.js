@@ -1,22 +1,28 @@
 ﻿$(function () {
     'use strict';
     var _autocompleteTimeout = 0;
-    var _autocompleteDelay = 100; //ms
+    var _autocompleteDelay = 100; // time to wait between keypresses before starting autocomplete requests
     var _resultsCache = {};
     var _maxResults = 9;
     var _lastIndex = 0;
+    var _keyCodes = {
+        tab: 9,
+        esc: 27,
+        upArrow: 38,
+        downArrow: 40
+    };
 
     function hookAutocomplete(maxResults) {
         _resultsCache.results = ko.observable();
         $(document).keydown(function (e) {
-            if (e.keyCode === 27) {
+            if (e.keyCode === _keyCodes.esc) {
                 removeOldAutocompleteResults();
                 e.stopPropagation();
             }
         });
 
         $("#autocomplete-results-container").keydown(function (e) {
-            if (e.keyCode === 40) {
+            if (e.keyCode === _keyCodes.downArrow) {
                 if (_lastIndex < $("#autocomplete-results-list").children().length - 1) {
                     _lastIndex++;
 
@@ -27,7 +33,7 @@
                 }
                 e.preventDefault();
             }
-            else if (e.keyCode === 38) {
+            else if (e.keyCode === _keyCodes.upArrow) {
                 if (_lastIndex > 0) {
                     _lastIndex--;
                     $("#autocomplete-results-list").children()[_lastIndex].focus();
@@ -37,7 +43,7 @@
 
                 e.preventDefault();
             }
-            else if (e.keyCode === 9) {
+            else if (e.keyCode === _keyCodes.tab) {
                 removeOldAutocompleteResults();
             }
         });
@@ -49,7 +55,7 @@
         var searchBox = $("#search");
         searchBox.on("keyup", function (e) {
             clearTimeout(_autocompleteTimeout);
-            if (e.keyCode === 27 || $(this).val().length < 1) {
+            if (e.keyCode === _keyCodes.esc || $(this).val().length < 1) {
                 removeOldAutocompleteResults();
                 e.stopPropagation();;
                 return;
@@ -65,16 +71,16 @@
         });
 
         searchBox.keydown(function (e) {
-            if (e.keyCode == 40) {
+            if (e.keyCode == _keyCodes.downArrow) {
                 $("#autocomplete-results-container").focus();
                 e.preventDefault();
             }
-            else if (e.keyCode == 38 && _lastIndex == 0) {
+            else if (e.keyCode == _keyCodes.upArrow && _lastIndex == 0) {
                 _lastIndex = $("#autocomplete-results-list").children().length - 1;
                 $("#autocomplete-results-container").focus();
                 e.preventDefault();
             }
-            else if (e.keyCode === 9) {
+            else if (e.keyCode === _keyCodes.tab) {
                 removeOldAutocompleteResults();
             }
         })
