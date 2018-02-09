@@ -250,6 +250,23 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 // Assert
                 _telemetryService.VerifyAll();
             }
+
+            [Theory]
+            [InlineData(ValidationStatus.Failed)]
+            [InlineData(ValidationStatus.Incomplete)]
+            [InlineData(ValidationStatus.Succeeded)]
+            public async Task DoesNotThrowWhenPackageValidationIssuesIsNull(ValidationStatus validationStatus)
+            {
+                // Arrange
+                _packageValidation.PackageValidationIssues = null;
+                var validationResult = new ValidationResult(validationStatus);
+
+                // Act
+                var ex = await Record.ExceptionAsync(async() => await ExecuteAsync(validationResult));
+
+                // Assert
+                Assert.Null(ex);
+            }
         }
 
         public abstract class Facts
