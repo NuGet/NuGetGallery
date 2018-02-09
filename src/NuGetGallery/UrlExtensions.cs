@@ -1063,10 +1063,9 @@ namespace NuGetGallery
 
         public static string ConfirmTransformAccount(this UrlHelper url, User accountToTransform, bool relativeUrl = true)
         {
-            return GetActionLink(
+            return GetRouteLink(
                 url,
-                "ConfirmTransform",
-                "Users",
+                RouteName.TransformToOrganizationConfirmation,
                 relativeUrl,
                 routeValues: new RouteValueDictionary
                 {

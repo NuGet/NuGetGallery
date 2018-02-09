@@ -4,6 +4,7 @@ using NuGet.Packaging;
 using NuGet.Versioning;
 using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
+using NuGetGallery.Security;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -133,6 +134,7 @@ namespace NuGetGallery.TestUtils
     public class TestableUserService : UserService
     {
         public Mock<IAppConfiguration> MockConfig { get; protected set; }
+        public Mock<ISecurityPolicyService> MockSecurityPolicyService { get; protected set; }
         public Mock<IEntityRepository<User>> MockUserRepository { get; protected set; }
         public Mock<IEntityRepository<Credential>> MockCredentialRepository { get; protected set; }
         public Mock<IEntitiesContext> MockEntitiesContext { get; protected set; }
@@ -141,6 +143,7 @@ namespace NuGetGallery.TestUtils
         public TestableUserService()
         {
             Config = (MockConfig = new Mock<IAppConfiguration>()).Object;
+            SecurityPolicyService = (MockSecurityPolicyService = new Mock<ISecurityPolicyService>()).Object;
             UserRepository = (MockUserRepository = new Mock<IEntityRepository<User>>()).Object;
             CredentialRepository = (MockCredentialRepository = new Mock<IEntityRepository<Credential>>()).Object;
             EntitiesContext = (MockEntitiesContext = new Mock<IEntitiesContext>()).Object;
