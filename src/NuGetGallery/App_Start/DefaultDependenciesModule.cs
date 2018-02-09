@@ -257,7 +257,14 @@ namespace NuGetGallery
                 .AsSelf()
                 .As<IContentObjectService>()
                 .SingleInstance();
-            HostingEnvironment.QueueBackgroundWorkItem(async cancellationToken => await DependencyResolver.Current.GetService<IContentObjectService>().Refresh());
+
+            if (configuration.Current.IsHosted)
+            {
+                HostingEnvironment.QueueBackgroundWorkItem(async cancellationToken => await DependencyResolver
+                    .Current
+                    .GetService<IContentObjectService>()
+                    .Refresh());
+            }
 
             var mailSenderThunk = new Lazy<IMailSender>(
                 () =>
@@ -696,9 +703,12 @@ namespace NuGetGallery
                 .As<ICookieComplianceService>()
                 .SingleInstance();
 
-            // Initialize the service on App_Start to avoid any performance degradation during initial requests.
-            var siteName = configuration.GetSiteRoot(true);
-            HostingEnvironment.QueueBackgroundWorkItem(async cancellationToken => await service.InitializeAsync(siteName, diagnostics, cancellationToken));
+            if (configuration.Current.IsHosted)
+            {
+                // Initialize the service on App_Start to avoid any performance degradation during initial requests.
+                var siteName = configuration.GetSiteRoot(true);
+                HostingEnvironment.QueueBackgroundWorkItem(async cancellationToken => await service.InitializeAsync(siteName, diagnostics, cancellationToken));
+            }
         }
     }
 }
