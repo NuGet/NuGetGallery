@@ -31,7 +31,7 @@ namespace NuGetGallery
             IEntityRepository<Credential> credentialRepository,
             IAuditingService auditing,
             IEntitiesContext entitiesContext,
-            IContentObjectService loginDeprecationService)
+            IContentObjectService contentObjectService)
             : this()
         {
             Config = config;
@@ -39,7 +39,7 @@ namespace NuGetGallery
             CredentialRepository = credentialRepository;
             Auditing = auditing;
             EntitiesContext = entitiesContext;
-            ContentObjectService = loginDeprecationService;
+            ContentObjectService = contentObjectService;
         }
 
         public async Task<Membership> AddMemberAsync(Organization organization, string memberName, bool isAdmin)

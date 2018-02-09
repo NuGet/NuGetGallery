@@ -10,6 +10,8 @@ namespace NuGetGallery
 {
     public class ContentObjectService : IContentObjectService
     {
+        private const int RefreshIntervalHours = 1;
+
         private readonly IContentService _contentService;
 
         public ContentObjectService(IContentService contentService)
@@ -32,7 +34,7 @@ namespace NuGetGallery
         private async Task<T> Refresh<T>(string contentName) 
             where T : class
         {
-            var configString = (await _contentService.GetContentItemAsync(contentName, TimeSpan.FromHours(1))).ToString();
+            var configString = (await _contentService.GetContentItemAsync(contentName, TimeSpan.FromHours(RefreshIntervalHours))).ToString();
             if (string.IsNullOrEmpty(configString))
             {
                 return null;

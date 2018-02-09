@@ -39,8 +39,8 @@ namespace NuGetGallery
         {
             var email = user.ToMailAddress();
             return
-                DiscontinuedForEmailAddresses.Contains(email.Address) ||
-                DiscontinuedForDomains.Contains(email.Host, StringComparer.OrdinalIgnoreCase);
+                DiscontinuedForDomains.Contains(email.Host, StringComparer.OrdinalIgnoreCase) ||
+                DiscontinuedForEmailAddresses.Contains(email.Address);
         }
     }
 
