@@ -148,6 +148,7 @@ namespace Validation.PackageSigning.ValidateCertificate
                 return new CertificateStore(storage, LoggerFactory.CreateLogger<CertificateStore>());
             });
 
+            services.AddTransient<ICertificateVerifier, OnlineCertificateVerifier>();
             services.AddTransient<ICertificateValidationService, CertificateValidationService>();
             services.AddTransient<ITelemetryService, TelemetryService>();
         }
