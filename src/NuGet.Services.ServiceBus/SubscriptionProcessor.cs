@@ -73,19 +73,24 @@ namespace NuGet.Services.ServiceBus
 
             try
             {
-                _logger.LogInformation("Received message from Service Bus subscription, processing");
-
-                var message = _serializer.Deserialize(brokeredMessage);
-
-                if (await _handler.HandleAsync(message))
+                using (var scope = _logger.BeginScope($"{nameof(SubscriptionProcessor<TMessage>)}.{nameof(OnMessageAsync)} {{CallGuid}} {{CallStartTimestamp}}",
+                    Guid.NewGuid(),
+                    DateTimeOffset.UtcNow.ToString("O")))
                 {
-                    _logger.LogInformation("Message was successfully handled, marking the brokered message as completed");
+                    _logger.LogInformation("Received message from Service Bus subscription, processing");
 
-                    await brokeredMessage.CompleteAsync();
-                }
-                else
-                {
-                    _logger.LogInformation("Handler did not finish processing message, requeueing message to be reprocessed");
+                    var message = _serializer.Deserialize(brokeredMessage);
+
+                    if (await _handler.HandleAsync(message))
+                    {
+                        _logger.LogInformation("Message was successfully handled, marking the brokered message as completed");
+
+                        await brokeredMessage.CompleteAsync();
+                    }
+                    else
+                    {
+                        _logger.LogInformation("Handler did not finish processing message, requeueing message to be reprocessed");
+                    }
                 }
             }
             catch (Exception e)
