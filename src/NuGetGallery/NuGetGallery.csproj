@@ -740,7 +740,7 @@
     <Compile Include="Authentication\Providers\AzureActiveDirectoryV2\AzureActiveDirectoryV2AuthenticatorConfiguration.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticator.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticatorConfiguration.cs" />
-    <Compile Include="Authentication\Providers\Utils\ClaimsExtentions.cs" />
+    <Compile Include="Extensions\ClaimsExtensions.cs" />
     <Compile Include="Configuration\IGalleryConfigurationService.cs" />
     <Compile Include="Configuration\IPackageDeleteConfiguration.cs" />
     <Compile Include="Configuration\IServiceBusConfiguration.cs" />
@@ -795,6 +795,7 @@
     <Compile Include="Extensions\PrincipalExtensions.cs" />
     <Compile Include="Extensions\RouteExtensions.cs" />
     <Compile Include="Extensions\ScopeExtensions.cs" />
+    <Compile Include="Extensions\CredentialExtensions.cs" />
     <Compile Include="Extensions\UserExtensions.cs" />
     <Compile Include="Filters\ApiScopeRequiredAttribute.cs" />
     <Compile Include="Filters\UIAuthorizeAttribute.cs" />
@@ -835,6 +836,7 @@
     <Compile Include="Migrations\201711021733062_ApiKeyOwnerScope.Designer.cs">
       <DependentUpon>201711021733062_ApiKeyOwnerScope.cs</DependentUpon>
     </Compile>
+    <Compile Include="Security\RequireOrganizationTenantPolicy.cs" />
     <Compile Include="Services\ActionOnNewPackageContext.cs" />
     <Compile Include="Services\ActionRequiringAccountPermissions.cs" />
     <Compile Include="Services\ActionRequiringEntityPermissions.cs" />
@@ -1066,6 +1068,8 @@
     <Compile Include="Diagnostics\DiagnosticsServiceExtensions.cs" />
     <Compile Include="Diagnostics\DiagnosticsSourceExtensions.cs" />
     <Compile Include="Configuration\StorageType.cs" />
+    <Compile Include="Telemetry\UserPackageDeleteEvent.cs" />
+    <Compile Include="Telemetry\UserPackageDeleteOutcome.cs" />
     <Compile Include="ViewModels\GalleryHomeViewModel.cs" />
     <Compile Include="WebRole.cs" />
     <Content Include="bin\NuGetGallery.dll.config">

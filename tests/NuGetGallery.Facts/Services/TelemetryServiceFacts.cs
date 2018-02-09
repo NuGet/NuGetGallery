@@ -70,13 +70,44 @@ namespace NuGetGallery
                 }
             }
 
+            public static IEnumerable<object[]> TrackMetricNames_Data
+            {
+                get
+                {
+                    yield return new object[] { "UserPackageDeleteCheckedAfterHours",
+                        (TrackAction)(s => s.TrackUserPackageDeleteChecked(
+                            new UserPackageDeleteEvent(
+                                TimeSpan.FromHours(3),
+                                11,
+                                "NuGet.Versioning",
+                                "4.5.0",
+                                124101,
+                                124999,
+                                23,
+                                42,
+                                reportPackageReason: ReportPackageReason.ReleasedInPublicByAccident,
+                                packageDeleteDecision: PackageDeleteDecision.DeletePackage),
+                            UserPackageDeleteOutcome.Accepted))
+                    };
+
+                    yield return new object[] { "UserPackageDeleteExecuted",
+                        (TrackAction)(s => s.TrackUserPackageDeleteExecuted(
+                            11,
+                            "NuGet.Versioning",
+                            "4.5.0",
+                            ReportPackageReason.ReleasedInPublicByAccident,
+                            success: true))
+                    };
+                }
+            }
+
             [Fact]
             public void TrackEventNamesIncludesAllEvents()
             {
-                var count = typeof(TelemetryService.Events).GetFields().Length;
-                var testData = TrackEventNames_Data;
+                var expectedCount = typeof(TelemetryService.Events).GetFields().Length;
+                var actualCount = TrackEventNames_Data.Count() + TrackMetricNames_Data.Count();
 
-                Assert.Equal(count, testData.Count());
+                Assert.Equal(expectedCount, actualCount);
             }
 
             [Theory]
@@ -95,7 +126,24 @@ namespace NuGetGallery
                     It.IsAny<IDictionary<string, double>>()),
                     Times.Once);
             }
-            
+
+            [Theory]
+            [MemberData(nameof(TrackMetricNames_Data))]
+            public void TrackMetricNames(string metricName, TrackAction track)
+            {
+                // Arrange
+                var service = CreateService();
+
+                // Act
+                track(service);
+
+                // Assert
+                service.TelemetryClient.Verify(c => c.TrackMetric(metricName,
+                    It.IsAny<double>(),
+                    It.IsAny<IDictionary<string, string>>()),
+                    Times.Once);
+            }
+
             [Fact]
             public void TrackPackageReadMeChangeEventThrowsIfPackageIsNull()
             {
@@ -195,6 +243,49 @@ namespace NuGetGallery
                 // Act & Assert
                 Assert.Throws<ArgumentNullException>(() =>
                     service.TrackVerifyPackageKeyEvent("id", "1.0.0", fakes.User, null, 200));
+            }
+
+            [Fact]
+            public void TrackUserPackageDeleteCheckedThrowsIfDetailsAreNull()
+            {
+                // Arrange
+                var service = CreateService();
+
+                // Act & Assert
+                Assert.Throws<ArgumentNullException>(() =>
+                    service.TrackUserPackageDeleteChecked(details: null, outcome: UserPackageDeleteOutcome.Accepted));
+            }
+
+            [Fact]
+            public void TrackUserPackageDeleteExecutedThrowsIfPackageIdIsNull()
+            {
+                // Arrange
+                var service = CreateService();
+
+                // Act & Assert
+                Assert.Throws<ArgumentNullException>(() =>
+                    service.TrackUserPackageDeleteExecuted(
+                        23,
+                        packageId: null,
+                        packageVersion: "4.5.0",
+                        reason: ReportPackageReason.ReleasedInPublicByAccident,
+                        success: true));
+            }
+
+            [Fact]
+            public void TrackUserPackageDeleteExecutedThrowsIfPackageVersionIsNull()
+            {
+                // Arrange
+                var service = CreateService();
+
+                // Act & Assert
+                Assert.Throws<ArgumentNullException>(() =>
+                    service.TrackUserPackageDeleteExecuted(
+                        23,
+                        packageId: "NuGet.Versioning",
+                        packageVersion: null,
+                        reason: ReportPackageReason.ReleasedInPublicByAccident,
+                        success: true));
             }
         }
 

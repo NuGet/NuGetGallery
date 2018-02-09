@@ -22,10 +22,6 @@ $(function () {
     });
 
     function showModal() {
-        $(document).on('keydown', function (e) {
-            e.preventDefault();
-        });
-
         $(document).on('ready', function (e) {
             $("#popUpModal").modal({
                 show: true

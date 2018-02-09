@@ -130,7 +130,7 @@ namespace NuGetGallery.Security
             var policies = minClientVersions.Split(',').Select(
                 v => RequireMinClientVersionForPushPolicy.CreatePolicy("Subscription", new NuGetVersion(v))
             ).ToArray();
-            var context = new UserSecurityPolicyEvaluationContext(httpContext.Object, policies);
+            var context = new UserSecurityPolicyEvaluationContext(policies, httpContext.Object);
 
             return new RequireMinClientVersionForPushPolicy().Evaluate(context);
         }

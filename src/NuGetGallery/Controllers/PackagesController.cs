@@ -655,7 +655,10 @@ namespace NuGetGallery
                 return RedirectToAction(nameof(ReportAbuse), new { id, version });
             }
 
-            var allowDelete = await _packageDeleteService.CanPackageBeDeletedByUserAsync(package);
+            var allowDelete = await _packageDeleteService.CanPackageBeDeletedByUserAsync(
+                package,
+                reportPackageReason: null,
+                packageDeleteDecision: null);
 
             var model = new ReportMyPackageViewModel
             {
@@ -776,6 +779,13 @@ namespace NuGetGallery
                 && reportForm.DeleteDecision == PackageDeleteDecision.DeletePackage)
             {
                 deleted = await DeletePackageOnBehalfOfUserAsync(package, user, reason, supportRequest);
+
+                _telemetryService.TrackUserPackageDeleteExecuted(
+                    package.Key,
+                    package.PackageRegistration.Id,
+                    package.NormalizedVersion,
+                    reportForm.Reason.Value,
+                    deleted);
             }
 
             if (!deleted)
@@ -801,14 +811,14 @@ namespace NuGetGallery
             reportForm.Message = HttpUtility.HtmlEncode(reportForm.Message);
 
             // Enforce the auto-delete rules.
-            var allowDelete = false;
-            if (reportForm.DeleteDecision != PackageDeleteDecision.ContactSupport)
+            var allowDelete = await _packageDeleteService.CanPackageBeDeletedByUserAsync(
+                package,
+                reportForm.Reason,
+                reportForm.DeleteDecision);
+            if (reportForm.DeleteDecision != PackageDeleteDecision.ContactSupport
+                && !allowDelete)
             {
-                allowDelete = await _packageDeleteService.CanPackageBeDeletedByUserAsync(package);
-                if (!allowDelete)
-                {
-                    reportForm.DeleteDecision = null;
-                }
+                reportForm.DeleteDecision = null;
             }
 
             // Require a delete decision if auto-delete is allowed and implied by the reason.

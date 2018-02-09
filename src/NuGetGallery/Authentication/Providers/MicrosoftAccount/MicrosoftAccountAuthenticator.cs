@@ -4,7 +4,6 @@
 using System.Security.Claims;
 using System.Web.Mvc;
 using Microsoft.Owin.Security.MicrosoftAccount;
-using NuGetGallery.Authentication.Providers.Utils;
 using NuGetGallery.Configuration;
 using Owin;
 
@@ -42,7 +41,7 @@ namespace NuGetGallery.Authentication.Providers.MicrosoftAccount
 
         public override IdentityInformation GetIdentityInformation(ClaimsIdentity claimsIdentity)
         {
-            return ClaimsExtentions.GetIdentityInformation(claimsIdentity, DefaultAuthenticationType);
+            return ClaimsExtensions.GetIdentityInformation(claimsIdentity, DefaultAuthenticationType);
         }
     }
 }

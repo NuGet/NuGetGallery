@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
+using NuGetGallery.Security;
 using Crypto = NuGetGallery.CryptographyService;
 
 namespace NuGetGallery
@@ -17,11 +18,17 @@ namespace NuGetGallery
     public class UserService : IUserService
     {
         public IAppConfiguration Config { get; protected set; }
+
         public IEntityRepository<User> UserRepository { get; protected set; }
+
         public IEntityRepository<Credential> CredentialRepository { get; protected set; }
+
         public IAuditingService Auditing { get; protected set; }
+
         public IEntitiesContext EntitiesContext { get; protected set; }
         public IContentObjectService ContentObjectService { get; protected set; }
+
+        public ISecurityPolicyService SecurityPolicyService { get; set; }
 
         protected UserService() { }
 
@@ -31,7 +38,8 @@ namespace NuGetGallery
             IEntityRepository<Credential> credentialRepository,
             IAuditingService auditing,
             IEntitiesContext entitiesContext,
-            IContentObjectService contentObjectService)
+            IContentObjectService contentObjectService,
+            ISecurityPolicyService securityPolicyService)
             : this()
         {
             Config = config;
@@ -40,6 +48,7 @@ namespace NuGetGallery
             Auditing = auditing;
             EntitiesContext = entitiesContext;
             ContentObjectService = contentObjectService;
+            SecurityPolicyService = securityPolicyService;
         }
 
         public async Task<Membership> AddMemberAsync(Organization organization, string memberName, bool isAdmin)
@@ -64,6 +73,14 @@ namespace NuGetGallery
             {
                 throw new EntityException(string.Format(CultureInfo.CurrentCulture,
                     Strings.AddMember_UserNotConfirmed, memberName));
+            }
+
+            // Ensure that the new member meets the AAD tenant policy for this organization.
+            var policyResult = await SecurityPolicyService.EvaluateOrganizationPoliciesAsync(
+                SecurityPolicyAction.JoinOrganization, organization, member);
+            if (policyResult != SecurityPolicyResult.SuccessResult)
+            {
+                throw new EntityException(policyResult.ErrorMessage);
             }
 
             membership = new Membership()
@@ -327,14 +344,33 @@ namespace NuGetGallery
                 errorReason = String.Format(CultureInfo.CurrentCulture,
                     Strings.TransformAccount_AdminAccountIsOrganization, adminUser.Username);
             }
+            else
+            {
+                var tenantId = adminUser.Credentials.GetAzureActiveDirectoryCredential()?.TenantId;
+                if (string.IsNullOrWhiteSpace(tenantId))
+                {
+                    errorReason = String.Format(CultureInfo.CurrentCulture,
+                        Strings.TransformAccount_AdminAccountDoesNotHaveTenant, adminUser.Username);
+                }
+            }
 
             return errorReason == null;
         }
 
         public async Task<bool> TransformUserToOrganization(User accountToTransform, User adminUser, string token)
         {
-            // todo: check for tenantId and add organization policy to enforce this (future work, with manage organization)
+            var tenantId = adminUser.Credentials.GetAzureActiveDirectoryCredential()?.TenantId;
+            if (string.IsNullOrWhiteSpace(tenantId))
+            {
+                return false;
+            }
 
+            var tenantPolicy = RequireOrganizationTenantPolicy.Create(tenantId);
+            if (!await SecurityPolicyService.SubscribeAsync(accountToTransform, tenantPolicy))
+            {
+                return false;
+            }
+            
             return await EntitiesContext.TransformUserToOrganization(accountToTransform, adminUser, token);
         }
     }

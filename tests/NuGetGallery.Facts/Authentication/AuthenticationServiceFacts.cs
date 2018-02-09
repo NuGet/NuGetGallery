@@ -869,7 +869,7 @@ namespace NuGetGallery.Authentication
                 var fakes = Get<Fakes>();
                 var credentialBuilder = new CredentialBuilder();
                 var cred1 = credentialBuilder.CreateExternalCredential("MicrosoftAccount", "value1", "name1 <email1>", "TEST_TENANT1");
-                var user = fakes.CreateUser("foo", cred1);
+                var user = fakes.CreateUser("foo");
                 var service = Get<AuthenticationService>();
                 service.Entities.Users.Add(user);
                 service.Entities.Credentials.Add(cred1);
@@ -879,6 +879,25 @@ namespace NuGetGallery.Authentication
 
                 // Assert
                 Assert.False(result);
+            }
+
+            [Fact]
+            public async Task ReturnsTrueForReplacingSelfExistingMatchingCredential()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var credentialBuilder = new CredentialBuilder();
+                var cred1 = credentialBuilder.CreateExternalCredential("MicrosoftAccount", "value1", "name1 <email1>", "TEST_TENANT1");
+                var user = fakes.CreateUser("foo", cred1);
+                var service = Get<AuthenticationService>();
+                service.Entities.Users.Add(user);
+                service.Entities.Credentials.Add(cred1);
+
+                // Act
+                var result = await service.TryReplaceCredential(user, cred1);
+
+                // Assert
+                Assert.True(result);
             }
 
             [Fact]
