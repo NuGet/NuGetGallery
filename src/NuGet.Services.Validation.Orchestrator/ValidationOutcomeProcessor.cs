@@ -60,11 +60,13 @@ namespace NuGet.Services.Validation.Orchestrator
 
             if (AnyValidationFailed(validationSet, GetValidationConfigurationItem))
             {
+                var failedValidations = GetFailedValidations(validationSet, GetValidationConfigurationItem).ToList();
+
                 _logger.LogWarning("Some validations failed for package {PackageId} {PackageVersion}, validation set {ValidationSetId}: {FailedValidations}",
                     package.PackageRegistration.Id,
                     package.NormalizedVersion,
                     validationSet.ValidationTrackingId,
-                    GetFailedValidations(validationSet, GetValidationConfigurationItem));
+                    failedValidations);
 
                 // The only way we can move to the failed validation state is if the package is currently in the
                 // validating state. This has a beneficial side effect of only sending a failed validation email to the
