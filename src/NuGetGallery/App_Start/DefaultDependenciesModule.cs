@@ -605,7 +605,7 @@ namespace NuGetGallery
                 .As<IStatisticsService>()
                 .SingleInstance();
 
-            builder.RegisterInstance(new TableErrorLog(configuration.Current.AzureStorage_Errors_ConnectionString))
+            builder.RegisterInstance(new TableErrorLog(configuration.Current.AzureStorage_Errors_ConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
                 .As<ErrorLog>()
                 .SingleInstance();
         }
@@ -624,7 +624,7 @@ namespace NuGetGallery
 
             var localIp = AuditActor.GetLocalIpAddressAsync().Result;
 
-            var service = new CloudAuditingService(instanceId, localIp, configuration.Current.AzureStorage_Auditing_ConnectionString, AuditActor.GetAspNetOnBehalfOfAsync);
+            var service = new CloudAuditingService(instanceId, localIp, configuration.Current.AzureStorage_Auditing_ConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant, AuditActor.GetAspNetOnBehalfOfAsync);
 
             builder.RegisterInstance(service)
                 .As<ICloudStorageStatusDependency>()
