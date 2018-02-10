@@ -34,5 +34,6 @@
         @Html.Raw(string.Format(@ViewBag.GravatarProfileMessage,
              GravatarLink("gravatar.com"),
              GravatarLink("Go to gravatar.com")))
-    </text>)
+    </text>,
+    disabled: !Model.CanManage)
 

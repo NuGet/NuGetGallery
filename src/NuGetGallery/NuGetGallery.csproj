@@ -2175,7 +2175,7 @@
     <Content Include="Views\web.config" />
     <Content Include="Views\_ViewStart.cshtml" />
     <Content Include="Views\Errors\InternalError.cshtml" />
-    <Content Include="Views\Users\Confirm.cshtml" />
+    <Content Include="Views\Shared\Confirm.cshtml" />
     <Content Include="Views\Users\Thanks.cshtml" />
     <Content Include="Views\Users\Profiles.cshtml" />
     <Content Include="Views\Authentication\Register.cshtml" />

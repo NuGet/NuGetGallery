@@ -85,7 +85,9 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(HttpStatusCode.Forbidden, Strings.Unauthorized);
             }
 
-            var confirmationUrl = Url.ConfirmEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false);
+            var confirmationUrl =  (account is Organization)
+                ? Url.ConfirmOrganizationEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false)
+                : Url.ConfirmEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false);
 
             var alreadyConfirmed = account.UnconfirmedEmailAddress == null;
 
@@ -107,13 +109,13 @@ namespace NuGetGallery
         }
 
         [UIAuthorize(allowDiscontinuedLogins: true)]
-        public virtual async Task<ActionResult> Confirm(string username, string token)
+        public virtual async Task<ActionResult> Confirm(string accountName, string token)
         {
             // We don't want Login to go to this page as a return URL
             // By having this value present in the dictionary BUT null, we don't put "returnUrl" on the Login link at all
             ViewData[Constants.ReturnUrlViewDataKey] = null;
 
-            var account = GetAccount(username);
+            var account = GetAccount(accountName);
 
             if (account == null
                 || ActionsRequiringPermissions.ManageAccount.CheckPermissions(GetCurrentUser(), account)
@@ -236,7 +238,9 @@ namespace NuGetGallery
 
             if (account.Confirmed)
             {
-                var confirmationUrl = Url.ConfirmEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false);
+                var confirmationUrl = (account is Organization)
+                    ? Url.ConfirmOrganizationEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false)
+                    : Url.ConfirmEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false);
                 MessageService.SendEmailChangeConfirmationNotice(new MailAddress(account.UnconfirmedEmailAddress, account.Username), confirmationUrl);
 
                 TempData["Message"] = Messages.EmailUpdatedWithConfirmationRequired;
@@ -283,7 +287,7 @@ namespace NuGetGallery
         protected virtual ActionResult AccountView(TUser account, TAccountViewModel model = null)
         {
             if (account == null
-                || ActionsRequiringPermissions.ManageAccount.CheckPermissions(GetCurrentUser(), account)
+                || ActionsRequiringPermissions.ViewAccount.CheckPermissions(GetCurrentUser(), account)
                     != PermissionsCheckResult.Allowed)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.Forbidden, Strings.Unauthorized);
@@ -300,6 +304,9 @@ namespace NuGetGallery
         {
             model.Account = account;
             model.AccountName = account.Username;
+
+            model.CanManage = ActionsRequiringPermissions.ManageAccount.CheckPermissions(
+                GetCurrentUser(), account) == PermissionsCheckResult.Allowed;
 
             model.CuratedFeeds = CuratedFeedService
                 .GetFeedsForManager(account.Key)
