@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
+using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -151,6 +152,7 @@ namespace Validation.PackageSigning.ValidateCertificate
             services.AddTransient<ICertificateVerifier, OnlineCertificateVerifier>();
             services.AddTransient<ICertificateValidationService, CertificateValidationService>();
             services.AddTransient<ITelemetryService, TelemetryService>();
+            services.AddSingleton(new TelemetryClient());
         }
 
         private static IServiceProvider CreateProvider(IServiceCollection services)
