@@ -35,12 +35,7 @@ namespace NuGetGallery
 
         public Task<bool> ExistsAsync()
         {
-            var o = new BlobRequestOptions()
-            {
-                LocationMode = Microsoft.WindowsAzure.Storage.RetryPolicies.LocationMode.SecondaryOnly
-            };
-
-            return _blobContainer.ExistsAsync(o, null);
+            return _blobContainer.ExistsAsync();
         }
     }
 }
