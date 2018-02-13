@@ -282,5 +282,11 @@ namespace NuGetGallery.Configuration
         /// Gets/Sets a flag indicating if default security policies should be enforced.
         /// </summary>
         bool EnforceDefaultSecurityPolicies { get; set; }
+
+        /// <summary>
+        /// Whether or not the gallery is running as a hosted web service. This should always be true unless the
+        /// gallery code is being used inside a console application.
+        /// </summary>
+        bool IsHosted { get; set; }
     }
 }

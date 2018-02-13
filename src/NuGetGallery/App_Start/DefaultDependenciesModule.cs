@@ -257,7 +257,14 @@ namespace NuGetGallery
                 .AsSelf()
                 .As<IContentObjectService>()
                 .SingleInstance();
-            HostingEnvironment.QueueBackgroundWorkItem(async cancellationToken => await DependencyResolver.Current.GetService<IContentObjectService>().Refresh());
+
+            if (configuration.Current.IsHosted)
+            {
+                HostingEnvironment.QueueBackgroundWorkItem(async cancellationToken => await DependencyResolver
+                    .Current
+                    .GetService<IContentObjectService>()
+                    .Refresh());
+            }
 
             var mailSenderThunk = new Lazy<IMailSender>(
                 () =>
@@ -611,7 +618,7 @@ namespace NuGetGallery
                 .As<IStatisticsService>()
                 .SingleInstance();
 
-            builder.RegisterInstance(new TableErrorLog(configuration.Current.AzureStorage_Errors_ConnectionString))
+            builder.RegisterInstance(new TableErrorLog(configuration.Current.AzureStorage_Errors_ConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
                 .As<ErrorLog>()
                 .SingleInstance();
         }
@@ -630,7 +637,7 @@ namespace NuGetGallery
 
             var localIp = AuditActor.GetLocalIpAddressAsync().Result;
 
-            var service = new CloudAuditingService(instanceId, localIp, configuration.Current.AzureStorage_Auditing_ConnectionString, AuditActor.GetAspNetOnBehalfOfAsync);
+            var service = new CloudAuditingService(instanceId, localIp, configuration.Current.AzureStorage_Auditing_ConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant, AuditActor.GetAspNetOnBehalfOfAsync);
 
             builder.RegisterInstance(service)
                 .As<ICloudStorageStatusDependency>()
@@ -696,9 +703,12 @@ namespace NuGetGallery
                 .As<ICookieComplianceService>()
                 .SingleInstance();
 
-            // Initialize the service on App_Start to avoid any performance degradation during initial requests.
-            var siteName = configuration.GetSiteRoot(true);
-            HostingEnvironment.QueueBackgroundWorkItem(async cancellationToken => await service.InitializeAsync(siteName, diagnostics, cancellationToken));
+            if (configuration.Current.IsHosted)
+            {
+                // Initialize the service on App_Start to avoid any performance degradation during initial requests.
+                var siteName = configuration.GetSiteRoot(true);
+                HostingEnvironment.QueueBackgroundWorkItem(async cancellationToken => await service.InitializeAsync(siteName, diagnostics, cancellationToken));
+            }
         }
     }
 }
