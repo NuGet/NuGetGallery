@@ -98,6 +98,7 @@
     function doSearch(maxResults) {
         var currInput = $("#search").val();
         if (currInput.length < 1) {
+            removeOldAutocompleteResults();
             return;
         }
 
@@ -107,6 +108,7 @@
             method: "GET",
             success: function (data, status) {
                 if (data.length < 1) {
+                    removeOldAutocompleteResults();
                     return;
                 }
 
