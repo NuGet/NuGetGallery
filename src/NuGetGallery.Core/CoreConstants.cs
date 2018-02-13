@@ -5,6 +5,8 @@ namespace NuGetGallery
 {
     public static class CoreConstants
     {
+        public const string AdminRoleName = "Admins";
+
         public const int MaxPackageIdLength = 128;
 
         public const string PackageFileSavePathTemplate = "{0}.{1}{2}";
