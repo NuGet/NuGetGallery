@@ -9,15 +9,15 @@
             <p>
                 You have <b>@Model.RequestItems.Count().ToNuGetNumberString() @Model.Name.ToLowerInvariant() @requestsString</b>
             </p>
-            <div class="list-packages" role="list">
+            <div class="list-packages">
                 <table class="table">
                     <thead>
                         <tr class="manage-package-headings">
-                            <th class="hidden-xs"></th>
+                            <th class="hidden-xs"><span class="hidden">Package Icon</span></th>
                             <th>Package ID</th>
                             <th>Existing Owner</th>
                             <th>New Owner</th>
-                            <th></th>
+                            <th><span class="hidden">Actions</span></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -27,7 +27,7 @@
 
                             <tr class="manage-package-listing">
                                 <td class="align-middle hidden-xs">
-                                    <img class="package-icon img-responsive" aria-hidden="true" alt=""
+                                    <img class="package-icon img-responsive" aria-hidden="true" alt="Package Icon"
                                          src="@(PackageHelper.ShouldRenderUrl(requestItem.Package.IconUrl) ? requestItem.Package.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))"
                                          @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")) />
                                 </td>
