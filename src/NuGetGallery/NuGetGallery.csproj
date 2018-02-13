@@ -1638,8 +1638,8 @@
     <Compile Include="Services\ReflowPackageService.cs" />
     <Compile Include="Services\TelemetryService.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteUserAccountViewModel.cs" />
-    <Compile Include="ViewModels\ListOrganizationsItemViewModel.cs" />
-    <Compile Include="ViewModels\ListOrganizationsViewModel.cs" />
+    <Compile Include="ViewModels\ManageOrganizationsItemViewModel.cs" />
+    <Compile Include="ViewModels\ManageOrganizationsViewModel.cs" />
     <Compile Include="ViewModels\ChangeEmailViewModel.cs" />
     <Compile Include="ViewModels\ChangeNotificationsViewModel.cs" />
     <Compile Include="ViewModels\ChangePasswordViewModel.cs" />
