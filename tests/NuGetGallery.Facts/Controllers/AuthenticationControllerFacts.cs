@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Globalization;
 using System.Net.Mail;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -12,6 +11,7 @@ using Microsoft.Owin;
 using Moq;
 using NuGetGallery.Framework;
 using NuGetGallery.Authentication;
+using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Authentication.Providers.AzureActiveDirectory;
 using NuGetGallery.Authentication.Providers.MicrosoftAccount;
 using NuGetGallery.Infrastructure.Authentication;
@@ -935,8 +935,14 @@ namespace NuGetGallery.Controllers
                 var identity = "Bloog";
                 var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", identity);
                 var passwordCred = new Credential("password.v3", "bloopbloop");
+                var email = "bloog@blorg.com";
+                var externalAuthenticator = GetMock<Authenticator>();
+                externalAuthenticator
+                    .Setup(x => x.GetIdentityInformation(It.IsAny<ClaimsIdentity>()))
+                    .Returns(new IdentityInformation("", "", email, ""));
                 var fakes = Get<Fakes>();
                 var user = fakes.CreateUser("test", cred, passwordCred);
+                user.EmailAddress = email;
                 controller.SetCurrentUser(user);
                 var authUser = new AuthenticatedUser(
                     user, cred);
@@ -947,6 +953,7 @@ namespace NuGetGallery.Controllers
                     {
                         ExternalIdentity = new ClaimsIdentity(),
                         Authentication = null,
+                        Authenticator = externalAuthenticator.Object,
                         Credential = cred
                     })
                     .Verifiable();
@@ -976,7 +983,7 @@ namespace NuGetGallery.Controllers
 
                 // Assert
                 ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
-                Assert.Equal(Strings.ChangeCredential_Success, controller.TempData["Message"]);
+                Assert.Equal(string.Format(Strings.ChangeCredential_Success, email), controller.TempData["Message"]);
                 serviceMock.VerifyAll();
             }
         }
@@ -1005,13 +1012,15 @@ namespace NuGetGallery.Controllers
             {
                 // Arrange
                 var fakes = Get<Fakes>();
-                
-                GetMock<AuthenticationService>(); // Force a mock to be created
-                var controller = GetController<AuthenticationController>();
+
                 var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
                 var authUser = new AuthenticatedUser(
                     fakes.CreateUser("test", cred),
                     cred);
+
+                GetMock<AuthenticationService>(); // Force a mock to be created
+                var controller = GetController<AuthenticationController>();
+
                 GetMock<AuthenticationService>()
                     .Setup(x => x.AuthenticateExternalLogin(controller.OwinContext))
                     .CompletesWith(new AuthenticateExternalLoginResult()
@@ -1020,13 +1029,17 @@ namespace NuGetGallery.Controllers
                         Authentication = authUser
                     });
 
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.CreateSessionAsync(controller.OwinContext, authUser))
+                    .Returns(Task.CompletedTask);
+
                 // Act
                 var result = await controller.LinkExternalAccount("theReturnUrl");
 
                 // Assert
                 ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
                 GetMock<AuthenticationService>()
-                    .Verify(x => x.CreateSessionAsync(controller.OwinContext, authUser));
+                    .VerifyAll();
             }
 
             [Theory]

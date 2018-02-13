@@ -300,7 +300,7 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.OrganizationAccount,
                 "organization/{accountName}/{action}",
-                new { controller = "Organizations", action = "Account" },
+                new { controller = "Organizations", action = "ManageOrganization" },
                 new RouteExtensions.ObfuscatedMetadata(1, Obfuscator.DefaultTelemetryUserName));
 
             routes.MapRoute(

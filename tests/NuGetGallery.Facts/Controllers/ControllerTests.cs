@@ -102,8 +102,12 @@ namespace NuGetGallery.Controllers
             // These actions are allowed to continue to support a discontinued login.
             var expectedActionsSupportingDiscontinuedLogins = new ControllerActionRuleException[]
             {
+                new ControllerActionRuleException(typeof(AccountsController<,>), nameof(UsersController.Confirm)),
+                new ControllerActionRuleException(typeof(AccountsController<,>), nameof(UsersController.ConfirmationRequired)),
+                new ControllerActionRuleException(typeof(AccountsController<,>), nameof(UsersController.ConfirmationRequiredPost)),
                 new ControllerActionRuleException(typeof(UsersController), nameof(UsersController.TransformToOrganization)),
                 new ControllerActionRuleException(typeof(UsersController), nameof(UsersController.ConfirmTransformToOrganization)),
+                new ControllerActionRuleException(typeof(UsersController), nameof(UsersController.Thanks)),
             };
 
             // Act

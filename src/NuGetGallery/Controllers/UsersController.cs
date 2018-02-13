@@ -119,7 +119,8 @@ namespace NuGetGallery
             
             if (!UserService.CanTransformUserToOrganization(accountToTransform, adminUser, out var errorReason))
             {
-                return TransformToOrganizationFailed(errorReason);
+                ModelState.AddModelError("AdminUsername", errorReason);
+                return View(transformViewModel);
             }
 
             await UserService.RequestTransformToOrganizationAccount(accountToTransform, adminUser);
@@ -163,7 +164,7 @@ namespace NuGetGallery
             TempData["Message"] = String.Format(CultureInfo.CurrentCulture,
                 Strings.TransformAccount_Success, accountNameToTransform);
 
-            return RedirectToRoute(RouteName.OrganizationAccount);
+            return Redirect(Url.ManageMyOrganization(accountNameToTransform));
         }
 
         private ActionResult TransformToOrganizationFailed(string errorMessage)
@@ -320,7 +321,7 @@ namespace NuGetGallery
         }
         
         [HttpGet]
-        [UIAuthorize]
+        [UIAuthorize(allowDiscontinuedLogins: true)]
         public virtual ActionResult Thanks()
         {
             // No need to redirect here after someone logs in...

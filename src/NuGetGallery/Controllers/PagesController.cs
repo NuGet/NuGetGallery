@@ -1,16 +1,17 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using NuGetGallery.Services;
-using NuGetGallery.ViewModels;
 using System;
 using System.Linq;
 using System.Net;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Filters;
+using NuGetGallery.Services;
+using NuGetGallery.ViewModels;
 
 namespace NuGetGallery
 {
@@ -100,7 +101,9 @@ namespace NuGetGallery
 
         public virtual ActionResult Home()
         {
-            return View(new GalleryHomeViewModel());
+            var identity = OwinContext.Authentication?.User?.Identity as ClaimsIdentity;
+            var showTransformModal = ClaimsExtensions.HasDiscontinuedLoginCLaims(identity);
+            return View(new GalleryHomeViewModel(showTransformModal));
         }
 
         [HttpGet]
