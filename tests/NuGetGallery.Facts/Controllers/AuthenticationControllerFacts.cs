@@ -1012,13 +1012,15 @@ namespace NuGetGallery.Controllers
             {
                 // Arrange
                 var fakes = Get<Fakes>();
-                
-                GetMock<AuthenticationService>(); // Force a mock to be created
-                var controller = GetController<AuthenticationController>();
+
                 var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
                 var authUser = new AuthenticatedUser(
                     fakes.CreateUser("test", cred),
                     cred);
+
+                GetMock<AuthenticationService>(); // Force a mock to be created
+                var controller = GetController<AuthenticationController>();
+
                 GetMock<AuthenticationService>()
                     .Setup(x => x.AuthenticateExternalLogin(controller.OwinContext))
                     .CompletesWith(new AuthenticateExternalLoginResult()
@@ -1027,13 +1029,17 @@ namespace NuGetGallery.Controllers
                         Authentication = authUser
                     });
 
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.CreateSessionAsync(controller.OwinContext, authUser))
+                    .Returns(Task.CompletedTask);
+
                 // Act
                 var result = await controller.LinkExternalAccount("theReturnUrl");
 
                 // Assert
                 ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
                 GetMock<AuthenticationService>()
-                    .Verify(x => x.CreateSessionAsync(controller.OwinContext, authUser));
+                    .VerifyAll();
             }
 
             [Theory]
