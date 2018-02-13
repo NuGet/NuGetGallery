@@ -206,15 +206,17 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
             request.Headers.Add(Constants.NuGetHeaderApiKey, apiKey);
             request.Headers.Add(Constants.NuGetHeaderClientVersion, "NuGetGallery.FunctionalTests");
 
-            var response = await request.GetResponseAsync() as HttpWebResponse;
-            Assert.NotNull(response);
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
             string responseText;
-            using (var sr = new StreamReader(response.GetResponseStream()))
+            using (var response = await request.GetResponseAsync() as HttpWebResponse)
             {
-                responseText = await sr.ReadToEndAsync();
-            }
+                Assert.NotNull(response);
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+                using (var sr = new StreamReader(response.GetResponseStream()))
+                {
+                    responseText = await sr.ReadToEndAsync();
+                }
+            }                
 
             var json = JObject.Parse(responseText);
             var expiration = json.Value<DateTime>("Expires");
@@ -236,8 +238,10 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
 
             try
             {
-                var response = await request.GetResponseAsync() as HttpWebResponse;
-                return response.StatusCode;
+                using (var response = await request.GetResponseAsync() as HttpWebResponse)
+                {
+                    return response.StatusCode;
+                }
             }
             catch (WebException e)
             {
