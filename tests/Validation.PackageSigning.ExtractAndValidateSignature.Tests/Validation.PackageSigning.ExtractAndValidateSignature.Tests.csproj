@@ -71,6 +71,10 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Validation.Common.Job\Validation.Common.Job.csproj">
+      <Project>{fa87d075-a934-4443-8d0b-5db32640b6d7}</Project>
+      <Name>Validation.Common.Job</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\Validation.PackageSigning.Core\Validation.PackageSigning.Core.csproj">
       <Project>{91C060DA-736F-4DA9-A57F-CB3AC0E6CB10}</Project>
       <Name>Validation.PackageSigning.Core</Name>

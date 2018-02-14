@@ -86,6 +86,10 @@
       <Project>{E6D094FB-9068-4578-B176-116F97E7506B}</Project>
       <Name>NuGet.Services.Validation.Orchestrator</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\src\Validation.Common.Job\Validation.Common.Job.csproj">
+      <Project>{fa87d075-a934-4443-8d0b-5db32640b6d7}</Project>
+      <Name>Validation.Common.Job</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\Validation.Common\Validation.Common.csproj">
       <Project>{2539DDF3-0CC5-4A03-B5F9-39B47744A7BD}</Project>
       <Name>Validation.Common</Name>

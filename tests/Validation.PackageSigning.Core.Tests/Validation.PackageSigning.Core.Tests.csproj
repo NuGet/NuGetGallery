@@ -51,6 +51,10 @@
     <Compile Include="TestData\TestResources.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Validation.Common.Job\Validation.Common.Job.csproj">
+      <Project>{fa87d075-a934-4443-8d0b-5db32640b6d7}</Project>
+      <Name>Validation.Common.Job</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\Validation.PackageSigning.Core\Validation.PackageSigning.Core.csproj">
       <Project>{91c060da-736f-4da9-a57f-cb3ac0e6cb10}</Project>
       <Name>Validation.PackageSigning.Core</Name>
