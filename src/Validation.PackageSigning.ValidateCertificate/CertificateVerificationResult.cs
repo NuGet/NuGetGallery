@@ -26,10 +26,12 @@ namespace Validation.PackageSigning.ValidateCertificate
             DateTime? statusUpdateTime = null,
             DateTime? revocationTime = null)
         {
-            if (status != EndCertificateStatus.Revoked && revocationTime.HasValue)
+            if (revocationTime.HasValue &&
+                status != EndCertificateStatus.Revoked &&
+                status != EndCertificateStatus.Invalid)
             {
                 throw new ArgumentException(
-                    $"End certificate revoked at {revocationTime} but status isn't {nameof(EndCertificateStatus.Revoked)}",
+                    $"End certificate revoked at {revocationTime} but status is {status}",
                     nameof(status));
             }
 
@@ -119,7 +121,7 @@ namespace Validation.PackageSigning.ValidateCertificate
                     return $"Good (StatusUpdateTime = {StatusUpdateTime})";
 
                 case EndCertificateStatus.Invalid:
-                    return $"Invalid (Flags = {StatusFlags}, StatusUpdateTime = {StatusUpdateTime})";
+                    return $"Invalid (Flags = {StatusFlags}, RevocationTime = {RevocationTime}, StatusUpdateTime = {StatusUpdateTime})";
 
                 case EndCertificateStatus.Revoked:
                     return $"Revoked (Flags = {StatusFlags}, RevocationTime = {RevocationTime}, StatusUpdateTime = {StatusUpdateTime})";

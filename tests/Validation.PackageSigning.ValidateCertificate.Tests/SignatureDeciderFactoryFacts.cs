@@ -277,124 +277,162 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
 
             public static IEnumerable<object[]> InvalidCertificateInvalidatesSignaturesData()
             {
-                // NotTimeValid and HasWeakSignature only reject packages at ingestion (as these are time dependent).
-                yield return new object[]
-                {
-                    /* use: */ EndCertificateUse.CodeSigning,
-                    /* flags: */ X509ChainStatusFlags.NotTimeValid | X509ChainStatusFlags.HasWeakSignature,
-                    /* ingestionDecision: */ SignatureDecision.Reject,
-                    /* gracePeriodDecision: */ SignatureDecision.Ignore,
-                    /* afterGracePeriodDecision: */ SignatureDecision.Ignore,
-                };
+                // HasWeakSignature without NotSignatureValid is rejected at ingestion, but otherwise warned.
+                yield return InvalidCertificateInvalidatesSignaturesArguments(
+                    use: EndCertificateUse.CodeSigning,
+                    flags: X509ChainStatusFlags.HasWeakSignature,
+                    ingestionDecision: SignatureDecision.Reject,
+                    gracePeriodDecision: SignatureDecision.Warn,
+                    afterGracePeriodDecision: SignatureDecision.Warn);
 
-                yield return new object[]
-                {
-                    /* use: */ EndCertificateUse.Timestamping,
-                    /* flags: */ X509ChainStatusFlags.NotTimeValid | X509ChainStatusFlags.HasWeakSignature,
-                    /* ingestionDecision: */ SignatureDecision.Reject,
-                    /* gracePeriodDecision: */ SignatureDecision.Ignore,
-                    /* afterGracePeriodDecision: */ SignatureDecision.Ignore,
-                };
+                yield return InvalidCertificateInvalidatesSignaturesArguments(
+                    use: EndCertificateUse.Timestamping,
+                    flags: X509ChainStatusFlags.HasWeakSignature,
+                    ingestionDecision: SignatureDecision.Reject,
+                    gracePeriodDecision: SignatureDecision.Warn,
+                    afterGracePeriodDecision: SignatureDecision.Warn);
+
+                // HasWeakSignature with NotSignatureValid is rejected at ingestion, but otherwise ignored.
+                yield return InvalidCertificateInvalidatesSignaturesArguments(
+                    use: EndCertificateUse.CodeSigning,
+                    flags: X509ChainStatusFlags.HasWeakSignature | X509ChainStatusFlags.NotSignatureValid,
+                    ingestionDecision: SignatureDecision.Reject,
+                    gracePeriodDecision: SignatureDecision.Ignore,
+                    afterGracePeriodDecision: SignatureDecision.Ignore);
+
+                yield return InvalidCertificateInvalidatesSignaturesArguments(
+                    use: EndCertificateUse.Timestamping,
+                    flags: X509ChainStatusFlags.HasWeakSignature | X509ChainStatusFlags.NotSignatureValid,
+                    ingestionDecision: SignatureDecision.Reject,
+                    gracePeriodDecision: SignatureDecision.Ignore,
+                    afterGracePeriodDecision: SignatureDecision.Ignore);
+
+                // NotTimeValid is rejected at ingestion, but otherwise ignored.
+                yield return InvalidCertificateInvalidatesSignaturesArguments(
+                    use: EndCertificateUse.CodeSigning,
+                    flags: X509ChainStatusFlags.NotTimeValid,
+                    ingestionDecision: SignatureDecision.Reject,
+                    gracePeriodDecision: SignatureDecision.Ignore,
+                    afterGracePeriodDecision: SignatureDecision.Ignore);
+
+                yield return InvalidCertificateInvalidatesSignaturesArguments(
+                    use: EndCertificateUse.Timestamping,
+                    flags: X509ChainStatusFlags.NotTimeValid,
+                    ingestionDecision: SignatureDecision.Reject,
+                    gracePeriodDecision: SignatureDecision.Ignore,
+                    afterGracePeriodDecision: SignatureDecision.Ignore);
+
+                // NotTimeValid, HasWeakSignature, and NotSignatureValid are rejected at ingestion, but otherwise ignored.
+                yield return InvalidCertificateInvalidatesSignaturesArguments(
+                    use: EndCertificateUse.CodeSigning,
+                    flags: X509ChainStatusFlags.NotTimeValid | X509ChainStatusFlags.HasWeakSignature | X509ChainStatusFlags.NotSignatureValid,
+                    ingestionDecision: SignatureDecision.Reject,
+                    gracePeriodDecision: SignatureDecision.Ignore,
+                    afterGracePeriodDecision: SignatureDecision.Ignore);
+
+                yield return InvalidCertificateInvalidatesSignaturesArguments(
+                    use: EndCertificateUse.Timestamping,
+                    flags: X509ChainStatusFlags.NotTimeValid | X509ChainStatusFlags.HasWeakSignature | X509ChainStatusFlags.NotSignatureValid,
+                    ingestionDecision: SignatureDecision.Reject,
+                    gracePeriodDecision: SignatureDecision.Ignore,
+                    afterGracePeriodDecision: SignatureDecision.Ignore);
 
                 // NotTimeNested certificates do not affect dependent signatures.
-                yield return new object[]
-                {
-                    /* use: */ EndCertificateUse.CodeSigning,
-                    /* flags: */ X509ChainStatusFlags.NotTimeNested,
-                    /* ingestionDecision: */ SignatureDecision.Ignore,
-                    /* gracePeriodDecision: */ SignatureDecision.Ignore,
-                    /* afterGracePeriodDecision: */ SignatureDecision.Ignore,
-                };
+                yield return InvalidCertificateInvalidatesSignaturesArguments(
+                    use: EndCertificateUse.CodeSigning,
+                    flags: X509ChainStatusFlags.NotTimeNested,
+                    ingestionDecision: SignatureDecision.Ignore,
+                    gracePeriodDecision: SignatureDecision.Ignore,
+                    afterGracePeriodDecision: SignatureDecision.Ignore);
 
-                yield return new object[]
-                {
-                    /* use: */ EndCertificateUse.Timestamping,
-                    /* flags: */ X509ChainStatusFlags.NotTimeNested,
-                    /* ingestionDecision: */ SignatureDecision.Ignore,
-                    /* gracePeriodDecision: */ SignatureDecision.Ignore,
-                    /* afterGracePeriodDecision: */ SignatureDecision.Ignore,
-                };
+                yield return InvalidCertificateInvalidatesSignaturesArguments(
+                    use: EndCertificateUse.Timestamping,
+                    flags: X509ChainStatusFlags.NotTimeNested,
+                    ingestionDecision: SignatureDecision.Ignore,
+                    gracePeriodDecision: SignatureDecision.Ignore,
+                    afterGracePeriodDecision: SignatureDecision.Ignore);
 
                 // Revoked codesigning certificates invalidate all dependent signatures.
-                yield return new object[]
-                {
-                    /* use: */ EndCertificateUse.CodeSigning,
-                    /* flags: */ X509ChainStatusFlags.Revoked,
-                    /* ingestionDecision: */ SignatureDecision.Reject,
-                    /* gracePeriodDecision: */ SignatureDecision.Reject,
-                    /* afterGracePeriodDecision: */ SignatureDecision.Reject,
-                };
+                yield return InvalidCertificateInvalidatesSignaturesArguments(
+                    use: EndCertificateUse.CodeSigning,
+                    flags: X509ChainStatusFlags.Revoked,
+                    ingestionDecision: SignatureDecision.Reject,
+                    gracePeriodDecision: SignatureDecision.Reject,
+                    afterGracePeriodDecision: SignatureDecision.Reject);
 
                 // Revoked timestamping certificates reject signatures at injection, otherwise warn.
-                yield return new object[]
-                {
-                    /* use: */ EndCertificateUse.Timestamping,
-                    /* flags: */ X509ChainStatusFlags.Revoked,
-                    /* ingestionDecision: */ SignatureDecision.Reject,
-                    /* gracePeriodDecision: */ SignatureDecision.Warn,
-                    /* afterGracePeriodDecision: */ SignatureDecision.Warn,
-                };
+                yield return InvalidCertificateInvalidatesSignaturesArguments(
+                    use: EndCertificateUse.Timestamping,
+                    flags: X509ChainStatusFlags.Revoked,
+                    ingestionDecision: SignatureDecision.Reject,
+                    gracePeriodDecision: SignatureDecision.Warn,
+                    afterGracePeriodDecision: SignatureDecision.Warn);
 
                 // Ensure the following flags are rejected at ingestion but otherwise just warned.
                 foreach (var flags in FlagsThatAreRejectedAtIngestionOtherwiseWarn)
                 {
-                    yield return new object[]
-                    {
-                        /* use: */ EndCertificateUse.CodeSigning,
-                        /* flags: */ flags,
-                        /* ingestionDecision: */ SignatureDecision.Reject,
-                        /* gracePeriodDecision: */ SignatureDecision.Warn,
-                        /* afterGracePeriodDecision: */ SignatureDecision.Warn,
-                    };
+                    yield return InvalidCertificateInvalidatesSignaturesArguments(
+                        use: EndCertificateUse.CodeSigning,
+                        flags: flags,
+                        ingestionDecision: SignatureDecision.Reject,
+                        gracePeriodDecision: SignatureDecision.Warn,
+                        afterGracePeriodDecision: SignatureDecision.Warn);
 
-                    yield return new object[]
-                    {
-                        /* use: */ EndCertificateUse.Timestamping,
-                        /* flags: */ flags,
-                        /* ingestionDecision: */ SignatureDecision.Reject,
-                        /* gracePeriodDecision: */ SignatureDecision.Warn,
-                        /* afterGracePeriodDecision: */ SignatureDecision.Warn,
-                    };
+                    yield return InvalidCertificateInvalidatesSignaturesArguments(
+                        use: EndCertificateUse.Timestamping,
+                        flags: flags,
+                        ingestionDecision: SignatureDecision.Reject,
+                        gracePeriodDecision: SignatureDecision.Warn,
+                        afterGracePeriodDecision: SignatureDecision.Warn);
                 }
 
                 // Ensure the most "drastic" case is always picked from the previous cases.
-                yield return new object[]
-                {
-                    /* use: */ EndCertificateUse.CodeSigning,
-                    /* flags: */ X509ChainStatusFlags.NotTimeValid | X509ChainStatusFlags.HasWeakSignature | X509ChainStatusFlags.Revoked,
-                    /* ingestionDecision: */ SignatureDecision.Reject,
-                    /* gracePeriodDecision: */ SignatureDecision.Reject,
-                    /* afterGracePeriodDecision: */ SignatureDecision.Reject,
-                };
+                yield return InvalidCertificateInvalidatesSignaturesArguments(
+                    use: EndCertificateUse.CodeSigning,
+                    flags: X509ChainStatusFlags.NotTimeValid | X509ChainStatusFlags.HasWeakSignature | X509ChainStatusFlags.Revoked,
+                    ingestionDecision: SignatureDecision.Reject,
+                    gracePeriodDecision: SignatureDecision.Reject,
+                    afterGracePeriodDecision: SignatureDecision.Reject);
 
-                yield return new object[]
-                {
-                    /* use: */ EndCertificateUse.CodeSigning,
-                    /* flags: */ X509ChainStatusFlags.NotTimeNested | X509ChainStatusFlags.Revoked,
-                    /* ingestionDecision: */ SignatureDecision.Reject,
-                    /* gracePeriodDecision: */ SignatureDecision.Reject,
-                    /* afterGracePeriodDecision: */ SignatureDecision.Reject,
-                };
+                yield return InvalidCertificateInvalidatesSignaturesArguments(
+                    use: EndCertificateUse.CodeSigning,
+                    flags: X509ChainStatusFlags.NotTimeNested | X509ChainStatusFlags.Revoked,
+                    ingestionDecision: SignatureDecision.Reject,
+                    gracePeriodDecision: SignatureDecision.Reject,
+                    afterGracePeriodDecision: SignatureDecision.Reject);
 
                 var allFlagsThatAreRejectedAtIngestionOtherwiseWarn = FlagsThatAreRejectedAtIngestionOtherwiseWarn
                                                                         .Aggregate(X509ChainStatusFlags.NoError, (result, next) => result |= next);
 
-                yield return new object[]
-                {
-                    /* use: */ EndCertificateUse.CodeSigning,
-                    /* flags: */ allFlagsThatAreRejectedAtIngestionOtherwiseWarn,
-                    /* ingestionDecision: */ SignatureDecision.Reject,
-                    /* gracePeriodDecision: */ SignatureDecision.Warn,
-                    /* afterGracePeriodDecision: */ SignatureDecision.Warn,
-                };
+                yield return InvalidCertificateInvalidatesSignaturesArguments(
+                    use: EndCertificateUse.CodeSigning,
+                    flags: allFlagsThatAreRejectedAtIngestionOtherwiseWarn,
+                    ingestionDecision: SignatureDecision.Reject,
+                    gracePeriodDecision: SignatureDecision.Warn,
+                    afterGracePeriodDecision: SignatureDecision.Warn);
 
-                yield return new object[]
+                yield return InvalidCertificateInvalidatesSignaturesArguments(
+                    use: EndCertificateUse.CodeSigning,
+                    flags: allFlagsThatAreRejectedAtIngestionOtherwiseWarn | X509ChainStatusFlags.Revoked,
+                    ingestionDecision: SignatureDecision.Reject,
+                    gracePeriodDecision: SignatureDecision.Reject,
+                    afterGracePeriodDecision: SignatureDecision.Reject);
+            }
+
+            private static object[] InvalidCertificateInvalidatesSignaturesArguments(
+                EndCertificateUse use,
+                X509ChainStatusFlags flags,
+                SignatureDecision ingestionDecision,
+                SignatureDecision gracePeriodDecision,
+                SignatureDecision afterGracePeriodDecision)
+            {
+                return new object[]
                 {
-                    /* use: */ EndCertificateUse.CodeSigning,
-                    /* flags: */ allFlagsThatAreRejectedAtIngestionOtherwiseWarn | X509ChainStatusFlags.Revoked,
-                    /* ingestionDecision: */ SignatureDecision.Reject,
-                    /* gracePeriodDecision: */ SignatureDecision.Reject,
-                    /* afterGracePeriodDecision: */ SignatureDecision.Reject,
+                    use,
+                    flags,
+                    ingestionDecision,
+                    gracePeriodDecision,
+                    afterGracePeriodDecision,
                 };
             }
         }

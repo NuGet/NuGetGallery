@@ -49,6 +49,8 @@
     <Compile Include="SignatureDeciderFactoryFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Support\CertificateIntegrationTestCollection.cs" />
+    <Compile Include="Support\CertificateIntegrationTestFixture.cs" />
+    <Compile Include="Support\X509V3CertificateGeneratorExtensions2.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Validation.PackageSigning.Core\Validation.PackageSigning.Core.csproj">

@@ -68,14 +68,17 @@ namespace Validation.PackageSigning.ValidateCertificate
                 return RejectAllSignaturesDecider;
             }
 
-            // NotTimeValid and HasWeakSignature fail packages only at ingestion.
-            else if (ResultHasOnlyFlags(result, X509ChainStatusFlags.NotTimeValid | X509ChainStatusFlags.HasWeakSignature))
+            // NotTimeValid and HasWeakSignature fail packages only at ingestion. It is assumed that a chain with HasWeakSignature will
+            // ALWAYS have NotSignatureValid.
+            else if (result.StatusFlags == X509ChainStatusFlags.NotTimeValid ||
+                     result.StatusFlags == (X509ChainStatusFlags.HasWeakSignature | X509ChainStatusFlags.NotSignatureValid) ||
+                     result.StatusFlags == (X509ChainStatusFlags.NotTimeValid | X509ChainStatusFlags.HasWeakSignature | X509ChainStatusFlags.NotSignatureValid))
             {
                 return RejectSignaturesAtIngestionDecider;
             }
 
-            // NotTimeNested does not affect signatures and should be ignored.
-            else if (ResultHasOnlyFlags(result, X509ChainStatusFlags.NotTimeNested))
+            // NotTimeNested does not affect signatures and should be ignored if is the only status.
+            else if (result.StatusFlags == X509ChainStatusFlags.NotTimeNested)
             {
                 return NoActionDecider;
             }
@@ -144,16 +147,6 @@ namespace Validation.PackageSigning.ValidateCertificate
             return (signature.Status == PackageSignatureStatus.Unknown)
                     ? SignatureDecision.Reject
                     : SignatureDecision.Warn;
-        }
-
-        private bool ResultHasOnlyFlags(CertificateVerificationResult result, X509ChainStatusFlags flags)
-        {
-            if (result.StatusFlags == X509ChainStatusFlags.NoError)
-            {
-                return flags == X509ChainStatusFlags.NoError;
-            }
-
-            return (result.StatusFlags & flags) == result.StatusFlags;
         }
     }
 }
