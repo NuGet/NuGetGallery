@@ -111,6 +111,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.PackageSigning.C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.Common.Job", "src\Validation.Common.Job\Validation.Common.Job.csproj", "{FA87D075-A934-4443-8D0B-5DB32640B6D7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PackageHash", "src\PackageHash\PackageHash.csproj", "{40843020-6F0A-48F0-AC28-42FFE3A5C21E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -283,6 +285,10 @@ Global
 		{FA87D075-A934-4443-8D0B-5DB32640B6D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FA87D075-A934-4443-8D0B-5DB32640B6D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FA87D075-A934-4443-8D0B-5DB32640B6D7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{40843020-6F0A-48F0-AC28-42FFE3A5C21E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40843020-6F0A-48F0-AC28-42FFE3A5C21E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40843020-6F0A-48F0-AC28-42FFE3A5C21E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{40843020-6F0A-48F0-AC28-42FFE3A5C21E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -329,6 +335,7 @@ Global
 		{2C5BE067-ADFD-49E3-BA9F-13A74436E5DB} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{B4B7564A-965B-447B-927F-6749E2C08880} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{FA87D075-A934-4443-8D0B-5DB32640B6D7} = {678D7B14-F8BC-4193-99AF-2EE8AA390A02}
+		{40843020-6F0A-48F0-AC28-42FFE3A5C21E} = {FA5644B5-4F08-43F6-86B3-039374312A47}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {284A7AC3-FB43-4F1F-9C9C-2AF0E1F46C2B}

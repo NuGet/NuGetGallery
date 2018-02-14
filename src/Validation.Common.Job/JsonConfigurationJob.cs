@@ -22,7 +22,7 @@ using NuGetGallery;
 
 namespace NuGet.Jobs.Validation
 {
-    public abstract class ValidationJob : JobBase
+    public abstract class JsonConfigurationJob : JobBase
     {
         private const string GalleryDbConfigurationSectionName = "GalleryDb";
         private const string ValidationDbConfigurationSectionName = "ValidationDb";
@@ -104,6 +104,8 @@ namespace NuGet.Jobs.Validation
             services.Configure<GalleryDbConfiguration>(configurationRoot.GetSection(GalleryDbConfigurationSectionName));
             services.Configure<ValidationDbConfiguration>(configurationRoot.GetSection(ValidationDbConfigurationSectionName));
             services.Configure<ServiceBusConfiguration>(configurationRoot.GetSection(ServiceBusConfigurationSectionName));
+
+            services.AddTransient<IPackageDownloader, PackageDownloader>();
 
             services.AddScoped<IValidationEntitiesContext>(p =>
             {

@@ -9,7 +9,7 @@ using NuGet.Services.ServiceBus;
 
 namespace NuGet.Jobs.Validation
 {
-    public abstract class SubcriptionProcessorJob<T> : ValidationJob
+    public abstract class SubcriptionProcessorJob<T> : JsonConfigurationJob
     {
         /// <summary>
         /// The maximum amount of time that graceful shutdown can take before the job will

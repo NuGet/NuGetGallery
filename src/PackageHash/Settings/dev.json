@@ -1,0 +1,24 @@
+﻿{
+  "GalleryDb": {
+    "ConnectionString": "Data Source=tcp:#{Jobs.validation.GalleryDatabaseAddress};Initial Catalog=nuget-dev-0-v2gallery;Integrated Security=False;User ID=$$Dev-GalleryDBReadOnly-UserName$$;Password=$$Dev-GalleryDBReadOnly-Password$$;Connect Timeout=30;Encrypt=True"
+  },
+  "PackageHash": {
+    "BatchSize": 1000,
+    "DegreeOfParallelism": 16,
+    "Sources": [
+      {
+        "Type": "PackagesContainer",
+        "Url": "https://nugetdevlegacy.blob.core.windows.net/packages/"
+      }
+    ]
+  },
+
+  "PackageDownloadTimeout": "10:00",
+
+  "KeyVault_VaultName": "#{Deployment.Azure.KeyVault.VaultName}",
+  "KeyVault_ClientId": "#{Deployment.Azure.KeyVault.ClientId}",
+  "KeyVault_CertificateThumbprint": "#{Deployment.Azure.KeyVault.CertificateThumbprint}",
+  "KeyVault_ValidateCertificate": false,
+  "KeyVault_StoreName": "My",
+  "KeyVault_StoreLocation": "LocalMachine"
+}

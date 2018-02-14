@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
+using NuGet.Jobs.Validation;
 using NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
@@ -26,11 +27,9 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
         {
             private readonly SignatureValidationMessage _message;
             private readonly ValidatorStatus _validation;
-            private readonly Dictionary<Uri, string> _urlToResourceName;
             private readonly Mock<IValidationIssue> _validationIssue;
             private readonly SignatureValidatorResult _validatorResult;
-            private readonly EmbeddedResourceTestHandler _handler;
-            private readonly HttpClient _httpClient;
+            private readonly Mock<IPackageDownloader> _packageDownloader;
             private readonly Mock<IValidatorStateService> _validatorStateService;
             private readonly Mock<ISignatureValidator> _signatureValidator;
             private readonly Mock<ILogger<SignatureValidationMessageHandler>> _logger;
@@ -49,19 +48,17 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                     PackageKey = 42,
                     State = ValidationStatus.Incomplete,
                 };
-                _urlToResourceName = new Dictionary<Uri, string>
-                {
-                    { _message.NupkgUri, TestResources.UnsignedPackage },
-                };
                 _validationIssue = new Mock<IValidationIssue>();
                 _validatorResult = new SignatureValidatorResult(ValidationStatus.Succeeded);
 
-                _handler = new EmbeddedResourceTestHandler(_urlToResourceName);
-                _httpClient = new HttpClient(_handler);
+                _packageDownloader = new Mock<IPackageDownloader>();
                 _validatorStateService = new Mock<IValidatorStateService>();
                 _signatureValidator = new Mock<ISignatureValidator>();
                 _logger = new Mock<ILogger<SignatureValidationMessageHandler>>();
 
+                _packageDownloader
+                    .Setup(x => x.DownloadAsync(_message.NupkgUri, It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(() => TestResources.GetResourceStream(TestResources.UnsignedPackage));
                 _validatorStateService
                     .Setup(x => x.GetStatusAsync(It.IsAny<Guid>()))
                     .ReturnsAsync(() => _validation);
@@ -76,7 +73,7 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                     .Callback(() => _validation.State = ValidationStatus.Succeeded);
 
                 _target = new SignatureValidationMessageHandler(
-                    _httpClient,
+                    _packageDownloader.Object,
                     _validatorStateService.Object,
                     _signatureValidator.Object,
                     _logger.Object);
@@ -120,7 +117,9 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
                 // Arrange
                 string validatedId = null;
                 string validatedVersion = null;
-                _urlToResourceName[_message.NupkgUri] = resourceName;
+                _packageDownloader
+                    .Setup(x => x.DownloadAsync(_message.NupkgUri, It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(() => TestResources.GetResourceStream(resourceName));
                 _signatureValidator
                     .Setup(x => x.ValidateAsync(
                         It.IsAny<int>(),
