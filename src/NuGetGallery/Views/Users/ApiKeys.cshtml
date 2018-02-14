@@ -249,10 +249,10 @@
             @if (Model.ExpirationInDaysForApiKeyV1 > 0)
             {
                 <div class="col-sm-5 form-group">
-                    <label data-bind="attr: { for: ExpiresInId }">Expires In</label>
+                    <label data-bind="attr: { id: ExpiresInId() + '-label', for: ExpiresInId() }">Expires In</label>
                     <select class="form-control"
-                            data-bind="attr: { id: ExpiresInId,
-                                               name: ExpiresInId,
+                            data-bind="attr: { id: ExpiresInId(),
+                                               name: ExpiresInId(),
                                                'aria-labelledby': ExpiresInId() + '-label' },
                                        value: ExpiresIn">
                         @if (Model.ExpirationInDaysForApiKeyV1 == 365)
@@ -442,7 +442,7 @@
             </div>
             <div class="col-sm-6 form-group">
                 <button data-bind="attr: { 'data-target': '#' + EditContainerId(),
-                                           'aria-controls': EditContainerId,
+                                           'aria-controls': EditContainerId(),
                                            id: CancelEditId },
                                    enable: SelectPackagesEnabled() && !PendingCreateOrEdit(),
                                    click: CancelEdit"
