@@ -30,6 +30,9 @@ namespace NuGetGallery
                         httpContext.Request.Headers[Constants.NuGetProtocolHeaderName]);
 
                     telemetry.Context.Properties.Add(TelemetryService.ClientInformation, httpContext.GetClientInformation());
+
+                    // Is the user authenticated or this is an anonymous request?
+                    telemetry.Context.Properties.Add(TelemetryService.IsAuthenticated, httpContext.Request.IsAuthenticated.ToString());
                 }
             }
         }
