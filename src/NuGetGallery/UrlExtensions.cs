@@ -1033,7 +1033,8 @@ namespace NuGetGallery
                 {
                     { "provider", providerName },
                     { "returnUrl", returnUrl }
-                });
+                }, 
+                interceptReturnUrl: false);
         }
 
         public static string RemoveCredential(this UrlHelper url, bool relativeUrl = true)
