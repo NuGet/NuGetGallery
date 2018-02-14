@@ -5,7 +5,6 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using NuGet;
 using NuGet.Versioning;
@@ -150,55 +149,59 @@ namespace NuGetGallery.FunctionalTests
         /// Creates a package with the specified Id and Version and uploads it and checks if the upload has succeeded.
         /// Throws if the upload fails or cannot be verified in the source.
         /// </summary>
-        public async Task UploadNewPackageAndVerify(string packageId, string version = "1.0.0", string minClientVersion = null, string title = null, string tags = null, string description = null, string licenseUrl = null, string dependencies = null)
+        public async Task UploadNewPackageAndVerify(string packageId, string version = "1.0.0", string minClientVersion = null, string title = null, string tags = null, string description = null, string licenseUrl = null, string dependencies = null, string apiKey = null)
         {
-            await UploadNewPackage(packageId, version, minClientVersion, title, tags, description, licenseUrl, dependencies);
+            await UploadNewPackage(packageId, version, minClientVersion, title, tags, description, licenseUrl, dependencies, apiKey);
 
             await VerifyPackageExistsInV2AndV3Async(packageId, version);
         }
 
         public async Task UploadNewPackage(string packageId, string version = "1.0.0", string minClientVersion = null,
             string title = null, string tags = null, string description = null, string licenseUrl = null,
-            string dependencies = null, string apiKey = null)
+            string dependencies = null, string apiKey = null, bool success = true)
         {
-            if (string.IsNullOrEmpty(packageId))
-            {
-                packageId = DateTime.Now.Ticks.ToString();
-            }
-
             WriteLine("Uploading new package '{0}', version '{1}'", packageId, version);
 
             var packageCreationHelper = new PackageCreationHelper(TestOutputHelper);
             var packageFullPath = await packageCreationHelper.CreatePackage(packageId, version, minClientVersion, title, tags, description, licenseUrl, dependencies);
 
-            await UploadExistingPackage(packageFullPath);
+            try
+            {
+                var commandlineHelper = new CommandlineHelper(TestOutputHelper);
+                var processResult = await commandlineHelper.UploadPackageAsync(packageFullPath, UrlHelper.V2FeedPushSourceUrl, apiKey);
 
-            // Delete package from local disk once it gets uploaded
-            CleanCreatedPackage(packageFullPath);
-        }
-
-        public async Task UploadExistingPackage(string packageFullPath, string apiKey = null)
-        {
-            var commandlineHelper = new CommandlineHelper(TestOutputHelper);
-            var processResult = await commandlineHelper.UploadPackageAsync(packageFullPath, UrlHelper.V2FeedPushSourceUrl, apiKey);
-
-            Assert.True(processResult.ExitCode == 0,
-                "The package upload via Nuget.exe did not succeed properly. Check the logs to see the process error and output stream.  Exit Code: " +
-                processResult.ExitCode + ". Error message: \"" + processResult.StandardError + "\"");
+                if (success)
+                {
+                    Assert.True(processResult.ExitCode == 0,
+                        "The package upload via Nuget.exe did not succeed properly. Check the logs to see the process error and output stream.  Exit Code: " +
+                        processResult.ExitCode + ". Error message: \"" + processResult.StandardError + "\"");
+                }
+                else
+                {
+                    Assert.False(processResult.ExitCode == 0,
+                        "The package upload via Nuget.exe succeeded but was expected to fail. Check the logs to see the process error and output stream.  Exit Code: " +
+                        processResult.ExitCode + ". Error message: \"" + processResult.StandardError + "\"");
+                }
+            }
+            finally
+            {
+                // Delete package from local disk once it gets uploaded
+                CleanCreatedPackage(packageFullPath);
+            }
         }
 
         /// <summary>
         /// Unlists a package with the specified Id and Version and checks if the unlist has succeeded.
         /// Throws if the unlist fails or cannot be verified in the source.
         /// </summary>
-        public async Task UnlistPackageAndVerify(string packageId, string version = "1.0.0")
+        public async Task UnlistPackageAndVerify(string packageId, string version = "1.0.0", string apiKey = null)
         {
-            await UnlistPackage(packageId, version);
+            await UnlistPackage(packageId, version, apiKey);
 
             await VerifyPackageExistsInV2AndV3Async(packageId, version);
         }
 
-        public async Task UnlistPackage(string packageId, string version = "1.0.0", string apiKey = null)
+        public async Task UnlistPackage(string packageId, string version = "1.0.0", string apiKey = null, bool success = true)
         {
             if (string.IsNullOrEmpty(packageId))
             {
@@ -210,9 +213,18 @@ namespace NuGetGallery.FunctionalTests
             var commandlineHelper = new CommandlineHelper(TestOutputHelper);
             var processResult = await commandlineHelper.DeletePackageAsync(packageId, version, UrlHelper.V2FeedPushSourceUrl, apiKey);
 
-            Assert.True(processResult.ExitCode == 0,
-                "The package unlist via Nuget.exe did not succeed properly. Check the logs to see the process error and output stream.  Exit Code: " +
-                processResult.ExitCode + ". Error message: \"" + processResult.StandardError + "\"");
+            if (success)
+            {
+                Assert.True(processResult.ExitCode == 0,
+                    "The package unlist via Nuget.exe did not succeed properly. Check the logs to see the process error and output stream.  Exit Code: " +
+                    processResult.ExitCode + ". Error message: \"" + processResult.StandardError + "\"");
+            }
+            else
+            {
+                Assert.False(processResult.ExitCode == 0,
+                    "The package unlist via Nuget.exe succeeded but was expected to fail. Check the logs to see the process error and output stream.  Exit Code: " +
+                    processResult.ExitCode + ". Error message: \"" + processResult.StandardError + "\"");
+            }
         }
 
         /// <summary>

@@ -144,10 +144,10 @@ namespace NuGetGallery.Infrastructure
             private readonly string _connectionString;
             private readonly AzureEntityList<ErrorEntity> _entityList;
 
-            public TableErrorLog(string connectionString)
+            public TableErrorLog(string connectionString, bool readAccessGeoRedundant)
             {
                 _connectionString = connectionString;
-                _entityList = new AzureEntityList<ErrorEntity>(connectionString, TableName);
+                _entityList = new AzureEntityList<ErrorEntity>(connectionString, TableName, readAccessGeoRedundant);
             }
 
             public override ErrorLogEntry GetError(string id)

@@ -52,5 +52,17 @@ namespace NuGetGallery
                 // logging failed, don't allow exception to escape
             }
         }
+
+        public void TrackMetric(string metricName, double value, IDictionary<string, string> properties = null)
+        {
+            try
+            {
+                UnderlyingClient.TrackMetric(metricName, value, properties);
+            }
+            catch
+            {
+                // logging failed, don't allow exception to escape
+            }
+        }
     }
 }

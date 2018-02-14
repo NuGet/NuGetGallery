@@ -132,7 +132,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [Authorize]
+        [UIAuthorize]
         [OutputCache(NoStore = true, Duration = 0, VaryByParam = "None")]
         public virtual JsonResult UploadPackageProgress()
         {
@@ -147,7 +147,7 @@ namespace NuGetGallery
             return Json(progress, JsonRequestBehavior.AllowGet);
         }
 
-        [Authorize]
+        [UIAuthorize]
         [RequiresAccountConfirmation("upload a package")]
         public async virtual Task<ActionResult> UploadPackage()
         {
@@ -201,7 +201,7 @@ namespace NuGetGallery
                         accountsAllowedOnBehalfOf = new[] { currentUser };
                     }
 
-                    var verifyRequest = new VerifyPackageRequest(packageMetadata, accountsAllowedOnBehalfOf);
+                    var verifyRequest = new VerifyPackageRequest(packageMetadata, accountsAllowedOnBehalfOf, existingPackageRegistration);
 
                     model.InProgressUpload = verifyRequest;
                 }
@@ -211,7 +211,7 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [Authorize]
+        [UIAuthorize]
         [ValidateAntiForgeryToken]
         [RequiresAccountConfirmation("upload a package")]
         public virtual async Task<JsonResult> UploadPackage(HttpPostedFileBase uploadFile)
@@ -238,6 +238,7 @@ namespace NuGetGallery
                 return Json(400, new[] { Strings.UploadFileMustBeNuGetPackage });
             }
 
+            PackageRegistration existingPackageRegistration;
             // If the current user cannot upload the package on behalf of any of the existing owners, show the current user as the only possible owner in the upload form.
             // If the current user doesn't have the rights to upload the package, the package upload will be rejected by submitting the form.
             // Related: https://github.com/NuGet/NuGetGallery/issues/5043
@@ -319,7 +320,7 @@ namespace NuGetGallery
                 }
 
                 var id = nuspec.GetId();
-                var existingPackageRegistration = _packageService.FindPackageRegistrationById(id);
+                existingPackageRegistration = _packageService.FindPackageRegistrationById(id);
                 // For a new package id verify if the user is allowed to use it.
                 if (existingPackageRegistration == null &&
                     ActionsRequiringPermissions.UploadNewPackageId.CheckPermissionsOnBehalfOfAnyAccount(
@@ -416,7 +417,7 @@ namespace NuGetGallery
                 }
             }
 
-            var model = new VerifyPackageRequest(packageMetadata, accountsAllowedOnBehalfOf);
+            var model = new VerifyPackageRequest(packageMetadata, accountsAllowedOnBehalfOf, existingPackageRegistration);
 
             return Json(model);
         }
@@ -638,7 +639,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [Authorize]
+        [UIAuthorize]
         [RequiresAccountConfirmation("contact support about your package")]
         public virtual async Task<ActionResult> ReportMyPackage(string id, string version)
         {
@@ -654,7 +655,10 @@ namespace NuGetGallery
                 return RedirectToAction(nameof(ReportAbuse), new { id, version });
             }
 
-            var allowDelete = await _packageDeleteService.CanPackageBeDeletedByUserAsync(package);
+            var allowDelete = await _packageDeleteService.CanPackageBeDeletedByUserAsync(
+                package,
+                reportPackageReason: null,
+                packageDeleteDecision: null);
 
             var model = new ReportMyPackageViewModel
             {
@@ -734,7 +738,7 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [Authorize]
+        [UIAuthorize]
         [RequiresAccountConfirmation("contact support about your package")]
         [ValidateAntiForgeryToken]
         [ValidateSpamPrevention]
@@ -775,6 +779,13 @@ namespace NuGetGallery
                 && reportForm.DeleteDecision == PackageDeleteDecision.DeletePackage)
             {
                 deleted = await DeletePackageOnBehalfOfUserAsync(package, user, reason, supportRequest);
+
+                _telemetryService.TrackUserPackageDeleteExecuted(
+                    package.Key,
+                    package.PackageRegistration.Id,
+                    package.NormalizedVersion,
+                    reportForm.Reason.Value,
+                    deleted);
             }
 
             if (!deleted)
@@ -800,14 +811,14 @@ namespace NuGetGallery
             reportForm.Message = HttpUtility.HtmlEncode(reportForm.Message);
 
             // Enforce the auto-delete rules.
-            var allowDelete = false;
-            if (reportForm.DeleteDecision != PackageDeleteDecision.ContactSupport)
+            var allowDelete = await _packageDeleteService.CanPackageBeDeletedByUserAsync(
+                package,
+                reportForm.Reason,
+                reportForm.DeleteDecision);
+            if (reportForm.DeleteDecision != PackageDeleteDecision.ContactSupport
+                && !allowDelete)
             {
-                allowDelete = await _packageDeleteService.CanPackageBeDeletedByUserAsync(package);
-                if (!allowDelete)
-                {
-                    reportForm.DeleteDecision = null;
-                }
+                reportForm.DeleteDecision = null;
             }
 
             // Require a delete decision if auto-delete is allowed and implied by the reason.
@@ -910,7 +921,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [Authorize]
+        [UIAuthorize]
         [RequiresAccountConfirmation("contact package owners")]
         public virtual ActionResult ContactOwners(string id, string version)
         {
@@ -935,7 +946,7 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [Authorize]
+        [UIAuthorize]
         [ValidateAntiForgeryToken]
         [RequiresAccountConfirmation("contact package owners")]
         public virtual ActionResult ContactOwners(string id, string version, ContactOwnersViewModel contactForm)
@@ -977,7 +988,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [Authorize]
+        [UIAuthorize]
         public virtual ActionResult ManagePackageOwners(string id)
         {
             var package = _packageService.FindPackageByIdAndVersion(id, string.Empty);
@@ -997,7 +1008,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [Authorize]
+        [UIAuthorize]
         [RequiresAccountConfirmation("delete a package")]
         public virtual ActionResult Delete(string id, string version)
         {
@@ -1025,7 +1036,7 @@ namespace NuGetGallery
             return View(model);
         }
 
-        [Authorize(Roles = "Admins")]
+        [UIAuthorize(Roles = "Admins")]
         [RequiresAccountConfirmation("reflow a package")]
         public virtual async Task<ActionResult> Reflow(string id, string version)
         {
@@ -1059,7 +1070,7 @@ namespace NuGetGallery
             return SafeRedirect(Url.Package(id, version));
         }
 
-        [Authorize(Roles = "Admins")]
+        [UIAuthorize(Roles = "Admins")]
         [RequiresAccountConfirmation("revalidate a package")]
         public virtual async Task<ActionResult> Revalidate(string id, string version)
         {
@@ -1086,7 +1097,7 @@ namespace NuGetGallery
             return SafeRedirect(Url.Package(id, version));
         }
 
-        [Authorize(Roles = "Admins")]
+        [UIAuthorize(Roles = "Admins")]
         [HttpPost]
         [RequiresAccountConfirmation("delete a package")]
         [ValidateAntiForgeryToken]
@@ -1141,7 +1152,7 @@ namespace NuGetGallery
             return Delete(firstPackage.PackageRegistration.Id, firstPackage.Version);
         }
 
-        [Authorize]
+        [UIAuthorize]
         [HttpPost]
         [RequiresAccountConfirmation("unlist a package")]
         [ValidateAntiForgeryToken]
@@ -1152,7 +1163,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [Authorize]
+        [UIAuthorize]
         [RequiresAccountConfirmation("edit a package")]
         public virtual async Task<ActionResult> Edit(string id, string version)
         {
@@ -1202,7 +1213,7 @@ namespace NuGetGallery
             return View(model);
         }
 
-        [Authorize]
+        [UIAuthorize]
         [HttpPost]
         [ValidateInput(false)] // Security note: Disabling ASP.Net input validation which does things like disallow angle brackets in submissions. See http://go.microsoft.com/fwlink/?LinkID=212874
         [ValidateAntiForgeryToken]
@@ -1251,7 +1262,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [Authorize]
+        [UIAuthorize]
         [RequiresAccountConfirmation("accept ownership of a package")]
         public virtual Task<ActionResult> ConfirmPendingOwnershipRequest(string id, string username, string token)
         {
@@ -1259,7 +1270,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [Authorize]
+        [UIAuthorize]
         [RequiresAccountConfirmation("reject ownership of a package")]
         public virtual Task<ActionResult> RejectPendingOwnershipRequest(string id, string username, string token)
         {
@@ -1319,7 +1330,7 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        [Authorize]
+        [UIAuthorize]
         [RequiresAccountConfirmation("cancel pending ownership request")]
         public virtual async Task<ActionResult> CancelPendingOwnershipRequest(string id, string requestingUsername, string pendingUsername)
         {
@@ -1492,7 +1503,7 @@ namespace NuGetGallery
             return Redirect(urlFactory(package, /*relativeUrl:*/ true));
         }
 
-        [Authorize]
+        [UIAuthorize]
         [HttpPost]
         [RequiresAccountConfirmation("upload a package")]
         [ValidateAntiForgeryToken]
@@ -1738,7 +1749,7 @@ namespace NuGetGallery
             return packageArchiveReader;
         }
 
-        [Authorize]
+        [UIAuthorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public virtual async Task<JsonResult> CancelUpload()
@@ -1749,7 +1760,7 @@ namespace NuGetGallery
             return Json(null);
         }
 
-        [Authorize]
+        [UIAuthorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public virtual async Task<JsonResult> PreviewReadMe(ReadMeRequest formData)
@@ -1770,7 +1781,7 @@ namespace NuGetGallery
             }
         }
 
-        [Authorize]
+        [UIAuthorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> SetLicenseReportVisibility(string id, string version, bool visible)

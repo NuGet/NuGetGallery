@@ -127,7 +127,7 @@ namespace NuGetGallery.Security
             var policies = minProtocolVersions.Split(',').Select(
                 v => RequireMinProtocolVersionForPushPolicy.CreatePolicy("Subscription", new NuGetVersion(v))
             ).ToArray();
-            var context = new UserSecurityPolicyEvaluationContext(httpContext.Object, policies);
+            var context = new UserSecurityPolicyEvaluationContext(policies, httpContext.Object);
 
             return new RequireMinProtocolVersionForPushPolicy().Evaluate(context);
         }

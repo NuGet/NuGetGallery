@@ -1,0 +1,60 @@
+﻿@model OrganizationAccountViewModel
+@using Newtonsoft.Json;
+@{
+    ViewBag.Title = "Manage Organization";
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
+
+    TempData["Parent"] = this;
+}
+
+<section role="main" class="container main-container page-account-settings">
+    <form id="AntiForgeryForm">
+        @Html.AntiForgeryToken()
+    </form>
+    <div class="row">
+        <div class="col-md-12">
+            <h1>
+                <a href="@Url.ManageMyOrganizations()">Organizations</a>
+                &gt;
+                @Model.AccountName
+            </h1>
+        </div>
+
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
+            @Html.Partial("_AccountConfirmationNotices", Model)
+
+            @Html.Partial("_AccountChangeEmail", Model)
+
+            @Html.Partial("_AccountChangeNotifications", Model)
+
+            @Html.Partial("_AccountProfilePicture", Model)
+
+            @Html.Partial("_OrganizationAccountManageMembers", Model)
+
+            @Html.Partial("_AccountCuratedFeeds", Model)
+        </div>
+    </div>
+</section>
+
+@section BottomScripts {
+    <script type="text/javascript">
+    var initialData = @Html.Raw(JsonConvert.SerializeObject(new
+        {
+            AccountName = Model.AccountName,
+            Members = Model.Members.Select(m => new
+            {
+                Username = m.Username,
+                EmailAddress = m.EmailAddress,
+                IsAdmin = m.IsAdmin,
+                IsCurrentUser = m.Username.Equals(CurrentUser.Username, StringComparison.OrdinalIgnoreCase),
+                GravatarUrl = m.GravatarUrl
+            }),
+            AddMemberUrl = Url.AddOrganizationMember(Model.AccountName),
+            UpdateMemberUrl = Url.UpdateOrganizationMember(Model.AccountName),
+            DeleteMemberUrl = Url.DeleteOrganizationMember(Model.AccountName),
+            ProfileUrlTemplate = Url.UserTemplate().LinkTemplate
+        }));
+    </script>
+    @ViewHelpers.SectionsScript(this);
+    @Scripts.Render("~/Scripts/gallery/page-manage-organization.min.js")
+}

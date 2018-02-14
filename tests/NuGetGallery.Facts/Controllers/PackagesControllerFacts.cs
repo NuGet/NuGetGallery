@@ -2926,9 +2926,29 @@ namespace NuGetGallery
                 Assert.Equal("I like the cut of your jib. It&#39;s &lt;b&gt;bold&lt;/b&gt;.", reportRequest.Message);
             }
 
+            [Fact]
+            public async Task ChecksDeleteAllowedWithNoReasonOnGetEndpoint()
+            {
+                // Arrange
+                SetupTest(TestUtility.FakeUser, TestUtility.FakeUser);
+
+                // Act
+                var result = await _controller.ReportMyPackage(
+                    _package.PackageRegistration.Id,
+                    _package.Version);
+
+                // Assert
+                _packageDeleteService.Verify(
+                    x => x.CanPackageBeDeletedByUserAsync(
+                        It.IsAny<Package>(),
+                        null,
+                        null),
+                    Times.Once);
+            }
+
             [Theory]
             [MemberData(nameof(Owner_Data))]
-            public async Task DoesNotCheckDeleteAllowedIfDeleteWasNotRequested(User currentUser, User owner)
+            public async Task ChecksDeleteAllowedEvenIfDeleteWasNotRequested(User currentUser, User owner)
             {
                 // Arrange
                 SetupTest(currentUser, owner);
@@ -2944,8 +2964,10 @@ namespace NuGetGallery
                 // Assert
                 _packageDeleteService.Verify(
                     x => x.CanPackageBeDeletedByUserAsync(
-                        It.IsAny<Package>()),
-                    Times.Never);
+                        It.IsAny<Package>(),
+                        _viewModel.Reason.Value,
+                        PackageDeleteDecision.ContactSupport),
+                    Times.Once);
                 _supportRequestService.Verify(
                     x => x.AddNewSupportRequestAsync(
                         string.Format(
@@ -2970,7 +2992,10 @@ namespace NuGetGallery
                 _viewModel.DeleteDecision = PackageDeleteDecision.DeletePackage;
                 _viewModel.DeleteConfirmation = true;
                 _packageDeleteService
-                    .Setup(x => x.CanPackageBeDeletedByUserAsync(It.IsAny<Package>()))
+                    .Setup(x => x.CanPackageBeDeletedByUserAsync(
+                        It.IsAny<Package>(),
+                        It.IsAny<ReportPackageReason?>(),
+                        It.IsAny<PackageDeleteDecision?>()))
                     .ReturnsAsync(true);
 
                 // Act
@@ -3032,7 +3057,10 @@ namespace NuGetGallery
                 _viewModel.DeleteConfirmation = true;
                 _viewModel.CopySender = true;
                 _packageDeleteService
-                    .Setup(x => x.CanPackageBeDeletedByUserAsync(It.IsAny<Package>()))
+                    .Setup(x => x.CanPackageBeDeletedByUserAsync(
+                        It.IsAny<Package>(),
+                        It.IsAny<ReportPackageReason?>(),
+                        It.IsAny<PackageDeleteDecision?>()))
                     .ReturnsAsync(true);
                 _packageDeleteService
                     .Setup(x => x.SoftDeletePackagesAsync(
@@ -3086,7 +3114,10 @@ namespace NuGetGallery
                 _viewModel.DeleteDecision = PackageDeleteDecision.ContactSupport;
                 _viewModel.Message = null;
                 _packageDeleteService
-                    .Setup(x => x.CanPackageBeDeletedByUserAsync(It.IsAny<Package>()))
+                    .Setup(x => x.CanPackageBeDeletedByUserAsync(
+                        It.IsAny<Package>(),
+                        It.IsAny<ReportPackageReason?>(),
+                        It.IsAny<PackageDeleteDecision?>()))
                     .ReturnsAsync(true);
 
                 // Act
@@ -3114,7 +3145,10 @@ namespace NuGetGallery
                 _viewModel.DeleteDecision = PackageDeleteDecision.DeletePackage;
                 _viewModel.DeleteConfirmation = false;
                 _packageDeleteService
-                    .Setup(x => x.CanPackageBeDeletedByUserAsync(It.IsAny<Package>()))
+                    .Setup(x => x.CanPackageBeDeletedByUserAsync(
+                        It.IsAny<Package>(),
+                        It.IsAny<ReportPackageReason?>(),
+                        It.IsAny<PackageDeleteDecision?>()))
                     .ReturnsAsync(true);
 
                 // Act
@@ -3168,7 +3202,10 @@ namespace NuGetGallery
                 _viewModel.DeleteDecision = null;
                 _viewModel.DeleteConfirmation = true;
                 _packageDeleteService
-                    .Setup(x => x.CanPackageBeDeletedByUserAsync(It.IsAny<Package>()))
+                    .Setup(x => x.CanPackageBeDeletedByUserAsync(
+                        It.IsAny<Package>(),
+                        It.IsAny<ReportPackageReason?>(),
+                        It.IsAny<PackageDeleteDecision?>()))
                     .ReturnsAsync(true);
 
                 // Act
@@ -3198,7 +3235,10 @@ namespace NuGetGallery
                 _viewModel.Reason = reason;
                 _viewModel.DeleteDecision = null;
                 _packageDeleteService
-                    .Setup(x => x.CanPackageBeDeletedByUserAsync(It.IsAny<Package>()))
+                    .Setup(x => x.CanPackageBeDeletedByUserAsync(
+                        It.IsAny<Package>(),
+                        It.IsAny<ReportPackageReason?>(),
+                        It.IsAny<PackageDeleteDecision?>()))
                     .ReturnsAsync(false);
 
                 // Act
@@ -3235,7 +3275,10 @@ namespace NuGetGallery
                 _viewModel.DeleteDecision = PackageDeleteDecision.DeletePackage;
                 _viewModel.DeleteConfirmation = true;
                 _packageDeleteService
-                    .Setup(x => x.CanPackageBeDeletedByUserAsync(It.IsAny<Package>()))
+                    .Setup(x => x.CanPackageBeDeletedByUserAsync(
+                        It.IsAny<Package>(),
+                        It.IsAny<ReportPackageReason?>(),
+                        It.IsAny<PackageDeleteDecision?>()))
                     .ReturnsAsync(false);
 
                 // Act

@@ -4,11 +4,12 @@
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using NuGetGallery.Filters;
 using NuGetGallery.OData;
 
 namespace NuGetGallery
 {
-    [Authorize]
+    [UIAuthorize]
     public partial class CuratedFeedsController : AppController
     {
         public ICuratedFeedService CuratedFeedService { get; protected set; }

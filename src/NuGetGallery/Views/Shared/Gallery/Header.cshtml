@@ -59,9 +59,11 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <a href="@Url.Home()"><img class="navbar-logo" width="94" height="29" alt="NuGet home"
-                                               src="~/Content/gallery/img/logo-header.svg"
-                                               @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/logo-header-94x29.png")) /></a>
+                    <a href="@Url.Home()">
+                        <img class="navbar-logo" width="94" height="29" alt="NuGet home"
+                             src="~/Content/gallery/img/logo-header.svg"
+                             @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/logo-header-94x29.png")) />
+                    </a>
                 </div>
                 <div id="navbar" class="navbar-collapse collapse" role="menubar">
                     <ul class="nav navbar-nav" role="menu">
@@ -153,6 +155,32 @@
             <div class="row">
                 <div class="@ViewHelpers.GetColumnClasses(ViewBag)" role="alert" aria-live="assertive">
                     @ViewHelpers.AlertInfo(@<text>@TempData["Message"]</text>)
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (TempData.ContainsKey("WarningMessage"))
+{
+    <div class="alert-transient @(ViewBag.HasJumbotron == true ? "alert-transient-jumbotron" : string.Empty)">
+        <div class="container">
+            <div class="row">
+                <div class="@ViewHelpers.GetColumnClasses(ViewBag)" role="alert" aria-live="assertive">
+                    @ViewHelpers.AlertWarning(@<text>@((string)TempData["WarningMessage"])</text>)
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (TempData.ContainsKey("ErrorMessage"))
+{
+    <div class="alert-transient @(ViewBag.HasJumbotron == true ? "alert-transient-jumbotron" : string.Empty)">
+        <div class="container">
+            <div class="row">
+                <div class="@ViewHelpers.GetColumnClasses(ViewBag)" role="alert" aria-live="assertive">
+                    @ViewHelpers.AlertDanger(@<text>@((string)TempData["ErrorMessage"])</text>)
                 </div>
             </div>
         </div>

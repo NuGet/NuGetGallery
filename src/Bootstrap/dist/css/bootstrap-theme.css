@@ -275,6 +275,71 @@ img.reserved-indicator-icon {
   line-height: 2em;
   color: #e3ebf1;
 }
+.modal-backdrop.in {
+  position: fixed;
+  height: 100%;
+  opacity: .8 !important;
+}
+.modal-container {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display:         flex;
+  overflow: hidden;
+
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
+          align-items: center;
+}
+.modal-container .modal-box {
+  padding: 0;
+  margin-left: 37.5%;
+  overflow: hidden;
+  background-color: white;
+  border-radius: 8px;
+}
+.modal-container .modal-box .modal-title {
+  padding: 15px;
+  color: white;
+  background-color: #4181b8;
+}
+.modal-container .modal-box .modal-title .title-text {
+  vertical-align: top;
+}
+.modal-container .modal-box .modal-title .dismiss-button {
+  float: right;
+  padding: 0;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+}
+.modal-container .modal-box .modal-body {
+  padding: 15px;
+}
+.modal-container .modal-box .modal-body .tag-node {
+  padding: 13px;
+  margin: -15px;
+  text-align: left;
+  background-color: #fff4ce;
+}
+.modal-container .modal-box .modal-body .error-message {
+  margin-right: -15px;
+  margin-left: -15px;
+}
+.modal-container .modal-box .modal-body .signin-node {
+  padding: 15% 15%;
+  margin-top: 16px;
+  text-align: center;
+}
+.modal-container .modal-box .modal-body .signin-node .provider-button {
+  font-size: 16px;
+  line-height: 2em;
+}
+.modal-container .modal-box .modal-body .transform-node {
+  margin-bottom: 10px;
+  text-align: center;
+}
 #edit-metadata-form-container .loading:after {
   display: inline-block;
   /* ascii code for the ellipsis character */
@@ -756,6 +821,10 @@ img.reserved-indicator-icon {
   margin-bottom: 20px;
   font-size: 1.25em;
 }
+.page-forgot-password .deprecate-alert {
+  padding: 0;
+  margin-top: -15px;
+}
 .page-forgot-password .forgot-form {
   margin-top: 20px;
 }
@@ -1007,6 +1076,10 @@ img.reserved-indicator-icon {
 }
 .page-reset-password .reset-form {
   margin-top: 80px;
+}
+.page-sign-in .deprecate-alert {
+  padding: 0;
+  margin-top: -15px;
 }
 .page-sign-in .provider-button {
   font-size: 16px;

@@ -18,6 +18,8 @@ namespace NuGetGallery
         public const int ColumnsWideAuthenticationSm = 8;
         public const int ColumnsWideAuthenticationMd = 6;
         public const int ColumnsFormMd = 10;
+        public const int ColumnsModalSm = 3;
+        public const int ColumnsModalMd = 3;
 
         public const int VisibleVersions = 5;
 
@@ -82,6 +84,7 @@ namespace NuGetGallery
             public static readonly string TermsOfUse = "Terms-Of-Use";
             public static readonly string PrivacyPolicy = "Privacy-Policy";
             public static readonly string Team = "Team";
+            public static readonly string LoginDiscontinuationConfiguration = "Login-Discontinuation-Configuration";
         }
 
         public static class StatisticsDimensions

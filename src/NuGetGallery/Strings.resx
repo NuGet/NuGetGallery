@@ -205,7 +205,7 @@
     <value>Unknown authentication provider: '{0}'</value>
   </data>
   <data name="ExternalAccountLinkExpired" xml:space="preserve">
-    <value>Your external account credential expired or you did not allow us access to your account. Try logging in again.</value>
+    <value>Your account credential expired or you did not allow us access to your account. Try logging in again.</value>
   </data>
   <data name="MicrosoftAccount_AccountNoun" xml:space="preserve">
     <value>Microsoft account</value>
@@ -245,6 +245,8 @@ Click the following link within the next hour to reset your password:
 
 [{0}]({0})
 
+Note that NuGet.org password login is being deprecated. Please use Microsoft account to sign into {1}.
+
 Thanks,
 The {1} Team</value>
   </data>
@@ -258,6 +260,8 @@ If you didn't request a password, you can safely ignore this message. A password
 Click the following link within the next hour to set your password:
 
 [{0}]({0})
+
+Note that NuGet.org password login is being deprecated. Please use Microsoft account to sign into {1}.
 
 Thanks,
 The {1} Team</value>
@@ -287,13 +291,13 @@ The {1} Team</value>
     <value>The '{0}' authentication provider is disabled and cannot be used to authenticate
 </value>
   </data>
-  <data name="EmailPreferencesUpdated" xml:space="preserve">
-    <value>Your email preferences have been updated</value>
+  <data name="UserEmailPreferencesUpdated" xml:space="preserve">
+    <value>Your email preferences have been updated.</value>
   </data>
-  <data name="EmailUpdated" xml:space="preserve">
+  <data name="UserEmailUpdated" xml:space="preserve">
     <value>Your new email address was saved!</value>
   </data>
-  <data name="EmailUpdated_ConfirmationRequired" xml:space="preserve">
+  <data name="UserEmailUpdatedWithConfirmationRequired" xml:space="preserve">
     <value>Your email address has been changed! We sent a confirmation email to verify your new email. When you confirm the new email address, it will take effect and we will forget the old one.</value>
   </data>
   <data name="UploadPackage_MinClientVersionOutOfRange" xml:space="preserve">
@@ -302,7 +306,7 @@ The {1} Team</value>
   <data name="DefaultUserSafeExceptionMessage" xml:space="preserve">
     <value>An unexpected error occurred. Contact support for assistance.</value>
   </data>
-  <data name="CancelEmailAddress" xml:space="preserve">
+  <data name="UserEmailUpdateCancelled" xml:space="preserve">
     <value>You canceled your email address change request.</value>
   </data>
   <data name="UploadPackage_InvalidPackage" xml:space="preserve">
@@ -741,5 +745,75 @@ For more information, please contact '{2}'.</value>
   </data>
   <data name="TransformAccount_AdminMustBeDifferentAccount" xml:space="preserve">
     <value>Administrator account '{0}' cannot be the same account as the one being transformed.</value>
+  </data>
+  <data name="AccountIsLinkedToAnotherExternalAccount" xml:space="preserve">
+    <value>The account with the email {0} is linked to another Microsoft account.
+If you wish to update the linked Microsoft account you can do so from the account settings page.</value>
+  </data>
+  <data name="ChangeCredential_Failed" xml:space="preserve">
+    <value>Failed to update the Microsoft account with '{0}'. This could happen if it is already linked to another NuGet account. Contact support for more information.</value>
+  </data>
+  <data name="ChangeCredential_NotAllowed" xml:space="preserve">
+    <value>The change of Azure active directory account is not allowed.</value>
+  </data>
+  <data name="ChangeCredential_Success" xml:space="preserve">
+    <value>Successfully linked the Microsoft account ({0}).</value>
+  </data>
+  <data name="PasswordLoginDeprecated" xml:space="preserve">
+    <value>The password login has been deprecated. You must use Microsoft account to sign in. </value>
+  </data>
+  <data name="ChangeCredential_ProviderNotFound" xml:space="preserve">
+    <value>No valid external provider found for authentication</value>
+  </data>
+  <data name="OrganizationEmailConfirmed" xml:space="preserve">
+    <value>You have successfully confirmed the organization email address.</value>
+  </data>
+  <data name="OrganizationEmailPreferencesUpdated" xml:space="preserve">
+    <value>The organization email preferences have been updated.</value>
+  </data>
+  <data name="OrganizationEmailUpdateCancelled" xml:space="preserve">
+    <value>You canceled your organization email address change request.</value>
+  </data>
+  <data name="OrganizationEmailUpdated" xml:space="preserve">
+    <value>The new organization email address was saved!</value>
+  </data>
+  <data name="OrganizationEmailUpdatedWithConfirmationRequired" xml:space="preserve">
+    <value>The organization email address has been changed! We sent a confirmation email to verify the new email. When the new email address is confirmed, it will take effect and we will forget the old one.</value>
+  </data>
+  <data name="UserEmailConfirmed" xml:space="preserve">
+    <value>You have successfully confirmed your email address!</value>
+  </data>
+  <data name="DeleteMember_CannotDeleteLastAdmin" xml:space="preserve">
+    <value>Organization member '{0}' is the last admin and cannot be deleted.</value>
+  </data>
+  <data name="UpdateOrDeleteMember_CannotRemoveLastAdmin" xml:space="preserve">
+    <value>Organization member '{0}' is the last admin and cannot be changed.</value>
+  </data>
+  <data name="UpdateOrDeleteMember_MemberNotFound" xml:space="preserve">
+    <value>Organization member '{0}' was not found.</value>
+  </data>
+  <data name="DeleteMember_Success" xml:space="preserve">
+    <value>Organization member was deleted.</value>
+  </data>
+  <data name="OrganizationMemberNameIsRequired" xml:space="preserve">
+    <value>Member name is required.</value>
+  </data>
+  <data name="AddMember_AlreadyAMember" xml:space="preserve">
+    <value>User '{0}' is already a member of this organization.</value>
+  </data>
+  <data name="AddMember_UserNotFound" xml:space="preserve">
+    <value>User '{0}' does not exist. </value>
+  </data>
+  <data name="AddMember_UserNotConfirmed" xml:space="preserve">
+    <value>User '{0}' has not confirmed their email.</value>
+  </data>
+  <data name="ChangeCredential_SuccessDifferentEmail" xml:space="preserve">
+    <value>Successfully linked the Microsoft account ({0}). Note that the email address associated with the new linked Microsoft account is different than the NuGet.org account email ({1}).</value>
+  </data>
+  <data name="AddMember_UserDoesNotMeetOrganizationPolicy" xml:space="preserve">
+    <value>User '{0}' has not linked their account to an AAD credential matching this organization.</value>
+  </data>
+  <data name="TransformAccount_AdminAccountDoesNotHaveTenant" xml:space="preserve">
+    <value>Administrator account '{0}' is not linked to an AAD credential with an organization tenant.</value>
   </data>
 </root>

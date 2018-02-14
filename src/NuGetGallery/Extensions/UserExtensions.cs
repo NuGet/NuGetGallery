@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-
 using System;
 using System.Linq;
 using System.Security.Claims;
@@ -18,6 +17,14 @@ namespace NuGetGallery
         public static bool IsAdministrator(this User self)
         {
             return self.IsInRole(Constants.AdminRoleName);
+        }
+
+        /// <summary>
+        /// Get the user's <see cref="Credential"/> with a type of <see cref="CredentialTypes.Password"/>.
+        /// </summary>
+        public static Credential GetPasswordCredential(this User user)
+        {
+            return user.Credentials.SingleOrDefault(c => c.IsPassword());
         }
 
         /// <summary>
@@ -60,6 +67,11 @@ namespace NuGetGallery
         public static bool MatchesUser(this User self, User user)
         {
             return self?.Key == user?.Key;
+        }
+
+        public static bool HasCredential(this User user, Credential credential)
+        {
+            return user.Credentials.Any(cred => cred.Matches(credential));
         }
 
         /// <summary>

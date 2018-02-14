@@ -11,7 +11,6 @@ namespace NuGetGallery.Helpers
 {
     public class RouteUrlTemplate<T>
     {
-        private string _linkTemplate;
         private IDictionary<string, Func<T, object>> _routesGenerator;
 
         public RouteUrlTemplate(Func<RouteValueDictionary, string> linkGenerator, IDictionary<string, Func<T, object>> routesGenerator)
@@ -20,12 +19,14 @@ namespace NuGetGallery.Helpers
 
             var _linkGenerator = linkGenerator ?? throw new ArgumentNullException(nameof(linkGenerator));
             var encodedLinkTemplate = linkGenerator(GetTemplateValues());
-            _linkTemplate = HttpUtility.UrlDecode(encodedLinkTemplate);
+            LinkTemplate = HttpUtility.UrlDecode(encodedLinkTemplate);
         }
+
+        public string LinkTemplate { get; }
 
         public string Resolve(T item)
         {
-            var link = _linkTemplate;
+            var link = LinkTemplate;
             foreach (var routeValue in GetRouteValues(item))
             {
                 var value = routeValue.Value as string ?? string.Empty;

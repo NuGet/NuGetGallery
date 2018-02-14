@@ -1,0 +1,34 @@
+﻿@{
+    ViewBag.Title = "TransformOrLinkPage";
+    ViewBag.SmPageColumns = Constants.ColumnsModalSm;
+    ViewBag.MdPageColumns = Constants.ColumnsModalMd;
+}
+
+<div class="@ViewHelpers.GetColumnClasses(ViewBag) modal-box">
+    <div class="modal-title">
+        <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
+        <span class="title-text">Sign-in using NuGet.org is discontinued</span>
+        <button type="button" class="dismiss-button" data-dismiss="modal" aria-label="Close">
+            <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div class="tag-node">
+            <span>Sign in using your Microsoft corporate account</span>
+        </div>
+        <div class="row signin-node">
+            <a role="button" 
+               class="btn btn-default btn-block provider-button" 
+               href="@Url.AuthenticateExternal("/")">
+                <img height="24" width="24" alt="" aria-hidden="true"
+                     src="@Href("~/Content/gallery/img/microsoft-account.svg")"
+                     @(!string.IsNullOrEmpty("~/Content/gallery/img/microsoft-account-24x24.png") ? (IHtmlString)ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/microsoft-account-24x24.png")) : new HtmlString(string.Empty)) />
+                <span>Sign in with Microsoft</span>
+            </a>
+        </div>
+        <p>If this is not an individual account and is based on a team or group email address</p>
+        <div class="transform-node">
+            <a href="@Url.TransformAccount()">Transform this account to an organization on NuGet.org</a>
+        </div>
+    </div>
+</div>

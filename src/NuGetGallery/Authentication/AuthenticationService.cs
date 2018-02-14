@@ -29,6 +29,7 @@ namespace NuGetGallery.Authentication
         private readonly ICredentialBuilder _credentialBuilder;
         private readonly ICredentialValidator _credentialValidator;
         private readonly IDateTimeProvider _dateTimeProvider;
+        private readonly IContentObjectService _contentObjectService;
         private readonly ITelemetryService _telemetryService;
 
         /// <summary>
@@ -44,7 +45,8 @@ namespace NuGetGallery.Authentication
         public AuthenticationService(
             IEntitiesContext entities, IAppConfiguration config, IDiagnosticsService diagnostics,
             IAuditingService auditing, IEnumerable<Authenticator> providers, ICredentialBuilder credentialBuilder,
-            ICredentialValidator credentialValidator, IDateTimeProvider dateTimeProvider, ITelemetryService telemetryService)
+            ICredentialValidator credentialValidator, IDateTimeProvider dateTimeProvider, ITelemetryService telemetryService,
+            IContentObjectService contentObjectService)
         {
             InitCredentialFormatters();
 
@@ -57,6 +59,7 @@ namespace NuGetGallery.Authentication
             _credentialValidator = credentialValidator ?? throw new ArgumentNullException(nameof(credentialValidator));
             _dateTimeProvider = dateTimeProvider ?? throw new ArgumentNullException(nameof(dateTimeProvider));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
+            _contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
         }
 
         public IEntitiesContext Entities { get; private set; }
@@ -128,7 +131,7 @@ namespace NuGetGallery.Authentication
 
                 var passwordCredentials = user
                     .Credentials
-                    .Where(c => CredentialTypes.IsPassword(c.Type))
+                    .Where(c => c.IsPassword())
                     .ToList();
 
                 if (passwordCredentials.Count > 1 ||
@@ -160,7 +163,7 @@ namespace NuGetGallery.Authentication
 
         private async Task<AuthenticatedUser> AuthenticateInternal(Func<Credential, Credential> matchCredential, Credential credential)
         {
-            if (credential.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase))
+            if (credential.IsPassword())
             {
                 // Password credentials cannot be used this way.
                 throw new ArgumentException(Strings.PasswordCredentialsCannotBeUsedHere, nameof(credential));
@@ -201,7 +204,7 @@ namespace NuGetGallery.Authentication
                     return null;
                 }
 
-                if (CredentialTypes.IsApiKey(matched.Type) &&
+                if (matched.IsApiKey() &&
                     !matched.IsScopedApiKey() &&
                     !matched.HasBeenUsedInLastDays(_config.ExpirationInDaysForApiKeyV1))
                 {
@@ -233,7 +236,7 @@ namespace NuGetGallery.Authentication
         public virtual async Task CreateSessionAsync(IOwinContext owinContext, AuthenticatedUser user)
         {
             // Create a claims identity for the session
-            ClaimsIdentity identity = CreateIdentity(user.User, AuthenticationTypes.LocalUser);
+            ClaimsIdentity identity = CreateIdentity(user.User, AuthenticationTypes.LocalUser, await GetDiscontinuedLoginClaims(user));
 
             // Issue the session token and clean up the external token if present
             owinContext.Authentication.SignIn(identity);
@@ -242,6 +245,15 @@ namespace NuGetGallery.Authentication
             // Write an audit record
             await Auditing.SaveAuditRecordAsync(
                 new UserAuditRecord(user.User, AuditedUserAction.Login, user.CredentialUsed));
+        }
+
+        private async Task<Claim[]> GetDiscontinuedLoginClaims(AuthenticatedUser user)
+        {
+            await _contentObjectService.Refresh();
+
+            return _contentObjectService.LoginDiscontinuationConfiguration.IsLoginDiscontinued(user) ?
+                new[] { new Claim(NuGetClaims.DiscontinuedLogin, NuGetClaims.DiscontinuedLoginValue) } :
+                new Claim[0];
         }
 
         public virtual async Task<AuthenticatedUser> Register(string username, string emailAddress, Credential credential)
@@ -302,7 +314,35 @@ namespace NuGetGallery.Authentication
             {
                 throw new InvalidOperationException(Strings.UserNotFound);
             }
+
             return ReplaceCredential(user, credential);
+        }
+
+        public virtual async Task<bool> TryReplaceCredential(User user, Credential credential)
+        {
+            if (user == null || credential == null)
+            {
+                return false;
+            }
+
+            // Check user credentials for existing cred for optimization to avoid expensive DB query
+            if (!user.HasCredential(credential) && FindMatchingCredential(credential) != null)
+            {
+                // Existing credential for a registered account
+                return false;
+            }
+
+            try
+            {
+                await ReplaceCredential(user, credential);
+                return true;
+            }
+            catch (InvalidOperationException)
+            {
+                // ReplaceCredential could throw InvalidOperationException if the user is an Organization.
+                // We shouldn't get into this situation ideally. Just being thorough.
+                return false;
+            }
         }
 
         public virtual async Task ReplaceCredential(User user, Credential credential)
@@ -496,9 +536,7 @@ namespace NuGetGallery.Authentication
                 Expires = credential.Expires,
                 Kind = kind,
                 AuthUI = authenticator?.GetUI(),
-                // Set the description as the value for legacy API keys
                 Description = credential.Description,
-                Value = kind == CredentialKind.Token && credential.Description == null ? credential.Value : null,
                 Scopes = credential.Scopes.Select(s => new ScopeViewModel(
                         s.Owner?.Username ?? credential.User.Username,
                         s.Subject,
@@ -622,14 +660,30 @@ namespace NuGetGallery.Authentication
                 throw new InvalidOperationException(Strings.OrganizationsCannotCreateCredentials);
             }
 
-            // Find the credentials we're replacing, if any
+            string replaceCredPrefix = null;
+            if (credential.IsPassword())
+            {
+                replaceCredPrefix = CredentialTypes.Password.Prefix;
+            }
+            else if (credential.IsExternal())
+            {
+                replaceCredPrefix = CredentialTypes.External.Prefix;
+            }
+
+            Func<Credential, bool> replacingPredicate;
+            if (!string.IsNullOrEmpty(replaceCredPrefix))
+            {
+                 replacingPredicate = cred => cred.Type.StartsWith(replaceCredPrefix, StringComparison.OrdinalIgnoreCase);
+            }
+            else
+            {
+                replacingPredicate = cred => cred.Type.Equals(credential.Type, StringComparison.OrdinalIgnoreCase);
+            }
+
             var toRemove = user.Credentials
-                .Where(cred =>
-                    // If we're replacing a password credential, remove ALL password credentials
-                    (credential.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase) &&
-                     cred.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase)) ||
-                    cred.Type == credential.Type)
+                .Where(replacingPredicate) 
                 .ToList();
+
             foreach (var cred in toRemove)
             {
                 user.Credentials.Remove(cred);

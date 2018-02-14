@@ -8,6 +8,12 @@ namespace NuGetGallery
 {
     public interface IUserService
     {
+        Task<Membership> AddMemberAsync(Organization organization, string memberName, bool isAdmin);
+
+        Task<Membership> UpdateMemberAsync(Organization organization, string memberName, bool isAdmin);
+
+        Task DeleteMemberAsync(Organization organization, string memberName);
+
         Task ChangeEmailSubscriptionAsync(User user, bool emailAllowed, bool notifyPackagePushed);
 
         User FindByEmailAddress(string emailAddress);

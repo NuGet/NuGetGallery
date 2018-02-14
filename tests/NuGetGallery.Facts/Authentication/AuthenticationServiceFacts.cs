@@ -578,7 +578,7 @@ namespace NuGetGallery.Authentication
             public async Task GivenMatchingCredential_ItWritesCredentialLastUsed()
             {
                 // Arrange
-                var cred = _fakes.User.Credentials.Single(c => c.Type.Contains(CredentialTypes.ExternalPrefix));
+                var cred = _fakes.User.Credentials.Single(c => c.Type.Contains(CredentialTypes.External.Prefix));
 
                 var referenceTime = DateTime.UtcNow;
                 _dateTimeProviderMock.SetupGet(x => x.UtcNow).Returns(referenceTime);
@@ -598,38 +598,45 @@ namespace NuGetGallery.Authentication
 
         public class TheCreateSessionAsyncMethod : TestContainer
         {
-            [Fact]
-            public async Task GivenAUser_ItCreatesAnOwinAuthenticationTicketForTheUser()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task GivenAUser_ItCreatesAnOwinAuthenticationTicketForTheUser(bool isDiscontinuedLogin)
             {
                 // Arrange
-                var service = Get<AuthenticationService>();
-                var fakes = Get<Fakes>();
+                var credential = new Credential("type", "value");
+                var user = new User("testUser") { Credentials = new[] { credential } };
                 var context = Fakes.CreateOwinContext();
 
-                var passwordCred = fakes.Admin.Credentials.SingleOrDefault(
-                    c => string.Equals(c.Type, CredentialTypes.Password.Pbkdf2, StringComparison.OrdinalIgnoreCase));
+                var authUser = new AuthenticatedUser(user, credential);
 
-                var authUser = new AuthenticatedUser(fakes.Admin, passwordCred);
+                var passwordConfigMock = new Mock<ILoginDiscontinuationConfiguration>();
+                passwordConfigMock
+                    .Setup(x => x.IsLoginDiscontinued(authUser))
+                    .Returns(isDiscontinuedLogin);
+
+                GetMock<IContentObjectService>()
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
+                    .Returns(passwordConfigMock.Object);
 
                 // Act
-                await service.CreateSessionAsync(context, authUser);
+                await Get<AuthenticationService>().CreateSessionAsync(context, authUser);
 
                 // Assert
                 var principal = context.Authentication.AuthenticationResponseGrant.Principal;
                 var id = principal.Identity;
                 Assert.NotNull(principal);
                 Assert.NotNull(id);
-                Assert.Equal(fakes.Admin.Username, id.Name);
-                Assert.Equal(fakes.Admin.Username, principal.GetClaimOrDefault(ClaimTypes.NameIdentifier));
+                Assert.Equal(user.Username, id.Name);
+                Assert.Equal(user.Username, principal.GetClaimOrDefault(ClaimTypes.NameIdentifier));
+                Assert.Equal(isDiscontinuedLogin, string.Equals(NuGetClaims.DiscontinuedLoginValue, principal.GetClaimOrDefault(NuGetClaims.DiscontinuedLogin)));
                 Assert.Equal(AuthenticationTypes.LocalUser, id.AuthenticationType);
-                Assert.True(principal.IsInRole(Constants.AdminRoleName));
             }
 
             [Fact]
             public async Task WritesAnAuditRecord()
             {
-                // Arrange
-                var service = Get<AuthenticationService>();
+                // Arrange                
                 var fakes = Get<Fakes>();
                 var context = Fakes.CreateOwinContext();
 
@@ -637,6 +644,17 @@ namespace NuGetGallery.Authentication
                     c => string.Equals(c.Type, CredentialTypes.Password.Pbkdf2, StringComparison.OrdinalIgnoreCase));
 
                 var authenticatedUser = new AuthenticatedUser(fakes.Admin, credential);
+
+                var passwordConfigMock = new Mock<ILoginDiscontinuationConfiguration>();
+                passwordConfigMock
+                    .Setup(x => x.IsLoginDiscontinued(authenticatedUser))
+                    .Returns(false);
+
+                GetMock<IContentObjectService>()
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
+                    .Returns(passwordConfigMock.Object);
+
+                var service = Get<AuthenticationService>();
 
                 // Act
                 await service.CreateSessionAsync(context, authenticatedUser);
@@ -814,6 +832,98 @@ namespace NuGetGallery.Authentication
             }
         }
 
+        public class TheTryReplaceCredentialMethod : TestContainer
+        {
+            [Fact]
+            public async Task ReturnsFalseForInvalidUser()
+            {
+                // Arrange
+                var service = Get<AuthenticationService>();
+
+                // Act
+                var result = await service.TryReplaceCredential(user: null, credential: new Credential());
+
+                // Assert
+                Assert.False(result);
+            }
+
+            [Fact]
+            public async Task ReturnsFalseForInvalidCredential()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var user = fakes.CreateUser("foo");
+                var service = Get<AuthenticationService>();
+
+                // Act
+                var result = await service.TryReplaceCredential(user, credential: null);
+
+                // Assert
+                Assert.False(result);
+            }
+
+            [Fact]
+            public async Task ReturnsFalseForExistingMatchingCredential()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var credentialBuilder = new CredentialBuilder();
+                var cred1 = credentialBuilder.CreateExternalCredential("MicrosoftAccount", "value1", "name1 <email1>", "TEST_TENANT1");
+                var user = fakes.CreateUser("foo");
+                var service = Get<AuthenticationService>();
+                service.Entities.Users.Add(user);
+                service.Entities.Credentials.Add(cred1);
+
+                // Act
+                var result = await service.TryReplaceCredential(user, cred1);
+
+                // Assert
+                Assert.False(result);
+            }
+
+            [Fact]
+            public async Task ReturnsTrueForReplacingSelfExistingMatchingCredential()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var credentialBuilder = new CredentialBuilder();
+                var cred1 = credentialBuilder.CreateExternalCredential("MicrosoftAccount", "value1", "name1 <email1>", "TEST_TENANT1");
+                var user = fakes.CreateUser("foo", cred1);
+                var service = Get<AuthenticationService>();
+                service.Entities.Users.Add(user);
+                service.Entities.Credentials.Add(cred1);
+
+                // Act
+                var result = await service.TryReplaceCredential(user, cred1);
+
+                // Assert
+                Assert.True(result);
+            }
+
+            [Fact]
+            public async Task ReturnsTrueForSuccessfulReplacingExistingCredential()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var credentialBuilder = new CredentialBuilder();
+                var cred1 = credentialBuilder.CreateExternalCredential("MicrosoftAccount", "value1", "name1 <email1>", "TEST_TENANT1");
+                var cred2 = credentialBuilder.CreateExternalCredential("MicrosoftAccount", "value2", "name1 <email2>", "TEST_TENANT1");
+                var user = fakes.CreateUser("foo", cred1);
+                var service = Get<AuthenticationService>();
+                service.Entities.Users.Add(user);
+                service.Entities.Credentials.Add(cred1);
+
+                // Act
+                var result = await service.TryReplaceCredential(user, cred2);
+
+                // Assert
+                Assert.True(result);
+                Assert.Equal(new[] { cred2 }, user.Credentials.ToArray());
+                Assert.DoesNotContain(cred1, service.Entities.Credentials);
+                service.Entities.VerifyCommitChanges();
+            }
+        }
+
         public class TheReplaceCredentialMethod : TestContainer
         {
             [Fact]
@@ -880,6 +990,30 @@ namespace NuGetGallery.Authentication
                 // Assert
                 Assert.Equal(new[] { frozenCred, newCred }, user.Credentials.ToArray());
                 Assert.DoesNotContain(existingCred, service.Entities.Credentials);
+                service.Entities.VerifyCommitChanges();
+            }
+
+            [Fact]
+            public async Task ReplacesAllExternalCredentialsForUser()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var credentialBuilder = new CredentialBuilder();
+                var passwordCred = new Credential("password.v3", "password123");
+                var cred1 = credentialBuilder.CreateExternalCredential("MicrosoftAccount", "value1", "name1 <email1>", "TEST_TENANT1");
+                var cred2 = credentialBuilder.CreateExternalCredential("AzureAccount", "value2", "name2 <email2>", "TEST_TENANT2");
+                var newCred = credentialBuilder.CreateExternalCredential("MicrosoftAccount", "value3", "name1 <email2>", "TEST_TENANT2");
+                var user = fakes.CreateUser("foo", cred1, cred2, passwordCred);
+                var service = Get<AuthenticationService>();
+                service.Entities.Users.Add(user);
+
+                // Act
+                await service.ReplaceCredential(user, newCred);
+
+                // Assert
+                Assert.Equal(new[] { passwordCred, newCred }, user.Credentials.ToArray());
+                Assert.DoesNotContain(cred1, service.Entities.Credentials);
+                Assert.DoesNotContain(cred2, service.Entities.Credentials);
                 service.Entities.VerifyCommitChanges();
             }
 
@@ -1426,7 +1560,6 @@ namespace NuGetGallery.Authentication
                 Assert.Equal(cred.Expires, description.Expires);
                 Assert.Equal(CredentialKind.Token, description.Kind);
                 Assert.Null(description.AuthUI);
-                Assert.Equal(cred.Value, description.Value);
                 Assert.Equal(Strings.NonScopedApiKeyDescription, description.Description);
                 Assert.Equal(expectedHasExpired, description.HasExpired);
             }

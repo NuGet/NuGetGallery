@@ -54,7 +54,7 @@ namespace NuGetGallery.Telemetry
             // Assert
             if (telemetry is RequestTelemetry)
             {
-                Assert.Equal(4, telemetry.Context.Properties.Count);
+                Assert.Equal(5, telemetry.Context.Properties.Count);
             }
             else
             {
@@ -122,10 +122,27 @@ namespace NuGetGallery.Telemetry
             Assert.NotEmpty(telemetry.Properties[TelemetryService.ClientInformation]);
         }
 
-        private TestableClientInformationTelemetryEnricher CreateTestEnricher(NameValueCollection headers)
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void EnrichesTelemetryWithIsAuthenticated(bool isAuthenticated)
+        {
+            // Arrange
+            var telemetry = new RequestTelemetry();
+            var enricher = CreateTestEnricher(new NameValueCollection(), isAuthenticated);
+
+            // Act
+            enricher.Initialize(telemetry);
+
+            // Assert
+            Assert.Equal(isAuthenticated, bool.Parse(telemetry.Properties[TelemetryService.IsAuthenticated]));
+        }
+
+        private TestableClientInformationTelemetryEnricher CreateTestEnricher(NameValueCollection headers, bool isAuthenticated = false)
         {
             var httpRequest = new Mock<HttpRequestBase>(MockBehavior.Strict);
             httpRequest.SetupGet(r => r.Headers).Returns(headers);
+            httpRequest.SetupGet(r => r.IsAuthenticated).Returns(isAuthenticated);
 
             var httpContext = new Mock<HttpContextBase>(MockBehavior.Strict);
             httpContext.SetupGet(c => c.Request).Returns(httpRequest.Object);

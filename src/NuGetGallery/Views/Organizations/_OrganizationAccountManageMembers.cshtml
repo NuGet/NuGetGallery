@@ -1,0 +1,76 @@
+﻿@model OrganizationAccountViewModel
+@{
+    var parent = (WebViewPage)TempData["Parent"];
+}
+
+@ViewHelpers.Section(parent, "manage-members",
+    @<text>Members</text>,
+    @<text>
+        <div data-bind="text: MembersLabel"></div>
+    </text>,
+    @<text>
+        <div data-bind="template: 'error-container'"></div>
+        <div class="row members-list">
+            <div data-bind="template: { name: 'manage-members' }"></div>
+        </div>
+    </text>, expanded: false)
+
+<script type="text/html" id="error-container">
+    <!-- ko if: Error -->
+    @ViewHelpers.AlertDanger(@<text><span data-bind="html: Error"></span></text>)
+    <!-- /ko -->
+</script>
+
+<script type="text/html" id="manage-members">
+    <div class="col-md-12">
+        <div class="panel-collapse collapse in" aria-expanded="true">
+            <div class="input-group col-md-12">
+                <div class="col-md-6">
+                    <input class="form-control" placeholder="Add existing NuGet.org user" data-bind="textInput: NewMemberUsername, submit: AddMember" aria-label="Enter username to add member" />
+                </div>
+                <div class="col-md-6">
+                    <select class="form-control col-md-2" data-bind="value: AddMemberRole, options: RoleNames" aria-label="Select new member role">
+                    </select>
+                </div>
+                <span class="input-group-btn">
+                    <button class="btn" type="submit" title="Add new member" name="Add new member" aria-label="Add" data-bind="click: AddMember">
+                        <span class="ms-Icon ms-Icon--AddFriend" aria-hidden="true"></span>
+                    </button>
+                </span>
+            </div><br />
+            <table class="table">
+                <tbody data-bind="foreach: Members">
+                    <tr class="manage-members-listing">
+                        <td class="align-middle hidden-xs col-xs-1">
+                            <img data-bind="attr: { src: GravatarUrl, title: Username }" class="owner-image" alt="gravatar"
+                                 height="@Constants.GravatarElementSize" width="@Constants.GravatarElementSize">
+                        </td>
+                        <td class="align-middle member-username">
+                            <a title="View Member Profile" data-bind="attr: { href: ProfileUrl }">
+                                <span data-bind="text: Username"></span>
+                            </a>
+                            <!-- ko if: IsCurrentUser -->
+                            <i>(that's you)</i>
+                            <!-- /ko -->
+                            <div data-bind="text: EmailAddress"></div>
+                        </td>
+                        <td class="align-middle member-username">
+                            <select class="form-control" aria-label="Change member role"
+                                    data-bind="disable: IsCurrentUser, value: SelectedRole, options: OrganizationViewModel.RoleNames, event: { change: ToggleIsAdmin }">
+                            </select>
+                        </td>
+                        <td class="text-right align-middle member-controls">
+                            <!-- ko if: !IsCurrentUser -->
+                            <span>
+                                <a class="btn" data-bind="click: DeleteMember, attr: { 'aria-label': 'Delete Member' }">
+                                    <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
+                                </a>
+                            </span>
+                            <!-- /ko -->
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</script>

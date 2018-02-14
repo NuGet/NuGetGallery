@@ -12,7 +12,7 @@ namespace NuGetGallery
     {
         public VerifyPackageRequest() { }
 
-        public VerifyPackageRequest(PackageMetadata packageMetadata, IEnumerable<User> possibleOwners)
+        public VerifyPackageRequest(PackageMetadata packageMetadata, IEnumerable<User> possibleOwners, PackageRegistration existingPackageRegistration)
         {
             Id = packageMetadata.Id;
             Version = packageMetadata.Version.ToFullStringSafe();
@@ -39,12 +39,16 @@ namespace NuGetGallery
             Summary = packageMetadata.Summary;
             Tags = PackageHelper.ParseTags(packageMetadata.Tags);
             Title = packageMetadata.Title;
+            IsNewId = existingPackageRegistration == null;
+            if (!IsNewId)
+            {
+                ExistingOwners = string.Join(", ", ParseUserList(existingPackageRegistration.Owners));
+            }
 
             // Editable server-state
             Listed = true;
             Edit = new EditPackageVersionReadMeRequest();
-
-            PossibleOwners = possibleOwners.Select(u => u.Username).ToList();
+            PossibleOwners = ParseUserList(possibleOwners);
         }
 
         public string Id { get; set; }
@@ -60,9 +64,21 @@ namespace NuGetGallery
         public string OriginalVersion { get; set; }
 
         /// <summary>
+        /// This is a new ID.
+        /// There are no existing packages with this ID.
+        /// </summary>
+        public bool IsNewId { get; set; }
+
+        /// <summary>
         /// The username of the <see cref="User"/> to upload the package as.
         /// </summary>
         public string Owner { get; set; }
+
+        /// <summary>
+        /// The <see cref="User"/>s that own the existing package registration that this package will be added to in a string.
+        /// E.g. "alice, bob, chad".
+        /// </summary>
+        public string ExistingOwners { get; set; }
 
         /// <summary>
         /// The usernames of the <see cref="User"/>s that the current user can upload the package as.
@@ -94,5 +110,10 @@ namespace NuGetGallery
         public string Summary { get; set; }
         public string Tags { get; set; }
         public string Title { get; set; }
+
+        private static IReadOnlyCollection<string> ParseUserList(IEnumerable<User> users)
+        {
+            return users.Select(u => u.Username).ToList();
+        }
     }
 }

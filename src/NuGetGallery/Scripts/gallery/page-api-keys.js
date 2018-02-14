@@ -105,7 +105,7 @@
                     this.PackageOwner(this.PackageOwners[0]);
                 }
             };
-            this.Key = ko.observable();
+            this.Key = ko.observable(0);
             this.Type = ko.observable();
             this.Value = ko.observable();
             this.Description = ko.observable();
@@ -155,14 +155,19 @@
             this.JustRegenerated = ko.observable(false);
 
             // Computed properties
-            function ComputedId(prefix, suffix) {
+            function ComputedId(prefix, suffix, defaultId ) {
                 return ko.pureComputed(function () {
                     var id = self.Key();
-                    if (prefix) {
-                        id = prefix + "-" + id;
+                    if (id === 0 && defaultId) {
+                        id = defaultId;
                     }
-                    if (suffix) {
-                        id = id + "-" + suffix;
+                    else {
+                        if (prefix) {
+                            id = prefix + "-" + id;
+                        }
+                        if (suffix) {
+                            id = id + "-" + suffix;
+                        }
                     }
                     return id;
                 }, self);
@@ -181,7 +186,7 @@
             }, this);
             this.FormId = ComputedId("form");
             this.RemainingPackagesId = ComputedId("remaining-packages");
-            this.EditContainerId = ComputedId("edit", "container");
+            this.EditContainerId = ComputedId("edit", "container", "create-container");
             this.StartEditId = ComputedId("start-edit");
             this.CancelEditId = ComputedId("cancel-edit");
             this.CopyId = ComputedId("copy");

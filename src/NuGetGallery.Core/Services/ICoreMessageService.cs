@@ -8,5 +8,6 @@ namespace NuGetGallery.Services
         void SendPackageAddedNotice(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl);
         void SendPackageValidationFailedNotice(Package package, string packageUrl, string packageSupportUrl);
         void SendSignedPackageNotAllowedNotice(Package package, string packageUrl, string announcementsUrl, string twitterUrl);
+        void SendValidationTakingTooLongNotice(Package package, string packageUrl);
     }
 }

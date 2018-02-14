@@ -89,7 +89,7 @@ namespace NuGetGallery
             MockTelemetryService = new Mock<ITelemetryService>();
             TelemetryService = MockTelemetryService.Object;
 
-            MockSecurityPolicyService.Setup(s => s.EvaluateAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>()))
+            MockSecurityPolicyService.Setup(s => s.EvaluateUserPoliciesAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>()))
                 .Returns(Task.FromResult(SecurityPolicyResult.SuccessResult));
             
             MockReservedNamespaceService
@@ -174,7 +174,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var controller = new TestableApiController(GetConfigurationService());
-                controller.MockSecurityPolicyService.Setup(s => s.EvaluateAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>()))
+                controller.MockSecurityPolicyService.Setup(s => s.EvaluateUserPoliciesAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>()))
                     .Returns(Task.FromResult(SecurityPolicyResult.CreateErrorResult("A")));
 
                 // Act
@@ -1377,7 +1377,7 @@ namespace NuGetGallery
                 // Arrange
                 var errorResult = "A";
                 var controller = SetupController(credentialType, null, package: null);
-                controller.MockSecurityPolicyService.Setup(s => s.EvaluateAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>()))
+                controller.MockSecurityPolicyService.Setup(s => s.EvaluateUserPoliciesAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>()))
                     .Returns(Task.FromResult(SecurityPolicyResult.CreateErrorResult(errorResult)));
 
                 // Act
@@ -1639,6 +1639,25 @@ namespace NuGetGallery
                 JArray result = JArray.Parse(contentResult.Content);
 
                 Assert.True(result.Count == 3, "unexpected content");
+            }
+        }
+
+        public class TheGetNuGetExeAction
+            : TestContainer
+        {
+            [Fact]
+            public void RedirectsToDist()
+            {
+                // Arrange
+                var controller = new TestableApiController(GetConfigurationService());
+
+                // Act
+                var result = controller.GetNuGetExe();
+
+                // Assert
+                var redirect = Assert.IsType<RedirectResult>(result);
+                Assert.False(redirect.Permanent, "The redirect should not be permanent");
+                Assert.Equal("https://dist.nuget.org/win-x86-commandline/v2.8.6/nuget.exe", redirect.Url);
             }
         }
     }
