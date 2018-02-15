@@ -13,6 +13,8 @@ namespace NuGetGallery
 
         public const string NuGetPackageFileExtension = ".nupkg";
 
+        public const string Sha512HashAlgorithmId = "SHA512";
+
         public const string PackageContentType = "binary/octet-stream";
         public const string OctetStreamContentType = "application/octet-stream";
         public const string TextContentType = "text/plain";
