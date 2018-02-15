@@ -3,8 +3,10 @@
 
 using System;
 using System.Security.Claims;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using Microsoft.IdentityModel.Protocols;
+using Microsoft.Owin.Security.Notifications;
 using Microsoft.Owin.Security.OpenIdConnect;
 using NuGetGallery.Configuration;
 using Owin;
@@ -33,6 +35,9 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
         public static readonly string V2CommonTenant = "common";
         public static readonly string Authority = "https://login.microsoftonline.com/{0}/v2.0";
 
+        private string redirectUrl;
+        private static readonly string ACCESS_DENIED = "access_denied";
+
         protected override void AttachToOwinApp(IGalleryConfigurationService config, IAppBuilder app)
         {
             // Fetch site root from configuration
@@ -52,13 +57,17 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
                 Scope = OpenIdConnectScopes.OpenIdProfile + " email",
                 ResponseType = OpenIdConnectResponseTypes.CodeIdToken,
                 TokenValidationParameters = new System.IdentityModel.Tokens.TokenValidationParameters() { ValidateIssuer = false },
+                Notifications = new OpenIdConnectAuthenticationNotifications
+                {
+                    AuthenticationFailed = AuthenticationFailed
+                }
             };
 
             Config.ApplyToOwinSecurityOptions(options);
 
             app.UseOpenIdConnectAuthentication(options);
         }
-        
+
         public override AuthenticatorUI GetUI()
         {
             return new AuthenticatorUI(
@@ -73,6 +82,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
 
         public override ActionResult Challenge(string redirectUrl)
         {
+            this.redirectUrl = redirectUrl;
             return new ChallengeResult(BaseConfig.AuthenticationType, redirectUrl);
         }
 
@@ -135,6 +145,20 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
             }
 
             return new IdentityInformation(identifier, nameClaim?.Value, emailClaim.Value, authenticationType, tenantId);
+        }
+
+        // The OpenIdConnect.<AuthenticateCoreAsync> throws OpenIdConnectProtocolException upon denial of access permissions by the user, 
+        // this could result in an internal server error, catch this exception and continue to the controller where appropriate
+        // error handling is done.
+        private Task AuthenticationFailed(AuthenticationFailedNotification<OpenIdConnectMessage, OpenIdConnectAuthenticationOptions> notification)
+        {
+            if (notification.Exception.Message == ACCESS_DENIED)
+            {
+                notification.HandleResponse();
+                notification.Response.Redirect(redirectUrl);
+            }
+
+            return Task.FromResult(0);
         }
     }
 }
