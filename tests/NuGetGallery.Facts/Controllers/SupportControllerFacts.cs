@@ -30,7 +30,10 @@ namespace NuGetGallery.Controllers
                     EmailAddress = "admin1.coldmail.com",
                     Key = 111,
                     EmailAllowed = true,
-                    Roles = new List<Role>() { new Role() { Name = Constants.AdminRoleName } }
+                    Roles = new List<Role>()
+                    {
+                        new Role() { Name = CoreConstants.AdminRoleName }
+                    }
                 };
 
                 var users = new List<User>(){

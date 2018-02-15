@@ -14,11 +14,6 @@ namespace NuGetGallery
     /// </summary>
     public static class UserExtensions
     {
-        public static bool IsAdministrator(this User self)
-        {
-            return self.IsInRole(Constants.AdminRoleName);
-        }
-
         /// <summary>
         /// Get the user's <see cref="Credential"/> with a type of <see cref="CredentialTypes.Password"/>.
         /// </summary>
