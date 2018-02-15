@@ -35,7 +35,6 @@ namespace NuGetGallery
 
         public IApiScopeEvaluator ApiScopeEvaluator { get; set; }
         public IEntitiesContext EntitiesContext { get; set; }
-        public INuGetExeDownloaderService NugetExeDownloaderService { get; set; }
         public IPackageFileService PackageFileService { get; set; }
         public IPackageService PackageService { get; set; }
         public IUserService UserService { get; set; }
@@ -66,7 +65,6 @@ namespace NuGetGallery
             IPackageService packageService,
             IPackageFileService packageFileService,
             IUserService userService,
-            INuGetExeDownloaderService nugetExeDownloaderService,
             IContentService contentService,
             IIndexingService indexingService,
             ISearchService searchService,
@@ -87,7 +85,6 @@ namespace NuGetGallery
             PackageService = packageService;
             PackageFileService = packageFileService;
             UserService = userService;
-            NugetExeDownloaderService = nugetExeDownloaderService;
             ContentService = contentService;
             IndexingService = indexingService;
             SearchService = searchService;
@@ -111,7 +108,6 @@ namespace NuGetGallery
             IPackageService packageService,
             IPackageFileService packageFileService,
             IUserService userService,
-            INuGetExeDownloaderService nugetExeDownloaderService,
             IContentService contentService,
             IIndexingService indexingService,
             ISearchService searchService,
@@ -127,7 +123,7 @@ namespace NuGetGallery
             ISecurityPolicyService securityPolicies,
             IReservedNamespaceService reservedNamespaceService,
             IPackageUploadService packageUploadService)
-            : this(apiScopeEvaluator, entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService,
+            : this(apiScopeEvaluator, entitiesContext, packageService, packageFileService, userService, contentService,
                   indexingService, searchService, autoCuratePackage, statusService, messageService, auditingService,
                   configurationService, telemetryService, authenticationService, credentialBuilder, securityPolicies,
                   reservedNamespaceService, packageUploadService)

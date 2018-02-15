@@ -85,7 +85,6 @@ namespace NuGetGallery
             var dependents = new[]
             {
                 Create<ContentService, IContentService>(configuration.AzureStorage_Content_ConnectionString, isSingleInstance: true),
-                Create<NuGetExeDownloaderService, INuGetExeDownloaderService>(configuration.AzureStorage_NuGetExe_ConnectionString, isSingleInstance: false),
                 Create<PackageFileService, IPackageFileService>(configuration.AzureStorage_Packages_ConnectionString, isSingleInstance: false),
                 Create<UploadFileService, IUploadFileService>(configuration.AzureStorage_Uploads_ConnectionString, isSingleInstance: false),
             };

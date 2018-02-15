@@ -37,7 +37,6 @@ namespace NuGetGallery
         public Mock<IPackageService> MockPackageService { get; private set; }
         public Mock<IPackageFileService> MockPackageFileService { get; private set; }
         public Mock<IUserService> MockUserService { get; private set; }
-        public Mock<INuGetExeDownloaderService> MockNuGetExeDownloaderService { get; private set; }
         public Mock<IContentService> MockContentService { get; private set; }
         public Mock<IStatisticsService> MockStatisticsService { get; private set; }
         public Mock<IIndexingService> MockIndexingService { get; private set; }
@@ -60,7 +59,6 @@ namespace NuGetGallery
             EntitiesContext = (MockEntitiesContext = new Mock<IEntitiesContext>()).Object;
             PackageService = (MockPackageService = new Mock<IPackageService>(behavior)).Object;
             UserService = (MockUserService = new Mock<IUserService>(behavior)).Object;
-            NugetExeDownloaderService = (MockNuGetExeDownloaderService = new Mock<INuGetExeDownloaderService>(MockBehavior.Strict)).Object;
             ContentService = (MockContentService = new Mock<IContentService>()).Object;
             StatisticsService = (MockStatisticsService = new Mock<IStatisticsService>()).Object;
             IndexingService = (MockIndexingService = new Mock<IIndexingService>()).Object;
