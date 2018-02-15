@@ -72,7 +72,7 @@ namespace NuGetGallery.Services
 
                 if (states.Contains(ReturnsSatisfiedRequirementWhenExpected_State.IsSiteAdmin))
                 {
-                    user.Roles.Add(new Role { Name = Constants.AdminRoleName });
+                    user.Roles.Add(new Role { Name = CoreConstants.AdminRoleName });
                     expectedPermissionLevel |= PermissionsRequirement.SiteAdmin;
                 }
 

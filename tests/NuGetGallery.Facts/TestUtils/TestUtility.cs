@@ -1,10 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
-using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
-using System.Net.Mail;
 using System.Reflection;
 using System.Text;
 using System.Web;
@@ -28,7 +27,16 @@ namespace NuGetGallery
 
         public static readonly string FakeAdminName = "theAdmin";
         public static readonly int FakeAdminKey = _key++;
-        public static readonly User FakeAdminUser = new User() { Username = FakeAdminName, Key = FakeAdminKey, EmailAddress = "theAdmin@nuget.org", Roles = new[] { new Role { Name = Constants.AdminRoleName } } };
+        public static readonly User FakeAdminUser = new User()
+        {
+            Username = FakeAdminName,
+            Key = FakeAdminKey,
+            EmailAddress = "theAdmin@nuget.org",
+            Roles = new[]
+            {
+                new Role { Name = CoreConstants.AdminRoleName }
+            }
+        };
 
         public static readonly string FakeOrganizationName = "theOrganization";
         public static readonly int FakeOrganizationKey = _key++;

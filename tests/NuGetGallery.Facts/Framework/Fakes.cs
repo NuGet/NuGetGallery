@@ -104,8 +104,14 @@ namespace NuGetGallery.Framework
             {
                 Key = key++,
                 EmailAddress = "confirmed3@example.com",
-                Credentials = new List<Credential> { TestCredentialHelper.CreatePbkdf2Password(Password) },
-                Roles = new List<Role> {new Role {Name = Constants.AdminRoleName}}
+                Credentials = new List<Credential>
+                {
+                    TestCredentialHelper.CreatePbkdf2Password(Password)
+                },
+                Roles = new List<Role>
+                {
+                    new Role {Name = CoreConstants.AdminRoleName}
+                }
             };
 
             Owner = new User("testPackageOwner")
