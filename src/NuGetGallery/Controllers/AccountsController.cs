@@ -84,17 +84,13 @@ namespace NuGetGallery
             {
                 return new HttpStatusCodeResult(HttpStatusCode.Forbidden, Strings.Unauthorized);
             }
-
-            var confirmationUrl =  (account is Organization)
-                ? Url.ConfirmOrganizationEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false)
-                : Url.ConfirmEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false);
-
+            
             var alreadyConfirmed = account.UnconfirmedEmailAddress == null;
 
             ConfirmationViewModel model;
             if (!alreadyConfirmed)
             {
-                MessageService.SendNewAccountEmail(new MailAddress(account.UnconfirmedEmailAddress, account.Username), confirmationUrl);
+                SendNewAccountEmail(account);
 
                 model = new ConfirmationViewModel(account)
                 {
@@ -107,6 +103,8 @@ namespace NuGetGallery
             }
             return View(model);
         }
+
+        protected abstract void SendNewAccountEmail(User account);
 
         [UIAuthorize(allowDiscontinuedLogins: true)]
         public virtual async Task<ActionResult> Confirm(string accountName, string token)
@@ -238,10 +236,7 @@ namespace NuGetGallery
 
             if (account.Confirmed)
             {
-                var confirmationUrl = (account is Organization)
-                    ? Url.ConfirmOrganizationEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false)
-                    : Url.ConfirmEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false);
-                MessageService.SendEmailChangeConfirmationNotice(new MailAddress(account.UnconfirmedEmailAddress, account.Username), confirmationUrl);
+                SendEmailChangedConfirmationNotice(account);
 
                 TempData["Message"] = Messages.EmailUpdatedWithConfirmationRequired;
             }
@@ -252,6 +247,8 @@ namespace NuGetGallery
 
             return RedirectToAction(AccountAction);
         }
+
+        protected abstract void SendEmailChangedConfirmationNotice(User account);
 
         [HttpPost]
         [UIAuthorize]

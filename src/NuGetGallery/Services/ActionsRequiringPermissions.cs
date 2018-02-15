@@ -96,8 +96,7 @@ namespace NuGetGallery
                 accountPermissionsRequirement: RequireOwnerOrOrganizationAdmin);
 
         /// <summary>
-        /// The action of managing a user or organization account. This includes confirming an account,
-        /// changing the email address, changing email subscriptions, modifying sign-in credentials, etc.
+        /// The action of viewing (read-only) a user or organization account.
         /// </summary>
         public static ActionRequiringAccountPermissions ViewAccount =
             new ActionRequiringAccountPermissions(
