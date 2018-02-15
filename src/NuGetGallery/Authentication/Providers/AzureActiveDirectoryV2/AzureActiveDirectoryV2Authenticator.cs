@@ -35,7 +35,6 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
         public static readonly string V2CommonTenant = "common";
         public static readonly string Authority = "https://login.microsoftonline.com/{0}/v2.0";
 
-        private string redirectUrl;
         private static readonly string ACCESS_DENIED = "access_denied";
 
         protected override void AttachToOwinApp(IGalleryConfigurationService config, IAppBuilder app)
@@ -82,7 +81,6 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
 
         public override ActionResult Challenge(string redirectUrl)
         {
-            this.redirectUrl = redirectUrl;
             return new ChallengeResult(BaseConfig.AuthenticationType, redirectUrl);
         }
 
@@ -154,8 +152,20 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
         {
             if (notification.Exception.Message == ACCESS_DENIED)
             {
+                // For every 'Challenge' sent to the external providers, we store the 'State'
+                // with the redirect uri where we intend to return after successful authentication.
+                // Extract this "RedirectUri" property from this "State" object for redirecting on failed authentication as well.
+                var authenticationPropertiesEncodedString = notification
+                    .ProtocolMessage
+                    .State
+                    .Split('=');
+                var authenticationProperties = notification
+                    .Options
+                    .StateDataFormat
+                    .Unprotect(authenticationPropertiesEncodedString[1]);
+
                 notification.HandleResponse();
-                notification.Response.Redirect(redirectUrl);
+                notification.Response.Redirect(authenticationProperties.RedirectUri);
             }
 
             return Task.FromResult(0);
