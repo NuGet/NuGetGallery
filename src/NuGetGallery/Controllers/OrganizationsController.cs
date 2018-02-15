@@ -3,6 +3,7 @@
 
 using System.Linq;
 using System.Net;
+using System.Net.Mail;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGetGallery.Authentication;
@@ -32,6 +33,19 @@ namespace NuGetGallery
             EmailUpdated = Strings.OrganizationEmailUpdated,
             EmailUpdatedWithConfirmationRequired = Strings.OrganizationEmailUpdatedWithConfirmationRequired
         };
+
+        protected override void SendNewAccountEmail(User account)
+        {
+            var confirmationUrl = Url.ConfirmOrganizationEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false);
+
+            MessageService.SendNewAccountEmail(new MailAddress(account.UnconfirmedEmailAddress, account.Username), confirmationUrl);
+        }
+
+        protected override void SendEmailChangedConfirmationNotice(User account)
+        {
+            var confirmationUrl = Url.ConfirmOrganizationEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false);
+            MessageService.SendEmailChangeConfirmationNotice(new MailAddress(account.UnconfirmedEmailAddress, account.Username), confirmationUrl);
+        }
 
         [HttpGet]
         [UIAuthorize]

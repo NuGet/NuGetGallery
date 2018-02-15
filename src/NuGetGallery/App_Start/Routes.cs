@@ -272,7 +272,7 @@ namespace NuGetGallery
 
             routes.MapRoute(
                 RouteName.ConfirmAccount,
-                "account/confirm/{username}/{token}",
+                "account/confirm/{accountName}/{token}",
                 new { controller = "Users", action = "Confirm" },
                 new RouteExtensions.ObfuscatedMetadata(2, Obfuscator.DefaultTelemetryUserName));
             

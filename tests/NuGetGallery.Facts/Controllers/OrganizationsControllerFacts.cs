@@ -28,7 +28,7 @@ namespace NuGetGallery
             // Note general account tests are in the base class. Organization-specific tests are below.
 
             [Fact]
-            public void WhenCurrentUserIsCollaborator_ReturnsForbidden()
+            public void WhenCurrentUserIsCollaborator_ReturnsReadOnly()
             {
                 // Arrange
                 var controller = GetController();
@@ -36,11 +36,11 @@ namespace NuGetGallery
                 controller.SetCurrentUser(Fakes.OrganizationCollaborator);
 
                 // Act
-                var result = InvokeAccount(controller) as HttpStatusCodeResult;
+                var result = InvokeAccount(controller);
 
                 // Assert
-                Assert.NotNull(result);
-                Assert.Equal((int)HttpStatusCode.Forbidden, result.StatusCode);
+                var model = ResultAssert.IsView<OrganizationAccountViewModel>(result, "ManageOrganization");
+                Assert.False(model.CanManage);
             }
 
             [Fact]

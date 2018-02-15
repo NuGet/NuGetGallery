@@ -77,6 +77,9 @@
                     success: function () {
                         parent.Error(null);
                         parent.Members.remove(self);
+                        if (self.IsCurrentUser) {
+                            document.location.href = "/";
+                        }
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
                         var error = "Unknown error when trying to delete member '" + self.Username + "'.";
@@ -93,7 +96,7 @@
                 var data = {
                     accountName: self.OrganizationViewModel.AccountName,
                     memberName: self.Username,
-                    isAdmin: self.IsAdmin()
+                    isAdmin: self.IsAdmin(),
                 };
                 addAntiForgeryToken(data);
 
@@ -103,9 +106,12 @@
                     type: 'POST',
                     dataType: 'json',
                     data: data,
-                    success: function () {
+                    success: function (data) {
                         parent.Error(null);
                         parent.UpdateMemberCounts();
+                        if (self.IsCurrentUser) {
+                            window.location.reload();
+                        }
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
                         var error = "Unknown error when trying to update member '" + self.Username + "'.";
@@ -113,6 +119,7 @@
                             error = jqXHR.responseJSON;
                         }
                         parent.Error(error);
+                        self.IsAdmin(!self.IsAdmin())
                     }
                 });
             };
