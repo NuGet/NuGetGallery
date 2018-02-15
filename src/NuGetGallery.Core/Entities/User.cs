@@ -20,7 +20,7 @@ namespace NuGetGallery
     {
         #region per-request query cache
 
-        private Nullable<bool> _isAdmin;
+        private bool? _isAdmin;
 
         [NotMapped]
         public bool IsAdministrator
