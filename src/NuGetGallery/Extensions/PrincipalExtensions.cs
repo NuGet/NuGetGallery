@@ -78,7 +78,7 @@ namespace NuGetGallery
                 return false;
             }
 
-            return self.Identity.IsAuthenticated && self.IsInRole(Constants.AdminRoleName);
+            return self.Identity.IsAuthenticated && self.IsInRole(CoreConstants.AdminRoleName);
         }
 
         /// <summary>

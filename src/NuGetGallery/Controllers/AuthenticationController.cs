@@ -166,7 +166,7 @@ namespace NuGetGallery
             if (linkingAccount)
             {
                 // Verify account has no other external accounts
-                if (authenticatedUser.User.Credentials.Any(c => c.IsExternal()) && !authenticatedUser.User.IsAdministrator())
+                if (authenticatedUser.User.Credentials.Any(c => c.IsExternal()) && !authenticatedUser.User.IsAdministrator)
                 {
                     var message = string.Format(
                            CultureInfo.CurrentCulture,
@@ -208,7 +208,7 @@ namespace NuGetGallery
         {
             if (!string.IsNullOrEmpty(enforcedProviders)
                 && authenticatedUser.CredentialUsed.Type != null
-                && authenticatedUser.User.IsInRole(Constants.AdminRoleName))
+                && authenticatedUser.User.IsAdministrator)
             {
                 // Seems we *need* a specific authentication provider. Check if we logged in using one...
                 var providers = enforcedProviders.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
@@ -482,7 +482,7 @@ namespace NuGetGallery
                     {
                         existingUserLinkingError = AssociateExternalAccountViewModel.ExistingUserLinkingErrorType.AccountIsOrganization;
                     }
-                    else if (existingUser.Credentials.Any(c => c.IsExternal()) && !existingUser.IsAdministrator())
+                    else if (existingUser.Credentials.Any(c => c.IsExternal()) && !existingUser.IsAdministrator)
                     {
                         existingUserLinkingError = AssociateExternalAccountViewModel.ExistingUserLinkingErrorType.AccountIsAlreadyLinked;
                     }

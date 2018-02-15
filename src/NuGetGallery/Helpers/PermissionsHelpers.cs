@@ -89,7 +89,7 @@ namespace NuGetGallery
 
             return IsRequirementSatisfied(
                 permissionsRequirement,
-                currentUser.IsAdministrator(),
+                currentUser.IsAdministrator,
                 u => currentUser.MatchesUser(u),
                 entityOwners);
         }
