@@ -134,7 +134,7 @@ namespace NuGetGallery
             }
 
             // block removal of last admin
-            if (membership.IsAdmin && organization.Members.Count(m => m.IsAdmin) == 1)
+            if (membership.IsAdmin && organization.Administrators.Count() == 1)
             {
                 throw new EntityException(string.Format(CultureInfo.CurrentCulture,
                     Strings.UpdateOrDeleteMember_CannotRemoveLastAdmin, memberName));
