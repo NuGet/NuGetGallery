@@ -155,7 +155,7 @@
             return requestsCount.toLocaleString() + " request" + (requestsCount === 1 ? '' : 's');
         }
 
-        function OwnerRequestsItemViewModel(ownerRequestsListViewModel, ownerRequestItem) {
+        function OwnerRequestsItemViewModel(ownerRequestsListViewModel, ownerRequestItem, showReceived, showSent) {
             var self = this;
 
             this.OwnerRequestsListViewModel = ownerRequestsListViewModel;
@@ -172,20 +172,24 @@
             this.ConfirmUrl = ownerRequestItem.ConfirmUrl;
             this.RejectUrl = ownerRequestItem.RejectUrl;
             this.CancelUrl = ownerRequestItem.CancelUrl;
+            this.ShowReceived = showReceived;
+            this.ShowSent = showSent;
 
             this.Visible = ko.observable(true);
 
             this.UpdateVisibility = function (ownerFilter) {
                 var visible = ownerFilter === "All packages";
                 if (!visible) {
-                    if (ownerFilter === self.Requesting.Username || ownerFilter === self.New.Username) {
+                    if (self.ShowReceived && ownerFilter === self.New.Username) {
                         visible = true;
                     }
 
-                    for (var i in self.Owners) {
-                        if (ownerFilter === self.Owners[i].Username) {
-                            visible = true;
-                            break;
+                    if (self.ShowSent) {
+                        for (var i in self.Owners) {
+                            if (ownerFilter === self.Owners[i].Username) {
+                                visible = true;
+                                break;
+                            }
                         }
                     }
                 }
@@ -197,12 +201,12 @@
             }, this);
         }
 
-        function OwnerRequestsListViewModel(managePackagesViewModel, requests) {
+        function OwnerRequestsListViewModel(managePackagesViewModel, requests, showReceived, showSent) {
             var self = this;
 
             this.ManagePackagesViewModel = managePackagesViewModel;
             this.Requests = $.map(requests, function (data) {
-                return new OwnerRequestsItemViewModel(self, data);
+                return new OwnerRequestsItemViewModel(self, data, showReceived, showSent);
             });
             this.VisibleRequestsCount = ko.observable();
             this.VisibleRequestsHeading = ko.pureComputed(function () {
@@ -237,8 +241,8 @@
             this.ListedPackages = new PackagesListViewModel(this, "published", initialData.ListedPackages);
             this.UnlistedPackages = new PackagesListViewModel(this, "unlisted", initialData.UnlistedPackages);
             this.ReservedNamespaces = new ReservedNamespaceListViewModel(this, initialData.ReservedNamespaces);
-            this.RequestsReceived = new OwnerRequestsListViewModel(this, initialData.RequestsReceived);
-            this.RequestsSent = new OwnerRequestsListViewModel(this, initialData.RequestsSent);
+            this.RequestsReceived = new OwnerRequestsListViewModel(this, initialData.RequestsReceived, true, false);
+            this.RequestsSent = new OwnerRequestsListViewModel(this, initialData.RequestsSent, false, true);
         }
 
         // Immediately load initial expander data
