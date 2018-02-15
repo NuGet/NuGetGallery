@@ -354,11 +354,21 @@ namespace NuGetGallery
                 .Select(p => new ListPackageItemViewModel(p, currentUser)).OrderBy(p => p.Id)
                 .ToList();
 
-            var received = _packageOwnerRequestService.GetPackageOwnershipRequests(newOwner: currentUser);
-            var sent = _packageOwnerRequestService.GetPackageOwnershipRequests(requestingOwner: currentUser);
+            var userReceived = _packageOwnerRequestService.GetPackageOwnershipRequests(newOwner: currentUser);
+            var orgReceived = currentUser.Organizations
+                .Where(m => ActionsRequiringPermissions.HandlePackageOwnershipRequest.CheckPermissions(currentUser, m.Organization) == PermissionsCheckResult.Allowed)
+                .SelectMany(m => _packageOwnerRequestService.GetPackageOwnershipRequests(newOwner: m.Organization));
+            var received = userReceived.Union(orgReceived);
+            
+            var sent = _packageService.FindPackagesByAnyMatchingOwner(currentUser, true, false)
+                .SelectMany(p => _packageOwnerRequestService.GetPackageOwnershipRequests(package: p.PackageRegistration));
 
             var ownerRequests = new OwnerRequestsViewModel(received, sent, currentUser, _packageService);
-            var reservedPrefixes = new ReservedNamespaceListViewModel(currentUser.ReservedNamespaces);
+
+            var userReservedNamespaces = currentUser.ReservedNamespaces;
+            var organizationsReservedNamespaces = currentUser.Organizations.SelectMany(m => m.Organization.ReservedNamespaces);
+
+            var reservedPrefixes = new ReservedNamespaceListViewModel(userReservedNamespaces.Union(organizationsReservedNamespaces).ToArray());
 
             var model = new ManagePackagesViewModel
             {

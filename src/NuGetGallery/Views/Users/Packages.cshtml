@@ -6,14 +6,14 @@
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 
     var namespacesCount = Model.ReservedNamespaces.ReservedNamespaces.Count();
-    var ownerRequestsReceivedCount = Model.OwnerRequests.Received.RequestItems.Count();
-    var ownerRequestsSentCount = Model.OwnerRequests.Sent.RequestItems.Count();
+    var ownerRequestsReceivedCount = Model.OwnerRequests.Received.Requests.Count();
+    var ownerRequestsSentCount = Model.OwnerRequests.Sent.Requests.Count();
 }
 
 <section role="main" class="container main-container page-manage-packages">
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
-            
+
             <div class="clearfix">
                 <h1 class="pull-left">Manage Packages</h1>
                 <div class="text-center ms-font-xxl">
@@ -48,32 +48,45 @@
             {
                 @ViewHelpers.Section(this, "namespaces",
                     @<text>Reserved Namespaces</text>,
-                    @<text>@Html.Raw(namespacesCount + " namespace" + (namespacesCount == 1 ? "" : "s"))</text>,
                     @<text>
-                        @Html.Partial("_ReservedNamespacesList", Model.ReservedNamespaces)
+                        <span id="namespaces-data" data-bind="text: ReservedNamespaces.VisibleNamespacesHeading()"></span>
+                    </text>,
+                    @<text>
+                        <div class="row user-package-list">
+                            <div data-bind="template: { name: 'manage-namespaces', data: ReservedNamespaces }"></div>
+                        </div>
                     </text>, expanded: false)
             }
 
-            @if (Model.OwnerRequests.Received.RequestItems.Any())
+            @if (ownerRequestsReceivedCount > 0)
             {
                 @ViewHelpers.Section(this, "requests-received",
                     @<text>Ownership Requests (Received)</text>,
-                    @<text>@Html.Raw(ownerRequestsReceivedCount + " request" + (ownerRequestsReceivedCount == 1 ? "" : "s"))</text>,
                     @<text>
-                        @Html.Partial("_OwnerRequestsList", Model.OwnerRequests.Received)
+                        <span id="requests-received-data" data-bind="text: RequestsReceived.VisibleRequestsHeading()"></span>
+                    </text>,
+                    @<text>
+                        <div class="row user-package-list">
+                            <div data-bind="template: { name: 'manage-owner-requests', data: RequestsReceived }"></div>
+                        </div>
                     </text>, expanded: false)
             }
 
-            @if (Model.OwnerRequests.Sent.RequestItems.Any())
+            @if (ownerRequestsSentCount > 0)
             {
                 @ViewHelpers.Section(this, "requests-sent",
                     @<text>Ownership Requests (Sent)</text>,
-                    @<text>@Html.Raw(ownerRequestsSentCount + " request" + (ownerRequestsSentCount == 1 ? "" : "s"))</text>,
                     @<text>
-                        @Html.Partial("_OwnerRequestsList", Model.OwnerRequests.Sent)
+                        <span id="requests-sent-data" data-bind="text: RequestsSent.VisibleRequestsHeading()"></span>
+                    </text>,
+                    @<text>
+                        <div class="row user-package-list">
+                            <div data-bind="template: { name: 'manage-owner-requests', data: RequestsSent }"></div>
+                        </div>
                     </text>, expanded: false)
             }
         </div>
+    </div>
 </section>
 
 <script type="text/html" id="manage-packages">
@@ -143,35 +156,140 @@
     </div>
 </script>
 
+<script type="text/html" id="manage-namespaces">
+    <div class="col-md-12">
+        <div class="panel-collapse collapse in" aria-expanded="true">
+            <table class="table">
+                <thead>
+                    <tr class="manage-package-headings">
+                        <th class="hidden-xs"></th>
+                        <th>Package ID or Prefix</th>
+                        <th>Owners</th>
+                        <th>Upload Restrictions</th>
+                    </tr>
+                </thead>
+                <tbody data-bind="foreach: Namespaces">
+                    <tr class="manage-package-listing" data-bind="visible: Visible">
+                        <td class="align-middle hidden-xs">
+                            <img class="reserved-indicator-icon img-responsive"
+                                 src="~/Content/gallery/img/reserved-indicator.svg"
+                                 @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-256x256.png"))
+                                 title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
+                        </td>
+                        <td class="align-middle reserved-id">
+                            <a data-bind="text: Pattern, attr: { href: SearchUrl, target: '_blank' }"></a>
+                        </td>
+                        <td class="align-middle">
+                            <span class="ms-noWrap" data-bind="foreach: Owners">
+                                <i class="ms-Icon ms-Icon--Group" aria-hidden="true" data-bind="visible: IsOrganization"></i>
+                                <a data-bind="attr: { href: ProfileUrl }"><span data-bind="text: Username"></span></a><!-- ko if: ($index() < ($parent.Owners.length - 1)) -->,&nbsp;<!-- /ko -->
+                            </span>
+                        </td>
+                        <td class="align-middle" data-bind="text: IsPublic ? 'Any NuGet.org Account' : 'Prefix or ID Owners Only' "></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</script>
+
+<script type="text/html" id="manage-owner-requests">
+    <div class="col-md-12">
+        <div class="panel-collapse collapse in" aria-expanded="true">
+            <table class="table">
+                <thead>
+                    <tr class="manage-package-headings">
+                        <th class="hidden-xs"><span class="hidden">Package Icon</span></th>
+                        <th>Package ID</th>
+                        <th>Owners</th>
+                        <th>New Owner</th>
+                        <th><span class="hidden">Actions</span></th>
+                    </tr>
+                </thead>
+                <tbody data-bind="foreach: Requests">
+                    <tr class="manage-package-listing" data-bind="visible: Visible">
+                        <td class="align-middle hidden-xs">
+                            <img class="package-icon img-responsive" aria-hidden="true" alt=""
+                                 data-bind="attr: { src: PackageIconUrl, onerror: PackageIconUrlFallback }" />
+                        </td>
+                        <td class="align-middle package-id">
+                            <a title="View Package" data-bind="attr: { href: PackageUrl }">
+                                <span data-bind="text: Id"></span>
+                            </a>
+                        </td>
+                        <td class="align-middle">
+                            <span class="ms-noWrap" data-bind="foreach: Owners">
+                                <i class="ms-Icon ms-Icon--Group" aria-hidden="true" data-bind="visible: IsOrganization"></i>
+                                <a data-bind="attr: { href: ProfileUrl }"><span data-bind="text: Username"></span></a><!-- ko if: ($index() < ($parent.Owners.length - 1)) -->,&nbsp;<!-- /ko -->
+                            </span>
+                        </td>
+                        <td class="align-middle text-nowrap">
+                            <a data-bind="attr: { href: New.ProfileUrl }"><span data-bind="text: New.Username"></span></a>
+                        </td>
+                        <td class="text-right align-middle package-controls">
+                            <!-- ko if: CanAccept -->
+                            <a class="btn" title="Confirm Ownership" data-bind="attr: { href: ConfirmUrl, 'aria-label': 'Confirm Ownership of ' + Id }">
+                                <i class="ms-Icon ms-Icon--Accept" aria-hidden="true"></i>
+                            </a>
+                            <a class="btn" title="Reject Ownership" data-bind="attr: { href: RejectUrl, 'aria-label': 'Reject Ownership of ' + Id }">
+                                <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
+                            </a>
+                            <!-- /ko -->
+                            <!-- ko if: CanCancel -->
+                            <a class="btn" title="Cancel Ownership" data-bind="attr: { href: CancelUrl, 'aria-label': 'Cancel Ownership of ' + Id }">
+                                <i class="ms-Icon ms-Icon--Back" aria-hidden="true"></i>
+                            </a>
+                            <!-- /ko -->
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</script>
+
 @functions {
+    // Performance: RouteCollection.VirtualPath is expensive, so resolve the path once and save as a template.
+    // Then substitute route values into the template path when rendering links for each package on the page.
     private RouteUrlTemplate<User> userUrlTemplate;
+
     private RouteUrlTemplate<IPackageVersionModel> packageUrlTemplate;
     private RouteUrlTemplate<IPackageVersionModel> editUrlTemplate;
     private RouteUrlTemplate<IPackageVersionModel> manageOwnersUrlTemplate;
     private RouteUrlTemplate<IPackageVersionModel> deleteUrlTemplate;
 
+    private RouteUrlTemplate<string> searchUrlTemplate;
+
+    private RouteUrlTemplate<OwnerRequestsListItemViewModel> confirmUrlTemplate;
+    private RouteUrlTemplate<OwnerRequestsListItemViewModel> rejectUrlTemplate;
+    private RouteUrlTemplate<OwnerRequestsListItemViewModel> cancelUrlTemplate;
+
     dynamic GetSerializablePackage(ListPackageItemViewModel p)
     {
+        if (packageUrlTemplate == null)
+        {
+            packageUrlTemplate = Url.PackageRegistrationTemplate();
+        }
+
+        if (editUrlTemplate == null)
+        {
+            editUrlTemplate = Url.EditPackageTemplate();
+        }
+
+        if (manageOwnersUrlTemplate == null)
+        {
+            manageOwnersUrlTemplate = Url.ManagePackageOwnersTemplate();
+        }
+
         if (deleteUrlTemplate == null)
         {
-            // Performance: RouteCollection.VirtualPath is expensive, so resolve the path once and save as a template.
-            // Then substitute route values into the template path when rendering links for each package on the page.
-            userUrlTemplate = Url.UserTemplate();
-            packageUrlTemplate = Url.PackageRegistrationTemplate();
-            editUrlTemplate = Url.EditPackageTemplate();
-            manageOwnersUrlTemplate = Url.ManagePackageOwnersTemplate();
             deleteUrlTemplate = Url.DeletePackageTemplate();
         }
 
         return new
         {
             p.Id,
-            Owners = p.Owners.Select(o => new
-            {
-                o.Username,
-                ProfileUrl = userUrlTemplate.Resolve(o),
-                IsOrganization = o is Organization
-            }),
+            Owners = GetSerializableOwners(p.Owners),
             p.TotalDownloadCount,
             LatestVersion = p.FullVersion.Abbreviate(25),
             PackageIconUrl = PackageHelper.ShouldRenderUrl(p.IconUrl) ? p.IconUrl : null,
@@ -182,6 +300,80 @@
             CanEdit = p.CanEdit,
             CanManageOwners = p.CanManageOwners,
             CanDelete = p.CanUnlistOrRelist
+        };
+    }
+
+    dynamic GetSerializableNamespace(ReservedNamespaceListItemViewModel n)
+    {
+        if (searchUrlTemplate == null)
+        {
+            searchUrlTemplate = Url.SearchTemplate();
+        }
+
+        return new
+        {
+            Pattern = n.GetPattern(),
+            SearchUrl = searchUrlTemplate.Resolve(n.Value),
+            Owners = GetSerializableOwners(n.Owners),
+            n.IsPublic
+        };
+    }
+
+    dynamic GetSerializableOwnerRequest(OwnerRequestsListItemViewModel r)
+    {
+        if (packageUrlTemplate == null)
+        {
+            packageUrlTemplate = Url.PackageRegistrationTemplate();
+        }
+
+        if (confirmUrlTemplate == null)
+        {
+            confirmUrlTemplate = Url.ConfirmPendingOwnershipRequestTemplate();
+        }
+
+        if (rejectUrlTemplate == null)
+        {
+            rejectUrlTemplate = Url.RejectPendingOwnershipRequestTemplate();
+        }
+
+        if (cancelUrlTemplate == null)
+        {
+            cancelUrlTemplate = Url.CancelPendingOwnershipRequestTemplate();
+        }
+
+        return new
+        {
+            r.Request.PackageRegistration.Id,
+            PackageIconUrl = PackageHelper.ShouldRenderUrl(r.Package.IconUrl) ? r.Package.IconUrl : null,
+            PackageUrl = packageUrlTemplate.Resolve(r.Package),
+            Owners = GetSerializableOwners(r.Package.Owners),
+            Requesting = GetSerializableOwner(r.Request.RequestingOwner),
+            New = GetSerializableOwner(r.Request.NewOwner),
+            CanAccept = r.CanAccept,
+            CanCancel = r.CanCancel,
+            ConfirmUrl = confirmUrlTemplate.Resolve(r),
+            RejectUrl = rejectUrlTemplate.Resolve(r),
+            CancelUrl = cancelUrlTemplate.Resolve(r)
+        };
+    }
+
+    dynamic GetSerializableOwners(IEnumerable<User> owners)
+    {
+        return owners.Select(o => GetSerializableOwner(o));
+    }
+
+    dynamic GetSerializableOwner(User user)
+    {
+        if (userUrlTemplate == null)
+        {
+            userUrlTemplate = Url.UserTemplate();
+        }
+
+        return new
+        {
+            user.Username,
+            ProfileUrl = userUrlTemplate.Resolve(user),
+            IsOrganization = user is Organization
         };
     }
 }
@@ -195,6 +387,12 @@
                             .Select(p => GetSerializablePackage(p)),
                          UnlistedPackages = Model.UnlistedPackages
                             .Select(p => GetSerializablePackage(p)),
+                         ReservedNamespaces = Model.ReservedNamespaces.ReservedNamespaces
+                            .Select(n => GetSerializableNamespace(n)),
+                         RequestsReceived = Model.OwnerRequests.Received.Requests
+                            .Select(r => GetSerializableOwnerRequest(r)),
+                         RequestsSent = Model.OwnerRequests.Sent.Requests
+                            .Select(r => GetSerializableOwnerRequest(r)),
                          DefaultPackageIconUrl = Url.Absolute("~/Content/gallery/img/default-package-icon.svg"),
                          PackageIconUrlFallback = Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")
                      }));

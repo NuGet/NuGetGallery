@@ -5,14 +5,23 @@ namespace NuGetGallery
 {
     public class OwnerRequestsListItemViewModel
     {
-        public OwnerRequestsListItemViewModel(PackageOwnerRequest request, IPackageService packageService)
+        public OwnerRequestsListItemViewModel(PackageOwnerRequest request, IPackageService packageService, User currentUser)
         {
             Request = request;
-            Package = packageService.FindPackageByIdAndVersion(request.PackageRegistration.Id, version: null, semVerLevelKey: SemVerLevelKey.SemVer2, allowPrerelease: true);
+
+            var package = packageService.FindPackageByIdAndVersion(request.PackageRegistration.Id, version: null, semVerLevelKey: SemVerLevelKey.SemVer2, allowPrerelease: true);
+            Package = new ListPackageItemViewModel(package, currentUser);
+
+            CanAccept = ActionsRequiringPermissions.HandlePackageOwnershipRequest.CheckPermissions(currentUser, Request.NewOwner) == PermissionsCheckResult.Allowed;
+            CanCancel = Package.CanManageOwners;
         }
 
         public PackageOwnerRequest Request { get; }
 
-        public Package Package { get; }
+        public ListPackageItemViewModel Package { get; }
+
+        public bool CanAccept { get; }
+
+        public bool CanCancel { get; }
     }
 }

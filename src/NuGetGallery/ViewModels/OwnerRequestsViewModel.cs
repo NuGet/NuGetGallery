@@ -23,8 +23,8 @@ namespace NuGetGallery
             User currentUser,
             IPackageService packageService)
         {
-            Received = new OwnerRequestsListViewModel(received, nameof(Received), currentUser, packageService);
-            Sent = new OwnerRequestsListViewModel(sent, nameof(Sent), currentUser, packageService);
+            Received = new OwnerRequestsListViewModel(received, currentUser, packageService);
+            Sent = new OwnerRequestsListViewModel(sent, currentUser, packageService);
         }
     }
 }
