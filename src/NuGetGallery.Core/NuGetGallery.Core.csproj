@@ -240,6 +240,7 @@
     <Compile Include="Services\CoreMessageService.cs" />
     <Compile Include="Services\CorePackageFileService.cs" />
     <Compile Include="Services\CorePackageService.cs" />
+    <Compile Include="Services\CryptographyService.cs" />
     <Compile Include="Services\ICloudBlobClient.cs" />
     <Compile Include="Services\ICloudBlobContainer.cs" />
     <Compile Include="Services\ICoreMessageService.cs" />
