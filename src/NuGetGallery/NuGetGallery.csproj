@@ -1864,7 +1864,6 @@
     <Compile Include="Configuration\AppConfiguration.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="App_Start\DefaultDependenciesModule.cs" />
-    <Compile Include="Infrastructure\Authentication\CryptographyService.cs" />
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="Services\FormsAuthenticationService.cs" />
     <Compile Include="Configuration\IAppConfiguration.cs" />
