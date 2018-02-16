@@ -248,17 +248,17 @@ namespace NuGetGallery
                 var currentUser = new User();
 
                 var packageStream = nugetPackage.Object.GetStream().AsSeekableStream();
-                var expectedHash = CryptographyService.GenerateHash(packageStream, Constants.Sha512HashAlgorithmId);
+                var expectedHash = CryptographyService.GenerateHash(packageStream, CoreConstants.Sha512HashAlgorithmId);
                 var packageStreamMetadata = new PackageStreamMetadata
                 {
                     Hash = expectedHash,
-                    HashAlgorithm = Constants.Sha512HashAlgorithmId,
+                    HashAlgorithm = CoreConstants.Sha512HashAlgorithmId,
                     Size = packageStream.Length
                 };
                 var package = await service.CreatePackageAsync(nugetPackage.Object, packageStreamMetadata, currentUser, currentUser, isVerified: false);
 
                 Assert.Equal(expectedHash, package.Hash);
-                Assert.Equal(Constants.Sha512HashAlgorithmId, package.HashAlgorithm);
+                Assert.Equal(CoreConstants.Sha512HashAlgorithmId, package.HashAlgorithm);
             }
 
             [Fact]
@@ -309,11 +309,11 @@ namespace NuGetGallery
                 var currentUser = new User();
 
                 var packageStream = nugetPackage.Object.GetStream().AsSeekableStream();
-                var packageHash = CryptographyService.GenerateHash(packageStream, Constants.Sha512HashAlgorithmId);
+                var packageHash = CryptographyService.GenerateHash(packageStream, CoreConstants.Sha512HashAlgorithmId);
                 var packageStreamMetadata = new PackageStreamMetadata
                 {
                     Hash = packageHash,
-                    HashAlgorithm = Constants.Sha512HashAlgorithmId,
+                    HashAlgorithm = CoreConstants.Sha512HashAlgorithmId,
                     Size = 618
                 };
                 var package = await service.CreatePackageAsync(nugetPackage.Object, packageStreamMetadata, currentUser, currentUser, isVerified: false);
