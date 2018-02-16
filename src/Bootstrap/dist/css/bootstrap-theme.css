@@ -953,6 +953,42 @@ img.reserved-indicator-icon {
   top: 3px;
   margin-right: 10px;
 }
+.page-manage-organizations h1 {
+  margin-bottom: 0;
+}
+.page-manage-organizations h2 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+.page-manage-organizations .form-section-title {
+  margin-top: 40px;
+}
+@media (min-width: 768px) {
+  .page-manage-organizations .form-section-title {
+    float: left;
+    text-align: right;
+  }
+}
+@media (min-width: 768px) {
+  .page-manage-organizations .form-section-data {
+    float: right;
+    margin-top: 40px;
+    line-height: 3;
+    text-align: right;
+  }
+}
+.page-manage-organizations .panel {
+  margin-top: 5px;
+}
+.page-manage-organizations .form-group + .form-group .btn {
+  margin-top: 20px;
+}
+.manage-members-listing tbody:first-child {
+  border-style: hidden;
+}
+.manage-members-listing {
+  margin-bottom: 0;
+}
 .page-manage-owners h2 .ms-Icon {
   position: relative;
   top: -2px;

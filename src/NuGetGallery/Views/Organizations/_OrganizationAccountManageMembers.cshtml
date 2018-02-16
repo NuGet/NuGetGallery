@@ -35,15 +35,15 @@
                         </select>
                     </div>
                     <span class="input-group-btn">
-                        <button class="btn" type="submit" title="Add new member" aria-label="Add new member" data-bind="click: AddMember">
+                        <button class="btn" type="submit" title="Add new member" aria-label="Add new member" data-bind="click: AddMember, enable: NewMemberUsername">
                             <span class="ms-Icon ms-Icon--AddFriend" aria-hidden="true"></span>
                         </button>
                     </span>
                 </div><br />
             }
-            <table class="table">
+            <table class="table manage-members-listing">
                 <tbody data-bind="foreach: Members">
-                    <tr class="manage-members-listing">
+                    <tr>
                         <td class="align-middle hidden-xs col-xs-1">
                             <img data-bind="attr: { src: GravatarUrl, title: Username }" class="owner-image" alt="gravatar"
                                  height="@Constants.GravatarElementSize" width="@Constants.GravatarElementSize">
