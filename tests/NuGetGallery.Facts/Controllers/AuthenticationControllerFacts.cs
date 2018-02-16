@@ -330,8 +330,14 @@ namespace NuGetGallery.Controllers
                 var user = new User("theUsername")
                 {
                     EmailAddress = "confirmed@example.com",
-                    Credentials = new[] { new Credential { Type = CredentialTypes.External.Prefix + "Foo" } },
-                    Roles = new[] { new Role { Name = Constants.AdminRoleName } }
+                    Credentials = new[]
+                    {
+                        new Credential { Type = CredentialTypes.External.Prefix + "Foo" }
+                    },
+                    Roles = new[]
+                    {
+                        new Role { Name = CoreConstants.AdminRoleName }
+                    }
                 };
 
                 var authUser = new AuthenticatedUser(
@@ -482,7 +488,7 @@ namespace NuGetGallery.Controllers
                         UnconfirmedEmailAddress = "confirmed@example.com",
                         Roles =
                         {
-                            new Role { Name = Constants.AdminRoleName }
+                            new Role { Name = CoreConstants.AdminRoleName }
                         }
                     },
                     externalCred);
@@ -798,7 +804,7 @@ namespace NuGetGallery.Controllers
                         EmailConfirmationToken = "t0k3n",
                         Roles =
                         {
-                            new Role { Name = Constants.AdminRoleName }
+                            new Role { Name = CoreConstants.AdminRoleName }
                         }
                     },
                     externalCred);
@@ -1062,7 +1068,7 @@ namespace NuGetGallery.Controllers
                     fakes.CreateUser("test", cred),
                     cred);
 
-                authUser.User.Roles.Add(new Role { Name = Constants.AdminRoleName });
+                authUser.User.Roles.Add(new Role { Name = CoreConstants.AdminRoleName });
 
                 GetMock<AuthenticationService>()
                     .Setup(x => x.AuthenticateExternalLogin(controller.OwinContext))
@@ -1343,8 +1349,14 @@ namespace NuGetGallery.Controllers
                 var existingUser = new User("existingUser")
                 {
                     EmailAddress = "existing@example.com",
-                    Credentials = new[] { new Credential(CredentialTypes.External.Prefix + "foo", "externalloginvalue") },
-                    Roles = new[] { new Role { Name = Constants.AdminRoleName } }
+                    Credentials = new[]
+                    {
+                        new Credential(CredentialTypes.External.Prefix + "foo", "externalloginvalue")
+                    },
+                    Roles = new[]
+                    {
+                        new Role { Name = CoreConstants.AdminRoleName }
+                    }
                 };
 
                 var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
@@ -1404,7 +1416,7 @@ namespace NuGetGallery.Controllers
                         EmailAddress = "confirmed@example.com",
                         Roles =
                         {
-                            new Role { Name = Constants.AdminRoleName }
+                            new Role { Name = CoreConstants.AdminRoleName }
                         }
                     },
                     new Credential { Type = providerUsedForLogin });

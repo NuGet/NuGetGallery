@@ -54,12 +54,10 @@ namespace NuGetGallery
             // Assert
             var implementationToInterface = dependents.ToDictionary(x => x.ImplementationType, x => x.InterfaceType);
             Assert.Contains(typeof(ContentService), implementationToInterface.Keys);
-            Assert.Contains(typeof(NuGetExeDownloaderService), implementationToInterface.Keys);
             Assert.Contains(typeof(PackageFileService), implementationToInterface.Keys);
             Assert.Contains(typeof(UploadFileService), implementationToInterface.Keys);
-            Assert.Equal(4, implementationToInterface.Count);
+            Assert.Equal(3, implementationToInterface.Count);
             Assert.Equal(implementationToInterface[typeof(ContentService)], typeof(IContentService));
-            Assert.Equal(implementationToInterface[typeof(NuGetExeDownloaderService)], typeof(INuGetExeDownloaderService));
             Assert.Equal(implementationToInterface[typeof(PackageFileService)], typeof(IPackageFileService));
             Assert.Equal(implementationToInterface[typeof(UploadFileService)], typeof(IUploadFileService));
         }
@@ -76,7 +74,6 @@ namespace NuGetGallery
             // Assert
             var typeToConnectionString = dependents.ToDictionary(x => x.ImplementationType, x => x.AzureStorageConnectionString);
             Assert.Equal(typeToConnectionString[typeof(ContentService)], config.AzureStorage_Content_ConnectionString);
-            Assert.Equal(typeToConnectionString[typeof(NuGetExeDownloaderService)], config.AzureStorage_NuGetExe_ConnectionString);
             Assert.Equal(typeToConnectionString[typeof(PackageFileService)], config.AzureStorage_Packages_ConnectionString);
             Assert.Equal(typeToConnectionString[typeof(UploadFileService)], config.AzureStorage_Uploads_ConnectionString);
         }
@@ -86,8 +83,7 @@ namespace NuGetGallery
         {
             // Arrange
             var mock = new Mock<IAppConfiguration>();
-            mock.Setup(x => x.AzureStorage_Content_ConnectionString).Returns("Content and NuGetExe");
-            mock.Setup(x => x.AzureStorage_NuGetExe_ConnectionString).Returns("Content and NuGetExe");
+            mock.Setup(x => x.AzureStorage_Content_ConnectionString).Returns("Content");
             mock.Setup(x => x.AzureStorage_Packages_ConnectionString).Returns("Packages and Uploads");
             mock.Setup(x => x.AzureStorage_Uploads_ConnectionString).Returns("Packages and Uploads");
             var config = mock.Object;
@@ -97,7 +93,6 @@ namespace NuGetGallery
 
             // Assert
             var typeToBindingKey = dependents.ToDictionary(x => x.ImplementationType, x => x.BindingKey);
-            Assert.Equal(typeToBindingKey[typeof(ContentService)], typeToBindingKey[typeof(NuGetExeDownloaderService)]);
             Assert.Equal(typeToBindingKey[typeof(PackageFileService)], typeToBindingKey[typeof(UploadFileService)]);
         }
 
@@ -105,7 +100,6 @@ namespace NuGetGallery
         {
             var mock = new Mock<IAppConfiguration>();
             mock.Setup(x => x.AzureStorage_Content_ConnectionString).Returns("Content");
-            mock.Setup(x => x.AzureStorage_NuGetExe_ConnectionString).Returns("NuGetExe");
             mock.Setup(x => x.AzureStorage_Packages_ConnectionString).Returns("Packages");
             mock.Setup(x => x.AzureStorage_Uploads_ConnectionString).Returns("Uploads");
             return mock.Object;

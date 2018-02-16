@@ -12,7 +12,7 @@ namespace NuGetGallery
         public ManagePackageOwnersViewModel(Package package, User currentUser)
             : base(package, currentUser)
         {
-            IsCurrentUserAnAdmin = currentUser.IsAdministrator();
+            IsCurrentUserAnAdmin = currentUser.IsAdministrator;
         }
     }
 }
