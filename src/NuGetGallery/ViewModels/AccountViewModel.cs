@@ -19,6 +19,8 @@ namespace NuGetGallery
 
         public string AccountName { get; set; }
 
+        public bool CanManage { get; set; }
+
         public IList<string> CuratedFeeds { get; set; }
 
         public ChangeEmailViewModel ChangeEmail { get; set; }

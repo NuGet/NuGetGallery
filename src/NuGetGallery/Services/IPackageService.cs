@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Packaging;
 using NuGetGallery.Packaging;
@@ -34,7 +35,7 @@ namespace NuGetGallery
 
         IEnumerable<Package> FindPackagesByAnyMatchingOwner(User user, bool includeUnlisted, bool includeVersions = false);
 
-        IEnumerable<PackageRegistration> FindPackageRegistrationsByOwner(User user);
+        IQueryable<PackageRegistration> FindPackageRegistrationsByOwner(User user);
 
         IEnumerable<Package> FindDependentPackages(Package package);
 

@@ -495,7 +495,9 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
         Func<MvcHtmlString, HelperResult> content,
         bool expanded = true,
         string expandedIcon = "ChevronDown",
-        string collapsedIcon = "ChevronRight")
+        string collapsedIcon = "ChevronRight",
+        string disabledIcon = "Lock",
+        bool disabled = false)
 {
     @Section(viewPage,
         id,
@@ -515,29 +517,45 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
             Func<MvcHtmlString, HelperResult> content,
             bool expanded = false,
             string expandedIcon = "ChevronDown",
-            string collapsedIcon = "ChevronRight")
+            string collapsedIcon = "ChevronRight",
+            string disabledIcon = "Lock",
+            bool disabled = false)
 {
-    AddSection(viewPage.ViewBag, id);
+    if (!disabled)
+    {
+        AddSection(viewPage.ViewBag, id);
+    }
 
     <div class="clearfix">
         <div class="form-section-title">
             <h2>
-                <a href="#" role="button" data-toggle="collapse" data-target="#@id-container"
-                    aria-expanded="@expanded" aria-controls="@id-container" id="show-@id-container">
-                    <i class="ms-Icon ms-Icon--@(expanded ? expandedIcon : collapsedIcon)"
-                        aria-hidden="@(expanded ? "false" : "true")"></i>
+                @if (!disabled)
+                {
+                    <a href="#" role="button" data-toggle="collapse" data-target="#@id-container"
+                        aria-expanded="@expanded" aria-controls="@id-container" id="show-@id-container">
+                        <i class="ms-Icon ms-Icon--@(expanded ? expandedIcon : collapsedIcon)"
+                            aria-hidden="@(expanded ? "false" : "true")"></i>
+                        <span>@title(MvcHtmlString.Empty)</span>
+                    </a>
+                }
+                else
+                {
+                    <i class="ms-Icon ms-Icon--@disabledIcon" aria-hidden="true"></i>
                     <span>@title(MvcHtmlString.Empty)</span>
-                </a>
+                }
             </h2>
         </div>
         <div class="form-section-data">
             @data(MvcHtmlString.Empty)
         </div>
     </div>
-    <div class="panel panel-default panel-collapse collapse @(expanded ? "in" : string.Empty)"
-            aria-expanded="@(expanded ? "true" : "false")" id="@id-container">
-        <div class="panel-body">
-            @content(MvcHtmlString.Empty)
+    if (!disabled)
+    {
+        <div class="panel panel-default panel-collapse collapse @(expanded ? "in" : string.Empty)"
+                aria-expanded="@(expanded ? "true" : "false")" id="@id-container">
+            <div class="panel-body">
+                @content(MvcHtmlString.Empty)
+            </div>
         </div>
-    </div>
+    }
 }

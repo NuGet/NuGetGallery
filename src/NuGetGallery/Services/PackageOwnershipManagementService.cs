@@ -198,7 +198,7 @@ namespace NuGetGallery
         // 3. Or the other user also does not own a namespace.
         private static bool OwnerHasPermissionsToRemove(User requestingOwner, User ownerToBeRemoved, PackageRegistration packageRegistration)
         {
-            if (requestingOwner.IsInRole(Constants.AdminRoleName))
+            if (requestingOwner.IsAdministrator)
             {
                 return true;
             }

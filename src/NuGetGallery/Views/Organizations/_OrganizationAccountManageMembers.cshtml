@@ -24,20 +24,23 @@
 <script type="text/html" id="manage-members">
     <div class="col-md-12">
         <div class="panel-collapse collapse in" aria-expanded="true">
-            <div class="input-group col-md-12">
-                <div class="col-md-6">
-                    <input class="form-control" placeholder="Add existing NuGet.org user" data-bind="textInput: NewMemberUsername, submit: AddMember" aria-label="Enter username to add member" />
-                </div>
-                <div class="col-md-6">
-                    <select class="form-control col-md-2" data-bind="value: AddMemberRole, options: RoleNames" aria-label="Select new member role">
-                    </select>
-                </div>
-                <span class="input-group-btn">
-                    <button class="btn" type="submit" title="Add new member" name="Add new member" aria-label="Add" data-bind="click: AddMember">
-                        <span class="ms-Icon ms-Icon--AddFriend" aria-hidden="true"></span>
-                    </button>
-                </span>
-            </div><br />
+            @if (Model.CanManage)
+            {
+                <div class="input-group col-md-12">
+                    <div class="col-md-6">
+                        <input class="form-control" placeholder="Add existing NuGet.org user" data-bind="textInput: NewMemberUsername, submit: AddMember" aria-label="Enter username to add member"  />
+                    </div>
+                    <div class="col-md-6">
+                        <select class="form-control col-md-2" data-bind="value: AddMemberRole, options: RoleNames" aria-label="Select new member role">
+                        </select>
+                    </div>
+                    <span class="input-group-btn">
+                        <button class="btn" type="submit" title="Add new member" aria-label="Add new member" data-bind="click: AddMember">
+                            <span class="ms-Icon ms-Icon--AddFriend" aria-hidden="true"></span>
+                        </button>
+                    </span>
+                </div><br />
+            }
             <table class="table">
                 <tbody data-bind="foreach: Members">
                     <tr class="manage-members-listing">
@@ -55,19 +58,27 @@
                             <div data-bind="text: EmailAddress"></div>
                         </td>
                         <td class="align-middle member-username">
-                            <select class="form-control" aria-label="Change member role"
-                                    data-bind="disable: IsCurrentUser, value: SelectedRole, options: OrganizationViewModel.RoleNames, event: { change: ToggleIsAdmin }">
-                            </select>
+                            @if (Model.CanManage)
+                            {
+                                <select class="form-control" aria-label="Change member role"
+                                        data-bind="value: SelectedRole, options: OrganizationViewModel.RoleNames, event: { change: ToggleIsAdmin }">
+                                </select>
+                            }
+                            else
+                            {
+                                <span data-bind="text: SelectedRole()"></span>
+                            }
                         </td>
-                        <td class="text-right align-middle member-controls">
-                            <!-- ko if: !IsCurrentUser -->
-                            <span>
-                                <a class="btn" data-bind="click: DeleteMember, attr: { 'aria-label': 'Delete Member' }">
-                                    <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
-                                </a>
-                            </span>
-                            <!-- /ko -->
-                        </td>
+                        @if (Model.CanManage)
+                        {
+                            <td class="text-right align-middle member-controls">
+                                <span>
+                                    <a class="btn" data-bind="click: DeleteMember, attr: { 'aria-label': 'Delete Member' }">
+                                        <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
+                                    </a>
+                                </span>
+                            </td>
+                        }
                     </tr>
                 </tbody>
             </table>

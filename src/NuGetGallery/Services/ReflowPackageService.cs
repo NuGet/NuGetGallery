@@ -45,7 +45,7 @@ namespace NuGetGallery
                         // 2) Determine package metadata from binary
                         var packageStreamMetadata = new PackageStreamMetadata
                         {
-                            HashAlgorithm = Constants.Sha512HashAlgorithmId,
+                            HashAlgorithm = CoreConstants.Sha512HashAlgorithmId,
                             Hash = CryptographyService.GenerateHash(packageStream.AsSeekableStream()),
                             Size = packageStream.Length,
                         };

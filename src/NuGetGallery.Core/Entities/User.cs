@@ -6,6 +6,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace NuGetGallery
 {
@@ -17,6 +18,25 @@ namespace NuGetGallery
     /// <see href="https://weblogs.asp.net/manavi/inheritance-mapping-strategies-with-entity-framework-code-first-ctp5-part-2-table-per-type-tpt" />
     public class User : IEntity, IEquatable<User>
     {
+        #region per-request query cache
+
+        private bool? _isAdmin;
+
+        [NotMapped]
+        public bool IsAdministrator
+        {
+            get
+            {
+                if (!_isAdmin.HasValue)
+                {
+                    _isAdmin = IsInRole(CoreConstants.AdminRoleName);
+                }
+                return _isAdmin.Value;
+            }
+        }
+
+        #endregion
+
         public User() : this(null)
         {
         }
