@@ -113,23 +113,6 @@ namespace NuGet.IndexingTests
                         new TokenAttributes("new", 11, 14, 1)
                     }
                 };
-
-                // lower case (invariant)
-                yield return new object[]
-                {
-                    "İıIi",
-                    new[]
-                    {
-                        new TokenAttributes("İ", 0, 1, 1),
-                        new TokenAttributes("İı", 0, 2, 1),
-                        new TokenAttributes("İıi", 0, 3, 1),
-                        new TokenAttributes("İıii", 0, 4, 1),
-                        new TokenAttributes("İ", 0, 1, 1),
-                        new TokenAttributes("İı", 0, 2, 1),
-                        new TokenAttributes("i", 2, 3, 1),
-                        new TokenAttributes("ii", 2, 4, 1),
-                    }
-                };
             }
         }
     }

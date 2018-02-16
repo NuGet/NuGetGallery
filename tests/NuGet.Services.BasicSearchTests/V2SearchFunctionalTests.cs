@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -164,39 +164,6 @@ namespace NuGet.Services.BasicSearchTests
                 Assert.Equal("EntityFramework", result.Data[0].PackageRegistration.Id);
                 Assert.Equal("Newtonsoft.Json", result.Data[1].PackageRegistration.Id);
                 Assert.Equal("bootstrap", result.Data[2].PackageRegistration.Id);
-            }
-        }
-
-        [Theory]
-        [InlineData("Izmir", "Izmir", 1)]
-        [InlineData("izmir", "Izmir", 1)]
-        [InlineData("İzmir", "İzmir", 1)]
-        [InlineData("ızmir", null, 0)]
-        public async Task UsesLowerInvariantForCaseInsensitivity(string query, string expectedId, int expectedCount)
-        {
-            // Arrange
-            var packages = new[]
-            {
-                new PackageVersion("Izmir", "1.0.0"),
-                new PackageVersion("İzmir", "1.0.0"),
-            };
-
-            using (var app = await StartedWebApp.StartAsync(packages))
-            {
-                // Act
-                var response = await app.Client.GetAsync(new V2SearchBuilder
-                {
-                    Query = query
-                }.RequestUri);
-                var result = await response.Content.ReadAsAsync<V2SearchResult>(Serialization.MediaTypeFormatters);
-
-                // Assert
-                Assert.Equal(expectedCount, result.Data.Count);
-                Assert.Equal(expectedCount, result.TotalHits);
-                if (expectedCount > 0)
-                {
-                    Assert.Equal(expectedId, result.Data[0].PackageRegistration.Id);
-                }
             }
         }
 
