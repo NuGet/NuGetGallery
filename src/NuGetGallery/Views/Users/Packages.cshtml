@@ -236,9 +236,9 @@
                                 <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
                             </a>
                             <!-- /ko -->
-                            <!-- ko if: CanCancel -->
+                            <!-- ko if: !CanAccept && CanCancel -->
                             <a class="btn" title="Cancel Ownership" data-bind="attr: { href: CancelUrl, 'aria-label': 'Cancel Ownership of ' + Id }">
-                                <i class="ms-Icon ms-Icon--Back" aria-hidden="true"></i>
+                                <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
                             </a>
                             <!-- /ko -->
                         </td>
