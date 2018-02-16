@@ -347,7 +347,15 @@ namespace NuGetGallery
         [HttpGet]
         public virtual ActionResult AuthenticateExternal(string returnUrl)
         {
-            string externalAuthProvider = GetExternalProvider();
+            var user = GetCurrentUser();
+            var aadCredential = user?.Credentials.GetAzureActiveDirectoryCredential();
+            if (aadCredential != null)
+            {
+                TempData["WarningMessage"] = Strings.ChangeCredential_NotAllowed;
+                return Redirect(returnUrl);
+            }
+
+            var externalAuthProvider = GetExternalProvider();
             if (externalAuthProvider == null)
             {
                 TempData["Message"] = Strings.ChangeCredential_ProviderNotFound;
