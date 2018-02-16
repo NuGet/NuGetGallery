@@ -374,8 +374,7 @@ namespace NuGetGallery
                 .SelectMany(m => _packageOwnerRequestService.GetPackageOwnershipRequests(newOwner: m.Organization));
             var received = userReceived.Union(orgReceived);
             
-            var sent = _packageService.FindPackagesByAnyMatchingOwner(currentUser, true, false)
-                .SelectMany(p => _packageOwnerRequestService.GetPackageOwnershipRequests(package: p.PackageRegistration));
+            var sent = packages.SelectMany(p => _packageOwnerRequestService.GetPackageOwnershipRequests(package: p.PackageRegistration));
 
             var ownerRequests = new OwnerRequestsViewModel(received, sent, currentUser, _packageService);
 

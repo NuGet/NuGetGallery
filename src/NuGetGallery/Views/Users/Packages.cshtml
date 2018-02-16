@@ -4,10 +4,6 @@
     ViewBag.Title = "Manage My Package";
     ViewBag.Tab = "Packages";
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
-
-    var namespacesCount = Model.ReservedNamespaces.ReservedNamespaces.Count();
-    var ownerRequestsReceivedCount = Model.OwnerRequests.Received.Requests.Count();
-    var ownerRequestsSentCount = Model.OwnerRequests.Sent.Requests.Count();
 }
 
 <section role="main" class="container main-container page-manage-packages">
@@ -44,7 +40,7 @@
                     </div>
                 </text>, expanded: false)
 
-            @if (namespacesCount > 0)
+            @if (Model.ReservedNamespaces.ReservedNamespaces.Any())
             {
                 @ViewHelpers.Section(this, "namespaces",
                     @<text>Reserved Namespaces</text>,
@@ -58,7 +54,7 @@
                     </text>, expanded: false)
             }
 
-            @if (ownerRequestsReceivedCount > 0)
+            @if (Model.OwnerRequests.Received.Requests.Any())
             {
                 @ViewHelpers.Section(this, "requests-received",
                     @<text>Ownership Requests (Received)</text>,
@@ -72,7 +68,7 @@
                     </text>, expanded: false)
             }
 
-            @if (ownerRequestsSentCount > 0)
+            @if (Model.OwnerRequests.Sent.Requests.Any())
             {
                 @ViewHelpers.Section(this, "requests-sent",
                     @<text>Ownership Requests (Sent)</text>,
