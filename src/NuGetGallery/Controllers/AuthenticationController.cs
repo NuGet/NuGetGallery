@@ -355,7 +355,7 @@ namespace NuGetGallery
                 return Redirect(returnUrl);
             }
 
-            string externalAuthProvider = GetExternalProvider();
+            var externalAuthProvider = GetExternalProvider();
             if (externalAuthProvider == null)
             {
                 TempData["Message"] = Strings.ChangeCredential_ProviderNotFound;
