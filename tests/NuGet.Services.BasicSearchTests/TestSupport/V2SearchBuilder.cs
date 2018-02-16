@@ -16,13 +16,11 @@ namespace NuGet.Services.BasicSearchTests.TestSupport
         {
             get
             {
-                var queryStringBuilder = System.Web.HttpUtility.ParseQueryString(string.Empty);
-                queryStringBuilder["prerelease"] = Prerelease.ToString();
-                queryStringBuilder["ignoreFilter"] = IgnoreFilter.ToString();
-                queryStringBuilder["semVerLevel"] = SemVerLevel;
-
-                // Use Uri.EscapeDataString to handle obscure Unicode characters properly.
-                var queryString = $"q={Uri.EscapeDataString(Query ?? string.Empty)}&{queryStringBuilder}";
+                var queryString = System.Web.HttpUtility.ParseQueryString(string.Empty);
+                queryString["q"] = Query;
+                queryString["prerelease"] = Prerelease.ToString();
+                queryString["ignoreFilter"] = IgnoreFilter.ToString();
+                queryString["semVerLevel"] = SemVerLevel;
 
                 return new Uri("/search/query?" + queryString, UriKind.Relative);
             }

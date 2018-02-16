@@ -1,8 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-
-using System.IO;
 using Lucene.Net.Analysis;
+using System.Collections.Generic;
+using System.IO;
 
 namespace NuGet.Indexing
 {
@@ -10,10 +10,7 @@ namespace NuGet.Indexing
     {
         public override TokenStream TokenStream(string fieldName, TextReader reader)
         {
-            return new StopFilter(
-                enablePositionIncrements: true,
-                @in: new LowerInvariantFilter(new CamelCaseFilter(new DotTokenizer(reader))),
-                stopWords: TokenizingHelper.GetStopWords());
+            return new StopFilter(true, new LowerCaseFilter(new CamelCaseFilter(new DotTokenizer(reader))), TokenizingHelper.GetStopWords());
         }
     }
 }

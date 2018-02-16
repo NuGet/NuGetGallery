@@ -103,17 +103,6 @@ namespace NuGet.IndexingTests
                         new TokenAttributes("net", 47, 50, 1)
                     }
                 };
-
-                // lower (invariant)
-                yield return new object[]
-                {
-                    "İ a ı a I a i",
-                    new[]
-                    {
-                        new TokenAttributes("İ", 0, 1, 1),
-                        new TokenAttributes("ı", 4, 5, 2),
-                    }
-                };
             }
         }
 

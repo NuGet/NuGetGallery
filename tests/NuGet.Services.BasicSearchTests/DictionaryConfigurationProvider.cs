@@ -18,12 +18,7 @@ namespace NuGet.Services.BasicSearchTests
 
         protected override Task<string> Get(string key)
         {
-            if (_configuration.TryGetValue(key, out var value))
-            {
-                return Task.FromResult(value);
-            }
-
-            return Task.FromResult<string>(null);
+            return Task.FromResult(_configuration[key]);
         }
     }
 }

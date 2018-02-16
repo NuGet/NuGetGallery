@@ -54,9 +54,9 @@ namespace NuGet.IndexingTests
         {
             // arrange
             var owners = CreateOwnersResult(new Dictionary<string, HashSet<string>>
-            {
-                {  "dot", new HashSet<string> { "dot" } }
-            });
+                {
+                    {  "dot", new HashSet<string> { "dot" } }
+                });
             var queryText = $"{inputField}:dot";
 
             // act
@@ -101,7 +101,7 @@ namespace NuGet.IndexingTests
                 new BooleanClause(new BooleanQuery { Clauses = { new BooleanClause(new TermQuery(new Term("Id", "dot")), Occur.SHOULD) }, Boost = 8 }, Occur.SHOULD),
                 new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("ShingledId", "dot")), Occur.SHOULD) }, Occur.SHOULD),
                 new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("TokenizedId", "dot")), Occur.SHOULD) }, Occur.SHOULD),
-                new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("CaseInsensitiveNormalizedVersion", "dot")), Occur.SHOULD) }, Occur.SHOULD),
+                new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("Version", "dot")), Occur.SHOULD) }, Occur.SHOULD),
                 new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("Title", "dot")), Occur.SHOULD) }, Occur.SHOULD),
                 new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("Description", "dot")), Occur.SHOULD) }, Occur.SHOULD),
                 new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("Summary", "dot")), Occur.SHOULD) }, Occur.SHOULD),
@@ -132,7 +132,7 @@ namespace NuGet.IndexingTests
                     new BooleanClause(new BooleanQuery { Clauses = { new BooleanClause(new TermQuery(new Term("Id", "dot")), Occur.SHOULD) }, Boost = 8 }, Occur.SHOULD),
                     new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("ShingledId", "dot")), Occur.SHOULD) }, Occur.SHOULD),
                     new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("TokenizedId", "dot")), Occur.SHOULD) }, Occur.SHOULD),
-                    new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("CaseInsensitiveNormalizedVersion", "dot")), Occur.SHOULD) }, Occur.SHOULD),
+                    new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("Version", "dot")), Occur.SHOULD) }, Occur.SHOULD),
                     new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("Title", "dot")), Occur.SHOULD) }, Occur.SHOULD),
                     new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("Description", "dot")), Occur.SHOULD) }, Occur.SHOULD),
                     new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("Summary", "dot")), Occur.SHOULD) }, Occur.SHOULD),
@@ -197,7 +197,7 @@ namespace NuGet.IndexingTests
                 new BooleanClause(new BooleanQuery { Clauses = { new BooleanClause(new TermQuery(new Term("Id", "dot")), Occur.SHOULD) }, Boost = 8 }, Occur.SHOULD),
                 new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("ShingledId", "dot")), Occur.SHOULD) }, Occur.SHOULD),
                 new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("TokenizedId", "dot")), Occur.SHOULD) }, Occur.SHOULD),
-                new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("CaseInsensitiveNormalizedVersion", "dot")), Occur.SHOULD) }, Occur.SHOULD),
+                new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("Version", "dot")), Occur.SHOULD) }, Occur.SHOULD),
                 new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("Title", "dot")), Occur.SHOULD) }, Occur.SHOULD),
                 new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("Description", "dot")), Occur.SHOULD) }, Occur.SHOULD),
                 new BooleanClause(new BooleanQuery { new BooleanClause(new TermQuery(new Term("Summary", "dot")), Occur.SHOULD) }, Occur.SHOULD),
@@ -324,22 +324,7 @@ namespace NuGet.IndexingTests
                 };
 
                 // version
-                yield return new object[]
-                {
-                    "version:dot version:bar",
-                    new BooleanQuery
-                    {
-                        new BooleanClause(new BooleanQuery
-                        {
-                            Clauses =
-                            {
-                                new BooleanClause(new TermQuery(new Term("CaseInsensitiveNormalizedVersion", "dot")), Occur.SHOULD),
-                                new BooleanClause(new TermQuery(new Term("CaseInsensitiveNormalizedVersion", "bar")), Occur.SHOULD)
-                            },
-                            Boost = 1
-                        }, Occur.MUST)
-                    }
-                };
+                yield return GetSimpleFieldQuery("Version");
                 
                 // title
                 yield return new object[]
@@ -387,7 +372,7 @@ namespace NuGet.IndexingTests
             {
                 yield return new object[] { "id", "Id" };
                 yield return new object[] { "packageid", "Id" };
-                yield return new object[] { "version", "CaseInsensitiveNormalizedVersion" };
+                yield return new object[] { "version", "Version" };
                 yield return new object[] { "title", "Title" };
                 yield return new object[] { "description", "Description" };
                 yield return new object[] { "tag", "Tags" };

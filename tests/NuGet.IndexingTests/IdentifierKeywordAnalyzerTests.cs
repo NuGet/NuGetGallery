@@ -39,9 +39,6 @@ namespace NuGet.IndexingTests
 
                 // mixed
                 yield return new object[] { "DotNet.ZIP-Unofficial is a BAD identifier.", new TokenAttributes("dotnet.zip-unofficial is a bad identifier.", 0, 42) };
-
-                // lower case (invariant)
-                yield return new object[] { "İıIi", new TokenAttributes("İıii", 0, 4) };
             }
 
         }

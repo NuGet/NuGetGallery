@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Globalization;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -67,38 +68,6 @@ namespace NuGet.Services.BasicSearchTests
                 Assert.False(withoutPrerelease.ContainsPackage("angularjs"));              // the only version available is prerelease and is therefore excluded
                 Assert.Equal("3.1.3.42154", withoutPrerelease.GetPackageVersion("Antlr")); // this is the latest non-release version
                 Assert.Equal("1.6.0", withoutPrerelease.GetPackageVersion("WebGrease"));   // the only version available is non-prerelease
-            }
-        }
-
-        [Fact]
-        public async Task SupportsCaseInsensitiveVersionSearch()
-        {
-            // Arrange
-            var packages = new[]
-            {
-                new PackageVersion("angularjs", "1.2.0-RC1"),
-            };
-
-            using (var app = await StartedWebApp.StartAsync(packages))
-            {
-                // Act
-                var mismatchedCaseResponse = await app.Client.GetAsync(new V3SearchBuilder
-                {
-                    Query = "packageid:angularjs version:1.2.0-rc1",
-                    Prerelease = true,
-                }.RequestUri);
-                var mismatchedCase = await mismatchedCaseResponse.Content.ReadAsAsync<V3SearchResult>();
-
-                var matchingCaseResponse = await app.Client.GetAsync(new V3SearchBuilder
-                {
-                    Query = "packageid:angularjs version:1.2.0-RC1",
-                    Prerelease = true,
-                }.RequestUri);
-                var matchingCase = await matchingCaseResponse.Content.ReadAsAsync<V3SearchResult>();
-
-                // Assert
-                Assert.Equal("1.2.0-RC1", mismatchedCase.GetPackageVersion("angularjs"));
-                Assert.Equal("1.2.0-RC1", matchingCase.GetPackageVersion("angularjs"));
             }
         }
 
