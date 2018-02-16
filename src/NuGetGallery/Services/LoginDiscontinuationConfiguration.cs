@@ -15,6 +15,11 @@ namespace NuGetGallery
         public HashSet<string> DiscontinuedForDomains { get; }
         public HashSet<string> ExceptionsForEmailAddresses { get; }
 
+        public LoginDiscontinuationConfiguration()
+            : this(Enumerable.Empty<string>(), Enumerable.Empty<string>(), Enumerable.Empty<string>())
+        {
+        }
+
         [JsonConstructor]
         public LoginDiscontinuationConfiguration(
             IEnumerable<string> discontinuedForEmailAddresses,
