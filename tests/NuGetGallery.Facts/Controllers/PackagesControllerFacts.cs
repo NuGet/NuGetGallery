@@ -854,11 +854,13 @@ namespace NuGetGallery
                 packageService.Setup(p => p.FindPackageRegistrationById(package.Id)).Returns(package);
                 var userService = new Mock<IUserService>();
                 userService.Setup(x => x.FindByUsername(user.Username)).Returns(user);
+                var packageOwnershipManagementService = new Mock<IPackageOwnershipManagementService>();
                 var controller = CreateController(
                     GetConfigurationService(),
                     httpContext: mockHttpContext,
                     packageService: packageService,
-                    userService: userService);
+                    userService: userService,
+                    packageOwnershipManagementService: packageOwnershipManagementService);
                 controller.SetCurrentUser(user);
                 TestUtility.SetupHttpContextMockForUrlGeneration(mockHttpContext, controller);
 
@@ -868,6 +870,7 @@ namespace NuGetGallery
                 // Assert
                 var model = ResultAssert.IsView<PackageOwnerConfirmationModel>(result, "ConfirmOwner");
                 Assert.Equal(ConfirmOwnershipResult.AlreadyOwner, model.Result);
+                packageOwnershipManagementService.Verify(x => x.DeletePackageOwnershipRequestAsync(package, user));
             }
 
             public delegate Expression<Func<IPackageOwnershipManagementService, Task>> PackageOwnershipManagementServiceRequestExpression(PackageRegistration package, User user);
