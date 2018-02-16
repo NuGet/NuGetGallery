@@ -348,15 +348,12 @@ namespace NuGetGallery
         public virtual ActionResult AuthenticateExternal(string returnUrl)
         {
             var user = GetCurrentUser();
-            if (user != null)
-            {
-                var userHasAADCredential = user.Credentials.Any(c => CredentialTypes.IsAzureActiveDirectoryAccount(c.Type));
+            var userHasAADCredential = user?.Credentials.Any(c => CredentialTypes.IsAzureActiveDirectoryAccount(c.Type));
 
-                if (userHasAADCredential)
-                {
-                    TempData["WarningMessage"] = Strings.ChangeCredential_NotAllowed;
-                    return Redirect(returnUrl);
-                }
+            if (userHasAADCredential.HasValue && userHasAADCredential.Value)
+            {
+                TempData["WarningMessage"] = Strings.ChangeCredential_NotAllowed;
+                return Redirect(returnUrl);
             }
 
             string externalAuthProvider = GetExternalProvider();
