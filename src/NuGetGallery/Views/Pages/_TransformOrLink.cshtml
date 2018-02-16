@@ -1,10 +1,4 @@
-﻿@{
-    ViewBag.Title = "TransformOrLinkPage";
-    ViewBag.SmPageColumns = Constants.ColumnsModalSm;
-    ViewBag.MdPageColumns = Constants.ColumnsModalMd;
-}
-
-<div class="@ViewHelpers.GetColumnClasses(ViewBag) modal-box">
+﻿<div class="modal-dialog modal-box">
     <div class="modal-title">
         <span class="title-text">Sign-in with Microsoft corporate account</span>
         <button type="button" class="dismiss-button" data-dismiss="modal" aria-label="Close">
@@ -28,7 +22,7 @@
                 <span>Sign in with Microsoft</span>
             </a>
         </div>
-        <p class="transform-text">If this is a team(DL) based account, you must transform it to an Organization on NuGet.org:</p>
+        <p class="transform-text">If this is a team (DL) based account, you must transform it to an organization on NuGet.org:</p>
         <div class="action-node">
             <a role="button"
                 class="btn btn-default btn-block action-button"

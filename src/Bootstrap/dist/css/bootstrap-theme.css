@@ -293,8 +293,14 @@ img.reserved-indicator-icon {
           align-items: center;
 }
 .modal-container .modal-box {
+  width: -webkit-calc(100% - 40px);
+  width:         calc(100% - 40px);
+  min-width: 320px;
+  max-width: 448px;
+  min-height: 364px;
   padding: 0;
-  margin-left: 37.5%;
+  margin-right: auto;
+  margin-left: auto;
   overflow: hidden;
   background-color: white;
   border-radius: 8px;
