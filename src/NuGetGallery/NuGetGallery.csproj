@@ -1638,8 +1638,8 @@
     <Compile Include="Services\ReflowPackageService.cs" />
     <Compile Include="Services\TelemetryService.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteUserAccountViewModel.cs" />
-    <Compile Include="ViewModels\ListOrganizationsItemViewModel.cs" />
-    <Compile Include="ViewModels\ListOrganizationsViewModel.cs" />
+    <Compile Include="ViewModels\ManageOrganizationsItemViewModel.cs" />
+    <Compile Include="ViewModels\ManageOrganizationsViewModel.cs" />
     <Compile Include="ViewModels\ChangeEmailViewModel.cs" />
     <Compile Include="ViewModels\ChangeNotificationsViewModel.cs" />
     <Compile Include="ViewModels\ChangePasswordViewModel.cs" />
@@ -1802,12 +1802,10 @@
     <Compile Include="Services\IStatisticsService.cs" />
     <Compile Include="Services\FileSystemFileStorageService.cs" />
     <Compile Include="Services\IIndexingService.cs" />
-    <Compile Include="Services\INuGetExeDownloaderService.cs" />
     <Compile Include="Services\IAggregateStatsService.cs" />
     <Compile Include="Services\ISearchService.cs" />
     <Compile Include="Services\IUploadFileService.cs" />
     <Compile Include="Services\LocalFileReference.cs" />
-    <Compile Include="Services\NuGetExeDownloaderService.cs" />
     <Compile Include="Services\NullReportService.cs" />
     <Compile Include="Services\NullStatisticsService.cs" />
     <Compile Include="Services\PackageDeleteService.cs" />
@@ -2175,7 +2173,7 @@
     <Content Include="Views\web.config" />
     <Content Include="Views\_ViewStart.cshtml" />
     <Content Include="Views\Errors\InternalError.cshtml" />
-    <Content Include="Views\Users\Confirm.cshtml" />
+    <Content Include="Views\Shared\Confirm.cshtml" />
     <Content Include="Views\Users\Thanks.cshtml" />
     <Content Include="Views\Users\Profiles.cshtml" />
     <Content Include="Views\Authentication\Register.cshtml" />

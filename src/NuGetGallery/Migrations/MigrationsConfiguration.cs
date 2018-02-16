@@ -16,9 +16,9 @@ namespace NuGetGallery.Migrations
         protected override void Seed(EntitiesContext context)
         {
             var roles = context.Set<Role>();
-            if (!roles.Any(x => x.Name == Constants.AdminRoleName))
+            if (!roles.Any(x => x.Name == CoreConstants.AdminRoleName))
             {
-                roles.Add(new Role { Name = Constants.AdminRoleName });
+                roles.Add(new Role { Name = CoreConstants.AdminRoleName });
                 context.SaveChanges();
             }
 

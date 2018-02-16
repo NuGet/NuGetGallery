@@ -60,4 +60,5 @@
                 }
             }
          </text>,
-         ViewData.ModelState.Keys.Any(x => x.StartsWith("ChangeEmail")))
+         ViewData.ModelState.Keys.Any(x => x.StartsWith("ChangeEmail")),
+         disabled: !Model.CanManage)

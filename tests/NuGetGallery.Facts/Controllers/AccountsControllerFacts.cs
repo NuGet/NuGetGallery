@@ -472,7 +472,9 @@ namespace NuGetGallery
                 account.EmailAddress = null;
 
                 // Act
-                var confirmationUrl = TestUtility.GallerySiteRootHttps + $"account/confirm/{account.Username}/confirmation";
+                var confirmationUrl = (account is Organization)
+                    ? TestUtility.GallerySiteRootHttps + $"organization/{account.Username}/Confirm?token=confirmation"
+                    : TestUtility.GallerySiteRootHttps + $"account/confirm/{account.Username}/confirmation";
                 var result = InvokeConfirmationRequiredPost(controller, account, confirmationUrl);
 
                 // Assert

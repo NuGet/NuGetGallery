@@ -530,7 +530,6 @@
     <Compile Include="TestUtils\Infrastructure\FeedServiceHelpers.cs" />
     <Compile Include="Services\FileSystemFileStorageServiceFacts.cs" />
     <Compile Include="Services\MessageServiceFacts.cs" />
-    <Compile Include="Services\NuGetExeDownloaderServiceFacts.cs" />
     <Compile Include="Services\ODataRemoveSorterFacts.cs" />
     <Compile Include="Services\PackageFileServiceFacts.cs" />
     <Compile Include="Services\PackageDeleteServiceFacts.cs" />
