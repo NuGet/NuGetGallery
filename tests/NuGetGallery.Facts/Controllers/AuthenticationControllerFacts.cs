@@ -994,6 +994,77 @@ namespace NuGetGallery.Controllers
             }
         }
 
+        public class TheAuthenticateExternalAction : TestContainer
+        {
+            [Fact]
+            public void ForAADLinkedAccount_ErrorIsReturned()
+            {
+                var fakes = Get<Fakes>();
+                var aadCred = new CredentialBuilder().CreateExternalCredential("AzureActiveDirectory", "blorg", "bloog");
+                var passwordCred = new Credential("password.v3", "random");
+                var msftCred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "bloom", "filter");
+                var user = fakes.CreateUser("test", aadCred, passwordCred, msftCred);
+                var controller = GetController<AuthenticationController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = controller.AuthenticateExternal("theReturnUrl");
+
+                // Assert
+                ResultAssert.IsRedirectTo(result, "theReturnUrl");
+                Assert.Equal(Strings.ChangeCredential_NotAllowed, controller.TempData["WarningMessage"]);
+            }
+
+            [Fact]
+            public void ForMissingExternalProvider_ErrorIsReturned()
+            {
+                var controller = GetController<AuthenticationController>();
+
+                // Act
+                var result = controller.AuthenticateExternal("theReturnUrl");
+
+                // Assert
+                ResultAssert.IsRedirectTo(result, "theReturnUrl");
+                Assert.Equal(Strings.ChangeCredential_ProviderNotFound, controller.TempData["Message"]);
+            }
+
+            [Fact]
+            public void WillCallChallengeAuthenticationForAADv2ProviderForUserWithNoAADCredential()
+            {
+                // Arrange
+                const string returnUrl = "/theReturnUrl";
+                EnableAllAuthenticators(Get<AuthenticationService>());
+
+                var fakes = Get<Fakes>();
+                var passwordCred = new Credential("password.v3", "random");
+                var msftCred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "bloom", "filter");
+                var user = fakes.CreateUser("test", passwordCred, msftCred);
+                var controller = GetController<AuthenticationController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = controller.AuthenticateExternal(returnUrl);
+
+                // Assert
+                ResultAssert.IsChallengeResult(result, "AzureActiveDirectoryV2", controller.Url.LinkOrChangeExternalCredential(returnUrl));
+            }
+
+            [Fact]
+            public void WillCallChallengeAuthenticationForAADv2Provider()
+            {
+                // Arrange
+                const string returnUrl = "/theReturnUrl";
+                EnableAllAuthenticators(Get<AuthenticationService>());
+                var controller = GetController<AuthenticationController>();
+
+                // Act
+                var result = controller.AuthenticateExternal(returnUrl);
+
+                // Assert
+                ResultAssert.IsChallengeResult(result, "AzureActiveDirectoryV2", controller.Url.LinkOrChangeExternalCredential(returnUrl));
+            }
+        }
+
         public class TheLinkExternalAccountAction : TestContainer
         {
             [Fact]
