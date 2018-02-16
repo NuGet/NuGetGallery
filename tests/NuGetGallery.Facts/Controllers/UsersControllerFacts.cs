@@ -1604,26 +1604,6 @@ namespace NuGetGallery
         public class TheLinkOrChangeCredentialAction : TestContainer
         {
             [Fact]
-            public void ForAADLinkedAccount_ErrorIsReturned()
-            {
-                // Arrange
-                var fakes = Get<Fakes>();
-                var aadCred = new CredentialBuilder().CreateExternalCredential("AzureActiveDirectory", "blorg", "bloog");
-                var passwordCred = new Credential("password.v3", "random");
-                var msftCred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "bloom", "filter");
-                var user = fakes.CreateUser("test", aadCred, passwordCred, msftCred);
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(user);
-
-                // Act
-                var result = controller.LinkOrChangeExternalCredential();
-
-                // Assert
-                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
-                Assert.Equal(Strings.ChangeCredential_NotAllowed, controller.TempData["WarningMessage"]);
-            }
-
-            [Fact]
             public void ForNonAADLinkedAccount_RedirectsToAuthenticateExternalLogin()
             {
                 // Arrange

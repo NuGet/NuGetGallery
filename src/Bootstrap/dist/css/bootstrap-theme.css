@@ -293,8 +293,14 @@ img.reserved-indicator-icon {
           align-items: center;
 }
 .modal-container .modal-box {
+  width: -webkit-calc(100% - 40px);
+  width:         calc(100% - 40px);
+  min-width: 320px;
+  max-width: 448px;
+  min-height: 364px;
   padding: 0;
-  margin-left: 37.5%;
+  margin-right: auto;
+  margin-left: auto;
   overflow: hidden;
   background-color: white;
   border-radius: 8px;
@@ -304,9 +310,6 @@ img.reserved-indicator-icon {
   color: white;
   background-color: #4181b8;
 }
-.modal-container .modal-box .modal-title .title-text {
-  vertical-align: top;
-}
 .modal-container .modal-box .modal-title .dismiss-button {
   float: right;
   padding: 0;
@@ -315,30 +318,27 @@ img.reserved-indicator-icon {
   border: 0;
 }
 .modal-container .modal-box .modal-body {
-  padding: 15px;
+  padding: 0;
 }
 .modal-container .modal-box .modal-body .tag-node {
   padding: 13px;
-  margin: -15px;
   text-align: left;
   background-color: #fff4ce;
 }
-.modal-container .modal-box .modal-body .error-message {
-  margin-right: -15px;
-  margin-left: -15px;
+.modal-container .modal-box .modal-body .tag-node .title-text {
+  vertical-align: top;
 }
-.modal-container .modal-box .modal-body .signin-node {
-  padding: 15% 15%;
-  margin-top: 16px;
+.modal-container .modal-box .modal-body .action-node {
+  padding: 9% 6%;
   text-align: center;
 }
-.modal-container .modal-box .modal-body .signin-node .provider-button {
+.modal-container .modal-box .modal-body .action-button {
   font-size: 16px;
   line-height: 2em;
 }
-.modal-container .modal-box .modal-body .transform-node {
-  margin-bottom: 10px;
-  text-align: center;
+.modal-container .modal-box .modal-body .transform-text {
+  padding: 0 15px;
+  margin: 0;
 }
 #edit-metadata-form-container .loading:after {
   display: inline-block;
