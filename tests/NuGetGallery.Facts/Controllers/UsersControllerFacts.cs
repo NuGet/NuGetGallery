@@ -283,7 +283,7 @@ namespace NuGetGallery
 
                 Assert.NotNull(result);
                 Assert.IsNotType(typeof(RedirectResult), result);
-                Assert.Contains(Strings.CouldNotFindAnyoneWithThatUsernameOrEmail, result.ViewData.ModelState["Email"].Errors.Select(e => e.ErrorMessage));
+                Assert.Contains(Strings.CouldNotFindAnyoneWithThatUsernameOrEmail, result.ViewData.ModelState[string.Empty].Errors.Select(e => e.ErrorMessage));
             }
 
             [Fact]
@@ -301,7 +301,7 @@ namespace NuGetGallery
 
                 Assert.NotNull(result);
                 Assert.IsNotType(typeof(RedirectResult), result);
-                Assert.Contains(Strings.UserIsNotYetConfirmed, result.ViewData.ModelState["Email"].Errors.Select(e => e.ErrorMessage));
+                Assert.Contains(Strings.UserIsNotYetConfirmed, result.ViewData.ModelState[string.Empty].Errors.Select(e => e.ErrorMessage));
             }
 
             [Fact]
@@ -2295,8 +2295,8 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.NotNull(result);
-                Assert.Equal(1, controller.ModelState["AdminUsername"].Errors.Count);
-                Assert.Equal("error", controller.ModelState["AdminUsername"].Errors.First().ErrorMessage);
+                Assert.Equal(1, controller.ModelState[string.Empty].Errors.Count);
+                Assert.Equal("error", controller.ModelState[string.Empty].Errors.First().ErrorMessage);
             }
 
             [Fact]
@@ -2314,11 +2314,11 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.NotNull(result);
-                Assert.Equal(1, controller.ModelState["AdminUsername"].Errors.Count);
+                Assert.Equal(1, controller.ModelState[string.Empty].Errors.Count);
                 Assert.Equal(
                     String.Format(CultureInfo.CurrentCulture,
                         Strings.TransformAccount_AdminAccountDoesNotExist, "AdminThatDoesNotExist"),
-                    controller.ModelState["AdminUsername"].Errors.First().ErrorMessage);
+                    controller.ModelState[string.Empty].Errors.First().ErrorMessage);
             }
 
             [Fact]
