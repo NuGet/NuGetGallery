@@ -3,16 +3,21 @@
 <script type="text/html" id="autocomplete-results-row">
     <!-- ko if: $data -->
     <!-- ko if: $data.PackageRegistration -->
-    <div class="col-sm-4 autocomplete-row-id">
-        <a data-bind="attr: { id: $data.PackageRegistration.Id + '-column', href: '/packages/' + $data.PackageRegistration.Id, title: $data.PackageRegistration.Id }, text: $data.PackageRegistration.Id" tabindex="-1"></a>
+    <div class="col-sm-4 autocomplete-row-id autocomplete-row-data">
+        <span data-bind="attr: { id: 'autocomplete-result-id-' + $data.PackageRegistration.Id, title: $data.PackageRegistration.Id }, text: $data.PackageRegistration.Id"></span>
     </div>
-    <div class="col-sm-8 autocomplete-row-description">
-        <span data-bind="text: $data.Description"></span>
+    <div class="col-sm-4 autocomplete-row-downloadcount text-right autocomplete-row-data">
+        <span data-bind="text: $data.DownloadCount + ' downloads'"></span>
+    </div>
+    <div class="col-sm-4 autocomplete-row-owners text-right autocomplete-row-data">
+        <div data-bind="foreach: $data.PackageRegistration.Owners">
+            <span data-bind="text: $data.Username + ' '"></span>
+        </div>
     </div>
     <!-- /ko -->
     <!-- ko ifnot: $data.PackageRegistration -->
-    <div class="col-sm-12 autocomplete-row-id">
-        <a data-bind="attr: { id: $data + '-column', href: '/packages/' + $data, title: $data  }, text: $data" tabindex="-1"></a>
+    <div class="col-sm-12 autocomplete-row-id autocomplete-row-data">
+        <span data-bind="attr: { id: 'autocomplete-result-id-' + $data, title: $data  }, text: $data"></span>
     </div>
     <!-- /ko -->
     <!-- /ko -->
@@ -21,8 +26,8 @@
 <script type="text/html" id="autocomplete-results-template">
     <!-- ko if: $data.data.length > 0 -->
     <div data-bind="foreach: $data.data" id="autocomplete-results-list">
-        <a data-bind="attr: { id: $data + '-column', href: '/packages/' + $data, title: $data }" tabindex="-1">
-            <div data-bind="attr:{ id: 'autocomplete-container-' + $data }">
+        <a data-bind="attr: { id: 'autocomplete-result-row-' + $data, href: '/packages/' + $data, title: $data }" tabindex="-1">
+            <div data-bind="attr:{ id: 'autocomplete-container-' + $data }" class="autocomplete-results-row">
             </div>
         </a>
     </div>
