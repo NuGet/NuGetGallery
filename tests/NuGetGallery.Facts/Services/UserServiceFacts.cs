@@ -146,12 +146,16 @@ namespace NuGetGallery
                 var service = new TestableUserService();
 
                 // Act & Assert
-                await Assert.ThrowsAsync<EntityException>(async () =>
+                var exception = await Assert.ThrowsAsync<EntityException>(async () =>
                 {
                     await service.DeleteMemberAsync(fakes.Organization, fakes.OrganizationAdmin.Username);
                 });
 
                 service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
+
+                Assert.Equal(
+                    Strings.DeleteMember_CannotRemoveLastAdmin,
+                    exception.Message);
             }
 
             [Fact]
@@ -227,12 +231,15 @@ namespace NuGetGallery
                 var service = new TestableUserService();
 
                 // Act & Assert
-                await Assert.ThrowsAsync<EntityException>(async () =>
+                var exception = await Assert.ThrowsAsync<EntityException>(async () =>
                 {
                     await service.UpdateMemberAsync(fakes.Organization, fakes.OrganizationAdmin.Username, false);
                 });
 
                 service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
+                Assert.Equal(
+                    Strings.UpdateMember_CannotRemoveLastAdmin,
+                    exception.Message);
             }
 
             [Fact]
