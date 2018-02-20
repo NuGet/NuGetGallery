@@ -91,7 +91,7 @@
             <table class="table">
                 <thead>
                     <tr class="manage-package-headings">
-                        <th class="hidden-xs"><span class="hidden">Icon</span></th>
+                        <th class="hidden-xs"><span class="hidden">Package Icon</span></th>
                         <th>Package ID</th>
                         <th>Owners</th>
                         <th>Downloads</th>
@@ -102,8 +102,8 @@
                 <tbody data-bind="foreach: Packages">
                     <tr class="manage-package-listing" data-bind="visible: Visible">
                         <td class="align-middle hidden-xs">
-                            <img class="package-icon img-responsive" aria-hidden="true" alt=""
-                                 data-bind="attr: { src: PackageIconUrl, onerror: PackageIconUrlFallback }" />
+                            <img class="package-icon img-responsive" aria-hidden="true"
+                                 data-bind="attr: { src: PackageIconUrl, onerror: PackageIconUrlFallback, alt: 'Icon for ' + Id }" />
                         </td>
                         <td class="align-middle package-id">
                             <a title="View Package" data-bind="attr: { href: PackageUrl }">
@@ -158,7 +158,7 @@
             <table class="table">
                 <thead>
                     <tr class="manage-package-headings">
-                        <th class="hidden-xs"></th>
+                        <th class="hidden-xs"><span class="hidden">Reserved Namespace Icon</span></th>
                         <th>Package ID or Prefix</th>
                         <th>Owners</th>
                         <th>Upload Restrictions</th>
@@ -169,6 +169,7 @@
                         <td class="align-middle hidden-xs">
                             <img class="reserved-indicator-icon img-responsive"
                                  src="~/Content/gallery/img/reserved-indicator.svg"
+                                 alt="Reserved namespace icon"
                                  @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-256x256.png"))
                                  title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
                         </td>
@@ -205,8 +206,8 @@
                 <tbody data-bind="foreach: Requests">
                     <tr class="manage-package-listing" data-bind="visible: Visible">
                         <td class="align-middle hidden-xs">
-                            <img class="package-icon img-responsive" aria-hidden="true" alt=""
-                                 data-bind="attr: { src: PackageIconUrl, onerror: PackageIconUrlFallback }" />
+                            <img class="package-icon img-responsive" aria-hidden="true"
+                                 data-bind="attr: { src: PackageIconUrl, onerror: PackageIconUrlFallback, alt: 'Icon for ' + Id }" />
                         </td>
                         <td class="align-middle package-id">
                             <a title="View Package" data-bind="attr: { href: PackageUrl }">
