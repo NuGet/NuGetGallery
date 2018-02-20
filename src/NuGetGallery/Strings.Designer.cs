@@ -623,6 +623,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You can&apos;t leave the organization. In order to leave the organization, another collaborator must be assigned as an administrator..
+        /// </summary>
+        public static string DeleteMember_CannotRemoveLastAdmin {
+            get {
+                return ResourceManager.GetString("DeleteMember_CannotRemoveLastAdmin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Organization member was deleted..
         /// </summary>
         public static string DeleteMember_Success {
@@ -1701,11 +1710,11 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Organization member &apos;{0}&apos; is the last admin and cannot be changed..
+        ///   Looks up a localized string similar to You can&apos;t change your role to collaborator. In order to change, another collaborator must be assigned as an administrator..
         /// </summary>
-        public static string UpdateOrDeleteMember_CannotRemoveLastAdmin {
+        public static string UpdateMember_CannotRemoveLastAdmin {
             get {
-                return ResourceManager.GetString("UpdateOrDeleteMember_CannotRemoveLastAdmin", resourceCulture);
+                return ResourceManager.GetString("UpdateMember_CannotRemoveLastAdmin", resourceCulture);
             }
         }
         

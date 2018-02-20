@@ -377,7 +377,15 @@ namespace NuGetGallery
             {
                 var existingOwner1 = new User { Key = 100, Username = "microsoft" };
                 var package = new PackageRegistration { Key = 2, Id = "Microsoft.Aspnet.Package1", IsVerified = true, Owners = new List<User> { existingOwner1 } };
-                var adminOwner = new User { Key = 100, Username = "aspnet", Roles = new List<Role> { new Role { Name = Constants.AdminRoleName } } };
+                var adminOwner = new User
+                {
+                    Key = 100,
+                    Username = "aspnet",
+                    Roles = new List<Role>
+                    {
+                        new Role { Name = CoreConstants.AdminRoleName }
+                    }
+                };
                 var existingNamespace1 = new ReservedNamespace("microsoft.aspnet.", isSharedNamespace: false, isPrefix: true);
                 existingOwner1.ReservedNamespaces.Add(existingNamespace1);
                 package.ReservedNamespaces.Add(existingNamespace1);

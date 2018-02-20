@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net;
+using System.Net.Mail;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGetGallery.Areas.Admin;
@@ -59,6 +60,19 @@ namespace NuGetGallery
             EmailUpdated = Strings.UserEmailUpdated,
             EmailUpdatedWithConfirmationRequired = Strings.UserEmailUpdatedWithConfirmationRequired
         };
+
+        protected override void SendNewAccountEmail(User account)
+        {
+            var confirmationUrl = Url.ConfirmEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false);
+
+            MessageService.SendNewAccountEmail(new MailAddress(account.UnconfirmedEmailAddress, account.Username), confirmationUrl);
+        }
+
+        protected override void SendEmailChangedConfirmationNotice(User account)
+        {
+            var confirmationUrl = Url.ConfirmEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false);
+            MessageService.SendEmailChangeConfirmationNotice(new MailAddress(account.UnconfirmedEmailAddress, account.Username), confirmationUrl);
+        }
 
         protected override User GetAccount(string accountName)
         {
@@ -596,15 +610,6 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual ActionResult LinkOrChangeExternalCredential()
         {
-            var user = GetCurrentUser();
-            var userHasAADCredential = user.Credentials.Any(c => CredentialTypes.IsAzureActiveDirectoryAccount(c.Type));
-
-            if (userHasAADCredential)
-            {
-                TempData["WarningMessage"] = Strings.ChangeCredential_NotAllowed;
-                return RedirectToAction("Account");
-            }
-
             return Redirect(Url.AuthenticateExternal(Url.AccountSettings()));
         }
 

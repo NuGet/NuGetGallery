@@ -924,11 +924,26 @@ namespace NuGetGallery
         {
             var routeValues = new RouteValueDictionary
             {
-                ["username"] = username,
+                ["accountName"] = username,
                 ["token"] = token
             };
 
             return GetActionLink(url, "Confirm", "Users", relativeUrl, routeValues);
+        }
+
+        public static string ConfirmOrganizationEmail(
+            this UrlHelper url,
+            string username,
+            string token,
+            bool relativeUrl = true)
+        {
+            var routeValues = new RouteValueDictionary
+            {
+                ["accountName"] = username,
+                ["token"] = token
+            };
+
+            return GetActionLink(url, "Confirm", "Organizations", relativeUrl, routeValues);
         }
 
         public static string ResetEmailOrPassword(
@@ -1033,7 +1048,8 @@ namespace NuGetGallery
                 {
                     { "provider", providerName },
                     { "returnUrl", returnUrl }
-                });
+                }, 
+                interceptReturnUrl: false);
         }
 
         public static string RemoveCredential(this UrlHelper url, bool relativeUrl = true)

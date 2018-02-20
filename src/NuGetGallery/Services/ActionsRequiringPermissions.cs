@@ -94,5 +94,12 @@ namespace NuGetGallery
         public static ActionRequiringAccountPermissions ManageAccount =
             new ActionRequiringAccountPermissions(
                 accountPermissionsRequirement: RequireOwnerOrOrganizationAdmin);
+
+        /// <summary>
+        /// The action of viewing (read-only) a user or organization account.
+        /// </summary>
+        public static ActionRequiringAccountPermissions ViewAccount =
+            new ActionRequiringAccountPermissions(
+                accountPermissionsRequirement: RequireOwnerOrOrganizationMember);
     }
 }

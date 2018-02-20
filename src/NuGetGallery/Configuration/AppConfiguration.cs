@@ -48,9 +48,6 @@ namespace NuGetGallery.Configuration
         [DisplayName("AzureStorage.Errors.ConnectionString")]
         public string AzureStorage_Errors_ConnectionString { get; set; }
 
-        [DisplayName("AzureStorage.NuGetExe.ConnectionString")]
-        public string AzureStorage_NuGetExe_ConnectionString { get; set; }
-
         [DisplayName("AzureStorage.Packages.ConnectionString")]
         public string AzureStorage_Packages_ConnectionString { get; set; }
 
