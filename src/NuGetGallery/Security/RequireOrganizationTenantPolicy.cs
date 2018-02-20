@@ -75,7 +75,7 @@ namespace NuGetGallery.Security
             var targetCredential = targetAccount.Credentials.GetAzureActiveDirectoryCredential();
 
             if (targetCredential == null
-                || !targetCredential.TenantId.Equals(state.Tenant, StringComparison.OrdinalIgnoreCase))
+                || !state.Tenant.Equals(targetCredential.TenantId, StringComparison.OrdinalIgnoreCase))
             {
                 return SecurityPolicyResult.CreateErrorResult(string.Format(CultureInfo.CurrentCulture,
                         Strings.AddMember_UserDoesNotMeetOrganizationPolicy, targetAccount.Username));

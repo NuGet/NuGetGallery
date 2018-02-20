@@ -608,15 +608,6 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual ActionResult LinkOrChangeExternalCredential()
         {
-            var user = GetCurrentUser();
-            var userHasAADCredential = user.Credentials.Any(c => CredentialTypes.IsAzureActiveDirectoryAccount(c.Type));
-
-            if (userHasAADCredential)
-            {
-                TempData["WarningMessage"] = Strings.ChangeCredential_NotAllowed;
-                return RedirectToAction("Account");
-            }
-
             return Redirect(Url.AuthenticateExternal(Url.AccountSettings()));
         }
 
