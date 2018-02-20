@@ -9,10 +9,8 @@
     <div class="col-sm-4 autocomplete-row-downloadcount text-right autocomplete-row-data">
         <span data-bind="text: $data.DownloadCount + ' downloads'"></span>
     </div>
-    <div class="col-sm-4 autocomplete-row-owners text-right autocomplete-row-data">
-        <div data-bind="foreach: $data.PackageRegistration.Owners">
-            <span data-bind="text: $data.Username + ' '"></span>
-        </div>
+    <div class="col-sm-4 autocomplete-row-owners text-left autocomplete-row-data">
+        <span data-bind="text: $data.OwnersString + ' '"></span>
     </div>
     <!-- /ko -->
     <!-- ko ifnot: $data.PackageRegistration -->

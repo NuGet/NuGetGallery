@@ -159,6 +159,7 @@
                 var dataList = data.Data;
                 for (var i = 0; i < dataList.length; i++) {
                     var dataBlock = dataList[i];
+                    dataBlock.OwnersString = dataBlock.PackageRegistration.Owners.reduce(function (out, input) { return out + " " + input.Username; }, "");
                     var someId = dataBlock.PackageRegistration.Id;
 
                     if (_resultsCache[safeId(someId)]) {
