@@ -104,18 +104,21 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
         public async Task RevokedEndCertificate()
         {
             // Arrange - create a revocation date with no milliseconds
+            var crlUpdateTime = DateTimeOffset.Parse("10/21/1995 4:05:06 PM");
             var revocationDate = DateTimeOffset.Parse("02/18/1994 1:02:03 PM");
 
-            var certificate = await _fixture.GetRevokedSigningCertificateAsync(revocationDate);
+            using (var revokedChain = await _fixture.GetRevokedSigningCertificateAsync(revocationDate, crlUpdateTime))
+            {
+                // Act & assert
+                var result = _target.VerifyCodeSigningCertificate(revokedChain.EndCertificate, new X509Certificate2[0]);
 
-            // Act & assert
-            var result = _target.VerifyCodeSigningCertificate(certificate, new X509Certificate2[0]);
-
-            Assert.Equal(EndCertificateStatus.Revoked, result.Status);
-            Assert.Equal(X509ChainStatusFlags.Revoked, result.StatusFlags);
-            Assert.NotNull(result.StatusUpdateTime);
-            Assert.NotNull(result.RevocationTime);
-            Assert.Equal(revocationDate, result.RevocationTime.Value);
+                Assert.Equal(EndCertificateStatus.Revoked, result.Status);
+                Assert.Equal(X509ChainStatusFlags.Revoked, result.StatusFlags);
+                Assert.NotNull(result.StatusUpdateTime);
+                Assert.NotNull(result.RevocationTime);
+                Assert.Equal(crlUpdateTime, result.StatusUpdateTime.Value);
+                Assert.Equal(revocationDate, result.RevocationTime.Value);
+            }
         }
 
         [Fact]

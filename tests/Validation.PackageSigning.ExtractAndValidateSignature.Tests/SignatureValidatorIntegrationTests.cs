@@ -22,7 +22,7 @@ using NuGet.Services.Validation;
 using NuGet.Services.Validation.Issues;
 using NuGetGallery;
 using Test.Utility.Signing;
-using Validation.PackageSigning.ExtractAndValidateSignature.Tests.Support;
+using Validation.PackageSigning.Core.Tests.Support;
 using Xunit;
 using Xunit.Abstractions;
 using NuGetHashAlgorithmName = NuGet.Common.HashAlgorithmName;

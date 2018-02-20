@@ -32,7 +32,7 @@ namespace Validation.PackageSigning.Core.Tests.Support
         private readonly Lazy<Task<X509Certificate2>> _signingCertificate;
         private readonly Lazy<Task<string>> _signingCertificateThumbprint;
         private TrustedTestCert<X509Certificate2> _trustedRoot;
-        private readonly DisposableList _responders;
+        private readonly DisposableList<IDisposable> _responders;
 
         public CertificateIntegrationTestFixture()
         {
@@ -47,7 +47,7 @@ namespace Validation.PackageSigning.Core.Tests.Support
             _timestampServiceUrl = new Lazy<Task<Uri>>(CreateDefaultTrustedTimestampServiceUrlAsync);
             _signingCertificate = new Lazy<Task<X509Certificate2>>(CreateDefaultTrustedSigningCertificateAsync);
             _signingCertificateThumbprint = new Lazy<Task<string>>(GetDefaultTrustedSigningCertificateThumbprintAsync);
-            _responders = new DisposableList();
+            _responders = new DisposableList<IDisposable>();
         }
 
         public Task<SigningTestServer> GetTestServerAsync() => _testServer.Value;
@@ -62,7 +62,7 @@ namespace Validation.PackageSigning.Core.Tests.Support
 
         protected Task<CertificateAuthority> GetRootCertificateAuthority() => _rootCertificateAuthority.Value;
         protected Task<CertificateAuthority> GetCertificateAuthority() => _certificateAuthority.Value;
-        protected DisposableList GetResponders() => _responders;
+        protected DisposableList<IDisposable> GetResponders() => _responders;
 
         public void Dispose()
         {
@@ -141,11 +141,16 @@ namespace Validation.PackageSigning.Core.Tests.Support
             Action<X509V3CertificateGenerator> customizeCertificate)
         {
             var keyPair = SigningTestUtility.GenerateKeyPair(publicKeyLength: 2048);
-            var publicCertificate = ca.IssueCertificate(
-                keyPair.Public,
-                new X509Name($"C=US,ST=WA,L=Redmond,O=NuGet,CN=NuGet Test ${name} Certificate ({Guid.NewGuid()})"),
-                customizeCertificate,
-                notBefore: DateTime.UtcNow.AddSeconds(-10));
+
+            var publicCertificate = ca.IssueCertificate(new IssueCertificateOptions
+            {
+                CustomizeCertificate = customizeCertificate,
+                NotAfter = DateTime.UtcNow.AddMinutes(10),
+                NotBefore = DateTime.UtcNow.AddSeconds(-10),
+                KeyPair = keyPair,
+
+                SubjectName = new X509Name($"C=US,ST=WA,L=Redmond,O=NuGet,CN=NuGet Test ${name} Certificate ({Guid.NewGuid()})")
+            });
 
             var certificate = new X509Certificate2(publicCertificate.GetEncoded());
             certificate.PrivateKey = DotNetUtilities.ToRSA(keyPair.Private as RsaPrivateCrtKeyParameters);
