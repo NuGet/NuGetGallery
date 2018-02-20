@@ -7,7 +7,6 @@ namespace NuGetGallery
 {
     public static class Constants
     {
-        public const string AdminRoleName = "Admins";
         public const string AlphabeticSortOrder = "package-title";
         public const int DefaultPackageListPageSize = 20;
         public const string DefaultPackageListSortOrder = "package-download-count";
@@ -18,8 +17,6 @@ namespace NuGetGallery
         public const int ColumnsWideAuthenticationSm = 8;
         public const int ColumnsWideAuthenticationMd = 6;
         public const int ColumnsFormMd = 10;
-        public const int ColumnsModalSm = 3;
-        public const int ColumnsModalMd = 3;
 
         public const int VisibleVersions = 5;
 
@@ -52,7 +49,6 @@ namespace NuGetGallery
         public const string RelevanceSortOrder = "relevance";
 
         public const string Sha1HashAlgorithmId = "SHA1";
-        public const string Sha512HashAlgorithmId = "SHA512";
         public const string PBKDF2HashAlgorithmId = "PBKDF2";
 
         public const string UploadFileNameTemplate = "{0}{1}";

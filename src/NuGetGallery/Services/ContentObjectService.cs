@@ -28,13 +28,14 @@ namespace NuGetGallery
         public async Task Refresh()
         {
             LoginDiscontinuationConfiguration = 
-                await Refresh<LoginDiscontinuationConfiguration>(Constants.ContentNames.LoginDiscontinuationConfiguration);
+                await Refresh<LoginDiscontinuationConfiguration>(Constants.ContentNames.LoginDiscontinuationConfiguration) ??
+                new LoginDiscontinuationConfiguration();
         }
 
         private async Task<T> Refresh<T>(string contentName) 
             where T : class
         {
-            var configString = (await _contentService.GetContentItemAsync(contentName, TimeSpan.FromHours(RefreshIntervalHours))).ToString();
+            var configString = (await _contentService.GetContentItemAsync(contentName, TimeSpan.FromHours(RefreshIntervalHours)))?.ToString();
             if (string.IsNullOrEmpty(configString))
             {
                 return null;

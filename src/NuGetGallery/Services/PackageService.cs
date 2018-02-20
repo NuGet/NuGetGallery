@@ -318,7 +318,7 @@ namespace NuGetGallery
                 .Distinct();
         }
 
-        public IEnumerable<PackageRegistration> FindPackageRegistrationsByOwner(User user)
+        public IQueryable<PackageRegistration> FindPackageRegistrationsByOwner(User user)
         {
             return _packageRegistrationRepository.GetAll().Where(p => p.Owners.Any(o => o.Key == user.Key));
         }

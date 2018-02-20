@@ -40,6 +40,7 @@ namespace NuGetGallery
         public const string ClientVersion = "ClientVersion";
         public const string ProtocolVersion = "ProtocolVersion";
         public const string ClientInformation = "ClientInformation";
+        public const string IsAuthenticated = "IsAuthenticated";
         public const string IsScoped = "IsScoped";
         public const string KeyCreationDate = "KeyCreationDate";
         public const string PackageId = "PackageId";

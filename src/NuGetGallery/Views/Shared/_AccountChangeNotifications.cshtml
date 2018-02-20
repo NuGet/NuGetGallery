@@ -62,7 +62,7 @@
                         @Html.ShowCheckboxFor(x => x.ChangeNotifications.EmailAllowed)
                         <b>@ViewBag.EmailAllowedLabel</b>
                     </label>
-                    <div class="label-sibling">@Html.Raw(ViewBag.EmailAllowedDescription)</div>
+                    <div id="emailallowed-label" class="label-sibling">@Html.Raw(ViewBag.EmailAllowedDescription)</div>
                 </div>
 
                 <div class="checkbox">
@@ -70,7 +70,7 @@
                         @Html.ShowCheckboxFor(x => x.ChangeNotifications.NotifyPackagePushed)
                         <b>@ViewBag.NotifyPackagePushedLabel</b>
                     </label>
-                    <div class="label-sibling">@ViewBag.NotifyPackagePushedDescription</div>
+                    <div id="notifypackagepushed-label" class="label-sibling">@ViewBag.NotifyPackagePushedDescription</div>
                 </div>
 
                 <p><strong>Note: </strong>@ViewBag.PrivacyNotice</p>
@@ -86,4 +86,5 @@
                     </div>
                 </div>
             }
-        </text>)
+        </text>,
+        disabled: !Model.CanManage)

@@ -5,11 +5,15 @@ namespace NuGetGallery
 {
     public static class CoreConstants
     {
+        public const string AdminRoleName = "Admins";
+
         public const int MaxPackageIdLength = 128;
 
         public const string PackageFileSavePathTemplate = "{0}.{1}{2}";
 
         public const string NuGetPackageFileExtension = ".nupkg";
+
+        public const string Sha512HashAlgorithmId = "SHA512";
 
         public const string PackageContentType = "binary/octet-stream";
         public const string OctetStreamContentType = "application/octet-stream";

@@ -89,7 +89,7 @@ namespace NuGetGallery
 
             return IsRequirementSatisfied(
                 permissionsRequirement,
-                currentUser.IsAdministrator(),
+                currentUser.IsAdministrator,
                 u => currentUser.MatchesUser(u),
                 entityOwners);
         }
@@ -114,20 +114,19 @@ namespace NuGetGallery
                 return true;
             }
 
-            var matchingMembers = entityOwners
-                .OfType<Organization>()
-                .SelectMany(o => o.Members)
-                .Where(m => isUserMatch(m.Member))
-                .ToList();
+            var entityOrganizationOwners = entityOwners
+                .OfType<Organization>();
 
+            // use cached Administrators collection to avoid querying members directly
             if (WouldSatisfy(PermissionsRequirement.OrganizationAdmin, permissionsRequirement) &&
-                matchingMembers.Any(m => m.IsAdmin))
+                entityOrganizationOwners.Any(o => o.Administrators.Any(m => isUserMatch(m))))
             {
                 return true;
             }
 
+            // use cached Collaborators collection to avoid querying members directly
             if (WouldSatisfy(PermissionsRequirement.OrganizationCollaborator, permissionsRequirement) &&
-                matchingMembers.Any(m => !m.IsAdmin))
+                entityOrganizationOwners.Any(o => o.Collaborators.Any(m => isUserMatch(m))))
             {
                 return true;
             }

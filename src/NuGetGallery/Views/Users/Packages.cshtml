@@ -18,7 +18,7 @@
                 <h1 class="pull-left">Manage Packages</h1>
                 <div class="text-center ms-font-xxl">
                     <span class="form-section-data">
-                        <select id="ownerFilter" class="form-control pull-right hidden"
+                        <select id="ownerFilter" class="form-control pull-right hidden" aria-label="Filter on package owner"
                                 data-bind="options: Owners, value: OwnerFilter, optionsText: 'Username'"></select>
                     </span>
                 </div>
@@ -47,8 +47,8 @@
             @if (namespacesCount > 0)
             {
                 @ViewHelpers.Section(this, "namespaces",
-                            @<text>Reserved Namespaces</text>,
-                        @<text>@Html.Raw(namespacesCount + " namespace" + (namespacesCount == 1 ? "" : "s"))</text>,
+                    @<text>Reserved Namespaces</text>,
+                    @<text>@Html.Raw(namespacesCount + " namespace" + (namespacesCount == 1 ? "" : "s"))</text>,
                     @<text>
                         @Html.Partial("_ReservedNamespacesList", Model.ReservedNamespaces)
                     </text>, expanded: false)
@@ -57,21 +57,21 @@
             @if (Model.OwnerRequests.Received.RequestItems.Any())
             {
                 @ViewHelpers.Section(this, "requests-received",
-                            @<text>Ownership Requests (Received)</text>,
-                            @<text>@Html.Raw(ownerRequestsReceivedCount + " request" + (ownerRequestsReceivedCount == 1 ? "" : "s"))</text>,
-                            @<text>
-                                @Html.Partial("_OwnerRequestsList", Model.OwnerRequests.Received)
-                            </text>, expanded: false)
+                    @<text>Ownership Requests (Received)</text>,
+                    @<text>@Html.Raw(ownerRequestsReceivedCount + " request" + (ownerRequestsReceivedCount == 1 ? "" : "s"))</text>,
+                    @<text>
+                        @Html.Partial("_OwnerRequestsList", Model.OwnerRequests.Received)
+                    </text>, expanded: false)
             }
 
             @if (Model.OwnerRequests.Sent.RequestItems.Any())
             {
                 @ViewHelpers.Section(this, "requests-sent",
-                            @<text>Ownership Requests (Sent)</text>,
-                            @<text>@Html.Raw(ownerRequestsSentCount + " request" + (ownerRequestsSentCount == 1 ? "" : "s"))</text>,
-                            @<text>
-                                @Html.Partial("_OwnerRequestsList", Model.OwnerRequests.Sent)
-                            </text>, expanded: false)
+                    @<text>Ownership Requests (Sent)</text>,
+                    @<text>@Html.Raw(ownerRequestsSentCount + " request" + (ownerRequestsSentCount == 1 ? "" : "s"))</text>,
+                    @<text>
+                        @Html.Partial("_OwnerRequestsList", Model.OwnerRequests.Sent)
+                    </text>, expanded: false)
             }
         </div>
 </section>
@@ -82,12 +82,12 @@
             <table class="table">
                 <thead>
                     <tr class="manage-package-headings">
-                        <th class="hidden-xs"></th>
+                        <th class="hidden-xs"><span class="hidden">Icon</span></th>
                         <th>Package ID</th>
                         <th>Owners</th>
                         <th>Downloads</th>
                         <th>Latest Version</th>
-                        <th></th>
+                        <th><span class="hidden">Icon</span></th>
                     </tr>
                 </thead>
                 <tbody data-bind="foreach: Packages">
