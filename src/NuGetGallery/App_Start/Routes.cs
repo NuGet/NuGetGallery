@@ -298,6 +298,11 @@ namespace NuGetGallery
                 new { controller = "Users", action = "Account" });
 
             routes.MapRoute(
+                RouteName.CreateOrganization,
+                "organization/create",
+                new { controller = "Organizations", action = "Create" });
+
+            routes.MapRoute(
                 RouteName.OrganizationAccount,
                 "organization/{accountName}/{action}",
                 new { controller = "Organizations", action = "ManageOrganization" },

@@ -688,7 +688,7 @@ namespace NuGetGallery
                 // Assert
                 Assert.False(result);
                 Assert.Equal(errorReason, String.Format(CultureInfo.CurrentCulture,
-                    Strings.TransformAccount_FailedReasonNotInDomainWhitelist, user.Username));
+                    Strings.Organizations_NotInDomainWhitelist, user.Username));
             }
 
             [Fact]

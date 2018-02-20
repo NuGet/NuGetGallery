@@ -4,10 +4,17 @@
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
-<section role="main" class="container main-container manage-packages">
+<section role="main" class="container main-container page-manage-packages">
     <div class="row">
         <div class="col-md-12">
-            <h1>Organizations</h1>
+
+            <div class="clearfix">
+                <h1 class="pull-left">Organizations</h1>
+                <form class="form-section-title pull-right" action="@Url.CreateOrganization()">
+                    <input type="submit" class="btn btn-primary" value="Create" />
+                </form>
+            </div>
+
             @if (Model.Organizations.Any())
             {
                 var orgCount = Model.Organizations.Count();
