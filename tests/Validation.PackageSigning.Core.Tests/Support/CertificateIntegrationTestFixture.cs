@@ -52,7 +52,12 @@ namespace Validation.PackageSigning.Core.Tests.Support
 
         public Task<SigningTestServer> GetTestServerAsync() => _testServer.Value;
         public Task<Uri> GetTimestampServiceUrlAsync() => _timestampServiceUrl.Value;
-        public Task<X509Certificate2> GetSigningCertificateAsync() => _signingCertificate.Value;
+
+        public async Task<X509Certificate2> GetSigningCertificateAsync()
+        {
+            return new X509Certificate2(await _signingCertificate.Value);
+        }
+
         public Task<string> GetSigningCertificateThumbprintAsync() => _signingCertificateThumbprint.Value;
 
         protected Task<CertificateAuthority> GetRootCertificateAuthority() => _rootCertificateAuthority.Value;

@@ -246,7 +246,7 @@ namespace Validation.PackageSigning.ValidateCertificate
     [StructLayout(LayoutKind.Sequential)]
     internal unsafe struct CRL_ENTRY
     {
-        public CRYPTOAPI_BLOB SerializeNumber;
+        public CRYPTOAPI_BLOB SerialNumber;
         public FILETIME RevocationDate;
         public int cExtension;
         public IntPtr rgExtension;

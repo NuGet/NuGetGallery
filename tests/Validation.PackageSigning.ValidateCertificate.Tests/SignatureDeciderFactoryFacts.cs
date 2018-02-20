@@ -230,7 +230,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
             {
                 yield return new object[]
                 {
-                    TimeSpan.FromDays(-1), SignatureDecision.Ignore, SignatureDecision.Ignore, SignatureDecision.Ignore
+                    TimeSpan.FromDays(-1), SignatureDecision.Reject, SignatureDecision.Ignore, SignatureDecision.Ignore
                 };
 
                 yield return new object[]

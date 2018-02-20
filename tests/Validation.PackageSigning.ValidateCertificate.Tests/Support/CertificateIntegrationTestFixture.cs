@@ -17,6 +17,8 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests.Support
 
     public class CertificateIntegrationTestFixture : CoreCertificateIntegrationTestFixture
     {
+        private const int UnspecifiedRevocationReason = 0;
+
         public async Task<X509Certificate2> GetIntermediateCaCertificate()
         {
             var certificate = new X509Certificate2();
@@ -32,7 +34,10 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests.Support
             var ca = await GetCertificateAuthority();
             var rootCa = await GetRootCertificateAuthority();
 
-            rootCa.Revoke(ca.Certificate, reason: 0, revocationDate: DateTimeOffset.UtcNow);
+            rootCa.Revoke(
+                ca.Certificate,
+                reason: UnspecifiedRevocationReason,
+                revocationDate: DateTimeOffset.UtcNow);
         }
 
         public async Task<X509Certificate2> GetTimestampingCertificateAsync()
@@ -81,7 +86,24 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests.Support
 
             var (publicCertificate, certificate) = IssueCertificate(ca, "Revoked Signing", CustomizeAsSigningCertificate);
 
-            ca.Revoke(publicCertificate, reason: 0, revocationDate: revocationDate);
+            ca.Revoke(publicCertificate, reason: UnspecifiedRevocationReason, revocationDate: revocationDate);
+
+            return certificate;
+        }
+
+        public async Task<X509Certificate2> GetRevokedTimestampingCertificateAsync(DateTimeOffset revocationDate)
+        {
+            var ca = await GetCertificateAuthority();
+
+            void CustomizeAsSigningCertificate(X509V3CertificateGenerator generator)
+            {
+                generator.AddTimestampingEku();
+                generator.AddAuthorityInfoAccess(ca, addOcsp: true, addCAIssuers: true);
+            }
+
+            var (publicCertificate, certificate) = IssueCertificate(ca, "Revoked Timestamping", CustomizeAsSigningCertificate);
+
+            ca.Revoke(publicCertificate, reason: UnspecifiedRevocationReason, revocationDate: revocationDate);
 
             return certificate;
         }
@@ -96,41 +118,65 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests.Support
 
             responders.AddRange(testServer.RegisterResponders(intermediateCa));
 
-            rootCa.Revoke(intermediateCa.Certificate, reason: 0, revocationDate: DateTimeOffset.UtcNow);
+            rootCa.Revoke(intermediateCa.Certificate, reason: UnspecifiedRevocationReason, revocationDate: DateTimeOffset.UtcNow);
 
             return CreateSigningCertificate(intermediateCa);
         }
 
-        public async Task<X509Certificate2> GetPartialChainSigningCertificateAsync()
+        public async Task<PartialChainSigningCertificateResult> GetPartialChainSigningCertificateAsync()
         {
+            var testServer = await GetTestServerAsync();
+
             var ca = await GetCertificateAuthority();
+            var ca2 = ca.CreateIntermediateCertificateAuthority();
+            var responders = new DisposableList();
+
+            responders.Add(testServer.RegisterResponder(ca2.OcspResponder));
 
             void CustomizeAsPartialChainSigningCertificate(X509V3CertificateGenerator generator)
             {
                 generator.AddSigningEku();
-                generator.AddAuthorityInfoAccess(ca, addOcsp: true, addCAIssuers: false);
+                generator.AddAuthorityInfoAccess(ca2, addOcsp: true, addCAIssuers: true);
             }
 
-            var (publicCertificate, certificate) = IssueCertificate(ca, "Untrusted Signing", CustomizeAsPartialChainSigningCertificate);
+            var (publicCertificate, certificate) = IssueCertificate(ca2, "Untrusted Signing", CustomizeAsPartialChainSigningCertificate);
 
-            return certificate;
+            var caCert = new X509Certificate2();
+            var ca2Cert = new X509Certificate2();
+
+            caCert.Import(ca.Certificate.GetEncoded());
+            ca2Cert.Import(ca2.Certificate.GetEncoded());
+
+            return new PartialChainSigningCertificateResult(
+                        certificate,
+                        new[] { caCert, ca2Cert },
+                        responders);
         }
 
-        public async Task<X509Certificate2> GetPartialChainAndRevokedSigningCertificateAsync()
+        public async Task<PartialChainSigningCertificateResult> GetPartialChainAndRevokedSigningCertificateAsync()
         {
+            var testServer = await GetTestServerAsync();
+
             var ca = await GetCertificateAuthority();
+            var ca2 = ca.CreateIntermediateCertificateAuthority();
+            var responders = new DisposableList();
+
+            responders.Add(testServer.RegisterResponder(ca2.OcspResponder));
 
             void CustomizeAsPartialChainAndRevokedCertificate(X509V3CertificateGenerator generator)
             {
                 generator.AddSigningEku();
-                generator.AddAuthorityInfoAccess(ca, addOcsp: true, addCAIssuers: false);
+                generator.AddAuthorityInfoAccess(ca2, addOcsp: true, addCAIssuers: true);
             }
 
-            var (publicCertificate, certificate) = IssueCertificate(ca, "Untrusted and Revoked Signing", CustomizeAsPartialChainAndRevokedCertificate);
+            var (publicCertificate, certificate) = IssueCertificate(ca2, "Untrusted and Revoked Signing", CustomizeAsPartialChainAndRevokedCertificate);
 
-            ca.Revoke(publicCertificate, reason: 0, revocationDate: DateTimeOffset.UtcNow);
+            ca2.Revoke(publicCertificate, reason: UnspecifiedRevocationReason, revocationDate: DateTimeOffset.UtcNow);
 
-            return certificate;
+            return new PartialChainSigningCertificateResult(
+                        certificate,
+                        new X509Certificate2[0],
+                        responders);
         }
 
         public async Task<X509Certificate2> GetExpiredSigningCertificateAsync()
@@ -160,7 +206,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests.Support
 
             var (publicCertificate, certificate) = IssueCertificate(ca, "Expired Signing", CustomizeAsExpiredAndRevokedCertificate);
 
-            ca.Revoke(publicCertificate, reason: 0, revocationDate: DateTimeOffset.UtcNow);
+            ca.Revoke(publicCertificate, reason: UnspecifiedRevocationReason, revocationDate: DateTimeOffset.UtcNow);
 
             return certificate;
         }
@@ -231,6 +277,26 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests.Support
             }
 
             return (CertificateAuthority)constructors[0].Invoke(new object[] { certificate, keyPair, sharedUri, parentCa });
+        }
+
+        public class PartialChainSigningCertificateResult : IDisposable
+        {
+            private IDisposable _responders;
+
+            public PartialChainSigningCertificateResult(
+                X509Certificate2 endCertificate,
+                X509Certificate2[] intermediateCertificates,
+                IDisposable responders)
+            {
+                EndCertificate = endCertificate;
+                IntermediateCertificates = intermediateCertificates;
+                _responders = responders;
+            }
+
+            public X509Certificate2 EndCertificate { get; }
+            public X509Certificate2[] IntermediateCertificates { get; }
+
+            public void Dispose() => _responders.Dispose();
         }
     }
 }

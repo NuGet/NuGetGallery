@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CertificateValidationMessageHandlerFacts.cs" />
+    <Compile Include="CertificateValidationMessageHandlerIntegrationTests.cs" />
     <Compile Include="CertificateValidationServiceFacts.cs" />
     <Compile Include="CertificateVerificationResultFacts.cs" />
     <Compile Include="OnlineCertificateVerifierIntegrationTests.cs" />

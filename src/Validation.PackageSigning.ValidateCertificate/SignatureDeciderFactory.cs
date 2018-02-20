@@ -107,6 +107,12 @@ namespace Validation.PackageSigning.ValidateCertificate
                     throw new InvalidOperationException($"Signature {signature.Key} has multiple trusted timestamps");
                 }
 
+                // Revoked certificates invalidate all dependent signatures at ingestion.
+                if (signature.Status == PackageSignatureStatus.Unknown)
+                {
+                    return SignatureDecision.Reject;
+                }
+
                 // The revoked code signing certificate invalidates signatures with no valid timestamps.
                 if (signature.TrustedTimestamps.All(t => t.Status == TrustedTimestampStatus.Invalid))
                 {
