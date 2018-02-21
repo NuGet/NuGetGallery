@@ -181,32 +181,18 @@
     <Compile Include="Registration\RegistrationKey.cs" />
     <Compile Include="Registration\RegistrationMaker.cs" />
     <Compile Include="Registration\RegistrationPersistence.cs" />
-    <Compile Include="ReindexCatalogCollector.cs" />
     <Compile Include="HttpReadCursor.cs" />
-    <Compile Include="NuspecCollector.cs" />
     <Compile Include="ReindexCatalogItem.cs" />
     <Compile Include="ResourceSaveOperation.cs" />
     <Compile Include="SortingCollector.cs" />
     <Compile Include="SortingGraphCollector.cs" />
     <Compile Include="StorageWriteLock.cs" />
-    <Compile Include="StoreCollector.cs" />
-    <Compile Include="Test\FindCollector.cs" />
-    <Compile Include="Test\PrintCollector.cs" />
-    <Compile Include="Test\PrintCommitCollector.cs" />
-    <Compile Include="TransHttpClient.cs" />
     <Compile Include="VerboseFileSystemEmulatorHandler.cs" />
-    <Compile Include="Test\DistinctDependencyPackageIdCollector.cs" />
-    <Compile Include="Test\DistinctPackageIdCollector.cs" />
-    <Compile Include="Test\CheckLinksCollector.cs" />
-    <Compile Include="Test\CountCollector.cs" />
-    <Compile Include="Test\FindFirstCollector.cs" />
-    <Compile Include="Test\PackageCollector.cs" />
     <Compile Include="VerboseHandler.cs" />
     <Compile Include="CollectorBase.cs" />
     <Compile Include="CollectorHttpClient.cs" />
     <Compile Include="DurableCursor.cs" />
     <Compile Include="FileSystemEmulatorHandler.cs" />
-    <Compile Include="Helpers\IndexingHelpers.cs" />
     <Compile Include="Helpers\JsonSort.cs" />
     <Compile Include="AppendOnlyCatalogItem.cs" />
     <Compile Include="AppendOnlyCatalogWriter.cs" />
@@ -240,11 +226,6 @@
     <Compile Include="ReadCursor.cs" />
     <Compile Include="ReadWriteCursor.cs" />
     <Compile Include="Schema.cs" />
-    <Compile Include="WarehouseIntegration\StatisticsCatalogItem.cs" />
-    <Compile Include="WarehouseIntegration\StatsCountCollector.cs" />
-    <Compile Include="WarehouseIntegration\StatsGreaterThanCountCollector.cs" />
-    <Compile Include="WarehouseIntegration\StatsLessThanCountCollector.cs" />
-    <Compile Include="WarehouseIntegration\WarehouseHelper.cs" />
     <EmbeddedResource Include="sparql\ConstructPackagePageContentGraph.rq" />
   </ItemGroup>
   <ItemGroup>
