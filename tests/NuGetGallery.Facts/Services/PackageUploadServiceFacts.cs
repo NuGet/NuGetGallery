@@ -36,7 +36,9 @@ namespace NuGetGallery
                 .CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<User>(), It.IsAny<bool>()))
                 .Returns((PackageArchiveReader packageArchiveReader, PackageStreamMetadata packageStreamMetadata, User owner, User currentUser, bool isVerified) =>
                 {
-                    var packageMetadata = PackageMetadata.FromNuspecReader(packageArchiveReader.GetNuspecReader());
+                    var packageMetadata = PackageMetadata.FromNuspecReader(
+                        packageArchiveReader.GetNuspecReader(),
+                        strict: true);
 
                     var newPackage = new Package();
                     newPackage.PackageRegistration = new PackageRegistration { Id = packageMetadata.Id, IsVerified = isVerified };
