@@ -103,7 +103,7 @@
 
                 // Send the request.
                 $.ajax({
-                    url: self.OrganizationViewModel.UpdateMemberUrl,
+                    url: self.Pending ? self.OrganizationViewModel.AddMemberUrl : self.OrganizationViewModel.UpdateMemberUrl,
                     type: 'POST',
                     dataType: 'json',
                     data: data,
@@ -180,6 +180,20 @@
 
             this.AddMemberRole = ko.observable(this.RoleNames()[1]);
             this.AddMember = function () {
+                // Check if the member already exists.
+                var memberExists = false;
+                self.Members().forEach(function (member) {
+                    if (member.Username.toLocaleLowerCase() === self.NewMemberUsername().toLocaleLowerCase()) {
+                        memberExists = true;
+                    }
+                });
+
+                if (memberExists) {
+                    var error = "'" + self.NewMemberUsername() + "' is already a member or pending member.";
+                    self.Error(error);
+                    return;
+                }
+
                 // Build the request.
                 var data = {
                     accountName: self.AccountName,

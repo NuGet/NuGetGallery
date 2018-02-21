@@ -47,6 +47,7 @@
                 EmailAddress = m.EmailAddress,
                 IsAdmin = m.IsAdmin,
                 IsCurrentUser = m.Username.Equals(CurrentUser.Username, StringComparison.OrdinalIgnoreCase),
+                Pending = m.Pending,
                 GravatarUrl = m.GravatarUrl
             }),
             AddMemberUrl = Url.AddOrganizationMember(Model.AccountName),
