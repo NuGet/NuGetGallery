@@ -1,21 +1,25 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using NuGet.Services.Metadata.Catalog;
 
 namespace Ng.Jobs
 {
     public abstract class NgJob
     {
+        protected ITelemetryService TelemetryService;
         protected ILoggerFactory LoggerFactory;
         protected ILogger Logger;
 
-        protected NgJob(ILoggerFactory loggerFactory)
+        protected NgJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory)
         {
-            LoggerFactory = loggerFactory;
+            TelemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
+            LoggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
             // We want to make a logger using the subclass of this job.
             // GetType returns the subclass of this instance which we can then use to create a logger.
             Logger = LoggerFactory.CreateLogger(GetType());

@@ -1,12 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using Newtonsoft.Json.Linq;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 namespace NuGet.Services.Metadata.Catalog
 {
@@ -14,8 +15,8 @@ namespace NuGet.Services.Metadata.Catalog
     {
         int _batchSize;
 
-        public BatchCollector(Uri index, Func<HttpMessageHandler> handlerFunc = null, int batchSize = 200)
-            : base(index, handlerFunc)
+        public BatchCollector(Uri index, ITelemetryService telemetryService, Func<HttpMessageHandler> handlerFunc = null, int batchSize = 200)
+            : base(index, telemetryService, handlerFunc)
         {
             _batchSize = batchSize;
             BatchCount = 0;

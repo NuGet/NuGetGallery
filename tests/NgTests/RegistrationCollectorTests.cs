@@ -8,6 +8,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Moq;
 using NgTests.Data;
 using NgTests.Infrastructure;
 using NuGet.Services.Metadata.Catalog;
@@ -47,6 +48,7 @@ namespace NgTests
                 new Uri("http://tempuri.org/index.json"),
                 _legacyStorageFactory,
                 _semVer2StorageFactory,
+                new Mock<ITelemetryService>().Object,
                 handlerFunc: () => _mockServer)
             {
                 ContentBaseAddress = new Uri("http://tempuri.org/packages")

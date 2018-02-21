@@ -1,19 +1,20 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using Newtonsoft.Json.Linq;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 namespace NuGet.Services.Metadata.Catalog
 {
     public abstract class SortingCollector<T> : CommitCollector where T : IEquatable<T>
     {
-        public SortingCollector(Uri index, Func<HttpMessageHandler> handlerFunc = null)
-            : base(index, handlerFunc)
+        public SortingCollector(Uri index, ITelemetryService telemetryService, Func<HttpMessageHandler> handlerFunc = null)
+            : base(index, telemetryService, handlerFunc)
         {
             Concurrent = true;
         }

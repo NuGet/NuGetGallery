@@ -56,11 +56,13 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             string catalogIndexUrl,
             Persistence.IStorageFactory monitoringStorageFactory,
             IEnumerable<EndpointFactory.Input> endpointInputs,
+            ITelemetryService telemetryService,
             Func<HttpMessageHandler> messageHandlerFactory)
         {
             var collector = new ValidationCollector(
                 queue,
                 new Uri(catalogIndexUrl),
+                telemetryService,
                 _loggerFactory.CreateLogger<ValidationCollector>(),
                 messageHandlerFactory);
 

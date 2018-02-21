@@ -1,8 +1,12 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
 using NuGet.Packaging.Core;
 using NuGet.Protocol;
@@ -29,8 +33,8 @@ namespace Ng.Jobs
         private NuGet.Common.ILogger CommonLogger;
         private CollectorHttpClient _client;
 
-        public MonitoringProcessorJob(ILoggerFactory loggerFactory)
-            : base(loggerFactory)
+        public MonitoringProcessorJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory)
+            : base(telemetryService, loggerFactory)
         {
             CommonLogger = Logger.AsCommon();
         }
@@ -48,8 +52,7 @@ namespace Ng.Jobs
             var auditingStorageFactory = CommandHelpers.CreateSuffixedStorageFactory("Auditing", arguments, verbose);
 
             var endpointInputs = CommandHelpers.GetEndpointFactoryInputs(arguments);
-
-            var messageHandlerFactory = CommandHelpers.GetHttpMessageHandlerFactory(verbose);
+            var messageHandlerFactory = CommandHelpers.GetHttpMessageHandlerFactory(TelemetryService, verbose);
 
             Logger.LogInformation(
                 "CONFIG gallery: {Gallery} index: {Index} storage: {Storage} auditingStorage: {AuditingStorage} endpoints: {Endpoints}",

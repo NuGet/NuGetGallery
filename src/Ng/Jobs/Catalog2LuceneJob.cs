@@ -1,17 +1,17 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using System.Threading;
 using System.Net.Http;
-using NuGet.Services.Metadata.Catalog;
+using System.Threading;
+using System.Threading.Tasks;
 using Lucene.Net.Index;
+using Microsoft.Extensions.Logging;
 using NuGet.Indexing;
 using NuGet.Services.Configuration;
+using NuGet.Services.Metadata.Catalog;
 
 namespace Ng.Jobs
 {
@@ -25,8 +25,8 @@ namespace Ng.Jobs
         private string _storageBaseAddress;
         private Func<HttpMessageHandler> _handlerFunc;
 
-        public Catalog2LuceneJob(ILoggerFactory loggerFactory)
-            : base(loggerFactory)
+        public Catalog2LuceneJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory)
+            : base(telemetryService, loggerFactory)
         {
         }
 
@@ -76,7 +76,11 @@ namespace Ng.Jobs
                                    _catalogBaseAddress ?? "(null)",
                                    _storageBaseAddress ?? "(null)");
 
-            _handlerFunc = CommandHelpers.GetHttpMessageHandlerFactory(_verbose, _catalogBaseAddress, _storageBaseAddress);
+            _handlerFunc = CommandHelpers.GetHttpMessageHandlerFactory(
+                TelemetryService,
+                _verbose,
+                _catalogBaseAddress,
+                _storageBaseAddress);
         }
 
         protected override async Task RunInternal(CancellationToken cancellationToken)
@@ -84,11 +88,12 @@ namespace Ng.Jobs
             using (var indexWriter = CreateIndexWriter(_directory))
             {
                 var collector = new SearchIndexFromCatalogCollector(
-                    Logger,
                     index: new Uri(_source),
                     indexWriter: indexWriter,
                     commitEachBatch: false,
                     baseAddress: _catalogBaseAddress,
+                    telemetryService: TelemetryService,
+                    logger: Logger,
                     handlerFunc: _handlerFunc);
 
                 ReadWriteCursor front = new LuceneCursor(indexWriter, MemoryCursor.MinValue);

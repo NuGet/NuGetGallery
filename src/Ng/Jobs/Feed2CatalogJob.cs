@@ -28,8 +28,8 @@ namespace Ng.Jobs
         protected TimeSpan Timeout;
         protected int Top;
 
-        public Feed2CatalogJob(ILoggerFactory loggerFactory)
-            : base(loggerFactory)
+        public Feed2CatalogJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory)
+            : base(telemetryService, loggerFactory)
         {
         }
 
@@ -178,7 +178,7 @@ namespace Ng.Jobs
         // Overriden by NgTests.TestableFeed2CatalogJob
         protected virtual HttpClient CreateHttpClient()
         {
-            return FeedHelpers.CreateHttpClient(CommandHelpers.GetHttpMessageHandlerFactory(Verbose));
+            return FeedHelpers.CreateHttpClient(CommandHelpers.GetHttpMessageHandlerFactory(TelemetryService, Verbose));
         }
 
         private static Uri MakeCreatedUri(string source, DateTime since, int top)

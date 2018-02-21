@@ -4,16 +4,18 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Logging;
-using NuGet.Services.Logging;
-using Serilog.Context;
-using Serilog.Events;
-using System.Threading.Tasks;
 using Ng.Jobs;
 using NuGet.Services.Configuration;
-using System.Net;
+using NuGet.Services.Logging;
+using NuGet.Services.Metadata.Catalog;
+using Serilog.Context;
+using Serilog.Events;
 
 namespace Ng
 {
@@ -62,10 +64,13 @@ namespace Ng
                     throw new ArgumentException("Missing tool specification");
                 }
 
+                // Create an ITelemetryService
+                var telemetryService = new TelemetryService(new TelemetryClient());
+
                 var jobName = args[0];
                 LogContext.PushProperty("JobName", jobName);
 
-                job = NgJobFactory.GetJob(jobName, loggerFactory);
+                job = NgJobFactory.GetJob(jobName, telemetryService, loggerFactory);
                 await job.Run(arguments, cancellationTokenSource.Token);
             }
             catch (ArgumentException ae)

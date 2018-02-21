@@ -18,7 +18,8 @@ namespace Ng.Jobs
 {
     public class LightningJob : NgJob
     {
-        public LightningJob(ILoggerFactory loggerFactory) : base(loggerFactory)
+        public LightningJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory)
+            : base(telemetryService, loggerFactory)
         {
         }
 
@@ -241,7 +242,7 @@ namespace Ng.Jobs
 
             using (var streamWriter = new StreamWriter(indexFile, false))
             {
-                var httpMessageHandlerFactory = CommandHelpers.GetHttpMessageHandlerFactory(_verbose);
+                var httpMessageHandlerFactory = CommandHelpers.GetHttpMessageHandlerFactory(TelemetryService, _verbose);
                 var collectorHttpClient = new CollectorHttpClient(httpMessageHandlerFactory());
                 var catalogIndexReader = new CatalogIndexReader(new Uri(_catalogIndex), collectorHttpClient);
 
@@ -387,7 +388,7 @@ namespace Ng.Jobs
             }
 
             // Time to strike
-            var httpMessageHandlerFactory = CommandHelpers.GetHttpMessageHandlerFactory(_verbose);
+            var httpMessageHandlerFactory = CommandHelpers.GetHttpMessageHandlerFactory(TelemetryService, _verbose);
             var collectorHttpClient = new CollectorHttpClient(httpMessageHandlerFactory());
 
             var startElement = string.Format("Element@{0}.", batchStart);

@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Configuration;
+using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
 
@@ -22,19 +23,20 @@ namespace Ng.Jobs
         private string _version;
         private IStorage _storage;
 
-        public Package2CatalogJob(ILoggerFactory loggerFactory)
-            : base(loggerFactory)
+        public Package2CatalogJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory)
+            : base(telemetryService, loggerFactory)
         {
         }
 
         protected Package2CatalogJob(
+            ITelemetryService telemetryService,
             ILoggerFactory loggerFactory,
             IStorage storage,
             string gallery,
             string packageId,
             string packageVersion,
             bool verbose)
-            : this(loggerFactory)
+            : this(telemetryService, loggerFactory)
         {
             _storage = storage;
             _gallery = gallery;
@@ -109,7 +111,7 @@ namespace Ng.Jobs
 
         protected virtual HttpClient CreateHttpClient()
         {
-            return FeedHelpers.CreateHttpClient(CommandHelpers.GetHttpMessageHandlerFactory(_verbose));
+            return FeedHelpers.CreateHttpClient(CommandHelpers.GetHttpMessageHandlerFactory(TelemetryService, _verbose));
         }
 
         private static Uri MakePackageUri(string source, string id, string version)

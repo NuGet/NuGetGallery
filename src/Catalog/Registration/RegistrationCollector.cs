@@ -27,8 +27,9 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             Uri index,
             StorageFactory legacyStorageFactory,
             StorageFactory semVer2StorageFactory,
+            ITelemetryService telemetryService,
             Func<HttpMessageHandler> handlerFunc = null)
-            : base(index, new Uri[] { Schema.DataTypes.PackageDetails, Schema.DataTypes.PackageDelete }, handlerFunc)
+            : base(index, new Uri[] { Schema.DataTypes.PackageDetails, Schema.DataTypes.PackageDelete }, telemetryService, handlerFunc)
         {
             if (legacyStorageFactory == null)
             {

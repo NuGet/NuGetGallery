@@ -1,14 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.Extensions.Logging;
-using NuGet.Services.Metadata.Catalog;
-using NuGet.Services.Metadata.Catalog.Dnx;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using NuGet.Services.Configuration;
+using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.Metadata.Catalog.Dnx;
 
 namespace Ng.Jobs
 {
@@ -18,8 +18,8 @@ namespace Ng.Jobs
         private ReadWriteCursor _front;
         private ReadCursor _back;
 
-        public Catalog2DnxJob(ILoggerFactory loggerFactory)
-            : base(loggerFactory)
+        public Catalog2DnxJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory)
+            : base(telemetryService, loggerFactory)
         {
         }
 
@@ -54,7 +54,11 @@ namespace Ng.Jobs
 
             Logger.LogInformation("CONFIG source: \"{ConfigSource}\" storage: \"{Storage}\"", source, storageFactory);
 
-            _collector = new DnxCatalogCollector(new Uri(source), storageFactory, CommandHelpers.GetHttpMessageHandlerFactory(verbose))
+            _collector = new DnxCatalogCollector(
+                new Uri(source),
+                storageFactory,
+                TelemetryService,
+                CommandHelpers.GetHttpMessageHandlerFactory(TelemetryService, verbose))
             {
                 ContentBaseAddress = contentBaseAddress == null ? null : new Uri(contentBaseAddress)
             };

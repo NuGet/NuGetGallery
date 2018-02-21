@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Indexing;
 using NuGet.Services.Configuration;
+using NuGet.Services.Metadata.Catalog;
 
 namespace Ng.Jobs
 {
@@ -18,7 +19,7 @@ namespace Ng.Jobs
         private string _source;
         private Uri _catalogIndexUrl;
 
-        public Db2LuceneJob(ILoggerFactory loggerFactory) : base(loggerFactory)
+        public Db2LuceneJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory) : base(telemetryService, loggerFactory)
         {
         }
 

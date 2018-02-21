@@ -364,10 +364,21 @@ namespace Ng
             }
         }
 
-        public static Func<HttpMessageHandler> GetHttpMessageHandlerFactory(bool verbose, string catalogBaseAddress = null, string storageBaseAddress = null)
+        public static Func<HttpMessageHandler> GetHttpMessageHandlerFactory(
+            ITelemetryService telemetryService,
+            bool verbose,
+            string catalogBaseAddress = null,
+            string storageBaseAddress = null)
         {
-            Func<HttpMessageHandler> defaultHandlerFunc =
-                () => new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate };
+            Func<HttpMessageHandler> defaultHandlerFunc = () =>
+            {
+                var httpClientHandler = new HttpClientHandler
+                {
+                    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
+                };
+
+                return new TelemetryHandler(telemetryService, httpClientHandler);
+            };
 
             Func<HttpMessageHandler> handlerFunc = defaultHandlerFunc;
 
