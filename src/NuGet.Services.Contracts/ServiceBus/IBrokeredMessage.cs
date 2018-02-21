@@ -9,7 +9,10 @@ namespace NuGet.Services.ServiceBus
 {
     public interface IBrokeredMessage : IDisposable
     {
+        int DeliveryCount { get; }
+        DateTimeOffset ExpiresAtUtc { get; }
         IDictionary<string, object> Properties { get; }
+        DateTimeOffset EnqueuedTimeUtc { get; }
         DateTimeOffset ScheduledEnqueueTimeUtc { get; set; }
         Task CompleteAsync();
         Task AbandonAsync();

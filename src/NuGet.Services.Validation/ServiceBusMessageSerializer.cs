@@ -29,7 +29,8 @@ namespace NuGet.Services.Validation
             return new PackageValidationMessageData(
                 data.PackageId,
                 data.PackageVersion,
-                data.ValidationTrackingId);
+                data.ValidationTrackingId,
+                message.DeliveryCount);
         }
 
         [Schema(Name = PackageValidationSchemaName, Version = 1)]

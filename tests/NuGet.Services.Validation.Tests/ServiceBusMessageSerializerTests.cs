@@ -18,6 +18,7 @@ namespace NuGet.Services.Validation.Tests
         private static readonly Guid ValidationTrackingId = new Guid("14b4c1b8-40e2-4d60-9db7-4b7195e807f5");
         private const string PackageValidationMessageDataType = "PackageValidationMessageData";
         private const int SchemaVersion1 = 1;
+        private const int DeliveryCount = 2;
 
         public class TheSerializePackageValidationMessageDataMethod : Base
         {
@@ -57,6 +58,7 @@ namespace NuGet.Services.Validation.Tests
                 Assert.Equal(PackageId, output.PackageId);
                 Assert.Equal(PackageVersion, output.PackageVersion);
                 Assert.Equal(ValidationTrackingId, output.ValidationTrackingId);
+                Assert.Equal(DeliveryCount, output.DeliveryCount);
             }
 
             [Fact]
@@ -143,6 +145,9 @@ namespace NuGet.Services.Validation.Tests
                 brokeredMessage
                     .Setup(x => x.GetBody())
                     .Returns(TestData.SerializedPackageValidationMessageData1);
+                brokeredMessage
+                    .Setup(x => x.DeliveryCount)
+                    .Returns(DeliveryCount);
                 brokeredMessage
                     .Setup(x => x.Properties)
                     .Returns(new Dictionary<string, object>
