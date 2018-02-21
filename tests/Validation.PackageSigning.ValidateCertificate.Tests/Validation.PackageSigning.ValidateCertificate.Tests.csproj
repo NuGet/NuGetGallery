@@ -43,10 +43,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CertificateValidationMessageHandlerFacts.cs" />
+    <Compile Include="CertificateValidationMessageHandlerIntegrationTests.cs" />
     <Compile Include="CertificateValidationServiceFacts.cs" />
     <Compile Include="CertificateVerificationResultFacts.cs" />
+    <Compile Include="OnlineCertificateVerifierIntegrationTests.cs" />
     <Compile Include="SignatureDeciderFactoryFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Support\CertificateIntegrationTestCollection.cs" />
+    <Compile Include="Support\CertificateIntegrationTestFixture.cs" />
+    <Compile Include="Support\X509V3CertificateGeneratorExtensions2.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Validation.PackageSigning.Core\Validation.PackageSigning.Core.csproj">
@@ -56,6 +61,10 @@
     <ProjectReference Include="..\..\src\Validation.PackageSigning.ValidateCertificate\Validation.PackageSigning.ValidateCertificate.csproj">
       <Project>{a245e448-8ae0-452b-9338-8c0e0b637d72}</Project>
       <Name>Validation.PackageSigning.ValidateCertificate</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Validation.PackageSigning.Core.Tests\Validation.PackageSigning.Core.Tests.csproj">
+      <Project>{B4B7564A-965B-447B-927F-6749E2C08880}</Project>
+      <Name>Validation.PackageSigning.Core.Tests</Name>
     </ProjectReference>
     <ProjectReference Include="..\Validation.PackageSigning.Helpers\Validation.PackageSigning.Helpers.csproj">
       <Project>{2c5be067-adfd-49e3-ba9f-13a74436e5db}</Project>

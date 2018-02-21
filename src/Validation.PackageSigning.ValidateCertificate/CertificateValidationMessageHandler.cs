@@ -2,6 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -20,6 +23,7 @@ namespace Validation.PackageSigning.ValidateCertificate
     {
         private readonly ICertificateStore _certificateStore;
         private readonly ICertificateValidationService _certificateValidationService;
+        private readonly ICertificateVerifier _certificateVerifier;
         private readonly ILogger<CertificateValidationMessageHandler> _logger;
 
         private readonly int _maximumValidationFailures;
@@ -27,11 +31,13 @@ namespace Validation.PackageSigning.ValidateCertificate
         public CertificateValidationMessageHandler(
             ICertificateStore certificateStore,
             ICertificateValidationService certificateValidationService,
+            ICertificateVerifier certificateVerifier,
             ILogger<CertificateValidationMessageHandler> logger,
             int maximumValidationFailures = CertificateValidationService.DefaultMaximumValidationFailures)
         {
             _certificateStore = certificateStore ?? throw new ArgumentNullException(nameof(certificateStore));
             _certificateValidationService = certificateValidationService ?? throw new ArgumentNullException(nameof(certificateValidationService));
+            _certificateVerifier = certificateVerifier ?? throw new ArgumentNullException(nameof(certificateVerifier));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             _maximumValidationFailures = maximumValidationFailures;
@@ -95,9 +101,28 @@ namespace Validation.PackageSigning.ValidateCertificate
                 }
             }
 
-            // Download and verify the certificate.
-            var certificate = await _certificateStore.LoadAsync(validation.EndCertificate.Thumbprint, CancellationToken.None);
-            var result = await _certificateValidationService.VerifyAsync(certificate);
+            CertificateVerificationResult result;
+
+            using (var certificates = await LoadCertificatesAsync(validation))
+            {
+                switch (validation.EndCertificate.Use)
+                {
+                    case EndCertificateUse.CodeSigning:
+                        result = _certificateVerifier.VerifyCodeSigningCertificate(
+                                    certificates.EndCertificate,
+                                    certificates.AncestorCertificates);
+                        break;
+
+                    case EndCertificateUse.Timestamping:
+                        result = _certificateVerifier.VerifyTimestampingCertificate(
+                                    certificates.EndCertificate,
+                                    certificates.AncestorCertificates);
+                        break;
+
+                    default:
+                        throw new InvalidOperationException($"Unknown {nameof(EndCertificateUse)}: {validation.EndCertificate.Use}");
+                }
+            }
 
             // Save the result. This may alert if packages are invalidated.
             if (!await _certificateValidationService.TrySaveResultAsync(validation, result))
@@ -154,6 +179,46 @@ namespace Validation.PackageSigning.ValidateCertificate
                 result.Status);
 
             throw new InvalidOperationException($"Unknown {nameof(EndCertificateStatus)} value: {result.Status}");
+        }
+
+        private async Task<LoadCertificatesResult> LoadCertificatesAsync(EndCertificateValidation validation)
+        {
+            // Create a list of all the thumbprints that need to be downloaded. The first thumbprint is the end certificate,
+            // the rest are the end certificate's ancestors.
+            var thumbprints = new List<string>();
+
+            thumbprints.Add(validation.EndCertificate.Thumbprint);
+            thumbprints.AddRange(validation.EndCertificate.CertificateChainLinks.Select(l => l.ParentCertificate.Thumbprint));
+
+            var certificates = await Task.WhenAll(thumbprints.Select(t => _certificateStore.LoadAsync(t, CancellationToken.None)));
+
+            return new LoadCertificatesResult(
+                endCertificate: certificates.First(),
+                ancestorCertificates: certificates.Skip(1).ToArray());
+        }
+
+        private class LoadCertificatesResult : IDisposable
+        {
+            public LoadCertificatesResult(
+                X509Certificate2 endCertificate,
+                IReadOnlyList<X509Certificate2> ancestorCertificates)
+            {
+                EndCertificate = endCertificate ?? throw new ArgumentNullException(nameof(endCertificate));
+                AncestorCertificates = ancestorCertificates ?? throw new ArgumentNullException(nameof(ancestorCertificates));
+            }
+
+            public X509Certificate2 EndCertificate { get; }
+            public IReadOnlyList<X509Certificate2> AncestorCertificates { get; }
+
+            public void Dispose()
+            {
+                EndCertificate.Dispose();
+
+                foreach (var ancestor in AncestorCertificates)
+                {
+                    ancestor.Dispose();
+                }
+            }
         }
     }
 }

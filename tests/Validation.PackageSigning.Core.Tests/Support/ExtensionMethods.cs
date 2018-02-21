@@ -1,19 +1,27 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using System.Security.Cryptography.X509Certificates;
 using Test.Utility.Signing;
+using BCCertificate = Org.BouncyCastle.X509.X509Certificate;
 
-namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests.Support
+namespace Validation.PackageSigning.Core.Tests.Support
 {
     public static class ExtensionMethods
     {
-        public static DisposableList RegisterResponders(
+        public static X509Certificate2 ToX509Certificate2(this BCCertificate certificate)
+        {
+            return new X509Certificate2(certificate.GetEncoded());
+        }
+
+        public static DisposableList<IDisposable> RegisterResponders(
             this ISigningTestServer testServer,
             CertificateAuthority ca,
             bool addCa = true,
             bool addOcsp = true)
         {
-            var responders = new DisposableList();
+            var responders = new DisposableList<IDisposable>();
             var currentCa = ca;
 
             while (currentCa != null)
@@ -34,7 +42,7 @@ namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests.Support
             return responders;
         }
 
-        public static DisposableList RegisterResponders(
+        public static DisposableList<IDisposable> RegisterResponders(
             this ISigningTestServer testServer,
             TimestampService timestampService,
             bool addCa = true,

@@ -70,11 +70,6 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
             }
         }
 
-        public class TheVerifyAsyncMethod : FactsBase
-        {
-            // TODO
-        }
-
         public class TheTrySaveResultAsyncMethod : FactsBase
         {
             [Fact]
@@ -166,9 +161,9 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                 var signature1 = new PackageSignature { Key = 12, Status = PackageSignatureStatus.Valid };
                 var signature2 = new PackageSignature { Key = 23, Status = PackageSignatureStatus.Valid };
                 var signature3 = new PackageSignature { Key = 34, Status = PackageSignatureStatus.Valid };
-                var timestamp1 = new TrustedTimestamp { Value = revocationTime.AddDays(-1) };
-                var timestamp2 = new TrustedTimestamp { Value = revocationTime.AddDays(1) };
-                var timestamp3 = new TrustedTimestamp { Value = revocationTime.AddDays(-1) };
+                var timestamp1 = new TrustedTimestamp { Value = revocationTime.AddDays(-1), Status = TrustedTimestampStatus.Valid };
+                var timestamp2 = new TrustedTimestamp { Value = revocationTime.AddDays(1), Status = TrustedTimestampStatus.Valid };
+                var timestamp3 = new TrustedTimestamp { Value = revocationTime.AddDays(-1), Status = TrustedTimestampStatus.Valid };
 
                 signingState.PackageSignatures = new[] { signature1, signature2, signature3 };
                 signature1.PackageSigningState = signingState;
@@ -197,7 +192,6 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                     trustedTimestamps: new[] { timestamp1, timestamp2, timestamp3 },
                     endCertificates: new[] { _certificate1, _certificate2 });
 
-                // Act & Assert - the first Unknown result shouldn't cause any issues.
                 var result = await _target.TrySaveResultAsync(_certificateValidation1, verificationResult);
 
                 Assert.True(result);
@@ -217,6 +211,45 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                 _telemetryService.Verify(a => a.TrackUnableToValidateCertificateEvent(It.IsAny<EndCertificate>()), Times.Never);
                 _telemetryService.Verify(a => a.TrackPackageSignatureShouldBeInvalidatedEvent(It.IsAny<PackageSignature>()), Times.Exactly(1));
                 _context.Verify(c => c.SaveChangesAsync(), Times.Once);
+            }
+
+            [Fact]
+            public async Task RevokedResultInvalidatesDependentTimestamps()
+            {
+                // Arrange - "signature1" is a signature that whose timestamp depends on the certificate that will be revoked.
+                var verificationResult = new CertificateVerificationResult(
+                                                status: EndCertificateStatus.Revoked,
+                                                statusFlags: X509ChainStatusFlags.Revoked,
+                                                revocationTime: DateTime.UtcNow);
+
+                var signingState = new PackageSigningState { SigningStatus = PackageSigningStatus.Valid };
+                var signature1 = new PackageSignature { Key = 12, Status = PackageSignatureStatus.Valid };
+                var timestamp1 = new TrustedTimestamp { Value = DateTime.UtcNow, Status = TrustedTimestampStatus.Valid };
+
+                signingState.PackageSignatures = new[] { signature1 };
+                signature1.PackageSigningState = signingState;
+                signature1.EndCertificate = _certificate1;
+                signature1.TrustedTimestamps = new[] { timestamp1 };
+                timestamp1.PackageSignature = signature1;
+                timestamp1.EndCertificate = _certificate1;
+                _certificate1.Use = EndCertificateUse.Timestamping;
+                _certificate1.PackageSignatures = new[] { signature1 };
+
+                _context.Mock(
+                    packageSigningStates: new[] { signingState },
+                    packageSignatures: new[] { signature1 },
+                    trustedTimestamps: new[] { timestamp1 },
+                    endCertificates: new[] { _certificate1 });
+
+                var result = await _target.TrySaveResultAsync(_certificateValidation1, verificationResult);
+
+                Assert.True(result);
+
+                Assert.Equal(EndCertificateStatus.Revoked, _certificateValidation1.Status);
+                Assert.Equal(TrustedTimestampStatus.Invalid, timestamp1.Status);
+                Assert.Equal(EndCertificateStatus.Revoked, _certificate1.Status);
+                Assert.Equal(PackageSignatureStatus.Invalid, signature1.Status);
+                Assert.Equal(PackageSigningStatus.Invalid, signingState.SigningStatus);
             }
 
             [Fact]
@@ -300,6 +333,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                 Thumbprint = "Certificate 1 Thumbprint",
                 Status = EndCertificateStatus.Unknown,
                 ValidationFailures = 3,
+                CertificateChainLinks = new CertificateChainLink[0],
             };
 
             protected readonly EndCertificate _certificate2 = new EndCertificate
@@ -308,6 +342,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                 Thumbprint = "Certificate 2 Thumbprint",
                 Status = EndCertificateStatus.Unknown,
                 ValidationFailures = 3,
+                CertificateChainLinks = new CertificateChainLink[0],
             };
 
             protected readonly EndCertificateValidation _certificateValidation1 = new EndCertificateValidation
@@ -315,7 +350,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                 Key = 123,
                 EndCertificateKey = EndCertificateKey1,
                 ValidationId = ValidationId1,
-                Status = null
+                Status = null,
             };
 
             protected readonly EndCertificateValidation _certificateValidation2 = new EndCertificateValidation

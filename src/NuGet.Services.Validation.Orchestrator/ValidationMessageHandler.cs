@@ -33,19 +33,27 @@ namespace NuGet.Services.Validation.Orchestrator
 
         public async Task<bool> HandleAsync(PackageValidationMessageData message)
         {
-            var package = _galleryPackageService.FindPackageByIdAndVersionStrict(message.PackageId, message.PackageVersion);
-
-            if (package == null)
+            if (message == null)
             {
-                // no package in DB yet. Might have received message a bit early, need to retry later
-                _logger.LogInformation("Did not find information in DB for package {PackageId} {PackageVersion}",
-                    message.PackageId,
-                    message.PackageVersion);
-                return false;
+                throw new ArgumentNullException(nameof(message));
             }
 
-            using (_logger.BeginScope("Handling message for {PackageId} {PackageVersion} validation set {ValidationSetId}", message.PackageId, message.PackageVersion, message.ValidationTrackingId))
+            using (_logger.BeginScope("Handling message for {PackageId} {PackageVersion} validation set {ValidationSetId}",
+                message.PackageId,
+                message.PackageVersion,
+                message.ValidationTrackingId))
             {
+                var package = _galleryPackageService.FindPackageByIdAndVersionStrict(message.PackageId, message.PackageVersion);
+
+                if (package == null)
+                {
+                    // no package in DB yet. Might have received message a bit early, need to retry later
+                    _logger.LogInformation("Did not find information in DB for package {PackageId} {PackageVersion}",
+                        message.PackageId,
+                        message.PackageVersion);
+                    return false;
+                }
+
                 var validationSet = await _validationSetProvider.TryGetOrCreateValidationSetAsync(message.ValidationTrackingId, package);
 
                 if (validationSet == null)

@@ -370,6 +370,52 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             }
         }
 
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task TracksMissingNupkgForAvailablePackage(bool validationFileExists)
+        {
+            Package.PackageStatusKey = PackageStatus.Available;
+            PackageFileServiceMock
+                .Setup(pfs => pfs.DoesPackageFileExistAsync(Package))
+                .ReturnsAsync(false);
+            PackageFileServiceMock
+                .Setup(pfs => pfs.DoesValidationPackageFileExistAsync(Package))
+                .ReturnsAsync(validationFileExists);
+
+            var processor = CreateProcessor();
+            await processor.ProcessValidationOutcomeAsync(ValidationSet, Package);
+
+            TelemetryServiceMock
+                .Verify(ts => ts.TrackMissingNupkgForAvailablePackage(
+                    ValidationSet.PackageId,
+                    ValidationSet.PackageNormalizedVersion,
+                    ValidationSet.ValidationTrackingId.ToString()),
+                Times.Once());
+        }
+
+        [Fact]
+        public async Task PublishedNotificationSendFailureDoesNotCausePackageToBeDeleted()
+        {
+            var exception = new Exception("Something baaad happened");
+
+            MessageServiceMock
+                .Setup(ms => ms.SendPackagePublishedMessage(It.IsAny<Package>()))
+                .Throws(exception);
+
+            Package.PackageStatusKey = PackageStatus.Validating;
+
+            var processor = CreateProcessor();
+            var thrownException = await Record.ExceptionAsync(async () => await processor.ProcessValidationOutcomeAsync(ValidationSet, Package));
+
+            Assert.NotNull(thrownException);
+            PackageServiceMock
+                .Verify(ps => ps.UpdatePackageStatusAsync(Package, PackageStatus.Available, true),
+                    Times.Once());
+            PackageFileServiceMock
+                .Verify(pfs => pfs.DeletePackageFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never());
+        }
+
         public ValidationOutcomeProcessorFacts()
         {
             PackageServiceMock = new Mock<ICorePackageService>();

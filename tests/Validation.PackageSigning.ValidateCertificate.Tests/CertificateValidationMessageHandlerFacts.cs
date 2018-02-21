@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -80,6 +81,158 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
             }
 
             [Fact]
+            public async Task DownloadsCertificates()
+            {
+                // Arrange
+                var endCertificate = new X509Certificate2();
+                var parentCertificate1 = new X509Certificate2();
+                var parentCertificate2 = new X509Certificate2();
+
+                _certificateValidationService
+                    .Setup(s => s.FindCertificateValidationAsync(It.IsAny<CertificateValidationMessage>()))
+                    .ReturnsAsync(new EndCertificateValidation
+                    {
+                        Status = null,
+                        EndCertificate = new EndCertificate
+                        {
+                            Thumbprint = "End Certificate",
+                            Status = EndCertificateStatus.Unknown,
+                            Use = EndCertificateUse.CodeSigning,
+                            CertificateChainLinks = new CertificateChainLink[]
+                            {
+                                new CertificateChainLink
+                                {
+                                    ParentCertificate = new ParentCertificate
+                                    {
+                                        Thumbprint = "Parent Certificate #1",
+                                    }
+                                },
+                                new CertificateChainLink
+                                {
+                                    ParentCertificate = new ParentCertificate
+                                    {
+                                        Thumbprint = "Parent Certificate #2",
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                _certificateStore
+                    .Setup(s => s.LoadAsync(
+                        It.Is<string>(t => t == "End Certificate"),
+                        It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(endCertificate);
+
+                _certificateStore
+                    .Setup(s => s.LoadAsync(
+                        It.Is<string>(t => t == "Parent Certificate #1"),
+                        It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(parentCertificate1);
+
+                _certificateStore
+                    .Setup(s => s.LoadAsync(
+                        It.Is<string>(t => t == "Parent Certificate #2"),
+                        It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(parentCertificate2);
+
+                // Act & Arrange
+                await _target.HandleAsync(_message);
+
+                // Assert all 3 certificates are loaded.
+                _certificateStore.Verify(
+                    s => s.LoadAsync(
+                        It.Is<string>(t => t == "End Certificate"),
+                        It.IsAny<CancellationToken>()),
+                    Times.Once);
+
+                _certificateStore.Verify(
+                    s => s.LoadAsync(
+                        It.Is<string>(t => t == "Parent Certificate #1"),
+                        It.IsAny<CancellationToken>()),
+                    Times.Once);
+
+                _certificateStore.Verify(
+                    s => s.LoadAsync(
+                        It.Is<string>(t => t == "Parent Certificate #2"),
+                        It.IsAny<CancellationToken>()),
+                    Times.Once);
+
+                // Assert that the verifier was given the right certs.
+                _certificateVerifier.Verify(
+                    v => v.VerifyCodeSigningCertificate(
+                        It.Is<X509Certificate2>(c => ReferenceEquals(c, endCertificate)),
+                        It.Is<X509Certificate2[]>(e => e.Length == 2 &&
+                                                        ReferenceEquals(e[0], parentCertificate1) &&
+                                                        ReferenceEquals(e[1], parentCertificate2))),
+                    Times.Once);
+            }
+
+            [Fact]
+            public async Task VerifiesCodesigningCertificateIfCertificateIsCodesigningCertificate()
+            {
+                // Arrange
+                _certificateValidationService
+                    .Setup(s => s.FindCertificateValidationAsync(It.IsAny<CertificateValidationMessage>()))
+                    .ReturnsAsync(new EndCertificateValidation
+                    {
+                        Status = null,
+                        EndCertificate = new EndCertificate
+                        {
+                            Status = EndCertificateStatus.Unknown,
+                            Use = EndCertificateUse.CodeSigning,
+                            CertificateChainLinks = new CertificateChainLink[0]
+                        }
+                    });
+
+                _certificateStore
+                    .Setup(s => s.LoadAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(new X509Certificate2());
+
+                // Act & Arrange
+                await _target.HandleAsync(_message);
+
+                // Assert that the the codesigning verifier is called.
+                _certificateVerifier.Verify(
+                    v => v.VerifyCodeSigningCertificate(
+                        It.IsAny<X509Certificate2>(),
+                        It.IsAny<X509Certificate2[]>()),
+                    Times.Once);
+            }
+
+            [Fact]
+            public async Task VerifiesTimestampingCertificateIfCertificateIsTimestampingCertificate()
+            {
+                // Arrange
+                _certificateValidationService
+                    .Setup(s => s.FindCertificateValidationAsync(It.IsAny<CertificateValidationMessage>()))
+                    .ReturnsAsync(new EndCertificateValidation
+                    {
+                        Status = null,
+                        EndCertificate = new EndCertificate
+                        {
+                            Status = EndCertificateStatus.Unknown,
+                            Use = EndCertificateUse.Timestamping,
+                            CertificateChainLinks = new CertificateChainLink[0]
+                        }
+                    });
+
+                _certificateStore
+                    .Setup(s => s.LoadAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(new X509Certificate2());
+
+                // Act & Arrange
+                await _target.HandleAsync(_message);
+
+                // Assert that the the timestamping verifier is called.
+                _certificateVerifier.Verify(
+                    v => v.VerifyTimestampingCertificate(
+                        It.IsAny<X509Certificate2>(),
+                        It.IsAny<X509Certificate2[]>()),
+                    Times.Once);
+            }
+
+            [Fact]
             public async Task RetriesIfSavingCertificateValidationEntityFails()
             {
                 // Arrange
@@ -90,9 +243,15 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                         Status = null,
                         EndCertificate = new EndCertificate
                         {
-                            Status = EndCertificateStatus.Unknown
+                            Status = EndCertificateStatus.Unknown,
+                            Use = EndCertificateUse.CodeSigning,
+                            CertificateChainLinks = new CertificateChainLink[0]
                         }
                     });
+
+                _certificateStore
+                    .Setup(s => s.LoadAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(new X509Certificate2());
 
                 _certificateValidationService
                     .Setup(s => s.TrySaveResultAsync(It.IsAny<EndCertificateValidation>(), It.IsAny<CertificateVerificationResult>()))
@@ -140,13 +299,19 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                         Status = null,
                         EndCertificate = new EndCertificate
                         {
-                            Status = EndCertificateStatus.Unknown
+                            Status = EndCertificateStatus.Unknown,
+                            Use = EndCertificateUse.CodeSigning,
+                            CertificateChainLinks = new CertificateChainLink[0],
                         }
                     });
 
-                _certificateValidationService
-                    .Setup(s => s.VerifyAsync(It.IsAny<X509Certificate2>()))
-                    .ReturnsAsync(result);
+                _certificateStore
+                    .Setup(s => s.LoadAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(new X509Certificate2());
+
+                _certificateVerifier
+                    .Setup(v => v.VerifyCodeSigningCertificate(It.IsAny<X509Certificate2>(), It.IsAny<X509Certificate2[]>()))
+                    .Returns(result);
 
                 _certificateValidationService
                     .Setup(s => s.TrySaveResultAsync(It.IsAny<EndCertificateValidation>(), It.IsAny<CertificateVerificationResult>()))
@@ -188,21 +353,27 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                     EndCertificate = new EndCertificate
                     {
                         Status = EndCertificateStatus.Unknown,
-                        ValidationFailures = validationFailuresStart
+                        Use = EndCertificateUse.CodeSigning,
+                        ValidationFailures = validationFailuresStart,
+                        CertificateChainLinks = new CertificateChainLink[0],
                     }
                 };
 
                 var certificateVerificationResult = new CertificateVerificationResult(
-                                            status: EndCertificateStatus.Unknown,
-                                            statusFlags: X509ChainStatusFlags.RevocationStatusUnknown);
+                                                            status: EndCertificateStatus.Unknown,
+                                                            statusFlags: X509ChainStatusFlags.RevocationStatusUnknown);
 
                 _certificateValidationService
                     .Setup(s => s.FindCertificateValidationAsync(It.IsAny<CertificateValidationMessage>()))
                     .ReturnsAsync(certificateValidation);
 
-                _certificateValidationService
-                    .Setup(s => s.VerifyAsync(It.IsAny<X509Certificate2>()))
-                    .ReturnsAsync(certificateVerificationResult);
+                _certificateStore
+                    .Setup(s => s.LoadAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(new X509Certificate2());
+
+                _certificateVerifier
+                    .Setup(v => v.VerifyCodeSigningCertificate(It.IsAny<X509Certificate2>(), It.IsAny<X509Certificate2[]>()))
+                    .Returns(certificateVerificationResult);
 
                 _certificateValidationService
                     .Setup(
@@ -218,7 +389,11 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                 Assert.Equal(validationFailuresStart + 1, certificateValidation.EndCertificate.ValidationFailures);
 
                 _certificateValidationService
-                    .Verify(s => s.TrySaveResultAsync(It.IsAny<EndCertificateValidation>(), It.IsAny<CertificateVerificationResult>()), Times.Once);
+                    .Verify(
+                        s => s.TrySaveResultAsync(
+                                    It.IsAny<EndCertificateValidation>(),
+                                    It.IsAny<CertificateVerificationResult>()),
+                        Times.Once);
 
                 return result;
             }
@@ -228,6 +403,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
         {
             protected readonly Mock<ICertificateStore> _certificateStore;
             protected readonly Mock<ICertificateValidationService> _certificateValidationService;
+            protected readonly Mock<ICertificateVerifier> _certificateVerifier;
 
             protected readonly CertificateValidationMessage _message;
 
@@ -237,6 +413,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
             {
                 _certificateStore = new Mock<ICertificateStore>();
                 _certificateValidationService = new Mock<ICertificateValidationService>();
+                _certificateVerifier = new Mock<ICertificateVerifier>();
 
                 _message = new CertificateValidationMessage(CertificateKey, ValidationId, revalidateRevokedCertificate: false);
 
@@ -245,6 +422,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                 _target = new CertificateValidationMessageHandler(
                     _certificateStore.Object,
                     _certificateValidationService.Object,
+                    _certificateVerifier.Object,
                     logger.Object,
                     maximumValidationFailures);
             }

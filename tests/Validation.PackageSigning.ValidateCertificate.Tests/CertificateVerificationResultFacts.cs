@@ -72,7 +72,6 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
 
         [Theory]
         [InlineData(EndCertificateStatus.Good, X509ChainStatusFlags.NoError)]
-        [InlineData(EndCertificateStatus.Invalid, X509ChainStatusFlags.ExplicitDistrust)]
         [InlineData(EndCertificateStatus.Unknown, X509ChainStatusFlags.OfflineRevocation)]
         public void CannotCreateNonRevokedResultWithRevocationDate(EndCertificateStatus status, X509ChainStatusFlags flags)
         {
@@ -83,7 +82,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                             .WithRevocationTime(new DateTime(2000, 1, 2))
                             .Build());
 
-            Assert.StartsWith("End certificate revoked at 1/2/2000 12:00:00 AM but status isn't Revoked", exception.Message);
+            Assert.StartsWith($"End certificate revoked at 1/2/2000 12:00:00 AM but status is {status}", exception.Message);
         }
 
         [Fact]

@@ -21,6 +21,7 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
         private const string ValidatorDurationSeconds = Prefix + "ValidatorDurationSeconds";
         private const string ValidatorStarted = Prefix + "ValidatorStarted";
         private const string ClientValidationIssue = Prefix + "ClientValidationIssue";
+        private const string MissingNupkgForAvailablePackage = Prefix + "MissingNupkgForAvailablePackage";
 
         private const string FromStatus = "FromStatus";
         private const string ToStatus = "ToStatus";
@@ -28,6 +29,9 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
         private const string ValidatorType = "ValidatorType";
         private const string IssueCode = "IssueCode";
         private const string ClientCode = "ClientCode";
+        private const string PackageId = "PackageId";
+        private const string NormalizedVersion = "NormalizedVersion";
+        private const string ValidationTrackingId = "ValidationTrackingId";
 
         private readonly TelemetryClient _telemetryClient;
 
@@ -135,5 +139,16 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
                     { ClientCode, clientCode },
                 });
         }
+
+        public void TrackMissingNupkgForAvailablePackage(string packageId, string normalizedVersion, string validationTrackingId)
+            => _telemetryClient.TrackMetric(
+                    MissingNupkgForAvailablePackage,
+                    1,
+                    new Dictionary<string, string>
+                    {
+                        { PackageId, packageId },
+                        { NormalizedVersion, normalizedVersion },
+                        { ValidationTrackingId, validationTrackingId },
+                    });
     }
 }

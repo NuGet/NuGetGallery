@@ -137,12 +137,13 @@ namespace NuGet.Services.Validation.Orchestrator
                packageValidation.Type,
                isSuccess);
 
+            var issues = (packageValidation.PackageValidationIssues ?? Enumerable.Empty<PackageValidationIssue>()).ToList();
             _telemetryService.TrackValidationIssueCount(
-                packageValidation.PackageValidationIssues.Count,
+                issues.Count,
                 packageValidation.Type,
                 isSuccess);
 
-            foreach (var issue in packageValidation?.PackageValidationIssues ?? Enumerable.Empty<PackageValidationIssue>())
+            foreach (var issue in issues)
             {
                 _telemetryService.TrackValidationIssue(packageValidation.Type, issue.IssueCode);
 
