@@ -382,6 +382,17 @@ namespace NuGetGallery
                     Strings.Organizations_NotInDomainWhitelist, adminUser.Username));
             }
 
+            var existingUsers = EntitiesContext.Users;
+            if (existingUsers.Any(u => u.Username == organizationName))
+            {
+                throw new EntityException(Strings.UsernameNotAvailable, organizationName);
+            }
+            
+            if (existingUsers.Any(u => u.EmailAddress == emailAddress))
+            {
+                throw new EntityException(Strings.EmailAddressBeingUsed, emailAddress);
+            }
+
             var organization = new Organization(organizationName)
             {
                 EmailAllowed = true,
