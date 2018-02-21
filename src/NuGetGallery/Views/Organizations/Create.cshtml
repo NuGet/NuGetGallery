@@ -28,11 +28,6 @@
                     @Html.ShowTextBoxFor(m => m.OrganizationEmailAddress)
                     @Html.ShowValidationMessagesFor(m => m.OrganizationEmailAddress)
                 </div>
-                
-                <div class="form-group">
-                    @Html.Label("Administrator")
-                    <p>@CurrentUser.Username</p>
-                </div>
 
                 <div class="form-group">
                     <input type="submit" class="btn btn-primary form-control" value="Create" />
