@@ -20,7 +20,9 @@
                 var orgCount = Model.Organizations.Count();
                 var orgCountString = orgCount > 1 ? orgCount + " organizations" : orgCount + " organization";
 
-                <p>You have @(orgCountString).</p>
+                <div class="subtitle">
+                    <p>You have @(orgCountString).</p>
+                </div>
                 <table class="table user-package-list">
                     <thead>
                         <tr class="manage-package-headings">
@@ -65,7 +67,9 @@
             }
             else
             {
-                <p>You do not have any organizations.</p>
+                <div class="subtitle">
+                    <p>You do not have any organizations.</p>
+                </div>
             }
         </div>
     </div>
