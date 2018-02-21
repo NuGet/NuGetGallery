@@ -207,6 +207,10 @@ namespace NuGetGallery
                 .Include("~/Scripts/gallery/page-home.js");
             BundleTable.Bundles.Add(homeScriptBundle);
 
+            var signinScriptBundle = new ScriptBundle("~/Scripts/gallery/page-signin.min.js")
+                .Include("~/Scripts/gallery/page-signin.js");
+            BundleTable.Bundles.Add(signinScriptBundle);
+
             var displayPackageScriptBundle = new ScriptBundle("~/Scripts/gallery/page-display-package.min.js")
                 .Include("~/Scripts/gallery/page-display-package.js")
                 .Include("~/Scripts/gallery/clamp.js");

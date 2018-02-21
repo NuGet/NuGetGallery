@@ -365,6 +365,13 @@ img.reserved-indicator-icon {
   font-size: 16px;
   line-height: 2em;
 }
+.modal-container .modal-box .modal-body .form-button-node {
+  padding: 9% 30%;
+  text-align: center;
+}
+.modal-container .modal-box .modal-body .text-label {
+  padding: 13px;
+}
 .modal-container .modal-box .modal-body .transform-text {
   padding: 0 15px;
   margin: 0;

@@ -14,6 +14,7 @@ namespace NuGetGallery
         public AssociateExternalAccountViewModel External { get; set; }
         public SignInViewModel SignIn { get; set; }
         public RegisterViewModel Register { get; set; }
+        public PasswordAssistanceViewModel PasswordAssistance { get; set; }
         public IList<AuthenticationProviderViewModel> Providers { get; set; }
 
         public LogOnViewModel()
@@ -25,6 +26,7 @@ namespace NuGetGallery
         {
             SignIn = signIn;
             Register = new RegisterViewModel();
+            PasswordAssistance = new PasswordAssistanceViewModel();
         }
     }
 
@@ -107,6 +109,19 @@ namespace NuGetGallery
         [PasswordValidation]
         [AllowHtml]
         public string Password { get; set; }
+    }
+
+    public class PasswordAssistanceViewModel
+    {
+        [Required]
+        [StringLength(64)]
+        [Display(Name = "Please enter the NuGet username")]
+        public string Username { get; set; }
+
+        [Required]
+        [StringLength(255)]
+        [Display(Name = "Email")]
+        public string EmailAddress { get; set; }
     }
 
     public class AuthenticationProviderViewModel

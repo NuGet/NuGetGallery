@@ -11,10 +11,10 @@
 }
 
 <section role="main" class="container main-container page-sign-in">
-    <div>
+    <div style="float: right">
         <span>
-            Need assistance siging in? 
-            <a href="#">Click here</a>
+            Need assistance signing in?
+            <a href="#" id="password-assistance">Click here</a>
         </span>
     </div>
     @if (!string.IsNullOrEmpty(returnUrlMessage))
@@ -62,3 +62,15 @@
         </div>
     </div>
 </section>
+
+<div style="display: none" id="passwordAssistanceModal" class="modal fade modal-container" data-backdrop="static">
+    @Html.Partial("_PasswordAssistance")
+</div>
+
+@section bottomScripts {
+    @ViewHelpers.SectionsScript(this)
+    @Scripts.Render("~/Scripts/gallery/page-signin.min.js")
+}
+
+<script type="text/javascript">
+</script>
