@@ -374,7 +374,7 @@ namespace NuGetGallery
             return await EntitiesContext.TransformUserToOrganization(accountToTransform, adminUser, token);
         }
 
-        public async Task<Organization> CreateOrganization(string organizationName, string emailAddress, User adminUser)
+        public async Task<Organization> CreateOrganization(string username, string emailAddress, User adminUser)
         {
             if (!ContentObjectService.LoginDiscontinuationConfiguration.AreOrganizationsSupportedForUser(adminUser))
             {
@@ -382,18 +382,25 @@ namespace NuGetGallery
                     Strings.Organizations_NotInDomainWhitelist, adminUser.Username));
             }
 
-            var existingUsers = EntitiesContext.Users;
-            if (existingUsers.Any(u => u.Username == organizationName))
+            Func<User, bool> hasSameUsername = u => u.Username.Equals(username, StringComparison.OrdinalIgnoreCase);
+            Func<User, bool> hasSameEmail = u => u.EmailAddress.Equals(emailAddress, StringComparison.OrdinalIgnoreCase);
+
+            var existingUserWithIdentity = EntitiesContext.Users
+                .FirstOrDefault(u => hasSameUsername(u) || hasSameEmail(u));
+            if (existingUserWithIdentity != null)
             {
-                throw new EntityException(Strings.UsernameNotAvailable, organizationName);
-            }
-            
-            if (existingUsers.Any(u => u.EmailAddress == emailAddress))
-            {
-                throw new EntityException(Strings.EmailAddressBeingUsed, emailAddress);
+                if (hasSameUsername(existingUserWithIdentity))
+                {
+                    throw new EntityException(Strings.UsernameNotAvailable, username);
+                }
+
+                if (hasSameEmail(existingUserWithIdentity))
+                {
+                    throw new EntityException(Strings.EmailAddressBeingUsed, emailAddress);
+                }
             }
 
-            var organization = new Organization(organizationName)
+            var organization = new Organization(username)
             {
                 EmailAllowed = true,
                 UnconfirmedEmailAddress = emailAddress,
@@ -415,17 +422,18 @@ namespace NuGetGallery
                 throw new EntityException(String.Format(CultureInfo.CurrentCulture,
                         Strings.Organizations_AdminAccountDoesNotHaveTenant, adminUser.Username));
             }
-
-            // SubscribeOrganizationToTenantPolicy will commit
-            if (!await SubscribeOrganizationToTenantPolicy(organization, adminUser))
+            
+            if (!await SubscribeOrganizationToTenantPolicy(organization, adminUser, commitChanges: false))
             {
                 throw new UserSafeException(Strings.DefaultUserSafeExceptionMessage);
             }
 
+            await EntitiesContext.SaveChangesAsync();
+
             return organization;
         }
 
-        private async Task<bool> SubscribeOrganizationToTenantPolicy(User organization, User adminUser)
+        private async Task<bool> SubscribeOrganizationToTenantPolicy(User organization, User adminUser, bool commitChanges = true)
         {
             var tenantId = GetAzureActiveDirectoryCredentialTenant(adminUser);
             if (string.IsNullOrWhiteSpace(tenantId))
@@ -434,7 +442,7 @@ namespace NuGetGallery
             }
 
             var tenantPolicy = RequireOrganizationTenantPolicy.Create(tenantId);
-            if (!await SecurityPolicyService.SubscribeAsync(organization, tenantPolicy))
+            if (!await SecurityPolicyService.SubscribeAsync(organization, tenantPolicy, commitChanges))
             {
                 return false;
             }

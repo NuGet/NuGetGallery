@@ -940,7 +940,7 @@ namespace NuGetGallery
                     .Returns(Task.FromResult(affectedRecords));
 
                 service.MockSecurityPolicyService
-                    .Setup(sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>()))
+                    .Setup(sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>(), true))
                     .Returns(Task.FromResult(true));
 
                 // Act
@@ -964,6 +964,10 @@ namespace NuGetGallery
                 SetupOrganizationsSupportedForUser(supported: false);
                 var exception = await Assert.ThrowsAsync<EntityException>(() => InvokeCreateOrganization());
                 Assert.Equal(String.Format(CultureInfo.CurrentCulture, Strings.Organizations_NotInDomainWhitelist, AdminName), exception.Message);
+
+                _service.MockOrganizationRepository.Verify(x => x.InsertOnCommit(It.IsAny<Organization>()), Times.Never());
+                _service.MockSecurityPolicyService.Verify(sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>(), false), Times.Never());
+                _service.MockEntitiesContext.Verify(x => x.SaveChangesAsync(), Times.Never());
             }
 
             [Fact]
@@ -981,7 +985,8 @@ namespace NuGetGallery
                 Assert.Equal(String.Format(CultureInfo.CurrentCulture, Strings.UsernameNotAvailable, conflictUsername), exception.Message);
 
                 _service.MockOrganizationRepository.Verify(x => x.InsertOnCommit(It.IsAny<Organization>()), Times.Never());
-                _service.MockSecurityPolicyService.Verify(sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>()), Times.Never());
+                _service.MockSecurityPolicyService.Verify(sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>(), false), Times.Never());
+                _service.MockEntitiesContext.Verify(x => x.SaveChangesAsync(), Times.Never());
             }
 
             [Fact]
@@ -999,7 +1004,8 @@ namespace NuGetGallery
                 Assert.Equal(String.Format(CultureInfo.CurrentCulture, Strings.EmailAddressBeingUsed, conflictEmail), exception.Message);
 
                 _service.MockOrganizationRepository.Verify(x => x.InsertOnCommit(It.IsAny<Organization>()), Times.Never());
-                _service.MockSecurityPolicyService.Verify(sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>()), Times.Never());
+                _service.MockSecurityPolicyService.Verify(sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>(), false), Times.Never());
+                _service.MockEntitiesContext.Verify(x => x.SaveChangesAsync(), Times.Never());
             }
 
             [Fact]
@@ -1015,7 +1021,8 @@ namespace NuGetGallery
                 Assert.Equal(String.Format(CultureInfo.CurrentCulture, Strings.Organizations_AdminAccountDoesNotHaveTenant, adminUsername), exception.Message);
 
                 _service.MockOrganizationRepository.Verify(x => x.InsertOnCommit(It.IsAny<Organization>()), Times.Once());
-                _service.MockSecurityPolicyService.Verify(sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>()), Times.Never());
+                _service.MockSecurityPolicyService.Verify(sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>(), false), Times.Never());
+                _service.MockEntitiesContext.Verify(x => x.SaveChangesAsync(), Times.Never());
             }
 
             [Fact]
@@ -1026,7 +1033,7 @@ namespace NuGetGallery
                     .Returns(Enumerable.Empty<User>().MockDbSet().Object);
 
                 _service.MockSecurityPolicyService
-                    .Setup(sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>()))
+                    .Setup(sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>(), false))
                     .Returns(Task.FromResult(false));
                 SetupOrganizationsSupportedForUser();
 
@@ -1034,7 +1041,8 @@ namespace NuGetGallery
                 Assert.Equal(Strings.DefaultUserSafeExceptionMessage, exception.Message);
 
                 _service.MockOrganizationRepository.Verify(x => x.InsertOnCommit(It.IsAny<Organization>()), Times.Once());
-                _service.MockSecurityPolicyService.Verify(sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>()), Times.Once());
+                _service.MockSecurityPolicyService.Verify(sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>(), false), Times.Once());
+                _service.MockEntitiesContext.Verify(x => x.SaveChangesAsync(), Times.Never());
             }
 
             [Fact]
@@ -1045,7 +1053,7 @@ namespace NuGetGallery
                     .Returns(Enumerable.Empty<User>().MockDbSet().Object);
 
                 _service.MockSecurityPolicyService
-                    .Setup(sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>()))
+                    .Setup(sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>(), false))
                     .Returns(Task.FromResult(true));
                 SetupOrganizationsSupportedForUser();
 
@@ -1065,7 +1073,8 @@ namespace NuGetGallery
                         m => hasMembership(m) && m.Member.Organizations.Any(hasMembership)));
 
                 _service.MockOrganizationRepository.Verify(x => x.InsertOnCommit(It.IsAny<Organization>()), Times.Once());
-                _service.MockSecurityPolicyService.Verify(sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>()), Times.Once());
+                _service.MockSecurityPolicyService.Verify(sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>(), false), Times.Once());
+                _service.MockEntitiesContext.Verify(x => x.SaveChangesAsync(), Times.Once());
             }
 
             private Task<Organization> InvokeCreateOrganization(string orgName = OrgName, string orgEmail = OrgEmail, User admin = null)
