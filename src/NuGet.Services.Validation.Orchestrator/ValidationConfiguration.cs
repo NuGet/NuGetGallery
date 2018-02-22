@@ -22,6 +22,12 @@ namespace NuGet.Services.Validation.Orchestrator
         public string ValidationStorageConnectionString { get; set; }
 
         /// <summary>
+        /// How many times the Orchestrator should retry to validate a package
+        /// that is missing from the Gallery database.
+        /// </summary>
+        public int MissingPackageRetryCount { get; set; }
+
+        /// <summary>
         /// Time to wait between checking the state of a certain validation.
         /// </summary>
         public TimeSpan ValidationMessageRecheckPeriod { get; set; }

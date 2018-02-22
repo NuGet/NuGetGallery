@@ -8,8 +8,6 @@ namespace NuGet.Services.Validation.Orchestrator
 {
     class Program
     {
-        private const string LoggingCategory = "Validation.Orchestrator";
-
         static int Main(string[] args)
         {
             if (!args.Contains(JobArgumentNames.Once))
@@ -17,7 +15,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 args = args.Concat(new[] { "-" + JobArgumentNames.Once }).ToArray();
             }
             var job = new Job();
-            JobRunner.Run(job, args).Wait();
+            JobRunner.Run(job, args).GetAwaiter().GetResult();
 
             // if configuration validation failed, return non-zero status so we can detect failures in automation
             return job.ConfigurationValidated ? 0 : 1;
