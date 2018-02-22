@@ -138,7 +138,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AggregateCursor.cs" />
-    <Compile Include="BatchCollector.cs" />
     <Compile Include="CatalogIndexEntry.cs" />
     <Compile Include="CatalogIndexReader.cs" />
     <Compile Include="CatalogTypeConverter.cs" />

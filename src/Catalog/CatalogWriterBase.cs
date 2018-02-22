@@ -1,15 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using Newtonsoft.Json.Linq;
-using NuGet.Services.Metadata.Catalog.Persistence;
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
+using NuGet.Services.Metadata.Catalog.Persistence;
 using VDS.RDF;
 
 namespace NuGet.Services.Metadata.Catalog
@@ -32,6 +32,7 @@ namespace NuGet.Services.Metadata.Catalog
 
             RootUri = Storage.ResolveUri("index.json");
         }
+
         public void Dispose()
         {
             _batch.Clear();
@@ -161,7 +162,7 @@ namespace NuGet.Services.Metadata.Catalog
             return operation;
         }
 
-        async Task SaveRoot(Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> pageEntries, IGraph commitMetadata, CancellationToken cancellationToken)
+        protected virtual async Task SaveRoot(Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> pageEntries, IGraph commitMetadata, CancellationToken cancellationToken)
         {
             await SaveIndexResource(RootUri, Schema.DataTypes.CatalogRoot, commitId, commitTimeStamp, pageEntries, null, commitMetadata, GetAdditionalRootType(), cancellationToken);
         }

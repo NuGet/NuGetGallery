@@ -19,6 +19,10 @@ namespace NuGet.Services.Metadata.Catalog
         private const string StatusCode = "StatusCode";
         private const string Success = "Success";
 
+        private const string CatalogIndexReadDurationSeconds = "CatalogIndexReadDurationSeconds";
+
+        private const string CatalogIndexWriteDurationSeconds = "CatalogIndexWriteDurationSeconds";
+
         public TelemetryService(TelemetryClient telemetryClient)
         {
             _telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
@@ -45,6 +49,38 @@ namespace NuGet.Services.Metadata.Catalog
                     { Uri, uri.AbsoluteUri },
                     { StatusCode, ((int)statusCode).ToString() },
                     { Success, success.ToString() },
+                });
+        }
+
+        public void TrackCatalogIndexReadDuration(TimeSpan duration, Uri uri)
+        {
+            if (uri == null)
+            {
+                throw new ArgumentNullException(nameof(uri));
+            }
+
+            _telemetryClient.TrackMetric(
+                CatalogIndexReadDurationSeconds,
+                duration.TotalSeconds,
+                new Dictionary<string, string>
+                {
+                    { Uri, uri.AbsoluteUri },
+                });
+        }
+
+        public void TrackCatalogIndexWriteDuration(TimeSpan duration, Uri uri)
+        {
+            if (uri == null)
+            {
+                throw new ArgumentNullException(nameof(uri));
+            }
+
+            _telemetryClient.TrackMetric(
+                CatalogIndexWriteDurationSeconds,
+                duration.TotalSeconds,
+                new Dictionary<string, string>
+                {
+                    { Uri, uri.AbsoluteUri },
                 });
         }
     }

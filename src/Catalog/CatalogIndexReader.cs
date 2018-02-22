@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
@@ -17,17 +18,21 @@ namespace NuGet.Services.Metadata.Catalog
 
         private readonly Uri _indexUri;
         private readonly CollectorHttpClient _httpClient;
+        private readonly ITelemetryService _telemetryService;
         private JObject _context;
 
-        public CatalogIndexReader(Uri indexUri, CollectorHttpClient httpClient)
+        public CatalogIndexReader(Uri indexUri, CollectorHttpClient httpClient, ITelemetryService telemetryService)
         {
             _indexUri = indexUri;
             _httpClient = httpClient;
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
         }
 
         public async Task<IEnumerable<CatalogIndexEntry>> GetEntries()
         {
+            var stopwatch = Stopwatch.StartNew();
             JObject index = await _httpClient.GetJObjectAsync(_indexUri);
+            _telemetryService.TrackCatalogIndexReadDuration(stopwatch.Elapsed, _indexUri);
 
             // save the context used on the index
             JToken context = null;

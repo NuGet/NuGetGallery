@@ -91,7 +91,7 @@ namespace Ng.Jobs
                 Logger.LogInformation($"Downloading {packages.Select(t => t.Value.Count).Sum()} packages");
 
                 //  the idea here is to leave the lastCreated, lastEdited and lastDeleted values exactly as they were
-                var catalogProperties = await FeedHelpers.GetCatalogPropertiesAsync(_storage, cancellationToken);
+                var catalogProperties = await FeedHelpers.GetCatalogPropertiesAsync(_storage, TelemetryService, cancellationToken);
                 var lastCreated = catalogProperties.LastCreated ?? DateTime.MinValue.ToUniversalTime();
                 var lastEdited = catalogProperties.LastEdited ?? DateTime.MinValue.ToUniversalTime();
                 var lastDeleted = catalogProperties.LastDeleted ?? DateTime.MinValue.ToUniversalTime();
@@ -105,6 +105,7 @@ namespace Ng.Jobs
                     lastDeleted,
                     createdPackages: null,
                     cancellationToken: cancellationToken,
+                    telemetryService: TelemetryService,
                     logger: Logger);
             }
         }

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Net.Http;
@@ -47,7 +48,14 @@ namespace Ng
 
         protected override async Task<bool> OnProcessBatch(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp, bool isLastBatch, CancellationToken cancellationToken)
         {
-            JObject catalogIndex = (_baseAddress != null) ? await client.GetJObjectAsync(Index, cancellationToken) : null;
+            JObject catalogIndex = null; ;
+            if (_baseAddress != null)
+            {
+                var stopwatch = Stopwatch.StartNew();
+                catalogIndex = await client.GetJObjectAsync(Index, cancellationToken);
+                _telemetryService.TrackCatalogIndexReadDuration(stopwatch.Elapsed, Index);
+            }
+
             IEnumerable<JObject> catalogItems = await FetchCatalogItems(client, items, cancellationToken);
 
             var numDocs = _indexWriter.NumDocs();

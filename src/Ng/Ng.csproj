@@ -327,6 +327,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Arguments.cs" />
+    <Compile Include="JobNameTelemetryInitializer.cs" />
     <Compile Include="Jobs\Catalog2DnxJob.cs" />
     <Compile Include="Jobs\Catalog2LuceneJob.cs" />
     <Compile Include="Jobs\Catalog2MonitoringJob.cs" />

@@ -14,7 +14,6 @@ using Ng.Jobs;
 using NuGet.Services.Configuration;
 using NuGet.Services.Logging;
 using NuGet.Services.Metadata.Catalog;
-using Serilog.Context;
 using Serilog.Events;
 
 namespace Ng
@@ -47,6 +46,14 @@ namespace Ng
                 ServicePointManager.SecurityProtocol &= ~SecurityProtocolType.Ssl3;
                 ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
 
+                // Determine the job name
+                if (args.Length == 0)
+                {
+                    throw new ArgumentException("Missing job name argument.");
+                }
+
+                var jobName = args[0];
+                TelemetryConfiguration.Active.TelemetryInitializers.Add(new JobNameTelemetryInitializer(jobName));
 
                 // Configure ApplicationInsights
                 ApplicationInsights.Initialize(arguments.GetOrDefault<string>(Arguments.InstrumentationKey));
@@ -59,16 +66,9 @@ namespace Ng
                 _logger = loggerFactory.CreateLogger<Program>();
 
                 var cancellationTokenSource = new CancellationTokenSource();
-                if (args.Length == 0)
-                {
-                    throw new ArgumentException("Missing tool specification");
-                }
 
                 // Create an ITelemetryService
                 var telemetryService = new TelemetryService(new TelemetryClient());
-
-                var jobName = args[0];
-                LogContext.PushProperty("JobName", jobName);
 
                 job = NgJobFactory.GetJob(jobName, telemetryService, loggerFactory);
                 await job.Run(arguments, cancellationTokenSource.Token);

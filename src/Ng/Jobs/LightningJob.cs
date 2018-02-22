@@ -244,7 +244,7 @@ namespace Ng.Jobs
             {
                 var httpMessageHandlerFactory = CommandHelpers.GetHttpMessageHandlerFactory(TelemetryService, _verbose);
                 var collectorHttpClient = new CollectorHttpClient(httpMessageHandlerFactory());
-                var catalogIndexReader = new CatalogIndexReader(new Uri(_catalogIndex), collectorHttpClient);
+                var catalogIndexReader = new CatalogIndexReader(new Uri(_catalogIndex), collectorHttpClient, TelemetryService);
 
                 var catalogIndexEntries = await catalogIndexReader.GetEntries();
 

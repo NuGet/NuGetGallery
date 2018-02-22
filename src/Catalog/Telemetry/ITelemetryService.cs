@@ -9,6 +9,8 @@ namespace NuGet.Services.Metadata.Catalog
 {
     public interface ITelemetryService
     {
+        void TrackCatalogIndexWriteDuration(TimeSpan duration, Uri uri);
+        void TrackCatalogIndexReadDuration(TimeSpan duration, Uri uri);
         void TrackHttpDuration(TimeSpan duration, HttpMethod method, Uri uri, HttpStatusCode statusCode, bool success);
     }
 }
