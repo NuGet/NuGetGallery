@@ -1,7 +1,7 @@
 $(function () {
     'use strict';
-    $('#password-assistance').click(function () {
-        $('#passwordAssistanceModal').modal({
+    $('#signin-assistance').click(function () {
+        $('#signinAssistanceModal').modal({
             show: true
         });
     });

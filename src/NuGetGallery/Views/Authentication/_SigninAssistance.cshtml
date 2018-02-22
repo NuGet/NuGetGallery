@@ -17,7 +17,7 @@
             </span>
         </div>
         <div>
-            @using (Html.BeginForm("Users", "PasswordAssistance"))
+            @using (Html.BeginForm("Users", "SigninAssistance"))
             {
                 @Html.AntiForgeryToken()
 
@@ -28,7 +28,8 @@
                 </div>
                 <div class="form-button-node">
                     <input type="submit" class="btn btn-primary btn-block action-button" value="Next">
-                </div>            }
+                </div>
+            }
         </div>
     </div>
 </div>
