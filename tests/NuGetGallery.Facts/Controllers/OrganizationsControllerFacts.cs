@@ -319,8 +319,8 @@ namespace NuGetGallery
             private const string OrgName = "TestOrg";
             private const string OrgEmail = "TestOrg@testorg.com";
 
-            private CreateOrganizationViewModel Model = 
-                new CreateOrganizationViewModel { OrganizationName = OrgName, OrganizationEmailAddress = OrgEmail };
+            private AddOrganizationViewModel Model = 
+                new AddOrganizationViewModel { OrganizationName = OrgName, OrganizationEmailAddress = OrgEmail };
 
             private User Admin;
 
@@ -333,45 +333,45 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WhenCreateOrganizationThrowsEntityException_ReturnsViewWithMessage()
+            public async Task WhenAddOrganizationThrowsEntityException_ReturnsViewWithMessage()
             {
                 var message = "message";
 
                 var mockUserService = GetMock<IUserService>();
                 mockUserService
-                    .Setup(x => x.CreateOrganization(OrgName, OrgEmail, Admin))
+                    .Setup(x => x.AddOrganization(OrgName, OrgEmail, Admin))
                     .Throws(new EntityException(message));
 
                 var controller = GetController<OrganizationsController>();
                 controller.SetCurrentUser(Admin);
 
-                var result = await controller.Create(Model);
+                var result = await controller.Add(Model);
 
-                ResultAssert.IsView<CreateOrganizationViewModel>(result);
+                ResultAssert.IsView<AddOrganizationViewModel>(result);
                 Assert.Equal(message, controller.TempData["ErrorMessage"]);
             }
 
             [Fact]
-            public async Task WhenCreateOrganizationThrowsException_ReturnsViewWithUserSafeMessage()
+            public async Task WhenAddOrganizationThrowsException_ReturnsViewWithUserSafeMessage()
             {
                 var message = "message";
 
                 var mockUserService = GetMock<IUserService>();
                 mockUserService
-                    .Setup(x => x.CreateOrganization(OrgName, OrgEmail, Admin))
+                    .Setup(x => x.AddOrganization(OrgName, OrgEmail, Admin))
                     .Throws(new UserSafeException(message));
 
                 var controller = GetController<OrganizationsController>();
                 controller.SetCurrentUser(Admin);
 
-                var result = await controller.Create(Model);
+                var result = await controller.Add(Model);
 
-                ResultAssert.IsView<CreateOrganizationViewModel>(result);
+                ResultAssert.IsView<AddOrganizationViewModel>(result);
                 Assert.Equal(message, controller.TempData["ErrorMessage"]);
             }
 
             [Fact]
-            public async Task WhenCreateOrganizationSucceeds_RedirectsToManageOrganization()
+            public async Task WhenAddOrganizationSucceeds_RedirectsToManageOrganization()
             {
                 var token = "token";
                 var org = new Organization("newlyCreated")
@@ -382,7 +382,7 @@ namespace NuGetGallery
 
                 var mockUserService = GetMock<IUserService>();
                 mockUserService
-                    .Setup(x => x.CreateOrganization(OrgName, OrgEmail, Admin))
+                    .Setup(x => x.AddOrganization(OrgName, OrgEmail, Admin))
                     .Returns(Task.FromResult(org));
 
                 var messageService = GetMock<IMessageService>();
@@ -390,7 +390,7 @@ namespace NuGetGallery
                 var controller = GetController<OrganizationsController>();
                 controller.SetCurrentUser(Admin);
 
-                var result = await controller.Create(Model);
+                var result = await controller.Add(Model);
 
                 ResultAssert.IsRedirectToRoute(result, 
                     new { accountName = org.Username, action = nameof(OrganizationsController.ManageOrganization) });

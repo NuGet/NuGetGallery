@@ -764,10 +764,10 @@ namespace NuGetGallery
             return GetActionLink(url, "Organizations", "Users", relativeUrl);
         }
 
-        public static string CreateOrganization(this UrlHelper url, bool relativeUrl = true)
+        public static string AddOrganization(this UrlHelper url, bool relativeUrl = true)
         {
             return GetActionLink(url,
-                "Create",
+                "Add",
                 "Organizations",
                 relativeUrl);
         }

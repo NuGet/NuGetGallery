@@ -374,27 +374,26 @@ namespace NuGetGallery
             return await EntitiesContext.TransformUserToOrganization(accountToTransform, adminUser, token);
         }
 
-        public async Task<Organization> CreateOrganization(string username, string emailAddress, User adminUser)
+        public async Task<Organization> AddOrganization(string username, string emailAddress, User adminUser)
         {
             if (!ContentObjectService.LoginDiscontinuationConfiguration.AreOrganizationsSupportedForUser(adminUser))
             {
                 throw new EntityException(String.Format(CultureInfo.CurrentCulture,
                     Strings.Organizations_NotInDomainWhitelist, adminUser.Username));
             }
-
-            Func<User, bool> hasSameUsername = u => u.Username.Equals(username, StringComparison.OrdinalIgnoreCase);
-            Func<User, bool> hasSameEmail = u => u.EmailAddress.Equals(emailAddress, StringComparison.OrdinalIgnoreCase);
-
+            
             var existingUserWithIdentity = EntitiesContext.Users
-                .FirstOrDefault(u => hasSameUsername(u) || hasSameEmail(u));
+                .FirstOrDefault(u => 
+                    u.Username.Equals(username, StringComparison.OrdinalIgnoreCase) || 
+                    string.Equals(u.EmailAddress, emailAddress, StringComparison.OrdinalIgnoreCase));
             if (existingUserWithIdentity != null)
             {
-                if (hasSameUsername(existingUserWithIdentity))
+                if (existingUserWithIdentity.Username.Equals(username, StringComparison.OrdinalIgnoreCase))
                 {
                     throw new EntityException(Strings.UsernameNotAvailable, username);
                 }
 
-                if (hasSameEmail(existingUserWithIdentity))
+                if (string.Equals(existingUserWithIdentity.EmailAddress, emailAddress, StringComparison.OrdinalIgnoreCase))
                 {
                     throw new EntityException(Strings.EmailAddressBeingUsed, emailAddress);
                 }

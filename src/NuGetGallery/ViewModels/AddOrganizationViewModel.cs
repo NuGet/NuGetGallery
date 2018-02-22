@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace NuGetGallery
 {
-    public class CreateOrganizationViewModel
+    public class AddOrganizationViewModel
     {
         [Required]
         [StringLength(64)]

@@ -50,15 +50,15 @@ namespace NuGetGallery
 
         [HttpGet]
         [UIAuthorize]
-        public ActionResult Create()
+        public ActionResult Add()
         {
-            return View(new CreateOrganizationViewModel());
+            return View(new AddOrganizationViewModel());
         }
 
         [HttpPost]
         [UIAuthorize]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Create(CreateOrganizationViewModel model)
+        public async Task<ActionResult> Add(AddOrganizationViewModel model)
         {
             var organizationName = model.OrganizationName;
             var organizationEmailAddress = model.OrganizationEmailAddress;
@@ -68,7 +68,7 @@ namespace NuGetGallery
 
             try
             {
-                var organization = await UserService.CreateOrganization(organizationName, organizationEmailAddress, adminUser);
+                var organization = await UserService.AddOrganization(organizationName, organizationEmailAddress, adminUser);
                 SendNewAccountEmail(organization);
                 return RedirectToAction(nameof(ManageOrganization), new { accountName = organization.Username });
             }
