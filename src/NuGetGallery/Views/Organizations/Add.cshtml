@@ -58,7 +58,8 @@
     <script type="text/javascript">
         var gravatarId = "@gravatarId";
         var emailBoxGroupId = "@emailBoxGroupId";
-        var defaultImage = "@Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")";
+        var defaultImage = "@Html.Raw(@Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png"))";
+        var emailValidationRegex = new RegExp("@Html.Raw(@Constants.EmailValidationRegex)");
     </script>
     @Scripts.Render("~/Scripts/gallery/page-add-organization.min.js")
 }

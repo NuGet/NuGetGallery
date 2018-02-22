@@ -237,7 +237,8 @@ namespace NuGetGallery
             BundleTable.Bundles.Add(manageOrganizationScriptBundle);
 
             var addOrganizationScriptBundle = new ScriptBundle("~/Scripts/gallery/page-add-organization.min.js")
-                .Include("~/Scripts/gallery/page-add-organization.js");
+                .Include("~/Scripts/gallery/page-add-organization.js")
+                .Include("~/Scripts/gallery/md5.js");
             BundleTable.Bundles.Add(addOrganizationScriptBundle);
         }
 
