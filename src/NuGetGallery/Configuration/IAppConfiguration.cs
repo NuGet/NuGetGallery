@@ -89,6 +89,13 @@ namespace NuGetGallery.Configuration
         bool BlockingAsynchronousPackageValidationEnabled { get; set; }
 
         /// <summary>
+        /// If <see cref="AsynchronousPackageValidationEnabled"/> is set to true,
+        /// this is the delay that downstream validations should wait before starting
+        /// to process a package.
+        /// </summary>
+        TimeSpan AsynchronousPackageValidationDelay { get; set; }
+
+        /// <summary>
         /// Gets the URI to the search service
         /// </summary>
         Uri ServiceDiscoveryUri { get; set; }
