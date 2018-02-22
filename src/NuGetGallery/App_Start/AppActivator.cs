@@ -193,7 +193,8 @@ namespace NuGetGallery
                 .Include("~/Scripts/gallery/knockout-3.4.2.js")
                 .Include("~/Scripts/gallery/bootstrap.js")
                 .Include("~/Scripts/gallery/moment-2.18.1.js")
-                .Include("~/Scripts/gallery/common.js");
+                .Include("~/Scripts/gallery/common.js")
+                .Include("~/Scripts/gallery/autocomplete.js");
             BundleTable.Bundles.Add(newScriptBundle);
 
             var d3ScriptBundle = new ScriptBundle("~/Scripts/gallery/stats.min.js")

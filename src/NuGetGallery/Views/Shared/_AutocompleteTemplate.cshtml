@@ -1,0 +1,33 @@
+﻿<div id="autocomplete-results-container" class="text-left" tabindex="0"></div>
+
+<script type="text/html" id="autocomplete-results-row">
+    <!-- ko if: $data -->
+    <!-- ko if: $data.PackageRegistration -->
+    <div class="col-sm-4 autocomplete-row-id autocomplete-row-data">
+        <span data-bind="attr: { id: 'autocomplete-result-id-' + $data.PackageRegistration.Id, title: $data.PackageRegistration.Id }, text: $data.PackageRegistration.Id"></span>
+    </div>
+    <div class="col-sm-4 autocomplete-row-downloadcount text-right autocomplete-row-data">
+        <span data-bind="text: $data.DownloadCount + ' downloads'"></span>
+    </div>
+    <div class="col-sm-4 autocomplete-row-owners text-left autocomplete-row-data">
+        <span data-bind="text: $data.OwnersString + ' '"></span>
+    </div>
+    <!-- /ko -->
+    <!-- ko ifnot: $data.PackageRegistration -->
+    <div class="col-sm-12 autocomplete-row-id autocomplete-row-data">
+        <span data-bind="attr: { id: 'autocomplete-result-id-' + $data, title: $data  }, text: $data"></span>
+    </div>
+    <!-- /ko -->
+    <!-- /ko -->
+</script>
+
+<script type="text/html" id="autocomplete-results-template">
+    <!-- ko if: $data.data.length > 0 -->
+    <div data-bind="foreach: $data.data" id="autocomplete-results-list">
+        <a data-bind="attr: { id: 'autocomplete-result-row-' + $data, href: '/packages/' + $data, title: $data }" tabindex="-1">
+            <div data-bind="attr:{ id: 'autocomplete-container-' + $data }" class="autocomplete-results-row">
+            </div>
+        </a>
+    </div>
+    <!-- /ko -->
+</script>

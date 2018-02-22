@@ -2053,6 +2053,7 @@
     <Content Include="Views\Users\_UserAccountLinkExternalCredential.cshtml" />
     <Content Include="Views\Pages\_TransformOrLink.cshtml" />
     <Content Include="Views\Organizations\_OrganizationAccountManageMembers.cshtml" />
+    <Content Include="Views\Shared\_AutocompleteTemplate.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />
