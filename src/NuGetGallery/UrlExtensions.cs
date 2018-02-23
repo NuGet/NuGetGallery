@@ -860,6 +860,11 @@ namespace NuGetGallery
             return GetActionLink(url, "AddPackageOwner", "JsonApi", relativeUrl);
         }
 
+        public static string SigninAssistance(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetActionLink(url, "SigninAssistance", "JsonApi", relativeUrl);
+        }
+
         public static string RemovePackageOwner(this UrlHelper url, bool relativeUrl = true)
         {
             return GetActionLink(url, "RemovePackageOwner", "JsonApi", relativeUrl);

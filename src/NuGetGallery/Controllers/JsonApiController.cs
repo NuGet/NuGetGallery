@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
@@ -202,6 +203,76 @@ namespace NuGetGallery
             {
                 return Json(new { success = false, message = model.Error }, JsonRequestBehavior.AllowGet);
             }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual JsonResult SigninAssistance(string username)
+        {
+            try
+            {
+                var user = _userService.FindByUsername(username);
+                if (user == null)
+                {
+                    return Json(new { success = false, message = Strings.UserNotFound });
+                }
+
+                var externalCredential = user
+                    .Credentials
+                    .FirstOrDefault(cred => cred.IsExternal());
+
+                var identity = externalCredential?.Identity;
+
+                var email = GetFormattedEmailFromIdentity(identity);
+                return Json(new { success = true, EmailAddress = email });
+            }
+            catch (ArgumentException ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        private string GetFormattedEmailFromIdentity(string identity)
+        {
+            if (string.IsNullOrWhiteSpace(identity))
+            {
+                return null;
+            }
+
+            // The identity stores the email address as either 'email' or 'FirstName Lastname <email>'
+            var emailPattern = @"\<(.+?)\>";
+            var emailFormatPadding = "**********";
+            if (!Regex.IsMatch(identity, emailPattern))
+            {
+                return identity;
+            }
+
+            // If there is a match with the regex, there will be three tokens
+            // '<', 'email' & '>', return the email address
+            var email = Regex.Match(identity, emailPattern).Groups[1].Value;
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                throw new ArgumentException(@"The associated credential does not have the email address. Please contact support.");
+            }
+
+            var emailIdLastIndex = email.IndexOf('@');
+            if (emailIdLastIndex < 1)
+            {
+                throw new ArgumentException(@"Invalid email address associated with the linked external credential");
+            }
+
+            var startingIndex = 1;
+            var length = emailIdLastIndex - 2; // we want to keep first and the last characters of the email id
+            if (emailIdLastIndex == 1)
+            {
+                // one character wide email id eg: x@domain.com; format it as x**********@domain.com
+                return email.Insert(startingIndex, emailFormatPadding);
+            }
+
+            // Format the email address as x**********y@domain.com
+            return email
+                .Remove(startingIndex, length)
+                .Insert(startingIndex, emailFormatPadding);
         }
 
         /// <summary>

@@ -68,9 +68,12 @@
 </div>
 
 @section bottomScripts {
+    <script type="text/javascript">
+        var signinAssistanceUrl = "@Url.SigninAssistance()"
+
+        // Strings
+        var strings_InvalidUsername = "@Html.Raw(Strings.ManagePackageOwners_InvalidUsername)";
+    </script>
     @ViewHelpers.SectionsScript(this)
     @Scripts.Render("~/Scripts/gallery/page-signin.min.js")
 }
-
-<script type="text/javascript">
-</script>
