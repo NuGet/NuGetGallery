@@ -92,7 +92,6 @@
     <Compile Include="CdnLogCustomFieldParser.cs" />
     <Compile Include="CdnLogEntryParser.cs" />
     <Compile Include="NuGetCustomHeaders.cs" />
-    <Compile Include="PackageDefinition.cs" />
     <Compile Include="PackageStatistics.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ToolStatistics.cs" />

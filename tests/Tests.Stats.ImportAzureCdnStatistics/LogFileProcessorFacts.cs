@@ -24,7 +24,7 @@ namespace Tests.Stats.ImportAzureCdnStatistics
             new PackageTranslator("packageTranslations.json");
 
         private static readonly IPackageStatisticsParser _packageStatisticsParser =
-            new PackageStatisticsParser(_packageTranslator);
+            new PackageStatisticsParser(_packageTranslator, new LoggerFactory());
 
         public class WhenOnlyPackageStatisticsInLogFile
         {

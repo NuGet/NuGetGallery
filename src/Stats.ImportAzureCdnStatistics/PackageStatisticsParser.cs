@@ -1,7 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using NuGet;
+using System;
+using System.Linq;
+using Microsoft.Extensions.Logging;
 using NuGet.Versioning;
 using Stats.AzureCdnLogs.Common;
 
@@ -10,25 +12,50 @@ namespace Stats.ImportAzureCdnStatistics
     public class PackageStatisticsParser
         : StatisticsParser, IPackageStatisticsParser
     {
+        private readonly ILogger<PackageStatisticsParser> _logger;
         private readonly PackageTranslator _packageTranslator;
 
-        public PackageStatisticsParser(PackageTranslator packageTranslator)
+        public PackageStatisticsParser(PackageTranslator packageTranslator, ILoggerFactory loggerFactory)
         {
+            if (loggerFactory == null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
             _packageTranslator = packageTranslator;
+            _logger = loggerFactory.CreateLogger<PackageStatisticsParser>();
         }
 
         public PackageStatistics FromCdnLogEntry(CdnLogEntry cdnLogEntry)
         {
-            var packageDefinition = PackageDefinition.FromRequestUrl(cdnLogEntry.RequestUrl);
+            var packageDefinitions = PackageDefinition.FromRequestUrl(cdnLogEntry.RequestUrl);
 
-            if (packageDefinition == null)
+            if (packageDefinitions == null || !packageDefinitions.Any())
             {
                 return null;
             }
 
+            if (packageDefinitions.Count > 1)
+            {
+                _logger.LogWarning(LogEvents.MultiplePackageIDVersionParseOptions, 
+                                   "Found multiple parse options for URL {RequestUrl}: {PackageDefinitions}",
+                                   cdnLogEntry.RequestUrl,
+                                   string.Join(", ", packageDefinitions));
+            }
+
+            var packageDefinition = packageDefinitions.First();
+
             if (_packageTranslator != null)
             {
-                packageDefinition = _packageTranslator.TranslatePackageDefinition(packageDefinition);
+                bool translateOccured = _packageTranslator.TryTranslatePackageDefinition(packageDefinition);
+
+                if (translateOccured)
+                {
+                    _logger.LogInformation(LogEvents.TranslatedPackageIdVersion,
+                                           "Translated package. Url: {RequestUrl}, New definition: {PackageDefinition}",
+                                           cdnLogEntry.RequestUrl,
+                                           packageDefinition);
+                }
             }
 
             var statistic = new PackageStatistics();
@@ -42,7 +69,7 @@ namespace Stats.ImportAzureCdnStatistics
             statistic.UserAgent = GetUserAgentValue(cdnLogEntry);
             statistic.EdgeServerIpAddress = cdnLogEntry.EdgeServerIpAddress;
 
-            // ignore blacklisted user agents
+            // Ignore blacklisted user agents
             if (!IsBlackListed(statistic.UserAgent))
             {
                 return statistic;

@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Stats.AzureCdnLogs.Common;
 using Stats.ImportAzureCdnStatistics;
 using Xunit;
 
@@ -17,8 +16,8 @@ namespace Tests.Stats.ImportAzureCdnStatistics
         public void DoesNotThrowWhenGivenNull()
         {
             var target = CreatePackageTranslator();
-            var result = target.TranslatePackageDefinition(null);
-            Assert.Null(result);
+            var result = target.TryTranslatePackageDefinition(null);
+            Assert.False(result);
         }
 
         [Fact]
@@ -27,9 +26,9 @@ namespace Tests.Stats.ImportAzureCdnStatistics
             var definition = new PackageDefinition {PackageId = "Foo"};
 
             var target = CreatePackageTranslator();
-            var result = target.TranslatePackageDefinition(definition);
+            var result = target.TryTranslatePackageDefinition(definition);
 
-            Assert.Equal(result, definition);
+            Assert.False(result);
         }
 
         [Fact]
@@ -38,9 +37,9 @@ namespace Tests.Stats.ImportAzureCdnStatistics
             var definition = new PackageDefinition {PackageVersion = "1.0"};
 
             var target = CreatePackageTranslator();
-            var result = target.TranslatePackageDefinition(definition);
+            var result = target.TryTranslatePackageDefinition(definition);
 
-            Assert.Equal(result, definition);
+            Assert.False(result);
         }
 
         [Theory]
@@ -58,10 +57,10 @@ namespace Tests.Stats.ImportAzureCdnStatistics
             };
 
             var target = CreatePackageTranslator();
-            var result = target.TranslatePackageDefinition(definition);
+            var result = target.TryTranslatePackageDefinition(definition);
 
-            Assert.Equal(result.PackageId, c);
-            Assert.Equal(result.PackageVersion, d);
+            Assert.Equal(definition.PackageId, c);
+            Assert.Equal(definition.PackageVersion, d);
         }
     }
 }
