@@ -59,6 +59,8 @@ namespace NuGet.Services.Validation
         private const string EndCertificateValidationsValidationIdIndex = "IX_EndCertificateValidations_ValidationId";
         private const string EndCertificateValidationsCertificateKeyValidationIdIndex = "IX_EndCertificateValidations_EndCertificateKey_ValidationId";
 
+        private const string PackageCompatibilityIssuesTable = "PackageCompatibilityIssues";
+
         static ValidationEntitiesContext()
         {
             // Don't run migrations, ever!
@@ -76,6 +78,7 @@ namespace NuGet.Services.Validation
         public IDbSet<EndCertificateValidation> CertificateValidations { get; set; }
         public IDbSet<ParentCertificate> ParentCertificates { get; set; }
         public IDbSet<CertificateChainLink> CertificateChainLinks { get; set; }
+        public IDbSet<PackageCompatibilityIssue> PackageCompatibilityIssues { get; set; }
 
         public ValidationEntitiesContext() : this("Validation.SqlServer")
         {
@@ -183,6 +186,25 @@ namespace NuGet.Services.Validation
             modelBuilder.Entity<PackageValidationIssue>()
                 .Property(pv => pv.Data)
                 .IsRequired();
+
+            modelBuilder.Entity<PackageCompatibilityIssue>()
+                .HasKey(e => e.Key);
+
+            modelBuilder.Entity<PackageCompatibilityIssue>()
+                .Property(pv => pv.Key)
+                .HasDatabaseGeneratedOption(DatabaseGeneratedOption.Identity);
+
+            modelBuilder.Entity<PackageCompatibilityIssue>()
+                .Property(pv => pv.Message)
+                .IsRequired();
+
+            modelBuilder.Entity<PackageCompatibilityIssue>()
+                .Property(pv => pv.ClientIssueCode)
+                .IsRequired();
+
+            modelBuilder.Entity<PackageCompatibilityIssue>()
+                .ToTable(PackageCompatibilityIssuesTable)
+                .HasKey(s => s.Key);
 
             modelBuilder.Entity<ValidatorStatus>()
                 .ToTable(ValidatorStatusesTable)
