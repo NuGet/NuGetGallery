@@ -16,6 +16,35 @@ body h2,
 body h3 {
   margin-top: 40px;
 }
+#autocomplete-results-container {
+  position: absolute;
+  right: 0;
+  left: 0;
+  z-index: 1;
+  display: none;
+  margin-right: 15px;
+  margin-left: 15px;
+  background-color: white;
+  border: 1px solid black;
+}
+#autocomplete-results-container .autocomplete-row-data {
+  padding-top: 2px;
+  padding-bottom: 2px;
+  color: #000;
+}
+#autocomplete-results-container .autocomplete-row-data :focus {
+  background-color: #66afe9;
+}
+#autocomplete-results-container .autocomplete-row-id {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#autocomplete-results-container .autocomplete-row-owners {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .footer {
   display: table-row;
   height: 1px;

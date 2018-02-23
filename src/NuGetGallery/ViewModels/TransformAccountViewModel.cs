@@ -8,7 +8,7 @@ namespace NuGetGallery
     public class TransformAccountViewModel
     {
         [Required]
-        [StringLength(255)]
+        [StringLength(64)]
         [Display(Name = "Administrator")]
         public string AdminUsername { get; set; }
     }

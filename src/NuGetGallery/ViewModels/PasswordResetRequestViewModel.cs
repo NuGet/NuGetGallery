@@ -7,6 +7,7 @@ namespace NuGetGallery
     public class ForgotPasswordViewModel
     {
         [Required]
+        [StringLength(255)]
         [Display(Name = "Email")]
         public string Email { get; set; }
     }

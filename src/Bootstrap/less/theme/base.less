@@ -19,6 +19,40 @@ body {
   }
 }
 
+#autocomplete-results-container {
+  position: absolute;
+  z-index: 1;
+  background-color: white;
+  border: 1px solid black;
+  display: none;
+  left: 0;
+  right: 0;
+  margin-left: floor((@grid-gutter-width / 2));
+  margin-right: floor((@grid-gutter-width / 2));
+
+  .autocomplete-row-data {
+    padding-top:2px;
+    padding-bottom:2px;
+    color:@text-color;
+
+    :focus {
+      background-color: @input-border-focus;
+    }
+  }
+
+  .autocomplete-row-id {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .autocomplete-row-owners {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
 .footer {
   background-color: @panel-footer-bg;
   color: @panel-footer-color;
