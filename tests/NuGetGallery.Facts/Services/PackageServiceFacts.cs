@@ -24,11 +24,13 @@ namespace NuGetGallery
             Mock<IEntityRepository<Package>> packageRepository = null,
             IPackageNamingConflictValidator packageNamingConflictValidator = null,
             IAuditingService auditingService = null,
+            Mock<ITelemetryService> telemetryService = null,
             Action<Mock<PackageService>> setup = null)
         {
             packageRegistrationRepository = packageRegistrationRepository ?? new Mock<IEntityRepository<PackageRegistration>>();
             packageRepository = packageRepository ?? new Mock<IEntityRepository<Package>>();
             auditingService = auditingService ?? new TestAuditingService();
+            telemetryService = telemetryService ?? new Mock<ITelemetryService>();
 
             if (packageNamingConflictValidator == null)
             {
@@ -41,7 +43,8 @@ namespace NuGetGallery
                 packageRegistrationRepository.Object,
                 packageRepository.Object,
                 packageNamingConflictValidator,
-                auditingService);
+                auditingService,
+                telemetryService.Object);
 
             packageService.CallBase = true;
 
@@ -1428,6 +1431,21 @@ namespace NuGetGallery
                     && ar.Id == package.PackageRegistration.Id
                     && ar.Version == package.Version));
             }
+
+            [Fact]
+            public async Task EmitsTelemetry()
+            {
+                var packageRegistration = new PackageRegistration { Id = "theId" };
+                var package = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = false };
+                var telemetryService = new Mock<ITelemetryService>();
+                var service = CreateService(telemetryService: telemetryService);
+
+                await service.MarkPackageListedAsync(package);
+
+                telemetryService.Verify(
+                    x => x.TrackPackageListed(package),
+                    Times.Once);
+            }
         }
 
         public class TheMarkPackageUnlistedMethod
@@ -1535,6 +1553,21 @@ namespace NuGetGallery
                     ar.Action == AuditedPackageAction.Unlist
                     && ar.Id == package.PackageRegistration.Id
                     && ar.Version == package.Version));
+            }
+
+            [Fact]
+            public async Task EmitsTelemetry()
+            {
+                var packageRegistration = new PackageRegistration { Id = "theId" };
+                var package = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true };
+                var telemetryService = new Mock<ITelemetryService>();
+                var service = CreateService(telemetryService: telemetryService);
+
+                await service.MarkPackageUnlistedAsync(package);
+
+                telemetryService.Verify(
+                    x => x.TrackPackageUnlisted(package),
+                    Times.Once);
             }
         }
 

@@ -29,18 +29,6 @@ namespace NuGetGallery
 
         internal TelemetryClient UnderlyingClient { get; }
 
-        public void TrackEvent(string eventName, IDictionary<string, string> properties = null, IDictionary<string, double> metrics = null)
-        {
-            try
-            {
-                UnderlyingClient.TrackEvent(eventName, properties, metrics);
-            }
-            catch
-            {
-                // logging failed, don't allow exception to escape
-            }
-        }
-
         public void TrackException(Exception exception, IDictionary<string, string> properties = null, IDictionary<string, double> metrics = null)
         {
             try
