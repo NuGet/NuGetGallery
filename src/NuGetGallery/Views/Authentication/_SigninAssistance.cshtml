@@ -6,7 +6,7 @@
 <div class="modal-dialog modal-box">
     <div class="modal-title">
         <span class="title-text">Sign-in assistance</span>
-        <button type="button" class="dismiss-button" data-dismiss="modal" aria-label="Close">
+        <button type="button" class="dismiss-button" data-dismiss="modal" data-bind="click: dismissAssistanceModal" aria-label="Close">
             <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
         </button>
     </div>
@@ -61,7 +61,6 @@
                     </div>
                 </div>
             }
-    <span data-bind="text: ko.toJSON($data, 2, null)"></span>
         </div>
     </div>
 </div>

@@ -202,6 +202,34 @@ The {0} Team";
             }
         }
 
+        public void SendSigninAssistanceEmail(MailAddress emailAddress)
+        {
+            string body = @"Hi,
+
+This is the email address associated with the Microsoft account login linked to your account on {0}.
+
+Thanks,
+
+The {0} Team";
+
+            body = String.Format(
+                CultureInfo.CurrentCulture,
+                body,
+                Config.GalleryOwner.DisplayName);
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = String.Format(
+                    CultureInfo.CurrentCulture, "[{0}] Signin Assistance.", Config.GalleryOwner.DisplayName);
+                mailMessage.Body = body;
+                mailMessage.From = Config.GalleryNoReplyAddress;
+
+                mailMessage.To.Add(emailAddress);
+                SendMessage(mailMessage);
+            }
+
+        }
+
         public void SendEmailChangeConfirmationNotice(MailAddress newEmailAddress, string confirmationUrl)
         {
             string body = @"You recently changed your {0} email address.

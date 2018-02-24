@@ -27,5 +27,6 @@ namespace NuGetGallery
         void SendPackageUploadedNotice(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl);
         void SendAccountDeleteNotice(MailAddress mailAddress, string userName);
         void SendPackageDeletedNotice(Package package, string packageUrl, string packageSupportUrl);
+        void SendSigninAssistanceEmail(MailAddress emailAddress);
     }
 }

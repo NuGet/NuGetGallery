@@ -2,20 +2,21 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Web;
-using System.Linq;
-using System.Web.Mvc;
-using System.Net.Mail;
-using System.Globalization;
-using System.Threading.Tasks;
-using System.Security.Claims;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Net.Mail;
+using System.Security.Claims;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using System.Web;
+using System.Web.Mvc;
 using NuGetGallery.Authentication;
 using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2;
 using NuGetGallery.Authentication.Providers.MicrosoftAccount;
 using NuGetGallery.Infrastructure.Authentication;
-using System.Text.RegularExpressions;
 
 namespace NuGetGallery
 {
@@ -344,13 +345,21 @@ namespace NuGetGallery
                     throw new ArgumentException(Strings.UserNotFound);
                 }
 
-                // TODO: if multiple MSAs which do you show?
                 var externalCredential = user
                     .Credentials
                     .FirstOrDefault(cred => cred.IsExternal());
 
-                var identity = externalCredential?.Identity;
-                var email = GetEmailFromIdentity(identity);
+                if (externalCredential == null)
+                {
+                    throw new ArgumentException(string.Format(Strings.SigninAssistance_ExternalCredentialNotFound, username));
+                }
+
+                var email = GetEmailFromIdentity(externalCredential.Identity);
+                if (!IsValidEmail(email))
+                {
+                    throw new InvalidDataException(Strings.SigninAssistance_InvalidEmailInIdentity);
+                }
+
                 if (string.IsNullOrWhiteSpace(providedEmailAddress))
                 {
                     var formattedEmail = FormatEmailAddressForAssistance(email);
@@ -369,12 +378,12 @@ namespace NuGetGallery
                     }
                     else
                     {
-                        // TODO: Send email notification to 'email' address
+                        _messageService.SendSigninAssistanceEmail(new MailAddress(email, user.Username));
                         return Json(new { success = true });
                     }
                 }
             }
-            catch (ArgumentException ex)
+            catch (Exception ex) when (ex is ArgumentException || ex is InvalidDataException)
             {
                 return Json(new { success = false, message = ex.Message });
             }

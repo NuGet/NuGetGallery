@@ -1521,11 +1521,29 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No associated Microsoft account logins found for the user &apos;{0}&apos;..
+        /// </summary>
+        public static string SigninAssistance_ExternalCredentialNotFound {
+            get {
+                return ResourceManager.GetString("SigninAssistance_ExternalCredentialNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Please enter a valid email address.
         /// </summary>
         public static string SigninAssistance_InvalidEmail {
             get {
                 return ResourceManager.GetString("SigninAssistance_InvalidEmail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The email address associated with the external credential is invalid. Please contact support..
+        /// </summary>
+        public static string SigninAssistance_InvalidEmailInIdentity {
+            get {
+                return ResourceManager.GetString("SigninAssistance_InvalidEmailInIdentity", resourceCulture);
             }
         }
         
