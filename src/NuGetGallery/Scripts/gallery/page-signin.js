@@ -100,11 +100,7 @@ $(function () {
             viewModel.getUsername(true);
             viewModel.getEmail(false);
             viewModel.emailNotificationSent(false);
-        },
-
-        dismissAssistanceModal: function () {
-            viewModel.resetViewModel();
-        },
+        }
     };
 
     ko.applyBindings(viewModel);

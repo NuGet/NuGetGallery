@@ -1,12 +1,7 @@
-﻿@model LogOnViewModel
-@{
-    var returnUrl = ViewData.ContainsKey(Constants.ReturnUrlViewDataKey) ? (string)ViewData[Constants.ReturnUrlViewDataKey] : Request.RawUrl;
-}
-
-<div class="modal-dialog modal-box">
+﻿<div class="modal-dialog modal-box">
     <div class="modal-title">
         <span class="title-text">Sign-in assistance</span>
-        <button type="button" class="dismiss-button" data-dismiss="modal" data-bind="click: dismissAssistanceModal" aria-label="Close">
+        <button type="button" class="dismiss-button" data-dismiss="modal" data-bind="click: resetViewModel" aria-label="Close">
             <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
         </button>
     </div>
@@ -55,7 +50,7 @@
                         </div>
                     </div>
                     <div class="form-button-node">
-                        <button type="button" class="btn btn-primary btn-block action-button" data-dismiss="modal" data-bind="click: dismissAssistanceModal" aria-label="Close">
+                        <button type="button" class="btn btn-primary btn-block action-button" data-dismiss="modal" data-bind="click: resetViewModel" aria-label="Close">
                             Close
                         </button>
                     </div>
