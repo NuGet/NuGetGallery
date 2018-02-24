@@ -372,6 +372,9 @@ img.reserved-indicator-icon {
 .modal-container .modal-box .modal-body .text-label {
   padding: 13px;
 }
+.modal-container .modal-box .modal-body .text-row {
+  padding-top: 13px;
+}
 .modal-container .modal-box .modal-body .transform-text {
   padding: 0 15px;
   margin: 0;

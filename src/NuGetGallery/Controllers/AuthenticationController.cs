@@ -15,6 +15,7 @@ using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2;
 using NuGetGallery.Authentication.Providers.MicrosoftAccount;
 using NuGetGallery.Infrastructure.Authentication;
+using System.Text.RegularExpressions;
 
 namespace NuGetGallery
 {
@@ -28,6 +29,9 @@ namespace NuGetGallery
         private readonly IMessageService _messageService;
 
         private readonly ICredentialBuilder _credentialBuilder;
+
+        private static string EMAIL_PATTERN = @"\<(.+?)\>";
+        private static string EMAIL_FORMAT_PADDING = "**********";
 
         // Prioritize the external authentication mechanism.
         private readonly static string[] ExternalAuthenticationPriority = new string[] {
@@ -328,6 +332,54 @@ namespace NuGetGallery
             return SafeRedirect(returnUrl);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual JsonResult SigninAssistance(string username, string providedEmailAddress)
+        {
+            try
+            {
+                var user = _userService.FindByUsername(username);
+                if (user == null)
+                {
+                    throw new ArgumentException(Strings.UserNotFound);
+                }
+
+                // TODO: if multiple MSAs which do you show?
+                var externalCredential = user
+                    .Credentials
+                    .FirstOrDefault(cred => cred.IsExternal());
+
+                var identity = externalCredential?.Identity;
+                var email = GetEmailFromIdentity(identity);
+                if (string.IsNullOrWhiteSpace(providedEmailAddress))
+                {
+                    var formattedEmail = FormatEmailAddressForAssistance(email);
+                    return Json(new { success = true, EmailAddress = formattedEmail });
+                }
+                else
+                {
+                    if (!IsValidEmail(providedEmailAddress))
+                    {
+                        throw new ArgumentException(Strings.SigninAssistance_InvalidEmail);
+                    }
+
+                    if (!email.Equals(providedEmailAddress, StringComparison.OrdinalIgnoreCase))
+                    {
+                        throw new ArgumentException(Strings.SigninAssistance_EmailMismatched);
+                    }
+                    else
+                    {
+                        // TODO: Send email notification to 'email' address
+                        return Json(new { success = true });
+                    }
+                }
+            }
+            catch (ArgumentException ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
         [ActionName("Authenticate")]
         [HttpGet]
         public virtual ActionResult AuthenticateGet(string returnUrl, string provider)
@@ -518,6 +570,64 @@ namespace NuGetGallery
                 };
 
                 return LinkExternalView(model);
+            }
+        }
+
+        private string GetEmailFromIdentity(string identity)
+        {
+            if (string.IsNullOrWhiteSpace(identity))
+            {
+                return null;
+            }
+
+            // The identity stores the email address as either 'email' or 'FirstName Lastname <email>'
+            if (!Regex.IsMatch(identity, EMAIL_PATTERN))
+            {
+                return identity;
+            }
+
+            // If there is a match with the regex, there will be three tokens
+            // '<', 'email' & '>', return the email address
+            return Regex.Match(identity, EMAIL_PATTERN).Groups[1].Value;
+        }
+
+        private string FormatEmailAddressForAssistance(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                throw new ArgumentException(@"The associated credential does not have the email address. Please contact support.");
+            }
+
+            var emailIdLastIndex = email.IndexOf('@');
+            if (emailIdLastIndex < 1)
+            {
+                throw new ArgumentException(@"Invalid email address associated with the linked external credential");
+            }
+
+            var startingIndex = 1;
+            var length = emailIdLastIndex - 2; // we want to keep first and the last characters of the email id
+            if (emailIdLastIndex == 1)
+            {
+                // one character wide email id eg: x@domain.com; format it as x**********@domain.com
+                return email.Insert(startingIndex, EMAIL_FORMAT_PADDING);
+            }
+
+            // Format the email address as x**********y@domain.com
+            return email
+                .Remove(startingIndex, length)
+                .Insert(startingIndex, EMAIL_FORMAT_PADDING);
+        }
+
+        private bool IsValidEmail(string email)
+        {
+            try
+            {
+                var addr = new MailAddress(email);
+                return addr.Address == email;
+            }
+            catch
+            {
+                return false;
             }
         }
 

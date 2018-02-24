@@ -819,4 +819,13 @@ If you wish to update the linked Microsoft account you can do so from the accoun
   <data name="DeleteMember_CannotRemoveLastAdmin" xml:space="preserve">
     <value>You can't leave the organization. In order to leave the organization, another collaborator must be assigned as an administrator.</value>
   </data>
+  <data name="SigninAssistance_EmailMismatched" xml:space="preserve">
+    <value>The email address you provided does not match with the email address linked to the account</value>
+  </data>
+  <data name="SigninAssistance_InvalidEmail" xml:space="preserve">
+    <value>Please enter a valid email address</value>
+  </data>
+  <data name="SigninAssistance_InvalidUser" xml:space="preserve">
+    <value>Please enter a valid username</value>
+  </data>
 </root>

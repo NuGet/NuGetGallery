@@ -17,18 +17,51 @@
             </span>
         </div>
         <div class="text-label">
+            @ViewHelpers.AjaxAntiForgeryToken(Html)
             @using (Html.BeginForm())
             {
-                @Html.AntiForgeryToken()
-
-                <div class="form-group">
-                    <label for="newOwnerUserName">Please enter the username</label>
-                    <input type="text" id="usernameForAssistance" name="usernameForAssistance" data-bind="value: usernameForAssistance" aria-required="true" class="form-control" />
+                <div id="assistance-form" data-bind="visible: !emailNotificationSent()">
+                    <div id="username-entry" data-bind="visible: getUsername()">
+                        <div class="form-group">
+                            <label for="newOwnerUserName">Please enter the username</label>
+                            <input type="text" id="usernameForAssistance" name="usernameForAssistance" data-bind="value: usernameForAssistance" aria-required="true" class="form-control" />
+                            <div class="text-danger" id="warning-message" data-bind="text: message"></div>
+                        </div>
+                        <div class="form-button-node">
+                            <input type="submit" class="btn btn-primary btn-block action-button" data-bind="click: getEmailAddress" value="Next" />
+                        </div>
+                    </div>
+                    <div id="email-entry" data-bind="visible: getEmail()">
+                        <div class="form-group">
+                            <div class="text-row">
+                                Please enter the Email address linked to account <span style="font-weight: bold" data-bind="text: usernameForAssistance()"/> :
+                            </div>
+                            <div class="text-row" data-bind="text: formattedEmailAddress()"></div>
+                            <div class="text-row">
+                                <input class="form-control" type="text" id="emailAddress" name="emailAddress" data-bind="value: inputEmailAddress" aria-required="true" />
+                            </div>
+                            <div class="text-danger" id="warning-message" data-bind="text: message"></div>
+                        </div>
+                        <div class="form-button-node">
+                            <input type="submit" class="btn btn-primary btn-block action-button" data-bind="click: sendEmailNotification" value="Next" />
+                        </div>
+                    </div>
                 </div>
-                <div class="form-button-node">
-                    <input type="submit" class="btn btn-primary btn-block action-button" data-bind="click: getEmailAddress" value="Next" />
+                <div id="notification-sent" data-bind="visible: emailNotificationSent()">
+                    <div class="text-row">
+                        Thanks for providing the details. We have sent the sign-in account details to the email address linked to your account:
+                        <div class="text-row">
+                            <span style="font-weight: bold" data-bind="text: usernameForAssistance()"></span>
+                        </div>
+                    </div>
+                    <div class="form-button-node">
+                        <button type="button" class="btn btn-primary btn-block action-button" data-dismiss="modal" data-bind="click: dismissAssistanceModal" aria-label="Close">
+                            Close
+                        </button>
+                    </div>
                 </div>
             }
+    <span data-bind="text: ko.toJSON($data, 2, null)"></span>
         </div>
     </div>
 </div>

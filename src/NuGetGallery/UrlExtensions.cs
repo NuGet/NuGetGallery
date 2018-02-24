@@ -862,7 +862,7 @@ namespace NuGetGallery
 
         public static string SigninAssistance(this UrlHelper url, bool relativeUrl = true)
         {
-            return GetActionLink(url, "SigninAssistance", "JsonApi", relativeUrl);
+            return GetRouteLink(url, RouteName.SigninAssistance, relativeUrl);
         }
 
         public static string RemovePackageOwner(this UrlHelper url, bool relativeUrl = true)
