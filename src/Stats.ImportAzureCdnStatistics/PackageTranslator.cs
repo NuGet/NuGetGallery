@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
-using Stats.AzureCdnLogs.Common;
 
 namespace Stats.ImportAzureCdnStatistics
 {
@@ -45,8 +44,10 @@ namespace Stats.ImportAzureCdnStatistics
             }
         }
 
-        public PackageDefinition TranslatePackageDefinition(PackageDefinition packageDefinition)
+        public bool TryTranslatePackageDefinition(PackageDefinition packageDefinition)
         {
+            bool translateOccurred = false;
+
             if (packageDefinition != null
                 && !string.IsNullOrEmpty(packageDefinition.PackageId)
                 && !string.IsNullOrEmpty(packageDefinition.PackageVersion)
@@ -63,12 +64,13 @@ namespace Stats.ImportAzureCdnStatistics
                     {
                         packageDefinition.PackageId = potentialTranslation.CorrectedPackageId;
                         packageDefinition.PackageVersion = correctedPackageVersion;
+                        translateOccurred = true;
                         break;
                     }
                 }
             }
 
-            return packageDefinition;
+            return translateOccurred;
         }
     }
 }

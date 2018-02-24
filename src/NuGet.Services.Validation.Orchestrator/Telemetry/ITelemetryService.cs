@@ -80,6 +80,13 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
         void TrackClientValidationIssue(string validatorType, string clientCode);
 
         /// <summary>
+        /// A counter metric emitted when the orchestrator is requested to validate a package,
+        /// but, the package does not exist in the Gallery database even after <see cref="ValidationConfiguration.MissingPackageRetryCount"/>
+        /// retries.
+        /// </summary>
+        void TrackMissingPackageForValidationMessage(string packageId, string normalizedVersion, string validationTrackingId);
+
+        /// <summary>
         /// A metric for the case when orchestrator sees a package marked as available, but the blob is missing
         /// in the public container.
         /// </summary>

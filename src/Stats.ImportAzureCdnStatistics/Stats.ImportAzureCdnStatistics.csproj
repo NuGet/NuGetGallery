@@ -124,6 +124,7 @@
     <Reference Include="System.Spatial, Version=5.7.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\System.Spatial.5.7.0\lib\net40\System.Spatial.dll</HintPath>
     </Reference>
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -138,6 +139,7 @@
     <Compile Include="ApplicationInsightsHelper.cs" />
     <Compile Include="IPackageStatisticsParser.cs" />
     <Compile Include="IStatisticsBlobContainerUtility.cs" />
+    <Compile Include="PackageDefinition.cs" />
     <Compile Include="StatisticsBlobContainerUtility.cs" />
     <Compile Include="Dimensions\IpAddressFact.cs" />
     <Compile Include="IStatisticsWarehouse.cs" />

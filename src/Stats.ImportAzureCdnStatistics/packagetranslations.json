@@ -101,6 +101,12 @@
       "incorrectpackageversionpattern": "2016.(.*)",
       "correctedpackageid": "xrmlibrary.extensionmethods.2016",
       "correctedpackageversionpattern": "$1"
+    },
+    {
+      "incorrectpackageid": "Microsoft.VisualStudio.Shell.15",
+      "incorrectpackageversionpattern": "0.(.*)",
+      "correctedpackageid": "Microsoft.VisualStudio.Shell.15.0",
+      "correctedpackageversionpattern": "$1"
     }
   ]
 }
