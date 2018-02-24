@@ -98,6 +98,133 @@ namespace NuGetGallery.Controllers
             }
         }
 
+        public class TheSigninAssistanceAction : TestContainer
+        {
+            [Fact]
+            public void NullUsernameReturnsFalse()
+            {
+                var controller = GetController<AuthenticationController>();
+
+                var result = controller.SigninAssistance(username: null, providedEmailAddress: null);
+                dynamic data = result.Data;
+                Assert.False(data.success);
+            }
+
+            [Fact]
+            public void NoCredentialReturnsFalse()
+            {
+                var fakes = Get<Fakes>();
+                var existingUser = new User("existingUser") { EmailAddress = "existing@example.com" };
+
+                GetMock<AuthenticationService>(); // Force a mock to be created
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername(It.IsAny<string>()))
+                    .Returns(existingUser);
+
+                var controller = GetController<AuthenticationController>();
+
+                var result = controller.SigninAssistance(username: "existingUser", providedEmailAddress: null);
+                dynamic data = result.Data;
+                Assert.False(data.success);
+            }
+
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            [InlineData(" ")]
+            [InlineData("blarg")]
+            [InlineData("wrong@identity")]
+            public void InvalidIdentityValuesReturnsFalse(string identity)
+            {
+                var fakes = Get<Fakes>();
+                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", identity: identity);
+                var existingUser = new User("existingUser") { EmailAddress = "existing@example.com" };
+
+                GetMock<AuthenticationService>(); // Force a mock to be created
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername(It.IsAny<string>()))
+                    .Returns(existingUser);
+
+                var controller = GetController<AuthenticationController>();
+
+                var result = controller.SigninAssistance(username: "existingUser", providedEmailAddress: null);
+                dynamic data = result.Data;
+                Assert.False(data.success);
+            }
+
+            [Theory]
+            [InlineData("John Doe <random@address.com>", "r**********m@address.com")]
+            [InlineData(" <random@address.com>", "r**********m@address.com")]
+            [InlineData("random@address.com", "r**********m@address.com")]
+            [InlineData("rm@address.com", "r**********m@address.com")]
+            [InlineData("r@address.com", "r**********@address.com")]
+            [InlineData("John Doe <random.very.long.address@address.com>", "r**********s@address.com")]
+            public void ValidIdentityReturnsFormattedEmail(string identity, string expectedEmail)
+            {
+                var fakes = Get<Fakes>();
+                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", identity: identity);
+                var existingUser = new User("existingUser") { EmailAddress = "existing@example.com", Credentials = new[] { cred } };
+
+                GetMock<AuthenticationService>(); // Force a mock to be created
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername(It.IsAny<string>()))
+                    .Returns(existingUser);
+
+                var controller = GetController<AuthenticationController>();
+
+                var result = controller.SigninAssistance(username: "existingUser", providedEmailAddress: null);
+                dynamic data = result.Data;
+                Assert.True(data.success);
+                Assert.Equal(expectedEmail, data.EmailAddress);
+            }
+
+            [Theory]
+            [InlineData("blarg")]
+            [InlineData("wrong@identity")]
+            [InlineData("nonmatching@emailaddress.com")]
+            public void InvalidProvidedEmailReturnsFalse(string providedEmail)
+            {
+                var fakes = Get<Fakes>();
+                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", identity: "existing@example.com");
+                var existingUser = new User("existingUser") { EmailAddress = "existing@example.com", Credentials = new[] { cred } };
+
+                GetMock<AuthenticationService>(); // Force a mock to be created
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername(It.IsAny<string>()))
+                    .Returns(existingUser);
+
+                var controller = GetController<AuthenticationController>();
+
+                var result = controller.SigninAssistance(username: "existingUser", providedEmailAddress: providedEmail);
+                dynamic data = result.Data;
+                Assert.False(data.success);
+            }
+
+            [Fact]
+            public void SendsNotificationForAssistance()
+            {
+                var fakes = Get<Fakes>();
+                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", identity: "existing@example.com");
+                var existingUser = new User("existingUser") { EmailAddress = "existing@example.com", Credentials = new[] { cred } };
+
+                GetMock<AuthenticationService>(); // Force a mock to be created
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername(It.IsAny<string>()))
+                    .Returns(existingUser);
+                var messageServiceMock = GetMock<IMessageService>();
+                    messageServiceMock
+                    .Setup(m => m.SendSigninAssistanceEmail(It.IsAny<MailAddress>()))
+                    .Verifiable();
+
+                var controller = GetController<AuthenticationController>();
+
+                var result = controller.SigninAssistance(username: "existingUser", providedEmailAddress: "existing@example.com");
+                dynamic data = result.Data;
+                Assert.True(data.success);
+                messageServiceMock.Verify();
+            }
+        }
+
         public class TheSignInAction : TestContainer
         {
             [Fact]
