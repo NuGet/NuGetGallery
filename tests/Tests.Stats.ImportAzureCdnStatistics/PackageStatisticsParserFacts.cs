@@ -32,12 +32,13 @@ namespace Tests.Stats.ImportAzureCdnStatistics
         }
 
         [Theory]
-        [InlineData("donottranslate", "0.1.0", "donottranslate", "0.1.0")]
-        [InlineData("package4", "0.1.0", "package4.0", "1.0.0")]
-        [InlineData("package4", "0.2.3.5", "package4.0", "2.3.5")]
-        [InlineData("package4", "5.1.0", "package4.5", "1.0.0")]
-        [InlineData("package4", "5.2.3.5", "package4.5", "2.3.5")]
-        public void TranslatesPackagesCorrectly(string packageId, string packageVersion, string expectedId, string expectedVersion)
+        [InlineData("donottranslate", "0.1.0")]
+        [InlineData("package4.0", "1.0.0")]
+        [InlineData("package4.0", "2.3.5")]
+        [InlineData("package4.5", "1.0.0")]
+        [InlineData("package4.5", "2.3.5")]
+        [InlineData("Microsoft.VisualStudio.Shell.15.0", "15.6.27413")]
+        public void TranslatesPackagesCorrectly(string packageId, string packageVersion)
         {
             // Arrange
             var logEntry = GetCdnLogEntry($"http://test.me/{packageId}.{packageVersion}.nupkg");
@@ -49,9 +50,8 @@ namespace Tests.Stats.ImportAzureCdnStatistics
             var stats = statsParser.FromCdnLogEntry(logEntry);
 
             // Assert
-            Assert.Equal(expectedId, stats.PackageId);
-            Assert.Equal(expectedVersion, stats.PackageVersion);
-
+            Assert.Equal(packageId, stats.PackageId);
+            Assert.Equal(packageVersion, stats.PackageVersion);
         }
 
         private CdnLogEntry GetCdnLogEntry(string requestUrl)
