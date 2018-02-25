@@ -31,7 +31,6 @@ namespace NuGetGallery
 
         private readonly ICredentialBuilder _credentialBuilder;
 
-        private static string EMAIL_PATTERN = @"\<(.+?)\>";
         private static string EMAIL_FORMAT_PADDING = "**********";
 
         // Prioritize the external authentication mechanism.
@@ -337,6 +336,8 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual JsonResult SigninAssistance(string username, string providedEmailAddress)
         {
+            // If provided email address is empty or null, return the result with a formatted
+            // email address, otherwise send signin assistance email to the associated mail address.
             try
             {
                 var user = _userService.FindByUsername(username);
@@ -345,21 +346,7 @@ namespace NuGetGallery
                     throw new ArgumentException(Strings.UserNotFound);
                 }
 
-                var externalCredential = user
-                    .Credentials
-                    .FirstOrDefault(cred => cred.IsExternal());
-
-                if (externalCredential == null)
-                {
-                    throw new ArgumentException(string.Format(Strings.SigninAssistance_ExternalCredentialNotFound, username));
-                }
-
-                var email = GetEmailFromIdentity(externalCredential.Identity);
-                if (!IsValidEmail(email))
-                {
-                    throw new InvalidDataException(Strings.SigninAssistance_InvalidEmailInIdentity);
-                }
-
+                var email = user.EmailAddress;
                 if (string.IsNullOrWhiteSpace(providedEmailAddress))
                 {
                     var formattedEmail = FormatEmailAddressForAssistance(email);
@@ -378,7 +365,8 @@ namespace NuGetGallery
                     }
                     else
                     {
-                        _messageService.SendSigninAssistanceEmail(new MailAddress(email, user.Username));
+                        var externalCredentials = user.Credentials.Where(cred => cred.IsExternal());
+                        _messageService.SendSigninAssistanceEmail(new MailAddress(email, user.Username), externalCredentials);
                         return Json(new { success = true });
                     }
                 }
@@ -582,35 +570,12 @@ namespace NuGetGallery
             }
         }
 
-        private string GetEmailFromIdentity(string identity)
-        {
-            if (string.IsNullOrWhiteSpace(identity))
-            {
-                return null;
-            }
-
-            // The identity stores the email address as either 'email' or 'FirstName Lastname <email>'
-            if (!Regex.IsMatch(identity, EMAIL_PATTERN))
-            {
-                return identity;
-            }
-
-            // If there is a match with the regex, there will be three tokens
-            // '<', 'email' & '>', return the email address
-            return Regex.Match(identity, EMAIL_PATTERN).Groups[1].Value;
-        }
-
         private string FormatEmailAddressForAssistance(string email)
         {
-            if (string.IsNullOrWhiteSpace(email))
-            {
-                throw new ArgumentException(@"The associated credential does not have the email address. Please contact support.");
-            }
-
             var emailIdLastIndex = email.IndexOf('@');
             if (emailIdLastIndex < 1)
             {
-                throw new ArgumentException(@"Invalid email address associated with the linked external credential");
+                throw new ArgumentException(@"Cannot format an invalid email address");
             }
 
             var startingIndex = 1;

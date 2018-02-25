@@ -16,6 +16,7 @@ using NuGetGallery.Authentication.Providers.AzureActiveDirectory;
 using NuGetGallery.Authentication.Providers.MicrosoftAccount;
 using NuGetGallery.Infrastructure.Authentication;
 using Xunit;
+using System.Collections.Generic;
 
 namespace NuGetGallery.Controllers
 {
@@ -110,60 +111,15 @@ namespace NuGetGallery.Controllers
                 Assert.False(data.success);
             }
 
-            [Fact]
-            public void NoCredentialReturnsFalse()
-            {
-                var fakes = Get<Fakes>();
-                var existingUser = new User("existingUser") { EmailAddress = "existing@example.com" };
-
-                GetMock<AuthenticationService>(); // Force a mock to be created
-                GetMock<IUserService>()
-                    .Setup(u => u.FindByUsername(It.IsAny<string>()))
-                    .Returns(existingUser);
-
-                var controller = GetController<AuthenticationController>();
-
-                var result = controller.SigninAssistance(username: "existingUser", providedEmailAddress: null);
-                dynamic data = result.Data;
-                Assert.False(data.success);
-            }
-
             [Theory]
-            [InlineData(null)]
-            [InlineData("")]
-            [InlineData(" ")]
-            [InlineData("blarg")]
-            [InlineData("wrong@identity")]
-            public void InvalidIdentityValuesReturnsFalse(string identity)
-            {
-                var fakes = Get<Fakes>();
-                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", identity: identity);
-                var existingUser = new User("existingUser") { EmailAddress = "existing@example.com" };
-
-                GetMock<AuthenticationService>(); // Force a mock to be created
-                GetMock<IUserService>()
-                    .Setup(u => u.FindByUsername(It.IsAny<string>()))
-                    .Returns(existingUser);
-
-                var controller = GetController<AuthenticationController>();
-
-                var result = controller.SigninAssistance(username: "existingUser", providedEmailAddress: null);
-                dynamic data = result.Data;
-                Assert.False(data.success);
-            }
-
-            [Theory]
-            [InlineData("John Doe <random@address.com>", "r**********m@address.com")]
-            [InlineData(" <random@address.com>", "r**********m@address.com")]
             [InlineData("random@address.com", "r**********m@address.com")]
             [InlineData("rm@address.com", "r**********m@address.com")]
             [InlineData("r@address.com", "r**********@address.com")]
-            [InlineData("John Doe <random.very.long.address@address.com>", "r**********s@address.com")]
-            public void ValidIdentityReturnsFormattedEmail(string identity, string expectedEmail)
+            [InlineData("random.very.long.address@address.com", "r**********s@address.com")]
+            public void NullProvidedEmailReturnsFormattedEmail(string email, string expectedEmail)
             {
-                var fakes = Get<Fakes>();
-                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", identity: identity);
-                var existingUser = new User("existingUser") { EmailAddress = "existing@example.com", Credentials = new[] { cred } };
+                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", identity: "John Doe <random@address.com>");
+                var existingUser = new User("existingUser") { EmailAddress = email, Credentials = new[] { cred } };
 
                 GetMock<AuthenticationService>(); // Force a mock to be created
                 GetMock<IUserService>()
@@ -180,11 +136,10 @@ namespace NuGetGallery.Controllers
 
             [Theory]
             [InlineData("blarg")]
-            [InlineData("wrong@identity")]
+            [InlineData("wrong@email")]
             [InlineData("nonmatching@emailaddress.com")]
             public void InvalidProvidedEmailReturnsFalse(string providedEmail)
             {
-                var fakes = Get<Fakes>();
                 var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", identity: "existing@example.com");
                 var existingUser = new User("existingUser") { EmailAddress = "existing@example.com", Credentials = new[] { cred } };
 
@@ -203,9 +158,10 @@ namespace NuGetGallery.Controllers
             [Fact]
             public void SendsNotificationForAssistance()
             {
+                var email = "existing@example.com";
                 var fakes = Get<Fakes>();
                 var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", identity: "existing@example.com");
-                var existingUser = new User("existingUser") { EmailAddress = "existing@example.com", Credentials = new[] { cred } };
+                var existingUser = new User("existingUser") { EmailAddress = email, Credentials = new[] { cred } };
 
                 GetMock<AuthenticationService>(); // Force a mock to be created
                 GetMock<IUserService>()
@@ -213,12 +169,12 @@ namespace NuGetGallery.Controllers
                     .Returns(existingUser);
                 var messageServiceMock = GetMock<IMessageService>();
                     messageServiceMock
-                    .Setup(m => m.SendSigninAssistanceEmail(It.IsAny<MailAddress>()))
+                    .Setup(m => m.SendSigninAssistanceEmail(It.IsAny<MailAddress>(), It.IsAny<IEnumerable<Credential>>()))
                     .Verifiable();
 
                 var controller = GetController<AuthenticationController>();
 
-                var result = controller.SigninAssistance(username: "existingUser", providedEmailAddress: "existing@example.com");
+                var result = controller.SigninAssistance(username: "existingUser", providedEmailAddress: email);
                 dynamic data = result.Data;
                 Assert.True(data.success);
                 messageServiceMock.Verify();

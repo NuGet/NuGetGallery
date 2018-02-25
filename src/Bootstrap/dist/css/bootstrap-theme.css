@@ -366,11 +366,19 @@ img.reserved-indicator-icon {
   line-height: 2em;
 }
 .modal-container .modal-box .modal-body .form-button-node {
-  padding: 9% 30%;
+  padding-top: 20%;
+  padding-right: 0;
+  padding-bottom: 0;
+  padding-left: 65%;
   text-align: center;
 }
 .modal-container .modal-box .modal-body .text-label {
-  padding: 13px;
+  padding: 15px;
+  font-size: 14px;
+}
+.modal-container .modal-box .modal-body .form-error-message {
+  float: left;
+  padding-top: 6px;
 }
 .modal-container .modal-box .modal-body .text-row {
   padding-top: 13px;

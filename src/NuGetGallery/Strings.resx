@@ -822,14 +822,8 @@ If you wish to update the linked Microsoft account you can do so from the accoun
   <data name="SigninAssistance_EmailMismatched" xml:space="preserve">
     <value>The email address you provided does not match with the email address linked to the account</value>
   </data>
-  <data name="SigninAssistance_ExternalCredentialNotFound" xml:space="preserve">
-    <value>No associated Microsoft account logins found for the user '{0}'.</value>
-  </data>
   <data name="SigninAssistance_InvalidEmail" xml:space="preserve">
     <value>Please enter a valid email address</value>
-  </data>
-  <data name="SigninAssistance_InvalidEmailInIdentity" xml:space="preserve">
-    <value>The email address associated with the external credential is invalid. Please contact support.</value>
   </data>
   <data name="SigninAssistance_InvalidUser" xml:space="preserve">
     <value>Please enter a valid username</value>

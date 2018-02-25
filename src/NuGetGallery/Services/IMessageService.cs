@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using NuGetGallery.Services;
+using System.Collections.Generic;
 using System.Net.Mail;
 
 namespace NuGetGallery
@@ -27,6 +28,6 @@ namespace NuGetGallery
         void SendPackageUploadedNotice(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl);
         void SendAccountDeleteNotice(MailAddress mailAddress, string userName);
         void SendPackageDeletedNotice(Package package, string packageUrl, string packageSupportUrl);
-        void SendSigninAssistanceEmail(MailAddress emailAddress);
+        void SendSigninAssistanceEmail(MailAddress emailAddress, IEnumerable<Credential> credentials);
     }
 }

@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net.Mail;
@@ -202,20 +203,33 @@ The {0} Team";
             }
         }
 
-        public void SendSigninAssistanceEmail(MailAddress emailAddress)
+        public void SendSigninAssistanceEmail(MailAddress emailAddress, IEnumerable<Credential> credentials)
         {
             string body = @"Hi,
 
-This is the email address associated with the Microsoft account login linked to your account on {0}.
+Heard you were looking for Microsoft logins associated with your account on {0}. 
+
+{1}
 
 Thanks,
 
 The {0} Team";
 
+            string msaIdentity;
+            if (credentials.Any())
+            {
+                msaIdentity = string.Format(@"Our records indicate the associated Microsoft login: {0}.", credentials.First().Identity);
+            }
+            else
+            {
+                msaIdentity = "No associated Microsoft logins found.";
+            }
+
             body = String.Format(
                 CultureInfo.CurrentCulture,
                 body,
-                Config.GalleryOwner.DisplayName);
+                Config.GalleryOwner.DisplayName,
+                msaIdentity);
 
             using (var mailMessage = new MailMessage())
             {
