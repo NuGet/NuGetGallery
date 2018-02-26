@@ -371,7 +371,7 @@ namespace NuGetGallery
                     }
                 }
             }
-            catch (Exception ex) when (ex is ArgumentException || ex is InvalidDataException)
+            catch (ArgumentException ex)
             {
                 return Json(new { success = false, message = ex.Message });
             }
