@@ -424,7 +424,7 @@ namespace NuGetGallery
             
             if (!await SubscribeOrganizationToTenantPolicy(organization, adminUser, commitChanges: false))
             {
-                throw new UserSafeException(Strings.DefaultUserSafeExceptionMessage);
+                throw new EntityException(Strings.DefaultUserSafeExceptionMessage);
             }
 
             await EntitiesContext.SaveChangesAsync();

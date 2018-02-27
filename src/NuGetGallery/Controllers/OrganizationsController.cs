@@ -76,10 +76,6 @@ namespace NuGetGallery
             {
                 errorMessage = e.Message;
             }
-            catch (Exception e)
-            {
-                errorMessage = e.GetUserSafeMessage();
-            }
 
             TempData["ErrorMessage"] = errorMessage;
             return View(model);

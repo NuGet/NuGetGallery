@@ -352,25 +352,6 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WhenAddOrganizationThrowsException_ReturnsViewWithUserSafeMessage()
-            {
-                var message = "message";
-
-                var mockUserService = GetMock<IUserService>();
-                mockUserService
-                    .Setup(x => x.AddOrganization(OrgName, OrgEmail, Admin))
-                    .Throws(new UserSafeException(message));
-
-                var controller = GetController<OrganizationsController>();
-                controller.SetCurrentUser(Admin);
-
-                var result = await controller.Add(Model);
-
-                ResultAssert.IsView<AddOrganizationViewModel>(result);
-                Assert.Equal(message, controller.TempData["ErrorMessage"]);
-            }
-
-            [Fact]
             public async Task WhenAddOrganizationSucceeds_RedirectsToManageOrganization()
             {
                 var token = "token";
