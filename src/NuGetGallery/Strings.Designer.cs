@@ -143,6 +143,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to There is no request for user &apos;{0}&apos; for join this organization with that token..
+        /// </summary>
+        public static string AddMember_MissingRequest {
+            get {
+                return ResourceManager.GetString("AddMember_MissingRequest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to User &apos;{0}&apos; has not linked their account to an AAD credential matching this organization..
         /// </summary>
         public static string AddMember_UserDoesNotMeetOrganizationPolicy {
@@ -452,6 +461,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The pending organization member was deleted..
+        /// </summary>
+        public static string CancelMemberRequest_Success {
+            get {
+                return ResourceManager.GetString("CancelMemberRequest_Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to There is no request for user &apos;{0}&apos; to join this organization..
+        /// </summary>
+        public static string CancelMembershipRequest_MissingRequest {
+            get {
+                return ResourceManager.GetString("CancelMembershipRequest_MissingRequest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Enqueuing unavailable: the gallery is currently in read only mode, with limited service. Please try again later..
         /// </summary>
         public static string CannotEnqueueDueToReadOnly {
@@ -632,7 +659,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Organization member was deleted..
+        ///   Looks up a localized string similar to The organization member was deleted..
         /// </summary>
         public static string DeleteMember_Success {
             get {
@@ -1261,6 +1288,15 @@ namespace NuGetGallery {
         public static string ReadMeUrlHostInvalid {
             get {
                 return ResourceManager.GetString("ReadMeUrlHostInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to There is no request for user &apos;{0}&apos; for join this organization with that token..
+        /// </summary>
+        public static string RejectMembershipRequest_NotFound {
+            get {
+                return ResourceManager.GetString("RejectMembershipRequest_NotFound", resourceCulture);
             }
         }
         

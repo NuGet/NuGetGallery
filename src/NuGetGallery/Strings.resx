@@ -771,7 +771,7 @@ If you wish to update the linked Microsoft account you can do so from the accoun
     <value>Organization member '{0}' was not found.</value>
   </data>
   <data name="DeleteMember_Success" xml:space="preserve">
-    <value>Organization member was deleted.</value>
+    <value>The organization member was deleted.</value>
   </data>
   <data name="OrganizationMemberNameIsRequired" xml:space="preserve">
     <value>Member name is required.</value>
@@ -814,5 +814,17 @@ If you wish to update the linked Microsoft account you can do so from the accoun
   </data>
   <data name="TransformAccount_Cancelled" xml:space="preserve">
     <value>The transform request for your account has been successfully cancelled.</value>
+  </data>
+  <data name="AddMember_MissingRequest" xml:space="preserve">
+    <value>There is no request for user '{0}' for join this organization with that token.</value>
+  </data>
+  <data name="CancelMemberRequest_Success" xml:space="preserve">
+    <value>The pending organization member was deleted.</value>
+  </data>
+  <data name="CancelMembershipRequest_MissingRequest" xml:space="preserve">
+    <value>There is no request for user '{0}' to join this organization.</value>
+  </data>
+  <data name="RejectMembershipRequest_NotFound" xml:space="preserve">
+    <value>There is no request for user '{0}' for join this organization with that token.</value>
   </data>
 </root>

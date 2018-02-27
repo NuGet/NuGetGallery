@@ -53,6 +53,9 @@
                             <!-- ko if: IsCurrentUser -->
                             <i>(that's you)</i>
                             <!-- /ko -->
+                            <!-- ko if: Pending -->
+                            <i>(pending)</i>
+                            <!-- /ko -->
                         </td>
                         <td class="align-middle heading-left heading-right row-center col-xs-3">
                             @if (Model.CanManage)
