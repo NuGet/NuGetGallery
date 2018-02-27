@@ -10,9 +10,12 @@
 
             <div class="clearfix">
                 <h1 class="pull-left">Organizations</h1>
-                <form class="form-section-title pull-right" action="@Url.AddOrganization()">
-                    <input type="submit" class="btn btn-primary" value="Add New" />
-                </form>
+                @if (Model.Organizations.Any())
+                {
+                    <form class="form-section-title pull-right" action="@Url.AddOrganization()">
+                        <input type="submit" class="btn btn-primary" value="Add new" />
+                    </form>
+                }
             </div>
 
             @if (Model.Organizations.Any())
@@ -67,8 +70,18 @@
             }
             else
             {
-                <div class="subtitle">
-                    <p>You do not have any organizations.</p>
+                <div class="subtitle text-center">
+                    <img width="260" height="150" alt="Learn to use packages"
+                         src="~/Content/gallery/img/manage-organizations.svg"
+                         @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/manage-organizations-260x150.png")) />
+                </div>
+                <div class="subtitle text-center">
+                    <p>Organizations allow you to manage and publish packages as a team or a group.</p>
+                </div>
+                <div class="subtitle text-center">
+                    <form action="@Url.AddOrganization()">
+                        <input type="submit" class="btn btn-primary" value="Add new organization" />
+                    </form>
                 </div>
             }
         </div>
