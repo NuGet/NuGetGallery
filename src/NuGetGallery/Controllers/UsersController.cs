@@ -56,9 +56,7 @@ namespace NuGetGallery
         {
             EmailConfirmed = Strings.UserEmailConfirmed,
             EmailPreferencesUpdated = Strings.UserEmailPreferencesUpdated,
-            EmailUpdateCancelled = Strings.UserEmailUpdateCancelled,
-            EmailUpdated = Strings.UserEmailUpdated,
-            EmailUpdatedWithConfirmationRequired = Strings.UserEmailUpdatedWithConfirmationRequired
+            EmailUpdateCancelled = Strings.UserEmailUpdateCancelled
         };
 
         protected override void SendNewAccountEmail(User account)
