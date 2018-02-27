@@ -38,8 +38,6 @@ namespace NuGetGallery
         public const string ReadMeFileSavePathTemplateActive = "active/{0}/{1}{2}";
         public const string ReadMeFileSavePathTemplatePending = "pending/{0}/{1}{2}";
 
-        public const string PackageFileBackupSavePathTemplate = "{0}/{1}/{2}.{3}";
-
         public const string MarkdownFileExtension = ".md";
         public const string HtmlFileExtension = ".html";
         public const string JsonFileExtension = ".json";
