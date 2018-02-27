@@ -50,7 +50,9 @@ namespace NuGetGallery
                             Size = packageStream.Length,
                         };
 
-                        var packageMetadata = PackageMetadata.FromNuspecReader(packageArchive.GetNuspecReader());
+                        var packageMetadata = PackageMetadata.FromNuspecReader(
+                            packageArchive.GetNuspecReader(),
+                            strict: false);
 
                         // 3) Clear referenced objects that will be reflowed
                         ClearSupportedFrameworks(package);
