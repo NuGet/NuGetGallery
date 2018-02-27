@@ -202,11 +202,13 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
                     new ClientSigningVerificationFailure(ex.Code.ToString(), ex.Message));
             }
 
+            // Mark this package as signed. This needs to happen before the extraction due to a foreign key constraint.
+            var result = await AcceptAsync(packageKey, message, PackageSigningStatus.Valid);
+
             // Extract all of the signature artifacts and persist them.
             await _signaturePartsExtractor.ExtractAsync(packageKey, signedPackageReader, cancellationToken);
 
-            // Mark this package as signed.
-            return await AcceptAsync(packageKey, message, PackageSigningStatus.Valid);
+            return result;
         }
 
         private async Task<SignatureValidatorResult> GetVerifyResult(
