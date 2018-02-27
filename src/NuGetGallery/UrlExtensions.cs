@@ -1166,9 +1166,20 @@ namespace NuGetGallery
 
         public static string ConfirmTransformAccount(this UrlHelper url, User accountToTransform, bool relativeUrl = true)
         {
-            return GetRouteLink(
+            return url.HandleTransformAccount(RouteName.TransformToOrganizationConfirmation, accountToTransform, relativeUrl);
+        }
+
+        public static string RejectTransformAccount(this UrlHelper url, User accountToTransform, bool relativeUrl = true)
+        {
+            return url.HandleTransformAccount("RejectTransform", accountToTransform, relativeUrl);
+        }
+
+        private static string HandleTransformAccount(this UrlHelper url, string routeName, User accountToTransform, bool relativeUrl = true)
+        {
+            return GetActionLink(
                 url,
-                RouteName.TransformToOrganizationConfirmation,
+                routeName,
+                "Users",
                 relativeUrl,
                 routeValues: new RouteValueDictionary
                 {

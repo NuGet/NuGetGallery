@@ -724,6 +724,120 @@ The {0} Team";
             }
         }
 
+        public void SendOrganizationTransformRequest(User accountToTransform, User adminUser, string profileUrl, string confirmationUrl, string rejectionUrl)
+        {
+            if (!adminUser.EmailAllowed)
+            {
+                return;
+            }
+
+            string subject = $"[{Config.GalleryOwner.DisplayName}] The user '{accountToTransform.Username}' is transforming into an organization and would like you to be its admin.";
+
+            string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{accountToTransform.Username}' is transforming into an organization and would like you to be its admin.
+
+User profile on NuGet.org: [{profileUrl}]({profileUrl})
+
+To accept this request and become an admin of '{accountToTransform.Username}' and gain the ability to manage the account's packages, click the following URL:
+
+[{confirmationUrl}]({confirmationUrl})
+
+If you do not want to become an admin of '{accountToTransform.Username}', click the following URL:
+
+[{rejectionUrl}]({rejectionUrl})
+
+Thanks,
+The {Config.GalleryOwner.DisplayName} Team");
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = Config.GalleryNoReplyAddress;
+                mailMessage.ReplyToList.Add(accountToTransform.ToMailAddress());
+
+                mailMessage.To.Add(adminUser.ToMailAddress());
+                SendMessage(mailMessage);
+            }
+        }
+
+        public void SendOrganizationTransformRequestAcceptedNotice(User accountToTransform, User adminUser)
+        {
+            if (!accountToTransform.EmailAllowed)
+            {
+                return;
+            }
+
+            string subject = $"[{Config.GalleryOwner.DisplayName}] The user '{adminUser.Username}' has accepted your request for them to be the admin of your transformed account.";
+
+            string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{adminUser.Username}' has accepted your request for them to be the admin of your transformed account.
+
+Thanks,
+The {Config.GalleryOwner.DisplayName} Team");
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = Config.GalleryNoReplyAddress;
+                mailMessage.ReplyToList.Add(adminUser.ToMailAddress());
+
+                mailMessage.To.Add(accountToTransform.ToMailAddress());
+                SendMessage(mailMessage);
+            }
+        }
+
+        public void SendOrganizationTransformRequestRejectedNotice(User accountToTransform, User adminUser)
+        {
+            if (!accountToTransform.EmailAllowed)
+            {
+                return;
+            }
+
+            string subject = $"[{Config.GalleryOwner.DisplayName}] The user '{adminUser.Username}' has rejected your request for them to be the admin of your transformed account.";
+
+            string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{adminUser.Username}' has rejected your request for them to be the admin of your transformed account.
+
+Thanks,
+The {Config.GalleryOwner.DisplayName} Team");
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = Config.GalleryNoReplyAddress;
+                mailMessage.ReplyToList.Add(adminUser.ToMailAddress());
+
+                mailMessage.To.Add(accountToTransform.ToMailAddress());
+                SendMessage(mailMessage);
+            }
+        }
+
+        public void SendOrganizationTransformRequestCancelledNotice(User accountToTransform, User adminUser)
+        {
+            if (!adminUser.EmailAllowed)
+            {
+                return;
+            }
+
+            string subject = $"[{Config.GalleryOwner.DisplayName}] The user '{accountToTransform.Username}' has cancelled their request for you to be the admin of their transformed account.";
+
+            string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{accountToTransform.Username}' has cancelled their request for you to be the admin of their transformed account.
+
+Thanks,
+The {Config.GalleryOwner.DisplayName} Team");
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = Config.GalleryNoReplyAddress;
+                mailMessage.ReplyToList.Add(accountToTransform.ToMailAddress());
+
+                mailMessage.To.Add(adminUser.ToMailAddress());
+                SendMessage(mailMessage);
+            }
+        }
+
         protected override void SendMessage(MailMessage mailMessage, bool copySender)
         {
             try
