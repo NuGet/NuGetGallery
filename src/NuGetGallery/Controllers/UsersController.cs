@@ -56,9 +56,7 @@ namespace NuGetGallery
         {
             EmailConfirmed = Strings.UserEmailConfirmed,
             EmailPreferencesUpdated = Strings.UserEmailPreferencesUpdated,
-            EmailUpdateCancelled = Strings.UserEmailUpdateCancelled,
-            EmailUpdated = Strings.UserEmailUpdated,
-            EmailUpdatedWithConfirmationRequired = Strings.UserEmailUpdatedWithConfirmationRequired
+            EmailUpdateCancelled = Strings.UserEmailUpdateCancelled
         };
 
         protected override void SendNewAccountEmail(User account)
@@ -126,14 +124,14 @@ namespace NuGetGallery
             var adminUser = UserService.FindByUsername(transformViewModel.AdminUsername);
             if (adminUser == null)
             {
-                ModelState.AddModelError("AdminUsername", String.Format(CultureInfo.CurrentCulture,
+                ModelState.AddModelError(string.Empty, String.Format(CultureInfo.CurrentCulture,
                     Strings.TransformAccount_AdminAccountDoesNotExist, transformViewModel.AdminUsername));
                 return View(transformViewModel);
             }
             
             if (!UserService.CanTransformUserToOrganization(accountToTransform, adminUser, out var errorReason))
             {
-                ModelState.AddModelError("AdminUsername", errorReason);
+                ModelState.AddModelError(string.Empty, errorReason);
                 return View(transformViewModel);
             }
 
@@ -420,10 +418,10 @@ namespace NuGetGallery
                 switch (result.Type)
                 {
                     case PasswordResetResultType.UserNotConfirmed:
-                        ModelState.AddModelError("Email", Strings.UserIsNotYetConfirmed);
+                        ModelState.AddModelError(string.Empty, Strings.UserIsNotYetConfirmed);
                         break;
                     case PasswordResetResultType.UserNotFound:
-                        ModelState.AddModelError("Email", Strings.CouldNotFindAnyoneWithThatUsernameOrEmail);
+                        ModelState.AddModelError(string.Empty, Strings.CouldNotFindAnyoneWithThatUsernameOrEmail);
                         break;
                     case PasswordResetResultType.Success:
                         return SendPasswordResetEmail(result.User, forgotPassword: true);
@@ -481,7 +479,7 @@ namespace NuGetGallery
             }
             catch (InvalidOperationException ex)
             {
-                ModelState.AddModelError("", ex.Message);
+                ModelState.AddModelError(string.Empty, ex.Message);
                 return View(model);
             }
 
@@ -489,7 +487,7 @@ namespace NuGetGallery
 
             if (!ViewBag.ResetTokenValid)
             {
-                ModelState.AddModelError("", Strings.InvalidOrExpiredPasswordResetToken);
+                ModelState.AddModelError(string.Empty, Strings.InvalidOrExpiredPasswordResetToken);
                 return View(model);
             }
 

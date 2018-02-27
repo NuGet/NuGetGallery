@@ -1022,24 +1022,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The new organization email address was saved!.
-        /// </summary>
-        public static string OrganizationEmailUpdated {
-            get {
-                return ResourceManager.GetString("OrganizationEmailUpdated", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The organization email address has been changed! We sent a confirmation email to verify the new email. When the new email address is confirmed, it will take effect and we will forget the old one..
-        /// </summary>
-        public static string OrganizationEmailUpdatedWithConfirmationRequired {
-            get {
-                return ResourceManager.GetString("OrganizationEmailUpdatedWithConfirmationRequired", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Member name is required..
         /// </summary>
         public static string OrganizationMemberNameIsRequired {
@@ -1859,24 +1841,6 @@ namespace NuGetGallery {
         public static string UserEmailUpdateCancelled {
             get {
                 return ResourceManager.GetString("UserEmailUpdateCancelled", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Your new email address was saved!.
-        /// </summary>
-        public static string UserEmailUpdated {
-            get {
-                return ResourceManager.GetString("UserEmailUpdated", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Your email address has been changed! We sent a confirmation email to verify your new email. When you confirm the new email address, it will take effect and we will forget the old one..
-        /// </summary>
-        public static string UserEmailUpdatedWithConfirmationRequired {
-            get {
-                return ResourceManager.GetString("UserEmailUpdatedWithConfirmationRequired", resourceCulture);
             }
         }
         

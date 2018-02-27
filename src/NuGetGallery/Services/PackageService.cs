@@ -45,7 +45,9 @@ namespace NuGetGallery
         {
             try
             {
-                var packageMetadata = PackageMetadata.FromNuspecReader(packageArchiveReader.GetNuspecReader());
+                var packageMetadata = PackageMetadata.FromNuspecReader(
+                    packageArchiveReader.GetNuspecReader(),
+                    strict: true);
 
                 ValidateNuGetPackageMetadata(packageMetadata);
 
@@ -82,7 +84,9 @@ namespace NuGetGallery
 
             try
             {
-                packageMetadata = PackageMetadata.FromNuspecReader(nugetPackage.GetNuspecReader());
+                packageMetadata = PackageMetadata.FromNuspecReader(
+                    nugetPackage.GetNuspecReader(),
+                    strict: true);
 
                 ValidateNuGetPackageMetadata(packageMetadata);
 
