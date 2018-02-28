@@ -23,6 +23,7 @@ namespace NuGetGallery
             Mock<IEntitiesContext> entitiesContext = null,
             Mock<PackageService> packageService = null,
             Mock<IPackageFileService> packageFileService = null,
+            Mock<ITelemetryService> telemetryService = null,
             Action<Mock<ReflowPackageService>> setup = null)
         {
             var dbContext = new Mock<DbContext>();
@@ -31,11 +32,13 @@ namespace NuGetGallery
 
             packageService = packageService ?? new Mock<PackageService>();
             packageFileService = packageFileService ?? new Mock<IPackageFileService>();
+            telemetryService = telemetryService ?? new Mock<ITelemetryService>();
 
             var reflowPackageService = new Mock<ReflowPackageService>(
                 entitiesContext.Object,
                 packageService.Object,
-                packageFileService.Object);
+                packageFileService.Object,
+                telemetryService.Object);
 
             reflowPackageService.CallBase = true;
 
@@ -264,6 +267,32 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task EmitsTelemetry()
+            {
+                // Arrange
+                var package = PackageServiceUtility.CreateTestPackage();
+
+                var packageService = SetupPackageService(package);
+                var entitiesContext = SetupEntitiesContext();
+                var packageFileService = SetupPackageFileService(package);
+                var telemetryService = new Mock<ITelemetryService>();
+
+                var service = CreateService(
+                    packageService: packageService,
+                    entitiesContext: entitiesContext,
+                    packageFileService: packageFileService,
+                    telemetryService: telemetryService);
+
+                // Act
+                var result = await service.ReflowAsync("test", "1.0.0");
+
+                // Assert
+                telemetryService.Verify(
+                    x => x.TrackPackageReflow(package),
+                    Times.Once);
+            }
+
+            [Fact]
             public async Task AllowsInvalidPackageDependencyVersion()
             {
                 // Arrange
@@ -312,12 +341,14 @@ namespace NuGetGallery
                     packageRegistrationRepository.Object,
                     packageRepository.Object);
             var auditingService = new TestAuditingService();
+            var telemetryService = new Mock<ITelemetryService>();
 
             var packageService = new Mock<PackageService>(
                 packageRegistrationRepository.Object,
                 packageRepository.Object,
                 packageNamingConflictValidator,
-                auditingService);
+                auditingService,
+                telemetryService.Object);
 
             packageService.CallBase = true;
 

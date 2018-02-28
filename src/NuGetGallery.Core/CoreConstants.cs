@@ -10,6 +10,7 @@ namespace NuGetGallery
         public const int MaxPackageIdLength = 128;
 
         public const string PackageFileSavePathTemplate = "{0}.{1}{2}";
+        public const string PackageFileBackupSavePathTemplate = "{0}/{1}/{2}.{3}";
 
         public const string NuGetPackageFileExtension = ".nupkg";
 

@@ -14,15 +14,18 @@ namespace NuGetGallery
         private readonly IEntitiesContext _entitiesContext;
         private readonly IPackageService _packageService;
         private readonly IPackageFileService _packageFileService;
+        private readonly ITelemetryService _telemetryService;
 
         public ReflowPackageService(
             IEntitiesContext entitiesContext,
             IPackageService packageService,
-            IPackageFileService packageFileService)
+            IPackageFileService packageFileService,
+            ITelemetryService telemetryService)
         {
-            _entitiesContext = entitiesContext;
-            _packageService = packageService;
-            _packageFileService = packageFileService;
+            _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
+            _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
+            _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
         }
 
         public async Task<Package> ReflowAsync(string id, string version)
@@ -75,7 +78,10 @@ namespace NuGetGallery
                         // 5) Update IsLatest so that reflow can correct concurrent updates (see Gallery #2514)
                         await _packageService.UpdateIsLatestAsync(package.PackageRegistration, commitChanges: false);
 
-                        // 6) Save and profit
+                        // 6) Emit telemetry.
+                        _telemetryService.TrackPackageReflow(package);
+
+                        // 7) Save and profit
                         await _entitiesContext.SaveChangesAsync();
                     }
                 }

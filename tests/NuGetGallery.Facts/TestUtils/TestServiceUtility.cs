@@ -287,11 +287,14 @@ namespace NuGetGallery.TestUtils
                     packageRepository.Object);
             var auditingService = new TestAuditingService();
 
+            var telemetryService = new Mock<ITelemetryService>();
+
             var packageService = new Mock<PackageService>(
                 packageRegistrationRepository.Object,
                 packageRepository.Object,
                 packageNamingConflictValidator,
-                auditingService);
+                auditingService,
+                telemetryService.Object);
 
             packageService.CallBase = true;
 

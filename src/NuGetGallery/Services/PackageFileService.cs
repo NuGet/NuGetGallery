@@ -39,30 +39,6 @@ namespace NuGetGallery
             return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, CoreConstants.PackagesFolderName, fileName);
         }
 
-        public Task StorePackageFileInBackupLocationAsync(Package package, Stream packageFile)
-        {
-            if (package == null)
-            {
-                throw new ArgumentNullException(nameof(package));
-            }
-
-            if (packageFile == null)
-            {
-                throw new ArgumentNullException(nameof(packageFile));
-            }
-
-            if (package.PackageRegistration == null ||
-                string.IsNullOrWhiteSpace(package.PackageRegistration.Id) ||
-                (string.IsNullOrWhiteSpace(package.NormalizedVersion) && string.IsNullOrWhiteSpace(package.Version)))
-            {
-                throw new ArgumentException(CoreStrings.PackageIsMissingRequiredData, nameof(package));
-            }
-
-            var fileName = BuildBackupFileName(package.PackageRegistration.Id, string.IsNullOrEmpty(package.NormalizedVersion)
-                ? NuGetVersion.Parse(package.Version).ToNormalizedString() : package.NormalizedVersion, package.Hash);
-            return _fileStorageService.SaveFileAsync(CoreConstants.PackageBackupsFolderName, fileName, packageFile);
-        }
-
         /// <summary>
         /// Deletes the package readme.md file from storage.
         /// </summary>
@@ -125,34 +101,6 @@ namespace NuGetGallery
             }
 
             return null;
-        }
-
-        private static string BuildBackupFileName(string id, string version, string hash)
-        {
-            if (id == null)
-            {
-                throw new ArgumentNullException(nameof(id));
-            }
-
-            if (version == null)
-            {
-                throw new ArgumentNullException(nameof(version));
-            }
-
-            if (hash == null)
-            {
-                throw new ArgumentNullException(nameof(hash));
-            }
-
-            var hashBytes = Convert.FromBase64String(hash);
-
-            return string.Format(
-                CultureInfo.InvariantCulture,
-                Constants.PackageFileBackupSavePathTemplate,
-                id,
-                version,
-                HttpServerUtility.UrlTokenEncode(hashBytes),
-                CoreConstants.NuGetPackageFileExtension);
         }
     }
 }

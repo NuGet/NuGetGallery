@@ -1052,7 +1052,8 @@ namespace NuGetGallery
             var reflowPackageService = new ReflowPackageService(
                 _entitiesContext,
                 (PackageService)_packageService,
-                _packageFileService);
+                _packageFileService,
+                _telemetryService);
 
             try
             {
