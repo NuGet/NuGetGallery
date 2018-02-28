@@ -2059,6 +2059,7 @@
     <Content Include="Views\Authentication\_SigninAssistance.cshtml" />
     <Content Include="Views\Organizations\Add.cshtml" />
     <Content Include="Views\Organizations\HandleOrganizationMembershipRequestModel.cshtml" />
+    <Content Include="Views\Organizations\HandleOrganizationMembershipRequest.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />
