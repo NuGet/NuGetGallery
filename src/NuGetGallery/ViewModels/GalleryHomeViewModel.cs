@@ -11,9 +11,11 @@ namespace NuGetGallery
 
         public IList<AuthenticationProviderViewModel> Providers { get; set; }
 
-        public GalleryHomeViewModel()
+        public GalleryHomeViewModel() : this(showTransformModal: false) { }
+
+        public GalleryHomeViewModel(bool showTransformModal)
         {
-            ShowTransformModal = false;
+            ShowTransformModal = showTransformModal;
         }
     }
 }

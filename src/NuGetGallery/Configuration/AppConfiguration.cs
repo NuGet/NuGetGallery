@@ -48,9 +48,6 @@ namespace NuGetGallery.Configuration
         [DisplayName("AzureStorage.Errors.ConnectionString")]
         public string AzureStorage_Errors_ConnectionString { get; set; }
 
-        [DisplayName("AzureStorage.NuGetExe.ConnectionString")]
-        public string AzureStorage_NuGetExe_ConnectionString { get; set; }
-
         [DisplayName("AzureStorage.Packages.ConnectionString")]
         public string AzureStorage_Packages_ConnectionString { get; set; }
 
@@ -68,10 +65,8 @@ namespace NuGetGallery.Configuration
         public bool AsynchronousPackageValidationEnabled { get; set; }
 
         public bool BlockingAsynchronousPackageValidationEnabled { get; set; }
-        
-        [DefaultValue(null)]
-        [TypeConverter(typeof(StringArrayConverter))]
-        public string[] OrganizationsEnabledForDomains { get; set; }
+
+        public TimeSpan AsynchronousPackageValidationDelay { get; set; }
 
         /// <summary>
         /// Gets the URI to the search service
@@ -302,5 +297,8 @@ namespace NuGetGallery.Configuration
         /// Gets/Sets a flag indicating if default security policies should be enforced.
         /// </summary>
         public bool EnforceDefaultSecurityPolicies { get; set; }
+
+        [DefaultValue(true)]
+        public bool IsHosted { get; set; }
     }
 }

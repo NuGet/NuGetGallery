@@ -5,6 +5,8 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
+using System.Web;
+using NuGet.Versioning;
 
 namespace NuGetGallery
 {
@@ -126,6 +128,86 @@ namespace NuGetGallery
         {
             var fileName = BuildFileName(package, CoreConstants.PackageFileSavePathTemplate, CoreConstants.NuGetPackageFileExtension);
             return _fileStorageService.FileExistsAsync(CoreConstants.ValidationFolderName, fileName);
+        }
+
+        public async Task StorePackageFileInBackupLocationAsync(Package package, Stream packageFile)
+        {
+            if (package == null)
+            {
+                throw new ArgumentNullException(nameof(package));
+            }
+
+            if (packageFile == null)
+            {
+                throw new ArgumentNullException(nameof(packageFile));
+            }
+
+            if (package.PackageRegistration == null ||
+                string.IsNullOrWhiteSpace(package.PackageRegistration.Id) ||
+                (string.IsNullOrWhiteSpace(package.NormalizedVersion) && string.IsNullOrWhiteSpace(package.Version)))
+            {
+                throw new ArgumentException(CoreStrings.PackageIsMissingRequiredData, nameof(package));
+            }
+
+            string version;
+            if (string.IsNullOrEmpty(package.NormalizedVersion))
+            {
+                version = NuGetVersion.Parse(package.Version).ToNormalizedString();
+            }
+            else
+            {
+                version = package.NormalizedVersion;
+            }
+
+            var fileName = BuildBackupFileName(
+                package.PackageRegistration.Id,
+                version,
+                package.Hash);
+
+            // If the package already exists, don't even bother uploading it. The file name is based off of the hash so
+            // we know the upload isn't necessary.
+            if (await _fileStorageService.FileExistsAsync(CoreConstants.PackageBackupsFolderName, fileName))
+            {
+                return;
+            }
+
+            try
+            {
+                await _fileStorageService.SaveFileAsync(CoreConstants.PackageBackupsFolderName, fileName, packageFile);
+            }
+            catch (InvalidOperationException)
+            {
+                // If the package file already exists, swallow the exception since we know the content is the same.
+                return;
+            }
+        }
+
+        private static string BuildBackupFileName(string id, string version, string hash)
+        {
+            if (id == null)
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
+
+            if (version == null)
+            {
+                throw new ArgumentNullException(nameof(version));
+            }
+
+            if (hash == null)
+            {
+                throw new ArgumentNullException(nameof(hash));
+            }
+
+            var hashBytes = Convert.FromBase64String(hash);
+
+            return string.Format(
+                CultureInfo.InvariantCulture,
+                CoreConstants.PackageFileBackupSavePathTemplate,
+                id.ToLowerInvariant(),
+                version.ToLowerInvariant(),
+                HttpServerUtility.UrlTokenEncode(hashBytes),
+                CoreConstants.NuGetPackageFileExtension);
         }
 
         protected static string BuildFileName(Package package, string format, string extension)

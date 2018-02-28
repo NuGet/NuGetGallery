@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Moq;
@@ -41,7 +42,7 @@ namespace NuGetGallery
 
                 // Assert
                 _enqueuer.Verify(
-                    x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>()),
+                    x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()),
                     Times.Once);
                 Assert.Equal(1, _data.Count);
                 Assert.NotNull(_data[0]);
@@ -125,9 +126,9 @@ namespace NuGetGallery
             {
                 _enqueuer = new Mock<IPackageValidationEnqueuer>();
                 _enqueuer
-                    .Setup(x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>()))
+                    .Setup(x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()))
                     .Returns(Task.CompletedTask)
-                    .Callback<PackageValidationMessageData>(x => _data.Add(x));
+                    .Callback<PackageValidationMessageData, DateTimeOffset>((d, o) => _data.Add(d));
 
                 _appConfiguration = new Mock<IAppConfiguration>();
                 _appConfiguration

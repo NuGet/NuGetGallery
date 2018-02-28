@@ -3,18 +3,20 @@
 @{
     ViewBag.Title = "Manage Organization";
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
+
+    TempData["Parent"] = this;
 }
 
-<section role="main" class="container main-container page-account-settings">
+<section role="main" class="container main-container page-manage-organizations">
     <form id="AntiForgeryForm">
         @Html.AntiForgeryToken()
     </form>
     <div class="row">
         <div class="col-md-12">
             <h1>
-                <a href="@Url.ManageMyOrganizations()">Manage Organizations</a>
+                <a href="@Url.ManageMyOrganizations()">Organizations</a>
                 &gt;
-                <a href="@Url.User(Model.Account)">@Model.AccountName</a>
+                @Model.AccountName
             </h1>
         </div>
 

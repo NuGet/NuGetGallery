@@ -55,16 +55,17 @@ namespace NuGetGallery.Security
 
             // Assert
             Assert.NotNull(handlers);
-            Assert.Equal(2, handlers.Count);
+            Assert.Equal(3, handlers.Count);
             Assert.Equal(typeof(RequirePackageVerifyScopePolicy), handlers[0].GetType());
             Assert.Equal(typeof(RequireMinProtocolVersionForPushPolicy), handlers[1].GetType());
+            Assert.Equal(typeof(RequireOrganizationTenantPolicy), handlers[2].GetType());
         }
 
         [Fact]
         public async Task EvaluateAsync_ThrowsArgumentNullIfHttpContextIsNull()
         {
             await Assert.ThrowsAsync<ArgumentNullException>(() => new TestSecurityPolicyService()
-                .EvaluateAsync(SecurityPolicyAction.PackagePush, null));
+                .EvaluateUserPoliciesAsync(SecurityPolicyAction.PackagePush, null));
         }
 
         [Fact]
@@ -75,7 +76,7 @@ namespace NuGetGallery.Security
             var user = new User("testUser");
 
             // Act
-            var result = await service.EvaluateAsync(SecurityPolicyAction.PackagePush, CreateHttpContext(user));
+            var result = await service.EvaluateUserPoliciesAsync(SecurityPolicyAction.PackagePush, CreateHttpContext(user));
 
             // Assert
             Assert.True(result.Success);
@@ -95,7 +96,7 @@ namespace NuGetGallery.Security
             user.SecurityPolicies = subscription.Policies.ToList();
 
             // Act
-            var result = await service.EvaluateAsync(SecurityPolicyAction.PackagePush, CreateHttpContext(user));
+            var result = await service.EvaluateUserPoliciesAsync(SecurityPolicyAction.PackagePush, CreateHttpContext(user));
 
             // Assert
             Assert.True(result.Success);
@@ -116,7 +117,7 @@ namespace NuGetGallery.Security
             user.SecurityPolicies = subscription.Policies.ToList();
 
             // Act
-            var result = await service.EvaluateAsync(SecurityPolicyAction.PackagePush, CreateHttpContext(user));
+            var result = await service.EvaluateUserPoliciesAsync(SecurityPolicyAction.PackagePush, CreateHttpContext(user));
 
             // Assert
             service.Mocks.VerifyPolicyEvaluation(expectedPolicy1: false, expectedPolicy2: null, actual: result);
@@ -135,7 +136,7 @@ namespace NuGetGallery.Security
             user.SecurityPolicies = subscription.Policies.ToList();
 
             // Act
-            var result = await service.EvaluateAsync(SecurityPolicyAction.PackagePush, CreateHttpContext(user));
+            var result = await service.EvaluateUserPoliciesAsync(SecurityPolicyAction.PackagePush, CreateHttpContext(user));
 
             // Assert
             Assert.Equal(success, result.Success);
@@ -162,7 +163,7 @@ namespace NuGetGallery.Security
             user.SecurityPolicies = userSecurityPolicies;
 
             // Act
-            var result = await service.EvaluateAsync(SecurityPolicyAction.PackagePush, CreateHttpContext(user));
+            var result = await service.EvaluateUserPoliciesAsync(SecurityPolicyAction.PackagePush, CreateHttpContext(user));
 
             // Assert
             Assert.True(result.Success);
@@ -184,7 +185,7 @@ namespace NuGetGallery.Security
             user.SecurityPolicies = subscription.Policies.ToList();
 
             // Act
-            var result = await service.EvaluateAsync(SecurityPolicyAction.PackagePush, CreateHttpContext(user));
+            var result = await service.EvaluateUserPoliciesAsync(SecurityPolicyAction.PackagePush, CreateHttpContext(user));
 
             // Assert
             Assert.True(result.Success);
@@ -206,7 +207,7 @@ namespace NuGetGallery.Security
             user.SecurityPolicies = subscription.Policies.ToList();
 
             // Act
-            var result = await service.EvaluateAsync(SecurityPolicyAction.PackagePush, CreateHttpContext(user));
+            var result = await service.EvaluateUserPoliciesAsync(SecurityPolicyAction.PackagePush, CreateHttpContext(user));
 
             // Assert
             Assert.Equal(false, result.Success);
@@ -236,7 +237,7 @@ namespace NuGetGallery.Security
             user.SecurityPolicies = subscription.Policies.ToList();
 
             // Act
-            var result = await service.EvaluateAsync(SecurityPolicyAction.PackagePush, CreateHttpContext(user));
+            var result = await service.EvaluateUserPoliciesAsync(SecurityPolicyAction.PackagePush, CreateHttpContext(user));
 
             // Assert
             Assert.Equal(userPolicyMet, result.Success);

@@ -7,7 +7,7 @@
 <section role="main" class="container main-container manage-packages">
     <div class="row">
         <div class="col-md-12">
-            <h1>Manage Organizations</h1>
+            <h1>Organizations</h1>
             @if (Model.Organizations.Any())
             {
                 var orgCount = Model.Organizations.Count();
@@ -47,12 +47,9 @@
                                     @organization.PackagesCount
                                 </td>
                                 <td class="text-right align-middle package-controls">
-                                    @if (organization.CurrentUserIsAdmin)
-                                    {
-                                        <a class="btn" href="@Url.ManageMyOrganization(organization.Username)" title="Edit Organization" aria-label="@("Edit Organization " + organization.Username)">
-                                            <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
-                                        </a>
-                                    }
+                                    <a class="btn" href="@Url.ManageMyOrganization(organization.Username)" title="Edit Organization" aria-label="@("Edit Organization " + organization.Username)">
+                                        <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
+                                    </a>
                                 </td>
                             </tr>
                         </tbody>

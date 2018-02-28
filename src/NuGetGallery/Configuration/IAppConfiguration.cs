@@ -56,11 +56,6 @@ namespace NuGetGallery.Configuration
         string AzureStorage_Errors_ConnectionString { get; set; }
 
         /// <summary>
-        /// The Azure Storage connection string used for downloading nuget.exe.
-        /// </summary>
-        string AzureStorage_NuGetExe_ConnectionString { get; set; }
-
-        /// <summary>
         /// The Azure Storage connection string used for packages, after upload.
         /// </summary>
         string AzureStorage_Packages_ConnectionString { get; set; }
@@ -94,9 +89,11 @@ namespace NuGetGallery.Configuration
         bool BlockingAsynchronousPackageValidationEnabled { get; set; }
 
         /// <summary>
-        /// Whitelist of domains for which the Organizations feature is enabled.
+        /// If <see cref="AsynchronousPackageValidationEnabled"/> is set to true,
+        /// this is the delay that downstream validations should wait before starting
+        /// to process a package.
         /// </summary>
-        string[] OrganizationsEnabledForDomains { get; set; }
+        TimeSpan AsynchronousPackageValidationDelay { get; set; }
 
         /// <summary>
         /// Gets the URI to the search service
@@ -287,5 +284,11 @@ namespace NuGetGallery.Configuration
         /// Gets/Sets a flag indicating if default security policies should be enforced.
         /// </summary>
         bool EnforceDefaultSecurityPolicies { get; set; }
+
+        /// <summary>
+        /// Whether or not the gallery is running as a hosted web service. This should always be true unless the
+        /// gallery code is being used inside a console application.
+        /// </summary>
+        bool IsHosted { get; set; }
     }
 }

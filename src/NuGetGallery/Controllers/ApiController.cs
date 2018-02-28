@@ -35,7 +35,6 @@ namespace NuGetGallery
 
         public IApiScopeEvaluator ApiScopeEvaluator { get; set; }
         public IEntitiesContext EntitiesContext { get; set; }
-        public INuGetExeDownloaderService NugetExeDownloaderService { get; set; }
         public IPackageFileService PackageFileService { get; set; }
         public IPackageService PackageService { get; set; }
         public IUserService UserService { get; set; }
@@ -66,7 +65,6 @@ namespace NuGetGallery
             IPackageService packageService,
             IPackageFileService packageFileService,
             IUserService userService,
-            INuGetExeDownloaderService nugetExeDownloaderService,
             IContentService contentService,
             IIndexingService indexingService,
             ISearchService searchService,
@@ -87,7 +85,6 @@ namespace NuGetGallery
             PackageService = packageService;
             PackageFileService = packageFileService;
             UserService = userService;
-            NugetExeDownloaderService = nugetExeDownloaderService;
             ContentService = contentService;
             IndexingService = indexingService;
             SearchService = searchService;
@@ -111,7 +108,6 @@ namespace NuGetGallery
             IPackageService packageService,
             IPackageFileService packageFileService,
             IUserService userService,
-            INuGetExeDownloaderService nugetExeDownloaderService,
             IContentService contentService,
             IIndexingService indexingService,
             ISearchService searchService,
@@ -127,7 +123,7 @@ namespace NuGetGallery
             ISecurityPolicyService securityPolicies,
             IReservedNamespaceService reservedNamespaceService,
             IPackageUploadService packageUploadService)
-            : this(apiScopeEvaluator, entitiesContext, packageService, packageFileService, userService, nugetExeDownloaderService, contentService,
+            : this(apiScopeEvaluator, entitiesContext, packageService, packageFileService, userService, contentService,
                   indexingService, searchService, autoCuratePackage, statusService, messageService, auditingService,
                   configurationService, telemetryService, authenticationService, credentialBuilder, securityPolicies,
                   reservedNamespaceService, packageUploadService)
@@ -261,7 +257,7 @@ namespace NuGetGallery
         [ActionName("VerifyPackageKey")]
         public async virtual Task<ActionResult> VerifyPackageKeyAsync(string id, string version)
         {
-            var policyResult = await SecurityPolicyService.EvaluateAsync(SecurityPolicyAction.PackageVerify, HttpContext);
+            var policyResult = await SecurityPolicyService.EvaluateUserPoliciesAsync(SecurityPolicyAction.PackageVerify, HttpContext);
             if (!policyResult.Success)
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, policyResult.ErrorMessage);
@@ -296,7 +292,7 @@ namespace NuGetGallery
             // Write an audit record
             await AuditingService.SaveAuditRecordAsync(
                 new PackageAuditRecord(package, AuditedPackageAction.Verify));
-            
+
             string[] requestedActions;
             if (CredentialTypes.IsPackageVerificationApiKey(credential.Type))
             {
@@ -336,7 +332,7 @@ namespace NuGetGallery
 
         private async Task<ActionResult> CreatePackageInternal()
         {
-            var policyResult = await SecurityPolicyService.EvaluateAsync(SecurityPolicyAction.PackagePush, HttpContext);
+            var policyResult = await SecurityPolicyService.EvaluateUserPoliciesAsync(SecurityPolicyAction.PackagePush, HttpContext);
             if (!policyResult.Success)
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, policyResult.ErrorMessage);
@@ -465,7 +461,7 @@ namespace NuGetGallery
 
                         var packageStreamMetadata = new PackageStreamMetadata
                         {
-                            HashAlgorithm = Constants.Sha512HashAlgorithmId,
+                            HashAlgorithm = CoreConstants.Sha512HashAlgorithmId,
                             Hash = CryptographyService.GenerateHash(packageStream.AsSeekableStream()),
                             Size = packageStream.Length
                         };
@@ -682,6 +678,22 @@ namespace NuGetGallery
             return new JsonResult
             {
                 Data = (await query.Execute(id, includePrerelease, semVerLevel)).ToArray(),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet
+            };
+        }
+
+        [HttpGet]
+        [ActionName("Query")]
+        public virtual async Task<ActionResult> Query(string q)
+        {
+            var queryFilter = new SearchFilter(SearchFilter.ODataSearchContext);
+            queryFilter.SemVerLevel = SemVerLevelKey.SemVerLevel2;
+            queryFilter.SearchTerm = q;
+            var results = await SearchService.Search(queryFilter);
+
+            return new JsonResult
+            {
+                Data = results,
                 JsonRequestBehavior = JsonRequestBehavior.AllowGet
             };
         }

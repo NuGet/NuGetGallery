@@ -5,12 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
-using System.Data.SqlClient;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
+using NuGetGallery.Security;
 using Crypto = NuGetGallery.CryptographyService;
 
 namespace NuGetGallery
@@ -18,10 +18,17 @@ namespace NuGetGallery
     public class UserService : IUserService
     {
         public IAppConfiguration Config { get; protected set; }
+
         public IEntityRepository<User> UserRepository { get; protected set; }
+
         public IEntityRepository<Credential> CredentialRepository { get; protected set; }
+
         public IAuditingService Auditing { get; protected set; }
+
         public IEntitiesContext EntitiesContext { get; protected set; }
+        public IContentObjectService ContentObjectService { get; protected set; }
+
+        public ISecurityPolicyService SecurityPolicyService { get; set; }
 
         protected UserService() { }
 
@@ -30,7 +37,9 @@ namespace NuGetGallery
             IEntityRepository<User> userRepository,
             IEntityRepository<Credential> credentialRepository,
             IAuditingService auditing,
-            IEntitiesContext entitiesContext)
+            IEntitiesContext entitiesContext,
+            IContentObjectService contentObjectService,
+            ISecurityPolicyService securityPolicyService)
             : this()
         {
             Config = config;
@@ -38,6 +47,8 @@ namespace NuGetGallery
             CredentialRepository = credentialRepository;
             Auditing = auditing;
             EntitiesContext = entitiesContext;
+            ContentObjectService = contentObjectService;
+            SecurityPolicyService = securityPolicyService;
         }
 
         public async Task<Membership> AddMemberAsync(Organization organization, string memberName, bool isAdmin)
@@ -62,6 +73,14 @@ namespace NuGetGallery
             {
                 throw new EntityException(string.Format(CultureInfo.CurrentCulture,
                     Strings.AddMember_UserNotConfirmed, memberName));
+            }
+
+            // Ensure that the new member meets the AAD tenant policy for this organization.
+            var policyResult = await SecurityPolicyService.EvaluateOrganizationPoliciesAsync(
+                SecurityPolicyAction.JoinOrganization, organization, member);
+            if (policyResult != SecurityPolicyResult.SuccessResult)
+            {
+                throw new EntityException(policyResult.ErrorMessage);
             }
 
             membership = new Membership()
@@ -90,10 +109,9 @@ namespace NuGetGallery
             if (membership.IsAdmin != isAdmin)
             {
                 // block removal of last admin
-                if (membership.IsAdmin && organization.Members.Count(m => m.IsAdmin) == 1)
+                if (membership.IsAdmin && organization.Administrators.Count() == 1)
                 {
-                    throw new EntityException(string.Format(CultureInfo.CurrentCulture,
-                        Strings.UpdateOrDeleteMember_CannotRemoveLastAdmin, memberName));
+                    throw new EntityException(Strings.UpdateMember_CannotRemoveLastAdmin);
                 }
 
                 membership.IsAdmin = isAdmin;
@@ -115,10 +133,9 @@ namespace NuGetGallery
             }
 
             // block removal of last admin
-            if (membership.IsAdmin && organization.Members.Count(m => m.IsAdmin) == 1)
+            if (membership.IsAdmin && organization.Administrators.Count() == 1)
             {
-                throw new EntityException(string.Format(CultureInfo.CurrentCulture,
-                    Strings.UpdateOrDeleteMember_CannotRemoveLastAdmin, memberName));
+                throw new EntityException(Strings.DeleteMember_CannotRemoveLastAdmin);
             }
 
             organization.Members.Remove(membership);
@@ -294,20 +311,13 @@ namespace NuGetGallery
             {
                 errorReason = Strings.TransformAccount_AccountHasMemberships;
             }
-            else if (!AreOrganizationsEnabledForAccount(accountToTransform))
+            else if (!ContentObjectService.LoginDiscontinuationConfiguration.AreOrganizationsSupportedForUser(accountToTransform))
             {
                 errorReason = String.Format(CultureInfo.CurrentCulture,
                     Strings.TransformAccount_FailedReasonNotInDomainWhitelist, accountToTransform.Username);
             }
 
             return errorReason == null;
-        }
-
-        public bool AreOrganizationsEnabledForAccount(User account)
-        {
-            var enabledDomains = Config.OrganizationsEnabledForDomains;
-            return enabledDomains != null && 
-                enabledDomains.Contains(account.ToMailAddress().Host, StringComparer.OrdinalIgnoreCase);
         }
 
         public bool CanTransformUserToOrganization(User accountToTransform, User adminUser, out string errorReason)
@@ -332,14 +342,33 @@ namespace NuGetGallery
                 errorReason = String.Format(CultureInfo.CurrentCulture,
                     Strings.TransformAccount_AdminAccountIsOrganization, adminUser.Username);
             }
+            else
+            {
+                var tenantId = adminUser.Credentials.GetAzureActiveDirectoryCredential()?.TenantId;
+                if (string.IsNullOrWhiteSpace(tenantId))
+                {
+                    errorReason = String.Format(CultureInfo.CurrentCulture,
+                        Strings.TransformAccount_AdminAccountDoesNotHaveTenant, adminUser.Username);
+                }
+            }
 
             return errorReason == null;
         }
 
         public async Task<bool> TransformUserToOrganization(User accountToTransform, User adminUser, string token)
         {
-            // todo: check for tenantId and add organization policy to enforce this (future work, with manage organization)
+            var tenantId = adminUser.Credentials.GetAzureActiveDirectoryCredential()?.TenantId;
+            if (string.IsNullOrWhiteSpace(tenantId))
+            {
+                return false;
+            }
 
+            var tenantPolicy = RequireOrganizationTenantPolicy.Create(tenantId);
+            if (!await SecurityPolicyService.SubscribeAsync(accountToTransform, tenantPolicy))
+            {
+                return false;
+            }
+            
             return await EntitiesContext.TransformUserToOrganization(accountToTransform, adminUser, token);
         }
     }

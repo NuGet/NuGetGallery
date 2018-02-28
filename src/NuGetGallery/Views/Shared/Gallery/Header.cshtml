@@ -73,7 +73,7 @@
                         {
                             @DisplayNavigationItem("Statistics", Url.Statistics())
                         }
-                        @if (Request.IsAuthenticated && User.IsInRole(Constants.AdminRoleName))
+                        @if (Request.IsAuthenticated && User.IsInRole(CoreConstants.AdminRoleName))
                         {
                             @DisplayNavigationItem("Admin", Url.Admin())
                         }
@@ -108,7 +108,7 @@
                                                 <span class="dropdown-email">@CurrentUser.EmailAddress.Abbreviate(25)</span>
                                             </div>
                                         </li>
-                                        @if (Request.IsAuthenticated && User.IsInRole(Constants.AdminRoleName))
+                                        @if (Request.IsAuthenticated && User.IsInRole(CoreConstants.AdminRoleName))
                                         {
                                             <li class="divider"></li>
                                             <li role="presentation"><a href="@Url.Admin()" role="menuitem">Admin</a></li>
@@ -142,6 +142,7 @@
             <div class="row">
                 <form class="col-sm-12" action="@Url.PackageList()" method="get">
                     @Html.Partial("_SearchBar")
+                    @Html.Partial("_AutocompleteTemplate")
                 </form>
             </div>
         </div>

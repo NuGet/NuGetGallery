@@ -169,7 +169,8 @@ namespace NuGetGallery
                     try
                     {
                         packageMetadata = PackageMetadata.FromNuspecReader(
-                            package.GetNuspecReader());
+                            package.GetNuspecReader(),
+                            strict: true);
                     }
                     catch (Exception ex)
                     {
@@ -407,7 +408,8 @@ namespace NuGetGallery
                 try
                 {
                     packageMetadata = PackageMetadata.FromNuspecReader(
-                        package.GetNuspecReader());
+                        package.GetNuspecReader(),
+                        strict: true);
                 }
                 catch (Exception ex)
                 {
@@ -1050,7 +1052,8 @@ namespace NuGetGallery
             var reflowPackageService = new ReflowPackageService(
                 _entitiesContext,
                 (PackageService)_packageService,
-                _packageFileService);
+                _packageFileService,
+                _telemetryService);
 
             try
             {
@@ -1460,7 +1463,8 @@ namespace NuGetGallery
                 Debug.Assert(nugetPackage != null);
 
                 var packageMetadata = PackageMetadata.FromNuspecReader(
-                    nugetPackage.GetNuspecReader());
+                    nugetPackage.GetNuspecReader(),
+                    strict: true);
 
                 // Rule out problem scenario with multiple tabs - verification request (possibly with edits) was submitted by user
                 // viewing a different package to what was actually most recently uploaded
@@ -1476,7 +1480,7 @@ namespace NuGetGallery
 
                 var packageStreamMetadata = new PackageStreamMetadata
                 {
-                    HashAlgorithm = Constants.Sha512HashAlgorithmId,
+                    HashAlgorithm = CoreConstants.Sha512HashAlgorithmId,
                     Hash = CryptographyService.GenerateHash(uploadFile.AsSeekableStream()),
                     Size = uploadFile.Length,
                 };

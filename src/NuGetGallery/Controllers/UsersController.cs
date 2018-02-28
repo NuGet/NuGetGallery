@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net;
+using System.Net.Mail;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGetGallery.Areas.Admin;
@@ -55,10 +56,21 @@ namespace NuGetGallery
         {
             EmailConfirmed = Strings.UserEmailConfirmed,
             EmailPreferencesUpdated = Strings.UserEmailPreferencesUpdated,
-            EmailUpdateCancelled = Strings.UserEmailUpdateCancelled,
-            EmailUpdated = Strings.UserEmailUpdated,
-            EmailUpdatedWithConfirmationRequired = Strings.UserEmailUpdatedWithConfirmationRequired
+            EmailUpdateCancelled = Strings.UserEmailUpdateCancelled
         };
+
+        protected override void SendNewAccountEmail(User account)
+        {
+            var confirmationUrl = Url.ConfirmEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false);
+
+            MessageService.SendNewAccountEmail(new MailAddress(account.UnconfirmedEmailAddress, account.Username), confirmationUrl);
+        }
+
+        protected override void SendEmailChangedConfirmationNotice(User account)
+        {
+            var confirmationUrl = Url.ConfirmEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false);
+            MessageService.SendEmailChangeConfirmationNotice(new MailAddress(account.UnconfirmedEmailAddress, account.Username), confirmationUrl);
+        }
 
         protected override User GetAccount(string accountName)
         {
@@ -112,14 +124,15 @@ namespace NuGetGallery
             var adminUser = UserService.FindByUsername(transformViewModel.AdminUsername);
             if (adminUser == null)
             {
-                ModelState.AddModelError("AdminUsername", String.Format(CultureInfo.CurrentCulture,
+                ModelState.AddModelError(string.Empty, String.Format(CultureInfo.CurrentCulture,
                     Strings.TransformAccount_AdminAccountDoesNotExist, transformViewModel.AdminUsername));
                 return View(transformViewModel);
             }
             
             if (!UserService.CanTransformUserToOrganization(accountToTransform, adminUser, out var errorReason))
             {
-                return TransformToOrganizationFailed(errorReason);
+                ModelState.AddModelError(string.Empty, errorReason);
+                return View(transformViewModel);
             }
 
             await UserService.RequestTransformToOrganizationAccount(accountToTransform, adminUser);
@@ -163,7 +176,7 @@ namespace NuGetGallery
             TempData["Message"] = String.Format(CultureInfo.CurrentCulture,
                 Strings.TransformAccount_Success, accountNameToTransform);
 
-            return RedirectToRoute(RouteName.OrganizationAccount);
+            return Redirect(Url.ManageMyOrganization(accountNameToTransform));
         }
 
         private ActionResult TransformToOrganizationFailed(string errorMessage)
@@ -320,7 +333,7 @@ namespace NuGetGallery
         }
         
         [HttpGet]
-        [UIAuthorize]
+        [UIAuthorize(allowDiscontinuedLogins: true)]
         public virtual ActionResult Thanks()
         {
             // No need to redirect here after someone logs in...
@@ -405,10 +418,10 @@ namespace NuGetGallery
                 switch (result.Type)
                 {
                     case PasswordResetResultType.UserNotConfirmed:
-                        ModelState.AddModelError("Email", Strings.UserIsNotYetConfirmed);
+                        ModelState.AddModelError(string.Empty, Strings.UserIsNotYetConfirmed);
                         break;
                     case PasswordResetResultType.UserNotFound:
-                        ModelState.AddModelError("Email", Strings.CouldNotFindAnyoneWithThatUsernameOrEmail);
+                        ModelState.AddModelError(string.Empty, Strings.CouldNotFindAnyoneWithThatUsernameOrEmail);
                         break;
                     case PasswordResetResultType.Success:
                         return SendPasswordResetEmail(result.User, forgotPassword: true);
@@ -466,7 +479,7 @@ namespace NuGetGallery
             }
             catch (InvalidOperationException ex)
             {
-                ModelState.AddModelError("", ex.Message);
+                ModelState.AddModelError(string.Empty, ex.Message);
                 return View(model);
             }
 
@@ -474,7 +487,7 @@ namespace NuGetGallery
 
             if (!ViewBag.ResetTokenValid)
             {
-                ModelState.AddModelError("", Strings.InvalidOrExpiredPasswordResetToken);
+                ModelState.AddModelError(string.Empty, Strings.InvalidOrExpiredPasswordResetToken);
                 return View(model);
             }
 
@@ -595,15 +608,6 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual ActionResult LinkOrChangeExternalCredential()
         {
-            var user = GetCurrentUser();
-            var userHasAADCredential = user.Credentials.Any(c => CredentialTypes.IsAzureActiveDirectoryAccount(c.Type));
-
-            if (userHasAADCredential)
-            {
-                TempData["WarningMessage"] = Strings.ChangeCredential_NotAllowed;
-                return RedirectToAction("Account");
-            }
-
             return Redirect(Url.AuthenticateExternal(Url.AccountSettings()));
         }
 

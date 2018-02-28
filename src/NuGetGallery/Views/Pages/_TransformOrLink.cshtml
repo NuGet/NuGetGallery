@@ -1,21 +1,20 @@
-﻿@{
-    ViewBag.Title = "TransformOrLinkPage";
-    ViewBag.SmPageColumns = Constants.ColumnsModalSm;
-    ViewBag.MdPageColumns = Constants.ColumnsModalMd;
-}
-
-<div class="@ViewHelpers.GetColumnClasses(ViewBag) modal-box">
+﻿<div class="modal-dialog modal-box">
     <div class="modal-title">
-        <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
-        <span class="title-text">Sign-in using NuGet.org is discontinued</span>
+        <span class="title-text">Sign-in with Microsoft corporate account</span>
+        <button type="button" class="dismiss-button" data-dismiss="modal" aria-label="Close">
+            <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
+        </button>
     </div>
     <div class="modal-body">
         <div class="tag-node">
-            <span>Sign in using your Microsoft corporate account</span>
+            <span class="title-text">
+                <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
+                NuGet.org authentication is deprecated
+            </span>
         </div>
-        <div class="row signin-node">
+        <div class="action-node">
             <a role="button" 
-               class="btn btn-default btn-block provider-button" 
+               class="btn btn-default btn-block action-button" 
                href="@Url.AuthenticateExternal("/")">
                 <img height="24" width="24" alt="" aria-hidden="true"
                      src="@Href("~/Content/gallery/img/microsoft-account.svg")"
@@ -23,9 +22,13 @@
                 <span>Sign in with Microsoft</span>
             </a>
         </div>
-        <p>If this is not an individual account and is based on a team or group email address</p>
-        <div class="transform-node">
-            <a href="@Url.TransformAccount()">Transform this account to an organization on NuGet.org</a>
+        <p class="transform-text">If this is a team (DL) based account, you must transform it to an organization on NuGet.org:</p>
+        <div class="action-node">
+            <a role="button"
+                class="btn btn-default btn-block action-button"
+                href="@Url.TransformAccount()">
+                <span>Transform to an Organization</span>
+            </a>
         </div>
     </div>
 </div>

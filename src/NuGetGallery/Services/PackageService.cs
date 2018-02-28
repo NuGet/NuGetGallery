@@ -20,16 +20,19 @@ namespace NuGetGallery
         private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
         private readonly IPackageNamingConflictValidator _packageNamingConflictValidator;
         private readonly IAuditingService _auditingService;
+        private readonly ITelemetryService _telemetryService;
 
         public PackageService(
             IEntityRepository<PackageRegistration> packageRegistrationRepository,
             IEntityRepository<Package> packageRepository,
             IPackageNamingConflictValidator packageNamingConflictValidator,
-            IAuditingService auditingService) : base(packageRepository)
+            IAuditingService auditingService,
+            ITelemetryService telemetryService) : base(packageRepository)
         {
             _packageRegistrationRepository = packageRegistrationRepository ?? throw new ArgumentNullException(nameof(packageRegistrationRepository));
             _packageNamingConflictValidator = packageNamingConflictValidator ?? throw new ArgumentNullException(nameof(packageNamingConflictValidator));
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
         }
 
         /// <summary>
@@ -45,7 +48,9 @@ namespace NuGetGallery
         {
             try
             {
-                var packageMetadata = PackageMetadata.FromNuspecReader(packageArchiveReader.GetNuspecReader());
+                var packageMetadata = PackageMetadata.FromNuspecReader(
+                    packageArchiveReader.GetNuspecReader(),
+                    strict: true);
 
                 ValidateNuGetPackageMetadata(packageMetadata);
 
@@ -82,7 +87,9 @@ namespace NuGetGallery
 
             try
             {
-                packageMetadata = PackageMetadata.FromNuspecReader(nugetPackage.GetNuspecReader());
+                packageMetadata = PackageMetadata.FromNuspecReader(
+                    nugetPackage.GetNuspecReader(),
+                    strict: true);
 
                 ValidateNuGetPackageMetadata(packageMetadata);
 
@@ -318,7 +325,7 @@ namespace NuGetGallery
                 .Distinct();
         }
 
-        public IEnumerable<PackageRegistration> FindPackageRegistrationsByOwner(User user)
+        public IQueryable<PackageRegistration> FindPackageRegistrationsByOwner(User user)
         {
             return _packageRegistrationRepository.GetAll().Where(p => p.Owners.Any(o => o.Key == user.Key));
         }
@@ -412,6 +419,8 @@ namespace NuGetGallery
 
             await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(package, AuditedPackageAction.List));
 
+            _telemetryService.TrackPackageListed(package);
+
             if (commitChanges)
             {
                 await _packageRepository.CommitChangesAsync();
@@ -440,6 +449,8 @@ namespace NuGetGallery
             }
 
             await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(package, AuditedPackageAction.Unlist));
+
+            _telemetryService.TrackPackageUnlisted(package);
 
             if (commitChanges)
             {

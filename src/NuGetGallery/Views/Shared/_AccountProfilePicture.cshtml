@@ -1,5 +1,7 @@
-﻿@model AccountViewModel
+﻿@model AccountViewModel      
 @{
+    var parent = (WebViewPage)TempData["Parent"];
+
     if (Model.IsOrganization)
     {
         ViewBag.UnconfirmedEmailAddressMessage = "This is a preview of how the profile picture will look once the organization email address is verified.";
@@ -19,7 +21,7 @@
     <a href="http://www.gravatar.com" target="_blank">@text</a>
 }
 
-@ViewHelpers.Section(this,
+@ViewHelpers.Section(parent,
     "profile-picture",
     @<text>Profile Picture @(Model.HasUnconfirmedEmailAddress ? "(preview)" : string.Empty)</text>,
     @<text>@ViewHelpers.GravatarImage(Model.CurrentEmailAddress, Model.Account.Username, Constants.GravatarElementSize)</text>,
@@ -32,5 +34,6 @@
         @Html.Raw(string.Format(@ViewBag.GravatarProfileMessage,
              GravatarLink("gravatar.com"),
              GravatarLink("Go to gravatar.com")))
-    </text>)
+    </text>,
+    disabled: !Model.CanManage)
 

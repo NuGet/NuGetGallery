@@ -6,6 +6,7 @@ namespace NuGetGallery.Auditing
     public enum AuditedSecurityPolicyAction
     {
         Create,
-        Verify
+        Verify,
+        JoinOrganization
     }
 }

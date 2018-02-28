@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Globalization;
 using System.Net.Mail;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -12,6 +11,7 @@ using Microsoft.Owin;
 using Moq;
 using NuGetGallery.Framework;
 using NuGetGallery.Authentication;
+using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Authentication.Providers.AzureActiveDirectory;
 using NuGetGallery.Authentication.Providers.MicrosoftAccount;
 using NuGetGallery.Infrastructure.Authentication;
@@ -330,8 +330,14 @@ namespace NuGetGallery.Controllers
                 var user = new User("theUsername")
                 {
                     EmailAddress = "confirmed@example.com",
-                    Credentials = new[] { new Credential { Type = CredentialTypes.External.Prefix + "Foo" } },
-                    Roles = new[] { new Role { Name = Constants.AdminRoleName } }
+                    Credentials = new[]
+                    {
+                        new Credential { Type = CredentialTypes.External.Prefix + "Foo" }
+                    },
+                    Roles = new[]
+                    {
+                        new Role { Name = CoreConstants.AdminRoleName }
+                    }
                 };
 
                 var authUser = new AuthenticatedUser(
@@ -482,7 +488,7 @@ namespace NuGetGallery.Controllers
                         UnconfirmedEmailAddress = "confirmed@example.com",
                         Roles =
                         {
-                            new Role { Name = Constants.AdminRoleName }
+                            new Role { Name = CoreConstants.AdminRoleName }
                         }
                     },
                     externalCred);
@@ -798,7 +804,7 @@ namespace NuGetGallery.Controllers
                         EmailConfirmationToken = "t0k3n",
                         Roles =
                         {
-                            new Role { Name = Constants.AdminRoleName }
+                            new Role { Name = CoreConstants.AdminRoleName }
                         }
                     },
                     externalCred);
@@ -935,8 +941,14 @@ namespace NuGetGallery.Controllers
                 var identity = "Bloog";
                 var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", identity);
                 var passwordCred = new Credential("password.v3", "bloopbloop");
+                var email = "bloog@blorg.com";
+                var externalAuthenticator = GetMock<Authenticator>();
+                externalAuthenticator
+                    .Setup(x => x.GetIdentityInformation(It.IsAny<ClaimsIdentity>()))
+                    .Returns(new IdentityInformation("", "", email, ""));
                 var fakes = Get<Fakes>();
                 var user = fakes.CreateUser("test", cred, passwordCred);
+                user.EmailAddress = email;
                 controller.SetCurrentUser(user);
                 var authUser = new AuthenticatedUser(
                     user, cred);
@@ -947,6 +959,7 @@ namespace NuGetGallery.Controllers
                     {
                         ExternalIdentity = new ClaimsIdentity(),
                         Authentication = null,
+                        Authenticator = externalAuthenticator.Object,
                         Credential = cred
                     })
                     .Verifiable();
@@ -976,8 +989,79 @@ namespace NuGetGallery.Controllers
 
                 // Assert
                 ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
-                Assert.Equal(Strings.ChangeCredential_Success, controller.TempData["Message"]);
+                Assert.Equal(string.Format(Strings.ChangeCredential_Success, email), controller.TempData["Message"]);
                 serviceMock.VerifyAll();
+            }
+        }
+
+        public class TheAuthenticateExternalAction : TestContainer
+        {
+            [Fact]
+            public void ForAADLinkedAccount_ErrorIsReturned()
+            {
+                var fakes = Get<Fakes>();
+                var aadCred = new CredentialBuilder().CreateExternalCredential("AzureActiveDirectory", "blorg", "bloog");
+                var passwordCred = new Credential("password.v3", "random");
+                var msftCred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "bloom", "filter");
+                var user = fakes.CreateUser("test", aadCred, passwordCred, msftCred);
+                var controller = GetController<AuthenticationController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = controller.AuthenticateExternal("theReturnUrl");
+
+                // Assert
+                ResultAssert.IsRedirectTo(result, "theReturnUrl");
+                Assert.Equal(Strings.ChangeCredential_NotAllowed, controller.TempData["WarningMessage"]);
+            }
+
+            [Fact]
+            public void ForMissingExternalProvider_ErrorIsReturned()
+            {
+                var controller = GetController<AuthenticationController>();
+
+                // Act
+                var result = controller.AuthenticateExternal("theReturnUrl");
+
+                // Assert
+                ResultAssert.IsRedirectTo(result, "theReturnUrl");
+                Assert.Equal(Strings.ChangeCredential_ProviderNotFound, controller.TempData["Message"]);
+            }
+
+            [Fact]
+            public void WillCallChallengeAuthenticationForAADv2ProviderForUserWithNoAADCredential()
+            {
+                // Arrange
+                const string returnUrl = "/theReturnUrl";
+                EnableAllAuthenticators(Get<AuthenticationService>());
+
+                var fakes = Get<Fakes>();
+                var passwordCred = new Credential("password.v3", "random");
+                var msftCred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "bloom", "filter");
+                var user = fakes.CreateUser("test", passwordCred, msftCred);
+                var controller = GetController<AuthenticationController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = controller.AuthenticateExternal(returnUrl);
+
+                // Assert
+                ResultAssert.IsChallengeResult(result, "AzureActiveDirectoryV2", controller.Url.LinkOrChangeExternalCredential(returnUrl));
+            }
+
+            [Fact]
+            public void WillCallChallengeAuthenticationForAADv2Provider()
+            {
+                // Arrange
+                const string returnUrl = "/theReturnUrl";
+                EnableAllAuthenticators(Get<AuthenticationService>());
+                var controller = GetController<AuthenticationController>();
+
+                // Act
+                var result = controller.AuthenticateExternal(returnUrl);
+
+                // Assert
+                ResultAssert.IsChallengeResult(result, "AzureActiveDirectoryV2", controller.Url.LinkOrChangeExternalCredential(returnUrl));
             }
         }
 
@@ -1005,13 +1089,15 @@ namespace NuGetGallery.Controllers
             {
                 // Arrange
                 var fakes = Get<Fakes>();
-                
-                GetMock<AuthenticationService>(); // Force a mock to be created
-                var controller = GetController<AuthenticationController>();
+
                 var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
                 var authUser = new AuthenticatedUser(
                     fakes.CreateUser("test", cred),
                     cred);
+
+                GetMock<AuthenticationService>(); // Force a mock to be created
+                var controller = GetController<AuthenticationController>();
+
                 GetMock<AuthenticationService>()
                     .Setup(x => x.AuthenticateExternalLogin(controller.OwinContext))
                     .CompletesWith(new AuthenticateExternalLoginResult()
@@ -1020,13 +1106,17 @@ namespace NuGetGallery.Controllers
                         Authentication = authUser
                     });
 
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.CreateSessionAsync(controller.OwinContext, authUser))
+                    .Returns(Task.CompletedTask);
+
                 // Act
                 var result = await controller.LinkExternalAccount("theReturnUrl");
 
                 // Assert
                 ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
                 GetMock<AuthenticationService>()
-                    .Verify(x => x.CreateSessionAsync(controller.OwinContext, authUser));
+                    .VerifyAll();
             }
 
             [Theory]
@@ -1049,7 +1139,7 @@ namespace NuGetGallery.Controllers
                     fakes.CreateUser("test", cred),
                     cred);
 
-                authUser.User.Roles.Add(new Role { Name = Constants.AdminRoleName });
+                authUser.User.Roles.Add(new Role { Name = CoreConstants.AdminRoleName });
 
                 GetMock<AuthenticationService>()
                     .Setup(x => x.AuthenticateExternalLogin(controller.OwinContext))
@@ -1330,8 +1420,14 @@ namespace NuGetGallery.Controllers
                 var existingUser = new User("existingUser")
                 {
                     EmailAddress = "existing@example.com",
-                    Credentials = new[] { new Credential(CredentialTypes.External.Prefix + "foo", "externalloginvalue") },
-                    Roles = new[] { new Role { Name = Constants.AdminRoleName } }
+                    Credentials = new[]
+                    {
+                        new Credential(CredentialTypes.External.Prefix + "foo", "externalloginvalue")
+                    },
+                    Roles = new[]
+                    {
+                        new Role { Name = CoreConstants.AdminRoleName }
+                    }
                 };
 
                 var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
@@ -1391,7 +1487,7 @@ namespace NuGetGallery.Controllers
                         EmailAddress = "confirmed@example.com",
                         Roles =
                         {
-                            new Role { Name = Constants.AdminRoleName }
+                            new Role { Name = CoreConstants.AdminRoleName }
                         }
                     },
                     new Credential { Type = providerUsedForLogin });

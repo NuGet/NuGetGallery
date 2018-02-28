@@ -14,11 +14,6 @@ namespace NuGetGallery
     /// </summary>
     public static class UserExtensions
     {
-        public static bool IsAdministrator(this User self)
-        {
-            return self.IsInRole(Constants.AdminRoleName);
-        }
-
         /// <summary>
         /// Get the user's <see cref="Credential"/> with a type of <see cref="CredentialTypes.Password"/>.
         /// </summary>
@@ -67,6 +62,11 @@ namespace NuGetGallery
         public static bool MatchesUser(this User self, User user)
         {
             return self?.Key == user?.Key;
+        }
+
+        public static bool HasCredential(this User user, Credential credential)
+        {
+            return user.Credentials.Any(cred => cred.Matches(credential));
         }
 
         /// <summary>

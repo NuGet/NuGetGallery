@@ -16,6 +16,35 @@ body h2,
 body h3 {
   margin-top: 40px;
 }
+#autocomplete-results-container {
+  position: absolute;
+  right: 0;
+  left: 0;
+  z-index: 1;
+  display: none;
+  margin-right: 15px;
+  margin-left: 15px;
+  background-color: white;
+  border: 1px solid black;
+}
+#autocomplete-results-container .autocomplete-row-data {
+  padding-top: 2px;
+  padding-bottom: 2px;
+  color: #000;
+}
+#autocomplete-results-container .autocomplete-row-data :focus {
+  background-color: #66afe9;
+}
+#autocomplete-results-container .autocomplete-row-id {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#autocomplete-results-container .autocomplete-row-owners {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .footer {
   display: table-row;
   height: 1px;
@@ -293,8 +322,14 @@ img.reserved-indicator-icon {
           align-items: center;
 }
 .modal-container .modal-box {
+  width: -webkit-calc(100% - 40px);
+  width:         calc(100% - 40px);
+  min-width: 320px;
+  max-width: 448px;
+  min-height: 364px;
   padding: 0;
-  margin-left: 37.5%;
+  margin-right: auto;
+  margin-left: auto;
   overflow: hidden;
   background-color: white;
   border-radius: 8px;
@@ -304,34 +339,35 @@ img.reserved-indicator-icon {
   color: white;
   background-color: #4181b8;
 }
-.modal-container .modal-box .modal-title .title-text {
-  vertical-align: top;
+.modal-container .modal-box .modal-title .dismiss-button {
+  float: right;
+  padding: 0;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
 }
 .modal-container .modal-box .modal-body {
-  padding: 15px;
+  padding: 0;
 }
 .modal-container .modal-box .modal-body .tag-node {
   padding: 13px;
-  margin: -15px;
   text-align: left;
-  background-color: #f9e29d;
+  background-color: #fff4ce;
 }
-.modal-container .modal-box .modal-body .error-message {
-  margin-right: -15px;
-  margin-left: -15px;
+.modal-container .modal-box .modal-body .tag-node .title-text {
+  vertical-align: top;
 }
-.modal-container .modal-box .modal-body .signin-node {
-  padding: 15% 15%;
-  margin-top: 16px;
+.modal-container .modal-box .modal-body .action-node {
+  padding: 9% 6%;
   text-align: center;
 }
-.modal-container .modal-box .modal-body .signin-node .provider-button {
+.modal-container .modal-box .modal-body .action-button {
   font-size: 16px;
   line-height: 2em;
 }
-.modal-container .modal-box .modal-body .transform-node {
-  margin-bottom: 10px;
-  text-align: center;
+.modal-container .modal-box .modal-body .transform-text {
+  padding: 0 15px;
+  margin: 0;
 }
 #edit-metadata-form-container .loading:after {
   display: inline-block;
@@ -945,6 +981,42 @@ img.reserved-indicator-icon {
   position: relative;
   top: 3px;
   margin-right: 10px;
+}
+.page-manage-organizations h1 {
+  margin-bottom: 0;
+}
+.page-manage-organizations h2 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+.page-manage-organizations .form-section-title {
+  margin-top: 40px;
+}
+@media (min-width: 768px) {
+  .page-manage-organizations .form-section-title {
+    float: left;
+    text-align: right;
+  }
+}
+@media (min-width: 768px) {
+  .page-manage-organizations .form-section-data {
+    float: right;
+    margin-top: 40px;
+    line-height: 3;
+    text-align: right;
+  }
+}
+.page-manage-organizations .panel {
+  margin-top: 5px;
+}
+.page-manage-organizations .form-group + .form-group .btn {
+  margin-top: 20px;
+}
+.manage-members-listing tbody:first-child {
+  border-style: hidden;
+}
+.manage-members-listing {
+  margin-bottom: 0;
 }
 .page-manage-owners h2 .ms-Icon {
   position: relative;

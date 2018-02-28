@@ -37,7 +37,6 @@ namespace NuGetGallery
         public Mock<IPackageService> MockPackageService { get; private set; }
         public Mock<IPackageFileService> MockPackageFileService { get; private set; }
         public Mock<IUserService> MockUserService { get; private set; }
-        public Mock<INuGetExeDownloaderService> MockNuGetExeDownloaderService { get; private set; }
         public Mock<IContentService> MockContentService { get; private set; }
         public Mock<IStatisticsService> MockStatisticsService { get; private set; }
         public Mock<IIndexingService> MockIndexingService { get; private set; }
@@ -60,7 +59,6 @@ namespace NuGetGallery
             EntitiesContext = (MockEntitiesContext = new Mock<IEntitiesContext>()).Object;
             PackageService = (MockPackageService = new Mock<IPackageService>(behavior)).Object;
             UserService = (MockUserService = new Mock<IUserService>(behavior)).Object;
-            NugetExeDownloaderService = (MockNuGetExeDownloaderService = new Mock<INuGetExeDownloaderService>(MockBehavior.Strict)).Object;
             ContentService = (MockContentService = new Mock<IContentService>()).Object;
             StatisticsService = (MockStatisticsService = new Mock<IStatisticsService>()).Object;
             IndexingService = (MockIndexingService = new Mock<IIndexingService>()).Object;
@@ -89,7 +87,7 @@ namespace NuGetGallery
             MockTelemetryService = new Mock<ITelemetryService>();
             TelemetryService = MockTelemetryService.Object;
 
-            MockSecurityPolicyService.Setup(s => s.EvaluateAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>()))
+            MockSecurityPolicyService.Setup(s => s.EvaluateUserPoliciesAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>()))
                 .Returns(Task.FromResult(SecurityPolicyResult.SuccessResult));
             
             MockReservedNamespaceService
@@ -98,7 +96,9 @@ namespace NuGetGallery
 
             MockPackageUploadService.Setup(x => x.GeneratePackageAsync(It.IsAny<string>(), It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<User>()))
                 .Returns((string id, PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User owner, User currentUser) => {
-                    var packageMetadata = PackageMetadata.FromNuspecReader(nugetPackage.GetNuspecReader());
+                    var packageMetadata = PackageMetadata.FromNuspecReader(
+                        nugetPackage.GetNuspecReader(),
+                        strict: true);
 
                     var package = new Package();
                     package.PackageRegistration = new PackageRegistration { Id = packageMetadata.Id, IsVerified = false };
@@ -174,7 +174,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var controller = new TestableApiController(GetConfigurationService());
-                controller.MockSecurityPolicyService.Setup(s => s.EvaluateAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>()))
+                controller.MockSecurityPolicyService.Setup(s => s.EvaluateUserPoliciesAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>()))
                     .Returns(Task.FromResult(SecurityPolicyResult.CreateErrorResult("A")));
 
                 // Act
@@ -1377,7 +1377,7 @@ namespace NuGetGallery
                 // Arrange
                 var errorResult = "A";
                 var controller = SetupController(credentialType, null, package: null);
-                controller.MockSecurityPolicyService.Setup(s => s.EvaluateAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>()))
+                controller.MockSecurityPolicyService.Setup(s => s.EvaluateUserPoliciesAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>()))
                     .Returns(Task.FromResult(SecurityPolicyResult.CreateErrorResult(errorResult)));
 
                 // Act

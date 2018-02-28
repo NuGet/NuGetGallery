@@ -7,6 +7,32 @@
             data["__RequestVerificationToken"] = $field.val();
         }
 
+        var configureSection = function (prefix) {
+            var containerId = prefix + "-container";
+            $("#cancel-" + prefix).click(function (e) {
+                // Collapse the container.
+                $("#" + containerId).collapse('hide');
+
+                // Prevent navigation.
+                e.preventDefault();
+
+                // Reset the form.
+                var formElement = $("#" + containerId + " form")[0];
+                if (formElement) {
+                    formElement.reset();
+                }
+
+                // Clear values.
+                $("#" + containerId + " input[type='text']").val("");
+                $("#" + containerId + " input[type='password']").val("");
+
+                // Reset the validation state.
+                if (formElement) {
+                    window.nuget.resetFormValidation(formElement);
+                }
+            });
+        }
+
         function OrganizationMemberViewModel(parent, member) {
             var self = this;
 
@@ -51,6 +77,9 @@
                     success: function () {
                         parent.Error(null);
                         parent.Members.remove(self);
+                        if (self.IsCurrentUser) {
+                            document.location.href = "/";
+                        }
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
                         var error = "Unknown error when trying to delete member '" + self.Username + "'.";
@@ -67,7 +96,7 @@
                 var data = {
                     accountName: self.OrganizationViewModel.AccountName,
                     memberName: self.Username,
-                    isAdmin: self.IsAdmin()
+                    isAdmin: self.IsAdmin(),
                 };
                 addAntiForgeryToken(data);
 
@@ -77,9 +106,12 @@
                     type: 'POST',
                     dataType: 'json',
                     data: data,
-                    success: function () {
+                    success: function (data) {
                         parent.Error(null);
                         parent.UpdateMemberCounts();
+                        if (self.IsCurrentUser) {
+                            window.location.reload();
+                        }
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
                         var error = "Unknown error when trying to update member '" + self.Username + "'.";
@@ -87,6 +119,7 @@
                             error = jqXHR.responseJSON;
                         }
                         parent.Error(error);
+                        self.IsAdmin(!self.IsAdmin())
                     }
                 });
             };
@@ -173,6 +206,11 @@
                     }
                 });
             };
+        }
+
+        // Set up the section expanders.
+        for (var i in sections) {
+            configureSection(sections[i]);
         }
 
         // Set up the data binding.

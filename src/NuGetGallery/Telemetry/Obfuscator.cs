@@ -16,7 +16,7 @@ namespace NuGetGallery
 
         internal static readonly HashSet<string> ObfuscatedActions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            "Organizations/Account",
+            "Organizations/ManageOrganization",
             "Organizations/ChangeEmailSubscription",
             "Packages/ConfirmPendingOwnershipRequest",
             "Packages/RejectPendingOwnershipRequest",

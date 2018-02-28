@@ -272,7 +272,7 @@ namespace NuGetGallery
 
             routes.MapRoute(
                 RouteName.ConfirmAccount,
-                "account/confirm/{username}/{token}",
+                "account/confirm/{accountName}/{token}",
                 new { controller = "Users", action = "Confirm" },
                 new RouteExtensions.ObfuscatedMetadata(2, Obfuscator.DefaultTelemetryUserName));
             
@@ -300,7 +300,7 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.OrganizationAccount,
                 "organization/{accountName}/{action}",
-                new { controller = "Organizations", action = "Account" },
+                new { controller = "Organizations", action = "ManageOrganization" },
                 new RouteExtensions.ObfuscatedMetadata(1, Obfuscator.DefaultTelemetryUserName));
 
             routes.MapRoute(
@@ -521,6 +521,11 @@ namespace NuGetGallery
                 "v2PackageVersions",
                 "api/v2/package-versions/{id}",
                 new { controller = "Api", action = "PackageVersions" });
+
+            routes.MapRoute(
+                "v2Query",
+                "api/v2/query",
+                new { controller = "Api", action = "Query" });
 
             routes.MapRoute(
                 RouteName.StatisticsDownloadsApi,
