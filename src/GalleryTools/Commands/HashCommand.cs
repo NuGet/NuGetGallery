@@ -63,7 +63,7 @@ namespace GalleryTools.Commands
 
                 do
                 {
-                    batch = allCredentials.Where(predicate).Take(BatchSize).ToList();
+                    batch = allCredentials.Where(predicate).OrderBy(x => x.Key).Take(BatchSize).ToList();
 
                     if (batch.Count > 0)
                     {
@@ -97,6 +97,7 @@ namespace GalleryTools.Commands
                         else
                         {
                             Console.WriteLine("Skipping DB save.");
+                            allCredentials = allCredentials.Where(predicate).OrderBy(x => x.Key).Skip(batch.Count);
                         }
 
                         batchNumber++;
