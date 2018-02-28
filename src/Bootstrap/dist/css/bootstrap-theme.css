@@ -1018,6 +1018,12 @@ img.reserved-indicator-icon {
 .manage-members-listing {
   margin-bottom: 0;
 }
+.manage-members-listing .below-heading-left {
+  padding-left: 15px;
+}
+.manage-members-listing .below-heading-right {
+  padding-right: 15px;
+}
 .page-manage-owners h2 .ms-Icon {
   position: relative;
   top: -2px;
