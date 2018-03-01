@@ -48,6 +48,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>TestData.resx</DependentUpon>
     </Compile>
+    <Compile Include="ValidationResultTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />

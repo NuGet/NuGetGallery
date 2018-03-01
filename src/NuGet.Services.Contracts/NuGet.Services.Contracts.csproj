@@ -46,6 +46,7 @@
     <Compile Include="ServiceBus\IOnMessageOptions.cs" />
     <Compile Include="ServiceBus\ISubscriptionClient.cs" />
     <Compile Include="ServiceBus\ITopicClient.cs" />
+    <Compile Include="Validation\IProcessor.cs" />
     <Compile Include="Validation\IValidationRequest.cs" />
     <Compile Include="Validation\IValidationResult.cs" />
     <Compile Include="Validation\IValidator.cs" />

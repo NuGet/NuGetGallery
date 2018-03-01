@@ -19,5 +19,12 @@ namespace NuGet.Services.Validation
         /// The validation issues that were encountered.
         /// </summary>
         IReadOnlyList<IValidationIssue> Issues { get; }
+
+        /// <summary>
+        /// The URL to the modified package content (.nupkg). This URL should be accessible without special
+        /// authentication headers. However, authentication information could be included in the URL (e.g. Azure Blob
+        /// Storage SAS URL). This URL need not have a single value for a specific <see cref="ValidationId"/>.
+        /// </summary>
+        string NupkgUrl { get; }
     }
 }
