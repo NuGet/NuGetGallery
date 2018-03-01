@@ -339,7 +339,7 @@ namespace NuGetGallery
 
                 var mockUserService = GetMock<IUserService>();
                 mockUserService
-                    .Setup(x => x.AddOrganization(OrgName, OrgEmail, Admin))
+                    .Setup(x => x.AddOrganizationAsync(OrgName, OrgEmail, Admin))
                     .Throws(new EntityException(message));
 
                 var controller = GetController<OrganizationsController>();
@@ -363,7 +363,7 @@ namespace NuGetGallery
 
                 var mockUserService = GetMock<IUserService>();
                 mockUserService
-                    .Setup(x => x.AddOrganization(OrgName, OrgEmail, Admin))
+                    .Setup(x => x.AddOrganizationAsync(OrgName, OrgEmail, Admin))
                     .Returns(Task.FromResult(org));
 
                 var messageService = GetMock<IMessageService>();

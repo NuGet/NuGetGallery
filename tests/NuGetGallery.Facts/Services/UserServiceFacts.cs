@@ -1096,7 +1096,7 @@ namespace NuGetGallery
                     .Returns(OrgCreatedUtc);
 
                 // Act
-                return _service.AddOrganization(orgName, orgEmail, admin);
+                return _service.AddOrganizationAsync(orgName, orgEmail, admin);
             }
 
             private void SetupOrganizationsSupportedForUser(string adminUsername = null, bool supported = true)

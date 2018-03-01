@@ -68,7 +68,7 @@ namespace NuGetGallery
 
             try
             {
-                var organization = await UserService.AddOrganization(organizationName, organizationEmailAddress, adminUser);
+                var organization = await UserService.AddOrganizationAsync(organizationName, organizationEmailAddress, adminUser);
                 SendNewAccountEmail(organization);
                 return RedirectToAction(nameof(ManageOrganization), new { accountName = organization.Username });
             }

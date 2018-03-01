@@ -374,7 +374,7 @@ namespace NuGetGallery
             return await EntitiesContext.TransformUserToOrganization(accountToTransform, adminUser, token);
         }
 
-        public async Task<Organization> AddOrganization(string username, string emailAddress, User adminUser)
+        public async Task<Organization> AddOrganizationAsync(string username, string emailAddress, User adminUser)
         {
             if (!ContentObjectService.LoginDiscontinuationConfiguration.AreOrganizationsSupportedForUser(adminUser))
             {
