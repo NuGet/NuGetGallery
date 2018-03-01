@@ -294,12 +294,6 @@ The {1} Team</value>
   <data name="UserEmailPreferencesUpdated" xml:space="preserve">
     <value>Your email preferences have been updated.</value>
   </data>
-  <data name="UserEmailUpdated" xml:space="preserve">
-    <value>Your new email address was saved!</value>
-  </data>
-  <data name="UserEmailUpdatedWithConfirmationRequired" xml:space="preserve">
-    <value>Your email address has been changed! We sent a confirmation email to verify your new email. When you confirm the new email address, it will take effect and we will forget the old one.</value>
-  </data>
   <data name="UploadPackage_MinClientVersionOutOfRange" xml:space="preserve">
     <value>This package requires version '{0}' of NuGet, which this gallery does not currently support. Please contact us if you have questions.</value>
   </data>
@@ -773,12 +767,6 @@ If you wish to update the linked Microsoft account you can do so from the accoun
   </data>
   <data name="OrganizationEmailUpdateCancelled" xml:space="preserve">
     <value>You canceled your organization email address change request.</value>
-  </data>
-  <data name="OrganizationEmailUpdated" xml:space="preserve">
-    <value>The new organization email address was saved!</value>
-  </data>
-  <data name="OrganizationEmailUpdatedWithConfirmationRequired" xml:space="preserve">
-    <value>The organization email address has been changed! We sent a confirmation email to verify the new email. When the new email address is confirmed, it will take effect and we will forget the old one.</value>
   </data>
   <data name="UserEmailConfirmed" xml:space="preserve">
     <value>You have successfully confirmed your email address!</value>

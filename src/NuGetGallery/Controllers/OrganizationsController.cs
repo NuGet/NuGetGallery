@@ -30,9 +30,7 @@ namespace NuGetGallery
         {
             EmailConfirmed = Strings.OrganizationEmailConfirmed,
             EmailPreferencesUpdated = Strings.OrganizationEmailPreferencesUpdated,
-            EmailUpdateCancelled = Strings.OrganizationEmailUpdateCancelled,
-            EmailUpdated = Strings.OrganizationEmailUpdated,
-            EmailUpdatedWithConfirmationRequired = Strings.OrganizationEmailUpdatedWithConfirmationRequired
+            EmailUpdateCancelled = Strings.OrganizationEmailUpdateCancelled
         };
 
         protected override void SendNewAccountEmail(User account)

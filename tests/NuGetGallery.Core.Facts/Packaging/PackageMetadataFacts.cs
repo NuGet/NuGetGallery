@@ -23,7 +23,9 @@ namespace NuGetGallery.Packaging
             var nuspec = nupkg.GetNuspecReader();
 
             // Act
-            var packageMetadata = PackageMetadata.FromNuspecReader(nuspec);
+            var packageMetadata = PackageMetadata.FromNuspecReader(
+                nuspec,
+                strict: true);
 
             // Assert
             Assert.Equal("TestPackage", packageMetadata.Id);
@@ -47,7 +49,39 @@ namespace NuGetGallery.Packaging
             var nuspec = nupkg.GetNuspecReader();
 
             // Act & Assert
-            Assert.Throws<PackagingException>(() => PackageMetadata.FromNuspecReader(nuspec));
+            Assert.Throws<PackagingException>(() => PackageMetadata.FromNuspecReader(
+                nuspec,
+                strict: true));
+        }
+
+        [Fact]
+        public static void DoesNotThrowInvalidDepencencyVersionRangeDetectedAndParsingIsNotStrict()
+        {
+            var packageStream = CreateTestPackageStreamWithInvalidDependencyVersion();
+            var nupkg = new PackageArchiveReader(packageStream, leaveStreamOpen: false);
+            var nuspec = nupkg.GetNuspecReader();
+
+            // Act
+            var packageMetadata = PackageMetadata.FromNuspecReader(
+                nuspec,
+                strict: false);
+
+            // Assert
+            Assert.Equal("TestPackage", packageMetadata.Id);
+            Assert.Equal(NuGetVersion.Parse("0.0.0.1"), packageMetadata.Version);
+            Assert.Equal("Package A", packageMetadata.Title);
+            Assert.Equal(2, packageMetadata.Authors.Count);
+            Assert.Equal("ownera, ownerb", packageMetadata.Owners);
+            Assert.False(packageMetadata.RequireLicenseAcceptance);
+            Assert.Equal("package A description.", packageMetadata.Description);
+            Assert.Equal("en-US", packageMetadata.Language);
+            Assert.Equal("http://www.nuget.org/", packageMetadata.ProjectUrl.ToString());
+            Assert.Equal("http://www.nuget.org/", packageMetadata.IconUrl.ToString());
+            Assert.Equal("http://www.nuget.org/", packageMetadata.LicenseUrl.ToString());
+            var dependencyGroup = Assert.Single(packageMetadata.GetDependencyGroups());
+            var dependency = Assert.Single(dependencyGroup.Packages);
+            Assert.Equal("SampleDependency", dependency.Id);
+            Assert.Equal(VersionRange.All, dependency.VersionRange);
         }
 
         private static Stream CreateTestPackageStream()

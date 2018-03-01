@@ -698,6 +698,23 @@ namespace NuGetGallery
                 Assert.Equal(package.Version, testService.LastAuditRecord.Version);
                 auditingService.Verify(x => x.SaveAuditRecordAsync(testService.LastAuditRecord));
             }
+
+            [Fact]
+            public async Task EmitsTelemetry()
+            {
+                var telemetryService = new Mock<ITelemetryService>();
+                var service = CreateService(telemetryService: telemetryService);
+                var packageRegistration = new PackageRegistration();
+                var package = new Package { PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
+                packageRegistration.Packages.Add(package);
+                var user = new User("test");
+                var reason = "Unit testing";
+                var signature = "The Terminator";
+
+                await service.SoftDeletePackagesAsync(new[] { package }, user, reason, signature);
+
+                telemetryService.Verify(x => x.TrackPackageDelete(package, false));
+            }
         }
 
         public class TheHardDeletePackagesAsyncMethod
@@ -953,6 +970,23 @@ namespace NuGetGallery
                 Assert.Equal(package.Version, testService.LastAuditRecord.Version);
                 auditingService.Verify(x => x.SaveAuditRecordAsync(testService.LastAuditRecord));
             }
+
+            [Fact]
+            public async Task EmitsTelemetry()
+            {
+                var telemetryService = new Mock<ITelemetryService>();
+                var service = CreateService(telemetryService: telemetryService);
+                var packageRegistration = new PackageRegistration();
+                var package = new Package { PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
+                packageRegistration.Packages.Add(package);
+                var user = new User("test");
+                var reason = "Unit testing";
+                var signature = "The Terminator";
+
+                await service.HardDeletePackagesAsync(new[] { package }, user, reason, signature, deleteEmptyPackageRegistration: false);
+
+                telemetryService.Verify(x => x.TrackPackageDelete(package, true));
+            }
         }
 
         public class TheReflowHardDeletedPackagesAsyncMethod
@@ -998,7 +1032,13 @@ namespace NuGetGallery
 
                 var auditingService = new Mock<IAuditingService>();
 
-                var service = CreateService(packageRepository: packageRepository, packageRegistrationRepository: packageRegistrationRepository, auditingService: auditingService);
+                var telemetryService = new Mock<ITelemetryService>();
+
+                var service = CreateService(
+                    packageRepository: packageRepository,
+                    packageRegistrationRepository: packageRegistrationRepository,
+                    auditingService: auditingService,
+                    telemetryService: telemetryService);
                 
                 if (succeeds)
                 {
@@ -1009,7 +1049,13 @@ namespace NuGetGallery
                     await Assert.ThrowsAsync<UserSafeException>(() => service.ReflowHardDeletedPackageAsync(id, version));
                 }
                 
-                auditingService.Verify(x => x.SaveAuditRecordAsync(It.IsAny<AuditRecord>()), succeeds ? Times.Once() : Times.Never());
+                auditingService.Verify(
+                    x => x.SaveAuditRecordAsync(It.IsAny<AuditRecord>()),
+                    succeeds ? Times.Once() : Times.Never());
+
+                telemetryService.Verify(
+                    x => x.TrackPackageHardDeleteReflow(id, version),
+                    succeeds ? Times.Once() : Times.Never());
             }
         }
     }

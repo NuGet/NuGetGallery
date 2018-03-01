@@ -24,6 +24,12 @@ namespace NuGetGallery
             public const string CredentialAdded = "CredentialAdded";
             public const string UserPackageDeleteCheckedAfterHours = "UserPackageDeleteCheckedAfterHours";
             public const string UserPackageDeleteExecuted = "UserPackageDeleteExecuted";
+            public const string PackageReflow = "PackageReflow";
+            public const string PackageUnlisted = "PackageUnlisted";
+            public const string PackageListed = "PackageListed";
+            public const string PackageDelete = "PackageDelete";
+            public const string PackageHardDeleteReflow = "PackageHardDeleteReflow";
+            public const string PackageRevalidate = "PackageRevalidate";
         }
 
         private IDiagnosticsSource _diagnosticsSource;
@@ -71,6 +77,9 @@ namespace NuGetGallery
         // User package delete executed properties
         public const string Success = "Success";
 
+        // Package delete properties
+        public const string IsHardDelete = "IsHardDelete";
+
         public TelemetryService(IDiagnosticsService diagnosticsService, ITelemetryClient telemetryClient = null)
         {
             if (diagnosticsService == null)
@@ -100,7 +109,7 @@ namespace NuGetGallery
 
         public void TrackODataQueryFilterEvent(string callContext, bool isEnabled, bool isAllowed, string queryPattern)
         {
-            TrackEvent(Events.ODataQueryFilter, properties =>
+            TrackMetric(Events.ODataQueryFilter, 1, properties =>
             {
                 properties.Add(CallContext, callContext);
                 properties.Add(IsEnabled, $"{isEnabled}");
@@ -122,9 +131,9 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(readMeSourceType));
             }
 
-            TrackEvent(Events.PackageReadMeChanged, properties => {
+            TrackMetric(Events.PackageReadMeChanged, 1, properties => {
                 properties.Add(PackageId, package.PackageRegistration.Id);
-                properties.Add(PackageVersion, package.Version);
+                properties.Add(PackageVersion, package.NormalizedVersion);
                 properties.Add(ReadMeSourceType, readMeSourceType);
                 properties.Add(ReadMeState, Enum.GetName(typeof(PackageEditReadMeState), readMeState));
             });
@@ -137,17 +146,17 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(package));
             }
 
-            TrackPackageForEvent(Events.PackagePush, package.PackageRegistration.Id, package.Version, user, identity);
+            TrackMetricForPackage(Events.PackagePush, package.PackageRegistration.Id, package.NormalizedVersion, user, identity);
         }
 
         public void TrackPackagePushNamespaceConflictEvent(string packageId, string packageVersion, User user, IIdentity identity)
         {
-            TrackPackageForEvent(Events.PackagePushNamespaceConflict, packageId, packageVersion, user, identity);
+            TrackMetricForPackage(Events.PackagePushNamespaceConflict, packageId, packageVersion, user, identity);
         }
 
         public void TrackCreatePackageVerificationKeyEvent(string packageId, string packageVersion, User user, IIdentity identity)
         {
-            TrackPackageForEvent(Events.CreatePackageVerificationKey, packageId, packageVersion, user, identity);
+            TrackMetricForPackage(Events.CreatePackageVerificationKey, packageId, packageVersion, user, identity);
         }
 
         public void TrackVerifyPackageKeyEvent(string packageId, string packageVersion, User user, IIdentity identity, int statusCode)
@@ -163,7 +172,7 @@ namespace NuGetGallery
             }
             var hasVerifyScope = identity.HasScopeThatAllowsActions(NuGetScopes.PackageVerify).ToString();
 
-            TrackEvent(Events.VerifyPackageKey, properties =>
+            TrackMetric(Events.VerifyPackageKey, 1, properties =>
             {
                 properties.Add(PackageId, packageId);
                 properties.Add(PackageVersion, packageVersion);
@@ -175,15 +184,78 @@ namespace NuGetGallery
 
         public void TrackNewUserRegistrationEvent(User user, Credential credential)
         {
-            TrackAccountActivityForEvent(Events.NewUserRegistration, user, credential);
+            TrackMetricForAccountActivity(Events.NewUserRegistration, user, credential);
         }
 
         public void TrackNewCredentialCreated(User user, Credential credential)
         {
-            TrackAccountActivityForEvent(Events.CredentialAdded, user, credential);
+            TrackMetricForAccountActivity(Events.CredentialAdded, user, credential);
         }
 
-        private void TrackAccountActivityForEvent(string eventName, User user, Credential credential)
+        public void TrackUserPackageDeleteExecuted(int packageKey, string packageId, string packageVersion, ReportPackageReason reason, bool success)
+        {
+            if (packageId == null)
+            {
+                throw new ArgumentNullException(nameof(packageId));
+            }
+
+            if (packageVersion == null)
+            {
+                throw new ArgumentNullException(nameof(packageVersion));
+            }
+
+            TrackMetric(Events.UserPackageDeleteExecuted, 1, properties => {
+                properties.Add(PackageKey, packageKey.ToString());
+                properties.Add(PackageId, packageId);
+                properties.Add(PackageVersion, packageVersion);
+                properties.Add(ReportPackageReason, reason.ToString());
+                properties.Add(Success, success.ToString());
+            });
+        }
+
+        public void TrackPackageUnlisted(Package package)
+        {
+            TrackMetricForPackage(Events.PackageUnlisted, package);
+        }
+
+        public void TrackPackageListed(Package package)
+        {
+            TrackMetricForPackage(Events.PackageListed, package);
+        }
+
+        public void TrackPackageDelete(Package package, bool isHardDelete)
+        {
+            TrackMetricForPackage(Events.PackageDelete, package, properties =>
+            {
+                properties.Add(IsHardDelete, isHardDelete.ToString());
+            });
+        }
+
+        public void TrackPackageReflow(Package package)
+        {
+            TrackMetricForPackage(Events.PackageReflow, package);
+        }
+
+        public void TrackPackageHardDeleteReflow(string packageId, string packageVersion)
+        {
+            TrackMetricForPackage(Events.PackageHardDeleteReflow, packageId, packageVersion);
+        }
+
+        public void TrackPackageRevalidate(Package package)
+        {
+            TrackMetricForPackage(Events.PackageRevalidate, package);
+        }
+
+        public void TrackException(Exception exception, Action<Dictionary<string, string>> addProperties)
+        {
+            var telemetryProperties = new Dictionary<string, string>();
+
+            addProperties(telemetryProperties);
+
+            _telemetryClient.TrackException(exception, telemetryProperties, metrics: null);
+        }
+
+        private void TrackMetricForAccountActivity(string eventName, User user, Credential credential)
         {
             if (user == null)
             {
@@ -195,7 +267,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(credential));
             }
 
-            TrackEvent(eventName, properties => {
+            TrackMetric(eventName, 1, properties => {
                 properties.Add(ClientVersion, GetClientVersion());
                 properties.Add(ProtocolVersion, GetProtocolVersion());
                 properties.Add(AccountCreationDate, GetAccountCreationDate(user));
@@ -240,7 +312,34 @@ namespace NuGetGallery
             return apiKey?.Created.ToString("O") ?? "N/A";
         }
 
-        private void TrackPackageForEvent(string eventValue, string packageId, string packageVersion, User user, IIdentity identity)
+        private void TrackMetricForPackage(
+            string metricName,
+            Package package,
+            User user,
+            IIdentity identity,
+            Action<Dictionary<string, string>> addProperties = null)
+        {
+            if (package == null)
+            {
+                throw new ArgumentNullException(nameof(package));
+            }
+
+            TrackMetricForPackage(
+                metricName,
+                package.PackageRegistration.Id,
+                package.NormalizedVersion,
+                user,
+                identity,
+                addProperties);
+        }
+
+        private void TrackMetricForPackage(
+            string metricName,
+            string packageId,
+            string packageVersion,
+            User user,
+            IIdentity identity,
+            Action<Dictionary<string, string>> addProperties = null)
         {
             if (user == null)
             {
@@ -252,7 +351,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(identity));
             }
 
-            TrackEvent(eventValue, properties => {
+            TrackMetric(metricName, 1, properties => {
                 properties.Add(ClientVersion, GetClientVersion());
                 properties.Add(ProtocolVersion, GetProtocolVersion());
                 properties.Add(ClientInformation, GetClientInformation());
@@ -262,6 +361,40 @@ namespace NuGetGallery
                 properties.Add(AuthenticationMethod, identity.GetAuthenticationType());
                 properties.Add(KeyCreationDate, GetApiKeyCreationDate(user, identity));
                 properties.Add(IsScoped, identity.IsScopedAuthentication().ToString());
+                addProperties?.Invoke(properties);
+            });
+        }
+
+        private void TrackMetricForPackage(
+            string metricName,
+            Package package,
+            Action<Dictionary<string, string>> addProperties = null)
+        {
+            if (package == null)
+            {
+                throw new ArgumentNullException(nameof(package));
+            }
+
+            TrackMetricForPackage(
+                metricName,
+                package.PackageRegistration.Id,
+                package.NormalizedVersion,
+                addProperties);
+        }
+
+        private void TrackMetricForPackage(
+            string metricName,
+            string packageId,
+            string packageVersion,
+            Action<Dictionary<string, string>> addProperties = null)
+        {
+            TrackMetric(metricName, 1, properties => {
+                properties.Add(ClientVersion, GetClientVersion());
+                properties.Add(ProtocolVersion, GetProtocolVersion());
+                properties.Add(ClientInformation, GetClientInformation());
+                properties.Add(PackageId, packageId);
+                properties.Add(PackageVersion, packageVersion);
+                addProperties?.Invoke(properties);
             });
         }
 
@@ -288,36 +421,11 @@ namespace NuGetGallery
             });
         }
 
-        public void TrackUserPackageDeleteExecuted(int packageKey, string packageId, string packageVersion, ReportPackageReason reason, bool success)
-        {
-            if (packageId == null)
-            {
-                throw new ArgumentNullException(nameof(packageId));
-            }
-
-            if (packageVersion == null)
-            {
-                throw new ArgumentNullException(nameof(packageVersion));
-            }
-
-            TrackMetric(Events.UserPackageDeleteExecuted, 1, properties => {
-                properties.Add(PackageKey, packageKey.ToString());
-                properties.Add(PackageId, packageId);
-                properties.Add(PackageVersion, packageVersion);
-                properties.Add(ReportPackageReason, reason.ToString());
-                properties.Add(Success, success.ToString());
-            });
-        }
-
-        protected virtual void TrackEvent(string eventName, Action<Dictionary<string, string>> addProperties)
-        {
-            var telemetryProperties = new Dictionary<string, string>();
-
-            addProperties(telemetryProperties);
-
-            _telemetryClient.TrackEvent(eventName, telemetryProperties, metrics: null);
-        }
-
+        /// <summary>
+        /// We use <see cref="ITelemetryClient.TrackMetric(string, double, IDictionary{string, string})"/> instead of
+        /// <see cref="ITelemetryClient.TrackEvent(string, IDictionary{string, string}, IDictionary{string, double})"/>
+        /// because events don't flow properly into our internal metrics and monitoring solution.
+        /// </summary>
         protected virtual void TrackMetric(string metricName, double value, Action<Dictionary<string, string>> addProperties)
         {
             var telemetryProperties = new Dictionary<string, string>();
@@ -325,15 +433,6 @@ namespace NuGetGallery
             addProperties(telemetryProperties);
 
             _telemetryClient.TrackMetric(metricName, value, telemetryProperties);
-        }
-
-        public void TrackException(Exception exception, Action<Dictionary<string, string>> addProperties)
-        {
-            var telemetryProperties = new Dictionary<string, string>();
-
-            addProperties(telemetryProperties);
-
-            _telemetryClient.TrackException(exception, telemetryProperties, metrics: null);
         }
     }
 }
