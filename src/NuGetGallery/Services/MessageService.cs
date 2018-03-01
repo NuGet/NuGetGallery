@@ -202,7 +202,7 @@ The {0} Team";
                 SendMessage(mailMessage);
             }
         }
-
+        
         public void SendSigninAssistanceEmail(MailAddress emailAddress, IEnumerable<Credential> credentials)
         {
             string body = @"Hi there,
@@ -244,29 +244,35 @@ The {0} Team";
             }
 
         }
-
-        public void SendEmailChangeConfirmationNotice(MailAddress newEmailAddress, string confirmationUrl)
+        
+        public void SendEmailChangeConfirmationNotice(User user, string confirmationUrl)
         {
-            string body = @"You recently changed your {0} email address.
+            string body = @"You recently changed {0} {1} email address.
 
-To verify your new email address, please click the following link:
+To verify {0} new email address, please click the following link:
 
-[{1}]({2})
+[{2}]({3})
 
 Thanks,
 The {0} Team";
 
+            var yourString = user is Organization ? "your organization's" : "your account's";
+
             body = String.Format(
                 CultureInfo.CurrentCulture,
                 body,
+                yourString,
                 Config.GalleryOwner.DisplayName,
                 HttpUtility.UrlDecode(confirmationUrl).Replace("_", "\\_"),
                 confirmationUrl);
 
+            var newEmailAddress = new MailAddress(user.UnconfirmedEmailAddress, user.Username);
+
             using (var mailMessage = new MailMessage())
             {
                 mailMessage.Subject = String.Format(
-                    CultureInfo.CurrentCulture, "[{0}] Please verify your new email address.", Config.GalleryOwner.DisplayName);
+                    CultureInfo.CurrentCulture, "[{0}] Please verify {1} new email address.", 
+                    Config.GalleryOwner.DisplayName, yourString);
                 mailMessage.Body = body;
                 mailMessage.From = Config.GalleryNoReplyAddress;
 
@@ -279,8 +285,8 @@ The {0} Team";
         {
             string body = @"Hi there,
 
-The email address associated to your {0} account was recently
-changed from _{1}_ to _{2}_.
+The email address associated with your {0} {1} was recently
+changed from _{2}_ to _{3}_.
 
 Thanks,
 The {0} Team";
@@ -289,6 +295,7 @@ The {0} Team";
                 CultureInfo.CurrentCulture,
                 body,
                 Config.GalleryOwner.DisplayName,
+                user is Organization ? "organization" : "account",
                 oldEmailAddress,
                 user.EmailAddress);
 
