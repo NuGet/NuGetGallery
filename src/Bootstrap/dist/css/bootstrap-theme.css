@@ -1018,6 +1018,18 @@ img.reserved-indicator-icon {
 .manage-members-listing {
   margin-bottom: 0;
 }
+.manage-members-listing .heading-left {
+  padding-left: 5px;
+}
+.manage-members-listing .heading-right {
+  padding-right: 5px;
+}
+.manage-members-listing .icon-left {
+  padding-left: 25px;
+}
+.manage-members-listing .member-icon {
+  vertical-align: middle;
+}
 .page-manage-owners h2 .ms-Icon {
   position: relative;
   top: -2px;
@@ -1417,6 +1429,60 @@ img.reserved-indicator-icon {
 }
 .page-status .table tbody + tbody {
   border: none;
+}
+.page-transform-account .center-box {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display:         flex;
+
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+          justify-content: space-between;
+  -webkit-box-align: stretch;
+  -webkit-align-items: stretch;
+  -ms-flex-align: stretch;
+          align-items: stretch;
+}
+.page-transform-account .center-box .form-box {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display:         flex;
+          flex-direction: column;
+
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+          justify-content: space-between;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: column;
+      -ms-flex-direction: column;
+}
+.page-transform-account .center-box .logo-box {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display:         flex;
+  margin-bottom: 50px;
+          flex-direction: column;
+
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+          justify-content: space-between;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -webkit-flex-direction: column;
+      -ms-flex-direction: column;
+}
+.page-transform-account .center-box .logo-box .logo {
+  -webkit-box-flex: 1;
+  -webkit-flex-grow: 1;
+  -ms-flex-positive: 1;
+          flex-grow: 1;
 }
 .page-upload #browse-for-package-button {
   margin: 0;
