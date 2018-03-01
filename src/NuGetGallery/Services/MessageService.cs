@@ -347,17 +347,20 @@ The {0} Team";
                 policyMessage = Environment.NewLine + policyMessage + Environment.NewLine;
             }
 
-            const string subject = "[{0}] The user '{1}' would like to add you as an owner of the package '{2}'.";
+            var title = string.Format(CultureInfo.CurrentCulture, 
+                $"The user '{fromUser.Username}' would like to add {(toUser is Organization ? "your organization" : "you")} as an owner of the package '{package.Id}'.");
 
-            string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{fromUser.Username}' wants to add you as an owner of the package '{package.Id}'.
+            var subject = string.Format(CultureInfo.CurrentCulture, $"[{Config.GalleryOwner.DisplayName}] {title}");
+
+            string body = string.Format(CultureInfo.CurrentCulture, $@"{title}
 
 Package URL on NuGet.org: [{packageUrl}]({packageUrl})
 {policyMessage}
-To accept this request and become a listed owner of the package, click the following URL:
+To accept this request and {(toUser is Organization ? "make your organization" : "become")} a listed owner of the package, click the following URL:
 
 [{confirmationUrl}]({confirmationUrl})
 
-If you do not want to be listed as an owner of this package, click the following URL:
+If you do not want {(toUser is Organization ? "your organization " : "")}to be listed as an owner of this package, click the following URL:
 
 [{rejectionUrl}]({rejectionUrl})");
 
@@ -373,12 +376,13 @@ The {Config.GalleryOwner.DisplayName} Team";
 
             using (var mailMessage = new MailMessage())
             {
-                mailMessage.Subject = String.Format(CultureInfo.CurrentCulture, subject, Config.GalleryOwner.DisplayName, fromUser.Username, package.Id);
+                mailMessage.Subject = subject;
                 mailMessage.Body = body;
                 mailMessage.From = Config.GalleryNoReplyAddress;
                 mailMessage.ReplyToList.Add(fromUser.ToMailAddress());
 
-                mailMessage.To.Add(toUser.ToMailAddress());
+                AddAddressesForPackageOwnershipManagementToEmail(mailMessage, toUser);
+
                 SendMessage(mailMessage);
             }
         }
@@ -390,9 +394,11 @@ The {Config.GalleryOwner.DisplayName} Team";
                 return;
             }
 
-            var subject = string.Format(CultureInfo.CurrentCulture, $"[{Config.GalleryOwner.DisplayName}] The user '{newOwner.Username}' has rejected your request to add them as an owner of the package '{package.Id}'.");
+            var title = string.Format(CultureInfo.CurrentCulture, $"The user '{newOwner.Username}' has rejected {(requestingOwner is Organization ? "your organization's" : "your" )} request to add them as an owner of the package '{package.Id}'.");
 
-            var body = string.Format(CultureInfo.CurrentCulture, $@"The user '{newOwner.Username}' has rejected your request to add them as an owner of the package '{package.Id}'.
+            var subject = string.Format(CultureInfo.CurrentCulture, $"[{Config.GalleryOwner.DisplayName}] {title}");
+
+            var body = string.Format(CultureInfo.CurrentCulture, $@"{title}
 
 Thanks,
 The {Config.GalleryOwner.DisplayName} Team");
@@ -404,7 +410,7 @@ The {Config.GalleryOwner.DisplayName} Team");
                 mailMessage.From = Config.GalleryNoReplyAddress;
                 mailMessage.ReplyToList.Add(newOwner.ToMailAddress());
 
-                mailMessage.To.Add(requestingOwner.ToMailAddress());
+                AddAddressesForPackageOwnershipManagementToEmail(mailMessage, requestingOwner);
                 SendMessage(mailMessage);
             }
         }
@@ -416,9 +422,11 @@ The {Config.GalleryOwner.DisplayName} Team");
                 return;
             }
 
-            var subject = string.Format(CultureInfo.CurrentCulture, $"[{Config.GalleryOwner.DisplayName}] The user '{requestingOwner.Username}' has cancelled their request for you to be added as an owner of the package '{package.Id}'.");
+            var title = string.Format(CultureInfo.CurrentCulture, $"The user '{requestingOwner.Username}' has cancelled their request for {(newOwner is Organization ? "your organization" : "you")} to be added as an owner of the package '{package.Id}'.");
 
-            var body = string.Format(CultureInfo.CurrentCulture, $@"The user '{requestingOwner.Username}' has cancelled their request for you to be added as an owner of the package '{package.Id}'.
+            var subject = string.Format(CultureInfo.CurrentCulture, $"[{Config.GalleryOwner.DisplayName}] {title}");
+
+            var body = string.Format(CultureInfo.CurrentCulture, $@"{title}
 
 Thanks,
 The {Config.GalleryOwner.DisplayName} Team");
@@ -430,7 +438,7 @@ The {Config.GalleryOwner.DisplayName} Team");
                 mailMessage.From = Config.GalleryNoReplyAddress;
                 mailMessage.ReplyToList.Add(requestingOwner.ToMailAddress());
 
-                mailMessage.To.Add(newOwner.ToMailAddress());
+                AddAddressesForPackageOwnershipManagementToEmail(mailMessage, newOwner);
                 SendMessage(mailMessage);
             }
         }
@@ -464,7 +472,7 @@ The {3} Team";
                 mailMessage.From = Config.GalleryNoReplyAddress;
                 mailMessage.ReplyToList.Add(Config.GalleryNoReplyAddress);
 
-                mailMessage.To.Add(toUser.ToMailAddress());
+                AddAddressesForPackageOwnershipManagementToEmail(mailMessage, toUser);
                 SendMessage(mailMessage);
             }
         }
@@ -476,25 +484,45 @@ The {3} Team";
                 return;
             }
 
-            const string subject = "[{0}] The user '{1}' has removed you as an owner of the package '{2}'.";
+            var title = string.Format(CultureInfo.CurrentCulture, $"The user '{fromUser.Username}' has removed {(toUser is Organization ? "your organization" : "you")} as an owner of the package '{package.Id}'.");
 
-            string body = @"The user '{0}' removed you as an owner of the package '{1}'.
+            var subject = $"[{Config.GalleryOwner.DisplayName}] {title}";
 
-If this was done incorrectly, we'd recommend contacting '{0}' at '{2}'.
+            var body = $@"{title}
+
+If this was done incorrectly, we'd recommend contacting '{fromUser.Username}' at '{fromUser.EmailAddress}'.
 
 Thanks,
-The {3} Team";
-            body = String.Format(CultureInfo.CurrentCulture, body, fromUser.Username, package.Id, fromUser.EmailAddress, Config.GalleryOwner.DisplayName);
+The {Config.GalleryOwner.DisplayName} Team";
 
             using (var mailMessage = new MailMessage())
             {
-                mailMessage.Subject = String.Format(CultureInfo.CurrentCulture, subject, Config.GalleryOwner.DisplayName, fromUser.Username, package.Id);
+                mailMessage.Subject = subject;
                 mailMessage.Body = body;
                 mailMessage.From = Config.GalleryNoReplyAddress;
                 mailMessage.ReplyToList.Add(fromUser.ToMailAddress());
 
-                mailMessage.To.Add(toUser.ToMailAddress());
+                AddAddressesForPackageOwnershipManagementToEmail(mailMessage, toUser);
                 SendMessage(mailMessage);
+            }
+        }
+
+        private void AddAddressesForPackageOwnershipManagementToEmail(MailMessage mailMessage, User user)
+        {
+            if (user is Organization organization)
+            {
+                var membersAllowedToAct = organization.Members
+                    .Where(m => ActionsRequiringPermissions.HandlePackageOwnershipRequest.CheckPermissions(m.Member, m.Organization) == PermissionsCheckResult.Allowed)
+                    .Select(m => m.Member);
+
+                foreach (var member in membersAllowedToAct)
+                {
+                    mailMessage.To.Add(member.ToMailAddress());
+                }
+            }
+            else
+            {
+                mailMessage.To.Add(user.ToMailAddress());
             }
         }
 
