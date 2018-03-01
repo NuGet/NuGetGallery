@@ -781,7 +781,7 @@ If you wish to update the linked Microsoft account you can do so from the accoun
     <value>Organization member '{0}' was not found.</value>
   </data>
   <data name="DeleteMember_Success" xml:space="preserve">
-    <value>Organization member was deleted.</value>
+    <value>The organization member was deleted.</value>
   </data>
   <data name="OrganizationMemberNameIsRequired" xml:space="preserve">
     <value>Member name is required.</value>
@@ -806,5 +806,24 @@ If you wish to update the linked Microsoft account you can do so from the accoun
   </data>
   <data name="DeleteMember_CannotRemoveLastAdmin" xml:space="preserve">
     <value>You can't leave the organization. In order to leave the organization, another collaborator must be assigned as an administrator.</value>
+  </data>
+  <data name="TransformAccount_Rejected" xml:space="preserve">
+    <value>The transform request for you to become an admin of '{0}' has been successfully rejected.</value>
+  </data>
+  <data name="TransformAccount_FailedMissingRequestToReject" xml:space="preserve">
+    <value>The transform request you are attempting to reject was not found.</value>
+  </data>
+  <data name="AddMember_MissingRequest" xml:space="preserve">
+    <value>There is no request for user '{0}' for join this organization with that token.</value>
+  </data>
+  <data name="CancelMembershipRequest_MissingRequest" xml:space="preserve">
+    <value>There is no request for user '{0}' to join this organization</value>
+  </data>
+  <data name="CancelMemberRequest_Success" xml:space="preserve">
+    <value>The pending organization member was deleted.</value>
+  </data>
+  <data name="RejectMembershipRequest_NotFound" xml:space="preserve">
+    <value>There is no request for user '{0}' for join this organization with that token.</value>
+>>>>>>> emails for transforming into org and changing org members
   </data>
 </root>

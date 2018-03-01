@@ -55,6 +55,9 @@
                             <!-- ko if: IsCurrentUser -->
                             <i>(that's you)</i>
                             <!-- /ko -->
+                            <!-- ko if: Pending -->
+                            <i>(pending)</i>
+                            <!-- /ko -->
                             <div data-bind="text: EmailAddress"></div>
                         </td>
                         <td class="align-middle member-username">

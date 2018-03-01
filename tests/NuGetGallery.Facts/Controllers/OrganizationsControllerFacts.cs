@@ -335,13 +335,13 @@ namespace NuGetGallery
                 // Assert
                 Assert.Equal((int)HttpStatusCode.Forbidden, controller.Response.StatusCode);
                 Assert.IsType<JsonResult>(result);
-                Assert.Equal(Strings.Unauthorized, ((JsonResult)result).Data);
+                Assert.Equal(Strings.Unauthorized, result.Data);
 
-                GetMock<IUserService>().Verify(s => s.AddMemberAsync(It.IsAny<Organization>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
+                GetMock<IUserService>().Verify(s => s.AddMembershipRequestAsync(It.IsAny<Organization>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
             }
 
             [Fact]
-            public async Task WhenUserIsNotMember_ReturnsNonSuccess()
+            public async Task WhenCurrentUserIsNotMember_ReturnsNonSuccess()
             {
                 // Arrange
                 var controller = GetController();
@@ -354,9 +354,9 @@ namespace NuGetGallery
                 // Assert
                 Assert.Equal((int)HttpStatusCode.Forbidden, controller.Response.StatusCode);
                 Assert.IsType<JsonResult>(result);
-                Assert.Equal(Strings.Unauthorized, ((JsonResult)result).Data);
+                Assert.Equal(Strings.Unauthorized, result.Data);
 
-                GetMock<IUserService>().Verify(s => s.AddMemberAsync(It.IsAny<Organization>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
+                GetMock<IUserService>().Verify(s => s.AddMembershipRequestAsync(It.IsAny<Organization>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
             }
 
             [Theory]
@@ -375,15 +375,15 @@ namespace NuGetGallery
                 // Assert
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
                 Assert.IsType<JsonResult>(result);
-                Assert.Equal("error", ((JsonResult)result).Data);
+                Assert.Equal("error", result.Data);
 
-                GetMock<IUserService>().Verify(s => s.AddMemberAsync(account, defaultMemberName, isAdmin), Times.Once);
+                GetMock<IUserService>().Verify(s => s.AddMembershipRequestAsync(account, defaultMemberName, isAdmin), Times.Once);
             }
 
             [Theory]
             [InlineData(true)]
             [InlineData(false)]
-            public async Task WhenMembershipCreated_ReturnsSuccess(bool isAdmin)
+            public async Task WhenMembershipRequestCreated_ReturnsSuccess(bool isAdmin)
             {
                 // Arrange
                 var controller = GetController();
@@ -396,11 +396,21 @@ namespace NuGetGallery
                 Assert.Equal(0, controller.Response.StatusCode);
                 Assert.IsType<JsonResult>(result);
 
-                dynamic data = ((JsonResult)result).Data;
+                dynamic data = result.Data;
                 Assert.Equal(defaultMemberName, data.Username);
                 Assert.Equal(isAdmin, data.IsAdmin);
+                Assert.Equal(true, data.Pending);
 
-                GetMock<IUserService>().Verify(s => s.AddMemberAsync(account, defaultMemberName, isAdmin), Times.Once);
+                GetMock<IUserService>().Verify(s => s.AddMembershipRequestAsync(account, defaultMemberName, isAdmin), Times.Once);
+                GetMock<IMessageService>()
+                    .Verify(s => s.SendOrganizationMembershipRequest(
+                        account,
+                        It.Is<User>(u => u.Username == defaultMemberName),
+                        controller.GetCurrentUser(),
+                        isAdmin,
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>()));
             }
 
             private Task<JsonResult> InvokeAddMember(
@@ -416,7 +426,126 @@ namespace NuGetGallery
                 var userService = GetMock<IUserService>();
                 userService.Setup(u => u.FindByUsername(account.Username))
                     .Returns(account as User);
-                var setup = userService.Setup(u => u.AddMemberAsync(It.IsAny<Organization>(), memberName, isAdmin));
+                var setup = userService.Setup(u => u.AddMembershipRequestAsync(It.IsAny<Organization>(), memberName, isAdmin));
+                if (exception != null)
+                {
+                    setup.Throws(exception);
+                }
+                else
+                {
+                    var request = new MembershipRequest
+                    {
+                        Organization = account,
+                        NewMember = new User(memberName),
+                        IsAdmin = isAdmin,
+                        ConfirmationToken = "token"
+                    };
+                    setup.Returns(Task.FromResult(request)).Verifiable();
+                }
+
+                // Act
+                return controller.AddMember(account.Username, memberName, isAdmin);
+            }
+        }
+
+        public class TheConfirmMemberAction : AccountsControllerTestContainer
+        {
+            private const string defaultConfirmationToken = "token";
+
+            protected override User GetCurrentUser(OrganizationsController controller)
+            {
+                return controller.GetCurrentUser() ?? Fakes.User;
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task WhenAccountMissingReturns404(bool isAdmin)
+            {
+                // Arrange
+                var controller = GetController();
+
+                // Act
+                var result = await InvokeConfirmMember(controller, account: null, isAdmin: isAdmin);
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.NotFound);
+
+                GetMock<IUserService>().Verify(s => s.AddMemberAsync(It.IsAny<Organization>(), Fakes.User.Username, defaultConfirmationToken), Times.Never);
+                GetMock<IMessageService>().Verify(s => s.SendOrganizationMemberUpdatedNotice(It.IsAny<Organization>(), It.IsAny<Membership>()), Times.Never);
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task WhenEntityException_ReturnsNonSuccess(bool isAdmin)
+            {
+                // Arrange
+                var controller = GetController();
+                var account = GetAccount(controller);
+                var failureReason = "error";
+
+                // Act
+                var result = await InvokeConfirmMember(controller, account, isAdmin: isAdmin,
+                    exception: new EntityException(failureReason));
+
+                // Assert
+                var viewResult = Assert.IsType<ViewResult>(result);
+                var model = Assert.IsType<HandleOrganizationMembershipRequestModel>(viewResult.Model);
+                Assert.True(model.Confirm);
+                Assert.Equal(failureReason, model.FailureReason);
+                Assert.Equal(account.Username, model.OrganizationName);
+                Assert.False(model.Successful);
+
+                GetMock<IUserService>().Verify(s => s.AddMemberAsync(account, Fakes.User.Username, defaultConfirmationToken), Times.Once);
+                GetMock<IMessageService>().Verify(s => s.SendOrganizationMemberUpdatedNotice(It.IsAny<Organization>(),It.IsAny<Membership>()), Times.Never);
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task WhenMembershipRequestCreated_ReturnsSuccess(bool isAdmin)
+            {
+                // Arrange
+                var controller = GetController();
+                var account = GetAccount(controller);
+
+                // Act
+                var result = await InvokeConfirmMember(controller, account, isAdmin: isAdmin);
+
+                // Assert
+                var viewResult = Assert.IsType<ViewResult>(result);
+                var model = Assert.IsType<HandleOrganizationMembershipRequestModel>(viewResult.Model);
+                Assert.True(model.Confirm);
+                Assert.Equal(account.Username, model.OrganizationName);
+                Assert.True(model.Successful);
+
+                GetMock<IUserService>().Verify(s => s.AddMemberAsync(account, Fakes.User.Username, defaultConfirmationToken), Times.Once);
+                GetMock<IMessageService>()
+                    .Verify(s => s.SendOrganizationMemberUpdatedNotice(
+                        account,
+                        It.Is<Membership>(m => Fakes.User.Username == m.Member.Username && m.Organization == account && m.IsAdmin == isAdmin)), Times.Once);
+            }
+
+            private Task<ActionResult> InvokeConfirmMember(
+                OrganizationsController controller,
+                Organization account,
+                bool isAdmin,
+                string confirmationToken = defaultConfirmationToken,
+                EntityException exception = null)
+            {
+                // Arrange
+                controller.SetCurrentUser(GetCurrentUser(controller));
+
+                var currentUser = controller.GetCurrentUser();
+
+                var userService = GetMock<IUserService>();
+                if (account != null)
+                {
+                    userService.Setup(u => u.FindByUsername(account.Username))
+                        .Returns(account as User);
+                }
+                var setup = userService.Setup(u => u.AddMemberAsync(It.IsAny<Organization>(), currentUser.Username, confirmationToken));
                 if (exception != null)
                 {
                     setup.Throws(exception);
@@ -426,14 +555,129 @@ namespace NuGetGallery
                     var membership = new Membership
                     {
                         Organization = account,
-                        Member = new User(memberName),
-                        IsAdmin = isAdmin
+                        Member = currentUser,
+                        IsAdmin = isAdmin,
                     };
                     setup.Returns(Task.FromResult(membership)).Verifiable();
                 }
 
                 // Act
-                return controller.AddMember(account.Username, memberName, isAdmin);
+                return controller.ConfirmMemberRequest(account?.Username, confirmationToken);
+            }
+        }
+
+        public class TheRejectMemberAction : AccountsControllerTestContainer
+        {
+            private const string defaultConfirmationToken = "token";
+
+            protected override User GetCurrentUser(OrganizationsController controller)
+            {
+                return controller.GetCurrentUser() ?? Fakes.User;
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task WhenAccountMissingReturns404(bool isAdmin)
+            {
+                // Arrange
+                var controller = GetController();
+
+                // Act
+                var result = await InvokeRejectMember(controller, account: null, isAdmin: isAdmin);
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.NotFound);
+
+                GetMock<IUserService>().Verify(s => s.RejectMembershipRequestAsync(It.IsAny<Organization>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+                GetMock<IMessageService>().Verify(s => s.SendOrganizationMembershipRequestRejectedNotice(It.IsAny<Organization>(), It.IsAny<User>()), Times.Never);
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task WhenEntityException_ReturnsNonSuccess(bool isAdmin)
+            {
+                // Arrange
+                var controller = GetController();
+                var account = GetAccount(controller);
+                var failureReason = "error";
+
+                // Act
+                var result = await InvokeRejectMember(controller, account, isAdmin: isAdmin,
+                    exception: new EntityException(failureReason));
+
+                // Assert
+                var viewResult = Assert.IsType<ViewResult>(result);
+                var model = Assert.IsType<HandleOrganizationMembershipRequestModel>(viewResult.Model);
+                Assert.False(model.Confirm);
+                Assert.Equal(failureReason, model.FailureReason);
+                Assert.Equal(account.Username, model.OrganizationName);
+                Assert.False(model.Successful);
+
+                GetMock<IUserService>().Verify(s => s.RejectMembershipRequestAsync(account, Fakes.User.Username, defaultConfirmationToken), Times.Once);
+                GetMock<IMessageService>().Verify(s => s.SendOrganizationMembershipRequestRejectedNotice(It.IsAny<Organization>(), It.IsAny<User>()), Times.Never);
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task WhenMembershipRequestCreated_ReturnsSuccess(bool isAdmin)
+            {
+                // Arrange
+                var controller = GetController();
+                var account = GetAccount(controller);
+
+                // Act
+                var result = await InvokeRejectMember(controller, account, isAdmin: isAdmin);
+
+                // Assert
+                var viewResult = Assert.IsType<ViewResult>(result);
+                var model = Assert.IsType<HandleOrganizationMembershipRequestModel>(viewResult.Model);
+                Assert.False(model.Confirm);
+                Assert.Equal(account.Username, model.OrganizationName);
+                Assert.True(model.Successful);
+
+                GetMock<IUserService>().Verify(s => s.RejectMembershipRequestAsync(account, Fakes.User.Username, defaultConfirmationToken), Times.Once);
+                GetMock<IMessageService>().Verify(s => s.SendOrganizationMembershipRequestRejectedNotice(account, Fakes.User), Times.Once);
+            }
+
+            private Task<ActionResult> InvokeRejectMember(
+                OrganizationsController controller,
+                Organization account,
+                bool isAdmin,
+                string confirmationToken = defaultConfirmationToken,
+                EntityException exception = null)
+            {
+                // Arrange
+                controller.SetCurrentUser(GetCurrentUser(controller));
+
+                var currentUser = controller.GetCurrentUser();
+
+                var userService = GetMock<IUserService>();
+                if (account != null)
+                {
+                    userService.Setup(u => u.FindByUsername(account.Username))
+                        .Returns(account as User);
+                }
+                var setup = userService.Setup(u => u.RejectMembershipRequestAsync(It.IsAny<Organization>(), currentUser.Username, confirmationToken));
+                if (exception != null)
+                {
+                    setup.Throws(exception);
+                }
+                else
+                {
+                    var membership = new Membership
+                    {
+                        Organization = account,
+                        Member = currentUser,
+                        IsAdmin = isAdmin,
+                    };
+                    setup.Returns(Task.CompletedTask).Verifiable();
+                }
+
+                // Act
+                return controller.RejectMemberRequest(account?.Username, confirmationToken);
             }
         }
 
@@ -460,7 +704,7 @@ namespace NuGetGallery
                 // Assert
                 Assert.Equal((int)HttpStatusCode.Forbidden, controller.Response.StatusCode);
                 Assert.IsType<JsonResult>(result);
-                Assert.Equal(Strings.Unauthorized, ((JsonResult)result).Data);
+                Assert.Equal(Strings.Unauthorized, result.Data);
 
                 GetMock<IUserService>().Verify(s => s.UpdateMemberAsync(It.IsAny<Organization>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
             }
@@ -479,7 +723,7 @@ namespace NuGetGallery
                 // Assert
                 Assert.Equal((int)HttpStatusCode.Forbidden, controller.Response.StatusCode);
                 Assert.IsType<JsonResult>(result);
-                Assert.Equal(Strings.Unauthorized, ((JsonResult)result).Data);
+                Assert.Equal(Strings.Unauthorized, result.Data);
 
                 GetMock<IUserService>().Verify(s => s.UpdateMemberAsync(It.IsAny<Organization>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
             }
@@ -500,7 +744,7 @@ namespace NuGetGallery
                 // Assert
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
                 Assert.IsType<JsonResult>(result);
-                Assert.Equal("error", ((JsonResult)result).Data);
+                Assert.Equal("error", result.Data);
 
                 GetMock<IUserService>().Verify(s => s.UpdateMemberAsync(account, defaultMemberName, isAdmin), Times.Once);
             }
@@ -521,11 +765,15 @@ namespace NuGetGallery
                 Assert.Equal(0, controller.Response.StatusCode);
                 Assert.IsType<JsonResult>(result);
 
-                dynamic data = ((JsonResult)result).Data;
+                dynamic data = result.Data;
                 Assert.Equal(defaultMemberName, data.Username);
                 Assert.Equal(isAdmin, data.IsAdmin);
 
                 GetMock<IUserService>().Verify(s => s.UpdateMemberAsync(account, defaultMemberName, isAdmin), Times.Once);
+                GetMock<IMessageService>()
+                    .Verify(s => s.SendOrganizationMemberUpdatedNotice(
+                        account, 
+                        It.Is<Membership>(m => m.Organization == account && m.Member.Username == defaultMemberName && m.IsAdmin == isAdmin)));
             }
 
             private Task<JsonResult> InvokeUpdateMember(
@@ -585,9 +833,10 @@ namespace NuGetGallery
                 // Assert
                 Assert.Equal((int)HttpStatusCode.Forbidden, controller.Response.StatusCode);
                 Assert.IsType<JsonResult>(result);
-                Assert.Equal(Strings.Unauthorized, ((JsonResult)result).Data);
+                Assert.Equal(Strings.Unauthorized, result.Data);
 
                 GetMock<IUserService>().Verify(s => s.DeleteMemberAsync(It.IsAny<Organization>(), It.IsAny<string>()), Times.Never);
+                GetMock<IMessageService>().Verify(s => s.SendOrganizationMemberRemovedNotice(It.IsAny<Organization>(), It.IsAny<User>()), Times.Never);
             }
 
             [Fact]
@@ -604,9 +853,10 @@ namespace NuGetGallery
                 // Assert
                 Assert.Equal((int)HttpStatusCode.Forbidden, controller.Response.StatusCode);
                 Assert.IsType<JsonResult>(result);
-                Assert.Equal(Strings.Unauthorized, ((JsonResult)result).Data);
+                Assert.Equal(Strings.Unauthorized, result.Data);
 
                 GetMock<IUserService>().Verify(s => s.DeleteMemberAsync(It.IsAny<Organization>(), It.IsAny<string>()), Times.Never);
+                GetMock<IMessageService>().Verify(s => s.SendOrganizationMemberRemovedNotice(It.IsAny<Organization>(), It.IsAny<User>()), Times.Never);
             }
 
             [Fact]
@@ -622,9 +872,10 @@ namespace NuGetGallery
                 // Assert
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
                 Assert.IsType<JsonResult>(result);
-                Assert.Equal("error", ((JsonResult)result).Data);
+                Assert.Equal("error", result.Data);
 
                 GetMock<IUserService>().Verify(s => s.DeleteMemberAsync(account, defaultMemberName), Times.Once);
+                GetMock<IMessageService>().Verify(s => s.SendOrganizationMemberRemovedNotice(It.IsAny<Organization>(), It.IsAny<User>()), Times.Never);
             }
 
             [Fact]
@@ -640,9 +891,12 @@ namespace NuGetGallery
                 // Assert
                 Assert.Equal(0, controller.Response.StatusCode);
                 Assert.IsType<JsonResult>(result);
-                Assert.Equal(Strings.DeleteMember_Success, ((JsonResult)result).Data);
+                Assert.Equal(Strings.DeleteMember_Success, result.Data);
 
-                GetMock<IUserService>().Verify(s => s.DeleteMemberAsync(account, defaultMemberName), Times.Once);
+                GetMock<IUserService>()
+                    .Verify(s => s.DeleteMemberAsync(account, defaultMemberName), Times.Once);
+                GetMock<IMessageService>()
+                    .Verify(s => s.SendOrganizationMemberRemovedNotice(account, It.Is<User>(u => u.Username == defaultMemberName)), Times.Once);
             }
 
             private Task<JsonResult> InvokeDeleteMember(
@@ -657,18 +911,132 @@ namespace NuGetGallery
                 var userService = GetMock<IUserService>();
                 userService.Setup(u => u.FindByUsername(account.Username))
                     .Returns(account as User);
-                var setup = userService.Setup(u => u.DeleteMemberAsync(It.IsAny<Organization>(), memberName));
+                var setup = userService.Setup(u => u.DeleteMemberAsync(account, memberName));
                 if (exception != null)
                 {
                     setup.Throws(exception);
                 }
                 else
                 {
-                    setup.Returns(Task.CompletedTask).Verifiable();
+                    setup.Returns(Task.FromResult(new User(memberName))).Verifiable();
                 }
 
                 // Act
                 return controller.DeleteMember(account.Username, memberName);
+            }
+        }
+
+        public class TheCancelMemberRequestAction : AccountsControllerTestContainer
+        {
+            private const string defaultMemberName = "member";
+
+            protected override User GetCurrentUser(OrganizationsController controller)
+            {
+                return controller.GetCurrentUser() ?? Fakes.OrganizationAdmin;
+            }
+
+            [Fact]
+            public async Task WhenUserIsCollaborator_ReturnsNonSuccess()
+            {
+                // Arrange
+                var controller = GetController();
+                var account = GetAccount(controller);
+                controller.SetCurrentUser(Fakes.OrganizationCollaborator);
+
+                // Act
+                var result = await InvokeCancelMemberRequestMember(controller, account);
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.Forbidden, controller.Response.StatusCode);
+                Assert.IsType<JsonResult>(result);
+                Assert.Equal(Strings.Unauthorized, result.Data);
+
+                GetMock<IUserService>().Verify(s => s.CancelMembershipRequestAsync(It.IsAny<Organization>(), It.IsAny<string>()), Times.Never);
+                GetMock<IMessageService>().Verify(s => s.SendOrganizationMembershipRequestCancelledNotice(It.IsAny<Organization>(), It.IsAny<User>()), Times.Never);
+            }
+
+            [Fact]
+            public async Task WhenUserIsNotMember_ReturnsNonSuccess()
+            {
+                // Arrange
+                var controller = GetController();
+                var account = GetAccount(controller);
+                controller.SetCurrentUser(Fakes.User);
+
+                // Act
+                var result = await InvokeCancelMemberRequestMember(controller, account);
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.Forbidden, controller.Response.StatusCode);
+                Assert.IsType<JsonResult>(result);
+                Assert.Equal(Strings.Unauthorized, result.Data);
+
+                GetMock<IUserService>().Verify(s => s.CancelMembershipRequestAsync(It.IsAny<Organization>(), It.IsAny<string>()), Times.Never);
+                GetMock<IMessageService>().Verify(s => s.SendOrganizationMembershipRequestCancelledNotice(It.IsAny<Organization>(), It.IsAny<User>()), Times.Never);
+            }
+
+            [Fact]
+            public async Task WhenEntityException_ReturnsNonSuccess()
+            {
+                // Arrange
+                var controller = GetController();
+                var account = GetAccount(controller);
+
+                // Act
+                var result = await InvokeCancelMemberRequestMember(controller, account, exception: new EntityException("error"));
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+                Assert.IsType<JsonResult>(result);
+                Assert.Equal("error", result.Data);
+
+                GetMock<IUserService>().Verify(s => s.CancelMembershipRequestAsync(account, defaultMemberName), Times.Once);
+                GetMock<IMessageService>().Verify(s => s.SendOrganizationMembershipRequestCancelledNotice(It.IsAny<Organization>(), It.IsAny<User>()), Times.Never);
+            }
+
+            [Fact]
+            public async Task WhenSuccess_ReturnsSuccess()
+            {
+                // Arrange
+                var controller = GetController();
+                var account = GetAccount(controller);
+
+                // Act
+                var result = await InvokeCancelMemberRequestMember(controller, account);
+
+                // Assert
+                Assert.Equal(0, controller.Response.StatusCode);
+                Assert.IsType<JsonResult>(result);
+                Assert.Equal(Strings.CancelMemberRequest_Success, result.Data);
+
+                GetMock<IUserService>().Verify(s => s.CancelMembershipRequestAsync(account, defaultMemberName), Times.Once);
+                GetMock<IMessageService>().Verify(s => s.SendOrganizationMembershipRequestCancelledNotice(account, It.Is<User>(u => u.Username == defaultMemberName)), Times.Once);
+            }
+
+            private Task<JsonResult> InvokeCancelMemberRequestMember(
+                OrganizationsController controller,
+                Organization account,
+                string memberName = defaultMemberName,
+                EntityException exception = null)
+            {
+                // Arrange
+                controller.SetCurrentUser(GetCurrentUser(controller));
+
+                var userService = GetMock<IUserService>();
+                userService.Setup(u => u.FindByUsername(account.Username))
+                    .Returns(account as User);
+                var setup = userService.Setup(u => u.CancelMembershipRequestAsync(account, memberName));
+                if (exception != null)
+                {
+                    setup.Throws(exception);
+                }
+                else
+                {
+                    setup.Returns(Task.FromResult(new User(memberName))).Verifiable();
+                }
+
+                // Act
+                return controller.CancelMemberRequest(account.Username, memberName);
             }
         }
     }

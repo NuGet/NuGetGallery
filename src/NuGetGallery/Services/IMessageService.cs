@@ -27,5 +27,14 @@ namespace NuGetGallery
         void SendPackageUploadedNotice(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl);
         void SendAccountDeleteNotice(MailAddress mailAddress, string userName);
         void SendPackageDeletedNotice(Package package, string packageUrl, string packageSupportUrl);
+        void SendOrganizationTransformRequest(User accountToTransform, User adminUser, string profileUrl, string confirmationUrl, string rejectionUrl);
+        void SendOrganizationTransformRequestAcceptedNotice(User accountToTransform, User adminUser);
+        void SendOrganizationTransformRequestRejectedNotice(User accountToTransform, User adminUser);
+        void SendOrganizationTransformRequestCancelledNotice(User accountToTransform, User adminUser);
+        void SendOrganizationMembershipRequest(Organization organization, User newUser, User adminUser, bool isAdmin, string profileUrl, string confirmationUrl, string rejectionUrl);
+        void SendOrganizationMembershipRequestRejectedNotice(Organization organization, User pendingUser);
+        void SendOrganizationMembershipRequestCancelledNotice(Organization organization, User pendingUser);
+        void SendOrganizationMemberUpdatedNotice(Organization organization, Membership membership);
+        void SendOrganizationMemberRemovedNotice(Organization organization, User removedUser);
     }
 }

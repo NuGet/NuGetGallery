@@ -55,6 +55,7 @@
             this.IsCurrentUser = member.IsCurrentUser;
             this.ProfileUrl = parent.ProfileUrlTemplate.replace('{username}', this.Username);
             this.GravatarUrl = member.GravatarUrl;
+            this.Pending = member.Pending;
 
             this.DeleteMember = function () {
                 if (!window.nuget.confirmEvent("Are you sure you want to delete member '" + self.Username + "'?")) {
@@ -70,7 +71,7 @@
 
                 // Send the request.
                 $.ajax({
-                    url: self.OrganizationViewModel.DeleteMemberUrl,
+                    url: self.Pending ? self.OrganizationViewModel.CancelMemberRequestUrl : self.OrganizationViewModel.DeleteMemberUrl,
                     type: 'POST',
                     dataType: 'json',
                     data: data,
@@ -102,7 +103,7 @@
 
                 // Send the request.
                 $.ajax({
-                    url: self.OrganizationViewModel.UpdateMemberUrl,
+                    url: self.Pending ? self.OrganizationViewModel.AddMemberUrl : self.OrganizationViewModel.UpdateMemberUrl,
                     type: 'POST',
                     dataType: 'json',
                     data: data,
@@ -130,6 +131,7 @@
 
             this.AccountName = initialData.AccountName;
             this.AddMemberUrl = initialData.AddMemberUrl;
+            this.CancelMemberRequestUrl = initialData.CancelMemberRequestUrl;
             this.UpdateMemberUrl = initialData.UpdateMemberUrl;
             this.DeleteMemberUrl = initialData.DeleteMemberUrl;
             this.ProfileUrlTemplate = initialData.ProfileUrlTemplate;
@@ -178,6 +180,20 @@
 
             this.AddMemberRole = ko.observable(this.RoleNames()[1]);
             this.AddMember = function () {
+                // Check if the member already exists.
+                var memberExists = false;
+                self.Members().forEach(function (member) {
+                    if (member.Username.toLocaleLowerCase() === self.NewMemberUsername().toLocaleLowerCase()) {
+                        memberExists = true;
+                    }
+                });
+
+                if (memberExists) {
+                    var error = "'" + self.NewMemberUsername() + "' is already a member or pending member.";
+                    self.Error(error);
+                    return;
+                }
+
                 // Build the request.
                 var data = {
                     accountName: self.AccountName,

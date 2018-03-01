@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -8,11 +9,17 @@ namespace NuGetGallery
 {
     public interface IUserService
     {
-        Task<Membership> AddMemberAsync(Organization organization, string memberName, bool isAdmin);
+        Task<MembershipRequest> AddMembershipRequestAsync(Organization organization, string memberName, bool isAdmin);
+
+        Task RejectMembershipRequestAsync(Organization organization, string memberName, string confirmationToken);
+
+        Task<User> CancelMembershipRequestAsync(Organization organization, string memberName);
+
+        Task<Membership> AddMemberAsync(Organization organization, string memberName, string confirmationToken);
 
         Task<Membership> UpdateMemberAsync(Organization organization, string memberName, bool isAdmin);
 
-        Task DeleteMemberAsync(Organization organization, string memberName);
+        Task<User> DeleteMemberAsync(Organization organization, string memberName);
 
         Task ChangeEmailSubscriptionAsync(User user, bool emailAllowed, bool notifyPackagePushed);
 
@@ -41,5 +48,7 @@ namespace NuGetGallery
         Task RequestTransformToOrganizationAccount(User accountToTransform, User adminUser);
         
         Task<bool> TransformUserToOrganization(User accountToTransform, User adminUser, string token);
+
+        Task<bool> RejectTransformUserToOrganizationRequest(User accountToTransform, User adminUser, string token);
     }
 }
