@@ -767,9 +767,9 @@ The {Config.GalleryOwner.DisplayName} Team");
                 return;
             }
 
-            string subject = $"[{Config.GalleryOwner.DisplayName}] The user '{adminUser.Username}' has accepted your request for them to be the admin of your transformed account.";
+            string subject = $"[{Config.GalleryOwner.DisplayName}] The user '{adminUser.Username}' has accepted your request and your account, '{accountToTransform.Username}' has now been transformed into an organization.";
 
-            string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{adminUser.Username}' has accepted your request for them to be the admin of your transformed account.
+            string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{adminUser.Username}' has accepted your request and your account, '{accountToTransform.Username}' has now been transformed into an organization.
 
 Thanks,
 The {Config.GalleryOwner.DisplayName} Team");

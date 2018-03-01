@@ -1381,8 +1381,8 @@ namespace NuGetGallery
                 Assert.Equal(accountToTransform.EmailAddress, message.To[0].Address);
                 Assert.Equal(adminUser.EmailAddress, message.ReplyToList[0].Address);
                 Assert.Equal(TestGalleryNoReplyAddress, message.From);
-                Assert.Equal($"[{TestGalleryOwner.DisplayName}] The user '{adminUser.Username}' has accepted your request for them to be the admin of your transformed account.", message.Subject);
-                Assert.Contains($"The user '{adminUser.Username}' has accepted your request for them to be the admin of your transformed account.", message.Body);
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] The user '{adminUser.Username}' has accepted your request and your account, '{accountToTransform.Username}' has now been transformed into an organization.", message.Subject);
+                Assert.Contains($"The user '{adminUser.Username}' has accepted your request and your account, '{accountToTransform.Username}' has now been transformed into an organization.", message.Body);
             }
 
             [Fact]
