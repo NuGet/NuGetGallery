@@ -1037,7 +1037,7 @@ namespace NuGetGallery
                     .Returns(Task.FromResult(false));
                 SetupOrganizationsSupportedForUser();
 
-                var exception = await Assert.ThrowsAsync<UserSafeException>(() => InvokeCreateOrganization());
+                var exception = await Assert.ThrowsAsync<EntityException>(() => InvokeCreateOrganization());
                 Assert.Equal(Strings.DefaultUserSafeExceptionMessage, exception.Message);
 
                 _service.MockOrganizationRepository.Verify(x => x.InsertOnCommit(It.IsAny<Organization>()), Times.Once());
