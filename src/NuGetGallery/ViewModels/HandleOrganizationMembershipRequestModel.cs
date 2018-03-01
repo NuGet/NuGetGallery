@@ -11,20 +11,18 @@ namespace NuGetGallery
         /// </summary>
         public bool Confirm { get; }
         public string OrganizationName { get; }
-        public bool Successful { get; }
+        public bool Successful => string.IsNullOrEmpty(FailureReason);
         public string FailureReason { get; }
 
         public HandleOrganizationMembershipRequestModel(bool confirm, Organization organization)
         {
             Confirm = confirm;
             OrganizationName = organization.Username;
-            Successful = true;
         }
 
         public HandleOrganizationMembershipRequestModel(bool confirm, Organization organization, string failureReason)
             : this(confirm, organization)
         {
-            Successful = false;
             FailureReason = failureReason;
         }
     }

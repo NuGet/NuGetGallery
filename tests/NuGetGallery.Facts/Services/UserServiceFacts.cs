@@ -376,9 +376,11 @@ namespace NuGetGallery
                     await UserService.AddMemberAsync(Fakes.Organization, Fakes.User.Username, token);
                 });
 
-                Assert.Equal(error, e.Message);
+                Assert.Equal(string.Format(CultureInfo.CurrentCulture,
+                        Strings.AddMember_PolicyFailure, error), 
+                        e.Message);
 
-                UserService.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Once);
+                UserService.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
             }
 
             [Theory]

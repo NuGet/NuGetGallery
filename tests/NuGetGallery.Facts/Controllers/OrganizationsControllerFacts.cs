@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using System.Globalization;
 using System.Net;
 using System.Net.Mail;
 using System.Threading.Tasks;
@@ -586,11 +588,13 @@ namespace NuGetGallery
                 var result = await InvokeConfirmMember(controller, account, isAdmin: isAdmin);
 
                 // Assert
-                var viewResult = Assert.IsType<ViewResult>(result);
-                var model = Assert.IsType<HandleOrganizationMembershipRequestModel>(viewResult.Model);
-                Assert.True(model.Confirm);
-                Assert.Equal(account.Username, model.OrganizationName);
-                Assert.True(model.Successful);
+                ResultAssert.IsRedirectTo(result, 
+                    controller.Url.ManageMyOrganization(account.Username));
+
+
+                Assert.Equal(String.Format(CultureInfo.CurrentCulture,
+                    Strings.AddMember_Success, account.Username), 
+                    controller.TempData["Message"]);
 
                 GetMock<IUserService>().Verify(s => s.AddMemberAsync(account, Fakes.User.Username, defaultConfirmationToken), Times.Once);
                 GetMock<IMessageService>()

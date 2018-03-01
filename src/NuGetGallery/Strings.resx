@@ -827,4 +827,10 @@ If you wish to update the linked Microsoft account you can do so from the accoun
   <data name="RejectMembershipRequest_NotFound" xml:space="preserve">
     <value>There is no request for user '{0}' for join this organization with that token.</value>
   </data>
+  <data name="AddMember_PolicyFailure" xml:space="preserve">
+    <value>You cannot accept this request because you no longer meet the requirements of this organization. {0} Please contact support for more details.</value>
+  </data>
+  <data name="AddMember_Success" xml:space="preserve">
+    <value>You are now a member of organization '{0}'.</value>
+  </data>
 </root>

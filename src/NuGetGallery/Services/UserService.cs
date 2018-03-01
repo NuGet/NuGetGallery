@@ -121,28 +121,38 @@ namespace NuGetGallery
 
         public async Task RejectMembershipRequestAsync(Organization organization, string memberName, string confirmationToken)
         {
-            organization = organization ?? throw new ArgumentNullException(nameof(organization));
-
-            var request = FindMembershipRequestByUsername(organization, memberName);
-            if (request == null || request.ConfirmationToken != confirmationToken)
+            try
+            {
+                await DeleteMembershipRequestHelperAsync(organization, memberName, confirmationToken);
+            }
+            catch (InvalidOperationException)
             {
                 throw new EntityException(string.Format(CultureInfo.CurrentCulture,
                     Strings.RejectMembershipRequest_NotFound, memberName));
             }
-
-            organization.MemberRequests.Remove(request);
-            await EntitiesContext.SaveChangesAsync();
         }
 
         public async Task<User> CancelMembershipRequestAsync(Organization organization, string memberName)
         {
-            organization = organization ?? throw new ArgumentNullException(nameof(organization));
-
-            var request = FindMembershipRequestByUsername(organization, memberName);
-            if (request == null)
+            try
+            {
+                return await DeleteMembershipRequestHelperAsync(organization, memberName);
+            }
+            catch (InvalidOperationException)
             {
                 throw new EntityException(string.Format(CultureInfo.CurrentCulture,
                     Strings.CancelMembershipRequest_MissingRequest, memberName));
+            }
+        }
+
+        private async Task<User> DeleteMembershipRequestHelperAsync(Organization organization, string memberName, string confirmationToken = null)
+        {
+            organization = organization ?? throw new ArgumentNullException(nameof(organization));
+
+            var request = FindMembershipRequestByUsername(organization, memberName);
+            if (request == null || (confirmationToken != null && request.ConfirmationToken != confirmationToken))
+            {
+                throw new InvalidOperationException("No such membership request exists!");
             }
 
             var pendingMember = request.NewMember;
@@ -182,10 +192,8 @@ namespace NuGetGallery
                     SecurityPolicyAction.JoinOrganization, organization, member);
                 if (policyResult != SecurityPolicyResult.SuccessResult)
                 {
-                    // Delete the request before throwing.
-                    await EntitiesContext.SaveChangesAsync();
-
-                    throw new EntityException(policyResult.ErrorMessage);
+                    throw new EntityException(string.Format(CultureInfo.CurrentCulture,
+                        Strings.AddMember_PolicyFailure, policyResult.ErrorMessage));
                 }
 
                 membership = new Membership()

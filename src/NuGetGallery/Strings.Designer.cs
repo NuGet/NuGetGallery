@@ -152,6 +152,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You cannot accept this request because you no longer meet the requirements of this organization. {0} Please contact support for more details..
+        /// </summary>
+        public static string AddMember_PolicyFailure {
+            get {
+                return ResourceManager.GetString("AddMember_PolicyFailure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You are now a member of organization &apos;{0}&apos;..
+        /// </summary>
+        public static string AddMember_Success {
+            get {
+                return ResourceManager.GetString("AddMember_Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to User &apos;{0}&apos; has not linked their account to an AAD credential matching this organization..
         /// </summary>
         public static string AddMember_UserDoesNotMeetOrganizationPolicy {

@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
@@ -135,7 +136,10 @@ namespace NuGetGallery
                 var member = await UserService.AddMemberAsync(account, GetCurrentUser().Username, confirmationToken);
                 MessageService.SendOrganizationMemberUpdatedNotice(account, member);
 
-                return HandleOrganizationMembershipRequestView(new HandleOrganizationMembershipRequestModel(true, account));
+                TempData["Message"] = String.Format(CultureInfo.CurrentCulture,
+                    Strings.AddMember_Success, account.Username);
+
+                return Redirect(Url.ManageMyOrganization(account.Username));
             }
             catch (EntityException e)
             {
