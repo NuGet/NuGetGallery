@@ -724,6 +724,7 @@ The {0} Team";
             }
         }
 
+<<<<<<< HEAD
         public void SendOrganizationTransformRequest(User accountToTransform, User adminUser, string profileUrl, string confirmationUrl, string rejectionUrl)
         {
             if (!adminUser.EmailAllowed)
@@ -844,6 +845,8 @@ The {Config.GalleryOwner.DisplayName} Team");
             }
         }
 
+=======
+>>>>>>> wrapped long lines
         public void SendOrganizationMembershipRequest(
             Organization organization, User newUser, User adminUser, bool isAdmin, string profileUrl, string confirmationUrl, string rejectionUrl)
         {

@@ -822,7 +822,8 @@ namespace NuGetGallery
             return url.HandleOrganizationMembershipRequest("RejectMemberRequest", request, relativeUrl);
         }
 
-        private static string HandleOrganizationMembershipRequest(this UrlHelper url, string routeName, MembershipRequest request, bool relativeUrl = true)
+        private static string HandleOrganizationMembershipRequest(
+            this UrlHelper url, string routeName, MembershipRequest request, bool relativeUrl = true)
         {
             return GetActionLink(url,
                 routeName,
