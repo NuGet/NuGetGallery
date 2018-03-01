@@ -1018,11 +1018,14 @@ img.reserved-indicator-icon {
 .manage-members-listing {
   margin-bottom: 0;
 }
-.manage-members-listing .below-heading-left {
-  padding-left: 15px;
+.manage-members-listing .heading-left {
+  padding-left: 5px;
 }
-.manage-members-listing .below-heading-right {
-  padding-right: 15px;
+.manage-members-listing .heading-right {
+  padding-right: 5px;
+}
+.manage-members-listing .member-icon {
+  vertical-align: middle;
 }
 .page-manage-owners h2 .ms-Icon {
   position: relative;
