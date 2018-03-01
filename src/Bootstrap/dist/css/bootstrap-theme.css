@@ -1024,6 +1024,9 @@ img.reserved-indicator-icon {
 .manage-members-listing .heading-right {
   padding-right: 5px;
 }
+.manage-members-listing .icon-left {
+  padding-left: 25px;
+}
 .manage-members-listing .member-icon {
   vertical-align: middle;
 }
