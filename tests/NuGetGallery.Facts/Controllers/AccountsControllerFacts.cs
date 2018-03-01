@@ -235,7 +235,7 @@ namespace NuGetGallery
                 ResultAssert.IsRedirectToRoute(result, new { action = controller.AccountAction });
 
                 GetMock<IMessageService>()
-                    .Verify(m => m.SendEmailChangeConfirmationNotice(It.IsAny<MailAddress>(), It.IsAny<string>()),
+                    .Verify(m => m.SendEmailChangeConfirmationNotice(It.IsAny<User>(), It.IsAny<string>()),
                     Times.Once);
             }
 
@@ -259,7 +259,7 @@ namespace NuGetGallery
                 ResultAssert.IsRedirectToRoute(result, new { action = controller.AccountAction });
 
                 GetMock<IMessageService>()
-                    .Verify(m => m.SendEmailChangeConfirmationNotice(It.IsAny<MailAddress>(), It.IsAny<string>()),
+                    .Verify(m => m.SendEmailChangeConfirmationNotice(It.IsAny<User>(), It.IsAny<string>()),
                     Times.Never);
             }
 
@@ -281,7 +281,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(GetCurrentUser(controller));
 
                 var messageService = GetMock<IMessageService>();
-                messageService.Setup(m => m.SendEmailChangeConfirmationNotice(It.IsAny<MailAddress>(), It.IsAny<string>()))
+                messageService.Setup(m => m.SendEmailChangeConfirmationNotice(It.IsAny<User>(), It.IsAny<string>()))
                     .Verifiable();
 
                 var userService = GetMock<IUserService>();
