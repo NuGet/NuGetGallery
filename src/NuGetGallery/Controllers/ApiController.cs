@@ -292,7 +292,7 @@ namespace NuGetGallery
             // Write an audit record
             await AuditingService.SaveAuditRecordAsync(
                 new PackageAuditRecord(package, AuditedPackageAction.Verify));
-            
+
             string[] requestedActions;
             if (CredentialTypes.IsPackageVerificationApiKey(credential.Type))
             {
@@ -678,6 +678,22 @@ namespace NuGetGallery
             return new JsonResult
             {
                 Data = (await query.Execute(id, includePrerelease, semVerLevel)).ToArray(),
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet
+            };
+        }
+
+        [HttpGet]
+        [ActionName("Query")]
+        public virtual async Task<ActionResult> Query(string q)
+        {
+            var queryFilter = new SearchFilter(SearchFilter.ODataSearchContext);
+            queryFilter.SemVerLevel = SemVerLevelKey.SemVerLevel2;
+            queryFilter.SearchTerm = q;
+            var results = await SearchService.Search(queryFilter);
+
+            return new JsonResult
+            {
+                Data = results,
                 JsonRequestBehavior = JsonRequestBehavior.AllowGet
             };
         }

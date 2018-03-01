@@ -29,7 +29,7 @@ namespace NuGetGallery
         {
             private static Fakes fakes = new Fakes();
 
-            public static IEnumerable<object[]> TrackEventNames_Data
+            public static IEnumerable<object[]> TrackMetricNames_Data
             {
                 get
                 {
@@ -42,6 +42,30 @@ namespace NuGetGallery
 
                     yield return new object[] { "PackagePush",
                         (TrackAction)(s => s.TrackPackagePushEvent(package, fakes.User, identity))
+                    };
+
+                    yield return new object[] { "PackageUnlisted",
+                        (TrackAction)(s => s.TrackPackageUnlisted(package))
+                    };
+
+                    yield return new object[] { "PackageListed",
+                        (TrackAction)(s => s.TrackPackageListed(package))
+                    };
+
+                    yield return new object[] { "PackageDelete",
+                        (TrackAction)(s => s.TrackPackageDelete(package, isHardDelete: true))
+                    };
+
+                    yield return new object[] { "PackageReflow",
+                        (TrackAction)(s => s.TrackPackageReflow(package))
+                    };
+
+                    yield return new object[] { "PackageHardDeleteReflow",
+                        (TrackAction)(s => s.TrackPackageHardDeleteReflow(fakes.Package.Id, package.Version))
+                    };
+
+                    yield return new object[] { "PackageRevalidate",
+                        (TrackAction)(s => s.TrackPackageRevalidate(package))
                     };
 
                     yield return new object[] { "CreatePackageVerificationKey",
@@ -67,13 +91,7 @@ namespace NuGetGallery
                     yield return new object[] { "CredentialAdded",
                         (TrackAction)(s => s.TrackNewCredentialCreated(fakes.User, fakes.User.Credentials.First()))
                     };
-                }
-            }
 
-            public static IEnumerable<object[]> TrackMetricNames_Data
-            {
-                get
-                {
                     yield return new object[] { "UserPackageDeleteCheckedAfterHours",
                         (TrackAction)(s => s.TrackUserPackageDeleteChecked(
                             new UserPackageDeleteEvent(
@@ -105,26 +123,9 @@ namespace NuGetGallery
             public void TrackEventNamesIncludesAllEvents()
             {
                 var expectedCount = typeof(TelemetryService.Events).GetFields().Length;
-                var actualCount = TrackEventNames_Data.Count() + TrackMetricNames_Data.Count();
+                var actualCount = TrackMetricNames_Data.Count();
 
                 Assert.Equal(expectedCount, actualCount);
-            }
-
-            [Theory]
-            [MemberData(nameof(TrackEventNames_Data))]
-            public void TrackEventNames(string eventName, TrackAction track)
-            {
-                // Arrange
-                var service = CreateService();
-
-                // Act
-                track(service);
-
-                // Assert
-                service.TelemetryClient.Verify(c => c.TrackEvent(eventName,
-                    It.IsAny<IDictionary<string, string>>(),
-                    It.IsAny<IDictionary<string, double>>()),
-                    Times.Once);
             }
 
             [Theory]
@@ -347,12 +348,6 @@ namespace NuGetGallery
 
                 traceService.Setup(s => s.GetSource(It.IsAny<string>()))
                     .Returns(traceSource.Object);
-
-                telemetryClient.Setup(c => c.TrackEvent(
-                        It.IsAny<string>(),
-                        It.IsAny<IDictionary<string, string>>(),
-                        It.IsAny<IDictionary<string, double>>()))
-                    .Verifiable();
 
                 var telemetryService = new TelemetryServiceWrapper(traceService.Object, telemetryClient.Object);
 

@@ -1070,6 +1070,7 @@
     <Compile Include="Configuration\StorageType.cs" />
     <Compile Include="Telemetry\UserPackageDeleteEvent.cs" />
     <Compile Include="Telemetry\UserPackageDeleteOutcome.cs" />
+    <Compile Include="ViewModels\AddOrganizationViewModel.cs" />
     <Compile Include="ViewModels\GalleryHomeViewModel.cs" />
     <Compile Include="WebRole.cs" />
     <Content Include="bin\NuGetGallery.dll.config">
@@ -2051,6 +2052,8 @@
     <Content Include="Views\Users\_UserAccountLinkExternalCredential.cshtml" />
     <Content Include="Views\Pages\_TransformOrLink.cshtml" />
     <Content Include="Views\Organizations\_OrganizationAccountManageMembers.cshtml" />
+    <Content Include="Views\Shared\_AutocompleteTemplate.cshtml" />
+    <Content Include="Views\Organizations\Add.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />

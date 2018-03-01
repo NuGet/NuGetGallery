@@ -1,4 +1,4 @@
-.page-manage-packages {
+.page-manage-organizations {
   @section-margin-top: 40px;
 
   h1 {
@@ -8,10 +8,6 @@
   h2 {
     margin-bottom: 10px;
     margin-top: 0;
-  }
-
-  .subtitle {
-    margin-top: 24px;
   }
 
   .form-section-title {
@@ -35,11 +31,18 @@
   .panel {
     margin-top: 5px;
   }
-  
-  .manage-package-listing {
-    .ms-Icon {
-      position: relative;
-      top: 2px;
+
+  .form-group + .form-group {
+    .btn {
+      margin-top: 20px;
     }
   }
+}
+
+.manage-members-listing tbody:first-child {
+  border-style: hidden
+}
+
+.manage-members-listing {
+  margin-bottom: 0;
 }

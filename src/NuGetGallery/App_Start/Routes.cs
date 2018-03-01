@@ -298,6 +298,11 @@ namespace NuGetGallery
                 new { controller = "Users", action = "Account" });
 
             routes.MapRoute(
+                RouteName.AddOrganization,
+                "organization/add",
+                new { controller = "Organizations", action = "Add" });
+
+            routes.MapRoute(
                 RouteName.OrganizationAccount,
                 "organization/{accountName}/{action}",
                 new { controller = "Organizations", action = "ManageOrganization" },
@@ -521,6 +526,11 @@ namespace NuGetGallery
                 "v2PackageVersions",
                 "api/v2/package-versions/{id}",
                 new { controller = "Api", action = "PackageVersions" });
+
+            routes.MapRoute(
+                "v2Query",
+                "api/v2/query",
+                new { controller = "Api", action = "Query" });
 
             routes.MapRoute(
                 RouteName.StatisticsDownloadsApi,

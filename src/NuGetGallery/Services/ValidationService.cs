@@ -16,15 +16,18 @@ namespace NuGetGallery
         private readonly IPackageService _packageService;
         private readonly IPackageValidationInitiator _initiator;
         private readonly IEntityRepository<PackageValidationSet> _validationSets;
+        private readonly ITelemetryService _telemetryService;
 
         public ValidationService(
             IPackageService packageService,
             IPackageValidationInitiator initiator,
-            IEntityRepository<PackageValidationSet> validationSets)
+            IEntityRepository<PackageValidationSet> validationSets,
+            ITelemetryService telemetryService)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _initiator = initiator ?? throw new ArgumentNullException(nameof(initiator));
             _validationSets = validationSets ?? throw new ArgumentNullException(nameof(validationSets));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
         }
 
         public async Task StartValidationAsync(Package package)
@@ -40,6 +43,8 @@ namespace NuGetGallery
         public async Task RevalidateAsync(Package package)
         {
             await _initiator.StartValidationAsync(package);
+
+            _telemetryService.TrackPackageRevalidate(package);
         }
 
         public IReadOnlyList<ValidationIssue> GetLatestValidationIssues(Package package)

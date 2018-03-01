@@ -623,6 +623,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You can&apos;t leave the organization. In order to leave the organization, another collaborator must be assigned as an administrator..
+        /// </summary>
+        public static string DeleteMember_CannotRemoveLastAdmin {
+            get {
+                return ResourceManager.GetString("DeleteMember_CannotRemoveLastAdmin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Organization member was deleted..
         /// </summary>
         public static string DeleteMember_Success {
@@ -1013,29 +1022,29 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The new organization email address was saved!.
-        /// </summary>
-        public static string OrganizationEmailUpdated {
-            get {
-                return ResourceManager.GetString("OrganizationEmailUpdated", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The organization email address has been changed! We sent a confirmation email to verify the new email. When the new email address is confirmed, it will take effect and we will forget the old one..
-        /// </summary>
-        public static string OrganizationEmailUpdatedWithConfirmationRequired {
-            get {
-                return ResourceManager.GetString("OrganizationEmailUpdatedWithConfirmationRequired", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Member name is required..
         /// </summary>
         public static string OrganizationMemberNameIsRequired {
             get {
                 return ResourceManager.GetString("OrganizationMemberNameIsRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Administrator account &apos;{0}&apos; is not linked to an AAD credential with an organization tenant..
+        /// </summary>
+        public static string Organizations_AdminAccountDoesNotHaveTenant {
+            get {
+                return ResourceManager.GetString("Organizations_AdminAccountDoesNotHaveTenant", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; does not support organizations..
+        /// </summary>
+        public static string Organizations_NotInDomainWhitelist {
+            get {
+                return ResourceManager.GetString("Organizations_NotInDomainWhitelist", resourceCulture);
             }
         }
         
@@ -1584,15 +1593,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Administrator account &apos;{0}&apos; is not linked to an AAD credential with an organization tenant..
-        /// </summary>
-        public static string TransformAccount_AdminAccountDoesNotHaveTenant {
-            get {
-                return ResourceManager.GetString("TransformAccount_AdminAccountDoesNotHaveTenant", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Administrator account &apos;{0}&apos; cannot be an organization..
         /// </summary>
         public static string TransformAccount_AdminAccountIsOrganization {
@@ -1620,20 +1620,11 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An unexpected error occurred while transforming this account. Contact support  for assistance..
+        ///   Looks up a localized string similar to An unexpected error occurred while transforming this account. Contact support for assistance..
         /// </summary>
         public static string TransformAccount_Failed {
             get {
                 return ResourceManager.GetString("TransformAccount_Failed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Account &apos;{0}&apos; does not support organizations..
-        /// </summary>
-        public static string TransformAccount_FailedReasonNotInDomainWhitelist {
-            get {
-                return ResourceManager.GetString("TransformAccount_FailedReasonNotInDomainWhitelist", resourceCulture);
             }
         }
         
@@ -1701,11 +1692,11 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Organization member &apos;{0}&apos; is the last admin and cannot be changed..
+        ///   Looks up a localized string similar to You can&apos;t change your role to collaborator. In order to change, another collaborator must be assigned as an administrator..
         /// </summary>
-        public static string UpdateOrDeleteMember_CannotRemoveLastAdmin {
+        public static string UpdateMember_CannotRemoveLastAdmin {
             get {
-                return ResourceManager.GetString("UpdateOrDeleteMember_CannotRemoveLastAdmin", resourceCulture);
+                return ResourceManager.GetString("UpdateMember_CannotRemoveLastAdmin", resourceCulture);
             }
         }
         
@@ -1850,24 +1841,6 @@ namespace NuGetGallery {
         public static string UserEmailUpdateCancelled {
             get {
                 return ResourceManager.GetString("UserEmailUpdateCancelled", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Your new email address was saved!.
-        /// </summary>
-        public static string UserEmailUpdated {
-            get {
-                return ResourceManager.GetString("UserEmailUpdated", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Your email address has been changed! We sent a confirmation email to verify your new email. When you confirm the new email address, it will take effect and we will forget the old one..
-        /// </summary>
-        public static string UserEmailUpdatedWithConfirmationRequired {
-            get {
-                return ResourceManager.GetString("UserEmailUpdatedWithConfirmationRequired", resourceCulture);
             }
         }
         

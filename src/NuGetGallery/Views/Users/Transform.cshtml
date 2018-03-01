@@ -45,6 +45,9 @@
                         @Html.ShowTextBoxFor(m => m.AdminUsername)
                         @Html.ShowValidationMessagesFor(m => m.AdminUsername)
                     </div>
+                    <div class="form-group has-error">
+                        @Html.ShowValidationMessagesForEmpty()
+                    </div>
 
                     <div class="row form-group">
                         <div class="col-md-6">

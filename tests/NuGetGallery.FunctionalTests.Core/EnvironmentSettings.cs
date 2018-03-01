@@ -450,7 +450,8 @@ namespace NuGetGallery.FunctionalTests
                         // returned from HTTPS browser interactions with the gallery.
                         pieces = new List<string>
                         {
-                            "8c11c16610b7a147d10bbcc6a65ce23d321c12c2", // *.nugettest.org
+                            "8c11c16610b7a147d10bbcc6a65ce23d321c12c2", // *.nugettest.org (old)
+                            "6cd4e9738ae52ba11e7b81da8caafbeadf89488f", // *.nugettest.org (new)
                             "9d984f91f40d8b3a1fb29153179415523c4e64d1", // *.int.nugettest.org
                             "3751cb513b93ee67ec9f18a1f2aec1eac87af9bc", // *.nuget.org (old)
                             "03984834f27d5c94f46b3bb190e5a8099787268a"  // *.nuget.org (new)

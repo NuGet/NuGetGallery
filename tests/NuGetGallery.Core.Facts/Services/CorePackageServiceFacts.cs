@@ -5,12 +5,119 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Moq;
+using NuGetGallery.Packaging;
 using Xunit;
 
 namespace NuGetGallery
 {
     public class CorePackageServiceFacts
     {
+        public class TheUpdatePackageStreamMetadataMethod
+        {
+            [Fact]
+            public async Task RejectsNullPackage()
+            {
+                // Arrange
+                Package package = null;
+                var metadata = new PackageStreamMetadata();
+                var service = CreateService();
+
+                // Act & Assert
+                await Assert.ThrowsAsync<ArgumentNullException>(
+                    () => service.UpdatePackageStreamMetadataAsync(package, metadata, commitChanges: true));
+            }
+
+            [Fact]
+            public async Task RejectsNullStreamMetadata()
+            {
+                // Arrange
+                var package = new Package();
+                PackageStreamMetadata metadata = null;
+                var service = CreateService();
+
+                // Act & Assert
+                await Assert.ThrowsAsync<ArgumentNullException>(
+                    () => service.UpdatePackageStreamMetadataAsync(package, metadata, commitChanges: true));
+            }
+
+            [Theory]
+            [InlineData(false, 0)]
+            [InlineData(true, 1)]
+            public async Task CommitsTheCorrectNumberOfTimes(bool commitChanges, int commitCount)
+            {
+                // Arrange
+                var packageRepository = new Mock<IEntityRepository<Package>>();
+                var package = new Package();
+                var metadata = new PackageStreamMetadata();
+                var service = CreateService(packageRepository: packageRepository);
+
+                // Act
+                await service.UpdatePackageStreamMetadataAsync(package, metadata, commitChanges);
+
+                // Assert
+                packageRepository.Verify(x => x.CommitChangesAsync(), Times.Exactly(commitCount));
+            }
+
+            [Fact]
+            public async Task UpdatesTheStreamMetadata()
+            {
+                // Arrange
+                var package = new Package
+                {
+                    Hash = "hash-before",
+                    HashAlgorithm = "hash-algorithm-before",
+                    PackageFileSize = 23,
+                    LastUpdated = new DateTime(2017, 1, 1, 8, 30, 0),
+                    LastEdited = new DateTime(2017, 1, 1, 7, 30, 0),
+                    PackageStatusKey = PackageStatus.Available,
+                };
+                var metadata = new PackageStreamMetadata
+                {
+                    Hash = "hash-after",
+                    HashAlgorithm = "hash-algorithm-after",
+                    Size = 42,
+                };
+                var service = CreateService();
+
+                // Act
+                var before = DateTime.UtcNow;
+                await service.UpdatePackageStreamMetadataAsync(package, metadata, commitChanges: true);
+                var after = DateTime.UtcNow;
+
+                // Assert
+                Assert.Equal("hash-after", package.Hash);
+                Assert.Equal("hash-algorithm-after", package.HashAlgorithm);
+                Assert.Equal(42, package.PackageFileSize);
+                Assert.InRange(package.LastUpdated, before, after);
+                Assert.NotNull(package.LastEdited);
+                Assert.InRange(package.LastEdited.Value, before, after);
+                Assert.Equal(package.LastUpdated, package.LastEdited);
+            }
+
+            [Theory]
+            [InlineData(PackageStatus.Deleted)]
+            [InlineData(PackageStatus.Validating)]
+            [InlineData(PackageStatus.FailedValidation)]
+            public async Task DoesNotUpdateLastEditedWhenNotAvailable(PackageStatus packageStatus)
+            {
+                // Arrange
+                var originalLastEdited = new DateTime(2017, 1, 1, 7, 30, 0);
+                var package = new Package
+                {
+                    LastEdited = originalLastEdited,
+                    PackageStatusKey = packageStatus,
+                };
+                var metadata = new PackageStreamMetadata();
+                var service = CreateService();
+
+                // Act
+                await service.UpdatePackageStreamMetadataAsync(package, metadata, commitChanges: true);
+
+                // Assert
+                Assert.Equal(originalLastEdited, package.LastEdited);
+            }
+        }
+
         public class TheUpdatePackageStatusMethod
         {
             [Fact]

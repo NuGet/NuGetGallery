@@ -22,7 +22,7 @@ namespace NuGetGallery.Packaging
                 var rawMetadata = nuspecReader.GetMetadata();
                 if (rawMetadata != null && rawMetadata.Any())
                 {
-                    return ValidateCore(PackageMetadata.FromNuspecReader(nuspecReader));
+                    return ValidateCore(PackageMetadata.FromNuspecReader(nuspecReader, strict: true));
                 }
             }
             catch (Exception ex)

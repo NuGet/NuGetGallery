@@ -7,6 +7,7 @@ namespace NuGetGallery
     {
         public const string Account = "Account";
         public const string OrganizationAccount = "ManageOrganization";
+        public const string AddOrganization = "AddOrganization";
         public const string ChangeOrganizationEmailSubscription = "ChangeOrganizationEmailSubscription";
         public const string TransformToOrganization = "TransformToOrganization";
         public const string TransformToOrganizationConfirmation = "ConfirmTransformToOrganization";

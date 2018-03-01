@@ -17,8 +17,6 @@ namespace NuGetGallery
         public const int ColumnsWideAuthenticationSm = 8;
         public const int ColumnsWideAuthenticationMd = 6;
         public const int ColumnsFormMd = 10;
-        public const int ColumnsModalSm = 3;
-        public const int ColumnsModalMd = 3;
 
         public const int VisibleVersions = 5;
 
@@ -40,8 +38,6 @@ namespace NuGetGallery
         public const string ReadMeFileSavePathTemplateActive = "active/{0}/{1}{2}";
         public const string ReadMeFileSavePathTemplatePending = "pending/{0}/{1}{2}";
 
-        public const string PackageFileBackupSavePathTemplate = "{0}/{1}/{2}.{3}";
-
         public const string MarkdownFileExtension = ".md";
         public const string HtmlFileExtension = ".html";
         public const string JsonFileExtension = ".json";
@@ -62,6 +58,17 @@ namespace NuGetGallery
 
         public const string UrlValidationRegEx = @"(https?):\/\/[^ ""]+$";
         public const string UrlValidationErrorMessage = "This doesn't appear to be a valid HTTP/HTTPS URL";
+
+        // Note: regexes must be tested to work in JavaScript
+        // We do NOT follow strictly the RFCs at this time, and we choose not to support many obscure email address variants.
+        // Specifically the following are not supported by-design:
+        //  * Addresses containing () or []
+        //  * Second parts with no dots (i.e. foo@localhost or foo@com)
+        //  * Addresses with quoted (" or ') first parts
+        //  * Addresses with IP Address second parts (foo@[127.0.0.1])
+        internal const string EmailValidationRegexFirstPart = @"[-A-Za-z0-9!#$%&'*+\/=?^_`{|}~\.]+";
+        internal const string EmailValidationRegexSecondPart = @"[A-Za-z0-9]+[\w\.-]*[A-Za-z0-9]*\.[A-Za-z0-9][A-Za-z\.]*[A-Za-z]";
+        public const string EmailValidationRegex = "^" + EmailValidationRegexFirstPart + "@" + EmailValidationRegexSecondPart + "$";
 
         internal const string ApiKeyHeaderName = "X-NuGet-ApiKey";
         // X-NuGet-Client-Version header was deprecated and replaced with X-NuGet-Protocol-Version header
