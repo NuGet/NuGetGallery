@@ -1031,6 +1031,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Administrator account &apos;{0}&apos; is not linked to an AAD credential with an organization tenant..
+        /// </summary>
+        public static string Organizations_AdminAccountDoesNotHaveTenant {
+            get {
+                return ResourceManager.GetString("Organizations_AdminAccountDoesNotHaveTenant", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; does not support organizations..
+        /// </summary>
+        public static string Organizations_NotInDomainWhitelist {
+            get {
+                return ResourceManager.GetString("Organizations_NotInDomainWhitelist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Organization accounts cannot create credentials..
         /// </summary>
         public static string OrganizationsCannotCreateCredentials {
@@ -1575,15 +1593,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Administrator account &apos;{0}&apos; is not linked to an AAD credential with an organization tenant..
-        /// </summary>
-        public static string TransformAccount_AdminAccountDoesNotHaveTenant {
-            get {
-                return ResourceManager.GetString("TransformAccount_AdminAccountDoesNotHaveTenant", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Administrator account &apos;{0}&apos; cannot be an organization..
         /// </summary>
         public static string TransformAccount_AdminAccountIsOrganization {
@@ -1611,20 +1620,11 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An unexpected error occurred while transforming this account. Contact support  for assistance..
+        ///   Looks up a localized string similar to An unexpected error occurred while transforming this account. Contact support for assistance..
         /// </summary>
         public static string TransformAccount_Failed {
             get {
                 return ResourceManager.GetString("TransformAccount_Failed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Account &apos;{0}&apos; does not support organizations..
-        /// </summary>
-        public static string TransformAccount_FailedReasonNotInDomainWhitelist {
-            get {
-                return ResourceManager.GetString("TransformAccount_FailedReasonNotInDomainWhitelist", resourceCulture);
             }
         }
         

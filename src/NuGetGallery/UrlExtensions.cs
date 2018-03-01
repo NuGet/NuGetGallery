@@ -764,6 +764,14 @@ namespace NuGetGallery
             return GetActionLink(url, "Organizations", "Users", relativeUrl);
         }
 
+        public static string AddOrganization(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetActionLink(url,
+                "Add",
+                "Organizations",
+                relativeUrl);
+        }
+
         public static string ManageMyOrganization(this UrlHelper url, string accountName, bool relativeUrl = true)
         {
             return GetActionLink(url,

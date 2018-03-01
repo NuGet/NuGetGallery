@@ -36,7 +36,7 @@ namespace NuGetGallery.Security
         /// <summary>
         /// Subscribe a user to one or more security policies.
         /// </summary>
-        Task<bool> SubscribeAsync(User user, IUserSecurityPolicySubscription subscription);
+        Task<bool> SubscribeAsync(User user, IUserSecurityPolicySubscription subscription, bool commitChanges = true);
 
         /// <summary>
         /// Unsubscribe a user from one or more security policies.

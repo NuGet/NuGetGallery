@@ -17,7 +17,7 @@ namespace NuGetGallery
         {
             var organization = membership.Organization;
             Username = organization.Username;
-            EmailAddress = organization.EmailAddress;
+            EmailAddress = organization.EmailAddress ?? organization.UnconfirmedEmailAddress;
             CurrentUserIsAdmin = membership.IsAdmin;
             MemberCount = organization.Members.Count();
             PackagesCount = packageService.FindPackageRegistrationsByOwner(membership.Organization).Count();
