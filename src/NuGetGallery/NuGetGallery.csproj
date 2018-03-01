@@ -2030,10 +2030,8 @@
     <Content Include="Views\Packages\_ImportReadMe.cshtml" />
     <Content Include="Views\Packages\_SubmitPackage.cshtml" />
     <Content Include="Views\Packages\_EditForm.cshtml" />
-    <Content Include="Views\Users\_OwnerRequestsList.cshtml" />
     <Content Include="Areas\Admin\Views\DeleteAccount\DeleteUserAccount.cshtml" />
     <Content Include="Views\Users\_UserPackagesListForDeletedAccount.cshtml" />
-    <Content Include="Views\Users\_ReservedNamespacesList.cshtml" />
     <Content Include="Views\Users\DeleteAccount.cshtml" />
     <Content Include="Views\Authentication\SignInNuGetAccount.cshtml" />
     <Content Include="Views\Packages\_VerifyForm.cshtml" />
