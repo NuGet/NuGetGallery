@@ -1071,6 +1071,9 @@ img.reserved-indicator-icon {
   margin-top: 0;
   margin-bottom: 10px;
 }
+.page-manage-packages .subtitle {
+  margin-top: 24px;
+}
 .page-manage-packages .form-section-title {
   margin-top: 40px;
 }

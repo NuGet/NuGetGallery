@@ -154,6 +154,11 @@ namespace NuGetGallery
                 .As<IEntityRepository<PackageOwnerRequest>>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<EntityRepository<Organization>>()
+                .AsSelf()
+                .As<IEntityRepository<Organization>>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<CuratedFeedService>()
                 .AsSelf()
                 .As<ICuratedFeedService>()

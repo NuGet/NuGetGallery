@@ -1070,6 +1070,7 @@
     <Compile Include="Configuration\StorageType.cs" />
     <Compile Include="Telemetry\UserPackageDeleteEvent.cs" />
     <Compile Include="Telemetry\UserPackageDeleteOutcome.cs" />
+    <Compile Include="ViewModels\AddOrganizationViewModel.cs" />
     <Compile Include="ViewModels\GalleryHomeViewModel.cs" />
     <Compile Include="WebRole.cs" />
     <Content Include="bin\NuGetGallery.dll.config">
@@ -2029,10 +2030,8 @@
     <Content Include="Views\Packages\_ImportReadMe.cshtml" />
     <Content Include="Views\Packages\_SubmitPackage.cshtml" />
     <Content Include="Views\Packages\_EditForm.cshtml" />
-    <Content Include="Views\Users\_OwnerRequestsList.cshtml" />
     <Content Include="Areas\Admin\Views\DeleteAccount\DeleteUserAccount.cshtml" />
     <Content Include="Views\Users\_UserPackagesListForDeletedAccount.cshtml" />
-    <Content Include="Views\Users\_ReservedNamespacesList.cshtml" />
     <Content Include="Views\Users\DeleteAccount.cshtml" />
     <Content Include="Views\Authentication\SignInNuGetAccount.cshtml" />
     <Content Include="Views\Packages\_VerifyForm.cshtml" />
@@ -2054,6 +2053,7 @@
     <Content Include="Views\Pages\_TransformOrLink.cshtml" />
     <Content Include="Views\Organizations\_OrganizationAccountManageMembers.cshtml" />
     <Content Include="Views\Shared\_AutocompleteTemplate.cshtml" />
+    <Content Include="Views\Organizations\Add.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />
