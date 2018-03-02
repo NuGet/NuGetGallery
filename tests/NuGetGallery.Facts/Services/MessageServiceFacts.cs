@@ -440,7 +440,7 @@ namespace NuGetGallery
                 Assert.Equal(oldEmail, message.To[0].Address);
                 Assert.Equal(TestGalleryNoReplyAddress.Address, message.From.Address);
                 Assert.Equal("[Joe Shmoe] Recent changes to your account.", message.Subject);
-                Assert.Contains($"The email address associated with your {TestGalleryNoReplyAddress} account was recently changed from _{oldEmail}_ to _{user.EmailAddress}_.", message.Body);
+                Assert.Contains($"The email address associated with your Joe Shmoe account was recently changed from _{oldEmail}_ to _{user.EmailAddress}_.", message.Body);
             }
         }
 
