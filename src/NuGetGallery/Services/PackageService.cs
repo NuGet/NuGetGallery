@@ -258,10 +258,11 @@ namespace NuGetGallery
             // where sometimes packages no rows with IsLatest set. In this case, we'll just select the last inserted
             // row (descending [Key]) as opposed to reading all rows into memory and sorting on NuGetVersion.
             return packages
-                .OrderBy(p => p.IsLatestStableSemVer2)
-                .ThenBy(p => p.IsLatestStable)
-                .ThenBy(p => p.IsLatestSemVer2)
-                .ThenBy(p => p.IsLatest)
+                // order booleans desc so that true (1) comes first
+                .OrderByDescending(p => p.IsLatestStableSemVer2)
+                .ThenByDescending(p => p.IsLatestStable)
+                .ThenByDescending(p => p.IsLatestSemVer2)
+                .ThenByDescending(p => p.IsLatest)
                 .ThenByDescending(p => p.Key)
                 .GroupBy(p => p.PackageRegistrationKey)
                 .Select(g => g.FirstOrDefault())
@@ -273,7 +274,7 @@ namespace NuGetGallery
         private IEnumerable<Package> GetLatestPackageForEachRegistration(IReadOnlyCollection<Package> packages)
         {
             // This method uses First() and FirstOrDefault() instead of Single() or SingleOrDefault() to get the latest package, 
-            // in case there are multiple latest due .Thento concurrency issue
+            // in case there are multiple latest due to concurrency issue
             // see: https://github.com/NuGet/NuGetGallery/issues/2514
             foreach (var packagesByRegistration in packages.GroupBy(p => p.PackageRegistration.Id))
             {

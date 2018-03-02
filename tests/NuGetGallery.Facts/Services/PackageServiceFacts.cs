@@ -1293,7 +1293,7 @@ namespace NuGetGallery
                     Version = "1.0",
                     PackageRegistration = packageRegistration,
                     PackageRegistrationKey = 0,
-                   Listed = false,
+                    Listed = false,
                     IsLatest = false,
                     IsLatestStable = false
                 };
