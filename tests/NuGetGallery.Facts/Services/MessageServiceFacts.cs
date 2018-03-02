@@ -404,6 +404,46 @@ namespace NuGetGallery
             }
         }
 
+        public class TheSendEmailChangeConfirmationNoticeMethod
+            : TestContainer
+        {
+            [Fact]
+            public void WillSendEmail()
+            {
+                var user = new User("user") { UnconfirmedEmailAddress = "unconfirmed@unconfirmed.com" };
+                var tokenUrl = "http://example.com/confirmation-token-url";
+
+                var messageService = TestableMessageService.Create(GetConfigurationService());
+                messageService.SendEmailChangeConfirmationNotice(user, tokenUrl);
+                var message = messageService.MockMailSender.Sent.Last();
+
+                Assert.Equal(user.UnconfirmedEmailAddress, message.To[0].Address);
+                Assert.Equal(TestGalleryNoReplyAddress.Address, message.From.Address);
+                Assert.Equal("[Joe Shmoe] Please verify your account's new email address.", message.Subject);
+                Assert.Contains(tokenUrl, message.Body);
+            }
+        }
+
+        public class TheSendEmailChangeNoticeToPreviousEmailAddressMethod
+            : TestContainer
+        {
+            [Fact]
+            public void WillSendEmail()
+            {
+                var user = new User("user") { EmailAddress = "new@email.com" };
+                var oldEmail = "old@email.com";
+
+                var messageService = TestableMessageService.Create(GetConfigurationService());
+                messageService.SendEmailChangeNoticeToPreviousEmailAddress(user, oldEmail);
+                var message = messageService.MockMailSender.Sent.Last();
+
+                Assert.Equal(oldEmail, message.To[0].Address);
+                Assert.Equal(TestGalleryNoReplyAddress.Address, message.From.Address);
+                Assert.Equal("[Joe Shmoe] Recent changes to your account.", message.Subject);
+                Assert.Contains($"The email address associated with your {TestGalleryNoReplyAddress} account was recently changed from _{oldEmail}_ to _{user.EmailAddress}_.", message.Body);
+            }
+        }
+
         public class TheSendPackageOwnerRequestMethod
             : TestContainer
         {
@@ -430,7 +470,7 @@ namespace NuGetGallery
                 Assert.Contains(userMessage, message.Body);
                 Assert.Contains(confirmationUrl, message.Body);
                 Assert.Contains(userMessage, message.Body);
-                Assert.Contains("The user 'Existing' wants to add you as an owner of the package 'CoolStuff'.", message.Body);
+                Assert.Contains("The user 'Existing' would like to add you as an owner of the package 'CoolStuff'.", message.Body);
             }
 
             [Fact]
@@ -616,7 +656,7 @@ namespace NuGetGallery
                 Assert.Equal("old-owner@example.com", message.To[0].Address);
                 Assert.Equal(TestGalleryNoReplyAddress.Address, message.From.Address);
                 Assert.Equal("existing-owner@example.com", message.ReplyToList.Single().Address);
-                Assert.Contains("The user 'Existing' has removed you as an owner of the package 'CoolStuff'.", message.Subject);
+                Assert.Contains("The user 'Existing' removed you as an owner of the package 'CoolStuff'.", message.Subject);
                 Assert.Contains("The user 'Existing' removed you as an owner of the package 'CoolStuff'", message.Body);
             }
 

@@ -285,21 +285,22 @@ The {0} Team";
         {
             string body = @"Hi there,
 
-The email address associated with your {0} {1} was recently
-changed from _{2}_ to _{3}_.
+The email address associated with your {0} {1} was recently changed from _{2}_ to _{3}_.
 
 Thanks,
 The {0} Team";
+
+            var yourString = user is Organization ? "organization" : "account";
 
             body = String.Format(
                 CultureInfo.CurrentCulture,
                 body,
                 Config.GalleryOwner.DisplayName,
-                user is Organization ? "organization" : "account",
+                yourString,
                 oldEmailAddress,
                 user.EmailAddress);
 
-            string subject = String.Format(CultureInfo.CurrentCulture, "[{0}] Recent changes to your account.", Config.GalleryOwner.DisplayName);
+            string subject = String.Format(CultureInfo.CurrentCulture, "[{0}] Recent changes to your {1}.", Config.GalleryOwner.DisplayName, yourString);
             using (
                 var mailMessage = new MailMessage())
             {
@@ -484,7 +485,7 @@ The {3} Team";
                 return;
             }
 
-            var title = string.Format(CultureInfo.CurrentCulture, $"The user '{fromUser.Username}' has removed {(toUser is Organization ? "your organization" : "you")} as an owner of the package '{package.Id}'.");
+            var title = string.Format(CultureInfo.CurrentCulture, $"The user '{fromUser.Username}' removed {(toUser is Organization ? "your organization" : "you")} as an owner of the package '{package.Id}'.");
 
             var subject = $"[{Config.GalleryOwner.DisplayName}] {title}";
 
