@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
@@ -43,6 +44,39 @@ namespace NuGetGallery
         {
             var confirmationUrl = Url.ConfirmOrganizationEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false);
             MessageService.SendEmailChangeConfirmationNotice(new MailAddress(account.UnconfirmedEmailAddress, account.Username), confirmationUrl);
+        }
+
+        [HttpGet]
+        [UIAuthorize]
+        public ActionResult Add()
+        {
+            return View(new AddOrganizationViewModel());
+        }
+
+        [HttpPost]
+        [UIAuthorize]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> Add(AddOrganizationViewModel model)
+        {
+            var organizationName = model.OrganizationName;
+            var organizationEmailAddress = model.OrganizationEmailAddress;
+            var adminUser = GetCurrentUser();
+
+            string errorMessage;
+
+            try
+            {
+                var organization = await UserService.AddOrganizationAsync(organizationName, organizationEmailAddress, adminUser);
+                SendNewAccountEmail(organization);
+                return RedirectToAction(nameof(ManageOrganization), new { accountName = organization.Username });
+            }
+            catch (EntityException e)
+            {
+                errorMessage = e.Message;
+            }
+
+            TempData["ErrorMessage"] = errorMessage;
+            return View(model);
         }
 
         [HttpGet]

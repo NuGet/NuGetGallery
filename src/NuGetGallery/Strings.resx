@@ -245,7 +245,7 @@ Click the following link within the next hour to reset your password:
 
 [{0}]({0})
 
-Note that NuGet.org password login is being deprecated. Please use Microsoft account to sign into {1}.
+Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
 
 Thanks,
 The {1} Team</value>
@@ -261,7 +261,7 @@ Click the following link within the next hour to set your password:
 
 [{0}]({0})
 
-Note that NuGet.org password login is being deprecated. Please use Microsoft account to sign into {1}.
+Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
 
 Thanks,
 The {1} Team</value>
@@ -692,7 +692,7 @@ For more information, please contact '{2}'.</value>
     <value>The user '{0}' doesn't exist. You cannot upload a package as a user that doesn't exist.</value>
   </data>
   <data name="TransformAccount_Failed" xml:space="preserve">
-    <value>An unexpected error occurred while transforming this account. Contact support  for assistance.</value>
+    <value>An unexpected error occurred while transforming this account. Contact support for assistance.</value>
   </data>
   <data name="TransformAccount_OrganizationAccountDoesNotExist" xml:space="preserve">
     <value>Organization account '{0}' does not exist.</value>
@@ -706,7 +706,7 @@ For more information, please contact '{2}'.</value>
   <data name="TransformAccount_AccountNotConfirmed" xml:space="preserve">
     <value>Account '{0}' should be a confirmed user.</value>
   </data>
-  <data name="TransformAccount_FailedReasonNotInDomainWhitelist" xml:space="preserve">
+  <data name="Organizations_NotInDomainWhitelist" xml:space="preserve">
     <value>Account '{0}' does not support organizations.</value>
   </data>
   <data name="TransformAccount_AccountIsAnOrganization" xml:space="preserve">
@@ -791,7 +791,7 @@ If you wish to update the linked Microsoft account you can do so from the accoun
   <data name="AddMember_UserDoesNotMeetOrganizationPolicy" xml:space="preserve">
     <value>User '{0}' has not linked their account to an AAD credential matching this organization.</value>
   </data>
-  <data name="TransformAccount_AdminAccountDoesNotHaveTenant" xml:space="preserve">
+  <data name="Organizations_AdminAccountDoesNotHaveTenant" xml:space="preserve">
     <value>Administrator account '{0}' is not linked to an AAD credential with an organization tenant.</value>
   </data>
   <data name="DeleteMember_CannotRemoveLastAdmin" xml:space="preserve">

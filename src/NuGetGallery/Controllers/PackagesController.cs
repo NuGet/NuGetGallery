@@ -1301,6 +1301,8 @@ namespace NuGetGallery
 
             if (package.Owners.Any(o => o.MatchesUser(user)))
             {
+                // If the user is already an owner, clean up the invalid request.
+                await _packageOwnershipManagementService.DeletePackageOwnershipRequestAsync(package, user);
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.AlreadyOwner));
             }
 
@@ -1335,18 +1337,22 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("cancel pending ownership request")]
         public virtual async Task<ActionResult> CancelPendingOwnershipRequest(string id, string requestingUsername, string pendingUsername)
         {
-            if (!string.Equals(requestingUsername, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
-            {
-                return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, requestingUsername, ConfirmOwnershipResult.NotYourRequest));
-            }
-
             var package = _packageService.FindPackageRegistrationById(id);
             if (package == null)
             {
                 return HttpNotFound();
             }
 
-            var requestingUser = GetCurrentUser();
+            if (ActionsRequiringPermissions.ManagePackageOwnership.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
+            {
+                return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, requestingUsername, ConfirmOwnershipResult.NotYourRequest));
+            }
+
+            var requestingUser = _userService.FindByUsername(requestingUsername);
+            if (requestingUser == null)
+            {
+                return HttpNotFound();
+            }
 
             var pendingUser = _userService.FindByUsername(pendingUsername);
             if (pendingUser == null)

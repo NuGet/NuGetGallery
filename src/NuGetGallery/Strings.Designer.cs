@@ -721,7 +721,7 @@ namespace NuGetGallery {
         ///
         ///[{0}]({0})
         ///
-        ///Note that NuGet.org password login is being deprecated. Please use Microsoft account to sign into {1}.
+        ///Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
         ///
         ///Thanks,
         ///The {1} Team.
@@ -749,7 +749,7 @@ namespace NuGetGallery {
         ///
         ///[{0}]({0})
         ///
-        ///Note that NuGet.org password login is being deprecated. Please use Microsoft account to sign into {1}.
+        ///Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
         ///
         ///Thanks,
         ///The {1} Team.
@@ -1027,6 +1027,24 @@ namespace NuGetGallery {
         public static string OrganizationMemberNameIsRequired {
             get {
                 return ResourceManager.GetString("OrganizationMemberNameIsRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Administrator account &apos;{0}&apos; is not linked to an AAD credential with an organization tenant..
+        /// </summary>
+        public static string Organizations_AdminAccountDoesNotHaveTenant {
+            get {
+                return ResourceManager.GetString("Organizations_AdminAccountDoesNotHaveTenant", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; does not support organizations..
+        /// </summary>
+        public static string Organizations_NotInDomainWhitelist {
+            get {
+                return ResourceManager.GetString("Organizations_NotInDomainWhitelist", resourceCulture);
             }
         }
         
@@ -1553,15 +1571,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Administrator account &apos;{0}&apos; is not linked to an AAD credential with an organization tenant..
-        /// </summary>
-        public static string TransformAccount_AdminAccountDoesNotHaveTenant {
-            get {
-                return ResourceManager.GetString("TransformAccount_AdminAccountDoesNotHaveTenant", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Administrator account &apos;{0}&apos; cannot be an organization..
         /// </summary>
         public static string TransformAccount_AdminAccountIsOrganization {
@@ -1589,20 +1598,11 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An unexpected error occurred while transforming this account. Contact support  for assistance..
+        ///   Looks up a localized string similar to An unexpected error occurred while transforming this account. Contact support for assistance..
         /// </summary>
         public static string TransformAccount_Failed {
             get {
                 return ResourceManager.GetString("TransformAccount_Failed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Account &apos;{0}&apos; does not support organizations..
-        /// </summary>
-        public static string TransformAccount_FailedReasonNotInDomainWhitelist {
-            get {
-                return ResourceManager.GetString("TransformAccount_FailedReasonNotInDomainWhitelist", resourceCulture);
             }
         }
         

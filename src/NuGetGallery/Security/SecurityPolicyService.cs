@@ -245,7 +245,7 @@ namespace NuGetGallery.Security
         /// Subscribe a user to one or more security policies.
         /// </summary>
         /// <returns>True if user was subscribed, false if not (i.e., was already subscribed).</returns>
-        public async Task<bool> SubscribeAsync(User user, IUserSecurityPolicySubscription subscription)
+        public async Task<bool> SubscribeAsync(User user, IUserSecurityPolicySubscription subscription, bool commitChanges = true)
         {
             if (user == null)
             {
@@ -274,7 +274,10 @@ namespace NuGetGallery.Security
                 await Auditing.SaveAuditRecordAsync(
                     new UserAuditRecord(user, AuditedUserAction.SubscribeToPolicies, subscription.Policies));
 
-                await EntitiesContext.SaveChangesAsync();
+                if (commitChanges)
+                {
+                    await EntitiesContext.SaveChangesAsync();
+                }
 
                 Diagnostics.Information($"User is now subscribed to '{subscription.SubscriptionName}'.");
 
