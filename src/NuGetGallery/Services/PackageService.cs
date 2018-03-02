@@ -230,22 +230,56 @@ namespace NuGetGallery
         /// <summary>
         /// Find packages by owner, including organization owners that the user belongs to.
         /// </summary>
-        public IEnumerable<Package> FindPackagesByAnyMatchingOwner(User user, bool includeUnlisted, bool includeVersions = false)
+        /// <remarks>
+        /// When <paramref name="includeVersions"/> is false, only the latest package versions will be returned.
+        /// The IsLatest columns are used to determine the latest. We will not attempt to select all package rows
+        /// and order on NuGetVersion in memory due to the potential performance overhead of doing this. If no
+        /// IsLatest is set, the version pushed most recently (based on package key) will be selected.
+        /// </remarks>
+        public IEnumerable<Package> FindPackagesByAnyMatchingOwner(
+            User user,
+            bool includeUnlisted,
+            bool includeVersions = false)
         {
             var ownerKeys = user.Organizations.Select(org => org.OrganizationKey).ToList();
             ownerKeys.Insert(0, user.Key);
 
-            var packages = GetPackagesForOwners(ownerKeys, includeUnlisted);
+            IQueryable<Package> packages = _packageRepository.GetAll()
+                .Where(p => p.PackageRegistration.Owners.Any(o => ownerKeys.Contains(o.Key)));
 
-            return includeVersions
-                ? packages
-                : GetLatestPackageForEachRegistration(packages.ToList());
+            if (!includeUnlisted)
+            {
+                packages = packages.Where(p => p.Listed);
+            }
+
+            if (includeVersions)
+            {
+                return packages
+                .Include(p => p.PackageRegistration)
+                .Include(p => p.PackageRegistration.Owners)
+                .ToList();
+            }
+
+            // Do a best effort of retrieving the latest version. Note that UpdateIsLatest has had concurrency issues
+            // where sometimes packages have multiple or no rows with IsLatest set. In this case, we'll just select
+            // the last inserted row as opposed to reading all rows into memory and sorting on NuGetVersion.
+            return packages
+                .OrderBy(p => p.IsLatestStableSemVer2)
+                .ThenBy(p => p.IsLatestStable)
+                .ThenBy(p => p.IsLatestSemVer2)
+                .ThenBy(p => p.IsLatest)
+                .ThenByDescending(p => p.Key)
+                .GroupBy(p => p.PackageRegistrationKey)
+                .Select(g => g.FirstOrDefault())
+                .Include(p => p.PackageRegistration)
+                .Include(p => p.PackageRegistration.Owners)
+                .ToList();
         }
 
         private IEnumerable<Package> GetLatestPackageForEachRegistration(IReadOnlyCollection<Package> packages)
         {
             // This method uses First() and FirstOrDefault() instead of Single() or SingleOrDefault() to get the latest package, 
-            // in case there are multiple latest due to concurrency issue
+            // in case there are multiple latest due .Thento concurrency issue
             // see: https://github.com/NuGet/NuGetGallery/issues/2514
             foreach (var packagesByRegistration in packages.GroupBy(p => p.PackageRegistration.Id))
             {

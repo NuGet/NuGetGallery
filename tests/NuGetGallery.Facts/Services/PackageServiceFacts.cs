@@ -1006,9 +1006,10 @@ namespace NuGetGallery
             public override void ReturnsOnlyLatestStablePackageIfNoLatestStableSemVer2Exist(User currentUser, User packageOwner)
               => base.ReturnsOnlyLatestStablePackageIfNoLatestStableSemVer2Exist(currentUser, packageOwner);
 
-            [MemberData(nameof(TestData_RoleVariants))]
+            [Theory(Skip = "Disabled: FindPackagesByAnyMatchingOwner does not order by NuGetVersion for better performance")]
             public override void ReturnsCorrectLatestVersionForMixedSemVer2AndNonSemVer2PackageVersions_IncludeUnlistedTrue(User currentUser, User packageOwner)
-              => base.ReturnsCorrectLatestVersionForMixedSemVer2AndNonSemVer2PackageVersions_IncludeUnlistedTrue(currentUser, packageOwner);
+            {
+            }
 
             [MemberData(nameof(TestData_RoleVariants))]
             public override void ReturnsFirstIfMultiplePackagesSetToLatest(User currentUser, User packageOwner)
@@ -1036,9 +1037,9 @@ namespace NuGetGallery
 
             protected static TestUserRoles CreateTestUserRoles()
             {
-                var organization = new Organization { Username = "organization" };
+                var organization = new Organization { Key = 0, Username = "organization" };
 
-                var admin = new User { Username = "admin" };
+                var admin = new User { Key = 1, Username = "admin" };
                 var adminMembership = new Membership
                 {
                     Organization = organization,
@@ -1048,7 +1049,7 @@ namespace NuGetGallery
                 organization.Members.Add(adminMembership);
                 admin.Organizations.Add(adminMembership);
 
-                var collaborator = new User { Username = "collaborator" };
+                var collaborator = new User { Key = 2, Username = "collaborator" };
                 var collaboratorMembership = new Membership
                 {
                     Organization = organization,
@@ -1125,10 +1126,24 @@ namespace NuGetGallery
             [Theory]
             public virtual void ReturnsAPackageForEachPackageRegistration(User currentUser, User packageOwner)
             {
-                var packageRegistrationA = new PackageRegistration { Id = "idA", Owners = { packageOwner } };
-                var packageRegistrationB = new PackageRegistration { Id = "idB", Owners = { packageOwner } };
-                var packageA = new Package { Version = "1.0", PackageRegistration = packageRegistrationA, Listed = true, IsLatestSemVer2 = true, IsLatestStableSemVer2 = true };
-                var packageB = new Package { Version = "1.0", PackageRegistration = packageRegistrationB, Listed = true, IsLatestSemVer2 = true, IsLatestStableSemVer2 = true };
+                var packageRegistrationA = new PackageRegistration { Key = 0, Id = "idA", Owners = { packageOwner } };
+                var packageRegistrationB = new PackageRegistration { Key = 1, Id = "idB", Owners = { packageOwner } };
+                var packageA = new Package {
+                    Version = "1.0",
+                    PackageRegistration = packageRegistrationA,
+                    PackageRegistrationKey = 0,
+                    Listed = true,
+                    IsLatestSemVer2 = true,
+                    IsLatestStableSemVer2 = true
+                };
+                var packageB = new Package {
+                    Version = "1.0",
+                    PackageRegistration = packageRegistrationB,
+                    PackageRegistrationKey = 1,
+                    Listed = true,
+                    IsLatestSemVer2 = true,
+                    IsLatestStableSemVer2 = true
+                };
                 packageRegistrationA.Packages.Add(packageA);
                 packageRegistrationB.Packages.Add(packageB);
 
@@ -1272,11 +1287,26 @@ namespace NuGetGallery
             [Theory]
             public virtual void ReturnsVersionsWhenIncludedVersionsIsTrue_IncludeUnlistedTrue(User currentUser, User packageOwner)
             {
-                var packageRegistration = new PackageRegistration { Id = "theId", Owners = { packageOwner } };
-                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = false, IsLatest = false, IsLatestStable = false };
+                var packageRegistration = new PackageRegistration { Key = 0, Id = "theId", Owners = { packageOwner } };
+
+                var package1 = new Package {
+                    Version = "1.0",
+                    PackageRegistration = packageRegistration,
+                    PackageRegistrationKey = 0,
+                   Listed = false,
+                    IsLatest = false,
+                    IsLatestStable = false
+                };
                 packageRegistration.Packages.Add(package1);
 
-                var package2 = new Package { Version = "2.0", PackageRegistration = packageRegistration, Listed = true, IsLatest = true, IsLatestStable = true };
+                var package2 = new Package {
+                    Version = "2.0",
+                    PackageRegistration = packageRegistration,
+                    PackageRegistrationKey = 0,
+                    Listed = true,
+                    IsLatest = true,
+                    IsLatestStable = true
+                };
                 packageRegistration.Packages.Add(package2);
 
                 var context = GetFakeContext();
