@@ -230,12 +230,6 @@ namespace NuGetGallery
         /// <summary>
         /// Find packages by owner, including organization owners that the user belongs to.
         /// </summary>
-        /// <remarks>
-        /// When <paramref name="includeVersions"/> is false, only the latest package versions will be returned.
-        /// The IsLatest columns are used to determine the latest. We will not attempt to select all package rows
-        /// and order on NuGetVersion in memory due to the potential performance overhead of doing this. If no
-        /// IsLatest is set, the version pushed most recently (based on package key) will be selected.
-        /// </remarks>
         public IEnumerable<Package> FindPackagesByAnyMatchingOwner(
             User user,
             bool includeUnlisted,
@@ -261,8 +255,8 @@ namespace NuGetGallery
             }
 
             // Do a best effort of retrieving the latest version. Note that UpdateIsLatest has had concurrency issues
-            // where sometimes packages have multiple or no rows with IsLatest set. In this case, we'll just select
-            // the last inserted row as opposed to reading all rows into memory and sorting on NuGetVersion.
+            // where sometimes packages no rows with IsLatest set. In this case, we'll just select the last inserted
+            // row (descending [Key]) as opposed to reading all rows into memory and sorting on NuGetVersion.
             return packages
                 .OrderBy(p => p.IsLatestStableSemVer2)
                 .ThenBy(p => p.IsLatestStable)
