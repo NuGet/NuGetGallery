@@ -44,11 +44,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BaseValidator.cs" />
-    <Compile Include="ConfigurationValidator.cs" />
+    <Compile Include="Configuration\ConfigurationValidator.cs" />
+    <Compile Include="Configuration\TopologicalSort.cs" />
     <Compile Include="ContainerBuilderExtensions.cs" />
-    <Compile Include="CoreMessageServiceConfiguration.cs" />
+    <Compile Include="Configuration\CoreMessageServiceConfiguration.cs" />
     <Compile Include="DiskMailSender.cs" />
-    <Compile Include="EmailConfiguration.cs" />
+    <Compile Include="Configuration\EmailConfiguration.cs" />
     <Compile Include="Error.cs" />
     <Compile Include="IMessageService.cs" />
     <Compile Include="IValidationOutcomeProcessor.cs" />
@@ -59,7 +60,7 @@
     <Compile Include="Job.cs" />
     <Compile Include="MessageService.cs" />
     <Compile Include="OrchestrationRunner.cs" />
-    <Compile Include="OrchestrationRunnerConfiguration.cs" />
+    <Compile Include="Configuration\OrchestrationRunnerConfiguration.cs" />
     <Compile Include="PackageCertificates\CertificateVerificationEnqueuer.cs" />
     <Compile Include="PackageCertificates\ICertificateVerificationEnqueuer.cs" />
     <Compile Include="PackageCertificates\PackageCertificatesConfiguration.cs" />
@@ -72,11 +73,11 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.*.cs" />
-    <Compile Include="SmtpConfiguration.cs" />
+    <Compile Include="Configuration\SmtpConfiguration.cs" />
     <Compile Include="Telemetry\ITelemetryService.cs" />
     <Compile Include="Telemetry\TelemetryService.cs" />
-    <Compile Include="ValidationConfiguration.cs" />
-    <Compile Include="ValidationConfigurationItem.cs" />
+    <Compile Include="Configuration\ValidationConfiguration.cs" />
+    <Compile Include="Configuration\ValidationConfigurationItem.cs" />
     <Compile Include="ValidationFailureBehavior.cs" />
     <Compile Include="Vcs\IPackageCriteria.cs" />
     <Compile Include="Vcs\IPackageCriteriaEvaluator.cs" />
@@ -84,7 +85,7 @@
     <Compile Include="Vcs\PackageCriteria.cs" />
     <Compile Include="Vcs\VcsConfiguration.cs" />
     <Compile Include="Vcs\VcsValidator.cs" />
-    <Compile Include="ValidationDbConfiguration.cs" />
+    <Compile Include="Configuration\ValidationDbConfiguration.cs" />
     <Compile Include="ValidationMessageHandler.cs" />
     <Compile Include="ValidationOutcomeProcessor.cs" />
     <Compile Include="ValidationRequest.cs" />

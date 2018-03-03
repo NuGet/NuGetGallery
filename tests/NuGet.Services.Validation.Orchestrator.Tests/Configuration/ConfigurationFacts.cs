@@ -92,6 +92,121 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         }
 
         [Fact]
+        public void ConfigurationValidatorDetectsUnknownValidators()
+        {
+            var validationName = "Validation1";
+            var configuration = new ValidationConfiguration()
+            {
+                Validations = new List<ValidationConfigurationItem>
+                {
+                    new ValidationConfigurationItem
+                    {
+                        Name = validationName,
+                        FailAfter = TimeSpan.FromHours(1),
+                        RequiredValidations = new List<string>(),
+                    },
+                }
+            };
+            var validatorProvider = new Mock<IValidatorProvider>();
+
+            var ex = Record.Exception(() => Validate(validatorProvider.Object, configuration));
+
+            Assert.IsType<ConfigurationErrorsException>(ex);
+            Assert.Contains("Validator implementation not found for " + validationName, ex.Message);
+        }
+
+        [Fact]
+        public void ConfigurationValidatorDetectsParallelProcessors()
+        {
+            var validationName1 = "Validation1";
+            var validationName2 = "Validation2";
+            var processorName1 = "Processor1";
+            var configuration = new ValidationConfiguration()
+            {
+                Validations = new List<ValidationConfigurationItem>
+                {
+                    new ValidationConfigurationItem
+                    {
+                        Name = validationName1,
+                        FailAfter = TimeSpan.FromHours(1),
+                        RequiredValidations = new List<string>(),
+                    },
+                    new ValidationConfigurationItem
+                    {
+                        Name = validationName2,
+                        FailAfter = TimeSpan.FromHours(1),
+                        RequiredValidations = new List<string> { validationName1 },
+                    },
+                    new ValidationConfigurationItem
+                    {
+                        Name = processorName1,
+                        FailAfter = TimeSpan.FromHours(1),
+                        RequiredValidations = new List<string> { validationName1 },
+                    },
+                }
+            };
+
+            var validatorProvider = new Mock<IValidatorProvider>();
+            validatorProvider
+                .Setup(x => x.GetValidator(It.Is<string>(n => n == validationName1 || n == validationName2)))
+                .Returns(() => new Mock<IValidator>().Object);
+            validatorProvider
+                .Setup(x => x.GetValidator(processorName1))
+                .Returns(() => new Mock<IProcessor>().Object);
+
+            var ex = Record.Exception(() => Validate(validatorProvider.Object, configuration));
+
+            Assert.IsType<ConfigurationErrorsException>(ex);
+            Assert.Contains(
+                "The processor Processor1 could run in parallel with Validation2. Processors must not run in parallel with any other validators.",
+                ex.Message);
+        }
+
+        [Fact]
+        public void ConfigurationValidatorAllowsNonParallelProcessors()
+        {
+            var validationName1 = "Validation1";
+            var validationName2 = "Validation2";
+            var processorName1 = "Processor1";
+            var configuration = new ValidationConfiguration()
+            {
+                Validations = new List<ValidationConfigurationItem>
+                {
+                    new ValidationConfigurationItem
+                    {
+                        Name = validationName1,
+                        FailAfter = TimeSpan.FromHours(1),
+                        RequiredValidations = new List<string>(),
+                    },
+                    new ValidationConfigurationItem
+                    {
+                        Name = validationName2,
+                        FailAfter = TimeSpan.FromHours(1),
+                        RequiredValidations = new List<string> { validationName1 },
+                    },
+                    new ValidationConfigurationItem
+                    {
+                        Name = processorName1,
+                        FailAfter = TimeSpan.FromHours(1),
+                        RequiredValidations = new List<string> { validationName2 },
+                    },
+                }
+            };
+
+            var validatorProvider = new Mock<IValidatorProvider>();
+            validatorProvider
+                .Setup(x => x.GetValidator(It.Is<string>(n => n == validationName1 || n == validationName2)))
+                .Returns(() => new Mock<IValidator>().Object);
+            validatorProvider
+                .Setup(x => x.GetValidator(processorName1))
+                .Returns(() => new Mock<IProcessor>().Object);
+
+            var ex = Record.Exception(() => Validate(validatorProvider.Object, configuration));
+
+            Assert.Null(ex);
+        }
+
+        [Fact]
         public void ConfigurationValidatorDetectsLoops()
         {
 
@@ -117,7 +232,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             var ex = Record.Exception(() => Validate(configuration));
 
             Assert.IsType<ConfigurationErrorsException>(ex);
-            Assert.Contains("loop", ex.Message, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("cycle", ex.Message, StringComparison.OrdinalIgnoreCase);
         }
 
         [Fact]
@@ -139,7 +254,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             var ex = Record.Exception(() => Validate(configuration));
 
             Assert.IsType<ConfigurationErrorsException>(ex);
-            Assert.Contains("loop", ex.Message, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("cycle", ex.Message, StringComparison.OrdinalIgnoreCase);
         }
 
         [Fact]
@@ -167,7 +282,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             var ex = Record.Exception(() => Validate(configuration));
 
             Assert.IsType<ConfigurationErrorsException>(ex);
-            Assert.Contains("loop", ex.Message, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("cycle", ex.Message, StringComparison.OrdinalIgnoreCase);
         }
 
         [Fact]
@@ -408,7 +523,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             var ex = Record.Exception(() => Validate(configuration));
 
             Assert.NotNull(ex);
-            Assert.Contains("loop", ex.Message, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("cycle", ex.Message, StringComparison.OrdinalIgnoreCase);
         }
 
         public static IEnumerable<object[]> FailureBehaviorSettingsCombinations
@@ -474,12 +589,22 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             Assert.Contains("cannot be run", ex.Message, StringComparison.OrdinalIgnoreCase);
         }
 
-        private static void Validate(ValidationConfiguration configuration)
+        private static void Validate(IValidatorProvider validatorProvider, ValidationConfiguration configuration)
         {
             var optionsAccessor = new Mock<IOptionsSnapshot<ValidationConfiguration>>();
             optionsAccessor.SetupGet(cfg => cfg.Value).Returns(configuration);
-            var validator = new ConfigurationValidator(optionsAccessor.Object);
+            var validator = new ConfigurationValidator(validatorProvider, optionsAccessor.Object);
             validator.Validate();
+        }
+
+        private static void Validate(ValidationConfiguration configuration)
+        {
+            var validatorProvider = new Mock<IValidatorProvider>();
+            validatorProvider
+                .Setup(x => x.GetValidator(It.IsAny<string>()))
+                .Returns(() => new Mock<IValidator>().Object);
+
+            Validate(validatorProvider.Object, configuration);
         }
     }
 }
