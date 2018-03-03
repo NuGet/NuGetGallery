@@ -12,7 +12,7 @@ using NuGet.Services.Validation.Orchestrator;
 
 namespace NuGet.Services.Validation.PackageCertificates
 {
-    public class PackageCertificatesValidator : IValidator
+    public class PackageCertificatesValidator : BaseValidator, IValidator
     {
         private static readonly TimeSpan DefaultCertificateRevalidationThresholdTime = TimeSpan.FromDays(1);
 
@@ -117,14 +117,14 @@ namespace NuGet.Services.Validation.PackageCertificates
             }
         }
 
-        public async Task<IValidationResult> StartValidationAsync(IValidationRequest request)
+        public async Task<IValidationResult> StartAsync(IValidationRequest request)
         {
-            var validatorStatus = await StartValidationInternalAsync(request);
+            var validatorStatus = await StartInternalAsync(request);
 
             return validatorStatus.ToValidationResult();
         }
 
-        private async Task<ValidatorStatus> StartValidationInternalAsync(IValidationRequest request)
+        private async Task<ValidatorStatus> StartInternalAsync(IValidationRequest request)
         {
             var status = await _validatorStateService.GetStatusAsync(request);
 

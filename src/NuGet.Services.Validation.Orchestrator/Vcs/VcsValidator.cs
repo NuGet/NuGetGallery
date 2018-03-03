@@ -15,7 +15,7 @@ using NuGetGallery;
 
 namespace NuGet.Services.Validation.Vcs
 {
-    public class VcsValidator : IValidator
+    public class VcsValidator : BaseValidator, IValidator
     {
         private const string ValidatorName = Jobs.Validation.Common.Validators.Vcs.VcsValidator.ValidatorName;
 
@@ -107,7 +107,7 @@ namespace NuGet.Services.Validation.Vcs
             }
         }
 
-        public async Task<IValidationResult> StartValidationAsync(IValidationRequest request)
+        public async Task<IValidationResult> StartAsync(IValidationRequest request)
         {
             if (ShouldSkip(request))
             {

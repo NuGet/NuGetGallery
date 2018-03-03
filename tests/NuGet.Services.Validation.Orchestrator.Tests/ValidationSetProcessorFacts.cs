@@ -60,7 +60,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .Callback<IValidationRequest>(r => Assert.Equal(validation.Key, r.ValidationId));
 
             validator
-                .Setup(v => v.StartValidationAsync(It.IsAny<IValidationRequest>()))
+                .Setup(v => v.StartAsync(It.IsAny<IValidationRequest>()))
                 .ReturnsAsync(new ValidationResult(startStatus))
                 .Callback<IValidationRequest>(r => {
                     Assert.Equal(validation.Key, r.ValidationId);
@@ -77,7 +77,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             var processor = CreateProcessor();
             await processor.ProcessValidationsAsync(ValidationSet, Package);
 
-            validator.Verify(v => v.StartValidationAsync(It.IsAny<IValidationRequest>()), Times.AtLeastOnce());
+            validator.Verify(v => v.StartAsync(It.IsAny<IValidationRequest>()), Times.AtLeastOnce());
             if (expectStorageUpdate)
             {
                 ValidationStorageMock.Verify(
@@ -116,7 +116,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .ReturnsAsync(ValidationResult.NotStarted);
 
             validator2
-                .Setup(v => v.StartValidationAsync(It.IsAny<IValidationRequest>()))
+                .Setup(v => v.StartAsync(It.IsAny<IValidationRequest>()))
                 .ReturnsAsync(ValidationResult.Incomplete)
                 .Verifiable();
 
@@ -124,7 +124,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             await processor.ProcessValidationsAsync(ValidationSet, Package);
 
             validator2
-                .Verify(v => v.StartValidationAsync(It.IsAny<IValidationRequest>()), Times.Never());
+                .Verify(v => v.StartAsync(It.IsAny<IValidationRequest>()), Times.Never());
         }
 
         [Fact]
@@ -141,7 +141,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             await processor.ProcessValidationsAsync(ValidationSet, Package);
 
             validator
-                .Verify(v => v.StartValidationAsync(It.IsAny<IValidationRequest>()), Times.Never());
+                .Verify(v => v.StartAsync(It.IsAny<IValidationRequest>()), Times.Never());
         }
 
         [Theory]
@@ -321,7 +321,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .ReturnsAsync(ValidationResult.NotStarted)
                 .Callback<IValidationRequest>(vr => validationRequest = vr);
             validator
-                .Setup(v => v.StartValidationAsync(It.IsAny<IValidationRequest>()))
+                .Setup(v => v.StartAsync(It.IsAny<IValidationRequest>()))
                 .ReturnsAsync(ValidationResult.Incomplete);
 
             var processor = CreateProcessor();

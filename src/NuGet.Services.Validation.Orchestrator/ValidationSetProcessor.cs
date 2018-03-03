@@ -179,7 +179,7 @@ namespace NuGet.Services.Validation.Orchestrator
                             validationSet.ValidationTrackingId,
                             packageValidation.Key,
                             validationRequest.NupkgUrl);
-                        validationResult = await validator.StartValidationAsync(validationRequest);
+                        validationResult = await validator.StartAsync(validationRequest);
                         _logger.LogInformation("Got validationStatus = {ValidationStatus} for validation {ValidationType} for {PackageId} {PackageVersion}, validation set {ValidationSetId}, {ValidationId}",
                             validationResult.Status,
                             packageValidation.Type,
