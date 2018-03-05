@@ -258,14 +258,16 @@ namespace NuGetGallery
             // where sometimes packages no rows with IsLatest set. In this case, we'll just select the last inserted
             // row (descending [Key]) as opposed to reading all rows into memory and sorting on NuGetVersion.
             return packages
-                // order booleans desc so that true (1) comes first
-                .OrderByDescending(p => p.IsLatestStableSemVer2)
-                .ThenByDescending(p => p.IsLatestStable)
-                .ThenByDescending(p => p.IsLatestSemVer2)
-                .ThenByDescending(p => p.IsLatest)
-                .ThenByDescending(p => p.Key)
                 .GroupBy(p => p.PackageRegistrationKey)
-                .Select(g => g.FirstOrDefault())
+                .Select(g => g
+                    // order booleans desc so that true (1) comes first
+                    .OrderByDescending(p => p.IsLatestStableSemVer2)
+                    .ThenByDescending(p => p.IsLatestStable)
+                    .ThenByDescending(p => p.IsLatestSemVer2)
+                    .ThenByDescending(p => p.IsLatest)
+                    .ThenByDescending(p => p.Listed)
+                    .ThenByDescending(p => p.Key)
+                    .FirstOrDefault())
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
                 .ToList();
