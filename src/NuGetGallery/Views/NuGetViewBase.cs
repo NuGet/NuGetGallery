@@ -29,6 +29,8 @@ namespace NuGetGallery.Views
             get { return NuGetContext.CurrentUser; }
         }
 
+        public IContentObjectService ContentObjectService => DependencyResolver.Current.GetService<IContentObjectService>();
+
         public CookieConsentMessage CookieConsentMessage
         {
             get { return _cookieConsentMessage.Value; }
@@ -81,6 +83,8 @@ namespace NuGetGallery.Views
         {
             get { return NuGetContext.CurrentUser; }
         }
+
+        public IContentObjectService ContentObjectService => DependencyResolver.Current.GetService<IContentObjectService>();
 
         public CookieConsentMessage CookieConsentMessage
         {
