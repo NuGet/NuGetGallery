@@ -508,7 +508,7 @@ The {Config.GalleryOwner.DisplayName} Team";
             }
         }
 
-        private void AddAddressesForPackageOwnershipManagementToEmail(MailMessage mailMessage, User user)
+        private bool AddAddressesForPackageOwnershipManagementToEmail(MailMessage mailMessage, User user)
         {
             if (user is Organization organization)
             {
@@ -516,14 +516,26 @@ The {Config.GalleryOwner.DisplayName} Team";
                     .Where(m => ActionsRequiringPermissions.HandlePackageOwnershipRequest.CheckPermissions(m.Member, m.Organization) == PermissionsCheckResult.Allowed)
                     .Select(m => m.Member);
 
+                bool hasRecipients = false;
+
                 foreach (var member in membersAllowedToAct)
                 {
+                    if (!member.EmailAllowed)
+                    {
+                        continue;
+                    }
+
                     mailMessage.To.Add(member.ToMailAddress());
+
+                    hasRecipients = true;
                 }
+
+                return hasRecipients;
             }
             else
             {
                 mailMessage.To.Add(user.ToMailAddress());
+                return true;
             }
         }
 

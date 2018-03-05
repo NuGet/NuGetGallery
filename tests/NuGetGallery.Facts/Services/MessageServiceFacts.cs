@@ -57,7 +57,7 @@ namespace NuGetGallery
                 Assert.Equal(TestGalleryOwner, message.To.Single());
                 Assert.Equal(TestGalleryOwner, message.From);
                 Assert.Equal(from, message.ReplyToList.Single());
-                Assert.Equal("[Joe Shmoe] Support Request for 'smangit' version 1.42.0.1 (Reason: Reason!)", message.Subject);
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] Support Request for 'smangit' version 1.42.0.1 (Reason: Reason!)", message.Subject);
                 Assert.Contains("Reason!", message.Body);
                 Assert.Contains("Abuse!", message.Body);
                 Assert.Contains("too (legit@example.com)", message.Body);
@@ -146,7 +146,7 @@ namespace NuGetGallery
                 Assert.Equal(TestGalleryOwner, message.To[0]);
                 Assert.Equal(TestGalleryOwner, message.From);
                 Assert.Equal("legit@example.com", message.ReplyToList.Single().Address);
-                Assert.Equal("[Joe Shmoe] Owner Support Request for 'smangit' version 1.42.0.1 (Reason: Reason!)", message.Subject);
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] Owner Support Request for 'smangit' version 1.42.0.1 (Reason: Reason!)", message.Subject);
                 Assert.Contains("Reason!", message.Body);
                 Assert.Contains("Abuse!", message.Body);
                 Assert.Contains("too (legit@example.com)", message.Body);
@@ -275,7 +275,7 @@ namespace NuGetGallery
                 Assert.Equal(owner2Email, message.To[1].Address);
                 Assert.Equal(TestGalleryOwner, message.From);
                 Assert.Equal(userEmail, message.ReplyToList.Single().Address);
-                Assert.Contains($"[Joe Shmoe] Message for owners of the package '{id}'", message.Subject);
+                Assert.Contains($"[{TestGalleryOwner.DisplayName}] Message for owners of the package '{id}'", message.Subject);
                 Assert.Contains("Test message", message.Body);
                 Assert.Contains(
                     $"User {userUsername} &lt;{userEmail}&gt; sends the following message to the owners of Package '[{id} {version}]({packageUrl})'.", 
@@ -399,7 +399,7 @@ namespace NuGetGallery
 
                 Assert.Equal("legit@example.com", message.To[0].Address);
                 Assert.Equal(TestGalleryNoReplyAddress.Address, message.From.Address);
-                Assert.Equal("[Joe Shmoe] Please verify your account.", message.Subject);
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] Please verify your account.", message.Subject);
                 Assert.Contains("http://example.com/confirmation-token-url", message.Body);
             }
         }
@@ -407,10 +407,14 @@ namespace NuGetGallery
         public class TheSendEmailChangeConfirmationNoticeMethod
             : TestContainer
         {
-            [Fact]
-            public void WillSendEmail()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void WillSendEmail(bool isOrganization)
             {
-                var user = new User("user") { UnconfirmedEmailAddress = "unconfirmed@unconfirmed.com" };
+                var unconfirmedEmailAddress = "unconfirmed@unconfirmed.com";
+                var user = isOrganization ? new Organization("organization") : new User("user");
+                user.UnconfirmedEmailAddress = unconfirmedEmailAddress;
                 var tokenUrl = "http://example.com/confirmation-token-url";
 
                 var messageService = TestableMessageService.Create(GetConfigurationService());
@@ -419,7 +423,7 @@ namespace NuGetGallery
 
                 Assert.Equal(user.UnconfirmedEmailAddress, message.To[0].Address);
                 Assert.Equal(TestGalleryNoReplyAddress.Address, message.From.Address);
-                Assert.Equal("[Joe Shmoe] Please verify your account's new email address.", message.Subject);
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] Please verify your {(isOrganization ? "organization's" : "account's")} new email address.", message.Subject);
                 Assert.Contains(tokenUrl, message.Body);
             }
         }
@@ -427,30 +431,42 @@ namespace NuGetGallery
         public class TheSendEmailChangeNoticeToPreviousEmailAddressMethod
             : TestContainer
         {
-            [Fact]
-            public void WillSendEmail()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void WillSendEmail(bool isOrganization)
             {
-                var user = new User("user") { EmailAddress = "new@email.com" };
+                var newEmail = "new@email.com";
+                var user = isOrganization ? new Organization("organization") : new User("user");
+                user.EmailAddress = newEmail;
                 var oldEmail = "old@email.com";
 
                 var messageService = TestableMessageService.Create(GetConfigurationService());
                 messageService.SendEmailChangeNoticeToPreviousEmailAddress(user, oldEmail);
                 var message = messageService.MockMailSender.Sent.Last();
 
+                var accountString = isOrganization ? "organization" : "account";
+
                 Assert.Equal(oldEmail, message.To[0].Address);
                 Assert.Equal(TestGalleryNoReplyAddress.Address, message.From.Address);
-                Assert.Equal("[Joe Shmoe] Recent changes to your account.", message.Subject);
-                Assert.Contains($"The email address associated with your Joe Shmoe account was recently changed from _{oldEmail}_ to _{user.EmailAddress}_.", message.Body);
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] Recent changes to your {accountString}.", message.Subject);
+                Assert.Contains($"The email address associated with your {TestGalleryOwner.DisplayName} {accountString} was recently changed from _{oldEmail}_ to _{user.EmailAddress}_.", message.Body);
             }
         }
 
         public class TheSendPackageOwnerRequestMethod
             : TestContainer
         {
-            [Fact]
-            public void SendsPackageOwnerRequestConfirmationUrl()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void SendsPackageOwnerRequestConfirmationUrl(bool isOrganization)
             {
-                var to = new User { Username = "Noob", EmailAddress = "new-owner@example.com", EmailAllowed = true };
+                var to = isOrganization ? GetOrganizationForPackageOwnership() : new User();
+                to.Username = "Noob";
+                to.EmailAddress = "new-owner@example.com";
+                to.EmailAllowed = true;
+
                 var from = new User { Username = "Existing", EmailAddress = "existing-owner@example.com" };
                 var package = new PackageRegistration { Id = "CoolStuff" };
                 const string packageUrl = "http://nuget.local/packages/CoolStuff";
@@ -462,15 +478,24 @@ namespace NuGetGallery
                 messageService.SendPackageOwnerRequest(from, to, package, packageUrl, confirmationUrl, rejectionUrl, userMessage, string.Empty);
                 var message = messageService.MockMailSender.Sent.Last();
 
-                Assert.Equal("new-owner@example.com", message.To[0].Address);
+                var yourString = isOrganization ? "your organization" : "you";
+
+                if (isOrganization)
+                {
+                    AssertMessageSentToPackageOwnershipManagersOfOrganizationOnly(message, to as Organization);
+                }
+                else
+                {
+                    Assert.Equal(to.EmailAddress, message.To[0].Address);
+                }   
                 Assert.Equal(TestGalleryNoReplyAddress.Address, message.From.Address);
-                Assert.Equal("existing-owner@example.com", message.ReplyToList.Single().Address);
-                Assert.Equal("[Joe Shmoe] The user 'Existing' would like to add you as an owner of the package 'CoolStuff'.", message.Subject);
-                Assert.Contains("The user 'Existing' added the following message for you", message.Body);
+                Assert.Equal(from.EmailAddress, message.ReplyToList.Single().Address);
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] The user '{from.Username}' would like to add {yourString} as an owner of the package '{package.Id}'.", message.Subject);
+                Assert.Contains($"The user '{from.Username}' added the following message for you", message.Body);
                 Assert.Contains(userMessage, message.Body);
                 Assert.Contains(confirmationUrl, message.Body);
                 Assert.Contains(userMessage, message.Body);
-                Assert.Contains("The user 'Existing' would like to add you as an owner of the package 'CoolStuff'.", message.Body);
+                Assert.Contains($"The user '{from.Username}' would like to add {yourString} as an owner of the package '{package.Id}'.", message.Body);
             }
 
             [Fact]
@@ -531,7 +556,7 @@ namespace NuGetGallery
                 Assert.Equal(requestingOwner.EmailAddress, message.To[0].Address);
                 Assert.Equal(TestGalleryNoReplyAddress.Address, message.From.Address);
                 Assert.Equal(newOwner.EmailAddress, message.ReplyToList.Single().Address);
-                Assert.Equal("[Joe Shmoe] The user 'Noob' has rejected your request to add them as an owner of the package 'CoolStuff'.", message.Subject);
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] The user '{newOwner.Username}' has rejected your request to add them as an owner of the package '{package.Id}'.", message.Subject);
                 Assert.Contains("The user 'Noob' has rejected your request to add them as an owner of the package 'CoolStuff'.", message.Body);
             }
 
@@ -573,7 +598,7 @@ namespace NuGetGallery
                 Assert.Equal(newOwner.EmailAddress, message.To[0].Address);
                 Assert.Equal(TestGalleryNoReplyAddress.Address, message.From.Address);
                 Assert.Equal(requestingOwner.EmailAddress, message.ReplyToList.Single().Address);
-                Assert.Equal("[Joe Shmoe] The user 'Existing' has cancelled their request for you to be added as an owner of the package 'CoolStuff'.", message.Subject);
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] The user '{requestingOwner.Username}' has cancelled their request for you to be added as an owner of the package '{package.Id}'.", message.Subject);
                 Assert.Contains("The user 'Existing' has cancelled their request for you to be added as an owner of the package 'CoolStuff'.", message.Body);
             }
 
@@ -674,6 +699,50 @@ namespace NuGetGallery
             }
         }
 
+        private static Organization GetOrganizationForPackageOwnership()
+        {
+            var collaborator = new User("collaborator") { EmailAddress = "collab@org.com" };
+            var admin1 = new User("admin1") { EmailAddress = "admin1@org.com" };
+            var admin2 = new User("admin2") { EmailAddress = "admin2@org.com" };
+            var org = new Organization("org")
+            {
+                EmailAddress = "org@org.com",
+                Members = new List<Membership>()
+            };
+
+            org.Members.Add(GetMembershipForPackageOwnership(org, collaborator, false));
+            org.Members.Add(GetMembershipForPackageOwnership(org, admin1, true));
+            org.Members.Add(GetMembershipForPackageOwnership(org, admin2, true));
+
+            return org;
+        }
+
+        private static Membership GetMembershipForPackageOwnership(Organization org, User member, bool isAdmin)
+        {
+            return new Membership
+            {
+                IsAdmin = isAdmin,
+                Member = member,
+                Organization = org
+            };
+        }
+
+        private static void AssertMessageSentToPackageOwnershipManagersOfOrganizationOnly(MailMessage message, Organization organization)
+        {
+            var membersAllowedToAct = organization.Members
+                .Where(m => ActionsRequiringPermissions.HandlePackageOwnershipRequest.CheckPermissions(m.Member, m.Organization) == PermissionsCheckResult.Allowed)
+                .Select(m => m.Member);
+
+            // Each member must appear in the To list at least once.
+            foreach (var member in membersAllowedToAct)
+            {
+                Assert.True(message.To.Any(a => member.EmailAddress == a.Address));
+            }
+
+            // The size of the To list and admins should be the same.
+            Assert.Equal(membersAllowedToAct.Count(), message.To.Count());
+        }
+
         public class TheSendResetPasswordInstructionsMethod
             : TestContainer
         {
@@ -688,7 +757,7 @@ namespace NuGetGallery
 
                 Assert.Equal("legit@example.com", message.To[0].Address);
                 Assert.Equal(TestGalleryNoReplyAddress.Address, message.From.Address);
-                Assert.Equal("[Joe Shmoe] Please reset your password.", message.Subject);
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] Please reset your password.", message.Subject);
                 Assert.Contains("Click the following link within the next", message.Body);
                 Assert.Contains("http://example.com/pwd-reset-token-url", message.Body);
             }
@@ -862,9 +931,9 @@ namespace NuGetGallery
                 Assert.Equal("yung@example.com", message.To[0].Address);
                 Assert.Equal("flynt@example.com", message.To[1].Address);
                 Assert.Equal(TestGalleryNoReplyAddress, message.From);
-                Assert.Contains($"[Joe Shmoe] Package published - {packageRegistration.Id} {nugetVersion.ToNormalizedString()}", message.Subject);
+                Assert.Contains($"[{TestGalleryOwner.DisplayName}] Package published - {packageRegistration.Id} {nugetVersion.ToNormalizedString()}", message.Subject);
                 Assert.Contains(
-                    $"The package [{packageRegistration.Id} {nugetVersion.ToFullString()}]({packageUrl}) was just published on Joe Shmoe. If this was not intended, please [contact support]({supportUrl}).", message.Body);
+                    $"The package [{packageRegistration.Id} {nugetVersion.ToFullString()}]({packageUrl}) was just published on {TestGalleryOwner.DisplayName}. If this was not intended, please [contact support]({supportUrl}).", message.Body);
             }
 
             [Fact]
@@ -969,9 +1038,9 @@ namespace NuGetGallery
                 Assert.Equal("yung@example.com", message.To[0].Address);
                 Assert.Equal("flynt@example.com", message.To[1].Address);
                 Assert.Equal(TestGalleryNoReplyAddress, message.From);
-                Assert.Contains($"[Joe Shmoe] Package validation failed - {packageRegistration.Id} {nugetVersion.ToNormalizedString()}", message.Subject);
+                Assert.Contains($"[{TestGalleryOwner.DisplayName}] Package validation failed - {packageRegistration.Id} {nugetVersion.ToNormalizedString()}", message.Subject);
                 Assert.Contains(
-                    $"The package [{packageRegistration.Id} {nugetVersion.ToFullString()}]({packageUrl}) failed validation and was therefore not published on Joe Shmoe. " +
+                    $"The package [{packageRegistration.Id} {nugetVersion.ToFullString()}]({packageUrl}) failed validation and was therefore not published on {TestGalleryOwner.DisplayName}. " +
                     $"Note that the package will not be available for consumption and you will not be able to push the same package ID and version until further action is taken. " +
                     $"Please [contact support]({supportUrl}) for next steps.", message.Body);
             }
@@ -1061,10 +1130,10 @@ namespace NuGetGallery
                 Assert.Equal("yung@example.com", message.To[0].Address);
                 Assert.Equal("flynt@example.com", message.To[1].Address);
                 Assert.Equal(TestGalleryNoReplyAddress, message.From);
-                Assert.Contains($"[Joe Shmoe] Package validation failed - {packageRegistration.Id} {nugetVersion.ToNormalizedString()}", message.Subject);
+                Assert.Contains($"[{TestGalleryOwner.DisplayName}] Package validation failed - {packageRegistration.Id} {nugetVersion.ToNormalizedString()}", message.Subject);
                 Assert.Contains(
                     $"The package [{packageRegistration.Id} {nugetVersion.ToFullString()}]({packageUrl}) could not be published since it is signed. " +
-                    $"Joe Shmoe does not accept signed packages at this moment. To be notified when Joe Shmoe starts accepting signed packages, " +
+                    $"{TestGalleryOwner.DisplayName} does not accept signed packages at this moment. To be notified when {TestGalleryOwner.DisplayName} starts accepting signed packages, " +
                     $"and more, watch our [Announcements]({announcementsUrl}) page or follow us on [Twitter]({twitterUrl}).", message.Body);
             }
 
@@ -1150,7 +1219,7 @@ namespace NuGetGallery
                 Assert.Equal("yung@example.com", message.To[0].Address);
                 Assert.Equal("flynt@example.com", message.To[1].Address);
                 Assert.Equal(TestGalleryNoReplyAddress, message.From);
-                Assert.Contains($"[Joe Shmoe] Package validation taking longer than expected - {packageRegistration.Id} {nugetVersion.ToNormalizedString()}", message.Subject);
+                Assert.Contains($"[{TestGalleryOwner.DisplayName}] Package validation taking longer than expected - {packageRegistration.Id} {nugetVersion.ToNormalizedString()}", message.Subject);
                 Assert.Contains(
                     $"It is taking longer than expected for your package [{packageRegistration.Id} {nugetVersion.ToFullString()}]({packageUrl}) to get published.\n\n" +
                     $"We are looking into it and there is no action on you at this time. We’ll send you an email notification when your package has been published.\n\n" +
@@ -1241,10 +1310,10 @@ namespace NuGetGallery
                 Assert.Equal("yung@example.com", message.To[0].Address);
                 Assert.Equal("flynt@example.com", message.To[1].Address);
                 Assert.Equal(TestGalleryNoReplyAddress, message.From);
-                Assert.Contains($"[Joe Shmoe] Package uploaded - {packageRegistration.Id} {nugetVersion.ToNormalizedString()}", message.Subject);
+                Assert.Contains($"[{TestGalleryOwner.DisplayName}] Package uploaded - {packageRegistration.Id} {nugetVersion.ToNormalizedString()}", message.Subject);
                 Assert.DoesNotContain("publish", message.Subject);
                 Assert.Contains(
-                    $"The package [{packageRegistration.Id} {nugetVersion.ToFullString()}]({packageUrl}) was just uploaded to Joe Shmoe. If this was not intended, please [contact support]({supportUrl}).", message.Body);
+                    $"The package [{packageRegistration.Id} {nugetVersion.ToFullString()}]({packageUrl}) was just uploaded to {TestGalleryOwner.DisplayName}. If this was not intended, please [contact support]({supportUrl}).", message.Body);
             }
 
             [Fact]
@@ -1344,9 +1413,9 @@ namespace NuGetGallery
                 Assert.Equal("yung@example.com", message.To[0].Address);
                 Assert.Equal("flynt@example.com", message.To[1].Address);
                 Assert.Equal(TestGalleryNoReplyAddress, message.From);
-                Assert.Contains($"[Joe Shmoe] Package deleted - {packageRegistration.Id} {nugetVersion.ToNormalizedString()}", message.Subject);
+                Assert.Contains($"[{TestGalleryOwner.DisplayName}] Package deleted - {packageRegistration.Id} {nugetVersion.ToNormalizedString()}", message.Subject);
                 Assert.Contains(
-                    $"The package [{packageRegistration.Id} {nugetVersion.ToFullString()}]({packageUrl}) was just deleted from Joe Shmoe. If this was not intended, please [contact support]({supportUrl}).", message.Body);
+                    $"The package [{packageRegistration.Id} {nugetVersion.ToFullString()}]({packageUrl}) was just deleted from {TestGalleryOwner.DisplayName}. If this was not intended, please [contact support]({supportUrl}).", message.Body);
             }
         }
         public class TheSendOrganizationTransformRequestMethod
