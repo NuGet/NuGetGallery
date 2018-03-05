@@ -383,9 +383,7 @@ namespace NuGetGallery
             }
             
             var existingUserWithIdentity = EntitiesContext.Users
-                .FirstOrDefault(u => 
-                    u.Username.Equals(username, StringComparison.OrdinalIgnoreCase) || 
-                    string.Equals(u.EmailAddress, emailAddress, StringComparison.OrdinalIgnoreCase));
+                .FirstOrDefault(u => u.Username == username || u.EmailAddress == emailAddress);
             if (existingUserWithIdentity != null)
             {
                 if (existingUserWithIdentity.Username.Equals(username, StringComparison.OrdinalIgnoreCase))

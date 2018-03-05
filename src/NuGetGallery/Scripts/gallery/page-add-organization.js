@@ -41,4 +41,9 @@
 
         _gravatar.attr("src", src);
     }
+
+    // Immediately fetch the image if the email box is filled in initially.
+    if (_emailBox.val()) {
+        UpdateGravatar();
+    }
 });
