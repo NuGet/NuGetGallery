@@ -912,8 +912,6 @@
     <Compile Include="RequestModels\ReadMeRequest.cs" />
     <Compile Include="Security\DefaultSubscription.cs" />
     <Compile Include="Security\RequireMinProtocolVersionForPushPolicy.cs" />
-    <Compile Include="Security\RequireSecurePushForCoOwnersPolicy.cs" />
-    <Compile Include="Security\SecurePushSubscription.cs" />
     <Compile Include="Security\IUserSecurityPolicySubscription.cs" />
     <Compile Include="OData\Serializers\FeedPackageAnnotationStrategy.cs" />
     <Compile Include="OData\Serializers\IFeedPackageAnnotationStrategy.cs" />
@@ -922,7 +920,6 @@
     <Compile Include="Security\UserSecurityPolicyHandler.cs" />
     <Compile Include="Security\ISecurityPolicyService.cs" />
     <Compile Include="Security\RequirePackageVerifyScopePolicy.cs" />
-    <Compile Include="Security\RequireMinClientVersionForPushPolicy.cs" />
     <Compile Include="Security\SecurityPolicyAction.cs" />
     <Compile Include="Security\SecurityPolicyService.cs" />
     <Compile Include="Security\UserSecurityPolicyEvaluationContext.cs" />

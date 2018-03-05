@@ -114,7 +114,7 @@ namespace NuGetGallery
                 {
                     success = true,
                     confirmation = string.Format(CultureInfo.CurrentCulture, Strings.AddOwnerConfirmation, username),
-                    policyMessage = GetNoticeOfPoliciesRequiredConfirmation(model.Package, model.User, model.CurrentUser)
+                    policyMessage = string.Empty
                 },
                 JsonRequestBehavior.AllowGet);
             }
@@ -149,10 +149,9 @@ namespace NuGetGallery
                     relativeUrl: false);
 
                 var packageUrl = Url.Package(model.Package.Id, version: null, relativeUrl: false);
-                var policyMessage = GetNoticeOfPoliciesRequiredMessage(model.Package, model.User, model.CurrentUser);
 
                 _messageService.SendPackageOwnerRequest(model.CurrentUser, model.User, model.Package, packageUrl,
-                    confirmationUrl, rejectionUrl, encodedMessage, policyMessage);
+                    confirmationUrl, rejectionUrl, encodedMessage, policyMessage: string.Empty);
 
                 return Json(new
                 {
@@ -202,97 +201,6 @@ namespace NuGetGallery
             {
                 return Json(new { success = false, message = model.Error }, JsonRequestBehavior.AllowGet);
             }
-        }
-
-        /// <summary>
-        /// UI confirmation message for adding owner from ManageOwners.cshtml
-        /// </summary>
-        private string GetNoticeOfPoliciesRequiredConfirmation(PackageRegistration package, User user, User currentUser)
-        {
-            if (IsFirstPropagatingOwner(package, user))
-            {
-                return string.Format(CultureInfo.CurrentCulture,
-                    Strings.AddOwnerConfirmation_SecurePushRequiredByNewOwner,
-                    user.Username, GetSecurePushPolicyDescriptions(), _appConfiguration.GalleryOwner.Address);
-            }
-            else if (!_policyService.IsSubscribed(user, SecurePushSubscription.Name))
-            {
-                IEnumerable<string> propagating = null;
-                if ((propagating = GetPropagatingOwners(package)).Any())
-                {
-                    var propagators = string.Join(", ", propagating);
-                    return string.Format(CultureInfo.CurrentCulture,
-                        Strings.AddOwnerConfirmation_SecurePushRequiredByOwner,
-                        propagators, user.Username, GetSecurePushPolicyDescriptions(), _appConfiguration.GalleryOwner.Address);
-                }
-                else if ((propagating = GetPendingPropagatingOwners(package)).Any())
-                {
-                    var propagators = string.Join(", ", propagating);
-                    return string.Format(CultureInfo.CurrentCulture,
-                        Strings.AddOwnerConfirmation_SecurePushRequiredByPendingOwner,
-                        propagators, user.Username, GetSecurePushPolicyDescriptions(), _appConfiguration.GalleryOwner.Address);
-                }
-            }
-            return string.Empty;
-        }
-
-        /// <summary>
-        /// Policy message for the package owner request notification.
-        /// </summary>
-        private string GetNoticeOfPoliciesRequiredMessage(PackageRegistration package, User user, User currentUser)
-        {
-            IEnumerable<string> propagating = null;
-
-            if (IsFirstPropagatingOwner(package, user))
-            {
-                return string.Format(CultureInfo.CurrentCulture,
-                    Strings.AddOwnerRequest_SecurePushRequiredByNewOwner,
-                    _appConfiguration.GalleryOwner.Address, GetSecurePushPolicyDescriptions());
-            }
-            else if (!_policyService.IsSubscribed(user, SecurePushSubscription.Name))
-            {
-                if ((propagating = GetPropagatingOwners(package)).Any())
-                {
-                    var propagators = string.Join(", ", propagating);
-                    return string.Format(CultureInfo.CurrentCulture,
-                        Strings.AddOwnerRequest_SecurePushRequiredByOwner,
-                        propagators, _appConfiguration.GalleryOwner.Address, GetSecurePushPolicyDescriptions());
-                }
-                else if ((propagating = GetPendingPropagatingOwners(package)).Any())
-                {
-                    var propagators = string.Join(", ", propagating);
-                    return string.Format(CultureInfo.CurrentCulture,
-                        Strings.AddOwnerRequest_SecurePushRequiredByPendingOwner,
-                        propagators, _appConfiguration.GalleryOwner.Address, GetSecurePushPolicyDescriptions());
-                }
-            }
-
-            return string.Empty;
-        }
-
-        private bool IsFirstPropagatingOwner(PackageRegistration package, User user)
-        {
-            return RequireSecurePushForCoOwnersPolicy.IsSubscribed(user) &&
-                !package.Owners.Any(RequireSecurePushForCoOwnersPolicy.IsSubscribed);
-        }
-
-        private IEnumerable<string> GetPropagatingOwners(PackageRegistration package)
-        {
-            return package.Owners.Where(RequireSecurePushForCoOwnersPolicy.IsSubscribed).Select(o => o.Username);
-        }
-
-        private IEnumerable<string> GetPendingPropagatingOwners(PackageRegistration package)
-        {
-            return _packageOwnershipManagementService.GetPackageOwnershipRequests(package: package)
-                .Select(po => po.NewOwner)
-                .Where(RequireSecurePushForCoOwnersPolicy.IsSubscribed)
-                .Select(po => po.Username);
-        }
-
-        private string GetSecurePushPolicyDescriptions()
-        {
-            return string.Format(CultureInfo.CurrentCulture, Strings.SecurePushPolicyDescriptionsHtml,
-                SecurePushSubscription.MinProtocolVersion, SecurePushSubscription.PushKeysExpirationInDays);
         }
 
         private bool TryGetManagePackageOwnerModel(string id, string username, bool isAddOwner, out ManagePackageOwnerModel model)

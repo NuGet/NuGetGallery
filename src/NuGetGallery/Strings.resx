@@ -453,10 +453,6 @@ The {1} Team</value>
   <data name="AddOwner_PackageNotFound" xml:space="preserve">
     <value>Package not found.</value>
   </data>
-  <data name="SecurePushPolicyDescriptions" xml:space="preserve">
-    <value>1. All co-owners must use client version {0} or higher to push all of their packages.
-2. All existing push API keys for co-owners new to this policy will expire in {1} days.</value>
-  </data>
   <data name="AddOwnerConfirmation_SecurePushRequiredByNewOwner" xml:space="preserve">
     <value>User '{0}' has the following requirements that will be enforced for all co-owners once the user accepts ownership of this package:
 {1}
@@ -504,12 +500,6 @@ For more information, please contact '{2}'.</value>
   <data name="DisplayPackage_SecurePushRequired" xml:space="preserve">
     <value>Owner(s) '{0}' require(s) that all co-owners use client version {1} or higher to push all of their packages. For more information, contact {2}.
 </value>
-  </data>
-  <data name="SecurePushPolicyDescriptionsHtml" xml:space="preserve">
-    <value>&lt;ol&gt;
-&lt;li&gt;All co-owners must use client version {0} or higher to push all of their packages.&lt;/li&gt;
-&lt;li&gt;All existing push API keys for co-owners new to this policy will expire in {1} days.&lt;/li&gt;
-&lt;/ol&gt;</value>
   </data>
   <data name="UploadPackage_UploadInProgress" xml:space="preserve">
     <value>Cannot upload file because an upload is already in progress.</value>

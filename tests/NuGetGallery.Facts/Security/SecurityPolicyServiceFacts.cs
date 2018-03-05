@@ -55,11 +55,10 @@ namespace NuGetGallery.Security
 
             // Assert
             Assert.NotNull(handlers);
-            Assert.Equal(4, handlers.Count);
-            Assert.Equal(typeof(RequireMinClientVersionForPushPolicy), handlers[0].GetType());
-            Assert.Equal(typeof(RequirePackageVerifyScopePolicy), handlers[1].GetType());
-            Assert.Equal(typeof(RequireMinProtocolVersionForPushPolicy), handlers[2].GetType());
-            Assert.Equal(typeof(RequireOrganizationTenantPolicy), handlers[3].GetType());
+            Assert.Equal(3, handlers.Count);
+            Assert.Equal(typeof(RequirePackageVerifyScopePolicy), handlers[0].GetType());
+            Assert.Equal(typeof(RequireMinProtocolVersionForPushPolicy), handlers[1].GetType());
+            Assert.Equal(typeof(RequireOrganizationTenantPolicy), handlers[2].GetType());
         }
 
         [Fact]
