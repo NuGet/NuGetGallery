@@ -29,7 +29,7 @@ namespace NuGetGallery.Views
             get { return NuGetContext.CurrentUser; }
         }
 
-        public IContentObjectService ContentObjectService => DependencyResolver.Current.GetService<IContentObjectService>();
+        public Lazy<IContentObjectService> ContentObjectService => new Lazy<IContentObjectService>(() => DependencyResolver.Current.GetService<IContentObjectService>());
 
         public CookieConsentMessage CookieConsentMessage
         {
@@ -84,7 +84,7 @@ namespace NuGetGallery.Views
             get { return NuGetContext.CurrentUser; }
         }
 
-        public IContentObjectService ContentObjectService => DependencyResolver.Current.GetService<IContentObjectService>();
+        public Lazy<IContentObjectService> ContentObjectService => new Lazy<IContentObjectService>(() => DependencyResolver.Current.GetService<IContentObjectService>());
 
         public CookieConsentMessage CookieConsentMessage
         {

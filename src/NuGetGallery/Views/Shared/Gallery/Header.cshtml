@@ -119,7 +119,7 @@
                                         <li role="presentation"><a href="@Url.ManageMyApiKeys()" role="menuitem">API Keys</a></li>
                                         <li class="divider"></li>
                                         @if (CurrentUser.Organizations.Any() || 
-                                            ContentObjectService.LoginDiscontinuationConfiguration.AreOrganizationsSupportedForUser(CurrentUser))
+                                            ContentObjectService.Value.LoginDiscontinuationConfiguration.AreOrganizationsSupportedForUser(CurrentUser))
                                         {
                                             <li role="presentation"><a href="@Url.ManageMyOrganizations()" role="menuitem">Manage Organizations</a></li>
                                         }
