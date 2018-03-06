@@ -138,7 +138,7 @@ namespace NuGetGallery.Controllers
                         .ToV1FeedPackageQuery(GetSiteRoot());
 
                     return QueryResult(options, pagedQueryable, MaxPageSize, totalHits, (o, s, resultCount) =>
-                       SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { id }, o, s, semVerLevelKey: null));
+                       SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { id }, o, s));
                 }
             }
             catch (Exception ex)
@@ -229,7 +229,7 @@ namespace NuGetGallery.Controllers
                     .ToV1FeedPackageQuery(GetSiteRoot());
 
                 return QueryResult(options, pagedQueryable, MaxPageSize, totalHits, (o, s, resultCount) =>
-                   SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { searchTerm, targetFramework }, o, s, semVerLevelKey: null));
+                   SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { searchTerm, targetFramework }, o, s));
             }
 
             if (!ODataQueryVerifier.AreODataOptionsAllowed(options, ODataQueryVerifier.V1Search,
