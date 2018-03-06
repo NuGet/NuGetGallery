@@ -382,7 +382,10 @@ The {Config.GalleryOwner.DisplayName} Team";
                 mailMessage.From = Config.GalleryNoReplyAddress;
                 mailMessage.ReplyToList.Add(fromUser.ToMailAddress());
 
-                AddAddressesForPackageOwnershipManagementToEmail(mailMessage, toUser);
+                if (!AddAddressesForPackageOwnershipManagementToEmail(mailMessage, toUser))
+                {
+                    return;
+                }
 
                 SendMessage(mailMessage);
             }
@@ -411,7 +414,11 @@ The {Config.GalleryOwner.DisplayName} Team");
                 mailMessage.From = Config.GalleryNoReplyAddress;
                 mailMessage.ReplyToList.Add(newOwner.ToMailAddress());
 
-                AddAddressesForPackageOwnershipManagementToEmail(mailMessage, requestingOwner);
+                if (!AddAddressesForPackageOwnershipManagementToEmail(mailMessage, requestingOwner))
+                {
+                    return;
+                }
+
                 SendMessage(mailMessage);
             }
         }
@@ -439,7 +446,11 @@ The {Config.GalleryOwner.DisplayName} Team");
                 mailMessage.From = Config.GalleryNoReplyAddress;
                 mailMessage.ReplyToList.Add(requestingOwner.ToMailAddress());
 
-                AddAddressesForPackageOwnershipManagementToEmail(mailMessage, newOwner);
+                if (!AddAddressesForPackageOwnershipManagementToEmail(mailMessage, newOwner))
+                {
+                    return;
+                }
+
                 SendMessage(mailMessage);
             }
         }
@@ -473,7 +484,10 @@ The {3} Team";
                 mailMessage.From = Config.GalleryNoReplyAddress;
                 mailMessage.ReplyToList.Add(Config.GalleryNoReplyAddress);
 
-                AddAddressesForPackageOwnershipManagementToEmail(mailMessage, toUser);
+                if (!AddAddressesForPackageOwnershipManagementToEmail(mailMessage, toUser))
+                {
+                    return;
+                }
                 SendMessage(mailMessage);
             }
         }
@@ -503,7 +517,11 @@ The {Config.GalleryOwner.DisplayName} Team";
                 mailMessage.From = Config.GalleryNoReplyAddress;
                 mailMessage.ReplyToList.Add(fromUser.ToMailAddress());
 
-                AddAddressesForPackageOwnershipManagementToEmail(mailMessage, toUser);
+                if (!AddAddressesForPackageOwnershipManagementToEmail(mailMessage, toUser))
+                {
+                    return;
+                }
+
                 SendMessage(mailMessage);
             }
         }

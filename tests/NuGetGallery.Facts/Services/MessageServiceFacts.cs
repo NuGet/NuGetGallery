@@ -498,10 +498,15 @@ namespace NuGetGallery
                 Assert.Contains($"The user '{from.Username}' would like to add {yourString} as an owner of the package '{package.Id}'.", message.Body);
             }
 
-            [Fact]
-            public void SendsPackageOwnerRequestConfirmationUrlWithoutUserMessage()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void SendsPackageOwnerRequestConfirmationUrlWithoutUserMessage(bool isOrganization)
             {
-                var to = new User { Username = "Noob", EmailAddress = "new-owner@example.com", EmailAllowed = true };
+                var to = isOrganization ? GetOrganizationForPackageOwnership() : new User();
+                to.Username = "Noob";
+                to.EmailAddress = "new-owner@example.com";
+                to.EmailAllowed = true;
                 var from = new User { Username = "Existing", EmailAddress = "existing-owner@example.com" };
                 var package = new PackageRegistration { Id = "CoolStuff" };
                 const string packageUrl = "http://nuget.local/packages/CoolStuff";
@@ -515,10 +520,15 @@ namespace NuGetGallery
                 Assert.DoesNotContain("The user 'Existing' added the following message for you", message.Body);
             }
 
-            [Fact]
-            public void DoesNotSendRequestIfUserDoesNotAllowEmails()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void DoesNotSendRequestIfUserDoesNotAllowEmails(bool isOrganization)
             {
-                var to = new User { Username = "Noob", EmailAddress = "new-owner@example.com", EmailAllowed = false };
+                var to = isOrganization ? GetOrganizationForPackageOwnershipWithoutRecipients() : new User();
+                to.Username = "Noob";
+                to.EmailAddress = "new-owner@example.com";
+                to.EmailAllowed = false;
                 var from = new User { Username = "Existing", EmailAddress = "existing-owner@example.com" };
                 var package = new PackageRegistration { Id = "CoolStuff" };
                 const string packageUrl = "http://nuget.local/packages/CoolStuff";
@@ -535,10 +545,15 @@ namespace NuGetGallery
         public class TheSendPackageOwnerRequestRejectionNoticeMethod
             : TestContainer
         {
-            [Fact]
-            public void SendsNotice()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void SendsNotice(bool isOrganization)
             {
-                var requestingOwner = new User { Username = "Existing", EmailAddress = "existing-owner@example.com", EmailAllowed = true };
+                var requestingOwner = isOrganization ? GetOrganizationForPackageOwnership() : new User();
+                requestingOwner.Username = "Existing";
+                requestingOwner.EmailAddress = "existing-owner@example.com";
+                requestingOwner.EmailAllowed = true;
                 var newOwner = new User { Username = "Noob", EmailAddress = "new-owner@example.com" };
                 var package = new PackageRegistration { Id = "CoolStuff" };
 
@@ -553,17 +568,31 @@ namespace NuGetGallery
                 messageService.SendPackageOwnerRequestRejectionNotice(requestingOwner, newOwner, package);
                 var message = messageService.MockMailSender.Sent.Last();
 
-                Assert.Equal(requestingOwner.EmailAddress, message.To[0].Address);
+                var yourString = isOrganization ? "your organization's" : "your";
+
+                if (isOrganization)
+                {
+                    AssertMessageSentToPackageOwnershipManagersOfOrganizationOnly(message, requestingOwner as Organization);
+                }
+                else
+                {
+                    Assert.Equal(requestingOwner.EmailAddress, message.To[0].Address);
+                }
                 Assert.Equal(TestGalleryNoReplyAddress.Address, message.From.Address);
                 Assert.Equal(newOwner.EmailAddress, message.ReplyToList.Single().Address);
-                Assert.Equal($"[{TestGalleryOwner.DisplayName}] The user '{newOwner.Username}' has rejected your request to add them as an owner of the package '{package.Id}'.", message.Subject);
-                Assert.Contains("The user 'Noob' has rejected your request to add them as an owner of the package 'CoolStuff'.", message.Body);
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] The user '{newOwner.Username}' has rejected {yourString} request to add them as an owner of the package '{package.Id}'.", message.Subject);
+                Assert.Contains($"The user '{newOwner.Username}' has rejected {yourString} request to add them as an owner of the package '{package.Id}'.", message.Body);
             }
 
-            [Fact]
-            public void DoesNotSendNoticeIfUserDoesNotAllowEmails()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void DoesNotSendNoticeIfUserDoesNotAllowEmails(bool isOrganization)
             {
-                var requestingOwner = new User { Username = "Existing", EmailAddress = "existing-owner@example.com" };
+                var requestingOwner = isOrganization ? GetOrganizationForPackageOwnershipWithoutRecipients() : new User();
+                requestingOwner.Username = "Existing";
+                requestingOwner.EmailAddress = "existing-owner@example.com";
+                requestingOwner.EmailAllowed = false;
                 var newOwner = new User { Username = "Noob", EmailAddress = "new-owner@example.com" };
                 var package = new PackageRegistration { Id = "CoolStuff" };
 
@@ -584,29 +613,49 @@ namespace NuGetGallery
         public class TheSendPackageOwnerRequestCancellationNoticeMethod
             : TestContainer
         {
-            [Fact]
-            public void SendsNotice()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void SendsNotice(bool isOrganization)
             {
                 var requestingOwner = new User { Username = "Existing", EmailAddress = "existing-owner@example.com" };
-                var newOwner = new User { Username = "Noob", EmailAddress = "new-owner@example.com", EmailAllowed = true };
+                var newOwner = isOrganization ? GetOrganizationForPackageOwnership() : new User();
+                newOwner.Username = "Noob";
+                newOwner.EmailAddress = "new-owner@example.com";
+                newOwner.EmailAllowed = true;
                 var package = new PackageRegistration { Id = "CoolStuff" };
 
                 var messageService = TestableMessageService.Create(GetConfigurationService());
                 messageService.SendPackageOwnerRequestCancellationNotice(requestingOwner, newOwner, package);
                 var message = messageService.MockMailSender.Sent.Last();
 
-                Assert.Equal(newOwner.EmailAddress, message.To[0].Address);
+                var yourString = isOrganization ? "your organization" : "you";
+
+                if (isOrganization)
+                {
+                    AssertMessageSentToPackageOwnershipManagersOfOrganizationOnly(message, newOwner as Organization);
+                }
+                else
+                {
+                    Assert.Equal(newOwner.EmailAddress, message.To[0].Address);
+                }
                 Assert.Equal(TestGalleryNoReplyAddress.Address, message.From.Address);
                 Assert.Equal(requestingOwner.EmailAddress, message.ReplyToList.Single().Address);
-                Assert.Equal($"[{TestGalleryOwner.DisplayName}] The user '{requestingOwner.Username}' has cancelled their request for you to be added as an owner of the package '{package.Id}'.", message.Subject);
-                Assert.Contains("The user 'Existing' has cancelled their request for you to be added as an owner of the package 'CoolStuff'.", message.Body);
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] The user '{requestingOwner.Username}' has cancelled their request for {yourString} to be added as an owner of the package '{package.Id}'.", message.Subject);
+                Assert.Contains($"The user '{requestingOwner.Username}' has cancelled their request for {yourString} to be added as an owner of the package '{package.Id}'.", message.Body);
             }
 
-            [Fact]
-            public void DoesNotSendNoticeIfUserDoesNotAllowEmails()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void DoesNotSendNoticeIfUserDoesNotAllowEmails(bool isOrganization)
             {
                 var requestingOwner = new User { Username = "Existing", EmailAddress = "existing-owner@example.com" };
-                var newOwner = new User { Username = "Noob", EmailAddress = "new-owner@example.com" };
+
+                var newOwner = isOrganization ? GetOrganizationForPackageOwnershipWithoutRecipients() : new User();
+                newOwner.Username = "Noob";
+                newOwner.EmailAddress = "new-owner@example.com";
+                newOwner.EmailAllowed = false;
                 var package = new PackageRegistration { Id = "CoolStuff" };
 
                 var request = new PackageOwnerRequest
@@ -626,11 +675,16 @@ namespace NuGetGallery
         public class TheSendPackageOwnerAddedNoticeMethod
             : TestContainer
         {
-            [Fact]
-            public void SendsPackageOwnerAddedNotice()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void SendsPackageOwnerAddedNotice(bool isOrganization)
             {
                 // Arrange
-                var toUser = new User { Username = "Existing", EmailAddress = "existing-owner@example.com", EmailAllowed = true };
+                var toUser = isOrganization ? GetOrganizationForPackageOwnership() : new User();
+                toUser.Username = "Existing";
+                toUser.EmailAddress = "existing-owner@example.com";
+                toUser.EmailAllowed = true;
                 var newUser = new User { Username = "Noob", EmailAddress = "new-owner@example.com" };
                 var package = new PackageRegistration { Id = "CoolStuff" };
                 var messageService = TestableMessageService.Create(GetConfigurationService());
@@ -640,18 +694,30 @@ namespace NuGetGallery
 
                 // Assert
                 var message = messageService.MockMailSender.Sent.Last();
-                Assert.Equal("existing-owner@example.com", message.To[0].Address);
+                if (isOrganization)
+                {
+                    AssertMessageSentToPackageOwnershipManagersOfOrganizationOnly(message, toUser as Organization);
+                }
+                else
+                {
+                    Assert.Equal(toUser.EmailAddress, message.To[0].Address);
+                }
                 Assert.Equal(TestGalleryNoReplyAddress.Address, "noreply@example.com");
-                Assert.Contains("The user 'Noob' is now an owner of the package 'CoolStuff'.", message.Subject);
-                Assert.Contains("This is to inform you that 'Noob' is now an owner of the package", message.Body);
+                Assert.Contains($"The user '{newUser.Username}' is now an owner of the package '{package.Id}'.", message.Subject);
+                Assert.Contains($"This is to inform you that '{newUser.Username}' is now an owner of the package", message.Body);
                 Assert.Contains("policyMessage", message.Body);
             }
 
-            [Fact]
-            public void DoesNotSendPackageOwnerAddedNoticeIfUserDoesNotAllowEmails()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void DoesNotSendPackageOwnerAddedNoticeIfUserDoesNotAllowEmails(bool isOrganization)
             {
                 // Arrange
-                var toUser = new User { Username = "Existing", EmailAddress = "existing-owner@example.com" };
+                var toUser = isOrganization ? GetOrganizationForPackageOwnershipWithoutRecipients() : new User();
+                toUser.Username = "Existing";
+                toUser.EmailAddress = "existing-owner@example.com";
+                toUser.EmailAllowed = false;
                 var newUser = new User { Username = "Noob", EmailAddress = "new-owner@example.com", EmailAllowed = false };
                 var package = new PackageRegistration { Id = "CoolStuff" };
                 var messageService = TestableMessageService.Create(GetConfigurationService());
@@ -667,10 +733,15 @@ namespace NuGetGallery
         public class TheSendPackageOwnerRemovedNoticeMethod
             : TestContainer
         {
-            [Fact]
-            public void SendsPackageOwnerRemovedNotice()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void SendsPackageOwnerRemovedNotice(bool isOrganization)
             {
-                var to = new User { Username = "Noob", EmailAddress = "old-owner@example.com", EmailAllowed = true };
+                var to = isOrganization ? GetOrganizationForPackageOwnership() : new User();
+                to.Username = "Noob";
+                to.EmailAddress = "old-owner@example.com";
+                to.EmailAllowed = true;
                 var from = new User { Username = "Existing", EmailAddress = "existing-owner@example.com" };
                 var package = new PackageRegistration { Id = "CoolStuff" };
 
@@ -678,17 +749,30 @@ namespace NuGetGallery
                 messageService.SendPackageOwnerRemovedNotice(from, to, package);
                 var message = messageService.MockMailSender.Sent.Last();
 
-                Assert.Equal("old-owner@example.com", message.To[0].Address);
+                if (isOrganization)
+                {
+                    AssertMessageSentToPackageOwnershipManagersOfOrganizationOnly(message, to as Organization);
+                }
+                else
+                {
+                    Assert.Equal(to.EmailAddress, message.To[0].Address);
+                }
                 Assert.Equal(TestGalleryNoReplyAddress.Address, message.From.Address);
-                Assert.Equal("existing-owner@example.com", message.ReplyToList.Single().Address);
-                Assert.Contains("The user 'Existing' removed you as an owner of the package 'CoolStuff'.", message.Subject);
-                Assert.Contains("The user 'Existing' removed you as an owner of the package 'CoolStuff'", message.Body);
+                Assert.Equal(from.EmailAddress, message.ReplyToList.Single().Address);
+                var yourString = isOrganization ? "your organization" : "you";
+                Assert.Contains($"The user '{from.Username}' removed {yourString} as an owner of the package '{package.Id}'.", message.Subject);
+                Assert.Contains($"The user '{from.Username}' removed {yourString} as an owner of the package '{package.Id}'", message.Body);
             }
 
-            [Fact]
-            public void DoesNotSendRemovedNoticeIfUserDoesNotAllowEmails()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void DoesNotSendRemovedNoticeIfUserDoesNotAllowEmails(bool isOrganization)
             {
-                var to = new User { Username = "Noob", EmailAddress = "old-owner@example.com", EmailAllowed = false };
+                var to = isOrganization ? GetOrganizationForPackageOwnershipWithoutRecipients() : new User();
+                to.Username = "Noob";
+                to.EmailAddress = "old-owner@example.com";
+                to.EmailAllowed = false;
                 var from = new User { Username = "Existing", EmailAddress = "existing-owner@example.com" };
                 var package = new PackageRegistration { Id = "CoolStuff" };
 
@@ -701,20 +785,41 @@ namespace NuGetGallery
 
         private static Organization GetOrganizationForPackageOwnership()
         {
-            var collaborator = new User("collaborator") { EmailAddress = "collab@org.com" };
-            var admin1 = new User("admin1") { EmailAddress = "admin1@org.com" };
-            var admin2 = new User("admin2") { EmailAddress = "admin2@org.com" };
+            var org = GetOrganizationForPackageOwnershipWithoutRecipients();
+
+            var admin1 = new User("admin1") { EmailAddress = "admin1@org.com", EmailAllowed = true };
+            var admin2 = new User("admin2") { EmailAddress = "admin2@org.com", EmailAllowed = true };
+            
+            org.Members.Add(GetMembershipForPackageOwnership(org, admin1, true));
+            org.Members.Add(GetMembershipForPackageOwnership(org, admin2, true));
+
+            return org;
+        }
+
+        private static Organization GetOrganizationForPackageOwnershipWithoutRecipients()
+        {
+            var collaborator1 = new User("collaborator") { EmailAddress = "collab@org.com", EmailAllowed = true };
+            var collaborator2 = new User("collaboratorUnallowed") { EmailAddress = "collabUnallowed@org.com", EmailAllowed = false };
+            var admin3 = new User("adminUnallowed") { EmailAddress = "adminUnallowed@org.com", EmailAllowed = false };
             var org = new Organization("org")
             {
                 EmailAddress = "org@org.com",
                 Members = new List<Membership>()
             };
 
-            org.Members.Add(GetMembershipForPackageOwnership(org, collaborator, false));
-            org.Members.Add(GetMembershipForPackageOwnership(org, admin1, true));
-            org.Members.Add(GetMembershipForPackageOwnership(org, admin2, true));
+            org.Members.Add(GetMembershipForPackageOwnership(org, collaborator1, false));
+            org.Members.Add(GetMembershipForPackageOwnership(org, collaborator2, false));
+            org.Members.Add(GetMembershipForPackageOwnership(org, admin3, true));
 
             return org;
+        }
+
+        private static void AddMembershipForPackageOwnership(Organization org, User member, bool isAdmin)
+        {
+            var membership = GetMembershipForPackageOwnership(org, member, isAdmin);
+
+            org.Members.Add(membership);
+            member.Organizations = new[] { membership };
         }
 
         private static Membership GetMembershipForPackageOwnership(Organization org, User member, bool isAdmin)
@@ -736,11 +841,11 @@ namespace NuGetGallery
             // Each member must appear in the To list at least once.
             foreach (var member in membersAllowedToAct)
             {
-                Assert.True(message.To.Any(a => member.EmailAddress == a.Address));
+                Assert.True(!member.EmailAllowed || message.To.Any(a => member.EmailAddress == a.Address));
             }
 
             // The size of the To list and admins should be the same.
-            Assert.Equal(membersAllowedToAct.Count(), message.To.Count());
+            Assert.Equal(membersAllowedToAct.Count(m => m.EmailAllowed), message.To.Count());
         }
 
         public class TheSendResetPasswordInstructionsMethod
