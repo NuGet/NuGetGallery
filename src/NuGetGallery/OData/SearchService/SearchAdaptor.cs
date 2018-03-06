@@ -291,7 +291,7 @@ namespace NuGetGallery.OData
             return true;
         }
         
-        public static Uri GetNextLink(Uri currentRequestUri, long? totalResultCount, object queryParameters, ODataQueryOptions options, ODataQuerySettings settings)
+        public static Uri GetNextLink(Uri currentRequestUri, long? totalResultCount, object queryParameters, ODataQueryOptions options, ODataQuerySettings settings, int? semVerLevelKey)
         {
             if (!totalResultCount.HasValue || totalResultCount.Value <= MaxPageSize || totalResultCount.Value == 0)
             {
@@ -372,6 +372,14 @@ namespace NuGetGallery.OData
                 queryBuilder.Append("$top=");
                 queryBuilder.Append(options.Top.RawValue);
                 queryBuilder.Append("&");
+            }
+
+            if (semVerLevelKey != null)
+            {
+                if(semVerLevelKey == SemVerLevelKey.SemVer2)
+                {
+                    queryBuilder.Append("semVerLevel=2.0.0&");
+                }
             }
 
             var queryString = queryBuilder.ToString().TrimEnd('&');
