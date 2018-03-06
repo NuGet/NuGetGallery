@@ -230,16 +230,47 @@ namespace NuGetGallery
         /// <summary>
         /// Find packages by owner, including organization owners that the user belongs to.
         /// </summary>
-        public IEnumerable<Package> FindPackagesByAnyMatchingOwner(User user, bool includeUnlisted, bool includeVersions = false)
+        public IEnumerable<Package> FindPackagesByAnyMatchingOwner(
+            User user,
+            bool includeUnlisted,
+            bool includeVersions = false)
         {
             var ownerKeys = user.Organizations.Select(org => org.OrganizationKey).ToList();
             ownerKeys.Insert(0, user.Key);
 
-            var packages = GetPackagesForOwners(ownerKeys, includeUnlisted);
+            IQueryable<Package> packages = _packageRepository.GetAll()
+                .Where(p => p.PackageRegistration.Owners.Any(o => ownerKeys.Contains(o.Key)));
 
-            return includeVersions
-                ? packages
-                : GetLatestPackageForEachRegistration(packages.ToList());
+            if (!includeUnlisted)
+            {
+                packages = packages.Where(p => p.Listed);
+            }
+
+            if (includeVersions)
+            {
+                return packages
+                .Include(p => p.PackageRegistration)
+                .Include(p => p.PackageRegistration.Owners)
+                .ToList();
+            }
+
+            // Do a best effort of retrieving the latest version. Note that UpdateIsLatest has had concurrency issues
+            // where sometimes packages no rows with IsLatest set. In this case, we'll just select the last inserted
+            // row (descending [Key]) as opposed to reading all rows into memory and sorting on NuGetVersion.
+            return packages
+                .GroupBy(p => p.PackageRegistrationKey)
+                .Select(g => g
+                    // order booleans desc so that true (1) comes first
+                    .OrderByDescending(p => p.IsLatestStableSemVer2)
+                    .ThenByDescending(p => p.IsLatestStable)
+                    .ThenByDescending(p => p.IsLatestSemVer2)
+                    .ThenByDescending(p => p.IsLatest)
+                    .ThenByDescending(p => p.Listed)
+                    .ThenByDescending(p => p.Key)
+                    .FirstOrDefault())
+                .Include(p => p.PackageRegistration)
+                .Include(p => p.PackageRegistration.Owners)
+                .ToList();
         }
 
         private IEnumerable<Package> GetLatestPackageForEachRegistration(IReadOnlyCollection<Package> packages)

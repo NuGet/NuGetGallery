@@ -366,13 +366,19 @@ namespace NuGetGallery
                 .Select(p => new ListPackageItemViewModel(p, currentUser)).OrderBy(p => p.Id)
                 .ToList();
 
+            // find all received ownership requests
             var userReceived = _packageOwnerRequestService.GetPackageOwnershipRequests(newOwner: currentUser);
             var orgReceived = currentUser.Organizations
                 .Where(m => ActionsRequiringPermissions.HandlePackageOwnershipRequest.CheckPermissions(currentUser, m.Organization) == PermissionsCheckResult.Allowed)
                 .SelectMany(m => _packageOwnerRequestService.GetPackageOwnershipRequests(newOwner: m.Organization));
             var received = userReceived.Union(orgReceived);
-            
-            var sent = packages.SelectMany(p => _packageOwnerRequestService.GetPackageOwnershipRequests(package: p.PackageRegistration));
+
+            // find all sent ownership requests
+            var userSent = _packageOwnerRequestService.GetPackageOwnershipRequests(requestingOwner: currentUser);
+            var orgSent = currentUser.Organizations
+                .Where(m => ActionsRequiringPermissions.HandlePackageOwnershipRequest.CheckPermissions(currentUser, m.Organization) == PermissionsCheckResult.Allowed)
+                .SelectMany(m => _packageOwnerRequestService.GetPackageOwnershipRequests(requestingOwner: m.Organization));
+            var sent = userSent.Union(orgSent);
 
             var ownerRequests = new OwnerRequestsViewModel(received, sent, currentUser, _packageService);
 
